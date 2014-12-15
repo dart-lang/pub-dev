@@ -1,0 +1,18 @@
+{{! Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<h3>Set the private key</h3>
+
+{{#already_set}}
+  <h4>Note: the private key has already been set.</h4>
+{{/already_set}}
+
+{{^production}}
+  <p>In development, the private key may be any string.</p>
+{{/production}}
+
+<form action="/private-keys" method="POST" id="private-key">
+  <textarea name="key" cols="64"></textarea>
+  <input type="submit" value="Set Key" />
+</form>

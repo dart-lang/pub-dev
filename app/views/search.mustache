@@ -1,0 +1,27 @@
+{{! Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<h1>Search Results for &ldquo;{{query}}&rdquo;</h1>
+{{#hasResults}}
+  <table class="search-results">
+  <tbody>
+{{/hasResults}}
+{{#results}}
+  <tr>
+  <td>
+  <h3><a href="{{url}}">{{name}} <small>{{version}}</small></a></h3>
+  <p>{{desc}}</p>
+  <p><small>last updated {{last_uploaded}}</small></p>
+  </td>
+  </tr>
+{{/results}}
+{{#hasResults}}
+  </tbody>
+  </table>
+{{/hasResults}}
+{{^hasResults}}
+  <p>Search for &ldquo;{{query}}&rdquo; did not match any packages.</p>
+{{/hasResults}}
+
+{{{pagination}}}

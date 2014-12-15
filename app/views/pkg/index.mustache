@@ -1,0 +1,27 @@
+{{! Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<h1>Packages</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Package</th>
+      <th>Description</th>
+      <th width="200">Author(s)</th>
+      <th width="100">Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#packages}}
+      <tr>
+        <td><strong><a href="/packages/{{name}}">{{name}}</a></strong></td>
+        <td>{{#description}}{{ellipsized_description}}{{/description}}</td>
+        <td>{{& authors_html}}</td>
+        <td>{{short_updated}}</td>
+      </tr>
+    {{/packages}}
+  </tbody>
+</table>
+
+{{{pagination}}}

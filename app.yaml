@@ -1,0 +1,35 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+version: dartpub
+runtime: custom
+vm: true
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /static
+  static_dir: static
+  secure: always
+
+- url: /(.*\.ico)
+  static_files: static/\1
+  expiration: 7d
+  upload: static/(.*\.ico)
+  secure: always
+
+- url: /img/
+  static_dir: static/img
+  secure: always
+
+- url: /.*
+  script: dartapp
+  secure: always
+
+manual_scaling:
+  instances: 1
+
+skip_files:
+- ^((?!packages).)*$
+
