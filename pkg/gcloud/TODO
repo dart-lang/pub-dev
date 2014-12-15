@@ -1,0 +1,12 @@
+all apis:
+  exception handling (let low-level through, or not)
+
+db:
+  commit: insert/update/upsert/delete
+  annotations: annotated constructor, with annotated arguments.
+
+datastore:
+  commit: insert/update/upsert/delete
+  apiary hack: remove this
+  apiary lookup-after-write: not working
+  apiary offset: didn't skip over offset error
