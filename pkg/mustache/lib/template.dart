@@ -193,9 +193,9 @@ class _Template implements Template {
 	}
 
 	_renderSectionWithValue(node, value) {
-		_stack.add(value);
+		if (value != null) _stack.add(value);
 		node.children.forEach(_renderNode);
-		_stack.removeLast();
+		if (value != null) _stack.removeLast();
 	}
 
 	_renderSection(node) {
@@ -217,11 +217,7 @@ class _Template implements Template {
 					'section: ${node.value}, '
 					'at: ${node.line}:${node.column}.', node.line, node.column);
 		} else {
-			throw new MustacheFormatException(
-				'Invalid value type for section, '
-				'section: ${node.value}, '
-				'type: ${value.runtimeType}, '
-				'at: ${node.line}:${node.column}.', node.line, node.column);
+			_renderSectionWithValue(node, null);
 		}
 	}
 
@@ -243,11 +239,7 @@ class _Template implements Template {
 					'at: ${node.line}:${node.column}.', node.line, node.column);
 			}
 		} else {
-			throw new MustacheFormatException(
-				'Invalid value type for inverse section, '
-				'section: ${node.value}, '
-				'type: ${value.runtimeType}, '
-				'at: ${node.line}:${node.column}.', node.line, node.column);
+		  // Do nothing.
 		}
 	}
 

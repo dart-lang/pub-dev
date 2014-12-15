@@ -94,6 +94,8 @@ runTests(Datastore datastore) {
   }
 
   bool compareKey(Key a, Key b, {bool ignoreIds: false}) {
+    if (a == null) return b == null;
+    if (b == null) return a == null;
     if (a.partition != b.partition) return false;
     if (a.elements.length != b.elements.length) return false;
     for (int i = 0; i < a.elements.length; i++) {
@@ -123,9 +125,17 @@ runTests(Datastore datastore) {
           for (var i = 0; i < b1.length; i++) {
             if (b1[i] != b2[i]) return false;
           }
-          return true;
+        } else {
+          return false;
         }
-        return false;
+      } else if (a.properties[key] is Entity) {
+        if (b.properties[key] is Entity) {
+          if (!compareEntity(a.properties[key], b.properties[key])) {
+            return false;
+          }
+        } else {
+          return false;
+        }
       } else {
         if (a.properties[key] != b.properties[key]) {
           return false;

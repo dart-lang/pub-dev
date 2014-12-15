@@ -147,9 +147,17 @@ runTests(Datastore datastore) {
           for (var i = 0; i < b1.length; i++) {
             if (b1[i] != b2[i]) return false;
           }
-          return true;
+        } else {
+          return false;
         }
-        return false;
+      } else if (a.properties[key] is Entity) {
+        if (b.properties[key] is Entity) {
+          if (!compareEntity(a.properties[key], b.properties[key])) {
+            return false;
+          }
+        } else {
+          return false;
+        }
       } else {
         if (a.properties[key] != b.properties[key]) {
           return false;

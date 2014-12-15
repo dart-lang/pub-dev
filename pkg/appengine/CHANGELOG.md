@@ -1,4 +1,4 @@
-## 0.2.4
+## 0.2.5
 
 * Added withAppEngineServices() function which allows running arbitrary code
   using AppEngine services via a service scope.

@@ -18,7 +18,6 @@ const TEST_UNINDEXED_PROPERTY = 'unindexedProp';
 const TEST_BLOB_INDEXED_PROPERTY = 'blobPropertyIndexed';
 final TEST_BLOB_INDEXED_VALUE = new BlobValue([0xaa, 0xaa, 0xff, 0xff]);
 
-
 buildKey(int i, {Function idFunction, String kind : TEST_KIND}) {
   return new Key(
       [new KeyElement(kind, idFunction == null ? null : idFunction(i))]);
@@ -79,19 +78,46 @@ List<Entity> buildEntityWithAllProperties(
           new DateTime.fromMillisecondsSinceEpoch(1, isUtc: true).add(us42),
       'keyProperty' : buildKey(1, idFunction: (i) => 's$i', kind: kind),
       'listProperty' : [
-        42,
-        4.2,
-        'foobar',
-        buildKey(1, idFunction: (i) => 's$i', kind: 'TestKind'),
+          42,
+          4.2,
+          'foobar',
+          buildKey(1, idFunction: (i) => 's$i', kind: 'TestKind'),
       ],
     };
+  }
+
+  Entity buildEmbeddedEntity(bool nullKey, bool partialKey) {
+    var embeddedKey;
+    if (nullKey) {
+      embeddedKey = null;
+    } else if (partialKey) {
+      embeddedKey = buildKey(null, idFunction: (i) => null, kind: kind);
+    } else {
+      embeddedKey = buildKey(4242, idFunction: (i) => 'allprop$i', kind: kind);
+    }
+
+    var embeddedEntityProperties = buildProperties(4242);
+    return new Entity(
+        embeddedKey, embeddedEntityProperties, unIndexedProperties: unIndexed);
   }
 
   var entities = [];
   for (var i = from; i < to; i++) {
     var key = buildKey(i, idFunction: (i) => 'allprop$i', kind: kind);
+    var unIndexedCopy = new Set.from(unIndexed);
     var properties = buildProperties(i);
-    entities.add(new Entity(key, properties, unIndexedProperties: unIndexed));
+
+    properties['entityPropertyNullKey'] = buildEmbeddedEntity(true, false);
+    unIndexedCopy.add('entityPropertyNullKey');
+
+    properties['entityPropertyPartialKey'] = buildEmbeddedEntity(false, true);
+    unIndexedCopy.add('entityPropertyPartialKey');
+
+    properties['entityPropertyFullKey'] = buildEmbeddedEntity(false, false);
+    unIndexedCopy.add('entityPropertyFullKey');
+
+    entities.add(
+        new Entity(key, properties, unIndexedProperties: unIndexedCopy));
   }
   return entities;
 }

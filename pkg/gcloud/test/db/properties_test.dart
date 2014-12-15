@@ -151,6 +151,7 @@ main() {
           [new datastore.KeyElement('MyKind', 42)],
           partition: new datastore.Partition('foonamespace'));
       var dbKey = new KeyMock(datastoreKey);
+
       var modelDBMock = new ModelDBMock(datastoreKey, dbKey);
 
       var prop = const ModelKeyProperty(required: true);
@@ -165,6 +166,32 @@ main() {
       expect(prop.decodePrimitiveValue(modelDBMock, null), equals(null));
       expect(prop.decodePrimitiveValue(modelDBMock, datastoreKey),
              equals(dbKey));
+    });
+
+    test('model_property', () {
+      var datastoreKey = new datastore.Key(
+          [new datastore.KeyElement('MyKind', 42)],
+          partition: new datastore.Partition('foonamespace'));
+      var properties = {'a' : 1};
+      var datastoreEntity = new datastore.Entity(datastoreKey, properties);
+
+      var dbKey = new KeyMock(datastoreKey);
+      var dbModel = new ModelMock()..entity = datastoreEntity;
+
+      var modelDBMock = new ModelDBMock(datastoreKey, dbKey);
+
+      var prop = const ModelProperty(required: true);
+      expect(prop.validate(modelDBMock, null), isFalse);
+
+      prop = const ModelProperty(required: false);
+      expect(prop.validate(modelDBMock, null), isTrue);
+      expect(prop.validate(modelDBMock, dbModel), isTrue);
+      expect(prop.validate(modelDBMock, datastoreEntity), isFalse);
+      expect(prop.encodeValue(modelDBMock, null), equals(null));
+      expect(prop.encodeValue(modelDBMock, dbModel), equals(datastoreEntity));
+      expect(prop.decodePrimitiveValue(modelDBMock, null), equals(null));
+      expect(prop.decodePrimitiveValue(modelDBMock, datastoreEntity),
+             equals(dbModel));
     });
   });
 }
@@ -217,6 +244,7 @@ class KeyMock implements Key {
 class ModelDBMock implements ModelDB {
   final datastore.Key _datastoreKey;
   final Key _dbKey;
+
   ModelDBMock(this._datastoreKey, this._dbKey);
 
   Key fromDatastoreKey(datastore.Key datastoreKey) {
@@ -233,9 +261,23 @@ class ModelDBMock implements ModelDB {
     return _datastoreKey;
   }
 
-  Map<String, Property> propertiesForModel(modelDescription) => null;
-  Model fromDatastoreEntity(datastore.Entity entity) => null;
-  datastore.Entity toDatastoreEntity(Model model) => null;
+  Model fromDatastoreEntity(datastore.Entity entity) {
+    return new ModelMock()..entity = entity;
+  }
+
+  datastore.Entity toDatastoreEntity(Model model) {
+    return (model as ModelMock).entity;
+  }
+
   String fieldNameToPropertyName(String kind, String fieldName) => null;
+
   String kindName(Type type) => null;
+}
+
+class ModelMock extends Model {
+  datastore.Entity entity;
+
+  int get hashCode => entity.hashCode;
+
+  bool operator==(other) => other is ModelMock && other.entity == entity;
 }

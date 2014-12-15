@@ -278,3 +278,25 @@ class StringListProperty extends ListProperty {
       : super(const StringProperty(),
               propertyName: propertyName, indexed: indexed);
 }
+
+/// A [Property] whose values are [Model]s themselves.
+///
+/// It will validate that values are `Model` objects before writing them to the
+/// datastore and when reading them back.
+class ModelProperty extends Property {
+  const ModelProperty({String propertyName, bool required: false})
+      : super(propertyName: propertyName, required: required, indexed: false);
+
+  bool validate(ModelDB db, Object value)
+      => super.validate(db, value) && (value == null || value is Model);
+
+  Object decodePrimitiveValue(ModelDB db, Object value) {
+    if (value == null) return value;
+    return db.fromDatastoreEntity(value as datastore.Entity);
+  }
+
+  Object encodeValue(ModelDB db, Object value) {
+    if (value == null) return value;
+    return db.toDatastoreEntity(value as Model);
+  }
+}

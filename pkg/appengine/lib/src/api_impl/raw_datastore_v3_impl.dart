@@ -76,7 +76,7 @@ class Codec {
 
   Codec(this._application);
 
-  raw.Entity decodeEntity(EntityProto pb) {
+  raw.Entity decodeEntity(EntityProto pb, {bool isEmbedded: false}) {
     var properties = {};
     var unIndexedProperties = new Set<String>();
 
@@ -108,18 +108,23 @@ class Codec {
     decodeProperties(pb.property, indexed: true);
     decodeProperties(pb.rawProperty, indexed: false);
 
-    return new raw.Entity(decodeKey(pb.key),
+    return new raw.Entity(decodeKey(pb.key, enforceId: !isEmbedded),
                           properties,
                           unIndexedProperties: unIndexedProperties);
   }
 
   Object decodeValue(Property propertyPb) {
+    // TODO: Maybe handle multiple values
     var pb = propertyPb.value;
     if (pb.hasBytesValue()) {
       switch (propertyPb.meaning) {
         case Property_Meaning.BYTESTRING:
         case Property_Meaning.BLOB:
           return new raw.BlobValue(pb.bytesValue);
+        case Property_Meaning.ENTITY_PROTO:
+          return decodeEntity(
+              new EntityProto.fromBuffer(pb.bytesValue),
+              isEmbedded: true);
         case Property_Meaning.TEXT:
         default:
           return UTF8.decode(pb.bytesValue);
@@ -140,7 +145,10 @@ class Codec {
     } else if (pb.hasDoubleValue()) {
       return pb.doubleValue;
     } else if (pb.hasUserValue()) {
-      throw new UnimplementedError("User values are not supported yet.");
+      // FIXME/TODO: HACK.
+      var email = pb.userValue.email;
+      return new raw.Entity(null, {'email' : email});
+      //throw new UnimplementedError("User values are not supported yet.");
     } else if (pb.hasReferenceValue()) {
       return decodeKeyValue(pb.referenceValue);
     }
@@ -149,6 +157,8 @@ class Codec {
   }
 
   PropertyValue_ReferenceValue encodeKeyValue(raw.Key key) {
+    if (key == null) return null;
+
     var referencePb = new PropertyValue_ReferenceValue();
     var partition = key.partition;
     if (partition != null && partition.namespace != null) {
@@ -171,9 +181,12 @@ class Codec {
   }
 
   raw.Key decodeKeyValue(PropertyValue_ReferenceValue pb) {
+    if (pb == null) return null;
+
     var keyElements = [];
     for (var part in pb.pathElement) {
       var id;
+      // TODO: Support partially populated key values?
       if (part.hasName()) {
         id = part.name;
       } else if (part.hasId()) {
@@ -188,7 +201,10 @@ class Codec {
     return new raw.Key(keyElements, partition: partition);
   }
 
-  raw.Key decodeKey(Reference pb) {
+  raw.Key decodeKey(Reference pb, {bool enforceId: true}) {
+    if (pb == null) return null;
+    if (pb.path.element.length == 0) return null;
+
     var keyElements = [];
     for (var part in pb.path.element) {
       var id;
@@ -196,7 +212,7 @@ class Codec {
         id = part.name;
       } else if (part.hasId()) {
         id = part.id.toInt();
-      } else {
+      } else if (enforceId) {
         throw new errors.ProtocolError(
             'Invalid ReferenceValue: no int/string id.');
       }
@@ -208,12 +224,16 @@ class Codec {
 
   EntityProto encodeEntity(raw.Entity entity) {
     var pb = new EntityProto();
-    pb.key = encodeKey(entity.key, enforceId: false);
-    if (entity.key.elements.length > 1) {
-      pb.entityGroup =
-          _encodePath([entity.key.elements.first], enforceId: true);
-    } else {
-      pb.entityGroup = new Path();
+
+    var key = encodeKey(entity.key, enforceId: false);
+    if (key != null) {
+      pb.key = key;
+      if (entity.key.elements.length > 1) {
+        pb.entityGroup =
+            _encodePath([entity.key.elements.first], enforceId: true);
+      } else {
+        pb.entityGroup = new Path();
+      }
     }
 
     var unIndexedProperties = entity.unIndexedProperties;
@@ -245,6 +265,8 @@ class Codec {
   }
 
   Reference encodeKey(raw.Key key, {bool enforceId: true}) {
+    if (key == null) return null;
+
     var partition = key.partition;
 
     var pb = new Reference();
@@ -315,6 +337,10 @@ class Codec {
       var usSinceEpoch = new Int64(value.toUtc().millisecondsSinceEpoch * 1000);
       pb.value = new PropertyValue()..int64Value = usSinceEpoch;
       pb.meaning = Property_Meaning.GD_WHEN;
+    } else if (value is raw.Entity) {
+      pb.value = new PropertyValue()
+          ..bytesValue = encodeEntity(value).writeToBuffer();
+      pb.meaning = Property_Meaning.ENTITY_PROTO;
     } else {
       throw new raw.ApplicationError(
           'Cannot encode unsupported ${value.runtimeType} type.');

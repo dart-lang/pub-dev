@@ -30,6 +30,8 @@ class DatastoreImpl implements datastore.Datastore {
       : _api = new api.DatastoreApi(client);
 
   api.Key _convertDatastore2ApiKey(datastore.Key key) {
+    if (key == null) return null;
+
     var apiKey = new api.Key();
 
     apiKey.partitionId = new api.PartitionId()
@@ -50,15 +52,20 @@ class DatastoreImpl implements datastore.Datastore {
     return apiKey;
   }
 
-  static datastore.Key _convertApi2DatastoreKey(api.Key key) {
+  static datastore.Key _convertApi2DatastoreKey(
+      api.Key key, {bool requireCompleteKey: true}) {
+    if (key == null) return null;
+
     var elements = key.path.map((api.KeyPathElement element) {
       if (element.id != null) {
         return new datastore.KeyElement(element.kind, int.parse(element.id));
       } else if (element.name != null) {
         return new datastore.KeyElement(element.kind, element.name);
-      } else {
+      } else if (requireCompleteKey) {
         throw new datastore.DatastoreError(
             'Invalid server response: Expected allocated name/id.');
+      } else {
+        return new datastore.KeyElement(element.kind, null);
       }
     }).toList();
 
@@ -71,6 +78,9 @@ class DatastoreImpl implements datastore.Datastore {
   }
 
   bool _compareApiKey(api.Key a, api.Key b) {
+    if (a == null) return b == null;
+    if (b == null) return a == null;
+
     if (a.path.length != b.path.length) return false;
 
     // FIXME(Issue #2): Is this comparison working correctly?
@@ -104,14 +114,15 @@ class DatastoreImpl implements datastore.Datastore {
     else if (value.blobValue != null)
       return new datastore.BlobValue(value.blobValueAsBytes);
     else if (value.keyValue != null)
-      return _convertApi2DatastoreKey(value.keyValue);
+      return _convertApi2DatastoreKey(
+          value.keyValue, requireCompleteKey: false);
     else if (value.listValue != null)
       // FIXME(Issue #3): Consistently handle exceptions.
       throw new Exception('Cannot have lists inside lists.');
     else if (value.blobKeyValue != null)
       throw new UnsupportedError('Blob keys are not supported.');
     else if (value.entityValue != null)
-      throw new UnsupportedError('Entity values are not supported.');
+      return _convertApi2DatastoreEntity(value.entityValue, isEmbedded: true);
     return null;
   }
 
@@ -142,6 +153,12 @@ class DatastoreImpl implements datastore.Datastore {
     } else if (value is datastore.Key) {
       return apiValue
           ..keyValue = _convertDatastore2ApiKey(value);
+    } else if (value is datastore.Entity) {
+      if (indexed) {
+        throw new Exception('Entity property values cannot be indexed.');
+      }
+      return apiValue
+          ..entityValue = _convertDatastore2ApiEntity(value);
     } else if (value is List) {
       if (!lists) {
         // FIXME(Issue #3): Consistently handle exceptions.
@@ -173,14 +190,16 @@ class DatastoreImpl implements datastore.Datastore {
     else if (property.blobValue != null)
       return new datastore.BlobValue(property.blobValueAsBytes);
     else if (property.keyValue != null)
-      return _convertApi2DatastoreKey(property.keyValue);
+      return _convertApi2DatastoreKey(
+          property.keyValue, requireCompleteKey: false);
     else if (property.listValue != null)
       return
           property.listValue.map(_convertApi2DatastorePropertyValue).toList();
     else if (property.blobKeyValue != null)
       throw new UnsupportedError('Blob keys are not supported.');
     else if (property.entityValue != null)
-      throw new UnsupportedError('Entity values are not supported.');
+      return _convertApi2DatastoreEntity(
+          property.entityValue, isEmbedded: true);
     return null;
   }
 
@@ -211,6 +230,12 @@ class DatastoreImpl implements datastore.Datastore {
     } else if (value is datastore.Key) {
       return apiProperty
           ..keyValue = _convertDatastore2ApiKey(value);
+    } else if (value is datastore.Entity) {
+      if (indexed) {
+        throw new Exception('Entity property values cannot be indexed.');
+      }
+      return apiProperty
+          ..entityValue = _convertDatastore2ApiEntity(value);
     } else if (value is List) {
       if (!lists) {
         // FIXME(Issue #3): Consistently handle exceptions.
@@ -225,7 +250,8 @@ class DatastoreImpl implements datastore.Datastore {
     }
   }
 
-  static datastore.Entity _convertApi2DatastoreEntity(api.Entity entity) {
+  static datastore.Entity _convertApi2DatastoreEntity(
+      api.Entity entity, {bool isEmbedded: false}) {
     var unindexedProperties = new Set();
     var properties = {};
 
@@ -254,9 +280,10 @@ class DatastoreImpl implements datastore.Datastore {
         }
       });
     }
-    return new datastore.Entity(_convertApi2DatastoreKey(entity.key),
-                                properties,
-                                unIndexedProperties: unindexedProperties);
+    return new datastore.Entity(
+        _convertApi2DatastoreKey(entity.key, requireCompleteKey: !isEmbedded),
+        properties,
+        unIndexedProperties: unindexedProperties);
   }
 
   api.Entity _convertDatastore2ApiEntity(datastore.Entity entity) {
