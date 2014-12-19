@@ -7,8 +7,6 @@ library pub_dartlang_org.model_properties;
 import 'package:gcloud/db.dart';
 import 'package:yaml/yaml.dart';
 
-import 'pickle.dart' as pickle;
-
 class Pubspec {
   final String yamlString;
   Map _json;
@@ -77,33 +75,8 @@ class PubspecProperty extends StringProperty {
 }
 
 class FileObject {
-  final pickle.PickleObject _obj;
+  final String filename;
+  final String text;
 
-  FileObject(this._obj);
-
-  String get filename => _obj.properties['filename'];
-
-  String get text => _obj.properties['text'];
-}
-
-class FileProperty extends BlobProperty {
-  const FileProperty({String propertyName, bool required: false})
-      : super(propertyName: propertyName, required: required);
-
-  bool validate(ModelDB db, Object value) {
-    return (!required || value != null) &&
-        (value == null || value is FileObject);
-  }
-
-  String encodeValue(ModelDB db, FileObject pickle) {
-    if (pickle == null) return null;
-    throw 'not supported yet';
-  }
-
-  Object decodePrimitiveValue(ModelDB db, value) {
-    if (value == null) return null;
-    var pickleObj = pickle.dePickle(super.decodePrimitiveValue(db, value));
-    if (pickleObj == null) return null;
-    return new FileObject(pickleObj);
-  }
+  FileObject(this.filename, this.text);
 }

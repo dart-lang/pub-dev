@@ -39,13 +39,8 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_version')
   db.Key latestVersion;
 
-  // NOTE:
-  // additionalProperties['uploader'] looks like: {auth_domain, email, user_id}
-  List<String> get uploaderEmails {
-    var uploaders = additionalProperties['uploaders'];
-    if (uploaders is! List) uploaders = [uploaders];
-    return uploaders.map((uploader) => uploader.properties['email']).toList();
-  }
+  @db.StringListProperty()
+  List<String> uploaderEmails;
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -72,11 +67,29 @@ class PackageVersion extends db.ExpandoModel {
   @PubspecProperty(required: true)
   Pubspec pubspec;
 
-  @FileProperty()
-  FileObject readme;
+  @db.StringProperty()
+  String readmeFilename;
 
-  @FileProperty()
-  FileObject changelog;
+  @db.StringProperty()
+  String readmeContent;
+
+  FileObject get readme {
+    if (readmeFilename != null)
+      return new FileObject(readmeFilename, readmeContent);
+    return null;
+  }
+
+  @db.StringProperty()
+  String changelogFilename;
+
+  @db.StringProperty()
+  String changelogContent;
+
+  FileObject get changelog {
+    if (changelogFilename != null)
+      return new FileObject(changelogFilename, changelogContent);
+    return null;
+  }
 
   @db.StringListProperty()
   List<String> libraries;
@@ -89,10 +102,8 @@ class PackageVersion extends db.ExpandoModel {
   @db.IntProperty(propertyName: 'sort_order')
   int sortOrder;
 
-  // NOTE:
-  // additionalProperties['uploader'] looks like: {auth_domain, email, user_id}
-  String get uploaderEmail
-      => (additionalProperties['uploader'] as dynamic).properties['email'];
+  @db.StringProperty(required: true)
+  String uploaderEmail;
 
   // Convenience Fields:
 
