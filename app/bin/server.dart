@@ -33,7 +33,7 @@ const List<String> SCOPES = const [
 ];
 
 void main() {
-  bool localDevelopment = true;
+  bool localDevelopment = false;
 
   withAppEngineServices(() async {
     var authClient = await auth.clientViaServiceAccount(Credentials, SCOPES);

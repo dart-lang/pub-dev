@@ -196,7 +196,9 @@ shelf.Response _notFoundHandler(request) {
 
 shelf.Response _htmlResponse(String content, {int status: 200}) {
   return new shelf.Response(
-      status, body: content, headers: {'content-type' : 'text/html'});
+      status,
+      body: content,
+      headers: {'content-type' : 'text/html; charset=utf-8'});
 }
 
 shelf.Response _redirectResponse(url) {
