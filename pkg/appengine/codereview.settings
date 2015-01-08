@@ -1,3 +1,0 @@
-CODE_REVIEW_SERVER: http://codereview.chromium.org/
-VIEW_VC: https://github.com/dart-lang/appengine/commit/
-CC_LIST: prometheus-dart-reviews@google.com, reviews@dartlang.org

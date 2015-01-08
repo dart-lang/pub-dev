@@ -17,9 +17,5 @@ dev_dependencies:
 dependency_overrides:
   pubserver:
     path: ../pkg/pubserver
-  appengine:
-    path: ../pkg/appengine
-  gcloud:
-    path: ../pkg/gcloud
   mustache:
     path: ../pkg/mustache

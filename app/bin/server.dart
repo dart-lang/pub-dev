@@ -118,7 +118,6 @@ void initApiaryStorage(authClient) {
 void initApiaryDatastore(authClient) {
   var ds = new datastore_impl.DatastoreImpl(authClient, 's~$ProjectId');
   db.registerDbService(new db.DatastoreDB(ds));
-  registerScopeExitCallback(() => authClient.close());
 }
 
 Future initSearchService() async {

@@ -202,7 +202,7 @@ shelf.Response _htmlResponse(String content, {int status: 200}) {
 }
 
 shelf.Response _redirectResponse(url) {
-  return new shelf.Response.found(url);
+  return new shelf.Response.seeOther(url);
 }
 
 

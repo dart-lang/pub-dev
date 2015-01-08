@@ -195,7 +195,7 @@ class ShelfPubServer {
     if (repository.supportsDownloadUrl) {
       return repository.downloadUrl(package, version).then((Uri url) {
         // This is a redirect to [url]
-        return new shelf.Response.found(url);
+        return new shelf.Response.seeOther(url);
       });
     }
     return repository.download(package, version).then((stream) {
