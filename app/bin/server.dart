@@ -12,6 +12,7 @@ import 'package:gcloud/storage.dart';
 import 'package:gcloud/db.dart' show dbService;
 import 'package:gcloud/src/datastore_impl.dart' as datastore_impl;
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:logging/logging.dart';
 import 'package:pubserver/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -32,8 +33,51 @@ const List<String> SCOPES = const [
     "https://www.googleapis.com/auth/userinfo.email",
 ];
 
+Logger logger = new Logger('pub');
+
+void setupAppEngineLogging() {
+  Map<Level, LogLevel> loggingLevel2appengineLevel = <Level, LogLevel>{
+    Level.OFF: LogLevel.DEBUG,
+    Level.ALL: LogLevel.DEBUG,
+    Level.FINEST: LogLevel.DEBUG,
+    Level.FINER: LogLevel.DEBUG,
+    Level.FINE: LogLevel.DEBUG,
+    Level.CONFIG: LogLevel.INFO,
+    Level.INFO: LogLevel.INFO,
+    Level.WARNING: LogLevel.WARNING,
+    Level.SEVERE: LogLevel.ERROR,
+    Level.SHOUT: LogLevel.CRITICAL,
+  };
+  Logger.root.onRecord.listen((LogRecord record) {
+    record.zone.run(() {
+      var logging = loggingService;
+      if (logging != null) {
+        var level = loggingLevel2appengineLevel[record.level];
+        var message = '${record.loggerName}: ${record.message}';
+
+        addBlock(String header, String body) {
+          body = body.replaceAll('\n', '\n    ');
+          message = '$message\n\n$header:\n    $body';
+        }
+
+        if (record.error != null) addBlock('Error', '${record.error}');
+        if (record.stackTrace != null) {
+          addBlock('Stack', '${record.stackTrace}');
+        }
+
+        logging.log(level, message, timestamp: record.time);
+      } else {
+        print('${record.time} ${record.level} ${record.loggerName}: '
+              '${record.message}');
+      }
+    });
+  });
+}
+
 void main() {
   bool localDevelopment = false;
+
+  setupAppEngineLogging();
 
   withAppEngineServices(() async {
     var authClient = await auth.clientViaServiceAccount(Credentials, SCOPES);
@@ -49,6 +93,8 @@ void main() {
       var storageServiceCopy = storageService;
 
       await runAppEngine((request) {
+        logger.info('Handling request: ${request.uri.path}');
+
         // Here we fork the current service scope and override
         // datastore/storage to be what we setup above.
         return fork(() {
@@ -56,6 +102,8 @@ void main() {
           registerStorageService(storageServiceCopy);
           return shelf_io.handleRequest(request,
                                         (r) => appHandler(r, apiHandler));
+        }).catchError((error, stack) {
+          logger.severe('Request handler failed', error, stack);
         });
       });
     });
