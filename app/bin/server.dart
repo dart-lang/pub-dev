@@ -74,6 +74,29 @@ void setupAppEngineLogging() {
   });
 }
 
+shelf.Request fixRequest(shelf.Request R) {
+  logger.info('URL: ${R.url}');
+  logger.info('Requested URL: ${R.requestedUri}');
+
+  var https = R.headers['x-appengine-https'];
+  if (https != null) {
+    var scheme = R.requestedUri.scheme;
+    if (https == 'on') {
+      scheme = 'https';
+    } else {
+      scheme = 'http';
+    }
+    var requestedUri = R.requestedUri.replace(scheme: scheme);
+    R = new shelf.Request(
+        R.method, requestedUri, protocolVersion: R.protocolVersion,
+        headers: R.headers, body: R.read(),
+        context: R.context);
+
+    logger.info('Requested URL (repaired): ${R.requestedUri}');
+  }
+  return R;
+}
+
 void main() {
   bool localDevelopment = false;
 
@@ -93,15 +116,16 @@ void main() {
       var storageServiceCopy = storageService;
 
       await runAppEngine((request) {
-        logger.info('Handling request: ${request.uri.path}');
+        logger.info('Handling request: ${request.uri}');
 
         // Here we fork the current service scope and override
         // datastore/storage to be what we setup above.
         return fork(() {
           db.registerDbService(dbServiceCopy);
           registerStorageService(storageServiceCopy);
-          return shelf_io.handleRequest(request,
-                                        (r) => appHandler(r, apiHandler));
+          return shelf_io.handleRequest(request, (shelf.Request request) {
+            return appHandler(fixRequest(request), apiHandler);
+          });
         }).catchError((error, stack) {
           logger.severe('Request handler failed', error, stack);
         });
