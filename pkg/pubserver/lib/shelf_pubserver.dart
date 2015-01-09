@@ -157,11 +157,20 @@ class ShelfPubServer {
           'version': version.versionString,
         };
       }
+
+      var latestVersion = packageVersions.last;
+      for (int i = packageVersions.length - 1; i >= 0; i--) {
+        if (!packageVersions[i].version.isPreRelease) {
+          latestVersion = packageVersions[i];
+          break;
+        }
+      }
+
       // TODO: The 'latest' is something we should get rid of, since it's
       // duplicated in 'versions'.
       return {
         'name' : package,
-        'latest' : packageVersion2Json(packageVersions.last),
+        'latest' : packageVersion2Json(latestVersion),
         'versions' : packageVersions.map(packageVersion2Json).toList(),
       };
     }).then(_jsonResponse);
