@@ -130,7 +130,7 @@ class ShelfPubServer {
             request.read());
       }
     }
-    return new Future.value(new shelf.Response.notFound(''));
+    return new Future.value(new shelf.Response.notFound(null));
   }
 
 
@@ -140,12 +140,10 @@ class ShelfPubServer {
     return repository.versions(package).toList()
         .then((List<PackageVersion> packageVersions) {
       if (packageVersions.length == 0) {
-        return new shelf.Response.notFound('');
+        return new shelf.Response.notFound(null);
       }
 
-      packageVersions.sort((a, b) {
-        return a.version.compareTo(b.version);
-      });
+      packageVersions.sort((a, b) => a.version.compareTo(b.version));
 
       // TODO: Add legacy entries (if necessary), such as version_url.
       Map packageVersion2Json(PackageVersion version) {
@@ -168,33 +166,30 @@ class ShelfPubServer {
 
       // TODO: The 'latest' is something we should get rid of, since it's
       // duplicated in 'versions'.
-      return {
+      return _jsonResponse({
         'name' : package,
         'latest' : packageVersion2Json(latestVersion),
         'versions' : packageVersions.map(packageVersion2Json).toList(),
-      };
-    }).then(_jsonResponse);
+      });
+    });
   }
 
   Future<shelf.Response> _showVersion(Uri uri, String package, String version) {
     return repository
-        .versions(package)
-        .where((pv) => pv.versionString == version)
-        .toList().then((versions) {
-          if (versions.length == 0) {
+        .lookupVersion(package, version).then((PackageVersion version) {
+          if (version == null) {
             return new shelf.Response.notFound('');
           }
 
-          var version = versions.first;
           // TODO: Add legacy entries (if necessary), such as version_url.
-          return {
+          return _jsonResponse({
             'archive_url':
                 '${_downloadUrl(
                     uri, version.packageName, version.versionString)}',
             'pubspec': loadYaml(version.pubspecYaml),
             'version': version.versionString,
-          };
-    }).then(_jsonResponse);
+          });
+    });
   }
 
 
