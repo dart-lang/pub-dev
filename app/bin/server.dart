@@ -75,9 +75,6 @@ void setupAppEngineLogging() {
 }
 
 shelf.Request fixRequest(shelf.Request R) {
-  logger.info('URL: ${R.url}');
-  logger.info('Requested URL: ${R.requestedUri}');
-
   var https = R.headers['x-appengine-https'];
   if (https != null) {
     var scheme = R.requestedUri.scheme;
@@ -91,8 +88,6 @@ shelf.Request fixRequest(shelf.Request R) {
         R.method, requestedUri, protocolVersion: R.protocolVersion,
         headers: R.headers, body: R.read(),
         context: R.context);
-
-    logger.info('Requested URL (repaired): ${R.requestedUri}');
   }
   return R;
 }
@@ -124,7 +119,14 @@ void main() {
           db.registerDbService(dbServiceCopy);
           registerStorageService(storageServiceCopy);
           return shelf_io.handleRequest(request, (shelf.Request request) {
-            return appHandler(fixRequest(request), apiHandler);
+            request = fixRequest(request);
+            logger.info('Handling request: ${request.requestedUri}');
+            return appHandler(request, apiHandler).catchError((error, stack) {
+              logger.severe('Request handler failed', error, stack);
+              return new shelf.Response.internalServerError();
+            }).whenComplete(() {
+              logger.info('Request handler done.');
+            });
           });
         }).catchError((error, stack) {
           logger.severe('Request handler failed', error, stack);
