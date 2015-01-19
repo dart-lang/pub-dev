@@ -280,9 +280,11 @@ class ShelfPubServer {
   }
 
   Future<shelf.Response> _jsonResponse(Map json) {
-    return new Future.value(new shelf.Response.ok(
-        JSON.encode(json),
-        headers: {'content-type': 'application/json'}));
+    return new Future.sync(() {
+      return new shelf.Response.ok(
+          JSON.encode(json),
+          headers: {'content-type': 'application/json'});
+    });
   }
 
 

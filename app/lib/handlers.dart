@@ -54,11 +54,11 @@ indexHandler(_) async {
   var versionKeys = packages.map((p) => p.latestVersion).toList();
   var versions = await dbService.lookup(versionKeys);
   assert(!versions.any((version) => version == null));
-  return _htmlResponse(renderIndexPage(versions));
+  return _htmlResponse(templateService.renderIndexPage(versions));
 }
 
 /// Handles requests for /authorized
-authorizedHandler(_) => _htmlResponse(renderAuthorizedPage());
+authorizedHandler(_) => _htmlResponse(templateService.renderAuthorizedPage());
 
 /// Handles requests for /doc
 docHandler(shelf.Request request) {
@@ -71,7 +71,7 @@ docHandler(shelf.Request request) {
 }
 
 /// Handles requests for /site-map
-sitemapHandler(_) => _htmlResponse(renderSitemapPage());
+sitemapHandler(_) => _htmlResponse(templateService.renderSitemapPage());
 
 /// Handles requests for /admin
 adminHandler(shelf.Request request) async {
@@ -86,13 +86,14 @@ adminHandler(shelf.Request request) async {
     if (isNonGoogleUser) {
       var status = 'Unauthorized';
       var message = 'You do not have access to this page.';
-      return _htmlResponse(renderErrorPage(status, message, null), status: 403);
+      return _htmlResponse(
+          templateService.renderErrorPage(status, message, null), status: 403);
     } else {
       var privateKeyKey = db.emptyKey.append(PrivateKey, id: 'singleton');
       PrivateKey key = (await db.lookup([privateKeyKey])).first;
       assert(key != null);
       // TODO: Pass `reloadStatus` to renderAdminPage.
-      return _htmlResponse(renderAdminPage(key != null, true));
+      return _htmlResponse(templateService.renderAdminPage(key != null, true));
     }
   }
 }
@@ -101,8 +102,8 @@ adminHandler(shelf.Request request) async {
 searchHandler(shelf.Request request) async {
   var query = request.url.queryParameters['q'];
   if (query == null) {
-    return _htmlResponse(
-        renderSearchPage(query, [], new SearchLinks.empty(query)));
+    return _htmlResponse(templateService.renderSearchPage(
+        query, [], new SearchLinks.empty(query)));
   }
 
   int page = _pageFromUrl(
@@ -112,8 +113,8 @@ searchHandler(shelf.Request request) async {
   int resultCount = PageLinks.RESULTS_PER_PAGE;
   var searchPage = await searchService.search(query, offset, resultCount);
   var links = new SearchLinks(query, searchPage.offset, searchPage.totalCount);
-  return
-      _htmlResponse(renderSearchPage(query, searchPage.packageVersions, links));
+  return _htmlResponse(templateService.renderSearchPage(
+      query, searchPage.packageVersions, links));
 }
 
 /// Handles requests for /packages
@@ -135,7 +136,8 @@ packagesHandler(shelf.Request request) async {
   var pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
   var versionKeys = pagePackages.map((p) => p.latestVersion).toList();
   var versions = await db.lookup(versionKeys);
-  return _htmlResponse(renderPkgIndexPage(pagePackages, versions, links));
+  return _htmlResponse(
+      templateService.renderPkgIndexPage(pagePackages, versions, links));
 }
 
 /// Handles requests for /packages/...
@@ -170,7 +172,7 @@ packageShowHandler(shelf.Request request, String packageName) async {
       db.query(PackageVersion, ancestorKey: package.key).run().toList();
   _sortVersionsDesc(versions);
   var first10Versions = versions.take(10).toList();
-  return _htmlResponse(renderPkgShowPage(
+  return _htmlResponse(templateService.renderPkgShowPage(
       package, first10Versions, first10Versions.last, versions.length));
 }
 
@@ -184,14 +186,16 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
   var versions = await
       db.query(PackageVersion, ancestorKey: package.key).run().toList();
   _sortVersionsDesc(versions);
-  return _htmlResponse(renderPkgVersionsPage(package, versions));
+  return _htmlResponse(
+      templateService.renderPkgVersionsPage(package, versions));
 }
 
 
 shelf.Response _notFoundHandler(request) {
   var status = '404 Not Found';
   var message = 'The path \'${request.url.path}\' was not found.';
-  return _htmlResponse(renderErrorPage(status, message, null), status: 404);
+  return _htmlResponse(
+      templateService.renderErrorPage(status, message, null), status: 404);
 }
 
 shelf.Response _htmlResponse(String content, {int status: 200}) {

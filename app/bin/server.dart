@@ -19,6 +19,7 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/handlers.dart';
+import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
 final String ProjectId = 'mkustermann-dartvm';
@@ -100,6 +101,7 @@ void main() {
   withAppEngineServices(() async {
     var authClient = await auth.clientViaServiceAccount(Credentials, SCOPES);
     registerScopeExitCallback(authClient.close);
+    registerTemplateService(new TemplateService());
 
     return fork(() async {
       initApiaryStorage(authClient);
