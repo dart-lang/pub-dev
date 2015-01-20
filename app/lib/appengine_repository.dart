@@ -14,11 +14,11 @@ import 'models.dart' as models;
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
-class AppEnginePackageRepo extends PackageRepository {
+class GCloudPackageRepo extends PackageRepository {
   final DatastoreDB db;
   _TarballCloudStorage _tarballStorage;
 
-  AppEnginePackageRepo(this.db, Storage storage, String bucket) {
+  GCloudPackageRepo(this.db, Storage storage, String bucket) {
     _tarballStorage = new _TarballCloudStorage(storage, bucket, '');
   }
 

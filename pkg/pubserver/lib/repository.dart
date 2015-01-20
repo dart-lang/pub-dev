@@ -99,7 +99,7 @@ abstract class PackageRepository {
   ///
   /// The returned [AsyncUploadInfo] specifies where the tar.gz file should be
   /// posted to and what headers should be supplied.
-  Future<AsyncUploadInfo> startAsyncUpload(Uri baseRedirectUrl)
+  Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl)
       => new Future.error(new UnsupportedError('No async upload support.'));
 
   /// Finishes the upload of a package.

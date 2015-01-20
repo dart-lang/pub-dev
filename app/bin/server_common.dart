@@ -54,7 +54,7 @@ Future initSearchService() async {
 }
 
 shelf.Handler initPubServer() {
-  var appengineRepo = new AppEnginePackageRepo(
+  var appengineRepo = new GCloudPackageRepo(
       dbService, storageService, 'pub.dartlang.org');
   return new ShelfPubServer(appengineRepo).requestHandler;
 }

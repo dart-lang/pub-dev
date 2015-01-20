@@ -19,12 +19,33 @@ import 'repository.dart';
 ///
 /// The following API endpoints are provided by this shelf handler:
 ///
-///   * /api/packages/<package-name>
-///     [200 OK] [Content-Type: application/json]
-///     {
-///       "name" : "<package-name>",
-///       "latest" : { ...},
-///       "versions" : [
+///   * Getting information about all versions of a package.
+///
+///         GET /api/packages/<package-name>
+///         [200 OK] [Content-Type: application/json]
+///         {
+///           "name" : "<package-name>",
+///           "latest" : { ...},
+///           "versions" : [
+///             {
+///               "version" : "<version>",
+///               "archive_url" : "<download-url tar.gz>",
+///               "pubspec" : {
+///                 "author" : ...,
+///                 "dependencies" : { ... },
+///                 ...
+///               },
+///           },
+///           ...
+///           ],
+///         }
+///         or
+///         [404 Not Found]
+///
+///   * Getting information about a specific (package, version) pair.
+///
+///         GET /api/packages/<package-name>/versions/<version-name>
+///         [200 OK] [Content-Type: application/json]
 ///         {
 ///           "version" : "<version>",
 ///           "archive_url" : "<download-url tar.gz>",
@@ -33,37 +54,52 @@ import 'repository.dart';
 ///             "dependencies" : { ... },
 ///             ...
 ///           },
-///         },
-///         ...
-///       ],
-///     }
-///     or
-///     [404 Not Found]
+///         }
+///         or
+///         [404 Not Found]
 ///
-///   * /api/packages/<package-name>/versions/<version-name>
-///     [200 OK] [Content-Type: application/json]
-///     {
-///       "version" : "<version>",
-///       "archive_url" : "<download-url tar.gz>",
-///       "pubspec" : {
-///         "author" : ...,
-///         "dependencies" : { ... },
-///         ...
-///       },
-///     }
-///     or
-///     [404 Not Found]
+///   * Downloading package.
 ///
-///   * /api/packages/<package-name>/versions/<version-name>.tar.gz
-///     [200 OK] [Content-Type: octet-stream ??? FIXME ???]
-///     or
-///     [302 Found / Temporary Redirect] [Location: <new-location>]
-///     or
-///     [404 Not Found]
+///         GET /api/packages/<package-name>/versions/<version-name>.tar.gz
+///         [200 OK] [Content-Type: octet-stream ??? FIXME ???]
+///         or
+///         [302 Found / Temporary Redirect]
+///         Location: <new-location>
+///         or
+///         [404 Not Found]
 ///
-///   * /api/packages/versions/new
+///   * Uploading
 ///
-///   *
+///         GET /api/packages/versions/new
+///         Headers:
+///           Authorization: Bearer <oauth2-token>
+///         [200 OK]
+///         {
+///           "fields" : {
+///               "a": "...",
+///               "b": "...",
+///               ...
+///           },
+///           "url" : "https://storage.googleapis.com"
+///         }
+///
+///         POST "https://storage.googleapis.com"
+///         Headers:
+///           a: ...
+///           b: ...
+///           ...
+///         <multipart> file package.tar.gz
+///         [302 Found / Temporary Redirect]
+///         Location: https://pub.dartlang.org/finishUploadUrl
+///
+///         GET https://pub.dartlang.org/finishUploadUrl
+///         [200 OK]
+///         {
+///           "success" : {
+///             "message": "Successfully uploaded package.",
+///           },
+///        }
+///
 /// It will use the pub [PackageRepository] given in the constructor to provide
 /// this HTTP endpoint.
 class ShelfPubServer {
@@ -108,6 +144,10 @@ class ShelfPubServer {
       }
 
       if (path == '/api/packages/versions/new') {
+        if (!repository.supportsUpload) {
+          return new Future.value(new shelf.Response.notFound(null));
+        }
+
         if (repository.supportsAsyncUpload) {
           return _startUploadAsync(request.requestedUri);
         } else {
@@ -116,6 +156,10 @@ class ShelfPubServer {
       }
 
       if (path == '/api/packages/versions/newUploadFinish') {
+        if (!repository.supportsUpload) {
+          return new Future.value(new shelf.Response.notFound(null));
+        }
+
         if (repository.supportsAsyncUpload) {
           return _finishUploadAsync(request.requestedUri);
         } else {
@@ -123,6 +167,10 @@ class ShelfPubServer {
         }
       }
     } else if (request.method == 'POST') {
+      if (!repository.supportsUpload) {
+        return new Future.value(new shelf.Response.notFound(null));
+      }
+
       if (path == '/api/packages/versions/newUpload') {
         return _uploadCustom(
             request.requestedUri,
