@@ -32,7 +32,10 @@ final Credentials = new auth.ServiceAccountCredentials.fromJson(
 
 void main() {
   Logger.root.onRecord.listen((LogRecord record) {
-    print('[${record.time}] ${record.level} ${record.message}');
+    print('[${record.time}] ${record.level} ${record.loggerName}: '
+          '${record.message}');
+    if (record.error != null) print('Error: ${record.error}');
+    if (record.stackTrace != null) print('${record.stackTrace}');
   });
 
   fork(() async {
@@ -93,3 +96,4 @@ staticHandler(shelf.Request request) {
     return new shelf.Response.notFound(null);
   }
 }
+

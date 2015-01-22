@@ -4,14 +4,31 @@
 
 library pub_dartlang_org.model_properties;
 
+import 'dart:convert';
+
 import 'package:gcloud/db.dart';
 import 'package:yaml/yaml.dart';
 
 class Pubspec {
-  final String yamlString;
+  final String jsonString;
   Map _json;
 
-  Pubspec(this.yamlString);
+  Pubspec(this.jsonString);
+
+  Pubspec.fromJson(Map json) : jsonString = JSON.encode(json), _json = json;
+
+  factory Pubspec.fromYaml(String yamlString)
+      => new Pubspec.fromJson(loadYaml(yamlString));
+
+  String get name {
+    _load();
+    return _asString(_json['name']);
+  }
+
+  String get version {
+    _load();
+    return _asString(_json['version']);
+  }
 
   String get author {
     _load();
@@ -35,8 +52,8 @@ class Pubspec {
 
   _load() {
     if (_json == null) {
-      if (yamlString != null) {
-        _json = loadYaml(yamlString);
+      if (jsonString != null) {
+        _json = loadYaml(jsonString);
       } else {
         _json = const {};
       }
@@ -65,7 +82,7 @@ class PubspecProperty extends StringProperty {
 
   String encodeValue(ModelDB db, Pubspec pubspec) {
     if (pubspec == null) return null;
-    return pubspec.yamlString;
+    return pubspec.jsonString;
   }
 
   Object decodePrimitiveValue(ModelDB db, String value) {

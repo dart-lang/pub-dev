@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pubserver/repository.dart';
+import 'package:logging/logging.dart';
 
 import 'models.dart' as models;
 
@@ -16,11 +17,12 @@ import 'models.dart' as models;
 /// for metadata and Cloud Storage for tarball storage.
 class GCloudPackageRepo extends PackageRepository {
   final DatastoreDB db;
-  _TarballCloudStorage _tarballStorage;
+  TarballStorage _tarballStorage;
 
-  GCloudPackageRepo(this.db, Storage storage, String bucket) {
-    _tarballStorage = new _TarballCloudStorage(storage, bucket, '');
-  }
+  GCloudPackageRepo(this.db, Bucket bucket)
+      : _tarballStorage = new TarballStorage(bucket, '');
+
+  // Metadata support.
 
   Stream<PackageVersion> versions(String package) {
     var controller;
@@ -32,7 +34,7 @@ class GCloudPackageRepo extends PackageRepository {
           var query = db.query(models.PackageVersion, ancestorKey: packageKey);
           subscription = query.run().listen((models.PackageVersion model) {
             var packageVersion = new PackageVersion(
-                package, model.version, model.pubspec.yamlString);
+                package, model.version, model.pubspec.jsonString);
             controller.add(packageVersion);
           }, onError: (error, stack) => controller.addError(error, stack),
              onDone: () => controller.close());
@@ -51,10 +53,14 @@ class GCloudPackageRepo extends PackageRepository {
 
     models.PackageVersion pv = (await db.lookup([packageVersionKey])).first;
     if (pv == null) return null;
-    return new PackageVersion(package, version, pv.pubspec.yamlString);
+    return new PackageVersion(package, version, pv.pubspec.jsonString);
   }
 
+  // Download support.
+
   Future<Stream<List<int>>> download(String package, String version) {
+    // TODO: Should we first test for existence?
+    // Maybe with a cache?
     return new Future.value(_tarballStorage.download(package, version));
   }
 
@@ -67,24 +73,27 @@ class GCloudPackageRepo extends PackageRepository {
 
 /// Helper utility class for interfacing with Cloud Storage for storing
 /// tarballs.
-class _TarballCloudStorage {
-  final String bucket;
+class TarballStorage {
+  final Bucket bucket;
   final String prefix;
-  final Storage storage;
 
-  _TarballCloudStorage(this.storage, this.bucket, this.prefix);
+  TarballStorage(this.bucket, this.prefix);
 
+  /// Download the tarball of a [package] in the given [version].
   Stream<List<int>> download(String package, String version) {
     var object = _tarballObject(package, version);
-    return storage.bucket(bucket).read(object);
+    return bucket.read(object);
   }
 
+  /// Get the URL to the tarball of a [package] in the given [version].
   Future<Uri> downloadUrl(String package, String version) {
+    // NOTE: We should maybe check for existence first?
+    // return storage.bucket(bucket).info(object)
+    //     .then((info) => info.downloadLink);
+
     var object = _tarballObject(package, version);
     var uri = Uri.parse('https://storage.googleapis.com/$bucket$object');
     return new Future.value(uri);
-    //return storage.bucket(bucket).info(object)
-    //    .then((info) => info.downloadLink);
   }
 
   // TODO: Do we need some kind of escaping here?

@@ -26,6 +26,7 @@ import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
 final String ProjectId = 'mkustermann-dartvm';
+final String PackageBucket = 'mkustermann--pub-packages';
 
 const List<String> SCOPES = const [
     "https://www.googleapis.com/auth/cloud-platform",
@@ -34,11 +35,10 @@ const List<String> SCOPES = const [
     "https://www.googleapis.com/auth/userinfo.email",
 ];
 
-Logger logger = new Logger('pub');
+final Logger logger = new Logger('pub');
 
 
 void initApiaryStorage(authClient) {
-  var ds = new datastore_impl.DatastoreImpl(authClient, 's~$ProjectId');
   registerStorageService(new Storage(authClient, ProjectId));
 }
 
@@ -55,6 +55,6 @@ Future initSearchService() async {
 
 shelf.Handler initPubServer() {
   var appengineRepo = new GCloudPackageRepo(
-      dbService, storageService, 'pub.dartlang.org');
+      dbService, storageService.bucket(PackageBucket));
   return new ShelfPubServer(appengineRepo).requestHandler;
 }

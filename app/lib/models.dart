@@ -8,6 +8,7 @@ import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
 import 'package:intl/intl.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'model_properties.dart';
 
@@ -41,6 +42,8 @@ class Package extends db.ExpandoModel {
 
   @db.StringListProperty()
   List<String> uploaderEmails;
+
+  Version get latestSemanticVersion => new Version.parse(latestVersion.id);
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -106,6 +109,8 @@ class PackageVersion extends db.ExpandoModel {
   String uploaderEmail;
 
   // Convenience Fields:
+
+  Version get semanticVersion => new Version.parse(version);
 
   String get ellipsizedDescription {
     String description = pubspec.description;
