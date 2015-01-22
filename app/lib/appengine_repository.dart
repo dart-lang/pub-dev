@@ -8,10 +8,18 @@ import 'dart:async';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pubserver/repository.dart';
 import 'package:logging/logging.dart';
 
 import 'models.dart' as models;
+
+/// Sets the active logged-in user.
+void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
+
+/// The active logged-in user. This is used for doing authentication checks.
+String get loggedInUser => ss.lookup(#_logged_in_user);
+
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.

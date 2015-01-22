@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/templates.dart';
 
@@ -93,6 +94,10 @@ void main() {
       var storageServiceCopy = storageService;
 
       await runAppEngine((request) {
+        if (context.services.users.currentUser != null) {
+          registerLoggedInUser(context.services.users.currentUser.email);
+        }
+
         // Here we fork the current service scope and override
         // storage to be what we setup above.
         return fork(() {

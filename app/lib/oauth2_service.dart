@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 OAuth2Service get oauth2Service => ss.lookup(#_oauth2_service);
 
 /// Look up the current registered [OAuth2Service].
-void registerOauth2Service(OAuth2Service service)
+void registerOAuth2Service(OAuth2Service service)
     => ss.register(#_oauth2_service, service);
 
 /// A service used for looking up email addresses using an OAuth2 access token.
