@@ -7,6 +7,7 @@ library pubserver.shelf_pubserver;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -14,7 +15,13 @@ import 'package:yaml/yaml.dart';
 
 import 'repository.dart';
 
+final Logger _logger = new Logger('pubserver.shelf_pubserver');
+
 // TODO: Error handling from [PackageRepo] class.
+// Distinguish between:
+//   - Unauthorized Error
+//   - Version Already Exists Error
+//   - Internal Server Error
 /// A shelf handler for serving a pub [PackageRepository].
 ///
 /// The following API endpoints are provided by this shelf handler:
@@ -151,7 +158,7 @@ class ShelfPubServer {
         if (repository.supportsAsyncUpload) {
           return _startUploadAsync(request.requestedUri);
         } else {
-          return _startUploadCustom(request.requestedUri);
+          return _startUploadSimple(request.requestedUri);
         }
       }
 
@@ -163,7 +170,7 @@ class ShelfPubServer {
         if (repository.supportsAsyncUpload) {
           return _finishUploadAsync(request.requestedUri);
         } else {
-          return _finishUploadCustom(request.requestedUri);
+          return _finishUploadSimple(request.requestedUri);
         }
       }
     } else if (request.method == 'POST') {
@@ -172,7 +179,7 @@ class ShelfPubServer {
       }
 
       if (path == '/api/packages/versions/newUpload') {
-        return _uploadCustom(
+        return _uploadSimple(
             request.requestedUri,
             request.headers['content-type'],
             request.read());
@@ -281,15 +288,17 @@ class ShelfPubServer {
 
   // Upload custom handlers.
 
-  Future<shelf.Response> _startUploadCustom(Uri url) {
+  Future<shelf.Response> _startUploadSimple(Uri url) {
+    _logger.info('Start simple upload.');
     return _jsonResponse({
-      'url' : '${_uploadCustomUrl(url)}',
+      'url' : '${_uploadSimpleUrl(url)}',
       'fields' : {},
     });
   }
 
-  Future<shelf.Response> _uploadCustom(
+  Future<shelf.Response> _uploadSimple(
       Uri uri, String contentType, Stream<List<int>> stream) {
+    _logger.info('Perform simple upload.');
     if (contentType.startsWith('multipart/form-data')) {
       var match = _boundaryRegExp.matchAsPrefix(contentType);
       if (match != null) {
@@ -300,7 +309,11 @@ class ShelfPubServer {
           // TODO: Ensure that `part.headers['content-disposition']` is
           // `form-data; name="file"; filename="package.tar.gz`
           return repository.upload(part).then((_) {
-            return new shelf.Response.found(_finishUploadCustomUrl(uri));
+            return new shelf.Response.found(_finishUploadSimpleUrl(uri));
+          }).catchError((error, stack) {
+            // TODO: Do error checking and return error codes?
+            return new shelf.Response.found(
+                _finishUploadSimpleUrl(uri, error: error));
           });
         });
       }
@@ -309,12 +322,15 @@ class ShelfPubServer {
         _badRequest('Upload must contain a multipart/form-data content type.');
   }
 
-  Future<shelf.Response> _finishUploadCustom(Uri uri) {
-    return _jsonResponse({
-      'success' : {
-        'message' : 'Successfully uploaded package.',
-      },
-    });
+  Future<shelf.Response> _finishUploadSimple(Uri uri) {
+    var error = uri.queryParameters['error'];
+    _logger.info('Finish simple upload (error: $error).');
+    if (error != null) {
+      return _jsonResponse(
+          { 'error' : { 'message' : error } }, status: 400);
+    }
+    return _jsonResponse(
+        { 'success' : { 'message' : 'Successfully uploaded package.' } });
   }
 
 
@@ -327,10 +343,10 @@ class ShelfPubServer {
         headers: {'content-type': 'application/json'}));
   }
 
-  Future<shelf.Response> _jsonResponse(Map json) {
+  Future<shelf.Response> _jsonResponse(Map json, {int status: 200}) {
     return new Future.sync(() {
-      return new shelf.Response.ok(
-          JSON.encode(json),
+      return new shelf.Response(status,
+          body: JSON.encode(json),
           headers: {'content-type': 'application/json'});
     });
   }
@@ -368,13 +384,12 @@ class ShelfPubServer {
 
   // Upload custom urls.
 
-  Uri _uploadCustomUrl(Uri url) {
-    var encode = Uri.encodeComponent;
+  Uri _uploadSimpleUrl(Uri url) {
     return url.resolve('/api/packages/versions/newUpload');
   }
 
-  Uri _finishUploadCustomUrl(Uri url) {
-    var encode = Uri.encodeComponent;
-    return url.resolve('/api/packages/versions/newUploadFinish');
+  Uri _finishUploadSimpleUrl(Uri url, {String error}) {
+    var postfix = error == null ? '' : '?error=${Uri.encodeComponent(error)}';
+    return url.resolve('/api/packages/versions/newUploadFinish$postfix');
   }
 }

@@ -61,18 +61,20 @@ void main() {
       var apiHandler = initPubServer();
 
       shelf_io.serve((request) async {
-        var response = staticHandler(request);
-        if (response != null) return response;
+        return fork(() async {
+          var response = staticHandler(request);
+          if (response != null) return response;
 
-        await registerLoggedInUserIfPossible(request);
+          await registerLoggedInUserIfPossible(request);
 
-        logger.info('Handling request: ${request.requestedUri}');
-        var result = new Future.sync(() => appHandler(request, apiHandler));
-        return result.catchError((error, stack) {
-          logger.severe('Request handler failed', error, stack);
-          return new shelf.Response.internalServerError();
-        }).whenComplete(() {
-          logger.info('Request handler done.');
+          logger.info('Handling request: ${request.requestedUri}');
+          var result = new Future.sync(() => appHandler(request, apiHandler));
+          return result.catchError((error, stack) {
+            logger.severe('Request handler failed', error, stack);
+            return new shelf.Response.internalServerError();
+          }).whenComplete(() {
+            logger.info('Request handler done.');
+          });
         });
       }, 'localhost', 8383);
 

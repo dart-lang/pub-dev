@@ -324,6 +324,39 @@ main() {
         }));
       });
 
+      test('sync failure', () async {
+        var tarballBytes = const [1, 2, 3];
+        var newUrl = getUri('/api/packages/versions/new');
+        var uploadUrl = getUri('/api/packages/versions/newUpload');
+        var finishUrl =
+            getUri('/api/packages/versions/newUploadFinish?error=abc');
+        var mock = new RepositoryMock(
+            supportsUpload: true,
+            uploadFun: (Stream<List<int>> stream) {
+          return new Future.error('abc');
+        });
+        var server = new ShelfPubServer(mock);
+
+        // Start upload - would happen here.
+
+        // Post data via a multipart request.
+        var request =  multipartRequest(uploadUrl, tarballBytes);
+        var response = await server.requestHandler(request);
+        await response.read();
+        expect(response.statusCode, equals(302));
+        expect(response.headers['location'], equals('$finishUrl'));
+
+        // Call the `finishUrl`.
+        request = new shelf.Request('GET', finishUrl);
+        response = await server.requestHandler(request);
+        var jsonBody = JSON.decode(await response.readAsString());
+        expect(jsonBody, equals({
+          'error' : {
+            'message' : 'abc'
+          },
+        }));
+      });
+
       test('unsupported', () async {
         var newUrl = getUri('/api/packages/versions/new');
         var mock = new RepositoryMock();

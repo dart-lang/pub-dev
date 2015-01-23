@@ -59,8 +59,8 @@ class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)
   String version;  // Same as id
 
-  @db.ModelKeyProperty(required: true)
-  db.Key package;
+  @db.ModelKeyProperty(required: true, propertyName: 'package')
+  db.Key packageKey;
 
   @db.DateTimeProperty()
   DateTime created;
@@ -123,7 +123,7 @@ class PackageVersion extends db.ExpandoModel {
   }
 
   String get dartdocsUrl {
-    var name = Uri.encodeComponent(package.id);
+    var name = Uri.encodeComponent(packageKey.id);
     var version = Uri.encodeComponent(id);
     return
         'http://www.dartdocs.org/documentation/$name/$version/index.html#$name';
@@ -145,7 +145,7 @@ class PackageVersion extends db.ExpandoModel {
 
 
   String get downloadUrl {
-    var name = package.id;
+    var name = packageKey.id;
     var version = id;
 
     // TODO: namespace handling

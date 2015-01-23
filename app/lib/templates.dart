@@ -104,7 +104,7 @@ class TemplateService {
     } else {
       importExamples = latestVersion.libraries.map((library) {
         return {
-          'package' : latestVersion.package.id,
+          'package' : latestVersion.packageKey.id,
           'library' : library,
         };
       }).toList();
@@ -217,7 +217,7 @@ class TemplateService {
         'recent_packages': recentPackages.map((PackageVersion version) {
           var description = version.ellipsizedDescription;
           return {
-            'name' : version.package.id,
+            'name' : version.packageKey.id,
             'short_updated' : version.shortCreated,
             'latest_version' : {
                 'version' : version.id
@@ -236,7 +236,7 @@ class TemplateService {
                           {PackageVersion packageVersion}) {
     var values = {
       'package': packageVersion == null ? false : {
-        'name' : packageVersion.package.id,
+        'name' : packageVersion.packageKey.id,
         'description' : packageVersion.ellipsizedDescription,
       },
       'title': title,
@@ -271,8 +271,8 @@ class TemplateService {
         'query' : query,
         'results' : latestVersions.map((PackageVersion version) {
            return {
-             'url' : '/packages/${version.package.id}',
-             'name' : version.package.id,
+             'url' : '/packages/${version.packageKey.id}',
+             'name' : version.packageKey.id,
              'version' : version.id,
              'last_uploaded': version.shortCreated,
              'desc' : version.ellipsizedDescription,
