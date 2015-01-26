@@ -282,6 +282,12 @@ class ShelfPubServer {
           'message' : 'Successfully uploaded package.',
         },
       });
+    }).catchError((error, stack) {
+      return _jsonResponse({
+        'error' : {
+          'message' : '$error.',
+        },
+      }, status: 400);
     });
   }
 

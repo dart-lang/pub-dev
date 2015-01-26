@@ -55,6 +55,6 @@ Future initSearchService() async {
 
 shelf.Handler initPubServer() {
   var appengineRepo = new GCloudPackageRepo(
-      dbService, storageService.bucket(PackageBucket));
+      dbService, storageService, storageService.bucket(PackageBucket));
   return new ShelfPubServer(appengineRepo).requestHandler;
 }

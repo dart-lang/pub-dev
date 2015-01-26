@@ -67,6 +67,7 @@ class UploadSignerService {
     var now = new DateTime.now().toUtc();
     var expirationString = now.add(lifetime).toIso8601String();
 
+    object = '$bucket/$object';
     var conditions = [
         {'key' : object},
         {'acl' : predefinedAcl},

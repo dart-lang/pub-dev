@@ -12,9 +12,11 @@ import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pubserver/repository.dart';
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 
 import 'models.dart' as models;
 import 'model_properties.dart';
+import 'upload_signer_service.dart';
 import 'utils.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
@@ -32,10 +34,11 @@ class GCloudPackageRepo extends PackageRepository {
   static const int MAX_TARBALL_SIZE = 10 * 1024  * 1024;
 
   final DatastoreDB db;
+  final Uuid uuid = new Uuid();
   TarballStorage _tarballStorage;
 
-  GCloudPackageRepo(this.db, Bucket bucket)
-      : _tarballStorage = new TarballStorage(bucket, 'test-packages');
+  GCloudPackageRepo(this.db, Storage storage, Bucket bucket)
+      : _tarballStorage = new TarballStorage(storage, bucket, 'test-packages');
 
   // Metadata support.
 
@@ -96,79 +99,124 @@ class GCloudPackageRepo extends PackageRepository {
 
       // Read the entire tarball & keep it in memory (fail if > 10 MB).
       // TODO: Find out why we it times out when we do it in an async scope.
-      return readTarball(data).then((tarball) async {
-        // Parse metadata from the tarball.
-        models.PackageVersion newVersion =
-            await parseAndValidateUpload(tarball, userEmail);
-
-        // Add the new package to the repository by storing the tarball and
-        // inserting metadata to datastore (which happens atomically).
-        await dbService.withTransaction((Transaction T) async {
-          var tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
-          models.PackageVersion version = tuple[0];
-          models.Package package = tuple[1];
-
-          // If the version already exists, we fail.
-          if (version != null) {
-            await T.rollback();
-            throw 'version already exists';
-          }
-
-          // If the package does not exist, then we create a new package.
-          if (package == null) package = newPackageFromVersion(newVersion);
-
-          // Check if the uploader of the new version is allowed to upload to
-          // the package.
-          if (!package.uploaderEmails.contains(newVersion.uploaderEmail)) {
-            await T.rollback();
-            throw new UnauthorizedAccess('Unauthorized user.');
-          }
-
-          // Update the date when the package was last updated.
-          package.updated = newVersion.created;
-
-          // Keep the latest version in the package object up-to-date.
-          if (package.latestSemanticVersion < newVersion.semanticVersion &&
-              (package.latestSemanticVersion.isPreRelease ||
-               !newVersion.semanticVersion.isPreRelease)) {
-            package.latestVersion = newVersion.key;
-          }
-
-          try {
-            _logger.info('Trying to upload tarball to cloud storage.');
-            // Apply update: Push to cloud storage
-            await _tarballStorage.upload(package.name,
-                                         newVersion.version, tarball);
-
-            // Apply update: Update datastore.
-            _logger.info('Trying to commit datastore changes.');
-            T.queueMutations(inserts: [package, newVersion]);
-            await T.commit();
-
-
-            _logger.info('Upload successful.');
-
-            // Defer the creation of sort_order
-            // TODO:
-          } catch (error, stack) {
-            _logger.info('Error while committing: $error, $stack');
-            await T.rollback();
-            rethrow;
-          }
+      // TODO: Try avoid keeping everything in memory and try streaming it
+      // to disc instead.
+      return readTarball(data).then((List<int> tarball) {
+        return _performTarballUpload(userEmail, tarball, (package, version) {
+          return _tarballStorage.upload(package, version, tarball);
         });
       });
     });
   }
 
-  bool get supportsAsyncUpload => false;
+  bool get supportsAsyncUpload => true;
 
-  Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) {
-    return new Future.error(new UnsupportedError('No async upload support.'));
+  Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async {
+    _logger.info('Starting async upload.');
+    // NOTE: We use a authenticated user scope here to ensure the uploading
+    // user is authenticated. But we're not validating anything at this point
+    // because we don't even know which package or version is going to be
+    // uploaded.
+    return withAuthenticatedUser((String userEmail) {
+      _logger.info('User: $userEmail.');
+
+      String guid =  uuid.v4();
+      String object = _tarballStorage.tempObjectName(guid);
+      String bucket = _tarballStorage.bucket.bucketName;
+      Duration lifetime = const Duration(minutes: 10);
+
+      var url = redirectUrl.resolve('?upload_id=$guid');
+
+      _logger.info(
+          'Redirecting pub client to google cloud storage (uuid: $guid)');
+      return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
+    });
   }
 
   /// Finishes the upload of a package.
   Future finishAsyncUpload(Uri uri) {
-    return new Future.error(new UnsupportedError('No async upload support.'));
+    return withAuthenticatedUser((String userEmail) async {
+      var guid = uri.queryParameters['upload_id'];
+      _logger.info('Finishing async upload (uuid: $guid)');
+      _logger.info('Reading tarball from cloud storage.');
+      // TODO: Try avoid keeping everything in memory and try streaming it
+      // to disc instead.
+      var tarball = await readTarball(_tarballStorage.readTempObject(guid));
+      return _performTarballUpload(userEmail, tarball, (package, version) {
+        return _tarballStorage.uploadViaTempObject(guid, package, version);
+      }).whenComplete(() async {
+        _logger.info('Removing temporary object $guid.');
+        await _tarballStorage.removeTempObject(guid);
+      });
+    });
+  }
+
+  Future _performTarballUpload(String userEmail,
+                               List<int> tarball,
+                               Future tarballUpload(name, version)) async {
+      _logger.info('Examining tarball content.');
+
+    // Parse metadata from the tarball.
+    models.PackageVersion newVersion =
+        await parseAndValidateUpload(tarball, userEmail);
+
+    // Add the new package to the repository by storing the tarball and
+    // inserting metadata to datastore (which happens atomically).
+    await dbService.withTransaction((Transaction T) async {
+      _logger.info('Starting datastore transaction.');
+
+      var tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
+      models.PackageVersion version = tuple[0];
+      models.Package package = tuple[1];
+
+      // If the version already exists, we fail.
+      if (version != null) {
+        await T.rollback();
+        _logger.warning('Version already exists, rolling transaction back.');
+        throw 'version already exists';
+      }
+
+      // If the package does not exist, then we create a new package.
+      if (package == null) package = newPackageFromVersion(newVersion);
+
+      // Check if the uploader of the new version is allowed to upload to
+      // the package.
+      if (!package.uploaderEmails.contains(newVersion.uploaderEmail)) {
+        _logger.warning('User is not an uploader, rolling transaction back.');
+        await T.rollback();
+        throw new UnauthorizedAccess('Unauthorized user.');
+      }
+
+      // Update the date when the package was last updated.
+      package.updated = newVersion.created;
+
+      // Keep the latest version in the package object up-to-date.
+      if (package.latestSemanticVersion < newVersion.semanticVersion &&
+          (package.latestSemanticVersion.isPreRelease ||
+           !newVersion.semanticVersion.isPreRelease)) {
+        package.latestVersion = newVersion.key;
+      }
+
+      try {
+        _logger.info('Trying to upload tarball to cloud storage.');
+        // Apply update: Push to cloud storage
+        await tarballUpload(package.name, newVersion.version);
+
+        // Apply update: Update datastore.
+        _logger.info('Trying to commit datastore changes.');
+        T.queueMutations(inserts: [package, newVersion]);
+        await T.commit();
+
+        _logger.info('Upload successful.');
+
+        // Defer the creation of sort_order
+        // TODO:
+      } catch (error, stack) {
+        _logger.warning('Error while committing: $error, $stack');
+        await T.rollback();
+        rethrow;
+      }
+    });
   }
 }
 
@@ -299,10 +347,41 @@ Future<models.PackageVersion> parseAndValidateUpload(List<int> tarball,
 /// Helper utility class for interfacing with Cloud Storage for storing
 /// tarballs.
 class TarballStorage {
+  final Storage storage;
   final Bucket bucket;
   final String prefix;
 
-  TarballStorage(this.bucket, this.prefix);
+  TarballStorage(this.storage, this.bucket, this.prefix);
+
+  /// Generates a path to a temporary object on cloud storage.
+  String tempObjectName(String guid) => 'tmp/$guid';
+
+  /// Reads the temporary object identified by [guid]
+  Stream<List<int>> readTempObject(String guid) => bucket.read('tmp/$guid');
+
+  /// Makes a temporary object a new tarball.
+  Future uploadViaTempObject(String guid,
+                             String package,
+                             String version) async {
+    var object = _tarballObject(package, version);
+
+    // Copy the temporary object to it's destination place.
+    await storage.copyObject(
+        bucket.absoluteObjectName('tmp/$guid'),
+        bucket.absoluteObjectName(object));
+
+    // Change the ACL to include a `public-read` entry.
+    ObjectInfo info = await bucket.info(object);
+    var publicRead = new AclEntry(new AllUsersScope(), AclPermission.READ);
+    var acl =
+        new Acl(new List.from(info.metadata.acl.entries)..add(publicRead));
+    await bucket.updateMetadata(object, info.metadata.replace(acl: acl));
+  }
+
+  /// Remove a previously generated temporary object.
+  Future removeTempObject(String guid) {
+    return bucket.delete('tmp/$guid');
+  }
 
   /// Download the tarball of a [package] in the given [version].
   Stream<List<int>> download(String package, String version) {

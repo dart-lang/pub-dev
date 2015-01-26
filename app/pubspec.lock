@@ -125,6 +125,10 @@ packages:
     description: unittest
     source: hosted
     version: "0.11.5"
+  uuid:
+    description: uuid
+    source: hosted
+    version: "0.5.0"
   watcher:
     description: watcher
     source: hosted

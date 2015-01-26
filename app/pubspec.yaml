@@ -13,6 +13,7 @@ dependencies:
   markdown: '>=0.7.0 <0.8.0'
   mustache: '>=0.1.8 <0.2.0'
   shelf: '>=0.5.6 <0.6.0'
+  uuid: ">=0.5.0 <0.5.1"
 
 dev_dependencies:
   unittest: any

@@ -52,7 +52,7 @@ class AsyncUploadInfo {
   /// request. The body of the POST request must be a valid tar.gz file.
   final Uri uri;
 
-  /// The headers the uploader should add to the upload.
+  /// The fields the uploader should add to the multipart upload.
   final Map<String, String> fields;
 
   AsyncUploadInfo(this.uri, this.fields);
