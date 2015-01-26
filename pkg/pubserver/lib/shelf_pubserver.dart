@@ -270,7 +270,7 @@ class ShelfPubServer {
         .then((AsyncUploadInfo info) {
       return _jsonResponse({
         'url' : '${info.uri}',
-        'fields' : info.headers,
+        'fields' : info.fields,
       });
     });
   }

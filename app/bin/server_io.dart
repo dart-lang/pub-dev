@@ -17,6 +17,7 @@ import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
+import 'package:pub_dartlang_org/upload_signer_service.dart';
 
 import 'server_common.dart';
 
@@ -57,6 +58,9 @@ void main() {
       initApiaryStorage(authClient);
       initApiaryDatastore(authClient);
       await initSearchService();
+
+      registerUploadSigner(new UploadSignerService(
+          Credentials.email, Credentials.privateRSAKey));
 
       var apiHandler = initPubServer();
 

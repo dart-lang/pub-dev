@@ -15,11 +15,16 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/templates.dart';
+import 'package:pub_dartlang_org/upload_signer_service.dart';
 
 import 'server_common.dart';
 
 final Credentials = new auth.ServiceAccountCredentials.fromJson(
     new File('/project/key.json').readAsStringSync());
+
+/// The service account email address used for accessing cloud storage.
+final String ProductionServiceAccountEmail =
+    "818368855108@developer.gserviceaccount.com";
 
 void setupAppEngineLogging() {
   Map<Level, LogLevel> loggingLevel2appengineLevel = <Level, LogLevel>{
@@ -92,6 +97,9 @@ void main() {
 
       var apiHandler = initPubServer();
       var storageServiceCopy = storageService;
+
+      registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
+          ProductionServiceAccountEmail));
 
       await runAppEngine((request) {
         if (context.services.users.currentUser != null) {
