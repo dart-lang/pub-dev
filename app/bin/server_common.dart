@@ -18,7 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-import 'package:pubserver/shelf_pubserver.dart';
+import 'package:pub_server/shelf_pubserver.dart';
 
 import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/handlers.dart';

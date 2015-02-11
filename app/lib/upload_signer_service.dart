@@ -14,7 +14,7 @@ import 'package:googleapis_auth/src/crypto/rsa.dart' as rsa;
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:pubserver/repository.dart';
+import 'package:pub_server/repository.dart';
 
 import 'models.dart';
 

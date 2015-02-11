@@ -1,7 +1,7 @@
-name: pubserver
+name: pub_server
 version: 0.1.0
 author: Dart Team <misc@dartlang.org>
-description: A package containing interfaces and code for talking to a pub package repository and making a pub package server.
+description: A Dart package containing re-usable components for making a pub package server.
 homepage: https://www.dartlang.org
 
 environment:

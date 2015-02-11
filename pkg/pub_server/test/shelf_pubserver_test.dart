@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pubserver.shelf_pubserver_test;
+library pub_server.shelf_pubserver_test;
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:pubserver/repository.dart';
-import 'package:pubserver/shelf_pubserver.dart';
+import 'package:pub_server/repository.dart';
+import 'package:pub_server/shelf_pubserver.dart';
 import 'package:unittest/unittest.dart';
 
 class RepositoryMock implements PackageRepository {
