@@ -20,6 +20,11 @@ class Pubspec {
   factory Pubspec.fromYaml(String yamlString)
       => new Pubspec.fromJson(loadYaml(yamlString));
 
+  Map get asJson {
+    _load();
+    return _json;
+  }
+
   String get name {
     _load();
     return _asString(_json['name']);

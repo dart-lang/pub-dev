@@ -184,7 +184,7 @@ class GCloudPackageRepo extends PackageRepository {
       if (!package.uploaderEmails.contains(newVersion.uploaderEmail)) {
         _logger.warning('User is not an uploader, rolling transaction back.');
         await T.rollback();
-        throw new UnauthorizedAccess('Unauthorized user.');
+        throw new UnauthorizedAccessException('Unauthorized user.');
       }
 
       // Update the date when the package was last updated.
@@ -239,14 +239,14 @@ class GCloudPackageRepo extends PackageRepository {
         // Fail if calling user doesn't have permission to change uploaders.
         if (!package.uploaderEmails.contains(userEmail)) {
           await T.rollback();
-          throw new UnauthorizedAccess('Calling user does not have permission '
-                                       'to change uploaders.');
+          throw new UnauthorizedAccessException(
+              'Calling user does not have permission to change uploaders.');
         }
 
         // Fail if the uploader we want to add already exists.
         if (package.uploaderEmails.contains(uploaderEmail)) {
           await T.rollback();
-          throw new UploaderAlreadyExists();
+          throw new UploaderAlreadyExistsException();
         }
 
         // Add [uploaderEmail] to uploaders and commit.
@@ -273,8 +273,8 @@ class GCloudPackageRepo extends PackageRepository {
         // Fail if calling user doesn't have permission to change uploaders.
         if (!package.uploaderEmails.contains(userEmail)) {
           await T.rollback();
-          throw new UnauthorizedAccess('Calling user does not have permission '
-                                       'to change uploaders.');
+          throw new UnauthorizedAccessException(
+              'Calling user does not have permission to change uploaders.');
         }
 
         // Fail if the uploader we want to remove does not exist.
@@ -290,7 +290,7 @@ class GCloudPackageRepo extends PackageRepository {
         // fail with an error.
         if (package.uploaderEmails.isEmpty) {
           await T.rollback();
-          throw new LastUploaderRemove();
+          throw new LastUploaderRemoveException();
         }
 
         T.queueMutations(inserts: [package]);
@@ -306,7 +306,7 @@ class GCloudPackageRepo extends PackageRepository {
 /// exception.
 withAuthenticatedUser(func(String user)) {
   if (loggedInUser == null) {
-    throw new UnauthorizedAccess('No active user.');
+    throw new UnauthorizedAccessException('No active user.');
   }
   return func(loggedInUser);
 }

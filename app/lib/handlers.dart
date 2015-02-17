@@ -5,6 +5,7 @@
 library pub_dartlang_org.handlers;
 
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' show dbService;
@@ -35,6 +36,10 @@ appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
 
   if (handler != null) {
     return handler(request);
+  } else if (path == '/api/packages') {
+    // NOTE: This is special-cased, since it is not an API used by pub but
+    // rather by the editor.
+    return apiPackagesHandler(request);
   } else if (path.startsWith('/api') ||
              path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return shelfPubApi(request);
@@ -188,6 +193,90 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
   _sortVersionsDesc(versions);
   return _htmlResponse(
       templateService.renderPkgVersionsPage(package, versions));
+}
+
+
+/// Handles request for /api/packages?page=<num>
+apiPackagesHandler(shelf.Request request) async {
+  final int PageSize = 100;
+
+  int page = _pageFromUrl(request.url);
+
+  var db = dbService;
+  var query = db.query(Package)
+      ..offset(PageSize * (page - 1))
+      ..limit(PageSize + 1)
+      ..order('-updated');
+
+  var packages = await query.run().toList();
+
+  // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
+  // know it was the last page.
+  // But we only use `PageSize` packages to display in the result.
+  List<Package> pagePackages = packages.take(PageSize).toList();
+  var versionKeys = pagePackages.map((p) => p.latestVersion).toList();
+  List<PackageVersion> pageVersions = await db.lookup(versionKeys);
+  var lastPage = packages.length == pagePackages.length;
+
+  var packagesJson = [];
+
+  var uri = request.requestedUri;
+  for (var version in pageVersions) {
+    var versionString = Uri.encodeComponent(version.version);
+    var packageString = Uri.encodeComponent(version.package);
+
+    var apiArchiveUrl =
+        uri.resolve('/packages/$packageString/versions/$versionString.tar.gz');
+    var apiPackageUrl =
+        uri.resolve('/api/packages/$packageString');
+    var apiPackageVersionUrl =
+        uri.resolve('/api/packages/$packageString/versions/$versionString');
+    var apiNewPackageVersionUrl =
+        uri.resolve('/api/packages/$packageString/new');
+    var apiUploadersUrl =
+        uri.resolve('/api/packages/$packageString/uploaders');
+    var versionUrl  =
+        uri.resolve('/api/packages/$packageString/versions/{version}');
+
+    packagesJson.add({
+      'name' : version.package,
+      'latest' : {
+          'version' : version.version,
+          'pubspec' : version.pubspec.asJson,
+
+          // TODO: We should get rid of these:
+          'archive_url' : apiArchiveUrl,
+          'package_url' : apiPackageUrl,
+          'url' : apiPackageVersionUrl,
+
+          // NOTE: We do not add the following
+          //    - 'new_dartdoc_url'
+      },
+      // TODO: We should get rid of these:
+      'url' : apiPackageUrl,
+      'version_url' : versionUrl,
+      'new_version_url' : apiNewPackageVersionUrl,
+      'uploaders_url' : apiUploadersUrl,
+    });
+  }
+
+  var json = {
+    'next_url' : null,
+    'packages' : packagesJson,
+
+    // NOTE: We do not add the following:
+    //     - 'pages'
+    //     - 'prev_url'
+  };
+
+  if (!lastPage) {
+    json['next_url'] =
+        '${request.requestedUri.resolve('/api/packages?page=${page+1}')}';
+  }
+
+  return new shelf.Response(200,
+      body: JSON.encode(json),
+      headers: {'content-type': 'application/json'});
 }
 
 

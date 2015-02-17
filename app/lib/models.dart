@@ -59,6 +59,8 @@ class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)
   String version;  // Same as id
 
+  String get package => packageKey.id;
+
   @db.ModelKeyProperty(required: true, propertyName: 'package')
   db.Key packageKey;
 
