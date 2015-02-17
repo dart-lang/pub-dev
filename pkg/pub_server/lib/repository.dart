@@ -61,13 +61,35 @@ class AsyncUploadInfo {
 /// Exception for unauthorized access attempts.
 ///
 /// Uploading a new package from an unauthorized user will result in an
-/// [UnauthorizedAccess] exception.
-class UnauthorizedAccess implements Exception {
+/// [UnauthorizedAccessException] exception.
+class UnauthorizedAccessException implements Exception {
   final String message;
 
-  UnauthorizedAccess(this.message);
+  UnauthorizedAccessException(this.message);
 
   String toString() => 'UnauthorizedAccess: $message';
+}
+
+/// Exception for removing the last uploader.
+///
+/// Removing the last user-email of a package can result in a
+/// [UnauthorizedAccessException] exception.
+class LastUploaderRemoveException implements Exception {
+  LastUploaderRemoveException();
+
+  String toString() => 'LastUploaderRemoved: Cannot remove last uploader of a '
+                       'package.';
+}
+
+/// Exception for adding an already-existent uploader.
+///
+/// Removing the last user-email of a package can result in a
+/// [UnauthorizedAccessException] exception.
+class UploaderAlreadyExistsException implements Exception {
+  UploaderAlreadyExistsException();
+
+  String toString() => 'UploaderAlreadyExists: Cannot add an already existent '
+                       'uploader.';
 }
 
 /// Represents a pub repository.
@@ -116,4 +138,15 @@ abstract class PackageRepository {
   /// A permanent download URL to a package (if supported).
   Future<Uri> downloadUrl(String package, String version)
       => new Future.error(new UnsupportedError('No download link support.'));
+
+  /// Whether this package repository supports adding/removing users.
+  bool get supportsUploaders => false;
+
+  /// Adds [userEmail] as an uploader to [package].
+  Future addUploader(String package, String userEmail)
+      => new Future.error(new UnsupportedError('No uploader support.'));
+
+  /// Removes [userEmail] as an uploader from [package].
+  Future removeUploader(String package, String userEmail)
+      => new Future.error(new UnsupportedError('No uploader support.'));
 }

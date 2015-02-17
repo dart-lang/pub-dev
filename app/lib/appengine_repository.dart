@@ -218,6 +218,86 @@ class GCloudPackageRepo extends PackageRepository {
       }
     });
   }
+
+  // Uploaders support.
+
+  bool get supportsUploaders => true;
+
+  Future addUploader(String packageName, String uploaderEmail) {
+    return withAuthenticatedUser((String userEmail) {
+      return db.withTransaction((Transaction T) async {
+        var packageKey = db.emptyKey.append(models.Package, id: packageName);
+        models.Package package = (await T.lookup([packageKey])).first;
+
+        // Fail if package doesn't exist.
+        if (package == null) {
+          await T.rollback();
+          throw new Exception('Package "$package" does not exist');
+        }
+
+
+        // Fail if calling user doesn't have permission to change uploaders.
+        if (!package.uploaderEmails.contains(userEmail)) {
+          await T.rollback();
+          throw new UnauthorizedAccess('Calling user does not have permission '
+                                       'to change uploaders.');
+        }
+
+        // Fail if the uploader we want to add already exists.
+        if (package.uploaderEmails.contains(uploaderEmail)) {
+          await T.rollback();
+          throw new UploaderAlreadyExists();
+        }
+
+        // Add [uploaderEmail] to uploaders and commit.
+        package.uploaderEmails.add(uploaderEmail);
+        T.queueMutations(inserts: [package]);
+        return T.commit();
+      });
+    });
+  }
+
+  Future removeUploader(String packageName, String uploaderEmail) {
+    return withAuthenticatedUser((String userEmail) {
+      return db.withTransaction((Transaction T) async {
+        var packageKey = db.emptyKey.append(models.Package, id: packageName);
+        models.Package package = (await T.lookup([packageKey])).first;
+
+        // Fail if package doesn't exist.
+        if (package == null) {
+          await T.rollback();
+          throw new Exception('Package "$package" does not exist');
+        }
+
+
+        // Fail if calling user doesn't have permission to change uploaders.
+        if (!package.uploaderEmails.contains(userEmail)) {
+          await T.rollback();
+          throw new UnauthorizedAccess('Calling user does not have permission '
+                                       'to change uploaders.');
+        }
+
+        // Fail if the uploader we want to remove does not exist.
+        if (!package.uploaderEmails.contains(uploaderEmail)) {
+          await T.rollback();
+          throw new Exception('The uploader to remove does not exist.');
+        }
+
+        package.uploaderEmails = package
+            .uploaderEmails.where((email) => email != uploaderEmail).toList();
+
+        // We cannot have 0 uploaders, if we would remove the last one, we
+        // fail with an error.
+        if (package.uploaderEmails.isEmpty) {
+          await T.rollback();
+          throw new LastUploaderRemove();
+        }
+
+        T.queueMutations(inserts: [package]);
+        return T.commit();
+      });
+    });
+  }
 }
 
 /// Calls [func] with the currently logged in user as an argument.

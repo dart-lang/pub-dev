@@ -4,25 +4,19 @@
 
 library pub_dartlang_org.server_common;
 
-import 'dart:io';
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/db.dart' show dbService;
 import 'package:gcloud/src/datastore_impl.dart' as datastore_impl;
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_server/shelf_pubserver.dart';
 
 import 'package:pub_dartlang_org/appengine_repository.dart';
-import 'package:pub_dartlang_org/handlers.dart';
-import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
 final String ProjectId = 'mkustermann-dartvm';
