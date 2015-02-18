@@ -12,6 +12,7 @@ import 'package:gcloud/db.dart' show dbService;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import 'atom_feed.dart';
 import 'handlers_redirects.dart';
 import 'search_service.dart';
 import 'models.dart';
@@ -26,6 +27,7 @@ appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
 
   var handler = {
       '/' : indexHandler,
+      '/feed.atom' : atomFeedHandler,
       '/authorized' : authorizedHandler,
       '/doc' : docHandler,
       '/site-map' : sitemapHandler,
@@ -60,6 +62,27 @@ indexHandler(_) async {
   var versions = await dbService.lookup(versionKeys);
   assert(!versions.any((version) => version == null));
   return _htmlResponse(templateService.renderIndexPage(versions));
+}
+
+/// Handles requests for /feed.atom
+atomFeedHandler(shelf.Request request) async {
+  final int PageSize = 10;
+
+  // The python version had paging support, but there was no point to it, since
+  // the "next page" link was never returned to the caller.
+  int page = 1;
+
+  var db = dbService;
+  var query = db.query(Package)
+      ..offset(PageSize * (page - 1))
+      ..limit(PageSize)
+      ..order('-updated');
+  var packages = await query.run().toList();
+  var versionKeys = packages.map((p) => p.latestVersion).toList();
+  var versions = await db.lookup(versionKeys);
+
+  var feed = feedFromPackageVersions(request.requestedUri,  versions);
+  return _atomXmlResponse(feed.toXmlDocument());
 }
 
 /// Handles requests for /authorized
@@ -291,7 +314,14 @@ shelf.Response _htmlResponse(String content, {int status: 200}) {
   return new shelf.Response(
       status,
       body: content,
-      headers: {'content-type' : 'text/html; charset=utf-8'});
+      headers: {'content-type' : 'text/html; charset="utf-8"'});
+}
+
+shelf.Response _atomXmlResponse(String content, {int status: 200}) {
+  return new shelf.Response(
+      status,
+      body: content,
+      headers: {'content-type' : 'application/atom+xml charset="utf-8"'});
 }
 
 shelf.Response _redirectResponse(url) {
