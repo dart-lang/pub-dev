@@ -29,7 +29,6 @@ appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
       '/' : indexHandler,
       '/feed.atom' : atomFeedHandler,
       '/authorized' : authorizedHandler,
-      '/doc' : docHandler,
       '/site-map' : sitemapHandler,
       '/admin' : adminHandler,
       '/search' : searchHandler,
@@ -48,6 +47,8 @@ appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
     return shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
+  } else if (path.startsWith('/doc')) {
+    return docHandler(request);
   } else {
     return _notFoundHandler(request);
   }
