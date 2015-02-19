@@ -243,8 +243,14 @@ packageHandler(shelf.Request request) {
   }
 
   var package = path.substring(0, slash);
-  if (path.substring(slash) == '/versions') {
-    return packageVersionsHandler(request, package);
+  if (path.substring(slash).startsWith('/versions')) {
+    path = path.substring(slash + '/versions'.length);
+    if (path.startsWith('/') && path.endsWith('.yaml')) {
+      String version = path.substring(1, path.length - '.yaml'.length);
+      return packageVersionHandlerYaml(request, package, version);
+    } else {
+      return packageVersionsHandler(request, package);
+    }
   }
   return _notFoundHandler(request);
 }
@@ -286,7 +292,7 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
 }
 
 
-/// Handles requests for /packages/<package>/versions/<version>
+/// Handles requests for /packages/<package>/versions
 packageVersionsHandler(shelf.Request request, String packageName) async {
   var db = dbService;
   var packageKey = db.emptyKey.append(Package, id: packageName);
@@ -300,6 +306,20 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
       templateService.renderPkgVersionsPage(package, versions));
 }
 
+/// Handles requests for /packages/<package>/versions/<version>.yaml
+packageVersionHandlerYaml(request, String package, String version) async {
+  var db = dbService;
+  var packageVersionKey = db.emptyKey
+      .append(Package, id: package)
+      .append(PackageVersion, id: version);
+
+  PackageVersion packageVersion = (await db.lookup([packageVersionKey])).first;
+  if (packageVersion == null) {
+    return _notFoundHandler(request);
+  } else {
+    return _yamlResponse(packageVersion.pubspec.jsonString);
+  }
+}
 
 /// Handles request for /api/packages?page=<num>
 apiPackagesHandler(shelf.Request request) async {
@@ -402,6 +422,13 @@ shelf.Response _jsonResponse(Map json, {int status: 200}) {
       status,
       body: JSON.encode(json),
       headers: {'content-type' : 'application/json; charset="utf-8"'});
+}
+
+shelf.Response _yamlResponse(String yamlString, {int status: 200}) {
+  return new shelf.Response(
+      status,
+      body: yamlString,
+      headers: {'content-type' : 'text/yaml; charset="utf-8"'});
 }
 
 shelf.Response _atomXmlResponse(String content, {int status: 200}) {
