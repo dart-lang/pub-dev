@@ -34,6 +34,7 @@ appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
       '/admin' : adminHandler,
       '/search' : searchHandler,
       '/packages' : packagesHandler,
+      '/packages.json' : packagesHandler,
   }[path];
 
   if (handler != null) {
@@ -145,11 +146,61 @@ searchHandler(shelf.Request request) async {
       query, searchPage.packageVersions, links));
 }
 
-/// Handles requests for /packages
-///   TODO: handle ...?format=json URIs
+/// Handles requests for /packages - multiplexes to JSON/HTML handler.
 packagesHandler(shelf.Request request) async {
   int page = _pageFromUrl(request.url);
+  var path = request.url.path;
+  if (path.endsWith('.json')) {
+    path = path.substring(0, path.length - '.json'.length);
+    return packagesHandlerJson(request, page, true);
+  } else if (request.url.queryParameters['format'] == 'json') {
+    return packagesHandlerJson(request, page, false);
+  } else {
+    packagesHandlerHtml(request, page);
+  }
+}
 
+/// Handles requests for /packages - JSON
+packagesHandlerJson(request, page, dotJsonResponse) async {
+  final PageSize = 50;
+
+  var db = dbService;
+  var offset = PageSize * (page - 1);
+  var limit = PageSize + 1;
+
+  var query = db.query(Package)
+      ..offset(offset)
+      ..limit(limit)
+      ..order('-updated');
+
+  var packages = await query.run().toList();
+  bool lastPage = packages.length < limit;
+
+  var nextPageUrl;
+  if (!lastPage) {
+    nextPageUrl =
+        request.requestedUri.resolve('/packages.json?page=${page + 1}');
+  }
+
+  String toUrl(Package package) {
+    var postfix = dotJsonResponse ? '.json' : '';
+    return request.requestedUri.resolve(
+        '/packages/${Uri.encodeComponent(package.name)}$postfix').toString();
+  }
+  var json = {
+    'packages' : packages.take(PageSize).map(toUrl).toList(),
+    'next' : nextPageUrl != null ? '$nextPageUrl' : null,
+
+    // NOTE: We're not returning the following entry:
+    //   - 'prev'
+    //   - 'pages'
+  };
+
+  return _jsonResponse(json);
+}
+
+/// Handles requests for /packages - HTML
+packagesHandlerHtml(shelf.Request request, int page) async {
   var db = dbService;
   var offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
   var limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
@@ -168,7 +219,8 @@ packagesHandler(shelf.Request request) async {
       templateService.renderPkgIndexPage(pagePackages, versions, links));
 }
 
-/// Handles requests for /packages/...
+
+/// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
 ///
 /// Handles the following URLs:
 ///   - /packages/<package>
@@ -178,7 +230,16 @@ packageHandler(shelf.Request request) {
 
   int slash = path.indexOf('/');
   if (slash == -1) {
-    return packageShowHandler(request, path);
+    bool responseAsJson = request.url.queryParameters['format'] == 'json';
+    if (path.endsWith('.json')) {
+      responseAsJson = true;
+      path = path.substring(0, path.length - '.json'.length);
+    }
+    if (responseAsJson) {
+      return packageShowHandlerJson(request, path);
+    } else {
+      return packageShowHandlerHtml(request, path);
+    }
   }
 
   var package = path.substring(0, slash);
@@ -188,9 +249,28 @@ packageHandler(shelf.Request request) {
   return _notFoundHandler(request);
 }
 
-/// Handles requests for /packages/<package>
-///   TODO: handle ...?format=json URIs
-packageShowHandler(shelf.Request request, String packageName) async {
+/// Handles requests for /packages/<package> - JSON
+packageShowHandlerJson(shelf.Request request, String packageName) async {
+  var db = dbService;
+  var packageKey = db.emptyKey.append(Package, id: packageName);
+  Package package = (await db.lookup([packageKey])).first;
+  if (package == null) return _notFoundHandler(request);
+
+  var versions = await
+      db.query(PackageVersion, ancestorKey: package.key).run().toList();
+  _sortVersionsDesc(versions, decreasing: false);
+
+  var json = {
+    'name' : package.name,
+    'uploaders': package.uploaderEmails,
+    'versions':
+        versions.map((packageVersion) => packageVersion.version).toList(),
+  };
+  return _jsonResponse(json);
+}
+
+/// Handles requests for /packages/<package> - HTML
+packageShowHandlerHtml(shelf.Request request, String packageName) async {
   var db = dbService;
   var packageKey = db.emptyKey.append(Package, id: packageName);
   Package package = (await db.lookup([packageKey])).first;
@@ -199,10 +279,12 @@ packageShowHandler(shelf.Request request, String packageName) async {
   var versions = await
       db.query(PackageVersion, ancestorKey: package.key).run().toList();
   _sortVersionsDesc(versions);
+
   var first10Versions = versions.take(10).toList();
   return _htmlResponse(templateService.renderPkgShowPage(
       package, first10Versions, first10Versions.last, versions.length));
 }
+
 
 /// Handles requests for /packages/<package>/versions/<version>
 packageVersionsHandler(shelf.Request request, String packageName) async {
@@ -297,9 +379,7 @@ apiPackagesHandler(shelf.Request request) async {
         '${request.requestedUri.resolve('/api/packages?page=${page+1}')}';
   }
 
-  return new shelf.Response(200,
-      body: JSON.encode(json),
-      headers: {'content-type': 'application/json'});
+  return _jsonResponse(json);
 }
 
 
@@ -317,11 +397,18 @@ shelf.Response _htmlResponse(String content, {int status: 200}) {
       headers: {'content-type' : 'text/html; charset="utf-8"'});
 }
 
+shelf.Response _jsonResponse(Map json, {int status: 200}) {
+  return new shelf.Response(
+      status,
+      body: JSON.encode(json),
+      headers: {'content-type' : 'application/json; charset="utf-8"'});
+}
+
 shelf.Response _atomXmlResponse(String content, {int status: 200}) {
   return new shelf.Response(
       status,
       body: content,
-      headers: {'content-type' : 'application/atom+xml charset="utf-8"'});
+      headers: {'content-type' : 'application/atom+xml; charset="utf-8"'});
 }
 
 shelf.Response _redirectResponse(url) {
@@ -330,11 +417,15 @@ shelf.Response _redirectResponse(url) {
 
 
 /// Sorts [versions] according to the semantic versioning specification.
-void _sortVersionsDesc(List<PackageVersion> versions) {
+void _sortVersionsDesc(List<PackageVersion> versions, {bool decreasing: true}) {
   versions.sort((PackageVersion a, PackageVersion b) {
     var av = new Version.parse(a.version);
     var bv = new Version.parse(b.version);
-    return bv.compareTo(av);
+    if (decreasing) {
+      return bv.compareTo(av);
+    } else {
+      return av.compareTo(bv);
+    }
   });
 }
 
