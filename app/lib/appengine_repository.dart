@@ -28,18 +28,28 @@ void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
 String get loggedInUser => ss.lookup(#_logged_in_user);
 
 
+/// Sets the active tarball storage
+void registerTarballStorage(TarballStorage ts)
+    => ss.register(#_tarball_storage, ts);
+
+/// The active tarball storage.
+TarballStorage get tarballStorage => ss.lookup(#_tarball_storage);
+
+
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
 class GCloudPackageRepo extends PackageRepository {
   static const int MAX_TARBALL_SIZE = 10 * 1024  * 1024;
 
   final Uuid uuid = new Uuid();
-  TarballStorage _tarballStorage;
 
-  GCloudPackageRepo(Storage storage, Bucket bucket)
-      : _tarballStorage = new TarballStorage(storage, bucket, 'test-packages');
+  GCloudPackageRepo();
 
+  // The service scope will inject the DatastoreDB instance to use.
   DatastoreDB get db => dbService;
+
+  // The service scope will inject the TarballStorage instance to use.
+  TarballStorage get storage => tarballStorage;
 
   // Metadata support.
 
@@ -80,13 +90,13 @@ class GCloudPackageRepo extends PackageRepository {
   Future<Stream<List<int>>> download(String package, String version) {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
-    return new Future.value(_tarballStorage.download(package, version));
+    return new Future.value(storage.download(package, version));
   }
 
   bool get supportsDownloadUrl => true;
 
   Future<Uri> downloadUrl(String package, String version) {
-    return _tarballStorage.downloadUrl(package, version);
+    return storage.downloadUrl(package, version);
   }
 
   // Upload support.
@@ -104,7 +114,7 @@ class GCloudPackageRepo extends PackageRepository {
       // to disc instead.
       return readTarball(data).then((List<int> tarball) {
         return _performTarballUpload(userEmail, tarball, (package, version) {
-          return _tarballStorage.upload(package, version, tarball);
+          return storage.upload(package, version, tarball);
         });
       });
     });
@@ -122,8 +132,8 @@ class GCloudPackageRepo extends PackageRepository {
       _logger.info('User: $userEmail.');
 
       String guid =  uuid.v4();
-      String object = _tarballStorage.tempObjectName(guid);
-      String bucket = _tarballStorage.bucket.bucketName;
+      String object = storage.tempObjectName(guid);
+      String bucket = storage.bucket.bucketName;
       Duration lifetime = const Duration(minutes: 10);
 
       var url = redirectUrl.resolve('?upload_id=$guid');
@@ -142,12 +152,12 @@ class GCloudPackageRepo extends PackageRepository {
       _logger.info('Reading tarball from cloud storage.');
       // TODO: Try avoid keeping everything in memory and try streaming it
       // to disc instead.
-      var tarball = await readTarball(_tarballStorage.readTempObject(guid));
+      var tarball = await readTarball(storage.readTempObject(guid));
       return _performTarballUpload(userEmail, tarball, (package, version) {
-        return _tarballStorage.uploadViaTempObject(guid, package, version);
+        return storage.uploadViaTempObject(guid, package, version);
       }).whenComplete(() async {
         _logger.info('Removing temporary object $guid.');
-        await _tarballStorage.removeTempObject(guid);
+        await storage.removeTempObject(guid);
       });
     });
   }
@@ -428,27 +438,30 @@ Future<models.PackageVersion> parseAndValidateUpload(List<int> tarball,
 /// Helper utility class for interfacing with Cloud Storage for storing
 /// tarballs.
 class TarballStorage {
+  final TarballStorageNamer namer;
   final Storage storage;
   final Bucket bucket;
-  final String prefix;
 
-  TarballStorage(this.storage, this.bucket, this.prefix);
+  TarballStorage(this.storage, Bucket bucket, String namespace) :
+      bucket = bucket,
+      namer = new TarballStorageNamer(bucket.bucketName, namespace);
 
   /// Generates a path to a temporary object on cloud storage.
-  String tempObjectName(String guid) => 'tmp/$guid';
+  String tempObjectName(String guid) => namer.tmpObjectName(guid);
 
   /// Reads the temporary object identified by [guid]
-  Stream<List<int>> readTempObject(String guid) => bucket.read('tmp/$guid');
+  Stream<List<int>> readTempObject(String guid)
+      => bucket.read(namer.tmpObjectName(guid));
 
   /// Makes a temporary object a new tarball.
   Future uploadViaTempObject(String guid,
                              String package,
                              String version) async {
-    var object = _tarballObject(package, version);
+    var object = namer.tarballObjectName(package, version);
 
     // Copy the temporary object to it's destination place.
     await storage.copyObject(
-        bucket.absoluteObjectName('tmp/$guid'),
+        bucket.absoluteObjectName(namer.tmpObjectName(guid)),
         bucket.absoluteObjectName(object));
 
     // Change the ACL to include a `public-read` entry.
@@ -461,12 +474,12 @@ class TarballStorage {
 
   /// Remove a previously generated temporary object.
   Future removeTempObject(String guid) {
-    return bucket.delete('tmp/$guid');
+    return bucket.delete(namer.tmpObjectName(guid));
   }
 
   /// Download the tarball of a [package] in the given [version].
   Stream<List<int>> download(String package, String version) {
-    var object = _tarballObject(package, version);
+    var object = namer.tarballObjectName(package, version);
     return bucket.read(object);
   }
 
@@ -475,21 +488,55 @@ class TarballStorage {
     // NOTE: We should maybe check for existence first?
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
-
-    var object = _tarballObject(package, version);
-    var uri = Uri.parse(
-        'https://storage.googleapis.com/${bucket.bucketName}/${object}');
-    return new Future.value(uri);
+    return new Future.value(
+        Uri.parse(namer.tarballObjectUrl(package, version)));
   }
 
   /// Upload [tarball] of a [package] in the given [version].
   Future upload(String package, String version, List<int> tarball) {
-    var object = _tarballObject(package, version);
+    var object = namer.tarballObjectName(package, version);
     return bucket.writeBytes(
         object, tarball, predefinedAcl: PredefinedAcl.publicRead);
   }
 
-  // TODO: Do we need some kind of escaping here?
-  String _tarballObject(String package, String version)
-      => '$prefix/$package-$version.tar.gz';
+}
+
+/// Class used for getting GCS object/bucket names and object URLs.
+///
+///
+/// The GCS bucket contains package tarballs in a temporary place and stored
+/// package tarballs which are used by clients. The latter can be stored either
+/// via an empty or non-empty namespace.
+///
+/// The layout of the GCS bucket is as follows:
+///   gs://<bucket-name>/tmp/<uuid>
+///   gs://<bucket-name>/packages/<package-name>-<version>.tar.gz
+///   gs://<bucket-name>/ns/<namespace>/packages/<package-name>-<version>.tar.gz
+class TarballStorageNamer {
+  /// The GCS bucket used.
+  final String bucket;
+
+  /// The namespace used.
+  final String namespace;
+
+  /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
+  final String prefix;
+
+  TarballStorageNamer(this.bucket, String namespace) :
+      namespace = namespace == null ? '' : namespace,
+      prefix = (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
+
+  /// The GCS object name of a tarball object - excluding leading '/'.
+  String tarballObjectName(String package, String version)
+      // TODO: Do we need some kind of escaping here?
+      => '${prefix}packages/$package-$version.tar.gz';
+
+  /// The GCS object name of an temporary object [guid] - excluding leading '/'.
+  String tmpObjectName(String guid) => 'tmp/$guid';
+
+  /// The http URL of a publicly accessable GCS object.
+  String tarballObjectUrl(String package, String version) {
+    var object = tarballObjectName(package, version);
+    return 'https://storage.googleapis.com/${bucket}/${object}';
+  }
 }

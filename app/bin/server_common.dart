@@ -48,8 +48,7 @@ Future initSearchService() async {
 }
 
 shelf.Handler initPubServer() {
-  var appengineRepo = new GCloudPackageRepo(
-      storageService, storageService.bucket(PackageBucket));
+  var appengineRepo = new GCloudPackageRepo();
   return new ShelfPubServer(appengineRepo).requestHandler;
 }
 
@@ -64,6 +63,11 @@ Future withChangedNamespaces(func(), {String namespace}) {
     var nsDB = new DatastoreDB(
         db.datastore, modelDB: db.modelDB, defaultPartition: nsPartition);
     registerDbService(nsDB);
+
+    // Construct & register a TarballStorage.
+    var bucket = storageService.bucket(PackageBucket);
+    var tarballStorage = new TarballStorage(storageService, bucket, namespace);
+    registerTarballStorage(tarballStorage);
 
     return func();
   });
