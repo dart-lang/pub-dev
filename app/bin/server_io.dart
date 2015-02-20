@@ -13,10 +13,10 @@ import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-import 'package:pub_dartlang_org/handlers.dart';
-import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/appengine_repository.dart';
+import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
+import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
 import 'server_common.dart';
@@ -71,14 +71,18 @@ void main() {
 
           await registerLoggedInUserIfPossible(request);
 
-          logger.info('Handling request: ${request.requestedUri}');
-          var result = new Future.sync(() => appHandler(request, apiHandler));
-          return result.catchError((error, stack) {
-            logger.severe('Request handler failed', error, stack);
-            return new shelf.Response.internalServerError();
-          }).whenComplete(() {
-            logger.info('Request handler done.');
-          });
+          var namespace = getCurrentNamespace(request.requestedUri);
+          return withChangedNamespaces(() {
+            logger.info('Handling request: ${request.requestedUri} '
+                        '(Using namespace $namespace)');
+            var result = new Future.sync(() => appHandler(request, apiHandler));
+            return result.catchError((error, stack) {
+              logger.severe('Request handler failed', error, stack);
+              return new shelf.Response.internalServerError();
+            }).whenComplete(() {
+              logger.info('Request handler done.');
+            });
+          }, namespace: namespace);
         });
       }, 'localhost', 8383);
 
@@ -87,6 +91,21 @@ void main() {
       return new Completer().future;
     });
   });
+}
+
+/// Gets the current namespace.
+///
+/// The `server_io.dart` server is for local development and uses the
+/// `?ns=<namespace>` query parameter.
+// NOTE: This is used for local testing only ATM.
+// TODO: Make this not request-specific since "pub publish" e.g. will never set
+// the "?ns=staging" parameter.
+String getCurrentNamespace(Uri requestedUri) {
+  var ns = requestedUri.queryParameters['ns'];
+  if (ns == null) {
+    return '';
+  }
+  return 'staging';
 }
 
 staticHandler(shelf.Request request) {

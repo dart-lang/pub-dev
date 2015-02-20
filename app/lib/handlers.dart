@@ -157,7 +157,7 @@ packagesHandler(shelf.Request request) async {
   } else if (request.url.queryParameters['format'] == 'json') {
     return packagesHandlerJson(request, page, false);
   } else {
-    packagesHandlerHtml(request, page);
+    return packagesHandlerHtml(request, page);
   }
 }
 
@@ -351,18 +351,21 @@ apiPackagesHandler(shelf.Request request) async {
     var versionString = Uri.encodeComponent(version.version);
     var packageString = Uri.encodeComponent(version.package);
 
-    var apiArchiveUrl =
-        uri.resolve('/packages/$packageString/versions/$versionString.tar.gz');
+    var apiArchiveUrl = uri
+        .resolve('/packages/$packageString/versions/$versionString.tar.gz')
+        .toString();
     var apiPackageUrl =
-        uri.resolve('/api/packages/$packageString');
-    var apiPackageVersionUrl =
-        uri.resolve('/api/packages/$packageString/versions/$versionString');
+        uri.resolve('/api/packages/$packageString').toString();
+    var apiPackageVersionUrl = uri
+        .resolve('/api/packages/$packageString/versions/$versionString')
+        .toString();
     var apiNewPackageVersionUrl =
-        uri.resolve('/api/packages/$packageString/new');
+        uri.resolve('/api/packages/$packageString/new').toString();
     var apiUploadersUrl =
-        uri.resolve('/api/packages/$packageString/uploaders');
-    var versionUrl  =
-        uri.resolve('/api/packages/$packageString/versions/{version}');
+        uri.resolve('/api/packages/$packageString/uploaders').toString();
+    var versionUrl  = uri
+        .resolve('/api/packages/$packageString/versions/{version}')
+        .toString();
 
     packagesJson.add({
       'name' : version.package,
@@ -397,7 +400,7 @@ apiPackagesHandler(shelf.Request request) async {
 
   if (!lastPage) {
     json['next_url'] =
-        '${request.requestedUri.resolve('/api/packages?page=${page+1}')}';
+        '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
   }
 
   return _jsonResponse(json);

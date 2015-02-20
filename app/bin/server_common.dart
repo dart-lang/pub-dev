@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
-import 'package:gcloud/db.dart' show dbService;
+import 'package:gcloud/db.dart';
 import 'package:gcloud/src/datastore_impl.dart' as datastore_impl;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -49,6 +49,31 @@ Future initSearchService() async {
 
 shelf.Handler initPubServer() {
   var appengineRepo = new GCloudPackageRepo(
-      dbService, storageService, storageService.bucket(PackageBucket));
+      storageService, storageService.bucket(PackageBucket));
   return new ShelfPubServer(appengineRepo).requestHandler;
+}
+
+/// Changes the namespace for datastore and memcache.
+Future withChangedNamespaces(func(), {String namespace}) {
+  if (namespace == '') namespace = null;
+
+  var db = dbService;
+  return fork(() {
+    // Construct & register new DatastoreDB.
+    var nsPartition = new Partition(namespace);
+    var nsDB = new DatastoreDB(
+        db.datastore, modelDB: db.modelDB, defaultPartition: nsPartition);
+    registerDbService(nsDB);
+
+    return func();
+  });
+}
+
+bool isInt(String s) {
+  try {
+    int.parse(s);
+    return true;
+  } on FormatException catch (_, __) {
+    return false;
+  }
 }

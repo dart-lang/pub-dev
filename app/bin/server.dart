@@ -110,20 +110,34 @@ void main() {
         // storage to be what we setup above.
         return fork(() {
           registerStorageService(storageServiceCopy);
-          return shelf_io.handleRequest(request, (shelf.Request request) {
-            request = fixRequest(request);
-            logger.info('Handling request: ${request.requestedUri}');
-            return appHandler(request, apiHandler).catchError((error, stack) {
-              logger.severe('Request handler failed', error, stack);
-              return new shelf.Response.internalServerError();
-            }).whenComplete(() {
-              logger.info('Request handler done.');
+
+          var namespace = getCurrentNamespace();
+          return withChangedNamespaces(() {
+            return shelf_io.handleRequest(request, (shelf.Request request) {
+              request = fixRequest(request);
+              logger.info('Handling request: ${request.requestedUri} '
+                          '(Using namespace $namespace)');
+              return appHandler(request, apiHandler).catchError((error, stack) {
+                logger.severe('Request handler failed', error, stack);
+                return new shelf.Response.internalServerError();
+              }).whenComplete(() {
+                logger.info('Request handler done.');
+              });
             });
-          });
+          }, namespace: namespace);
         }).catchError((error, stack) {
           logger.severe('Request handler failed', error, stack);
         });
       });
     });
   });
+}
+
+/// Gets the current namespace.
+String getCurrentNamespace() {
+  String version = modulesService.currentVersion;
+  if (['preview', 'coming-soon'].contains(version) || isInt(version)) {
+    return '';
+  }
+  return 'staging';
 }

@@ -33,12 +33,13 @@ String get loggedInUser => ss.lookup(#_logged_in_user);
 class GCloudPackageRepo extends PackageRepository {
   static const int MAX_TARBALL_SIZE = 10 * 1024  * 1024;
 
-  final DatastoreDB db;
   final Uuid uuid = new Uuid();
   TarballStorage _tarballStorage;
 
-  GCloudPackageRepo(this.db, Storage storage, Bucket bucket)
+  GCloudPackageRepo(Storage storage, Bucket bucket)
       : _tarballStorage = new TarballStorage(storage, bucket, 'test-packages');
+
+  DatastoreDB get db => dbService;
 
   // Metadata support.
 
