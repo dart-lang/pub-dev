@@ -26,65 +26,8 @@ final Credentials = new auth.ServiceAccountCredentials.fromJson(
 final String ProductionServiceAccountEmail =
     "818368855108@developer.gserviceaccount.com";
 
-void setupAppEngineLogging() {
-  Map<Level, LogLevel> loggingLevel2appengineLevel = <Level, LogLevel>{
-    Level.OFF: LogLevel.DEBUG,
-    Level.ALL: LogLevel.DEBUG,
-    Level.FINEST: LogLevel.DEBUG,
-    Level.FINER: LogLevel.DEBUG,
-    Level.FINE: LogLevel.DEBUG,
-    Level.CONFIG: LogLevel.INFO,
-    Level.INFO: LogLevel.INFO,
-    Level.WARNING: LogLevel.WARNING,
-    Level.SEVERE: LogLevel.ERROR,
-    Level.SHOUT: LogLevel.CRITICAL,
-  };
-  Logger.root.onRecord.listen((LogRecord record) {
-    record.zone.run(() {
-      var logging = loggingService;
-      if (logging != null) {
-        var level = loggingLevel2appengineLevel[record.level];
-        var message = '${record.loggerName}: ${record.message}';
-
-        addBlock(String header, String body) {
-          body = body.replaceAll('\n', '\n    ');
-          message = '$message\n\n$header:\n    $body';
-        }
-
-        if (record.error != null) addBlock('Error', '${record.error}');
-        if (record.stackTrace != null) {
-          addBlock('Stack', '${record.stackTrace}');
-        }
-
-        logging.log(level, message, timestamp: record.time);
-      } else {
-        print('${record.time} ${record.level} ${record.loggerName}: '
-              '${record.message}');
-      }
-    });
-  });
-}
-
-shelf.Request fixRequest(shelf.Request R) {
-  var https = R.headers['x-appengine-https'];
-  if (https != null) {
-    var scheme = R.requestedUri.scheme;
-    if (https == 'on') {
-      scheme = 'https';
-    } else {
-      scheme = 'http';
-    }
-    var requestedUri = R.requestedUri.replace(scheme: scheme);
-    R = new shelf.Request(
-        R.method, requestedUri, protocolVersion: R.protocolVersion,
-        headers: R.headers, body: R.read(),
-        context: R.context);
-  }
-  return R;
-}
-
 void main() {
-  setupAppEngineLogging();
+  useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
     var authClient = await auth.clientViaServiceAccount(Credentials, SCOPES);
@@ -114,7 +57,6 @@ void main() {
           var namespace = getCurrentNamespace();
           return withChangedNamespaces(() {
             return shelf_io.handleRequest(request, (shelf.Request request) {
-              request = fixRequest(request);
               logger.info('Handling request: ${request.requestedUri} '
                           '(Using namespace $namespace)');
               return appHandler(request, apiHandler).catchError((error, stack) {

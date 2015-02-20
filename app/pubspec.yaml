@@ -3,7 +3,7 @@ version: 0.1.0
 author: Dart Team
 description: The pub.dartlang.org website.
 dependencies:
-  appengine: '>=0.2.4 <0.3.0'
+  appengine: '>=0.2.6 <0.3.0'
   gcloud: '>=0.1.4+1 <0.2.0'
   googleapis: '>=0.5.4 <0.6.0'
   googleapis_auth: '>=0.2.2 <0.2.3'
