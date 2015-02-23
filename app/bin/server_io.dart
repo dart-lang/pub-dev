@@ -7,15 +7,12 @@ import 'dart:async';
 
 import 'package:gcloud/service_scope.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/handlers.dart';
-import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
@@ -48,15 +45,10 @@ void main() {
     registerTemplateService(
         new TemplateService(templateDirectory: TemplateLocation));
 
-    // The oauth2 service is used for getting an email address from an oauth2
-    // access token (which the pub client sends).
-    var client = new http.Client();
-    registerOAuth2Service(new OAuth2Service(client));
-    registerScopeExitCallback(client.close);
-
     return fork(() async {
       initApiaryStorage(authClient);
       initApiaryDatastore(authClient);
+      initOAuth2Service();
       await initSearchService();
 
       registerUploadSigner(new UploadSignerService(
@@ -130,23 +122,5 @@ staticHandler(shelf.Request request) {
       }
     }
     return new shelf.Response.notFound(null);
-  }
-}
-
-/// Looks at [request] and if the 'Authorization' header was set tries to get
-/// the user email address and registers it.
-registerLoggedInUserIfPossible(shelf.Request request) async {
-  var authorization = request.headers['authorization'];
-  if (authorization != null) {
-    var parts = authorization.split(' ');
-    if (parts.length == 2 &&
-        parts.first.trim().toLowerCase() == 'bearer') {
-      var accessToken = parts.last.trim();
-
-      var email = await oauth2Service.lookup(accessToken);
-      if (email != null) {
-        registerLoggedInUser(email);
-      }
-    }
   }
 }

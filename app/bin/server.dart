@@ -36,6 +36,7 @@ void main() {
 
     return fork(() async {
       initApiaryStorage(authClient);
+      initOAuth2Service();
       await initSearchService();
 
       var apiHandler = initPubServer();
@@ -45,10 +46,6 @@ void main() {
           ProductionServiceAccountEmail));
 
       await runAppEngine((request) {
-        if (context.services.users.currentUser != null) {
-          registerLoggedInUser(context.services.users.currentUser.email);
-        }
-
         // Here we fork the current service scope and override
         // storage to be what we setup above.
         return fork(() {
@@ -56,7 +53,10 @@ void main() {
 
           var namespace = getCurrentNamespace();
           return withChangedNamespaces(() {
-            return shelf_io.handleRequest(request, (shelf.Request request) {
+            return shelf_io.handleRequest(request,
+                                          (shelf.Request request) async {
+              await registerLoggedInUserIfPossible(request);
+
               logger.info('Handling request: ${request.requestedUri} '
                           '(Using namespace $namespace)');
               return appHandler(request, apiHandler).catchError((error, stack) {
