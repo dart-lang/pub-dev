@@ -6,6 +6,7 @@ library pub_dartlang_org.gcloud_repository;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
@@ -103,7 +104,7 @@ class GCloudPackageRepo extends PackageRepository {
 
   bool get supportsUpload => true;
 
-  Future upload(Stream<List<int>> data)  {
+  Future<PackageVersion> upload(Stream<List<int>> data)  {
     _logger.info('Starting upload.');
     return withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
@@ -145,7 +146,7 @@ class GCloudPackageRepo extends PackageRepository {
   }
 
   /// Finishes the upload of a package.
-  Future finishAsyncUpload(Uri uri) {
+  Future<PackageVersion> finishAsyncUpload(Uri uri) {
     return withAuthenticatedUser((String userEmail) async {
       var guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
@@ -162,9 +163,9 @@ class GCloudPackageRepo extends PackageRepository {
     });
   }
 
-  Future _performTarballUpload(String userEmail,
-                               List<int> tarball,
-                               Future tarballUpload(name, version)) async {
+  Future<PackageVersion> _performTarballUpload(
+      String userEmail, List<int> tarball,
+      Future tarballUpload(name, version)) async {
       _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
@@ -173,7 +174,7 @@ class GCloudPackageRepo extends PackageRepository {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    await dbService.withTransaction((Transaction T) async {
+    return await dbService.withTransaction((Transaction T) async {
       _logger.info('Starting datastore transaction.');
 
       var tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
@@ -222,6 +223,10 @@ class GCloudPackageRepo extends PackageRepository {
 
         // Defer the creation of sort_order
         // TODO:
+
+        return new PackageVersion(
+            newVersion.package, newVersion.version,
+            newVersion.pubspec.jsonString);
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
         await T.rollback();

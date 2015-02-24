@@ -13,6 +13,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/handlers.dart';
+import 'package:pub_dartlang_org/package_memcache.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
@@ -55,7 +56,8 @@ void main() {
 
       var namespace = getCurrentNamespace();
       return withChangedNamespaces(() async {
-        var apiHandler = initPubServer();
+        var cache = new AppEnginePackageMemcache(memcacheService, namespace);
+        var apiHandler = initPubServer(cache: cache);
         var storageServiceCopy = storageService;
         var dbServiceCopy = dbService;
 

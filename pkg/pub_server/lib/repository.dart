@@ -107,7 +107,7 @@ abstract class PackageRepository {
   /// Uploads a new pub package.
   ///
   /// [data] must be a stream of a valid .tar.gz file.
-  Future upload(Stream<List<int>> data)
+  Future<PackageVersion> upload(Stream<List<int>> data)
       => new Future.error(new UnsupportedError('No upload support.'));
 
   /// Whether this package repository supports asynchronous uploads.
@@ -125,7 +125,7 @@ abstract class PackageRepository {
       => new Future.error(new UnsupportedError('No async upload support.'));
 
   /// Finishes the upload of a package.
-  Future finishAsyncUpload(Uri uri)
+  Future<PackageVersion> finishAsyncUpload(Uri uri)
       => new Future.error(new UnsupportedError('No async upload support.'));
 
 

@@ -145,8 +145,9 @@ class ShelfPubServer {
 
 
   final PackageRepository repository;
+  final PackageCache cache;
 
-  ShelfPubServer(this.repository);
+  ShelfPubServer(this.repository, {this.cache});
 
 
   Future<shelf.Response> requestHandler(shelf.Request request) {
@@ -236,9 +237,16 @@ class ShelfPubServer {
 
   // Metadata handlers.
 
-  Future<shelf.Response> _listVersions(Uri uri, String package) {
+  Future<shelf.Response> _listVersions(Uri uri, String package) async {
+    if (cache != null) {
+      var binaryJson = await cache.getPackageData(package);
+      if (binaryJson != null) {
+        return _binaryJsonResponse(binaryJson);
+      }
+    }
+
     return repository.versions(package).toList()
-        .then((List<PackageVersion> packageVersions) {
+        .then((List<PackageVersion> packageVersions) async {
       if (packageVersions.length == 0) {
         return new shelf.Response.notFound(null);
       }
@@ -266,11 +274,15 @@ class ShelfPubServer {
 
       // TODO: The 'latest' is something we should get rid of, since it's
       // duplicated in 'versions'.
-      return _jsonResponse({
-        'name' : package,
-        'latest' : packageVersion2Json(latestVersion),
-        'versions' : packageVersions.map(packageVersion2Json).toList(),
-      });
+      var binaryJson = UTF8.encode(JSON.encode({
+          'name' : package,
+          'latest' : packageVersion2Json(latestVersion),
+          'versions' : packageVersions.map(packageVersion2Json).toList(),
+      }));
+      if (cache != null) {
+        await cache.setPackageData(package, binaryJson);
+      }
+      return _binaryJsonResponse(binaryJson);
     });
   }
 
@@ -321,13 +333,18 @@ class ShelfPubServer {
   }
 
   Future<shelf.Response> _finishUploadAsync(Uri uri) {
-    return repository.finishAsyncUpload(uri).then((_) {
+    return repository.finishAsyncUpload(uri).then((PackageVersion vers) async {
+      if (cache != null) {
+        _logger.info('Invalidating cache for package ${vers.packageName}.');
+        await cache.invalidatePackageData(vers.packageName);
+      }
       return _jsonResponse({
         'success' : {
           'message' : 'Successfully uploaded package.',
         },
       });
     }).catchError((error, stack) {
+      _logger.warning('An error occured while finishing upload', error, stack);
       return _jsonResponse({
         'error' : {
           'message' : '$error.',
@@ -375,7 +392,12 @@ class ShelfPubServer {
 
           // TODO: Ensure that `part.headers['content-disposition']` is
           // `form-data; name="file"; filename="package.tar.gz`
-          repository.upload(part).then((_) {
+          repository.upload(part).then((PackageVersion version) async {
+            if (cache != null) {
+              _logger.info(
+                  'Invalidating cache for package ${version.packageName}.');
+              await cache.invalidatePackageData(version.packageName);
+            }
             _logger.info('Redirecting to found url.');
             return new shelf.Response.found(_finishUploadSimpleUrl(uri));
           }).catchError((error, stack) {
@@ -460,6 +482,14 @@ class ShelfPubServer {
         headers: {'content-type': 'application/json'}));
   }
 
+  Future<shelf.Response> _binaryJsonResponse(List<int> d, {int status: 200}) {
+    return new Future.sync(() {
+      return new shelf.Response(status,
+          body: new Stream.fromIterable([d]),
+          headers: {'content-type': 'application/json'});
+    });
+  }
+
   Future<shelf.Response> _jsonResponse(Map json, {int status: 200}) {
     return new Future.sync(() {
       return new shelf.Response(status,
@@ -489,7 +519,6 @@ class ShelfPubServer {
   // Upload async urls.
 
   Uri _startUploadAsyncUrl(Uri url) {
-    var encode = Uri.encodeComponent;
     return url.resolve('/api/packages/versions/new');
   }
 
@@ -508,4 +537,14 @@ class ShelfPubServer {
     var postfix = error == null ? '' : '?error=${Uri.encodeComponent(error)}';
     return url.resolve('/api/packages/versions/newUploadFinish$postfix');
   }
+}
+
+
+/// A cache for storing metadata for packages.
+abstract class PackageCache {
+  Future setPackageData(String package, List<int> data);
+
+  Future<List<int>> getPackageData(String package);
+
+  Future invalidatePackageData(String package);
 }

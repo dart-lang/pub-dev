@@ -69,9 +69,9 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.httpClient.close);
 }
 
-shelf.Handler initPubServer() {
+shelf.Handler initPubServer({PackageCache cache}) {
   var appengineRepo = new GCloudPackageRepo();
-  return new ShelfPubServer(appengineRepo).requestHandler;
+  return new ShelfPubServer(appengineRepo, cache: cache).requestHandler;
 }
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get
