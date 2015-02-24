@@ -11,6 +11,8 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/src/datastore_impl.dart' as datastore_impl;
+import 'package:googleapis_auth/auth.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -18,6 +20,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:pub_server/shelf_pubserver.dart';
 
 import 'package:pub_dartlang_org/appengine_repository.dart';
+import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
@@ -39,6 +42,16 @@ void initOAuth2Service() {
   var client = new http.Client();
   registerOAuth2Service(new OAuth2Service(client));
   registerScopeExitCallback(client.close);
+}
+
+Future initApiaryStorageViaDBKey(String email) async {
+  String pemFileString = await cloudStorageKeyFromDB();
+
+  var credentials =
+      new ServiceAccountCredentials(email, new ClientId('', ''), pemFileString);
+  var authClient = await auth.clientViaServiceAccount(credentials, SCOPES);
+  registerScopeExitCallback(authClient.close);
+  initApiaryStorage(authClient);
 }
 
 void initApiaryStorage(authClient) {
@@ -79,7 +92,7 @@ registerLoggedInUserIfPossible(shelf.Request request) async {
   }
 }
 
-/// Changes the namespace for datastore and memcache.
+/// Changes the namespace for datastore and tarball storage.
 Future withChangedNamespaces(func(), {String namespace}) {
   if (namespace == '') namespace = null;
 

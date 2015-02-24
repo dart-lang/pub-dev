@@ -9,9 +9,11 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:googleapis_auth/src/crypto/pem.dart' as pem;
 import 'package:googleapis/customsearch/v1.dart' as customsearch;
 import 'package:http/http.dart' as http;
 
+import 'keys.dart';
 import 'models.dart';
 
 /// The Custom Search ID used for making calls to the Custom Search API.
@@ -34,15 +36,10 @@ void registerSearchService(SearchService s) => ss.register(#_search, s);
 /// If the private key cannot be retrieved from datastore this method will
 /// complete with `null`.
 Future<SearchService> searchServiceViaApiKeyFromDb() async {
-  var db = dbService;
-
-  var privateKeyKey = db.emptyKey.append(PrivateKey, id: 'api');
-  PrivateKey apiKey = (await db.lookup([privateKeyKey])).first;
-  if (apiKey == null) return null;
-
-  var httpClient = auth.clientViaApiKey(apiKey.value);
+  String keyString = await customSearchKeyFromDB();
+  var httpClient = auth.clientViaApiKey(keyString);
   var csearch = new customsearch.CustomsearchApi(httpClient);
-  return new SearchService(httpClient, csearch, apiKey);
+  return new SearchService(httpClient, csearch);
 }
 
 /// A wrapper around the Custom Search API, used for searching for pub packages.
@@ -60,10 +57,7 @@ class SearchService {
   /// The Custom Search client API stub.
   final customsearch.CustomsearchApi csearch;
 
-  /// The API key used for making calls to the Custom Search API.
-  final PrivateKey privateKey;
-
-  SearchService(this.httpClient, this.csearch, this.privateKey);
+  SearchService(this.httpClient, this.csearch);
 
   /// Search for packes using [query], starting at offset [offset] returning
   /// max [numResults].

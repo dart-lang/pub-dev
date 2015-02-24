@@ -12,11 +12,10 @@ import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:googleapis_auth/src/crypto/pem.dart' as pem;
 import 'package:googleapis_auth/src/crypto/rsa.dart' as rsa;
 
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pub_server/repository.dart';
 
-import 'models.dart';
+import 'keys.dart';
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner => ss.lookup(#_url_signer);
@@ -28,19 +27,11 @@ void registerUploadSigner(UploadSignerService uploadSigner)
 
 /// Uses the datastore API in the current service scope to retrieve the private
 /// Key and creates a new [UploadSignerService].
-///
-/// If the private key cannot be retrieved from datastore this method will
-/// complete with `null`.
 Future<UploadSignerService>
     uploadSignerServiceViaApiKeyFromDb(String serviceAccountEmail) async {
-  var db = dbService;
-
-  var privateKeyKey = db.emptyKey.append(PrivateKey, id: 'singleton');
-  PrivateKey apiKey = (await db.lookup([privateKeyKey])).first;
-  if (apiKey == null) return null;
-
+  String pemFileString = await cloudStorageKeyFromDB();
   return new UploadSignerService(serviceAccountEmail,
-                                 pem.keyFromString(apiKey.value));
+                                 pem.keyFromString(pemFileString));
 }
 
 /// Used for building cloud storage upload information with signatures.

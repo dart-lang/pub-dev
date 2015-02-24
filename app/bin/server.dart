@@ -5,14 +5,13 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-import 'package:pub_dartlang_org/appengine_repository.dart';
 import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
@@ -27,50 +26,71 @@ final String ProductionServiceAccountEmail =
     "818368855108@developer.gserviceaccount.com";
 
 void main() {
+  // Uses the custom `Credentials` instead of getting the keys from the DB.
+  bool useDBKeys = false;
+
+  // Using 'gcloud preview app run app.yaml' locally with apiary datastore can
+  // be enabled by settings this to `true`.
+  bool useApiaryDatastore = false;
+
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    var authClient = await auth.clientViaServiceAccount(Credentials, SCOPES);
-    registerScopeExitCallback(authClient.close);
+    var projectAuthClient =
+        await auth.clientViaServiceAccount(Credentials, SCOPES);
+    registerScopeExitCallback(projectAuthClient.close);
     registerTemplateService(new TemplateService());
 
     return fork(() async {
-      initApiaryStorage(authClient);
+      if (useDBKeys) {
+        initApiaryStorageViaDBKey(ProductionServiceAccountEmail);
+      } else {
+        initApiaryStorage(projectAuthClient);
+      }
+      if (useApiaryDatastore) {
+        initApiaryDatastore(projectAuthClient);
+      }
       initOAuth2Service();
       await initSearchService();
 
-      var apiHandler = initPubServer();
-      var storageServiceCopy = storageService;
+      var namespace = getCurrentNamespace();
+      return withChangedNamespaces(() async {
+        var apiHandler = initPubServer();
+        var storageServiceCopy = storageService;
+        var dbServiceCopy = dbService;
 
-      registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
-          ProductionServiceAccountEmail));
+        if (useDBKeys) {
+          registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
+             ProductionServiceAccountEmail));
+        } else {
+          registerUploadSigner(new UploadSignerService(
+              Credentials.email, Credentials.privateRSAKey));
+        }
 
-      await runAppEngine((request) {
-        // Here we fork the current service scope and override
-        // storage to be what we setup above.
-        return fork(() {
-          registerStorageService(storageServiceCopy);
-
-          var namespace = getCurrentNamespace();
-          return withChangedNamespaces(() {
+        await runAppEngine((request) {
+          // Here we fork the current service scope and override
+          // storage to be what we setup above.
+          return fork(() {
+            registerStorageService(storageServiceCopy);
+            registerDbService(dbServiceCopy);
             return shelf_io.handleRequest(request,
                                           (shelf.Request request) async {
               await registerLoggedInUserIfPossible(request);
 
               logger.info('Handling request: ${request.requestedUri} '
                           '(Using namespace $namespace)');
-              return appHandler(request, apiHandler).catchError((error, stack) {
-                logger.severe('Request handler failed', error, stack);
+              return appHandler(request, apiHandler).catchError((error, s) {
+                logger.severe('Request handler failed', error, s);
                 return new shelf.Response.internalServerError();
               }).whenComplete(() {
                 logger.info('Request handler done.');
               });
             });
-          }, namespace: namespace);
-        }).catchError((error, stack) {
-          logger.severe('Request handler failed', error, stack);
+          }).catchError((error, stack) {
+            logger.severe('Request handler failed', error, stack);
+          });
         });
-      });
+      }, namespace: namespace);
     });
   });
 }
