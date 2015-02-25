@@ -38,12 +38,14 @@ class Package extends db.ExpandoModel {
   int downloads;
 
   @db.ModelKeyProperty(propertyName: 'latest_version')
-  db.Key latestVersion;
+  db.Key latestVersionKey;
 
   @db.StringListProperty()
   List<String> uploaderEmails;
 
-  Version get latestSemanticVersion => new Version.parse(latestVersion.id);
+  String get latestVersion => latestVersionKey.id;
+
+  Version get latestSemanticVersion => new Version.parse(latestVersionKey.id);
 }
 
 /// Pub package metadata for a specific uploaded version.

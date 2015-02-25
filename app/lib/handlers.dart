@@ -8,9 +8,10 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart' show dbService;
-import 'package:pub_semver/pub_semver.dart';
+import 'package:gcloud/db.dart' show dbService, DatastoreDB;
 import 'package:shelf/shelf.dart' as shelf;
+
+import 'package:pub_dartlang_org/backend.dart';
 
 import 'atom_feed.dart';
 import 'handlers_redirects.dart';
@@ -56,12 +57,7 @@ appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
 
 /// Handles requests for /
 indexHandler(_) async {
-  var query = dbService.query(Package)
-      ..order('-updated')
-      ..limit(5);
-  var packages = await query.run().toList();
-  var versionKeys = packages.map((p) => p.latestVersion).toList();
-  var versions = await dbService.lookup(versionKeys);
+  var versions = await backend.latestPackageVersions(limit: 5);
   assert(!versions.any((version) => version == null));
   return _htmlResponse(templateService.renderIndexPage(versions));
 }
@@ -74,15 +70,8 @@ atomFeedHandler(shelf.Request request) async {
   // the "next page" link was never returned to the caller.
   int page = 1;
 
-  var db = dbService;
-  var query = db.query(Package)
-      ..offset(PageSize * (page - 1))
-      ..limit(PageSize)
-      ..order('-updated');
-  var packages = await query.run().toList();
-  var versionKeys = packages.map((p) => p.latestVersion).toList();
-  var versions = await db.lookup(versionKeys);
-
+  var versions = await backend.latestPackageVersions(
+      offset: PageSize * (page - 1), limit: PageSize);
   var feed = feedFromPackageVersions(request.requestedUri,  versions);
   return _atomXmlResponse(feed.toXmlDocument());
 }
@@ -119,6 +108,7 @@ adminHandler(shelf.Request request) async {
       return _htmlResponse(
           templateService.renderErrorPage(status, message, null), status: 403);
     } else {
+      // TODO: Remove this admin page.
       var privateKeyKey = db.emptyKey.append(PrivateKey, id: 'singleton');
       PrivateKey key = (await db.lookup([privateKeyKey])).first;
       assert(key != null);
@@ -165,16 +155,10 @@ packagesHandler(shelf.Request request) async {
 packagesHandlerJson(request, page, dotJsonResponse) async {
   final PageSize = 50;
 
-  var db = dbService;
   var offset = PageSize * (page - 1);
   var limit = PageSize + 1;
 
-  var query = db.query(Package)
-      ..offset(offset)
-      ..limit(limit)
-      ..order('-updated');
-
-  var packages = await query.run().toList();
+  var packages = await backend.latestPackages(offset: offset, limit: limit);
   bool lastPage = packages.length < limit;
 
   var nextPageUrl;
@@ -202,20 +186,13 @@ packagesHandlerJson(request, page, dotJsonResponse) async {
 
 /// Handles requests for /packages - HTML
 packagesHandlerHtml(shelf.Request request, int page) async {
-  var db = dbService;
   var offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
   var limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
 
-  var query = db.query(Package)
-      ..offset(offset)
-      ..limit(limit)
-      ..order('-updated');
-
-  var packages = await query.run().toList();
+  var packages = await backend.latestPackages(offset: offset, limit: limit);
   var links = new PackageLinks(offset, offset + packages.length);
   var pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
-  var versionKeys = pagePackages.map((p) => p.latestVersion).toList();
-  var versions = await db.lookup(versionKeys);
+  var versions = await backend.lookupLatestVersions(pagePackages);
   return _htmlResponse(
       templateService.renderPkgIndexPage(pagePackages, versions, links));
 }
@@ -258,13 +235,10 @@ packageHandler(shelf.Request request) {
 
 /// Handles requests for /packages/<package> - JSON
 packageShowHandlerJson(shelf.Request request, String packageName) async {
-  var db = dbService;
-  var packageKey = db.emptyKey.append(Package, id: packageName);
-  Package package = (await db.lookup([packageKey])).first;
+  Package package = await backend.lookupPackage(packageName);
   if (package == null) return _notFoundHandler(request);
 
-  var versions = await
-      db.query(PackageVersion, ancestorKey: package.key).run().toList();
+  var versions = await backend.versionsOfPackage(packageName);
   _sortVersionsDesc(versions, decreasing: false);
 
   var json = {
@@ -278,14 +252,11 @@ packageShowHandlerJson(shelf.Request request, String packageName) async {
 
 /// Handles requests for /packages/<package> - HTML
 packageShowHandlerHtml(shelf.Request request, String packageName) async {
-  var db = dbService;
-  var packageKey = db.emptyKey.append(Package, id: packageName);
-  Package package = (await db.lookup([packageKey])).first;
+  Package package = await backend.lookupPackage(packageName);
   if (package == null) return _notFoundHandler(request);
 
-  var versions = await
-      db.query(PackageVersion, ancestorKey: package.key).run().toList();
-  _sortVersionsDesc(versions);
+  var versions = await backend.versionsOfPackage(packageName);
+  _sortVersionsDesc(versions, decreasing: false);
 
   var first10Versions = versions.take(10).toList();
   return _htmlResponse(templateService.renderPkgShowPage(
@@ -295,26 +266,17 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
 
 /// Handles requests for /packages/<package>/versions
 packageVersionsHandler(shelf.Request request, String packageName) async {
-  var db = dbService;
-  var packageKey = db.emptyKey.append(Package, id: packageName);
-  Package package = (await db.lookup([packageKey])).first;
-  if (package == null) return _notFoundHandler(request);
+  var versions = await backend.versionsOfPackage(packageName);
+  if (versions.isEmpty) return _notFoundHandler(request);
 
-  var versions = await
-      db.query(PackageVersion, ancestorKey: package.key).run().toList();
   _sortVersionsDesc(versions);
   return _htmlResponse(
-      templateService.renderPkgVersionsPage(package, versions));
+      templateService.renderPkgVersionsPage(packageName, versions));
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
 packageVersionHandlerYaml(request, String package, String version) async {
-  var db = dbService;
-  var packageVersionKey = db.emptyKey
-      .append(Package, id: package)
-      .append(PackageVersion, id: version);
-
-  PackageVersion packageVersion = (await db.lookup([packageVersionKey])).first;
+  var packageVersion = await backend.lookupPackageVersion(package, version);
   if (packageVersion == null) {
     return _notFoundHandler(request);
   } else {
@@ -328,20 +290,16 @@ apiPackagesHandler(shelf.Request request) async {
 
   int page = _pageFromUrl(request.url);
 
-  var db = dbService;
-  var query = db.query(Package)
-      ..offset(PageSize * (page - 1))
-      ..limit(PageSize + 1)
-      ..order('-updated');
-
-  var packages = await query.run().toList();
+  var packages = await backend.latestPackages(
+      offset: PageSize * (page - 1), limit: PageSize + 1);
 
   // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
   // know it was the last page.
   // But we only use `PageSize` packages to display in the result.
   List<Package> pagePackages = packages.take(PageSize).toList();
-  var versionKeys = pagePackages.map((p) => p.latestVersion).toList();
-  List<PackageVersion> pageVersions = await db.lookup(versionKeys);
+  List<PackageVersion> pageVersions =
+      await backend.lookupLatestVersions(pagePackages);
+
   var lastPage = packages.length == pagePackages.length;
 
   var packagesJson = [];
@@ -449,13 +407,10 @@ shelf.Response _redirectResponse(url) {
 
 /// Sorts [versions] according to the semantic versioning specification.
 void _sortVersionsDesc(List<PackageVersion> versions, {bool decreasing: true}) {
-  versions.sort((PackageVersion a, PackageVersion b) {
-    var av = new Version.parse(a.version);
-    var bv = new Version.parse(b.version);
-    if (decreasing) {
-      return bv.compareTo(av);
+  versions.sort((PackageVersion a, PackageVersion b) {    if (decreasing) {
+      return b.semanticVersion.compareTo(a.semanticVersion);
     } else {
-      return av.compareTo(bv);
+      return a.semanticVersion.compareTo(b.semanticVersion);
     }
   });
 }
@@ -471,7 +426,7 @@ int _pageFromUrl(Uri url, {int maxPages}) {
   if (pageAsString != null) {
     try {
       pageAsInt = max(int.parse(pageAsString), 1);
-    } catch (error, stack) { }
+    } catch (_, __) { }
   }
 
   if (maxPages != null && pageAsInt > maxPages) pageAsInt = maxPages;

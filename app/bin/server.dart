@@ -56,6 +56,8 @@ void main() {
 
       var namespace = getCurrentNamespace();
       return withChangedNamespaces(() async {
+        initBackend();
+
         var cache = new AppEnginePackageMemcache(memcacheService, namespace);
         var apiHandler = initPubServer(cache: cache);
         var storageServiceCopy = storageService;
@@ -80,7 +82,7 @@ void main() {
               await registerLoggedInUserIfPossible(request);
 
               logger.info('Handling request: ${request.requestedUri} '
-                          '(Using namespace $namespace)');
+                          '(Using namespace "$namespace")');
               return appHandler(request, apiHandler).catchError((error, s) {
                 logger.severe('Request handler failed', error, s);
                 return new shelf.Response.internalServerError();

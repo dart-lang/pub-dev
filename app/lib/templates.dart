@@ -43,10 +43,10 @@ class TemplateService {
   }
 
   /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(Package package, List<PackageVersion> versions) {
+  String renderPkgVersionsPage(String package, List<PackageVersion> versions) {
     var values = {
         'package': {
-          'name' : package.name,
+          'name' : package,
         },
         'versions' : versions.map((PackageVersion version) {
           return {

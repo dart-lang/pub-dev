@@ -4,7 +4,7 @@
 
 library pub_dartlang_org.tarball_storage_namer_test;
 
-import 'package:pub_dartlang_org/appengine_repository.dart';
+import 'package:pub_dartlang_org/backend.dart';
 import 'package:unittest/unittest.dart';
 
 main() {

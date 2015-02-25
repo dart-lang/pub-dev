@@ -79,7 +79,7 @@ class SearchService {
         var packages = await db.lookup(keys);
         // TODO: Insert check that all packages the indexer found, we can
         // lookup.
-        var versionKeys = packages.map((p) => p.latestVersion).toList();
+        var versionKeys = packages.map((p) => p.latestVersionKey).toList();
         var versions = await db.lookup(versionKeys);
         int count = int.parse(search.searchInformation.totalResults);
         if (count > SEARCH_MAX_RESULTS) count = SEARCH_MAX_RESULTS;

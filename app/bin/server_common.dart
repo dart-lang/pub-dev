@@ -19,7 +19,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_server/shelf_pubserver.dart';
 
-import 'package:pub_dartlang_org/appengine_repository.dart';
+import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/search_service.dart';
@@ -69,9 +69,12 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.httpClient.close);
 }
 
+void initBackend() {
+  registerBackend(new Backend(dbService, tarballStorage));
+}
+
 shelf.Handler initPubServer({PackageCache cache}) {
-  var appengineRepo = new GCloudPackageRepo();
-  return new ShelfPubServer(appengineRepo, cache: cache).requestHandler;
+  return new ShelfPubServer(backend.repository, cache: cache).requestHandler;
 }
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.gcloud_repository;
+library pub_dartlang_org.backend;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
@@ -21,6 +20,7 @@ import 'upload_signer_service.dart';
 import 'utils.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
+
 
 /// Sets the active logged-in user.
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
@@ -37,20 +37,79 @@ void registerTarballStorage(TarballStorage ts)
 TarballStorage get tarballStorage => ss.lookup(#_tarball_storage);
 
 
+/// Sets the backend service.
+void registerBackend(Backend backend) => ss.register(#_backend, backend);
+
+/// The active backend service.
+Backend get backend => ss.lookup(#_backend);
+
+
+/// Represents the backend for the pub.dartlang.org site.
+class Backend {
+  final DatastoreDB db;
+  final GCloudPackageRepository repository;
+
+  Backend(DatastoreDB db, TarballStorage storage)
+      : db = db, repository = new GCloudPackageRepository(db, storage);
+
+  /// Retrieves packages ordered by their latest version date.
+  Future<List<models.Package>> latestPackages(
+      {int offset: null, int limit: null}) {
+    var query = db.query(models.Package)
+        ..order('-updated')
+        ..offset(offset)
+        ..limit(limit);
+    return query.run().toList();
+  }
+
+  /// Retrieves package versions ordered by their latest version date.
+  Future<List<models.PackageVersion>> latestPackageVersions(
+      {int offset: null, int limit: null}) async {
+    var packages = await latestPackages(offset: offset, limit: limit);
+    return lookupLatestVersions(packages);
+  }
+
+  /// Looks up a package by name.
+  Future<models.Package> lookupPackage(String packageName) async {
+    var packageKey = db.emptyKey.append(models.Package, id: packageName);
+    return (await db.lookup([packageKey])).first;
+  }
+
+  /// Looks up a specific package version.
+  Future<models.Package> lookupPackageVersion(String package,
+                                              String version) async {
+    var packageVersionKey = db.emptyKey
+        .append(models.Package, id: package)
+        .append(PackageVersion, id: version);
+    return (await db.lookup([packageVersionKey])).first;
+  }
+
+  /// Looks up the latest versions of a list of packages.
+  Future<List<models.PackageVersion>> lookupLatestVersions(
+      List<models.Package> packages) {
+    var keys = packages.map((models.Package p) => p.latestVersionKey).toList();
+    return db.lookup(keys);
+  }
+
+  /// Looks up all versions of a package.
+  Future<List<models.PackageVersion>> versionsOfPackage(String packageName) {
+    var packageKey = db.emptyKey.append(models.Package, id: packageName);
+    var query = db.query(models.PackageVersion, ancestorKey: packageKey);
+    return query.run().toList();
+  }
+}
+
+
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
-class GCloudPackageRepo extends PackageRepository {
+class GCloudPackageRepository extends PackageRepository {
   static const int MAX_TARBALL_SIZE = 10 * 1024  * 1024;
 
   final Uuid uuid = new Uuid();
+  final DatastoreDB db;
+  final TarballStorage storage;
 
-  GCloudPackageRepo();
-
-  // The service scope will inject the DatastoreDB instance to use.
-  DatastoreDB get db => dbService;
-
-  // The service scope will inject the TarballStorage instance to use.
-  TarballStorage get storage => tarballStorage;
+  GCloudPackageRepository(this.db, this.storage);
 
   // Metadata support.
 
@@ -206,7 +265,7 @@ class GCloudPackageRepo extends PackageRepository {
       if (package.latestSemanticVersion < newVersion.semanticVersion &&
           (package.latestSemanticVersion.isPreRelease ||
            !newVersion.semanticVersion.isPreRelease)) {
-        package.latestVersion = newVersion.key;
+        package.latestVersionKey = newVersion.key;
       }
 
       try {
@@ -338,12 +397,12 @@ Future<List<int>> readTarball(Stream<List<int>> data) {
 
   subscription = data.listen((List<int> chunk) {
     tarballBytes.add(chunk);
-    if (tarballBytes.length > GCloudPackageRepo.MAX_TARBALL_SIZE) {
+    if (tarballBytes.length > GCloudPackageRepository.MAX_TARBALL_SIZE) {
       // TODO: Test that this actually results in a shutdown() of the socket
       // so we don't buffer data.
       subscription.cancel();
       completer.completeError(
-          'Invalid upload: Exceeded ${GCloudPackageRepo.MAX_TARBALL_SIZE} '
+          'Invalid upload: Exceeded ${GCloudPackageRepository.MAX_TARBALL_SIZE} '
           'upload size.');
     }
   }, onError: (error, stack) {
@@ -365,7 +424,7 @@ models.Package newPackageFromVersion(models.PackageVersion version) {
       ..created = now
       ..updated = now
       ..downloads = 0
-      ..latestVersion = version.key
+      ..latestVersionKey = version.key
       ..uploaderEmails = [loggedInUser];
 }
 

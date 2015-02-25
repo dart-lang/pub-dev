@@ -32,6 +32,9 @@ final Credentials = new auth.ServiceAccountCredentials.fromJson(
     new File(KeyLocation).readAsStringSync());
 
 void main() {
+  // Change this `namespace` variable to change the namespace used.
+  final String namespace = '';
+
   Logger.root.onRecord.listen((LogRecord record) {
     print('[${record.time}] ${record.level} ${record.loggerName}: '
           '${record.message}');
@@ -45,11 +48,13 @@ void main() {
     registerTemplateService(
         new TemplateService(templateDirectory: TemplateLocation));
 
-    return fork(() async {
-      initApiaryStorage(authClient);
-      initApiaryDatastore(authClient);
-      initOAuth2Service();
-      await initSearchService();
+    initApiaryStorage(authClient);
+    initApiaryDatastore(authClient);
+    initOAuth2Service();
+    await initSearchService();
+
+    return withChangedNamespaces(() {
+      initBackend();
 
       registerUploadSigner(new UploadSignerService(
           Credentials.email, Credentials.privateRSAKey));
@@ -62,42 +67,23 @@ void main() {
           if (response != null) return response;
 
           await registerLoggedInUserIfPossible(request);
-
-          var namespace = getCurrentNamespace(request.requestedUri);
-          return withChangedNamespaces(() {
-            logger.info('Handling request: ${request.requestedUri} '
-                        '(Using namespace $namespace)');
-            var result = new Future.sync(() => appHandler(request, apiHandler));
-            return result.catchError((error, stack) {
-              logger.severe('Request handler failed', error, stack);
-              return new shelf.Response.internalServerError();
-            }).whenComplete(() {
-              logger.info('Request handler done.');
-            });
-          }, namespace: namespace);
+          logger.info('Handling request: ${request.requestedUri} '
+                      '(Using namespace "$namespace")');
+          var result = new Future.sync(() => appHandler(request, apiHandler));
+          return result.catchError((error, stack) {
+            logger.severe('Request handler failed', error, stack);
+            return new shelf.Response.internalServerError();
+          }).whenComplete(() {
+            logger.info('Request handler done.');
+          });
         });
       }, 'localhost', 8383);
 
       // NOTE: shelf_io.serve() doesn't have a future when the HTTP server is
       // done. We therefore never complete for now.
       return new Completer().future;
-    });
+    }, namespace: namespace);
   });
-}
-
-/// Gets the current namespace.
-///
-/// The `server_io.dart` server is for local development and uses the
-/// `?ns=<namespace>` query parameter.
-// NOTE: This is used for local testing only ATM.
-// TODO: Make this not request-specific since "pub publish" e.g. will never set
-// the "?ns=staging" parameter.
-String getCurrentNamespace(Uri requestedUri) {
-  var ns = requestedUri.queryParameters['ns'];
-  if (ns == null) {
-    return '';
-  }
-  return 'staging';
 }
 
 staticHandler(shelf.Request request) {
