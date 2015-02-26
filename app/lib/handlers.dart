@@ -8,7 +8,6 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart' show dbService, DatastoreDB;
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/backend.dart';
@@ -95,7 +94,6 @@ sitemapHandler(_) => _htmlResponse(templateService.renderSitemapPage());
 /// Handles requests for /admin
 adminHandler(shelf.Request request) async {
   var users = userService;
-  var db = dbService;
 
   if (users.currentUser == null) {
     return _redirectResponse(await users.createLoginUrl('${request.url}'));
@@ -108,12 +106,10 @@ adminHandler(shelf.Request request) async {
       return _htmlResponse(
           templateService.renderErrorPage(status, message, null), status: 403);
     } else {
-      // TODO: Remove this admin page.
-      var privateKeyKey = db.emptyKey.append(PrivateKey, id: 'singleton');
-      PrivateKey key = (await db.lookup([privateKeyKey])).first;
-      assert(key != null);
-      // TODO: Pass `reloadStatus` to renderAdminPage.
-      return _htmlResponse(templateService.renderAdminPage(key != null, true));
+      var status = 'Not found.';
+      var message = 'The admin page has been disabled.';
+      return _htmlResponse(
+          templateService.renderErrorPage(status, message, null), status: 404);
     }
   }
 }
