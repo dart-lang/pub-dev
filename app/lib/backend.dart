@@ -80,7 +80,7 @@ class Backend {
                                               String version) async {
     var packageVersionKey = db.emptyKey
         .append(models.Package, id: package)
-        .append(PackageVersion, id: version);
+        .append(models.PackageVersion, id: version);
     return (await db.lookup([packageVersionKey])).first;
   }
 
@@ -101,7 +101,7 @@ class Backend {
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) {
     assert (repository.supportsDownloadUrl);
-    return backend.downloadUrl(package, version);
+    return repository.downloadUrl(package, version);
   }
 }
 
@@ -235,11 +235,11 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Parse metadata from the tarball.
     models.PackageVersion newVersion =
-        await parseAndValidateUpload(tarball, userEmail);
+        await parseAndValidateUpload(db, tarball, userEmail);
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    return await dbService.withTransaction((Transaction T) async {
+    return await db.withTransaction((Transaction T) async {
       _logger.info('Starting datastore transaction.');
 
       var tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
@@ -254,7 +254,7 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       // If the package does not exist, then we create a new package.
-      if (package == null) package = newPackageFromVersion(newVersion);
+      if (package == null) package = newPackageFromVersion(db, newVersion);
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
@@ -304,7 +304,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   bool get supportsUploaders => true;
 
-  Future addUploader(String packageName, String uploaderEmail) {
+  Future addUploader(String packageName, String uploaderEmail) async {
     return withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
         var packageKey = db.emptyKey.append(models.Package, id: packageName);
@@ -338,7 +338,7 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future removeUploader(String packageName, String uploaderEmail) {
+  Future removeUploader(String packageName, String uploaderEmail) async {
     return withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
         var packageKey = db.emptyKey.append(models.Package, id: packageName);
@@ -385,7 +385,7 @@ class GCloudPackageRepository extends PackageRepository {
 ///
 /// If no user is currently logged in, this will throw an `UnauthorizedAccess`
 /// exception.
-withAuthenticatedUser(func(String user)) {
+withAuthenticatedUser(func(String user)) async {
   if (loggedInUser == null) {
     throw new UnauthorizedAccessException('No active user.');
   }
@@ -422,9 +422,11 @@ Future<List<int>> readTarball(Stream<List<int>> data) {
 }
 
 /// Creates a new `Package` and populates all of it's fields.
-models.Package newPackageFromVersion(models.PackageVersion version) {
+models.Package newPackageFromVersion(DatastoreDB db,
+                                     models.PackageVersion version) {
   var now = new DateTime.now().toUtc();
   return new models.Package()
+      ..parentKey = db.emptyKey
       ..id = version.pubspec.name
       ..name = version.pubspec.name
       ..created = now
@@ -441,7 +443,8 @@ models.Package newPackageFromVersion(models.PackageVersion version) {
 ///   * contains a valid `pubspec.yaml` file
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
-Future<models.PackageVersion> parseAndValidateUpload(List<int> tarball,
+Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
+                                                     List<int> tarball,
                                                      String user) async {
   assert (user != null);
 
@@ -465,6 +468,7 @@ Future<models.PackageVersion> parseAndValidateUpload(List<int> tarball,
         .where((file) => file.startsWith('lib/'))
         .where((file) => !file.startsWith('lib/src'))
         .where((file) => file.endsWith('.dart'))
+        .map((file) => file.substring('lib/'.length))
         .toList();
 
     if (!files.contains('pubspec.yaml')) {
@@ -483,8 +487,7 @@ Future<models.PackageVersion> parseAndValidateUpload(List<int> tarball,
     var changelogContent = changelogFilename != null
         ? await readTarballFile(file.path, changelogFilename) : null;
 
-    var packageKey =
-        dbService.emptyKey.append(models.Package, id: pubspec.name);
+    var packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
 
     var version = new models.PackageVersion()
         ..id = pubspec.version
@@ -543,7 +546,8 @@ class TarballStorage {
   }
 
   /// Remove a previously generated temporary object.
-  Future removeTempObject(String guid) {
+  Future removeTempObject(String guid) async {
+    if (guid == null) throw new ArgumentError('No guid given.');
     return bucket.delete(namer.tmpObjectName(guid));
   }
 

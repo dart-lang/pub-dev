@@ -4,7 +4,10 @@
 
 library pub_dartlang_org.handlers_test;
 
+import 'dart:async';
+
 import 'package:unittest/unittest.dart';
+import 'package:yaml/yaml.dart';
 
 import 'package:appengine/appengine.dart';
 
@@ -12,15 +15,24 @@ import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers_redirects.dart';
 import 'package:pub_dartlang_org/models.dart';
 import 'package:pub_dartlang_org/search_service.dart';
+import 'package:pub_dartlang_org/templates.dart';
 
+import 'utils.dart';
 import 'handlers_test_utils.dart';
+
+tScopedTest(String name, Future func()) {
+  return scopedTest(name, () {
+    registerTemplateService(new TemplateMock());
+    return func();
+  });
+}
 
 main() {
   final PageSize = 10;
 
   group('handlers', () {
     group('ui', () {
-      scopedTest('/', () async {
+      tScopedTest('/', () async {
         var backend = new BackendMock(
             latestPackageVersionsFun: ({offset, limit}) {
               expect(offset, isNull);
@@ -32,7 +44,7 @@ main() {
         expectHtmlResponse(await issueGet('/'));
       });
 
-      scopedTest('/packages', () async {
+      tScopedTest('/packages', () async {
         var backend = new BackendMock(
             latestPackagesFun: ({offset, limit}) {
               expect(offset, 0);
@@ -48,7 +60,7 @@ main() {
         expectHtmlResponse(await issueGet('/packages'));
       });
 
-      scopedTest('/packages?page=2', () async {
+      tScopedTest('/packages?page=2', () async {
         var backend = new BackendMock(
             latestPackagesFun: ({offset, limit}) {
               expect(offset, PageSize);
@@ -64,7 +76,7 @@ main() {
         expectHtmlResponse(await issueGet('/packages?page=2'));
       });
 
-      scopedTest('/packages/foobar_pkg - found', () async {
+      tScopedTest('/packages/foobar_pkg - found', () async {
         var backend = new BackendMock(
             lookupPackageFun: (String packageName) {
               expect(packageName, 'foobar_pkg');
@@ -81,7 +93,7 @@ main() {
         expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
       });
 
-      scopedTest('/packages/foobar_pkg - not found', () async {
+      tScopedTest('/packages/foobar_pkg - not found', () async {
         var backend = new BackendMock(
             lookupPackageFun: (String packageName) {
               expect(packageName, 'foobar_pkg');
@@ -91,7 +103,7 @@ main() {
         expectHtmlResponse(await issueGet('/packages/foobar_pkg'), status: 404);
       });
 
-      scopedTest('/packages/foobar_pkg/versions - found', () async {
+      tScopedTest('/packages/foobar_pkg/versions - found', () async {
         var backend = new BackendMock(
             versionsOfPackageFun: (String package) {
               expect(package, testPackage.name);
@@ -104,7 +116,7 @@ main() {
         expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));
       });
 
-      scopedTest('/packages/foobar_pkg/versions - not found', () async {
+      tScopedTest('/packages/foobar_pkg/versions - not found', () async {
         var backend = new BackendMock(
             versionsOfPackageFun: (String package) {
               expect(package, testPackage.name);
@@ -115,7 +127,7 @@ main() {
                            status: 404);
       });
 
-      scopedTest('/doc', () async {
+      tScopedTest('/doc', () async {
         for (var path in REDIRECT_PATHS.keys) {
           var redirectUrl =
               'https://www.dartlang.org/tools/pub/${REDIRECT_PATHS[path]}';
@@ -123,31 +135,31 @@ main() {
         }
       });
 
-      scopedTest('/authorized', () async {
+      tScopedTest('/authorized', () async {
         expectHtmlResponse(await issueGet('/authorized'));
       });
 
-      scopedTest('/site-map', () async {
+      tScopedTest('/site-map', () async {
         expectHtmlResponse(await issueGet('/site-map'));
       });
 
-      scopedTest('/admin - not logged in', () async {
+      tScopedTest('/admin - not logged in', () async {
         registerUserService(new UserServiceMock());
         expectRedirectResponse(await issueGet('/admin'),
                                UserServiceMock.LoginUrl);
       });
 
-      scopedTest('/admin - unauthorized', () async {
+      tScopedTest('/admin - unauthorized', () async {
         registerUserService(new UserServiceMock(email: 'a@foobar.com'));
         expectHtmlResponse(await issueGet('/admin'), status: 403);
       });
 
-      scopedTest('/admin - logged in', () async {
+      tScopedTest('/admin - logged in', () async {
         registerUserService(new UserServiceMock(email: 'a@google.com'));
         expectHtmlResponse(await issueGet('/admin'), status: 404);
       });
 
-      scopedTest('/search?q=foobar', () async {
+      tScopedTest('/search?q=foobar', () async {
         registerSearchService(new SearchServiceMock(
             (String query, int offset, int numResults) {
           expect(query, 'foobar');
@@ -158,7 +170,7 @@ main() {
         expectHtmlResponse(await issueGet('/search?q=foobar'), status: 200);
       });
 
-      scopedTest('/search?q=foobar&page=2', () async {
+      tScopedTest('/search?q=foobar&page=2', () async {
         registerSearchService(new SearchServiceMock(
             (String query, int offset, int numResults) {
           expect(query, 'foobar');
@@ -169,7 +181,7 @@ main() {
         expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
       });
 
-      scopedTest('/feed.atom', () async {
+      tScopedTest('/feed.atom', () async {
         var backend = new BackendMock(
             latestPackageVersionsFun: ({offset, limit}) {
               expect(offset, 0);
@@ -227,7 +239,7 @@ main() {
         });
       });
 
-      scopedTest('/packages/foobar_pkg.json', () async {
+      tScopedTest('/packages/foobar_pkg.json', () async {
         var backend = new BackendMock(
             lookupPackageFun: (String package) {
               expect(package, 'foobar_pkg');
@@ -246,7 +258,7 @@ main() {
             });
       });
 
-      scopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
+      tScopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
         var backend = new BackendMock(
             lookupPackageVersionFun: (String package, String version) {
               expect(package, 'foobar_pkg');
@@ -256,19 +268,12 @@ main() {
         registerBackend(backend);
         expectYamlResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.1.yaml'),
-            body: {
-              "name" : 'foobar_pkg',
-              "version" : '0.1.1',
-              "author" : 'Hans Juergen <hans@juergen.com>',
-              "dependencies" : {
-                "gcloud" : 'any'
-              }
-            });
+            body: loadYaml(TestPackagePubspec));
       });
     });
 
     group('editor api', () {
-      scopedTest('/api/packages', () async {
+      tScopedTest('/api/packages', () async {
         var backend = new BackendMock(
             latestPackagesFun: ({offset, limit}) {
               expect(offset, 0);
@@ -288,12 +293,7 @@ main() {
               'name': 'foobar_pkg',
               'latest': {
                 'version': '0.1.1',
-                'pubspec': {
-                  'version': '0.1.1',
-                  'dependencies': {'gcloud': 'any'},
-                  'name': 'foobar_pkg',
-                  'author': 'Hans Juergen <hans@juergen.com>'
-                },
+                'pubspec': loadYaml(TestPackagePubspec),
                 'archive_url': 'https://pub.dartlang.org'
                                '/packages/foobar_pkg/versions/0.1.1.tar.gz',
                 'package_url': 'https://pub.dartlang.org'

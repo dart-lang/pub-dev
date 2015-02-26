@@ -20,7 +20,7 @@ Future<List<String>> listTarball(String path) async {
   var result = await Process.run('tar', ['--exclude=*/*/*', '-tzf', path]);
   if (result.exitCode != 0) throw 'Failed to list tarball contents.';
 
-  return result.stdout.split('\n').toList();
+  return result.stdout.split('\n').where((part) => part != '').toList();
 }
 
 Future<String> readTarballFile(String path, String name) async {

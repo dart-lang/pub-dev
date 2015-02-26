@@ -10,57 +10,13 @@ import 'dart:convert';
 import 'package:unittest/unittest.dart';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart';
-import 'package:gcloud/service_scope.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/models.dart';
 import 'package:pub_dartlang_org/search_service.dart';
-import 'package:pub_dartlang_org/model_properties.dart';
 import 'package:pub_dartlang_org/templates.dart';
-
-final Key testPackageKey =
-    new Key.emptyKey(new Partition(null)).append(Package, id: 'foobar_pkg');
-
-final Key testPackageVersionKey =
-    testPackageKey.append(PackageVersion, id: '0.1.1');
-
-final Pubspec testPubspec = new Pubspec.fromYaml('''
-name: foobar_pkg
-version: 0.1.1
-author: Hans Juergen <hans@juergen.com>
-
-dependencies:
-  gcloud: any
-''');
-
-final Package testPackage = new Package()
-    ..id = 'foobar_pkg'
-    ..name = 'foobar_pkg'
-    ..created = new DateTime.utc(2014)
-    ..updated = new DateTime.utc(2015)
-    ..uploaderEmails = ['hans@juergen.com'];
-
-final PackageVersion testPackageVersion = new PackageVersion()
-    ..id = '0.1.1'
-    ..version = '0.1.1'
-    ..packageKey = testPackageKey
-    ..created = new DateTime.utc(2014)
-    ..pubspec = testPubspec
-    ..readmeFilename = 'README'
-    ..readmeContent = 'readme content';
-
-
-void scopedTest(String name, func()) {
-  test(name, () {
-    return fork(() async {
-      registerTemplateService(new TemplateMock());
-      return func();
-    });
-  });
-}
 
 Future<shelf.Response> issueGet(String path) async {
   var uri = 'https://pub.dartlang.org$path';

@@ -1,0 +1,674 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library pub_dartlang_org.backend_test;
+
+import 'dart:async';
+
+import 'package:unittest/unittest.dart';
+import 'package:gcloud/db.dart';
+import 'package:yaml/yaml.dart';
+
+import 'package:pub_server/repository.dart' as pub_server;
+import 'package:pub_dartlang_org/upload_signer_service.dart';
+import 'package:pub_dartlang_org/backend.dart';
+import 'package:pub_dartlang_org/models.dart';
+
+import 'backend_test_utils.dart';
+
+import 'utils.dart';
+
+// TODO: Add missing tests when a query returns more than one result.
+main() {
+  group('backend', () {
+    group('Backend.latestPackages', () {
+      ({
+        'one package' : [testPackage],
+        'empty' : [],
+      }).forEach((String testName, List<Package> expectedPackages) {
+        test(testName, () async {
+          var completion = new TestDelayCompletion();
+          queryRunFun({kind, partition, ancestorKey, filters,
+                       filterComparisonObjects, offset, limit, orders}) {
+            completion.complete();
+            expect(kind, Package);
+            expect(offset, 4);
+            expect(limit, 9);
+            expect(orders, ['-updated']);
+            return new Stream.fromIterable(expectedPackages);
+          }
+
+          var db = new DatastoreDBMock(queryMock: new QueryMock(queryRunFun));
+          var backend = new Backend(db, null);
+
+          var packages = await backend.latestPackages(offset: 4, limit: 9);
+          expect(packages, equals(expectedPackages));
+        });
+      });
+    });
+
+    group('Backend.latestPackageVersions', () {
+      test('one package', () async {
+        var completion = new TestDelayCompletion();
+        queryRunFun({kind, partition, ancestorKey, filters,
+                     filterComparisonObjects, offset, limit, orders}) {
+          completion.complete();
+          expect(kind, Package);
+          expect(offset, 4);
+          expect(limit, 9);
+          expect(orders, ['-updated']);
+          return new Stream.fromIterable([testPackage]);
+        }
+
+        lookupFun(keys) {
+          expect(keys, hasLength(1));
+          expect(keys.first, testPackage.latestVersionKey);
+          return [testPackageVersion];
+        }
+
+        var db = new DatastoreDBMock(queryMock: new QueryMock(queryRunFun),
+                                     lookupFun: expectAsync(lookupFun));
+        var backend = new Backend(db, null);
+
+        var versions = await backend.latestPackageVersions(offset: 4, limit: 9);
+        expect(versions, hasLength(1));
+        expect(versions.first, equals(testPackageVersion));
+      });
+
+      test('empty', () async {
+        var completion = new TestDelayCompletion();
+        queryRunFun({kind, partition, ancestorKey, filters,
+                     filterComparisonObjects, offset, limit, orders}) {
+          completion.complete();
+          expect(kind, Package);
+          expect(offset, 4);
+          expect(limit, 9);
+          expect(orders, ['-updated']);
+          return new Stream.fromIterable([]);
+        }
+
+        lookupFun(keys) {
+          expect(keys, hasLength(0));
+          return [];
+        }
+
+        var db = new DatastoreDBMock(queryMock: new QueryMock(queryRunFun),
+                                     lookupFun: expectAsync(lookupFun));
+        var backend = new Backend(db, null);
+
+        var versions = await backend.latestPackageVersions(offset: 4, limit: 9);
+        expect(versions, hasLength(0));
+      });
+    });
+
+    group('Backend.lookupPackage', () {
+      ({
+        'exists' : [testPackage],
+        'does not exist' : [null],
+      }).forEach((String testName, List<Package> expectedPackages) {
+        test(testName, () async {
+          lookupFun(List<Key> keys) {
+            expect(keys, hasLength(1));
+            expect(keys.first.type, Package);
+            expect(keys.first.id, 'foobar');
+            return expectedPackages;
+          }
+
+          var db = new DatastoreDBMock(lookupFun: expectAsync(lookupFun));
+          var backend = new Backend(db, null);
+
+          var package = await backend.lookupPackage('foobar');
+          expect(package, equals(expectedPackages.first));
+        });
+      });
+    });
+
+    group('Backend.lookupPackageVersion', () {
+      ({
+        'exists' : [testPackageVersion],
+        'does not exist' : [null],
+      }).forEach((String testName, List<PackageVersion> expectedVersions) {
+        test(testName, () async {
+          lookupFun(List<Key> keys) {
+            expect(keys, hasLength(1));
+            expect(keys.first, testPackageVersion.key);
+            return expectedVersions;
+          }
+
+          var db = new DatastoreDBMock(lookupFun: expectAsync(lookupFun));
+          var backend = new Backend(db, null);
+
+          var version = await backend.lookupPackageVersion(
+              testPackageVersion.package, testPackageVersion.version);
+          expect(version, equals(expectedVersions.first));
+        });
+      });
+    });
+
+
+    group('Backend.lookupLatestVersions', () {
+      ({
+        'one version' : [testPackageVersion],
+        'empty' : [null],
+      }).forEach((String testName, List<PackageVersion> expectedVersions) {
+        test(testName, () async {
+          lookupFun(List<Key> keys) {
+            expect(keys, hasLength(1));
+            expect(keys.first, testPackageVersion.key);
+            return expectedVersions;
+          }
+
+          var db = new DatastoreDBMock(lookupFun: expectAsync(lookupFun));
+          var backend = new Backend(db, null);
+
+          var versions = await backend.lookupLatestVersions([testPackage]);
+          expect(versions, hasLength(1));
+          expect(versions.first, equals(expectedVersions.first));
+        });
+      });
+    });
+
+
+    group('Backend.versionsOfPackage', () {
+      ({
+        'one version' : [testPackageVersion],
+        'empty' : [null],
+      }).forEach((String testName, List<PackageVersion> expectedVersions) {
+        test(testName, () async {
+          var completion = new TestDelayCompletion();
+          queryRunFun({kind, partition, ancestorKey, filters,
+                       filterComparisonObjects, offset, limit, orders}) {
+            completion.complete();
+            expect(kind, PackageVersion);
+            expect(ancestorKey, testPackage.key);
+            return new Stream.fromIterable(expectedVersions);
+          }
+
+          var db = new DatastoreDBMock(queryMock: new QueryMock(queryRunFun));
+          var backend = new Backend(db, null);
+
+          var versions = await backend.versionsOfPackage(testPackage.name);
+          expect(versions, hasLength(1));
+          expect(versions.first, equals(expectedVersions.first));
+        });
+      });
+    });
+
+    test('Backend.downloadUrl', () async {
+      var db = new DatastoreDBMock();
+      var tarballStorage = new TarballStorageMock(
+          downloadUrlFun: expectAsync((package, version) {
+        expect(package, 'foobar');
+        expect(version, '0.1.0');
+        return Uri.parse('http://blob/foobar/0.1.0.tar.gz');
+      }));
+      var backend = new Backend(db, tarballStorage);
+
+      var url = await backend.downloadUrl('foobar', '0.1.0');
+      expect(url.toString(), 'http://blob/foobar/0.1.0.tar.gz');
+    });
+  });
+
+  group('backend.repository', () {
+    void negativeUploaderTests(Function getMethod(repo)) {
+      scopedTest('not logged in', () async {
+        var db = new DatastoreDBMock();
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync((e, _) {
+          expect(e is pub_server.UnauthorizedAccessException, isTrue);
+        }));
+      });
+
+      scopedTest('not authorized', () async {
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            rollbackFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        registerLoggedInUser('foo@bar.com');
+        await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync((e, _) {
+          expect(e is pub_server.UnauthorizedAccessException, isTrue);
+        }));
+      });
+
+      scopedTest('package does not exist', () async {
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [null];
+            }),
+            rollbackFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync((e, _) {
+          expect('$e', equals('Exception: Package "null" does not exist'));
+        }));
+      });
+    }
+
+    group('GCloudRepository.addUploader', () {
+      negativeUploaderTests((repo) => repo.addUploader);
+
+      scopedTest('already exists', () async {
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            rollbackFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        registerLoggedInUser('foo@b.com');
+        testPackage.uploaderEmails = ['foo@b.com'];
+        await repo.addUploader(pkg, 'foo@b.com').catchError(expectAsync((e,_) {
+          expect(e is pub_server.UploaderAlreadyExistsException, isTrue);
+        }));
+      });
+
+      scopedTest('successful', () async {
+        var completion = new TestDelayCompletion();
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            queueMutationFun: ({inserts, deletes}) {
+              expect(inserts, hasLength(1));
+              expect(inserts.first.uploaderEmails, contains('foo@b.com'));
+              expect(inserts.first.uploaderEmails, contains('bar@b.com'));
+              completion.complete();
+            },
+            commitFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        testPackage.uploaderEmails = ['foo@b.com'];
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        await repo.addUploader(pkg, 'bar@b.com');
+      });
+    });
+
+    group('GCloudRepository.removeUploader', () {
+      negativeUploaderTests((repo) => repo.removeUploader);
+
+      scopedTest('cannot remove last uploader', () async {
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            rollbackFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        testPackage.uploaderEmails = ['foo@bar.com'];
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        await repo.removeUploader(pkg, 'foo@bar.com')
+            .catchError(expectAsync((e, _) {
+          expect(e is pub_server.LastUploaderRemoveException, isTrue);
+        }));
+      });
+
+      scopedTest('cannot remove non-existent uploader', () async {
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            rollbackFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        testPackage.uploaderEmails = ['foo1@bar.com'];
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        await repo.removeUploader(pkg, 'foo2@bar.com')
+            .catchError(expectAsync((e, _) {
+          expect('$e', 'Exception: The uploader to remove does not exist.');
+        }));
+      });
+
+      scopedTest('successful', () async {
+        var completion = new TestDelayCompletion();
+        var transactionMock = new TransactionMock(
+            lookupFun: expectAsync((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            queueMutationFun: ({inserts, deletes}) {
+              expect(inserts, hasLength(1));
+              expect(inserts.first.uploaderEmails.contains('b@x.com'), isFalse);
+              completion.complete();
+            },
+            commitFun: expectAsync(() {}));
+        var db = new DatastoreDBMock(transactionMock: transactionMock);
+        var tarballStorage = new TarballStorageMock();
+        var repo = new GCloudPackageRepository(db, tarballStorage);
+
+        var pkg = testPackage.name;
+        testPackage.uploaderEmails = ['a@x.com', 'b@x.com'];
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        await repo.removeUploader(pkg, 'b@x.com');
+      });
+    });
+
+    group('GCloudRepository.downloadUrl', () {
+      test('successful', () async {
+        var tarballStorage = new TarballStorageMock(
+            downloadUrlFun: expectAsync((package, version) {
+          return Uri.parse('http://blobstore/$package/$version.tar.gz');
+        }));
+        var repo = new GCloudPackageRepository(null, tarballStorage);
+
+        var url = await repo.downloadUrl('foo', '0.1.0');
+        expect('$url', 'http://blobstore/foo/0.1.0.tar.gz');
+      });
+    });
+
+    group('GCloudRepository.download', () {
+      test('successful', () async {
+        var tarballStorage = new TarballStorageMock(
+            downloadFun: expectAsync((package, version) {
+          return new Stream.fromIterable([[1, 2, 3]]);
+        }));
+        var repo = new GCloudPackageRepository(null, tarballStorage);
+
+        var stream = await repo.download('foo', '0.1.0');
+        var data = await stream.fold([], (b, d) => b..addAll(d));
+        expect(data, [1, 2, 3]);
+      });
+    });
+
+    group('GCloudRepository.lookupVersion', () {
+      test('not found', () async {
+        var db = new DatastoreDBMock(lookupFun: expectAsync((keys) {
+          expect(keys, hasLength(1));
+          expect(keys.first, testPackageVersionKey);
+          return [null];
+        }));
+        var repo = new GCloudPackageRepository(db, null);
+        var version = await repo.lookupVersion(testPackageVersion.package,
+                                               testPackageVersion.version);
+        expect(version, isNull);
+      });
+
+      test('successful', () async {
+        var db = new DatastoreDBMock(lookupFun: expectAsync((keys) {
+          expect(keys, hasLength(1));
+          expect(keys.first, testPackageVersionKey);
+          return [testPackageVersion];
+        }));
+        var repo = new GCloudPackageRepository(db, null);
+        var version = await repo.lookupVersion(testPackageVersion.package,
+                                               testPackageVersion.version);
+        expect(version, isNotNull);
+        expect(version.packageName, testPackageVersion.package);
+        expect(version.versionString, testPackageVersion.version);
+      });
+    });
+
+    group('GCloudRepository.versions', () {
+      test('not found', () async {
+        var completion = new TestDelayCompletion();
+        queryRunFun({kind, partition, ancestorKey, filters,
+                     filterComparisonObjects, offset, limit, orders}) {
+          completion.complete();
+          expect(kind, PackageVersion);
+          expect(ancestorKey, testPackageKey);
+          return new Stream.fromIterable([]);
+        }
+        var queryMock = new QueryMock(queryRunFun);
+        var db = new DatastoreDBMock(queryMock: queryMock);
+        var repo = new GCloudPackageRepository(db, null);
+        var version = await repo.versions(testPackageVersion.package).toList();
+        expect(version, isEmpty);
+      });
+
+      test('found', () async {
+        var completion = new TestDelayCompletion();
+        queryRunFun({kind, partition, ancestorKey, filters,
+                     filterComparisonObjects, offset, limit, orders}) {
+          completion.complete();
+          expect(kind, PackageVersion);
+          expect(ancestorKey, testPackageKey);
+          return new Stream.fromIterable([testPackageVersion]);
+        }
+        var queryMock = new QueryMock(queryRunFun);
+        var db = new DatastoreDBMock(queryMock: queryMock);
+        var repo = new GCloudPackageRepository(db, null);
+        var version = await repo.versions(testPackageVersion.package).toList();
+        expect(version, hasLength(1));
+        expect(version.first.packageName, testPackageVersion.package);
+        expect(version.first.versionString, testPackageVersion.version);
+      });
+    });
+
+    group('uploading', () {
+      var dateBeforeTest = new DateTime.now().toUtc();
+
+      validateSuccessfullUpdate(List<Model> inserts) {
+        expect(inserts, hasLength(2));
+        Package package = inserts[0];
+        PackageVersion version = inserts[1];
+
+        expect(package.key, testPackage.key);
+        expect(package.name, testPackage.name);
+        expect(package.latestVersionKey, testPackageVersion.key);
+        expect(package.uploaderEmails, ['hans@juergen.com']);
+        expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
+        expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+
+        expect(version.key, testPackageVersion.key);
+        expect(version.packageKey, testPackage.key);
+        expect(version.created.compareTo(dateBeforeTest) >= 0, isTrue);
+        expect(version.readmeFilename, 'README.md');
+        expect(version.readmeContent, TestPackageReadme);
+        expect(version.changelogFilename, 'CHANGELOG.md');
+        expect(version.changelogContent, TestPackageChangelog);
+        expect(version.pubspec.asJson, loadYaml(TestPackagePubspec));
+        expect(version.libraries, ['test_library.dart']);
+        expect(version.downloads, 0);
+
+        // We currently do not correctly update `sort_order`.
+        expect(version.sortOrder, 1);
+      }
+
+      group('GCloudRepository.startAsyncUpload', () {
+        final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
+
+        scopedTest('no active user', () async {
+          var db = new DatastoreDBMock();
+          var repo = new GCloudPackageRepository(db, null);
+          registerUploadSigner(new UploadSignerServiceMock(null));
+          await repo.startAsyncUpload(redirectUri)
+              .catchError(expectAsync((e, _) {
+            expect(e is pub_server.UnauthorizedAccessException, isTrue);
+          }));
+        });
+
+        scopedTest('successful', () async {
+          var uri = Uri.parse('http://foobar.com');
+          var expectedUploadInfo =
+              new pub_server.AsyncUploadInfo(uri, {'a' : 'b'});
+          var bucketMock = new BucketMock('mbucket');
+          var tarballStorage = new TarballStorageMock(
+              tmpObjectNameFun: expectAsync((guid) {
+                return 'obj/$guid';
+              }), bucketMock: bucketMock);
+          var db = new DatastoreDBMock();
+          var repo = new GCloudPackageRepository(db, tarballStorage);
+          var uploadSignerMock = new UploadSignerServiceMock(
+              (bucket, object, lifetime, successRedirectUrl,
+               {predefinedAcl, maxUploadSize}) {
+            expect(bucket, 'mbucket');
+            return expectedUploadInfo;
+          });
+          registerUploadSigner(uploadSignerMock);
+          registerLoggedInUser('hans@juergen.com');
+          var uploadInfo = await repo.startAsyncUpload(redirectUri);
+          expect(identical(uploadInfo, expectedUploadInfo), isTrue);
+        });
+      });
+
+      group('GCloudRepository.finishAsyncUpload', () {
+        final Uri redirectUri =
+            Uri.parse('http://blobstore.com/upload?upload_id=myguid');
+
+        scopedTest('successful', () async {
+          return withTestPackage((List<int> tarball) async {
+            var tarballStorage = new TarballStorageMock(
+                readTempObjectFun: (guid) {
+                  expect(guid, 'myguid');
+                  return new Stream.fromIterable([tarball]);
+                },
+                uploadViaTempObjectFun : (String guid,
+                                          String package,
+                                          String version) {
+                  expect(guid, 'myguid');
+                  expect(package, testPackage.name);
+                  expect(version, testPackageVersion.version);
+                },
+                removeTempObjectFun: (guid) {
+                  expect(guid, 'myguid');
+                });
+            var transactionMock = new TransactionMock(
+                lookupFun: (keys) {
+                  expect(keys, hasLength(2));
+                  expect(keys.first, testPackageVersion.key);
+                  expect(keys.last, testPackage.key);
+                  return [null, null];
+                },
+                queueMutationFun: ({inserts, deletes}) {
+                  validateSuccessfullUpdate(inserts);
+                },
+                commitFun: expectAsync(() {}));
+            var db = new DatastoreDBMock(transactionMock: transactionMock);
+            var repo = new GCloudPackageRepository(db, tarballStorage);
+            registerLoggedInUser('hans@juergen.com');
+            var version = await repo.finishAsyncUpload(redirectUri);
+            expect(version.packageName, testPackage.name);
+            expect(version.versionString, testPackageVersion.version);
+          });
+        });
+      });
+
+      group('GCloudRepository.upload', () {
+        scopedTest('not logged in', () async {
+          return withTestPackage((List<int> tarball) async {
+            var tarballStorage = new TarballStorageMock();
+            var transactionMock = new TransactionMock();
+            var db = new DatastoreDBMock(transactionMock: transactionMock);
+            var repo = new GCloudPackageRepository(db, tarballStorage);
+            repo.upload(new Stream.fromIterable([tarball]))
+                .catchError(expectAsync((error, _) {
+              expect(error is pub_server.UnauthorizedAccessException, isTrue);
+            }));
+          });
+        });
+
+        scopedTest('not authorized', () async {
+          return withTestPackage((List<int> tarball) async {
+            var tarballStorage = new TarballStorageMock();
+            var transactionMock = new TransactionMock(
+                lookupFun: expectAsync((keys) {
+                  expect(keys, hasLength(2));
+                  expect(keys.first, testPackageVersion.key);
+                  expect(keys.last, testPackage.key);
+                  return [null, testPackage];
+                }),
+                rollbackFun: expectAsync(() {}));
+            var db = new DatastoreDBMock(transactionMock: transactionMock);
+            var repo = new GCloudPackageRepository(db, tarballStorage);
+            registerLoggedInUser('un@authorized.com');
+            repo.upload(new Stream.fromIterable([tarball]))
+                .catchError(expectAsync((error, _) {
+              expect(error is pub_server.UnauthorizedAccessException, isTrue);
+            }));
+          });
+        });
+
+        scopedTest('versions already exist', () async {
+          return withTestPackage((List<int> tarball) async {
+            var tarballStorage = new TarballStorageMock();
+            var transactionMock = new TransactionMock(
+                lookupFun: expectAsync((keys) {
+                  expect(keys, hasLength(2));
+                  expect(keys.first, testPackageVersion.key);
+                  expect(keys.last, testPackage.key);
+                  return [testPackageVersion, testPackage];
+                }),
+                rollbackFun: expectAsync(() {}));
+            var db = new DatastoreDBMock(transactionMock: transactionMock);
+            var repo = new GCloudPackageRepository(db, tarballStorage);
+            registerLoggedInUser('un@authorized.com');
+            repo.upload(new Stream.fromIterable([tarball]))
+                .catchError(expectAsync((error, _) {
+              expect('$error'.contains('version already exists'), isTrue);
+            }));
+          });
+        });
+
+        scopedTest('successful', () async {
+          return withTestPackage((List<int> tarball) async {
+            var completion = new TestDelayCompletion();
+            var tarballStorage = new TarballStorageMock(
+                uploadFun : (String package,
+                             String version,
+                             List<int> uploadTarball) {
+                  expect(package, testPackage.name);
+                  expect(version, testPackageVersion.version);
+                  expect(uploadTarball, tarball);
+                });
+            var transactionMock = new TransactionMock(
+                lookupFun: expectAsync((keys) {
+                  expect(keys, hasLength(2));
+                  expect(keys.first, testPackageVersion.key);
+                  expect(keys.last, testPackage.key);
+                  return [null, null];
+                }),
+                queueMutationFun: ({inserts, deletes}) {
+                  validateSuccessfullUpdate(inserts);
+                  completion.complete();
+                },
+                commitFun: expectAsync(() {}));
+            var db = new DatastoreDBMock(transactionMock: transactionMock);
+            var repo = new GCloudPackageRepository(db, tarballStorage);
+            registerLoggedInUser('hans@juergen.com');
+            var version = await repo.upload(new Stream.fromIterable([tarball]));
+            expect(version.packageName, testPackage.name);
+            expect(version.versionString, testPackageVersion.version);
+          });
+        });
+      });
+    });
+  });
+}
