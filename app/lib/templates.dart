@@ -43,19 +43,28 @@ class TemplateService {
   }
 
   /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions) {
+  String renderPkgVersionsPage(String package,
+                               List<PackageVersion> versions,
+                               List<Uri> versionDownloadUrls) {
+    assert(versions.length == versionDownloadUrls.length);
+
+    var versionsJson = [];
+    for (int i = 0; i < versions.length; i++) {
+      PackageVersion version = versions[i];
+      String url = versionDownloadUrls[i].toString();
+      versionsJson.add({
+        'version': version.id,
+        'short_created': version.shortCreated,
+        'documentation': version.documentation,
+        'download_url': url,
+      });
+    }
+
     var values = {
         'package': {
           'name' : package,
         },
-        'versions' : versions.map((PackageVersion version) {
-          return {
-            'version' : version.id,
-            'short_created' : version.shortCreated,
-            'documentation' : version.documentat,
-            'download_url' : version.downloadUrl,
-          };
-        }).toList(),
+        'versions' : versionsJson,
     };
     return _renderPage('pkg/versions/index', values);
   }
@@ -93,8 +102,11 @@ class TemplateService {
   /// Renders the `views/private_keys/show.mustache` template.
   String renderPkgShowPage(Package package,
                            List<PackageVersion> versions,
+                           List<Uri> versionDownloadUrls,
                            PackageVersion latestVersion,
                            int totalNumberOfVersions) {
+    assert(versions.length == versionDownloadUrls.length);
+
     var importExamples;
     if (latestVersion.libraries.contains('${package.id}.dart')) {
       importExamples = [{
@@ -139,6 +151,18 @@ class TemplateService {
       }
     }
 
+    var versionsJson = [];
+    for (int i = 0; i < versions.length; i++) {
+      PackageVersion version = versions[i];
+      String url = versionDownloadUrls[i].toString();
+      versionsJson.add({
+        'version': version.id,
+        'short_created': version.shortCreated,
+        'documentation': version.documentation,
+        'download_url': url,
+      });
+    }
+
     var values = {
         'package': {
           'name' : package.name,
@@ -160,14 +184,7 @@ class TemplateService {
           'uploaders_title' : 'Uploader',
           'uploaders_html' : _getUploadersHtml(package),
         },
-        'versions' : versions.map((PackageVersion version) {
-          return {
-            'version': version.id,
-            'short_created': version.shortCreated,
-            'documentation': version.documentation,
-            'download_url': version.downloadUrl,
-          };
-        }).toList(),
+        'versions' : versionsJson,
         'show_versions_link' : totalNumberOfVersions > versions.length,
         'readme' : readme,
         'readme_filename' : readmeFilename,

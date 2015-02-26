@@ -97,6 +97,12 @@ class Backend {
     var query = db.query(models.PackageVersion, ancestorKey: packageKey);
     return query.run().toList();
   }
+
+  /// Get a [Uri] which can be used to download a tarball of the pub package.
+  Future<Uri> downloadUrl(String package, String version) {
+    assert (repository.supportsDownloadUrl);
+    return backend.downloadUrl(package, version);
+  }
 }
 
 

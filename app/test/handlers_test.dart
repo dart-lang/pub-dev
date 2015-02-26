@@ -73,6 +73,9 @@ main() {
             versionsOfPackageFun: (String package) {
               expect(package, testPackage.name);
               return [testPackageVersion];
+            },
+            downloadUrlFun: (String package, String version) {
+              return 'http://blobstore/$package/$version';
             });
         registerBackend(backend);
         expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
@@ -93,6 +96,9 @@ main() {
             versionsOfPackageFun: (String package) {
               expect(package, testPackage.name);
               return [testPackageVersion];
+            },
+            downloadUrlFun: (String package, String version) {
+              return 'http://blobstore/$package/$version';
             });
         registerBackend(backend);
         expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));

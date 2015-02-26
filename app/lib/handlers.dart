@@ -4,6 +4,7 @@
 
 library pub_dartlang_org.handlers;
 
+import 'dart:async';
 import 'dart:math';
 import 'dart:convert';
 
@@ -255,10 +256,16 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
   _sortVersionsDesc(versions, decreasing: false);
 
   var first10Versions = versions.take(10).toList();
-  return _htmlResponse(templateService.renderPkgShowPage(
-      package, first10Versions, first10Versions.last, versions.length));
-}
 
+  var versionDownloadUrls =  await Future.wait(
+      first10Versions.map((PackageVersion version) {
+    return backend.downloadUrl(packageName, version.version);
+  }).toList());
+
+  return _htmlResponse(templateService.renderPkgShowPage(
+      package, first10Versions, versionDownloadUrls, first10Versions.last,
+      versions.length));
+}
 
 /// Handles requests for /packages/<package>/versions
 packageVersionsHandler(shelf.Request request, String packageName) async {
@@ -266,8 +273,14 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
   if (versions.isEmpty) return _notFoundHandler(request);
 
   _sortVersionsDesc(versions);
-  return _htmlResponse(
-      templateService.renderPkgVersionsPage(packageName, versions));
+
+  var versionDownloadUrls =  await Future.wait(
+      versions.map((PackageVersion version) {
+    return backend.downloadUrl(packageName, version.version);
+  }).toList());
+
+  return _htmlResponse(templateService.renderPkgVersionsPage(
+      packageName, versions, versionDownloadUrls));
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml

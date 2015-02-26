@@ -146,18 +146,6 @@ class PackageVersion extends db.ExpandoModel {
   }
 
   String get homepageNice => niceUrl(homepage);
-
-
-  String get downloadUrl {
-    var name = packageKey.id;
-    var version = id;
-
-    // TODO: namespace handling
-    // TODO: don't have this in several places.
-    // TODO: don't have this hardcoded to the pub.dartlang.org bucket
-    return 'https://storage.googleapis.com/pub.dartlang.org/'
-           'packages/$name-$version.tar.gz';
-  }
 }
 
 @db.Kind(name: 'PrivateKey', idType: db.IdType.String)

@@ -108,13 +108,15 @@ class BackendMock implements Backend {
   final Function lookupPackageFun;
   final Function lookupPackageVersionFun;
   final Function versionsOfPackageFun;
+  final Function downloadUrlFun;
 
   BackendMock({this.latestPackageVersionsFun,
                this.latestPackagesFun,
                this.lookupLatestVersionsFun,
                this.lookupPackageFun,
                this.lookupPackageVersionFun,
-               this.versionsOfPackageFun});
+               this.versionsOfPackageFun,
+               this.downloadUrlFun});
 
   get db => throw 'unexpected db access';
   get repository => throw 'unexpected repository access';
@@ -150,6 +152,11 @@ class BackendMock implements Backend {
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
     if (versionsOfPackageFun == null) throw 'no versionsOfPackageFun';
     return versionsOfPackageFun(packageName);
+  }
+
+  Future<Uri> downloadUrl(String package, String version) async {
+    if (downloadUrlFun == null) throw 'no downloadUrlFun';
+    return downloadUrlFun(package, version);
   }
 }
 
@@ -190,12 +197,17 @@ class TemplateMock implements TemplateService {
     return Response;
   }
 
-  String renderPkgShowPage(Package package, List<PackageVersion> versions,
+  String renderPkgShowPage(Package package,
+                           List<PackageVersion> versions,
+                           List<Uri> downloadUris,
                            PackageVersion latestVersion,
                            int totalNumberOfVersions) {
     return Response;
   }
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions) {
+
+  String renderPkgVersionsPage(String package,
+                               List<PackageVersion> versions,
+                               List<Uri> versionDownloadUrls) {
     return Response;
   }
 
