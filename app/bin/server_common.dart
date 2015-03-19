@@ -25,7 +25,6 @@ import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
 final String ProjectId = 'mkustermann-dartvm';
-final String PackageBucket = 'mkustermann--pub-packages';
 
 const List<String> SCOPES = const [
     "https://www.googleapis.com/auth/cloud-platform",
@@ -35,6 +34,8 @@ const List<String> SCOPES = const [
 ];
 
 final Logger logger = new Logger('pub');
+
+final String TestProjectPackageBucket = 'mkustermann--pub-packages';
 
 void initOAuth2Service() {
   // The oauth2 service is used for getting an email address from an oauth2
@@ -69,8 +70,9 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.httpClient.close);
 }
 
-void initBackend() {
-  registerBackend(new Backend(dbService, tarballStorage));
+void initBackend({String requiredEmailPostfix}) {
+  registerBackend(new Backend(dbService, tarballStorage,
+      requiredEmailPostfix: requiredEmailPostfix));
 }
 
 shelf.Handler initPubServer({PackageCache cache}) {
@@ -96,7 +98,7 @@ registerLoggedInUserIfPossible(shelf.Request request) async {
 }
 
 /// Changes the namespace for datastore and tarball storage.
-Future withChangedNamespaces(func(), {String namespace}) {
+Future withChangedNamespaces(func(), String bucketName, {String namespace}) {
   if (namespace == '') namespace = null;
 
   var db = dbService;
@@ -108,7 +110,7 @@ Future withChangedNamespaces(func(), {String namespace}) {
     registerDbService(nsDB);
 
     // Construct & register a TarballStorage.
-    var bucket = storageService.bucket(PackageBucket);
+    var bucket = storageService.bucket(bucketName);
     var tarballStorage = new TarballStorage(storageService, bucket, namespace);
     registerTarballStorage(tarballStorage);
 

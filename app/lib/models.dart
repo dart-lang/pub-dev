@@ -74,10 +74,10 @@ class PackageVersion extends db.ExpandoModel {
   @PubspecProperty(required: true)
   Pubspec pubspec;
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String readmeFilename;
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String readmeContent;
 
   FileObject get readme {
@@ -86,10 +86,10 @@ class PackageVersion extends db.ExpandoModel {
     return null;
   }
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String changelogFilename;
 
-  @db.StringProperty()
+  @db.StringProperty(indexed: false)
   String changelogContent;
 
   FileObject get changelog {

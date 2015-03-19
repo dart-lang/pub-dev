@@ -1,4 +1,4 @@
-FROM google/dart-runtime-base
+FROM mkustermann/dart-runtime-base:1.9.0-dev.10.9
 
 WORKDIR /project/app
 
@@ -14,5 +14,3 @@ ADD pkg /project/pkg
 ADD app /project/app
 
 RUN pub get --offline
-
-ENV DART_VM_OPTIONS --enable-async

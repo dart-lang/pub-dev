@@ -26,13 +26,27 @@ final Credentials = new auth.ServiceAccountCredentials.fromJson(
 final String ProductionServiceAccountEmail =
     "818368855108@developer.gserviceaccount.com";
 
+final String ProdPackageBucket = 'pub.dartlang.org';
+
 void main() {
   // Uses the custom `Credentials` instead of getting the keys from the DB.
-  bool useDBKeys = false;
+  bool useDBKeys = true;
 
   // Using 'gcloud preview app run app.yaml' locally with apiary datastore can
   // be enabled by settings this to `true`.
   bool useApiaryDatastore = false;
+
+  // Uses the production 'gs://pub.dartlang.org' bucket.
+  bool useProdBucket = true;
+
+  // Only allow users with a special email postfix to upload packages.
+  String requiredEmailPostfix = '@google.com';
+
+
+
+
+  String packageBucketName =
+      useProdBucket ? ProdPackageBucket : TestProjectPackageBucket;
 
   useLoggingPackageAdaptor();
 
@@ -56,7 +70,7 @@ void main() {
 
       var namespace = getCurrentNamespace();
       return withChangedNamespaces(() async {
-        initBackend();
+        initBackend(requiredEmailPostfix: requiredEmailPostfix);
 
         var cache = new AppEnginePackageMemcache(memcacheService, namespace);
         var apiHandler = initPubServer(cache: cache);
@@ -94,7 +108,7 @@ void main() {
             logger.severe('Request handler failed', error, stack);
           });
         });
-      }, namespace: namespace);
+      }, packageBucketName, namespace: namespace);
     });
   });
 }
@@ -102,7 +116,9 @@ void main() {
 /// Gets the current namespace.
 String getCurrentNamespace() {
   String version = modulesService.currentVersion;
-  if (['preview', 'coming-soon'].contains(version) || isInt(version)) {
+  if (['preview', 'coming-soon'].contains(version) ||
+      version.startsWith('buildbot-dart') ||
+      isInt(version)) {
     return '';
   }
   return 'staging';

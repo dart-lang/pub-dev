@@ -82,7 +82,7 @@ void main() {
       // NOTE: shelf_io.serve() doesn't have a future when the HTTP server is
       // done. We therefore never complete for now.
       return new Completer().future;
-    }, namespace: namespace);
+    }, TestProjectPackageBucket, namespace: namespace);
   });
 }
 

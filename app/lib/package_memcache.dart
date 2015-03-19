@@ -25,9 +25,9 @@ class AppEnginePackageMemcache implements PackageCache {
           ? KEY_PREFIX : 'ns_${namespace}_$KEY_PREFIX';
 
   Future<List<int>> getPackageData(String package) async {
-    var result = memcache.get(_packageKey(package), asBinary: true);
+    var result = await memcache.get(_packageKey(package), asBinary: true);
 
-    if (result) _logger.info('memcache["$package"] found');
+    if (result != null) _logger.info('memcache["$package"] found');
     else _logger.info('memcache["$package"] not found');
 
     return result;
