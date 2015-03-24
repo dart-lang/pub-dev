@@ -40,7 +40,7 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_version')
   db.Key latestVersionKey;
 
-  @db.StringListProperty()
+  @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
   String get latestVersion => latestVersionKey.id;
@@ -98,7 +98,7 @@ class PackageVersion extends db.ExpandoModel {
     return null;
   }
 
-  @db.StringListProperty()
+  @CompatibleStringListProperty()
   List<String> libraries;
 
   // Metadata about the package version.

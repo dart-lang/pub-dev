@@ -94,7 +94,7 @@ packages:
   protobuf:
     description: protobuf
     source: hosted
-    version: "0.3.5+2"
+    version: "0.3.5+3"
   pub_semver:
     description: pub_semver
     source: hosted

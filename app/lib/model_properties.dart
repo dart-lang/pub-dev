@@ -102,3 +102,52 @@ class FileObject {
 
   FileObject(this.filename, this.text);
 }
+
+
+/// Similar to [ListProperty] but one which is fully compatible with python's
+/// 'db' implementation.
+class CompatibleListProperty extends Property {
+  final PrimitiveProperty subProperty;
+
+  const CompatibleListProperty(this.subProperty,
+                     {String propertyName, bool indexed: true})
+      : super(propertyName: propertyName, required: true, indexed: indexed);
+
+  bool validate(ModelDB db, Object value) {
+    if (!super.validate(db, value) || value is! List) return false;
+
+    for (var entry in value) {
+       if (!subProperty.validate(db, entry)) return false;
+    }
+    return true;
+  }
+
+  Object encodeValue(ModelDB db, Object value) {
+    // NOTE: As opposed to [ListProperty] we will encode
+    //    - `null` as `[]`  (as opposed to `null`)
+    //    - `[]` as `[]`  (as opposed to `null`)
+    //    - `[a]` as `[a]` (as opposed to `a`)
+    if (value == null) return [];
+    List list = value;
+    if (list.length == 0) return [];
+    if (list.length == 1) return [subProperty.encodeValue(db, list[0])];
+    return list.map(
+        (value) => subProperty.encodeValue(db, value)).toList();
+  }
+
+  Object decodePrimitiveValue(ModelDB db, Object value) {
+    if (value == null) return [];
+    if (value is! List) return [subProperty.decodePrimitiveValue(db, value)];
+    return (value as List)
+        .map((entry) => subProperty.decodePrimitiveValue(db, entry))
+        .toList();
+  }
+}
+
+/// Similar to [StringListProperty] but one which is fully compatible with
+/// python's 'db' implementation.
+class CompatibleStringListProperty extends CompatibleListProperty {
+  const CompatibleStringListProperty({String propertyName, bool indexed: true})
+      : super(const StringProperty(required: true),
+              propertyName: propertyName, indexed: indexed);
+}
