@@ -112,8 +112,6 @@ class Backend {
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
 class GCloudPackageRepository extends PackageRepository {
-  static const int MAX_TARBALL_SIZE = 10 * 1024  * 1024;
-
   final Uuid uuid = new Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
@@ -179,13 +177,12 @@ class GCloudPackageRepository extends PackageRepository {
     return withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
-      // Read the entire tarball & keep it in memory (fail if > 10 MB).
-      // TODO: Find out why we it times out when we do it in an async scope.
-      // TODO: Try avoid keeping everything in memory and try streaming it
-      // to disc instead.
-      return readTarball(data).then((List<int> tarball) {
-        return _performTarballUpload(userEmail, tarball, (package, version) {
-          return storage.upload(package, version, tarball);
+      return withTempDirectory((Directory dir) async {
+        var filename = '${dir.absolute.path}/tarball.tar.gz';
+        await saveTarballToFS(data, filename);
+        return _performTarballUpload(userEmail, filename, (package, version) {
+          return storage.upload(
+              package, version, new File(filename).openRead());
         });
       });
     });
@@ -221,26 +218,28 @@ class GCloudPackageRepository extends PackageRepository {
       var guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
       _logger.info('Reading tarball from cloud storage.');
-      // TODO: Try avoid keeping everything in memory and try streaming it
-      // to disc instead.
-      var tarball = await readTarball(storage.readTempObject(guid));
-      return _performTarballUpload(userEmail, tarball, (package, version) {
-        return storage.uploadViaTempObject(guid, package, version);
-      }).whenComplete(() async {
-        _logger.info('Removing temporary object $guid.');
-        await storage.removeTempObject(guid);
+
+      return withTempDirectory((Directory dir) async {
+        var filename = '${dir.absolute.path}/tarball.tar.gz';
+        await saveTarballToFS(storage.readTempObject(guid), filename);
+        return _performTarballUpload(userEmail, filename, (package, version) {
+          return storage.uploadViaTempObject(guid, package, version);
+        }).whenComplete(() async {
+          _logger.info('Removing temporary object $guid.');
+          await storage.removeTempObject(guid);
+        });
       });
     });
   }
 
   Future<PackageVersion> _performTarballUpload(
-      String userEmail, List<int> tarball,
+      String userEmail, String filename,
       Future tarballUpload(name, version)) async {
       _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
     models.PackageVersion newVersion =
-        await parseAndValidateUpload(db, tarball, userEmail);
+        await parseAndValidateUpload(db, filename, userEmail);
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -426,27 +425,80 @@ withAuthenticatedUser(func(String user)) async {
 ///
 /// Compeltes with an error if the incoming stream has an error or if the size
 /// exceeds `GcloudPackageRepo.MAX_TARBALL_SIZE`.
-Future<List<int>> readTarball(Stream<List<int>> data) {
-  var tarballBytes = new BytesBuilder();
-  var subscription;
-  var completer = new Completer();
+Future saveTarballToFS(Stream<List<int>> data, String filename) async {
+  Completer completer = new Completer();
 
-  subscription = data.listen((List<int> chunk) {
-    tarballBytes.add(chunk);
-    if (tarballBytes.length > GCloudPackageRepository.MAX_TARBALL_SIZE) {
-      // TODO: Test that this actually results in a shutdown() of the socket
-      // so we don't buffer data.
-      subscription.cancel();
-      completer.completeError(
-          'Invalid upload: Exceeded ${GCloudPackageRepository.MAX_TARBALL_SIZE} '
-          'upload size.');
+  StreamSink<List<int>> sink;
+  StreamSubscription dataSubscription;
+  StreamController intermediary;
+  Future addStreamFuture;
+
+  abort(error, stack) {
+    _logger.warning(
+        'An error occured while streaming tarball to FS.', error, stack);
+
+    if (dataSubscription != null) {
+      dataSubscription.cancel();
+      dataSubscription = null;
     }
-  }, onError: (error, stack) {
-    subscription.cancel();
-    completer.completeError(error, stack);
-  }, onDone: () {
-    completer.complete(tarballBytes.takeBytes());
-  });
+    if (!completer.isCompleted) {
+      completer.completeError(error, stack);
+    }
+  }
+
+  finish() {
+    _logger.info('Finished streaming tarball to FS.');
+    completer.complete();
+  }
+
+  startReading() {
+    int receivedBytes = 0;
+
+    dataSubscription = data.listen((List<int> chunk) {
+      receivedBytes += chunk.length;
+      if (receivedBytes <= UploadSignerService.MAX_UPLOAD_SIZE) {
+        intermediary.add(chunk);
+      } else {
+        var error = 'Invalid upload: Exceeded '
+            '${UploadSignerService.MAX_UPLOAD_SIZE} upload size.';
+        intermediary.addError(error);
+        intermediary.close();
+
+        abort(error, null);
+      }
+    },
+    onError: abort,
+    onDone: () {
+      intermediary.close();
+      addStreamFuture.then((_) async {
+        await sink.close();
+        finish();
+      }).catchError((error, stack) {
+        // NOTE: There is also an error handler further down for `addStream()`,
+        // since an error might occur before we get this `onDone` callback.
+        // In this case `abort` will not do anything.
+        abort(error, stack);
+      });
+    });
+  }
+
+  intermediary = new StreamController(
+      onListen: startReading,
+      onPause: () => dataSubscription.pause(),
+      onResume: () => dataSubscription.resume(),
+      onCancel: () {
+        // NOTE: We do nothing here. The `.pipe()` further down will
+        //  - listen on the stream
+        //  - will get data
+        //  - will get the done event
+        //  - will cancel the subscription
+        // => Since this is normal behavior we're not aborting here.
+      });
+
+
+  sink = new File(filename).openWrite();
+  addStreamFuture = sink.addStream(intermediary.stream);
+  addStreamFuture.catchError(abort);
 
   return completer.future;
 }
@@ -474,68 +526,61 @@ models.Package newPackageFromVersion(DatastoreDB db,
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
 Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
-                                                     List<int> tarball,
+                                                     String filename,
                                                      String user) async {
   assert (user != null);
 
-  return withTempDirectory((Directory dir) async {
-    // TODO: We could think about streaming this to a file instead of doing
-    // synchronous writing.
-    var file = new File('data.bin');
-    await file.writeAsBytes(tarball);
+  var files = await listTarball(filename);
 
-    var files = await listTarball(file.path);
+  var readmeFilename;
+  if (files.contains('README.md')) readmeFilename = 'README.md';
+  else if (files.contains('README')) readmeFilename = 'README';
 
-    var readmeFilename;
-    if (files.contains('README.md')) readmeFilename = 'README.md';
-    else if (files.contains('README')) readmeFilename = 'README';
+  var changelogFilename;
+  if (files.contains('CHANGELOG.md')) changelogFilename = 'CHANGELOG.md';
+  else if (files.contains('CHANGELOG')) readmeFilename = 'CHANGELOG';
 
-    var changelogFilename;
-    if (files.contains('CHANGELOG.md')) changelogFilename = 'CHANGELOG.md';
-    else if (files.contains('CHANGELOG')) readmeFilename = 'CHANGELOG';
+  var libraries = files
+      .where((file) => file.startsWith('lib/'))
+      .where((file) => !file.startsWith('lib/src'))
+      .where((file) => file.endsWith('.dart'))
+      .map((file) => file.substring('lib/'.length))
+      .toList();
 
-    var libraries = files
-        .where((file) => file.startsWith('lib/'))
-        .where((file) => !file.startsWith('lib/src'))
-        .where((file) => file.endsWith('.dart'))
-        .map((file) => file.substring('lib/'.length))
-        .toList();
+  if (!files.contains('pubspec.yaml')) {
+    throw 'Invalid upload: no pubspec.yaml file';
+  }
 
-    if (!files.contains('pubspec.yaml')) {
-      throw 'Invalid upload: no pubspec.yaml file';
-    }
+  var pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
 
-    var pubspecContent = await readTarballFile(file.path, 'pubspec.yaml');
+  var pubspec = new Pubspec.fromYaml(pubspecContent);
+  if (pubspec.name == null || pubspec.version == null) {
+    throw 'Invalid `pubspec.yaml` file';
+  }
 
-    var pubspec = new Pubspec.fromYaml(pubspecContent);
-    if (pubspec.name == null || pubspec.version == null) {
-      throw 'Invalid `pubspec.yaml` file';
-    }
+  var readmeContent = readmeFilename != null
+      ? await readTarballFile(filename, readmeFilename) : null;
+  var changelogContent = changelogFilename != null
+      ? await readTarballFile(filename, changelogFilename) : null;
 
-    var readmeContent = readmeFilename != null
-        ? await readTarballFile(file.path, readmeFilename) : null;
-    var changelogContent = changelogFilename != null
-        ? await readTarballFile(file.path, changelogFilename) : null;
+  var packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
 
-    var packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
-
-    var version = new models.PackageVersion()
-        ..id = pubspec.version
-        ..parentKey = packageKey
-        ..version = pubspec.version
-        ..packageKey = packageKey
-        ..created = new DateTime.now().toUtc()
-        ..pubspec = pubspec
-        ..readmeFilename = readmeFilename
-        ..readmeContent = readmeContent
-        ..changelogFilename = changelogFilename
-        ..changelogContent = changelogContent
-        ..libraries = libraries
-        ..downloads = 0
-        ..sortOrder = 1
-        ..uploaderEmail = user;
-    return version;
-  });
+  var version = new models.PackageVersion()
+      ..id = pubspec.version
+      ..parentKey = packageKey
+      ..version = pubspec.version
+      ..packageKey = packageKey
+      ..created = new DateTime.now().toUtc()
+      ..pubspec = pubspec
+      ..readmeFilename = readmeFilename
+      ..readmeContent = readmeContent
+      ..changelogFilename = changelogFilename
+      ..changelogContent = changelogContent
+      ..libraries = libraries
+      ..downloads = 0
+      ..sortOrder = 1
+      ..uploaderEmail = user;
+  return version;
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
@@ -597,12 +642,11 @@ class TarballStorage {
   }
 
   /// Upload [tarball] of a [package] in the given [version].
-  Future upload(String package, String version, List<int> tarball) {
+  Future upload(String package, String version, Stream<List<int>> tarball) {
     var object = namer.tarballObjectName(package, version);
-    return bucket.writeBytes(
-        object, tarball, predefinedAcl: PredefinedAcl.publicRead);
+    return tarball.pipe(
+        bucket.write(object, predefinedAcl: PredefinedAcl.publicRead));
   }
-
 }
 
 /// Class used for getting GCS object/bucket names and object URLs.

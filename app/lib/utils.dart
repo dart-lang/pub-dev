@@ -18,7 +18,9 @@ Future withTempDirectory(Future func(Directory dir),
 
 Future<List<String>> listTarball(String path) async {
   var result = await Process.run('tar', ['--exclude=*/*/*', '-tzf', path]);
-  if (result.exitCode != 0) throw 'Failed to list tarball contents.';
+  if (result.exitCode != 0) {
+    throw 'Failed to list tarball contents.';
+  }
 
   return result.stdout.split('\n').where((part) => part != '').toList();
 }

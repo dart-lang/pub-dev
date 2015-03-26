@@ -21,6 +21,8 @@ import 'utils.dart';
 
 // TODO: Add missing tests when a query returns more than one result.
 main() {
+  unittestConfiguration.timeout = const Duration(seconds: 15);
+
   group('backend', () {
     group('Backend.latestPackages', () {
       ({
@@ -543,6 +545,36 @@ main() {
         final Uri redirectUri =
             Uri.parse('http://blobstore.com/upload?upload_id=myguid');
 
+        scopedTest('upload-too-big', () async {
+          var oneKB = new List.filled(1024, 42);
+          var bigTarball = [];
+          for (int i = 0;
+              i < UploadSignerService.MAX_UPLOAD_SIZE ~/ 1024;
+              i++) {
+            bigTarball.add(oneKB);
+          }
+          // Add one more byte than allowed.
+          bigTarball.add([1]);
+
+          var tarballStorage = new TarballStorageMock(
+              readTempObjectFun: (guid) {
+                expect(guid, 'myguid');
+                return new Stream.fromIterable(bigTarball);
+              },
+              removeTempObjectFun: (guid) {
+                expect(guid, 'myguid');
+              });
+          var transactionMock = new TransactionMock();
+          var db = new DatastoreDBMock(transactionMock: transactionMock);
+          var repo = new GCloudPackageRepository(db, tarballStorage);
+          registerLoggedInUser('hans@juergen.com');
+          Future result = repo.finishAsyncUpload(redirectUri);
+          result.catchError(expectAsync((error, _) {
+            expect(error, contains(
+                'Exceeded ${UploadSignerService.MAX_UPLOAD_SIZE} upload size'));
+          }));
+        });
+
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
             var tarballStorage = new TarballStorageMock(
@@ -637,16 +669,43 @@ main() {
           });
         });
 
+        scopedTest('upload-too-big', () async {
+          var oneKB = new List.filled(1024, 42);
+          var bigTarball = [];
+          for (int i = 0;
+              i < UploadSignerService.MAX_UPLOAD_SIZE ~/ 1024;
+              i++) {
+            bigTarball.add(oneKB);
+          }
+          // Add one more byte than allowed.
+          bigTarball.add([1]);
+
+          var tarballStorage = new TarballStorageMock();
+          var transactionMock = new TransactionMock();
+          var db = new DatastoreDBMock(transactionMock: transactionMock);
+          var repo = new GCloudPackageRepository(db, tarballStorage);
+          registerLoggedInUser('hans@juergen.com');
+          Future result = repo.upload(new Stream.fromIterable(bigTarball));
+          result.catchError(expectAsync((error, _) {
+            expect(error, contains(
+                'Exceeded ${UploadSignerService.MAX_UPLOAD_SIZE} upload size'));
+          }));
+        });
+
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
             var completion = new TestDelayCompletion();
             var tarballStorage = new TarballStorageMock(
                 uploadFun : (String package,
                              String version,
-                             List<int> uploadTarball) {
+                             Stream<List<int>> uploadTarball) async {
                   expect(package, testPackage.name);
                   expect(version, testPackageVersion.version);
-                  expect(uploadTarball, tarball);
+
+                  var bytes =
+                      await uploadTarball.fold([], (b, d) => b..addAll(d));
+
+                  expect(bytes, tarball);
                 });
             var transactionMock = new TransactionMock(
                 lookupFun: expectAsync((keys) {

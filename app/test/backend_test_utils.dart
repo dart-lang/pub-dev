@@ -185,7 +185,7 @@ class TarballStorageMock implements TarballStorage {
     return tmpObjectNameFun(guid);
   }
 
-  Future upload(String package, String version, List<int> tarball) {
+  Future upload(String package, String version, Stream<List<int>> tarball) {
     if (uploadFun == null) throw 'no uploadFun';
     return uploadFun(package, version, tarball);
   }
@@ -204,10 +204,10 @@ class UploadSignerServiceMock implements UploadSignerService {
 
   get serviceAccountEmail => throw 'no serviceAccountEmail support';
 
-  AsyncUploadInfo buildUpload(String bucket, String object, Duration lifetime,
-                              String successRedirectUrl,
-                              {String predefinedAcl: 'project-private',
-                               int maxUploadSize: 10 * 1024 * 1024}) {
+  AsyncUploadInfo buildUpload(
+      String bucket, String object, Duration lifetime,
+      String successRedirectUrl, {String predefinedAcl: 'project-private',
+      int maxUploadSize: UploadSignerService.MAX_UPLOAD_SIZE}) {
     return buildUploadFun(bucket, object, lifetime, successRedirectUrl,
         predefinedAcl: predefinedAcl, maxUploadSize: maxUploadSize);
   }

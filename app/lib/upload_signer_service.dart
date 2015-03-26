@@ -39,6 +39,7 @@ Future<UploadSignerService>
 /// See here for a broader explanation:
 /// https://cloud.google.com/storage/docs/reference-methods#postobject
 class UploadSignerService {
+  static const int MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
   static final Uri UploadUrl = Uri.parse('https://storage.googleapis.com');
 
   final String serviceAccountEmail;
@@ -54,7 +55,7 @@ class UploadSignerService {
                               Duration lifetime,
                               String successRedirectUrl,
                               {String predefinedAcl: 'project-private',
-                               int maxUploadSize: 10 * 1024 * 1024}) {
+                               int maxUploadSize: MAX_UPLOAD_SIZE}) {
     var now = new DateTime.now().toUtc();
     var expirationString = now.add(lifetime).toIso8601String();
 
