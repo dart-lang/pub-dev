@@ -391,7 +391,7 @@ abstract class PageLinks {
     var results = [];
 
     results.add({
-        'state' : {'state' : currentPage == 1 ? 'disabled' : null},
+        'state' : {'state' : currentPage <= 1 ? 'disabled' : null},
         'href' : {'href' : formatHref(currentPage - 1) },
         'text' : '&laquo',
     });
@@ -408,9 +408,9 @@ abstract class PageLinks {
 
     results.add({
         'state' : {
-          'state' : currentPage == count ~/ RESULTS_PER_PAGE ? 'disabled' : null
+          'state' : currentPage >= rightmostPage ? 'disabled' : null
         },
-        'href' : {'href' : formatHref(currentPage - 1) },
+        'href' : {'href' : formatHref(currentPage + 1) },
         'text' : '&raquo',
     });
     return results;
