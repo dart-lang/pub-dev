@@ -312,13 +312,22 @@ class GCloudPackageRepository extends PackageRepository {
           return versionA.semanticVersion.compareTo(
               versionB.semanticVersion);
         });
+
+        List<models.PackageVersion> modifiedVersions = [];
+
         for (int i = 0; i < versions.length; i++) {
-          versions[i].sortOrder = i;
+          var version = versions[i];
+          if (version.sortOrder != i) {
+            version.sortOrder = i;
+            modifiedVersions.add(version);
+          }
         }
-        T.queueMutations(inserts: versions);
+
+        T.queueMutations(inserts: modifiedVersions);
         await T.commit();
         _logger.info('Successfully updated `sort_order` field of '
-                     '${versions.length} versions.');
+                     '${modifiedVersions.length} versions'
+                     '(out of ${versions.length} versions).');
       });
     } catch (error, stack) {
       // We ignore errors, since the sorting is not that critical and
