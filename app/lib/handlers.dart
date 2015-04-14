@@ -253,7 +253,7 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
   if (package == null) return _notFoundHandler(request);
 
   var versions = await backend.versionsOfPackage(packageName);
-  _sortVersionsDesc(versions, decreasing: false);
+  _sortVersionsDesc(versions);
 
   var first10Versions = versions.take(10).toList();
 
