@@ -8,7 +8,7 @@ packages:
   appengine:
     description: appengine
     source: hosted
-    version: "0.2.6+2"
+    version: "0.2.6+3"
   args:
     description: args
     source: hosted

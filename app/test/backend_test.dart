@@ -500,8 +500,26 @@ main() {
         expect(version.libraries, ['test_library.dart']);
         expect(version.downloads, 0);
 
-        // We currently do not correctly update `sort_order`.
         expect(version.sortOrder, 1);
+      }
+
+      validateSuccessfullSortOrderUpdate(PackageVersion model) {
+        expect(model.sortOrder, 0);
+      }
+
+      sortOrderUpdateQueryMock({Type kind, Partition partition, Key ancestorKey,
+                                List<String> filters,
+                                List filterComparisonObjects,
+                                int offset, int limit,
+                                List<String> orders}) {
+          expect(orders, []);
+          expect(filters, []);
+          expect(offset, isNull);
+          expect(limit, isNull);
+          expect(kind, PackageVersion);
+          expect(ancestorKey, testPackage.key);
+          testPackageVersion.sortOrder = 50;
+          return new Stream.fromIterable([testPackageVersion]);
       }
 
       group('GCloudRepository.startAsyncUpload', () {
@@ -592,6 +610,8 @@ main() {
                 removeTempObjectFun: (guid) {
                   expect(guid, 'myguid');
                 });
+            var queryMock = new QueryMock(sortOrderUpdateQueryMock);
+            int queueMutationCallNr = 0;
             var transactionMock = new TransactionMock(
                 lookupFun: (keys) {
                   expect(keys, hasLength(2));
@@ -600,9 +620,17 @@ main() {
                   return [null, null];
                 },
                 queueMutationFun: ({inserts, deletes}) {
-                  validateSuccessfullUpdate(inserts);
+                  if (queueMutationCallNr == 0) {
+                    validateSuccessfullUpdate(inserts);
+                  } else {
+                    expect(queueMutationCallNr, 1);
+                    expect(inserts, [testPackageVersion]);
+                    validateSuccessfullSortOrderUpdate(inserts.first);
+                  }
+                  queueMutationCallNr++;
                 },
-                commitFun: expectAsync(() {}));
+                commitFun: expectAsync(() {}, count: 2),
+                queryMock: queryMock);
             var db = new DatastoreDBMock(transactionMock: transactionMock);
             var repo = new GCloudPackageRepository(db, tarballStorage);
             registerLoggedInUser('hans@juergen.com');
@@ -694,7 +722,7 @@ main() {
 
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
-            var completion = new TestDelayCompletion();
+            var completion = new TestDelayCompletion(count: 2);
             var tarballStorage = new TarballStorageMock(
                 uploadFun : (String package,
                              String version,
@@ -707,18 +735,34 @@ main() {
 
                   expect(bytes, tarball);
                 });
+
+            // NOTE: There will be two transactions:
+            //  a) for inserting a new Package + PackageVersion
+            //  b) for inserting a new PackageVersions sorted by `sort_order`.
+            int queueMutationCallNr = 0;
+            var queryMock = new QueryMock(sortOrderUpdateQueryMock);
             var transactionMock = new TransactionMock(
                 lookupFun: expectAsync((keys) {
+                  expect(queueMutationCallNr, 0);
+
                   expect(keys, hasLength(2));
                   expect(keys.first, testPackageVersion.key);
                   expect(keys.last, testPackage.key);
                   return [null, null];
                 }),
                 queueMutationFun: ({inserts, deletes}) {
-                  validateSuccessfullUpdate(inserts);
+                  if (queueMutationCallNr == 0) {
+                    validateSuccessfullUpdate(inserts);
+                  } else {
+                    expect(queueMutationCallNr, 1);
+                    expect(inserts, [testPackageVersion]);
+                    validateSuccessfullSortOrderUpdate(inserts.first);
+                  }
+                  queueMutationCallNr++;
                   completion.complete();
                 },
-                commitFun: expectAsync(() {}));
+                commitFun: expectAsync(() {}, count: 2),
+                queryMock: queryMock);
             var db = new DatastoreDBMock(transactionMock: transactionMock);
             var repo = new GCloudPackageRepository(db, tarballStorage);
             registerLoggedInUser('hans@juergen.com');

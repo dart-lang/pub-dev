@@ -13,13 +13,16 @@ import 'package:pub_dartlang_org/models.dart';
 import 'package:pub_dartlang_org/model_properties.dart';
 
 class TestDelayCompletion {
-  static Function NOP = () {};
+  final int count;
+  final Function _complete = expectAsync(() {});
+  int _got = 0;
 
-  final Function _fun;
+  TestDelayCompletion({this.count: 1});
 
-  TestDelayCompletion() : _fun = expectAsync(NOP);
-
-  void complete() => _fun();
+  void complete() {
+    _got++;
+    if (_got == count) _complete();
+  }
 }
 
 final Key testPackageKey =
@@ -47,7 +50,8 @@ final PackageVersion testPackageVersion = new PackageVersion()
     ..created = new DateTime.utc(2014)
     ..pubspec = testPubspec
     ..readmeFilename = 'README'
-    ..readmeContent = 'readme content';
+    ..readmeContent = 'readme content'
+    ..sortOrder = -1;
 
 
 void scopedTest(String name, func()) {

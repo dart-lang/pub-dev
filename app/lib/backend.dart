@@ -299,8 +299,9 @@ class GCloudPackageRepository extends PackageRepository {
 
         _logger.info('Upload successful.');
 
-        // Defer the creation of sort_order
-        // TODO:
+        // Try to load all package versions, sort them by `sort_order` and
+        // store them again.
+        await _updatePackageSortIndex(package.key);
 
         return new PackageVersion(
             newVersion.package, newVersion.version,
@@ -311,6 +312,33 @@ class GCloudPackageRepository extends PackageRepository {
         rethrow;
       }
     });
+  }
+
+  Future _updatePackageSortIndex(Key packageKey) async {
+    try {
+      _logger.info('Trying to update the `sort_order` field.');
+      await db.withTransaction((Transaction T) async {
+        List<models.PackageVersion> versions = await
+            T.query(models.PackageVersion, packageKey).run().toList();
+        versions.sort((versionA, versionB) {
+          return versionA.semanticVersion.compareTo(
+              versionB.semanticVersion);
+        });
+        for (int i = 0; i < versions.length; i++) {
+          versions[i].sortOrder = i;
+        }
+        T.queueMutations(inserts: versions);
+        await T.commit();
+        _logger.info('Successfully updated `sort_order` field of '
+                     '${versions.length} versions.');
+      });
+    } catch (error, stack) {
+      // We ignore errors, since the sorting is not that critical and
+      // the upload itself was successfull.
+      _logger.warning(
+          'Sorting by `sort_order` failed, but upload was successful.',
+          error, stack);
+    }
   }
 
   // Uploaders support.
