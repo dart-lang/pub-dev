@@ -70,9 +70,8 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.httpClient.close);
 }
 
-void initBackend({String requiredEmailPostfix}) {
-  registerBackend(new Backend(dbService, tarballStorage,
-      requiredEmailPostfix: requiredEmailPostfix));
+void initBackend() {
+  registerBackend(new Backend(dbService, tarballStorage));
 }
 
 shelf.Handler initPubServer({PackageCache cache}) {

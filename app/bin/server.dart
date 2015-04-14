@@ -39,10 +39,6 @@ void main() {
   // Uses the production 'gs://pub.dartlang.org' bucket.
   bool useProdBucket = true;
 
-  // Only allow users with a special email postfix to upload packages.
-  String requiredEmailPostfix = '@google.com';
-
-
 
 
   String packageBucketName =
@@ -70,7 +66,7 @@ void main() {
 
       var namespace = getCurrentNamespace();
       return withChangedNamespaces(() async {
-        initBackend(requiredEmailPostfix: requiredEmailPostfix);
+        initBackend();
 
         var cache = new AppEnginePackageMemcache(memcacheService, namespace);
         var apiHandler = initPubServer(cache: cache);

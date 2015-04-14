@@ -49,11 +49,9 @@ class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
 
-  Backend(DatastoreDB db,
-          TarballStorage storage,
-          {String requiredEmailPostfix})
-      : db = db, repository = new GCloudPackageRepository(
-          db, storage, requiredEmailPostfix: requiredEmailPostfix);
+  Backend(DatastoreDB db, TarballStorage storage)
+      : db = db,
+        repository = new GCloudPackageRepository(db, storage);
 
   /// Retrieves packages ordered by their latest version date.
   Future<List<models.Package>> latestPackages(
@@ -115,9 +113,8 @@ class GCloudPackageRepository extends PackageRepository {
   final Uuid uuid = new Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
-  final String requiredEmailPostfix;
 
-  GCloudPackageRepository(this.db, this.storage, {this.requiredEmailPostfix});
+  GCloudPackageRepository(this.db, this.storage);
 
   // Metadata support.
 
@@ -246,15 +243,6 @@ class GCloudPackageRepository extends PackageRepository {
     return await db.withTransaction((Transaction T) async {
       _logger.info('Starting datastore transaction.');
 
-      // TODO/FIXME: This needs to removed for production.
-      if (requiredEmailPostfix != null &&
-          !userEmail.endsWith(requiredEmailPostfix)) {
-        await T.rollback();
-        throw new UnauthorizedAccessException(
-            'Only email addresses ending in "$requiredEmailPostfix" can upload '
-            'via this server version.');
-      }
-
       var tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
       models.PackageVersion version = tuple[0];
       models.Package package = tuple[1];
@@ -357,15 +345,6 @@ class GCloudPackageRepository extends PackageRepository {
           throw new Exception('Package "$package" does not exist');
         }
 
-        // TODO/FIXME: This needs to removed for production.
-        if (requiredEmailPostfix != null &&
-            !userEmail.endsWith(requiredEmailPostfix)) {
-          await T.rollback();
-          throw new UnauthorizedAccessException(
-              'Only email addresses ending in "$requiredEmailPostfix" can add '
-              'an uploader via this server version.');
-        }
-
         // Fail if calling user doesn't have permission to change uploaders.
         if (!package.uploaderEmails.contains(userEmail)) {
           await T.rollback();
@@ -397,15 +376,6 @@ class GCloudPackageRepository extends PackageRepository {
         if (package == null) {
           await T.rollback();
           throw new Exception('Package "$package" does not exist');
-        }
-
-        // TODO/FIXME: This needs to removed for production.
-        if (requiredEmailPostfix != null &&
-            !userEmail.endsWith(requiredEmailPostfix)) {
-          await T.rollback();
-          throw new UnauthorizedAccessException(
-              'Only email addresses ending in "$requiredEmailPostfix" can'
-              'remove an uploader via this server version.');
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
