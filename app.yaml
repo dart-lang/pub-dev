@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-version: buildbot-dart-2015-03-25
+version: buildbot-dart-2015-04-14
 runtime: custom
 vm: true
 api_version: 1
@@ -31,8 +31,12 @@ handlers:
 resources:
   cpu: 4
 
-manual_scaling:
-  instances: 1
+#manual_scaling:
+#  instances: 1
+
+automatic_scaling:
+  min_num_instances: 2
+  max_num_instances: 4
 
 skip_files:
 - ^.*/packages.*$
