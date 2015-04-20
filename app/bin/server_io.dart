@@ -16,6 +16,7 @@ import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
+import 'configuration.dart';
 import 'server_common.dart';
 
 /// The location of the service account key.
@@ -27,9 +28,11 @@ final TemplateLocation = Platform.script.resolve('../views').toFilePath();
 /// Template directory location
 final StaticsLocation = Platform.script.resolve('../../static').toFilePath();
 
-/// The service account credentials used for making API calls.
-final Credentials = new auth.ServiceAccountCredentials.fromJson(
-    new File(KeyLocation).readAsStringSync());
+/// Configuration for local testing using dart:io directly.
+//final devConfiguration = new Configuration.dev_io('mkustermann-dartvm',
+//                                                  'mkustermann--pub-packages');
+final devConfiguration = new Configuration.dev_io('sgjesse-managed-vm',
+                                                  'xxx-yyy-zzz');
 
 void main() {
   // Change this `namespace` variable to change the namespace used.
@@ -43,13 +46,14 @@ void main() {
   });
 
   fork(() async {
-    var authClient = await auth.clientViaServiceAccount(Credentials, SCOPES);
+    var authClient =
+        await auth.clientViaServiceAccount(devConfiguration.credentials, SCOPES);
     registerScopeExitCallback(authClient.close);
     registerTemplateService(
         new TemplateService(templateDirectory: TemplateLocation));
 
-    initApiaryStorage(authClient);
-    initApiaryDatastore(authClient);
+    initApiaryStorage(devConfiguration.projectId, authClient);
+    initApiaryDatastore(devConfiguration.projectId, authClient);
     initOAuth2Service();
     await initSearchService();
 
@@ -57,7 +61,8 @@ void main() {
       initBackend();
 
       registerUploadSigner(new UploadSignerService(
-          Credentials.email, Credentials.privateRSAKey));
+          devConfiguration.credentials.email,
+          devConfiguration.credentials.privateRSAKey));
 
       var apiHandler = initPubServer();
 
@@ -82,7 +87,7 @@ void main() {
       // NOTE: shelf_io.serve() doesn't have a future when the HTTP server is
       // done. We therefore never complete for now.
       return new Completer().future;
-    }, TestProjectPackageBucket, namespace: namespace);
+    }, devConfiguration.packageBucketName, namespace: namespace);
   });
 }
 

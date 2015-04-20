@@ -57,6 +57,10 @@ Future expectRedirectResponse(shelf.Response response, String url) async {
   expect(await response.readAsString(), '');
 }
 
+Future expectNotFoundResponse(shelf.Response response, {status: 404}) async {
+  expect(response.statusCode, status);
+}
+
 class BackendMock implements Backend {
   final Function latestPackageVersionsFun;
   final Function latestPackagesFun;

@@ -31,6 +31,12 @@ main() {
   final PageSize = 10;
 
   group('handlers', () {
+    solo_group('not found', () {
+      tScopedTest('/xxx', () async {
+        expectNotFoundResponse(await issueGet('/xxx'));
+      });
+    });
+
     group('ui', () {
       tScopedTest('/', () async {
         var backend = new BackendMock(

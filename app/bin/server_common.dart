@@ -24,7 +24,7 @@ import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
-final String ProjectId = 'mkustermann-dartvm';
+import 'configuration.dart';
 
 const List<String> SCOPES = const [
     "https://www.googleapis.com/auth/cloud-platform",
@@ -35,8 +35,6 @@ const List<String> SCOPES = const [
 
 final Logger logger = new Logger('pub');
 
-final String TestProjectPackageBucket = 'mkustermann--pub-packages';
-
 void initOAuth2Service() {
   // The oauth2 service is used for getting an email address from an oauth2
   // access token (which the pub client sends).
@@ -45,22 +43,21 @@ void initOAuth2Service() {
   registerScopeExitCallback(client.close);
 }
 
-Future initApiaryStorageViaDBKey(String email) async {
+Future initApiaryStorageViaDBKey(String email, String projectId) async {
   String pemFileString = await cloudStorageKeyFromDB();
-
   var credentials =
       new ServiceAccountCredentials(email, new ClientId('', ''), pemFileString);
   var authClient = await auth.clientViaServiceAccount(credentials, SCOPES);
   registerScopeExitCallback(authClient.close);
-  initApiaryStorage(authClient);
+  initApiaryStorage(projectId, authClient);
 }
 
-void initApiaryStorage(authClient) {
-  registerStorageService(new Storage(authClient, ProjectId));
+void initApiaryStorage(String projectId, authClient) {
+  registerStorageService(new Storage(authClient, projectId));
 }
 
-void initApiaryDatastore(authClient) {
-  var ds = new datastore_impl.DatastoreImpl(authClient, 's~$ProjectId');
+void initApiaryDatastore(String projectId, authClient) {
+  var ds = new datastore_impl.DatastoreImpl(authClient, 's~${projectId}');
   db.registerDbService(new db.DatastoreDB(ds));
 }
 

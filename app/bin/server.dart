@@ -17,49 +17,38 @@ import 'package:pub_dartlang_org/package_memcache.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
+import 'configuration.dart';
 import 'server_common.dart';
 
-final Credentials = new auth.ServiceAccountCredentials.fromJson(
-    new File('/project/key.json').readAsStringSync());
+// Run with production configuration.
+var configuration = new Configuration.prod();
 
-/// The service account email address used for accessing cloud storage.
-final String ProductionServiceAccountEmail =
-    "818368855108@developer.gserviceaccount.com";
-
-final String ProdPackageBucket = 'pub.dartlang.org';
+// Uncomment and use a .dev configuration for local testing using
+// 'gcloud preview app run'.
+//var configuration = new Configuration.dev('mkustermann-dartvm',
+//                                          'mkustermann--pub-packages');
 
 void main() {
-  // Uses the custom `Credentials` instead of getting the keys from the DB.
-  bool useDBKeys = true;
-
-  // Using 'gcloud preview app run app.yaml' locally with apiary datastore can
-  // be enabled by settings this to `true`.
-  bool useApiaryDatastore = false;
-
-  // Uses the production 'gs://pub.dartlang.org' bucket.
-  bool useProdBucket = true;
-
-
-
-  String packageBucketName =
-      useProdBucket ? ProdPackageBucket : TestProjectPackageBucket;
-
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    var projectAuthClient =
-        await auth.clientViaServiceAccount(Credentials, SCOPES);
-    registerScopeExitCallback(projectAuthClient.close);
+    var projectAuthClient;
+    if (configuration.hasCredentials) {
+      projectAuthClient =
+          await auth.clientViaServiceAccount(configuration.credentials, SCOPES);
+      registerScopeExitCallback(projectAuthClient.close);
+    }
     registerTemplateService(new TemplateService());
 
     return fork(() async {
-      if (useDBKeys) {
-        initApiaryStorageViaDBKey(ProductionServiceAccountEmail);
+      if (configuration.useDbKeys) {
+        initApiaryStorageViaDBKey(configuration.serviceAccountEmail,
+                                  configuration.projectId);
       } else {
-        initApiaryStorage(projectAuthClient);
+        initApiaryStorage(configuration.projectId, projectAuthClient);
       }
-      if (useApiaryDatastore) {
-        initApiaryDatastore(projectAuthClient);
+      if (configuration.useApiaryDatastore) {
+        initApiaryDatastore(configuration.projectId, projectAuthClient);
       }
       initOAuth2Service();
       await initSearchService();
@@ -73,12 +62,13 @@ void main() {
         var storageServiceCopy = storageService;
         var dbServiceCopy = dbService;
 
-        if (useDBKeys) {
+        if (configuration.useDbKeys) {
           registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
-             ProductionServiceAccountEmail));
+             configuration.serviceAccountEmail));
         } else {
           registerUploadSigner(new UploadSignerService(
-              Credentials.email, Credentials.privateRSAKey));
+              configuration.credentials.email,
+              configuration.credentials.privateRSAKey));
         }
 
         await runAppEngine((request) {
@@ -104,7 +94,7 @@ void main() {
             logger.severe('Request handler failed', error, stack);
           });
         });
-      }, packageBucketName, namespace: namespace);
+      }, configuration.packageBucketName, namespace: namespace);
     });
   });
 }
