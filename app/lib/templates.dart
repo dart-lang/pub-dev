@@ -136,7 +136,7 @@ class TemplateService {
     if (latestVersion.readme != null) {
       readmeFilename = latestVersion.readme.filename;
       readme = latestVersion.readme.text;
-      if (readmeFilename.endsWith('.md')) {
+      if (readme != null && readmeFilename.endsWith('.md')) {
         readme = md.markdownToHtml(readme);
       }
     }
@@ -146,7 +146,7 @@ class TemplateService {
     if (latestVersion.changelog != null) {
       changelogFilename = latestVersion.changelog.filename;
       changelog = latestVersion.changelog.text;
-      if (changelogFilename.endsWith('.md')) {
+      if (changelog != null && changelogFilename.endsWith('.md')) {
         changelog = md.markdownToHtml(changelog);
       }
     }
