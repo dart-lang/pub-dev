@@ -23,7 +23,8 @@ import 'templates.dart';
 ///
 /// The passed in [shelfPubApi] handler will be used for handling requests to
 ///   - /api/*
-appHandler(shelf.Request request, shelf.Handler shelfPubApi) {
+Future<shelf.Response> appHandler(
+    shelf.Request request, shelf.Handler shelfPubApi) async {
   var path = request.url.path;
 
   var handler = {
@@ -80,7 +81,7 @@ atomFeedHandler(shelf.Request request) async {
 authorizedHandler(_) => _htmlResponse(templateService.renderAuthorizedPage());
 
 /// Handles requests for /doc
-docHandler(shelf.Request request) {
+shelf.Response docHandler(shelf.Request request) {
   var pubDocUrl = 'https://www.dartlang.org/tools/pub/';
   var dartlangDotOrgPath = REDIRECT_PATHS[request.url.path];
   if (dartlangDotOrgPath != null) {
