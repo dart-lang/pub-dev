@@ -203,6 +203,9 @@ packagesHandlerHtml(shelf.Request request, int page) async {
 ///   - /packages/<package>/versions
 packageHandler(shelf.Request request) {
   var path = request.url.path.substring('/packages/'.length);
+  if (path.length == 0) {
+    return _notFoundHandler(request);
+  }
 
   int slash = path.indexOf('/');
   if (slash == -1) {
