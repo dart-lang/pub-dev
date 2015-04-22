@@ -267,7 +267,7 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
   }).toList());
 
   return _htmlResponse(templateService.renderPkgShowPage(
-      package, first10Versions, versionDownloadUrls, first10Versions.last,
+      package, first10Versions, versionDownloadUrls, first10Versions.first,
       versions.length));
 }
 
@@ -420,7 +420,8 @@ shelf.Response _redirectResponse(url) {
 
 /// Sorts [versions] according to the semantic versioning specification.
 void _sortVersionsDesc(List<PackageVersion> versions, {bool decreasing: true}) {
-  versions.sort((PackageVersion a, PackageVersion b) {    if (decreasing) {
+  versions.sort((PackageVersion a, PackageVersion b) {
+    if (decreasing) {
       return b.semanticVersion.compareTo(a.semanticVersion);
     } else {
       return a.semanticVersion.compareTo(b.semanticVersion);
