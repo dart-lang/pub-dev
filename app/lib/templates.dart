@@ -193,7 +193,7 @@ class TemplateService {
         'version_count' : '$totalNumberOfVersions',
     };
     return _renderPage(
-        'pkg/show', values, title: '$package ${latestVersion.id}');
+        'pkg/show', values, title: '${package.name} ${latestVersion.id} | Pub Package Manager');
   }
 
   /// Renders the `views/admin.mustache` template.
