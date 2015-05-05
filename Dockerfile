@@ -5,7 +5,6 @@ WORKDIR /project/app
 ADD app.yaml /project/
 ADD app/pubspec.* /project/app/
 ADD pkg/mustache/pubspec.* /project/pkg/mustache/
-ADD pkg/pub_server/pubspec.* /project/pkg/pub_server/
 ADD key.json /project/key.json
 
 RUN pub get

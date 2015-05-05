@@ -29,10 +29,8 @@ final TemplateLocation = Platform.script.resolve('../views').toFilePath();
 final StaticsLocation = Platform.script.resolve('../../static').toFilePath();
 
 /// Configuration for local testing using dart:io directly.
-//final devConfiguration = new Configuration.dev_io('mkustermann-dartvm',
-//                                                  'mkustermann--pub-packages');
-final devConfiguration = new Configuration.dev_io('sgjesse-managed-vm',
-                                                  'xxx-yyy-zzz');
+final devConfiguration = new Configuration.dev_io('mkustermann-dartvm',
+                                                  'mkustermann--pub-packages');
 
 void main() {
   // Change this `namespace` variable to change the namespace used.

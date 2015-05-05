@@ -24,8 +24,6 @@ import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
-import 'configuration.dart';
-
 const List<String> SCOPES = const [
     "https://www.googleapis.com/auth/cloud-platform",
     "https://www.googleapis.com/auth/datastore",
