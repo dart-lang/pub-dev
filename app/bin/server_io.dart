@@ -32,6 +32,13 @@ final StaticsLocation = Platform.script.resolve('../../static').toFilePath();
 final devConfiguration = new Configuration.dev_io('mkustermann-dartvm',
                                                   'mkustermann--pub-packages');
 
+/// Configuration for local testing using dart:io directly.
+final prodConfiguration = new Configuration.dev_io('dartlang-pub',
+                                                   'pub-packages',
+                                                   credentialsFile: '...');
+
+final configuration = devConfiguration;
+
 void main() {
   // Change this `namespace` variable to change the namespace used.
   final String namespace = '';
@@ -45,13 +52,13 @@ void main() {
 
   fork(() async {
     var authClient =
-        await auth.clientViaServiceAccount(devConfiguration.credentials, SCOPES);
+        await auth.clientViaServiceAccount(configuration.credentials, SCOPES);
     registerScopeExitCallback(authClient.close);
     registerTemplateService(
         new TemplateService(templateDirectory: TemplateLocation));
 
-    initApiaryStorage(devConfiguration.projectId, authClient);
-    initApiaryDatastore(devConfiguration.projectId, authClient);
+    initApiaryStorage(configuration.projectId, authClient);
+    initApiaryDatastore(configuration.projectId, authClient);
     initOAuth2Service();
     await initSearchService();
 
@@ -59,8 +66,8 @@ void main() {
       initBackend();
 
       registerUploadSigner(new UploadSignerService(
-          devConfiguration.credentials.email,
-          devConfiguration.credentials.privateRSAKey));
+          configuration.credentials.email,
+          configuration.credentials.privateRSAKey));
 
       var apiHandler = initPubServer();
 
@@ -85,7 +92,7 @@ void main() {
       // NOTE: shelf_io.serve() doesn't have a future when the HTTP server is
       // done. We therefore never complete for now.
       return new Completer().future;
-    }, devConfiguration.packageBucketName, namespace: namespace);
+    }, configuration.packageBucketName, namespace: namespace);
   });
 }
 

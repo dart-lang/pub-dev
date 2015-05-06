@@ -1,63 +1,123 @@
 # Mustache templates
 
-A Dart library to parse and render [mustache templates](http://mustache.github.com/mustache.5.html).
+A Dart library to parse and render [mustache templates](https://mustache.github.io/).
 
-[![Build Status](https://drone.io/github.com/xxgreg/mustache/status.png)](https://drone.io/github.com/xxgreg/mustache/latest)
+[![Build Status](https://travis-ci.org/xxgreg/mustache.svg)](https://travis-ci.org/xxgreg/mustache) [![Coverage Status](https://coveralls.io/repos/xxgreg/mustache/badge.svg)](https://coveralls.io/r/xxgreg/mustache)
 
-## Example
+See the [mustache manual](http://mustache.github.com/mustache.5.html) for detailed usage information.
+
+This library passes all [mustache specification](https://github.com/mustache/spec/tree/master/specs) tests.
+
+## Example usage
 ```dart
-	import 'package:mustache/mustache.dart' as mustache;
+import 'package:mustache/mustache.dart';
 
-	main() {
-		var source = '{{#names}}<div>{{lastname}}, {{firstname}}</div>{{/names}}';
-		var template = mustache.parse(source);
-		var output = template.renderString({'names': [
-			{'firstname': 'Greg', 'lastname': 'Lowe'},
-			{'firstname': 'Bob', 'lastname': 'Johnson'}
-		]});
-		print(output);
-	}
-```
+main() {
+	var source = '''
+	  {{# names }}
+            <div>{{ lastname }}, {{ firstname }}</div>
+	  {{/ names }}
+	  {{^ names }}
+	    <div>No names.</div>
+	  {{/ names }}
+	  {{! I am a comment. }}
+	''';
 
-## API
+	var template = new Template(source, name: 'template-filename.html');
 
-```dart
+	var output = template.renderString({'names': [
+		{'firstname': 'Greg', 'lastname': 'Lowe'},
+		{'firstname': 'Bob', 'lastname': 'Johnson'}
+	]});
 
-Template parse(String source, {bool lenient : false});
-
-abstract class Template {
-	String renderString(values, {bool lenient : false, bool htmlEscapeValues : true});
-	void render(values, StringSink sink, {bool lenient : false, bool htmlEscapeValues : true});
+	print(output);
 }
+```
+
+A template is parsed when it is created, after parsing it can be rendered any number of times with different values. A TemplateException is thrown if there is a problem parsing or rendering the template.
+
+The Template contstructor allows passing a name, this name will be used in error messages. When working with a number of templates, it is important to pass a name so that the error messages specify which template caused the error.
+
+By default all output from `{{variable}}` tags is html escaped, this behaviour can be changed by passing htmlEscapeValues : false to the Template constructor. You can also use a `{{{triple mustache}}}` tag, or a unescaped variable tag `{{&unescaped}}`, the output from these tags is not escaped.
+
+## Dart2js
+
+This library uses mirrors. When compiling with dart2js you will need to pass the experimental mirrors flag. You also need to mark any objects which will be rendered with the @mustache annotation. There is also another version of this library available which doesn't use mirrors.
+
+## Differences between strict mode and lenient mode.
+
+### Strict mode (default)
+
+* Tag names may only contain the characters a-z, A-Z, 0-9, underscore, period and minus. Other characters in tags will cause a TemplateException to be thrown during parsing.
+
+* During rendering, if no map key or object member which matches the tag name is found, then a TemplateException will be thrown.
+
+### Lenient mode
+
+* Tag names may use any characters.
+* During rendering, if no map key or object member which matches the tag name is found, then silently ignore and output nothing.
+
+## Nested paths
+
+```dart
+  var t = new Template('{{ author.name }}');
+  var output = template.renderString({'author': {'name': 'Greg Lowe'}});
+```
+
+## Partials - example usage
+
+```dart
+
+var partial = new Template('{{ foo }}', name: 'partial');
+
+var resolver = (String name) {
+   if (name == 'partial-name') { // Name of partial tag.
+     return partial;
+   }
+};
+
+var t = new Template('{{> partial-name }}', partialResolver: resolver);
+
+var output = t.renderString({'foo': 'bar'}); // bar
 
 ```
 
-Once a template has been created it can be rendered any number of times.
+## Lambdas - example usage
 
-Both parse and render throw a FormatException if there is a problem with the template or rendering the values.
-
-When lenient mode is enabled tag names may use any characters, otherwise only a-z, A-Z, 0-9, underscore and minus. Lenient mode will also silently ignore nulls passed as values.
-
-By default all variables are html escaped, this behaviour can be changed by passing htmlEscapeValues : false.
-
-
-## Supported 
-```
- Variables             {{var-name}}
- Sections              {{#section}}Blah{{/section}}
- Inverse sections      {{^section}}Blah{{/section}}
- Comments              {{! Not output. }}
- Unescaped variables   {{{var-name}}} and {{&var-name}}
-```
-See the [mustache templates tutorial](http://mustache.github.com/mustache.5.html) for more information.
-
-Passing all [mustache specification](https://github.com/mustache/spec/tree/master/specs) tests for interpolation, sections, inverted, comments. The following sections are not implemented: partials, lambdas and delimeters.
-
-## To do
-```
-Lenient nulls in inverse sections - see commented out test.
-Partial tags   {{>partial}}
-Allow functions as values (Lambdas)
-Set Delimiter tags
+```dart
+var t = new Template('{{# foo }}');
+var lambda = (_) => 'bar';
+t.renderString({'foo': lambda}); // bar
 ```
 
+```dart
+var t = new Template('{{# foo }}hidden{{/ foo }}');
+var lambda = (_) => 'shown'};
+t.renderString({'foo': lambda); // shown
+```
+
+```dart
+var t = new Template('{{# foo }}oi{{/ foo }}');
+var lambda = (LambdaContext ctx) => '<b>${ctx.renderString().toUpperCase()}</b>';
+t.renderString({'foo': lambda}); // <b>OI</b>
+```
+
+```dart
+var t = new Template('{{# foo }}{{bar}}{{/ foo }}');
+var lambda = (LambdaContext ctx) => '<b>${ctx.renderString().toUpperCase()}</b>';
+t.renderString({'foo': lambda, 'bar': 'pub'}); // <b>PUB</b>
+```
+
+```dart
+var t = new Template('{{# foo }}{{bar}}{{/ foo }}');
+var lambda = (LambdaContext ctx) => '<b>${ctx.renderString().toUpperCase()}</b>';
+t.renderString({'foo': lambda, 'bar': 'pub'}); // <b>PUB</b>
+```
+
+In the following example `LambdaContext.renderSource(source)` re-parses the source string in the current context, this is the default behaviour in many mustache implementations. Since re-parsing the content is slow, and often not required, this library makes this step optional.
+
+```dart
+var t = new Template('{{# foo }}{{bar}}{{/ foo }}');
+var lambda = (LambdaContext ctx) => ctx.renderSource(ctx.source + ' {{cmd}}')};
+t.renderString({'foo': lambda, 'bar': 'pub', 'cmd': 'build'}); // pub build
+```

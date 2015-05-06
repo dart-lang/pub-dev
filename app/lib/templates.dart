@@ -322,9 +322,12 @@ class TemplateService {
     mustache.Template parsedTemplate =
         _CachedMustacheTemplates.putIfAbsent(template, () {
       var file = new File('$templateDirectory/$template.mustache');
-      return mustache.parse(file.readAsStringSync());
+      return new mustache.Template(
+          file.readAsStringSync(),
+          htmlEscapeValues: escapeValues,
+          lenient: true);
     });
-    return parsedTemplate.renderString(values, htmlEscapeValues: escapeValues);
+    return parsedTemplate.renderString(values);
   }
 }
 
