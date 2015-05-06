@@ -284,19 +284,21 @@ class TemplateService {
   String renderSearchPage(String query,
                           List<PackageVersion> latestVersions,
                           PageLinks pageLinks) {
+    var results = latestVersions.map((PackageVersion version) {
+      return {
+        'url' : '/packages/${version.packageKey.id}',
+        'name' : version.packageKey.id,
+        'version' : version.id,
+        'last_uploaded': version.shortCreated,
+        'desc' : version.ellipsizedDescription,
+      };
+    }).toList();
+
     var values = {
         'query' : query,
-        'results' : latestVersions.map((PackageVersion version) {
-           return {
-             'url' : '/packages/${version.packageKey.id}',
-             'name' : version.packageKey.id,
-             'version' : version.id,
-             'last_uploaded': version.shortCreated,
-             'desc' : version.ellipsizedDescription,
-           };
-          }).toList(),
+        'results' : results,
         'pagination' : renderPagination(pageLinks),
-        'hasResults' : true
+        'hasResults' : results.length > 0,
     };
     return _renderPage('search', values, title: 'Search results for $query.');
   }

@@ -121,7 +121,7 @@ searchHandler(shelf.Request request) async {
   var query = request.url.queryParameters['q'];
   if (query == null) {
     return _htmlResponse(templateService.renderSearchPage(
-        query, [], new SearchLinks.empty(query)));
+        query, [], new SearchLinks.empty('')));
   }
 
   int page = _pageFromUrl(
