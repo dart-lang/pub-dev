@@ -78,11 +78,9 @@ packages:
     source: hosted
     version: "0.9.3"
   mustache:
-    description:
-      path: "../pkg/mustache"
-      relative: true
-    source: path
-    version: "0.1.8"
+    description: mustache
+    source: hosted
+    version: "0.2.3"
   path:
     description: path
     source: hosted
