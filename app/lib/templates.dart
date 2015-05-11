@@ -7,6 +7,7 @@ library pub_dartlang_org.templates;
 import 'dart:io';
 import 'dart:math';
 
+import 'colored_markdown.dart' as cmd;
 import 'package:markdown/markdown.dart' as md;
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -137,7 +138,11 @@ class TemplateService {
       readmeFilename = latestVersion.readme.filename;
       readme = latestVersion.readme.text;
       if (readme != null && readmeFilename.endsWith('.md')) {
-        readme = md.markdownToHtml(readme);
+        try {
+          readme = cmd.markdownToHtml(readme);
+        } catch (e) {
+          readme = md.markdownToHtml(readme);
+        }
       }
     }
 
@@ -147,7 +152,11 @@ class TemplateService {
       changelogFilename = latestVersion.changelog.filename;
       changelog = latestVersion.changelog.text;
       if (changelog != null && changelogFilename.endsWith('.md')) {
-        changelog = md.markdownToHtml(changelog);
+        try {
+          changelog = cmd.markdownToHtml(changelog);
+        } catch (e) {
+          changelog = md.markdownToHtml(changelog);
+        }
       }
     }
 

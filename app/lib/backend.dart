@@ -17,6 +17,7 @@ import 'package:uuid/uuid.dart';
 import 'models.dart' as models;
 import 'model_properties.dart';
 import 'upload_signer_service.dart';
+import 'package_memcache.dart';
 import 'utils.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
@@ -48,10 +49,12 @@ Backend get backend => ss.lookup(#_backend);
 class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
+  final UIPackageCache uiPackageCache;
 
-  Backend(DatastoreDB db, TarballStorage storage)
+  Backend(DatastoreDB db, TarballStorage storage, {UIPackageCache cache})
       : db = db,
-        repository = new GCloudPackageRepository(db, storage);
+        repository = new GCloudPackageRepository(db, storage),
+        uiPackageCache = cache;
 
   /// Retrieves packages ordered by their latest version date.
   Future<List<models.Package>> latestPackages(
@@ -250,8 +253,12 @@ class GCloudPackageRepository extends PackageRepository {
       // If the version already exists, we fail.
       if (version != null) {
         await T.rollback();
-        _logger.warning('Version already exists, rolling transaction back.');
-        throw new Exception('version already exists');
+        _logger.warning(
+            'Version ${version.version} of package '
+            '${version.package} already exists, rolling transaction back.');
+        throw new Exception(
+            'Version ${version.version} of package '
+            '${version.package} already exists.');
       }
 
       // If the package does not exist, then we create a new package.
@@ -260,9 +267,13 @@ class GCloudPackageRepository extends PackageRepository {
       // Check if the uploader of the new version is allowed to upload to
       // the package.
       if (!package.uploaderEmails.contains(newVersion.uploaderEmail)) {
-        _logger.warning('User is not an uploader, rolling transaction back.');
+        _logger.warning(
+            'User ${newVersion.uploaderEmail} is not an uploader '
+            'for package ${package.name}, rolling transaction back.');
         await T.rollback();
-        throw new UnauthorizedAccessException('Unauthorized user.');
+        throw new UnauthorizedAccessException(
+            'Unauthorized user: ${newVersion.uploaderEmail} is not allowed to '
+            'upload versions to package ${package.name}.');
       }
 
       // Update the date when the package was last updated.

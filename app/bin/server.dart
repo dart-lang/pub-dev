@@ -53,9 +53,8 @@ void main() {
 
       var namespace = getCurrentNamespace();
       return withChangedNamespaces(() async {
-        initBackend();
-
         var cache = new AppEnginePackageMemcache(memcacheService, namespace);
+        initBackend(cache: cache);
         var apiHandler = initPubServer(cache: cache);
         var storageServiceCopy = storageService;
         var dbServiceCopy = dbService;

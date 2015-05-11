@@ -22,6 +22,7 @@ import 'package:pub_server/shelf_pubserver.dart';
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/oauth2_service.dart';
+import 'package:pub_dartlang_org/package_memcache.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
 const List<String> SCOPES = const [
@@ -65,8 +66,8 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.httpClient.close);
 }
 
-void initBackend() {
-  registerBackend(new Backend(dbService, tarballStorage));
+void initBackend({UIPackageCache cache}) {
+  registerBackend(new Backend(dbService, tarballStorage, cache: cache));
 }
 
 shelf.Handler initPubServer({PackageCache cache}) {

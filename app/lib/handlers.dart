@@ -9,6 +9,7 @@ import 'dart:math';
 import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/backend.dart';
@@ -18,6 +19,8 @@ import 'handlers_redirects.dart';
 import 'search_service.dart';
 import 'models.dart';
 import 'templates.dart';
+
+Logger _logger = new Logger('pub.handlers');
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///
@@ -253,22 +256,34 @@ packageShowHandlerJson(shelf.Request request, String packageName) async {
 
 /// Handles requests for /packages/<package> - HTML
 packageShowHandlerHtml(shelf.Request request, String packageName) async {
-  Package package = await backend.lookupPackage(packageName);
-  if (package == null) return _notFoundHandler(request);
+  String cachedPage;
+  if (backend.uiPackageCache != null) {
+    cachedPage = await backend.uiPackageCache.getUIPackagePage(packageName);
+  }
 
-  var versions = await backend.versionsOfPackage(packageName);
-  _sortVersionsDesc(versions);
+  if (cachedPage == null) {
+    Package package = await backend.lookupPackage(packageName);
+    if (package == null) return _notFoundHandler(request);
 
-  var first10Versions = versions.take(10).toList();
+    var versions = await backend.versionsOfPackage(packageName);
+    _sortVersionsDesc(versions);
 
-  var versionDownloadUrls =  await Future.wait(
-      first10Versions.map((PackageVersion version) {
-    return backend.downloadUrl(packageName, version.version);
-  }).toList());
+    var first10Versions = versions.take(10).toList();
 
-  return _htmlResponse(templateService.renderPkgShowPage(
-      package, first10Versions, versionDownloadUrls, first10Versions.first,
-      versions.length));
+    var versionDownloadUrls = await Future.wait(
+        first10Versions.map((PackageVersion version) {
+          return backend.downloadUrl(packageName, version.version);
+        }).toList());
+
+    cachedPage = templateService.renderPkgShowPage(
+        package, first10Versions, versionDownloadUrls, first10Versions.first,
+        versions.length);
+    if (backend.uiPackageCache != null) {
+      await backend.uiPackageCache.setUIPackagePage(packageName, cachedPage);
+    }
+  }
+
+  return _htmlResponse(cachedPage);
 }
 
 /// Handles requests for /packages/<package>/versions
