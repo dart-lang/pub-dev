@@ -82,6 +82,7 @@ class Backend {
   /// Looks up a specific package version.
   Future<models.Package> lookupPackageVersion(String package,
                                               String version) async {
+    version = canonicalizeVersion(version);
     var packageVersionKey = db.emptyKey
         .append(models.Package, id: package)
         .append(models.PackageVersion, id: version);
@@ -103,7 +104,8 @@ class Backend {
   }
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
-  Future<Uri> downloadUrl(String package, String version) {
+  Future<Uri> downloadUrl(String package, String version) async {
+    version = canonicalizeVersion(version);
     assert (repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
   }
@@ -144,6 +146,8 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   Future<PackageVersion> lookupVersion(String package, String version) async {
+    version = canonicalizeVersion(version);
+
     var packageVersionKey = db
         .emptyKey
         .append(models.Package, id: package)
@@ -156,15 +160,17 @@ class GCloudPackageRepository extends PackageRepository {
 
   // Download support.
 
-  Future<Stream<List<int>>> download(String package, String version) {
+  Future<Stream<List<int>>> download(String package, String version) async {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
-    return new Future.value(storage.download(package, version));
+    version = canonicalizeVersion(version);
+    return storage.download(package, version);
   }
 
   bool get supportsDownloadUrl => true;
 
-  Future<Uri> downloadUrl(String package, String version) {
+  Future<Uri> downloadUrl(String package, String version) async {
+    version = canonicalizeVersion(version);
     return storage.downloadUrl(package, version);
   }
 
@@ -583,10 +589,12 @@ Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
 
   var packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
 
+  var versionString = canonicalizeVersion(pubspec.version);
+
   var version = new models.PackageVersion()
-      ..id = pubspec.version
+      ..id = versionString
       ..parentKey = packageKey
-      ..version = pubspec.version
+      ..version = versionString
       ..packageKey = packageKey
       ..created = new DateTime.now().toUtc()
       ..pubspec = pubspec

@@ -692,7 +692,10 @@ main() {
             registerLoggedInUser('un@authorized.com');
             repo.upload(new Stream.fromIterable([tarball]))
                 .catchError(expectAsync((error, _) {
-              expect('$error'.contains('version already exists'), isTrue);
+              expect(
+                  '$error'.contains(
+                      'Version 0.1.1 of package foobar_pkg already exists'),
+                  isTrue);
             }));
           });
         });
