@@ -123,14 +123,9 @@ class TemplateService {
       }).toList();
     }
 
-    String exampleVersionConstraint;
-    var version = new semver.Version.parse(latestVersion.key.id);
-    if (version.major == 0) {
-      exampleVersionConstraint =
-          '">=${version} <${version.major}.${version.minor+1}.0"';
-    } else {
-      exampleVersionConstraint = '">=${version} <${version.major + 1}.0.0"';
-    }
+    // TODO(nweiz): Once the 1.11 SDK is out and pub supports ">=1.2.3-pre
+    // <1.2.3", suggest that as the version constraint for prerelease versions.
+    var exampleVersionConstraint = "^${latestVersion.version}";
 
     var readmeFilename;
     var readme;
