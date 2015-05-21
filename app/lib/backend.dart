@@ -272,7 +272,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
-      if (!package.uploaderEmails.contains(newVersion.uploaderEmail)) {
+      if (!package.hasUploader(newVersion.uploaderEmail)) {
         _logger.warning(
             'User ${newVersion.uploaderEmail} is not an uploader '
             'for package ${package.name}, rolling transaction back.');
@@ -372,14 +372,14 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.uploaderEmails.contains(userEmail)) {
+        if (!package.hasUploader(userEmail)) {
           await T.rollback();
           throw new UnauthorizedAccessException(
               'Calling user does not have permission to change uploaders.');
         }
 
         // Fail if the uploader we want to add already exists.
-        if (package.uploaderEmails.contains(uploaderEmail)) {
+        if (package.hasUploader(uploaderEmail)) {
           await T.rollback();
           throw new UploaderAlreadyExistsException();
         }
@@ -405,20 +405,20 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.uploaderEmails.contains(userEmail)) {
+        if (!package.hasUploader(userEmail)) {
           await T.rollback();
           throw new UnauthorizedAccessException(
               'Calling user does not have permission to change uploaders.');
         }
 
         // Fail if the uploader we want to remove does not exist.
-        if (!package.uploaderEmails.contains(uploaderEmail)) {
+        if (!package.hasUploader(uploaderEmail)) {
           await T.rollback();
           throw new Exception('The uploader to remove does not exist.');
         }
 
-        package.uploaderEmails = package
-            .uploaderEmails.where((email) => email != uploaderEmail).toList();
+        // Remove the uploader from the list.
+        package.removeUploader(uploaderEmail);
 
         // We cannot have 0 uploaders, if we would remove the last one, we
         // fail with an error.

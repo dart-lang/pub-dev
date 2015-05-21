@@ -46,6 +46,22 @@ class Package extends db.ExpandoModel {
   String get latestVersion => latestVersionKey.id;
 
   Version get latestSemanticVersion => new Version.parse(latestVersionKey.id);
+
+  // Check if a user is an uploader for a package.
+  bool hasUploader(String email) {
+    return uploaderEmails.map((s) => s.toLowerCase())
+                         .contains(email.toLowerCase());
+
+  }
+
+  // Remove the email from the list of uploaders.
+  void removeUploader(String email) {
+    var lowerEmail = email.toLowerCase();
+    uploaderEmails =
+        uploaderEmails.map((s) => s.toLowerCase())
+                      .where((email) => email != lowerEmail).toList();
+
+  }
 }
 
 /// Pub package metadata for a specific uploaded version.

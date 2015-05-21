@@ -4,6 +4,8 @@
 
 library pub_dartlang_org.utils;
 
+import 'dart:async';
+
 import 'package:unittest/unittest.dart';
 
 import 'package:gcloud/service_scope.dart';
@@ -53,6 +55,11 @@ final PackageVersion testPackageVersion = new PackageVersion()
     ..readmeContent = 'readme content'
     ..sortOrder = -1;
 
+Future scoped(func()) {
+  return fork(() async {
+    return func();
+  });
+}
 
 void scopedTest(String name, func()) {
   test(name, () {

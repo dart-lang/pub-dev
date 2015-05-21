@@ -267,7 +267,7 @@ main() {
     group('GCloudRepository.addUploader', () {
       negativeUploaderTests((repo) => repo.addUploader);
 
-      scopedTest('already exists', () async {
+      testAlreadyExists(user, uploaderEmails, newUploader) async {
         var transactionMock = new TransactionMock(
             lookupFun: expectAsync((keys) {
               expect(keys, hasLength(1));
@@ -280,14 +280,33 @@ main() {
         var repo = new GCloudPackageRepository(db, tarballStorage);
 
         var pkg = testPackage.name;
-        registerLoggedInUser('foo@b.com');
-        testPackage.uploaderEmails = ['foo@b.com'];
-        await repo.addUploader(pkg, 'foo@b.com').catchError(expectAsync((e,_) {
+        registerLoggedInUser(user);
+        testPackage.uploaderEmails = uploaderEmails;
+        await repo.addUploader(pkg, newUploader).catchError(expectAsync((e,_) {
           expect(e is pub_server.UploaderAlreadyExistsException, isTrue);
         }));
+      }
+
+      test('already exists', () async {
+        await scoped(() => testAlreadyExists(
+            'foo@b.com', ['foo@b.com'], 'foo@b.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@B.com', ['foo@b.com'], 'foo@b.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@B.com', ['foo@B.com'], 'foo@b.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@b.com', ['foo@B.com'], 'foo@B.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@b.com', ['foo@b.com'], 'foo@B.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@B.com', ['foo@b.com'], 'foo@B.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@b.com', ['foo@b.com', 'bar@b.com'], 'foo@B.com'));
+        await scoped(() => testAlreadyExists(
+            'foo@b.com', ['bar@b.com', 'foo@b.com'], 'foo@B.com'));
       });
 
-      scopedTest('successful', () async {
+      testSuccessful(user, uploaderEmails, newUploader) async {
         var completion = new TestDelayCompletion();
         var transactionMock = new TransactionMock(
             lookupFun: expectAsync((keys) {
@@ -297,8 +316,10 @@ main() {
             }),
             queueMutationFun: ({inserts, deletes}) {
               expect(inserts, hasLength(1));
-              expect(inserts.first.uploaderEmails, contains('foo@b.com'));
-              expect(inserts.first.uploaderEmails, contains('bar@b.com'));
+              for (var email in uploaderEmails) {
+                expect(inserts.first.uploaderEmails, contains(email));
+              }
+              expect(inserts.first.uploaderEmails, contains(newUploader));
               completion.complete();
             },
             commitFun: expectAsync(() {}));
@@ -307,9 +328,20 @@ main() {
         var repo = new GCloudPackageRepository(db, tarballStorage);
 
         var pkg = testPackage.name;
-        testPackage.uploaderEmails = ['foo@b.com'];
-        registerLoggedInUser(testPackage.uploaderEmails.first);
-        await repo.addUploader(pkg, 'bar@b.com');
+        testPackage.uploaderEmails = uploaderEmails;
+        registerLoggedInUser(user);
+        await repo.addUploader(pkg, newUploader);
+      };
+
+      test('successful', () async {
+        await scoped(() => testSuccessful(
+            'foo@b.com', ['foo@b.com'], 'bar@b.com'));
+        await scoped(() => testSuccessful(
+            'foo@B.com', ['foo@b.com'], 'bar@B.com'));
+        await scoped(() => testSuccessful(
+            'foo@B.com', ['foo@B.com', 'bar@b.com'], 'baz@b.com'));
+        await scoped(() => testSuccessful(
+            'foo@b.com', ['foo@B.com', 'bar@B.com'], 'baz@B.com'));
       });
     });
 
