@@ -1,0 +1,310 @@
+syntax = "proto2";
+
+package apphosting.datastore.v4;
+
+message PartitionId {
+  enum Constants {
+    MAX_DIMENSION_TAG = 100;
+  }
+  optional string dataset_id = 3;
+  optional string namespace = 4;
+}
+
+message Key {
+  optional PartitionId partition_id = 1;
+
+  message PathElement {
+    required string kind = 1;
+    optional int64 id = 2;
+    optional string name = 3;
+  }
+
+  repeated PathElement path_element = 2;
+}
+
+message GeoPoint {
+  required double latitude = 1;
+  required double longitude = 2;
+}
+
+message Value {
+  optional bool boolean_value = 1;
+  optional int64 integer_value = 2;
+  optional double double_value = 3;
+  optional int64 timestamp_microseconds_value = 4;
+  optional Key key_value  = 5;
+  optional string blob_key_value = 16;
+  optional string string_value = 17;
+  optional bytes blob_value = 18;
+  optional Entity entity_value = 6;
+  optional GeoPoint geo_point_value = 8;
+  repeated Value list_value = 7;
+
+  optional int32 meaning = 14;
+  optional bool indexed = 15 [default = true];
+}
+
+message Property {
+  required string name = 1;
+  optional bool deprecated_multi = 2 [default = false];
+  repeated Value deprecated_value = 3;
+  optional Value value = 4;
+}
+
+message Entity {
+  optional Key key = 1;
+  repeated Property property = 2;
+}
+
+message Error {
+  enum ErrorCode {
+    BAD_REQUEST = 1;
+    CONCURRENT_TRANSACTION = 2;
+    INTERNAL_ERROR = 3;
+    NEED_INDEX = 4;
+    TIMEOUT = 5;
+    PERMISSION_DENIED = 6;
+    BIGTABLE_ERROR = 7;
+    COMMITTED_BUT_STILL_APPLYING = 8;
+    CAPABILITY_DISABLED = 9;
+    TRY_ALTERNATE_BACKEND = 10;
+    SAFE_TIME_TOO_OLD = 11;
+  }
+}
+
+message EntityResult {
+  enum ResultType {
+    FULL = 1;
+    PROJECTION = 2;
+    KEY_ONLY = 3;
+  }
+
+  required Entity entity = 1;
+  optional int64 version = 2;
+}
+
+message Query {
+  repeated PropertyExpression projection = 2;
+  repeated KindExpression kind = 3;
+  optional Filter filter = 4;
+  repeated PropertyOrder order = 5;
+  repeated PropertyReference group_by = 6;
+  optional bytes /* serialized QueryCursor */ start_cursor = 7;
+  optional bytes /* serialized QueryCursor */ end_cursor = 8;
+  optional int32 offset = 10 [default = 0];
+  optional int32 limit = 11;
+}
+
+message KindExpression {
+  required string name = 1;
+}
+
+message PropertyReference {
+  required string name = 2;
+}
+
+message PropertyExpression {
+  enum AggregationFunction {
+    FIRST = 1;
+  }
+  required PropertyReference property = 1;
+  optional AggregationFunction aggregation_function = 2;
+}
+
+message PropertyOrder {
+  enum Direction {
+    ASCENDING = 1;
+    DESCENDING = 2;
+  }
+  required PropertyReference property = 1;
+  optional Direction direction = 2 [default = ASCENDING];
+}
+
+message Filter {
+  optional CompositeFilter composite_filter = 1;
+  optional PropertyFilter property_filter = 2;
+}
+
+message CompositeFilter {
+  enum Operator {
+    AND = 1;
+  }
+
+  required Operator operator = 1;
+  repeated Filter filter = 2;
+}
+
+message PropertyFilter {
+  enum Operator {
+    LESS_THAN = 1;
+    LESS_THAN_OR_EQUAL = 2;
+    GREATER_THAN = 3;
+    GREATER_THAN_OR_EQUAL = 4;
+    EQUAL = 5;
+
+    HAS_ANCESTOR = 11;
+  }
+
+  required PropertyReference property = 1;
+  required Operator operator = 2;
+  required Value value = 3;
+}
+
+message GqlQuery {
+  required string query_string = 1;
+  optional bool allow_literal = 2 [default = false];
+  repeated GqlQueryArg name_arg = 3;
+  repeated GqlQueryArg number_arg = 4;
+}
+
+message GqlQueryArg {
+  optional string name = 1;
+  optional Value value = 2;
+  optional bytes cursor = 3;
+}
+
+message QueryResultBatch {
+  enum MoreResultsType {
+    NOT_FINISHED = 1;
+    MORE_RESULTS_AFTER_LIMIT = 2;
+    NO_MORE_RESULTS = 3;
+  }
+
+  required EntityResult.ResultType entity_result_type = 1;
+  repeated EntityResult entity_result = 2;
+
+  optional bytes /* serialized QueryCursor */ end_cursor = 4;
+
+  required MoreResultsType more_results = 5;
+  optional int32 skipped_results = 6 [default = 0];
+}
+
+message Mutation {
+  enum Operation {
+    INSERT = 1;
+    UPDATE = 2;
+    UPSERT = 3;
+    DELETE = 4;
+  }
+  optional Operation op = 1 [default = UPSERT];
+  optional apphosting.datastore.v4.Key key = 2;
+  optional apphosting.datastore.v4.Entity entity = 3;
+}
+
+message MutationResult {
+  optional apphosting.datastore.v4.Key key = 3;
+  optional int64 new_version = 4 [default = 0];
+}
+
+message DeprecatedMutation {
+  repeated Entity upsert = 1;
+  repeated Entity update = 2;
+  repeated Entity insert = 3;
+  repeated Entity insert_auto_id = 4;
+  repeated Key delete = 5;
+  optional bool force = 6 [default = false];
+}
+
+message DeprecatedMutationResult {
+  required int32 index_updates = 1;
+  repeated Key insert_auto_id_key = 2;
+
+  repeated int64 upsert_version = 3;
+  repeated int64 update_version = 4;
+  repeated int64 insert_version = 5;
+  repeated int64 insert_auto_id_version = 6;
+  repeated int64 delete_version = 7;
+}
+
+message ReadOptions {
+  enum ReadConsistency {
+    DEFAULT = 0;
+    STRONG = 1;
+    EVENTUAL = 2;
+  }
+  optional ReadConsistency read_consistency = 1 [default = DEFAULT];
+  optional bytes /* serialized Transaction */ transaction = 2;
+}
+
+message LookupRequest {
+  optional ReadOptions read_options = 1;
+  repeated Key key = 3;
+}
+
+message LookupResponse {
+  repeated EntityResult found = 1;
+
+  repeated EntityResult missing = 2;
+
+  repeated Key deferred = 3;
+}
+
+message RunQueryRequest {
+  optional ReadOptions read_options = 1;
+
+  optional PartitionId partition_id = 2;
+
+  optional Query query = 3;
+  optional GqlQuery gql_query = 7;
+
+  optional int64 min_safe_time_seconds = 4;
+
+  optional int32 suggested_batch_size = 5;
+}
+
+message RunQueryResponse {
+  required QueryResultBatch batch = 1;
+  optional bytes /* serialized QueryHandle */ query_handle = 2;
+}
+
+message ContinueQueryRequest {
+  required bytes /* serialized QueryHandle */ query_handle = 1;
+}
+
+message ContinueQueryResponse {
+  required QueryResultBatch batch = 1;
+}
+
+message BeginTransactionRequest {
+  optional bool cross_group = 1 [default = false];
+
+  optional bool cross_request = 2 [default = false];
+}
+
+message BeginTransactionResponse {
+  required bytes /* serialized Transaction */ transaction = 1;
+}
+
+message RollbackRequest {
+  required bytes  /* serialized Transaction */ transaction = 1;
+}
+
+message RollbackResponse {}
+
+message CommitRequest {
+  enum Mode {
+    TRANSACTIONAL = 1;
+    NON_TRANSACTIONAL = 2;
+  }
+  optional bytes  /* serialized Transaction */ transaction = 1;
+  repeated Mutation mutation = 5;
+  optional DeprecatedMutation deprecated_mutation = 2;
+  optional Mode mode = 4 [default = TRANSACTIONAL];
+  optional bool ignore_read_only = 6 [default = false];
+}
+
+message CommitResponse {
+  repeated MutationResult mutation_result = 3;
+  optional DeprecatedMutationResult deprecated_mutation_result = 1;
+  optional int32 index_updates = 4;
+}
+
+message AllocateIdsRequest {
+  repeated Key allocate = 1;
+
+  repeated Key reserve = 2;
+}
+
+message AllocateIdsResponse {
+  repeated Key allocated = 1;
+}

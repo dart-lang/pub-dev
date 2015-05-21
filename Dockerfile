@@ -5,6 +5,7 @@ WORKDIR /project/app
 ADD app.yaml /project/
 ADD app/pubspec.* /project/app/
 ADD pkg/markdown/pubspec.* /project/pkg/markdown/
+ADD pkg/appengine/pubspec.* /project/pkg/appengine/
 
 ADD key.json /project/key.json
 

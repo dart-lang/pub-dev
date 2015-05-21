@@ -22,3 +22,5 @@ dev_dependencies:
 dependency_overrides:
   markdown:
     path: ../pkg/markdown
+  appengine:
+    path: ../pkg/appengine
