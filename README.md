@@ -2,7 +2,7 @@
 
 The https://pub.dartlang.org site.
 
-Implemented with Dart on a Managed VM in App Engine.
+Implemented in Dart as a Managed VM AppEngine application.
 
 ## Running tests
 
