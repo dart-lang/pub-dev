@@ -50,8 +50,6 @@ class AppEngineHttpServer {
       server.listen((HttpRequest request) {
         var appengineRequest = new AppengineHttpRequest(request);
 
-        _info("Got request: ${appengineRequest.uri}");
-
         // Default handling is sending the request to the aplication.
         var handler = applicationHandler;
 

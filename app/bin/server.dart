@@ -97,12 +97,10 @@ void main() {
 }
 
 /// Gets the current namespace.
+///
+/// Based on the name of the version name this will get the namespace for
+/// either production data or staging data.
 String getCurrentNamespace() {
   String version = modulesService.currentVersion;
-  if (['preview', 'coming-soon'].contains(version) ||
-      version.startsWith('buildbot-dart') ||
-      isInt(version)) {
-    return '';
-  }
-  return 'staging';
+  return version.contains('staging') ? 'staging' : '';
 }

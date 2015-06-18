@@ -26,6 +26,14 @@ class LoggingRpcImpl extends Logging {
     }
 
     // Issue 15747158.
+    //
+    // Only log CRITICAL, ERROR amd WARNING to stdout.
+    //
+    // This is an experiment to see if logging less to stdout will make the
+    // application run more stable in production.
+    if (level == LogLevel.CRITICAL ||
+        level == LogLevel.ERROR ||
+        level == LogLevel.WARNING)
     print('$timestamp: ApplicationLog | $level: ${message.trim()}');
 
     _logLines.add(_createLogLine(level, message, timestamp));
