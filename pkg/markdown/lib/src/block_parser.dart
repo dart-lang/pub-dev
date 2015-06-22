@@ -29,9 +29,7 @@ final _RE_CODE = new RegExp(r'^(`{3,}|~{3,})(.*)$');
 /// Three or more hyphens, asterisks or underscores by themselves. Note that
 /// a line like `----` is valid as both HR and SETEXT. In case of a tie,
 /// SETEXT should win.
-final _RE_HR = new RegExp(r'^[ ]{0,3}((-+[ ]{0,2}){3,}|'
-    r'(_+[ ]{0,2}){3,}|'
-    r'(\*+[ ]{0,2}){3,})$');
+final _RE_HR = new RegExp(r'^ {0,3}([-*_]) *\1 *\1(?:\1| )*$');
 
 /// Really hacky way to detect block-level embedded HTML. Just looks for
 /// "<somename".
