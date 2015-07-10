@@ -143,7 +143,6 @@ packagesHandler(shelf.Request request) async {
   int page = _pageFromUrl(request.url);
   var path = request.url.path;
   if (path.endsWith('.json')) {
-    path = path.substring(0, path.length - '.json'.length);
     return packagesHandlerJson(request, page, true);
   } else if (request.url.queryParameters['format'] == 'json') {
     return packagesHandlerJson(request, page, false);
@@ -153,7 +152,8 @@ packagesHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /packages - JSON
-packagesHandlerJson(request, page, dotJsonResponse) async {
+packagesHandlerJson(
+    shelf.Request request, int page, bool dotJsonResponse) async {
   final PageSize = 50;
 
   var offset = PageSize * (page - 1);
@@ -218,17 +218,18 @@ packageHandler(shelf.Request request) {
       path = path.substring(0, path.length - '.json'.length);
     }
     if (responseAsJson) {
-      return packageShowHandlerJson(request, path);
+      return packageShowHandlerJson(request, Uri.decodeComponent(path));
     } else {
-      return packageShowHandlerHtml(request, path);
+      return packageShowHandlerHtml(request, Uri.decodeComponent(path));
     }
   }
 
-  var package = path.substring(0, slash);
+  var package = Uri.decodeComponent(path.substring(0, slash));
   if (path.substring(slash).startsWith('/versions')) {
     path = path.substring(slash + '/versions'.length);
     if (path.startsWith('/') && path.endsWith('.yaml')) {
-      String version = path.substring(1, path.length - '.yaml'.length);
+      path = path.substring(1, path.length - '.yaml'.length);
+      String version = Uri.decodeComponent(path);
       return packageVersionHandlerYaml(request, package, version);
     } else {
       return packageVersionsHandler(request, package);
