@@ -50,7 +50,7 @@ packages:
   http_parser:
     description: http_parser
     source: hosted
-    version: "0.0.2+6"
+    version: "0.0.2+7"
   http_server:
     description: http_server
     source: hosted
@@ -84,15 +84,15 @@ packages:
   path:
     description: path
     source: hosted
-    version: "1.3.5"
+    version: "1.3.6"
   petitparser:
     description: petitparser
     source: hosted
-    version: "1.3.7"
+    version: "1.4.3"
   protobuf:
     description: protobuf
     source: hosted
-    version: "0.3.6"
+    version: "0.3.11"
   pub_semver:
     description: pub_semver
     source: hosted
@@ -100,7 +100,7 @@ packages:
   pub_server:
     description: pub_server
     source: hosted
-    version: "0.1.0"
+    version: "0.1.1"
   shelf:
     description: shelf
     source: hosted
@@ -112,7 +112,7 @@ packages:
   stack_trace:
     description: stack_trace
     source: hosted
-    version: "1.3.2"
+    version: "1.3.4"
   string_scanner:
     description: string_scanner
     source: hosted
@@ -120,7 +120,7 @@ packages:
   unittest:
     description: unittest
     source: hosted
-    version: "0.11.6"
+    version: "0.11.6+1"
   uuid:
     description: uuid
     source: hosted
@@ -128,8 +128,8 @@ packages:
   watcher:
     description: watcher
     source: hosted
-    version: "0.9.5"
+    version: "0.9.6"
   yaml:
     description: yaml
     source: hosted
-    version: "2.1.2"
+    version: "2.1.3"
