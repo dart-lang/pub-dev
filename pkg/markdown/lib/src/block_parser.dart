@@ -241,8 +241,9 @@ class CodeBlockSyntax extends BlockSyntax {
     // The Markdown tests expect a trailing newline.
     childLines.add('');
 
-    // Escape the code.
-    final escaped = escapeHtml(childLines.join('\n'));
+    //// Escape the code.
+    ////final escaped = escapeHtml(childLines.join('\n'));
+    final escaped = childLines.join('\n');
 
     return new Element('pre', [new Element.text('code', escaped)]);
   }

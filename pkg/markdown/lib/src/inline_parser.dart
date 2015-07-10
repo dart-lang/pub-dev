@@ -371,7 +371,10 @@ class CodeSyntax extends InlineSyntax {
   CodeSyntax(String pattern) : super(pattern);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(new Element.text('code', escapeHtml(match[1])));
+    //// Escape the code.
+    //// var escaped = escapeHtml(match[1]);
+    var escaped = match[1];
+    parser.addNode(new Element.text('code', escaped));
     return true;
   }
 }
