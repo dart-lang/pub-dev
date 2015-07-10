@@ -127,30 +127,46 @@ class TemplateService {
     // <1.2.3", suggest that as the version constraint for prerelease versions.
     var exampleVersionConstraint = '"^${latestVersion.version}"';
 
+    bool isMarkdownFile(String filename) {
+      return filename.toLowerCase().endsWith('.md');
+    }
+
+    String renderPlainText(String text) {
+      return '<div class="highlight"><pre>${cmd.escape(text)}</pre></div>';
+    }
+
     var readmeFilename;
-    var readme;
+    var renderedReadme;
     if (latestVersion.readme != null) {
       readmeFilename = latestVersion.readme.filename;
-      readme = latestVersion.readme.text;
-      if (readme != null && readmeFilename.endsWith('.md')) {
-        try {
-          readme = cmd.markdownToHtml(readme);
-        } catch (e) {
-          readme = md.markdownToHtml(readme);
+      String readme = latestVersion.readme.text;
+      if (readme != null) {
+        if (isMarkdownFile(readmeFilename)) {
+          try {
+            renderedReadme = cmd.markdownToHtml(readme);
+          } catch (e) {
+            renderedReadme = md.markdownToHtml(readme);
+          }
+        } else {
+          renderedReadme = renderPlainText(readme);
         }
       }
     }
 
     var changelogFilename;
-    var changelog;
+    var renderedChangelog;
     if (latestVersion.changelog != null) {
       changelogFilename = latestVersion.changelog.filename;
-      changelog = latestVersion.changelog.text;
-      if (changelog != null && changelogFilename.endsWith('.md')) {
-        try {
-          changelog = cmd.markdownToHtml(changelog);
-        } catch (e) {
-          changelog = md.markdownToHtml(changelog);
+      String changelog = latestVersion.changelog.text;
+      if (changelog != null) {
+        if (isMarkdownFile(changelogFilename)) {
+          try {
+            renderedChangelog = cmd.markdownToHtml(changelog);
+          } catch (e) {
+            renderedChangelog = md.markdownToHtml(changelog);
+          }
+        } else {
+          renderedChangelog = renderPlainText(changelog);
         }
       }
     }
@@ -190,9 +206,9 @@ class TemplateService {
         },
         'versions' : versionsJson,
         'show_versions_link' : totalNumberOfVersions > versions.length,
-        'readme' : readme,
+        'readme' : renderedReadme,
         'readme_filename' : readmeFilename,
-        'changelog' : changelog,
+        'changelog' : renderedChangelog,
         'changelog_filename': changelogFilename,
         'version_count' : '$totalNumberOfVersions',
     };

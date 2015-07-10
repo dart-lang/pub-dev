@@ -556,13 +556,29 @@ Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
 
   var files = await listTarball(filename);
 
-  var readmeFilename;
-  if (files.contains('README.md')) readmeFilename = 'README.md';
-  else if (files.contains('README')) readmeFilename = 'README';
+  // Searches in [files] for a file name [name] and compare in a
+  // case-insensitive manner.
+  //
+  // Returns `null` if not found otherwise the correct filename.
+  String searchForFile(String name) {
+    String nameLowercase = name.toLowerCase();
+    for (String filename in files) {
+      if (filename.toLowerCase() == nameLowercase) {
+        return filename;
+      }
+    }
+    return null;
+  }
 
-  var changelogFilename;
-  if (files.contains('CHANGELOG.md')) changelogFilename = 'CHANGELOG.md';
-  else if (files.contains('CHANGELOG')) readmeFilename = 'CHANGELOG';
+  var readmeFilename = searchForFile('README.md');
+  if (readmeFilename == null) {
+    readmeFilename = searchForFile('README');
+  }
+
+  var changelogFilename = searchForFile('CHANGELOG.md');
+  if (changelogFilename == null) {
+    changelogFilename = searchForFile('CHANGELOG');
+  }
 
   var libraries = files
       .where((file) => file.startsWith('lib/'))

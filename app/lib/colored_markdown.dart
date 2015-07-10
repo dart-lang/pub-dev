@@ -28,7 +28,7 @@ Scanner _scanner(String contents, {String name}) {
   return scanner;
 }
 
-String _escape(String msg) => const HtmlEscape().convert(msg);
+String escape(String msg) => const HtmlEscape().convert(msg);
 
 void _writePrettifiedSource(String source, StringBuffer buffer) {
   Scanner scanner = _scanner(source);
@@ -159,7 +159,7 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
       case TokenType.PERIOD_PERIOD_PERIOD: break;
     }
 
-    buffer.write('<span class="$klass">${_escape(token.lexeme)}</span>');
+    buffer.write('<span class="$klass">${escape(token.lexeme)}</span>');
 
     line = lineOfOffset(token.end - 1);
     lineOffset = offsetOfOffset(token.end);
@@ -178,7 +178,7 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
 
 class _DartHtmlRenderer extends HtmlRenderer {
   void visitText(Text text) {
-    buffer.write(_escape(text.text));
+    buffer.write(escape(text.text));
   }
 
   bool visitElementBefore(Element element) {
