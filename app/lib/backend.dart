@@ -53,7 +53,7 @@ class Backend {
 
   Backend(DatastoreDB db, TarballStorage storage, {UIPackageCache cache})
       : db = db,
-        repository = new GCloudPackageRepository(db, storage),
+        repository = new GCloudPackageRepository(db, storage, cache: cache),
         uiPackageCache = cache;
 
   /// Retrieves packages ordered by their latest version date.
@@ -118,8 +118,9 @@ class GCloudPackageRepository extends PackageRepository {
   final Uuid uuid = new Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
+  final UIPackageCache cache;
 
-  GCloudPackageRepository(this.db, this.storage);
+  GCloudPackageRepository(this.db, this.storage, {this.cache});
 
   // Metadata support.
 
@@ -387,7 +388,10 @@ class GCloudPackageRepository extends PackageRepository {
         // Add [uploaderEmail] to uploaders and commit.
         package.uploaderEmails.add(uploaderEmail);
         T.queueMutations(inserts: [package]);
-        return T.commit();
+        await T.commit();
+        if (cache != null) {
+          await cache.invalidateUIPackagePage(package.name);
+        }
       });
     });
   }
@@ -428,7 +432,10 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         T.queueMutations(inserts: [package]);
-        return T.commit();
+        await T.commit();
+        if (cache != null) {
+          await cache.invalidateUIPackagePage(package.name);
+        }
       });
     });
   }

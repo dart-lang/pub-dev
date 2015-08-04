@@ -17,6 +17,8 @@ abstract class UIPackageCache {
   Future<String> getUIPackagePage(String package);
 
   Future setUIPackagePage(String package, String data);
+
+  Future invalidateUIPackagePage(String package);
 }
 
 /// Uses a [Memache] to set/get/invalidate metadata for packages.
@@ -70,6 +72,11 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
         memcache.set(_packageUIKey(package),
         UTF8.encode(data),
         expiration: EXPIRATION));
+  }
+
+  Future invalidateUIPackagePage(String package) async {
+    _logger.info('memcache["$package"] invalidating UI data');
+    return _ignoreErrors(memcache.remove(_packageUIKey(package)));
   }
 
   Future invalidatePackageData(String package) {
