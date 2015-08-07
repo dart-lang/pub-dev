@@ -16,16 +16,12 @@ void _info(String message) {
   print(formattedMessage);
 }
 
-String _getHostname() =>
-    (Process.runSync('/bin/hostname', []).stdout as String).trim();
-
 class AppEngineHttpServer {
   final ContextRegistry _contextRegistry;
 
   final String _hostname;
   final int _port;
 
-  final String _localHostname;
   final Completer _shutdownCompleter = new Completer();
   int _pendingRequests = 0;
 
@@ -33,7 +29,7 @@ class AppEngineHttpServer {
 
   AppEngineHttpServer(this._contextRegistry,
                       {String hostname: '0.0.0.0', int port: 8080})
-      : _localHostname = _getHostname(), _hostname = hostname, _port = port;
+      : _hostname = hostname, _port = port;
 
   Future get done => _shutdownCompleter.future;
 
@@ -64,13 +60,6 @@ class AppEngineHttpServer {
 
         _pendingRequests++;
         var context = _contextRegistry.add(appengineRequest);
-        /*
-         * This sets the 'Server' header in the http response to the hostname
-         * of the machine the application is running on.
-         * It seems like the AppEngine VmRuntime stub (on the other end) will
-         * not accept the response if we use the default value.
-         */
-        appengineRequest.response.headers.set('Server', _localHostname);
         appengineRequest.response.registerHook(
             () => _contextRegistry.remove(appengineRequest));
 
