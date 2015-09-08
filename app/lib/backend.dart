@@ -681,6 +681,12 @@ class TarballStorage {
     return bucket.read(object);
   }
 
+  /// Deletes the tarball of a [package] in the given [version] permanently.
+  Future remove(String package, String version) {
+    var object = namer.tarballObjectName(package, version);
+    return bucket.delete(object);
+  }
+
   /// Get the URL to the tarball of a [package] in the given [version].
   Future<Uri> downloadUrl(String package, String version) {
     // NOTE: We should maybe check for existence first?
