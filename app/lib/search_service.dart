@@ -62,27 +62,30 @@ class SearchService {
   /// max [numResults].
   Future<SearchResultPage> search(
       String query, int offset, int numResults) async {
+    exists(x) => x != null;
+    min(a, b) => a <= b ? a : b;
     var db = dbService;
 
     var search = await csearch.cse.list(
         query, cx: _CUSTOM_SEARCH_ID, num: numResults, start: 1 + offset);
-    if (search.items != null) {
+    if (exists(search.items)) {
       var keys = search.items.map((item) {
         var match = _PackageUrlPattern.matchAsPrefix(item.link);
-        if (match != null) {
+        if (exists(match)) {
           return db.emptyKey.append(Package, id: match.group(1));
         }
-      }).where((i) => i != null).toList();
+      }).where(exists).toList();
 
-      if (keys.length > 0) {
+      if (keys.isNotEmpty) {
         var packages = await db.lookup(keys);
-        // TODO: Insert check that all packages the indexer found, we can
-        // lookup.
-        var versionKeys = packages.map((p) => p.latestVersionKey).toList();
-        var versions = await db.lookup(versionKeys);
-        int count = int.parse(search.searchInformation.totalResults);
-        if (count > SEARCH_MAX_RESULTS) count = SEARCH_MAX_RESULTS;
-        return new SearchResultPage(query, offset, count, versions);
+        var versionKeys =
+            packages.where(exists).map((p) => p.latestVersionKey).toList();
+        if (versionKeys.isNotEmpty) {
+          var versions = await db.lookup(versionKeys);
+          int count = min(int.parse(search.searchInformation.totalResults),
+                          SEARCH_MAX_RESULTS);
+          return new SearchResultPage(query, offset, count, versions);
+        }
       }
     }
     return new SearchResultPage(query, offset, 0, []);
