@@ -10,7 +10,6 @@ import 'dart:math';
 import 'colored_markdown.dart' as cmd;
 import 'package:markdown/markdown.dart' as md;
 import 'package:mustache/mustache.dart' as mustache;
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:gcloud/service_scope.dart' as ss;
 
 import 'models.dart';
