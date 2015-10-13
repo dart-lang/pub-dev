@@ -1,8 +1,0 @@
-name: python_dart_interop_test
-version: 0.1.0
-description: A python<->dart interop test for datastore.
-dependencies:
-  appengine: any
-  gcloud: any
-dev_dependencies:
-  unittest: any
