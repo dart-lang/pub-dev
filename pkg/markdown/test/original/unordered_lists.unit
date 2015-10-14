@@ -1,0 +1,71 @@
+>>> asterisk, plus and hyphen
+* star
+- dash
++ plus
+
+<<<
+<ul><li>star</li><li>dash</li><li>plus</li></ul>
+>>> allow numbered lines after first
+* a
+1. b
+
+<<<
+<ul><li>a</li><li>b</li></ul>
+>>> allow a tab after the marker
+* a
++ b
+- c
+1.  d
+
+<<<
+<ul><li>a</li><li>b</li><li>c</li><li>d</li></ul>
+>>> wrap items in paragraphs if blank lines separate
+* one
+
+* two
+
+<<<
+<ul><li>
+<p>one</p></li><li>
+<p>two</p></li></ul>
+>>> force paragraph on item before and after blank lines
+*   one
+*   two
+
+*   three
+
+<<<
+<ul><li>one</li><li>
+<p>two</p></li><li>
+<p>three</p></li></ul>
+>>> do not force paragraph if item is already block
+* > quote
+
+* # header
+
+<<<
+<ul><li>
+<blockquote>
+<p>quote</p></blockquote></li><li>
+<h1>header</h1></li></ul>
+>>> can contain multiple paragraphs
+*   one
+
+    two
+
+*   three
+
+<<<
+<ul><li>
+<p>one</p>
+<p>two</p></li><li>
+<p>three</p></li></ul>
+>>> can span newlines
+*   one
+    two
+*   three
+
+<<<
+<ul><li>
+<p>one
+two</p></li><li>three</li></ul>

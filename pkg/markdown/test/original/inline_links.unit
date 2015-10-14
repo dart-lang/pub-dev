@@ -1,0 +1,15 @@
+>>> double quotes for title
+links [are](http://foo.com "woo") awesome
+
+<<<
+<p>links <a href="http://foo.com" title="woo">are</a> awesome</p>
+>>> no title
+links [are] (http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com">are</a> awesome</p>
+>>> can style link contents
+links [*are*](http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com"><em>are</em></a> awesome</p>

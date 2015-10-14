@@ -1,0 +1,59 @@
+>>> double quotes for title
+links [are] [a] awesome
+
+[a]: http://foo.com "woo"
+
+<<<
+<p>links <a href="http://foo.com" title="woo">are</a> awesome</p>
+>>> single quoted title
+links [are] [a] awesome
+
+[a]: http://foo.com 'woo'
+
+<<<
+<p>links <a href="http://foo.com" title="woo">are</a> awesome</p>
+>>> parentheses for title
+links [are] [a] awesome
+
+[a]: http://foo.com (woo)
+
+<<<
+<p>links <a href="http://foo.com" title="woo">are</a> awesome</p>
+>>> no title
+links [are] [a] awesome
+
+[a]: http://foo.com
+
+<<<
+<p>links <a href="http://foo.com">are</a> awesome</p>
+>>> unknown link becomes plaintext
+[not] [known]
+
+<<<
+<p>[not] [known]</p>
+>>> can style link contents
+links [*are*] [a] awesome
+
+[a]: http://foo.com
+
+<<<
+<p>links <a href="http://foo.com"><em>are</em></a> awesome</p>
+>>> inline styles after a bad link are processed
+[bad] `code`
+
+<<<
+<p>[bad] <code>code</code></p>
+>>> empty reference uses text from link
+links [are][] awesome
+
+[are]: http://foo.com
+
+<<<
+<p>links <a href="http://foo.com">are</a> awesome</p>
+>>> references are case-insensitive
+links [ARE][] awesome
+
+[are]: http://foo.com
+
+<<<
+<p>links <a href="http://foo.com">ARE</a> awesome</p>

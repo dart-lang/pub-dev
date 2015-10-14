@@ -9,40 +9,43 @@ import 'document.dart';
 import 'util.dart';
 
 /// The line contains only whitespace or is empty.
-final _RE_EMPTY = new RegExp(r'^([ \t]*)$');
+final _emptyPattern = new RegExp(r'^(?:[ \t]*)$');
 
 /// A series of `=` or `-` (on the next line) define setext-style headers.
-final _RE_SETEXT = new RegExp(r'^((=+)|(-+))$');
+final _setextPattern = new RegExp(r'^(=+|-+)$');
 
 /// Leading (and trailing) `#` define atx-style headers.
-final _RE_HEADER = new RegExp(r'^(#{1,6})(.*?)#*$');
+///
+/// Starts with 1-6 unescaped `#` characters which must not be followed by a
+/// non-space character. Line may end with any number of `#` characters,.
+final _headerPattern = new RegExp(r'^(#{1,6})[ \x09\x0b\x0c](.*?)#*$');
 
 /// The line starts with `>` with one optional space after.
-final _RE_BLOCKQUOTE = new RegExp(r'^[ ]{0,3}>[ ]?(.*)$');
+final _blockquotePattern = new RegExp(r'^[ ]{0,3}>[ ]?(.*)$');
 
 /// A line indented four spaces. Used for code blocks and lists.
-final _RE_INDENT = new RegExp(r'^(?:    |\t)(.*)$');
+final _indentPattern = new RegExp(r'^(?:    |\t)(.*)$');
 
 /// Fenced code block.
-final _RE_CODE = new RegExp(r'^(`{3,}|~{3,})(.*)$');
+final _codePattern = new RegExp(r'^[ ]{0,3}(`{3,}|~{3,})(.*)$');
 
 /// Three or more hyphens, asterisks or underscores by themselves. Note that
 /// a line like `----` is valid as both HR and SETEXT. In case of a tie,
 /// SETEXT should win.
-final _RE_HR = new RegExp(r'^ {0,3}([-*_]) *\1 *\1(?:\1| )*$');
+final _hrPattern = new RegExp(r'^ {0,3}([-*_]) *\1 *\1(?:\1| )*$');
 
 /// Really hacky way to detect block-level embedded HTML. Just looks for
 /// "<somename".
-final _RE_HTML = new RegExp(r'^<[ ]*\w+[ >]');
+final _htmlPattern = new RegExp(r'^<[ ]*\w+[ >]');
 
 /// A line starting with one of these markers: `-`, `*`, `+`. May have up to
 /// three leading spaces before the marker and any number of spaces or tabs
 /// after.
-final _RE_UL = new RegExp(r'^[ ]{0,3}[*+-][ \t]+(.*)$');
+final _ulPattern = new RegExp(r'^[ ]{0,3}[*+-][ \t]+(.*)$');
 
 /// A line starting with a number like `123.`. May have up to three leading
 /// spaces before the marker and any number of spaces or tabs after.
-final _RE_OL = new RegExp(r'^[ ]{0,3}\d+\.[ \t]+(.*)$');
+final _olPattern = new RegExp(r'^[ ]{0,3}\d+\.[ \t]+(.*)$');
 
 /// Maintains the internal state needed to parse a series of lines into blocks
 /// of markdown suitable for further inline parsing.
@@ -118,10 +121,10 @@ abstract class BlockSyntax {
 
   List<String> parseChildLines(BlockParser parser) {
     // Grab all of the lines that form the blockquote, stripping off the ">".
-    final childLines = <String>[];
+    var childLines = <String>[];
 
     while (!parser.isDone) {
-      final match = pattern.firstMatch(parser.current);
+      var match = pattern.firstMatch(parser.current);
       if (match == null) break;
       childLines.add(match[1]);
       parser.advance();
@@ -138,7 +141,7 @@ abstract class BlockSyntax {
 }
 
 class EmptyBlockSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_EMPTY;
+  RegExp get pattern => _emptyPattern;
 
   const EmptyBlockSyntax();
 
@@ -157,14 +160,14 @@ class SetextHeaderSyntax extends BlockSyntax {
   bool canParse(BlockParser parser) {
     // Note: matches *next* line, not the current one. We're looking for the
     // underlining after this line.
-    return parser.matchesNext(_RE_SETEXT);
+    return parser.matchesNext(_setextPattern);
   }
 
   Node parse(BlockParser parser) {
-    final match = _RE_SETEXT.firstMatch(parser.next);
+    var match = _setextPattern.firstMatch(parser.next);
 
-    final tag = (match[1][0] == '=') ? 'h1' : 'h2';
-    final contents = parser.document.parseInline(parser.current);
+    var tag = (match[1][0] == '=') ? 'h1' : 'h2';
+    var contents = parser.document.parseInline(parser.current);
     parser.advance();
     parser.advance();
 
@@ -174,30 +177,30 @@ class SetextHeaderSyntax extends BlockSyntax {
 
 /// Parses atx-style headers: `## Header ##`.
 class HeaderSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_HEADER;
+  RegExp get pattern => _headerPattern;
 
   const HeaderSyntax();
 
   Node parse(BlockParser parser) {
-    final match = pattern.firstMatch(parser.current);
+    var match = pattern.firstMatch(parser.current);
     parser.advance();
-    final level = match[1].length;
-    final contents = parser.document.parseInline(match[2].trim());
+    var level = match[1].length;
+    var contents = parser.document.parseInline(match[2].trim());
     return new Element('h$level', contents);
   }
 }
 
 /// Parses email-style blockquotes: `> quote`.
 class BlockquoteSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_BLOCKQUOTE;
+  RegExp get pattern => _blockquotePattern;
 
   const BlockquoteSyntax();
 
   Node parse(BlockParser parser) {
-    final childLines = parseChildLines(parser);
+    var childLines = parseChildLines(parser);
 
     // Recursively parse the contents of the blockquote.
-    final children = parser.document.parseLines(childLines);
+    var children = parser.document.parseLines(childLines);
 
     return new Element('blockquote', children);
   }
@@ -205,12 +208,12 @@ class BlockquoteSyntax extends BlockSyntax {
 
 /// Parses preformatted code blocks that are indented four spaces.
 class CodeBlockSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_INDENT;
+  RegExp get pattern => _indentPattern;
 
   const CodeBlockSyntax();
 
   List<String> parseChildLines(BlockParser parser) {
-    final childLines = <String>[];
+    var childLines = <String>[];
 
     while (!parser.isDone) {
       var match = pattern.firstMatch(parser.current);
@@ -236,11 +239,12 @@ class CodeBlockSyntax extends BlockSyntax {
   }
 
   Node parse(BlockParser parser) {
-    final childLines = parseChildLines(parser);
+    var childLines = parseChildLines(parser);
 
     // The Markdown tests expect a trailing newline.
     childLines.add('');
 
+    // See https://github.com/dart-lang/markdown/issues/67
     //// Escape the code.
     ////final escaped = escapeHtml(childLines.join('\n'));
     final escaped = childLines.join('\n');
@@ -250,17 +254,19 @@ class CodeBlockSyntax extends BlockSyntax {
 }
 
 /// Parses preformatted code blocks between two ~~~ or ``` sequences.
-/// [Pandoc's markdown documentation](http://johnmacfarlane.net/pandoc/demo/example9/pandocs-markdown.html).
+///
+/// See [Pandoc's documentation](http://johnmacfarlane.net/pandoc/demo/example9/pandocs-markdown.html).
 class FencedCodeBlockSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_CODE;
+  RegExp get pattern => _codePattern;
 
   const FencedCodeBlockSyntax();
 
   List<String> parseChildLines(BlockParser parser, [String endBlock]) {
     if (endBlock == null) endBlock = '';
 
-    final childLines = <String>[];
+    var childLines = <String>[];
     parser.advance();
+
     while (!parser.isDone) {
       var match = pattern.firstMatch(parser.current);
       if (match == null || !match[1].startsWith(endBlock)) {
@@ -271,6 +277,7 @@ class FencedCodeBlockSyntax extends BlockSyntax {
         break;
       }
     }
+
     return childLines;
   }
 
@@ -280,26 +287,26 @@ class FencedCodeBlockSyntax extends BlockSyntax {
     var endBlock = match.group(1);
     var syntax = match.group(2);
 
-    final childLines = parseChildLines(parser, endBlock);
+    var childLines = parseChildLines(parser, endBlock);
 
     // The Markdown tests expect a trailing newline.
     childLines.add('');
 
+    // See https://github.com/dart-lang/markdown/issues/67
     //// Escape the code.
     ////final escaped = escapeHtml(childLines.join('\n'));
     final escaped = childLines.join('\n');
 
     var element = new Element('pre', [new Element.text('code', escaped)]);
-    if (syntax != '') {
-      element.attributes['class'] = syntax;
-    }
+    if (syntax != '') element.attributes['class'] = syntax;
+
     return element;
   }
 }
 
 /// Parses horizontal rules like `---`, `_ _ _`, `*  *  *`, etc.
 class HorizontalRuleSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_HR;
+  RegExp get pattern => _hrPattern;
 
   const HorizontalRuleSyntax();
 
@@ -309,7 +316,7 @@ class HorizontalRuleSyntax extends BlockSyntax {
   }
 }
 
-/// Parses inline HTML at the block level. This differs from other markdown
+/// Parses inline HTML at the block level. This differs from other Markdown
 /// implementations in several ways:
 ///
 /// 1.  This one is way way WAY simpler.
@@ -317,20 +324,20 @@ class HorizontalRuleSyntax extends BlockSyntax {
 ///     start a paragraph with `<em>`, it will not wrap it in a `<p>` for you.
 ///     As soon as it sees something like HTML, it stops mucking with it until
 ///     it hits the next block.
-/// 3.  Absolutely no HTML parsing or validation is done. We're a markdown
-///     parser not an HTML parser!
+/// 3.  Absolutely no HTML parsing or validation is done. We're a Markdown
+///     parser, not an HTML parser!
 class BlockHtmlSyntax extends BlockSyntax {
-  RegExp get pattern => _RE_HTML;
+  RegExp get pattern => _htmlPattern;
 
   bool get canEndBlock => false;
 
   const BlockHtmlSyntax();
 
   Node parse(BlockParser parser) {
-    final childLines = [];
+    var childLines = <String>[];
 
     // Eat until we hit a blank line.
-    while (!parser.isDone && !parser.matches(_RE_EMPTY)) {
+    while (!parser.isDone && !parser.matches(_emptyPattern)) {
       childLines.add(parser.current);
       parser.advance();
     }
@@ -355,7 +362,7 @@ abstract class ListSyntax extends BlockSyntax {
   const ListSyntax();
 
   Node parse(BlockParser parser) {
-    final items = <ListItem>[];
+    var items = <ListItem>[];
     var childLines = <String>[];
 
     endItem() {
@@ -372,14 +379,14 @@ abstract class ListSyntax extends BlockSyntax {
     }
 
     while (!parser.isDone) {
-      if (tryMatch(_RE_EMPTY)) {
+      if (tryMatch(_emptyPattern)) {
         // Add a blank line to the current list item.
         childLines.add('');
-      } else if (tryMatch(_RE_UL) || tryMatch(_RE_OL)) {
+      } else if (tryMatch(_ulPattern) || tryMatch(_olPattern)) {
         // End the current list item and start a new one.
         endItem();
         childLines.add(match[1]);
-      } else if (tryMatch(_RE_INDENT)) {
+      } else if (tryMatch(_indentPattern)) {
         // Strip off indent and add to current item.
         childLines.add(match[1]);
       } else if (BlockSyntax.isAtBlockEnd(parser)) {
@@ -403,7 +410,8 @@ abstract class ListSyntax extends BlockSyntax {
     // * one
     // * two
     //
-    // Then it will insert the conents of the lines directly in the <li>, like:
+    // Then it will insert the contents of the lines directly in the <li>, like:
+    //
     // <ul>
     //   <li>one</li>
     //   <li>two</li>
@@ -436,10 +444,10 @@ abstract class ListSyntax extends BlockSyntax {
     // Remove any trailing empty lines and note which items are separated by
     // empty lines. Do this before seeing which items are single-line so that
     // trailing empty lines on the last item don't force it into being a block.
-    for (int i = 0; i < items.length; i++) {
-      for (int j = items[i].lines.length - 1; j > 0; j--) {
-        if (_RE_EMPTY.firstMatch(items[i].lines[j]) != null) {
-          // Found an empty line. Item and one after it are blocks.
+    for (var i = 0; i < items.length; i++) {
+      for (var j = items[i].lines.length - 1; j > 0; j--) {
+        if (_emptyPattern.firstMatch(items[i].lines[j]) != null) {
+          // Found an empty line. This item and the one after it are blocks.
           if (i < items.length - 1) {
             items[i].forceBlock = true;
             items[i + 1].forceBlock = true;
@@ -452,22 +460,22 @@ abstract class ListSyntax extends BlockSyntax {
     }
 
     // Convert the list items to Nodes.
-    final itemNodes = <Node>[];
-    for (final item in items) {
-      bool blockItem = item.forceBlock || (item.lines.length > 1);
+    var itemNodes = <Node>[];
+    for (var item in items) {
+      var blockItem = item.forceBlock || (item.lines.length > 1);
 
       // See if it matches some block parser.
-      final blocksInList = [
-        _RE_BLOCKQUOTE,
-        _RE_HEADER,
-        _RE_HR,
-        _RE_INDENT,
-        _RE_UL,
-        _RE_OL
+      var blocksInList = [
+        _blockquotePattern,
+        _headerPattern,
+        _hrPattern,
+        _indentPattern,
+        _ulPattern,
+        _olPattern
       ];
 
       if (!blockItem) {
-        for (final pattern in blocksInList) {
+        for (var pattern in blocksInList) {
           if (pattern.firstMatch(item.lines[0]) != null) {
             blockItem = true;
             break;
@@ -478,11 +486,11 @@ abstract class ListSyntax extends BlockSyntax {
       // Parse the item as a block or inline.
       if (blockItem) {
         // Block list item.
-        final children = parser.document.parseLines(item.lines);
+        var children = parser.document.parseLines(item.lines);
         itemNodes.add(new Element('li', children));
       } else {
         // Raw list item.
-        final contents = parser.document.parseInline(item.lines[0]);
+        var contents = parser.document.parseInline(item.lines[0]);
         itemNodes.add(new Element('li', contents));
       }
     }
@@ -493,7 +501,7 @@ abstract class ListSyntax extends BlockSyntax {
 
 /// Parses unordered lists.
 class UnorderedListSyntax extends ListSyntax {
-  RegExp get pattern => _RE_UL;
+  RegExp get pattern => _ulPattern;
   String get listTag => 'ul';
 
   const UnorderedListSyntax();
@@ -501,7 +509,7 @@ class UnorderedListSyntax extends ListSyntax {
 
 /// Parses ordered lists.
 class OrderedListSyntax extends ListSyntax {
-  RegExp get pattern => _RE_OL;
+  RegExp get pattern => _olPattern;
   String get listTag => 'ol';
 
   const OrderedListSyntax();
@@ -516,7 +524,7 @@ class ParagraphSyntax extends BlockSyntax {
   bool canParse(BlockParser parser) => true;
 
   Node parse(BlockParser parser) {
-    final childLines = [];
+    var childLines = <String>[];
 
     // Eat until we hit something that ends a paragraph.
     while (!BlockSyntax.isAtBlockEnd(parser)) {
@@ -524,7 +532,7 @@ class ParagraphSyntax extends BlockSyntax {
       parser.advance();
     }
 
-    final contents = parser.document.parseInline(childLines.join('\n'));
+    var contents = parser.document.parseInline(childLines.join('\n'));
     return new Element('p', contents);
   }
 }

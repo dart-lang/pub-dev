@@ -1,4 +1,4 @@
-library markdown.document;
+library markdown.src.document;
 
 import 'ast.dart';
 import 'block_parser.dart';
@@ -19,16 +19,16 @@ class Document {
     // [id]: http:foo.com "some title"
     // Where there may whitespace in there, and where the title may be in
     // single quotes, double quotes, or parentheses.
-    final indent = r'^[ ]{0,3}'; // Leading indentation.
-    final id = r'\[([^\]]+)\]'; // Reference id in [brackets].
-    final quote = r'"[^"]+"'; // Title in "double quotes".
-    final apos = r"'[^']+'"; // Title in 'single quotes'.
-    final paren = r"\([^)]+\)"; // Title in (parentheses).
-    final pattern = new RegExp(
-        '$indent$id:\\s+(\\S+)\\s*($quote|$apos|$paren|)\\s*\$');
+    var indent = r'^[ ]{0,3}'; // Leading indentation.
+    var id = r'\[([^\]]+)\]'; // Reference id in [brackets].
+    var quote = r'"[^"]+"'; // Title in "double quotes".
+    var apos = r"'[^']+'"; // Title in 'single quotes'.
+    var paren = r"\([^)]+\)"; // Title in (parentheses).
+    var pattern =
+        new RegExp('$indent$id:\\s+(\\S+)\\s*($quote|$apos|$paren|)\\s*\$');
 
-    for (int i = 0; i < lines.length; i++) {
-      final match = pattern.firstMatch(lines[i]);
+    for (var i = 0; i < lines.length; i++) {
+      var match = pattern.firstMatch(lines[i]);
       if (match != null) {
         // Parse the link.
         var id = match[1];
@@ -57,13 +57,13 @@ class Document {
 
   /// Parse the given [lines] of markdown to a series of AST nodes.
   List<Node> parseLines(List<String> lines) {
-    final parser = new BlockParser(lines, this);
+    var parser = new BlockParser(lines, this);
 
-    final blocks = [];
+    var blocks = <Node>[];
     while (!parser.isDone) {
-      for (final syntax in BlockSyntax.syntaxes) {
+      for (var syntax in BlockSyntax.syntaxes) {
         if (syntax.canParse(parser)) {
-          final block = syntax.parse(parser);
+          var block = syntax.parse(parser);
           if (block != null) blocks.add(block);
           break;
         }

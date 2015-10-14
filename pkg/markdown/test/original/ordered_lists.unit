@@ -1,0 +1,13 @@
+>>> start with numbers
+1. one
+45.  two
+   12345. three
+
+<<<
+<ol><li>one</li><li>two</li><li>three</li></ol>
+>>> allow unordered lines after first
+1. a
+* b
+
+<<<
+<ol><li>a</li><li>b</li></ol>

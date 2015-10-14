@@ -1,0 +1,27 @@
+>>> single line
+> blah
+
+<<<
+<blockquote>
+<p>blah</p></blockquote>
+>>> with two paragraphs
+> first
+>
+> second
+
+<<<
+<blockquote>
+<p>first</p>
+<p>second</p></blockquote>
+>>> nested
+> one
+>> two
+> > > three
+
+<<<
+<blockquote>
+<p>one</p>
+<blockquote>
+<p>two</p>
+<blockquote>
+<p>three</p></blockquote></blockquote></blockquote>

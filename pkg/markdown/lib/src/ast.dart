@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library markdown.ast;
+library markdown.src.ast;
 
 typedef Node Resolver(String name);
 
@@ -22,21 +22,21 @@ class Element implements Node {
 
   Element.empty(this.tag)
       : children = null,
-        attributes = <String, String>{};
+        attributes = {};
 
   Element.withTag(this.tag)
       : children = [],
-        attributes = <String, String>{};
+        attributes = {};
 
   Element.text(this.tag, String text)
       : children = [new Text(text)],
-        attributes = <String, String>{};
+        attributes = {};
 
   bool get isEmpty => children == null;
 
   void accept(NodeVisitor visitor) {
     if (visitor.visitElementBefore(this)) {
-      for (final child in children) child.accept(visitor);
+      for (var child in children) child.accept(visitor);
       visitor.visitElementAfter(this);
     }
   }

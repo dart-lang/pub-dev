@@ -1,0 +1,52 @@
+>>> consecutive lines form a single paragraph
+This is the first line.
+This is the second line.
+
+<<<
+<p>This is the first line.
+This is the second line.</p>
+>>> are terminated by a header
+para
+# header
+
+<<<
+<p>para</p>
+<h1>header</h1>
+>>> are terminated by a setext header
+para
+header
+==
+
+<<<
+<p>para</p>
+<h1>header</h1>
+>>> are terminated by a hr
+para
+___
+
+<<<
+<p>para</p>
+<hr />
+>>> consume an unordered list
+para
+* list
+
+<<<
+<p>para
+* list</p>
+>>> consume an ordered list
+para
+1. list
+
+<<<
+<p>para
+1. list</p>
+>>> take account of windows line endings
+line1
+
+line2
+
+
+<<<
+<p>line1</p>
+<p>line2</p>

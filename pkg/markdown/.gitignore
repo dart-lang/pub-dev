@@ -1,5 +1,4 @@
+.idea
+.packages
+.pub
 packages
-pubspec.lock
-.project
-.children
-out

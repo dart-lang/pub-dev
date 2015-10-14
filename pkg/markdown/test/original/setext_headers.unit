@@ -1,0 +1,46 @@
+>>> h1
+text
+===
+
+<<<
+<h1>text</h1>
+>>> h2
+text
+---
+
+<<<
+<h2>text</h2>
+>>> h1 on first line becomes text
+===
+
+<<<
+<p>===</p>
+>>> h2 on first line becomes text
+-
+
+<<<
+<p>-</p>
+>>> h1 turns preceding list into text
+- list
+===
+
+<<<
+<h1>- list</h1>
+>>> h2 turns preceding list into text
+- list
+===
+
+<<<
+<h1>- list</h1>
+>>> h1 turns preceding blockquote into text
+> quote
+===
+
+<<<
+<h1>> quote</h1>
+>>> h2 turns preceding blockquote into text
+> quote
+===
+
+<<<
+<h1>> quote</h1>

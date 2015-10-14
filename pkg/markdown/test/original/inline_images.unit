@@ -1,0 +1,20 @@
+>>> image
+![](http://foo.com/foo.png)
+
+<<<
+<p><a href="http://foo.com/foo.png"><img src="http://foo.com/foo.png"></img></a></p>
+>>> alternate text
+![alternate text](http://foo.com/foo.png)
+
+<<<
+<p><a href="http://foo.com/foo.png"><img alt="alternate text" src="http://foo.com/foo.png"></img></a></p>
+>>> title
+![](http://foo.com/foo.png "optional title")
+
+<<<
+<p><a href="http://foo.com/foo.png" title="optional title"><img src="http://foo.com/foo.png" title="optional title"></img></a></p>
+>>> invalid alt text
+![`alt`](http://foo.com/foo.png)
+
+<<<
+<p><a href="http://foo.com/foo.png"><img src="http://foo.com/foo.png"></img></a></p>

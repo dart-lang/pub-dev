@@ -2,38 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library markdown.html_renderer;
+library markdown.src.html_renderer;
 
 import 'ast.dart';
 import 'document.dart';
 import 'inline_parser.dart';
 
 /// Converts the given string of markdown to HTML.
-String markdownToHtml(String markdown, {List<InlineSyntax> inlineSyntaxes,
-    Resolver linkResolver, Resolver imageLinkResolver,
+String markdownToHtml(String markdown,
+    {List<InlineSyntax> inlineSyntaxes,
+    Resolver linkResolver,
+    Resolver imageLinkResolver,
     bool inlineOnly: false}) {
   var document = new Document(
       inlineSyntaxes: inlineSyntaxes,
       imageLinkResolver: imageLinkResolver,
       linkResolver: linkResolver);
 
-  if (inlineOnly) {
-    return renderToHtml(document.parseInline(markdown));
-  } else {
-    // Replace windows line endings with unix line endings, and split.
-    var lines = markdown.replaceAll('\r\n', '\n').split('\n');
-    document.parseRefLinks(lines);
-    var blocks = document.parseLines(lines);
-    return renderToHtml(blocks);
-  }
+  if (inlineOnly) return renderToHtml(document.parseInline(markdown));
+
+  // Replace windows line endings with unix line endings, and split.
+  var lines = markdown.replaceAll('\r\n', '\n').split('\n');
+  document.parseRefLinks(lines);
+
+  return renderToHtml(document.parseLines(lines)) + '\n';
 }
 
 String renderToHtml(List<Node> nodes) => new HtmlRenderer().render(nodes);
 
 /// Translates a parsed AST to HTML.
 class HtmlRenderer implements NodeVisitor {
-  static final BLOCK_TAGS = new RegExp(
-      'blockquote|h1|h2|h3|h4|h5|h6|hr|p|pre');
+  static final BLOCK_TAGS = new RegExp('blockquote|h1|h2|h3|h4|h5|h6|hr|p|pre');
 
   StringBuffer buffer;
 
@@ -60,11 +59,10 @@ class HtmlRenderer implements NodeVisitor {
     buffer.write('<${element.tag}');
 
     // Sort the keys so that we generate stable output.
-    // TODO(rnystrom): This assumes keys returns a fresh mutable
-    // collection.
-    final attributeNames = element.attributes.keys.toList();
+    var attributeNames = element.attributes.keys.toList();
     attributeNames.sort((a, b) => a.compareTo(b));
-    for (final name in attributeNames) {
+
+    for (var name in attributeNames) {
       buffer.write(' $name="${element.attributes[name]}"');
     }
 
