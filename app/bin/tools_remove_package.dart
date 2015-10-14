@@ -12,20 +12,32 @@ import 'package:pub_dartlang_org/backend.dart';
 import 'tools_common.dart';
 
 void main(List<String> arguments) {
-  if (arguments.length != 3) {
-    print('Usage: ${Platform.script} <json-key> (list|remove) <package>');
+  if (arguments.length < 3 || (
+      !(arguments[1] == 'list' && arguments.length == 3) &&
+      !(arguments[1] == 'remove' &&
+        (arguments.length == 3 || arguments.length == 4)))) {
+    print('Usage: ');
+    print('  ${Platform.script} <json-key> list <package>');
+    print('  ${Platform.script} <json-key> remove <package>');
+    print('  ${Platform.script} <json-key> remove <package> <version>');
     exit(1);
   }
 
   String jsonKeyfile = arguments[0];
   String command = arguments[1];
   String package = arguments[2];
+  String version = null;
+  if (arguments.length == 4) version = arguments[3];
 
   withProdServices(jsonKeyfile, () async {
     if (command == 'list') {
       await listPackage(package);
     } else if (command == 'remove') {
-      await removePackage(package);
+      if (version == null) {
+        await removePackage(package);
+     } else {
+        await removePackageVersion(package, version);
+      }
     }
   }, namespace: '');
 }
@@ -75,3 +87,37 @@ Future removePackage(String packageName) async {
   });
 }
 
+Future removePackageVersion(String packageName, String version) async {
+  return dbService.withTransaction((Transaction T) async {
+    var packageKey = dbService.emptyKey.append(Package, id: packageName);
+    Package package = (await T.lookup([packageKey])).first;
+    if (package == null) {
+      throw new Exception("Package $packageName does not exist.");
+    }
+
+    var versionsQuery = T.query(PackageVersion, packageKey);
+    var versions = await versionsQuery.run().toList();
+    var versionNames = versions.map((v) => '${v.semanticVersion}').toList();
+    if (!versionNames.contains(version)) {
+      throw new Exception(
+          "Package $packageName does not have a version $version.");
+    }
+
+    if ('${package.latestSemanticVersion}' == version) {
+      throw new Exception("Cannot delete the latest version of $packageName.");
+    }
+
+    var deletes = [packageKey.append(PackageVersion, id: version)];
+    T.queueMutations(deletes: deletes);
+
+    print('Committing changes to DB ...');
+    await T.commit();
+
+    var storage = backend.repository.storage;
+    print('Removing GCS objects ...');
+    await storage.remove(packageName, version);
+
+    print('Version "$version" of "$packageName" got successfully removed.');
+    print('WARNING: Please remember to clear the AppEngine memcache!');
+  });
+}
