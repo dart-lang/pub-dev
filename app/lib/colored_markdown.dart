@@ -6,17 +6,22 @@ library pub_dartlang_org.colored_markdown;
 
 import 'dart:convert';
 
-import 'package:markdown/markdown.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:html/parser.dart' as html;
+import 'package:markdown/markdown.dart';
 
 String markdownToHtml(String text) {
   var lines = text.replaceAll('\r\n', '\n').split('\n');
   var document = new Document();
   document.parseRefLinks(lines);
   var blocks = document.parseLines(lines);
-  return new _DartHtmlRenderer().render(blocks);
+
+  var colorizer = new ColorizeDartCode();
+  blocks.forEach((Node node) => node.accept(colorizer));
+
+  return new HtmlRenderer().render(blocks);
 }
 
 Scanner _scanner(String contents, {String name}) {
@@ -28,7 +33,9 @@ Scanner _scanner(String contents, {String name}) {
   return scanner;
 }
 
-String escape(String msg) => const HtmlEscape().convert(msg);
+String unEscape(String msg) => html.parse(msg).body.text;
+String escapeAngleBrackets(String msg)
+    => const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
 
 void _writePrettifiedSource(String source, StringBuffer buffer) {
   Scanner scanner = _scanner(source);
@@ -159,7 +166,8 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
       case TokenType.PERIOD_PERIOD_PERIOD: break;
     }
 
-    buffer.write('<span class="$klass">${escape(token.lexeme)}</span>');
+    buffer.write(
+        '<span class="$klass">${escapeAngleBrackets(token.lexeme)}</span>');
 
     line = lineOfOffset(token.end - 1);
     lineOffset = offsetOfOffset(token.end);
@@ -176,45 +184,35 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
   }
 }
 
-class _DartHtmlRenderer extends HtmlRenderer {
-  void visitText(Text text) {
-    buffer.write(escape(text.text));
-  }
+class ColorizeDartCode extends NodeVisitor {
+  void visitText(Text text) {}
 
   bool visitElementBefore(Element element) {
-    if (isDartCodeElement(element)) {
-      // Hackish. Separate block-level elements with newlines.
-      if (!buffer.isEmpty &&
-          HtmlRenderer.BLOCK_TAGS.firstMatch(element.tag) != null) {
-        buffer.write('\n');
-      }
+    if (_isDartCodeElement(element)) {
+      Text text = _getSourceFromElement(element);
+      var buffer = new StringBuffer();
+      _writePrettifiedSource(unEscape(text.text).trim(), buffer);
 
-      buffer.writeln('<div class="highlight"><pre>');
+      element.attributes['class'] = 'highlight';
+      element.children.clear();
+      element.children.add(new Text('$buffer'));
 
-      Text text = getSourceFromElement(element);
-      _writePrettifiedSource(text.text, buffer);
-
-      buffer.writeln('</pre></div>');
       return false;
     }
-    return super.visitElementBefore(element);
+    return true;
   }
 
-  void visitElementAfter(Element element) {
-    if (!isDartCodeElement(element)) {
-      super.visitElementAfter(element);
-    }
-  }
+  void visitElementAfter(Element element) {}
 
-  bool isDartCodeElement(Element element)
+  bool _isDartCodeElement(Element element)
       => element.tag == 'pre' && element.attributes['class'] == 'dart' &&
-         element.children.length == 1 && isCodeElement(element.children.first);
+         element.children.length == 1 && _isCodeElement(element.children.first);
 
-  bool isCodeElement(Element element)
+  bool _isCodeElement(Element element)
       => element.tag == 'code' &&
          element.children.length == 1 &&
          element.children[0] is Text;
 
-  Text getSourceFromElement(Element element)
+  Text _getSourceFromElement(Element element)
       => (element.children.first as Element).children.first as Text;
 }
