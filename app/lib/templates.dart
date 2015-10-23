@@ -211,8 +211,9 @@ class TemplateService {
         'changelog_filename': changelogFilename,
         'version_count' : '$totalNumberOfVersions',
     };
-    return _renderPage(
-        'pkg/show', values, title: '${package.name} ${latestVersion.id} | Pub Package Manager');
+    return _renderPage('pkg/show', values,
+        title: '${package.name} ${latestVersion.id} | Pub Package Manager',
+        packageVersion: latestVersion);
   }
 
   /// Renders the `views/admin.mustache` template.
@@ -329,11 +330,11 @@ class TemplateService {
 
   /// Renders a whole HTML page using the `views/layout.mustache` template and
   /// the provided [template] for the content.
-  String _renderPage(String template,
-                     values,
-                     {String title: 'pub.dartlang.org'}) {
+  String _renderPage(String template, values,
+      {String title: 'pub.dartlang.org', PackageVersion packageVersion}) {
     var renderedContent = _renderTemplate(template, values);
-    return renderLayoutPage(title, renderedContent);
+    return renderLayoutPage(title, renderedContent,
+        packageVersion: packageVersion);
   }
 
   /// Renders [template] with given [values].
