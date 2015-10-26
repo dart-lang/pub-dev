@@ -56,6 +56,10 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: block;
 }
 
+.highlight {
+  font-size: 85%;
+}
+
 .highlight .c {
   color: #999988;
   font-style: italic;

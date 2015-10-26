@@ -174,8 +174,12 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
   }
 
   while (token != null) {
-    if (token.precedingComments != null) {
-      handleToken(token.precedingComments);
+    var comment = token.precedingComments;
+    if (comment != null) {
+      while (comment != null) {
+        handleToken(comment);
+        comment = comment.next;
+      }
     }
     handleToken(token);
 
