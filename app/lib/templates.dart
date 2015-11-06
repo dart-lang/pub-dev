@@ -131,7 +131,8 @@ class TemplateService {
     }
 
     String renderPlainText(String text) {
-      return '<div class="highlight"><pre>${cmd.escape(text)}</pre></div>';
+      return '<div class="highlight"><pre>${cmd.escapeAngleBrackets(text)}'
+             '</pre></div>';
     }
 
     var readmeFilename;
