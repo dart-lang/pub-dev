@@ -619,7 +619,7 @@ main() {
           var repo = new GCloudPackageRepository(db, tarballStorage);
           registerLoggedInUser('hans@juergen.com');
           Future result = repo.finishAsyncUpload(redirectUri);
-          result.catchError(expectAsync((error, _) {
+          await result.catchError(expectAsync((error, _) {
             expect(error, contains(
                 'Exceeded ${UploadSignerService.MAX_UPLOAD_SIZE} upload size'));
           }));
@@ -749,7 +749,7 @@ main() {
           var repo = new GCloudPackageRepository(db, tarballStorage);
           registerLoggedInUser('hans@juergen.com');
           Future result = repo.upload(new Stream.fromIterable(bigTarball));
-          result.catchError(expectAsync((error, _) {
+          await result.catchError(expectAsync((error, _) {
             expect(error, contains(
                 'Exceeded ${UploadSignerService.MAX_UPLOAD_SIZE} upload size'));
           }));

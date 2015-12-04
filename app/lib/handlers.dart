@@ -269,6 +269,9 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
     var versions = await backend.versionsOfPackage(packageName);
     _sortVersionsDesc(versions);
 
+    var latestVersion = versions.where(
+        (version) => version.key == package.latestVersionKey).first;
+
     var first10Versions = versions.take(10).toList();
 
     var versionDownloadUrls = await Future.wait(
@@ -277,7 +280,7 @@ packageShowHandlerHtml(shelf.Request request, String packageName) async {
         }).toList());
 
     cachedPage = templateService.renderPkgShowPage(
-        package, first10Versions, versionDownloadUrls, first10Versions.first,
+        package, first10Versions, versionDownloadUrls, latestVersion,
         versions.length);
     if (backend.uiPackageCache != null) {
       await backend.uiPackageCache.setUIPackagePage(packageName, cachedPage);
