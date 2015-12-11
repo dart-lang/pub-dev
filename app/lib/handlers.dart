@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/backend.dart';
@@ -441,9 +442,9 @@ shelf.Response _redirectResponse(url) {
 void _sortVersionsDesc(List<PackageVersion> versions, {bool decreasing: true}) {
   versions.sort((PackageVersion a, PackageVersion b) {
     if (decreasing) {
-      return b.semanticVersion.compareTo(a.semanticVersion);
+      return semver.Version.prioritize(b.semanticVersion, a.semanticVersion);
     } else {
-      return a.semanticVersion.compareTo(b.semanticVersion);
+      return semver.Version.prioritize(a.semanticVersion, b.semanticVersion);
     }
   });
 }
