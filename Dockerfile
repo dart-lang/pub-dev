@@ -1,4 +1,4 @@
-FROM google/dart-runtime-base:1.12.1
+FROM google/dart-runtime-base:1.13.0
 
 WORKDIR /project/app
 
