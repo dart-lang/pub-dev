@@ -11,3 +11,6 @@ packages
 *.js_
 *.js.deps
 *.js.map
+
+# Or local files with secrets
+key.json
