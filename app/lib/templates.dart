@@ -4,6 +4,7 @@
 
 library pub_dartlang_org.templates;
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -13,6 +14,8 @@ import 'package:mustache/mustache.dart' as mustache;
 import 'package:gcloud/service_scope.dart' as ss;
 
 import 'models.dart';
+
+const HtmlEscape _HtmlEscaper = const HtmlEscape();
 
 final _AuthorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
 
@@ -277,7 +280,7 @@ class TemplateService {
         'name' : packageVersion.packageKey.id,
         'description' : packageVersion.ellipsizedDescription,
       },
-      'title': title,
+      'title': _HtmlEscaper.convert(title),
       'content': contentString,
 
       // TODO: The python implementation used
