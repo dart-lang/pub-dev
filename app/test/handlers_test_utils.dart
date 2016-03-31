@@ -80,6 +80,7 @@ class BackendMock implements Backend {
 
   get db => throw 'unexpected db access';
   get repository => throw 'unexpected repository access';
+  get uiPackageCache => null;
 
   Future<List<PackageVersion>> latestPackageVersions(
       {int offset: null, int limit: null}) async {

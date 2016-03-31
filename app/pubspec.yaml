@@ -2,6 +2,7 @@ name: pub_dartlang_org
 version: 0.1.0
 author: Dart Team
 description: The pub.dartlang.org website.
+sdk: ">=1.9.0 <2.0.0"
 dependencies:
   appengine: '>=0.3.0 <0.4.0'
   gcloud: '>=0.1.4+1 <0.2.0'
