@@ -314,7 +314,15 @@ class GCloudPackageRepository extends PackageRepository {
             newVersion.pubspec.jsonString);
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
-        await T.rollback();
+
+        // This call might fail if the transaction has already been
+        // committed/rolled back or the transaction failed.
+        //
+        // In which case we simply ignore the rollback error and rethrow the
+        // original error.
+        try {
+          await T.rollback();
+        } catch (_) {}
         rethrow;
       }
     });
