@@ -277,10 +277,12 @@ class TemplateService {
                           {PackageVersion packageVersion}) {
     var values = {
       'package': packageVersion == null ? false : {
-        'name' : packageVersion.packageKey.id,
-        'description' : packageVersion.ellipsizedDescription,
+        'name' : _HtmlEscaper.convert(packageVersion.packageKey.id),
+        'description' :
+            _HtmlEscaper.convert(packageVersion.ellipsizedDescription),
       },
       'title': _HtmlEscaper.convert(title),
+      // This is not escaped as it is already escaped by the caller.
       'content': contentString,
 
       // TODO: The python implementation used
