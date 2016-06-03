@@ -203,6 +203,8 @@ class TemplateService {
           'nice_homepage' : latestVersion.homepageNice,
           'documentation' : latestVersion.documentation,
           'nice_documentation' : latestVersion.documentationNice,
+          'crossdart' : latestVersion.crossdart,
+          'nice_crossdart' : latestVersion.crossdartNice,
           // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
           'uploaders_title' : 'Uploader',
           'uploaders_html' : _getUploadersHtml(package),
