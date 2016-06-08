@@ -155,6 +155,13 @@ class PackageVersion extends db.ExpandoModel {
 
   String get documentationNice => niceUrl(documentation);
 
+  String get crossdart {
+    var name = Uri.encodeComponent(packageKey.id);
+    var version = Uri.encodeComponent(id);
+    return 'https://www.crossdart.info/p/$name/$version/';
+  }
+
+  String get crossdartNice => niceUrl(crossdart);
 
   String get homepage {
     return pubspec.homepage;
