@@ -228,10 +228,16 @@ packageHandler(shelf.Request request) {
   var package = Uri.decodeComponent(path.substring(0, slash));
   if (path.substring(slash).startsWith('/versions')) {
     path = path.substring(slash + '/versions'.length);
-    if (path.startsWith('/') && path.endsWith('.yaml')) {
-      path = path.substring(1, path.length - '.yaml'.length);
-      String version = Uri.decodeComponent(path);
-      return packageVersionHandlerYaml(request, package, version);
+    if (path.startsWith('/')) {
+      if (path.endsWith('.yaml')) {
+        path = path.substring(1, path.length - '.yaml'.length);
+        String version = Uri.decodeComponent(path);
+        return packageVersionHandlerYaml(request, package, version);
+      } else {
+        path = path.substring(1);
+        String version = Uri.decodeComponent(path);
+        return packageVersionHandlerHtml(request, package, version);
+      }
     } else {
       return packageVersionsHandler(request, package);
     }
@@ -258,37 +264,7 @@ packageShowHandlerJson(shelf.Request request, String packageName) async {
 
 /// Handles requests for /packages/<package> - HTML
 packageShowHandlerHtml(shelf.Request request, String packageName) async {
-  String cachedPage;
-  if (backend.uiPackageCache != null) {
-    cachedPage = await backend.uiPackageCache.getUIPackagePage(packageName);
-  }
-
-  if (cachedPage == null) {
-    Package package = await backend.lookupPackage(packageName);
-    if (package == null) return _notFoundHandler(request);
-
-    var versions = await backend.versionsOfPackage(packageName);
-    _sortVersionsDesc(versions);
-
-    var latestVersion = versions.where(
-        (version) => version.key == package.latestVersionKey).first;
-
-    var first10Versions = versions.take(10).toList();
-
-    var versionDownloadUrls = await Future.wait(
-        first10Versions.map((PackageVersion version) {
-          return backend.downloadUrl(packageName, version.version);
-        }).toList());
-
-    cachedPage = templateService.renderPkgShowPage(
-        package, first10Versions, versionDownloadUrls, latestVersion,
-        versions.length);
-    if (backend.uiPackageCache != null) {
-      await backend.uiPackageCache.setUIPackagePage(packageName, cachedPage);
-    }
-  }
-
-  return _htmlResponse(cachedPage);
+  return packageVersionHandlerHtml(request, packageName, null);
 }
 
 /// Handles requests for /packages/<package>/versions
@@ -305,6 +281,61 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
 
   return _htmlResponse(templateService.renderPkgVersionsPage(
       packageName, versions, versionDownloadUrls));
+}
+
+/// Handles requests for /packages/<package>/versions/<version>
+packageVersionHandlerHtml(request,
+                          String packageName,
+                          String versionName) async {
+  String cachedPage;
+  if (backend.uiPackageCache != null) {
+    cachedPage = await backend.uiPackageCache.getUIPackagePage(
+        packageName, versionName);
+  }
+
+  if (cachedPage == null) {
+    Package package = await backend.lookupPackage(packageName);
+    if (package == null) return _notFoundHandler(request);
+
+    var versions = await backend.versionsOfPackage(packageName);
+
+    _sortVersionsDesc(versions, decreasing: true, pubSorting: true);
+    var latestStable = versions[0];
+    var first10Versions = versions.take(10).toList();
+
+    _sortVersionsDesc(versions, decreasing: true, pubSorting: false);
+    var latestDev = versions[0];
+
+    var selectedVersion;
+    if (versionName != null) {
+      for (var v in versions) {
+        if (v.version == versionName) selectedVersion = v;
+      }
+      // TODO: cache error?
+      if (selectedVersion == null) {
+        return _notFoundHandler(request);
+      }
+    } else {
+      if (selectedVersion == null) {
+        selectedVersion = latestStable;
+      }
+    }
+
+    var versionDownloadUrls = await Future.wait(
+        first10Versions.map((PackageVersion version) {
+          return backend.downloadUrl(packageName, version.version);
+        }).toList());
+
+    cachedPage = templateService.renderPkgShowPage(
+        package, first10Versions, versionDownloadUrls, selectedVersion,
+        latestStable, latestDev, versions.length);
+    if (backend.uiPackageCache != null) {
+      await backend.uiPackageCache.setUIPackagePage(
+          packageName, versionName, cachedPage);
+    }
+  }
+
+  return _htmlResponse(cachedPage);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
@@ -439,12 +470,26 @@ shelf.Response _redirectResponse(url) {
 
 
 /// Sorts [versions] according to the semantic versioning specification.
-void _sortVersionsDesc(List<PackageVersion> versions, {bool decreasing: true}) {
+///
+/// If [pubSorting] is `true` then pub's priorization ordering is used, which
+/// will rank pre-release versions lower than stable versions (e.g. it will
+/// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
+/// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
+void _sortVersionsDesc(List<PackageVersion> versions,
+                       {bool decreasing: true, bool pubSorting: true}) {
   versions.sort((PackageVersion a, PackageVersion b) {
-    if (decreasing) {
-      return semver.Version.prioritize(b.semanticVersion, a.semanticVersion);
+    if (pubSorting) {
+      if (decreasing) {
+        return semver.Version.prioritize(b.semanticVersion, a.semanticVersion);
+      } else {
+        return semver.Version.prioritize(a.semanticVersion, b.semanticVersion);
+      }
     } else {
-      return semver.Version.prioritize(a.semanticVersion, b.semanticVersion);
+      if (decreasing) {
+        return b.semanticVersion.compareTo(a.semanticVersion);
+      } else {
+        return a.semanticVersion.compareTo(b.semanticVersion);
+      }
     }
   });
 }

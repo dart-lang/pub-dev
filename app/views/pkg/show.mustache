@@ -4,7 +4,18 @@
 
 <h1>
   {{package.name}}
-  <span class="version">{{package.latest_version.version}}</span>
+  <span class="version">{{package.selected_version.version}}</span>
+  <span class="version" style="font-weight: normal">
+    {{#package.latest.should_show}}
+    (latest:
+      <a href="/packages/{{package.name}}/versions/{{package.latest.stable_href}}">{{package.latest.stable_name}}</a>
+    {{#package.latest.should_show_dev}}
+     /
+      <a href="/packages/{{package.name}}/versions/{{package.latest.dev_href}}">{{package.latest.dev_name}}</a>
+    {{/package.latest.should_show_dev}}
+    )
+    {{/package.latest.should_show}}
+  </span>
 </h1>
 <div class="row-fluid">
   <div class="span8">

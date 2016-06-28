@@ -14,9 +14,13 @@ import 'package:pub_server/shelf_pubserver.dart';
 final Logger _logger = new Logger('pub.package_memcache');
 
 abstract class UIPackageCache {
-  Future<String> getUIPackagePage(String package);
+  // If [version] is `null` then it corresponds to the cache entry which can be
+  // invalidated via [invalidateUiPackagePage].
+  Future<String> getUIPackagePage(String package, String version);
 
-  Future setUIPackagePage(String package, String data);
+  // If [version] is `null` then it corresponds to the cache entry which can be
+  // invalidated via [invalidateUiPackagePage].
+  Future setUIPackagePage(String package, String version, String data);
 
   Future invalidateUIPackagePage(String package);
 }
@@ -53,9 +57,9 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
         memcache.set(_packageKey(package), data, expiration: EXPIRATION));
   }
 
-  Future<String> getUIPackagePage(String package) async {
+  Future<String> getUIPackagePage(String package, String version) async {
     var result = await _ignoreErrors(
-        memcache.get(_packageUIKey(package), asBinary: true));
+        memcache.get(_packageUIKey(package, version), asBinary: true));
 
     if (result != null) {
       _logger.info('memcache["$package"] rendered UI found');
@@ -66,17 +70,17 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
     return null;
   }
 
-  Future setUIPackagePage(String package, String data) async {
+  Future setUIPackagePage(String package, String version, String data) async {
     _logger.info('memcache["$package"] setting to new rendered UI data');
     return _ignoreErrors(
-        memcache.set(_packageUIKey(package),
+        memcache.set(_packageUIKey(package, version),
         UTF8.encode(data),
         expiration: EXPIRATION));
   }
 
   Future invalidateUIPackagePage(String package) async {
     _logger.info('memcache["$package"] invalidating UI data');
-    return _ignoreErrors(memcache.remove(_packageUIKey(package)));
+    return _ignoreErrors(memcache.remove(_packageUIKey(package, null)));
   }
 
   Future invalidatePackageData(String package) {
@@ -85,13 +89,16 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
         // TODO: Once the Python version is retired, we can remove this.
         memcache.remove('package_json_$package'),
         memcache.remove(_packageKey(package)),
-        memcache.remove(_packageUIKey(package)),
+        memcache.remove(_packageUIKey(package, null)),
     ]));
   }
 
   String _packageKey(String package) => '$keyPrefix$package';
 
-  String _packageUIKey(String package) => '$uiKeyPrefix$package';
+  String _packageUIKey(String package, String version) {
+    if (version == null) return '$uiKeyPrefix$package';
+    return '$uiKeyPrefix$package**$version';
+  }
 
   // We are ignoring any memcache errors and just return `null` in this case.
   //

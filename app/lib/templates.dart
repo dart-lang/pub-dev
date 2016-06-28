@@ -106,20 +106,22 @@ class TemplateService {
   String renderPkgShowPage(Package package,
                            List<PackageVersion> versions,
                            List<Uri> versionDownloadUrls,
-                           PackageVersion latestVersion,
+                           PackageVersion selectedVersion,
+                           PackageVersion latestStableVersion,
+                           PackageVersion latestDevVersion,
                            int totalNumberOfVersions) {
     assert(versions.length == versionDownloadUrls.length);
 
     var importExamples;
-    if (latestVersion.libraries.contains('${package.id}.dart')) {
+    if (selectedVersion.libraries.contains('${package.id}.dart')) {
       importExamples = [{
         'package' : package.id,
         'library' : '${package.id}.dart',
       }];
     } else {
-      importExamples = latestVersion.libraries.map((library) {
+      importExamples = selectedVersion.libraries.map((library) {
         return {
-          'package' : latestVersion.packageKey.id,
+          'package' : selectedVersion.packageKey.id,
           'library' : library,
         };
       }).toList();
@@ -127,7 +129,7 @@ class TemplateService {
 
     // TODO(nweiz): Once the 1.11 SDK is out and pub supports ">=1.2.3-pre
     // <1.2.3", suggest that as the version constraint for prerelease versions.
-    var exampleVersionConstraint = '"^${latestVersion.version}"';
+    var exampleVersionConstraint = '"^${selectedVersion.version}"';
 
     bool isMarkdownFile(String filename) {
       return filename.toLowerCase().endsWith('.md');
@@ -140,9 +142,9 @@ class TemplateService {
 
     var readmeFilename;
     var renderedReadme;
-    if (latestVersion.readme != null) {
-      readmeFilename = latestVersion.readme.filename;
-      String readme = latestVersion.readme.text;
+    if (selectedVersion.readme != null) {
+      readmeFilename = selectedVersion.readme.filename;
+      String readme = selectedVersion.readme.text;
       if (readme != null) {
         if (isMarkdownFile(readmeFilename)) {
           try {
@@ -158,9 +160,9 @@ class TemplateService {
 
     var changelogFilename;
     var renderedChangelog;
-    if (latestVersion.changelog != null) {
-      changelogFilename = latestVersion.changelog.filename;
-      String changelog = latestVersion.changelog.text;
+    if (selectedVersion.changelog != null) {
+      changelogFilename = selectedVersion.changelog.filename;
+      String changelog = selectedVersion.changelog.text;
       if (changelog != null) {
         if (isMarkdownFile(changelogFilename)) {
           try {
@@ -186,25 +188,38 @@ class TemplateService {
       });
     }
 
+    bool should_show_dev =
+        latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
+    bool should_show =
+        selectedVersion != latestStableVersion || should_show_dev;
+
     var values = {
         'package': {
           'name' : package.name,
-          'latest_version' : {
-            'version' : latestVersion.id,
+          'selected_version' : {
+            'version' : selectedVersion.id,
             'example_version_constraint' : exampleVersionConstraint,
             'has_libraries' : importExamples.length > 0,
             'import_examples' : importExamples,
           },
-          'description' : latestVersion.pubspec.description,
+          'latest' : {
+            'should_show' : should_show,
+            'should_show_dev' : should_show_dev,
+            'stable_href' : Uri.encodeComponent(latestStableVersion.id),
+            'stable_name' : _HtmlEscaper.convert(latestStableVersion.id),
+            'dev_href' : Uri.encodeComponent(latestDevVersion.id),
+            'dev_name' : _HtmlEscaper.convert(latestDevVersion.id),
+          },
+          'description' : selectedVersion.pubspec.description,
           // TODO: make this 'Authors' if PackageVersion.authors is a list?!
           'authors_title' : 'Author',
-          'authors_html' : _getAuthorsHtml(latestVersion),
-          'homepage' : latestVersion.homepage,
-          'nice_homepage' : latestVersion.homepageNice,
-          'documentation' : latestVersion.documentation,
-          'nice_documentation' : latestVersion.documentationNice,
-          'crossdart' : latestVersion.crossdart,
-          'nice_crossdart' : latestVersion.crossdartNice,
+          'authors_html' : _getAuthorsHtml(selectedVersion),
+          'homepage' : selectedVersion.homepage,
+          'nice_homepage' : selectedVersion.homepageNice,
+          'documentation' : selectedVersion.documentation,
+          'nice_documentation' : selectedVersion.documentationNice,
+          'crossdart' : selectedVersion.crossdart,
+          'nice_crossdart' : selectedVersion.crossdartNice,
           // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
           'uploaders_title' : 'Uploader',
           'uploaders_html' : _getUploadersHtml(package),
@@ -218,8 +233,8 @@ class TemplateService {
         'version_count' : '$totalNumberOfVersions',
     };
     return _renderPage('pkg/show', values,
-        title: '${package.name} ${latestVersion.id} | Pub Package Manager',
-        packageVersion: latestVersion);
+        title: '${package.name} ${selectedVersion.id} | Pub Package Manager',
+        packageVersion: selectedVersion);
   }
 
   /// Renders the `views/admin.mustache` template.
