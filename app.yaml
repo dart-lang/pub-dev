@@ -6,7 +6,7 @@ runtime: custom
 vm: true
 api_version: 1
 threadsafe: true
-module: default
+service: default
 
 handlers:
 - url: /static
