@@ -15,7 +15,6 @@ import 'package:markdown/markdown.dart';
 String markdownToHtml(String text) {
   var lines = text.replaceAll('\r\n', '\n').split('\n');
   var document = new Document();
-  document.parseRefLinks(lines);
   var blocks = document.parseLines(lines);
 
   var colorizer = new ColorizeDartCode();
@@ -209,11 +208,12 @@ class ColorizeDartCode extends NodeVisitor {
   void visitElementAfter(Element element) {}
 
   bool _isDartCodeElement(Element element)
-      => element.tag == 'pre' && element.attributes['class'] == 'dart' &&
+      => element.tag == 'pre' &&
          element.children.length == 1 && _isCodeElement(element.children.first);
 
   bool _isCodeElement(Element element)
       => element.tag == 'code' &&
+         element.attributes['class'] == 'language-dart' &&
          element.children.length == 1 &&
          element.children[0] is Text;
 
