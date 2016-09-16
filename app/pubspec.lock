@@ -31,6 +31,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.11.1"
+  barback:
+    description:
+      name: barback
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.15.2+9"
   charcode:
     description:
       name: charcode
@@ -126,7 +132,7 @@ packages:
       name: intl
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.0"
+    version: "0.13.1"
   logging:
     description:
       name: logging
@@ -138,7 +144,7 @@ packages:
       name: markdown
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.0+1"
+    version: "0.11.1"
   memcache:
     description:
       name: memcache
@@ -181,12 +187,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.0"
+  pool:
+    description:
+      name: pool
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.4"
   protobuf:
     description:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.2"
+    version: "0.5.3"
   pub_semver:
     description:
       name: pub_semver
