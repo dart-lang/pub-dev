@@ -7,7 +7,6 @@ library pub_dartlang_org.upload_signer_service;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:googleapis_auth/src/crypto/pem.dart' as pem;
 import 'package:googleapis_auth/src/crypto/rsa.dart' as rsa;
@@ -73,10 +72,8 @@ class UploadSignerService {
         'conditions' : conditions,
     };
 
-    var policyString =
-        CryptoUtils.bytesToBase64(UTF8.encode(JSON.encode(policyMap)));
-    var signatureString =
-        CryptoUtils.bytesToBase64(_signer.sign(ASCII.encode(policyString)));
+    var policyString = BASE64.encode(UTF8.encode(JSON.encode(policyMap)));
+    var signatureString = BASE64.encode(_signer.sign(ASCII.encode(policyString)));
 
     var fields = {
         'key' : object,

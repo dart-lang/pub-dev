@@ -7,7 +7,9 @@ library pub_dartlang_org.colored_markdown;
 import 'dart:convert';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:html/parser.dart' as html;
 import 'package:markdown/markdown.dart';

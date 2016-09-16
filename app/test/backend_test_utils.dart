@@ -194,6 +194,9 @@ class TarballStorageMock implements TarballStorage {
     if (uploadViaTempObjectFun == null) throw 'no uploadViaTempObjectFun';
     return uploadViaTempObjectFun(guid, package, version);
   }
+
+  Future remove(String package, String version) =>
+      throw new UnimplementedError();
 }
 
 class UploadSignerServiceMock implements UploadSignerService {

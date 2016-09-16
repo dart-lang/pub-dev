@@ -160,8 +160,10 @@ class TemplateMock implements TemplateService {
 
   String renderPkgShowPage(Package package,
                            List<PackageVersion> versions,
-                           List<Uri> downloadUris,
-                           PackageVersion latestVersion,
+                           List<Uri> versionDownloadUrls,
+                           PackageVersion selectedVersion,
+                           PackageVersion latestStableVersion,
+                           PackageVersion latestDevVersion,
                            int totalNumberOfVersions) {
     return Response;
   }
