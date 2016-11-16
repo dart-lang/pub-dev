@@ -16,7 +16,14 @@ import 'package:markdown/markdown.dart';
 
 String markdownToHtml(String text) {
   var lines = text.replaceAll('\r\n', '\n').split('\n');
-  var document = new Document();
+
+  var blockSyntaxes = new List.from(ExtensionSet.gitHub.blockSyntaxes);
+  var inlineSyntaxes = new List.from(
+      ExtensionSet.gitHub.inlineSyntaxes.where((s) => s is! InlineHtmlSyntax));
+  var document = new Document(blockSyntaxes: blockSyntaxes,
+                              inlineSyntaxes: inlineSyntaxes,
+                              extensionSet: ExtensionSet.none);
+
   var blocks = document.parseLines(lines);
 
   var colorizer = new ColorizeDartCode();

@@ -56,7 +56,7 @@ void initApiaryStorage(String projectId, authClient) {
 }
 
 void initApiaryDatastore(String projectId, authClient) {
-  var ds = new datastore_impl.DatastoreImpl(authClient, 's~${projectId}');
+  var ds = new datastore_impl.DatastoreImpl(authClient, '${projectId}');
   db.registerDbService(new db.DatastoreDB(ds));
 }
 
