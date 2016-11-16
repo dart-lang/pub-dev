@@ -29,17 +29,17 @@ Logger _logger = new Logger('pub.handlers');
 ///   - /api/*
 Future<shelf.Response> appHandler(
     shelf.Request request, shelf.Handler shelfPubApi) async {
-  var path = request.url.path;
+  var path = request.requestedUri.path;
 
   var handler = {
-      '/' : indexHandler,
-      '/feed.atom' : atomFeedHandler,
-      '/authorized' : authorizedHandler,
-      '/site-map' : sitemapHandler,
-      '/admin' : adminHandler,
-      '/search' : searchHandler,
-      '/packages' : packagesHandler,
-      '/packages.json' : packagesHandler,
+    '/': indexHandler,
+    '/feed.atom': atomFeedHandler,
+    '/authorized': authorizedHandler,
+    '/site-map': sitemapHandler,
+    '/admin': adminHandler,
+    '/search': searchHandler,
+    '/packages': packagesHandler,
+    '/packages.json': packagesHandler,
   }[path];
 
   if (handler != null) {
@@ -49,7 +49,7 @@ Future<shelf.Response> appHandler(
     // rather by the editor.
     return apiPackagesHandler(request);
   } else if (path.startsWith('/api') ||
-             path.startsWith('/packages') && path.endsWith('.tar.gz')) {
+      path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
@@ -77,7 +77,7 @@ atomFeedHandler(shelf.Request request) async {
 
   var versions = await backend.latestPackageVersions(
       offset: PageSize * (page - 1), limit: PageSize);
-  var feed = feedFromPackageVersions(request.requestedUri,  versions);
+  var feed = feedFromPackageVersions(request.requestedUri, versions);
   return _atomXmlResponse(feed.toXmlDocument());
 }
 
@@ -87,7 +87,7 @@ authorizedHandler(_) => _htmlResponse(templateService.renderAuthorizedPage());
 /// Handles requests for /doc
 shelf.Response docHandler(shelf.Request request) {
   var pubDocUrl = 'https://www.dartlang.org/tools/pub/';
-  var dartlangDotOrgPath = REDIRECT_PATHS[request.url.path];
+  var dartlangDotOrgPath = REDIRECT_PATHS[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
     return _redirectResponse('$pubDocUrl$dartlangDotOrgPath');
   }
@@ -110,12 +110,14 @@ adminHandler(shelf.Request request) async {
       var status = 'Unauthorized';
       var message = 'You do not have access to this page.';
       return _htmlResponse(
-          templateService.renderErrorPage(status, message, null), status: 403);
+          templateService.renderErrorPage(status, message, null),
+          status: 403);
     } else {
       var status = 'Not found.';
       var message = 'The admin page has been disabled.';
       return _htmlResponse(
-          templateService.renderErrorPage(status, message, null), status: 404);
+          templateService.renderErrorPage(status, message, null),
+          status: 404);
     }
   }
 }
@@ -124,12 +126,12 @@ adminHandler(shelf.Request request) async {
 searchHandler(shelf.Request request) async {
   var query = request.url.queryParameters['q'];
   if (query == null) {
-    return _htmlResponse(templateService.renderSearchPage(
-        query, [], new SearchLinks.empty('')));
+    return _htmlResponse(
+        templateService.renderSearchPage(query, [], new SearchLinks.empty('')));
   }
 
-  int page = _pageFromUrl(
-      request.url, maxPages: SEARCH_MAX_RESULTS ~/ PageLinks.RESULTS_PER_PAGE);
+  int page = _pageFromUrl(request.url,
+      maxPages: SEARCH_MAX_RESULTS ~/ PageLinks.RESULTS_PER_PAGE);
 
   int offset = PageLinks.RESULTS_PER_PAGE * (page - 1);
   int resultCount = PageLinks.RESULTS_PER_PAGE;
@@ -142,7 +144,7 @@ searchHandler(shelf.Request request) async {
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 packagesHandler(shelf.Request request) async {
   int page = _pageFromUrl(request.url);
-  var path = request.url.path;
+  var path = request.requestedUri.path;
   if (path.endsWith('.json')) {
     return packagesHandlerJson(request, page, true);
   } else if (request.url.queryParameters['format'] == 'json') {
@@ -171,12 +173,13 @@ packagesHandlerJson(
 
   String toUrl(Package package) {
     var postfix = dotJsonResponse ? '.json' : '';
-    return request.requestedUri.resolve(
-        '/packages/${Uri.encodeComponent(package.name)}$postfix').toString();
+    return request.requestedUri
+        .resolve('/packages/${Uri.encodeComponent(package.name)}$postfix')
+        .toString();
   }
   var json = {
-    'packages' : packages.take(PageSize).map(toUrl).toList(),
-    'next' : nextPageUrl != null ? '$nextPageUrl' : null,
+    'packages': packages.take(PageSize).map(toUrl).toList(),
+    'next': nextPageUrl != null ? '$nextPageUrl' : null,
 
     // NOTE: We're not returning the following entry:
     //   - 'prev'
@@ -199,14 +202,13 @@ packagesHandlerHtml(shelf.Request request, int page) async {
       templateService.renderPkgIndexPage(pagePackages, versions, links));
 }
 
-
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
 ///
 /// Handles the following URLs:
 ///   - /packages/<package>
 ///   - /packages/<package>/versions
 packageHandler(shelf.Request request) {
-  var path = request.url.path.substring('/packages/'.length);
+  var path = request.requestedUri.path.substring('/packages/'.length);
   if (path.length == 0) {
     return _notFoundHandler(request);
   }
@@ -254,7 +256,7 @@ packageShowHandlerJson(shelf.Request request, String packageName) async {
   _sortVersionsDesc(versions, decreasing: false);
 
   var json = {
-    'name' : package.name,
+    'name': package.name,
     'uploaders': package.uploaderEmails,
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
@@ -274,8 +276,8 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
 
   _sortVersionsDesc(versions);
 
-  var versionDownloadUrls =  await Future.wait(
-      versions.map((PackageVersion version) {
+  var versionDownloadUrls =
+      await Future.wait(versions.map((PackageVersion version) {
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
@@ -284,13 +286,12 @@ packageVersionsHandler(shelf.Request request, String packageName) async {
 }
 
 /// Handles requests for /packages/<package>/versions/<version>
-packageVersionHandlerHtml(request,
-                          String packageName,
-                          String versionName) async {
+packageVersionHandlerHtml(
+    request, String packageName, String versionName) async {
   String cachedPage;
   if (backend.uiPackageCache != null) {
-    cachedPage = await backend.uiPackageCache.getUIPackagePage(
-        packageName, versionName);
+    cachedPage =
+        await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
   }
 
   if (cachedPage == null) {
@@ -321,17 +322,22 @@ packageVersionHandlerHtml(request,
       }
     }
 
-    var versionDownloadUrls = await Future.wait(
-        first10Versions.map((PackageVersion version) {
-          return backend.downloadUrl(packageName, version.version);
-        }).toList());
+    var versionDownloadUrls =
+        await Future.wait(first10Versions.map((PackageVersion version) {
+      return backend.downloadUrl(packageName, version.version);
+    }).toList());
 
     cachedPage = templateService.renderPkgShowPage(
-        package, first10Versions, versionDownloadUrls, selectedVersion,
-        latestStable, latestDev, versions.length);
+        package,
+        first10Versions,
+        versionDownloadUrls,
+        selectedVersion,
+        latestStable,
+        latestDev,
+        versions.length);
     if (backend.uiPackageCache != null) {
-      await backend.uiPackageCache.setUIPackagePage(
-          packageName, versionName, cachedPage);
+      await backend.uiPackageCache
+          .setUIPackagePage(packageName, versionName, cachedPage);
     }
   }
 
@@ -376,8 +382,7 @@ apiPackagesHandler(shelf.Request request) async {
     var apiArchiveUrl = uri
         .resolve('/packages/$packageString/versions/$versionString.tar.gz')
         .toString();
-    var apiPackageUrl =
-        uri.resolve('/api/packages/$packageString').toString();
+    var apiPackageUrl = uri.resolve('/api/packages/$packageString').toString();
     var apiPackageVersionUrl = uri
         .resolve('/api/packages/$packageString/versions/$versionString')
         .toString();
@@ -385,35 +390,35 @@ apiPackagesHandler(shelf.Request request) async {
         uri.resolve('/api/packages/$packageString/new').toString();
     var apiUploadersUrl =
         uri.resolve('/api/packages/$packageString/uploaders').toString();
-    var versionUrl  = uri
+    var versionUrl = uri
         .resolve('/api/packages/$packageString/versions/{version}')
         .toString();
 
     packagesJson.add({
-      'name' : version.package,
-      'latest' : {
-          'version' : version.version,
-          'pubspec' : version.pubspec.asJson,
+      'name': version.package,
+      'latest': {
+        'version': version.version,
+        'pubspec': version.pubspec.asJson,
 
-          // TODO: We should get rid of these:
-          'archive_url' : apiArchiveUrl,
-          'package_url' : apiPackageUrl,
-          'url' : apiPackageVersionUrl,
+        // TODO: We should get rid of these:
+        'archive_url': apiArchiveUrl,
+        'package_url': apiPackageUrl,
+        'url': apiPackageVersionUrl,
 
-          // NOTE: We do not add the following
-          //    - 'new_dartdoc_url'
+        // NOTE: We do not add the following
+        //    - 'new_dartdoc_url'
       },
       // TODO: We should get rid of these:
-      'url' : apiPackageUrl,
-      'version_url' : versionUrl,
-      'new_version_url' : apiNewPackageVersionUrl,
-      'uploaders_url' : apiUploadersUrl,
+      'url': apiPackageUrl,
+      'version_url': versionUrl,
+      'new_version_url': apiNewPackageVersionUrl,
+      'uploaders_url': apiUploadersUrl,
     });
   }
 
   var json = {
-    'next_url' : null,
-    'packages' : packagesJson,
+    'next_url': null,
+    'packages': packagesJson,
 
     // NOTE: We do not add the following:
     //     - 'pages'
@@ -428,46 +433,39 @@ apiPackagesHandler(shelf.Request request) async {
   return _jsonResponse(json);
 }
 
-
 shelf.Response _notFoundHandler(request) {
   var status = '404 Not Found';
-  var message = 'The path \'${request.url.path}\' was not found.';
-  return _htmlResponse(
-      templateService.renderErrorPage(status, message, null), status: 404);
+  var message = 'The path \'${request.requestedUri.path}\' was not found.';
+  return _htmlResponse(templateService.renderErrorPage(status, message, null),
+      status: 404);
 }
 
 shelf.Response _htmlResponse(String content, {int status: 200}) {
-  return new shelf.Response(
-      status,
-      body: content,
-      headers: {'content-type' : 'text/html; charset="utf-8"'});
+  return new shelf.Response(status,
+      body: content, headers: {'content-type': 'text/html; charset="utf-8"'});
 }
 
 shelf.Response _jsonResponse(Map json, {int status: 200}) {
-  return new shelf.Response(
-      status,
+  return new shelf.Response(status,
       body: JSON.encode(json),
-      headers: {'content-type' : 'application/json; charset="utf-8"'});
+      headers: {'content-type': 'application/json; charset="utf-8"'});
 }
 
 shelf.Response _yamlResponse(String yamlString, {int status: 200}) {
-  return new shelf.Response(
-      status,
+  return new shelf.Response(status,
       body: yamlString,
-      headers: {'content-type' : 'text/yaml; charset="utf-8"'});
+      headers: {'content-type': 'text/yaml; charset="utf-8"'});
 }
 
 shelf.Response _atomXmlResponse(String content, {int status: 200}) {
-  return new shelf.Response(
-      status,
+  return new shelf.Response(status,
       body: content,
-      headers: {'content-type' : 'application/atom+xml; charset="utf-8"'});
+      headers: {'content-type': 'application/atom+xml; charset="utf-8"'});
 }
 
 shelf.Response _redirectResponse(url) {
   return new shelf.Response.seeOther(url);
 }
-
 
 /// Sorts [versions] according to the semantic versioning specification.
 ///
@@ -476,7 +474,7 @@ shelf.Response _redirectResponse(url) {
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 void _sortVersionsDesc(List<PackageVersion> versions,
-                       {bool decreasing: true, bool pubSorting: true}) {
+    {bool decreasing: true, bool pubSorting: true}) {
   versions.sort((PackageVersion a, PackageVersion b) {
     if (pubSorting) {
       if (decreasing) {
@@ -494,7 +492,6 @@ void _sortVersionsDesc(List<PackageVersion> versions,
   });
 }
 
-
 /// Extracts the 'page' query parameter from [url].
 ///
 /// Returns a valid positive integer. If [maxPages] is given, the result is
@@ -505,7 +502,7 @@ int _pageFromUrl(Uri url, {int maxPages}) {
   if (pageAsString != null) {
     try {
       pageAsInt = max(int.parse(pageAsString), 1);
-    } catch (_, __) { }
+    } catch (_, __) {}
   }
 
   if (maxPages != null && pageAsInt > maxPages) pageAsInt = maxPages;
