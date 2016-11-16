@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'colored_markdown.dart' as cmd;
-import 'package:markdown/markdown.dart' as md;
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:gcloud/service_scope.dart' as ss;
 
@@ -140,40 +139,35 @@ class TemplateService {
              '</pre></div>';
     }
 
+    String renderFile(FileObject file) {
+      var filename = file.filename;
+      var content = file.text;
+      if (content != null) {
+        if (isMarkdownFile(filename)) {
+          try {
+            return cmd.markdownToHtmlWithSyntax(content);
+          } catch (e) {
+            return cmd.markdownToHtmlWithoutSyntax(content);
+          }
+        } else {
+          return renderPlainText(content);
+        }
+      }
+      return null;
+    }
+
     var readmeFilename;
     var renderedReadme;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
-      String readme = selectedVersion.readme.text;
-      if (readme != null) {
-        if (isMarkdownFile(readmeFilename)) {
-          try {
-            renderedReadme = cmd.markdownToHtml(readme);
-          } catch (e) {
-            renderedReadme = md.markdownToHtml(readme);
-          }
-        } else {
-          renderedReadme = renderPlainText(readme);
-        }
-      }
+      renderedReadme = renderFile(selectedVersion.readme);
     }
 
     var changelogFilename;
     var renderedChangelog;
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
-      String changelog = selectedVersion.changelog.text;
-      if (changelog != null) {
-        if (isMarkdownFile(changelogFilename)) {
-          try {
-            renderedChangelog = cmd.markdownToHtml(changelog);
-          } catch (e) {
-            renderedChangelog = md.markdownToHtml(changelog);
-          }
-        } else {
-          renderedChangelog = renderPlainText(changelog);
-        }
-      }
+      renderedChangelog = renderFile(selectedVersion.changelog);
     }
 
     var versionsJson = [];

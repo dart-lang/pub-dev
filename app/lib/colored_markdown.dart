@@ -14,15 +14,20 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:html/parser.dart' as html;
 import 'package:markdown/markdown.dart';
 
-String markdownToHtml(String text) {
+final List<BlockSyntax> blockSyntaxes =
+    ExtensionSet.gitHub.blockSyntaxes.toList();
+
+final List<InlineSyntax> inlineSyntaxes = ExtensionSet.gitHub.inlineSyntaxes
+    .where((s) => s is! InlineHtmlSyntax)
+    .toList();
+
+String markdownToHtmlWithSyntax(String text) {
   var lines = text.replaceAll('\r\n', '\n').split('\n');
 
-  var blockSyntaxes = new List.from(ExtensionSet.gitHub.blockSyntaxes);
-  var inlineSyntaxes = new List.from(
-      ExtensionSet.gitHub.inlineSyntaxes.where((s) => s is! InlineHtmlSyntax));
-  var document = new Document(blockSyntaxes: blockSyntaxes,
-                              inlineSyntaxes: inlineSyntaxes,
-                              extensionSet: ExtensionSet.none);
+  var document = new Document(
+      blockSyntaxes: blockSyntaxes,
+      inlineSyntaxes: inlineSyntaxes,
+      extensionSet: ExtensionSet.none);
 
   var blocks = document.parseLines(lines);
 
@@ -30,6 +35,13 @@ String markdownToHtml(String text) {
   blocks.forEach((Node node) => node.accept(colorizer));
 
   return new HtmlRenderer().render(blocks);
+}
+
+String markdownToHtmlWithoutSyntax(String text) {
+  return markdownToHtml(text,
+      extensionSet: ExtensionSet.none,
+      blockSyntaxes: blockSyntaxes,
+      inlineSyntaxes: inlineSyntaxes);
 }
 
 Scanner _scanner(String contents, {String name}) {
@@ -42,8 +54,8 @@ Scanner _scanner(String contents, {String name}) {
 }
 
 String unEscape(String msg) => html.parse(msg).body.text;
-String escapeAngleBrackets(String msg)
-    => const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
+String escapeAngleBrackets(String msg) =>
+    const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
 
 void _writePrettifiedSource(String source, StringBuffer buffer) {
   Scanner scanner = _scanner(source);
@@ -54,7 +66,7 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
     // NOTE: We could use binary search, or even more efficiently
     // keep track of line/offset inside the `handleToken` method.
     while (line < (scanner.lineStarts.length - 1) &&
-           scanner.lineStarts[line + 1] <= offset) {
+        scanner.lineStarts[line + 1] <= offset) {
       line++;
     }
     return line;
@@ -107,71 +119,130 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
       case TokenType.MULTI_LINE_COMMENT:
         klass = 'c1';
         break;
-      case TokenType.SCRIPT_TAG: break;
+      case TokenType.SCRIPT_TAG:
+        break;
       case TokenType.SINGLE_LINE_COMMENT:
         klass = 'c1';
         break;
       case TokenType.STRING:
         klass = 's1';
         break;
-      case TokenType.AMPERSAND: break;
-      case TokenType.AMPERSAND_AMPERSAND: break;
-      case TokenType.AMPERSAND_EQ: break;
-      case TokenType.AT: break;
-      case TokenType.BANG: break;
-      case TokenType.BANG_EQ: break;
-      case TokenType.BAR: break;
-      case TokenType.BAR_BAR: break;
-      case TokenType.BAR_EQ: break;
-      case TokenType.COLON: break;
-      case TokenType.COMMA: break;
-      case TokenType.CARET: break;
-      case TokenType.CARET_EQ: break;
-      case TokenType.CLOSE_CURLY_BRACKET: break;
-      case TokenType.CLOSE_PAREN: break;
-      case TokenType.CLOSE_SQUARE_BRACKET: break;
-      case TokenType.EQ: break;
-      case TokenType.EQ_EQ: break;
-      case TokenType.FUNCTION: break;
-      case TokenType.GT: break;
-      case TokenType.GT_EQ: break;
-      case TokenType.GT_GT: break;
-      case TokenType.GT_GT_EQ: break;
-      case TokenType.HASH: break;
-      case TokenType.INDEX: break;
-      case TokenType.INDEX_EQ: break;
-      case TokenType.IS: break;
-      case TokenType.LT: break;
-      case TokenType.LT_EQ: break;
-      case TokenType.LT_LT: break;
-      case TokenType.LT_LT_EQ: break;
-      case TokenType.MINUS: break;
-      case TokenType.MINUS_EQ: break;
-      case TokenType.MINUS_MINUS: break;
-      case TokenType.OPEN_CURLY_BRACKET: break;
-      case TokenType.OPEN_PAREN: break;
-      case TokenType.OPEN_SQUARE_BRACKET: break;
-      case TokenType.PERCENT: break;
-      case TokenType.PERCENT_EQ: break;
-      case TokenType.PERIOD: break;
-      case TokenType.PERIOD_PERIOD: break;
-      case TokenType.PLUS: break;
-      case TokenType.PLUS_EQ: break;
-      case TokenType.PLUS_PLUS: break;
-      case TokenType.QUESTION: break;
-      case TokenType.SEMICOLON: break;
-      case TokenType.SLASH: break;
-      case TokenType.SLASH_EQ: break;
-      case TokenType.STAR: break;
-      case TokenType.STAR_EQ: break;
-      case TokenType.STRING_INTERPOLATION_EXPRESSION: break;
-      case TokenType.STRING_INTERPOLATION_IDENTIFIER: break;
-      case TokenType.TILDE: break;
-      case TokenType.TILDE_SLASH: break;
-      case TokenType.TILDE_SLASH_EQ: break;
-      case TokenType.BACKPING: break;
-      case TokenType.BACKSLASH: break;
-      case TokenType.PERIOD_PERIOD_PERIOD: break;
+      case TokenType.AMPERSAND:
+        break;
+      case TokenType.AMPERSAND_AMPERSAND:
+        break;
+      case TokenType.AMPERSAND_EQ:
+        break;
+      case TokenType.AT:
+        break;
+      case TokenType.BANG:
+        break;
+      case TokenType.BANG_EQ:
+        break;
+      case TokenType.BAR:
+        break;
+      case TokenType.BAR_BAR:
+        break;
+      case TokenType.BAR_EQ:
+        break;
+      case TokenType.COLON:
+        break;
+      case TokenType.COMMA:
+        break;
+      case TokenType.CARET:
+        break;
+      case TokenType.CARET_EQ:
+        break;
+      case TokenType.CLOSE_CURLY_BRACKET:
+        break;
+      case TokenType.CLOSE_PAREN:
+        break;
+      case TokenType.CLOSE_SQUARE_BRACKET:
+        break;
+      case TokenType.EQ:
+        break;
+      case TokenType.EQ_EQ:
+        break;
+      case TokenType.FUNCTION:
+        break;
+      case TokenType.GT:
+        break;
+      case TokenType.GT_EQ:
+        break;
+      case TokenType.GT_GT:
+        break;
+      case TokenType.GT_GT_EQ:
+        break;
+      case TokenType.HASH:
+        break;
+      case TokenType.INDEX:
+        break;
+      case TokenType.INDEX_EQ:
+        break;
+      case TokenType.IS:
+        break;
+      case TokenType.LT:
+        break;
+      case TokenType.LT_EQ:
+        break;
+      case TokenType.LT_LT:
+        break;
+      case TokenType.LT_LT_EQ:
+        break;
+      case TokenType.MINUS:
+        break;
+      case TokenType.MINUS_EQ:
+        break;
+      case TokenType.MINUS_MINUS:
+        break;
+      case TokenType.OPEN_CURLY_BRACKET:
+        break;
+      case TokenType.OPEN_PAREN:
+        break;
+      case TokenType.OPEN_SQUARE_BRACKET:
+        break;
+      case TokenType.PERCENT:
+        break;
+      case TokenType.PERCENT_EQ:
+        break;
+      case TokenType.PERIOD:
+        break;
+      case TokenType.PERIOD_PERIOD:
+        break;
+      case TokenType.PLUS:
+        break;
+      case TokenType.PLUS_EQ:
+        break;
+      case TokenType.PLUS_PLUS:
+        break;
+      case TokenType.QUESTION:
+        break;
+      case TokenType.SEMICOLON:
+        break;
+      case TokenType.SLASH:
+        break;
+      case TokenType.SLASH_EQ:
+        break;
+      case TokenType.STAR:
+        break;
+      case TokenType.STAR_EQ:
+        break;
+      case TokenType.STRING_INTERPOLATION_EXPRESSION:
+        break;
+      case TokenType.STRING_INTERPOLATION_IDENTIFIER:
+        break;
+      case TokenType.TILDE:
+        break;
+      case TokenType.TILDE_SLASH:
+        break;
+      case TokenType.TILDE_SLASH_EQ:
+        break;
+      case TokenType.BACKPING:
+        break;
+      case TokenType.BACKSLASH:
+        break;
+      case TokenType.PERIOD_PERIOD_PERIOD:
+        break;
     }
 
     buffer.write(
@@ -216,16 +287,17 @@ class ColorizeDartCode extends NodeVisitor {
 
   void visitElementAfter(Element element) {}
 
-  bool _isDartCodeElement(Element element)
-      => element.tag == 'pre' &&
-         element.children.length == 1 && _isCodeElement(element.children.first);
+  bool _isDartCodeElement(Element element) =>
+      element.tag == 'pre' &&
+      element.children.length == 1 &&
+      _isCodeElement(element.children.first);
 
-  bool _isCodeElement(Element element)
-      => element.tag == 'code' &&
-         element.attributes['class'] == 'language-dart' &&
-         element.children.length == 1 &&
-         element.children[0] is Text;
+  bool _isCodeElement(Element element) =>
+      element.tag == 'code' &&
+      element.attributes['class'] == 'language-dart' &&
+      element.children.length == 1 &&
+      element.children[0] is Text;
 
-  Text _getSourceFromElement(Element element)
-      => (element.children.first as Element).children.first as Text;
+  Text _getSourceFromElement(Element element) =>
+      (element.children.first as Element).children.first as Text;
 }
