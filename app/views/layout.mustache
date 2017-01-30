@@ -23,15 +23,13 @@
     <script src="/static/js/bootstrap-dropdown.js"></script>
     <script src="/static/js/bootstrap-tab.js"></script>
     <script src="/static/js/script.js"></script>
-    <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-26406144-13']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-26406144-13', 'auto');
+      ga('send', 'pageview');
     </script>
   </head>
   <body>
@@ -39,27 +37,27 @@
       <div class="navbar navbar-fixed-top">
         <div class="navbar-inner">
           <div class="container">
-            <a class="brand" href="http://www.dartlang.org">
+            <a class="brand" href="https://www.dartlang.org">
               <div class="dart-logo">dartlang.org</div>
             </a>
             <a class="brand" href="/">pub.dartlang.org</a>
             <ul class="nav">
-              <li><a href="https://www.dartlang.org/tools/pub/get-started.html">Getting Started</a></li>
+              <li><a href="https://www.dartlang.org/tools/pub/get-started">Getting Started</a></li>
               <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                   Docs
                   <div class="caret"></div>
                 </a>
                 <ul class="dropdown-menu">
-                  <li><a href="https://www.dartlang.org/tools/pub/get-started.html">Getting Started</a></li>
-                  <li><a href="https://www.dartlang.org/tools/pub/dependencies.html">Dependencies</a></li>
-                  <li><a href="https://www.dartlang.org/tools/pub/pubspec.html">Pubspec Format</a></li>
-                  <li><a href="https://www.dartlang.org/tools/pub/package-layout.html">Package Layout Conventions</a></li>
-                  <li><a href="https://www.dartlang.org/tools/pub/assets-and-transformers.html">Assets and Transformers</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/get-started">Getting Started</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/dependencies">Dependencies</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/pubspec">Pubspec Format</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/package-layout">Package Layout Conventions</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/assets-and-transformers">Assets and Transformers</a></li>
                   <li class="nav-header">Reference</li>
-                  <li><a href="https://www.dartlang.org/tools/pub/faq.html">FAQ</a></li>
-                  <li><a href="https://www.dartlang.org/tools/pub/glossary.html">Glossary</a></li>
-                  <li><a href="https://www.dartlang.org/tools/pub/versioning.html">Versioning Philosophy</a></li>
+                  <li><a href="https://www.dartlang.org/tools/faq#pub">FAQ</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/glossary">Glossary</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/versioning">Versioning Philosophy</a></li>
                 </ul>
               </li>
               <li class="dropdown">
@@ -100,13 +98,13 @@
       </div>
       {{& content}}
       <footer>
-        <a href="http://www.dartlang.org/">
+        <a href="https://www.dartlang.org/">
           Dart Language
         </a> &mdash; <a href="/site-map">
           Site Map
-        </a> &mdash; <a href="http://www.google.com/intl/en/policies/terms/">
+        </a> &mdash; <a href="https://www.google.com/intl/en/policies/terms/">
           Terms of Service
-        </a> &mdash; <a href="http://www.google.com/intl/en/policies/privacy/">
+        </a> &mdash; <a href="https://www.google.com/intl/en/policies/privacy/">
           Privacy Policy
         </a>
 
