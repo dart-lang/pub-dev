@@ -39,6 +39,5 @@ automatic_scaling:
 
 skip_files:
 - ^.*/packages.*$
-- ^.*\.dart$
 - ^\.git/.*$
 
