@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Timeout(const Duration(seconds: 15))
 library pub_dartlang_org.backend_test;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:gcloud/db.dart';
 import 'package:yaml/yaml.dart';
 
@@ -21,8 +22,6 @@ import 'utils.dart';
 
 // TODO: Add missing tests when a query returns more than one result.
 main() {
-  unittestConfiguration.timeout = const Duration(seconds: 15);
-
   group('backend', () {
     group('Backend.latestPackages', () {
       ({

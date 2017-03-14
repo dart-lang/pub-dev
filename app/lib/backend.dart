@@ -80,8 +80,8 @@ class Backend {
   }
 
   /// Looks up a specific package version.
-  Future<models.Package> lookupPackageVersion(String package,
-                                              String version) async {
+  Future<models.PackageVersion> lookupPackageVersion(String package,
+                                                     String version) async {
     version = canonicalizeVersion(version);
     var packageVersionKey = db.emptyKey
         .append(models.Package, id: package)

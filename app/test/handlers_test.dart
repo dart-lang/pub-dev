@@ -6,7 +6,7 @@ library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:appengine/appengine.dart';
@@ -93,7 +93,7 @@ main() {
               return [testPackageVersion];
             },
             downloadUrlFun: (String package, String version) {
-              return 'http://blobstore/$package/$version';
+              return Uri.parse('http://blobstore/$package/$version');
             });
         registerBackend(backend);
         expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
@@ -116,7 +116,7 @@ main() {
               return [testPackageVersion];
             },
             downloadUrlFun: (String package, String version) {
-              return 'http://blobstore/$package/$version';
+              return Uri.parse('http://blobstore/$package/$version');
             });
         registerBackend(backend);
         expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));

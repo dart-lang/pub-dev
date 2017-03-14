@@ -6,7 +6,7 @@ library pub_dartlang_org.utils;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/db.dart';

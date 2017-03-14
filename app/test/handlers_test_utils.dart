@@ -7,7 +7,7 @@ library pub_dartlang_org.handlers_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'package:appengine/appengine.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -105,7 +105,8 @@ class BackendMock implements Backend {
     return lookupPackageFun(packageName);
   }
 
-  Future<Package> lookupPackageVersion(String package, String version) async {
+  Future<PackageVersion> lookupPackageVersion(String package,
+                                              String version) async {
     if (lookupPackageVersionFun == null) throw 'no lookupPackageVersionFun';
     return lookupPackageVersionFun(package, version);
   }

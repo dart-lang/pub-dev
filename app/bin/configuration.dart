@@ -99,7 +99,10 @@ class Configuration {
         projectId = _prodProjectId,
         _credentialsFile = credentialsFile != null
             ? credentialsFile
-            : Platform.script.resolve('../../key.json').toFilePath() {}
+            : (Platform.script.scheme == 'data'  /* package:test uses src-based
+                                                    isolates to run tests */
+                ? Uri.parse('key.json').toFilePath()
+                : Platform.script.resolve('../../key.json').toFilePath());
 
   /// Create a configuration for development running directly on dart:io.
   ///
@@ -116,7 +119,10 @@ class Configuration {
         useApiaryDatastore = true,
         _credentialsFile = credentialsFile != null
             ? credentialsFile
-            : Platform.script.resolve('../../key.json').toFilePath() {}
+            : (Platform.script.scheme == 'data'  /* package:test uses src-based
+                                                    isolates to run tests */
+                ? Uri.parse('key.json').toFilePath()
+                : Platform.script.resolve('../../key.json').toFilePath());
 
   /// Create a new configuration replacing some of the properties of the
   /// source.

@@ -5,7 +5,7 @@
 library pub_dartlang_org.backend_test;
 
 import 'dart:io';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../bin/configuration.dart' as cfg;
 

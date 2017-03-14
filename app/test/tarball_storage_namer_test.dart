@@ -5,7 +5,7 @@
 library pub_dartlang_org.tarball_storage_namer_test;
 
 import 'package:pub_dartlang_org/backend.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   group('tarball_storage_namer', () {
