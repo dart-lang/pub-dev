@@ -22,12 +22,16 @@ abstract class UIPackageCache {
   // invalidated via [invalidateUiPackagePage].
   Future setUIPackagePage(String package, String version, String data);
 
+  Future<String> getUIIndexPage();
+  Future setUIIndexPage(String content);
+
   Future invalidateUIPackagePage(String package);
 }
 
 /// Uses a [Memache] to set/get/invalidate metadata for packages.
 class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   static const Duration EXPIRATION = const Duration(minutes: 10);
+  static const String INDEX_PAGE_KEY = 'pub_index';
   static const String KEY_PREFIX = 'dart_package_json';
   static const String UI_KEY_PREFIX = 'dart_package_ui';
 
@@ -80,17 +84,35 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
 
   Future invalidateUIPackagePage(String package) async {
     _logger.info('memcache["$package"] invalidating UI data');
-    return _ignoreErrors(memcache.remove(_packageUIKey(package, null)));
+    return _ignoreErrors(Future.wait([
+        memcache.remove(_packageUIKey(package, null)),
+        memcache.remove(INDEX_PAGE_KEY),
+    ]));
   }
 
   Future invalidatePackageData(String package) {
     _logger.info('memcache["$package"] invalidate entry');
     return _ignoreErrors(Future.wait([
-        // TODO: Once the Python version is retired, we can remove this.
-        memcache.remove('package_json_$package'),
         memcache.remove(_packageKey(package)),
         memcache.remove(_packageUIKey(package, null)),
+        memcache.remove(INDEX_PAGE_KEY),
     ]));
+  }
+
+  Future<String> getUIIndexPage() async {
+    final result = await _ignoreErrors(memcache.get(INDEX_PAGE_KEY));
+    if (result != null) {
+      _logger.info('memcache[index-page] found rendered UI data');
+    } else {
+      _logger.info('memcache[index-page] no rendered UI data found');
+    }
+    return result;
+  }
+
+  Future setUIIndexPage(String content) async {
+    _logger.info('memcache[index-page] setting to new rendered UI data');
+    await _ignoreErrors(
+        memcache.set(INDEX_PAGE_KEY, content, expiration: EXPIRATION));
   }
 
   String _packageKey(String package) => '$keyPrefix$package';

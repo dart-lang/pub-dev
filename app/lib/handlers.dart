@@ -67,9 +67,14 @@ Future<shelf.Response> appHandler(
 
 /// Handles requests for /
 indexHandler(_) async {
-  var versions = await backend.latestPackageVersions(limit: 5);
-  assert(!versions.any((version) => version == null));
-  return _htmlResponse(templateService.renderIndexPage(versions));
+  String pageContent = await backend.uiPackageCache?.getUIIndexPage();
+  if (pageContent == null) {
+    var versions = await backend.latestPackageVersions(limit: 5);
+    assert(!versions.any((version) => version == null));
+    pageContent = templateService.renderIndexPage(versions);
+    await backend.uiPackageCache?.setUIIndexPage(pageContent);
+  }
+  return _htmlResponse(pageContent);
 }
 
 /// Handles requests for /feed.atom
