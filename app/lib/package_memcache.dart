@@ -27,7 +27,7 @@ abstract class UIPackageCache {
 
 /// Uses a [Memache] to set/get/invalidate metadata for packages.
 class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
-  static const Duration EXPIRATION = const Duration(minutes: 60);
+  static const Duration EXPIRATION = const Duration(minutes: 10);
   static const String KEY_PREFIX = 'dart_package_json';
   static const String UI_KEY_PREFIX = 'dart_package_ui';
 

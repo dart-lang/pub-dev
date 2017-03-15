@@ -298,13 +298,6 @@ class TemplateService {
 
       // TODO: The python implementation used
       'message': false,
-
-      // TODO: Fill logged_in/login_url/logout_url in.
-      // NOTE: It seems very wasteful to make an API call in order to create a
-      // login URL 99.999% visitors on pub.dartlang.org will not use.
-      'logged_in': false,
-      'login_url': 'invalid',
-      'logout_url': 'invalid',
     };
     return _renderTemplate('layout', values, escapeValues: false);
   }

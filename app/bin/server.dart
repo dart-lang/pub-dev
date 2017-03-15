@@ -40,7 +40,7 @@ void main() {
 
     return fork(() async {
       if (configuration.useDbKeys) {
-        initApiaryStorageViaDBKey(configuration.serviceAccountEmail,
+        await initApiaryStorageViaDBKey(configuration.serviceAccountEmail,
                                   configuration.projectId);
       } else {
         initApiaryStorage(configuration.projectId, projectAuthClient);
@@ -96,11 +96,5 @@ void main() {
   });
 }
 
-/// Gets the current namespace.
-///
-/// Based on the name of the version name this will get the namespace for
-/// either production data or staging data.
-String getCurrentNamespace() {
-  String version = modulesService.currentVersion;
-  return version.contains('staging') ? 'staging' : '';
-}
+/// Gets the namespace to use.
+String getCurrentNamespace() => '';
