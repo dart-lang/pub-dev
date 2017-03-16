@@ -8,6 +8,7 @@ service: default
 
 resources:
   cpu: 4
+  memory_gb: 6
 
 #manual_scaling:
 #  instances: 1
