@@ -7,6 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -80,6 +81,7 @@ void main() {
 
               logger.info('Handling request: ${request.requestedUri} '
                           '(Using namespace "$namespace")');
+              request = sanitizeRequestedUri(request);
               return appHandler(request, apiHandler).catchError((error, s) {
                 logger.severe('Request handler failed', error, s);
                 return new shelf.Response.internalServerError();
@@ -98,3 +100,36 @@ void main() {
 
 /// Gets the namespace to use.
 String getCurrentNamespace() => '';
+
+shelf.Request sanitizeRequestedUri(shelf.Request request) {
+  final uri = request.requestedUri;
+  final resource = uri.path;
+  final normalizedResource = path.normalize(resource);
+
+  if (resource == normalizedResource) {
+    return request;
+  } else {
+    // With the new flex VMs we will get requests from the L7 load balancer which
+    // can contain [Uri]s with e.g. double slashes
+    //
+    //    -> e.g. https://pub.dartlang.org//api/packages/foo
+    //
+    // It seems that travis builds e.g. set PUB_HOSTED_URL to a URL with
+    // a slash at the end. The pub client will not remove it and instead
+    // directly try to request the URI:
+    //
+    //    GET //api/...
+    //
+    // :-/
+
+    final changedUri = uri.replace(path: normalizedResource);
+    return new shelf.Request(
+        request.method,
+        changedUri,
+        protocolVersion: request.protocolVersion,
+        headers: request.headers,
+        body: request.read(),
+        encoding: request.encoding,
+        context: request.context);
+  }
+}
