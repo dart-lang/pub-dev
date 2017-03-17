@@ -109,19 +109,14 @@ shelf.Request sanitizeRequestedUri(shelf.Request request) {
   if (resource == normalizedResource) {
     return request;
   } else {
-    // With the new flex VMs we will get requests from the L7 load balancer which
+    // With the new flex VMs we can get requests from the load balancer which
     // can contain [Uri]s with e.g. double slashes
     //
     //    -> e.g. https://pub.dartlang.org//api/packages/foo
     //
-    // It seems that travis builds e.g. set PUB_HOSTED_URL to a URL with
-    // a slash at the end. The pub client will not remove it and instead
-    // directly try to request the URI:
-    //
-    //    GET //api/...
-    //
-    // :-/
-
+    // Setting PUB_HOSTED_URL to a URL with a slash at the end can cause this.
+    // (The pub client will not remove it and instead directly try to request
+    //  "GET //api/..." :-/ )
     final changedUri = uri.replace(path: normalizedResource);
     return new shelf.Request(
         request.method,
