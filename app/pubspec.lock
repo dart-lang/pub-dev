@@ -18,7 +18,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0-flex.alpha.0+4"
+    version: "0.4.0-flex.alpha.0+5"
   args:
     description:
       name: args

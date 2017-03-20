@@ -70,28 +70,36 @@ void main() {
         }
 
         await runAppEngine((request) {
-          // Here we fork the current service scope and override
-          // storage to be what we setup above.
-          return fork(() {
-            registerStorageService(storageServiceCopy);
-            registerDbService(dbServiceCopy);
-            return shelf_io.handleRequest(request,
-                                          (shelf.Request request) async {
-              await registerLoggedInUserIfPossible(request);
+          if (context.isProductionEnvironment &&
+              request.requestedUri.scheme != 'https') {
+            final secureUri = request.requestedUri.replace(scheme: 'https');
+            request.response
+                ..redirect(secureUri)
+                ..close();
+          } else {
+            // Here we fork the current service scope and override
+            // storage to be what we setup above.
+            return fork(() {
+              registerStorageService(storageServiceCopy);
+              registerDbService(dbServiceCopy);
+              return shelf_io.handleRequest(request,
+                                            (shelf.Request request) async {
+                await registerLoggedInUserIfPossible(request);
 
-              logger.info('Handling request: ${request.requestedUri} '
-                          '(Using namespace "$namespace")');
-              request = sanitizeRequestedUri(request);
-              return appHandler(request, apiHandler).catchError((error, s) {
-                logger.severe('Request handler failed', error, s);
-                return new shelf.Response.internalServerError();
-              }).whenComplete(() {
-                logger.info('Request handler done.');
+                logger.info('Handling request: ${request.requestedUri} '
+                            '(Using namespace "$namespace")');
+                request = sanitizeRequestedUri(request);
+                return appHandler(request, apiHandler).catchError((error, s) {
+                  logger.severe('Request handler failed', error, s);
+                  return new shelf.Response.internalServerError();
+                }).whenComplete(() {
+                  logger.info('Request handler done.');
+                });
               });
+            }).catchError((error, stack) {
+              logger.severe('Request handler failed', error, stack);
             });
-          }).catchError((error, stack) {
-            logger.severe('Request handler failed', error, stack);
-          });
+          }
         });
       }, configuration.packageBucketName, namespace: namespace);
     });
