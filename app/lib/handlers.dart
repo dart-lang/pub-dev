@@ -26,6 +26,7 @@ import 'templates.dart';
 final String StaticsLocation = Platform.script.resolve('../../static').toFilePath();
 
 Logger _logger = new Logger('pub.handlers');
+Logger _pubHeaderLogger = new Logger('pub.header_logger');
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///
@@ -33,7 +34,9 @@ Logger _logger = new Logger('pub.handlers');
 ///   - /api/*
 Future<shelf.Response> appHandler(
     shelf.Request request, shelf.Handler shelfPubApi) async {
-  var path = request.requestedUri.path;
+  final path = request.requestedUri.path;
+
+  logPubHeaders(request);
 
   var handler = {
     '/': indexHandler,
@@ -513,6 +516,15 @@ int _pageFromUrl(Uri url, {int maxPages}) {
   return pageAsInt;
 }
 
+logPubHeaders(shelf.Request request) {
+  request.headers.forEach((String key, String value) {
+    final lowerCaseKey = key.toLowerCase();
+    if (lowerCaseKey.startsWith('x-pub')) {
+      _pubHeaderLogger.info('$key: $value');
+    }
+  });
+}
+
 class StaticsCache {
   final Map<String, StaticFile> staticFiles = <String, StaticFile>{};
 
@@ -530,6 +542,7 @@ class StaticsCache {
     }
   }
 }
+
 class StaticFile {
   final String contentType;
   final List<int> bytes;
