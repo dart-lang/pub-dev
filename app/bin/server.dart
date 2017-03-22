@@ -7,6 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -40,7 +41,7 @@ void main() {
 
     return fork(() async {
       if (configuration.useDbKeys) {
-        initApiaryStorageViaDBKey(configuration.serviceAccountEmail,
+        await initApiaryStorageViaDBKey(configuration.serviceAccountEmail,
                                   configuration.projectId);
       } else {
         initApiaryStorage(configuration.projectId, projectAuthClient);
@@ -69,38 +70,69 @@ void main() {
         }
 
         await runAppEngine((request) {
-          // Here we fork the current service scope and override
-          // storage to be what we setup above.
-          return fork(() {
-            registerStorageService(storageServiceCopy);
-            registerDbService(dbServiceCopy);
-            return shelf_io.handleRequest(request,
-                                          (shelf.Request request) async {
-              await registerLoggedInUserIfPossible(request);
+          if (context.isProductionEnvironment &&
+              request.requestedUri.scheme != 'https') {
+            final secureUri = request.requestedUri.replace(scheme: 'https');
+            request.response
+                ..redirect(secureUri)
+                ..close();
+          } else {
+            // Here we fork the current service scope and override
+            // storage to be what we setup above.
+            return fork(() {
+              registerStorageService(storageServiceCopy);
+              registerDbService(dbServiceCopy);
+              return shelf_io.handleRequest(request,
+                                            (shelf.Request request) async {
+                await registerLoggedInUserIfPossible(request);
 
-              logger.info('Handling request: ${request.requestedUri} '
-                          '(Using namespace "$namespace")');
-              return appHandler(request, apiHandler).catchError((error, s) {
-                logger.severe('Request handler failed', error, s);
-                return new shelf.Response.internalServerError();
-              }).whenComplete(() {
-                logger.info('Request handler done.');
+                logger.info('Handling request: ${request.requestedUri} '
+                            '(Using namespace "$namespace")');
+                request = sanitizeRequestedUri(request);
+                return appHandler(request, apiHandler).catchError((error, s) {
+                  logger.severe('Request handler failed', error, s);
+                  return new shelf.Response.internalServerError();
+                }).whenComplete(() {
+                  logger.info('Request handler done.');
+                });
               });
+            }).catchError((error, stack) {
+              logger.severe('Request handler failed', error, stack);
             });
-          }).catchError((error, stack) {
-            logger.severe('Request handler failed', error, stack);
-          });
+          }
         });
       }, configuration.packageBucketName, namespace: namespace);
     });
   });
 }
 
-/// Gets the current namespace.
-///
-/// Based on the name of the version name this will get the namespace for
-/// either production data or staging data.
-String getCurrentNamespace() {
-  String version = modulesService.currentVersion;
-  return version.contains('staging') ? 'staging' : '';
+/// Gets the namespace to use.
+String getCurrentNamespace() => '';
+
+shelf.Request sanitizeRequestedUri(shelf.Request request) {
+  final uri = request.requestedUri;
+  final resource = uri.path;
+  final normalizedResource = path.normalize(resource);
+
+  if (resource == normalizedResource) {
+    return request;
+  } else {
+    // With the new flex VMs we can get requests from the load balancer which
+    // can contain [Uri]s with e.g. double slashes
+    //
+    //    -> e.g. https://pub.dartlang.org//api/packages/foo
+    //
+    // Setting PUB_HOSTED_URL to a URL with a slash at the end can cause this.
+    // (The pub client will not remove it and instead directly try to request
+    //  "GET //api/..." :-/ )
+    final changedUri = uri.replace(path: normalizedResource);
+    return new shelf.Request(
+        request.method,
+        changedUri,
+        protocolVersion: request.protocolVersion,
+        headers: request.headers,
+        body: request.read(),
+        encoding: request.encoding,
+        context: request.context);
+  }
 }

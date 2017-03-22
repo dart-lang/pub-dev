@@ -85,7 +85,7 @@ class PubspecProperty extends StringProperty {
   bool validate(ModelDB db, Object value)
       => (!required || value != null) && (value == null || value is Pubspec);
 
-  String encodeValue(ModelDB db, Pubspec pubspec) {
+  String encodeValue(ModelDB db, Pubspec pubspec, {bool forComparison: false}) {
     if (pubspec == null) return null;
     return pubspec.jsonString;
   }
@@ -122,7 +122,11 @@ class CompatibleListProperty extends Property {
     return true;
   }
 
-  Object encodeValue(ModelDB db, Object value) {
+  Object encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
+    if (forComparison) {
+      return subProperty.encodeValue(db, value, forComparison: true);
+    }
+
     // NOTE: As opposed to [ListProperty] we will encode
     //    - `null` as `[]`  (as opposed to `null`)
     //    - `[]` as `[]`  (as opposed to `null`)

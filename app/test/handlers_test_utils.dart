@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:appengine/appengine.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/backend.dart';
@@ -188,26 +187,6 @@ class TemplateMock implements TemplateService {
   String renderSitemapPage() {
     return Response;
   }
-}
-
-class UserServiceMock implements UserService {
-  static String LoginUrl = 'https://login-service.com';
-  static String LogoutUrl = 'https://login-service.com?action=logout';
-
-  final User user;
-
-  UserServiceMock({String email})
-      : user = email != null ? new User(email: email) : null;
-
-  Future<String> createLoginUrl(String destination) async {
-    return LoginUrl;
-  }
-
-  Future<String> createLogoutUrl(String destination) async {
-    return LogoutUrl;
-  }
-
-  User get currentUser => user;
 }
 
 class SearchServiceMock implements SearchService {

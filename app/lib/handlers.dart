@@ -7,11 +7,13 @@ library pub_dartlang_org.handlers;
 import 'dart:async';
 import 'dart:math';
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:mime/mime.dart' as mime;
 
 import 'package:pub_dartlang_org/backend.dart';
 
@@ -21,7 +23,10 @@ import 'search_service.dart';
 import 'models.dart';
 import 'templates.dart';
 
+final String StaticsLocation = Platform.script.resolve('../../static').toFilePath();
+
 Logger _logger = new Logger('pub.handlers');
+Logger _pubHeaderLogger = new Logger('pub.header_logger');
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///
@@ -29,14 +34,15 @@ Logger _logger = new Logger('pub.handlers');
 ///   - /api/*
 Future<shelf.Response> appHandler(
     shelf.Request request, shelf.Handler shelfPubApi) async {
-  var path = request.requestedUri.path;
+  final path = request.requestedUri.path;
+
+  logPubHeaders(request);
 
   var handler = {
     '/': indexHandler,
     '/feed.atom': atomFeedHandler,
     '/authorized': authorizedHandler,
     '/site-map': sitemapHandler,
-    '/admin': adminHandler,
     '/search': searchHandler,
     '/packages': packagesHandler,
     '/packages.json': packagesHandler,
@@ -55,6 +61,8 @@ Future<shelf.Response> appHandler(
     return packageHandler(request);
   } else if (path.startsWith('/doc')) {
     return docHandler(request);
+  } else if (path.startsWith('/static')) {
+    return staticsHandler(request);
   } else {
     return _notFoundHandler(request);
   }
@@ -62,9 +70,14 @@ Future<shelf.Response> appHandler(
 
 /// Handles requests for /
 indexHandler(_) async {
-  var versions = await backend.latestPackageVersions(limit: 5);
-  assert(!versions.any((version) => version == null));
-  return _htmlResponse(templateService.renderIndexPage(versions));
+  String pageContent = await backend.uiPackageCache?.getUIIndexPage();
+  if (pageContent == null) {
+    var versions = await backend.latestPackageVersions(limit: 5);
+    assert(!versions.any((version) => version == null));
+    pageContent = templateService.renderIndexPage(versions);
+    await backend.uiPackageCache?.setUIIndexPage(pageContent);
+  }
+  return _htmlResponse(pageContent);
 }
 
 /// Handles requests for /feed.atom
@@ -97,31 +110,6 @@ shelf.Response docHandler(shelf.Request request) {
 /// Handles requests for /site-map
 sitemapHandler(_) => _htmlResponse(templateService.renderSitemapPage());
 
-/// Handles requests for /admin
-adminHandler(shelf.Request request) async {
-  var users = userService;
-
-  if (users.currentUser == null) {
-    return _redirectResponse(await users.createLoginUrl('${request.url}'));
-  } else {
-    var email = users.currentUser.email;
-    var isNonGoogleUser = !email.endsWith('@google.com');
-    if (isNonGoogleUser) {
-      var status = 'Unauthorized';
-      var message = 'You do not have access to this page.';
-      return _htmlResponse(
-          templateService.renderErrorPage(status, message, null),
-          status: 403);
-    } else {
-      var status = 'Not found.';
-      var message = 'The admin page has been disabled.';
-      return _htmlResponse(
-          templateService.renderErrorPage(status, message, null),
-          status: 404);
-    }
-  }
-}
-
 /// Handles requests for /search
 searchHandler(shelf.Request request) async {
   var query = request.url.queryParameters['q'];
@@ -152,6 +140,25 @@ packagesHandler(shelf.Request request) async {
   } else {
     return packagesHandlerHtml(request, page);
   }
+}
+
+/// Handles requests for /static
+final StaticsCache staticsCache = new StaticsCache();
+staticsHandler(shelf.Request request) async {
+  // Simplifies all of '.', '..', '//'!
+  final String normalized = path.normalize(request.requestedUri.path);
+  if (normalized.startsWith('/static/')) {
+    final assetPath =
+        '$StaticsLocation/${normalized.substring('/static/'.length)}';
+
+    final StaticFile staticFile = staticsCache.staticFiles[assetPath];
+    if (staticFile != null) {
+      return new shelf.Response.ok(
+          staticFile.bytes,
+          headers: { 'content-type' : staticFile.contentType});
+    }
+  }
+  return _notFoundHandler(request);
 }
 
 /// Handles requests for /packages - JSON
@@ -507,4 +514,37 @@ int _pageFromUrl(Uri url, {int maxPages}) {
 
   if (maxPages != null && pageAsInt > maxPages) pageAsInt = maxPages;
   return pageAsInt;
+}
+
+logPubHeaders(shelf.Request request) {
+  request.headers.forEach((String key, String value) {
+    final lowerCaseKey = key.toLowerCase();
+    if (lowerCaseKey.startsWith('x-pub')) {
+      _pubHeaderLogger.info('$key: $value');
+    }
+  });
+}
+
+class StaticsCache {
+  final Map<String, StaticFile> staticFiles = <String, StaticFile>{};
+
+  StaticsCache() {
+    final Directory staticsDirectory = new Directory(StaticsLocation);
+    final files = staticsDirectory
+        .listSync(recursive: true)
+        .where((fse) => fse is File)
+        .map((File file) => file.absolute);
+
+    for (final File file in files) {
+      final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
+      final bytes = file.readAsBytesSync();
+      staticFiles[file.path] = new StaticFile(contentType, bytes);
+    }
+  }
+}
+
+class StaticFile {
+  final String contentType;
+  final List<int> bytes;
+  StaticFile(this.contentType, this.bytes);
 }

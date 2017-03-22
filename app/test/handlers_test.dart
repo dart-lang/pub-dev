@@ -9,8 +9,6 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:appengine/appengine.dart';
-
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers_redirects.dart';
 import 'package:pub_dartlang_org/models.dart';
@@ -147,22 +145,6 @@ main() {
 
       tScopedTest('/site-map', () async {
         expectHtmlResponse(await issueGet('/site-map'));
-      });
-
-      tScopedTest('/admin - not logged in', () async {
-        registerUserService(new UserServiceMock());
-        expectRedirectResponse(await issueGet('/admin'),
-                               UserServiceMock.LoginUrl);
-      });
-
-      tScopedTest('/admin - unauthorized', () async {
-        registerUserService(new UserServiceMock(email: 'a@foobar.com'));
-        expectHtmlResponse(await issueGet('/admin'), status: 403);
-      });
-
-      tScopedTest('/admin - logged in', () async {
-        registerUserService(new UserServiceMock(email: 'a@google.com'));
-        expectHtmlResponse(await issueGet('/admin'), status: 404);
       });
 
       tScopedTest('/search?q=foobar', () async {

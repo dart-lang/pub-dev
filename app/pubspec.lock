@@ -18,7 +18,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.3+1"
+    version: "0.4.0-flex.alpha.0+5"
   args:
     description:
       name: args
@@ -84,7 +84,7 @@ packages:
       name: gcloud
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0"
+    version: "0.4.0"
   glob:
     description:
       name: glob
@@ -96,7 +96,7 @@ packages:
       name: googleapis
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.31.0"
+    version: "0.36.0"
   googleapis_auth:
     description:
       name: googleapis_auth
@@ -108,7 +108,7 @@ packages:
       name: googleapis_beta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.30.1"
+    version: "0.34.0"
   html:
     description:
       name: html
@@ -121,6 +121,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.11.3+9"
+  http2:
+    description:
+      name: http2
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1+2"
   http_multi_server:
     description:
       name: http_multi_server
