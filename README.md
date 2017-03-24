@@ -52,7 +52,8 @@ pub-dartlang-dart $ docker build .
 pub-dartlang-dart $ docker run -it <docker-imgage-hash>
 ```
 
-The server will be available via at [localhost:8080](http://localhost:8080)
+The server will be available via at [172.17.0.2:8080](http://172.17.0.2:8080/). The IP address might differ
+and can be obtained via `docker ps` and `docker inspect <container-id>`.
 
 
 ### Running unit tests
