@@ -98,3 +98,32 @@ deployment.
 pub-dartlang-dart $ git tag -a <version> -m <version>
 pub-dartlang-dart $ git push origin <version>
 ```
+
+## Using custom third-party packages (or any non-published packages)
+
+If one wants to use customized versions of packages we depend on (e.g. `package:markdown` with a fix)
+we do this by adding them to this repository and wiring things up.
+
+Here is an example of using a customized version of `package:markdown`:
+
+```
+# Create the customized-package
+pub-dartlang-dart $ mkdir -p pkgs
+pub-dartlang-dart $ cp -Rp ~/.pub-cache/hosted/pub.dartlang.org/markdown-0.11.2 pkgs/markdown
+pub-dartlang-dart $ vim pkgs/markdown/lib/**/*dart
+
+# Change pubspec.yaml
+pub-dartlang-dart $ cd app
+pub-dartlang-dart/app $ vim pubspec.yaml
++
++dependency_override:
++  markdown:
++    path: ../pkgs/markdown
+pub-dartlang-dart/app $ pub get
+
+# Change Dockerfile to include it into the docker context.
+pub-dartlang-dart $ vim Dockerfile
+ ADD app/pubspec.* /project/app/
++ADD pkgs project/pkgs
+ RUN pub get
+```
