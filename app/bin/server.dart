@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -11,7 +12,11 @@ import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import 'package:pub_server/shelf_pubserver.dart';
+
+import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers.dart';
+import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/package_memcache.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
@@ -19,95 +24,97 @@ import 'package:pub_dartlang_org/upload_signer_service.dart';
 import 'configuration.dart';
 import 'server_common.dart';
 
-// Run with production configuration.
-var configuration = new Configuration.prod();
-
-// Uncomment and use a .dev configuration for local testing using
-// 'gcloud preview app run'.
-//var configuration = new Configuration.dev('mkustermann-dartvm',
-//                                          'mkustermann--pub-packages');
+final configuration = new Configuration.prod();
+//final configuration = new Configuration.dev('<project-id>', '<bucket-name>');
 
 void main() {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    var projectAuthClient;
-    if (configuration.hasCredentials) {
-      projectAuthClient =
-          await auth.clientViaServiceAccount(configuration.credentials, SCOPES);
-      registerScopeExitCallback(projectAuthClient.close);
-    }
-    registerTemplateService(new TemplateService());
-
     return fork(() async {
-      if (configuration.useDbKeys) {
-        await initApiaryStorageViaDBKey(configuration.serviceAccountEmail,
-                                  configuration.projectId);
-      } else {
-        initApiaryStorage(configuration.projectId, projectAuthClient);
-      }
-      if (configuration.useApiaryDatastore) {
-        initApiaryDatastore(configuration.projectId, projectAuthClient);
-      }
-      initOAuth2Service();
-      await initSearchService();
+      final shelf.Handler apiHandler = await setupServices(configuration);
+      final storageServiceCopy = storageService;
 
-      var namespace = getCurrentNamespace();
-      return withChangedNamespaces(() async {
-        var cache = new AppEnginePackageMemcache(memcacheService, namespace);
-        initBackend(cache: cache);
-        var apiHandler = initPubServer(cache: cache);
-        var storageServiceCopy = storageService;
-        var dbServiceCopy = dbService;
-
-        if (configuration.useDbKeys) {
-          registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
-             configuration.serviceAccountEmail));
+      await runAppEngine((ioRequest) async {
+        if (context.isProductionEnvironment &&
+            ioRequest.requestedUri.scheme != 'https') {
+          final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
+          ioRequest.response
+              ..redirect(secureUri)
+              ..close();
         } else {
-          registerUploadSigner(new UploadSignerService(
-              configuration.credentials.email,
-              configuration.credentials.privateRSAKey));
-        }
-
-        await runAppEngine((request) {
-          if (context.isProductionEnvironment &&
-              request.requestedUri.scheme != 'https') {
-            final secureUri = request.requestedUri.replace(scheme: 'https');
-            request.response
-                ..redirect(secureUri)
-                ..close();
-          } else {
+          try {
             // Here we fork the current service scope and override
-            // storage to be what we setup above.
-            return fork(() {
+            // storage to be what we setup above (because sometimes we need to
+            // use a storage service from another GCE project).
+            await fork(() {
               registerStorageService(storageServiceCopy);
-              registerDbService(dbServiceCopy);
-              return shelf_io.handleRequest(request,
+              return shelf_io.handleRequest(ioRequest,
                                             (shelf.Request request) async {
+                logger.info('Handling request: ${request.requestedUri}');
                 await registerLoggedInUserIfPossible(request);
-
-                logger.info('Handling request: ${request.requestedUri} '
-                            '(Using namespace "$namespace")');
-                request = sanitizeRequestedUri(request);
-                return appHandler(request, apiHandler).catchError((error, s) {
+                try {
+                  final sanitizedRequest = sanitizeRequestedUri(request);
+                  return await appHandler(sanitizedRequest, apiHandler);
+                } catch (error, s) {
                   logger.severe('Request handler failed', error, s);
                   return new shelf.Response.internalServerError();
-                }).whenComplete(() {
+                } finally {
                   logger.info('Request handler done.');
-                });
+                }
               });
-            }).catchError((error, stack) {
-              logger.severe('Request handler failed', error, stack);
             });
+          } catch (error, stack) {
+            logger.severe('Request handler failed', error, stack);
           }
-        });
-      }, configuration.packageBucketName, namespace: namespace);
+        }
+      });
     });
   });
 }
 
-/// Gets the namespace to use.
-String getCurrentNamespace() => '';
+Future<shelf.Handler> setupServices(Configuration configuration) async {
+  auth.ServiceAccountCredentials credentials;
+  if (configuration.useDbKeys) {
+    final pemFileString = await cloudStorageKeyFromDB();
+    credentials = new auth.ServiceAccountCredentials(
+        configuration.serviceAccountEmail,
+        new auth.ClientId('', ''),
+        pemFileString);
+  } else if (configuration.hasCredentials) {
+    credentials = configuration.credentials;
+  }
+  if (configuration.hasCredentials) {
+    final authClient = await auth.clientViaServiceAccount(credentials, SCOPES);
+    registerScopeExitCallback(authClient.close);
+    initStorage(configuration.projectId, authClient);
+  }
+
+  registerTemplateService(
+      new TemplateService(templateDirectory: TemplateLocation));
+
+  final bucket = storageService.bucket(configuration.packageBucketName);
+  final tarballStorage = new TarballStorage(storageService, bucket, null);
+  registerTarballStorage(tarballStorage);
+
+  initOAuth2Service();
+
+  await initSearchService();
+
+  final cache = new AppEnginePackageMemcache(memcacheService, '');
+  initBackend(cache: cache);
+
+  if (configuration.useDbKeys) {
+    registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
+       configuration.serviceAccountEmail));
+  } else {
+    registerUploadSigner(new UploadSignerService(
+        configuration.credentials.email,
+        configuration.credentials.privateRSAKey));
+  }
+
+  return new ShelfPubServer(backend.repository, cache: cache).requestHandler;
+}
 
 shelf.Request sanitizeRequestedUri(shelf.Request request) {
   final uri = request.requestedUri;
