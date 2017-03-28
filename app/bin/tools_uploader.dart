@@ -10,25 +10,45 @@ import 'package:pub_dartlang_org/models.dart';
 
 import 'tools_common.dart';
 
-void main(List<String> arguments) {
-  if (arguments.length != 4) {
-    print('Usage: ${Platform.script} '
-          '<json-key> <package> (add|remove) <email-to-add>');
+main(List<String> arguments) async {
+  if (arguments.length < 2 || (
+      !(arguments.length == 2 && arguments[0] == 'list') &&
+      !(arguments.length == 3))) {
+    print('Usage:');
+    print('   ${Platform.script} list   <package>');
+    print('   ${Platform.script} add    <package> <email-to-add>');
+    print('   ${Platform.script} remove <package> <email-to-add>');
     exit(1);
   }
 
-  String jsonKeyfile = arguments[0];
+  String command = arguments[0];
   String package = arguments[1];
-  String command = arguments[2];
-  String uploader = arguments[3];
+  String uploader = arguments.length == 3 ? arguments[2] : null;
 
-  withProdServices(jsonKeyfile, () async {
-    if (command == 'add') {
+  await withProdServices(() async {
+    if (command == 'list') {
+      await listUploaders(package);
+    } else if (command == 'add') {
       await addUploader(package, uploader);
     } else if (command == 'remove') {
       await removeUploader(package, uploader);
     }
-  }, namespace: '');
+  });
+
+  // TODO(kustermann): Remove this after Issue 61 is fixed.
+  exit(0);
+}
+
+Future listUploaders(String packageName) async {
+  return dbService.withTransaction((Transaction T) async {
+    final Package package = (await T.lookup(
+        [dbService.emptyKey.append(Package, id: packageName)])).first;
+    if (package == null) {
+      throw new Exception("Package $packageName does not exist.");
+    }
+    final uploaders = package.uploaderEmails;
+    print('Current uploaders: $uploaders');
+  });
 }
 
 Future addUploader(String packageName, String uploader) async {

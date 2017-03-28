@@ -6,30 +6,33 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:gcloud/db.dart';
-import 'package:pub_dartlang_org/models.dart';
+import 'package:gcloud/storage.dart';
 import 'package:pub_dartlang_org/backend.dart';
+import 'package:pub_dartlang_org/models.dart';
 
+import 'configuration.dart';
 import 'tools_common.dart';
 
-void main(List<String> arguments) {
-  if (arguments.length < 3 || (
-      !(arguments[1] == 'list' && arguments.length == 3) &&
-      !(arguments[1] == 'remove' &&
-        (arguments.length == 3 || arguments.length == 4)))) {
-    print('Usage: ');
-    print('  ${Platform.script} <json-key> list <package>');
-    print('  ${Platform.script} <json-key> remove <package>');
-    print('  ${Platform.script} <json-key> remove <package> <version>');
+final Configuration configuration = new Configuration.prod();
+
+main(List<String> arguments) async {
+  if (arguments.length < 2 || (
+      !(arguments[0] == 'list' && arguments.length == 2) &&
+      !(arguments[0] == 'remove' &&
+        (arguments.length == 2 || arguments.length == 3)))) {
+    print('Usage:');
+    print('  ${Platform.script} list <package>');
+    print('  ${Platform.script} remove <package>');
+    print('  ${Platform.script} remove <package> <version>');
     exit(1);
   }
 
-  String jsonKeyfile = arguments[0];
-  String command = arguments[1];
-  String package = arguments[2];
+  String command = arguments[0];
+  String package = arguments[1];
   String version = null;
-  if (arguments.length == 4) version = arguments[3];
+  if (arguments.length == 3) version = arguments[2];
 
-  withProdServices(jsonKeyfile, () async {
+  await withProdServices(() async {
     if (command == 'list') {
       await listPackage(package);
     } else if (command == 'remove') {
@@ -38,8 +41,13 @@ void main(List<String> arguments) {
      } else {
         await removePackageVersion(package, version);
       }
+    } else {
+      throw 'unexpected command $command';
     }
-  }, namespace: '');
+  });
+
+  // TODO(kustermann): Remove this after Issue 61 is fixed.
+  exit(0);
 }
 
 Future listPackage(String packageName) async {
@@ -77,7 +85,8 @@ Future removePackage(String packageName) async {
     print('Committing changes to DB ...');
     await T.commit();
 
-    var storage = backend.repository.storage;
+    final bucket = storageService.bucket(configuration.packageBucketName);
+    final storage = new TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await Future.wait(
         versionNames.map((version) => storage.remove(packageName, version)));
