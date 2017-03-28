@@ -14,8 +14,6 @@ import 'package:pub_dartlang_org/upload_signer_service.dart';
 import 'configuration.dart';
 import 'server_common.dart';
 
-final Configuration configuration = new Configuration.prod();
-
 withProdServices(Future fun()) async {
   if (!Platform.environment.containsKey('GCLOUD_PROJECT') ||
       !Platform.environment.containsKey('GCLOUD_KEY')) {
@@ -24,16 +22,16 @@ withProdServices(Future fun()) async {
   return withAppEngineServices(() {
     return ss.fork(() async {
       final credentials = new auth.ServiceAccountCredentials(
-          configuration.serviceAccountEmail,
+          activeConfiguration.serviceAccountEmail,
           new auth.ClientId('', ''),
           await cloudStorageKeyFromDB());
       final authClient =
           await auth.clientViaServiceAccount(credentials, SCOPES);
       ss.registerScopeExitCallback(authClient.close);
-      initStorage(configuration.projectId, authClient);
+      initStorage(activeConfiguration.projectId, authClient);
 
       registerUploadSigner(new UploadSignerService(
-          configuration.credentials.email,
+          activeConfiguration.credentials.email,
           credentials.privateRSAKey));
       initBackend();
 

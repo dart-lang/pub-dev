@@ -6,6 +6,9 @@ import 'dart:io';
 
 import 'package:googleapis_auth/auth.dart' as auth;
 
+final activeConfiguration = new Configuration.prod();
+//final activeConfiguration = new Configuration.dev();
+
 /// Class describing the configuration of running pub.dartlang.org.
 ///
 /// The configuration define the location of the Datastore with the
@@ -63,14 +66,9 @@ class Configuration {
         packageBucketName = 'pub.dartlang.org',
         useDbKeys = true {}
 
-  /// Create a configuration for development running directly on dart:io.
-  ///
-  /// The [projectId] is the cloud project holding the Datastore and the
-  /// Cloud Storage bucket. The [packageBucketName] is the actual Cloud
-  /// Storage bucket to use.
-  ///
-  /// The credentials used must be for a service account for the provided
-  /// cloud project.
-  Configuration.dev(this.projectId, this.packageBucketName)
-      : useDbKeys = false;
+  /// Create a configuration for development/staging deployment.
+  Configuration.dev()
+      : projectId = 'dartlang-pub-dev',
+        packageBucketName = 'dartlang-pub-dev--pub-packages',
+        useDbKeys = false {}
 }

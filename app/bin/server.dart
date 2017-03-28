@@ -24,15 +24,12 @@ import 'package:pub_dartlang_org/upload_signer_service.dart';
 import 'configuration.dart';
 import 'server_common.dart';
 
-final configuration = new Configuration.prod();
-//final configuration = new Configuration.dev('<project-id>', '<bucket-name>');
-
 void main() {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
     return fork(() async {
-      final shelf.Handler apiHandler = await setupServices(configuration);
+      final shelf.Handler apiHandler = await setupServices(activeConfiguration);
       final storageServiceCopy = storageService;
 
       await runAppEngine((ioRequest) async {
