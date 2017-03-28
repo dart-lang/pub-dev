@@ -71,6 +71,8 @@ void main() {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
+  final savedStorageService = storageService;
+
   auth.ServiceAccountCredentials credentials;
   if (configuration.useDbKeys) {
     final pemFileString = await cloudStorageKeyFromDB();
@@ -90,6 +92,14 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerTemplateService(
       new TemplateService(templateDirectory: TemplateLocation));
 
+
+  // We generate a second [TarballStorage] used during the transition phase from
+  //    gs://pub.dartlang.org  --->  gs://pub-packages.
+  // TODO(kustermann): Remove this, once the transition is over.
+  final newBucket = savedStorageService.bucket('pub-packages');
+  final newTarballStorage = new TarballStorage(
+      savedStorageService, newBucket, null);
+
   final bucket = storageService.bucket(configuration.packageBucketName);
   final tarballStorage = new TarballStorage(storageService, bucket, null);
   registerTarballStorage(tarballStorage);
@@ -99,7 +109,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   await initSearchService();
 
   final cache = new AppEnginePackageMemcache(memcacheService, '');
-  initBackend(cache: cache);
+  initBackend(newTarballStorage, cache: cache);
 
   if (configuration.useDbKeys) {
     registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
