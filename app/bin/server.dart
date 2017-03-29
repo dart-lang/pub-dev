@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/service_scope.dart';
+import 'package:gcloud/http.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:path/path.dart' as path;
@@ -16,7 +17,6 @@ import 'package:pub_server/shelf_pubserver.dart';
 
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers.dart';
-import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/package_memcache.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
@@ -30,7 +30,6 @@ void main() {
   withAppEngineServices(() async {
     return fork(() async {
       final shelf.Handler apiHandler = await setupServices(activeConfiguration);
-      final storageServiceCopy = storageService;
 
       await runAppEngine((ioRequest) async {
         if (context.isProductionEnvironment &&
@@ -41,25 +40,19 @@ void main() {
               ..close();
         } else {
           try {
-            // Here we fork the current service scope and override
-            // storage to be what we setup above (because sometimes we need to
-            // use a storage service from another GCE project).
-            await fork(() {
-              registerStorageService(storageServiceCopy);
-              return shelf_io.handleRequest(ioRequest,
-                                            (shelf.Request request) async {
-                logger.info('Handling request: ${request.requestedUri}');
-                await registerLoggedInUserIfPossible(request);
-                try {
-                  final sanitizedRequest = sanitizeRequestedUri(request);
-                  return await appHandler(sanitizedRequest, apiHandler);
-                } catch (error, s) {
-                  logger.severe('Request handler failed', error, s);
-                  return new shelf.Response.internalServerError();
-                } finally {
-                  logger.info('Request handler done.');
-                }
-              });
+            return shelf_io.handleRequest(ioRequest,
+                                          (shelf.Request request) async {
+              logger.info('Handling request: ${request.requestedUri}');
+              await registerLoggedInUserIfPossible(request);
+              try {
+                final sanitizedRequest = sanitizeRequestedUri(request);
+                return await appHandler(sanitizedRequest, apiHandler);
+              } catch (error, s) {
+                logger.severe('Request handler failed', error, s);
+                return new shelf.Response.internalServerError();
+              } finally {
+                logger.info('Request handler done.');
+              }
             });
           } catch (error, stack) {
             logger.severe('Request handler failed', error, stack);
@@ -71,34 +64,8 @@ void main() {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  final savedStorageService = storageService;
-
-  auth.ServiceAccountCredentials credentials;
-  if (configuration.useDbKeys) {
-    final pemFileString = await cloudStorageKeyFromDB();
-    credentials = new auth.ServiceAccountCredentials(
-        configuration.serviceAccountEmail,
-        new auth.ClientId('', ''),
-        pemFileString);
-  } else if (configuration.hasCredentials) {
-    credentials = configuration.credentials;
-  }
-  if (configuration.hasCredentials) {
-    final authClient = await auth.clientViaServiceAccount(credentials, SCOPES);
-    registerScopeExitCallback(authClient.close);
-    initStorage(configuration.projectId, authClient);
-  }
-
   registerTemplateService(
       new TemplateService(templateDirectory: TemplateLocation));
-
-
-  // We generate a second [TarballStorage] used during the transition phase from
-  //    gs://pub.dartlang.org  --->  gs://pub-packages.
-  // TODO(kustermann): Remove this, once the transition is over.
-  final newBucket = savedStorageService.bucket('pub-packages');
-  final newTarballStorage = new TarballStorage(
-      savedStorageService, newBucket, null);
 
   final bucket = storageService.bucket(configuration.packageBucketName);
   final tarballStorage = new TarballStorage(storageService, bucket, null);
@@ -109,16 +76,20 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   await initSearchService();
 
   final cache = new AppEnginePackageMemcache(memcacheService, '');
-  initBackend(newTarballStorage, cache: cache);
+  initBackend(cache: cache);
 
-  if (configuration.useDbKeys) {
-    registerUploadSigner(await uploadSignerServiceViaApiKeyFromDb(
-       configuration.serviceAccountEmail));
+  UploadSignerService uploadSigner;
+  if (configuration.hasCredentials) {
+    final credentials = configuration.credentials;
+    uploadSigner = new ServiceAccountBasedUploadSigner(credentials);
   } else {
-    registerUploadSigner(new UploadSignerService(
-        configuration.credentials.email,
-        configuration.credentials.privateRSAKey));
+    final authClient = await auth.clientViaMetadataServer();
+    registerScopeExitCallback(authClient.close);
+    final email = await obtainServiceAccountEmail();
+    uploadSigner = new IamBasedUploadSigner(
+        configuration.projectId, email, authClient);
   }
+  registerUploadSigner(uploadSigner);
 
   return new ShelfPubServer(backend.repository, cache: cache).requestHandler;
 }

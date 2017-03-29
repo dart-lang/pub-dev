@@ -48,9 +48,8 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.httpClient.close);
 }
 
-void initBackend(TarballStorage newTarballStorage, {UIPackageCache cache}) {
-  registerBackend(new Backend(
-        dbService, newTarballStorage, tarballStorage, cache: cache));
+void initBackend({UIPackageCache cache}) {
+  registerBackend(new Backend(dbService, tarballStorage, cache: cache));
 }
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get
@@ -78,4 +77,12 @@ bool isInt(String s) {
   } on FormatException catch (_, __) {
     return false;
   }
+}
+
+Future<String> obtainServiceAccountEmail() async {
+  final http.Response response = await http.get(
+      'http://metadata/computeMetadata/'
+      'v1/instance/service-accounts/default/email',
+      headers: const {'Metadata-Flavor' : 'Google'});
+  return response.body.trim();
 }

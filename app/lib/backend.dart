@@ -51,9 +51,9 @@ class Backend {
   final GCloudPackageRepository repository;
   final UIPackageCache uiPackageCache;
 
-  Backend(DatastoreDB db, TarballStorage newStorage, TarballStorage storage, {UIPackageCache cache})
+  Backend(DatastoreDB db, TarballStorage storage, {UIPackageCache cache})
       : db = db,
-        repository = new GCloudPackageRepository(db, newStorage, storage, cache: cache),
+        repository = new GCloudPackageRepository(db, storage, cache: cache),
         uiPackageCache = cache;
 
   /// Retrieves packages ordered by their latest version date.
@@ -117,11 +117,10 @@ class Backend {
 class GCloudPackageRepository extends PackageRepository {
   final Uuid uuid = new Uuid();
   final DatastoreDB db;
-  final TarballStorage newStorage;
   final TarballStorage storage;
   final UIPackageCache cache;
 
-  GCloudPackageRepository(this.db, this.newStorage, this.storage, {this.cache});
+  GCloudPackageRepository(this.db, this.storage, {this.cache});
 
   // Metadata support.
 
@@ -230,27 +229,8 @@ class GCloudPackageRepository extends PackageRepository {
       return withTempDirectory((Directory dir) async {
         var filename = '${dir.absolute.path}/tarball.tar.gz';
         await saveTarballToFS(storage.readTempObject(guid), filename);
-        return _performTarballUpload(userEmail,
-                                     filename,
-                                     (package, version) async {
-
-          await storage.uploadViaTempObject(guid, package, version);
-
-          // TODO(kustermann): Remove this, once the transition is over.
-          if (newStorage != null) {
-            final String absolute = storage.bucket.absoluteObjectName(
-                storage.namer.tarballObjectName(package, version));
-            final String toAbsolute = newStorage.bucket.absoluteObjectName(
-                storage.namer.tarballObjectName(package, version));
-            try {
-              _logger.warning('+1 Uploaded new package to "$absolute"');
-              await newStorage.uploadFromOtherBucket(
-                  absolute, package, version);
-              _logger.warning('+1 uploaded new package to "$toAbsolute".');
-            } catch (error, stack) {
-              _logger.servere('-1 uploaded new package to "$toAbsolute".');
-            }
-          }
+        return _performTarballUpload(userEmail, filename, (package, version) {
+          return storage.uploadViaTempObject(guid, package, version);
         }).whenComplete(() async {
           _logger.info('Removing temporary object $guid.');
           await storage.removeTempObject(guid);
@@ -687,24 +667,6 @@ class TarballStorage {
     // Copy the temporary object to it's destination place.
     await storage.copyObject(
         bucket.absoluteObjectName(namer.tmpObjectName(guid)),
-        bucket.absoluteObjectName(object));
-
-    // Change the ACL to include a `public-read` entry.
-    ObjectInfo info = await bucket.info(object);
-    var publicRead = new AclEntry(new AllUsersScope(), AclPermission.READ);
-    var acl =
-        new Acl(new List.from(info.metadata.acl.entries)..add(publicRead));
-    await bucket.updateMetadata(object, info.metadata.replace(acl: acl));
-  }
-
-  Future uploadFromOtherBucket(String otherBucketPath,
-                               String package,
-                               String version) async {
-    var object = namer.tarballObjectName(package, version);
-
-    // Copy the object to it's destination place.
-    await storage.copyObject(
-        otherBucketPath,
         bucket.absoluteObjectName(object));
 
     // Change the ACL to include a `public-read` entry.

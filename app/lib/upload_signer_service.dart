@@ -7,14 +7,16 @@ library pub_dartlang_org.upload_signer_service;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
-import 'package:googleapis_auth/src/crypto/pem.dart' as pem;
-import 'package:googleapis_auth/src/crypto/rsa.dart' as rsa;
+import 'package:googleapis/iam/v1.dart' as iam;
+import 'package:logging/logging.dart' as logging;
+import 'package:http/http.dart' as http;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pub_server/repository.dart';
 
-import 'keys.dart';
+final logging.Logger _logger = new logging.Logger('pub.upload_signer');
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner => ss.lookup(#_url_signer);
@@ -24,37 +26,30 @@ UploadSignerService get uploadSigner => ss.lookup(#_url_signer);
 void registerUploadSigner(UploadSignerService uploadSigner)
     => ss.register(#_url_signer, uploadSigner);
 
-/// Uses the datastore API in the current service scope to retrieve the private
-/// Key and creates a new [UploadSignerService].
-Future<UploadSignerService>
-    uploadSignerServiceViaApiKeyFromDb(String serviceAccountEmail) async {
-  String pemFileString = await cloudStorageKeyFromDB();
-  return new UploadSignerService(serviceAccountEmail,
-                                 pem.keyFromString(pemFileString));
-}
-
-/// Used for building cloud storage upload information with signatures.
+/// Signs Google Cloud Storage upload URLs.
+///
+/// Instead of letting the pub client upload package data via the pub server
+/// application we will let it upload to Google Cloud Storage directly.
+///
+/// Since the GCS bucket is not writable by third parties we will make a signed
+/// upload URL and give this to the client. The client can then for a given time
+/// period use the signed upload URL to upload the data directly to
+/// gs://<bucket>/<object>. The expiration date, acl, content-length-range are
+/// determined by the server.
 ///
 /// See here for a broader explanation:
-/// https://cloud.google.com/storage/docs/reference-methods#postobject
-class UploadSignerService {
+/// https://cloud.google.com/storage/docs/xml-api/post-object
+abstract class UploadSignerService {
   static const int MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
   static final Uri UploadUrl = Uri.parse('https://storage.googleapis.com');
 
-  final String serviceAccountEmail;
-  final RS256Signer _signer;
-
-  UploadSignerService(String serviceAccountEmail,
-                      rsa.RSAPrivateKey privateKey)
-      : serviceAccountEmail = serviceAccountEmail,
-        _signer = new RS256Signer(privateKey);
-
-  AsyncUploadInfo buildUpload(String bucket,
-                              String object,
-                              Duration lifetime,
-                              String successRedirectUrl,
-                              {String predefinedAcl: 'project-private',
-                               int maxUploadSize: MAX_UPLOAD_SIZE}) {
+  Future<AsyncUploadInfo> buildUpload(
+      String bucket,
+      String object,
+      Duration lifetime,
+      String successRedirectUrl,
+      {String predefinedAcl: 'project-private',
+       int maxUploadSize: MAX_UPLOAD_SIZE}) async {
     var now = new DateTime.now().toUtc();
     var expirationString = now.add(lifetime).toIso8601String();
 
@@ -73,13 +68,14 @@ class UploadSignerService {
     };
 
     var policyString = BASE64.encode(UTF8.encode(JSON.encode(policyMap)));
-    var signatureString = BASE64.encode(_signer.sign(ASCII.encode(policyString)));
+    final SigningResult result = await sign(ASCII.encode(policyString));
+    final signatureString = BASE64.encode(result.bytes);
 
     var fields = {
         'key' : object,
         'acl' : predefinedAcl,
         'Expires' : expirationString,
-        'GoogleAccessId' : serviceAccountEmail,
+        'GoogleAccessId' : result.googleAccessId,
         'policy' : policyString,
         'signature' : signatureString,
         'success_action_redirect' : successRedirectUrl,
@@ -87,4 +83,50 @@ class UploadSignerService {
 
     return new AsyncUploadInfo(UploadUrl, fields);
   }
+
+  Future<SigningResult> sign(List<int> bytes);
+}
+
+/// Uses [auth.ServiceAccountCredentials] to sign Google Cloud Storage upload
+/// URLs.
+///
+/// See [UploadSignerService] for more information.
+class ServiceAccountBasedUploadSigner extends UploadSignerService {
+  final String googleAccessId;
+  final RS256Signer signer;
+
+  ServiceAccountBasedUploadSigner(auth.ServiceAccountCredentials account)
+      : googleAccessId = account.email,
+        signer = new RS256Signer(account.privateRSAKey);
+
+  Future<SigningResult> sign(List<int> bytes) async {
+    return new SigningResult(googleAccessId, signer.sign(bytes));
+  }
+}
+
+/// Uses the [iam.IamApi] to sign Google Cloud Storage upload URLs.
+///
+/// See [UploadSignerService] for more information.
+class IamBasedUploadSigner extends UploadSignerService {
+  final String projectId;
+  final String email;
+  final iam.IamApi iamApi;
+
+  IamBasedUploadSigner(this.projectId, this.email, http.Client client)
+    : iamApi = new iam.IamApi(client);
+
+  Future<SigningResult> sign(List<int> bytes) async {
+    final request = new iam.SignBlobRequest()
+        ..bytesToSignAsBytes = bytes;
+    final name = 'projects/$projectId/serviceAccounts/$email';
+    final iam.SignBlobResponse response =
+        await iamApi.projects.serviceAccounts.signBlob(request, name);
+    return new SigningResult(email, response.signatureAsBytes);
+  }
+}
+
+class SigningResult {
+  final String googleAccessId;
+  final List<int> bytes;
+  SigningResult(this.googleAccessId, this.bytes);
 }

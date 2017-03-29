@@ -15,26 +15,6 @@ final activeConfiguration = new Configuration.prod();
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
 class Configuration {
-  /// The service account email address used for accessing Cloud Storage.
-  static const String _productionServiceAccountEmail =
-      "818368855108@developer.gserviceaccount.com";
-
-  /// If `useDbKeys` is `true` the credentials for accessing Cloud Storage is
-  /// read from the Datastore. If `useDbKeys` is false the credentials for
-  /// accessing Cloud Storage is read from a file. The location of that file
-  /// depends on the environment.
-  final bool useDbKeys;
-
-  /// The service account email for the service account when `useDbKeys`
-  /// is true.
-  String get serviceAccountEmail {
-    if (useDbKeys) {
-      return _productionServiceAccountEmail;
-    } else {
-      return credentials.email;
-    }
-  }
-
   /// The name of the Cloud Storage bucket to use.
   final String packageBucketName;
 
@@ -59,16 +39,14 @@ class Configuration {
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
-  /// bucket 'pub.dartlang.org'. The credentials for accessing the Cloud
+  /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
   Configuration.prod()
       : projectId = 'dartlang-pub',
-        packageBucketName = 'pub.dartlang.org',
-        useDbKeys = true {}
+        packageBucketName = 'pub-packages' {}
 
   /// Create a configuration for development/staging deployment.
   Configuration.dev()
       : projectId = 'dartlang-pub-dev',
-        packageBucketName = 'dartlang-pub-dev--pub-packages',
-        useDbKeys = false {}
+        packageBucketName = 'dartlang-pub-dev--pub-packages';
 }

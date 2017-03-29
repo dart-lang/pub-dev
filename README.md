@@ -12,6 +12,15 @@ Dart support for AppEngine).
 Generally speaking it is very easy to run the entire application locally
 (though be careful: it uses **production data** by default)!
 
+**Switch to using dev/staging data (optional)**
+
+To use a different Google Cloud Project, the `app/bin/configuration.dart` needs
+to be modified:
+```diff
+- final activeConfiguration = new Configuration.prod();
++ final activeConfiguration = new Configuration.dev();
+```
+
 This can be done in two ways, running with or without Docker. Running with Docker will
 be closer to the way the app runs on production (e.g. including using a memcache) -- though
 the turnaround time is a bit longer.
@@ -37,7 +46,7 @@ The server will be available via at [localhost:8080](http://localhost:8080)
 #### Variant b) Running locally With Docker
 
 To run the application locally with Docker follow these steps (please note you need to have the
-service account key inside the checkout (preferrably at `key.json`), because only files inside 
+service account key inside the checkout (preferrably at `key.json`), because only files inside
 the checkout can go into the docker context):
 ```
 pub-dartlang-dart $ vim Dockerfile
@@ -64,7 +73,7 @@ The unittests for the site can be run (tested on linux) via:
 pub-dartlang-dart $ cd app
 pub-dartlang-dart/app $ pub get
 pub-dartlang-dart/app $ pub run test
-00:17 +63: All tests passed!                                                
+00:17 +63: All tests passed!
 ```
 
 ## Deploying a new version to production

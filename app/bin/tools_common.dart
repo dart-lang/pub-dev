@@ -6,13 +6,10 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:pub_dartlang_org/keys.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
-import 'configuration.dart';
 import 'server_common.dart';
+import 'configuration.dart';
 
 withProdServices(Future fun()) async {
   if (!Platform.environment.containsKey('GCLOUD_PROJECT') ||
@@ -20,22 +17,9 @@ withProdServices(Future fun()) async {
     throw 'Missing GCLOUD_* environments for package:appengine';
   }
   return withAppEngineServices(() {
-    return ss.fork(() async {
-      final credentials = new auth.ServiceAccountCredentials(
-          activeConfiguration.serviceAccountEmail,
-          new auth.ClientId('', ''),
-          await cloudStorageKeyFromDB());
-      final authClient =
-          await auth.clientViaServiceAccount(credentials, SCOPES);
-      ss.registerScopeExitCallback(authClient.close);
-      initStorage(activeConfiguration.projectId, authClient);
-
-      registerUploadSigner(new UploadSignerService(
-          activeConfiguration.credentials.email,
-          credentials.privateRSAKey));
-      initBackend();
-
-      return fun();
-    });
+    registerUploadSigner(
+        new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
+    initBackend();
+    return fun();
   });
 }
