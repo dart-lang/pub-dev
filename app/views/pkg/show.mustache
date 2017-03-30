@@ -52,7 +52,7 @@
         <p>Add this to your package's pubspec.yaml file:</p>
 <pre>
 dependencies:
-  <strong>{{package.name}}: {{package.latest_version.example_version_constraint}}</strong>
+  <strong>{{package.name}}: {{package.selected_version.example_version_constraint}}</strong>
 </pre>
         <h3>2. Install it</h3>
         <p>You can install packages from the command line:</p>
@@ -60,14 +60,14 @@ dependencies:
 $ <strong>pub get</strong>
 </pre>
         <p>Alternatively, your editor might support pub. Check the docs for your editor to learn more.</p>
-        {{#package.latest_version.has_libraries}}
+        {{#package.selected_version.has_libraries}}
           <h3>3. Import it</h3>
           <p>Now in your Dart code, you can use:
           </p>
-<pre class="highlight">{{#package.latest_version.import_examples}}
-<span class="import-example"><span class="k">import</span> <span class="s">'package:<strong>{{package}}</strong>/<wbr/><strong>{{library}}</strong>'</span>;</span>{{/package.latest_version.import_examples}}
+<pre class="highlight">{{#package.selected_version.import_examples}}
+<span class="import-example"><span class="k">import</span> <span class="s">'package:<strong>{{package}}</strong>/<wbr/><strong>{{library}}</strong>'</span>;</span>{{/package.selected_version.import_examples}}
 </pre>
-        {{/package.latest_version.has_libraries}}
+        {{/package.selected_version.has_libraries}}
       </div>
 
       <div class="tab-pane" id="versions">
