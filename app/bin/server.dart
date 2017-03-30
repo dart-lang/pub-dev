@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/http.dart';
+import 'package:gcloud/src/datastore_impl.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:path/path.dart' as path;
@@ -29,9 +32,13 @@ void main() {
 
   withAppEngineServices(() async {
     return fork(() async {
+      DatastoreDB savedDb;
+      if (Platform.isMacOS) {
+        savedDb = await _initializeApiaryDatastore();
+      }
       final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
-      await runAppEngine((ioRequest) async {
+      AppEngineRequestHandler requestHandler = (ioRequest) async {
         if (context.isProductionEnvironment &&
             ioRequest.requestedUri.scheme != 'https') {
           final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
@@ -58,7 +65,17 @@ void main() {
             logger.severe('Request handler failed', error, stack);
           }
         }
-      });
+      };
+      if (Platform.isMacOS) {
+        AppEngineRequestHandler origHandler = requestHandler;
+        requestHandler = (ioRequest) {
+          return fork(() {
+            registerDbService(savedDb);
+            return origHandler(ioRequest);
+          });
+        };
+      }
+      await runAppEngine(requestHandler);
     });
   });
 }
@@ -120,4 +137,23 @@ shelf.Request sanitizeRequestedUri(shelf.Request request) {
         encoding: request.encoding,
         context: request.context);
   }
+}
+
+Future<DatastoreDB> _initializeApiaryDatastore() async {
+  final projectId = Platform.environment['GCLOUD_PROJECT'];
+  final gcloudKeyVar = Platform.environment['GCLOUD_KEY'];
+  final serviceAccount = new auth.ServiceAccountCredentials.fromJson(
+      new File(gcloudKeyVar).readAsStringSync());
+
+  final authClient =
+      await auth.clientViaServiceAccount(serviceAccount, DatastoreImpl.SCOPES);
+  registerScopeExitCallback(authClient.close);
+
+  final datastore = new DatastoreImpl(authClient, projectId);
+  registerDatastoreService(datastore);
+
+  final db = new DatastoreDB(datastore);
+  registerDbService(db);
+
+  return db;
 }
