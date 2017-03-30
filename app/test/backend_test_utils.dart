@@ -206,13 +206,17 @@ class UploadSignerServiceMock implements UploadSignerService {
 
   get serviceAccountEmail => throw 'no serviceAccountEmail support';
 
-  AsyncUploadInfo buildUpload(
+  @override
+  Future<AsyncUploadInfo> buildUpload(
       String bucket, String object, Duration lifetime,
       String successRedirectUrl, {String predefinedAcl: 'project-private',
-      int maxUploadSize: UploadSignerService.MAX_UPLOAD_SIZE}) {
+      int maxUploadSize: UploadSignerService.MAX_UPLOAD_SIZE}) async {
     return buildUploadFun(bucket, object, lifetime, successRedirectUrl,
         predefinedAcl: predefinedAcl, maxUploadSize: maxUploadSize);
   }
+
+  @override
+  Future<SigningResult> sign(List<int> bytes) => throw new UnimplementedError();
 }
 
 class BucketMock implements Bucket {
