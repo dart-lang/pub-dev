@@ -153,7 +153,8 @@ main() {
           expect(query, 'foobar');
           expect(offset, 0);
           expect(numResults, PageSize);
-          return new SearchResultPage(query, offset, 1, [testPackageVersion]);
+          return new SearchResultPage(
+              query, offset, 1, [testPackageVersion], [testPackageVersion]);
         }));
         expectHtmlResponse(await issueGet('/search?q=foobar'), status: 200);
       });
@@ -164,7 +165,8 @@ main() {
           expect(query, 'foobar');
           expect(offset, PageSize);
           expect(numResults, PageSize);
-          return new SearchResultPage(query, offset, 1, [testPackageVersion]);
+          return new SearchResultPage(
+              query, offset, 1, [testPackageVersion], [testPackageVersion]);
         }));
         expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
       });

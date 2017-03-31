@@ -312,17 +312,24 @@ class TemplateService {
 
   /// Renders the `views/search.mustache` template.
   String renderSearchPage(String query,
-                          List<PackageVersion> latestVersions,
+                          List<PackageVersion> stableVersions,
+                          List<PackageVersion> devVersions,
                           PageLinks pageLinks) {
-    var results = latestVersions.map((PackageVersion version) {
-      return {
-        'url' : '/packages/${version.packageKey.id}',
-        'name' : version.packageKey.id,
-        'version' : version.id,
-        'last_uploaded': version.shortCreated,
-        'desc' : version.ellipsizedDescription,
-      };
-    }).toList();
+    List results = [];
+    for (int i = 0; i < stableVersions.length; i++) {
+      PackageVersion stable = stableVersions[i];
+      PackageVersion dev = devVersions.length > i ? devVersions[i] : stable;
+      results.add({
+        'url' : '/packages/${stable.packageKey.id}',
+        'name' : stable.packageKey.id,
+        'version' : _HtmlEscaper.convert(stable.id),
+        'show_dev_version': stable.id != dev.id,
+        'dev_version': _HtmlEscaper.convert(dev.id),
+        'dev_version_href': Uri.encodeComponent(dev.id),
+        'last_uploaded': stable.shortCreated,
+        'desc' : stable.ellipsizedDescription,
+      });
+    }
 
     var values = {
         'query' : query,

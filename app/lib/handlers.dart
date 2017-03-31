@@ -114,8 +114,8 @@ sitemapHandler(_) => _htmlResponse(templateService.renderSitemapPage());
 searchHandler(shelf.Request request) async {
   var query = request.url.queryParameters['q'];
   if (query == null) {
-    return _htmlResponse(
-        templateService.renderSearchPage(query, [], new SearchLinks.empty('')));
+    return _htmlResponse(templateService.renderSearchPage(
+        query, [], [], new SearchLinks.empty('')));
   }
 
   int page = _pageFromUrl(request.url,
@@ -126,7 +126,7 @@ searchHandler(shelf.Request request) async {
   var searchPage = await searchService.search(query, offset, resultCount);
   var links = new SearchLinks(query, searchPage.offset, searchPage.totalCount);
   return _htmlResponse(templateService.renderSearchPage(
-      query, searchPage.packageVersions, links));
+      query, searchPage.stableVersions, searchPage.devVersions, links));
 }
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
