@@ -273,7 +273,8 @@ Future withTempDirectory(Future func(temp)) async {
   });
 }
 
-Future withTestPackage(Future func(List<int> tarball)) {
+Future withTestPackage(Future func(List<int> tarball),
+    {String pubspecContent}) {
   return withTempDirectory((String tmp) async {
     var readme = new File('$tmp/README.md');
     var changelog = new File('$tmp/CHANGELOG.md');
@@ -281,7 +282,7 @@ Future withTestPackage(Future func(List<int> tarball)) {
 
     await readme.writeAsString(TestPackageReadme);
     await changelog.writeAsString(TestPackageChangelog);
-    await pubspec.writeAsString(TestPackagePubspec);
+    await pubspec.writeAsString(pubspecContent ?? TestPackagePubspec);
 
     await new Directory('$tmp/lib').create();
     new File('$tmp/lib/test_library.dart')

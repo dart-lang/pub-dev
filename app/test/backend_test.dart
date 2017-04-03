@@ -731,6 +731,37 @@ main() {
           });
         });
 
+        scopedTest('bad package names are rejected', () async {
+          var tarballStorage = new TarballStorageMock();
+          var transactionMock = new TransactionMock();
+          var db = new DatastoreDBMock(transactionMock: transactionMock);
+          var repo = new GCloudPackageRepository(db, tarballStorage);
+          registerLoggedInUser('hans@juergen.com');
+
+          // Returns the error message as String or null if it succeeded.
+          Function fn = (String name) async {
+            String pubspecContent =
+                TestPackagePubspec.replaceAll('foobar_pkg', name);
+            try {
+              await withTestPackage((List<int> tarball) async {
+                await repo.upload(new Stream.fromIterable([tarball]));
+              }, pubspecContent: pubspecContent);
+            } catch (e) {
+              return e.toString();
+            }
+          };
+
+          expect(await fn('with'),
+              'Exception: Package name must not be a reserved word in Dart.');
+          expect(await fn('123test'),
+              'Exception: Package name must begin with a letter or underscore.');
+          expect(await fn('With Space'),
+              'Exception: Package name may only contain '
+              'letters, numbers, and underscores.');
+
+          expect(await fn('ok_name'), 'no lookupFun');
+        });
+
         scopedTest('upload-too-big', () async {
           var oneKB = new List.filled(1024, 42);
           var bigTarball = [];
