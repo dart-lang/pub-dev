@@ -81,14 +81,27 @@ class SearchService {
         var versionKeys =
             packages.where(exists).map((p) => p.latestVersionKey).toList();
         if (versionKeys.isNotEmpty) {
+          // select latest development versions for each package
+          var packageKeys = versionKeys.map((vk) => vk.parent).toList();
+          List<PackageVersion> devVersions = await Future.wait(
+              packageKeys.map((p) async {
+                List<PackageVersion> all = await db
+                    .query(PackageVersion, ancestorKey: p)
+                    .run()
+                    .toList();
+                all.sort((a, b) =>
+                    b.semanticVersion.compareTo(a.semanticVersion));
+                return all.first;
+              }));
           var versions = await db.lookup(versionKeys);
           int count = min(int.parse(search.searchInformation.totalResults),
                           SEARCH_MAX_RESULTS);
-          return new SearchResultPage(query, offset, count, versions);
+          return new SearchResultPage(
+              query, offset, count, versions, devVersions);
         }
       }
     }
-    return new SearchResultPage(query, offset, 0, []);
+    return new SearchResultPage(query, offset, 0, [], []);
   }
 }
 
@@ -103,9 +116,12 @@ class SearchResultPage {
   /// The total number of results available for the search.
   final int totalCount;
 
-  /// The latest versions of the packages found by the search.
-  final List<PackageVersion> packageVersions;
+  /// The latest stable versions of the packages found by the search.
+  final List<PackageVersion> stableVersions;
 
-  SearchResultPage(
-      this.query, this.offset, this.totalCount, this.packageVersions);
+  /// The latest development versions of the packages found by the search.
+  final List<PackageVersion> devVersions;
+
+  SearchResultPage(this.query, this.offset, this.totalCount,
+      this.stableVersions, this.devVersions);
 }

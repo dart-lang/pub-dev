@@ -179,7 +179,8 @@ class TemplateMock implements TemplateService {
   }
 
   String renderSearchPage(String query,
-                          List<PackageVersion> latestVersions,
+                          List<PackageVersion> stableVersions,
+                          List<PackageVersion> devVersions,
                           PageLinks pageLinks) {
     return Response;
   }

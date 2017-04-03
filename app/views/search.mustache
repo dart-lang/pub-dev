@@ -10,7 +10,18 @@
 {{#results}}
   <tr>
   <td>
-  <h3><a href="{{url}}">{{name}} <small>{{version}}</small></a></h3>
+  <h3>
+    <a href="{{url}}">{{name}}</a>
+    <span style="font-weight: normal; font-size: smaller">
+    {{^show_dev_version}}
+      (<a href="{{url}}">{{version}}</a>)
+    {{/show_dev_version}}
+    {{#show_dev_version}}
+      (latest: <a href="{{url}}">{{version}}</a> /
+               <a href="{{url}}/versions/{{dev_version_href}}">{{dev_version}}</a>)
+    {{/show_dev_version}}
+    </span>
+  </h3>
   <p>{{desc}}</p>
   <p><small>last updated {{last_uploaded}}</small></p>
   </td>
