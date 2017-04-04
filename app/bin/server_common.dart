@@ -22,10 +22,10 @@ import 'package:pub_dartlang_org/search_service.dart';
 final TemplateLocation = Platform.script.resolve('../views').toFilePath();
 
 const List<String> SCOPES = const [
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/datastore",
-    "https://www.googleapis.com/auth/devstorage.full_control",
-    "https://www.googleapis.com/auth/userinfo.email",
+  'https://www.googleapis.com/auth/cloud-platform',
+  'https://www.googleapis.com/auth/datastore',
+  'https://www.googleapis.com/auth/devstorage.full_control',
+  'https://www.googleapis.com/auth/userinfo.email',
 ];
 
 final Logger logger = new Logger('pub');
@@ -33,7 +33,7 @@ final Logger logger = new Logger('pub');
 void initOAuth2Service() {
   // The oauth2 service is used for getting an email address from an oauth2
   // access token (which the pub client sends).
-  var client = new http.Client();
+  final client = new http.Client();
   registerOAuth2Service(new OAuth2Service(client));
   registerScopeExitCallback(client.close);
 }
@@ -43,7 +43,7 @@ void initStorage(String projectId, authClient) {
 }
 
 Future initSearchService() async {
-  var searchService = await searchServiceViaApiKeyFromDb();
+  final searchService = await searchServiceViaApiKeyFromDb();
   registerSearchService(searchService);
   registerScopeExitCallback(searchService.httpClient.close);
 }
@@ -54,15 +54,14 @@ void initBackend({UIPackageCache cache}) {
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get
 /// the user email address and registers it.
-registerLoggedInUserIfPossible(shelf.Request request) async {
-  var authorization = request.headers['authorization'];
+Future registerLoggedInUserIfPossible(shelf.Request request) async {
+  final authorization = request.headers['authorization'];
   if (authorization != null) {
-    var parts = authorization.split(' ');
-    if (parts.length == 2 &&
-        parts.first.trim().toLowerCase() == 'bearer') {
-      var accessToken = parts.last.trim();
+    final parts = authorization.split(' ');
+    if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
+      final accessToken = parts.last.trim();
 
-      var email = await oauth2Service.lookup(accessToken);
+      final email = await oauth2Service.lookup(accessToken);
       if (email != null) {
         registerLoggedInUser(email);
       }
@@ -83,6 +82,6 @@ Future<String> obtainServiceAccountEmail() async {
   final http.Response response = await http.get(
       'http://metadata/computeMetadata/'
       'v1/instance/service-accounts/default/email',
-      headers: const {'Metadata-Flavor' : 'Google'});
+      headers: const {'Metadata-Flavor': 'Google'});
   return response.body.trim();
 }

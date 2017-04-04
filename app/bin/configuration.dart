@@ -43,7 +43,7 @@ class Configuration {
   /// Storage is retrieved from the Datastore.
   Configuration.prod()
       : projectId = 'dartlang-pub',
-        packageBucketName = 'pub-packages' {}
+        packageBucketName = 'pub-packages';
 
   /// Create a configuration for development/staging deployment.
   Configuration.dev()

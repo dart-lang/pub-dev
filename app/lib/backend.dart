@@ -22,28 +22,24 @@ import 'utils.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
 
-
 /// Sets the active logged-in user.
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
 
 /// The active logged-in user. This is used for doing authentication checks.
 String get loggedInUser => ss.lookup(#_logged_in_user);
 
-
 /// Sets the active tarball storage
-void registerTarballStorage(TarballStorage ts)
-    => ss.register(#_tarball_storage, ts);
+void registerTarballStorage(TarballStorage ts) =>
+    ss.register(#_tarball_storage, ts);
 
 /// The active tarball storage.
 TarballStorage get tarballStorage => ss.lookup(#_tarball_storage);
-
 
 /// Sets the backend service.
 void registerBackend(Backend backend) => ss.register(#_backend, backend);
 
 /// The active backend service.
 Backend get backend => ss.lookup(#_backend);
-
 
 /// Represents the backend for the pub.dartlang.org site.
 class Backend {
@@ -59,31 +55,31 @@ class Backend {
   /// Retrieves packages ordered by their latest version date.
   Future<List<models.Package>> latestPackages(
       {int offset: null, int limit: null}) {
-    var query = db.query(models.Package)
-        ..order('-updated')
-        ..offset(offset)
-        ..limit(limit);
+    final query = db.query(models.Package)
+      ..order('-updated')
+      ..offset(offset)
+      ..limit(limit);
     return query.run().toList();
   }
 
   /// Retrieves package versions ordered by their latest version date.
   Future<List<models.PackageVersion>> latestPackageVersions(
       {int offset: null, int limit: null}) async {
-    var packages = await latestPackages(offset: offset, limit: limit);
+    final packages = await latestPackages(offset: offset, limit: limit);
     return lookupLatestVersions(packages);
   }
 
   /// Looks up a package by name.
   Future<models.Package> lookupPackage(String packageName) async {
-    var packageKey = db.emptyKey.append(models.Package, id: packageName);
+    final packageKey = db.emptyKey.append(models.Package, id: packageName);
     return (await db.lookup([packageKey])).first;
   }
 
   /// Looks up a specific package version.
-  Future<models.PackageVersion> lookupPackageVersion(String package,
-                                                     String version) async {
+  Future<models.PackageVersion> lookupPackageVersion(
+      String package, String version) async {
     version = canonicalizeVersion(version);
-    var packageVersionKey = db.emptyKey
+    final packageVersionKey = db.emptyKey
         .append(models.Package, id: package)
         .append(models.PackageVersion, id: version);
     return (await db.lookup([packageVersionKey])).first;
@@ -92,25 +88,25 @@ class Backend {
   /// Looks up the latest versions of a list of packages.
   Future<List<models.PackageVersion>> lookupLatestVersions(
       List<models.Package> packages) {
-    var keys = packages.map((models.Package p) => p.latestVersionKey).toList();
+    final keys =
+        packages.map((models.Package p) => p.latestVersionKey).toList();
     return db.lookup(keys);
   }
 
   /// Looks up all versions of a package.
   Future<List<models.PackageVersion>> versionsOfPackage(String packageName) {
-    var packageKey = db.emptyKey.append(models.Package, id: packageName);
-    var query = db.query(models.PackageVersion, ancestorKey: packageKey);
+    final packageKey = db.emptyKey.append(models.Package, id: packageName);
+    final query = db.query(models.PackageVersion, ancestorKey: packageKey);
     return query.run().toList();
   }
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
     version = canonicalizeVersion(version);
-    assert (repository.supportsDownloadUrl);
+    assert(repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
   }
 }
-
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
@@ -124,21 +120,22 @@ class GCloudPackageRepository extends PackageRepository {
 
   // Metadata support.
 
+  @override
   Stream<PackageVersion> versions(String package) {
     var controller;
     var subscription;
 
     controller = new StreamController(
         onListen: () {
-          var packageKey = db.emptyKey.append(models.Package, id: package);
-          var query = db.query(models.PackageVersion, ancestorKey: packageKey);
-          subscription = query.run().listen((models.PackageVersion model) {
-            var packageVersion = new PackageVersion(
+          final packageKey = db.emptyKey.append(models.Package, id: package);
+          final query =
+              db.query(models.PackageVersion, ancestorKey: packageKey);
+          subscription =
+              (query.run() as Stream<models.PackageVersion>).listen((model) {
+            final packageVersion = new PackageVersion(
                 package, model.version, model.pubspec.jsonString);
             controller.add(packageVersion);
-          },
-          onError: controller.addError,
-          onDone: controller.close);
+          }, onError: controller.addError, onDone: controller.close);
         },
         onPause: () => subscription.pause(),
         onResume: () => subscription.resume(),
@@ -146,21 +143,23 @@ class GCloudPackageRepository extends PackageRepository {
     return controller.stream;
   }
 
+  @override
   Future<PackageVersion> lookupVersion(String package, String version) async {
     version = canonicalizeVersion(version);
 
-    var packageVersionKey = db
-        .emptyKey
+    final packageVersionKey = db.emptyKey
         .append(models.Package, id: package)
         .append(models.PackageVersion, id: version);
 
-    models.PackageVersion pv = (await db.lookup([packageVersionKey])).first;
+    final models.PackageVersion pv =
+        (await db.lookup([packageVersionKey])).first;
     if (pv == null) return null;
     return new PackageVersion(package, version, pv.pubspec.jsonString);
   }
 
   // Download support.
 
+  @override
   Future<Stream<List<int>>> download(String package, String version) async {
     // TODO: Should we first test for existence?
     // Maybe with a cache?
@@ -168,8 +167,10 @@ class GCloudPackageRepository extends PackageRepository {
     return storage.download(package, version);
   }
 
+  @override
   bool get supportsDownloadUrl => true;
 
+  @override
   Future<Uri> downloadUrl(String package, String version) async {
     version = canonicalizeVersion(version);
     return storage.downloadUrl(package, version);
@@ -177,15 +178,17 @@ class GCloudPackageRepository extends PackageRepository {
 
   // Upload support.
 
+  @override
   bool get supportsUpload => true;
 
-  Future<PackageVersion> upload(Stream<List<int>> data)  {
+  @override
+  Future<PackageVersion> upload(Stream<List<int>> data) {
     _logger.info('Starting upload.');
     return withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
       return withTempDirectory((Directory dir) async {
-        var filename = '${dir.absolute.path}/tarball.tar.gz';
+        final filename = '${dir.absolute.path}/tarball.tar.gz';
         await saveTarballToFS(data, filename);
         return _performTarballUpload(userEmail, filename, (package, version) {
           return storage.upload(
@@ -195,8 +198,10 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
+  @override
   bool get supportsAsyncUpload => true;
 
+  @override
   Future<AsyncUploadInfo> startAsyncUpload(Uri redirectUrl) async {
     _logger.info('Starting async upload.');
     // NOTE: We use a authenticated user scope here to ensure the uploading
@@ -206,28 +211,29 @@ class GCloudPackageRepository extends PackageRepository {
     return withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
-      String guid =  uuid.v4();
-      String object = storage.tempObjectName(guid);
-      String bucket = storage.bucket.bucketName;
-      Duration lifetime = const Duration(minutes: 10);
+      final String guid = uuid.v4();
+      final String object = storage.tempObjectName(guid);
+      final String bucket = storage.bucket.bucketName;
+      final Duration lifetime = const Duration(minutes: 10);
 
-      var url = redirectUrl.resolve('?upload_id=$guid');
+      final url = redirectUrl.resolve('?upload_id=$guid');
 
-      _logger.info(
-          'Redirecting pub client to google cloud storage (uuid: $guid)');
+      _logger
+          .info('Redirecting pub client to google cloud storage (uuid: $guid)');
       return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
     });
   }
 
   /// Finishes the upload of a package.
+  @override
   Future<PackageVersion> finishAsyncUpload(Uri uri) {
     return withAuthenticatedUser((String userEmail) async {
-      var guid = uri.queryParameters['upload_id'];
+      final guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
       _logger.info('Reading tarball from cloud storage.');
 
       return withTempDirectory((Directory dir) async {
-        var filename = '${dir.absolute.path}/tarball.tar.gz';
+        final filename = '${dir.absolute.path}/tarball.tar.gz';
         await saveTarballToFS(storage.readTempObject(guid), filename);
         return _performTarballUpload(userEmail, filename, (package, version) {
           return storage.uploadViaTempObject(guid, package, version);
@@ -239,13 +245,12 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future<PackageVersion> _performTarballUpload(
-      String userEmail, String filename,
-      Future tarballUpload(name, version)) async {
-      _logger.info('Examining tarball content.');
+  Future<PackageVersion> _performTarballUpload(String userEmail,
+      String filename, Future tarballUpload(name, version)) async {
+    _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
-    models.PackageVersion newVersion =
+    final models.PackageVersion newVersion =
         await parseAndValidateUpload(db, filename, userEmail);
 
     // Add the new package to the repository by storing the tarball and
@@ -253,18 +258,16 @@ class GCloudPackageRepository extends PackageRepository {
     return await db.withTransaction((Transaction T) async {
       _logger.info('Starting datastore transaction.');
 
-      var tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
-      models.PackageVersion version = tuple[0];
+      final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
+      final models.PackageVersion version = tuple[0];
       models.Package package = tuple[1];
 
       // If the version already exists, we fail.
       if (version != null) {
         await T.rollback();
-        _logger.warning(
-            'Version ${version.version} of package '
+        _logger.warning('Version ${version.version} of package '
             '${version.package} already exists, rolling transaction back.');
-        throw new Exception(
-            'Version ${version.version} of package '
+        throw new Exception('Version ${version.version} of package '
             '${version.package} already exists.');
       }
 
@@ -274,8 +277,7 @@ class GCloudPackageRepository extends PackageRepository {
       // Check if the uploader of the new version is allowed to upload to
       // the package.
       if (!package.hasUploader(newVersion.uploaderEmail)) {
-        _logger.warning(
-            'User ${newVersion.uploaderEmail} is not an uploader '
+        _logger.warning('User ${newVersion.uploaderEmail} is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
         throw new UnauthorizedAccessException(
@@ -289,7 +291,7 @@ class GCloudPackageRepository extends PackageRepository {
       // Keep the latest version in the package object up-to-date.
       if (package.latestSemanticVersion < newVersion.semanticVersion &&
           (package.latestSemanticVersion.isPreRelease ||
-           !newVersion.semanticVersion.isPreRelease)) {
+              !newVersion.semanticVersion.isPreRelease)) {
         package.latestVersionKey = newVersion.key;
       }
 
@@ -309,8 +311,7 @@ class GCloudPackageRepository extends PackageRepository {
         // store them again.
         await _updatePackageSortIndex(package.key);
 
-        return new PackageVersion(
-            newVersion.package, newVersion.version,
+        return new PackageVersion(newVersion.package, newVersion.version,
             newVersion.pubspec.jsonString);
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
@@ -332,17 +333,16 @@ class GCloudPackageRepository extends PackageRepository {
     try {
       _logger.info('Trying to update the `sort_order` field.');
       await db.withTransaction((Transaction T) async {
-        List<models.PackageVersion> versions = await
-            T.query(models.PackageVersion, packageKey).run().toList();
+        final List<models.PackageVersion> versions =
+            await T.query(models.PackageVersion, packageKey).run().toList();
         versions.sort((versionA, versionB) {
-          return versionA.semanticVersion.compareTo(
-              versionB.semanticVersion);
+          return versionA.semanticVersion.compareTo(versionB.semanticVersion);
         });
 
-        List<models.PackageVersion> modifiedVersions = [];
+        final List<models.PackageVersion> modifiedVersions = [];
 
         for (int i = 0; i < versions.length; i++) {
-          var version = versions[i];
+          final version = versions[i];
           if (version.sortOrder != i) {
             version.sortOrder = i;
             modifiedVersions.add(version);
@@ -352,27 +352,30 @@ class GCloudPackageRepository extends PackageRepository {
         T.queueMutations(inserts: modifiedVersions);
         await T.commit();
         _logger.info('Successfully updated `sort_order` field of '
-                     '${modifiedVersions.length} versions'
-                     '(out of ${versions.length} versions).');
+            '${modifiedVersions.length} versions'
+            '(out of ${versions.length} versions).');
       });
     } catch (error, stack) {
       // We ignore errors, since the sorting is not that critical and
       // the upload itself was successfull.
       _logger.warning(
           'Sorting by `sort_order` failed, but upload was successful.',
-          error, stack);
+          error,
+          stack);
     }
   }
 
   // Uploaders support.
 
+  @override
   bool get supportsUploaders => true;
 
+  @override
   Future addUploader(String packageName, String uploaderEmail) async {
     return withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
-        var packageKey = db.emptyKey.append(models.Package, id: packageName);
-        models.Package package = (await T.lookup([packageKey])).first;
+        final packageKey = db.emptyKey.append(models.Package, id: packageName);
+        final models.Package package = (await T.lookup([packageKey])).first;
 
         // Fail if package doesn't exist.
         if (package == null) {
@@ -404,11 +407,12 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
+  @override
   Future removeUploader(String packageName, String uploaderEmail) async {
     return withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
-        var packageKey = db.emptyKey.append(models.Package, id: packageName);
-        models.Package package = (await T.lookup([packageKey])).first;
+        final packageKey = db.emptyKey.append(models.Package, id: packageName);
+        final models.Package package = (await T.lookup([packageKey])).first;
 
         // Fail if package doesn't exist.
         if (package == null) {
@@ -453,7 +457,7 @@ class GCloudPackageRepository extends PackageRepository {
 ///
 /// If no user is currently logged in, this will throw an `UnauthorizedAccess`
 /// exception.
-withAuthenticatedUser(func(String user)) async {
+Future<T> withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
   if (loggedInUser == null) {
     throw new UnauthorizedAccessException('No active user.');
   }
@@ -465,14 +469,14 @@ withAuthenticatedUser(func(String user)) async {
 /// Compeltes with an error if the incoming stream has an error or if the size
 /// exceeds `GcloudPackageRepo.MAX_TARBALL_SIZE`.
 Future saveTarballToFS(Stream<List<int>> data, String filename) async {
-  Completer completer = new Completer();
+  final Completer completer = new Completer();
 
   StreamSink<List<int>> sink;
   StreamSubscription dataSubscription;
-  StreamController intermediary;
+  StreamController<List<int>> intermediary;
   Future addStreamFuture;
 
-  abort(error, stack) {
+  void abort(error, stack) {
     _logger.warning(
         'An error occured while streaming tarball to FS.', error, stack);
 
@@ -485,40 +489,41 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
     }
   }
 
-  finish() {
+  void finish() {
     _logger.info('Finished streaming tarball to FS.');
     completer.complete();
   }
 
-  startReading() {
+  void startReading() {
     int receivedBytes = 0;
 
-    dataSubscription = data.listen((List<int> chunk) {
-      receivedBytes += chunk.length;
-      if (receivedBytes <= UploadSignerService.MAX_UPLOAD_SIZE) {
-        intermediary.add(chunk);
-      } else {
-        var error = 'Invalid upload: Exceeded '
-            '${UploadSignerService.MAX_UPLOAD_SIZE} upload size.';
-        intermediary.addError(error);
-        intermediary.close();
+    dataSubscription = data.listen(
+        (List<int> chunk) {
+          receivedBytes += chunk.length;
+          if (receivedBytes <= UploadSignerService.MAX_UPLOAD_SIZE) {
+            intermediary.add(chunk);
+          } else {
+            final error = 'Invalid upload: Exceeded '
+                '${UploadSignerService.MAX_UPLOAD_SIZE} upload size.';
+            intermediary.addError(error);
+            intermediary.close();
 
-        abort(error, null);
-      }
-    },
-    onError: abort,
-    onDone: () {
-      intermediary.close();
-      addStreamFuture.then((_) async {
-        await sink.close();
-        finish();
-      }).catchError((error, stack) {
-        // NOTE: There is also an error handler further down for `addStream()`,
-        // since an error might occur before we get this `onDone` callback.
-        // In this case `abort` will not do anything.
-        abort(error, stack);
-      });
-    });
+            abort(error, null);
+          }
+        },
+        onError: abort,
+        onDone: () {
+          intermediary.close();
+          addStreamFuture.then((_) async {
+            await sink.close();
+            finish();
+          }).catchError((error, stack) {
+            // NOTE: There is also an error handler further down for `addStream()`,
+            // since an error might occur before we get this `onDone` callback.
+            // In this case `abort` will not do anything.
+            abort(error, stack);
+          });
+        });
   }
 
   intermediary = new StreamController(
@@ -534,7 +539,6 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
         // => Since this is normal behavior we're not aborting here.
       });
 
-
   sink = new File(filename).openWrite();
   addStreamFuture = sink.addStream(intermediary.stream);
   addStreamFuture.catchError(abort);
@@ -543,18 +547,18 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
 }
 
 /// Creates a new `Package` and populates all of it's fields.
-models.Package newPackageFromVersion(DatastoreDB db,
-                                     models.PackageVersion version) {
-  var now = new DateTime.now().toUtc();
+models.Package newPackageFromVersion(
+    DatastoreDB db, models.PackageVersion version) {
+  final now = new DateTime.now().toUtc();
   return new models.Package()
-      ..parentKey = db.emptyKey
-      ..id = version.pubspec.name
-      ..name = version.pubspec.name
-      ..created = now
-      ..updated = now
-      ..downloads = 0
-      ..latestVersionKey = version.key
-      ..uploaderEmails = [loggedInUser];
+    ..parentKey = db.emptyKey
+    ..id = version.pubspec.name
+    ..name = version.pubspec.name
+    ..created = now
+    ..updated = now
+    ..downloads = 0
+    ..latestVersionKey = version.key
+    ..uploaderEmails = [loggedInUser];
 }
 
 /// Parses metadata from a tarball and & validates it.
@@ -564,19 +568,18 @@ models.Package newPackageFromVersion(DatastoreDB db,
 ///   * contains a valid `pubspec.yaml` file
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
-Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
-                                                     String filename,
-                                                     String user) async {
-  assert (user != null);
+Future<models.PackageVersion> parseAndValidateUpload(
+    DatastoreDB db, String filename, String user) async {
+  assert(user != null);
 
-  var files = await listTarball(filename);
+  final files = await listTarball(filename);
 
   // Searches in [files] for a file name [name] and compare in a
   // case-insensitive manner.
   //
   // Returns `null` if not found otherwise the correct filename.
   String searchForFile(String name) {
-    String nameLowercase = name.toLowerCase();
+    final String nameLowercase = name.toLowerCase();
     for (String filename in files) {
       if (filename.toLowerCase() == nameLowercase) {
         return filename;
@@ -595,7 +598,7 @@ Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
     changelogFilename = searchForFile('CHANGELOG');
   }
 
-  var libraries = files
+  final libraries = files
       .where((file) => file.startsWith('lib/'))
       .where((file) => !file.startsWith('lib/src'))
       .where((file) => file.endsWith('.dart'))
@@ -606,39 +609,43 @@ Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
     throw 'Invalid upload: no pubspec.yaml file';
   }
 
-  var pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
+  final pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
 
-  var pubspec = new Pubspec.fromYaml(pubspecContent);
-  if (pubspec.name == null || pubspec.version == null ||
-      pubspec.name.trim().isEmpty || pubspec.version.trim().isEmpty) {
+  final pubspec = new Pubspec.fromYaml(pubspecContent);
+  if (pubspec.name == null ||
+      pubspec.version == null ||
+      pubspec.name.trim().isEmpty ||
+      pubspec.version.trim().isEmpty) {
     throw 'Invalid `pubspec.yaml` file';
   }
   validatePackageName(pubspec.name);
 
-  var readmeContent = readmeFilename != null
-      ? await readTarballFile(filename, readmeFilename) : null;
-  var changelogContent = changelogFilename != null
-      ? await readTarballFile(filename, changelogFilename) : null;
+  final readmeContent = readmeFilename != null
+      ? await readTarballFile(filename, readmeFilename)
+      : null;
+  final changelogContent = changelogFilename != null
+      ? await readTarballFile(filename, changelogFilename)
+      : null;
 
-  var packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
+  final packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
 
-  var versionString = canonicalizeVersion(pubspec.version);
+  final versionString = canonicalizeVersion(pubspec.version);
 
-  var version = new models.PackageVersion()
-      ..id = versionString
-      ..parentKey = packageKey
-      ..version = versionString
-      ..packageKey = packageKey
-      ..created = new DateTime.now().toUtc()
-      ..pubspec = pubspec
-      ..readmeFilename = readmeFilename
-      ..readmeContent = readmeContent
-      ..changelogFilename = changelogFilename
-      ..changelogContent = changelogContent
-      ..libraries = libraries
-      ..downloads = 0
-      ..sortOrder = 1
-      ..uploaderEmail = user;
+  final version = new models.PackageVersion()
+    ..id = versionString
+    ..parentKey = packageKey
+    ..version = versionString
+    ..packageKey = packageKey
+    ..created = new DateTime.now().toUtc()
+    ..pubspec = pubspec
+    ..readmeFilename = readmeFilename
+    ..readmeContent = readmeContent
+    ..changelogFilename = changelogFilename
+    ..changelogContent = changelogContent
+    ..libraries = libraries
+    ..downloads = 0
+    ..sortOrder = 1
+    ..uploaderEmail = user;
   return version;
 }
 
@@ -649,22 +656,21 @@ class TarballStorage {
   final Storage storage;
   final Bucket bucket;
 
-  TarballStorage(this.storage, Bucket bucket, String namespace) :
-      bucket = bucket,
-      namer = new TarballStorageNamer(bucket.bucketName, namespace);
+  TarballStorage(this.storage, Bucket bucket, String namespace)
+      : bucket = bucket,
+        namer = new TarballStorageNamer(bucket.bucketName, namespace);
 
   /// Generates a path to a temporary object on cloud storage.
   String tempObjectName(String guid) => namer.tmpObjectName(guid);
 
   /// Reads the temporary object identified by [guid]
-  Stream<List<int>> readTempObject(String guid)
-      => bucket.read(namer.tmpObjectName(guid));
+  Stream<List<int>> readTempObject(String guid) =>
+      bucket.read(namer.tmpObjectName(guid));
 
   /// Makes a temporary object a new tarball.
-  Future uploadViaTempObject(String guid,
-                             String package,
-                             String version) async {
-    var object = namer.tarballObjectName(package, version);
+  Future uploadViaTempObject(
+      String guid, String package, String version) async {
+    final object = namer.tarballObjectName(package, version);
 
     // Copy the temporary object to it's destination place.
     await storage.copyObject(
@@ -672,9 +678,9 @@ class TarballStorage {
         bucket.absoluteObjectName(object));
 
     // Change the ACL to include a `public-read` entry.
-    ObjectInfo info = await bucket.info(object);
-    var publicRead = new AclEntry(new AllUsersScope(), AclPermission.READ);
-    var acl =
+    final ObjectInfo info = await bucket.info(object);
+    final publicRead = new AclEntry(new AllUsersScope(), AclPermission.READ);
+    final acl =
         new Acl(new List.from(info.metadata.acl.entries)..add(publicRead));
     await bucket.updateMetadata(object, info.metadata.replace(acl: acl));
   }
@@ -687,13 +693,13 @@ class TarballStorage {
 
   /// Download the tarball of a [package] in the given [version].
   Stream<List<int>> download(String package, String version) {
-    var object = namer.tarballObjectName(package, version);
+    final object = namer.tarballObjectName(package, version);
     return bucket.read(object);
   }
 
   /// Deletes the tarball of a [package] in the given [version] permanently.
   Future remove(String package, String version) {
-    var object = namer.tarballObjectName(package, version);
+    final object = namer.tarballObjectName(package, version);
     return bucket.delete(object);
   }
 
@@ -708,9 +714,9 @@ class TarballStorage {
 
   /// Upload [tarball] of a [package] in the given [version].
   Future upload(String package, String version, Stream<List<int>> tarball) {
-    var object = namer.tarballObjectName(package, version);
-    return tarball.pipe(
-        bucket.write(object, predefinedAcl: PredefinedAcl.publicRead));
+    final object = namer.tarballObjectName(package, version);
+    return tarball
+        .pipe(bucket.write(object, predefinedAcl: PredefinedAcl.publicRead));
   }
 }
 
@@ -735,21 +741,23 @@ class TarballStorageNamer {
   /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
   final String prefix;
 
-  TarballStorageNamer(this.bucket, String namespace) :
-      namespace = namespace == null ? '' : namespace,
-      prefix = (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
+  TarballStorageNamer(this.bucket, String namespace)
+      : namespace = namespace == null ? '' : namespace,
+        prefix =
+            (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
 
   /// The GCS object name of a tarball object - excluding leading '/'.
   String tarballObjectName(String package, String version)
       // TODO: Do we need some kind of escaping here?
-      => '${prefix}packages/$package-$version.tar.gz';
+      =>
+      '${prefix}packages/$package-$version.tar.gz';
 
   /// The GCS object name of an temporary object [guid] - excluding leading '/'.
   String tmpObjectName(String guid) => 'tmp/$guid';
 
   /// The http URL of a publicly accessable GCS object.
   String tarballObjectUrl(String package, String version) {
-    var object = tarballObjectName(package, version);
-    return 'https://storage.googleapis.com/${bucket}/${object}';
+    final object = tarballObjectName(package, version);
+    return 'https://storage.googleapis.com/$bucket/$object';
   }
 }

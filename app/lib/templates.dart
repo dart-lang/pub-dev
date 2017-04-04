@@ -18,8 +18,8 @@ const HtmlEscape _HtmlEscaper = const HtmlEscape();
 
 final _AuthorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
 
-void registerTemplateService(TemplateService service)
-    => ss.register(#_templates, service);
+void registerTemplateService(TemplateService service) =>
+    ss.register(#_templates, service);
 
 TemplateService get templateService => ss.lookup(#_templates);
 
@@ -37,23 +37,22 @@ class TemplateService {
 
   /// Renders the `views/private_keys/new.mustache` template.
   String renderPrivateKeysNewPage(bool wasAlreadySet, bool isProduction) {
-    var values = {
-        'already_set': wasAlreadySet,
-        'production' : isProduction,
+    final values = {
+      'already_set': wasAlreadySet,
+      'production': isProduction,
     };
     return _renderPage('private_keys/new', values);
   }
 
   /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(String package,
-                               List<PackageVersion> versions,
-                               List<Uri> versionDownloadUrls) {
+  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
-    var versionsJson = [];
+    final versionsJson = [];
     for (int i = 0; i < versions.length; i++) {
-      PackageVersion version = versions[i];
-      String url = versionDownloadUrls[i].toString();
+      final PackageVersion version = versions[i];
+      final String url = versionDownloadUrls[i].toString();
       versionsJson.add({
         'version': version.id,
         'short_created': version.shortCreated,
@@ -62,35 +61,34 @@ class TemplateService {
       });
     }
 
-    var values = {
-        'package': {
-          'name' : package,
-        },
-        'versions' : versionsJson,
+    final values = {
+      'package': {
+        'name': package,
+      },
+      'versions': versionsJson,
     };
     return _renderPage('pkg/versions/index', values);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
-  String renderPkgIndexPage(List<Package> packages,
-                            List<PackageVersion> versions,
-                            PageLinks links) {
-    var packagesJson = [];
+  String renderPkgIndexPage(
+      List<Package> packages, List<PackageVersion> versions, PageLinks links) {
+    final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
-      var package = packages[i];
-      var version = versions[i];
+      final package = packages[i];
+      final version = versions[i];
       packagesJson.add({
-          'name' : package.name,
-          'description' : {
-            'ellipsized_description' : version.ellipsizedDescription,
-          },
-          'authors_html' : _getAuthorsHtml(version),
-          'short_updated' : version.shortCreated,
+        'name': package.name,
+        'description': {
+          'ellipsized_description': version.ellipsizedDescription,
+        },
+        'authors_html': _getAuthorsHtml(version),
+        'short_updated': version.shortCreated,
       });
     }
-    var values = {
-        'packages': packagesJson,
-        'pagination' : renderPagination(links),
+    final values = {
+      'packages': packagesJson,
+      'pagination': renderPagination(links),
     };
 
     var title = 'All Packages';
@@ -102,33 +100,36 @@ class TemplateService {
   }
 
   /// Renders the `views/private_keys/show.mustache` template.
-  String renderPkgShowPage(Package package,
-                           List<PackageVersion> versions,
-                           List<Uri> versionDownloadUrls,
-                           PackageVersion selectedVersion,
-                           PackageVersion latestStableVersion,
-                           PackageVersion latestDevVersion,
-                           int totalNumberOfVersions) {
+  String renderPkgShowPage(
+      Package package,
+      List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls,
+      PackageVersion selectedVersion,
+      PackageVersion latestStableVersion,
+      PackageVersion latestDevVersion,
+      int totalNumberOfVersions) {
     assert(versions.length == versionDownloadUrls.length);
 
     var importExamples;
     if (selectedVersion.libraries.contains('${package.id}.dart')) {
-      importExamples = [{
-        'package' : package.id,
-        'library' : '${package.id}.dart',
-      }];
+      importExamples = [
+        {
+          'package': package.id,
+          'library': '${package.id}.dart',
+        }
+      ];
     } else {
       importExamples = selectedVersion.libraries.map((library) {
         return {
-          'package' : selectedVersion.packageKey.id,
-          'library' : library,
+          'package': selectedVersion.packageKey.id,
+          'library': library,
         };
       }).toList();
     }
 
     // TODO(nweiz): Once the 1.11 SDK is out and pub supports ">=1.2.3-pre
     // <1.2.3", suggest that as the version constraint for prerelease versions.
-    var exampleVersionConstraint = '"^${selectedVersion.version}"';
+    final exampleVersionConstraint = '"^${selectedVersion.version}"';
 
     bool isMarkdownFile(String filename) {
       return filename.toLowerCase().endsWith('.md');
@@ -136,12 +137,12 @@ class TemplateService {
 
     String renderPlainText(String text) {
       return '<div class="highlight"><pre>${cmd.escapeAngleBrackets(text)}'
-             '</pre></div>';
+          '</pre></div>';
     }
 
     String renderFile(FileObject file) {
-      var filename = file.filename;
-      var content = file.text;
+      final filename = file.filename;
+      final content = file.text;
       if (content != null) {
         if (isMarkdownFile(filename)) {
           try {
@@ -170,10 +171,10 @@ class TemplateService {
       renderedChangelog = renderFile(selectedVersion.changelog);
     }
 
-    var versionsJson = [];
+    final versionsJson = [];
     for (int i = 0; i < versions.length; i++) {
-      PackageVersion version = versions[i];
-      String url = versionDownloadUrls[i].toString();
+      final PackageVersion version = versions[i];
+      final String url = versionDownloadUrls[i].toString();
       versionsJson.add({
         'version': version.id,
         'short_created': version.shortCreated,
@@ -182,49 +183,49 @@ class TemplateService {
       });
     }
 
-    bool should_show_dev =
+    final bool should_show_dev =
         latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
-    bool should_show =
+    final bool should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
-    var values = {
-        'package': {
-          'name' : package.name,
-          'selected_version' : {
-            'version' : selectedVersion.id,
-            'example_version_constraint' : exampleVersionConstraint,
-            'has_libraries' : importExamples.length > 0,
-            'import_examples' : importExamples,
-          },
-          'latest' : {
-            'should_show' : should_show,
-            'should_show_dev' : should_show_dev,
-            'stable_href' : Uri.encodeComponent(latestStableVersion.id),
-            'stable_name' : _HtmlEscaper.convert(latestStableVersion.id),
-            'dev_href' : Uri.encodeComponent(latestDevVersion.id),
-            'dev_name' : _HtmlEscaper.convert(latestDevVersion.id),
-          },
-          'description' : selectedVersion.pubspec.description,
-          // TODO: make this 'Authors' if PackageVersion.authors is a list?!
-          'authors_title' : 'Author',
-          'authors_html' : _getAuthorsHtml(selectedVersion),
-          'homepage' : selectedVersion.homepage,
-          'nice_homepage' : selectedVersion.homepageNice,
-          'documentation' : selectedVersion.documentation,
-          'nice_documentation' : selectedVersion.documentationNice,
-          'crossdart' : selectedVersion.crossdart,
-          'nice_crossdart' : selectedVersion.crossdartNice,
-          // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
-          'uploaders_title' : 'Uploader',
-          'uploaders_html' : _getUploadersHtml(package),
+    final values = {
+      'package': {
+        'name': package.name,
+        'selected_version': {
+          'version': selectedVersion.id,
+          'example_version_constraint': exampleVersionConstraint,
+          'has_libraries': importExamples.length > 0,
+          'import_examples': importExamples,
         },
-        'versions' : versionsJson,
-        'show_versions_link' : totalNumberOfVersions > versions.length,
-        'readme' : renderedReadme,
-        'readme_filename' : readmeFilename,
-        'changelog' : renderedChangelog,
-        'changelog_filename': changelogFilename,
-        'version_count' : '$totalNumberOfVersions',
+        'latest': {
+          'should_show': should_show,
+          'should_show_dev': should_show_dev,
+          'stable_href': Uri.encodeComponent(latestStableVersion.id),
+          'stable_name': _HtmlEscaper.convert(latestStableVersion.id),
+          'dev_href': Uri.encodeComponent(latestDevVersion.id),
+          'dev_name': _HtmlEscaper.convert(latestDevVersion.id),
+        },
+        'description': selectedVersion.pubspec.description,
+        // TODO: make this 'Authors' if PackageVersion.authors is a list?!
+        'authors_title': 'Author',
+        'authors_html': _getAuthorsHtml(selectedVersion),
+        'homepage': selectedVersion.homepage,
+        'nice_homepage': selectedVersion.homepageNice,
+        'documentation': selectedVersion.documentation,
+        'nice_documentation': selectedVersion.documentationNice,
+        'crossdart': selectedVersion.crossdart,
+        'nice_crossdart': selectedVersion.crossdartNice,
+        // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
+        'uploaders_title': 'Uploader',
+        'uploaders_html': _getUploadersHtml(package),
+      },
+      'versions': versionsJson,
+      'show_versions_link': totalNumberOfVersions > versions.length,
+      'readme': renderedReadme,
+      'readme_filename': readmeFilename,
+      'changelog': renderedChangelog,
+      'changelog_filename': changelogFilename,
+      'version_count': '$totalNumberOfVersions',
     };
     return _renderPage('pkg/show', values,
         title: '${package.name} ${selectedVersion.id} | Pub Package Manager',
@@ -233,17 +234,19 @@ class TemplateService {
 
   /// Renders the `views/admin.mustache` template.
   String renderAdminPage(bool privateKeysSet, bool isProduction,
-                         {ReloadStatus reloadStatus}) {
-    var reload_status = reloadStatus == null ? {} : {
-      'count' : reloadStatus.count,
-      'total' : reloadStatus.total,
-      'percentage' : reloadStatus.percentage,
-    };
+      {ReloadStatus reloadStatus}) {
+    final reload_status = reloadStatus == null
+        ? {}
+        : {
+            'count': reloadStatus.count,
+            'total': reloadStatus.total,
+            'percentage': reloadStatus.percentage,
+          };
 
-    var values = {
-        'reload_status': reload_status,
-        'private_keys_set':
-            privateKeysSet && isProduction ? {'production' : true} : false,
+    final values = {
+      'reload_status': reload_status,
+      'private_keys_set':
+          privateKeysSet && isProduction ? {'production': true} : false,
     };
     return _renderPage('admin', values, title: 'Admin Console');
   }
@@ -255,43 +258,42 @@ class TemplateService {
 
   /// Renders the `views/index.mustache` template.
   String renderErrorPage(String status, String message, String traceback) {
-    var values = {
-        'status' : status,
-        'message' : message,
-        'traceback' : traceback,
+    final values = {
+      'status': status,
+      'message': message,
+      'traceback': traceback,
     };
     return _renderPage('error', values, title: 'Error $status');
   }
 
   /// Renders the `views/index.mustache` template.
   String renderIndexPage(List<PackageVersion> recentPackages) {
-    var values = {
-        'recent_packages': recentPackages.map((PackageVersion version) {
-          var description = version.ellipsizedDescription;
-          return {
-            'name' : version.packageKey.id,
-            'short_updated' : version.shortCreated,
-            'latest_version' : {
-                'version' : version.id
-            },
-            'description' : description != null,
-            'ellipsized_description': description,
-          };
-        }).toList(),
+    final values = {
+      'recent_packages': recentPackages.map((PackageVersion version) {
+        final description = version.ellipsizedDescription;
+        return {
+          'name': version.packageKey.id,
+          'short_updated': version.shortCreated,
+          'latest_version': {'version': version.id},
+          'description': description != null,
+          'ellipsized_description': description,
+        };
+      }).toList(),
     };
     return _renderPage('index', values, title: 'Pub Package Manager');
   }
 
   /// Renders the `views/layout.mustache` template.
-  String renderLayoutPage(String title,
-                          String contentString,
-                          {PackageVersion packageVersion}) {
-    var values = {
-      'package': packageVersion == null ? false : {
-        'name' : _HtmlEscaper.convert(packageVersion.packageKey.id),
-        'description' :
-            _HtmlEscaper.convert(packageVersion.ellipsizedDescription),
-      },
+  String renderLayoutPage(String title, String contentString,
+      {PackageVersion packageVersion}) {
+    final values = {
+      'package': packageVersion == null
+          ? false
+          : {
+              'name': _HtmlEscaper.convert(packageVersion.packageKey.id),
+              'description':
+                  _HtmlEscaper.convert(packageVersion.ellipsizedDescription),
+            },
       'title': _HtmlEscaper.convert(title),
       // This is not escaped as it is already escaped by the caller.
       'content': contentString,
@@ -304,38 +306,37 @@ class TemplateService {
 
   /// Renders the `views/pagination.mustache` template.
   String renderPagination(PageLinks pageLinks) {
-    var values = {
-      'page_links' : pageLinks.hrefPatterns(),
+    final values = {
+      'page_links': pageLinks.hrefPatterns(),
     };
     return _renderTemplate('pagination', values, escapeValues: false);
   }
 
   /// Renders the `views/search.mustache` template.
-  String renderSearchPage(String query,
-                          List<PackageVersion> stableVersions,
-                          List<PackageVersion> devVersions,
-                          PageLinks pageLinks) {
-    List results = [];
+  String renderSearchPage(String query, List<PackageVersion> stableVersions,
+      List<PackageVersion> devVersions, PageLinks pageLinks) {
+    final List results = [];
     for (int i = 0; i < stableVersions.length; i++) {
-      PackageVersion stable = stableVersions[i];
-      PackageVersion dev = devVersions.length > i ? devVersions[i] : stable;
+      final PackageVersion stable = stableVersions[i];
+      final PackageVersion dev =
+          devVersions.length > i ? devVersions[i] : stable;
       results.add({
-        'url' : '/packages/${stable.packageKey.id}',
-        'name' : stable.packageKey.id,
-        'version' : _HtmlEscaper.convert(stable.id),
+        'url': '/packages/${stable.packageKey.id}',
+        'name': stable.packageKey.id,
+        'version': _HtmlEscaper.convert(stable.id),
         'show_dev_version': stable.id != dev.id,
         'dev_version': _HtmlEscaper.convert(dev.id),
         'dev_version_href': Uri.encodeComponent(dev.id),
         'last_uploaded': stable.shortCreated,
-        'desc' : stable.ellipsizedDescription,
+        'desc': stable.ellipsizedDescription,
       });
     }
 
-    var values = {
-        'query' : query,
-        'results' : results,
-        'pagination' : renderPagination(pageLinks),
-        'hasResults' : results.length > 0,
+    final values = {
+      'query': query,
+      'results': results,
+      'pagination': renderPagination(pageLinks),
+      'hasResults': results.length > 0,
     };
     return _renderPage('search', values, title: 'Search results for $query.');
   }
@@ -349,7 +350,7 @@ class TemplateService {
   /// the provided [template] for the content.
   String _renderPage(String template, values,
       {String title: 'pub.dartlang.org', PackageVersion packageVersion}) {
-    var renderedContent = _renderTemplate(template, values);
+    final renderedContent = _renderTemplate(template, values);
     return renderLayoutPage(title, renderedContent,
         packageVersion: packageVersion);
   }
@@ -358,20 +359,18 @@ class TemplateService {
   ///
   /// If [escapeValues] is `false`, values in `values` will not be escaped.
   String _renderTemplate(String template, values, {bool escapeValues: true}) {
-    mustache.Template parsedTemplate =
+    final mustache.Template parsedTemplate =
         _CachedMustacheTemplates.putIfAbsent(template, () {
-      var file = new File('$templateDirectory/$template.mustache');
-      return new mustache.Template(
-          file.readAsStringSync(),
-          htmlEscapeValues: escapeValues,
-          lenient: true);
+      final file = new File('$templateDirectory/$template.mustache');
+      return new mustache.Template(file.readAsStringSync(),
+          htmlEscapeValues: escapeValues, lenient: true);
     });
     return parsedTemplate.renderString(values);
   }
 }
 
 String _getAuthorsHtml(PackageVersion version) {
-  var author = version.pubspec.author;
+  final author = version.pubspec.author;
   var authors = version.pubspec.authors;
 
   if (authors == null && author != null) authors = [author];
@@ -381,7 +380,7 @@ String _getAuthorsHtml(PackageVersion version) {
     var name = value;
     var email = value;
 
-    var match = _AuthorsRegExp.matchAsPrefix(value);
+    final match = _AuthorsRegExp.matchAsPrefix(value);
     if (match != null) {
       name = match.group(1);
       email = match.group(2);
@@ -389,7 +388,7 @@ String _getAuthorsHtml(PackageVersion version) {
 
     // TODO: Properly escape this.
     return '<span class="author"><a href="mailto:$email" title="Email $email">'
-           '<i class="icon-envelope">Email $email</i></a> $name</span>';
+        '<i class="icon-envelope">Email $email</i></a> $name</span>';
   }).join('<br/>');
 }
 
@@ -397,7 +396,6 @@ String _getUploadersHtml(Package package) {
   // TODO: HTML escape email addresses.
   return package.uploaderEmails.join('<br/>');
 }
-
 
 class ReloadStatus {
   final int count;
@@ -416,44 +414,45 @@ abstract class PageLinks {
 
   PageLinks(this.offset, this.count);
 
-  PageLinks.empty() : offset = 1, count = 1;
+  PageLinks.empty()
+      : offset = 1,
+        count = 1;
 
-  int get leftmostPage
-      => max(1 + offset ~/ RESULTS_PER_PAGE - MAX_PAGES ~/ 2, 1);
+  int get leftmostPage =>
+      max(1 + offset ~/ RESULTS_PER_PAGE - MAX_PAGES ~/ 2, 1);
 
   int get currentPage => 1 + offset ~/ RESULTS_PER_PAGE;
 
   int get rightmostPage {
-    var extension = max(MAX_PAGES ~/ 2 - leftmostPage, 1);
-    return 1 + min(offset ~/ RESULTS_PER_PAGE + MAX_PAGES ~/ 2 + extension,
-                   count ~/ RESULTS_PER_PAGE);
+    final extension = max(MAX_PAGES ~/ 2 - leftmostPage, 1);
+    return 1 +
+        min(offset ~/ RESULTS_PER_PAGE + MAX_PAGES ~/ 2 + extension,
+            count ~/ RESULTS_PER_PAGE);
   }
 
   List<Map> hrefPatterns() {
-    var results = [];
+    final List<Map> results = [];
 
     results.add({
-        'state' : {'state' : currentPage <= 1 ? 'disabled' : null},
-        'href' : {'href' : formatHref(currentPage - 1) },
-        'text' : '&laquo',
+      'state': {'state': currentPage <= 1 ? 'disabled' : null},
+      'href': {'href': formatHref(currentPage - 1)},
+      'text': '&laquo',
     });
 
     for (int page = leftmostPage; page <= rightmostPage; page++) {
-      String state = (page == currentPage) ? 'active' : null;
+      final String state = (page == currentPage) ? 'active' : null;
 
       results.add({
-          'state' : {'state' : state },
-          'href' : {'href' : formatHref(page) },
-          'text' : '$page',
+        'state': {'state': state},
+        'href': {'href': formatHref(page)},
+        'text': '$page',
       });
     }
 
     results.add({
-        'state' : {
-          'state' : currentPage >= rightmostPage ? 'disabled' : null
-        },
-        'href' : {'href' : formatHref(currentPage + 1) },
-        'text' : '&raquo',
+      'state': {'state': currentPage >= rightmostPage ? 'disabled' : null},
+      'href': {'href': formatHref(currentPage + 1)},
+      'text': '&raquo',
     });
     return results;
   }
@@ -468,8 +467,9 @@ class SearchLinks extends PageLinks {
 
   SearchLinks.empty(this.query) : super.empty();
 
-  String formatHref(int page)
-      => '/search?q=${Uri.encodeQueryComponent(query)}&page=$page';
+  @override
+  String formatHref(int page) =>
+      '/search?q=${Uri.encodeQueryComponent(query)}&page=$page';
 }
 
 class PackageLinks extends PageLinks {
@@ -480,5 +480,6 @@ class PackageLinks extends PageLinks {
 
   PackageLinks.empty() : super.empty();
 
+  @override
   String formatHref(int page) => '/packages?page=$page';
 }

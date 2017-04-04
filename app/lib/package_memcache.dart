@@ -41,28 +41,35 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
 
   AppEnginePackageMemcache(this.memcache, String namespace)
       : keyPrefix = (namespace == null || namespace.isEmpty)
-          ? KEY_PREFIX : 'ns_${namespace}_$KEY_PREFIX',
+            ? KEY_PREFIX
+            : 'ns_${namespace}_$KEY_PREFIX',
         uiKeyPrefix = (namespace == null || namespace.isEmpty)
-          ? UI_KEY_PREFIX : 'ns_${namespace}_$UI_KEY_PREFIX';
+            ? UI_KEY_PREFIX
+            : 'ns_${namespace}_$UI_KEY_PREFIX';
 
+  @override
   Future<List<int>> getPackageData(String package) async {
-    var result =
+    final result =
         await _ignoreErrors(memcache.get(_packageKey(package), asBinary: true));
 
-    if (result != null) _logger.info('memcache["$package"] found');
-    else _logger.info('memcache["$package"] not found');
+    if (result != null)
+      _logger.info('memcache["$package"] found');
+    else
+      _logger.info('memcache["$package"] not found');
 
     return result;
   }
 
+  @override
   Future setPackageData(String package, List<int> data) {
     _logger.info('memcache["$package"] setting to new data');
     return _ignoreErrors(
         memcache.set(_packageKey(package), data, expiration: EXPIRATION));
   }
 
+  @override
   Future<String> getUIPackagePage(String package, String version) async {
-    var result = await _ignoreErrors(
+    final result = await _ignoreErrors(
         memcache.get(_packageUIKey(package, version), asBinary: true));
 
     if (result != null) {
@@ -74,31 +81,34 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
     return null;
   }
 
+  @override
   Future setUIPackagePage(String package, String version, String data) async {
     _logger.info('memcache["$package"] setting to new rendered UI data');
-    return _ignoreErrors(
-        memcache.set(_packageUIKey(package, version),
-        UTF8.encode(data),
+    return _ignoreErrors(memcache.set(
+        _packageUIKey(package, version), UTF8.encode(data),
         expiration: EXPIRATION));
   }
 
+  @override
   Future invalidateUIPackagePage(String package) async {
     _logger.info('memcache["$package"] invalidating UI data');
     return _ignoreErrors(Future.wait([
-        memcache.remove(_packageUIKey(package, null)),
-        memcache.remove(INDEX_PAGE_KEY),
+      memcache.remove(_packageUIKey(package, null)),
+      memcache.remove(INDEX_PAGE_KEY),
     ]));
   }
 
+  @override
   Future invalidatePackageData(String package) {
     _logger.info('memcache["$package"] invalidate entry');
     return _ignoreErrors(Future.wait([
-        memcache.remove(_packageKey(package)),
-        memcache.remove(_packageUIKey(package, null)),
-        memcache.remove(INDEX_PAGE_KEY),
+      memcache.remove(_packageKey(package)),
+      memcache.remove(_packageUIKey(package, null)),
+      memcache.remove(INDEX_PAGE_KEY),
     ]));
   }
 
+  @override
   Future<String> getUIIndexPage() async {
     final result = await _ignoreErrors(memcache.get(INDEX_PAGE_KEY));
     if (result != null) {
@@ -109,6 +119,7 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
     return result;
   }
 
+  @override
   Future setUIIndexPage(String content) async {
     _logger.info('memcache[index-page] setting to new rendered UI data');
     await _ignoreErrors(
@@ -129,8 +140,7 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   //    => The duration for inconsistency is limited to 60 minutes ATM.
   Future _ignoreErrors(Future f) {
     return f.catchError((error, stackTrace) {
-      _logger.warning(
-          'Ignoring failed memcache API call (error: $error)',
+      _logger.warning('Ignoring failed memcache API call (error: $error)',
           error, stackTrace);
     });
   }

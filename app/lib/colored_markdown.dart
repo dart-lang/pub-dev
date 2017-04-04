@@ -22,16 +22,16 @@ final List<InlineSyntax> inlineSyntaxes = ExtensionSet.gitHub.inlineSyntaxes
     .toList();
 
 String markdownToHtmlWithSyntax(String text) {
-  var lines = text.replaceAll('\r\n', '\n').split('\n');
+  final lines = text.replaceAll('\r\n', '\n').split('\n');
 
-  var document = new Document(
+  final document = new Document(
       blockSyntaxes: blockSyntaxes,
       inlineSyntaxes: inlineSyntaxes,
       extensionSet: ExtensionSet.none);
 
-  var blocks = document.parseLines(lines);
+  final blocks = document.parseLines(lines);
 
-  var colorizer = new ColorizeDartCode();
+  final colorizer = new ColorizeDartCode();
   blocks.forEach((Node node) => node.accept(colorizer));
 
   return new HtmlRenderer().render(blocks);
@@ -46,9 +46,9 @@ String markdownToHtmlWithoutSyntax(String text) {
 
 Scanner _scanner(String contents, {String name}) {
   if (name == null) name = '<unknown source>';
-  var source = new StringSource(contents, name);
-  var reader = new CharSequenceReader(contents);
-  var scanner =
+  final source = new StringSource(contents, name);
+  final reader = new CharSequenceReader(contents);
+  final scanner =
       new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
   return scanner;
 }
@@ -58,7 +58,7 @@ String escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
 
 void _writePrettifiedSource(String source, StringBuffer buffer) {
-  Scanner scanner = _scanner(source);
+  final Scanner scanner = _scanner(source);
   Token token = scanner.tokenize();
 
   int lineOfOffset(int offset) {
@@ -71,6 +71,7 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
     }
     return line;
   }
+
   int offsetOfOffset(int offset) {
     return offset - scanner.lineStarts[lineOfOffset(offset)];
   }
@@ -78,11 +79,11 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
   int line = 0;
   int lineOffset = 0;
 
-  handleToken(Token token) {
+  void handleToken(Token token) {
     String klass = 'n';
 
-    int newLine = lineOfOffset(token.offset);
-    int newLineOffset = offsetOfOffset(token.offset);
+    final int newLine = lineOfOffset(token.offset);
+    final int newLineOffset = offsetOfOffset(token.offset);
     if (newLine > line) {
       buffer.write('\n' * (newLine - line));
       lineOffset = 0;
@@ -92,7 +93,7 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
 
     switch (token.type) {
       case TokenType.IDENTIFIER:
-        var char = token.lexeme.substring(0, 1);
+        final char = token.lexeme.substring(0, 1);
         if (char == char.toUpperCase()) {
           // We highlight X in "class X" and "new X".
           var previous = token.previous;
@@ -268,12 +269,14 @@ void _writePrettifiedSource(String source, StringBuffer buffer) {
 }
 
 class ColorizeDartCode extends NodeVisitor {
+  @override
   void visitText(Text text) {}
 
+  @override
   bool visitElementBefore(Element element) {
     if (_isDartCodeElement(element)) {
-      Text text = _getSourceFromElement(element);
-      var buffer = new StringBuffer();
+      final Text text = _getSourceFromElement(element);
+      final buffer = new StringBuffer();
       _writePrettifiedSource(unEscape(text.text).trim(), buffer);
 
       element.attributes['class'] = 'highlight';
@@ -285,6 +288,7 @@ class ColorizeDartCode extends NodeVisitor {
     return true;
   }
 
+  @override
   void visitElementAfter(Element element) {}
 
   bool _isDartCodeElement(Element element) =>

@@ -13,10 +13,10 @@ import 'models.dart';
 /// Uses the datastore API in the current service scope to retrieve custom
 /// search API Key.
 Future<String> customSearchKeyFromDB() async {
-  var db = dbService;
+  final db = dbService;
 
-  var privateKeyKey = db.emptyKey.append(PrivateKey, id: 'api');
-  PrivateKey apiKey = (await db.lookup([privateKeyKey])).first;
+  final privateKeyKey = db.emptyKey.append(PrivateKey, id: 'api');
+  final PrivateKey apiKey = (await db.lookup([privateKeyKey])).first;
 
   if (apiKey == null) {
     throw new Exception('Could not find Custom search API key in DB.');

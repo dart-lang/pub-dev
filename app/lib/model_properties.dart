@@ -15,10 +15,12 @@ class Pubspec {
 
   Pubspec(this.jsonString);
 
-  Pubspec.fromJson(Map json) : jsonString = JSON.encode(json), _json = json;
+  Pubspec.fromJson(Map json)
+      : jsonString = JSON.encode(json),
+        _json = json;
 
-  factory Pubspec.fromYaml(String yamlString)
-      => new Pubspec.fromJson(loadYaml(yamlString));
+  factory Pubspec.fromYaml(String yamlString) =>
+      new Pubspec.fromJson(loadYaml(yamlString));
 
   Map get asJson {
     _load();
@@ -55,7 +57,7 @@ class Pubspec {
     return _asString(_json['description']);
   }
 
-  _load() {
+  void _load() {
     if (_json == null) {
       if (jsonString != null) {
         _json = loadYaml(jsonString);
@@ -67,7 +69,7 @@ class Pubspec {
 
   List<String> _asListOfString(obj) {
     if (obj == null) return null;
-    if (obj is! List)  throw 'Expected List<String> value in pubspec.yaml.';
+    if (obj is! List) throw 'Expected List<String> value in pubspec.yaml.';
     return obj.map(_asString).toList();
   }
 
@@ -82,17 +84,24 @@ class PubspecProperty extends StringProperty {
   const PubspecProperty({String propertyName, bool required: false})
       : super(propertyName: propertyName, required: required, indexed: false);
 
-  bool validate(ModelDB db, Object value)
-      => (!required || value != null) && (value == null || value is Pubspec);
+  @override
+  bool validate(ModelDB db, Object value) =>
+      (!required || value != null) && (value == null || value is Pubspec);
 
-  String encodeValue(ModelDB db, Pubspec pubspec, {bool forComparison: false}) {
-    if (pubspec == null) return null;
-    return pubspec.jsonString;
+  @override
+  String encodeValue(ModelDB db, Object pubspec, {bool forComparison: false}) {
+    if (pubspec is Pubspec) {
+      return pubspec.jsonString;
+    }
+    return null;
   }
 
-  Object decodePrimitiveValue(ModelDB db, String value) {
-    if (value == null) return null;
-    return new Pubspec(value);
+  @override
+  Object decodePrimitiveValue(ModelDB db, Object value) {
+    if (value is String) {
+      return new Pubspec(value);
+    }
+    return null;
   }
 }
 
@@ -103,25 +112,26 @@ class FileObject {
   FileObject(this.filename, this.text);
 }
 
-
 /// Similar to [ListProperty] but one which is fully compatible with python's
 /// 'db' implementation.
 class CompatibleListProperty extends Property {
   final PrimitiveProperty subProperty;
 
   const CompatibleListProperty(this.subProperty,
-                     {String propertyName, bool indexed: true})
+      {String propertyName, bool indexed: true})
       : super(propertyName: propertyName, required: true, indexed: indexed);
 
+  @override
   bool validate(ModelDB db, Object value) {
     if (!super.validate(db, value) || value is! List) return false;
 
     for (var entry in value) {
-       if (!subProperty.validate(db, entry)) return false;
+      if (!subProperty.validate(db, entry)) return false;
     }
     return true;
   }
 
+  @override
   Object encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
     if (forComparison) {
       return subProperty.encodeValue(db, value, forComparison: true);
@@ -132,13 +142,13 @@ class CompatibleListProperty extends Property {
     //    - `[]` as `[]`  (as opposed to `null`)
     //    - `[a]` as `[a]` (as opposed to `a`)
     if (value == null) return [];
-    List list = value;
+    final List list = value;
     if (list.length == 0) return [];
     if (list.length == 1) return [subProperty.encodeValue(db, list[0])];
-    return list.map(
-        (value) => subProperty.encodeValue(db, value)).toList();
+    return list.map((value) => subProperty.encodeValue(db, value)).toList();
   }
 
+  @override
   Object decodePrimitiveValue(ModelDB db, Object value) {
     if (value == null) return [];
     if (value is! List) return [subProperty.decodePrimitiveValue(db, value)];
@@ -153,5 +163,5 @@ class CompatibleListProperty extends Property {
 class CompatibleStringListProperty extends CompatibleListProperty {
   const CompatibleStringListProperty({String propertyName, bool indexed: true})
       : super(const StringProperty(required: true),
-              propertyName: propertyName, indexed: indexed);
+            propertyName: propertyName, indexed: indexed);
 }

@@ -9,17 +9,18 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/models.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'configuration.dart';
 import 'tools_common.dart';
 
 final Configuration configuration = new Configuration.prod();
 
-main(List<String> arguments) async {
-  if (arguments.length < 2 || (
-      !(arguments[0] == 'list' && arguments.length == 2) &&
-      !(arguments[0] == 'remove' &&
-        (arguments.length == 2 || arguments.length == 3)))) {
+Future main(List<String> arguments) async {
+  if (arguments.length < 2 ||
+      (!(arguments[0] == 'list' && arguments.length == 2) &&
+          !(arguments[0] == 'remove' &&
+              (arguments.length == 2 || arguments.length == 3)))) {
     print('Usage:');
     print('  ${Platform.script} list <package>');
     print('  ${Platform.script} remove <package>');
@@ -27,9 +28,9 @@ main(List<String> arguments) async {
     exit(1);
   }
 
-  String command = arguments[0];
-  String package = arguments[1];
-  String version = null;
+  final String command = arguments[0];
+  final String package = arguments[1];
+  String version;
   if (arguments.length == 3) version = arguments[2];
 
   await withProdServices(() async {
@@ -38,7 +39,7 @@ main(List<String> arguments) async {
     } else if (command == 'remove') {
       if (version == null) {
         await removePackage(package);
-     } else {
+      } else {
         await removePackageVersion(package, version);
       }
     } else {
@@ -51,14 +52,15 @@ main(List<String> arguments) async {
 }
 
 Future listPackage(String packageName) async {
-  var packageKey = dbService.emptyKey.append(Package, id: packageName);
-  Package package = (await dbService.lookup([packageKey])).first;
+  final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
+  final Package package = (await dbService.lookup([packageKey])).first;
   if (package == null) {
     throw new Exception("Package $packageName does not exist.");
   }
 
-  var versionsQuery = dbService.query(PackageVersion, ancestorKey: packageKey);
-  List<PackageVersion> versions = await versionsQuery.run().toList();
+  final versionsQuery =
+      dbService.query(PackageVersion, ancestorKey: packageKey);
+  final List<PackageVersion> versions = await versionsQuery.run().toList();
 
   print('Package "$packageName" has the following versions:');
   for (var version in versions) {
@@ -68,17 +70,18 @@ Future listPackage(String packageName) async {
 
 Future removePackage(String packageName) async {
   return dbService.withTransaction((Transaction T) async {
-    var packageKey = dbService.emptyKey.append(Package, id: packageName);
-    Package package = (await T.lookup([packageKey])).first;
+    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
+    final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");
     }
 
-    var versionsQuery = T.query(PackageVersion, packageKey);
-    var versions = await versionsQuery.run().toList();
-    var versionNames = versions.map((v) => v.semanticVersion).toList();
+    final versionsQuery = T.query(PackageVersion, packageKey);
+    final List<PackageVersion> versions = await versionsQuery.run().toList();
+    final List<Version> versionNames =
+        versions.map((v) => v.semanticVersion).toList();
 
-    var deletes = versions.map((v) => v.key).toList();
+    final deletes = versions.map((v) => v.key).toList();
     deletes.add(packageKey);
     T.queueMutations(deletes: deletes);
 
@@ -88,8 +91,8 @@ Future removePackage(String packageName) async {
     final bucket = storageService.bucket(configuration.packageBucketName);
     final storage = new TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
-    await Future.wait(
-        versionNames.map((version) => storage.remove(packageName, version)));
+    await Future.wait(versionNames
+        .map((version) => storage.remove(packageName, version.toString())));
 
     print('Package "$packageName" got successfully removed.');
     print('WARNING: Please remember to clear the AppEngine memcache!');
@@ -98,15 +101,15 @@ Future removePackage(String packageName) async {
 
 Future removePackageVersion(String packageName, String version) async {
   return dbService.withTransaction((Transaction T) async {
-    var packageKey = dbService.emptyKey.append(Package, id: packageName);
-    Package package = (await T.lookup([packageKey])).first;
+    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
+    final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");
     }
 
-    var versionsQuery = T.query(PackageVersion, packageKey);
-    var versions = await versionsQuery.run().toList();
-    var versionNames = versions.map((v) => '${v.semanticVersion}').toList();
+    final versionsQuery = T.query(PackageVersion, packageKey);
+    final List<PackageVersion> versions = await versionsQuery.run().toList();
+    final versionNames = versions.map((v) => '${v.semanticVersion}').toList();
     if (!versionNames.contains(version)) {
       throw new Exception(
           "Package $packageName does not have a version $version.");
@@ -116,13 +119,13 @@ Future removePackageVersion(String packageName, String version) async {
       throw new Exception("Cannot delete the latest version of $packageName.");
     }
 
-    var deletes = [packageKey.append(PackageVersion, id: version)];
+    final deletes = [packageKey.append(PackageVersion, id: version)];
     T.queueMutations(deletes: deletes);
 
     print('Committing changes to DB ...');
     await T.commit();
 
-    var storage = backend.repository.storage;
+    final storage = backend.repository.storage;
     print('Removing GCS objects ...');
     await storage.remove(packageName, version);
 
