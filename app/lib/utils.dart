@@ -52,9 +52,9 @@ String canonicalizeVersion(String version) {
   return canonicalVersion.toString();
 }
 
-RegExp _identifierExpr = new RegExp(r'^[a-zA-Z0-9_]*$');
-RegExp _startsWithLetterOrUnderscore = new RegExp(r'^[a-zA-Z_]');
-const _reservedWords = const [
+final RegExp _identifierExpr = new RegExp(r'^[a-zA-Z0-9_]+$');
+final RegExp _startsWithLetterOrUnderscore = new RegExp(r'^[a-zA-Z_]');
+const List<String> _reservedWords = const <String>[
   'assert',
   'break',
   'case',

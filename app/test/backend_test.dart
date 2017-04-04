@@ -739,7 +739,7 @@ main() {
           registerLoggedInUser('hans@juergen.com');
 
           // Returns the error message as String or null if it succeeded.
-          Function fn = (String name) async {
+          fn(String name) async {
             String pubspecContent =
                 TestPackagePubspec.replaceAll('foobar_pkg', name);
             try {
