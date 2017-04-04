@@ -9,8 +9,8 @@ import 'dart:io';
 
 import 'package:pub_semver/pub_semver.dart' as semver;
 
-Future withTempDirectory(Future func(Directory dir),
-                         {String prefix: 'dart-tempdir'}) {
+Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
+    {String prefix: 'dart-tempdir'}) {
   return Directory.systemTemp.createTemp(prefix).then((Directory dir) {
     return func(dir).whenComplete(() {
       return dir.delete(recursive: true);
@@ -19,7 +19,7 @@ Future withTempDirectory(Future func(Directory dir),
 }
 
 Future<List<String>> listTarball(String path) async {
-  var result = await Process.run('tar', ['--exclude=*/*/*', '-tzf', path]);
+  final result = await Process.run('tar', ['--exclude=*/*/*', '-tzf', path]);
   if (result.exitCode != 0) {
     throw 'Failed to list tarball contents.';
   }
@@ -28,7 +28,7 @@ Future<List<String>> listTarball(String path) async {
 }
 
 Future<String> readTarballFile(String path, String name) async {
-  var result = await Process.run('tar', ['-O', '-xzf', path, name]);
+  final result = await Process.run('tar', ['-O', '-xzf', path, name]);
   if (result.exitCode != 0) throw 'Failed to read tarball contents.';
 
   return result.stdout;
@@ -37,13 +37,15 @@ Future<String> readTarballFile(String path, String name) async {
 String canonicalizeVersion(String version) {
   // NOTE: This is a hack because [semver.Version.parse] does not remove
   // leading zeros for integer fields.
-  var v = new semver.Version.parse(version);
-  var pre = v.preRelease != null && v.preRelease.isNotEmpty ?
-      v.preRelease.join('.') : null;
-  var build = v.build != null && v.build.isNotEmpty ? v.build.join('.') : null;
+  final v = new semver.Version.parse(version);
+  final pre = v.preRelease != null && v.preRelease.isNotEmpty
+      ? v.preRelease.join('.')
+      : null;
+  final build =
+      v.build != null && v.build.isNotEmpty ? v.build.join('.') : null;
 
-  var canonicalVersion = new semver.Version(
-      v.major, v.minor, v.patch, pre: pre, build: build);
+  final canonicalVersion =
+      new semver.Version(v.major, v.minor, v.patch, pre: pre, build: build);
 
   if (v != canonicalVersion) {
     throw new StateError(

@@ -15,7 +15,7 @@ import 'package:appengine/src/grpc_api_impl/datastore_impl.dart'
     as grpc_datastore_impl;
 import 'package:appengine/src/grpc_api_impl/grpc.dart' as grpc;
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   if (args.length != 4) {
     print('Usage: ${Platform.executable} ${Platform.script} '
         '<from-project> <from-service-account-key.json> '
@@ -43,7 +43,7 @@ main(List<String> args) async {
 }
 
 Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
-  List<db.Model> entities = [];
+  final List<db.Model> entities = [];
 
   Future flush({bool force: false}) async {
     if (force || entities.length >= 10) {

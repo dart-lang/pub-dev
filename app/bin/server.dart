@@ -43,12 +43,12 @@ void main() {
             ioRequest.requestedUri.scheme != 'https') {
           final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
           ioRequest.response
-              ..redirect(secureUri)
-              ..close();
+            ..redirect(secureUri)
+            ..close();
         } else {
           try {
             return shelf_io.handleRequest(ioRequest,
-                                          (shelf.Request request) async {
+                (shelf.Request request) async {
               logger.info('Handling request: ${request.requestedUri}');
               await registerLoggedInUserIfPossible(request);
               try {
@@ -67,11 +67,11 @@ void main() {
         }
       };
       if (Platform.isMacOS) {
-        AppEngineRequestHandler origHandler = requestHandler;
+        final AppEngineRequestHandler origHandler = requestHandler;
         requestHandler = (ioRequest) {
-          return fork(() {
+          fork(() {
             registerDbService(savedDb);
-            return origHandler(ioRequest);
+            origHandler(ioRequest);
           });
         };
       }
@@ -103,8 +103,8 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     final authClient = await auth.clientViaMetadataServer();
     registerScopeExitCallback(authClient.close);
     final email = await obtainServiceAccountEmail();
-    uploadSigner = new IamBasedUploadSigner(
-        configuration.projectId, email, authClient);
+    uploadSigner =
+        new IamBasedUploadSigner(configuration.projectId, email, authClient);
   }
   registerUploadSigner(uploadSigner);
 
@@ -128,9 +128,7 @@ shelf.Request sanitizeRequestedUri(shelf.Request request) {
     // (The pub client will not remove it and instead directly try to request
     //  "GET //api/..." :-/ )
     final changedUri = uri.replace(path: normalizedResource);
-    return new shelf.Request(
-        request.method,
-        changedUri,
+    return new shelf.Request(request.method, changedUri,
         protocolVersion: request.protocolVersion,
         headers: request.headers,
         body: request.read(),

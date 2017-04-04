@@ -5,6 +5,7 @@
 library pub_dartlang_org.search_service;
 
 import 'dart:async';
+import 'dart:math' show min;
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -21,13 +22,11 @@ const String _CUSTOM_SEARCH_ID = "009011925481577436976:h931xn2j7o0";
 /// The maximum number of results the Custom Search API will provide.
 const SEARCH_MAX_RESULTS = 100;
 
-
 /// The [SearchService] registered in the current service scope.
 SearchService get searchService => ss.lookup(#_search);
 
 /// Register a new [SearchService] in the current service scope.
 void registerSearchService(SearchService s) => ss.register(#_search, s);
-
 
 /// Uses the datastore API in the current service scope to retrieve the private
 /// Key and creates a new SearchService.
@@ -35,9 +34,9 @@ void registerSearchService(SearchService s) => ss.register(#_search, s);
 /// If the private key cannot be retrieved from datastore this method will
 /// complete with `null`.
 Future<SearchService> searchServiceViaApiKeyFromDb() async {
-  String keyString = await customSearchKeyFromDB();
-  var httpClient = auth.clientViaApiKey(keyString);
-  var csearch = new customsearch.CustomsearchApi(httpClient);
+  final String keyString = await customSearchKeyFromDB();
+  final httpClient = auth.clientViaApiKey(keyString);
+  final csearch = new customsearch.CustomsearchApi(httpClient);
   return new SearchService(httpClient, csearch);
 }
 
@@ -47,7 +46,6 @@ class SearchService {
   /// call to the Custom Search API.
   static final RegExp _PackageUrlPattern =
       new RegExp(r'https?://pub\.dartlang\.org/packages/([a-z0-9_]+)');
-
 
   /// The HTTP client used for making authenticated calls to the
   /// Custom Search API.
@@ -62,40 +60,40 @@ class SearchService {
   /// max [numResults].
   Future<SearchResultPage> search(
       String query, int offset, int numResults) async {
-    exists(x) => x != null;
-    min(a, b) => a <= b ? a : b;
-    var db = dbService;
+    bool exists(x) => x != null;
+    final db = dbService;
 
-    var search = await csearch.cse.list(
-        query, cx: _CUSTOM_SEARCH_ID, num: numResults, start: 1 + offset);
+    final search = await csearch.cse
+        .list(query, cx: _CUSTOM_SEARCH_ID, num: numResults, start: 1 + offset);
     if (exists(search.items)) {
-      var keys = search.items.map((item) {
-        var match = _PackageUrlPattern.matchAsPrefix(item.link);
-        if (exists(match)) {
-          return db.emptyKey.append(Package, id: match.group(1));
-        }
-      }).where(exists).toList();
+      final keys = search.items
+          .map((item) {
+            final match = _PackageUrlPattern.matchAsPrefix(item.link);
+            if (exists(match)) {
+              return db.emptyKey.append(Package, id: match.group(1));
+            }
+          })
+          .where(exists)
+          .toList();
 
       if (keys.isNotEmpty) {
-        var packages = await db.lookup(keys);
-        var versionKeys =
+        final List<Package> packages = await db.lookup(keys);
+        final List<Key> versionKeys =
             packages.where(exists).map((p) => p.latestVersionKey).toList();
         if (versionKeys.isNotEmpty) {
           // select latest development versions for each package
-          var packageKeys = versionKeys.map((vk) => vk.parent).toList();
-          List<PackageVersion> devVersions = await Future.wait(
-              packageKeys.map((p) async {
-                List<PackageVersion> all = await db
-                    .query(PackageVersion, ancestorKey: p)
-                    .run()
-                    .toList();
-                all.sort((a, b) =>
-                    b.semanticVersion.compareTo(a.semanticVersion));
-                return all.first;
-              }));
-          var versions = await db.lookup(versionKeys);
-          int count = min(int.parse(search.searchInformation.totalResults),
-                          SEARCH_MAX_RESULTS);
+          final packageKeys = versionKeys.map((vk) => vk.parent).toList();
+          final List<PackageVersion> devVersions =
+              await Future.wait(packageKeys.map((p) async {
+            final List<PackageVersion> all =
+                await db.query(PackageVersion, ancestorKey: p).run().toList();
+            all.sort((a, b) => b.semanticVersion.compareTo(a.semanticVersion));
+            return all.first;
+          }));
+          final versions = await db.lookup(versionKeys);
+          final int count = min(
+              int.parse(search.searchInformation.totalResults),
+              SEARCH_MAX_RESULTS);
           return new SearchResultPage(
               query, offset, count, versions, devVersions);
         }

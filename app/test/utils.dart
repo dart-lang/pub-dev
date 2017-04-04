@@ -16,7 +16,7 @@ import 'package:pub_dartlang_org/model_properties.dart';
 
 class TestDelayCompletion {
   final int count;
-  final Function _complete = expectAsync(() {});
+  final Function _complete = expectAsync0(() {});
   int _got = 0;
 
   TestDelayCompletion({this.count: 1});
@@ -36,24 +36,24 @@ final Key testPackageVersionKey =
 final Pubspec testPubspec = new Pubspec.fromYaml(TestPackagePubspec);
 
 final Package testPackage = new Package()
-    ..parentKey = testPackageKey.parent
-    ..id = testPackageKey.id
-    ..name = testPackageKey.id
-    ..created = new DateTime.utc(2014)
-    ..updated = new DateTime.utc(2015)
-    ..uploaderEmails = ['hans@juergen.com']
-    ..latestVersionKey = testPackageVersionKey;
+  ..parentKey = testPackageKey.parent
+  ..id = testPackageKey.id
+  ..name = testPackageKey.id
+  ..created = new DateTime.utc(2014)
+  ..updated = new DateTime.utc(2015)
+  ..uploaderEmails = ['hans@juergen.com']
+  ..latestVersionKey = testPackageVersionKey;
 
 final PackageVersion testPackageVersion = new PackageVersion()
-    ..parentKey = testPackageVersionKey.parent
-    ..id = testPackageVersionKey.id
-    ..version = testPackageVersionKey.id
-    ..packageKey = testPackageKey
-    ..created = new DateTime.utc(2014)
-    ..pubspec = testPubspec
-    ..readmeFilename = 'README'
-    ..readmeContent = 'readme content'
-    ..sortOrder = -1;
+  ..parentKey = testPackageVersionKey.parent
+  ..id = testPackageVersionKey.id
+  ..version = testPackageVersionKey.id
+  ..packageKey = testPackageKey
+  ..created = new DateTime.utc(2014)
+  ..pubspec = testPubspec
+  ..readmeFilename = 'README'
+  ..readmeContent = 'readme content'
+  ..sortOrder = -1;
 
 Future scoped(func()) {
   return fork(() async {
@@ -69,15 +69,12 @@ void scopedTest(String name, func()) {
   });
 }
 
-
-
 final String TestPackageReadme = '''
 Test Package
 ============
 
 This is a readme file.
 ''';
-
 
 final String TestPackageChangelog = '''
 Changelog
@@ -96,4 +93,3 @@ homepage: http://hans.juergen.com
 dependencies:
   gcloud: any
 ''';
-

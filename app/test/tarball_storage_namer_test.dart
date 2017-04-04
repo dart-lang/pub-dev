@@ -7,38 +7,38 @@ library pub_dartlang_org.tarball_storage_namer_test;
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('tarball_storage_namer', () {
     final bucket = 'pub.dartlang.org';
 
     test('empty namespace', () {
       for (var namespace in [null, '']) {
-        var namer = new TarballStorageNamer(bucket, namespace);
+        final namer = new TarballStorageNamer(bucket, namespace);
         expect(namer.bucket, equals(bucket));
         expect(namer.namespace, equals(''));
         expect(namer.prefix, equals(''));
         expect(namer.tarballObjectName('foobar', '0.1.0'),
-               equals('packages/foobar-0.1.0.tar.gz'));
-        expect(namer.tmpObjectName('guid'),
-               equals('tmp/guid'));
-        expect(namer.tarballObjectUrl('foobar', '0.1.0'),
-               equals('https://storage.googleapis.com/'
-                      '$bucket/packages/foobar-0.1.0.tar.gz'));
+            equals('packages/foobar-0.1.0.tar.gz'));
+        expect(namer.tmpObjectName('guid'), equals('tmp/guid'));
+        expect(
+            namer.tarballObjectUrl('foobar', '0.1.0'),
+            equals('https://storage.googleapis.com/'
+                '$bucket/packages/foobar-0.1.0.tar.gz'));
       }
     });
 
     test('staging namespace', () {
-      var namer = new TarballStorageNamer(bucket, 'staging');
+      final namer = new TarballStorageNamer(bucket, 'staging');
       expect(namer.bucket, equals(bucket));
       expect(namer.namespace, equals('staging'));
       expect(namer.prefix, equals('ns/staging/'));
       expect(namer.tarballObjectName('foobar', '0.1.0'),
-             equals('ns/staging/packages/foobar-0.1.0.tar.gz'));
-      expect(namer.tmpObjectName('guid'),
-             equals('tmp/guid'));
-      expect(namer.tarballObjectUrl('foobar', '0.1.0'),
-             equals('https://storage.googleapis.com/'
-                    '$bucket/ns/staging/packages/foobar-0.1.0.tar.gz'));
+          equals('ns/staging/packages/foobar-0.1.0.tar.gz'));
+      expect(namer.tmpObjectName('guid'), equals('tmp/guid'));
+      expect(
+          namer.tarballObjectUrl('foobar', '0.1.0'),
+          equals('https://storage.googleapis.com/'
+              '$bucket/ns/staging/packages/foobar-0.1.0.tar.gz'));
     });
   });
 }

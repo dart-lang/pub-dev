@@ -10,10 +10,10 @@ import 'package:pub_dartlang_org/models.dart';
 
 import 'tools_common.dart';
 
-main(List<String> arguments) async {
-  if (arguments.length < 2 || (
-      !(arguments.length == 2 && arguments[0] == 'list') &&
-      !(arguments.length == 3))) {
+Future main(List<String> arguments) async {
+  if (arguments.length < 2 ||
+      (!(arguments.length == 2 && arguments[0] == 'list') &&
+          !(arguments.length == 3))) {
     print('Usage:');
     print('   ${Platform.script} list   <package>');
     print('   ${Platform.script} add    <package> <email-to-add>');
@@ -21,9 +21,9 @@ main(List<String> arguments) async {
     exit(1);
   }
 
-  String command = arguments[0];
-  String package = arguments[1];
-  String uploader = arguments.length == 3 ? arguments[2] : null;
+  final String command = arguments[0];
+  final String package = arguments[1];
+  final String uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withProdServices(() async {
     if (command == 'list') {
@@ -41,8 +41,9 @@ main(List<String> arguments) async {
 
 Future listUploaders(String packageName) async {
   return dbService.withTransaction((Transaction T) async {
-    final Package package = (await T.lookup(
-        [dbService.emptyKey.append(Package, id: packageName)])).first;
+    final Package package =
+        (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
+            .first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");
     }
@@ -53,12 +54,13 @@ Future listUploaders(String packageName) async {
 
 Future addUploader(String packageName, String uploader) async {
   return dbService.withTransaction((Transaction T) async {
-    Package package = (await T.lookup(
-        [dbService.emptyKey.append(Package, id: packageName)])).first;
+    final Package package =
+        (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
+            .first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");
     }
-    var uploaders = package.uploaderEmails;
+    final uploaders = package.uploaderEmails;
     print('Current uploaders: $uploaders');
     if (uploaders.contains(uploader)) {
       throw new Exception('Uploader $uploader already exists');
@@ -72,12 +74,13 @@ Future addUploader(String packageName, String uploader) async {
 
 Future removeUploader(String packageName, String uploader) async {
   return dbService.withTransaction((Transaction T) async {
-    Package package = (await T.lookup(
-        [dbService.emptyKey.append(Package, id: packageName)])).first;
+    final Package package =
+        (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
+            .first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");
     }
-    var uploaders = package.uploaderEmails;
+    final uploaders = package.uploaderEmails;
     print('Current uploaders: $uploaders');
     if (!uploaders.contains(uploader)) {
       throw new Exception('Uploader $uploader does not exist');

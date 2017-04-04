@@ -15,8 +15,8 @@ import 'package:http/http.dart' as http;
 OAuth2Service get oauth2Service => ss.lookup(#_oauth2_service);
 
 /// Look up the current registered [OAuth2Service].
-void registerOAuth2Service(OAuth2Service service)
-    => ss.register(#_oauth2_service, service);
+void registerOAuth2Service(OAuth2Service service) =>
+    ss.register(#_oauth2_service, service);
 
 /// A service used for looking up email addresses using an OAuth2 access token.
 class OAuth2Service {
@@ -27,14 +27,14 @@ class OAuth2Service {
   /// Looks up the email address by using the [accessTokenString] which
   /// contains an access token.
   Future<String> lookup(String accessTokenString) async {
-    var future = new DateTime.utc(4242);
-    var accessToken = new AccessToken('Bearer', accessTokenString, future);
-    var credentials = new AccessCredentials(accessToken, null, []);
-    var authClient = authenticatedClient(client, credentials);
+    final future = new DateTime.utc(4242);
+    final accessToken = new AccessToken('Bearer', accessTokenString, future);
+    final credentials = new AccessCredentials(accessToken, null, []);
+    final authClient = authenticatedClient(client, credentials);
 
     oauth2_v2.Userinfoplus info;
     try {
-      var api = new oauth2_v2.Oauth2Api(authClient);
+      final api = new oauth2_v2.Oauth2Api(authClient);
       info = await api.userinfo.get();
     } finally {
       authClient.close();

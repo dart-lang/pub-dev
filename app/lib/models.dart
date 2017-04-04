@@ -50,18 +50,18 @@ class Package extends db.ExpandoModel {
 
   // Check if a user is an uploader for a package.
   bool hasUploader(String email) {
-    return uploaderEmails.map((s) => s.toLowerCase())
-                         .contains(email.toLowerCase());
-
+    return uploaderEmails
+        .map((s) => s.toLowerCase())
+        .contains(email.toLowerCase());
   }
 
   // Remove the email from the list of uploaders.
   void removeUploader(String email) {
-    var lowerEmail = email.toLowerCase();
-    uploaderEmails =
-        uploaderEmails.map((s) => s.toLowerCase())
-                      .where((email) => email != lowerEmail).toList();
-
+    final lowerEmail = email.toLowerCase();
+    uploaderEmails = uploaderEmails
+        .map((s) => s.toLowerCase())
+        .where((email) => email != lowerEmail)
+        .toList();
   }
 }
 
@@ -76,7 +76,7 @@ class Package extends db.ExpandoModel {
 @db.Kind(name: 'PackageVersion', idType: db.IdType.String)
 class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)
-  String version;  // Same as id
+  String version; // Same as id
 
   String get package => packageKey.id;
 
@@ -134,7 +134,7 @@ class PackageVersion extends db.ExpandoModel {
   Version get semanticVersion => new Version.parse(version);
 
   String get ellipsizedDescription {
-    String description = pubspec.description;
+    final String description = pubspec.description;
     if (description == null) return null;
     return description.substring(0, min(description.length, 200));
   }
@@ -144,8 +144,8 @@ class PackageVersion extends db.ExpandoModel {
   }
 
   String get dartdocsUrl {
-    var name = Uri.encodeComponent(packageKey.id);
-    var version = Uri.encodeComponent(id);
+    final name = Uri.encodeComponent(packageKey.id);
+    final version = Uri.encodeComponent(id);
     return 'http://www.dartdocs.org/documentation/$name/$version/';
   }
 
@@ -157,8 +157,8 @@ class PackageVersion extends db.ExpandoModel {
   String get documentationNice => niceUrl(documentation);
 
   String get crossdart {
-    var name = Uri.encodeComponent(packageKey.id);
-    var version = Uri.encodeComponent(id);
+    final name = Uri.encodeComponent(packageKey.id);
+    final version = Uri.encodeComponent(id);
     return 'https://www.crossdart.info/p/$name/$version/';
   }
 
