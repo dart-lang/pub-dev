@@ -51,3 +51,56 @@ String canonicalizeVersion(String version) {
   }
   return canonicalVersion.toString();
 }
+
+final RegExp _identifierExpr = new RegExp(r'^[a-zA-Z0-9_]+$');
+final RegExp _startsWithLetterOrUnderscore = new RegExp(r'^[a-zA-Z_]');
+const List<String> _reservedWords = const <String>[
+  'assert',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'default',
+  'do',
+  'else',
+  'extends',
+  'false',
+  'final',
+  'finally',
+  'for',
+  'if',
+  'in',
+  'is',
+  'new',
+  'null',
+  'return',
+  'super',
+  'switch',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'var',
+  'void',
+  'while',
+  'with'
+];
+
+/// Sanity checks if the user would upload a package with a modified pub client
+/// that skips these verifications.
+/// TODO: share code to use the same validations as in
+/// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
+void validatePackageName(String name) {
+  if (!_identifierExpr.hasMatch(name)) {
+    throw new Exception(
+        'Package name may only contain letters, numbers, and underscores.');
+  }
+  if (!_startsWithLetterOrUnderscore.hasMatch(name)) {
+    throw new Exception('Package name must begin with a letter or underscore.');
+  }
+  if (_reservedWords.contains(name.toLowerCase())) {
+    throw new Exception('Package name must not be a reserved word in Dart.');
+  }
+}

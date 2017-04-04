@@ -609,9 +609,11 @@ Future<models.PackageVersion> parseAndValidateUpload(DatastoreDB db,
   var pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
 
   var pubspec = new Pubspec.fromYaml(pubspecContent);
-  if (pubspec.name == null || pubspec.version == null) {
+  if (pubspec.name == null || pubspec.version == null ||
+      pubspec.name.trim().isEmpty || pubspec.version.trim().isEmpty) {
     throw 'Invalid `pubspec.yaml` file';
   }
+  validatePackageName(pubspec.name);
 
   var readmeContent = readmeFilename != null
       ? await readTarballFile(filename, readmeFilename) : null;
