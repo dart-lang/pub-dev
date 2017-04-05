@@ -266,7 +266,7 @@ Future<shelf.Response> packageShowHandlerJson(
   if (package == null) return _notFoundHandler(request);
 
   final versions = await backend.versionsOfPackage(packageName);
-  _sortVersionsDesc(versions, decreasing: false);
+  sortPackageVersionsDesc(versions, decreasing: false);
 
   final json = {
     'name': package.name,
@@ -289,7 +289,7 @@ Future<shelf.Response> packageVersionsHandler(
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) return _notFoundHandler(request);
 
-  _sortVersionsDesc(versions);
+  sortPackageVersionsDesc(versions);
 
   final versionDownloadUrls =
       await Future.wait(versions.map((PackageVersion version) {
@@ -315,11 +315,11 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
     final versions = await backend.versionsOfPackage(packageName);
 
-    _sortVersionsDesc(versions, decreasing: true, pubSorting: true);
+    sortPackageVersionsDesc(versions, decreasing: true, pubSorting: true);
     final latestStable = versions[0];
     final first10Versions = versions.take(10).toList();
 
-    _sortVersionsDesc(versions, decreasing: true, pubSorting: false);
+    sortPackageVersionsDesc(versions, decreasing: true, pubSorting: false);
     final latestDev = versions[0];
 
     var selectedVersion;
@@ -482,31 +482,6 @@ shelf.Response _atomXmlResponse(String content, {int status: 200}) {
 
 shelf.Response _redirectResponse(url) {
   return new shelf.Response.seeOther(url);
-}
-
-/// Sorts [versions] according to the semantic versioning specification.
-///
-/// If [pubSorting] is `true` then pub's priorization ordering is used, which
-/// will rank pre-release versions lower than stable versions (e.g. it will
-/// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
-/// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
-void _sortVersionsDesc(List<PackageVersion> versions,
-    {bool decreasing: true, bool pubSorting: true}) {
-  versions.sort((PackageVersion a, PackageVersion b) {
-    if (pubSorting) {
-      if (decreasing) {
-        return semver.Version.prioritize(b.semanticVersion, a.semanticVersion);
-      } else {
-        return semver.Version.prioritize(a.semanticVersion, b.semanticVersion);
-      }
-    } else {
-      if (decreasing) {
-        return b.semanticVersion.compareTo(a.semanticVersion);
-      } else {
-        return a.semanticVersion.compareTo(b.semanticVersion);
-      }
-    }
-  });
 }
 
 /// Extracts the 'page' query parameter from [url].

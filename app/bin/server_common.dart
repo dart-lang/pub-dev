@@ -7,9 +7,12 @@ library pub_dartlang_org.server_common;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:gcloud/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
+import 'package:gcloud/src/datastore_impl.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -84,4 +87,23 @@ Future<String> obtainServiceAccountEmail() async {
       'v1/instance/service-accounts/default/email',
       headers: const {'Metadata-Flavor': 'Google'});
   return response.body.trim();
+}
+
+Future<DatastoreDB> initializeApiaryDatastore() async {
+  final projectId = Platform.environment['GCLOUD_PROJECT'];
+  final gcloudKeyVar = Platform.environment['GCLOUD_KEY'];
+  final serviceAccount = new auth.ServiceAccountCredentials.fromJson(
+      new File(gcloudKeyVar).readAsStringSync());
+
+  final authClient =
+  await auth.clientViaServiceAccount(serviceAccount, DatastoreImpl.SCOPES);
+  registerScopeExitCallback(authClient.close);
+
+  final datastore = new DatastoreImpl(authClient, projectId);
+  registerDatastoreService(datastore);
+
+  final db = new DatastoreDB(datastore);
+  registerDbService(db);
+
+  return db;
 }
