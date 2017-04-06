@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dart-lang/pub-dartlang-dart.svg?branch=master)](https://travis-ci.org/dart-lang/pub-dartlang-dart)
+
 # Code for the "pub.dartlang.org" website.
 
 The server for hosting pub packages on [pub.dartlang.org](https://pub.dartlang.org)
