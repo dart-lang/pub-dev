@@ -182,7 +182,7 @@ void main() {
         <link href="https://pub.dartlang.org/feed.atom" rel="self" />
         <generator version="0.1.0">Pub Feed Generator</generator>
         <subtitle>Last Updated Packages</subtitle>
-
+(\\s*)
         <entry>
           <id>urn:uuid:f38e70f0-13de-51b6-88b8-57430c66ce75</id>
           <title>v0.1.1 of foobar_pkg</title>
@@ -193,7 +193,7 @@ void main() {
                 rel="alternate"
                 title="foobar_pkg" />
         </entry>
-
+(\\s*)
 </feed>
 ''');
       });
