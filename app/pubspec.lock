@@ -54,7 +54,7 @@ packages:
       name: collection
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.13.0"
+    version: "1.14.0"
   convert:
     description:
       name: convert
@@ -168,7 +168,7 @@ packages:
       name: markdown
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.2"
+    version: "0.11.3"
   matcher:
     description:
       name: matcher
@@ -186,7 +186,7 @@ packages:
       name: meta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   mime:
     description:
       name: mime
@@ -234,7 +234,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.3"
+    version: "0.5.3+2"
   pub_semver:
     description:
       name: pub_semver
@@ -318,7 +318,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.20+4"
+    version: "0.12.20+9"
   typed_data:
     description:
       name: typed_data
