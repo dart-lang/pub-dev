@@ -38,7 +38,7 @@ void main() {
       }
       final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
-      AppEngineRequestHandler requestHandler = (ioRequest) async {
+      var requestHandler = (HttpRequest ioRequest) async {
         if (context.isProductionEnvironment &&
             ioRequest.requestedUri.scheme != 'https') {
           final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
@@ -67,11 +67,11 @@ void main() {
         }
       };
       if (Platform.isMacOS) {
-        final AppEngineRequestHandler origHandler = requestHandler;
+        final origHandler = requestHandler;
         requestHandler = (ioRequest) {
-          fork(() {
+          fork(() async {
             registerDbService(savedDb);
-            origHandler(ioRequest);
+            await origHandler(ioRequest);
           });
         };
       }
