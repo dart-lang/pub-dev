@@ -41,12 +41,20 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_version')
   db.Key latestVersionKey;
 
+  @db.ModelKeyProperty(propertyName: 'latest_dev_version')
+  db.Key latestDevVersionKey;
+
   @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
   String get latestVersion => latestVersionKey.id;
 
   Version get latestSemanticVersion => new Version.parse(latestVersionKey.id);
+
+  String get latestDevVersion => latestDevVersionKey?.id;
+
+  Version get latestDevSemanticVersion =>
+      latestDevVersionKey == null ? null : new Version.parse(latestDevVersion);
 
   // Check if a user is an uploader for a package.
   bool hasUploader(String email) {
@@ -62,6 +70,21 @@ class Package extends db.ExpandoModel {
         .map((s) => s.toLowerCase())
         .where((email) => email != lowerEmail)
         .toList();
+  }
+
+  void updateVersion(PackageVersion pv) {
+    final Version newVersion = pv.semanticVersion;
+    final Version latestStable = latestSemanticVersion;
+    final Version latestDev = latestDevSemanticVersion;
+
+    if (_isNewer(latestStable, newVersion, pubSorting: true)) {
+      latestVersionKey = pv.key;
+    }
+
+    if (latestDev == null ||
+        _isNewer(latestDev, newVersion, pubSorting: false)) {
+      latestDevVersionKey = pv.key;
+    }
   }
 }
 
@@ -188,3 +211,48 @@ String niceUrl(String url) {
   }
   return url;
 }
+
+/// Sorts [versions] according to the semantic versioning specification.
+///
+/// If [pubSorting] is `true` then pub's priorization ordering is used, which
+/// will rank pre-release versions lower than stable versions (e.g. it will
+/// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
+/// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
+void sortPackageVersionsDesc(List<PackageVersion> versions,
+    {bool decreasing: true, bool pubSorting: true}) {
+  versions.sort((PackageVersion a, PackageVersion b) =>
+      _compareSemanticVersionsDesc(
+          a.semanticVersion, b.semanticVersion, decreasing, pubSorting));
+}
+
+/// Compares two versions according to the semantic versioning specification.
+///
+/// If [pubSorting] is `true` then pub's priorization ordering is used, which
+/// will rank pre-release versions lower than stable versions (e.g. it will
+/// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
+/// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
+int _compareSemanticVersionsDesc(
+    Version a, Version b, bool decreasing, pubSorting) {
+  if (pubSorting) {
+    if (decreasing) {
+      return Version.prioritize(b, a);
+    } else {
+      return Version.prioritize(a, b);
+    }
+  } else {
+    if (decreasing) {
+      return b.compareTo(a);
+    } else {
+      return a.compareTo(b);
+    }
+  }
+}
+
+/// Returns true if [b] is considered newer than [a].
+///
+/// If [pubSorting] is `true` then pub's priorization ordering is used, which
+/// will rank pre-release versions lower than stable versions (e.g. it will
+/// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
+/// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
+bool _isNewer(Version a, Version b, {bool pubSorting: true}) =>
+    _compareSemanticVersionsDesc(a, b, false, pubSorting) < 0;

@@ -6,10 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/src/datastore_impl.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:path/path.dart' as path;
@@ -34,7 +32,7 @@ void main() {
     return fork(() async {
       DatastoreDB savedDb;
       if (Platform.isMacOS) {
-        savedDb = await _initializeApiaryDatastore();
+        savedDb = await initializeApiaryDatastore();
       }
       final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
@@ -135,23 +133,4 @@ shelf.Request sanitizeRequestedUri(shelf.Request request) {
         encoding: request.encoding,
         context: request.context);
   }
-}
-
-Future<DatastoreDB> _initializeApiaryDatastore() async {
-  final projectId = Platform.environment['GCLOUD_PROJECT'];
-  final gcloudKeyVar = Platform.environment['GCLOUD_KEY'];
-  final serviceAccount = new auth.ServiceAccountCredentials.fromJson(
-      new File(gcloudKeyVar).readAsStringSync());
-
-  final authClient =
-      await auth.clientViaServiceAccount(serviceAccount, DatastoreImpl.SCOPES);
-  registerScopeExitCallback(authClient.close);
-
-  final datastore = new DatastoreImpl(authClient, projectId);
-  registerDatastoreService(datastore);
-
-  final db = new DatastoreDB(datastore);
-  registerDbService(db);
-
-  return db;
 }

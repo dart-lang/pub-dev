@@ -289,11 +289,7 @@ class GCloudPackageRepository extends PackageRepository {
       package.updated = newVersion.created;
 
       // Keep the latest version in the package object up-to-date.
-      if (package.latestSemanticVersion < newVersion.semanticVersion &&
-          (package.latestSemanticVersion.isPreRelease ||
-              !newVersion.semanticVersion.isPreRelease)) {
-        package.latestVersionKey = newVersion.key;
-      }
+      package.updateVersion(newVersion);
 
       try {
         _logger.info('Trying to upload tarball to cloud storage.');
