@@ -1,0 +1,212 @@
+
+<!doctype html>
+<html lang="en-us" itemscope itemtype="http://schema.org/CreativeWork">
+  <head>
+    <title>foobar_pkg 0.1.1 | Pub Package Manager</title>
+    <meta itemprop="image" content="/static/img/dart-logo-400x400.png">
+      <meta itemprop="name" content="foobar_pkg - A pub package for Dart">
+      <meta name="description" content="foobar_pkg - my package description">
+      <meta itemprop="description" content="foobar_pkg - my package description">
+
+    <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom">
+    <link href="/static/style.css" rel="stylesheet" type="text/css" />
+    <script src="/static/js/jquery-1.7.2.min.js"></script>
+    <script src="/static/js/bootstrap-dropdown.js"></script>
+    <script src="/static/js/bootstrap-tab.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-26406144-13', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <nav>
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="https://www.dartlang.org">
+              <div class="dart-logo">dartlang.org</div>
+            </a>
+            <a class="brand" href="/">pub.dartlang.org</a>
+            <ul class="nav">
+              <li><a href="https://www.dartlang.org/tools/pub/get-started">Getting Started</a></li>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  Docs
+                  <div class="caret"></div>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="https://www.dartlang.org/tools/pub/get-started">Getting Started</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/dependencies">Dependencies</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/pubspec">Pubspec Format</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/package-layout">Package Layout Conventions</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/assets-and-transformers">Assets and Transformers</a></li>
+                  <li class="nav-header">Reference</li>
+                  <li><a href="https://www.dartlang.org/tools/faq#pub">FAQ</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/glossary">Glossary</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/versioning">Versioning Philosophy</a></li>
+                </ul>
+              </li>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  Commands
+                  <div class="caret"></div>
+                </a>
+                <ul class="dropdown-menu">
+                  <li class="nav-header">Pub Commands</li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-build.html"><code>pub build</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-cache.html"><code>pub cache</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-deps.html"><code>pub deps</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-get.html"><code>pub get</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-global.html"><code>pub global</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-lish.html"><code>pub publish</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-run.html"><code>pub run</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-serve.html"><code>pub serve</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-upgrade.html"><code>pub upgrade</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-uploader.html"><code>pub uploader</code></a>
+                  </li>
+                </ul>
+              </li>
+              <li><a href="/packages">Packages</a></li>
+            </ul>
+            <form class="navbar-search pull-right" action="/search">
+              <input type="search" name="q" class="search-query" id="query"
+                     autocomplete="on" placeholder="Search" autofocus>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div id="header">
+      </div>
+      
+<h1>
+  foobar_pkg
+  <span class="version">0.1.1</span>
+  <span class="version" style="font-weight: normal">
+  </span>
+</h1>
+<div class="row-fluid">
+  <div class="span8">
+    <ul class="nav nav-tabs">
+        <li class="active">
+          <a href="#-pkg-tab-readme" data-toggle="tab">README</a>
+        </li>
+      <li class="">
+        <a href="#-pkg-tab-installing" data-toggle="tab">Installing</a>
+      </li>
+      <li><a href="#-pkg-tab-versions" data-toggle="tab">Versions</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane active" id="-pkg-tab-readme">
+          <div class="highlight"><pre>readme content</pre></div>
+        </div>
+      <div class="tab-pane " id="-pkg-tab-installing">
+        <h3>1. Depend on it</h3>
+        <p>Add this to your package's pubspec.yaml file:</p>
+<pre>
+dependencies:
+  <strong>foobar_pkg: &quot;^0.1.1&quot;</strong>
+</pre>
+        <h3>2. Install it</h3>
+        <p>You can install packages from the command line:</p>
+<pre>
+$ <strong>pub get</strong>
+</pre>
+        <p>Alternatively, your editor might support pub. Check the docs for your editor to learn more.</p>
+          <h3>3. Import it</h3>
+          <p>Now in your Dart code, you can use:
+          </p>
+<pre class="highlight">
+<span class="import-example"><span class="k">import</span> <span class="s">'package:<strong>foobar_pkg</strong>/<wbr/><strong>foolib.dart</strong>'</span>;</span>
+</pre>
+      </div>
+
+      <div class="tab-pane" id="-pkg-tab-versions">
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Uploaded</th>
+              <th class="documentation" width="60">Documentation</th>
+              <th class="archive" width="60">Archive</th>
+            </tr>
+          </thead>
+            <tr>
+              <th>0.1.1</th>
+              <td>Jan 1, 2014</td>
+              <td class="documentation">
+                <a href="http:&#x2F;&#x2F;www.dartdocs.org&#x2F;documentation&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;"
+                   title="Go to the documentation of foobar_pkg 0.1.1">
+                  <i class="icon-book">
+                    Go to the documentation of foobar_pkg 0.1.1
+                  </i>
+                </a>
+              </td>
+              <td class="archive">
+                <a href="http:&#x2F;&#x2F;dart-example.com&#x2F;"
+                   title="Download foobar_pkg 0.1.1 archive">
+                  <i class="icon-download-alt">
+                    Download foobar_pkg 0.1.1 archive
+                  </i>
+                </a>
+              </td>
+            </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="span4 package-sidebar">
+      <h4>About</h4>
+      <p>my package description</p>
+
+    <h4>Author</h4>
+    <p><span class="author"><a href="mailto:hans@juergen.com" title="Email hans@juergen.com"><i class="icon-envelope">Email hans@juergen.com</i></a> Hans Juergen</span></p>
+
+      <h4>Homepage</h4>
+      <p class="homepage"><a href="http:&#x2F;&#x2F;hans.juergen.com">hans.juergen.com</a></p>
+
+      <h4>Documentation</h4>
+      <p class="main-documentation"><a href="http:&#x2F;&#x2F;www.dartdocs.org&#x2F;documentation&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;">www.dartdocs.org&#x2F;documentation&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;</a></p>
+
+      <h4>Source code (hyperlinked)</h4>
+      <p class="main-crossdart"><a href="https:&#x2F;&#x2F;www.crossdart.info&#x2F;p&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;">www.crossdart.info&#x2F;p&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;</a></p>
+
+    <h4>Uploader</h4>
+    <p>hans@juergen.com</p>
+
+    <h4>Share</h4>
+    <div class="g-plusone" data-annotation="none"></div>
+    <a href="https://twitter.com/share" class="twitter-share-button" data-count="none" data-hashtags="dartlang">Tweet</a>
+  </div>
+</div>
+
+      <footer>
+        <a href="https://www.dartlang.org/">
+          Dart Language
+        </a> &mdash; <a href="/site-map">
+          Site Map
+        </a> &mdash; <a href="https://www.google.com/intl/en/policies/terms/">
+          Terms of Service
+        </a> &mdash; <a href="https://www.google.com/intl/en/policies/privacy/">
+          Privacy Policy
+        </a>
+      </footer>
+    </div>
+
+    <script type="text/javascript">
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  </body>
+</html>
