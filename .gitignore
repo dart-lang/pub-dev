@@ -5,6 +5,9 @@ packages
 .packages
 .pub
 
+# Or the directories created by editors
+.idea
+
 # Or the files created by dart2js.
 *.dart.js
 *.dart.precompiled.js
