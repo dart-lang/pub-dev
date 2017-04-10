@@ -793,15 +793,15 @@ void main() {
         });
 
         scopedTest('bad package names are rejected', () async {
-          var tarballStorage = new TarballStorageMock();
-          var transactionMock = new TransactionMock();
-          var db = new DatastoreDBMock(transactionMock: transactionMock);
-          var repo = new GCloudPackageRepository(db, tarballStorage);
+          final tarballStorage = new TarballStorageMock();
+          final transactionMock = new TransactionMock();
+          final db = new DatastoreDBMock(transactionMock: transactionMock);
+          final repo = new GCloudPackageRepository(db, tarballStorage);
           registerLoggedInUser('hans@juergen.com');
 
           // Returns the error message as String or null if it succeeded.
-          fn(String name) async {
-            String pubspecContent =
+          Future<String> fn(String name) async {
+            final String pubspecContent =
                 TestPackagePubspec.replaceAll('foobar_pkg', name);
             try {
               await withTestPackage((List<int> tarball) async {
@@ -810,7 +810,9 @@ void main() {
             } catch (e) {
               return e.toString();
             }
-          };
+            // no issues, return null
+            return null;
+          }
 
           expect(await fn('with'),
               'Exception: Package name must not be a reserved word in Dart.');
