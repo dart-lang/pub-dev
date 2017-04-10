@@ -220,13 +220,9 @@ String niceUrl(String url) {
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 void sortPackageVersionsDesc(List<PackageVersion> versions,
     {bool decreasing: true, bool pubSorting: true}) {
-  versions.sort(
-      (PackageVersion a, PackageVersion b) => _compareSemanticVersionsDesc(
-            a.semanticVersion,
-            b.semanticVersion,
-            decreasing: decreasing,
-            pubSorting: pubSorting,
-          ));
+  versions.sort((PackageVersion a, PackageVersion b) =>
+      _compareSemanticVersionsDesc(
+          a.semanticVersion, b.semanticVersion, decreasing, pubSorting));
 }
 
 /// Compares two versions according to the semantic versioning specification.
@@ -235,8 +231,8 @@ void sortPackageVersionsDesc(List<PackageVersion> versions,
 /// will rank pre-release versions lower than stable versions (e.g. it will
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
-int _compareSemanticVersionsDesc(Version a, Version b,
-    {bool decreasing: true, bool pubSorting: true}) {
+int _compareSemanticVersionsDesc(
+    Version a, Version b, bool decreasing, pubSorting) {
   if (pubSorting) {
     if (decreasing) {
       return Version.prioritize(b, a);
@@ -258,8 +254,5 @@ int _compareSemanticVersionsDesc(Version a, Version b,
 /// will rank pre-release versions lower than stable versions (e.g. it will
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
-bool _isNewer(Version a, Version b, {bool pubSorting: true}) {
-  final int order = _compareSemanticVersionsDesc(a, b,
-      decreasing: false, pubSorting: pubSorting);
-  return order < 0;
-}
+bool _isNewer(Version a, Version b, {bool pubSorting: true}) =>
+    _compareSemanticVersionsDesc(a, b, false, pubSorting) < 0;
