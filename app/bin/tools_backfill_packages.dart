@@ -42,7 +42,7 @@ Future _updateDevVersionKey(Key packageKey) async {
         .run()
         .toList();
     for (PackageVersion pv in versions) {
-      package.updateVersion(pv.key);
+      package.updateVersion(pv);
     }
     t.queueMutations(inserts: [package]);
     await t.commit();

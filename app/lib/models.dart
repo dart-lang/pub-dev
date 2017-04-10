@@ -51,6 +51,11 @@ class Package extends db.ExpandoModel {
 
   Version get latestSemanticVersion => new Version.parse(latestVersionKey.id);
 
+  String get latestDevVersion => latestDevVersionKey?.id;
+
+  Version get latestDevSemanticVersion =>
+      latestDevVersionKey == null ? null : new Version.parse(latestDevVersion);
+
   // Check if a user is an uploader for a package.
   bool hasUploader(String email) {
     return uploaderEmails
@@ -67,20 +72,18 @@ class Package extends db.ExpandoModel {
         .toList();
   }
 
-  void updateVersion(db.Key newVersionKey) {
-    final Version newVersion = new Version.parse(newVersionKey.id);
+  void updateVersion(PackageVersion pv) {
+    final Version newVersion = pv.semanticVersion;
     final Version latestStable = latestSemanticVersion;
-    final Version latestDev = latestDevVersionKey == null
-        ? null
-        : new Version.parse(latestDevVersionKey.id);
+    final Version latestDev = latestDevSemanticVersion;
 
     if (_isNewer(latestStable, newVersion, pubSorting: true)) {
-      latestVersionKey = newVersionKey;
+      latestVersionKey = pv.key;
     }
 
     if (latestDev == null ||
         _isNewer(latestDev, newVersion, pubSorting: false)) {
-      latestDevVersionKey = newVersionKey;
+      latestDevVersionKey = pv.key;
     }
   }
 }
