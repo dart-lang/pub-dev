@@ -7,7 +7,10 @@ library pub_dartlang_org.utils;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
+
+final Logger _logger = new Logger('pub.utils');
 
 Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
     {String prefix: 'dart-tempdir'}) {
@@ -19,8 +22,13 @@ Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
 }
 
 Future<List<String>> listTarball(String path) async {
-  final result = await Process.run('tar', ['--exclude=*/*/*', '-tzf', path]);
+  final args = ['--exclude=*/*/*', '-tzf', path];
+  final result = await Process.run('tar', args);
   if (result.exitCode != 0) {
+    _logger.warning('The "tar $args" command failed:\n'
+        'with exit code: ${result.exitCode}\n'
+        'stdout: ${result.stdout}\n'
+        'stderr: ${result.stderr}');
     throw 'Failed to list tarball contents.';
   }
 
