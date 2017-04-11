@@ -232,25 +232,6 @@ class TemplateService {
         packageVersion: selectedVersion);
   }
 
-  /// Renders the `views/admin.mustache` template.
-  String renderAdminPage(bool privateKeysSet, bool isProduction,
-      {ReloadStatus reloadStatus}) {
-    final reload_status = reloadStatus == null
-        ? {}
-        : {
-            'count': reloadStatus.count,
-            'total': reloadStatus.total,
-            'percentage': reloadStatus.percentage,
-          };
-
-    final values = {
-      'reload_status': reload_status,
-      'private_keys_set':
-          privateKeysSet && isProduction ? {'production': true} : false,
-    };
-    return _renderPage('admin', values, title: 'Admin Console');
-  }
-
   /// Renders the `views/authorized.mustache` template.
   String renderAuthorizedPage() {
     return _renderPage('authorized', {}, title: 'Pub Authorized Successfully');
@@ -395,14 +376,6 @@ String _getAuthorsHtml(PackageVersion version) {
 String _getUploadersHtml(Package package) {
   // TODO: HTML escape email addresses.
   return package.uploaderEmails.join('<br/>');
-}
-
-class ReloadStatus {
-  final int count;
-  final int total;
-  final double percentage;
-
-  ReloadStatus(this.count, this.total, this.percentage);
 }
 
 abstract class PageLinks {
