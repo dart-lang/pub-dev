@@ -1,0 +1,172 @@
+
+<!doctype html>
+<html lang="en-us" >
+  <head>
+    <title>Pub Package Manager</title>
+    <meta itemprop="image" content="/static/img/dart-logo-400x400.png">
+      <meta name="description" content="Pub is a package manager for the
+        Dart programming language.">
+
+    <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom">
+    <link href="/static/style.css" rel="stylesheet" type="text/css" />
+    <script src="/static/js/jquery-1.7.2.min.js"></script>
+    <script src="/static/js/bootstrap-dropdown.js"></script>
+    <script src="/static/js/bootstrap-tab.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-26406144-13', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <nav>
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <a class="brand" href="https://www.dartlang.org">
+              <div class="dart-logo">dartlang.org</div>
+            </a>
+            <a class="brand" href="/">pub.dartlang.org</a>
+            <ul class="nav">
+              <li><a href="https://www.dartlang.org/tools/pub/get-started">Getting Started</a></li>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  Docs
+                  <div class="caret"></div>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="https://www.dartlang.org/tools/pub/get-started">Getting Started</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/dependencies">Dependencies</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/pubspec">Pubspec Format</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/package-layout">Package Layout Conventions</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/assets-and-transformers">Assets and Transformers</a></li>
+                  <li class="nav-header">Reference</li>
+                  <li><a href="https://www.dartlang.org/tools/faq#pub">FAQ</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/glossary">Glossary</a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/versioning">Versioning Philosophy</a></li>
+                </ul>
+              </li>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  Commands
+                  <div class="caret"></div>
+                </a>
+                <ul class="dropdown-menu">
+                  <li class="nav-header">Pub Commands</li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-build.html"><code>pub build</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-cache.html"><code>pub cache</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-deps.html"><code>pub deps</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-get.html"><code>pub get</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-global.html"><code>pub global</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-lish.html"><code>pub publish</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-run.html"><code>pub run</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-serve.html"><code>pub serve</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-upgrade.html"><code>pub upgrade</code></a></li>
+                  <li><a href="https://www.dartlang.org/tools/pub/cmd/pub-uploader.html"><code>pub uploader</code></a>
+                  </li>
+                </ul>
+              </li>
+              <li><a href="/packages">Packages</a></li>
+            </ul>
+            <form class="navbar-search pull-right" action="/search">
+              <input type="search" name="q" class="search-query" id="query"
+                     autocomplete="on" placeholder="Search" autofocus>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div id="header">
+      </div>
+      
+<div class="intro">
+  <h2>Welcome to pub.dartlang.org!</h2>
+  <p>
+    This is your friendly repository of packages of software for the
+    <a href="https://www.dartlang.org/">Dart programming language</a>.
+    Explore packages here and install them using <strong>pub</strong>, the
+    package manager for Dart.
+  </p>
+  <a class="get-started"
+      href="https://www.dartlang.org/tools/pub/get-started.html">
+    Get started
+  </a>
+</div>
+<div class="framework_links">
+  <div class="flutter_framework_link">
+    <a href="https://flutter.io/">
+      <img class="framework_image" src="/static/flutter.png" />
+    </a>
+
+    <h2>Mobile development?</h2>
+    <a class="get-started" href="https://flutter.io/">
+      Try Flutter!
+    </a>
+    <br/>
+    &nbsp;
+  </div>
+  <div class="angular_framework_link">
+    <a href="https://webdev.dartlang.org/angular">
+      <img class="framework_image" src="/static/angulardart.png" />
+    </a>
+    <h2>Web development?</h2>
+    <a class="get-started" href="https://webdev.dartlang.org/angular">
+      Try Angular!
+    </a>
+    <br/>
+    Using the <a href="/packages/angular2">angular2</a> package.
+  </div>
+</div>
+<h2>Recently updated packages</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Package</th>
+      <th>Version</th>
+      <th>Description</th>
+      <th width="100">Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <th><a href="/packages/foobar_pkg">foobar_pkg</a></th>
+        <td><span class="version">0.1.1</span></td>
+        <td>my package description</td>
+        <td>Jan 1, 2014</td>
+      </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4"><a href="/packages">More packages...</a></td>
+    </tr>
+  </tfoot>
+</table>
+
+      <footer>
+        <a href="https://www.dartlang.org/">
+          Dart Language
+        </a> &mdash; <a href="/site-map">
+          Site Map
+        </a> &mdash; <a href="https://www.google.com/intl/en/policies/terms/">
+          Terms of Service
+        </a> &mdash; <a href="https://www.google.com/intl/en/policies/privacy/">
+          Privacy Policy
+        </a>
+      </footer>
+    </div>
+
+    <script type="text/javascript">
+      (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+      })();
+    </script>
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  </body>
+</html>

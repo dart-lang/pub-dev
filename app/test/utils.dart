@@ -50,6 +50,7 @@ final PackageVersion testPackageVersion = new PackageVersion()
   ..version = testPackageVersionKey.id
   ..packageKey = testPackageKey
   ..created = new DateTime.utc(2014)
+  ..libraries = ['foolib.dart']
   ..pubspec = testPubspec
   ..readmeFilename = 'README'
   ..readmeContent = 'readme content'
@@ -89,6 +90,7 @@ name: foobar_pkg
 version: 0.1.1
 author: Hans Juergen <hans@juergen.com>
 homepage: http://hans.juergen.com
+description: 'my package description'
 
 dependencies:
   gcloud: any
