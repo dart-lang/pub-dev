@@ -188,7 +188,12 @@ void main() {
           <title>v0.1.1 of foobar_pkg</title>
           <updated>${testPackageVersion.created.toIso8601String()}</updated>
           <author><name>Hans Juergen &lt;hans@juergen.com&gt;</name></author>
-          <content type="html">readme content</content>
+          <content type="html">&lt;h1&gt;Test Package&lt;&#47;h1&gt;
+&lt;p&gt;This is a readme file.&lt;&#47;p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-dart&quot;&gt;void main\\(\\) {
+}
+&lt;&#47;code&gt;&lt;&#47;pre&gt;
+</content>
           <link href="https://pub.dartlang.org/packages/foobar_pkg"
                 rel="alternate"
                 title="foobar_pkg" />

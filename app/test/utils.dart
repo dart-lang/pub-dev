@@ -52,8 +52,10 @@ final PackageVersion testPackageVersion = new PackageVersion()
   ..created = new DateTime.utc(2014)
   ..libraries = ['foolib.dart']
   ..pubspec = testPubspec
-  ..readmeFilename = 'README'
-  ..readmeContent = 'readme content'
+  ..readmeFilename = 'README.md'
+  ..readmeContent = TestPackageReadme
+  ..changelogFilename = 'CHANGELOG.md'
+  ..changelogContent = TestPackageChangelog
   ..sortOrder = -1;
 
 Future scoped(func()) {
@@ -75,6 +77,11 @@ Test Package
 ============
 
 This is a readme file.
+
+```dart
+void main() {
+}
+```
 ''';
 
 final String TestPackageChangelog = '''
