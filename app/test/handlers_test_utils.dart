@@ -142,12 +142,6 @@ class TemplateMock implements TemplateService {
   String get templateDirectory => null;
 
   @override
-  String renderAdminPage(bool privateKeysSet, bool isProduction,
-      {ReloadStatus reloadStatus}) {
-    return Response;
-  }
-
-  @override
   String renderAuthorizedPage() {
     return Response;
   }
