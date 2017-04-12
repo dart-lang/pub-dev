@@ -95,7 +95,10 @@
   <div class="span8">
     <ul class="nav nav-tabs">
         <li class="active">
-          <a href="#-pkg-tab-readme" data-toggle="tab">README</a>
+          <a href="#-pkg-tab-readme" data-toggle="tab">README.md</a>
+        </li>
+        <li class="">
+          <a href="#-pkg-tab-changelog" data-toggle="tab">CHANGELOG.md</a>
         </li>
       <li class="">
         <a href="#-pkg-tab-installing" data-toggle="tab">Installing</a>
@@ -105,8 +108,15 @@
 
     <div class="tab-content">
         <div class="tab-pane active" id="-pkg-tab-readme">
-          <div class="highlight"><pre>readme content</pre></div>
+          <h1 id="test-package">Test Package</h1>
+<p>This is a readme file.</p>
+<pre class="highlight"><span class="k">void</span> <span class="n">main</span><span class="n">(</span><span class="n">)</span> <span class="n">{</span>
+<span class="n">}</span><span class="n"></span></pre>
         </div>
+      <div class="tab-pane " id="-pkg-tab-changelog">
+        <h1 id="changelog">Changelog</h1>
+<p>0.1.1 - test package</p>
+      </div>
       <div class="tab-pane " id="-pkg-tab-installing">
         <h3>1. Depend on it</h3>
         <p>Add this to your package's pubspec.yaml file:</p>
