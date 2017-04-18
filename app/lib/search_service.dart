@@ -78,19 +78,16 @@ class SearchService {
 
       if (keys.isNotEmpty) {
         final List<Package> packages = await db.lookup(keys);
+        packages.removeWhere((p) => !exists(p));
         final List<Key> versionKeys =
-            packages.where(exists).map((p) => p.latestVersionKey).toList();
+            packages.map((p) => p.latestVersionKey).toList();
+        final List<Key> devVersionKeys =
+            packages.map((p) => p.latestDevVersionKey).toList();
         if (versionKeys.isNotEmpty) {
-          // select latest development versions for each package
-          final packageKeys = versionKeys.map((vk) => vk.parent).toList();
-          final List<PackageVersion> devVersions =
-              await Future.wait(packageKeys.map((p) async {
-            final List<PackageVersion> all =
-                await db.query(PackageVersion, ancestorKey: p).run().toList();
-            all.sort((a, b) => b.semanticVersion.compareTo(a.semanticVersion));
-            return all.first;
-          }));
-          final versions = await db.lookup(versionKeys);
+          final allVersions =
+              await db.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+          final versions = allVersions.sublist(0, versionKeys.length);
+          final devVersions = allVersions.sublist(versionKeys.length);
           final int count = min(
               int.parse(search.searchInformation.totalResults),
               SEARCH_MAX_RESULTS);
