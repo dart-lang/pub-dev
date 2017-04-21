@@ -57,6 +57,15 @@ class Pubspec {
     return _asString(_json['description']);
   }
 
+  /// Whether the pubspec file contains a flutter.plugin entry.
+  bool get hasFlutterPlugin {
+    _load();
+    final flutter = _json['flutter'];
+    if (flutter == null || flutter is! Map) return false;
+    final plugin = flutter['plugin'];
+    return plugin != null && plugin is Map;
+  }
+
   void _load() {
     if (_json == null) {
       if (jsonString != null) {
