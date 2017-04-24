@@ -228,7 +228,7 @@ class TemplateService {
       'version_count': '$totalNumberOfVersions',
     };
     return _renderPage('pkg/show', values,
-        title: '${package.name} ${selectedVersion.id} | Pub Package Manager',
+        title: '${package.name} ${selectedVersion.id} | Dart Package',
         packageVersion: selectedVersion);
   }
 
@@ -261,7 +261,7 @@ class TemplateService {
         };
       }).toList(),
     };
-    return _renderPage('index', values, title: 'Pub Package Manager');
+    return _renderPage('index', values, title: 'Pub: Dart Package Manager');
   }
 
   /// Renders the `views/layout.mustache` template.
