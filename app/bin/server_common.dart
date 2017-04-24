@@ -89,7 +89,36 @@ Future<String> obtainServiceAccountEmail() async {
   return response.body.trim();
 }
 
-Future<DatastoreDB> initializeApiaryDatastore() async {
+/// Wrapper function used to work around issue with running gRPC Datastore on
+/// MacOS.
+///
+/// On
+///    * Linux this function simply returns `fun()`
+///
+///    * MacOS this function makes a new service scope, optionally builds an
+///      apiary Datastore and registers an apiary Datastore in the new service
+///      scope
+///
+Future withCorrectDatastore(Future fun()) {
+  if (Platform.isMacOS) {
+    return fork(() async {
+      DatastoreDB apiaryDatastore = lookup(_apiaryDatastoreSymbol);
+      if (apiaryDatastore == null) {
+        apiaryDatastore = await _initializeApiaryDatastore();
+        register(_apiaryDatastoreSymbol, apiaryDatastore);
+      }
+      registerDbService(apiaryDatastore);
+      return fun();
+    });
+  } else {
+    assert(dbService != null);
+    return fun();
+  }
+}
+
+Symbol _apiaryDatastoreSymbol = #_apiaryDatastoreSymbol;
+
+Future<DatastoreDB> _initializeApiaryDatastore() async {
   final projectId = Platform.environment['GCLOUD_PROJECT'];
   final gcloudKeyVar = Platform.environment['GCLOUD_KEY'];
   final serviceAccount = new auth.ServiceAccountCredentials.fromJson(
@@ -102,8 +131,5 @@ Future<DatastoreDB> initializeApiaryDatastore() async {
   final datastore = new DatastoreImpl(authClient, projectId);
   registerDatastoreService(datastore);
 
-  final db = new DatastoreDB(datastore);
-  registerDbService(db);
-
-  return db;
+  return new DatastoreDB(datastore);
 }
