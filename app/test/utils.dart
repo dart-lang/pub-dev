@@ -42,7 +42,8 @@ final Package testPackage = new Package()
   ..created = new DateTime.utc(2014)
   ..updated = new DateTime.utc(2015)
   ..uploaderEmails = ['hans@juergen.com']
-  ..latestVersionKey = testPackageVersionKey;
+  ..latestVersionKey = testPackageVersionKey
+  ..latestDevVersionKey = testPackageVersionKey;
 
 final PackageVersion testPackageVersion = new PackageVersion()
   ..parentKey = testPackageVersionKey.parent
