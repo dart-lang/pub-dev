@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -29,51 +28,39 @@ void main() {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    return fork(() async {
-      DatastoreDB savedDb;
-      if (Platform.isMacOS) {
-        savedDb = await initializeApiaryDatastore();
-      }
+    return withCorrectDatastore(() async {
       final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
-      var requestHandler = (HttpRequest ioRequest) async {
-        if (context.isProductionEnvironment &&
-            ioRequest.requestedUri.scheme != 'https') {
-          final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
-          ioRequest.response
-            ..redirect(secureUri)
-            ..close();
-        } else {
-          try {
-            return shelf_io.handleRequest(ioRequest,
-                (shelf.Request request) async {
-              logger.info('Handling request: ${request.requestedUri}');
-              await registerLoggedInUserIfPossible(request);
-              try {
-                final sanitizedRequest = sanitizeRequestedUri(request);
-                return await appHandler(sanitizedRequest, apiHandler);
-              } catch (error, s) {
-                logger.severe('Request handler failed', error, s);
-                return new shelf.Response.internalServerError();
-              } finally {
-                logger.info('Request handler done.');
-              }
-            });
-          } catch (error, stack) {
-            logger.severe('Request handler failed', error, stack);
+      await runAppEngine((HttpRequest ioRequest) async {
+        return withCorrectDatastore(() {
+          if (context.isProductionEnvironment &&
+              ioRequest.requestedUri.scheme != 'https') {
+            final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
+            ioRequest.response
+              ..redirect(secureUri)
+              ..close();
+          } else {
+            try {
+              return shelf_io.handleRequest(ioRequest,
+                  (shelf.Request request) async {
+                logger.info('Handling request: ${request.requestedUri}');
+                await registerLoggedInUserIfPossible(request);
+                try {
+                  final sanitizedRequest = sanitizeRequestedUri(request);
+                  return await appHandler(sanitizedRequest, apiHandler);
+                } catch (error, s) {
+                  logger.severe('Request handler failed', error, s);
+                  return new shelf.Response.internalServerError();
+                } finally {
+                  logger.info('Request handler done.');
+                }
+              });
+            } catch (error, stack) {
+              logger.severe('Request handler failed', error, stack);
+            }
           }
-        }
-      };
-      if (Platform.isMacOS) {
-        final origHandler = requestHandler;
-        requestHandler = (ioRequest) {
-          fork(() async {
-            registerDbService(savedDb);
-            await origHandler(ioRequest);
-          });
-        };
-      }
-      await runAppEngine(requestHandler);
+        });
+      });
     });
   });
 }

@@ -6,34 +6,22 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/service_scope.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
 import 'server_common.dart';
 import 'configuration.dart';
 
 Future withProdServices(Future fun()) {
-  if (Platform.isMacOS) {
-    return _withProdServices(() {
-      return fork(() async {
-        await initializeApiaryDatastore();
-        return fun();
-      });
-    });
-  } else {
-    return _withProdServices(fun);
-  }
-}
-
-Future _withProdServices(Future fun()) async {
-  if (!Platform.environment.containsKey('GCLOUD_PROJECT') ||
-      !Platform.environment.containsKey('GCLOUD_KEY')) {
-    throw 'Missing GCLOUD_* environments for package:appengine';
-  }
   return withAppEngineServices(() {
-    registerUploadSigner(
-        new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
-    initBackend();
-    return fun();
+    if (!Platform.environment.containsKey('GCLOUD_PROJECT') ||
+        !Platform.environment.containsKey('GCLOUD_KEY')) {
+      throw 'Missing GCLOUD_* environments for package:appengine';
+    }
+    return withCorrectDatastore(() {
+      registerUploadSigner(
+          new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
+      initBackend();
+      return fun();
+    });
   });
 }
