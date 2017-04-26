@@ -58,6 +58,30 @@ final PackageVersion testPackageVersion = new PackageVersion()
   ..changelogContent = TestPackageChangelog
   ..sortOrder = -1;
 
+final PackageVersion flutterPackageVersion =
+    clonePackageVersion(testPackageVersion)
+      ..pubspec = new Pubspec.fromYaml(TestPackagePubspec +
+          '''
+flutter:
+  plugin:
+    class: SomeClass
+  ''');
+
+PackageVersion clonePackageVersion(PackageVersion original) =>
+    new PackageVersion()
+      ..packageKey = original.parentKey
+      ..id = original.id
+      ..version = original.version
+      ..packageKey = original.packageKey
+      ..created = original.created
+      ..libraries = original.libraries
+      ..pubspec = original.pubspec
+      ..readmeFilename = original.readmeFilename
+      ..readmeContent = original.readmeContent
+      ..changelogFilename = original.changelogFilename
+      ..changelogContent = original.changelogContent
+      ..sortOrder = original.sortOrder;
+
 Future scoped(func()) {
   return fork(() async {
     return func();
