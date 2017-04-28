@@ -658,7 +658,7 @@ List<String> detectTypes(Pubspec pubspec) {
   if (pubspec.hasFlutterPlugin) {
     detectedTypes.add(models.BuiltinTypes.flutterPlugin);
   }
-  return detectedTypes.isEmpty ? null : detectedTypes;
+  return detectedTypes;
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
