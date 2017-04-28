@@ -188,6 +188,18 @@ class TemplateService {
     final bool should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
+    // TODO: use the value stored in [Package] once that PR is merged.
+    List<String> detectedTypes;
+    if (latestStableVersion.pubspec.asJson['flutter'] is Map &&
+        latestStableVersion.pubspec.asJson['flutter'].containsKey('plugin')) {
+      detectedTypes = ['flutter_plugin'];
+    }
+
+    final Map<String, String> pageMapAttributes = {};
+    detectedTypes?.forEach((String type) {
+      pageMapAttributes['dt_$type'] = '1';
+    });
+
     final values = {
       'package': {
         'name': package.name,
@@ -227,9 +239,13 @@ class TemplateService {
       'changelog_filename': changelogFilename,
       'version_count': '$totalNumberOfVersions',
     };
-    return _renderPage('pkg/show', values,
-        title: '${package.name} ${selectedVersion.id} | Dart Package',
-        packageVersion: selectedVersion);
+    return _renderPage(
+      'pkg/show',
+      values,
+      title: '${package.name} ${selectedVersion.id} | Dart Package',
+      packageVersion: selectedVersion,
+      pageMapAttributes: pageMapAttributes,
+    );
   }
 
   /// Renders the `views/authorized.mustache` template.
@@ -266,7 +282,14 @@ class TemplateService {
 
   /// Renders the `views/layout.mustache` template.
   String renderLayoutPage(String title, String contentString,
-      {PackageVersion packageVersion}) {
+      {PackageVersion packageVersion, Map<String, String> pageMapAttributes}) {
+    final List<Map<String, String>> pageMapAttrList = [];
+    pageMapAttributes?.forEach((String attr, String value) {
+      pageMapAttrList.add({
+        'attr': _HtmlEscaper.convert(attr),
+        'value': _HtmlEscaper.convert(value),
+      });
+    });
     final values = {
       'package': packageVersion == null
           ? false
@@ -278,6 +301,8 @@ class TemplateService {
       'title': _HtmlEscaper.convert(title),
       // This is not escaped as it is already escaped by the caller.
       'content': contentString,
+      'has_pagemap': pageMapAttrList.isNotEmpty,
+      'pagemap_attributes': pageMapAttrList,
 
       // TODO: The python implementation used
       'message': false,
@@ -329,11 +354,20 @@ class TemplateService {
 
   /// Renders a whole HTML page using the `views/layout.mustache` template and
   /// the provided [template] for the content.
-  String _renderPage(String template, values,
-      {String title: 'pub.dartlang.org', PackageVersion packageVersion}) {
+  String _renderPage(
+    String template,
+    values, {
+    String title: 'pub.dartlang.org',
+    PackageVersion packageVersion,
+    Map<String, String> pageMapAttributes,
+  }) {
     final renderedContent = _renderTemplate(template, values);
-    return renderLayoutPage(title, renderedContent,
-        packageVersion: packageVersion);
+    return renderLayoutPage(
+      title,
+      renderedContent,
+      packageVersion: packageVersion,
+      pageMapAttributes: pageMapAttributes,
+    );
   }
 
   /// Renders [template] with given [values].

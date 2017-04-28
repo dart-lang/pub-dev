@@ -1,21 +1,12 @@
-{{! Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-    for details. All rights reserved. Use of this source code is governed by a
-    BSD-style license that can be found in the LICENSE file. }}
 
 <!doctype html>
-<html lang="en-us" {{#package}}itemscope itemtype="http://schema.org/CreativeWork"{{/package}}>
+<html lang="en-us" itemscope itemtype="http://schema.org/CreativeWork">
   <head>
-    <title>{{title}}</title>
+    <title>foobar_pkg 0.1.1 | Dart Package</title>
     <meta itemprop="image" content="/static/img/dart-logo-400x400.png">
-    {{#package}}
-      <meta itemprop="name" content="{{package.name}} - A pub package for Dart">
-      <meta name="description" content="{{package.name}} - {{package.description}}">
-      <meta itemprop="description" content="{{package.name}} - {{package.description}}">
-    {{/package}}
-    {{^package}}
-      <meta name="description" content="Pub is a package manager for the
-        Dart programming language.">
-    {{/package}}
+      <meta itemprop="name" content="foobar_pkg - A pub package for Dart">
+      <meta name="description" content="foobar_pkg - my package description">
+      <meta itemprop="description" content="foobar_pkg - my package description">
 
     <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom">
     <link href="/static/style.css" rel="stylesheet" type="text/css" />
@@ -31,17 +22,13 @@
       ga('create', 'UA-26406144-13', 'auto');
       ga('send', 'pageview');
     </script>
-    {{#has_pagemap}}
     <!--
     <PageMap>
       <DataObject type="document">
-        {{#pagemap_attributes}}
-        <Attribute name="{{attr}}">{{value}}</Attribute>
-        {{/pagemap_attributes}}
+        <Attribute name="dt_flutter_plugin">1</Attribute>
       </DataObject>
     </PageMap>
     -->
-    {{/has_pagemap}}
   </head>
   <body>
     <nav>
@@ -103,11 +90,120 @@
     </nav>
     <div class="container">
       <div id="header">
-        {{#message}}
-          <h3>{{message}}</h3>
-        {{/message}}
       </div>
-      {{& content}}
+      
+<h1>
+  foobar_pkg
+  <span class="version">0.1.1</span>
+  <span class="version" style="font-weight: normal">
+  </span>
+</h1>
+<div class="row-fluid">
+  <div class="span8">
+    <ul class="nav nav-tabs">
+        <li class="active">
+          <a href="#-pkg-tab-readme" data-toggle="tab">README.md</a>
+        </li>
+        <li class="">
+          <a href="#-pkg-tab-changelog" data-toggle="tab">CHANGELOG.md</a>
+        </li>
+      <li class="">
+        <a href="#-pkg-tab-installing" data-toggle="tab">Installing</a>
+      </li>
+      <li><a href="#-pkg-tab-versions" data-toggle="tab">Versions</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane active" id="-pkg-tab-readme">
+          <h1 id="test-package">Test Package</h1>
+<p>This is a readme file.</p>
+<pre class="highlight"><span class="k">void</span> <span class="n">main</span><span class="n">(</span><span class="n">)</span> <span class="n">{</span>
+<span class="n">}</span><span class="n"></span></pre>
+        </div>
+      <div class="tab-pane " id="-pkg-tab-changelog">
+        <h1 id="changelog">Changelog</h1>
+<p>0.1.1 - test package</p>
+      </div>
+      <div class="tab-pane " id="-pkg-tab-installing">
+        <h3>1. Depend on it</h3>
+        <p>Add this to your package's pubspec.yaml file:</p>
+<pre>
+dependencies:
+  <strong>foobar_pkg: &quot;^0.1.1&quot;</strong>
+</pre>
+        <h3>2. Install it</h3>
+        <p>You can install packages from the command line:</p>
+<pre>
+$ <strong>pub get</strong>
+</pre>
+        <p>Alternatively, your editor might support pub. Check the docs for your editor to learn more.</p>
+          <h3>3. Import it</h3>
+          <p>Now in your Dart code, you can use:
+          </p>
+<pre class="highlight">
+<span class="import-example"><span class="k">import</span> <span class="s">'package:<strong>foobar_pkg</strong>/<wbr/><strong>foolib.dart</strong>'</span>;</span>
+</pre>
+      </div>
+
+      <div class="tab-pane" id="-pkg-tab-versions">
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Uploaded</th>
+              <th class="documentation" width="60">Documentation</th>
+              <th class="archive" width="60">Archive</th>
+            </tr>
+          </thead>
+            <tr>
+              <th>0.1.1</th>
+              <td>Jan 1, 2014</td>
+              <td class="documentation">
+                <a href="http:&#x2F;&#x2F;www.dartdocs.org&#x2F;documentation&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;"
+                   title="Go to the documentation of foobar_pkg 0.1.1">
+                  <i class="icon-book">
+                    Go to the documentation of foobar_pkg 0.1.1
+                  </i>
+                </a>
+              </td>
+              <td class="archive">
+                <a href="http:&#x2F;&#x2F;dart-example.com&#x2F;"
+                   title="Download foobar_pkg 0.1.1 archive">
+                  <i class="icon-download-alt">
+                    Download foobar_pkg 0.1.1 archive
+                  </i>
+                </a>
+              </td>
+            </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="span4 package-sidebar">
+      <h4>About</h4>
+      <p>my package description</p>
+
+    <h4>Author</h4>
+    <p><span class="author"><a href="mailto:hans@juergen.com" title="Email hans@juergen.com"><i class="icon-envelope">Email hans@juergen.com</i></a> Hans Juergen</span></p>
+
+      <h4>Homepage</h4>
+      <p class="homepage"><a href="http:&#x2F;&#x2F;hans.juergen.com">hans.juergen.com</a></p>
+
+      <h4>Documentation</h4>
+      <p class="main-documentation"><a href="http:&#x2F;&#x2F;www.dartdocs.org&#x2F;documentation&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;">www.dartdocs.org&#x2F;documentation&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;</a></p>
+
+      <h4>Source code (hyperlinked)</h4>
+      <p class="main-crossdart"><a href="https:&#x2F;&#x2F;www.crossdart.info&#x2F;p&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;">www.crossdart.info&#x2F;p&#x2F;foobar_pkg&#x2F;0.1.1&#x2F;</a></p>
+
+    <h4>Uploader</h4>
+    <p>hans@juergen.com</p>
+
+    <h4>Share</h4>
+    <div class="g-plusone" data-annotation="none"></div>
+    <a href="https://twitter.com/share" class="twitter-share-button" data-count="none" data-hashtags="dartlang">Tweet</a>
+  </div>
+</div>
+
       <footer>
         <a href="https://www.dartlang.org/">
           Dart Language

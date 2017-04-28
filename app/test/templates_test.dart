@@ -16,7 +16,7 @@ void main() {
 
     void expectGoldenFile(String content, String fileName) {
       final golden = new File('test/golden/$fileName').readAsStringSync();
-      expect(content, golden);
+      expect(content.split('\n'), golden.split('\n'));
     }
 
     test('index page', () {
@@ -34,6 +34,18 @@ void main() {
           testPackageVersion,
           1);
       expectGoldenFile(html, 'pkg_show_page.html');
+    });
+
+    test('package show page with flutter_plugin', () {
+      final String html = templates.renderPkgShowPage(
+          testPackage,
+          [flutterPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          flutterPackageVersion,
+          flutterPackageVersion,
+          flutterPackageVersion,
+          1);
+      expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
     test('package index page', () {
