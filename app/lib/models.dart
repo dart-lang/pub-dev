@@ -47,6 +47,13 @@ class Package extends db.ExpandoModel {
   @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
+  // Fields that contain the properties of the latest stable version
+
+  @CompatibleStringListProperty()
+  List<String> detectedTypes;
+
+  // Convenience Fields:
+
   String get latestVersion => latestVersionKey.id;
 
   Version get latestSemanticVersion => new Version.parse(latestVersionKey.id);
@@ -85,6 +92,20 @@ class Package extends db.ExpandoModel {
         _isNewer(latestDev, newVersion, pubSorting: false)) {
       latestDevVersionKey = pv.key;
     }
+  }
+
+  /// Updates the search-related fields (eg. [detectedTypes]) to match the
+  /// latest stable [PackageVersion].
+  ///
+  /// Returns whether any field has been updated.
+  bool updateSearchFields(PackageVersion pv) {
+    if (latestVersion == pv.version) {
+      if (!isSameDetectedType(detectedTypes, pv.detectedTypes)) {
+        detectedTypes = pv.detectedTypes;
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -151,6 +172,9 @@ class PackageVersion extends db.ExpandoModel {
 
   @db.StringProperty(required: true)
   String uploaderEmail;
+
+  @CompatibleStringListProperty()
+  List<String> detectedTypes;
 
   // Convenience Fields:
 
@@ -256,3 +280,21 @@ int _compareSemanticVersionsDesc(
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 bool _isNewer(Version a, Version b, {bool pubSorting: true}) =>
     _compareSemanticVersionsDesc(a, b, false, pubSorting) < 0;
+
+/// The list of built-in types.
+class BuiltinTypes {
+  /// Package is related to angular.
+  static final String angular = 'angular';
+
+  /// Package is related to flutter and it is a plugin.
+  static final String flutterPlugin = 'flutter_plugin';
+}
+
+/// Returns true if the two list of detected types are the same.
+bool isSameDetectedType(List<String> a, List<String> b) {
+  final int lengthA = a?.length ?? 0;
+  final int lengthB = b?.length ?? 0;
+  if (lengthA != lengthB) return false;
+  if (lengthA == 0) return true;
+  return (a.toSet()..removeAll(b)).isEmpty;
+}
