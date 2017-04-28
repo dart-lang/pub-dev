@@ -554,6 +554,7 @@ models.Package newPackageFromVersion(
     ..updated = now
     ..downloads = 0
     ..latestVersionKey = version.key
+    ..latestDevVersionKey = version.key
     ..uploaderEmails = [loggedInUser];
 }
 
