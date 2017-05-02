@@ -25,8 +25,7 @@ import 'templates.dart';
 final String StaticsLocation =
     Platform.script.resolve('../../static').toFilePath();
 
-Logger _logger = new Logger('pub.handlers');
-Logger _pubHeaderLogger = new Logger('pub.header_logger');
+final _pubHeaderLogger = new Logger('pub.header_logger');
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///
