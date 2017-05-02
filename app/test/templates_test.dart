@@ -60,6 +60,16 @@ void main() {
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
 
+    test('flutter plugins - index page #2', () {
+      final String html = templates.renderPkgIndexPage(
+          [testPackage],
+          [testPackageVersion],
+          new PackageLinks(
+              PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
+          title: 'Flutter Plugins');
+      expectGoldenFile(html, 'flutter_plugins_index_page2.html');
+    });
+
     test('search page', () {
       final String html = templates.renderSearchPage(
           'foobar',

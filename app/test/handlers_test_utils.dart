@@ -97,9 +97,10 @@ class BackendMock implements Backend {
 
   @override
   Future<List<Package>> latestPackages(
-      {int offset: null, int limit: null}) async {
+      {int offset: null, int limit: null, String detectedType}) async {
     if (latestPackagesFun == null) throw 'no latestPackagesFun';
-    return latestPackagesFun(offset: offset, limit: limit);
+    return latestPackagesFun(
+        offset: offset, limit: limit, detectedType: detectedType);
   }
 
   @override
@@ -169,7 +170,8 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderPkgIndexPage(
-      List<Package> packages, List<PackageVersion> versions, PageLinks links) {
+      List<Package> packages, List<PackageVersion> versions, PageLinks links,
+      {String title}) {
     return Response;
   }
 
