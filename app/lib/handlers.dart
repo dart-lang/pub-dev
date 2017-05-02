@@ -5,9 +5,9 @@
 library pub_dartlang_org.handlers;
 
 import 'dart:async';
-import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
@@ -18,8 +18,8 @@ import 'package:pub_dartlang_org/backend.dart';
 
 import 'atom_feed.dart';
 import 'handlers_redirects.dart';
-import 'search_service.dart';
 import 'models.dart';
+import 'search_service.dart';
 import 'templates.dart';
 
 final String StaticsLocation =

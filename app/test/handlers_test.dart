@@ -15,8 +15,8 @@ import 'package:pub_dartlang_org/models.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 import 'package:pub_dartlang_org/templates.dart';
 
-import 'utils.dart';
 import 'handlers_test_utils.dart';
+import 'utils.dart';
 
 void tScopedTest(String name, Future func()) {
   scopedTest(name, () {
