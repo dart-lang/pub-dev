@@ -5,13 +5,13 @@ description: The pub.dartlang.org website.
 sdk: ">=1.19.0 <2.0.0"
 dependencies:
   analyzer: ^0.28.1
-  appengine: '>=0.3.0 <0.4.0-flex.alpha.1'
+  appengine: '^0.4.0'
   gcloud: '>=0.4.0 <0.5.0'
   googleapis: '>=0.31.0 <0.37.0'
   googleapis_auth: '>=0.2.2 <0.2.4'
   html: '>=0.12.0 <0.14.0'
   http: '>=0.11.0 <0.12.0'
-  intl: '>=0.13.0 <0.15.0'
+  intl: '>=0.13.0 <0.16.0'
   logging: '>=0.9.3 <1.0.0'
   markdown: '>=0.11.0 <0.12.0'
   mime: '>=0.9.3 <0.10.0'
