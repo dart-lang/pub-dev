@@ -11,8 +11,6 @@ import 'package:uuid/uuid.dart';
 
 import 'models.dart';
 
-const HtmlEscape _HtmlEscaper = const HtmlEscape();
-
 class FeedEntry {
   final String id;
   final String title;
@@ -26,7 +24,7 @@ class FeedEntry {
       this.alternateUrl, this.alternateTitle);
 
   void writeToXmlBuffer(StringBuffer buffer) {
-    final escape = _HtmlEscaper.convert;
+    final escape = HTML_ESCAPE.convert;
 
     var authorTags = '';
     if (authors.isNotEmpty) {
@@ -85,7 +83,7 @@ class Feed {
   }
 
   void writeToXmlBuffer(StringBuffer buffer) {
-    final escape = _HtmlEscaper.convert;
+    final escape = HTML_ESCAPE.convert;
 
     buffer.writeln('<feed xmlns="http://www.w3.org/2005/Atom">');
 

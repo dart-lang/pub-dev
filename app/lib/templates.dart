@@ -213,9 +213,9 @@ class TemplateService {
           'should_show': should_show,
           'should_show_dev': should_show_dev,
           'stable_href': Uri.encodeComponent(latestStableVersion.id),
-          'stable_name': _HtmlEscaper.convert(latestStableVersion.id),
+          'stable_name': HTML_ESCAPE.convert(latestStableVersion.id),
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
-          'dev_name': _HtmlEscaper.convert(latestDevVersion.id),
+          'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
@@ -286,19 +286,19 @@ class TemplateService {
     final List<Map<String, String>> pageMapAttrList = [];
     pageMapAttributes?.forEach((String attr, String value) {
       pageMapAttrList.add({
-        'attr': _HtmlEscaper.convert(attr),
-        'value': _HtmlEscaper.convert(value),
+        'attr': HTML_ESCAPE.convert(attr),
+        'value': HTML_ESCAPE.convert(value),
       });
     });
     final values = {
       'package': packageVersion == null
           ? false
           : {
-              'name': _HtmlEscaper.convert(packageVersion.packageKey.id),
+              'name': HTML_ESCAPE.convert(packageVersion.packageKey.id),
               'description':
-                  _HtmlEscaper.convert(packageVersion.ellipsizedDescription),
+                  HTML_ESCAPE.convert(packageVersion.ellipsizedDescription),
             },
-      'title': _HtmlEscaper.convert(title),
+      'title': HTML_ESCAPE.convert(title),
       // This is not escaped as it is already escaped by the caller.
       'content': contentString,
       'has_pagemap': pageMapAttrList.isNotEmpty,
@@ -329,9 +329,9 @@ class TemplateService {
       results.add({
         'url': '/packages/${stable.packageKey.id}',
         'name': stable.packageKey.id,
-        'version': _HtmlEscaper.convert(stable.id),
+        'version': HTML_ESCAPE.convert(stable.id),
         'show_dev_version': stable.id != dev.id,
-        'dev_version': _HtmlEscaper.convert(dev.id),
+        'dev_version': HTML_ESCAPE.convert(dev.id),
         'dev_version_href': Uri.encodeComponent(dev.id),
         'last_uploaded': stable.shortCreated,
         'desc': stable.ellipsizedDescription,
