@@ -105,6 +105,10 @@ class Package extends db.ExpandoModel {
         return true;
       }
     }
+    if (detectedTypes == null) {
+      detectedTypes = [];
+      return true;
+    }
     return false;
   }
 }
