@@ -12,7 +12,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.28.1"
+    version: "0.29.11"
   appengine:
     description:
       name: appengine
@@ -49,6 +49,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.1"
+  cli_util:
+    description:
+      name: cli_util
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1+2"
   collection:
     description:
       name: collection
@@ -156,7 +162,7 @@ packages:
       name: isolate
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.3"
+    version: "1.0.0"
   logging:
     description:
       name: logging
@@ -349,6 +355,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
+  when:
+    description:
+      name: when
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
+  which:
+    description:
+      name: which
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.3"
   yaml:
     description:
       name: yaml
