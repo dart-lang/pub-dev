@@ -5,13 +5,12 @@
 library pub_dartlang_org.handlers;
 
 import 'dart:async';
-import 'dart:math';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:mime/mime.dart' as mime;
 
@@ -19,15 +18,14 @@ import 'package:pub_dartlang_org/backend.dart';
 
 import 'atom_feed.dart';
 import 'handlers_redirects.dart';
-import 'search_service.dart';
 import 'models.dart';
+import 'search_service.dart';
 import 'templates.dart';
 
 final String StaticsLocation =
     Platform.script.resolve('../../static').toFilePath();
 
-Logger _logger = new Logger('pub.handlers');
-Logger _pubHeaderLogger = new Logger('pub.header_logger');
+final _pubHeaderLogger = new Logger('pub.header_logger');
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///

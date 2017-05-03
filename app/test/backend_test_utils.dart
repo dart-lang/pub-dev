@@ -122,8 +122,8 @@ class QueryMock implements gdb.Query {
   gdb.Key _ancestorKey;
 
   // These will be manipulated during method calls on the query object.
-  List<String> _filters = [];
-  List<String> _filterComparisonObjects = [];
+  final List<String> _filters = [];
+  final List<String> _filterComparisonObjects = [];
   int _offset;
   int _limit;
   final List<String> _orders = [];
