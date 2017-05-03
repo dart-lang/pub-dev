@@ -426,15 +426,14 @@ abstract class PageLinks {
         count = 1;
 
   int get leftmostPage =>
-      max(1 + offset ~/ RESULTS_PER_PAGE - MAX_PAGES ~/ 2, 1);
+      max(currentPage - MAX_PAGES ~/ 2, 1);
 
   int get currentPage => 1 + offset ~/ RESULTS_PER_PAGE;
 
   int get rightmostPage {
-    final extension = max(MAX_PAGES ~/ 2 - leftmostPage, 1);
-    return 1 +
-        min(offset ~/ RESULTS_PER_PAGE + MAX_PAGES ~/ 2 + extension,
-            count ~/ RESULTS_PER_PAGE);
+    final int fromSymmetry = currentPage + MAX_PAGES ~/ 2;
+    final int fromCount = 1 + ((count - 1) ~/ RESULTS_PER_PAGE);
+    return min(fromSymmetry, max(currentPage, fromCount));
   }
 
   List<Map> hrefPatterns() {

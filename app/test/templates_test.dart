@@ -84,5 +84,102 @@ void main() {
           'error_status', 'error_message', 'error_traceback');
       expectGoldenFile(html, 'error_page.html');
     });
+
+    test('pagination: single page', () {
+      final String html = templates.renderPagination(new PackageLinks.empty());
+      expectGoldenFile(html, 'pagination_single.html');
+    });
+
+    test('pagination: in the middle', () {
+      final String html = templates.renderPagination(new PackageLinks(90, 299));
+      expectGoldenFile(html, 'pagination_middle.html');
+    });
+
+    test('pagination: at first page', () {
+      final String html = templates.renderPagination(new PackageLinks(0, 600));
+      expectGoldenFile(html, 'pagination_first.html');
+    });
+
+    test('pagination: at last page', () {
+      final String html = templates.renderPagination(new PackageLinks(90, 91));
+      expectGoldenFile(html, 'pagination_last.html');
+    });
+  });
+
+  group('PageLinks', () {
+    test('empty', () {
+      final links = new PackageLinks.empty();
+      expect(links.currentPage, 1);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 1);
+    });
+
+    test('one', () {
+      final links = new PackageLinks(0, 1);
+      expect(links.currentPage, 1);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 1);
+    });
+
+    test('PackageLinks.RESULTS_PER_PAGE - 1', () {
+      final links = new PackageLinks(0, PackageLinks.RESULTS_PER_PAGE - 1);
+      expect(links.currentPage, 1);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 1);
+    });
+
+    test('PackageLinks.RESULTS_PER_PAGE', () {
+      final links = new PackageLinks(0, PackageLinks.RESULTS_PER_PAGE);
+      expect(links.currentPage, 1);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 1);
+    });
+
+    test('PackageLinks.RESULTS_PER_PAGE + 1', () {
+      final links = new PackageLinks(0, PackageLinks.RESULTS_PER_PAGE + 1);
+      expect(links.currentPage, 1);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 2);
+    });
+
+    final int page2Offset = PackageLinks.RESULTS_PER_PAGE;
+
+    test('page=2 + one item', () {
+      final links = new PackageLinks(page2Offset, page2Offset + 1);
+      expect(links.currentPage, 2);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 2);
+    });
+
+    test('page=2 + PackageLinks.RESULTS_PER_PAGE - 1', () {
+      final links = new PackageLinks(
+          page2Offset, page2Offset + PackageLinks.RESULTS_PER_PAGE - 1);
+      expect(links.currentPage, 2);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 2);
+    });
+
+    test('page=2 + PackageLinks.RESULTS_PER_PAGE', () {
+      final links = new PackageLinks(
+          page2Offset, page2Offset + PackageLinks.RESULTS_PER_PAGE);
+      expect(links.currentPage, 2);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 2);
+    });
+
+    test('page=2 + PackageLinks.RESULTS_PER_PAGE + 1', () {
+      final links = new PackageLinks(
+          page2Offset, page2Offset + PackageLinks.RESULTS_PER_PAGE + 1);
+      expect(links.currentPage, 2);
+      expect(links.leftmostPage, 1);
+      expect(links.rightmostPage, 3);
+    });
+
+    test('deep in the middle', () {
+      final links = new PackageLinks(200, 600);
+      expect(links.currentPage, 21);
+      expect(links.leftmostPage, 16);
+      expect(links.rightmostPage, 26);
+    });
   });
 }
