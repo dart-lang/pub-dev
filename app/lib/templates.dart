@@ -8,11 +8,26 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'colored_markdown.dart' as cmd;
+import 'package:markdown/markdown.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:gcloud/service_scope.dart' as ss;
 
 import 'models.dart';
+
+final List<BlockSyntax> _blockSyntaxes =
+    ExtensionSet.gitHub.blockSyntaxes.toList();
+
+final List<InlineSyntax> _inlineSyntaxes = ExtensionSet.gitHub.inlineSyntaxes
+    .where((s) => s is! InlineHtmlSyntax)
+    .toList();
+
+String _markdownToHtml(String text) => markdownToHtml(text,
+    extensionSet: ExtensionSet.none,
+    blockSyntaxes: _blockSyntaxes,
+    inlineSyntaxes: _inlineSyntaxes);
+
+String _escapeAngleBrackets(String msg) =>
+    const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
 
 const HtmlEscape _HtmlEscaper = const HtmlEscape();
 
@@ -136,7 +151,7 @@ class TemplateService {
     }
 
     String renderPlainText(String text) {
-      return '<div class="highlight"><pre>${cmd.escapeAngleBrackets(text)}'
+      return '<div class="highlight"><pre>${_escapeAngleBrackets(text)}'
           '</pre></div>';
     }
 
@@ -145,11 +160,7 @@ class TemplateService {
       final content = file.text;
       if (content != null) {
         if (isMarkdownFile(filename)) {
-          try {
-            return cmd.markdownToHtmlWithSyntax(content);
-          } catch (e) {
-            return cmd.markdownToHtmlWithoutSyntax(content);
-          }
+          return _markdownToHtml(content);
         } else {
           return renderPlainText(content);
         }
