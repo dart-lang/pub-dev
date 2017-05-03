@@ -450,26 +450,29 @@ abstract class PageLinks {
   List<Map> hrefPatterns() {
     final List<Map> results = [];
 
+    final bool hasPrevious = currentPage > 1;
     results.add({
-      'state': {'state': currentPage <= 1 ? 'disabled' : null},
-      'href': {'href': formatHref(currentPage - 1)},
-      'text': '&laquo',
+      'state': {'state': hasPrevious ? null : 'disabled'},
+      'href': hasPrevious ? {'href': formatHref(currentPage - 1)} : null,
+      'text': '&laquo;',
     });
 
     for (int page = leftmostPage; page <= rightmostPage; page++) {
-      final String state = (page == currentPage) ? 'active' : null;
+      final bool isCurrent = page == currentPage;
+      final String state = isCurrent ? 'active' : null;
 
       results.add({
         'state': {'state': state},
-        'href': {'href': formatHref(page)},
+        'href': isCurrent ? null : {'href': formatHref(page)},
         'text': '$page',
       });
     }
 
+    final bool hasNext = currentPage < rightmostPage;
     results.add({
-      'state': {'state': currentPage >= rightmostPage ? 'disabled' : null},
-      'href': {'href': formatHref(currentPage + 1)},
-      'text': '&raquo',
+      'state': {'state': hasNext ? null : 'disabled'},
+      'href': hasNext ? {'href': formatHref(currentPage + 1)} : null,
+      'text': '&raquo;',
     });
     return results;
   }
