@@ -861,10 +861,10 @@ code {
 
 pre {
   display: block;
-  padding: 11.5px;
+  padding: 6px;
   margin: 0 0 12px;
-  font-size: 12.95px;
-  line-height: 24px;
+  font-size: 12px;
+  line-height: 170%;
   word-break: break-all;
   word-wrap: break-word;
   white-space: pre;
