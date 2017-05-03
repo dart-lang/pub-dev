@@ -21,7 +21,7 @@ final List<InlineSyntax> _inlineSyntaxes = ExtensionSet.gitHub.inlineSyntaxes
     .where((s) => s is! InlineHtmlSyntax)
     .toList();
 
-String _markdownToHtmlWithoutSyntax(String text) => markdownToHtml(text,
+String _markdownToHtml(String text) => markdownToHtml(text,
     extensionSet: ExtensionSet.none,
     blockSyntaxes: _blockSyntaxes,
     inlineSyntaxes: _inlineSyntaxes);
@@ -160,7 +160,7 @@ class TemplateService {
       final content = file.text;
       if (content != null) {
         if (isMarkdownFile(filename)) {
-          return _markdownToHtmlWithoutSyntax(content);
+          return _markdownToHtml(content);
         } else {
           return renderPlainText(content);
         }
