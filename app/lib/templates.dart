@@ -199,15 +199,8 @@ class TemplateService {
     final bool should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
-    // TODO: use the value stored in [Package] once that PR is merged.
-    List<String> detectedTypes;
-    if (latestStableVersion.pubspec.asJson['flutter'] is Map &&
-        latestStableVersion.pubspec.asJson['flutter'].containsKey('plugin')) {
-      detectedTypes = ['flutter_plugin'];
-    }
-
     final Map<String, String> pageMapAttributes = {};
-    detectedTypes?.forEach((String type) {
+    latestStableVersion.detectedTypes?.forEach((String type) {
       pageMapAttributes['dt_$type'] = '1';
     });
 
