@@ -5185,3 +5185,15 @@ table.search-results h3, table.search-results .toc:before {
 table.search-results p {
   margin: 0;
 }
+
+.package-icons {
+  margin: 0 0 16px 0;
+}
+
+.package-icons .package-icon-img {
+  width: 32px;
+  height: auto;
+  max-height: 32px;
+  display: inline-block;
+  margin-right: 12px;
+}
