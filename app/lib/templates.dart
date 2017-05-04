@@ -228,6 +228,7 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
+        'icons': _renderIconsHtml(selectedVersion),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -379,6 +380,25 @@ class TemplateService {
       packageVersion: packageVersion,
       pageMapAttributes: pageMapAttributes,
     );
+  }
+
+  /// Renders the icons and related text using the pkg/icons template.
+  String _renderIconsHtml(PackageVersion version) {
+    final List icons = [];
+    if (version.detectedTypes != null) {
+      for (String type in version.detectedTypes) {
+        if (type == BuiltinTypes.flutterPlugin) {
+          icons.add({
+            'src': '/static/img/flutter-logo-32x32.png',
+            'label': 'Flutter plugin',
+          });
+        }
+      }
+    }
+    return _renderTemplate('pkg/icons', {
+      'has_icons': icons.isNotEmpty,
+      'icons': icons,
+    });
   }
 
   /// Renders [template] with given [values].
