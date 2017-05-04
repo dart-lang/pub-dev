@@ -6,9 +6,14 @@
   <ul>
     {{#page_links}}
       <li {{#state}}class="{{state}}"{{/state}}>
-        <a {{#href}}href="{{href}}"{{/href}}>
-         {{{text}}}
+        {{#href}}
+        <a href="{{href}}">
+          <span>{{{text}}}</span>
         </a>
+        {{/href}}
+        {{^href}}
+        <span>{{{text}}}</span>
+        {{/href}}
       </li>
     {{/page_links}}
   </ul>
