@@ -206,6 +206,10 @@ class TemplateService {
       pageMapAttributes['dt_$type'] = '1';
     });
 
+    final bool isFlutterPlugin = latestStableVersion.detectedTypes
+            ?.contains(BuiltinTypes.flutterPlugin) ==
+        true;
+
     final values = {
       'package': {
         'name': package.name,
@@ -237,6 +241,8 @@ class TemplateService {
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getUploadersHtml(package),
+        'install_command': isFlutterPlugin ? 'flutter packages get' : 'pub get',
+        'install_tool': isFlutterPlugin ? '\'packages get\'' : '\'pub get\'',
       },
       'versions': versionsJson,
       'show_versions_link': totalNumberOfVersions > versions.length,
