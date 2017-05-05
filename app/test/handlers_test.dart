@@ -49,9 +49,11 @@ void main() {
       });
 
       tScopedTest('/packages', () async {
-        final backend = new BackendMock(latestPackagesFun: ({offset, limit}) {
+        final backend =
+            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, 0);
           expect(limit, greaterThan(PageSize));
+          expect(detectedType, isNull);
           return [testPackage];
         }, lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
@@ -63,9 +65,11 @@ void main() {
       });
 
       tScopedTest('/packages?page=2', () async {
-        final backend = new BackendMock(latestPackagesFun: ({offset, limit}) {
+        final backend =
+            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, PageSize);
           expect(limit, greaterThan(PageSize));
+          expect(detectedType, isNull);
           return [testPackage];
         }, lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
@@ -118,6 +122,43 @@ void main() {
         registerBackend(backend);
         expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'),
             status: 404);
+      });
+
+      tScopedTest('/flutter', () async {
+        expectRedirectResponse(await issueGet('/flutter'), '/flutter/plugins');
+        expectRedirectResponse(await issueGet('/flutter/'), '/flutter/plugins');
+      });
+
+      tScopedTest('/flutter/plugins', () async {
+        final backend =
+            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
+          expect(offset, 0);
+          expect(limit, greaterThan(PageSize));
+          expect(detectedType, BuiltinTypes.flutterPlugin);
+          return [testPackage];
+        }, lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
+          return [testPackageVersion];
+        });
+        registerBackend(backend);
+        expectHtmlResponse(await issueGet('/flutter/plugins'));
+      });
+
+      tScopedTest('/flutter/plugins&page=2', () async {
+        final backend =
+            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
+          expect(offset, PageSize);
+          expect(limit, greaterThan(PageSize));
+          expect(detectedType, BuiltinTypes.flutterPlugin);
+          return [testPackage];
+        }, lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
+          return [testPackageVersion];
+        });
+        registerBackend(backend);
+        expectHtmlResponse(await issueGet('/flutter/plugins?page=2'));
       });
 
       tScopedTest('/doc', () async {
@@ -206,7 +247,8 @@ void main() {
 
     group('old api', () {
       scopedTest('/packages.json', () async {
-        final backend = new BackendMock(latestPackagesFun: ({offset, limit}) {
+        final backend =
+            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, 0);
           expect(limit, greaterThan(PageSize));
           return [testPackage];
@@ -254,7 +296,8 @@ void main() {
 
     group('editor api', () {
       tScopedTest('/api/packages', () async {
-        final backend = new BackendMock(latestPackagesFun: ({offset, limit}) {
+        final backend =
+            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, 0);
           expect(limit, greaterThan(10));
           return [testPackage];
@@ -275,17 +318,17 @@ void main() {
                 'archive_url': 'https://pub.dartlang.org'
                     '/packages/foobar_pkg/versions/0.1.1.tar.gz',
                 'package_url': 'https://pub.dartlang.org'
-                                '/api/packages/foobar_pkg',
+                    '/api/packages/foobar_pkg',
                 'url': 'https://pub.dartlang.org'
-                       '/api/packages/foobar_pkg/versions/0.1.1'
+                    '/api/packages/foobar_pkg/versions/0.1.1'
               },
               'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
               'version_url': 'https://pub.dartlang.org'
-                             '/api/packages/foobar_pkg/versions/%7Bversion%7D',
+                  '/api/packages/foobar_pkg/versions/%7Bversion%7D',
               'new_version_url': 'https://pub.dartlang.org'
-                                 '/api/packages/foobar_pkg/new',
+                  '/api/packages/foobar_pkg/new',
               'uploaders_url': 'https://pub.dartlang.org'
-                                '/api/packages/foobar_pkg/uploaders'
+                  '/api/packages/foobar_pkg/uploaders'
             }
           ]
         });

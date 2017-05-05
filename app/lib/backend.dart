@@ -54,11 +54,14 @@ class Backend {
 
   /// Retrieves packages ordered by their latest version date.
   Future<List<models.Package>> latestPackages(
-      {int offset: null, int limit: null}) {
+      {int offset: null, int limit: null, String detectedType}) {
     final query = db.query(models.Package)
       ..order('-updated')
       ..offset(offset)
       ..limit(limit);
+    if (detectedType != null) {
+      query.filter('detectedTypes =', detectedType);
+    }
     return query.run().toList();
   }
 

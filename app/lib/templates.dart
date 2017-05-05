@@ -87,7 +87,8 @@ class TemplateService {
 
   /// Renders the `views/pkg/index.mustache` template.
   String renderPkgIndexPage(
-      List<Package> packages, List<PackageVersion> versions, PageLinks links) {
+      List<Package> packages, List<PackageVersion> versions, PageLinks links,
+      {String title}) {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final package = packages[i];
@@ -102,16 +103,17 @@ class TemplateService {
       });
     }
     final values = {
+      'title': title ?? 'Packages',
       'packages': packagesJson,
       'pagination': renderPagination(links),
     };
 
-    var title = 'All Packages';
+    String pageTitle = title ?? 'All Packages';
     if (links.rightmostPage > 1) {
-      title = 'Page ${links.currentPage} | $title';
+      pageTitle = 'Page ${links.currentPage} | $pageTitle';
     }
 
-    return _renderPage('pkg/index', values, title: title);
+    return _renderPage('pkg/index', values, title: pageTitle);
   }
 
   /// Renders the `views/private_keys/show.mustache` template.
@@ -508,11 +510,16 @@ class SearchLinks extends PageLinks {
 class PackageLinks extends PageLinks {
   static const int RESULTS_PER_PAGE = 10;
   static const int MAX_PAGES = 15;
+  String _basePath;
 
-  PackageLinks(int offset, int count) : super(offset, count);
+  PackageLinks(int offset, int count, {String basePath})
+      : _basePath = basePath,
+        super(offset, count);
 
-  PackageLinks.empty() : super.empty();
+  PackageLinks.empty({String basePath})
+      : _basePath = basePath,
+        super.empty();
 
   @override
-  String formatHref(int page) => '/packages?page=$page';
+  String formatHref(int page) => '${_basePath ?? '/packages'}?page=$page';
 }

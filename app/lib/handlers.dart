@@ -45,6 +45,9 @@ Future<shelf.Response> appHandler(
     '/search': searchHandler,
     '/packages': packagesHandler,
     '/packages.json': packagesHandler,
+    '/flutter': flutterHandler,
+    '/flutter/': flutterHandler,
+    '/flutter/plugins': flutterPluginsHandler,
   }[path];
 
   if (handler != null) {
@@ -198,18 +201,21 @@ Future<shelf.Response> packagesHandlerJson(
   return _jsonResponse(json);
 }
 
-/// Handles requests for /packages - HTML
-Future<shelf.Response> packagesHandlerHtml(
-    shelf.Request request, int page) async {
+/// Handles requests for `/packages` (default behavior) or `/flutter/plugins`
+/// (when [basePath] is specified) - HTML
+Future<shelf.Response> packagesHandlerHtml(shelf.Request request, int page,
+    {String basePath, String detectedType, String title}) async {
   final offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
   final limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
 
-  final packages = await backend.latestPackages(offset: offset, limit: limit);
-  final links = new PackageLinks(offset, offset + packages.length);
+  final packages = await backend.latestPackages(
+      offset: offset, limit: limit, detectedType: detectedType);
+  final links =
+      new PackageLinks(offset, offset + packages.length, basePath: basePath);
   final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
   final versions = await backend.lookupLatestVersions(pagePackages);
-  return _htmlResponse(
-      templateService.renderPkgIndexPage(pagePackages, versions, links));
+  return _htmlResponse(templateService
+      .renderPkgIndexPage(pagePackages, versions, links, title: title));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
@@ -446,6 +452,19 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   }
 
   return _jsonResponse(json);
+}
+
+/// Handles requests for /flutter (redirects to /flutter/plugins).
+shelf.Response flutterHandler(shelf.Request request) =>
+    _redirectResponse('/flutter/plugins');
+
+/// Handles requests for /flutter/plugins
+Future<shelf.Response> flutterPluginsHandler(shelf.Request request) async {
+  final int page = _pageFromUrl(request.url);
+  return packagesHandlerHtml(request, page,
+      basePath: '/flutter/plugins',
+      detectedType: BuiltinTypes.flutterPlugin,
+      title: 'Flutter Plugins');
 }
 
 shelf.Response _notFoundHandler(request) {
