@@ -7,13 +7,12 @@ library pub_dartlang_org.upload_signer_service;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:gcloud/service_scope.dart' as ss;
+import 'package:googleapis/iam/v1.dart' as iam;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
-import 'package:googleapis/iam/v1.dart' as iam;
-import 'package:logging/logging.dart' as logging;
 import 'package:http/http.dart' as http;
-
-import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart' as logging;
 import 'package:pub_server/repository.dart';
 
 final logging.Logger _logger = new logging.Logger('pub.upload_signer');
@@ -126,5 +125,6 @@ class IamBasedUploadSigner extends UploadSignerService {
 class SigningResult {
   final String googleAccessId;
   final List<int> bytes;
+
   SigningResult(this.googleAccessId, this.bytes);
 }

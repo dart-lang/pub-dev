@@ -6,13 +6,12 @@ library pub_dartlang_org.utils;
 
 import 'dart:async';
 
+import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart';
 import 'package:test/test.dart';
 
-import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/db.dart';
-
-import 'package:pub_dartlang_org/models.dart';
 import 'package:pub_dartlang_org/model_properties.dart';
+import 'package:pub_dartlang_org/models.dart';
 
 class TestDelayCompletion {
   final int count;

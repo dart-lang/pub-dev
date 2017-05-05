@@ -9,8 +9,8 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart' as gdb;
 import 'package:gcloud/storage.dart';
-
 import 'package:pub_server/repository.dart' show AsyncUploadInfo;
+
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
 
@@ -193,8 +193,10 @@ class TarballStorageMock implements TarballStorage {
 
   @override
   Bucket get bucket => bucketMock;
+
   @override
   Storage get storage => throw 'no storage support';
+
   @override
   TarballStorageNamer get namer => throw 'no namer support';
 

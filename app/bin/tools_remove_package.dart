@@ -7,9 +7,10 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
+import 'package:pub_semver/pub_semver.dart';
+
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/models.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import 'configuration.dart';
 import 'tools_common.dart';

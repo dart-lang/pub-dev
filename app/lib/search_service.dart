@@ -9,8 +9,8 @@ import 'dart:math' show min;
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis/customsearch/v1.dart' as customsearch;
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 
 import 'keys.dart';

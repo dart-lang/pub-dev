@@ -8,9 +8,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:markdown/markdown.dart';
 import 'package:mustache/mustache.dart' as mustache;
-import 'package:gcloud/service_scope.dart' as ss;
 
 import 'models.dart';
 
@@ -451,8 +451,7 @@ abstract class PageLinks {
       : offset = 1,
         count = 1;
 
-  int get leftmostPage =>
-      max(currentPage - MAX_PAGES ~/ 2, 1);
+  int get leftmostPage => max(currentPage - MAX_PAGES ~/ 2, 1);
 
   int get currentPage => 1 + offset ~/ RESULTS_PER_PAGE;
 
@@ -510,7 +509,7 @@ class SearchLinks extends PageLinks {
 class PackageLinks extends PageLinks {
   static const int RESULTS_PER_PAGE = 10;
   static const int MAX_PAGES = 15;
-  String _basePath;
+  final String _basePath;
 
   PackageLinks(int offset, int count, {String basePath})
       : _basePath = basePath,
