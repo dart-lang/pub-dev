@@ -10,10 +10,9 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:path/path.dart' as path;
+import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
-
-import 'package:pub_server/shelf_pubserver.dart';
 
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers.dart';

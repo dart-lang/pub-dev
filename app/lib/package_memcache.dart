@@ -23,6 +23,7 @@ abstract class UIPackageCache {
   Future setUIPackagePage(String package, String version, String data);
 
   Future<String> getUIIndexPage();
+
   Future setUIIndexPage(String content);
 
   Future invalidateUIPackagePage(String package);

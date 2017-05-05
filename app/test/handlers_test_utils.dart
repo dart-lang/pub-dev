@@ -7,9 +7,8 @@ library pub_dartlang_org.handlers_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:test/test.dart';
-
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/handlers.dart';
@@ -81,9 +80,11 @@ class BackendMock implements Backend {
   @override
   // ignore: always_declare_return_types
   get db => throw 'unexpected db access';
+
   @override
   // ignore: always_declare_return_types
   get repository => throw 'unexpected repository access';
+
   @override
   // ignore: always_declare_return_types
   get uiPackageCache => null;
@@ -214,6 +215,7 @@ class SearchServiceMock implements SearchService {
   @override
   // ignore: always_declare_return_types
   get csearch => throw 'unexpected csearch';
+
   @override
   // ignore: always_declare_return_types
   get httpClient => throw 'unexpected httpClient';

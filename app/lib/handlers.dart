@@ -10,13 +10,12 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
+import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:mime/mime.dart' as mime;
-
-import 'package:pub_dartlang_org/backend.dart';
 
 import 'atom_feed.dart';
+import 'backend.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
 import 'search_service.dart';
@@ -149,6 +148,7 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
 
 /// Handles requests for /static
 final StaticsCache staticsCache = new StaticsCache();
+
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
@@ -548,5 +548,6 @@ class StaticsCache {
 class StaticFile {
   final String contentType;
   final List<int> bytes;
+
   StaticFile(this.contentType, this.bytes);
 }

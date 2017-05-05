@@ -7,17 +7,16 @@ library pub_dartlang_org.backend_test;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:gcloud/db.dart';
+import 'package:pub_server/repository.dart' as pub_server;
+import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_server/repository.dart' as pub_server;
-import 'package:pub_dartlang_org/upload_signer_service.dart';
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/models.dart';
+import 'package:pub_dartlang_org/upload_signer_service.dart';
 
 import 'backend_test_utils.dart';
-
 import 'utils.dart';
 
 // TODO: Add missing tests when a query returns more than one result.
@@ -678,10 +677,8 @@ void main() {
           registerLoggedInUser('hans@juergen.com');
           final Future result = repo.finishAsyncUpload(redirectUri);
           await result.catchError(expectAsync2((error, _) {
-            expect(
-                error,
-                contains(
-                    'Exceeded ${UploadSignerService.MAX_UPLOAD_SIZE} upload size'));
+            expect(error, contains('Exceeded ${UploadSignerService
+                        .MAX_UPLOAD_SIZE} upload size'));
           }));
         });
 
@@ -818,7 +815,8 @@ void main() {
               'Exception: Package name must not be a reserved word in Dart.');
           expect(await fn('123test'),
               'Exception: Package name must begin with a letter or underscore.');
-          expect(await fn('With Space'),
+          expect(
+              await fn('With Space'),
               'Exception: Package name may only contain '
               'letters, numbers, and underscores.');
 
@@ -844,10 +842,8 @@ void main() {
           final Future result =
               repo.upload(new Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
-            expect(
-                error,
-                contains(
-                    'Exceeded ${UploadSignerService.MAX_UPLOAD_SIZE} upload size'));
+            expect(error, contains('Exceeded ${UploadSignerService
+                        .MAX_UPLOAD_SIZE} upload size'));
           }));
         });
 

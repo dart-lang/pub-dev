@@ -8,12 +8,13 @@ import 'dart:io';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:pub_dartlang_org/models.dart';
 
 import 'package:appengine/src/grpc_api_impl/auth_utils.dart' as auth_utils;
 import 'package:appengine/src/grpc_api_impl/datastore_impl.dart'
     as grpc_datastore_impl;
 import 'package:appengine/src/grpc_api_impl/grpc.dart' as grpc;
+
+import 'package:pub_dartlang_org/models.dart';
 
 Future main(List<String> args) async {
   if (args.length != 4) {

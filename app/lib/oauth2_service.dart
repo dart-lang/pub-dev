@@ -7,8 +7,8 @@ library pub_dartlang_org.oauth2_service;
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
 /// Register a new [OAuth2Service] object.

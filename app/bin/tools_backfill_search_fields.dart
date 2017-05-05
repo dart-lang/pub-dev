@@ -5,8 +5,9 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
-import 'package:pub_dartlang_org/models.dart';
+
 import 'package:pub_dartlang_org/backend.dart' show detectTypes;
+import 'package:pub_dartlang_org/models.dart';
 
 import 'tools_common.dart';
 
@@ -20,8 +21,8 @@ Future main(List<String> args) async {
           await _updatePackageVersion(pv.key);
           updatedCount++;
         } catch (e) {
-          print(
-              'Failed to update package ${pv.package} / ${pv.version}, error: $e');
+          print('Failed to update package ${pv.package} / '
+              '${pv.version}, error: $e');
         }
       }
     }
