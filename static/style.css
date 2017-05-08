@@ -5200,3 +5200,10 @@ table.search-results p {
   display: inline-block;
   margin-right: 12px;
 }
+
+.tablecol-icons-img {
+  width: 20px;
+  height: auto;
+  max-height: 20px;
+  display: inline-block;
+}
