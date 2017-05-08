@@ -66,7 +66,8 @@ void main() {
           [testPackageVersion],
           new PackageLinks(
               PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
-          title: 'Flutter Plugins');
+          title: 'Flutter Plugins',
+          faviconUrl: LogoUrls.flutterLogo32x32);
       expectGoldenFile(html, 'flutter_plugins_index_page2.html');
     });
 

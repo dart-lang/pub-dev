@@ -159,8 +159,13 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderLayoutPage(String title, String contentString,
-      {PackageVersion packageVersion, Map<String, String> pageMapAttributes}) {
+  String renderLayoutPage(
+    String title,
+    String contentString, {
+    PackageVersion packageVersion,
+    Map<String, String> pageMapAttributes,
+    String faviconUrl,
+  }) {
     return Response;
   }
 
@@ -172,7 +177,7 @@ class TemplateMock implements TemplateService {
   @override
   String renderPkgIndexPage(
       List<Package> packages, List<PackageVersion> versions, PageLinks links,
-      {String title}) {
+      {String title, String faviconUrl}) {
     return Response;
   }
 

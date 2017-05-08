@@ -88,7 +88,7 @@ class TemplateService {
   /// Renders the `views/pkg/index.mustache` template.
   String renderPkgIndexPage(
       List<Package> packages, List<PackageVersion> versions, PageLinks links,
-      {String title}) {
+      {String title, String faviconUrl}) {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final package = packages[i];
@@ -113,7 +113,8 @@ class TemplateService {
       pageTitle = 'Page ${links.currentPage} | $pageTitle';
     }
 
-    return _renderPage('pkg/index', values, title: pageTitle);
+    return _renderPage('pkg/index', values,
+        title: pageTitle, faviconUrl: faviconUrl);
   }
 
   /// Renders the `views/private_keys/show.mustache` template.
@@ -258,6 +259,7 @@ class TemplateService {
       title: '${package.name} ${selectedVersion.id} | Dart Package',
       packageVersion: selectedVersion,
       pageMapAttributes: pageMapAttributes,
+      faviconUrl: isFlutterPlugin ? LogoUrls.flutterLogo32x32 : null,
     );
   }
 
@@ -294,8 +296,13 @@ class TemplateService {
   }
 
   /// Renders the `views/layout.mustache` template.
-  String renderLayoutPage(String title, String contentString,
-      {PackageVersion packageVersion, Map<String, String> pageMapAttributes}) {
+  String renderLayoutPage(
+    String title,
+    String contentString, {
+    PackageVersion packageVersion,
+    Map<String, String> pageMapAttributes,
+    String faviconUrl,
+  }) {
     final List<Map<String, String>> pageMapAttrList = [];
     pageMapAttributes?.forEach((String attr, String value) {
       pageMapAttrList.add({
@@ -304,6 +311,7 @@ class TemplateService {
       });
     });
     final values = {
+      'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
       'package': packageVersion == null
           ? false
           : {
@@ -373,6 +381,7 @@ class TemplateService {
     String title: 'pub.dartlang.org',
     PackageVersion packageVersion,
     Map<String, String> pageMapAttributes,
+    String faviconUrl,
   }) {
     final renderedContent = _renderTemplate(template, values);
     return renderLayoutPage(
@@ -380,6 +389,7 @@ class TemplateService {
       renderedContent,
       packageVersion: packageVersion,
       pageMapAttributes: pageMapAttributes,
+      faviconUrl: faviconUrl,
     );
   }
 
@@ -390,7 +400,7 @@ class TemplateService {
       for (String type in version.detectedTypes) {
         if (type == BuiltinTypes.flutterPlugin) {
           icons.add({
-            'src': '/static/img/flutter-logo-32x32.png',
+            'src': LogoUrls.flutterLogo32x32,
             'label': 'Flutter plugin',
           });
         }
@@ -527,4 +537,9 @@ class PackageLinks extends PageLinks {
 
   @override
   String formatHref(int page) => '${_basePath ?? '/packages'}?page=$page';
+}
+
+abstract class LogoUrls {
+  static const String smallDartFavicon = '/static/favicon.ico';
+  static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
 }
