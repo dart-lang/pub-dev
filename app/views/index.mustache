@@ -44,6 +44,7 @@
 <table>
   <thead>
     <tr>
+      <td></td>
       <th>Package</th>
       <th>Version</th>
       <th>Description</th>
@@ -53,6 +54,7 @@
   <tbody>
     {{#recent_packages}}
       <tr>
+        <td>{{{icons}}}</td>
         <th><a href="/packages/{{name}}">{{name}}</a></th>
         <td><span class="version">{{latest_version.version}}</span></td>
         <td>{{#description}}{{ellipsized_description}}{{/description}}</td>
@@ -62,7 +64,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <td colspan="4"><a href="/packages">More packages...</a></td>
+      <td colspan="5"><a href="/packages">More packages...</a></td>
     </tr>
   </tfoot>
 </table>

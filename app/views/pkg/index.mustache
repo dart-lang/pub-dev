@@ -6,6 +6,7 @@
 <table>
   <thead>
     <tr>
+      <td></td>
       <th>Package</th>
       <th>Description</th>
       <th width="200">Author(s)</th>
@@ -15,6 +16,7 @@
   <tbody>
     {{#packages}}
       <tr>
+        <td>{{{icons}}}</td>
         <td><strong><a href="/packages/{{name}}">{{name}}</a></strong></td>
         <td>{{#description}}{{ellipsized_description}}{{/description}}</td>
         <td>{{& authors_html}}</td>

@@ -94,6 +94,7 @@ class TemplateService {
       final package = packages[i];
       final version = versions[i];
       packagesJson.add({
+        'icons': _renderIconsColumnHtml(version),
         'name': package.name,
         'description': {
           'ellipsized_description': version.ellipsizedDescription,
@@ -228,7 +229,7 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'icons': _renderIconsHtml(selectedVersion),
+        'icons': _renderIconsBlockHtml(selectedVersion),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -284,6 +285,7 @@ class TemplateService {
       'recent_packages': recentPackages.map((PackageVersion version) {
         final description = version.ellipsizedDescription;
         return {
+          'icons': _renderIconsColumnHtml(version),
           'name': version.packageKey.id,
           'short_updated': version.shortCreated,
           'latest_version': {'version': version.id},
@@ -354,6 +356,7 @@ class TemplateService {
         'show_dev_version': stable.id != dev.id,
         'dev_version': HTML_ESCAPE.convert(dev.id),
         'dev_version_href': Uri.encodeComponent(dev.id),
+        'icons': _renderIconsColumnHtml(stable),
         'last_uploaded': stable.shortCreated,
         'desc': stable.ellipsizedDescription,
       });
@@ -393,8 +396,25 @@ class TemplateService {
     );
   }
 
-  /// Renders the icons and related text using the pkg/icons template.
-  String _renderIconsHtml(PackageVersion version) {
+  /// Renders the icons and related text using the pkg/icons_block template.
+  String _renderIconsBlockHtml(PackageVersion version) {
+    final List icons = _mapIconsData(version);
+    return _renderTemplate('pkg/icons_block', {
+      'has_icons': icons.isNotEmpty,
+      'icons': icons,
+    });
+  }
+
+  /// Renders the icons and related text using the pkg/icons_column template.
+  String _renderIconsColumnHtml(PackageVersion version) {
+    final List icons = _mapIconsData(version);
+    return _renderTemplate('pkg/icons_column', {
+      'has_icons': icons.isNotEmpty,
+      'icons': icons,
+    });
+  }
+
+  List _mapIconsData(PackageVersion version) {
     final List icons = [];
     if (version.detectedTypes != null) {
       for (String type in version.detectedTypes) {
@@ -406,10 +426,7 @@ class TemplateService {
         }
       }
     }
-    return _renderTemplate('pkg/icons', {
-      'has_icons': icons.isNotEmpty,
-      'icons': icons,
-    });
+    return icons;
   }
 
   /// Renders [template] with given [values].

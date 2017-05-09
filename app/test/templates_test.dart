@@ -20,7 +20,8 @@ void main() {
     }
 
     test('index page', () {
-      final String html = templates.renderIndexPage([testPackageVersion]);
+      final String html = templates
+          .renderIndexPage([testPackageVersion, flutterPackageVersion]);
       expectGoldenFile(html, 'index_page.html');
     });
 
@@ -50,7 +51,9 @@ void main() {
 
     test('package index page', () {
       final String html = templates.renderPkgIndexPage(
-          [testPackage], [testPackageVersion], new PackageLinks.empty());
+          [testPackage, testPackage],
+          [testPackageVersion, flutterPackageVersion],
+          new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
@@ -63,7 +66,7 @@ void main() {
     test('flutter plugins - index page #2', () {
       final String html = templates.renderPkgIndexPage(
           [testPackage],
-          [testPackageVersion],
+          [flutterPackageVersion],
           new PackageLinks(
               PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
           title: 'Flutter Plugins',
@@ -74,8 +77,8 @@ void main() {
     test('search page', () {
       final String html = templates.renderSearchPage(
           'foobar',
-          [testPackageVersion],
-          [testPackageVersion],
+          [testPackageVersion, flutterPackageVersion],
+          [testPackageVersion, flutterPackageVersion],
           new SearchLinks('foobar', 0, 1));
       expectGoldenFile(html, 'search_page.html');
     });
