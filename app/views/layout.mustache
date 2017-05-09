@@ -7,6 +7,9 @@
   <head>
     <title>{{title}}</title>
     <meta itemprop="image" content="/static/img/dart-logo-400x400.png">
+    {{#favicon}}
+    <link rel="shortcut icon" href="{{{favicon}}}" />
+    {{/favicon}}
     {{#package}}
     <meta itemprop="name" content="{{package.name}} - a Dart package">
     <meta name="description" content="{{package.name}} - {{package.description}}">

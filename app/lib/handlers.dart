@@ -203,8 +203,14 @@ Future<shelf.Response> packagesHandlerJson(
 
 /// Handles requests for `/packages` (default behavior) or `/flutter/plugins`
 /// (when [basePath] is specified) - HTML
-Future<shelf.Response> packagesHandlerHtml(shelf.Request request, int page,
-    {String basePath, String detectedType, String title}) async {
+Future<shelf.Response> packagesHandlerHtml(
+  shelf.Request request,
+  int page, {
+  String basePath,
+  String detectedType,
+  String title,
+  String faviconUrl,
+}) async {
   final offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
   final limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
 
@@ -214,8 +220,9 @@ Future<shelf.Response> packagesHandlerHtml(shelf.Request request, int page,
       new PackageLinks(offset, offset + packages.length, basePath: basePath);
   final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
   final versions = await backend.lookupLatestVersions(pagePackages);
-  return _htmlResponse(templateService
-      .renderPkgIndexPage(pagePackages, versions, links, title: title));
+  return _htmlResponse(templateService.renderPkgIndexPage(
+      pagePackages, versions, links,
+      title: title, faviconUrl: faviconUrl));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
@@ -461,10 +468,14 @@ shelf.Response flutterHandler(shelf.Request request) =>
 /// Handles requests for /flutter/plugins
 Future<shelf.Response> flutterPluginsHandler(shelf.Request request) async {
   final int page = _pageFromUrl(request.url);
-  return packagesHandlerHtml(request, page,
-      basePath: '/flutter/plugins',
-      detectedType: BuiltinTypes.flutterPlugin,
-      title: 'Flutter Plugins');
+  return packagesHandlerHtml(
+    request,
+    page,
+    basePath: '/flutter/plugins',
+    detectedType: BuiltinTypes.flutterPlugin,
+    title: 'Flutter Plugins',
+    faviconUrl: LogoUrls.flutterLogo32x32,
+  );
 }
 
 shelf.Response _notFoundHandler(request) {
