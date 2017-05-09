@@ -56,15 +56,14 @@ class SearchService {
 
   SearchService(this.httpClient, this.csearch);
 
-  /// Search for packes using [query], starting at offset [offset] returning
+  /// Search for packes using [queryText], starting at offset [offset] returning
   /// max [numResults].
-  Future<SearchResultPage> search(
-      String query, int offset, int numResults) async {
+  Future<SearchResultPage> search(SearchQuery query) async {
     bool exists(x) => x != null;
     final db = dbService;
 
-    final search = await csearch.cse
-        .list(query, cx: _CUSTOM_SEARCH_ID, num: numResults, start: 1 + offset);
+    final search = await csearch.cse.list(query.text,
+        cx: _CUSTOM_SEARCH_ID, num: query.limit, start: 1 + query.offset);
     if (exists(search.items)) {
       final keys = search.items
           .map((item) {
@@ -91,22 +90,31 @@ class SearchService {
           final int count = min(
               int.parse(search.searchInformation.totalResults),
               SEARCH_MAX_RESULTS);
-          return new SearchResultPage(
-              query, offset, count, versions, devVersions);
+          return new SearchResultPage(query, count, versions, devVersions);
         }
       }
     }
-    return new SearchResultPage(query, offset, 0, [], []);
+    return new SearchResultPage.empty(query);
   }
+}
+
+class SearchQuery {
+  /// The query string used for the search.
+  final String text;
+
+  /// The offset used for the search.
+  final int offset;
+
+  /// The maximum number of items queried when search.
+  final int limit;
+
+  SearchQuery(this.text, {this.offset: 0, this.limit: 10});
 }
 
 /// The results of a search via the Custom Search API.
 class SearchResultPage {
-  /// The query string used for the search.
-  final String query;
-
-  /// The offset used for the search/
-  final int offset;
+  /// The query used for the search.
+  final SearchQuery query;
 
   /// The total number of results available for the search.
   final int totalCount;
@@ -117,6 +125,9 @@ class SearchResultPage {
   /// The latest development versions of the packages found by the search.
   final List<PackageVersion> devVersions;
 
-  SearchResultPage(this.query, this.offset, this.totalCount,
-      this.stableVersions, this.devVersions);
+  SearchResultPage(
+      this.query, this.totalCount, this.stableVersions, this.devVersions);
+
+  factory SearchResultPage.empty(SearchQuery query) =>
+      new SearchResultPage(query, 0, [], []);
 }

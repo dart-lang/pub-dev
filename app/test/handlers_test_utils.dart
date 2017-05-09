@@ -205,8 +205,7 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderSearchPage(String query, List<PackageVersion> stableVersions,
-      List<PackageVersion> devVersions, PageLinks pageLinks) {
+  String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     return Response;
   }
 
@@ -230,8 +229,7 @@ class SearchServiceMock implements SearchService {
   SearchServiceMock(this.searchFun);
 
   @override
-  Future<SearchResultPage> search(
-      String query, int offset, int numResults) async {
-    return searchFun(query, offset, numResults);
+  Future<SearchResultPage> search(SearchQuery query) async {
+    return searchFun(query);
   }
 }

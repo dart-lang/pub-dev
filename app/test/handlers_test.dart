@@ -178,25 +178,23 @@ void main() {
       });
 
       tScopedTest('/search?q=foobar', () async {
-        registerSearchService(
-            new SearchServiceMock((String query, int offset, int numResults) {
-          expect(query, 'foobar');
-          expect(offset, 0);
-          expect(numResults, PageSize);
+        registerSearchService(new SearchServiceMock((SearchQuery query) {
+          expect(query.text, 'foobar');
+          expect(query.offset, 0);
+          expect(query.limit, PageSize);
           return new SearchResultPage(
-              query, offset, 1, [testPackageVersion], [testPackageVersion]);
+              query, 1, [testPackageVersion], [testPackageVersion]);
         }));
         expectHtmlResponse(await issueGet('/search?q=foobar'), status: 200);
       });
 
       tScopedTest('/search?q=foobar&page=2', () async {
-        registerSearchService(
-            new SearchServiceMock((String query, int offset, int numResults) {
-          expect(query, 'foobar');
-          expect(offset, PageSize);
-          expect(numResults, PageSize);
+        registerSearchService(new SearchServiceMock((SearchQuery query) {
+          expect(query.text, 'foobar');
+          expect(query.offset, PageSize);
+          expect(query.limit, PageSize);
           return new SearchResultPage(
-              query, offset, 1, [testPackageVersion], [testPackageVersion]);
+              query, 1, [testPackageVersion], [testPackageVersion]);
         }));
         expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
       });

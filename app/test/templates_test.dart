@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/templates.dart';
+import 'package:pub_dartlang_org/search_service.dart'
+    show SearchQuery, SearchResultPage;
 
 import 'utils.dart';
 
@@ -75,11 +77,14 @@ void main() {
     });
 
     test('search page', () {
-      final String html = templates.renderSearchPage(
-          'foobar',
+      final query = new SearchQuery('foobar', offset: 0);
+      final resultPage = new SearchResultPage(
+          query,
+          2,
           [testPackageVersion, flutterPackageVersion],
-          [testPackageVersion, flutterPackageVersion],
-          new SearchLinks('foobar', 0, 1));
+          [testPackageVersion, flutterPackageVersion]);
+      final String html =
+          templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
       expectGoldenFile(html, 'search_page.html');
     });
 
