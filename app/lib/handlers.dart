@@ -123,8 +123,9 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     queryText,
     offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
     limit: PageLinks.RESULTS_PER_PAGE,
+    type: request.url.queryParameters['type'],
   );
-  if (queryText == null) {
+  if (!query.isValid) {
     return _htmlResponse(templateService.renderSearchPage(
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }

@@ -287,12 +287,21 @@ bool _isNewer(Version a, Version b, {bool pubSorting: true}) =>
     _compareSemanticVersionsDesc(a, b, false, pubSorting) < 0;
 
 /// The list of built-in types.
+/// TODO: rename to DetectedTypes
+/// TODO: move isSameDetectedType method inside
 class BuiltinTypes {
   /// Package is related to angular.
   static final String angular = 'angular';
 
   /// Package is related to flutter and it is a plugin.
   static final String flutterPlugin = 'flutter_plugin';
+
+  static final Set<String> _used = new Set.from([
+    BuiltinTypes.flutterPlugin,
+  ]);
+
+  /// Verifies that the client-provided [type] is a known type.
+  static bool isKnownType(String type) => _used.contains(type);
 }
 
 /// Returns true if the two list of detected types are the same.
