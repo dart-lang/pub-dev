@@ -177,7 +177,7 @@ class TemplateMock implements TemplateService {
   @override
   String renderPkgIndexPage(
       List<Package> packages, List<PackageVersion> versions, PageLinks links,
-      {String title, String faviconUrl}) {
+      {String title, String faviconUrl, String descriptionHtml}) {
     return Response;
   }
 
