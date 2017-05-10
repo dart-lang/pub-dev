@@ -62,7 +62,7 @@ class SearchService {
     bool exists(x) => x != null;
     final db = dbService;
 
-    final search = await csearch.cse.list(query.text,
+    final search = await csearch.cse.list(query.buildCseQueryText(),
         cx: _CUSTOM_SEARCH_ID, num: query.limit, start: 1 + query.offset);
     if (exists(search.items)) {
       final keys = search.items
@@ -108,7 +108,27 @@ class SearchQuery {
   /// The maximum number of items queried when search.
   final int limit;
 
-  SearchQuery(this.text, {this.offset: 0, this.limit: 10});
+  /// Filter the results for this type.
+  final String type;
+
+  SearchQuery(this.text, {this.offset: 0, this.limit: 10, this.type});
+
+  /// Returns the query text to use in CSE.
+  String buildCseQueryText() {
+    String queryText = text;
+    if (type != null && type.isNotEmpty) {
+      // Corresponds with the <PageMap> entry in views/layout.mustache.
+      queryText += ' more:pagemap:document-dt_$type:1';
+    }
+    return queryText;
+  }
+
+  /// Whether the query object can be used for running a search using the custom
+  /// search api.
+  bool get isValid =>
+      text != null &&
+      text.isNotEmpty &&
+      (type == null || BuiltinTypes.isKnownType(type));
 }
 
 /// The results of a search via the Custom Search API.

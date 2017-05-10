@@ -201,4 +201,31 @@ void main() {
       expect(links.rightmostPage, 26);
     });
   });
+
+  group('URLs', () {
+    test('CSE query text parameter', () {
+      var query = new SearchQuery('web framework');
+      expect(query.buildCseQueryText(), 'web framework');
+
+      query = new SearchQuery('web framework', type: 'pkg_type');
+      expect(query.buildCseQueryText(),
+          'web framework more:pagemap:document-dt_pkg_type:1');
+    });
+
+    test('SearchLinks defaults', () {
+      final query = new SearchQuery('web framework');
+      final SearchLinks links = new SearchLinks(query, 100);
+      expect(links.formatHref(1), '/search?q=web+framework&page=1');
+      expect(links.formatHref(2), '/search?q=web+framework&page=2');
+    });
+
+    test('SearchLinks with type', () {
+      final query = new SearchQuery('web framework', type: 'pkg_type');
+      final SearchLinks links = new SearchLinks(query, 100);
+      expect(
+          links.formatHref(1), '/search?q=web+framework&page=1&type=pkg_type');
+      expect(
+          links.formatHref(2), '/search?q=web+framework&page=2&type=pkg_type');
+    });
+  });
 }

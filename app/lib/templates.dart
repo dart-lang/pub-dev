@@ -537,8 +537,16 @@ class SearchLinks extends PageLinks {
   SearchLinks.empty(this.query) : super.empty();
 
   @override
-  String formatHref(int page) =>
-      '/search?q=${Uri.encodeQueryComponent(query.text)}&page=$page';
+  String formatHref(int page) {
+    final Map<String, String> params = {
+      'q': query.text,
+      'page': page.toString(),
+    };
+    if (query.type != null) {
+      params['type'] = query.type;
+    }
+    return new Uri(path: '/search', queryParameters: params).toString();
+  }
 }
 
 class PackageLinks extends PageLinks {
