@@ -212,6 +212,7 @@ Future<shelf.Response> packagesHandlerHtml(
   String detectedType,
   String title,
   String faviconUrl,
+  String descriptionHtml,
 }) async {
   final offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
   final limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
@@ -223,8 +224,13 @@ Future<shelf.Response> packagesHandlerHtml(
   final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
   final versions = await backend.lookupLatestVersions(pagePackages);
   return _htmlResponse(templateService.renderPkgIndexPage(
-      pagePackages, versions, links,
-      title: title, faviconUrl: faviconUrl));
+    pagePackages,
+    versions,
+    links,
+    title: title,
+    faviconUrl: faviconUrl,
+    descriptionHtml: descriptionHtml,
+  ));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
@@ -477,6 +483,7 @@ Future<shelf.Response> flutterPluginsHandler(shelf.Request request) async {
     detectedType: BuiltinTypes.flutterPlugin,
     title: 'Flutter Plugins',
     faviconUrl: LogoUrls.flutterLogo32x32,
+    descriptionHtml: flutterPluginsDescriptionHtml,
   );
 }
 

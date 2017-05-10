@@ -67,12 +67,14 @@ void main() {
 
     test('flutter plugins - index page #2', () {
       final String html = templates.renderPkgIndexPage(
-          [testPackage],
-          [flutterPackageVersion],
-          new PackageLinks(
-              PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
-          title: 'Flutter Plugins',
-          faviconUrl: LogoUrls.flutterLogo32x32);
+        [testPackage],
+        [flutterPackageVersion],
+        new PackageLinks(
+            PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
+        title: 'Flutter Plugins',
+        faviconUrl: LogoUrls.flutterLogo32x32,
+        descriptionHtml: flutterPluginsDescriptionHtml,
+      );
       expectGoldenFile(html, 'flutter_plugins_index_page2.html');
     });
 

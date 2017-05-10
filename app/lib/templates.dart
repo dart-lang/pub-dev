@@ -89,7 +89,7 @@ class TemplateService {
   /// Renders the `views/pkg/index.mustache` template.
   String renderPkgIndexPage(
       List<Package> packages, List<PackageVersion> versions, PageLinks links,
-      {String title, String faviconUrl}) {
+      {String title, String faviconUrl, String descriptionHtml}) {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final package = packages[i];
@@ -106,6 +106,7 @@ class TemplateService {
     }
     final values = {
       'title': title ?? 'Packages',
+      'description_html': descriptionHtml,
       'packages': packagesJson,
       'pagination': renderPagination(links),
     };
@@ -570,3 +571,7 @@ abstract class LogoUrls {
   static const String smallDartFavicon = '/static/favicon.ico';
   static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
 }
+
+const String flutterPluginsDescriptionHtml =
+    '<p><a href="https://flutter.io/platform-plugins/">'
+    'Learn more about Flutter plugins.<a></p>';
