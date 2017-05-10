@@ -115,22 +115,23 @@ shelf.Response sitemapHandler(_) =>
 
 /// Handles requests for /search
 Future<shelf.Response> searchHandler(shelf.Request request) async {
-  final query = request.url.queryParameters['q'];
-  if (query == null) {
-    return _htmlResponse(templateService.renderSearchPage(
-        query, [], [], new SearchLinks.empty('')));
-  }
-
+  final queryText = request.url.queryParameters['q'];
   final int page = _pageFromUrl(request.url,
       maxPages: SEARCH_MAX_RESULTS ~/ PageLinks.RESULTS_PER_PAGE);
 
-  final int offset = PageLinks.RESULTS_PER_PAGE * (page - 1);
-  final int resultCount = PageLinks.RESULTS_PER_PAGE;
-  final searchPage = await searchService.search(query, offset, resultCount);
-  final links =
-      new SearchLinks(query, searchPage.offset, searchPage.totalCount);
-  return _htmlResponse(templateService.renderSearchPage(
-      query, searchPage.stableVersions, searchPage.devVersions, links));
+  final SearchQuery query = new SearchQuery(
+    queryText,
+    offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
+    limit: PageLinks.RESULTS_PER_PAGE,
+  );
+  if (queryText == null) {
+    return _htmlResponse(templateService.renderSearchPage(
+        new SearchResultPage.empty(query), new SearchLinks.empty(query)));
+  }
+
+  final resultPage = await searchService.search(query);
+  final links = new SearchLinks(query, resultPage.totalCount);
+  return _htmlResponse(templateService.renderSearchPage(resultPage, links));
 }
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.

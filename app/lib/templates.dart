@@ -13,6 +13,7 @@ import 'package:markdown/markdown.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
 import 'models.dart';
+import 'search_service.dart' show SearchQuery, SearchResultPage;
 
 final List<BlockSyntax> _blockSyntaxes =
     ExtensionSet.gitHub.blockSyntaxes.toList();
@@ -342,13 +343,13 @@ class TemplateService {
   }
 
   /// Renders the `views/search.mustache` template.
-  String renderSearchPage(String query, List<PackageVersion> stableVersions,
-      List<PackageVersion> devVersions, PageLinks pageLinks) {
+  String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     final List results = [];
-    for (int i = 0; i < stableVersions.length; i++) {
-      final PackageVersion stable = stableVersions[i];
-      final PackageVersion dev =
-          devVersions.length > i ? devVersions[i] : stable;
+    for (int i = 0; i < resultPage.stableVersions.length; i++) {
+      final PackageVersion stable = resultPage.stableVersions[i];
+      final PackageVersion dev = resultPage.devVersions.length > i
+          ? resultPage.devVersions[i]
+          : stable;
       results.add({
         'url': '/packages/${stable.packageKey.id}',
         'name': stable.packageKey.id,
@@ -361,14 +362,15 @@ class TemplateService {
         'desc': stable.ellipsizedDescription,
       });
     }
-
+    final String queryText = resultPage.query.text;
     final values = {
-      'query': query,
+      'query': queryText,
       'results': results,
       'pagination': renderPagination(pageLinks),
       'hasResults': results.length > 0,
     };
-    return _renderPage('search', values, title: 'Search results for $query.');
+    return _renderPage('search', values,
+        title: 'Search results for $queryText.');
   }
 
   /// Renders the `views/site_map.mustache` template.
@@ -528,15 +530,15 @@ abstract class PageLinks {
 }
 
 class SearchLinks extends PageLinks {
-  final String query;
+  final SearchQuery query;
 
-  SearchLinks(this.query, int offset, int count) : super(offset, count);
+  SearchLinks(this.query, int count) : super(query.offset, count);
 
   SearchLinks.empty(this.query) : super.empty();
 
   @override
   String formatHref(int page) =>
-      '/search?q=${Uri.encodeQueryComponent(query)}&page=$page';
+      '/search?q=${Uri.encodeQueryComponent(query.text)}&page=$page';
 }
 
 class PackageLinks extends PageLinks {
