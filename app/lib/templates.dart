@@ -424,6 +424,7 @@ class TemplateService {
           icons.add({
             'src': LogoUrls.flutterLogo32x32,
             'label': 'Flutter plugin',
+            'href': '/flutter/plugins',
           });
         }
       }

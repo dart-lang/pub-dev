@@ -3,7 +3,14 @@
   {{#icons}}
     <div class="package-icon">
       <img src="{{{src}}}" class="package-icon-img" />
-      <span class="package-icon-label">{{label}}</span>
+      {{#href}}
+        <a href="{{{href}}}">
+          <span class="package-icon-label">{{label}}</span>
+        </a>
+      {{/href}}
+      {{^href}}
+        <span class="package-icon-label">{{label}}</span>
+      {{/href}}
     </div>
   {{/icons}}
 </div>
