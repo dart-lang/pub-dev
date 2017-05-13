@@ -126,7 +126,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.3+13"
+    version: "0.11.3+9"
   http2:
     description:
       name: http2
@@ -374,4 +374,4 @@ packages:
     source: hosted
     version: "2.1.12"
 sdks:
-  dart: ">=1.23.0-dev.0.0 <2.0.0"
+  dart: ">=1.22.0 <2.0.0"

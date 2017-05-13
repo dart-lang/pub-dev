@@ -575,4 +575,4 @@ abstract class LogoUrls {
 
 const String flutterPluginsDescriptionHtml =
     '<p><a href="https://flutter.io/platform-plugins/">'
-    'Learn more about Flutter plugins.<a></p>';
+    'Learn more about Flutter plugins.</a></p>';
