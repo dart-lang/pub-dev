@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 
@@ -14,8 +13,7 @@ import 'server_common.dart';
 
 Future withProdServices(Future fun()) {
   return withAppEngineServices(() {
-    if (!Platform.environment.containsKey('GCLOUD_PROJECT') ||
-        !Platform.environment.containsKey('GCLOUD_KEY')) {
+    if (!envConfig.hasGcloudKey) {
       throw 'Missing GCLOUD_* environments for package:appengine';
     }
     return withCorrectDatastore(() {

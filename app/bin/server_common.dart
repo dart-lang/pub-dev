@@ -22,6 +22,8 @@ import 'package:pub_dartlang_org/oauth2_service.dart';
 import 'package:pub_dartlang_org/package_memcache.dart';
 import 'package:pub_dartlang_org/search_service.dart';
 
+import 'configuration.dart';
+
 final TemplateLocation = Platform.script.resolve('../views').toFilePath();
 
 const List<String> SCOPES = const [
@@ -119,8 +121,8 @@ Future withCorrectDatastore(Future fun()) {
 Symbol _apiaryDatastoreSymbol = #_apiaryDatastoreSymbol;
 
 Future<DatastoreDB> _initializeApiaryDatastore() async {
-  final projectId = Platform.environment['GCLOUD_PROJECT'];
-  final gcloudKeyVar = Platform.environment['GCLOUD_KEY'];
+  final projectId = envConfig.gcloudProject;
+  final gcloudKeyVar = envConfig.gcloudKey;
   final serviceAccount = new auth.ServiceAccountCredentials.fromJson(
       new File(gcloudKeyVar).readAsStringSync());
 
