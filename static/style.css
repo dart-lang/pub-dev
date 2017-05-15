@@ -5204,6 +5204,7 @@ table.search-results p {
 .tablecol-icons-img {
   width: 20px;
   height: auto;
+  max-width: unset;
   max-height: 20px;
   display: inline-block;
 }
