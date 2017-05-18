@@ -57,7 +57,7 @@ class EnvConfig {
   final String gcloudProject;
 
   EnvConfig._(this.gcloudProject, this.gcloudKey) {
-    if (this.gcloudProject != null) {
+    if (this.gcloudProject == null) {
       throw new Exception('GCLOUD_PROJECT needs to be set!');
     }
   }
