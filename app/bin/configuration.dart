@@ -29,12 +29,12 @@ class Configuration {
   auth.ServiceAccountCredentials get credentials {
     if (_credentials == null) {
       _credentials = new auth.ServiceAccountCredentials.fromJson(
-          new File(Platform.environment['GCLOUD_KEY']).readAsStringSync());
+          new File(envConfig.gcloudKey).readAsStringSync());
     }
     return _credentials;
   }
 
-  bool get hasCredentials => Platform.environment['GCLOUD_KEY'] != null;
+  bool get hasCredentials => envConfig.hasGcloudKey;
 
   /// Create a configuration for production deployment.
   ///
@@ -50,3 +50,27 @@ class Configuration {
       : projectId = 'dartlang-pub-dev',
         packageBucketName = 'dartlang-pub-dev--pub-packages';
 }
+
+/// Configuration from the environment variables.
+class EnvConfig {
+  final String gcloudKey;
+  final String gcloudProject;
+
+  EnvConfig._(this.gcloudProject, this.gcloudKey) {
+    if (this.gcloudProject != null) {
+      throw new Exception('GCLOUD_PROJECT needs to be set!');
+    }
+  }
+
+  factory EnvConfig._detect() {
+    return new EnvConfig._(
+      Platform.environment['GCLOUD_PROJECT'],
+      Platform.environment['GCLOUD_KEY'],
+    );
+  }
+
+  bool get hasGcloudKey => gcloudKey != null;
+}
+
+/// Configuration from the environment variables.
+final EnvConfig envConfig = new EnvConfig._detect();
