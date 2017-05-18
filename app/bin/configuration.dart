@@ -6,8 +6,7 @@ import 'dart:io';
 
 import 'package:googleapis_auth/auth.dart' as auth;
 
-final activeConfiguration = new Configuration.prod();
-//final activeConfiguration = new Configuration.dev();
+final activeConfiguration = new Configuration.fromEnv(envConfig);
 
 /// Class describing the configuration of running pub.dartlang.org.
 ///
@@ -41,14 +40,23 @@ class Configuration {
   /// This will use the Datastore from the cloud project and the Cloud Storage
   /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
-  Configuration.prod()
+  Configuration._prod()
       : projectId = 'dartlang-pub',
         packageBucketName = 'pub-packages';
 
   /// Create a configuration for development/staging deployment.
-  Configuration.dev()
+  Configuration._dev()
       : projectId = 'dartlang-pub-dev',
         packageBucketName = 'dartlang-pub-dev--pub-packages';
+
+  /// Create a configuration based on the environment variables.
+  factory Configuration.fromEnv(EnvConfig env) {
+    if (env.gcloudProject == 'dartlang-pub-dev') {
+      return new Configuration._dev();
+    } else {
+      return new Configuration._prod();
+    }
+  }
 }
 
 /// Configuration from the environment variables.
