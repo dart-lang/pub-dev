@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:html/parser.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/templates.dart';
@@ -16,7 +17,15 @@ void main() {
   group('templates', () {
     final templates = new TemplateService(templateDirectory: 'views');
 
-    void expectGoldenFile(String content, String fileName) {
+    void expectGoldenFile(String content, String fileName,
+        {bool isFragment: false}) {
+      // Making sure it is valid HTML
+      final htmlParser = new HtmlParser(content, strict: true);
+      if (isFragment) {
+        htmlParser.parseFragment();
+      } else {
+        htmlParser.parse();
+      }
       final golden = new File('test/golden/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
     }
@@ -108,22 +117,22 @@ void main() {
 
     test('pagination: single page', () {
       final String html = templates.renderPagination(new PackageLinks.empty());
-      expectGoldenFile(html, 'pagination_single.html');
+      expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
       final String html = templates.renderPagination(new PackageLinks(90, 299));
-      expectGoldenFile(html, 'pagination_middle.html');
+      expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
       final String html = templates.renderPagination(new PackageLinks(0, 600));
-      expectGoldenFile(html, 'pagination_first.html');
+      expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
       final String html = templates.renderPagination(new PackageLinks(90, 91));
-      expectGoldenFile(html, 'pagination_last.html');
+      expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
   });
 
