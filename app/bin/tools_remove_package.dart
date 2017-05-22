@@ -15,8 +15,6 @@ import 'package:pub_dartlang_org/models.dart';
 import 'configuration.dart';
 import 'tools_common.dart';
 
-final Configuration configuration = new Configuration.prod();
-
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
       (!(arguments[0] == 'list' && arguments.length == 2) &&
@@ -89,7 +87,7 @@ Future removePackage(String packageName) async {
     print('Committing changes to DB ...');
     await T.commit();
 
-    final bucket = storageService.bucket(configuration.packageBucketName);
+    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
     final storage = new TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await Future.wait(versionNames
