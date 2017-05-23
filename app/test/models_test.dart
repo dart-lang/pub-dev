@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/models.dart';
+import 'package:pub_dartlang_org/model_properties.dart';
 
 import 'utils.dart';
 
@@ -111,6 +112,45 @@ void main() {
           ..version = '0.2.0');
         expect(p.latestVersion, '0.2.0');
         expect(p.latestDevVersion, '1.0.0-dev');
+      });
+    });
+  });
+
+  group('Pubspec', () {
+    const String pubspecBase = '''
+name: test_package
+description: 'Test package'
+version: 1.0.9
+''';
+
+    test('properties', () {
+      final Pubspec p = new Pubspec(pubspecBase);
+      expect(p.name, 'test_package');
+      expect(p.description, 'Test package');
+      expect(p.version, '1.0.9');
+    });
+
+    group('Flutter', () {
+      test('basic package', () {
+        final Pubspec p = new Pubspec(pubspecBase);
+        expect(p.hasFlutterPlugin, isFalse);
+        expect(p.dependsOnFlutterSdk, isFalse);
+      });
+      test('Depends on Flutter SDK', () {
+        final Pubspec p = new Pubspec(pubspecBase +
+            'dependencies:\n'
+            '  flutter:\n'
+            '    sdk: flutter\n');
+        expect(p.hasFlutterPlugin, isFalse);
+        expect(p.dependsOnFlutterSdk, isTrue);
+      });
+      test('Has flutter plugin', () {
+        final Pubspec p = new Pubspec(pubspecBase +
+            'flutter:\n'
+            '  plugin:\n'
+            '    androidPackage: com.example.EntryPoint\n');
+        expect(p.hasFlutterPlugin, isTrue);
+        expect(p.dependsOnFlutterSdk, isFalse);
       });
     });
   });

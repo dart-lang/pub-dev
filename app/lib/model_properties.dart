@@ -66,6 +66,16 @@ class Pubspec {
     return plugin != null && plugin is Map;
   }
 
+  /// Whether the package has a dependency on flutter and it refers to the SDK.
+  bool get dependsOnFlutterSdk {
+    _load();
+    final dependencies = _json['dependencies'];
+    if (dependencies == null || dependencies is! Map) return false;
+    final flutter = dependencies['flutter'];
+    if (flutter == null || flutter is! Map) return false;
+    return flutter['sdk'] == 'flutter';
+  }
+
   void _load() {
     if (_json == null) {
       if (jsonString != null) {
