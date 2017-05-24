@@ -22,32 +22,32 @@
     <ul class="nav nav-tabs">
       {{#readme}}
         <li class="active">
-          <a href="#-pkg-tab-readme" data-toggle="tab">{{readme_filename}}</a>
+          <a href="#pub-pkg-tab-readme" data-toggle="tab">{{readme_filename}}</a>
         </li>
       {{/readme}}
       {{#changelog}}
         <li class="{{^readme}}active{{/readme}}">
-          <a href="#-pkg-tab-changelog" data-toggle="tab">{{changelog_filename}}</a>
+          <a href="#pub-pkg-tab-changelog" data-toggle="tab">{{changelog_filename}}</a>
         </li>
       {{/changelog}}
       <li class="{{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}">
-        <a href="#-pkg-tab-installing" data-toggle="tab">Installing</a>
+        <a href="#pub-pkg-tab-installing" data-toggle="tab">Installing</a>
       </li>
-      <li><a href="#-pkg-tab-versions" data-toggle="tab">Versions</a></li>
+      <li><a href="#pub-pkg-tab-versions" data-toggle="tab">Versions</a></li>
     </ul>
 
     <div class="tab-content">
       {{#readme}}
-        <div class="tab-pane active" id="-pkg-tab-readme">
+        <div class="tab-pane active" id="pub-pkg-tab-readme">
           {{&readme}}
         </div>
       {{/readme}}
       {{#changelog}}
-      <div class="tab-pane {{^readme}}active{{/readme}}" id="-pkg-tab-changelog">
+      <div class="tab-pane {{^readme}}active{{/readme}}" id="pub-pkg-tab-changelog">
         {{&changelog}}
       </div>
       {{/changelog}}
-      <div class="tab-pane {{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}" id="-pkg-tab-installing">
+      <div class="tab-pane {{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}" id="pub-pkg-tab-installing">
         <h3>1. Depend on it</h3>
         <p>Add this to your package's pubspec.yaml file:</p>
 <pre>
@@ -70,7 +70,7 @@ $ <strong>{{package.install_command}}</strong>
         {{/package.selected_version.has_libraries}}
       </div>
 
-      <div class="tab-pane" id="-pkg-tab-versions">
+      <div class="tab-pane" id="pub-pkg-tab-versions">
         <table>
           <thead>
             <tr>

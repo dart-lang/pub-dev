@@ -12,6 +12,20 @@ $(function() {
     $('a[href="' + window.location.hash + '"][data-toggle="tab"]').tab('show');
   }
 
+  // Update location hash after a tab is selected.
+  $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+    var hash = e.target.href.split("#")[1];
+    // Setting window.location.hash causes the page to scroll/jump, need to update history instead.
+    if (window.history.replaceState) {
+      if (hash === 'pub-pkg-tab-readme') {
+        // special case: clearing hash
+        window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+      } else {
+        window.history.replaceState(null, document.title, '#' + hash);
+      }
+    }
+  });
+
   var reload = $(".admin .reload");
   if (reload.length != 0) {
     var reloadInterval = setInterval(function() {
