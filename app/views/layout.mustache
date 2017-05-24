@@ -98,7 +98,7 @@
             </ul>
             <form class="navbar-search pull-right" action="/search">
               <input type="search" name="q" class="search-query" id="query"
-                     autocomplete="on" placeholder="Search" autofocus>
+                     autocomplete="on" placeholder="Search" autofocus{{#search_query}} value="{{search_query}}"{{/search_query}}>
             </form>
           </div>
         </div>
