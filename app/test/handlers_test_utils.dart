@@ -165,6 +165,7 @@ class TemplateMock implements TemplateService {
     PackageVersion packageVersion,
     Map<String, String> pageMapAttributes,
     String faviconUrl,
+    String searchQuery,
   }) {
     return Response;
   }

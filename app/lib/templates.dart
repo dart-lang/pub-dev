@@ -306,6 +306,7 @@ class TemplateService {
     PackageVersion packageVersion,
     Map<String, String> pageMapAttributes,
     String faviconUrl,
+    String searchQuery,
   }) {
     final List<Map<String, String>> pageMapAttrList = [];
     pageMapAttributes?.forEach((String attr, String value) {
@@ -314,6 +315,8 @@ class TemplateService {
         'value': HTML_ESCAPE.convert(value),
       });
     });
+    final String escapedSearchQuery =
+        searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
     final values = {
       'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
       'package': packageVersion == null
@@ -324,11 +327,11 @@ class TemplateService {
                   HTML_ESCAPE.convert(packageVersion.ellipsizedDescription),
             },
       'title': HTML_ESCAPE.convert(title),
+      'search_query': escapedSearchQuery,
       // This is not escaped as it is already escaped by the caller.
       'content': contentString,
       'has_pagemap': pageMapAttrList.isNotEmpty,
       'pagemap_attributes': pageMapAttrList,
-
       // TODO: The python implementation used
       'message': false,
     };
@@ -371,7 +374,7 @@ class TemplateService {
       'hasResults': results.length > 0,
     };
     return _renderPage('search', values,
-        title: 'Search results for $queryText.');
+        title: 'Search results for $queryText.', searchQuery: queryText);
   }
 
   /// Renders the `views/site_map.mustache` template.
@@ -388,6 +391,7 @@ class TemplateService {
     PackageVersion packageVersion,
     Map<String, String> pageMapAttributes,
     String faviconUrl,
+    String searchQuery,
   }) {
     final renderedContent = _renderTemplate(template, values);
     return renderLayoutPage(
@@ -396,6 +400,7 @@ class TemplateService {
       packageVersion: packageVersion,
       pageMapAttributes: pageMapAttributes,
       faviconUrl: faviconUrl,
+      searchQuery: searchQuery,
     );
   }
 
