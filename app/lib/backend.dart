@@ -308,6 +308,8 @@ class GCloudPackageRepository extends PackageRepository {
 
         _logger.info('Upload successful.');
 
+        // TODO: trigger new analysis
+
         // Try to load all package versions, sort them by `sort_order` and
         // store them again.
         await _updatePackageSortIndex(package.key);
