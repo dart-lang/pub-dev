@@ -276,7 +276,8 @@ class TemplateService {
 
   /// Renders the `views/authorized.mustache` template.
   String renderAuthorizedPage() {
-    return _renderPage('authorized', {}, title: 'Pub Authorized Successfully');
+    return _renderPage('authorized', {},
+        title: 'Pub Authorized Successfully', includeSurvey: false);
   }
 
   /// Renders the `views/index.mustache` template.
@@ -284,9 +285,10 @@ class TemplateService {
     final values = {
       'status': status,
       'message': message,
-      'traceback': traceback,
+      'traceback': traceback
     };
-    return _renderPage('error', values, title: 'Error $status');
+    return _renderPage('error', values,
+        title: 'Error $status', includeSurvey: false);
   }
 
   /// Renders the `views/index.mustache` template.
@@ -308,14 +310,13 @@ class TemplateService {
   }
 
   /// Renders the `views/layout.mustache` template.
-  String renderLayoutPage(
-    String title,
-    String contentString, {
-    PackageVersion packageVersion,
-    Map<String, String> pageMapAttributes,
-    String faviconUrl,
-    String searchQuery,
-  }) {
+  String renderLayoutPage(String title, String contentString,
+      {PackageVersion packageVersion,
+      Map<String, String> pageMapAttributes,
+      String faviconUrl,
+      String searchQuery,
+      bool includeSurvey: true}) {
+    includeSurvey ??= true;
     final List<Map<String, String>> pageMapAttrList = [];
     pageMapAttributes?.forEach((String attr, String value) {
       pageMapAttrList.add({
@@ -342,6 +343,7 @@ class TemplateService {
       'pagemap_attributes': pageMapAttrList,
       // TODO: The python implementation used
       'message': false,
+      'include_survey': includeSurvey
     };
     return _renderTemplate('layout', values, escapeValues: false);
   }
@@ -392,24 +394,21 @@ class TemplateService {
 
   /// Renders a whole HTML page using the `views/layout.mustache` template and
   /// the provided [template] for the content.
-  String _renderPage(
-    String template,
-    values, {
-    String title: 'pub.dartlang.org',
-    PackageVersion packageVersion,
-    Map<String, String> pageMapAttributes,
-    String faviconUrl,
-    String searchQuery,
-  }) {
+  String _renderPage(String template, values,
+      {String title: 'pub.dartlang.org',
+      PackageVersion packageVersion,
+      Map<String, String> pageMapAttributes,
+      String faviconUrl,
+      String searchQuery,
+      bool includeSurvey: true}) {
+    includeSurvey ??= true;
     final renderedContent = _renderTemplate(template, values);
-    return renderLayoutPage(
-      title,
-      renderedContent,
-      packageVersion: packageVersion,
-      pageMapAttributes: pageMapAttributes,
-      faviconUrl: faviconUrl,
-      searchQuery: searchQuery,
-    );
+    return renderLayoutPage(title, renderedContent,
+        packageVersion: packageVersion,
+        pageMapAttributes: pageMapAttributes,
+        faviconUrl: faviconUrl,
+        searchQuery: searchQuery,
+        includeSurvey: includeSurvey);
   }
 
   /// Renders the icons and related text using the pkg/icons_block template.
