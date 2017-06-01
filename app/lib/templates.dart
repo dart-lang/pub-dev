@@ -12,8 +12,9 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:markdown/markdown.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
+import 'mock_scores.dart';
 import 'models.dart';
-import 'search_service.dart' show SearchQuery, SearchResultPage;
+import 'search_service.dart' show CseTokens, SearchQuery, SearchResultPage;
 
 final List<BlockSyntax> _blockSyntaxes =
     ExtensionSet.gitHub.blockSyntaxes.toList();
@@ -207,8 +208,15 @@ class TemplateService {
 
     final Map<String, String> pageMapAttributes = {};
     latestStableVersion.detectedTypes?.forEach((String type) {
-      pageMapAttributes['dt_$type'] = '1';
+      pageMapAttributes[CseTokens.detectedType(type)] = '1';
     });
+
+    if (mockScores.containsKey(package.name)) {
+      final int score = (mockScores[package.name] * 10000).round();
+      pageMapAttributes[CseTokens.experimentalScore] = score.toString();
+    } else {
+      pageMapAttributes[CseTokens.experimentalScore] = '0';
+    }
 
     final bool isFlutterPlugin = latestStableVersion.detectedTypes
             ?.contains(BuiltinTypes.flutterPlugin) ==

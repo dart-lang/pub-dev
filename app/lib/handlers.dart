@@ -118,12 +118,15 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   final queryText = request.url.queryParameters['q'];
   final int page = _pageFromUrl(request.url,
       maxPages: SEARCH_MAX_RESULTS ~/ PageLinks.RESULTS_PER_PAGE);
+  final SearchBias expBias =
+      parseExperimentalBias(request.url.queryParameters['experimental-bias']);
 
   final SearchQuery query = new SearchQuery(
     queryText,
     offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
     limit: PageLinks.RESULTS_PER_PAGE,
     type: request.url.queryParameters['type'],
+    bias: expBias,
   );
   if (!query.isValid) {
     return _htmlResponse(templateService.renderSearchPage(

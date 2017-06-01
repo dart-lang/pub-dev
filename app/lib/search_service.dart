@@ -28,6 +28,14 @@ SearchService get searchService => ss.lookup(#_search);
 /// Register a new [SearchService] in the current service scope.
 void registerSearchService(SearchService s) => ss.register(#_search, s);
 
+abstract class CseTokens {
+  static const String pageMapDocument = 'document';
+  static const String detectedTypePrefix = 'dt_';
+  static const String experimentalScore = 'exp_score';
+
+  static String detectedType(String type) => '$detectedTypePrefix$type';
+}
+
 /// Uses the datastore API in the current service scope to retrieve the private
 /// Key and creates a new SearchService.
 ///
@@ -63,7 +71,10 @@ class SearchService {
     final db = dbService;
 
     final search = await csearch.cse.list(query.buildCseQueryText(),
-        cx: _CUSTOM_SEARCH_ID, num: query.limit, start: 1 + query.offset);
+        cx: _CUSTOM_SEARCH_ID,
+        num: query.limit,
+        start: 1 + query.offset,
+        sort: query.buildCseSort());
     if (exists(search.items)) {
       final keys = search.items
           .map((item) {
@@ -98,6 +109,17 @@ class SearchService {
   }
 }
 
+// https://developers.google.com/custom-search/docs/structured_search#bias-by-attribute
+enum SearchBias { hard, strong, weak }
+
+SearchBias parseExperimentalBias(String value) {
+  if (value == null) return null;
+  if (value == 'hard') return SearchBias.hard;
+  if (value == 'strong') return SearchBias.strong;
+  if (value == 'weak') return SearchBias.weak;
+  return null;
+}
+
 class SearchQuery {
   /// The query string used for the search.
   final String text;
@@ -111,16 +133,47 @@ class SearchQuery {
   /// Filter the results for this type.
   final String type;
 
-  SearchQuery(this.text, {this.offset: 0, this.limit: 10, this.type});
+  /// Bias responses and use score to adjust response order.
+  final SearchBias bias;
+
+  SearchQuery(
+    this.text, {
+    this.offset: 0,
+    this.limit: 10,
+    this.type,
+    this.bias,
+  });
 
   /// Returns the query text to use in CSE.
   String buildCseQueryText() {
     String queryText = text;
     if (type != null && type.isNotEmpty) {
       // Corresponds with the <PageMap> entry in views/layout.mustache.
-      queryText += ' more:pagemap:document-dt_$type:1';
+      queryText +=
+          ' more:pagemap:${CseTokens.pageMapDocument}-${CseTokens.detectedType(type)}:1';
     }
     return queryText;
+  }
+
+  /// Returns the sort attribute to use in CSE.
+  /// https://developers.google.com/custom-search/docs/structured_search#bias-by-attribute
+  String buildCseSort() {
+    if (bias != null) {
+      String suffix;
+      switch (bias) {
+        case SearchBias.hard:
+          suffix = 'h';
+          break;
+        case SearchBias.strong:
+          suffix = 's';
+          break;
+        case SearchBias.weak:
+          suffix = 'w';
+          break;
+      }
+      return '${CseTokens.pageMapDocument}-${CseTokens.experimentalScore}:d:$suffix';
+    }
+    return null;
   }
 
   /// Whether the query object can be used for running a search using the custom
