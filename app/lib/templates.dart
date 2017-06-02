@@ -316,7 +316,6 @@ class TemplateService {
       String faviconUrl,
       String searchQuery,
       bool includeSurvey: true}) {
-    includeSurvey ??= true;
     final List<Map<String, String>> pageMapAttrList = [];
     pageMapAttributes?.forEach((String attr, String value) {
       pageMapAttrList.add({
@@ -401,7 +400,6 @@ class TemplateService {
       String faviconUrl,
       String searchQuery,
       bool includeSurvey: true}) {
-    includeSurvey ??= true;
     final renderedContent = _renderTemplate(template, values);
     return renderLayoutPage(title, renderedContent,
         packageVersion: packageVersion,
