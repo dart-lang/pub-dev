@@ -42,6 +42,18 @@ Future<String> readTarballFile(String path, String name) async {
   return result.stdout;
 }
 
+Future extractTarball(String file, String destinationDir) async {
+  final args = ['-xzf', file, '-C', destinationDir];
+  final result = await Process.run('tar', args);
+  if (result.exitCode != 0) {
+    _logger.warning('The "tar $args" command failed:\n'
+        'with exit code: ${result.exitCode}\n'
+        'stdout: ${result.stdout}\n'
+        'stderr: ${result.stderr}');
+    throw new Exception('Failed to extract tarball.');
+  }
+}
+
 String canonicalizeVersion(String version) {
   // NOTE: This is a hack because [semver.Version.parse] does not remove
   // leading zeros for integer fields.
