@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/search_service.dart'
-    show SearchQuery, SearchResultPage;
+    show SearchBias, SearchQuery, SearchResultPage;
 
 import 'utils.dart';
 
@@ -221,6 +221,15 @@ void main() {
       query = new SearchQuery('web framework', type: 'pkg_type');
       expect(query.buildCseQueryText(),
           'web framework more:pagemap:document-dt_pkg_type:1');
+    });
+
+    test('CSE sort parameter', () {
+      var query = new SearchQuery('query');
+      expect(query.buildCseSort(), isNull);
+      query = new SearchQuery('query', bias: SearchBias.weak);
+      expect(query.buildCseSort(), 'document-exp_score:d:w');
+      query = new SearchQuery('query', bias: SearchBias.strong);
+      expect(query.buildCseSort(), 'document-exp_score:d:s');
     });
 
     test('SearchLinks defaults', () {
