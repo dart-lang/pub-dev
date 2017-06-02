@@ -89,12 +89,12 @@ Future scoped(func()) {
   });
 }
 
-void scopedTest(String name, func()) {
+void scopedTest(String name, func(), {Timeout timeout}) {
   test(name, () {
     return fork(() async {
       return func();
     });
-  });
+  }, timeout: timeout);
 }
 
 final String TestPackageReadme = '''

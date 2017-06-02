@@ -680,7 +680,7 @@ void main() {
             expect(error, contains('Exceeded ${UploadSignerService
                         .MAX_UPLOAD_SIZE} upload size'));
           }));
-        });
+        }, timeout: new Timeout.factor(2));
 
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
@@ -845,7 +845,7 @@ void main() {
             expect(error, contains('Exceeded ${UploadSignerService
                         .MAX_UPLOAD_SIZE} upload size'));
           }));
-        });
+        }, timeout: new Timeout.factor(2));
 
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
