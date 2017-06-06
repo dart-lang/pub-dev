@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/models.dart';
-
-import 'tools_common.dart';
+import 'package:pub_dartlang_org/service_utils.dart';
 
 Future main(List<String> args) async {
   int updatedPackages = 0;

@@ -12,8 +12,8 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_dartlang_org/backend.dart';
 import 'package:pub_dartlang_org/models.dart';
 
-import 'configuration.dart';
-import 'tools_common.dart';
+import 'package:pub_dartlang_org/configuration.dart';
+import 'package:pub_dartlang_org/service_utils.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
