@@ -99,11 +99,6 @@ void main() {
       expectGoldenFile(html, 'search_page.html');
     });
 
-    test('sitemap page', () {
-      final String html = templates.renderSitemapPage();
-      expectGoldenFile(html, 'sitemap_page.html');
-    });
-
     test('authorized page', () {
       final String html = templates.renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');

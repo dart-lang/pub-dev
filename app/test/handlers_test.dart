@@ -173,10 +173,6 @@ void main() {
         expectHtmlResponse(await issueGet('/authorized'));
       });
 
-      tScopedTest('/site-map', () async {
-        expectHtmlResponse(await issueGet('/site-map'));
-      });
-
       tScopedTest('/search?q=foobar', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.text, 'foobar');

@@ -207,11 +207,6 @@ class TemplateMock implements TemplateService {
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     return Response;
   }
-
-  @override
-  String renderSitemapPage() {
-    return Response;
-  }
 }
 
 class SearchServiceMock implements SearchService {

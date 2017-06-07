@@ -386,11 +386,6 @@ class TemplateService {
         title: 'Search results for $queryText.', searchQuery: queryText);
   }
 
-  /// Renders the `views/site_map.mustache` template.
-  String renderSitemapPage() {
-    return _renderPage('site_map', {}, title: 'Site Map');
-  }
-
   /// Renders a whole HTML page using the `views/layout.mustache` template and
   /// the provided [template] for the content.
   String _renderPage(String template, values,
