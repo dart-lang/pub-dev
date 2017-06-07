@@ -15,13 +15,12 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/backend.dart';
+import 'package:pub_dartlang_org/configuration.dart';
 import 'package:pub_dartlang_org/handlers.dart';
 import 'package:pub_dartlang_org/package_memcache.dart';
+import 'package:pub_dartlang_org/service_utils.dart';
 import 'package:pub_dartlang_org/templates.dart';
 import 'package:pub_dartlang_org/upload_signer_service.dart';
-
-import 'configuration.dart';
-import 'server_common.dart';
 
 void main() {
   useLoggingPackageAdaptor();

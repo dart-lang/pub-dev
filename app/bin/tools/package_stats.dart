@@ -4,7 +4,7 @@
 
 /// Reads the latest stable version of packages and creates a JSON report.
 /// Example use:
-///   dart bin/tools_package_stats.dart --output report.json
+///   dart bin/tools/package_stats.dart --output report.json
 
 import 'dart:async';
 import 'dart:convert';
@@ -15,8 +15,7 @@ import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/models.dart';
 import 'package:pub_dartlang_org/model_properties.dart';
-
-import 'tools_common.dart';
+import 'package:pub_dartlang_org/service_utils.dart';
 
 Future main(List<String> args) async {
   final ArgParser parser = new ArgParser()

@@ -7,6 +7,7 @@ library pub_dartlang_org.server_common;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
@@ -17,12 +18,12 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dartlang_org/backend.dart';
-import 'package:pub_dartlang_org/oauth2_service.dart';
-import 'package:pub_dartlang_org/package_memcache.dart';
-import 'package:pub_dartlang_org/search_service.dart';
-
+import 'backend.dart';
 import 'configuration.dart';
+import 'oauth2_service.dart';
+import 'package_memcache.dart';
+import 'search_service.dart';
+import 'upload_signer_service.dart';
 
 final TemplateLocation = Platform.script.resolve('../views').toFilePath();
 
@@ -89,6 +90,20 @@ Future<String> obtainServiceAccountEmail() async {
       'v1/instance/service-accounts/default/email',
       headers: const {'Metadata-Flavor': 'Google'});
   return response.body.trim();
+}
+
+Future withProdServices(Future fun()) {
+  return withAppEngineServices(() {
+    if (!envConfig.hasGcloudKey) {
+      throw 'Missing GCLOUD_* environments for package:appengine';
+    }
+    return withCorrectDatastore(() {
+      registerUploadSigner(
+          new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
+      initBackend();
+      return fun();
+    });
+  });
 }
 
 /// Wrapper function used to work around issue with running gRPC Datastore on
