@@ -5,6 +5,7 @@
 library pub_dartlang_org.utils;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -36,7 +37,11 @@ Future<List<String>> listTarball(String path) async {
 }
 
 Future<String> readTarballFile(String path, String name) async {
-  final result = await Process.run('tar', ['-O', '-xzf', path, name]);
+  final result = await Process.run(
+    'tar',
+    ['-O', '-xzf', path, name],
+    stdoutEncoding: new Utf8Codec(allowMalformed: true),
+  );
   if (result.exitCode != 0) throw 'Failed to read tarball contents.';
 
   return result.stdout;
