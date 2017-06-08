@@ -40,7 +40,6 @@ Future<shelf.Response> appHandler(
     '/': indexHandler,
     '/feed.atom': atomFeedHandler,
     '/authorized': authorizedHandler,
-    '/site-map': sitemapHandler,
     '/search': searchHandler,
     '/packages': packagesHandler,
     '/packages.json': packagesHandler,
@@ -108,10 +107,6 @@ shelf.Response docHandler(shelf.Request request) {
   }
   return _redirectResponse(pubDocUrl);
 }
-
-/// Handles requests for /site-map
-shelf.Response sitemapHandler(_) =>
-    _htmlResponse(templateService.renderSitemapPage());
 
 /// Handles requests for /search
 Future<shelf.Response> searchHandler(shelf.Request request) async {
