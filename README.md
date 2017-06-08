@@ -34,7 +34,7 @@ key variant.
 
 #### Variant a) Running locally without Docker
 
-To run the application locally follow these steps:
+To run the `frontend` application locally follow these steps:
 ```
 pub-dartlang-dart $ cd app
 pub-dartlang-dart/app $ pub get
@@ -44,6 +44,12 @@ pub-dartlang-dart/app $ dart bin/server.dart
 ```
 
 The server will be available via at [localhost:8080](http://localhost:8080)
+
+To run the `analyzer` service locally:
+
+```
+pub-dartlang-dart/app $ GAE_SERVICE="analyzer" dart bin/server.dart
+```
 
 #### Variant b) Running locally With Docker
 
@@ -97,6 +103,12 @@ You can stream logs from the command line by running:
 
 To view your application in the web browser run:
   $ gcloud app browse
+```
+
+Similarly, to deploy a new version of the `analyzer` service:
+
+```
+pub-dartlang-dart $ gcloud app deploy --no-promote analyzer.yaml
 ```
 
 This will do a remote docker build in the cloud, push the generated docker image layers to a

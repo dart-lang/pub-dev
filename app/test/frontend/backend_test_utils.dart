@@ -11,8 +11,8 @@ import 'package:gcloud/db.dart' as gdb;
 import 'package:gcloud/storage.dart';
 import 'package:pub_server/repository.dart' show AsyncUploadInfo;
 
-import 'package:pub_dartlang_org/backend.dart';
-import 'package:pub_dartlang_org/upload_signer_service.dart';
+import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
 import 'utils.dart';
 

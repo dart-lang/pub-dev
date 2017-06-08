@@ -18,10 +18,11 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../shared/configuration.dart';
+import '../shared/package_memcache.dart';
+
 import 'backend.dart';
-import 'configuration.dart';
 import 'oauth2_service.dart';
-import 'package_memcache.dart';
 import 'search_service.dart';
 import 'upload_signer_service.dart';
 

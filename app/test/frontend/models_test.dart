@@ -4,8 +4,8 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/models.dart';
-import 'package:pub_dartlang_org/model_properties.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/model_properties.dart';
 
 import 'utils.dart';
 

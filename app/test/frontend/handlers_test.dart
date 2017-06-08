@@ -9,11 +9,11 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_dartlang_org/backend.dart';
-import 'package:pub_dartlang_org/handlers_redirects.dart';
-import 'package:pub_dartlang_org/models.dart';
-import 'package:pub_dartlang_org/search_service.dart';
-import 'package:pub_dartlang_org/templates.dart';
+import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/frontend/handlers_redirects.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/search_service.dart';
+import 'package:pub_dartlang_org/frontend/templates.dart';
 
 import 'handlers_test_utils.dart';
 import 'utils.dart';
