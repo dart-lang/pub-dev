@@ -4,8 +4,16 @@ FROM google/dart-runtime-base:1.23.0
 # docker image diff small.
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y memcached && \
+    apt-get install -y git memcached unzip && \
     rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/flutter/bin:${PATH}"
+# To ensure actions from this container are not seen as "typical" users.
+ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
+
+RUN git clone -b alpha https://github.com/flutter/flutter.git
+# Downloads the Dart SDK and disables analytics tracking – which we always want
+RUN flutter config --no-analytics
 
 WORKDIR /project/app
 
