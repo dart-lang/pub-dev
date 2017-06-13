@@ -4,8 +4,11 @@ FROM google/dart-runtime-base:1.24.0
 # docker image diff small.
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y memcached && \
+    apt-get install -y git memcached unzip && \
     rm -rf /var/lib/apt/lists/*
+
+# Let the pub server know that this is not a "typical" pub client but rather a bot.
+ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 
 WORKDIR /project/app
 
