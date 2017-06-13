@@ -1,0 +1,22 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+runtime: custom
+env: flex
+service: analyzer
+
+resources:
+  cpu: 1
+  memory_gb: 4
+
+manual_scaling:
+  instances: 1
+
+#automatic_scaling:
+#  min_num_instances: 1
+#  max_num_instances: 4
+
+skip_files:
+- ^.*/packages.*$
+- ^\.git/.*$

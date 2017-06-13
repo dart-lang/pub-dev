@@ -10,11 +10,11 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/backend.dart';
-import 'package:pub_dartlang_org/handlers.dart';
-import 'package:pub_dartlang_org/models.dart';
-import 'package:pub_dartlang_org/search_service.dart';
-import 'package:pub_dartlang_org/templates.dart';
+import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/search_service.dart';
+import 'package:pub_dartlang_org/frontend/templates.dart';
 
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://pub.dartlang.org$path';

@@ -10,8 +10,8 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/model_properties.dart';
-import 'package:pub_dartlang_org/models.dart';
+import 'package:pub_dartlang_org/frontend/model_properties.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
 
 class TestDelayCompletion {
   final int count;

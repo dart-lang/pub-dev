@@ -6,9 +6,9 @@ import 'dart:async';
 
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/backend.dart' show detectTypes;
-import 'package:pub_dartlang_org/models.dart';
-import 'package:pub_dartlang_org/service_utils.dart';
+import 'package:pub_dartlang_org/frontend/backend.dart' show detectTypes;
+import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
   int updatedCount = 0;

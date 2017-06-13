@@ -14,7 +14,7 @@ import 'package:appengine/src/grpc_api_impl/datastore_impl.dart'
     as grpc_datastore_impl;
 import 'package:appengine/src/grpc_api_impl/grpc.dart' as grpc;
 
-import 'package:pub_dartlang_org/models.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
 
 Future main(List<String> args) async {
   if (args.length != 4) {

@@ -7,8 +7,8 @@ import 'dart:io';
 import 'package:html/parser.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/templates.dart';
-import 'package:pub_dartlang_org/search_service.dart'
+import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/frontend/search_service.dart'
     show SearchBias, SearchQuery, SearchResultPage;
 
 import 'utils.dart';
@@ -26,7 +26,7 @@ void main() {
       } else {
         htmlParser.parse();
       }
-      final golden = new File('test/golden/$fileName').readAsStringSync();
+      final golden = new File('test/frontend/golden/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
     }
 

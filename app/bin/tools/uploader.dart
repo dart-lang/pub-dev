@@ -7,9 +7,8 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/models.dart';
-
-import 'package:pub_dartlang_org/service_utils.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||

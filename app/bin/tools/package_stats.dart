@@ -13,9 +13,9 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/models.dart';
-import 'package:pub_dartlang_org/model_properties.dart';
-import 'package:pub_dartlang_org/service_utils.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/model_properties.dart';
+import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
   final ArgParser parser = new ArgParser()
