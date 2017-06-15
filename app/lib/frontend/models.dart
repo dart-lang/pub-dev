@@ -10,6 +10,8 @@ import 'package:gcloud/db.dart' as db;
 import 'package:intl/intl.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../shared/model_properties.dart';
+
 import 'model_properties.dart';
 
 export 'model_properties.dart' show FileObject;
