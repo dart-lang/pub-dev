@@ -658,11 +658,15 @@ Future<models.PackageVersion> parseAndValidateUpload(
 /// Automatically detects the built-in types.
 /// The returned list should be alphabetically sorted.
 List<String> detectTypes(Pubspec pubspec) {
-  final List<String> detectedTypes = [];
+  final Set<String> detectedTypes = new Set();
   if (pubspec.hasFlutterPlugin) {
+    detectedTypes.add(models.BuiltinTypes.flutterPackage);
     detectedTypes.add(models.BuiltinTypes.flutterPlugin);
   }
-  return detectedTypes;
+  if (pubspec.dependsOnFlutterSdk) {
+    detectedTypes.add(models.BuiltinTypes.flutterPackage);
+  }
+  return detectedTypes.toList()..sort();
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing

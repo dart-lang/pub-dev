@@ -41,9 +41,10 @@ Future<shelf.Response> appHandler(
     '/search': searchHandler,
     '/packages': packagesHandler,
     '/packages.json': packagesHandler,
-    '/flutter': flutterHandler,
-    '/flutter/': flutterHandler,
-    '/flutter/plugins': flutterPluginsHandler,
+    '/flutter': redirectToFlutterPackages,
+    '/flutter/': redirectToFlutterPackages,
+    '/flutter/packages': flutterPackagesHandler,
+    '/flutter/plugins': redirectToFlutterPackages,
   }[path];
 
   if (handler != null) {
@@ -199,7 +200,7 @@ Future<shelf.Response> packagesHandlerJson(
   return jsonResponse(json);
 }
 
-/// Handles requests for `/packages` (default behavior) or `/flutter/plugins`
+/// Handles requests for `/packages` (default behavior) or `/flutter/packages`
 /// (when [basePath] is specified) - HTML
 Future<shelf.Response> packagesHandlerHtml(
   shelf.Request request,
@@ -465,21 +466,21 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   return jsonResponse(json);
 }
 
-/// Handles requests for /flutter (redirects to /flutter/plugins).
-shelf.Response flutterHandler(shelf.Request request) =>
-    redirectResponse('/flutter/plugins');
+/// Handles requests for /flutter (redirects to /flutter/packages).
+shelf.Response redirectToFlutterPackages(shelf.Request request) =>
+    redirectResponse('/flutter/packages');
 
-/// Handles requests for /flutter/plugins
-Future<shelf.Response> flutterPluginsHandler(shelf.Request request) async {
+/// Handles requests for /flutter/packages
+Future<shelf.Response> flutterPackagesHandler(shelf.Request request) async {
   final int page = _pageFromUrl(request.url);
   return packagesHandlerHtml(
     request,
     page,
-    basePath: '/flutter/plugins',
-    detectedType: BuiltinTypes.flutterPlugin,
-    title: 'Flutter Plugins',
+    basePath: '/flutter/packages',
+    detectedType: BuiltinTypes.flutterPackage,
+    title: 'Flutter Packages',
     faviconUrl: LogoUrls.flutterLogo32x32,
-    descriptionHtml: flutterPluginsDescriptionHtml,
+    descriptionHtml: flutterPackagesDescriptionHtml,
   );
 }
 

@@ -125,16 +125,19 @@ void main() {
       });
 
       tScopedTest('/flutter', () async {
-        expectRedirectResponse(await issueGet('/flutter'), '/flutter/plugins');
-        expectRedirectResponse(await issueGet('/flutter/'), '/flutter/plugins');
+        expectRedirectResponse(await issueGet('/flutter'), '/flutter/packages');
+        expectRedirectResponse(
+            await issueGet('/flutter/'), '/flutter/packages');
+        expectRedirectResponse(
+            await issueGet('/flutter/plugins'), '/flutter/packages');
       });
 
-      tScopedTest('/flutter/plugins', () async {
+      tScopedTest('/flutter/packages', () async {
         final backend =
             new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, 0);
           expect(limit, greaterThan(PageSize));
-          expect(detectedType, BuiltinTypes.flutterPlugin);
+          expect(detectedType, BuiltinTypes.flutterPackage);
           return [testPackage];
         }, lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
@@ -142,15 +145,15 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/flutter/plugins'));
+        expectHtmlResponse(await issueGet('/flutter/packages'));
       });
 
-      tScopedTest('/flutter/plugins&page=2', () async {
+      tScopedTest('/flutter/packages&page=2', () async {
         final backend =
             new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, PageSize);
           expect(limit, greaterThan(PageSize));
-          expect(detectedType, BuiltinTypes.flutterPlugin);
+          expect(detectedType, BuiltinTypes.flutterPackage);
           return [testPackage];
         }, lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
@@ -158,7 +161,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/flutter/plugins?page=2'));
+        expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
       });
 
       tScopedTest('/doc', () async {

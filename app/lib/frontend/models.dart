@@ -295,10 +295,14 @@ class BuiltinTypes {
   /// Package is related to angular.
   static final String angular = 'angular';
 
-  /// Package is related to flutter and it is a plugin.
+  /// Package is related to Flutter: is a plugin, or depends on the Flutter SDK.
+  static final String flutterPackage = 'flutter_package';
+
+  /// Package is related to Flutter and it is a plugin.
   static final String flutterPlugin = 'flutter_plugin';
 
   static final Set<String> _used = new Set.from([
+    BuiltinTypes.flutterPackage,
     BuiltinTypes.flutterPlugin,
   ]);
 

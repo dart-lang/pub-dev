@@ -74,17 +74,17 @@ void main() {
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
 
-    test('flutter plugins - index page #2', () {
+    test('flutter packages - index page #2', () {
       final String html = templates.renderPkgIndexPage(
         [testPackage],
         [flutterPackageVersion],
         new PackageLinks(
             PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
-        title: 'Flutter Plugins',
+        title: 'Flutter Packages',
         faviconUrl: LogoUrls.flutterLogo32x32,
-        descriptionHtml: flutterPluginsDescriptionHtml,
+        descriptionHtml: flutterPackagesDescriptionHtml,
       );
-      expectGoldenFile(html, 'flutter_plugins_index_page2.html');
+      expectGoldenFile(html, 'flutter_packages_index_page2.html');
     });
 
     test('search page', () {
