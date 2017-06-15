@@ -12,7 +12,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:markdown/markdown.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
-import 'mock_scores.dart';
+import '../shared/mock_scores.dart';
+
 import 'models.dart';
 import 'search_service.dart' show CseTokens, SearchQuery, SearchResultPage;
 

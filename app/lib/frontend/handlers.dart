@@ -5,14 +5,14 @@
 library pub_dartlang_org.handlers;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
+
+import '../shared/handlers.dart';
 
 import 'atom_feed.dart';
 import 'backend.dart';
@@ -23,8 +23,6 @@ import 'templates.dart';
 
 final String StaticsLocation =
     Platform.script.resolve('../../static').toFilePath();
-
-final _pubHeaderLogger = new Logger('pub.header_logger');
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///
@@ -64,7 +62,7 @@ Future<shelf.Response> appHandler(
   } else if (path.startsWith('/static')) {
     return staticsHandler(request);
   } else {
-    return _notFoundHandler(request);
+    return _formattedNotFoundHandler(request);
   }
 }
 
@@ -77,7 +75,7 @@ Future<shelf.Response> indexHandler(_) async {
     pageContent = templateService.renderIndexPage(versions);
     await backend.uiPackageCache?.setUIIndexPage(pageContent);
   }
-  return _htmlResponse(pageContent);
+  return htmlResponse(pageContent);
 }
 
 /// Handles requests for /feed.atom
@@ -91,21 +89,21 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
   final versions = await backend.latestPackageVersions(
       offset: PageSize * (page - 1), limit: PageSize);
   final feed = feedFromPackageVersions(request.requestedUri, versions);
-  return _atomXmlResponse(feed.toXmlDocument());
+  return atomXmlResponse(feed.toXmlDocument());
 }
 
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) =>
-    _htmlResponse(templateService.renderAuthorizedPage());
+    htmlResponse(templateService.renderAuthorizedPage());
 
 /// Handles requests for /doc
 shelf.Response docHandler(shelf.Request request) {
   final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
   final dartlangDotOrgPath = REDIRECT_PATHS[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
-    return _redirectResponse('$pubDocUrl$dartlangDotOrgPath');
+    return redirectResponse('$pubDocUrl$dartlangDotOrgPath');
   }
-  return _redirectResponse(pubDocUrl);
+  return redirectResponse(pubDocUrl);
 }
 
 /// Handles requests for /search
@@ -124,13 +122,13 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     bias: expBias,
   );
   if (!query.isValid) {
-    return _htmlResponse(templateService.renderSearchPage(
+    return htmlResponse(templateService.renderSearchPage(
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }
 
   final resultPage = await searchService.search(query);
   final links = new SearchLinks(query, resultPage.totalCount);
-  return _htmlResponse(templateService.renderSearchPage(resultPage, links));
+  return htmlResponse(templateService.renderSearchPage(resultPage, links));
 }
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
@@ -162,7 +160,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
           headers: {'content-type': staticFile.contentType});
     }
   }
-  return _notFoundHandler(request);
+  return _formattedNotFoundHandler(request);
 }
 
 /// Handles requests for /packages - JSON
@@ -198,7 +196,7 @@ Future<shelf.Response> packagesHandlerJson(
     //   - 'pages'
   };
 
-  return _jsonResponse(json);
+  return jsonResponse(json);
 }
 
 /// Handles requests for `/packages` (default behavior) or `/flutter/plugins`
@@ -221,7 +219,7 @@ Future<shelf.Response> packagesHandlerHtml(
       new PackageLinks(offset, offset + packages.length, basePath: basePath);
   final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
   final versions = await backend.lookupLatestVersions(pagePackages);
-  return _htmlResponse(templateService.renderPkgIndexPage(
+  return htmlResponse(templateService.renderPkgIndexPage(
     pagePackages,
     versions,
     links,
@@ -239,7 +237,7 @@ Future<shelf.Response> packagesHandlerHtml(
 FutureOr<shelf.Response> packageHandler(shelf.Request request) {
   var path = request.requestedUri.path.substring('/packages/'.length);
   if (path.length == 0) {
-    return _notFoundHandler(request);
+    return _formattedNotFoundHandler(request);
   }
 
   final int slash = path.indexOf('/');
@@ -273,14 +271,14 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
       return packageVersionsHandler(request, package);
     }
   }
-  return _notFoundHandler(request);
+  return _formattedNotFoundHandler(request);
 }
 
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
   final Package package = await backend.lookupPackage(packageName);
-  if (package == null) return _notFoundHandler(request);
+  if (package == null) return _formattedNotFoundHandler(request);
 
   final versions = await backend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
@@ -291,7 +289,7 @@ Future<shelf.Response> packageShowHandlerJson(
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
-  return _jsonResponse(json);
+  return jsonResponse(json);
 }
 
 /// Handles requests for /packages/<package> - HTML
@@ -304,7 +302,7 @@ Future<shelf.Response> packageShowHandlerHtml(
 Future<shelf.Response> packageVersionsHandler(
     shelf.Request request, String packageName) async {
   final versions = await backend.versionsOfPackage(packageName);
-  if (versions.isEmpty) return _notFoundHandler(request);
+  if (versions.isEmpty) return _formattedNotFoundHandler(request);
 
   sortPackageVersionsDesc(versions);
 
@@ -313,7 +311,7 @@ Future<shelf.Response> packageVersionsHandler(
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
-  return _htmlResponse(templateService.renderPkgVersionsPage(
+  return htmlResponse(templateService.renderPkgVersionsPage(
       packageName, versions, versionDownloadUrls));
 }
 
@@ -328,7 +326,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
   if (cachedPage == null) {
     final Package package = await backend.lookupPackage(packageName);
-    if (package == null) return _notFoundHandler(request);
+    if (package == null) return _formattedNotFoundHandler(request);
 
     final versions = await backend.versionsOfPackage(packageName);
 
@@ -346,7 +344,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
       }
       // TODO: cache error?
       if (selectedVersion == null) {
-        return _notFoundHandler(request);
+        return _formattedNotFoundHandler(request);
       }
     } else {
       if (selectedVersion == null) {
@@ -373,7 +371,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     }
   }
 
-  return _htmlResponse(cachedPage);
+  return htmlResponse(cachedPage);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
@@ -381,9 +379,9 @@ Future<shelf.Response> packageVersionHandlerYaml(
     request, String package, String version) async {
   final packageVersion = await backend.lookupPackageVersion(package, version);
   if (packageVersion == null) {
-    return _notFoundHandler(request);
+    return _formattedNotFoundHandler(request);
   } else {
-    return _yamlResponse(packageVersion.pubspec.jsonString);
+    return yamlResponse(packageVersion.pubspec.jsonString);
   }
 }
 
@@ -464,12 +462,12 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
   }
 
-  return _jsonResponse(json);
+  return jsonResponse(json);
 }
 
 /// Handles requests for /flutter (redirects to /flutter/plugins).
 shelf.Response flutterHandler(shelf.Request request) =>
-    _redirectResponse('/flutter/plugins');
+    redirectResponse('/flutter/plugins');
 
 /// Handles requests for /flutter/plugins
 Future<shelf.Response> flutterPluginsHandler(shelf.Request request) async {
@@ -485,38 +483,12 @@ Future<shelf.Response> flutterPluginsHandler(shelf.Request request) async {
   );
 }
 
-shelf.Response _notFoundHandler(request) {
-  final status = '404 Not Found';
+shelf.Response _formattedNotFoundHandler(request) {
   final message = 'The path \'${request.requestedUri.path}\' was not found.';
-  return _htmlResponse(templateService.renderErrorPage(status, message, null),
-      status: 404);
-}
-
-shelf.Response _htmlResponse(String content, {int status: 200}) {
-  return new shelf.Response(status,
-      body: content, headers: {'content-type': 'text/html; charset="utf-8"'});
-}
-
-shelf.Response _jsonResponse(Map json, {int status: 200}) {
-  return new shelf.Response(status,
-      body: JSON.encode(json),
-      headers: {'content-type': 'application/json; charset="utf-8"'});
-}
-
-shelf.Response _yamlResponse(String yamlString, {int status: 200}) {
-  return new shelf.Response(status,
-      body: yamlString,
-      headers: {'content-type': 'text/yaml; charset="utf-8"'});
-}
-
-shelf.Response _atomXmlResponse(String content, {int status: 200}) {
-  return new shelf.Response(status,
-      body: content,
-      headers: {'content-type': 'application/atom+xml; charset="utf-8"'});
-}
-
-shelf.Response _redirectResponse(url) {
-  return new shelf.Response.seeOther(url);
+  return htmlResponse(
+    templateService.renderErrorPage(default404NotFound, message, null),
+    status: 404,
+  );
 }
 
 /// Extracts the 'page' query parameter from [url].
@@ -534,15 +506,6 @@ int _pageFromUrl(Uri url, {int maxPages}) {
 
   if (maxPages != null && pageAsInt > maxPages) pageAsInt = maxPages;
   return pageAsInt;
-}
-
-void logPubHeaders(shelf.Request request) {
-  request.headers.forEach((String key, String value) {
-    final lowerCaseKey = key.toLowerCase();
-    if (lowerCaseKey.startsWith('x-pub')) {
-      _pubHeaderLogger.info('$key: $value');
-    }
-  });
 }
 
 class StaticsCache {

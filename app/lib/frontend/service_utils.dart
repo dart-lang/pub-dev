@@ -8,18 +8,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/src/datastore_impl.dart';
 import 'package:gcloud/storage.dart';
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/configuration.dart';
 import '../shared/package_memcache.dart';
+import '../shared/service_utils.dart';
 
 import 'backend.dart';
 import 'oauth2_service.dart';
@@ -96,49 +94,4 @@ Future withProdServices(Future fun()) {
       return fun();
     });
   });
-}
-
-/// Wrapper function used to work around issue with running gRPC Datastore on
-/// MacOS.
-///
-/// On
-///    * Linux this function simply returns `fun()`
-///
-///    * MacOS this function makes a new service scope, optionally builds an
-///      apiary Datastore and registers an apiary Datastore in the new service
-///      scope
-///
-Future withCorrectDatastore(Future fun()) {
-  if (Platform.isMacOS) {
-    return fork(() async {
-      DatastoreDB apiaryDatastore = lookup(_apiaryDatastoreSymbol);
-      if (apiaryDatastore == null) {
-        apiaryDatastore = await _initializeApiaryDatastore();
-        register(_apiaryDatastoreSymbol, apiaryDatastore);
-      }
-      registerDbService(apiaryDatastore);
-      return fun();
-    });
-  } else {
-    assert(dbService != null);
-    return fun();
-  }
-}
-
-Symbol _apiaryDatastoreSymbol = #_apiaryDatastoreSymbol;
-
-Future<DatastoreDB> _initializeApiaryDatastore() async {
-  final projectId = envConfig.gcloudProject;
-  final gcloudKeyVar = envConfig.gcloudKey;
-  final serviceAccount = new auth.ServiceAccountCredentials.fromJson(
-      new File(gcloudKeyVar).readAsStringSync());
-
-  final authClient =
-      await auth.clientViaServiceAccount(serviceAccount, DatastoreImpl.SCOPES);
-  registerScopeExitCallback(authClient.close);
-
-  final datastore = new DatastoreImpl(authClient, projectId);
-  registerDatastoreService(datastore);
-
-  return new DatastoreDB(datastore);
 }
