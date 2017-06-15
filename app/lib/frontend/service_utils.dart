@@ -76,15 +76,6 @@ Future registerLoggedInUserIfPossible(shelf.Request request) async {
   }
 }
 
-bool isInt(String s) {
-  try {
-    int.parse(s);
-    return true;
-  } on FormatException catch (_, __) {
-    return false;
-  }
-}
-
 Future<String> obtainServiceAccountEmail() async {
   final http.Response response = await http.get(
       'http://metadata/computeMetadata/'
