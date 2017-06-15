@@ -426,14 +426,13 @@ class TemplateService {
   List _mapIconsData(PackageVersion version) {
     final List icons = [];
     if (version.detectedTypes != null) {
-      for (String type in version.detectedTypes) {
-        if (type == BuiltinTypes.flutterPlugin) {
-          icons.add({
-            'src': LogoUrls.flutterLogo32x32,
-            'label': 'Flutter plugin',
-            'href': '/flutter/plugins',
-          });
-        }
+      if (version.detectedTypes.contains(BuiltinTypes.flutterPackage) ||
+          version.detectedTypes.contains(BuiltinTypes.flutterPlugin)) {
+        icons.add({
+          'src': LogoUrls.flutterLogo32x32,
+          'label': 'Flutter package',
+          'href': '/flutter/packages',
+        });
       }
     }
     return icons;
@@ -579,6 +578,7 @@ abstract class LogoUrls {
   static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
 }
 
-const String flutterPluginsDescriptionHtml =
-    '<p><a href="https://flutter.io/platform-plugins/">'
-    'Learn more about Flutter plugins.</a></p>';
+// Pointing to the Flutter main page until Flutter creates documentation about
+// their pub use. See https://github.com/flutter/flutter/issues/10070
+const String flutterPackagesDescriptionHtml =
+    '<p><a href="https://flutter.io/">Learn more about Flutter.</a></p>';
