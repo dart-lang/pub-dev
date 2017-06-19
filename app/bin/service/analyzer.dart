@@ -7,8 +7,12 @@ import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
+import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/service_utils.dart';
+
+import 'package:pub_dartlang_org/analyzer/handlers.dart';
 
 final Logger logger = new Logger('pub.analyzer');
 
@@ -19,11 +23,9 @@ Future main() async {
     _initFlutterSdk().then((_) {
       // TODO: flutter SDK initialized, start analyzer background task
     });
-    await runAppEngine((HttpRequest ioRequest) async {
-      // TODO: implement API handlers
-      final HttpResponse response = ioRequest.response;
-      response.statusCode = 200;
-      await response.close();
+    return withCorrectDatastore(() async {
+      await runAppEngine((HttpRequest request) =>
+          shelf_io.handleRequest(request, analyzerServiceHandler));
     });
   });
 }
