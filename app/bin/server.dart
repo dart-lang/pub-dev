@@ -6,6 +6,7 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 
 import 'service/analyzer.dart' as analyzer;
 import 'service/frontend.dart' as frontend;
+import 'service/search.dart' as search;
 
 void main() {
   switch (envConfig.gaeService) {
@@ -14,6 +15,9 @@ void main() {
       break;
     case 'default':
       frontend.main();
+      break;
+    case 'search':
+      search.main();
       break;
     default:
       throw new StateError(

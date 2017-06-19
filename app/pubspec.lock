@@ -43,6 +43,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  browser:
+    description:
+      name: browser
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.0+2"
   charcode:
     description:
       name: charcode
@@ -79,6 +85,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.14.0"
+  ducene:
+    description:
+      name: ducene
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0"
+  firebase:
+    description:
+      name: firebase
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.0"
   fixnum:
     description:
       name: fixnum
@@ -91,6 +109,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.0-alpha.4"
+  func:
+    description:
+      name: func
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   gcloud:
     description:
       name: gcloud
@@ -169,6 +193,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  js:
+    description:
+      name: js
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.6.1"
   kernel:
     description:
       name: kernel
@@ -265,6 +295,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1+3"
+  sembast:
+    description:
+      name: sembast
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.3.7"
   shelf:
     description:
       name: shelf
@@ -325,6 +361,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  synchronized:
+    description:
+      name: synchronized
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   term_glyph:
     description:
       name: term_glyph

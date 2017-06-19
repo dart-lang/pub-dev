@@ -5,16 +5,23 @@
 library pub_dartlang_org.search_service;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' show min;
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/customsearch/v1.dart' as customsearch;
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
+
+import '../shared/configuration.dart';
+import '../shared/search_service.dart' as search_service;
 
 import 'keys.dart';
 import 'models.dart';
+
+Logger _logger = new Logger('pub.frontend.search');
 
 /// The Custom Search ID used for making calls to the Custom Search API.
 const String _CUSTOM_SEARCH_ID = "009011925481577436976:h931xn2j7o0";
@@ -45,7 +52,8 @@ Future<SearchService> searchServiceViaApiKeyFromDb() async {
   final String keyString = await customSearchKeyFromDB();
   final httpClient = auth.clientViaApiKey(keyString);
   final csearch = new customsearch.CustomsearchApi(httpClient);
-  return new SearchService(httpClient, csearch);
+  final searchServiceClient = new http.Client();
+  return new SearchService(httpClient, csearch, searchServiceClient);
 }
 
 /// A wrapper around the Custom Search API, used for searching for pub packages.
@@ -62,11 +70,72 @@ class SearchService {
   /// The Custom Search client API stub.
   final customsearch.CustomsearchApi csearch;
 
-  SearchService(this.httpClient, this.csearch);
+  /// The HTTP client used for making calls to our search service.
+  final http.Client searchServiceClient;
+
+  SearchService(this.httpClient, this.csearch, this.searchServiceClient);
 
   /// Search for packes using [queryText], starting at offset [offset] returning
   /// max [numResults].
-  Future<SearchResultPage> search(SearchQuery query) async {
+  Future<SearchResultPage> search(SearchQuery query, bool useService) async {
+    if (useService) {
+      try {
+        final SearchResultPage page = await _searchService(query);
+        if (page != null) return page;
+        _logger.warning('Search service was not ready.');
+      } catch (e, st) {
+        _logger.severe('Unable to call search service.', e, st);
+      }
+    }
+    return _searchCSE(query);
+  }
+
+  Future<SearchResultPage> _searchService(SearchQuery query) async {
+    final search_service.PackageQuery packageQuery =
+        new search_service.PackageQuery(query.text,
+            type: query.type, offset: query.offset, limit: query.limit);
+    final Uri serviceUrl = new Uri(
+      scheme: 'https',
+      host: activeConfiguration.searchServiceHost,
+      path: '/search',
+      queryParameters: packageQuery.toServiceQueryParameters(),
+    );
+    final http.Response response = await searchServiceClient.get(serviceUrl);
+    if (response.statusCode == search_service.searchIndexNotReadyCode) {
+      // Search request before the service initialization completed.
+      return null;
+    }
+    if (response.statusCode != 200) {
+      // There has been an issue with the service
+      throw new Exception(
+          'Service returned status code ${response.statusCode}');
+    }
+    final search_service.PackageSearchResult result =
+        new search_service.PackageSearchResult.fromJson(
+            JSON.decode(response.body));
+    if (!result.isLegit) {
+      // Search request before the service initialization completed.
+      return null;
+    }
+
+    Key versionKey(search_service.PackageScore ps) => dbService.emptyKey
+        .append(Package, id: ps.package)
+        .append(PackageVersion, id: ps.version);
+    Key devVersionKey(search_service.PackageScore ps) => dbService.emptyKey
+        .append(Package, id: ps.package)
+        .append(PackageVersion, id: ps.devVersion);
+    final List<Key> allKeys = []
+      ..addAll(result.packages.map(versionKey))
+      ..addAll(result.packages.map(devVersionKey));
+    final List<PackageVersion> allVersions = await dbService.lookup(allKeys);
+    final versions = allVersions.sublist(0, result.packages.length);
+    final devVersions = allVersions.sublist(result.packages.length);
+
+    return new SearchResultPage(
+        query, result.totalCount, versions, devVersions);
+  }
+
+  Future<SearchResultPage> _searchCSE(SearchQuery query) async {
     bool exists(x) => x != null;
     final db = dbService;
 

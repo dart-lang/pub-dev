@@ -51,6 +51,7 @@ Future initSearchService() async {
   final searchService = await searchServiceViaApiKeyFromDb();
   registerSearchService(searchService);
   registerScopeExitCallback(searchService.httpClient.close);
+  registerScopeExitCallback(searchService.searchServiceClient.close);
 }
 
 void initBackend({UIPackageCache cache}) {
