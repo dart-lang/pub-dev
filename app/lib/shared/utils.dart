@@ -7,6 +7,7 @@ library pub_dartlang_org.utils;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -118,4 +119,11 @@ void validatePackageName(String name) {
   if (_reservedWords.contains(name.toLowerCase())) {
     throw new Exception('Package name must not be a reserved word in Dart.');
   }
+}
+
+List<List<T>> sliceList<T>(List<T> list, int limit) {
+  if (list.length <= limit) return [list];
+  final int maxPageIndex = (list.length - 1) ~/ limit;
+  return new List.generate(maxPageIndex + 1,
+          (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
 }

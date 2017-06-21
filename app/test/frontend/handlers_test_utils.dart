@@ -218,12 +218,16 @@ class SearchServiceMock implements SearchService {
   // ignore: always_declare_return_types
   get httpClient => throw 'unexpected httpClient';
 
+  @override
+  // ignore: always_declare_return_types
+  get searchServiceClient => throw 'unexpected searchServiceClient';
+
   final Function searchFun;
 
   SearchServiceMock(this.searchFun);
 
   @override
-  Future<SearchResultPage> search(SearchQuery query) async {
+  Future<SearchResultPage> search(SearchQuery query, bool useService) async {
     return searchFun(query);
   }
 }

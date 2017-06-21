@@ -21,6 +21,9 @@ class Configuration {
   /// Datastore and/or Cloud Storage
   final String projectId;
 
+  /// The host name for the search service.
+  final String searchServiceHost;
+
   auth.ServiceAccountCredentials _credentials;
 
   /// Credentials to use for API calls if not reading the credentials from
@@ -42,12 +45,14 @@ class Configuration {
   /// Storage is retrieved from the Datastore.
   Configuration._prod()
       : projectId = 'dartlang-pub',
-        packageBucketName = 'pub-packages';
+        packageBucketName = 'pub-packages',
+        searchServiceHost = 'search-dot-dartlang-pub.appspot.com';
 
   /// Create a configuration for development/staging deployment.
   Configuration._dev()
       : projectId = 'dartlang-pub-dev',
-        packageBucketName = 'dartlang-pub-dev--pub-packages';
+        packageBucketName = 'dartlang-pub-dev--pub-packages',
+        searchServiceHost = 'search-dot-dartlang-pub-dev.appspot.com';
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
@@ -61,13 +66,14 @@ class Configuration {
 
 /// Configuration from the environment variables.
 class EnvConfig {
+  final String duceneDir;
   final String gaeService;
   final String gcloudKey;
   final String gcloudProject;
   final String flutterSdkDir;
 
-  EnvConfig._(
-      this.gaeService, this.gcloudProject, this.gcloudKey, this.flutterSdkDir) {
+  EnvConfig._(this.duceneDir, this.gaeService, this.gcloudProject,
+      this.gcloudKey, this.flutterSdkDir) {
     if (this.gcloudProject == null) {
       throw new Exception('GCLOUD_PROJECT needs to be set!');
     }
@@ -75,6 +81,7 @@ class EnvConfig {
 
   factory EnvConfig._detect() {
     return new EnvConfig._(
+      Platform.environment['DUCENE_DIR'],
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
