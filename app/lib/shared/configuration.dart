@@ -21,6 +21,9 @@ class Configuration {
   /// Datastore and/or Cloud Storage
   final String projectId;
 
+  /// The host name for the analyzer service.
+  final String analyzerServiceHost;
+
   /// The host name for the search service.
   final String searchServiceHost;
 
@@ -46,12 +49,14 @@ class Configuration {
   Configuration._prod()
       : projectId = 'dartlang-pub',
         packageBucketName = 'pub-packages',
+        analyzerServiceHost = 'analyzer-dot-dartlang-pub.appspot.com',
         searchServiceHost = 'search-dot-dartlang-pub.appspot.com';
 
   /// Create a configuration for development/staging deployment.
   Configuration._dev()
       : projectId = 'dartlang-pub-dev',
         packageBucketName = 'dartlang-pub-dev--pub-packages',
+        analyzerServiceHost = 'analyzer-dot-dartlang-pub-dev.appspot.com',
         searchServiceHost = 'search-dot-dartlang-pub-dev.appspot.com';
 
   /// Create a configuration based on the environment variables.
