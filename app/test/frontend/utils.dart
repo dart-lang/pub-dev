@@ -7,7 +7,6 @@ library pub_dartlang_org.utils;
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
-import 'package:gcloud/service_scope.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
@@ -85,20 +84,6 @@ PackageVersion clonePackageVersion(PackageVersion original) =>
       ..changelogFilename = original.changelogFilename
       ..changelogContent = original.changelogContent
       ..sortOrder = original.sortOrder;
-
-Future scoped(func()) {
-  return fork(() async {
-    return func();
-  });
-}
-
-void scopedTest(String name, func(), {Timeout timeout}) {
-  test(name, () {
-    return fork(() async {
-      return func();
-    });
-  }, timeout: timeout);
-}
 
 final String TestPackageReadme = '''
 Test Package

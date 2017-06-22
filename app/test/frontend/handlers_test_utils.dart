@@ -28,18 +28,6 @@ Future expectHtmlResponse(shelf.Response response, {status: 200}) async {
   expect(await response.readAsString(), TemplateMock.Response);
 }
 
-Future expectJsonResponse(shelf.Response response, {status: 200, body}) async {
-  expect(response.statusCode, status);
-  expect(response.headers['content-type'], 'application/json; charset="utf-8"');
-  expect(JSON.decode(await response.readAsString()), body);
-}
-
-Future expectYamlResponse(shelf.Response response, {status: 200, body}) async {
-  expect(response.statusCode, status);
-  expect(response.headers['content-type'], 'text/yaml; charset="utf-8"');
-  expect(JSON.decode(await response.readAsString()), body);
-}
-
 Future expectAtomXmlResponse(shelf.Response response,
     {int status: 200, String regexp}) async {
   expect(response.statusCode, status);
@@ -47,16 +35,6 @@ Future expectAtomXmlResponse(shelf.Response response,
       'application/atom+xml; charset="utf-8"');
   final text = await response.readAsString();
   expect(new RegExp(regexp).hasMatch(text), isTrue);
-}
-
-Future expectRedirectResponse(shelf.Response response, String url) async {
-  expect(response.statusCode, 303);
-  expect(response.headers['location'], url);
-  expect(await response.readAsString(), '');
-}
-
-Future expectNotFoundResponse(shelf.Response response, {status: 404}) async {
-  expect(response.statusCode, status);
 }
 
 class BackendMock implements Backend {

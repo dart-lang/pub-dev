@@ -5,6 +5,8 @@
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
+import '../shared/analyzer_service.dart' show AnalysisStatus;
+
 import 'model_properties.dart';
 
 /// Analyzed package report.

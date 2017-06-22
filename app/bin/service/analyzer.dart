@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
@@ -15,6 +16,7 @@ import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
+import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
 import 'package:pub_dartlang_org/analyzer/task_sources.dart';
 
@@ -32,6 +34,7 @@ Future main() async {
       registerTaskSendPort(sendPorts[0]);
     });
     return withCorrectDatastore(() async {
+      _registerServices();
       await runAppEngine((HttpRequest request) =>
           shelf_io.handleRequest(request, analyzerServiceHandler));
     });
@@ -47,6 +50,7 @@ void _runScheduler(List<SendPort> sendPorts) {
   final TaskRunner runner = (Task task) async {};
 
   withCorrectDatastore(() async {
+    _registerServices();
     await new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
       new DatastoreHeadTaskSource(),
@@ -76,4 +80,8 @@ Future _initFlutterSdk() async {
       }
     }
   }
+}
+
+void _registerServices() {
+  registerAnalysisBackend(new AnalysisBackend(db.dbService));
 }
