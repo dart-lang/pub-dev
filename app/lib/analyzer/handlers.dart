@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
+import '../shared/task_client.dart';
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
@@ -70,6 +71,6 @@ Future<shelf.Response> _getAnalysis(shelf.Request request, String package,
 
 Future<shelf.Response> _triggerAnalysis(
     shelf.Request request, String package, String version) async {
-  // TODO: implement
-  return notFoundHandler(request);
+  triggerTask(package, version);
+  return htmlResponse('OK');
 }
