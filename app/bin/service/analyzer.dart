@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
@@ -11,8 +12,11 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
+import 'package:pub_dartlang_org/shared/task_client.dart';
+import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
+import 'package:pub_dartlang_org/analyzer/task_sources.dart';
 
 final Logger logger = new Logger('pub.analyzer');
 
@@ -20,13 +24,34 @@ Future main() async {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    _initFlutterSdk().then((_) {
-      // TODO: flutter SDK initialized, start analyzer background task
+    _initFlutterSdk().then((_) async {
+      final ReceivePort mainReceivePort = new ReceivePort();
+      // TODO: handle unexpected exit/errors with onExit
+      await Isolate.spawn(_runScheduler, [mainReceivePort.sendPort]);
+      final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
+      registerTaskSendPort(sendPorts[0]);
     });
     return withCorrectDatastore(() async {
       await runAppEngine((HttpRequest request) =>
           shelf_io.handleRequest(request, analyzerServiceHandler));
     });
+  });
+}
+
+void _runScheduler(List<SendPort> sendPorts) {
+  final SendPort mainSendPort = sendPorts[0];
+  final ReceivePort taskReceivePort = new ReceivePort();
+  mainSendPort.send(taskReceivePort.sendPort);
+
+  // TODO: implement task runner
+  final TaskRunner runner = (Task task) async {};
+
+  withCorrectDatastore(() async {
+    await new TaskScheduler(runner, [
+      new ManualTriggerTaskSource(taskReceivePort),
+      new DatastoreHeadTaskSource(),
+      new DatastoreHistoryTaskSource(),
+    ]).run();
   });
 }
 
