@@ -39,7 +39,8 @@ void main() {
 
       scopedTest('/packages/pkg_foo/unknown', () async {
         registerAnalysisBackend(new MockAnalysisBackend());
-        await expectNotFoundResponse(await issueGet('/packages/pkg_foo/unknown'));
+        await expectNotFoundResponse(
+            await issueGet('/packages/pkg_foo/unknown'));
       });
 
       scopedTest('/packages/pkg_foo/1.2.3/unknown', () async {
@@ -50,7 +51,8 @@ void main() {
 
       scopedTest('/packages/pkg_foo/1.2.3/1', () async {
         registerAnalysisBackend(new MockAnalysisBackend());
-        await expectNotFoundResponse(await issueGet('/packages/pkg_foo/1.2.3/1'));
+        await expectNotFoundResponse(
+            await issueGet('/packages/pkg_foo/1.2.3/1'));
       });
     });
 
@@ -84,20 +86,22 @@ void main() {
 
       scopedTest('/packages/pkg_foo/1.2.3', () async {
         registerAnalysisBackend(new MockAnalysisBackend());
-        await expectJsonResponse(await issueGet('/packages/pkg_foo/1.2.3'), body: {
-          'packageName': 'pkg_foo',
-          'packageVersion': '1.2.3',
-          'analysis': 242345,
-          'timestamp': '2017-06-26T12:48:00.000',
-          'analysisVersion': '0.2.0',
-          'analysisStatus': 'success',
-          'analysisContent': null
-        });
+        await expectJsonResponse(await issueGet('/packages/pkg_foo/1.2.3'),
+            body: {
+              'packageName': 'pkg_foo',
+              'packageVersion': '1.2.3',
+              'analysis': 242345,
+              'timestamp': '2017-06-26T12:48:00.000',
+              'analysisVersion': '0.2.0',
+              'analysisStatus': 'success',
+              'analysisContent': null
+            });
       });
 
       scopedTest('/packages/pkg_foo/1.2.3/242345', () async {
         registerAnalysisBackend(new MockAnalysisBackend());
-        await expectJsonResponse(await issueGet('/packages/pkg_foo/1.2.3/242345'),
+        await expectJsonResponse(
+            await issueGet('/packages/pkg_foo/1.2.3/242345'),
             body: {
               'packageName': 'pkg_foo',
               'packageVersion': '1.2.3',
@@ -112,15 +116,7 @@ void main() {
 
     group('trigger analysis', () {
       scopedTest('/packages/pkg', () async {
-        final ReceivePort rp = new ReceivePort();
-        final Future<Task> taskFuture = rp.first;
-        registerTaskSendPort(rp.sendPort);
-        await expectJsonResponse(await issuePost('/packages/pkg'),
-            body: {'status': 'OK'});
-        final Task task = await taskFuture;
-        expect(task.package, 'pkg');
-        expect(task.version, isNull);
-        rp.close();
+        await expectNotFoundResponse(await issuePost('/packages/pkg'));
       });
 
       scopedTest('/packages/pkg/1.0.1', () async {
@@ -167,6 +163,12 @@ class MockAnalysisBackend implements AnalysisBackend {
       analysis.analysis,
     ].join('/');
     _map[key] = analysis;
+  }
+
+  @override
+  Future<bool> isValidTarget(String packageName, String packageVersion,
+      String analysisVersion) {
+    throw 'Not implemented yet.';
   }
 }
 
