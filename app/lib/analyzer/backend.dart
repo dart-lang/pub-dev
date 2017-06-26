@@ -3,11 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 
 import 'models.dart';
+
+/// Sets the backend service.
+void registerAnalysisBackend(AnalysisBackend backend) =>
+    ss.register(#_analysisBackend, backend);
+
+/// The active backend service.
+AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
 
 /// Datastore-related access methods for the analyzer service
 class AnalysisBackend {

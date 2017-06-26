@@ -16,6 +16,8 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
+import '../shared/utils.dart';
+
 import 'backend_test_utils.dart';
 import 'utils.dart';
 

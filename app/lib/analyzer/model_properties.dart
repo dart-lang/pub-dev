@@ -2,25 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:gcloud/db.dart';
 
-/// These status codes mark the status of the analysis, not the result/report.
-///
-/// WARNING: Do not rename these enum values, since they are stored in the DB.
-enum AnalysisStatus {
-  /// Analysis was aborted without a report.
-  /// Probably an issue with pana or an unhandled edge case.
-  aborted,
-
-  /// Analysis was completed but there are missing parts.
-  /// One or more tools failed to produce the expected output.
-  failure,
-
-  /// Analysis was completed without issues.
-  success,
-}
+import '../shared/analyzer_service.dart'
+    show AnalysisStatus, analysisStatusCodec;
 
 class AnalysisStatusProperty extends StringProperty {
   const AnalysisStatusProperty({String propertyName, bool required: false})
@@ -34,7 +19,7 @@ class AnalysisStatusProperty extends StringProperty {
   @override
   String encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
     if (value is AnalysisStatus) {
-      return value.toString().split('.').last;
+      return analysisStatusCodec.encode(value);
     }
     return null;
   }
@@ -42,8 +27,7 @@ class AnalysisStatusProperty extends StringProperty {
   @override
   Object decodePrimitiveValue(ModelDB db, Object value) {
     if (value is String) {
-      return AnalysisStatus.values
-          .firstWhere((as) => as.toString().endsWith('.$value'));
+      return analysisStatusCodec.decode(value);
     }
     if (value == null) return null;
     throw new Exception('Unknown analysis status: $value');

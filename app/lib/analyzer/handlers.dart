@@ -3,12 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../shared/analyzer_service.dart';
 import '../shared/handlers.dart';
 import '../shared/task_client.dart';
+
+import 'backend.dart';
+import 'models.dart';
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
@@ -39,6 +44,7 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 ///   - /packages/<package>/<version>
 ///   - /packages/<package>/<version>/<analysis>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
+  final bool isFull = request.url.queryParameters['full'] == 'true';
   final String path = request.requestedUri.path.substring('/packages/'.length);
   final List<String> pathParts = path.split('/');
   if (path.length == 0 || pathParts.length > 3) {
@@ -46,12 +52,33 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   }
   final String package = pathParts[0];
   final String version = pathParts.length == 1 ? null : pathParts[1];
-  final String analysis = pathParts.length <= 2 ? null : pathParts[2];
+  final int analysisId = pathParts.length <= 2
+      ? null
+      : int.parse(pathParts[2], onError: (_) => -1);
+  if (analysisId == -1) {
+    return notFoundHandler(request);
+  }
 
   final String requestMethod = request.method?.toUpperCase();
-
   if (requestMethod == 'GET') {
-    return _getAnalysis(request, package, version, analysis);
+    final Analysis analysis =
+        await analysisBackend.getAnalysis(package, version, analysisId);
+    if (analysis == null) {
+      return notFoundHandler(request);
+    }
+    Map analysisContent;
+    if (isFull) {
+      analysisContent = JSON.decode(analysis.analysisJsonContent);
+    }
+    return jsonResponse(new AnalysisData(
+            packageName: analysis.packageName,
+            packageVersion: analysis.packageVersion,
+            analysis: analysis.analysis,
+            timestamp: analysis.timestamp,
+            analysisVersion: analysis.analysisVersion,
+            analysisStatus: analysis.analysisStatus,
+            analysisContent: analysisContent)
+        .toJson());
   } else if (requestMethod == 'POST') {
     if (pathParts.length == 3) {
       // trigger shouldn't contain analysis id
@@ -63,14 +90,8 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   return notFoundHandler(request);
 }
 
-Future<shelf.Response> _getAnalysis(shelf.Request request, String package,
-    String version, String analysis) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}
-
 Future<shelf.Response> _triggerAnalysis(
     shelf.Request request, String package, String version) async {
   triggerTask(package, version);
-  return htmlResponse('OK');
+  return jsonResponse({'status': 'OK'});
 }

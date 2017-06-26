@@ -12,12 +12,13 @@ SendPort _taskSendPort;
 List<Task> _taskQueue = [];
 
 void registerTaskSendPort(SendPort taskSendPort) {
-  assert(_taskSendPort == null);
   _taskSendPort = taskSendPort;
-  for (Task task in _taskQueue) {
-    _taskSendPort.send(task);
+  if (_taskQueue != null) {
+    for (Task task in _taskQueue) {
+      _taskSendPort.send(task);
+    }
+    _taskQueue = null;
   }
-  _taskQueue = null;
 }
 
 /// Triggers task processing via sending tasks to the [Scheduler] in the other

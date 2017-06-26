@@ -15,6 +15,9 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 
+import '../shared/handlers_test_utils.dart';
+import '../shared/utils.dart';
+
 import 'handlers_test_utils.dart';
 import 'utils.dart';
 
