@@ -5,7 +5,6 @@
 library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
