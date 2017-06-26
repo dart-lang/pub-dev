@@ -34,7 +34,7 @@ void main() {
   group('handlers', () {
     group('not found', () {
       tScopedTest('/xxx', () async {
-        expectNotFoundResponse(await issueGet('/xxx'));
+        await expectNotFoundResponse(await issueGet('/xxx'));
       });
     });
 
@@ -48,7 +48,7 @@ void main() {
         });
         registerBackend(backend);
 
-        expectHtmlResponse(await issueGet('/'));
+        await expectHtmlResponse(await issueGet('/'));
       });
 
       tScopedTest('/packages', () async {
@@ -64,7 +64,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/packages'));
+        await expectHtmlResponse(await issueGet('/packages'));
       });
 
       tScopedTest('/packages?page=2', () async {
@@ -80,7 +80,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/packages?page=2'));
+        await expectHtmlResponse(await issueGet('/packages?page=2'));
       });
 
       tScopedTest('/packages/foobar_pkg - found', () async {
@@ -94,7 +94,7 @@ void main() {
           return Uri.parse('http://blobstore/$package/$version');
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
+        await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
       });
 
       tScopedTest('/packages/foobar_pkg - not found', () async {
@@ -103,7 +103,8 @@ void main() {
           return null;
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/packages/foobar_pkg'), status: 404);
+        await expectHtmlResponse(await issueGet('/packages/foobar_pkg'),
+            status: 404);
       });
 
       tScopedTest('/packages/foobar_pkg/versions - found', () async {
@@ -114,7 +115,8 @@ void main() {
           return Uri.parse('http://blobstore/$package/$version');
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));
+        await expectHtmlResponse(
+            await issueGet('/packages/foobar_pkg/versions'));
       });
 
       tScopedTest('/packages/foobar_pkg/versions - not found', () async {
@@ -123,7 +125,8 @@ void main() {
           return [];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'),
+        await expectHtmlResponse(
+            await issueGet('/packages/foobar_pkg/versions'),
             status: 404);
       });
 
@@ -148,7 +151,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/flutter/packages'));
+        await expectHtmlResponse(await issueGet('/flutter/packages'));
       });
 
       tScopedTest('/flutter/packages&page=2', () async {
@@ -164,7 +167,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
+        await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
       });
 
       tScopedTest('/doc', () async {
@@ -176,7 +179,7 @@ void main() {
       });
 
       tScopedTest('/authorized', () async {
-        expectHtmlResponse(await issueGet('/authorized'));
+        await expectHtmlResponse(await issueGet('/authorized'));
       });
 
       tScopedTest('/search?q=foobar', () async {
@@ -187,7 +190,8 @@ void main() {
           return new SearchResultPage(
               query, 1, [testPackageVersion], [testPackageVersion]);
         }));
-        expectHtmlResponse(await issueGet('/search?q=foobar'), status: 200);
+        await expectHtmlResponse(await issueGet('/search?q=foobar'),
+            status: 200);
       });
 
       tScopedTest('/search?q=foobar&page=2', () async {
@@ -198,7 +202,7 @@ void main() {
           return new SearchResultPage(
               query, 1, [testPackageVersion], [testPackageVersion]);
         }));
-        expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
+        await expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
       });
 
       tScopedTest('/feed.atom', () async {
@@ -209,7 +213,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectAtomXmlResponse(await issueGet('/feed.atom'),
+        await expectAtomXmlResponse(await issueGet('/feed.atom'),
             regexp: '''
 <\\?xml version="1.0" encoding="UTF-8"\\?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -258,7 +262,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectJsonResponse(await issueGet('/packages.json'), body: {
+        await expectJsonResponse(await issueGet('/packages.json'), body: {
           "packages": ["https://pub.dartlang.org/packages/foobar_pkg.json"],
           "next": null
         });
@@ -273,11 +277,12 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectJsonResponse(await issueGet('/packages/foobar_pkg.json'), body: {
-          "name": 'foobar_pkg',
-          "uploaders": ['hans@juergen.com'],
-          "versions": ['0.1.1'],
-        });
+        await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
+            body: {
+              "name": 'foobar_pkg',
+              "uploaders": ['hans@juergen.com'],
+              "versions": ['0.1.1'],
+            });
       });
 
       tScopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
@@ -288,7 +293,7 @@ void main() {
           return testPackageVersion;
         });
         registerBackend(backend);
-        expectYamlResponse(
+        await expectYamlResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.1.yaml'),
             body: loadYaml(TestPackagePubspec));
       });
@@ -307,7 +312,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        expectJsonResponse(await issueGet('/api/packages'), body: {
+        await expectJsonResponse(await issueGet('/api/packages'), body: {
           'next_url': null,
           'packages': [
             {
