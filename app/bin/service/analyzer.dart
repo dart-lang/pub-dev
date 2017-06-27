@@ -53,8 +53,8 @@ void _runScheduler(List<SendPort> sendPorts) {
     _registerServices();
     await new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
-      new DatastoreHeadTaskSource(),
-      new DatastoreHistoryTaskSource(),
+      new DatastoreHeadTaskSource(db.dbService),
+      new DatastoreHistoryTaskSource(db.dbService),
     ]).run();
   });
 }
