@@ -259,7 +259,7 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    return await db.withTransaction((Transaction T) async {
+    final PackageVersion pv = await db.withTransaction((Transaction T) async {
       _logger.info('Starting datastore transaction.');
 
       final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
@@ -329,6 +329,13 @@ class GCloudPackageRepository extends PackageRepository {
         rethrow;
       }
     });
+
+    /// Notify analyzer services about a new version, and *DO NOT* do the
+    /// same with search service. The later will get notified after analyzer
+    /// ran the first analysis on the new version.
+    notifyAnalyzer(pv.packageName, pv.versionString);
+
+    return pv;
   }
 
   Future _updatePackageSortIndex(Key packageKey) async {
