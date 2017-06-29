@@ -259,6 +259,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  pana:
+    description:
+      name: pana
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.3"
   path:
     description:
       name: path
@@ -295,6 +301,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1+3"
+  quiver:
+    description:
+      name: quiver
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.25.0"
   sembast:
     description:
       name: sembast

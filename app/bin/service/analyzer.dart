@@ -18,6 +18,7 @@ import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
+import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
 import 'package:pub_dartlang_org/analyzer/task_sources.dart';
 
 final Logger logger = new Logger('pub.analyzer');
@@ -46,12 +47,10 @@ void _runScheduler(List<SendPort> sendPorts) {
   final ReceivePort taskReceivePort = new ReceivePort();
   mainSendPort.send(taskReceivePort.sendPort);
 
-  // TODO: implement task runner
-  final TaskRunner runner = (Task task) async {};
-
   withCorrectDatastore(() async {
     _registerServices();
-    await new TaskScheduler(runner, [
+    final PanaRunner runner = new PanaRunner(analysisBackend);
+    await new TaskScheduler(runner.runTask, [
       new ManualTriggerTaskSource(taskReceivePort),
       new DatastoreHeadTaskSource(),
       new DatastoreHistoryTaskSource(),

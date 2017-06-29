@@ -80,8 +80,8 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
             analysisContent: analysisContent)
         .toJson());
   } else if (requestMethod == 'POST') {
-    if (pathParts.length == 3) {
-      // trigger shouldn't contain analysis id
+    if (pathParts.length != 2) {
+      // trigger should have version and shouldn't contain analysis id
       return notFoundHandler(request);
     }
     return _triggerAnalysis(request, package, version);
