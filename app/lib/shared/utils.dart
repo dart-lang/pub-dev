@@ -10,9 +10,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
+import 'package:http/http.dart' as http;
 import 'package:pub_semver/pub_semver.dart' as semver;
 
+import 'configuration.dart';
+
 final Logger _logger = new Logger('pub.utils');
+final http.Client _client = new http.Client();
 
 Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
     {String prefix: 'dart-tempdir'}) {
@@ -157,5 +161,20 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
   final int maxPageIndex = (list.length - 1) ~/ limit;
   return new List.generate(maxPageIndex + 1,
-          (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
+      (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
+}
+
+void notifyAnalyzer(String package, String version) {
+  try {
+    final String host = activeConfiguration.analyzerServiceHost;
+    final String uri = 'https://$host/packages/$package/$version';
+    // Don't block on the notification request, and don't fail even if there was
+    // an error.
+    _client.post(uri).then((_) => null, onError: (e) {
+      _logger.info('Notification request on $uri failed: $e');
+    });
+  } catch (e) {
+    // we are running in travis
+    _logger.info('Environment was not initialized: $e');
+  }
 }
