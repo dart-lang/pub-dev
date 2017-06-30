@@ -12,7 +12,6 @@ import 'package:ducene/search.dart';
 import 'package:ducene/util.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
-import '../shared/configuration.dart';
 import '../shared/search_service.dart';
 
 /// The [PackageIndex] registered in the current service scope.
@@ -23,23 +22,26 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class DucenePackageIndex implements PackageIndex {
+  final String directory;
   final _MultiNgramAnalyzer _analyzer = new _MultiNgramAnalyzer(3);
   Directory _fsDir;
   IndexHolder _index;
   DateTime _lastUpdated;
   Future _initFuture;
 
+  DucenePackageIndex({this.directory});
+
   Future _init() async {
     if (_initFuture != null) return _initFuture;
     assert(_index == null);
     _initFuture = new Future(() async {
       IndexHolderDirectory indexDir;
-      if (envConfig.duceneDir != null) {
+      if (directory != null) {
         // Temporarily everything is in memory, because ducene is not using async
         // IO, and that blocks appengine's health checks, killing the machine
         // before it got any chance to setup.
         // TODO: fix ducene to handle async FS properly
-        // _fsDir = new Directory(envConfig.duceneDir);
+        // _fsDir = new Directory(directory);
         // indexDir = new FSIndexHolderDirectory(_fsDir);
         indexDir = new RAMIndexHolderDirectory();
       } else {

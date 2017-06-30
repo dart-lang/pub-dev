@@ -4,92 +4,100 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import '../frontend/models.dart';
-import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
-import '../shared/utils.dart' show sliceList;
+import '../shared/task_scheduler.dart';
+
+import 'backend.dart';
+import 'index_ducene.dart';
 
 Logger _logger = new Logger('pub.search.updater');
 
-class PackageIndexUpdater {
-  final PackageIndex index;
-  Timer _timer;
-  bool _updating = false;
+class IndexUpdateTaskSource implements TaskSource {
+  final BatchIndexUpdater _batchIndexUpdater;
+  DateTime _lastTs;
+  IndexUpdateTaskSource(this._batchIndexUpdater);
 
-  PackageIndexUpdater(this.index);
-
-  Future update({int limit}) async {
-    if (_updating) {
-      _logger.warning('Update called before previous round completed.');
-      return;
-    }
-    try {
-      _updating = true;
-      await _doUpdate(limit);
-    } catch (e, st) {
-      _logger.severe('Error while updating search index.', e, st);
-    } finally {
-      _updating = false;
-    }
-  }
-
-  Future _doUpdate(int limit) async {
-    final List<Key> versionKeys = [];
-    final Map<String, String> devVersions = {};
-
-    _logger.info('Polling packages for changes.');
-    int count = 0;
-    await for (Package p in dbService.query(Package).run()) {
-      final bool inIndex = await index.contains(
-          _toUrl(p.name), p.latestVersion, p.latestDevVersion);
-      if (inIndex) continue;
-      versionKeys.add(p.latestVersionKey);
-      devVersions[p.name] = p.latestDevVersion;
-      count++;
-      if (limit != null && limit <= count) break;
-    }
-    _logger.info('Found ${versionKeys.length} packages to update.');
-    if (versionKeys.isEmpty) return;
-
-    for (List<Key> slices in sliceList(versionKeys, 20)) {
-      final Key firstKey = slices.first;
-      final String firstPkg = firstKey.parent.id;
-      final String firstVersion = firstKey.id;
-      _logger.info('Updating packages staring with $firstPkg $firstVersion');
-      final List<PackageVersion> versions = await dbService.lookup(slices);
-      final List<PackageDocument> documents = versions
-          .map((pv) => new PackageDocument(
-                url: _toUrl(pv.package),
-                package: pv.package,
-                version: pv.version,
-                devVersion: devVersions[pv.package],
-                detectedTypes: pv.detectedTypes,
-                description: pv.pubspec.description,
-                lastUpdated: pv.shortCreated,
-                readme: pv.readmeContent,
-                popularity: mockScores[pv.package] ?? 0.0,
-              ))
-          .toList();
-      await index.addAll(documents);
-      _logger.info('Updated ${slices.length} packages.');
-    }
-
-    _logger.info('Calling index.merge() ...');
-    await index.merge();
-    _logger.info('index.merge() completed.');
-  }
-
-  void startPolling() {
-    if (_timer == null) {
-      _timer = new Timer.periodic(new Duration(hours: 4), (_) {
-        update();
-      });
-      update();
+  @override
+  Stream<Task> startStreaming() async* {
+    for (;;) {
+      final DateTime now = new DateTime.now().toUtc();
+      int count = 0;
+      await for (String package
+          in searchBackend.listPackages(updatedAfter: _lastTs)) {
+        count++;
+        yield new Task(package, null);
+      }
+      _batchIndexUpdater.reportScanCount(count);
+      _lastTs = now.subtract(const Duration(minutes: 10));
+      await new Future.delayed(new Duration(minutes: 30));
     }
   }
 }
 
-String _toUrl(String package) => 'https://pub.dartlang.org/packages/$package';
+class BatchIndexUpdater {
+  final List<Task> _batch = [];
+  Timer _batchUpdateTimer;
+  Future _ongoingBatchUpdate;
+  int _taskCount = 0;
+
+  // Used by [IndexUpdateTaskSource] to indicating how many packages were
+  // yielded in the first run of the index update.
+  // When [BatchIndexUpdater] processes more than this number of tasks, it will
+  // start do the index merges, making sure that the index is marked as ready.
+  int _firstScanCount;
+
+  void reportScanCount(int count) {
+    if (_firstScanCount == null) return;
+    _firstScanCount = count;
+  }
+
+  Future updateIndex(Task task) async {
+    while (_ongoingBatchUpdate != null) {
+      await _ongoingBatchUpdate;
+    }
+    _batch.add(task);
+    if (_batch.length < 20) {
+      _batchUpdateTimer ??= new Timer(const Duration(seconds: 10), () {
+        _updateBatch();
+      });
+    } else {
+      await _updateBatch();
+    }
+  }
+
+  Future _updateBatch() async {
+    _batchUpdateTimer?.cancel();
+    _batchUpdateTimer = null;
+
+    while (_ongoingBatchUpdate != null) {
+      await _ongoingBatchUpdate;
+    }
+    if (_batch.isEmpty) return;
+
+    final Completer completer = new Completer();
+    _ongoingBatchUpdate = completer.future;
+
+    try {
+      final List<Task> tasks = new List.from(_batch);
+      _batch.clear();
+      _taskCount += tasks.length;
+      _logger.info('Updating index with ${tasks.length} packages '
+          '[example: ${tasks.first.package}]');
+      final List<PackageDocument> docs = await searchBackend
+          .loadDocuments(tasks.map((t) => t.package).toList());
+      await packageIndex.addAll(docs);
+      final bool doMerge =
+          _firstScanCount != null && _taskCount >= _firstScanCount;
+      if (doMerge) {
+        _logger.info('Merging index after $_taskCount updates.');
+        await packageIndex.merge();
+        _logger.info('Merge completed.');
+      }
+    } finally {
+      completer.complete();
+      _ongoingBatchUpdate = null;
+    }
+  }
+}

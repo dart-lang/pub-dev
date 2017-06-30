@@ -3,13 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/db.dart' as db;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
+import 'package:pub_dartlang_org/shared/task_client.dart';
+import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
+import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_ducene.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
@@ -19,14 +24,23 @@ void main() {
 
   withAppEngineServices(() async {
     return withCorrectDatastore(() async {
-      registerPackageIndex(new DucenePackageIndex());
-      if (envConfig.duceneDir == null) {
-        // Don't push too much info into the in-memory index.
-        new PackageIndexUpdater(packageIndex).update(limit: 300);
-      } else {
-        // TODO: move the indexing into a different isolate.
-        new PackageIndexUpdater(packageIndex).startPolling();
-      }
+      registerSearchBackend(new SearchBackend(db.dbService));
+      registerPackageIndex(
+          new DucenePackageIndex(directory: envConfig.duceneDir));
+
+      // TODO: move indexing into a different isolate
+      final ReceivePort taskReceivePort = new ReceivePort();
+      registerTaskSendPort(taskReceivePort.sendPort);
+
+      final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
+      final scheduler = new TaskScheduler(
+        batchIndexUpdater.updateIndex,
+        [
+          new ManualTriggerTaskSource(taskReceivePort),
+          new IndexUpdateTaskSource(batchIndexUpdater),
+        ],
+      );
+      scheduler.run();
 
       await runAppEngine((HttpRequest request) =>
           shelf_io.handleRequest(request, searchServiceHandler));
