@@ -14,32 +14,39 @@ typedef Future TaskRunner(Task task);
 
 // ignore: one_member_abstracts
 abstract class TaskSource {
+  final StreamController<Task> _controller = new StreamController();
+
   /// Returns a stream of currently available tasks at the time of the call.
-  Stream<Task> currentTasks();
+  Stream<Task> start() => _controller.stream;
+
+  void addTask(Task task) {
+    _controller.add(task);
+  }
 }
 
 /// Tasks coming from through the isolate's receivePort, originating from a
 /// HTTP handler that received a ping after a new upload.
-class ManualTriggerTaskSource implements TaskSource {
-  final Stream taskReceivePort;
-  final int capacity;
-  StreamSubscription _subscription;
+class ManualTriggerTaskSource extends TaskSource {
   final Set<Task> _triggered = new Set();
+  StreamSubscription<Task> _subscription;
+  Timer _timer;
 
-  ManualTriggerTaskSource(this.taskReceivePort, {this.capacity: 100}) {
+  ManualTriggerTaskSource(Stream taskReceivePort, {int capacity: 100}) {
     _subscription = taskReceivePort.listen((Task task) {
       // protect against spamming the manual trigger
       if (_triggered.length < capacity) {
         _triggered.add(task);
       }
+      if (_timer == null) {
+        _timer = new Timer(const Duration(minutes: 1), () {
+          _timer = null;
+          for (Task task in _triggered) {
+            _controller.add(task);
+          }
+          _triggered.clear();
+        });
+      }
     });
-  }
-
-  @override
-  Stream<Task> currentTasks() {
-    final List<Task> tasks = _triggered.toList();
-    _triggered.clear();
-    return new Stream.fromIterable(tasks);
   }
 
   void close() {
@@ -49,25 +56,28 @@ class ManualTriggerTaskSource implements TaskSource {
   }
 }
 
-/// Task source that has a limit on the polling frequency.
-abstract class PollingTaskSource implements TaskSource {
-  final Duration minimumPeriod;
-  DateTime _lastPollTime;
-
-  PollingTaskSource(this.minimumPeriod);
+/// Task source that has a limit on how frequently it will poll its data source.
+abstract class PollingTaskSource extends TaskSource {
+  final Duration _period;
+  Timer _timer;
+  PollingTaskSource(Duration period):_period = period;
 
   @override
-  Stream<Task> currentTasks() {
-    final DateTime now = new DateTime.now();
-    if (_lastPollTime == null ||
-        now.difference(_lastPollTime) > minimumPeriod) {
-      _lastPollTime = now;
-      return pollTasks();
-    }
-    return new Stream.fromIterable([]);
+  Stream<Task> start() {
+    _scheduleTimer();
+    return super.start();
   }
 
-  Stream<Task> pollTasks();
+  Future poll();
+
+  void _scheduleTimer() {
+    if (_timer != null) return;
+    _timer = new Timer(_period, () async {
+      _timer = null;
+      await poll();
+      _scheduleTimer();
+    });
+  }
 }
 
 /// Schedules and executes package analysis.
@@ -78,17 +88,14 @@ class TaskScheduler {
   TaskScheduler(this.taskRunner, this.sources);
 
   Future run() async {
-    for (;;) {
-      final Stream<Task> stream =
-          StreamGroup.merge(sources.map((source) => source.currentTasks()));
-      await for (Task task in stream) {
-        try {
-          await taskRunner(task);
-        } catch (e, st) {
-          _logger.severe('Error processing task: $task', e, st);
-        }
-        // taking a nap, GC may kick in?
-        await new Future.delayed(new Duration(seconds: 5));
+    final Stream<Task> stream =
+        StreamGroup.merge(sources.map((source) => source.start()));
+
+    await for (Task task in stream) {
+      try {
+        await taskRunner(task);
+      } catch (e, st) {
+        _logger.severe('Error processing task: $task', e, st);
       }
     }
   }

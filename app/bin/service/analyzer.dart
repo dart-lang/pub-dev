@@ -52,8 +52,8 @@ void _runScheduler(List<SendPort> sendPorts) {
     final PanaRunner runner = new PanaRunner(analysisBackend);
     await new TaskScheduler(runner.runTask, [
       new ManualTriggerTaskSource(taskReceivePort),
-      new DatastoreHeadTaskSource(),
-      new DatastoreHistoryTaskSource(),
+      new DatastoreHeadTaskSource(db.dbService),
+      new DatastoreHistoryTaskSource(db.dbService),
     ]).run();
   });
 }
