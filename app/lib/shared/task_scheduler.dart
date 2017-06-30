@@ -14,69 +14,22 @@ typedef Future TaskRunner(Task task);
 
 // ignore: one_member_abstracts
 abstract class TaskSource {
-  final StreamController<Task> _controller = new StreamController();
-
   /// Returns a stream of currently available tasks at the time of the call.
-  Stream<Task> start() => _controller.stream;
-
-  void addTask(Task task) {
-    _controller.add(task);
-  }
+  Stream<Task> startStreaming();
 }
 
 /// Tasks coming from through the isolate's receivePort, originating from a
 /// HTTP handler that received a ping after a new upload.
-class ManualTriggerTaskSource extends TaskSource {
-  final Set<Task> _triggered = new Set();
-  StreamSubscription<Task> _subscription;
-  Timer _timer;
-
-  ManualTriggerTaskSource(Stream taskReceivePort, {int capacity: 100}) {
-    _subscription = taskReceivePort.listen((Task task) {
-      // protect against spamming the manual trigger
-      if (_triggered.length < capacity) {
-        _triggered.add(task);
-      }
-      if (_timer == null) {
-        _timer = new Timer(const Duration(minutes: 1), () {
-          _timer = null;
-          for (Task task in _triggered) {
-            _controller.add(task);
-          }
-          _triggered.clear();
-        });
-      }
-    });
-  }
-
-  void close() {
-    // It is unlikely that we will close this, but cancelling the subscription
-    // makes dartanalyzer happy.
-    _subscription.cancel();
-  }
-}
-
-/// Task source that has a limit on how frequently it will poll its data source.
-abstract class PollingTaskSource extends TaskSource {
-  final Duration _period;
-  Timer _timer;
-  PollingTaskSource(Duration period):_period = period;
+class ManualTriggerTaskSource implements TaskSource {
+  final Stream _taskReceivePort;
+  ManualTriggerTaskSource(this._taskReceivePort);
 
   @override
-  Stream<Task> start() {
-    _scheduleTimer();
-    return super.start();
-  }
-
-  Future poll();
-
-  void _scheduleTimer() {
-    if (_timer != null) return;
-    _timer = new Timer(_period, () async {
-      _timer = null;
-      await poll();
-      _scheduleTimer();
-    });
+  Stream<Task> startStreaming() async* {
+    await for (final Task task in _taskReceivePort) {
+      yield task;
+      await new Future.delayed(const Duration(seconds: 10));
+    }
   }
 }
 
@@ -89,7 +42,7 @@ class TaskScheduler {
 
   Future run() async {
     final Stream<Task> stream =
-        StreamGroup.merge(sources.map((source) => source.start()));
+        StreamGroup.merge(sources.map((source) => source.startStreaming()));
 
     await for (Task task in stream) {
       try {

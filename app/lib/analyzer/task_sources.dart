@@ -5,44 +5,53 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
 import '../shared/task_scheduler.dart';
 
 import 'models.dart';
 
+final Logger _logger = new Logger('pub.analyzer.source');
+
 /// Creates a task when a version uploaded in the past 10 minutes has no
 /// analysis yet.
-class DatastoreHeadTaskSource extends PollingTaskSource {
+class DatastoreHeadTaskSource implements TaskSource {
   final DatastoreDB _db;
   DateTime _lastTs;
-  DatastoreHeadTaskSource(this._db) : super(const Duration(minutes: 1));
+  DatastoreHeadTaskSource(this._db);
 
   @override
-  Future poll() async {
-    final DateTime now = new DateTime.now().toUtc();
-    final DateTime tenMinutesAgo = now.subtract(const Duration(minutes: 10));
-    DateTime minCreated;
-    if (_lastTs == null) {
-      minCreated = tenMinutesAgo;
-    } else if (_lastTs.isBefore(tenMinutesAgo)) {
-      // more than ten minutes passed since the last poll
-      minCreated = _lastTs;
-    } else {
-      minCreated = tenMinutesAgo;
-    }
-    _lastTs = tenMinutesAgo;
+  Stream<Task> startStreaming() async* {
+    for (;;) {
+      try {
+        final DateTime now = new DateTime.now().toUtc();
+        final DateTime tenMinutesAgo =
+            now.subtract(const Duration(minutes: 10));
+        _lastTs ??= tenMinutesAgo;
+        final DateTime minCreated =
+            _lastTs.isBefore(tenMinutesAgo) ? _lastTs : tenMinutesAgo;
 
-    final Query q = _db.query(PackageVersion)..filter('created >=', minCreated);
-    await for (PackageVersion pv in q.run()) {
-      final List<PackageVersionAnalysis> items = await _db.lookup([
-        _db.emptyKey
-            .append(PackageAnalysis, id: pv.package)
-            .append(PackageVersionAnalysis, id: pv.version)
-      ]);
-      if (items.first == null) {
-        addTask(new Task(pv.package, pv.version));
+        final Query q = _db.query(PackageVersion)
+          ..filter('created >=', minCreated)
+          ..order('created');
+        await for (PackageVersion pv in q.run()) {
+          if (_lastTs == null || _lastTs.isBefore(pv.created)) {
+            _lastTs = pv.created;
+          }
+          final List<PackageVersionAnalysis> items = await _db.lookup([
+            _db.emptyKey
+                .append(PackageAnalysis, id: pv.package)
+                .append(PackageVersionAnalysis, id: pv.version)
+          ]);
+          if (items.first == null) {
+            yield new Task(pv.package, pv.version);
+          }
+        }
+      } catch (e, st) {
+        _logger.severe('Error polling head.', e, st);
       }
+      await new Future.delayed(const Duration(minutes: 1));
     }
   }
 }
@@ -51,7 +60,7 @@ class DatastoreHeadTaskSource extends PollingTaskSource {
 ///
 /// When [analysisVersion] is set, it also checks whether the current one is
 /// newer and creates a task if needed.
-class DatastoreHistoryTaskSource extends PollingTaskSource {
+class DatastoreHistoryTaskSource implements TaskSource {
   final DatastoreDB _db;
   final int afterDays;
   final String analysisVersion;
@@ -62,35 +71,38 @@ class DatastoreHistoryTaskSource extends PollingTaskSource {
     this.afterDays: 30,
     this.analysisVersion,
     this.period: const Duration(seconds: 30),
-  })
-      : super(const Duration(days: 1));
+  });
 
   @override
-  Future poll() async {
-    final Query q = _db.query(PackageVersion);
-    await for (PackageVersion pv in q.run().asyncMap(_delay)) {
-      final List<PackageVersionAnalysis> list = await _db.lookup([
-        _db.emptyKey
-            .append(PackageAnalysis, id: pv.package)
-            .append(PackageVersionAnalysis, id: pv.version)
-      ]);
-      if (list.first == null) {
-        addTask(new Task(pv.package, pv.version));
-        return;
-      }
+  Stream<Task> startStreaming() async* {
+    for (;;) {
+      try {
+        await for (PackageVersion pv in _db.query(PackageVersion).run()) {
+          await new Future.delayed(const Duration(seconds: 30));
+          final List<PackageVersionAnalysis> list = await _db.lookup([
+            _db.emptyKey
+                .append(PackageAnalysis, id: pv.package)
+                .append(PackageVersionAnalysis, id: pv.version)
+          ]);
+          if (list.first == null) {
+            yield new Task(pv.package, pv.version);
+            continue;
+          }
 
-      final PackageVersionAnalysis version = list.first;
-      final Duration diff =
-          new DateTime.now().toUtc().difference(version.analysisTimestamp);
-      final bool versionDiffers =
-          analysisVersion != null && version.analysisVersion != analysisVersion;
+          final PackageVersionAnalysis version = list.first;
+          final Duration diff =
+              new DateTime.now().toUtc().difference(version.analysisTimestamp);
+          final bool versionDiffers = analysisVersion != null &&
+              version.analysisVersion != analysisVersion;
 
-      if (versionDiffers || diff.inDays >= afterDays) {
-        addTask(new Task(version.packageName, version.packageVersion));
+          if (versionDiffers || diff.inDays >= afterDays) {
+            yield new Task(version.packageName, version.packageVersion);
+          }
+        }
+      } catch (e, st) {
+        _logger.severe('Error polling history.', e, st);
       }
+      await new Future.delayed(const Duration(days: 1));
     }
   }
-
-  Future<PackageVersion> _delay(Model m) =>
-      new Future.delayed(period, () => m as PackageVersion);
 }
