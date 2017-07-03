@@ -66,13 +66,14 @@ void main() {
           'timestamp': '2017-06-26T12:48:00.000',
           'analysisVersion': '0.2.0',
           'analysisStatus': 'success',
-          'analysisContent': null
+          'analysisContent': {'content': 'from-pana'}
         });
       });
 
-      scopedTest('/packages/pkg_foo?full=true', () async {
+      scopedTest('/packages/pkg_foo?only-meta=true', () async {
         registerAnalysisBackend(new MockAnalysisBackend());
-        await expectJsonResponse(await issueGet('/packages/pkg_foo?full=true'),
+        await expectJsonResponse(
+            await issueGet('/packages/pkg_foo?only-meta=true'),
             body: {
               'packageName': 'pkg_foo',
               'packageVersion': '1.2.3',
@@ -80,7 +81,7 @@ void main() {
               'timestamp': '2017-06-26T12:48:00.000',
               'analysisVersion': '0.2.0',
               'analysisStatus': 'success',
-              'analysisContent': {'content': 'from-pana'},
+              'analysisContent': null,
             });
       });
 
@@ -94,7 +95,7 @@ void main() {
               'timestamp': '2017-06-26T12:48:00.000',
               'analysisVersion': '0.2.0',
               'analysisStatus': 'success',
-              'analysisContent': null
+              'analysisContent': {'content': 'from-pana'}
             });
       });
 
@@ -109,7 +110,7 @@ void main() {
               'timestamp': '2017-06-26T12:48:00.000',
               'analysisVersion': '0.2.0',
               'analysisStatus': 'success',
-              'analysisContent': null
+              'analysisContent': {'content': 'from-pana'}
             });
       });
     });
@@ -166,8 +167,8 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  Future<bool> isValidTarget(String packageName, String packageVersion,
-      String analysisVersion) {
+  Future<bool> isValidTarget(
+      String packageName, String packageVersion, String analysisVersion) {
     throw 'Not implemented yet.';
   }
 }

@@ -44,7 +44,7 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 ///   - /packages/<package>/<version>
 ///   - /packages/<package>/<version>/<analysis>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final bool isFull = request.url.queryParameters['full'] == 'true';
+  final bool onlyMeta = request.url.queryParameters['only-meta'] == 'true';
   final String path = request.requestedUri.path.substring('/packages/'.length);
   final List<String> pathParts = path.split('/');
   if (path.length == 0 || pathParts.length > 3) {
@@ -67,7 +67,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     Map analysisContent;
-    if (isFull) {
+    if (!onlyMeta) {
       analysisContent = JSON.decode(analysis.analysisJsonContent);
     }
     return jsonResponse(new AnalysisData(
