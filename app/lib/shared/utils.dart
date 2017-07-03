@@ -164,9 +164,16 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
       (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
 }
 
-void notifyAnalyzer(String package, String version) {
+void notifyAnalyzer(String package, String version) => _notifyService(
+    package, version, () => activeConfiguration.analyzerServiceHost);
+
+void notifySearch(String package, String version) => _notifyService(
+    package, version, () => activeConfiguration.searchServiceHost);
+
+void _notifyService(String package, String version, String hostFn()) {
   try {
-    final String host = activeConfiguration.analyzerServiceHost;
+    // will throw in travis
+    final String host = hostFn();
     final String uri = 'https://$host/packages/$package/$version';
     // Don't block on the notification request, and don't fail even if there was
     // an error.
@@ -174,7 +181,7 @@ void notifyAnalyzer(String package, String version) {
       _logger.info('Notification request on $uri failed: $e');
     });
   } catch (e) {
-    // we are running in travis
+    // we are probably running in travis
     _logger.info('Environment was not initialized: $e');
   }
 }

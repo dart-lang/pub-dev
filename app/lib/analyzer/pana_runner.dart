@@ -11,6 +11,7 @@ import 'package:pana/pana.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
 import '../shared/task_scheduler.dart' show Task;
+import '../shared/utils.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -62,5 +63,9 @@ class PanaRunner {
     // TODO: add custom report fields
 
     await _analysisBackend.storeAnalysis(analysis);
+
+    if (analysis.analysisStatus != AnalysisStatus.aborted) {
+      notifySearch(task.package, task.version);
+    }
   }
 }
