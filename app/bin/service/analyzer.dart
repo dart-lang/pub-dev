@@ -43,18 +43,22 @@ Future main() async {
 }
 
 void _runScheduler(List<SendPort> sendPorts) {
+  useLoggingPackageAdaptor();
+
   final SendPort mainSendPort = sendPorts[0];
   final ReceivePort taskReceivePort = new ReceivePort();
   mainSendPort.send(taskReceivePort.sendPort);
 
-  withCorrectDatastore(() async {
-    _registerServices();
-    final PanaRunner runner = new PanaRunner(analysisBackend);
-    await new TaskScheduler(runner.runTask, [
-      new ManualTriggerTaskSource(taskReceivePort),
-      new DatastoreHeadTaskSource(db.dbService),
-      new DatastoreHistoryTaskSource(db.dbService),
-    ]).run();
+  withAppEngineServices(() async {
+    withCorrectDatastore(() async {
+      _registerServices();
+      final PanaRunner runner = new PanaRunner(analysisBackend);
+      await new TaskScheduler(runner.runTask, [
+        new ManualTriggerTaskSource(taskReceivePort),
+        new DatastoreHeadTaskSource(db.dbService),
+        new DatastoreHistoryTaskSource(db.dbService),
+      ]).run();
+    });
   });
 }
 
