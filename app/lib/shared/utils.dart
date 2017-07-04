@@ -178,3 +178,19 @@ void notifyAnalyzer(String package, String version) {
     _logger.info('Environment was not initialized: $e');
   }
 }
+
+
+void notifySearch(String package) {
+  try {
+    final String host = activeConfiguration.searchServiceHost;
+    final String uri = 'https://$host/packages/$package';
+    // Don't block on the notification request, and don't fail even if there was
+    // an error.
+    _client.post(uri).then((_) => null, onError: (e) {
+      _logger.info('Notification request on $uri failed: $e');
+    });
+  } catch (e) {
+    // we are running in travis
+    _logger.info('Environment was not initialized: $e');
+  }
+}

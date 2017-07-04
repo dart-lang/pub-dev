@@ -97,6 +97,11 @@ class AnalysisBackend {
 
       tx.queueMutations(inserts: inserts);
       await tx.commit();
+
+      // Notify search only if new analysis is of the latest stable version.
+      if (package.latestVersion == version.packageVersion) {
+        notifySearch(analysis.packageName);
+      }
     });
   }
 
