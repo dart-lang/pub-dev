@@ -59,8 +59,6 @@ class PanaRunner {
       analysis.analysisJsonContent = JSON.encode(summary.toJson());
     }
 
-    // TODO: add custom report fields
-
     await _analysisBackend.storeAnalysis(analysis);
   }
 }

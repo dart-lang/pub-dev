@@ -119,10 +119,6 @@ class Analysis extends db.ExpandoModel {
   @db.StringProperty(indexed: false)
   String analysisJsonContent;
 
-  // Report fields contain our interpretation and relevant extracts of the pana
-  // analysis output.
-  // TODO: add report fields
-
   /// Empty constructor only for appengine.
   Analysis();
 
