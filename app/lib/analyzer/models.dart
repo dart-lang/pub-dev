@@ -33,7 +33,7 @@ class PackageAnalysis extends db.ExpandoModel {
       // Current package version is already the latest stable version.
       return false;
     }
-    package.latestVersionKey = analysis.packageVersionKey;
+    latestVersionKey = analysis.packageVersionKey;
     return true;
   }
 }
@@ -80,10 +80,10 @@ class PackageVersionAnalysis extends db.ExpandoModel {
       // the new analysis' pana version is older, result probably obsolete
       return false;
     }
-    version.latestAnalysisKey = analysis.key;
-    version.analysisTimestamp = analysis.timestamp;
-    version.analysisVersion = analysis.analysisVersion;
-    version.analysisStatus = analysis.analysisStatus;
+    latestAnalysisKey = analysis.key;
+    analysisTimestamp = analysis.timestamp;
+    analysisVersion = analysis.analysisVersion;
+    analysisStatus = analysis.analysisStatus;
     return true;
   }
 }
