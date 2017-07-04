@@ -50,7 +50,7 @@ void _runScheduler(List<SendPort> sendPorts) {
   mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {
-    withCorrectDatastore(() async {
+    await withCorrectDatastore(() async {
       _registerServices();
       final PanaRunner runner = new PanaRunner(analysisBackend);
       await new TaskScheduler(runner.runTask, [
