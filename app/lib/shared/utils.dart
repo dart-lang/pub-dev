@@ -168,29 +168,34 @@ void notifyAnalyzer(String package, String version) {
   try {
     final String host = activeConfiguration.analyzerServiceHost;
     final String uri = 'https://$host/packages/$package/$version';
-    // Don't block on the notification request, and don't fail even if there was
-    // an error.
-    _client.post(uri).then((_) => null, onError: (e) {
-      _logger.info('Notification request on $uri failed: $e');
-    });
+    _doNotify(uri);
   } catch (e) {
     // we are running in travis
     _logger.info('Environment was not initialized: $e');
   }
 }
 
-
 void notifySearch(String package) {
   try {
     final String host = activeConfiguration.searchServiceHost;
     final String uri = 'https://$host/packages/$package';
-    // Don't block on the notification request, and don't fail even if there was
-    // an error.
-    _client.post(uri).then((_) => null, onError: (e) {
-      _logger.info('Notification request on $uri failed: $e');
-    });
+    _doNotify(uri);
   } catch (e) {
     // we are running in travis
     _logger.info('Environment was not initialized: $e');
   }
+}
+
+void _doNotify(String uri) {
+  // Don't block on the notification request, and don't fail even if there was
+  // an error.
+  _client.post(uri).then((http.Response response) {
+    if (response.statusCode != 200) {
+      _logger.warning('Notification request on $uri failed. '
+          'Status code: ${response.statusCode}. '
+          'Body: ${response.body}');
+    }
+  }, onError: (e) {
+    _logger.severe('Notification request on $uri aborted: $e');
+  });
 }
