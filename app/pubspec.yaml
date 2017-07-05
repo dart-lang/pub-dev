@@ -22,6 +22,7 @@ dependencies:
   # pana version to be pinned
   pana: '0.2.3'
   # 3rd-party packages with pinned versions
+  archive: '1.0.31'
   ducene: '0.4.0'
   uuid: '0.5.3'
 
