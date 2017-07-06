@@ -63,12 +63,10 @@ class AnalysisBackend {
   /// Stores the analysis, and either creates or updates its parent
   /// [PackageAnalysis] and [PackageVersionAnalysis] records.
   Future storeAnalysis(Analysis analysis) async {
-    assert(analysis.id == null);
-    await db.commit(inserts: [analysis]);
-    assert(analysis.id != null);
-
     // update package and version too
     await db.withTransaction((Transaction tx) async {
+      analysis.id =
+          await (tx.db.datastore.allocateIds([analysis.key])).first.id;
       final Key packageKey =
           db.emptyKey.append(PackageAnalysis, id: analysis.packageName);
       final Key packageVersionKey = packageKey.append(PackageVersionAnalysis,
@@ -90,11 +88,7 @@ class AnalysisBackend {
         inserts.add(version);
       }
 
-      if (inserts.isEmpty) {
-        await tx.rollback();
-        return;
-      }
-
+      inserts.add(analysis);
       tx.queueMutations(inserts: inserts);
       await tx.commit();
 
