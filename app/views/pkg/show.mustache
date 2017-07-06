@@ -30,7 +30,12 @@
           <a href="#pub-pkg-tab-changelog" data-toggle="tab">{{changelog_filename}}</a>
         </li>
       {{/changelog}}
-      <li class="{{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}">
+      {{#example}}
+        <li class="{{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}">
+          <a href="#pub-pkg-tab-example" data-toggle="tab">Example</a>
+        </li>
+      {{/example}}
+      <li class="{{^readme}}{{^changelog}}{{^example}}active{{/example}}{{/changelog}}{{/readme}}">
         <a href="#pub-pkg-tab-installing" data-toggle="tab">Installing</a>
       </li>
       <li><a href="#pub-pkg-tab-versions" data-toggle="tab">Versions</a></li>
@@ -43,11 +48,17 @@
         </div>
       {{/readme}}
       {{#changelog}}
-      <div class="tab-pane {{^readme}}active{{/readme}}" id="pub-pkg-tab-changelog">
-        {{&changelog}}
-      </div>
+        <div class="tab-pane {{^readme}}active{{/readme}}" id="pub-pkg-tab-changelog">
+          {{&changelog}}
+        </div>
       {{/changelog}}
-      <div class="tab-pane {{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}" id="pub-pkg-tab-installing">
+      {{#example}}
+        <div class="tab-pane {{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}" id="pub-pkg-tab-example">
+          <p style="font-family: monospace"><b>{{example_filename}}</b></p>
+          {{&example}}
+        </div>
+      {{/example}}
+      <div class="tab-pane {{^readme}}{{^changelog}}{{^example}}active{{/example}}{{/changelog}}{{/readme}}" id="pub-pkg-tab-installing">
         <h3>1. Depend on it</h3>
         <p>Add this to your package's pubspec.yaml file:</p>
 <pre>

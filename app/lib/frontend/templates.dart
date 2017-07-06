@@ -158,9 +158,17 @@ class TemplateService {
       return filename.toLowerCase().endsWith('.md');
     }
 
+    bool isDartFile(String filename) {
+      return filename.toLowerCase().endsWith('.dart');
+    }
+
     String renderPlainText(String text) {
       return '<div class="highlight"><pre>${_escapeAngleBrackets(text)}'
           '</pre></div>';
+    }
+
+    String renderDartCode(String text) {
+      return _markdownToHtml('````dart\n${text.trim()}\n````\n');
     }
 
     String renderFile(FileObject file) {
@@ -169,6 +177,8 @@ class TemplateService {
       if (content != null) {
         if (isMarkdownFile(filename)) {
           return _markdownToHtml(content);
+        } else if (isDartFile(filename)) {
+          return renderDartCode(content);
         } else {
           return renderPlainText(content);
         }
@@ -188,6 +198,13 @@ class TemplateService {
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
       renderedChangelog = renderFile(selectedVersion.changelog);
+    }
+
+    String exampleFilename;
+    String renderedExample;
+    if (selectedVersion.example != null) {
+      exampleFilename = selectedVersion.example.filename;
+      renderedExample = renderFile(selectedVersion.example);
     }
 
     final versionsJson = [];
@@ -263,6 +280,8 @@ class TemplateService {
       'readme_filename': readmeFilename,
       'changelog': renderedChangelog,
       'changelog_filename': changelogFilename,
+      'example': renderedExample,
+      'example_filename': exampleFilename,
       'version_count': '$totalNumberOfVersions',
     };
     return _renderPage(

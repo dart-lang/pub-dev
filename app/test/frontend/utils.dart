@@ -53,6 +53,8 @@ final PackageVersion testPackageVersion = new PackageVersion()
   ..readmeContent = TestPackageReadme
   ..changelogFilename = 'CHANGELOG.md'
   ..changelogContent = TestPackageChangelog
+  ..exampleFilename = 'example/lib/main.dart'
+  ..exampleContent = TestPackageExample
   ..sortOrder = -1;
 
 final PackageVersion flutterPackageVersion =
@@ -101,6 +103,12 @@ Changelog
 
 0.1.1 - test package
 
+''';
+
+final String TestPackageExample = '''
+main() {
+  print('Hello world!');
+}
 ''';
 
 final String TestPackagePubspec = '''

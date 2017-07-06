@@ -150,8 +150,9 @@ class PackageVersion extends db.ExpandoModel {
   String readmeContent;
 
   FileObject get readme {
-    if (readmeFilename != null)
+    if (readmeFilename != null) {
       return new FileObject(readmeFilename, readmeContent);
+    }
     return null;
   }
 
@@ -162,8 +163,22 @@ class PackageVersion extends db.ExpandoModel {
   String changelogContent;
 
   FileObject get changelog {
-    if (changelogFilename != null)
+    if (changelogFilename != null) {
       return new FileObject(changelogFilename, changelogContent);
+    }
+    return null;
+  }
+
+  @db.StringProperty(indexed: false)
+  String exampleFilename;
+
+  @db.StringProperty(indexed: false)
+  String exampleContent;
+
+  FileObject get example {
+    if (exampleFilename != null) {
+      return new FileObject(exampleFilename, exampleContent);
+    }
     return null;
   }
 

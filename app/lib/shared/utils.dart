@@ -199,3 +199,12 @@ void _doNotify(String uri) {
     _logger.severe('Notification request on $uri aborted: $e');
   });
 }
+
+/// Returns the candidates in priority order to display under the 'Example' tab.
+List<String> exampleFileCandidates(String package) => [
+      'example/lib/main.dart',
+      'example/main.dart',
+      'example/lib/$package.dart',
+      'example/$package.dart',
+      'example/example.dart',
+    ];

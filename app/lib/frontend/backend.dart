@@ -630,12 +630,26 @@ Future<models.PackageVersion> parseAndValidateUpload(
   }
   validatePackageName(pubspec.name);
 
+  var exampleFilename;
+  for (String candidate in exampleFileCandidates(pubspec.name)) {
+    exampleFilename = searchForFile(candidate);
+    if (exampleFilename != null) break;
+  }
+
   final readmeContent = readmeFilename != null
       ? await readTarballFile(filename, readmeFilename)
       : null;
   final changelogContent = changelogFilename != null
       ? await readTarballFile(filename, changelogFilename)
       : null;
+  String exampleContent = exampleFilename != null
+      ? await readTarballFile(filename, exampleFilename)
+      : null;
+
+  if (exampleContent != null && exampleContent.trim().isEmpty) {
+    exampleFilename = null;
+    exampleContent = null;
+  }
 
   final packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
 
@@ -654,6 +668,8 @@ Future<models.PackageVersion> parseAndValidateUpload(
     ..readmeContent = readmeContent
     ..changelogFilename = changelogFilename
     ..changelogContent = changelogContent
+    ..exampleFilename = exampleFilename
+    ..exampleContent = exampleContent
     ..libraries = libraries
     ..downloads = 0
     ..detectedTypes = detectedTypes
