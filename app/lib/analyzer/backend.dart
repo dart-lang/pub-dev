@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart';
+import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/utils.dart';
 
 import 'models.dart';
@@ -110,33 +111,47 @@ class AnalysisBackend {
           .append(Package, id: packageName)
           .append(PackageVersion, id: packageVersion)
     ]);
-    // package or version does not exists
-    if (versions.first == null) return false;
+    // Does package and version exist?
+    final PackageVersion pv = versions.single;
+    if (pv == null) return false;
 
+    // Does package have any analysis?
     final List<PackageAnalysis> list =
         await db.lookup([db.emptyKey.append(PackageAnalysis, id: packageName)]);
-    // no analysis for the package
-    if (list.first == null) return true;
-
     final PackageAnalysis packageAnalysis = list.first;
+    if (packageAnalysis == null) return true;
+
+    // Does package have newer version than latest analyzed version?
+    if (isNewer(packageAnalysis.latestSemanticVersion, pv.semanticVersion)) {
+      return true;
+    }
+
+    // Does package have analysis for the current version?
     final PackageVersionAnalysis versionAnalysis =
         (await db.lookup([packageAnalysis.latestVersionKey])).first;
+    if (versionAnalysis == null) return true;
 
-    if (versionAnalysis.analysisVersion == analysisVersion) {
-      final DateTime now = new DateTime.now().toUtc();
-      if (now.difference(versionAnalysis.analysisTimestamp).inHours < 4) {
-        // latest analysis has the same version and happened in the past 4 hours
-        return false;
-      }
-    } else {
-      final Version analysisSemantic = new Version.parse(analysisVersion);
-      if (isNewer(analysisSemantic, versionAnalysis.semanticAnalysisVersion)) {
-        // existing analysis version is newer, current analyzer is obsolete?
-        // TODO: turn off task polling on this instance
-        _logger.warning(
-            'Newer analysis version detected, current instance is obsolete.');
-        return false;
-      }
+    // Is current analysis version newer?
+    final Version analysisSemantic = new Version.parse(analysisVersion);
+    if (isNewer(versionAnalysis.semanticAnalysisVersion, analysisSemantic)) {
+      return true;
+    }
+
+    // Is current analysis version obsolete?
+    if (isNewer(analysisSemantic, versionAnalysis.semanticAnalysisVersion)) {
+      // existing analysis version is newer, current analyzer is obsolete?
+      // TODO: turn off task polling on this instance
+      _logger.warning(
+          'Newer analysis version detected, current instance is obsolete.');
+      return false;
+    }
+
+    assert(versionAnalysis.analysisVersion == analysisVersion);
+
+    // Is latest analysis older than 4 hours?
+    final DateTime now = new DateTime.now().toUtc();
+    if (now.difference(versionAnalysis.analysisTimestamp).inHours < 4) {
+      return false;
     }
 
     return true;
