@@ -65,25 +65,29 @@ class AnalysisBackend {
   Future storeAnalysis(Analysis analysis) async {
     // update package and version too
     await db.withTransaction((Transaction tx) async {
-      analysis.id =
-          await (tx.db.datastore.allocateIds([analysis.key])).first.id;
+      final incompleteRawKey = tx.db.modelDB.toDatastoreKey(analysis.key);
+      final completeRawKey =
+          (await tx.db.datastore.allocateIds([incompleteRawKey])).single;
+      analysis.id = tx.db.modelDB.fromDatastoreKey(completeRawKey).id;
       final Key packageKey =
           db.emptyKey.append(PackageAnalysis, id: analysis.packageName);
       final Key packageVersionKey = packageKey.append(PackageVersionAnalysis,
           id: analysis.packageVersion);
       final List parents = await tx.lookup([packageKey, packageVersionKey]);
-      final PackageAnalysis package = parents[0];
-      final PackageVersionAnalysis version = parents[1];
+      PackageAnalysis package = parents[0];
+      PackageVersionAnalysis version = parents[1];
 
       final List<Model> inserts = [];
       if (package == null) {
-        inserts.add(new PackageAnalysis.fromAnalysis(analysis));
+        package = new PackageAnalysis.fromAnalysis(analysis);
+        inserts.add(package);
       } else if (package.updateWithLatest(analysis)) {
         inserts.add(package);
       }
 
       if (version == null) {
-        inserts.add(new PackageVersionAnalysis.fromAnalysis(analysis));
+        version = new PackageVersionAnalysis.fromAnalysis(analysis);
+        inserts.add(version);
       } else if (version.updateWithLatest(analysis)) {
         inserts.add(version);
       }
