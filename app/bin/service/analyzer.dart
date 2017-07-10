@@ -29,8 +29,17 @@ Future main() async {
   withAppEngineServices(() async {
     _initFlutterSdk().then((_) async {
       final ReceivePort mainReceivePort = new ReceivePort();
+      final ReceivePort errorReceivePort = new ReceivePort();
+      errorReceivePort.listen((e) {
+        logger.severe('ERROR from isolate', e);
+      });
       // TODO: handle unexpected exit/errors with onExit
-      await Isolate.spawn(_runScheduler, [mainReceivePort.sendPort]);
+      await Isolate.spawn(
+        _runScheduler,
+        [mainReceivePort.sendPort],
+        onError: errorReceivePort.sendPort,
+        onExit: errorReceivePort.sendPort,
+      );
       final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
       registerTaskSendPort(sendPorts[0]);
     });
