@@ -9,25 +9,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:markdown/markdown.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
+import '../shared/markdown.dart';
 import '../shared/mock_scores.dart';
 
 import 'models.dart';
 import 'search_service.dart' show CseTokens, SearchQuery, SearchResultPage;
-
-final List<BlockSyntax> _blockSyntaxes =
-    ExtensionSet.gitHub.blockSyntaxes.toList();
-
-final List<InlineSyntax> _inlineSyntaxes = ExtensionSet.gitHub.inlineSyntaxes
-    .where((s) => s is! InlineHtmlSyntax)
-    .toList();
-
-String _markdownToHtml(String text) => markdownToHtml(text,
-    extensionSet: ExtensionSet.none,
-    blockSyntaxes: _blockSyntaxes,
-    inlineSyntaxes: _inlineSyntaxes);
 
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
@@ -168,15 +156,15 @@ class TemplateService {
     }
 
     String renderDartCode(String text) {
-      return _markdownToHtml('````dart\n${text.trim()}\n````\n');
+      return markdownToHtml('````dart\n${text.trim()}\n````\n', null);
     }
 
-    String renderFile(FileObject file) {
+    String renderFile(FileObject file, String baseUrl) {
       final filename = file.filename;
       final content = file.text;
       if (content != null) {
         if (isMarkdownFile(filename)) {
-          return _markdownToHtml(content);
+          return markdownToHtml(content, baseUrl);
         } else if (isDartFile(filename)) {
           return renderDartCode(content);
         } else {
@@ -190,21 +178,24 @@ class TemplateService {
     var renderedReadme;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
-      renderedReadme = renderFile(selectedVersion.readme);
+      renderedReadme =
+          renderFile(selectedVersion.readme, selectedVersion.homepage);
     }
 
     var changelogFilename;
     var renderedChangelog;
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
-      renderedChangelog = renderFile(selectedVersion.changelog);
+      renderedChangelog =
+          renderFile(selectedVersion.changelog, selectedVersion.homepage);
     }
 
     String exampleFilename;
     String renderedExample;
     if (selectedVersion.example != null) {
       exampleFilename = selectedVersion.example.filename;
-      renderedExample = renderFile(selectedVersion.example);
+      renderedExample =
+          renderFile(selectedVersion.example, selectedVersion.homepage);
     }
 
     final versionsJson = [];
