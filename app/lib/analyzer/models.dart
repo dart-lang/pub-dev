@@ -6,6 +6,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/analyzer_service.dart' show AnalysisStatus;
+import '../shared/utils.dart';
 
 import 'model_properties.dart';
 
@@ -126,7 +127,7 @@ class Analysis extends db.ExpandoModel {
   Analysis.init(this.packageName, this.packageVersion) {
     timestamp = new DateTime.now().toUtc();
     parentKey = db.dbService.emptyKey
-        .append(PackageAnalysis, id: package)
-        .append(PackageVersionAnalysis, id: version);
+        .append(PackageAnalysis, id: packageName)
+        .append(PackageVersionAnalysis, id: packageVersion);
   }
 }
