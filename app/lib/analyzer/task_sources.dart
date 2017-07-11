@@ -64,13 +64,11 @@ class DatastoreHistoryTaskSource implements TaskSource {
   final DatastoreDB _db;
   final int afterDays;
   final String analysisVersion;
-  final Duration period;
 
   DatastoreHistoryTaskSource(
     this._db, {
     this.afterDays: 30,
     this.analysisVersion,
-    this.period: const Duration(seconds: 30),
   });
 
   @override
@@ -85,9 +83,6 @@ class DatastoreHistoryTaskSource implements TaskSource {
                 .append(PackageVersionAnalysis, id: pv.version)
           ]);
           if (list.first == null) {
-            // Waiting to throttle the historical tasks. If there is a newly
-            // uploaded package, give it a chance before continuing with these.
-            await new Future.delayed(const Duration(seconds: 30));
             yield new Task(pv.package, pv.version);
             continue;
           }
@@ -99,9 +94,6 @@ class DatastoreHistoryTaskSource implements TaskSource {
               version.analysisVersion != analysisVersion;
 
           if (versionDiffers || diff.inDays >= afterDays) {
-            // Waiting to throttle the historical tasks. If there is a newly
-            // uploaded package, give it a chance before continuing with these.
-            await new Future.delayed(const Duration(seconds: 30));
             yield new Task(version.packageName, version.packageVersion);
           }
         }
