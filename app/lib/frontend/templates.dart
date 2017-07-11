@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:mustache/mustache.dart' as mustache;
 
+import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/mock_scores.dart';
 
@@ -113,6 +114,7 @@ class TemplateService {
   /// Renders the `views/private_keys/show.mustache` template.
   String renderPkgShowPage(
       Package package,
+      AnalysisReport report,
       List<PackageVersion> versions,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,
@@ -227,9 +229,15 @@ class TemplateService {
       pageMapAttributes[CseTokens.experimentalScore] = '0';
     }
 
-    final bool isFlutterPlugin = latestStableVersion.detectedTypes
-            ?.contains(BuiltinTypes.flutterPlugin) ==
-        true;
+    bool isFlutterPlugin;
+    if (report == null) {
+      isFlutterPlugin = latestStableVersion.detectedTypes
+              ?.contains(BuiltinTypes.flutterPlugin) ==
+          true;
+    } else {
+      isFlutterPlugin =
+          report.platformReport.uses.contains(KnownPlatforms.flutter);
+    }
 
     final values = {
       'package': {
@@ -249,6 +257,7 @@ class TemplateService {
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
         'icons': _renderIconsBlockHtml(selectedVersion),
+        'platform_icons': _renderPlatformIconBlockHtml(report?.platformReport),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -448,6 +457,21 @@ class TemplateService {
     return icons;
   }
 
+  String _renderPlatformIconBlockHtml(PlatformReport platform) {
+    if (platform == null) return '';
+
+    final List worksOn = [];
+    for (String p in _platformIconOrder) {
+      if (platform.worksOn.contains(p)) {
+        worksOn.add(_platformIconData[p]);
+      }
+    }
+    return _renderTemplate('pkg/platform_icons_block', {
+      'has_works': worksOn.isNotEmpty,
+      'works': worksOn,
+    });
+  }
+
   /// Renders [template] with given [values].
   ///
   /// If [escapeValues] is `false`, values in `values` will not be escaped.
@@ -586,7 +610,32 @@ class PackageLinks extends PageLinks {
 abstract class LogoUrls {
   static const String smallDartFavicon = '/static/favicon.ico';
   static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
+  static const String html5Logo32x32 = '/static/img/html5-logo-32x32.png';
+  // Original source: https://pixabay.com/en/bash-command-line-linux-shell-148836/
+  static const String shellLogo32x32 = '/static/img/shell-logo-32x32.png';
 }
 
 const String flutterPackagesDescriptionHtml =
     '<p><a href="https://flutter.io/using-packages/">Learn more about using packages with Flutter.</a></p>';
+
+final List<String> _platformIconOrder = const [
+  KnownPlatforms.browser,
+  KnownPlatforms.console,
+  KnownPlatforms.flutter,
+];
+
+final Map<String, Map<String, String>> _platformIconData = const {
+  KnownPlatforms.browser: const {
+    'src': LogoUrls.html5Logo32x32,
+    'label': 'Browser',
+  },
+  KnownPlatforms.console: const {
+    'src': LogoUrls.shellLogo32x32,
+    'label': 'Standalone',
+  },
+  KnownPlatforms.flutter: const {
+    'src': LogoUrls.flutterLogo32x32,
+    'label': 'Flutter package',
+    'href': '/flutter/packages',
+  },
+};

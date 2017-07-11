@@ -12,6 +12,8 @@ import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../shared/analyzer_client.dart';
+import '../shared/analyzer_service.dart';
 import '../shared/handlers.dart';
 
 import 'atom_feed.dart';
@@ -321,14 +323,17 @@ Future<shelf.Response> packageVersionsHandler(
 
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
-    request, String packageName, String versionName) async {
+    shelf.Request request, String packageName, String versionName) async {
   String cachedPage;
   if (backend.uiPackageCache != null) {
     cachedPage =
         await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
   }
 
-  if (cachedPage == null) {
+  final bool useAnalyzerService =
+      request.url.queryParameters['experimental-service'] == 'true';
+
+  if (cachedPage == null || useAnalyzerService) {
     final Package package = await backend.lookupPackage(packageName);
     if (package == null) return _formattedNotFoundHandler(request);
 
@@ -341,7 +346,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     sortPackageVersionsDesc(versions, decreasing: true, pubSorting: false);
     final latestDev = versions[0];
 
-    var selectedVersion;
+    PackageVersion selectedVersion;
     if (versionName != null) {
       for (var v in versions) {
         if (v.version == versionName) selectedVersion = v;
@@ -356,20 +361,29 @@ Future<shelf.Response> packageVersionHandlerHtml(
       }
     }
 
+    final Future<AnalysisData> analysisReportFuture = useAnalyzerService
+        ? analyzerClient.getAnalysisData(packageName, selectedVersion.version)
+        : new Future.value();
+
     final versionDownloadUrls =
         await Future.wait(first10Versions.map((PackageVersion version) {
       return backend.downloadUrl(packageName, version.version);
     }).toList());
 
+    final AnalysisReport report =
+        new AnalysisReport.fromAnalysis(await analysisReportFuture);
+
     cachedPage = templateService.renderPkgShowPage(
         package,
+        report,
         first10Versions,
         versionDownloadUrls,
         selectedVersion,
         latestStable,
         latestDev,
         versions.length);
-    if (backend.uiPackageCache != null) {
+
+    if (backend.uiPackageCache != null && !useAnalyzerService) {
       await backend.uiPackageCache
           .setUIPackagePage(packageName, versionName, cachedPage);
     }

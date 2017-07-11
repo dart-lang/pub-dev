@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
     show SearchBias, SearchQuery, SearchResultPage;
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 
 import 'utils.dart';
 
@@ -40,6 +41,7 @@ void main() {
     test('package show page', () {
       final String html = templates.renderPkgShowPage(
           testPackage,
+          null,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
@@ -49,9 +51,34 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
+    test('package show page with a generic package', () {
+      final String html = templates.renderPkgShowPage(
+          testPackage,
+          new AnalysisReport(
+            platformReport: new PlatformReport(
+                worksEverywhere: true,
+                worksAnywhere: true,
+                worksOn: [
+                  KnownPlatforms.browser,
+                  KnownPlatforms.console,
+                  KnownPlatforms.flutter
+                ],
+                uses: [],
+                conflictsWith: []),
+          ),
+          [testPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          testPackageVersion,
+          testPackageVersion,
+          testPackageVersion,
+          1);
+      expectGoldenFile(html, 'pkg_show_page_experimental.html');
+    });
+
     test('package show page with flutter_plugin', () {
       final String html = templates.renderPkgShowPage(
           testPackage,
+          null,
           [flutterPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           flutterPackageVersion,
