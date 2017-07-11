@@ -26,7 +26,8 @@ void main() {
       } else {
         htmlParser.parse();
       }
-      final golden = new File('test/frontend/golden/$fileName').readAsStringSync();
+      final golden =
+          new File('test/frontend/golden/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
     }
 

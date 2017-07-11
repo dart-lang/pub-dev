@@ -92,8 +92,7 @@ class Package extends db.ExpandoModel {
       latestVersionKey = pv.key;
     }
 
-    if (latestDev == null ||
-        isNewer(latestDev, newVersion, pubSorted: false)) {
+    if (latestDev == null || isNewer(latestDev, newVersion, pubSorted: false)) {
       latestDevVersionKey = pv.key;
     }
   }

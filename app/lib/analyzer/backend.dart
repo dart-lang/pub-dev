@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart';
-import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/utils.dart';
 
 import 'models.dart';
