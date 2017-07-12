@@ -49,7 +49,7 @@ Future<DatastoreDB> _initializeApiaryDatastore() async {
       new File(gcloudKeyVar).readAsStringSync());
 
   final authClient =
-  await auth.clientViaServiceAccount(serviceAccount, DatastoreImpl.SCOPES);
+      await auth.clientViaServiceAccount(serviceAccount, DatastoreImpl.SCOPES);
   registerScopeExitCallback(authClient.close);
 
   final datastore = new DatastoreImpl(authClient, projectId);
