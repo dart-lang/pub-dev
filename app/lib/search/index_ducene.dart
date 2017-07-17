@@ -14,6 +14,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 
 import '../shared/search_service.dart';
 
+import 'text_utils.dart';
+
 /// The [PackageIndex] registered in the current service scope.
 PackageIndex get packageIndex => ss.lookup(#packageIndexService);
 
@@ -76,16 +78,14 @@ class DucenePackageIndex implements PackageIndex {
       ..append('devVersion', doc.devVersion)
       ..append(
         'description',
-        _normalizeText(doc.description, 500),
+        compactDescription(doc.description),
         analyzer: _analyzer,
-        stored: false,
+        stored: true,
       )
-      ..append(
-          'originalDescription', _normalizeWhitespaces(doc.description, 500))
       ..append('lastUpdated', doc.lastUpdated)
       ..append(
         'readme',
-        _normalizeText(doc.readme, 2000),
+        compactReadme(doc.readme),
         analyzer: _analyzer,
         stored: false,
       )
@@ -136,7 +136,7 @@ class DucenePackageIndex implements PackageIndex {
 
     await _init();
     final IndexSearcher searcher = _index.newRealTimeIndexSearcher();
-    final String queryText = _normalizeText(query.text, 200);
+    final String queryText = compactText(query.text, maxLength: 200);
     final duceneQuery = new BoolQuery()
       ..append('package', queryText, analyzer: _analyzer, boost: 4.0)
       ..append('description', queryText, analyzer: _analyzer, boost: 2.0)
@@ -191,32 +191,7 @@ class DucenePackageIndex implements PackageIndex {
       packages: packages,
     );
   }
-
-  String _normalizeWhitespaces(String text, int maxLength) {
-    if (text == null) return '';
-    String t = text.replaceAll(_multiWhitespaceRegExp, ' ').trim();
-    if (t.length > maxLength) {
-      t = t.substring(0, maxLength);
-    }
-    return t;
-  }
-
-  String _normalizeText(String text, int maxLength) {
-    if (text == null) return '';
-    String t = text
-        .toLowerCase()
-        .replaceAll(_nonCharacterRegExp, ' ')
-        .replaceAll(_multiWhitespaceRegExp, ' ')
-        .trim();
-    if (t.length > maxLength) {
-      t = t.substring(0, maxLength);
-    }
-    return ' ' + t + ' ';
-  }
 }
-
-final RegExp _nonCharacterRegExp = new RegExp('\\W');
-final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
 
 class _MultiNgramAnalyzer extends Analyzer {
   _MultiNgramAnalyzer(int n) {
@@ -230,6 +205,8 @@ class _MultiNgramTokenizer extends Tokenizer {
 
   @override
   Iterable<String> tokenize(String text) {
+    text = normalizeBeforeIndexing(text);
+    if (text.isEmpty) return [];
     final Set<String> ngrams = new Set();
     for (int ngramLength = 1; ngramLength <= _n; ngramLength++) {
       if (text.length <= ngramLength) {

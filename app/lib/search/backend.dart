@@ -11,6 +11,8 @@ import '../frontend/models.dart';
 import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
 
+import 'text_utils.dart';
+
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
     ss.register(#_searchBackend, backend);
@@ -57,9 +59,9 @@ class SearchBackend {
         version: pv.version,
         devVersion: p.latestDevVersion,
         detectedTypes: pv.detectedTypes,
-        description: pv.pubspec.description,
+        description: compactDescription(pv.pubspec.description),
         lastUpdated: pv.shortCreated,
-        readme: pv.readmeContent,
+        readme: compactReadme(pv.readmeContent),
         popularity: mockScores[pv.package] ?? 0.0,
       );
     }
