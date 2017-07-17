@@ -49,7 +49,7 @@ class BatchIndexUpdater {
   int _firstScanCount;
 
   void reportScanCount(int count) {
-    if (_firstScanCount == null) return;
+    if (_firstScanCount != null) return;
     _firstScanCount = count;
   }
 
