@@ -41,6 +41,8 @@ class BatchIndexUpdater {
   Timer _batchUpdateTimer;
   Future _ongoingBatchUpdate;
   int _taskCount = 0;
+  SearchSnapshot _snapshot;
+  DateTime _lastSnapshotWrite = new DateTime.now();
 
   // Used by [IndexUpdateTaskSource] to indicating how many packages were
   // yielded in the first run of the index update.
@@ -49,8 +51,38 @@ class BatchIndexUpdater {
   int _firstScanCount;
 
   void reportScanCount(int count) {
-    if (_firstScanCount == null) return;
+    if (_firstScanCount != null) return;
     _firstScanCount = count;
+  }
+
+  Future initSnapshot() async {
+    if (_snapshot != null) return;
+    try {
+      _logger.info('Loading snapshot...');
+      _snapshot = await snapshotStorage.fetch();
+      if (_snapshot != null) {
+        final int count = _snapshot.documents.length;
+        _logger
+            .info('Got $count packages from snapshot at ${_snapshot.updated}');
+        await packageIndex.addAll(_snapshot.documents.values);
+        // Arbitrary sanity check that the snapshot is not entirely bogus.
+        // Index merge will enable search.
+        if (count > 10) {
+          _logger.info('Merging index after snapshot.');
+          await packageIndex.merge();
+          _logger.info('Snapshot load completed.');
+          // the first scan is no longer relevant, enabling frequent index merges
+          _firstScanCount = 0;
+        }
+      }
+    } catch (e, st) {
+      _logger.warning('Error while fetching snapshot.', e, st);
+    }
+    if (_snapshot == null) {
+      _snapshot = new SearchSnapshot();
+      // making sure snapshot will be written as soon as the first scan is done
+      _lastSnapshotWrite = new DateTime.now().subtract(new Duration(days: 1));
+    }
   }
 
   Future updateIndex(Task task) async {
@@ -87,6 +119,7 @@ class BatchIndexUpdater {
           '[example: ${tasks.first.package}]');
       final List<PackageDocument> docs = await searchBackend
           .loadDocuments(tasks.map((t) => t.package).toList());
+      _snapshot.addAll(docs);
       await packageIndex.addAll(docs);
       final bool doMerge =
           _firstScanCount != null && _taskCount >= _firstScanCount;
@@ -94,10 +127,26 @@ class BatchIndexUpdater {
         _logger.info('Merging index after $_taskCount updates.');
         await packageIndex.merge();
         _logger.info('Merge completed.');
+
+        await _updateSnapshotIfNeeded(docs);
       }
     } finally {
       completer.complete();
       _ongoingBatchUpdate = null;
+    }
+  }
+
+  Future _updateSnapshotIfNeeded(List<PackageDocument> docs) async {
+    final DateTime now = new DateTime.now();
+    if (now.difference(_lastSnapshotWrite).inHours > 12) {
+      _lastSnapshotWrite = now;
+      try {
+        _logger.info('Updating search snapshot...');
+        await snapshotStorage.store(_snapshot);
+        _logger.info('Search snapshot update completed.');
+      } catch (e, st) {
+        _logger.warning('Unable to update search snapshot.', e, st);
+      }
     }
   }
 }

@@ -3,13 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
 import '../frontend/models.dart';
 import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
+
+import 'text_utils.dart';
+
+Logger _logger = new Logger('pub.search.backend');
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -17,6 +25,13 @@ void registerSearchBackend(SearchBackend backend) =>
 
 /// The active backend service.
 SearchBackend get searchBackend => ss.lookup(#_searchBackend);
+
+/// Sets the snapshot storage
+void registerSnapshotStorage(SnapshotStorage storage) =>
+    ss.register(#_snapshotStorage, storage);
+
+/// The active snapshot storage
+SnapshotStorage get snapshotStorage => ss.lookup(#_snapshotStorage);
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
@@ -57,9 +72,9 @@ class SearchBackend {
         version: pv.version,
         devVersion: p.latestDevVersion,
         detectedTypes: pv.detectedTypes,
-        description: pv.pubspec.description,
+        description: compactDescription(pv.pubspec.description),
         lastUpdated: pv.shortCreated,
-        readme: pv.readmeContent,
+        readme: compactReadme(pv.readmeContent),
         popularity: mockScores[pv.package] ?? 0.0,
       );
     }
@@ -76,3 +91,102 @@ class SearchBackend {
 }
 
 String _toUrl(String package) => 'https://pub.dartlang.org/packages/$package';
+
+class SnapshotStorage {
+  final Storage storage;
+  final Bucket bucket;
+  final GZipCodec _gzip = new GZipCodec();
+
+  SnapshotStorage(this.storage, this.bucket);
+
+  Future<SearchSnapshot> fetch() async {
+    final List<BucketEntry> list = await bucket.list().toList();
+    final List<String> names = list
+        .where((entry) => entry.isObject)
+        .map((entry) => entry.name)
+        .toList();
+    if (names.isEmpty) return null;
+    // Select the first entry, because there is chance that later entries were
+    // aborted for some reason, and the most probable correct entry is the first
+    // one.
+    names.sort();
+    final String selected = names.first;
+    // reading
+    final Stream<List<int>> storageStream = bucket.read(selected);
+    final Stream<List<int>> unzippedStream = _gzip.decoder.bind(storageStream);
+    final String json = await UTF8.decoder.bind(unzippedStream).join();
+    return new SearchSnapshot.fromJson(JSON.decode(json));
+  }
+
+  Future store(SearchSnapshot snapshot) async {
+    // garbage-collect old entries after upload is successful
+    final List<BucketEntry> list = await bucket.list().toList();
+    final List<String> toDelete = list
+        .where((entry) => entry.isObject)
+        .map((entry) => entry.name)
+        .toList();
+
+    // data buffer to write
+    final List<int> buffer =
+        _gzip.encode(UTF8.encode(JSON.encode(snapshot.toJson())));
+
+    // generate name from current timestamp
+    final String ts =
+        new DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
+    final currentName = 'snapshot-$ts.json.gz';
+
+    // upload
+    final StreamSink<List<int>> sink = bucket.write(currentName);
+    sink.add(buffer);
+    await sink.close();
+
+    // upload successful, garbage-collect entries
+    for (String name in toDelete) {
+      try {
+        await bucket.delete(name);
+      } catch (e, st) {
+        _logger.warning('Snapshot delete failed: $name', e, st);
+      }
+    }
+  }
+}
+
+class SearchSnapshot {
+  DateTime updated;
+  Map<String, PackageDocument> documents;
+
+  SearchSnapshot._(this.updated, this.documents);
+
+  factory SearchSnapshot() =>
+      new SearchSnapshot._(new DateTime.now().toUtc(), {});
+
+  factory SearchSnapshot.fromJson(Map json) {
+    final DateTime updated = DateTime.parse(json['updated']);
+    final Map documentsMap = json['documents'];
+    final Map<String, PackageDocument> documents = {};
+    documentsMap.forEach((String key, Map data) {
+      documents[key] = new PackageDocument.fromJson(data);
+    });
+    return new SearchSnapshot._(updated, documents);
+  }
+
+  void add(PackageDocument doc) {
+    updated = new DateTime.now().toUtc();
+    documents[doc.package] = doc;
+  }
+
+  void addAll(Iterable<PackageDocument> docs) {
+    docs.forEach(add);
+  }
+
+  Map toJson() {
+    final Map documentsMap = {};
+    documents.forEach((String key, PackageDocument doc) {
+      documentsMap[key] = doc.toJson();
+    });
+    return {
+      'updated': updated.toIso8601String(),
+      'documents': documentsMap,
+    };
+  }
+}

@@ -14,7 +14,7 @@ final activeConfiguration = new Configuration.fromEnv(envConfig);
 /// package metadata and the Cloud Storage bucket for the actual package
 /// tar files.
 class Configuration {
-  /// The name of the Cloud Storage bucket to use.
+  /// The name of the Cloud Storage bucket to use for uploaded package content.
   final String packageBucketName;
 
   /// The Cloud project Id. This is only required when using Apiary to access
@@ -26,6 +26,9 @@ class Configuration {
 
   /// The host name for the search service.
   final String searchServiceHost;
+
+  /// The name of the Cloud Storage bucket to use for search snapshots.
+  final String searchSnapshotBucketName;
 
   auth.ServiceAccountCredentials _credentials;
 
@@ -50,14 +53,16 @@ class Configuration {
       : projectId = 'dartlang-pub',
         packageBucketName = 'pub-packages',
         analyzerServiceHost = 'analyzer-dot-dartlang-pub.appspot.com',
-        searchServiceHost = 'search-dot-dartlang-pub.appspot.com';
+        searchServiceHost = 'search-dot-dartlang-pub.appspot.com',
+        searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
 
   /// Create a configuration for development/staging deployment.
   Configuration._dev()
       : projectId = 'dartlang-pub-dev',
         packageBucketName = 'dartlang-pub-dev--pub-packages',
         analyzerServiceHost = 'analyzer-dot-dartlang-pub-dev.appspot.com',
-        searchServiceHost = 'search-dot-dartlang-pub-dev.appspot.com';
+        searchServiceHost = 'search-dot-dartlang-pub-dev.appspot.com',
+        searchSnapshotBucketName = 'dartlang-pub-dev--search-snapshot';
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {

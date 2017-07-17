@@ -52,7 +52,7 @@ class PackageDocument {
     this.popularity,
   });
 
-  factory PackageDocument.parseJson(Map json) => new PackageDocument(
+  factory PackageDocument.fromJson(Map json) => new PackageDocument(
         url: json['url'],
         package: json['package'],
         version: json['version'],
