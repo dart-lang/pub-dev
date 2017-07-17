@@ -71,6 +71,11 @@ class DucenePackageIndex implements PackageIndex {
   @override
   Future add(PackageDocument doc) async {
     await _init();
+    final Document duceneDoc = _createDuceneDocument(doc);
+    await _index.updateDocuments([duceneDoc]);
+  }
+
+  Document _createDuceneDocument(PackageDocument doc) {
     final Document duceneDoc = new Document()
       ..append('id', doc.url)
       ..append('package', doc.package, analyzer: _analyzer)
@@ -93,16 +98,13 @@ class DucenePackageIndex implements PackageIndex {
     if (doc.detectedTypes != null && doc.detectedTypes.isNotEmpty) {
       duceneDoc.append('detectedTypes', doc.detectedTypes);
     }
-    await _index.updateDocuments([duceneDoc]);
+    return duceneDoc;
   }
 
   @override
   Future addAll(Iterable<PackageDocument> documents) async {
-    // Adding documents one-by-one, will need to experiment with better batch
-    // size when async disk index is available.
-    for (PackageDocument doc in documents) {
-      await add(doc);
-    }
+    await _init();
+    await _index.updateDocuments(documents.map(_createDuceneDocument));
   }
 
   @override
