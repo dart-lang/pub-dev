@@ -18,7 +18,7 @@ import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
-import 'package:pub_dartlang_org/search/index_ducene.dart';
+import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 
 void main() {
@@ -32,8 +32,7 @@ void main() {
           storageService, activeConfiguration.searchSnapshotBucketName);
       registerSnapshotStorage(new SnapshotStorage(storageService, bucket));
 
-      registerPackageIndex(
-          new DucenePackageIndex(directory: envConfig.duceneDir));
+      registerPackageIndex(new SimplePackageIndex());
 
       final ReceivePort taskReceivePort = new ReceivePort();
       registerTaskSendPort(taskReceivePort.sendPort);

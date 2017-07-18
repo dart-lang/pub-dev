@@ -10,7 +10,7 @@ import '../shared/search_service.dart';
 import '../shared/task_scheduler.dart';
 
 import 'backend.dart';
-import 'index_ducene.dart';
+import 'index_simple.dart';
 
 Logger _logger = new Logger('pub.search.updater');
 
