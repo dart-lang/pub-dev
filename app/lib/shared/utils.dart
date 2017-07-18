@@ -166,7 +166,7 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
 
 void notifyAnalyzer(String package, String version) {
   try {
-    final String host = activeConfiguration.analyzerServiceHost;
+    final String host = activeConfiguration.analyzerServicePrefix;
     final String uri = 'https://$host/packages/$package/$version';
     _doNotify(uri);
   } catch (e) {
@@ -177,8 +177,8 @@ void notifyAnalyzer(String package, String version) {
 
 void notifySearch(String package) {
   try {
-    final String host = activeConfiguration.searchServiceHost;
-    final String uri = 'https://$host/packages/$package';
+    final String httpHostPort = activeConfiguration.searchServicePrefix;
+    final String uri = '$httpHostPort/packages/$package';
     _doNotify(uri);
   } catch (e) {
     // we are running in travis

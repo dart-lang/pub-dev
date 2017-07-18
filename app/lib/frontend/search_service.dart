@@ -94,12 +94,12 @@ class SearchService {
     final search_service.PackageQuery packageQuery =
         new search_service.PackageQuery(query.text,
             type: query.type, offset: query.offset, limit: query.limit);
-    final Uri serviceUrl = new Uri(
-      scheme: 'https',
-      host: activeConfiguration.searchServiceHost,
-      path: '/search',
-      queryParameters: packageQuery.toServiceQueryParameters(),
-    );
+
+    final String httpHostPort = activeConfiguration.searchServicePrefix;
+    final String serviceUrlParams =
+        new Uri(queryParameters: packageQuery.toServiceQueryParameters())
+            .toString();
+    final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
     final http.Response response = await searchServiceClient.get(serviceUrl);
     if (response.statusCode == search_service.searchIndexNotReadyCode) {
       // Search request before the service initialization completed.

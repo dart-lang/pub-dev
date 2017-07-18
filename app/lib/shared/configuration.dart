@@ -21,11 +21,11 @@ class Configuration {
   /// Datastore and/or Cloud Storage
   final String projectId;
 
-  /// The host name for the analyzer service.
-  final String analyzerServiceHost;
+  /// The scheme://host:port prefix for the analyzer service.
+  final String analyzerServicePrefix;
 
-  /// The host name for the search service.
-  final String searchServiceHost;
+  /// The scheme://host:port prefix for the search service.
+  final String searchServicePrefix;
 
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String searchSnapshotBucketName;
@@ -52,16 +52,17 @@ class Configuration {
   Configuration._prod()
       : projectId = 'dartlang-pub',
         packageBucketName = 'pub-packages',
-        analyzerServiceHost = 'analyzer-dot-dartlang-pub.appspot.com',
-        searchServiceHost = 'search-dot-dartlang-pub.appspot.com',
+        analyzerServicePrefix = 'https://analyzer-dot-dartlang-pub.appspot.com',
+        searchServicePrefix = 'https://search-dot-dartlang-pub.appspot.com',
         searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
 
   /// Create a configuration for development/staging deployment.
   Configuration._dev()
       : projectId = 'dartlang-pub-dev',
         packageBucketName = 'dartlang-pub-dev--pub-packages',
-        analyzerServiceHost = 'analyzer-dot-dartlang-pub-dev.appspot.com',
-        searchServiceHost = 'search-dot-dartlang-pub-dev.appspot.com',
+        analyzerServicePrefix =
+            'https://analyzer-dot-dartlang-pub-dev.appspot.com',
+        searchServicePrefix = 'https://search-dot-dartlang-pub-dev.appspot.com',
         searchSnapshotBucketName = 'dartlang-pub-dev--search-snapshot';
 
   /// Create a configuration based on the environment variables.
