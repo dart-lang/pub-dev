@@ -19,7 +19,9 @@ Future main(List<String> args) async {
   int updated = 0;
   _httpClient = new http.Client();
   await withProdServices(() async {
-    await for (PackageVersion pv in dbService.query(PackageVersion).run()) {
+    await for (PackageVersion pv in (dbService.query(PackageVersion)
+        ..order("-created"))
+        .run()) {
       if (pv.exampleFilename == null && pv.exampleContent == null) {
         try {
           print('Updating: ${pv.package} ${pv.version}');
