@@ -20,7 +20,7 @@ Future main(List<String> args) async {
   _httpClient = new http.Client();
   await withProdServices(() async {
     await for (PackageVersion pv in (dbService.query(PackageVersion)
-        ..order("-created"))
+        ..order('-created'))
         .run()) {
       if (pv.exampleFilename == null && pv.exampleContent == null) {
         try {
