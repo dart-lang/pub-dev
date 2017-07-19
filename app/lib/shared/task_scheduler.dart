@@ -112,22 +112,27 @@ class PrioritizedAsyncIterator<T> {
 
   /// Whether the iterator has another item.
   Future<bool> get hasNext async {
+    if (_hasNextCompleter != null) return _hasNextCompleter.future;
+    if (_isClosed) return false;
     final Queue<T> queue = _firstQueue();
     if (queue != null) {
       return true;
     } else {
       _hasNextCompleter ??= new Completer();
+      _closeWhenAllDone();
       return _hasNextCompleter.future;
     }
   }
 
   /// The next item in the iterator.
   Future<T> get next async {
+    if (_nextCompleter != null) return _nextCompleter.future;
     final Queue<T> queue = _firstQueue();
     if (queue != null) {
       return queue.removeFirst();
     } else {
       _nextCompleter ??= new Completer();
+      _closeWhenAllDone();
       return _nextCompleter.future;
     }
   }
@@ -139,7 +144,7 @@ class PrioritizedAsyncIterator<T> {
       _hasNextCompleter = null;
     }
     if (_nextCompleter != null) {
-      _nextCompleter.completeError('PrioritizedStreamQueue closed');
+      _nextCompleter.completeError('PrioritizedStreamQueue close() called.');
       _nextCompleter = null;
     }
     for (int i = 0; i < _subscriptions.length; i++) {
@@ -171,10 +176,13 @@ class PrioritizedAsyncIterator<T> {
       }
       _nextCompleter = null;
     }
+    _closeWhenAllDone();
   }
 
   void _closeWhenAllDone() {
-    final bool shouldClose = _subscriptions.every((s) => s == null);
-    if (shouldClose) close();
+    if (_isClosed) return;
+    if (_subscriptions.any((s) => s != null)) return;
+    if (_firstQueue() != null) return;
+    close();
   }
 }
