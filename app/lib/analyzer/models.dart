@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -117,8 +120,8 @@ class Analysis extends db.ExpandoModel {
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;
 
-  @db.StringProperty(indexed: false)
-  String analysisJsonContent;
+  @db.BlobProperty()
+  List<int> analysisJsonGz;
 
   /// Empty constructor only for appengine.
   Analysis();
@@ -130,4 +133,14 @@ class Analysis extends db.ExpandoModel {
         .append(PackageAnalysis, id: packageName)
         .append(PackageVersionAnalysis, id: packageVersion);
   }
+
+  Map get analysisJson {
+    return JSON.decode(UTF8.decode(_gzipCodec.decode(analysisJsonGz)));
+  }
+
+  set analysisJson(Map map) {
+    analysisJsonGz = _gzipCodec.encode(UTF8.encode(JSON.encode(map)));
+  }
 }
+
+final GZipCodec _gzipCodec = new GZipCodec();

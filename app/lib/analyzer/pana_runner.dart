@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
@@ -56,7 +55,7 @@ class PanaRunner {
       } else {
         analysis.analysisStatus = AnalysisStatus.failure;
       }
-      analysis.analysisJsonContent = JSON.encode(summary.toJson());
+      analysis.analysisJson = summary.toJson();
     }
 
     await _analysisBackend.storeAnalysis(analysis);
