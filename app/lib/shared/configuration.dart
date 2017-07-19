@@ -77,14 +77,13 @@ class Configuration {
 
 /// Configuration from the environment variables.
 class EnvConfig {
-  final String duceneDir;
   final String gaeService;
   final String gcloudKey;
   final String gcloudProject;
   final String flutterSdkDir;
 
-  EnvConfig._(this.duceneDir, this.gaeService, this.gcloudProject,
-      this.gcloudKey, this.flutterSdkDir) {
+  EnvConfig._(
+      this.gaeService, this.gcloudProject, this.gcloudKey, this.flutterSdkDir) {
     if (this.gcloudProject == null) {
       throw new Exception('GCLOUD_PROJECT needs to be set!');
     }
@@ -92,7 +91,6 @@ class EnvConfig {
 
   factory EnvConfig._detect() {
     return new EnvConfig._(
-      Platform.environment['DUCENE_DIR'],
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],

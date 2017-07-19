@@ -11,7 +11,7 @@ import '../shared/handlers.dart';
 import '../shared/search_service.dart';
 import '../shared/task_client.dart';
 
-import 'index_ducene.dart';
+import 'index_simple.dart';
 
 /// Handlers for the search service.
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {

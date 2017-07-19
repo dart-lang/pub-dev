@@ -5,9 +5,6 @@
 runtime: custom
 env: flex
 service: search
-env_variables:
-  # Needs to be in sync with lib/shared/configuration.dart
-  DUCENE_DIR: '/ducene'
 
 resources:
   cpu: 1

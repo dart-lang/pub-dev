@@ -11,7 +11,7 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
-import 'package:pub_dartlang_org/search/index_ducene.dart';
+import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart' show Task;
 
@@ -53,7 +53,7 @@ void main() {
     group('search', () {
       scopedTest('/search?q=json', () async {
         registerSearchBackend(new MockSearchBackend());
-        registerPackageIndex(new DucenePackageIndex());
+        registerPackageIndex(new SimplePackageIndex());
         await packageIndex
             .addAll(await searchBackend.loadDocuments(['pkg_foo']));
         await packageIndex.merge();
@@ -66,7 +66,7 @@ void main() {
               'package': 'pkg_foo',
               'version': '1.0.1',
               'devVersion': '1.0.1-dev',
-              'score': closeTo(52.0, 0.001),
+              'score': closeTo(40.59, 0.01),
             }
           ]
         });
