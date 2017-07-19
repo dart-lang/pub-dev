@@ -74,4 +74,11 @@ void main() {
           '<p><a href="README.md">text</a></p>\n');
     });
   });
+
+  group('Bad markdown', () {
+    test('bad link', () {
+      expect(markdownToHtml('[a][b]', 'http://www.example.com/'),
+          '<p>[a][b]</p>\n');
+    });
+  });
 }

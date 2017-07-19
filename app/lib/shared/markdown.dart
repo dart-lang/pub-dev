@@ -42,7 +42,7 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
   @override
   m.Link getLink(m.InlineParser parser, Match match, m.TagState state) {
     final m.Link link = super.getLink(parser, match, state);
-    if (_isRelativePathUrl(link.url)) {
+    if (link != null && _isRelativePathUrl(link.url)) {
       final Uri newUri = new Uri(
         scheme: baseUri.scheme,
         host: baseUri.host,
@@ -56,7 +56,7 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
   }
 
   bool _isRelativePathUrl(String url) =>
-      !url.startsWith('#') && !url.contains(':');
+      url != null && !url.startsWith('#') && !url.contains(':');
 }
 
 m.ExtensionSet _createCustomExtension(String baseUrl) {
