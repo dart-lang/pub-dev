@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
@@ -68,7 +67,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
     }
     Map analysisContent;
     if (!onlyMeta) {
-      analysisContent = JSON.decode(analysis.analysisJsonContent);
+      analysisContent = analysis.analysisJson;
     }
     return jsonResponse(new AnalysisData(
             packageName: analysis.packageName,

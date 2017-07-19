@@ -180,4 +180,4 @@ final Analysis testAnalysis = new Analysis()
   ..analysisStatus = AnalysisStatus.success
   ..analysisVersion = '0.2.0'
   ..timestamp = new DateTime(2017, 06, 26, 12, 48, 00)
-  ..analysisJsonContent = '{"content": "from-pana"}';
+  ..analysisJson = {'content': 'from-pana'};
