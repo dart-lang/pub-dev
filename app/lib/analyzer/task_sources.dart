@@ -75,26 +75,25 @@ class DatastoreHistoryTaskSource implements TaskSource {
   Stream<Task> startStreaming() async* {
     for (;;) {
       try {
-        final Query query = _db.query(PackageVersion)..order('-created');
-        await for (PackageVersion pv in query.run()) {
-          final List<PackageVersionAnalysis> list = await _db.lookup([
-            _db.emptyKey
-                .append(PackageAnalysis, id: pv.package)
-                .append(PackageVersionAnalysis, id: pv.version)
-          ]);
-          if (list.first == null) {
-            yield new Task(pv.package, pv.version);
-            continue;
+        // Check and schedule the latest stable version of each package.
+        final Query packageQuery = _db.query(Package)..order('-updated');
+        await for (Package p in packageQuery.run()) {
+          if (await _requiresUpdate(p.name, p.latestVersion)) {
+            yield new Task(p.name, p.latestVersion);
           }
 
-          final PackageVersionAnalysis version = list.first;
-          final Duration diff =
-              new DateTime.now().toUtc().difference(version.analysisTimestamp);
-          final bool versionDiffers = analysisVersion != null &&
-              version.analysisVersion != analysisVersion;
+          if (p.latestVersion != p.latestDevVersion &&
+              await _requiresUpdate(p.name, p.latestDevVersion)) {
+            yield new Task(p.name, p.latestDevVersion);
+          }
+        }
 
-          if (versionDiffers || diff.inDays >= afterDays) {
-            yield new Task(version.packageName, version.packageVersion);
+        // After we are done with the most important versions, let's check all
+        // of the older versions too.
+        final Query versionQuery = _db.query(PackageVersion)..order('-created');
+        await for (PackageVersion pv in versionQuery.run()) {
+          if (await _requiresUpdate(pv.package, pv.version)) {
+            yield new Task(pv.package, pv.version);
           }
         }
       } catch (e, st) {
@@ -102,5 +101,26 @@ class DatastoreHistoryTaskSource implements TaskSource {
       }
       await new Future.delayed(const Duration(days: 1));
     }
+  }
+
+  Future<bool> _requiresUpdate(
+      String packageName, String packageVersion) async {
+    final List<PackageVersionAnalysis> list = await _db.lookup([
+      _db.emptyKey
+          .append(PackageAnalysis, id: packageName)
+          .append(PackageVersionAnalysis, id: packageVersion)
+    ]);
+    final PackageVersionAnalysis version = list.first;
+    if (version == null) return true;
+
+    if (analysisVersion != null && version.analysisVersion != analysisVersion) {
+      return true;
+    }
+
+    final Duration diff =
+        new DateTime.now().toUtc().difference(version.analysisTimestamp);
+    if (diff.inDays >= afterDays) return true;
+
+    return false;
   }
 }
