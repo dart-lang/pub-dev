@@ -28,7 +28,7 @@ Future main(List<String> args) async {
     final query = dbService.query(PackageVersion)..order('-created');
     if (pkg != null) {
       query.filter(
-          "package =", new ds.Key([new ds.KeyElement('Package', 'shelf')]));
+          "package =", new ds.Key([new ds.KeyElement('Package', pkg)]));
     }
     await for (PackageVersion pv in query.run()) {
       if (pv.exampleFilename == null && pv.exampleContent == null) {
