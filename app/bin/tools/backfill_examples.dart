@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/datastore.dart' as ds;
 import 'package:http/http.dart' as http;
 
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -16,12 +17,20 @@ import 'package:pub_dartlang_org/shared/utils.dart';
 http.Client _httpClient;
 
 Future main(List<String> args) async {
+  String pkg;
+  if (args.isNotEmpty) {
+    pkg = args.single;
+  }
+
   int updated = 0;
   _httpClient = new http.Client();
   await withProdServices(() async {
-    await for (PackageVersion pv in (dbService.query(PackageVersion)
-        ..order('-created'))
-        .run()) {
+    final query = dbService.query(PackageVersion)..order('-created');
+    if (pkg != null) {
+      query.filter(
+          "package =", new ds.Key([new ds.KeyElement('Package', pkg)]));
+    }
+    await for (PackageVersion pv in query.run()) {
       if (pv.exampleFilename == null && pv.exampleContent == null) {
         try {
           print('Updating: ${pv.package} ${pv.version}');
