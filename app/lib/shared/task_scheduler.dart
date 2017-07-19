@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
-import 'package:async/async.dart';
 import 'package:logging/logging.dart';
 
 final Logger _logger = new Logger('pub.scheduler');
@@ -25,12 +25,7 @@ class ManualTriggerTaskSource implements TaskSource {
   ManualTriggerTaskSource(this._taskReceivePort);
 
   @override
-  Stream<Task> startStreaming() async* {
-    await for (final Task task in _taskReceivePort) {
-      yield task;
-      await new Future.delayed(const Duration(seconds: 10));
-    }
-  }
+  Stream<Task> startStreaming() => _taskReceivePort;
 }
 
 /// Schedules and executes package analysis.
@@ -41,10 +36,11 @@ class TaskScheduler {
   TaskScheduler(this.taskRunner, this.sources);
 
   Future run() async {
-    final Stream<Task> stream =
-        StreamGroup.merge(sources.map((source) => source.startStreaming()));
-
-    await for (Task task in stream) {
+    final PrioritizedAsyncIterator<Task> taskIterator =
+        new PrioritizedAsyncIterator(
+            sources.map((TaskSource ts) => ts.startStreaming()).toList());
+    while (await taskIterator.hasNext) {
+      final Task task = await taskIterator.next;
       try {
         await taskRunner(task);
       } catch (e, st) {
@@ -73,4 +69,112 @@ class Task {
 
   @override
   int get hashCode => version.hashCode;
+}
+
+/// A pull-based interface for accessing events from multiple streams, in the
+/// priority order of the streams provided.
+///
+/// Inspired by Iterator and package:async's StreamQueue.
+class PrioritizedAsyncIterator<T> {
+  List<Queue<T>> _priorityQueues;
+  List<StreamSubscription> _subscriptions;
+  bool _isClosed = false;
+  Completer<bool> _hasNextCompleter;
+  Completer<T> _nextCompleter;
+
+  PrioritizedAsyncIterator(List<Stream<T>> sources) {
+    _priorityQueues = new List.generate(sources.length, (_) => new Queue());
+    _subscriptions = new List(sources.length);
+
+    // Listen on the streams and put items into their own queues.
+    for (int i = 0; i < sources.length; i++) {
+      final Stream source = sources[i];
+      final Queue<T> queue = _priorityQueues[i];
+      _subscriptions[i] = source.listen(
+        (T item) {
+          queue.add(item);
+          _triggerComplete();
+        },
+        onDone: () {
+          _subscriptions[i] = null;
+          _closeWhenAllDone();
+        },
+        cancelOnError: true,
+      );
+    }
+  }
+
+  /// Whether the iterator has any immediately available item.
+  bool get hasAvailable {
+    final Queue<T> queue = _firstQueue();
+    return queue != null;
+  }
+
+  /// Whether the iterator has another item.
+  Future<bool> get hasNext async {
+    final Queue<T> queue = _firstQueue();
+    if (queue != null) {
+      return true;
+    } else {
+      _hasNextCompleter ??= new Completer();
+      return _hasNextCompleter.future;
+    }
+  }
+
+  /// The next item in the iterator.
+  Future<T> get next async {
+    final Queue<T> queue = _firstQueue();
+    if (queue != null) {
+      return queue.removeFirst();
+    } else {
+      _nextCompleter ??= new Completer();
+      return _nextCompleter.future;
+    }
+  }
+
+  /// Close the source streams and don't accept new requests.
+  Future close() async {
+    if (_hasNextCompleter != null) {
+      _hasNextCompleter.complete(false);
+      _hasNextCompleter = null;
+    }
+    if (_nextCompleter != null) {
+      _nextCompleter.completeError('PrioritizedStreamQueue closed');
+      _nextCompleter = null;
+    }
+    for (int i = 0; i < _subscriptions.length; i++) {
+      final StreamSubscription s = _subscriptions[i];
+      if (s != null) {
+        s.cancel();
+        _subscriptions[i] = null;
+      }
+    }
+    _isClosed = true;
+  }
+
+  Queue<T> _firstQueue() {
+    if (_isClosed) {
+      throw new Exception('PrioritizedStreamQueue closed');
+    }
+    return _priorityQueues.firstWhere((q) => q.isNotEmpty, orElse: () => null);
+  }
+
+  void _triggerComplete() {
+    if (_hasNextCompleter != null) {
+      _hasNextCompleter.complete(true);
+      _hasNextCompleter = null;
+    }
+    if (_nextCompleter != null) {
+      final Queue<T> queue = _firstQueue();
+      if (queue != null) {
+        _nextCompleter.complete(queue.removeFirst());
+      }
+      _nextCompleter = null;
+    }
+  }
+
+  void _closeWhenAllDone() {
+    final bool shouldClose = _subscriptions.every((s) => s == null);
+    if (shouldClose) close();
+  }
 }
