@@ -19,10 +19,10 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
-  final Map<String, PackageDocument> _documents = {};
-  final _TokenIndex _nameIndex = new _TokenIndex();
-  final _TokenIndex _descrIndex = new _TokenIndex();
-  final _TokenIndex _readmeIndex = new _TokenIndex();
+  final Map<String, PackageDocument> _documents = <String, PackageDocument>{};
+  final TokenIndex _nameIndex = new TokenIndex();
+  final TokenIndex _descrIndex = new TokenIndex();
+  final TokenIndex _readmeIndex = new TokenIndex();
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -62,64 +62,70 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future<PackageSearchResult> search(PackageQuery query) async {
-    final Map<String, _PackageResult> resultMap = {};
+    final Map<String, double> total = <String, double>{};
     void addAll(Map<String, double> scores, double weight) {
       scores.forEach((String url, double score) {
-        final _PackageResult pr =
-            resultMap.putIfAbsent(url, () => new _PackageResult(url, 0.0));
-        pr.score += score * weight;
+        final double prev = total[url] ?? 0.0;
+        total[url] = prev + score * weight;
       });
     }
 
-    addAll(_nameIndex.search(query.text), 0.90);
-    addAll(_descrIndex.search(query.text), 0.08);
-    addAll(_readmeIndex.search(query.text), 0.02);
+    addAll(_nameIndex.search(query.text), 0.80);
+    addAll(_descrIndex.search(query.text), 0.10);
+    addAll(_readmeIndex.search(query.text), 0.05);
 
-    List<_PackageResult> list = resultMap.values.toList();
-    if (query.type != null) {
-      list.removeWhere((pr) {
-        final PackageDocument doc = _documents[pr.url];
-        return doc.detectedTypes == null ||
-            !doc.detectedTypes.contains(query.type);
-      });
+    final Map<String, double> popularityScores = new Map.fromIterable(
+      total.keys,
+      value: (String url) => _documents[url].popularity * 100,
+    );
+    addAll(popularityScores, 0.05);
+
+    List<PackageScore> results = <PackageScore>[];
+    for (String url in total.keys) {
+      final PackageDocument doc = _documents[url];
+
+      // filter on type
+      if (query.type != null &&
+          (doc.detectedTypes == null ||
+              !doc.detectedTypes.contains(query.type))) {
+        continue;
+      }
+
+      results.add(new PackageScore(
+        url: doc.url,
+        package: doc.package,
+        version: doc.version,
+        devVersion: doc.devVersion,
+        score: total[url],
+      ));
     }
 
-    for (_PackageResult pr in list) {
-      final PackageDocument doc = _documents[pr.url];
-      pr.score = (pr.score * 7 + doc.popularity) / 8;
-    }
-    list.sort((a, b) => -a.score.compareTo(b.score));
-    if (list.isNotEmpty) {
-      final double bestScore = list.first.score;
+    results.sort((a, b) => -a.score.compareTo(b.score));
+
+    // filter out the noise (maybe a single matching ngram)
+    if (results.isNotEmpty) {
+      final double bestScore = results.first.score;
       final double scoreTreshold = bestScore / 25;
-      list.removeWhere((pr) => pr.score < scoreTreshold);
+      results.removeWhere((pr) => pr.score < scoreTreshold);
     }
 
-    final int totalCount = min(maxSearchResults, list.length);
+    // bound by offset and limit
+    final int totalCount = min(maxSearchResults, results.length);
     if (query.offset != null && query.offset > 0) {
       if (query.offset > totalCount) {
-        list = [];
+        results = <PackageScore>[];
       } else {
-        list = list.sublist(query.offset);
+        results = results.sublist(query.offset);
       }
     }
-    if (query.limit != null && list.length > query.limit) {
-      list = list.sublist(0, query.limit);
+    if (query.limit != null && results.length > query.limit) {
+      results = results.sublist(0, query.limit);
     }
 
     return new PackageSearchResult(
       totalCount: totalCount,
       indexUpdated: _lastUpdated.toIso8601String(),
-      packages: list.map((pr) {
-        final PackageDocument doc = _documents[pr.url];
-        return new PackageScore(
-          url: doc.url,
-          package: doc.package,
-          version: doc.version,
-          devVersion: doc.devVersion,
-          score: pr.score,
-        );
-      }).toList(),
+      packages: results,
     );
   }
 
@@ -133,9 +139,9 @@ class SimplePackageIndex implements PackageIndex {
   Future<int> indexSize() async => -1;
 }
 
-class _TokenIndex {
-  final Map<String, Set<String>> _inverseUrls = {};
-  final Map<String, double> _weights = {};
+class TokenIndex {
+  final Map<String, Set<String>> _inverseUrls = <String, Set<String>>{};
+  final Map<String, double> _weights = <String, double>{};
 
   void add(String url, String text) {
     final Set<String> tokens = _tokenize(normalizeBeforeIndexing(text));
@@ -162,21 +168,22 @@ class _TokenIndex {
     final Set<String> tokens = _tokenize(normalizeBeforeIndexing(text));
     if (tokens == null || tokens.isEmpty) return null;
     double sumWeight = 0.0;
-    final Map<String, double> counts = {};
+    final Map<String, double> counts = <String, double>{};
     for (String token in tokens) {
+      final double tokenWeight = _tokenWeight(token);
+      sumWeight += tokenWeight;
+
       final Set<String> set = _inverseUrls[token];
       if (set == null || set.isEmpty) continue;
 
-      final double weight = _tokenWeight(token) / set.length;
-      sumWeight += weight;
-
       for (String url in set) {
         final double prevValue = counts[url] ?? 0.0;
-        counts[url] = prevValue + weight;
+        counts[url] = prevValue + tokenWeight;
       }
     }
     for (String url in counts.keys.toList()) {
-      counts[url] = 10000.0 * counts[url] / sumWeight / _weights[url];
+      final double current = counts[url];
+      counts[url] = 100.0 * (current / _weights[url]) * (current / sumWeight);
     }
     return counts;
   }
@@ -198,11 +205,4 @@ Set<String> _tokenize(String text) {
     }
   }
   return ngrams;
-}
-
-class _PackageResult {
-  final String url;
-  double score;
-
-  _PackageResult(this.url, this.score);
 }
