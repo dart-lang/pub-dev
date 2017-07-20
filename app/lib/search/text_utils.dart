@@ -24,5 +24,5 @@ String normalizeBeforeIndexing(String text) {
       .replaceAll(_nonCharacterRegExp, ' ')
       .replaceAll(_multiWhitespaceRegExp, ' ')
       .trim();
-  return ' $t ';
+  return t;
 }
