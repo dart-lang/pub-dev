@@ -586,6 +586,9 @@ class PackageLinks extends PageLinks {
 abstract class LogoUrls {
   static const String smallDartFavicon = '/static/favicon.ico';
   static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
+  static const String html5Logo32x32 = '/static/img/html5-logo-32x32.png';
+  // Original source: https://pixabay.com/en/bash-command-line-linux-shell-148836/
+  static const String shellLogo32x32 = '/static/img/shell-logo-32x32.png';
 }
 
 const String flutterPackagesDescriptionHtml =
