@@ -143,6 +143,9 @@ class TokenIndex {
   final Map<String, Set<String>> _inverseUrls = <String, Set<String>>{};
   final Map<String, double> _weights = <String, double>{};
 
+  /// The number of tokens stored in the index.
+  int get tokenCount => _inverseUrls.length;
+
   void add(String url, String text) {
     final Set<String> tokens = _tokenize(normalizeBeforeIndexing(text));
     if (tokens == null || tokens.isEmpty) return;
@@ -157,10 +160,12 @@ class TokenIndex {
 
   void removeUrl(String url) {
     _weights.remove(url);
-    for (Set<String> set in _inverseUrls.values) {
+    final List<String> removeKeys = [];
+    _inverseUrls.forEach((String key, Set<String> set) {
       set.remove(url);
-      // TODO: remove set if it becomes empty
-    }
+      if (set.isEmpty) removeKeys.add(key);
+    });
+    removeKeys.forEach(_inverseUrls.remove);
   }
 
   // A TF-IDF-like scoring, with more weight for longer terms.
