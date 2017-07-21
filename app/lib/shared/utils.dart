@@ -12,6 +12,7 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_semver/pub_semver.dart' as semver;
+import 'package:stream_transform/stream_transform.dart';
 
 import 'configuration.dart';
 
@@ -208,3 +209,27 @@ List<String> exampleFileCandidates(String package) => [
       'example/$package.dart',
       'example/example.dart',
     ];
+
+/// Buffers for [duration] and then randomizes the order of the items in the
+/// stream. For every single item, their final position would be in the range of
+/// [maxPositionDiff] of its original position.
+Stream<T> randomizeStream<T>(
+  Stream<T> stream, {
+  Duration duration: const Duration(minutes: 1),
+  int maxPositionDiff: 100,
+  Random random,
+}) {
+  random ??= new Random.secure();
+  final Stream trigger = new Stream.periodic(duration);
+  final Stream<List<T>> bufferedStream = buffer(trigger).bind(stream);
+  return bufferedStream.transform(new StreamTransformer.fromHandlers(
+    handleData: (List<T> items, Sink<T> sink) {
+      for (List<T> list in sliceList(items, maxPositionDiff)) {
+        list.shuffle(random);
+        for (T task in list) {
+          sink.add(task);
+        }
+      }
+    },
+  ));
+}

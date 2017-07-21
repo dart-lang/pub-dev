@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
 import '../shared/task_scheduler.dart';
+import '../shared/utils.dart';
 
 import 'models.dart';
 
@@ -72,7 +73,9 @@ class DatastoreHistoryTaskSource implements TaskSource {
   });
 
   @override
-  Stream<Task> startStreaming() async* {
+  Stream<Task> startStreaming() => randomizeStream(_startStreaming());
+
+  Stream<Task> _startStreaming() async* {
     for (;;) {
       try {
         final Query query = _db.query(PackageVersion)..order('-created');
