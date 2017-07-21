@@ -196,6 +196,12 @@ class TemplateService {
       exampleFilename = selectedVersion.example.filename;
       renderedExample =
           renderFile(selectedVersion.example, selectedVersion.homepage);
+      if (renderedExample != null) {
+        renderedExample = '<p style="font-family: monospace">'
+            '<b>${_HtmlEscaper.convert(exampleFilename)}</b>'
+            '</p>\n'
+            '$renderedExample';
+      }
     }
 
     final versionsJson = [];
@@ -230,6 +236,22 @@ class TemplateService {
     final bool isFlutterPlugin = latestStableVersion.detectedTypes
             ?.contains(BuiltinTypes.flutterPlugin) ==
         true;
+
+    final List<Map<String, String>> tabs = <Map<String, String>>[];
+    void addFileTab(String id, String title, String content) {
+      if (content != null) {
+        tabs.add({
+          'id': id,
+          'title': title,
+          'content': content,
+        });
+      }
+    }
+
+    addFileTab('readme', readmeFilename, renderedReadme);
+    addFileTab('changelog', changelogFilename, renderedChangelog);
+    addFileTab('example', 'Example', renderedExample);
+    if (tabs.isNotEmpty) tabs.first['class'] = 'active';
 
     final values = {
       'package': {
@@ -267,12 +289,8 @@ class TemplateService {
       },
       'versions': versionsJson,
       'show_versions_link': totalNumberOfVersions > versions.length,
-      'readme': renderedReadme,
-      'readme_filename': readmeFilename,
-      'changelog': renderedChangelog,
-      'changelog_filename': changelogFilename,
-      'example': renderedExample,
-      'example_filename': exampleFilename,
+      'tabs': tabs,
+      'has_no_file_tab': tabs.isEmpty,
       'version_count': '$totalNumberOfVersions',
     };
     return _renderPage(
