@@ -1,0 +1,10 @@
+{{#has_works}}
+<p class="platform-icons">
+  Works on:
+  {{#works}}
+    {{#href}}<a href="{{{href}}}">{{/href}}
+    <img src="{{{src}}}" class="platform-icon-img" alt="{{label}}" title="{{label}}"/>
+    {{#href}}</a>{{/href}}
+  {{/works}}
+</p>
+{{/has_works}}

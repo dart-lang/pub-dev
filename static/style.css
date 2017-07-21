@@ -5201,7 +5201,8 @@ table.search-results p {
   margin-right: 12px;
 }
 
-.tablecol-icons-img {
+.tablecol-icons-img,
+.platform-icon-img {
   width: 20px;
   height: auto;
   max-width: unset;
