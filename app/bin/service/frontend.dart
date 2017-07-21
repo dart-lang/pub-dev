@@ -14,6 +14,7 @@ import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
@@ -66,6 +67,10 @@ void main() {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
+  final AnalyzerClient analyzerClient =
+      new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
+  registerAnalyzerClient(analyzerClient);
+  registerScopeExitCallback(analyzerClient.close);
   registerTemplateService(
       new TemplateService(templateDirectory: TemplateLocation));
 
