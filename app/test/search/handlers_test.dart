@@ -51,12 +51,33 @@ void main() {
     });
 
     group('search', () {
-      scopedTest('/search?q=json', () async {
+      Future setUpInServiceScope() async {
         registerSearchBackend(new MockSearchBackend());
         registerPackageIndex(new SimplePackageIndex());
         await packageIndex
             .addAll(await searchBackend.loadDocuments(['pkg_foo']));
         await packageIndex.merge();
+      }
+
+      scopedTest('Finds package by name', () async {
+        await setUpInServiceScope();
+        expectJsonResponse(await issueGet('/search?q=pkg_foo'), body: {
+          'indexUpdated': isNotNull,
+          'totalCount': 1,
+          'packages': [
+            {
+              'url': 'https://pub.domain/packages/pkg_foo',
+              'package': 'pkg_foo',
+              'version': '1.0.1',
+              'devVersion': '1.0.1-dev',
+              'score': closeTo(80.5, 0.1),
+            }
+          ],
+        });
+      });
+
+      scopedTest('Finds text in description or readme', () async {
+        await setUpInServiceScope();
         expectJsonResponse(await issueGet('/search?q=json'), body: {
           'indexUpdated': isNotNull,
           'totalCount': 1,
@@ -68,8 +89,53 @@ void main() {
               'devVersion': '1.0.1-dev',
               'score': closeTo(1.3, 0.1),
             }
-          ]
+          ],
         });
+      });
+
+      scopedTest('pkg-prefix doesn\'t affect score', () async {
+        await setUpInServiceScope();
+        expectJsonResponse(await issueGet('/search?q=json&pkg-prefix=pk'),
+            body: {
+              'indexUpdated': isNotNull,
+              'totalCount': 1,
+              'packages': [
+                {
+                  'url': 'https://pub.domain/packages/pkg_foo',
+                  'package': 'pkg_foo',
+                  'version': '1.0.1',
+                  'devVersion': '1.0.1-dev',
+                  'score': closeTo(1.3, 0.1),
+                }
+              ],
+            });
+      });
+
+      scopedTest('Finds package by pkg-prefix search only', () async {
+        await setUpInServiceScope();
+        expectJsonResponse(await issueGet('/search?q=&pkg-prefix=pk'), body: {
+          'indexUpdated': isNotNull,
+          'totalCount': 1,
+          'packages': [
+            {
+              'url': 'https://pub.domain/packages/pkg_foo',
+              'package': 'pkg_foo',
+              'version': '1.0.1',
+              'devVersion': '1.0.1-dev',
+              'score': closeTo(3.9, 0.1),
+            }
+          ],
+        });
+      });
+
+      scopedTest('pkg-prefix filters out results', () async {
+        await setUpInServiceScope();
+        expectJsonResponse(await issueGet('/search?q=json&pkg-prefix=foo'),
+            body: {
+              'indexUpdated': isNotNull,
+              'totalCount': 0,
+              'packages': [],
+            });
       });
     });
   });
