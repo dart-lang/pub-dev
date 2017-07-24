@@ -144,7 +144,7 @@ class TokenIndex {
   final Map<String, double> _weights = <String, double>{};
 
   void add(String url, String text) {
-    final Set<String> tokens = _tokenize(normalizeBeforeIndexing(text));
+    final Set<String> tokens = _tokenize(text);
     if (tokens == null || tokens.isEmpty) return;
     double sumWeight = 0.0;
     for (String token in tokens) {
@@ -165,7 +165,7 @@ class TokenIndex {
 
   // A TF-IDF-like scoring, with more weight for longer terms.
   Map<String, double> search(String text) {
-    final Set<String> tokens = _tokenize(normalizeBeforeIndexing(text));
+    final Set<String> tokens = _tokenize(text);
     if (tokens == null || tokens.isEmpty) return null;
     double sumWeight = 0.0;
     final Map<String, double> counts = <String, double>{};
@@ -188,21 +188,68 @@ class TokenIndex {
     return counts;
   }
 
-  double _tokenWeight(String token) => (token.length * token.length).toDouble();
+  // The longer the token, the more importance it has.
+  // Length -> Weight
+  // 1 ->  1 (Length * Length)
+  // 2 ->  4 (Length * Length)
+  // 3 ->  9 (Length * Length)
+  // 4 -> 16 (Length * Length)
+  // 5 -> 20 (Length * 4)
+  // 6 -> 24 (Length * 4)
+  // 7 -> 28 (Length * 4)
+  // 8 -> 32 (Length * 4)
+  double _tokenWeight(String token) =>
+      (token.length * min(token.length, 4)).toDouble();
 }
 
-Set<String> _tokenize(String text) {
-  text = normalizeBeforeIndexing(text);
-  if (text.isEmpty) return null;
-  final Set<String> ngrams = new Set();
-  for (int ngramLength = 1; ngramLength <= 4; ngramLength++) {
-    if (text.length <= ngramLength) {
-      ngrams.add(text);
-    } else {
-      for (int i = 0; i <= text.length - ngramLength; i++) {
-        ngrams.add(text.substring(i, i + ngramLength));
+const int minNgram = 1;
+const int maxNgram = 4;
+const int maxWordLength = 80;
+
+Set<String> _tokenize(String originalText) {
+  if (originalText == null || originalText.isEmpty) return null;
+  final Set<String> tokens = new Set();
+
+  void addAllPrefixes(String phrase) {
+    for (int i = maxNgram + 1; i < phrase.length; i++) {
+      tokens.add(phrase.substring(0, i));
+    }
+    tokens.add(phrase);
+  }
+
+  for (String word in splitForIndexing(originalText)) {
+    if (word.length > maxWordLength) word = word.substring(0, maxWordLength);
+
+    final String normalizedWord = normalizeBeforeIndexing(word);
+    if (normalizedWord.isEmpty) continue;
+
+    for (int ngramLength = minNgram; ngramLength <= maxNgram; ngramLength++) {
+      if (normalizedWord.length <= ngramLength) {
+        tokens.add(normalizedWord);
+      } else {
+        for (int i = 0; i <= normalizedWord.length - ngramLength; i++) {
+          tokens.add(normalizedWord.substring(i, i + ngramLength));
+        }
       }
     }
+    if (word.length <= maxNgram) continue; // ngrams covered everything
+
+    // add all prefixes for better relevancy on longer phrases
+    addAllPrefixes(normalizedWord);
+
+    // scan for CamelCase phrases and index Case
+    bool prevLower = _isLower(word[0]);
+    for (int i = 1; i < word.length; i++) {
+      final bool lower = _isLower(word[i]);
+      if (!lower && prevLower) {
+        final String part = word.substring(i);
+        final String normalizedPart = normalizeBeforeIndexing(part);
+        addAllPrefixes(normalizedPart);
+      }
+      prevLower = lower;
+    }
   }
-  return ngrams;
+  return tokens;
 }
+
+bool _isLower(String c) => c.toLowerCase() == c;

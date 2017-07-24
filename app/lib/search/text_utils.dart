@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final RegExp _nonCharacterRegExp = new RegExp('\\W');
+final RegExp _separators =
+    new RegExp(r'[_\.,;=\(\)\>\<\[\]\{\}\|\?\!\/\+\-\*]|\s');
+final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
 
 String compactText(String text, {int maxLength: -1}) {
@@ -25,4 +27,9 @@ String normalizeBeforeIndexing(String text) {
       .replaceAll(_multiWhitespaceRegExp, ' ')
       .trim();
   return t;
+}
+
+Iterable<String> splitForIndexing(String text) {
+  if (text == null || text.isEmpty) return new Iterable.empty();
+  return text.split(_separators).where((s) => s.isNotEmpty);
 }
