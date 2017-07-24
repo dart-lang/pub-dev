@@ -48,5 +48,16 @@ void main() {
         'uri://teamspeak': closeTo(0.1, 0.1),
       });
     });
+
+    test('Free up memory', () {
+      final TokenIndex index = new TokenIndex();
+      expect(index.tokenCount, 0);
+      index.add('url1', 'text');
+      expect(index.tokenCount, 9);
+      index.add('url2', 'another');
+      expect(index.tokenCount, 29);
+      index.removeUrl('url2');
+      expect(index.tokenCount, 9);
+    });
   });
 }
