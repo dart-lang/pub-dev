@@ -19,7 +19,6 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final handler = {
     '/debug': debugHandler,
     '/search': searchHandler,
-    // TODO: add handler for update notification
   }[path];
 
   if (handler != null) {
