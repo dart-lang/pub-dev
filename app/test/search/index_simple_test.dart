@@ -78,7 +78,7 @@ void main() {
       index.add('url1', 'text');
       expect(index.tokenCount, 9);
       index.add('url2', 'another');
-      expect(index.tokenCount, 29);
+      expect(index.tokenCount, 32);
       index.removeUrl('url2');
       expect(index.tokenCount, 9);
     });
