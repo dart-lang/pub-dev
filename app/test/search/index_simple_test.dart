@@ -26,7 +26,30 @@ void main() {
         ..add('uri://http_magic', 'http_magic');
       expect(index.search('http'), {
         'uri://http': closeTo(100.0, 0.1),
-        'uri://http_magic': closeTo(21.4, 0.1),
+        'uri://http_magic': closeTo(32.9, 0.1),
+      });
+    });
+
+    test('CamelCase indexing', () {
+      final String queueText = '.DoubleLinkedQueue()';
+      final TokenIndex index = new TokenIndex()
+        ..add('queue', queueText)
+        ..add('queue_lower', queueText.toLowerCase())
+        ..add('unmodifiable', 'CustomUnmodifiableMapBase');
+      expect(index.search('queue'), {
+        'queue': closeTo(7.6, 0.1),
+        'queue_lower': closeTo(5.8, 0.1),
+        'unmodifiable': closeTo(0.0, 0.1),
+      });
+      expect(index.search('unmodifiab'), {
+        'queue': closeTo(0.0, 0.1),
+        'queue_lower': closeTo(0.0, 0.1),
+        'unmodifiable': closeTo(15.0, 0.1),
+      });
+      expect(index.search('unmodifiable'), {
+        'queue': closeTo(0.1, 0.1),
+        'queue_lower': closeTo(0.1, 0.1),
+        'unmodifiable': closeTo(20.6, 0.1),
       });
     });
 
@@ -37,14 +60,14 @@ void main() {
         ..add('uri://teamspeak', 'teamspeak');
 
       expect(index.search('riak'), {
-        'uri://riak_client': closeTo(19.3, 0.1),
+        'uri://riak_client': closeTo(24.6, 0.1),
         'uri://cli': closeTo(0.1, 0.1),
-        'uri://teamspeak': closeTo(0.4, 0.1),
+        'uri://teamspeak': closeTo(0.2, 0.1),
       });
 
       expect(index.search('riak client'), {
-        'uri://riak_client': closeTo(37.7, 0.1),
-        'uri://cli': closeTo(7.7, 0.1),
+        'uri://riak_client': closeTo(100.0, 0.1),
+        'uri://cli': closeTo(9.8, 0.1),
         'uri://teamspeak': closeTo(0.1, 0.1),
       });
     });

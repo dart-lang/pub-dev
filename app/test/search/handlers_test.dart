@@ -87,7 +87,7 @@ void main() {
               'package': 'pkg_foo',
               'version': '1.0.1',
               'devVersion': '1.0.1-dev',
-              'score': closeTo(1.3, 0.1),
+              'score': closeTo(1.9, 0.1),
             }
           ],
         });
