@@ -43,11 +43,16 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
   m.Link getLink(m.InlineParser parser, Match match, m.TagState state) {
     final m.Link link = super.getLink(parser, match, state);
     if (link != null && _isRelativePathUrl(link.url)) {
+      final List<String> fragmentParts = link.url.split('#');
+      final String relativeUrl = fragmentParts.first;
+      final String fragment =
+          fragmentParts.length == 2 ? fragmentParts[1] : null;
       final Uri newUri = new Uri(
         scheme: baseUri.scheme,
         host: baseUri.host,
         port: baseUri.port,
-        path: p.join(baseUri.path, link.url),
+        path: p.join(baseUri.path, relativeUrl),
+        fragment: fragment,
       );
       return new m.Link(link.id, newUri.toString(), link.title);
     } else {
