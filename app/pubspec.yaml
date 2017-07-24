@@ -19,6 +19,7 @@ dependencies:
   pub_semver: ">=1.2.2 <2.0.0"
   pub_server: ">=0.1.0 <0.2.0"
   shelf: '>=0.5.6 <0.7.0'
+  stream_transform: ^0.0.7
   # pana version to be pinned
   pana: '0.2.4'
   # 3rd-party packages with pinned versions
