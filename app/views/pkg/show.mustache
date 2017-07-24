@@ -20,45 +20,24 @@
 <div class="row-fluid">
   <div class="span8">
     <ul class="nav nav-tabs">
-      {{#readme}}
-        <li class="active">
-          <a href="#pub-pkg-tab-readme" data-toggle="tab">{{readme_filename}}</a>
-        </li>
-      {{/readme}}
-      {{#changelog}}
-        <li class="{{^readme}}active{{/readme}}">
-          <a href="#pub-pkg-tab-changelog" data-toggle="tab">{{changelog_filename}}</a>
-        </li>
-      {{/changelog}}
-      {{#example}}
-        <li class="{{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}">
-          <a href="#pub-pkg-tab-example" data-toggle="tab">Example</a>
-        </li>
-      {{/example}}
-      <li class="{{^readme}}{{^changelog}}{{^example}}active{{/example}}{{/changelog}}{{/readme}}">
+      {{#tabs}}
+      <li class="{{class}}">
+        <a href="#pub-pkg-tab-{{id}}" data-toggle="tab">{{title}}</a>
+      </li>
+      {{/tabs}}
+      <li class="{{#has_no_file_tab}}active{{/has_no_file_tab}}">
         <a href="#pub-pkg-tab-installing" data-toggle="tab">Installing</a>
       </li>
       <li><a href="#pub-pkg-tab-versions" data-toggle="tab">Versions</a></li>
     </ul>
 
     <div class="tab-content">
-      {{#readme}}
-        <div class="tab-pane active" id="pub-pkg-tab-readme">
-          {{&readme}}
-        </div>
-      {{/readme}}
-      {{#changelog}}
-        <div class="tab-pane {{^readme}}active{{/readme}}" id="pub-pkg-tab-changelog">
-          {{&changelog}}
-        </div>
-      {{/changelog}}
-      {{#example}}
-        <div class="tab-pane {{^readme}}{{^changelog}}active{{/changelog}}{{/readme}}" id="pub-pkg-tab-example">
-          <p style="font-family: monospace"><b>{{example_filename}}</b></p>
-          {{&example}}
-        </div>
-      {{/example}}
-      <div class="tab-pane {{^readme}}{{^changelog}}{{^example}}active{{/example}}{{/changelog}}{{/readme}}" id="pub-pkg-tab-installing">
+      {{#tabs}}
+      <div class="tab-pane {{class}}" id="pub-pkg-tab-{{id}}">
+        {{&content}}
+      </div>
+      {{/tabs}}
+      <div class="tab-pane {{#has_no_file_tab}}active{{/has_no_file_tab}}" id="pub-pkg-tab-installing">
         <h3>1. Depend on it</h3>
         <p>Add this to your package's pubspec.yaml file:</p>
 <pre>
