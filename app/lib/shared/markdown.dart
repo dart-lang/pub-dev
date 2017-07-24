@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:path/path.dart' as p;
+
+final Logger _logger = new Logger('pub.markdown');
 
 final List<m.BlockSyntax> _blockSyntaxes =
     m.ExtensionSet.gitHub.blockSyntaxes.toList();
@@ -43,21 +46,24 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
   m.Link getLink(m.InlineParser parser, Match match, m.TagState state) {
     final m.Link link = super.getLink(parser, match, state);
     if (link != null && _isRelativePathUrl(link.url)) {
-      final List<String> fragmentParts = link.url.split('#');
-      final String relativeUrl = fragmentParts.first;
-      final String fragment =
-          fragmentParts.length == 2 ? fragmentParts[1] : null;
-      final Uri newUri = new Uri(
-        scheme: baseUri.scheme,
-        host: baseUri.host,
-        port: baseUri.port,
-        path: p.join(baseUri.path, relativeUrl),
-        fragment: fragment,
-      );
-      return new m.Link(link.id, newUri.toString(), link.title);
-    } else {
-      return link;
+      try {
+        final List<String> fragmentParts = link.url.split('#');
+        final String relativeUrl = fragmentParts.first;
+        final String fragment =
+            fragmentParts.length == 2 ? fragmentParts[1] : null;
+        final Uri newUri = new Uri(
+          scheme: baseUri.scheme,
+          host: baseUri.host,
+          port: baseUri.port,
+          path: p.join(baseUri.path, relativeUrl),
+          fragment: fragment,
+        );
+        return new m.Link(link.id, newUri.toString(), link.title);
+      } catch (e, st) {
+        _logger.warning('Relative link rewrite failed: ${link.url}', e, st);
+      }
     }
+    return link;
   }
 
   bool _isRelativePathUrl(String url) =>
