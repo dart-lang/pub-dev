@@ -39,8 +39,8 @@ class TaskScheduler {
     final PrioritizedAsyncIterator<Task> taskIterator =
         new PrioritizedAsyncIterator(
             sources.map((TaskSource ts) => ts.startStreaming()).toList());
-    while (await taskIterator.hasNext) {
-      final Task task = await taskIterator.next;
+    while (await taskIterator.moveNext()) {
+      final Task task = taskIterator.current;
       try {
         await taskRunner(task);
       } catch (e, st) {
@@ -78,9 +78,10 @@ class Task {
 class PrioritizedAsyncIterator<T> {
   List<Queue<T>> _priorityQueues;
   List<StreamSubscription> _subscriptions;
+  bool _hasMoved = false;
   bool _isClosed = false;
+  T _current;
   Completer<bool> _hasNextCompleter;
-  Completer<T> _nextCompleter;
 
   PrioritizedAsyncIterator(List<Stream<T>> sources) {
     _priorityQueues = new List.generate(sources.length, (_) => new Queue());
@@ -104,32 +105,30 @@ class PrioritizedAsyncIterator<T> {
     }
   }
 
-  /// Whether the iterator has any immediately available item.
-  bool get hasAvailable {
-    final Queue<T> queue = _firstQueue();
-    return queue != null;
-  }
-
-  /// Whether the iterator has another item.
-  Future<bool> get hasNext async {
+  /// Moves to the next element.
+  /// Returns whether the iterator has another item.
+  Future<bool> moveNext() async {
+    if (_hasNextCompleter != null) {
+      throw new StateError('Another moveNext() is underway.');
+    }
+    if (_isClosed) return false;
     final Queue<T> queue = _firstQueue();
     if (queue != null) {
+      _current = queue.removeFirst();
+      _hasMoved = true;
       return true;
     } else {
       _hasNextCompleter ??= new Completer();
+      _closeWhenAllDone();
       return _hasNextCompleter.future;
     }
   }
 
-  /// The next item in the iterator.
-  Future<T> get next async {
-    final Queue<T> queue = _firstQueue();
-    if (queue != null) {
-      return queue.removeFirst();
-    } else {
-      _nextCompleter ??= new Completer();
-      return _nextCompleter.future;
-    }
+  // The current element in the iterator.
+  T get current {
+    if (_isClosed) throw new StateError('AsyncIterator closed.');
+    if (!_hasMoved) throw new StateError('moveNext() has not been called.');
+    return _current;
   }
 
   /// Close the source streams and don't accept new requests.
@@ -137,10 +136,6 @@ class PrioritizedAsyncIterator<T> {
     if (_hasNextCompleter != null) {
       _hasNextCompleter.complete(false);
       _hasNextCompleter = null;
-    }
-    if (_nextCompleter != null) {
-      _nextCompleter.completeError('PrioritizedStreamQueue closed');
-      _nextCompleter = null;
     }
     for (int i = 0; i < _subscriptions.length; i++) {
       final StreamSubscription s = _subscriptions[i];
@@ -154,27 +149,26 @@ class PrioritizedAsyncIterator<T> {
 
   Queue<T> _firstQueue() {
     if (_isClosed) {
-      throw new Exception('PrioritizedStreamQueue closed');
+      throw new StateError('AsyncIterator closed');
     }
     return _priorityQueues.firstWhere((q) => q.isNotEmpty, orElse: () => null);
   }
 
   void _triggerComplete() {
     if (_hasNextCompleter != null) {
+      final Queue<T> queue = _firstQueue();
+      _current = queue.removeFirst();
+      _hasMoved = true;
       _hasNextCompleter.complete(true);
       _hasNextCompleter = null;
     }
-    if (_nextCompleter != null) {
-      final Queue<T> queue = _firstQueue();
-      if (queue != null) {
-        _nextCompleter.complete(queue.removeFirst());
-      }
-      _nextCompleter = null;
-    }
+    _closeWhenAllDone();
   }
 
   void _closeWhenAllDone() {
-    final bool shouldClose = _subscriptions.every((s) => s == null);
-    if (shouldClose) close();
+    if (_isClosed) return;
+    if (_subscriptions.any((s) => s != null)) return;
+    if (_firstQueue() != null) return;
+    close();
   }
 }
