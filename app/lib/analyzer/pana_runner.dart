@@ -14,7 +14,7 @@ import '../shared/task_scheduler.dart' show Task;
 import 'backend.dart';
 import 'models.dart';
 
-final String panaVersion = '0.2.3';
+final String panaVersion = '0.2.4';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
 
