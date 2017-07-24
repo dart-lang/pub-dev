@@ -64,7 +64,7 @@ class SimplePackageIndex implements PackageIndex {
   Future<PackageSearchResult> search(PackageQuery query) async {
     final Map<String, double> total = <String, double>{};
     void addAll(Map<String, double> scores, double weight) {
-      scores.forEach((String url, double score) {
+      scores?.forEach((String url, double score) {
         final double prev = total[url] ?? 0.0;
         total[url] = prev + score * weight;
       });
@@ -73,6 +73,11 @@ class SimplePackageIndex implements PackageIndex {
     addAll(_nameIndex.search(query.text), 0.80);
     addAll(_descrIndex.search(query.text), 0.10);
     addAll(_readmeIndex.search(query.text), 0.05);
+
+    if ((query.text == null || query.text.isEmpty) &&
+        query.packagePrefix != null) {
+      addAll(_nameIndex.search(query.packagePrefix), 0.8);
+    }
 
     final Map<String, double> popularityScores = new Map.fromIterable(
       total.keys,
@@ -88,6 +93,14 @@ class SimplePackageIndex implements PackageIndex {
       if (query.type != null &&
           (doc.detectedTypes == null ||
               !doc.detectedTypes.contains(query.type))) {
+        continue;
+      }
+
+      // filter on package prefix
+      if (query.packagePrefix != null &&
+          !doc.package
+              .toLowerCase()
+              .startsWith(query.packagePrefix.toLowerCase())) {
         continue;
       }
 

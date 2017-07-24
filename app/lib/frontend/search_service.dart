@@ -92,8 +92,13 @@ class SearchService {
 
   Future<SearchResultPage> _searchService(SearchQuery query) async {
     final search_service.PackageQuery packageQuery =
-        new search_service.PackageQuery(query.text,
-            type: query.type, offset: query.offset, limit: query.limit);
+        new search_service.PackageQuery(
+      query.text,
+      type: query.type,
+      packagePrefix: query.packagePrefix,
+      offset: query.offset,
+      limit: query.limit,
+    );
 
     final String httpHostPort = activeConfiguration.searchServicePrefix;
     final String serviceUrlParams =
@@ -202,6 +207,9 @@ class SearchQuery {
   /// Filter the results for this type.
   final String type;
 
+  /// Filter the results for this package prefix phrase.
+  final String packagePrefix;
+
   /// Bias responses and use score to adjust response order.
   final SearchBias bias;
 
@@ -210,12 +218,16 @@ class SearchQuery {
     this.offset: 0,
     this.limit: 10,
     this.type,
+    this.packagePrefix,
     this.bias,
   });
 
   /// Returns the query text to use in CSE.
   String buildCseQueryText() {
     String queryText = text;
+    if (packagePrefix != null) {
+      queryText += ' $packagePrefix';
+    }
     if (type != null && type.isNotEmpty) {
       // Corresponds with the <PageMap> entry in views/layout.mustache.
       queryText +=
@@ -247,10 +259,12 @@ class SearchQuery {
 
   /// Whether the query object can be used for running a search using the custom
   /// search api.
-  bool get isValid =>
-      text != null &&
-      text.isNotEmpty &&
-      (type == null || BuiltinTypes.isKnownType(type));
+  bool get isValid {
+    if (type != null && !BuiltinTypes.isKnownType(type)) return false;
+    if ((text == null || text.isEmpty) &&
+        (packagePrefix == null || packagePrefix.isEmpty)) return false;
+    return true;
+  }
 }
 
 /// The results of a search via the Custom Search API.

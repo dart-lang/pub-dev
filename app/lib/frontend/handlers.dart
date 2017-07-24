@@ -24,6 +24,9 @@ import 'templates.dart';
 final String StaticsLocation =
     Platform.script.resolve('../../static').toFilePath();
 
+RegExp _packageRegexp =
+    new RegExp('package:([_a-z0-9]+)\\*?', caseSensitive: false);
+
 /// Handler for the whole URL space of pub.dartlang.org
 ///
 /// The passed in [shelfPubApi] handler will be used for handling requests to
@@ -109,7 +112,19 @@ shelf.Response docHandler(shelf.Request request) {
 
 /// Handles requests for /search
 Future<shelf.Response> searchHandler(shelf.Request request) async {
-  final queryText = request.url.queryParameters['q'];
+  String queryText = request.url.queryParameters['q'] ?? '';
+  String packagePrefix = request.url.queryParameters['pkg-prefix'];
+
+  final Match pkgMatch = _packageRegexp.firstMatch(queryText);
+  if (pkgMatch != null) {
+    // only if query attribute was not specified
+    if (packagePrefix == null) {
+      packagePrefix = pkgMatch.group(1).trim();
+      if (packagePrefix.isEmpty) packagePrefix = null;
+    }
+    queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
+  }
+
   final int page = _pageFromUrl(request.url,
       maxPages: SEARCH_MAX_RESULTS ~/ PageLinks.RESULTS_PER_PAGE);
   final SearchBias expBias =
@@ -123,6 +138,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
     limit: PageLinks.RESULTS_PER_PAGE,
     type: request.url.queryParameters['type'],
+    packagePrefix: packagePrefix,
     bias: expBias,
   );
   if (!query.isValid) {

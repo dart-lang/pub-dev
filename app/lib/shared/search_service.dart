@@ -80,15 +80,24 @@ class PackageDocument {
 class PackageQuery {
   final String text;
   final String type;
+  final String packagePrefix;
   final int offset;
   final int limit;
 
-  PackageQuery(this.text, {this.type, this.offset, this.limit});
+  PackageQuery(
+    this.text, {
+    this.type,
+    this.packagePrefix,
+    this.offset,
+    this.limit,
+  });
 
   factory PackageQuery.fromServiceQueryParameters(Map<String, String> params) {
     final String text = params['q'];
     String type = params['type'];
     if (type != null && type.isEmpty) type = null;
+    String packagePrefix = params['pkg-prefix'];
+    if (packagePrefix != null && packagePrefix.isEmpty) packagePrefix = null;
     int offset = int.parse(params['offset'] ?? '0', onError: (_) => 0);
     int limit =
         int.parse(params['limit'] ?? '0', onError: (_) => defaultSearchLimit);
@@ -97,15 +106,24 @@ class PackageQuery {
     offset = max(0, offset);
     limit = max(minSearchLimit, limit);
 
-    return new PackageQuery(text, type: type, offset: offset, limit: limit);
+    return new PackageQuery(text,
+        type: type, packagePrefix: packagePrefix, offset: offset, limit: limit);
   }
 
-  Map<String, String> toServiceQueryParameters() => {
-        'q': text,
-        'type': type,
-        'offset': offset?.toString(),
-        'limit': limit?.toString(),
-      };
+  Map<String, String> toServiceQueryParameters() {
+    final Map<String, String> map = <String, String>{
+      'q': text,
+      'offset': offset?.toString(),
+      'limit': limit?.toString(),
+    };
+    if (type != null) {
+      map['type'] = type;
+    }
+    if (packagePrefix != null) {
+      map['pkg-prefix'] = packagePrefix;
+    }
+    return map;
+  }
 }
 
 class PackageSearchResult {
