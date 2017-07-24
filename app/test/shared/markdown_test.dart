@@ -37,6 +37,15 @@ void main() {
           '<p><a href="https://github.com/example/project/README.md">text</a></p>\n');
     });
 
+    test('sibling plus relative link', () {
+      expect(markdownToHtml('[text](README.md#section)', null),
+          '<p><a href="README.md#section">text</a></p>\n');
+      expect(markdownToHtml('[text](README.md#section)', baseUrl),
+          '<p><a href="https://github.com/example/project/README.md#section">text</a></p>\n');
+      expect(markdownToHtml('[text](README.md#section)', '$baseUrl/'),
+          '<p><a href="https://github.com/example/project/README.md#section">text</a></p>\n');
+    });
+
     test('child within site', () {
       expect(markdownToHtml('[text](example/README.md)', null),
           '<p><a href="example/README.md">text</a></p>\n');
