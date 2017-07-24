@@ -30,18 +30,29 @@ Future main() async {
     _initFlutterSdk().then((_) async {
       final ReceivePort mainReceivePort = new ReceivePort();
       final ReceivePort errorReceivePort = new ReceivePort();
-      errorReceivePort.listen((e) {
+
+      Future startIsolate() async {
+        logger.info('About to start analyzer isolate...');
+        await Isolate.spawn(
+          _runScheduler,
+          [mainReceivePort.sendPort],
+          onError: errorReceivePort.sendPort,
+          onExit: errorReceivePort.sendPort,
+        );
+        final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
+        registerTaskSendPort(sendPorts[0]);
+        logger.info('Analyzer isolate started.');
+      }
+
+      errorReceivePort.listen((e) async {
         logger.severe('ERROR from isolate', e);
+        // restart isolate after a brief pause
+        await new Future.delayed(new Duration(minutes: 1));
+        logger.warning('Restarting isolate...');
+        await startIsolate();
       });
-      // TODO: handle unexpected exit/errors with onExit
-      await Isolate.spawn(
-        _runScheduler,
-        [mainReceivePort.sendPort],
-        onError: errorReceivePort.sendPort,
-        onExit: errorReceivePort.sendPort,
-      );
-      final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
-      registerTaskSendPort(sendPorts[0]);
+
+      await startIsolate();
     });
     return withCorrectDatastore(() async {
       _registerServices();
