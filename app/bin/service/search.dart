@@ -8,9 +8,11 @@ import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
+import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
@@ -26,6 +28,11 @@ void main() {
 
   withAppEngineServices(() async {
     return withCorrectDatastore(() async {
+      final AnalyzerClient analyzerClient =
+          new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
+      registerAnalyzerClient(analyzerClient);
+      registerScopeExitCallback(analyzerClient.close);
+
       registerSearchBackend(new SearchBackend(db.dbService));
 
       final Bucket bucket = await _createOrGetBucket(
