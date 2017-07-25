@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
+import 'versions.dart';
 
 /// Sets the backend service.
 void registerAnalysisBackend(AnalysisBackend backend) =>
@@ -104,10 +104,9 @@ class AnalysisBackend {
   }
 
   /// Whether [packageName] with [packageVersion] exists, and
-  /// - it has no recent [Analysis] with the given [analysisVersion], or
-  /// - it has no newer [Analysis] than [analysisVersion].
-  Future<bool> isValidTarget(
-      String packageName, String packageVersion, String analysisVersion) async {
+  /// - it has no recent [Analysis] with the current [panaVersion] or [flutterVersion], or
+  /// - it has no newer [Analysis] than [panaVersion] or [flutterVersion].
+  Future<bool> isValidTarget(String packageName, String packageVersion) async {
     if (packageName == null || packageVersion == null) return false;
     final List<PackageVersion> versions = await db.lookup([
       db.emptyKey
@@ -135,13 +134,16 @@ class AnalysisBackend {
     if (versionAnalysis == null) return true;
 
     // Is current analysis version newer?
-    final Version analysisSemantic = new Version.parse(analysisVersion);
-    if (isNewer(versionAnalysis.semanticAnalysisVersion, analysisSemantic)) {
+    if (isNewer(versionAnalysis.semanticPanaVersion, semanticPanaVersion) ||
+        isNewer(
+            versionAnalysis.semanticFlutterVersion, semanticFlutterVersion)) {
       return true;
     }
 
     // Is current analysis version obsolete?
-    if (isNewer(analysisSemantic, versionAnalysis.semanticAnalysisVersion)) {
+    if (isNewer(semanticPanaVersion, versionAnalysis.semanticPanaVersion) ||
+        isNewer(
+            semanticFlutterVersion, versionAnalysis.semanticFlutterVersion)) {
       // existing analysis version is newer, current analyzer is obsolete?
       // TODO: turn off task polling on this instance
       _logger.warning(
@@ -149,7 +151,12 @@ class AnalysisBackend {
       return false;
     }
 
-    assert(versionAnalysis.analysisVersion == analysisVersion);
+    if (versionAnalysis.panaVersion != panaVersion ||
+        versionAnalysis.flutterVersion != flutterVersion) {
+      _logger.warning('Versions should be matching: '
+          '${versionAnalysis.panaVersion} - $panaVersion and '
+          '${versionAnalysis.flutterVersion} - $flutterVersion');
+    }
 
     // Is latest analysis older than 4 hours?
     final DateTime now = new DateTime.now().toUtc();

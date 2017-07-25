@@ -13,8 +13,7 @@ import '../shared/task_scheduler.dart' show Task;
 
 import 'backend.dart';
 import 'models.dart';
-
-final String panaVersion = '0.2.4';
+import 'versions.dart';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
 
@@ -24,8 +23,7 @@ class PanaRunner {
   PanaRunner(this._analysisBackend);
 
   Future runTask(Task task) async {
-    if (!await _analysisBackend.isValidTarget(
-        task.package, task.version, panaVersion)) {
+    if (!await _analysisBackend.isValidTarget(task.package, task.version)) {
       _logger.info('Skipping task: $task');
       return;
     }
@@ -45,7 +43,8 @@ class PanaRunner {
 
     final Analysis analysis = new Analysis.init(task.package, task.version)
       ..timestamp = new DateTime.now().toUtc()
-      ..analysisVersion = panaVersion;
+      ..panaVersion = panaVersion
+      ..flutterVersion = flutterVersion;
 
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;

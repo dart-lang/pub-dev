@@ -74,7 +74,8 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
             packageVersion: analysis.packageVersion,
             analysis: analysis.analysis,
             timestamp: analysis.timestamp,
-            analysisVersion: analysis.analysisVersion,
+            panaVersion: analysis.panaVersion,
+            flutterVersion: analysis.flutterVersion,
             analysisStatus: analysis.analysisStatus,
             analysisContent: analysisContent)
         .toJson());

@@ -26,7 +26,8 @@ class AnalysisData {
   final String packageVersion;
   final int analysis;
   final DateTime timestamp;
-  final String analysisVersion;
+  final String panaVersion;
+  final String flutterVersion;
   final AnalysisStatus analysisStatus;
   final Map analysisContent;
 
@@ -35,7 +36,8 @@ class AnalysisData {
     this.packageVersion,
     this.analysis,
     this.timestamp,
-    this.analysisVersion,
+    this.panaVersion,
+    this.flutterVersion,
     this.analysisStatus,
     this.analysisContent,
   });
@@ -47,7 +49,8 @@ class AnalysisData {
       analysis: json['analysis'],
       timestamp:
           json['timestamp'] == null ? null : DateTime.parse(json['timestamp']),
-      analysisVersion: json['analysisVersion'],
+      panaVersion: json['panaVersion'],
+      flutterVersion: json['flutterVersion'],
       analysisStatus: analysisStatusCodec.decode(json['analysisStatus']),
       analysisContent: json['analysisContent'],
     );
@@ -58,7 +61,8 @@ class AnalysisData {
         'packageVersion': packageVersion,
         'analysis': analysis,
         'timestamp': timestamp?.toIso8601String(),
-        'analysisVersion': analysisVersion,
+        'panaVersion': panaVersion,
+        'flutterVersion': flutterVersion,
         'analysisStatus': analysisStatusCodec.encode(analysisStatus),
         'analysisContent': analysisContent,
       };
