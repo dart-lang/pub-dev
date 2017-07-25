@@ -207,6 +207,7 @@ List<String> exampleFileCandidates(String package) => [
       'example/main.dart',
       'example/lib/$package.dart',
       'example/$package.dart',
+      'example/${package}_example.dart',
       'example/example.dart',
     ];
 
