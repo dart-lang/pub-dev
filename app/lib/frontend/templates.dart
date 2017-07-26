@@ -284,6 +284,7 @@ class TemplateService {
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getUploadersHtml(package),
+        'short_created': selectedVersion.shortCreated,
         'install_command': isFlutterPlugin ? 'flutter packages get' : 'pub get',
         'install_tool': isFlutterPlugin ? '\'packages get\'' : '\'pub get\'',
       },
