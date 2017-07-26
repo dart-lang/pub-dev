@@ -5,6 +5,7 @@
 library pub_dartlang_org.utils;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';

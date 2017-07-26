@@ -188,7 +188,13 @@ void main() {
           expect(query.offset, 0);
           expect(query.limit, PageSize);
           return new SearchResultPage(
-              query, 1, [testPackageVersion], [testPackageVersion]);
+            query,
+            1,
+            [testPackageVersion],
+            [testPackageVersion],
+            'service',
+            Duration.ZERO,
+          );
         }));
         await expectHtmlResponse(await issueGet('/search?q=foobar'),
             status: 200);
@@ -200,7 +206,13 @@ void main() {
           expect(query.offset, PageSize);
           expect(query.limit, PageSize);
           return new SearchResultPage(
-              query, 1, [testPackageVersion], [testPackageVersion]);
+            query,
+            1,
+            [testPackageVersion],
+            [testPackageVersion],
+            'service',
+            Duration.ZERO,
+          );
         }));
         await expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
       });

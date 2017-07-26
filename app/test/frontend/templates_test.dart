@@ -91,10 +91,13 @@ void main() {
     test('search page', () {
       final query = new SearchQuery('foobar', offset: 0);
       final resultPage = new SearchResultPage(
-          query,
-          2,
-          [testPackageVersion, flutterPackageVersion],
-          [testPackageVersion, flutterPackageVersion]);
+        query,
+        2,
+        [testPackageVersion, flutterPackageVersion],
+        [testPackageVersion, flutterPackageVersion],
+        'service',
+        Duration.ZERO,
+      );
       final String html =
           templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
       expectGoldenFile(html, 'search_page.html');

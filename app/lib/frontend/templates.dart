@@ -410,6 +410,8 @@ class TemplateService {
       'results': results,
       'pagination': renderPagination(pageLinks),
       'hasResults': results.length > 0,
+      'search_service': resultPage.backend == 'service',
+      'latency_ms': resultPage.latency.inMilliseconds,
     };
     return _renderPage('search', values,
         title: 'Search results for $queryText.', searchQuery: queryText);
