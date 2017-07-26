@@ -23,7 +23,9 @@ then
 fi
 
 git clone -b alpha https://github.com/flutter/flutter.git $FLUTTER_SDK
-cd $FLUTTER_SDK && git checkout tags/0.0.7
+
+# Keep in-sync with app/lib/analyzer/versions.dart
+cd $FLUTTER_SDK && git checkout tags/0.0.11
 
 # Downloads the Dart SDK and disables analytics tracking – which we always want.
 # This will add 400 MB.

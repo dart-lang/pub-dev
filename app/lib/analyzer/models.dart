@@ -12,6 +12,7 @@ import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
+import 'versions.dart';
 
 /// Analyzed package report.
 @db.Kind(name: 'PackageAnalysis', idType: db.IdType.String)
@@ -60,9 +61,13 @@ class PackageVersionAnalysis extends db.ExpandoModel {
   DateTime analysisTimestamp;
 
   @db.StringProperty()
-  String analysisVersion;
+  String panaVersion;
 
-  Version get semanticAnalysisVersion => new Version.parse(analysisVersion);
+  @db.StringProperty()
+  String flutterVersion;
+
+  Version get semanticPanaVersion => new Version.parse(panaVersion);
+  Version get semanticFlutterVersion => new Version.parse(flutterVersion);
 
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;
@@ -74,19 +79,22 @@ class PackageVersionAnalysis extends db.ExpandoModel {
     id = analysis.packageVersion;
     latestAnalysisKey = analysis.key;
     analysisTimestamp = analysis.timestamp;
-    analysisVersion = analysis.analysisVersion;
+    panaVersion = analysis.panaVersion;
+    flutterVersion = analysis.flutterVersion;
     analysisStatus = analysis.analysisStatus;
   }
 
   /// Returns true if there was a change that warrants an update in Datastore.
   bool updateWithLatest(Analysis analysis) {
-    if (isNewer(analysis.semanticAnalysisVersion, semanticAnalysisVersion)) {
-      // the new analysis' pana version is older, result probably obsolete
+    if (isNewer(analysis.semanticPanaVersion, semanticPanaVersion) ||
+        isNewer(analysis.semanticFlutterVersion, semanticFlutterVersion)) {
+      // the new analysis' version is older, result probably obsolete
       return false;
     }
     latestAnalysisKey = analysis.key;
     analysisTimestamp = analysis.timestamp;
-    analysisVersion = analysis.analysisVersion;
+    panaVersion = analysis.panaVersion;
+    flutterVersion = analysis.flutterVersion;
     analysisStatus = analysis.analysisStatus;
     return true;
   }
@@ -113,9 +121,13 @@ class Analysis extends db.ExpandoModel {
   // how its execution went, and the raw output.
 
   @db.StringProperty()
-  String analysisVersion;
+  String panaVersion;
 
-  Version get semanticAnalysisVersion => new Version.parse(analysisVersion);
+  @db.StringProperty()
+  String flutterVersion;
+
+  Version get semanticPanaVersion => new Version.parse(panaVersion);
+  Version get semanticFlutterVersion => new Version.parse(flutterVersion);
 
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;

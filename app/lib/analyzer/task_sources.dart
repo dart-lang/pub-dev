@@ -12,6 +12,7 @@ import '../shared/task_scheduler.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
+import 'versions.dart';
 
 final Logger _logger = new Logger('pub.analyzer.source');
 
@@ -64,12 +65,10 @@ class DatastoreHeadTaskSource implements TaskSource {
 class DatastoreHistoryTaskSource implements TaskSource {
   final DatastoreDB _db;
   final int afterDays;
-  final String analysisVersion;
 
   DatastoreHistoryTaskSource(
     this._db, {
     this.afterDays: 30,
-    this.analysisVersion,
   });
 
   @override
@@ -116,7 +115,8 @@ class DatastoreHistoryTaskSource implements TaskSource {
     final PackageVersionAnalysis version = list.first;
     if (version == null) return true;
 
-    if (analysisVersion != null && version.analysisVersion != analysisVersion) {
+    if (version.panaVersion != panaVersion ||
+        version.flutterVersion != flutterVersion) {
       return true;
     }
 
