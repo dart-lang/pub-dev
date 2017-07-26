@@ -29,6 +29,9 @@ const String _CUSTOM_SEARCH_ID = "009011925481577436976:h931xn2j7o0";
 /// The maximum number of results the Custom Search API will provide.
 const SEARCH_MAX_RESULTS = 100;
 
+/// Timeout to try search service and after that fall back to CSE.
+const searchServiceTimeout = const Duration(seconds: 4);
+
 /// The [SearchService] registered in the current service scope.
 SearchService get searchService => ss.lookup(#_search);
 
@@ -80,7 +83,13 @@ class SearchService {
   Future<SearchResultPage> search(SearchQuery query, bool useService) async {
     if (useService) {
       try {
-        final SearchResultPage page = await _searchService(query);
+        final SearchResultPage page = await _searchService(query).timeout(
+          searchServiceTimeout,
+          onTimeout: () async {
+            _logger.warning('Search service exceeded timeout.');
+            return null;
+          },
+        );
         if (page != null) return page;
         _logger.warning('Search service was not ready.');
       } catch (e, st) {
@@ -91,6 +100,7 @@ class SearchService {
   }
 
   Future<SearchResultPage> _searchService(SearchQuery query) async {
+    final Stopwatch sw = new Stopwatch()..start();
     final search_service.PackageQuery packageQuery =
         new search_service.PackageQuery(
       query.text,
@@ -137,10 +147,11 @@ class SearchService {
     final devVersions = allVersions.sublist(result.packages.length);
 
     return new SearchResultPage(
-        query, result.totalCount, versions, devVersions);
+        query, result.totalCount, versions, devVersions, 'service', sw.elapsed);
   }
 
   Future<SearchResultPage> _searchCSE(SearchQuery query) async {
+    final Stopwatch sw = new Stopwatch()..start();
     bool exists(x) => x != null;
     final db = dbService;
 
@@ -175,7 +186,8 @@ class SearchService {
           final int count = min(
               int.parse(search.searchInformation.totalResults),
               SEARCH_MAX_RESULTS);
-          return new SearchResultPage(query, count, versions, devVersions);
+          return new SearchResultPage(
+              query, count, versions, devVersions, 'cse', sw.elapsed);
         }
       }
     }
@@ -281,9 +293,15 @@ class SearchResultPage {
   /// The latest development versions of the packages found by the search.
   final List<PackageVersion> devVersions;
 
-  SearchResultPage(
-      this.query, this.totalCount, this.stableVersions, this.devVersions);
+  /// Which search backend was used.
+  final String backend;
+
+  /// How much time was needed to prepare the results.
+  final Duration latency;
+
+  SearchResultPage(this.query, this.totalCount, this.stableVersions,
+      this.devVersions, this.backend, this.latency);
 
   factory SearchResultPage.empty(SearchQuery query) =>
-      new SearchResultPage(query, 0, [], []);
+      new SearchResultPage(query, 0, [], [], 'none', Duration.ZERO);
 }
