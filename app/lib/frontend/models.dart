@@ -67,6 +67,10 @@ class Package extends db.ExpandoModel {
   Version get latestDevSemanticVersion =>
       latestDevVersionKey == null ? null : new Version.parse(latestDevVersion);
 
+  String get shortUpdated {
+    return ShortDateFormat.format(updated);
+  }
+
   // Check if a user is an uploader for a package.
   bool hasUploader(String email) {
     return uploaderEmails

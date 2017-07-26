@@ -68,7 +68,7 @@ class BackendMock implements Backend {
 
   @override
   Future<List<PackageVersion>> latestPackageVersions(
-      {int offset: null, int limit: null}) async {
+      {int offset, int limit, bool devVersions: false}) async {
     if (latestPackageVersionsFun == null) throw 'no latestPackageVersionsFun';
     return latestPackageVersionsFun(offset: offset, limit: limit);
   }
@@ -82,8 +82,8 @@ class BackendMock implements Backend {
   }
 
   @override
-  Future<List<PackageVersion>> lookupLatestVersions(
-      List<Package> packages) async {
+  Future<List<PackageVersion>> lookupLatestVersions(List<Package> packages,
+      {bool devVersions: false}) async {
     if (lookupLatestVersionsFun == null) throw 'no lookupLatestVersionsFun';
     return lookupLatestVersionsFun(packages);
   }

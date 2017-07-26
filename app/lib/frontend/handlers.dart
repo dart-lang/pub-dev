@@ -74,7 +74,8 @@ Future<shelf.Response> appHandler(
 Future<shelf.Response> indexHandler(_) async {
   String pageContent = await backend.uiPackageCache?.getUIIndexPage();
   if (pageContent == null) {
-    final versions = await backend.latestPackageVersions(limit: 5);
+    final versions =
+        await backend.latestPackageVersions(limit: 5, devVersions: true);
     assert(!versions.any((version) => version == null));
     pageContent = templateService.renderIndexPage(versions);
     await backend.uiPackageCache?.setUIIndexPage(pageContent);

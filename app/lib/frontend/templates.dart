@@ -91,7 +91,7 @@ class TemplateService {
           'ellipsized_description': version.ellipsizedDescription,
         },
         'authors_html': _getAuthorsHtml(version),
-        'short_updated': version.shortCreated,
+        'short_updated': package.shortUpdated,
       });
     }
     final values = {
