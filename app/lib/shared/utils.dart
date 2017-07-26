@@ -234,3 +234,29 @@ Stream<T> randomizeStream<T>(
     },
   ));
 }
+
+class LastNTracker<T extends Comparable<T>> {
+  final Queue<T> _lastItems = new Queue();
+  final int _n;
+
+  LastNTracker({int lastN: 100}) : _n = lastN;
+
+  void add(T d) {
+    _lastItems.addLast(d);
+    if (_lastItems.length > _n) _lastItems.removeFirst();
+  }
+
+  T get median {
+    if (_lastItems.isEmpty) return null;
+    final List<T> list = new List.from(_lastItems);
+    list.sort();
+    return list[list.length ~/ 2];
+  }
+
+  Map<T, int> toCounts() {
+    return _lastItems.fold(<T, int>{}, (Map m, T item) {
+      m[item] = (m[item] ?? 0) + 1;
+      return m;
+    });
+  }
+}
