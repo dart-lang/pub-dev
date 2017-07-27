@@ -28,16 +28,17 @@ Future main() async {
 
   withAppEngineServices(() async {
     _initFlutterSdk().then((_) async {
-      final ReceivePort mainReceivePort = new ReceivePort();
       final ReceivePort errorReceivePort = new ReceivePort();
 
       Future startIsolate() async {
         logger.info('About to start analyzer isolate...');
+        final ReceivePort mainReceivePort = new ReceivePort();
         await Isolate.spawn(
           _runScheduler,
           [mainReceivePort.sendPort],
           onError: errorReceivePort.sendPort,
           onExit: errorReceivePort.sendPort,
+          errorsAreFatal: true,
         );
         final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
         registerTaskSendPort(sendPorts[0]);
@@ -52,7 +53,9 @@ Future main() async {
         await startIsolate();
       });
 
-      await startIsolate();
+      for (int i = 0; i < envConfig.isolateCount; i++) {
+        await startIsolate();
+      }
     });
     return withCorrectDatastore(() async {
       _registerServices();

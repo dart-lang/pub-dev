@@ -23,7 +23,23 @@ import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 
-void main() {
+Future main() async {
+  final ReceivePort errorPort = new ReceivePort();
+  errorPort.listen((error) {
+    print('ERROR from isolate: $error');
+  });
+  for (int i = 0; i < envConfig.isolateCount; i++) {
+    await Isolate.spawn(
+      _main,
+      i,
+      onError: errorPort.sendPort,
+      onExit: errorPort.sendPort,
+      errorsAreFatal: true,
+    );
+  }
+}
+
+void _main(int isolateId) {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
@@ -56,8 +72,11 @@ void main() {
       );
       scheduler.run();
 
-      await runAppEngine((HttpRequest request) =>
-          shelf_io.handleRequest(request, searchServiceHandler));
+      await runAppEngine(
+        (HttpRequest request) =>
+            shelf_io.handleRequest(request, searchServiceHandler),
+        shared: true,
+      );
     });
   });
 }

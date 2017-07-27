@@ -135,6 +135,9 @@ class SnapshotStorage {
         new DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
     final currentName = 'snapshot-$ts.json.gz';
 
+    // prevent race: don't delete entries that are later than current snapshot
+    toDelete.removeWhere((String name) => name.compareTo(currentName) >= 0);
+
     // upload
     final StreamSink<List<int>> sink = bucket.write(currentName);
     sink.add(buffer);
