@@ -21,6 +21,7 @@ import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/frontend/search_memcache.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
@@ -84,6 +85,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   final cache = new AppEnginePackageMemcache(memcacheService, '');
   initBackend(cache: cache);
+  registerSearchMemcache(new SearchMemcache(memcacheService));
 
   UploadSignerService uploadSigner;
   if (configuration.hasCredentials) {
