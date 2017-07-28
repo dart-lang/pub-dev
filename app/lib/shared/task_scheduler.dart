@@ -36,9 +36,8 @@ class TaskScheduler {
   TaskScheduler(this.taskRunner, this.sources);
 
   Future run() async {
-    final PrioritizedAsyncIterator<Task> taskIterator =
-        new PrioritizedAsyncIterator(
-            sources.map((TaskSource ts) => ts.startStreaming()).toList());
+    final StreamIterator<Task> taskIterator = new PrioritizedStreamIterator(
+        sources.map((TaskSource ts) => ts.startStreaming()).toList());
     while (await taskIterator.moveNext()) {
       final Task task = taskIterator.current;
       try {
@@ -73,9 +72,7 @@ class Task {
 
 /// A pull-based interface for accessing events from multiple streams, in the
 /// priority order of the streams provided.
-///
-/// Inspired by Iterator and package:async's StreamQueue.
-class PrioritizedAsyncIterator<T> {
+class PrioritizedStreamIterator<T> implements StreamIterator<T> {
   List<Queue<T>> _priorityQueues;
   List<StreamSubscription> _subscriptions;
   bool _hasMoved = false;
@@ -83,7 +80,7 @@ class PrioritizedAsyncIterator<T> {
   T _current;
   Completer<bool> _hasNextCompleter;
 
-  PrioritizedAsyncIterator(List<Stream<T>> sources) {
+  PrioritizedStreamIterator(List<Stream<T>> sources) {
     _priorityQueues = new List.generate(sources.length, (_) => new Queue());
     _subscriptions = new List(sources.length);
 
@@ -98,7 +95,7 @@ class PrioritizedAsyncIterator<T> {
         },
         onDone: () {
           _subscriptions[i] = null;
-          _closeWhenAllDone();
+          _cancelWhenAllDone();
         },
         cancelOnError: true,
       );
@@ -107,6 +104,7 @@ class PrioritizedAsyncIterator<T> {
 
   /// Moves to the next element.
   /// Returns whether the iterator has another item.
+  @override
   Future<bool> moveNext() async {
     if (_hasNextCompleter != null) {
       throw new StateError('Another moveNext() is underway.');
@@ -119,20 +117,22 @@ class PrioritizedAsyncIterator<T> {
       return true;
     } else {
       _hasNextCompleter ??= new Completer();
-      _closeWhenAllDone();
+      _cancelWhenAllDone();
       return _hasNextCompleter.future;
     }
   }
 
   // The current element in the iterator.
+  @override
   T get current {
-    if (_isClosed) throw new StateError('AsyncIterator closed.');
+    if (_isClosed) throw new StateError('StreamIterator closed.');
     if (!_hasMoved) throw new StateError('moveNext() has not been called.');
     return _current;
   }
 
   /// Close the source streams and don't accept new requests.
-  Future close() async {
+  @override
+  Future cancel() async {
     if (_hasNextCompleter != null) {
       _hasNextCompleter.complete(false);
       _hasNextCompleter = null;
@@ -149,7 +149,7 @@ class PrioritizedAsyncIterator<T> {
 
   Queue<T> _firstQueue() {
     if (_isClosed) {
-      throw new StateError('AsyncIterator closed');
+      throw new StateError('StreamIterator closed');
     }
     return _priorityQueues.firstWhere((q) => q.isNotEmpty, orElse: () => null);
   }
@@ -162,13 +162,13 @@ class PrioritizedAsyncIterator<T> {
       _hasNextCompleter.complete(true);
       _hasNextCompleter = null;
     }
-    _closeWhenAllDone();
+    _cancelWhenAllDone();
   }
 
-  void _closeWhenAllDone() {
+  void _cancelWhenAllDone() {
     if (_isClosed) return;
     if (_subscriptions.any((s) => s != null)) return;
     if (_firstQueue() != null) return;
-    close();
+    cancel();
   }
 }

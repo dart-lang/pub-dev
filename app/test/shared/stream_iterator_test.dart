@@ -15,7 +15,7 @@ void main() {
   group('Initialization', () {
     test('Calling current without moveNext().', () async {
       final Completer c = new Completer();
-      final iterator = new PrioritizedAsyncIterator([
+      final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([c.future]),
       ]);
       expect(() => iterator.current, throwsStateError);
@@ -28,7 +28,7 @@ void main() {
 
     test('Calling moveNext() while another is being evaluated.', () async {
       final Completer c = new Completer();
-      final iterator = new PrioritizedAsyncIterator([
+      final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([c.future]),
       ]);
       final Future f = iterator.moveNext();
@@ -42,7 +42,7 @@ void main() {
 
   group('Completes', () {
     test('single stream', () async {
-      final iterator = new PrioritizedAsyncIterator([
+      final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([
           new Future.delayed(millis10, () => 1),
           new Future.delayed(millis10, () => 2),
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('two streams', () async {
-      final iterator = new PrioritizedAsyncIterator([
+      final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([
           new Future.delayed(millis10, () => 1),
           new Future.delayed(millis10, () => 2),
@@ -83,7 +83,7 @@ void main() {
       final Completer c1 = new Completer.sync();
       final Completer c2 = new Completer.sync();
       final Completer c3 = new Completer.sync();
-      final iterator = new PrioritizedAsyncIterator([
+      final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([c1.future]),
         new Stream.fromFutures([c2.future, c3.future]),
       ]);
