@@ -106,16 +106,21 @@ class SnapshotStorage {
         .map((entry) => entry.name)
         .toList();
     if (names.isEmpty) return null;
-    // Select the first entry, because there is chance that later entries were
-    // aborted for some reason, and the most probable correct entry is the first
-    // one.
+    // Try to load the available snapshots in reverse order (latest first).
     names.sort();
-    final String selected = names.first;
-    // reading
-    final Stream<List<int>> storageStream = bucket.read(selected);
-    final Stream<List<int>> unzippedStream = _gzip.decoder.bind(storageStream);
-    final String json = await UTF8.decoder.bind(unzippedStream).join();
-    return new SearchSnapshot.fromJson(JSON.decode(json));
+    for (String selected in names.reversed) {
+      try {
+        final String json = await bucket
+            .read(selected)
+            .transform(_gzip.decoder)
+            .transform(UTF8.decoder)
+            .join();
+        return new SearchSnapshot.fromJson(JSON.decode(json));
+      } catch (e, st) {
+        _logger.severe('Unable to load snapshot: $selected', e, st);
+      }
+    }
+    return null;
   }
 
   Future store(SearchSnapshot snapshot) async {
@@ -136,9 +141,7 @@ class SnapshotStorage {
     final currentName = 'snapshot-$ts.json.gz';
 
     // upload
-    final StreamSink<List<int>> sink = bucket.write(currentName);
-    sink.add(buffer);
-    await sink.close();
+    await bucket.writeBytes(currentName, buffer);
 
     // upload successful, garbage-collect entries
     for (String name in toDelete) {
