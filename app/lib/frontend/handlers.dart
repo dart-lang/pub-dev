@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
+import '../shared/utils.dart';
 
 import 'atom_feed.dart';
 import 'backend.dart';
@@ -27,6 +28,11 @@ final String StaticsLocation =
 RegExp _packageRegexp =
     new RegExp('package:([_a-z0-9]+)\\*?', caseSensitive: false);
 
+// Non-revealing metrics to monitor the search service behavior from outside.
+final _searchBackendTracker = new LastNTracker<String>();
+final _searchBackendLatencyTracker = new LastNTracker<Duration>();
+final _searchOverallLatencyTracker = new LastNTracker<Duration>();
+
 /// Handler for the whole URL space of pub.dartlang.org
 ///
 /// The passed in [shelfPubApi] handler will be used for handling requests to
@@ -39,6 +45,7 @@ Future<shelf.Response> appHandler(
 
   final handler = {
     '/': indexHandler,
+    '/debug': debugHandler,
     '/feed.atom': atomFeedHandler,
     '/authorized': authorizedHandler,
     '/search': searchHandler,
@@ -68,6 +75,17 @@ Future<shelf.Response> appHandler(
   } else {
     return _formattedNotFoundHandler(request);
   }
+}
+
+/// Handles requests for /debug
+Future<shelf.Response> debugHandler(shelf.Request request) async {
+  return jsonResponse({
+    'search': {
+      'backend_counts': _searchBackendTracker.toCounts(),
+      'backend_latency': _searchBackendLatencyTracker.median?.inMilliseconds,
+      'overall_latency': _searchOverallLatencyTracker.median?.inMilliseconds,
+    },
+  }, indent: true);
 }
 
 /// Handles requests for /
@@ -113,6 +131,8 @@ shelf.Response docHandler(shelf.Request request) {
 
 /// Handles requests for /search
 Future<shelf.Response> searchHandler(shelf.Request request) async {
+  final Stopwatch sw = new Stopwatch();
+  sw.start();
   String queryText = request.url.queryParameters['q'] ?? '';
   String packagePrefix = request.url.queryParameters['pkg-prefix'];
 
@@ -149,6 +169,10 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
 
   final resultPage = await searchService.search(query, useService);
   final links = new SearchLinks(query, resultPage.totalCount);
+  _searchBackendTracker.add(resultPage.backend);
+  _searchBackendLatencyTracker.add(resultPage.latency);
+  _searchOverallLatencyTracker.add(sw.elapsed);
+
   return htmlResponse(templateService.renderSearchPage(resultPage, links));
 }
 
