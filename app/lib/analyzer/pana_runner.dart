@@ -13,7 +13,6 @@ import '../shared/task_scheduler.dart' show Task;
 
 import 'backend.dart';
 import 'models.dart';
-import 'versions.dart';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
 
@@ -41,10 +40,7 @@ class PanaRunner {
       _logger.severe('Pana execution failed.', e, st);
     }
 
-    final Analysis analysis = new Analysis.init(task.package, task.version)
-      ..timestamp = new DateTime.now().toUtc()
-      ..panaVersion = panaVersion
-      ..flutterVersion = flutterVersion;
+    final Analysis analysis = new Analysis.init(task.package, task.version);
 
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
