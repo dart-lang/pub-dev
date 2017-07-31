@@ -19,6 +19,7 @@ import 'atom_feed.dart';
 import 'backend.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
+import 'search_memcache.dart';
 import 'search_service.dart';
 import 'templates.dart';
 
@@ -133,6 +134,11 @@ shelf.Response docHandler(shelf.Request request) {
 Future<shelf.Response> searchHandler(shelf.Request request) async {
   final Stopwatch sw = new Stopwatch();
   sw.start();
+
+  final String cacheUrl = request.url.toString();
+  final String cachedHtml = await searchMemcache?.getUiSearchPage(cacheUrl);
+  if (cachedHtml != null) return htmlResponse(cachedHtml);
+
   String queryText = request.url.queryParameters['q'] ?? '';
   String packagePrefix = request.url.queryParameters['pkg-prefix'];
 
@@ -169,11 +175,14 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
 
   final resultPage = await searchService.search(query, useService);
   final links = new SearchLinks(query, resultPage.totalCount);
+  final String content = templateService.renderSearchPage(resultPage, links);
+
   _searchBackendTracker.add(resultPage.backend);
   _searchBackendLatencyTracker.add(resultPage.latency);
   _searchOverallLatencyTracker.add(sw.elapsed);
 
-  return htmlResponse(templateService.renderSearchPage(resultPage, links));
+  await searchMemcache?.setUiSearchPage(cacheUrl, content);
+  return htmlResponse(content);
 }
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
