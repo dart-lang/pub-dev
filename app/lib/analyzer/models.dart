@@ -12,7 +12,7 @@ import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
-import 'versions.dart';
+import 'versions.dart' as versions;
 
 /// Analyzed package report.
 @db.Kind(name: 'PackageAnalysis', idType: db.IdType.String)
@@ -144,6 +144,9 @@ class Analysis extends db.ExpandoModel {
     parentKey = db.dbService.emptyKey
         .append(PackageAnalysis, id: packageName)
         .append(PackageVersionAnalysis, id: packageVersion);
+    timestamp = new DateTime.now().toUtc();
+    panaVersion = versions.panaVersion;
+    flutterVersion = versions.flutterVersion;
   }
 
   Map get analysisJson {
