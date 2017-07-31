@@ -168,8 +168,8 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
 
 void notifyAnalyzer(String package, String version) {
   try {
-    final String host = activeConfiguration.analyzerServicePrefix;
-    final String uri = 'https://$host/packages/$package/$version';
+    final String httpHostPort = activeConfiguration.analyzerServicePrefix;
+    final String uri = '$httpHostPort/packages/$package/$version';
     _doNotify(uri);
   } catch (e) {
     // we are running in travis
