@@ -1755,6 +1755,10 @@ table tbody tr:hover th {
   background-color: whitesmoke;
 }
 
+table.noborder td {
+  border-top: none;
+}
+
 table .span1 {
   float: none;
   width: 44px;

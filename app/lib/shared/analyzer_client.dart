@@ -8,8 +8,10 @@ import 'dart:convert';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:pana/pana.dart';
 
 import 'analyzer_service.dart';
+export 'analyzer_service.dart';
 
 /// Sets the analyzer client.
 void registerAnalyzerClient(AnalyzerClient client) =>
@@ -44,5 +46,23 @@ class AnalyzerClient {
 
   Future close() async {
     _client.close();
+  }
+}
+
+class AnalysisView {
+  final AnalysisData _data;
+  final Summary _summary;
+
+  AnalysisView(this._data) :
+    _summary = new Summary.fromJson(_data.analysisContent);
+
+  DateTime get timestamp => _data.timestamp;
+  AnalysisStatus get analysisStatus => _data.analysisStatus;
+
+  List<String> getDependencies() {
+    final List<String> list = _summary.pubSummary.packageVersions.keys.toList();
+    list.remove(_summary.packageName);
+    list.sort();
+    return list;
   }
 }
