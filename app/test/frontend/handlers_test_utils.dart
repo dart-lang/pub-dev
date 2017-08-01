@@ -75,7 +75,7 @@ class BackendMock implements Backend {
 
   @override
   Future<List<Package>> latestPackages(
-      {int offset: null, int limit: null, String detectedType}) async {
+      {int offset, int limit, String detectedType}) async {
     if (latestPackagesFun == null) throw 'no latestPackagesFun';
     return latestPackagesFun(
         offset: offset, limit: limit, detectedType: detectedType);
