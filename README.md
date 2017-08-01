@@ -105,12 +105,6 @@ To view your application in the web browser run:
   $ gcloud app browse
 ```
 
-Similarly, to deploy a new version of the `analyzer` service:
-
-```
-pub-dartlang-dart $ gcloud app deploy --no-promote analyzer.yaml
-```
-
 This will do a remote docker build in the cloud, push the generated docker image layers to a
 GCS bucket and deploy a new version to AppEngine.
 
@@ -122,6 +116,25 @@ deployment.
 pub-dartlang-dart $ git tag -a <version> -m <version>
 pub-dartlang-dart $ git push origin <version>
 ```
+
+### Services
+
+The pub site uses two services:
+- `search` (production ready)
+- `analyzer` (experimental, staging only)
+
+To deploy each, use the following:
+
+```
+pub-dartlang-dart $ gcloud app deploy --no-promote search.yaml
+pub-dartlang-dart $ gcloud app deploy --no-promote analyzer.yaml
+```
+
+Check the following URLs for immediate feedback on the services:
+- `search`: [prod](https://search-dot-dartlang-pub.appspot.com/debug), [staging](https://search-dot-dartlang-pub-dev.appspot.com/debug). Make sure that `ready` flag is `true` before diverting traffic to the new version.
+- `analyzer`: [prod](https://analyzer-dot-dartlang-pub.appspot.com/debug), [staging](https://analyzer-dot-dartlang-pub-dev.appspot.com/debug)
+
+Services can be deployed and updated independently, but version-specific deploy instructions may apply in the PR description.
 
 ## Using custom third-party packages (or any non-published packages)
 

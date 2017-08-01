@@ -157,9 +157,6 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   final SearchBias expBias =
       parseExperimentalBias(request.url.queryParameters['experimental-bias']);
 
-  final bool useService =
-      request.url.queryParameters['experimental-service'] == 'true';
-
   final SearchQuery query = new SearchQuery(
     queryText,
     offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
@@ -173,7 +170,8 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }
 
-  final resultPage = await searchService.search(query, useService);
+  final resultPage =
+      await searchService.search(query, true /* use search service */);
   final links = new SearchLinks(query, resultPage.totalCount);
   final String content = templateService.renderSearchPage(resultPage, links);
 
