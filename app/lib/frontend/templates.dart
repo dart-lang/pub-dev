@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:mustache/mustache.dart' as mustache;
 
+import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/mock_scores.dart';
 
@@ -110,6 +111,45 @@ class TemplateService {
         title: pageTitle, faviconUrl: faviconUrl);
   }
 
+  /// Renders the `views/pkg/analysis_tab.mustache` template.
+  String renderAnalysisTab(AnalysisView analysis) {
+    if (analysis == null) return null;
+
+    String statusText;
+    switch (analysis.analysisStatus) {
+      case AnalysisStatus.aborted:
+        statusText = 'Could not analyze package.';
+        break;
+      case AnalysisStatus.failure:
+        statusText = 'Analyzer had some errors.';
+        break;
+      case AnalysisStatus.success:
+        statusText = 'Analyzer completed successfully.';
+        break;
+    }
+
+    final List<Map> dependencies = analysis
+        .getDependencies()
+        .map((String pkg) => {
+              'text': pkg,
+              'href': 'https://pub.dartlang.org/packages/$pkg',
+              'sep': ',',
+            })
+        .toList();
+    if (dependencies.isNotEmpty) {
+      dependencies.last['sep'] = '';
+    }
+
+    final Map<String, dynamic> data = {
+      'timestamp': analysis.timestamp.toString(),
+      'status': statusText,
+      'has_dependency': dependencies.isNotEmpty,
+      'dependencies': dependencies,
+    };
+
+    return _renderTemplate('pkg/analysis_tab', data);
+  }
+
   /// Renders the `views/private_keys/show.mustache` template.
   String renderPkgShowPage(
       Package package,
@@ -118,7 +158,8 @@ class TemplateService {
       PackageVersion selectedVersion,
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
-      int totalNumberOfVersions) {
+      int totalNumberOfVersions,
+      String analysisTabContent) {
     assert(versions.length == versionDownloadUrls.length);
 
     var importExamples;
@@ -251,6 +292,9 @@ class TemplateService {
     addFileTab('readme', readmeFilename, renderedReadme);
     addFileTab('changelog', changelogFilename, renderedChangelog);
     addFileTab('example', 'Example', renderedExample);
+    if (analysisTabContent != null) {
+      addFileTab('analysis', 'Analysis', analysisTabContent);
+    }
     if (tabs.isNotEmpty) tabs.first['class'] = 'active';
 
     final values = {

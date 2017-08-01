@@ -1,0 +1,21 @@
+<h4>Analysis</h4>
+
+<table class="noborder" style="margin-top: 0.5em">
+  <tr>
+    <td>Timestamp:</td>
+    <td>{{timestamp}}</td>
+  </tr>
+  <tr>
+    <td>Status:</td>
+    <td>{{status}}</td>
+  </tr>
+</table>
+
+{{#has_dependency}}
+<h4>Transitive dependencies</h4>
+<ul style="column-width: 128px; list-style: none; margin-left: 0px;">
+  {{#dependencies}}
+    <li><a href="{{{href}}}">{{text}}</a></li>
+  {{/dependencies}}
+</ul>
+{{/has_dependency}}

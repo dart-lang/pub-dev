@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:html/parser.dart';
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/templates.dart';
@@ -12,6 +14,8 @@ import 'package:pub_dartlang_org/frontend/search_service.dart'
     show SearchBias, SearchQuery, SearchResultPage;
 
 import 'utils.dart';
+
+const String goldenDir = 'test/frontend/golden';
 
 void main() {
   group('templates', () {
@@ -26,8 +30,7 @@ void main() {
       } else {
         htmlParser.parse();
       }
-      final golden =
-          new File('test/frontend/golden/$fileName').readAsStringSync();
+      final golden = new File('$goldenDir/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
     }
 
@@ -45,7 +48,8 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           testPackageVersion,
-          1);
+          1,
+          'Mock analysis tab content.');
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
@@ -57,8 +61,21 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           flutterPackageVersion,
-          1);
+          1,
+          null);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
+    });
+
+    test('package analysis tab', () async {
+      // no content
+      expect(templates.renderAnalysisTab(null), isNull);
+
+      // stored analysis of http
+      final String json =
+          await new File('$goldenDir/analysis_0.2.4_http.json').readAsString();
+      final String html = templates.renderAnalysisTab(
+          new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
+      expectGoldenFile(html, 'analysis_0.2.4_http.html', isFragment: true);
     });
 
     test('package index page', () {

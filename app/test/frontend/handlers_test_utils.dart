@@ -165,7 +165,8 @@ class TemplateMock implements TemplateService {
       PackageVersion selectedVersion,
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
-      int totalNumberOfVersions) {
+      int totalNumberOfVersions,
+      String analysisTabContent) {
     return Response;
   }
 
@@ -182,6 +183,11 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
+    return Response;
+  }
+
+  @override
+  String renderAnalysisTab(analysis) {
     return Response;
   }
 }
