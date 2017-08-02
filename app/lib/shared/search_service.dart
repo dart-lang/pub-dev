@@ -14,10 +14,8 @@ const String searchIndexNotReadyText = 'Not ready yet.';
 /// Package search index and lookup.
 abstract class PackageIndex {
   bool get isReady;
-  Future<int> indexSize();
   Future add(PackageDocument doc);
   Future addAll(Iterable<PackageDocument> documents);
-  Future contains(String url, String version, String devVersion);
   Future removeUrl(String url);
   Future merge();
   Future<PackageSearchResult> search(PackageQuery query);
