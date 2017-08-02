@@ -150,11 +150,16 @@ class Analysis extends db.ExpandoModel {
   }
 
   Map get analysisJson {
+    if (analysisJsonGz == null) return null;
     return JSON.decode(UTF8.decode(_gzipCodec.decode(analysisJsonGz)));
   }
 
   set analysisJson(Map map) {
-    analysisJsonGz = _gzipCodec.encode(UTF8.encode(JSON.encode(map)));
+    if (map == null) {
+      analysisJsonGz = null;
+    } else {
+      analysisJsonGz = _gzipCodec.encode(UTF8.encode(JSON.encode(map)));
+    }
   }
 }
 
