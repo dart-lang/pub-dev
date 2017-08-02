@@ -19,7 +19,7 @@ import '../shared/mock_scores.dart';
 import 'models.dart';
 import 'search_service.dart' show CseTokens, SearchQuery, SearchResultPage;
 
-final Logger _logger = new Logger('pub.cloud_repository');
+final Logger _logger = new Logger('pub.templates');
 
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
