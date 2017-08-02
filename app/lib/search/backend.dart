@@ -69,7 +69,7 @@ class SearchBackend {
       results[i] = new PackageDocument(
         url: _toUrl(pv.package),
         package: pv.package,
-        version: pv.version,
+        version: p.latestVersion,
         devVersion: p.latestDevVersion,
         detectedTypes: pv.detectedTypes,
         description: compactDescription(pv.pubspec.description),
