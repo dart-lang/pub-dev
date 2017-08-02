@@ -55,12 +55,6 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future<bool> contains(String url, String version, String devVersion) async {
-    final PackageDocument doc = _documents[url];
-    return doc != null && doc.version == version && doc.devVersion == null;
-  }
-
-  @override
   Future<PackageSearchResult> search(PackageQuery query) async {
     final Map<String, double> total = <String, double>{};
     void addAll(Map<String, double> scores, double weight) {
@@ -147,9 +141,6 @@ class SimplePackageIndex implements PackageIndex {
     _isReady = true;
     _lastUpdated = new DateTime.now().toUtc();
   }
-
-  @override
-  Future<int> indexSize() async => -1;
 }
 
 class TokenIndex {
