@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
 import '../shared/analyzer_client.dart';
@@ -17,6 +18,8 @@ import '../shared/mock_scores.dart';
 
 import 'models.dart';
 import 'search_service.dart' show CseTokens, SearchQuery, SearchResultPage;
+
+final Logger _logger = new Logger('pub.cloud_repository');
 
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
@@ -433,10 +436,16 @@ class TemplateService {
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     final List results = [];
     for (int i = 0; i < resultPage.stableVersions.length; i++) {
-      final PackageVersion stable = resultPage.stableVersions[i];
+      PackageVersion stable = resultPage.stableVersions[i];
       final PackageVersion dev = resultPage.devVersions.length > i
           ? resultPage.devVersions[i]
           : stable;
+
+      if (stable == null) {
+        stable = dev;
+        _logger.warning("Stable version `null` for ${dev.package}.");
+      }
+
       results.add({
         'url': '/packages/${stable.packageKey.id}',
         'name': stable.packageKey.id,
