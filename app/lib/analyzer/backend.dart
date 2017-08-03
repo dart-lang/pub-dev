@@ -166,4 +166,27 @@ class AnalysisBackend {
 
     return true;
   }
+
+  Future deleteObsoleteAnalysisEntries() async {
+    final DateTime threshold =
+        new DateTime.now().toUtc().subtract(const Duration(days: 180));
+    final Query query = db.query(Analysis)
+      ..order('timestamp')
+      ..filter('timestamp <', threshold);
+    await for (Analysis analysis in query.run()) {
+      final PackageVersionAnalysis pva =
+          (await db.lookup([analysis.parentKey])).single;
+      if (pva.latestAnalysis != analysis.analysis) {
+        _logger.info('Deleting obsolete Analysis: ${analysis.packageName} '
+            '${analysis.packageVersion} ${analysis.analysis}');
+        await db.withTransaction((Transaction tx) async {
+          final List list = await tx.lookup([analysis.key]);
+          if (list[0] != null) {
+            tx.queueMutations(deletes: [list[0].key]);
+          }
+          await tx.commit();
+        });
+      }
+    }
+  }
 }
