@@ -240,24 +240,28 @@ class LastNTracker<T extends Comparable<T>> {
   final Queue<T> _lastItems = new Queue();
   final int _n;
 
-  LastNTracker({int lastN: 100}) : _n = lastN;
+  LastNTracker({int lastN: 500}) : _n = lastN;
 
   void add(T d) {
     _lastItems.addLast(d);
     if (_lastItems.length > _n) _lastItems.removeFirst();
   }
 
-  T get median {
-    if (_lastItems.isEmpty) return null;
-    final List<T> list = new List.from(_lastItems);
-    list.sort();
-    return list[list.length ~/ 2];
-  }
+  T get median => _getP(0.5);
+  T get p90 => _getP(0.9);
+  T get p99 => _getP(0.99);
 
   Map<T, int> toCounts() {
     return _lastItems.fold(<T, int>{}, (Map m, T item) {
       m[item] = (m[item] ?? 0) + 1;
       return m;
     });
+  }
+
+  T _getP(double p) {
+    if (_lastItems.isEmpty) return null;
+    final List<T> list = new List.from(_lastItems);
+    list.sort();
+    return list[(list.length * p).floor()];
   }
 }

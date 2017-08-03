@@ -31,6 +31,8 @@ RegExp _packageRegexp =
     new RegExp('package:([_a-z0-9]+)\\*?', caseSensitive: false);
 
 // Non-revealing metrics to monitor the search service behavior from outside.
+final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
+final _packageOverallLatencyTracker = new LastNTracker<Duration>();
 final _searchBackendTracker = new LastNTracker<String>();
 final _searchOverallLatencyTracker = new LastNTracker<Duration>();
 
@@ -80,10 +82,19 @@ Future<shelf.Response> appHandler(
 
 /// Handles requests for /debug
 Future<shelf.Response> debugHandler(shelf.Request request) async {
+  Map toShortStat(LastNTracker<Duration> tracker) => {
+        'median': tracker.median?.inMilliseconds,
+        'p90': tracker.p90?.inMilliseconds,
+        'p99': tracker.p99?.inMilliseconds,
+      };
   return jsonResponse({
+    'package': {
+      'analysis_latency': toShortStat(_packageAnalysisLatencyTracker),
+      'overall_latency': toShortStat(_packageOverallLatencyTracker),
+    },
     'search': {
       'backend_counts': _searchBackendTracker.toCounts(),
-      'overall_latency': _searchOverallLatencyTracker.median?.inMilliseconds,
+      'overall_latency': toShortStat(_searchOverallLatencyTracker),
     },
   }, indent: true);
 }
@@ -368,6 +379,7 @@ Future<shelf.Response> packageVersionsHandler(
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
     request, String packageName, String versionName) async {
+  final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
     cachedPage =
@@ -406,6 +418,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     }
     String analysisTabContent;
     if (useService) {
+      final Stopwatch serviceSw = new Stopwatch()..start();
       final AnalysisData analysisData = await analyzerClient.getAnalysisData(
           selectedVersion.package, selectedVersion.version);
       final AnalysisView analysisView = (analysisData != null &&
@@ -415,6 +428,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
       analysisTabContent = analysisView == null
           ? null
           : templateService.renderAnalysisTab(analysisView);
+      _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
     }
 
     final versionDownloadUrls =
@@ -436,6 +450,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
       await backend.uiPackageCache
           .setUIPackagePage(packageName, versionName, cachedPage);
     }
+    _packageOverallLatencyTracker.add(sw.elapsed);
   }
 
   return htmlResponse(cachedPage);
