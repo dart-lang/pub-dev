@@ -193,7 +193,6 @@ void main() {
             [testPackageVersion],
             [testPackageVersion],
             'service',
-            Duration.ZERO,
           );
         }));
         await expectHtmlResponse(await issueGet('/search?q=foobar'),
@@ -211,7 +210,6 @@ void main() {
             [testPackageVersion],
             [testPackageVersion],
             'service',
-            Duration.ZERO,
           );
         }));
         await expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));

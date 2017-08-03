@@ -100,7 +100,6 @@ class SearchService {
   }
 
   Future<SearchResultPage> _searchService(SearchQuery query) async {
-    final Stopwatch sw = new Stopwatch()..start();
     final search_service.PackageQuery packageQuery =
         new search_service.PackageQuery(
       query.text,
@@ -133,65 +132,55 @@ class SearchService {
       return null;
     }
 
-    Key versionKey(search_service.PackageScore ps) => dbService.emptyKey
-        .append(Package, id: ps.package)
-        .append(PackageVersion, id: ps.version);
-    Key devVersionKey(search_service.PackageScore ps) => dbService.emptyKey
-        .append(Package, id: ps.package)
-        .append(PackageVersion, id: ps.devVersion);
-    final List<Key> allKeys = []
-      ..addAll(result.packages.map(versionKey))
-      ..addAll(result.packages.map(devVersionKey));
-    final List<PackageVersion> allVersions = await dbService.lookup(allKeys);
-    final versions = allVersions.sublist(0, result.packages.length);
-    final devVersions = allVersions.sublist(result.packages.length);
-
-    return new SearchResultPage(
-        query, result.totalCount, versions, devVersions, 'service', sw.elapsed);
+    final List<String> packages =
+        result.packages.map((ps) => ps.package).toList();
+    return await _loadResultForPackages(
+        query, result.totalCount, packages, 'service');
   }
 
   Future<SearchResultPage> _searchCSE(SearchQuery query) async {
-    final Stopwatch sw = new Stopwatch()..start();
-    bool exists(x) => x != null;
-    final db = dbService;
-
     final search = await csearch.cse.list(query.buildCseQueryText(),
         cx: _CUSTOM_SEARCH_ID,
         num: query.limit,
         start: 1 + query.offset,
         sort: query.buildCseSort());
-    if (exists(search.items)) {
-      final keys = search.items
+    if (search.items != null) {
+      final List<String> packages = search.items
           .map((item) {
             final match = _PackageUrlPattern.matchAsPrefix(item.link);
-            if (exists(match)) {
-              return db.emptyKey.append(Package, id: match.group(1));
-            }
+            return match == null ? null : match.group(1);
           })
-          .where(exists)
+          .where((String package) => package != null)
           .toList();
-
-      if (keys.isNotEmpty) {
-        final List<Package> packages = await db.lookup(keys);
-        packages.removeWhere((p) => !exists(p));
-        final List<Key> versionKeys =
-            packages.map((p) => p.latestVersionKey).toList();
-        final List<Key> devVersionKeys =
-            packages.map((p) => p.latestDevVersionKey).toList();
-        if (versionKeys.isNotEmpty) {
-          final allVersions =
-              await db.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
-          final versions = allVersions.sublist(0, versionKeys.length);
-          final devVersions = allVersions.sublist(versionKeys.length);
-          final int count = min(
-              int.parse(search.searchInformation.totalResults),
-              SEARCH_MAX_RESULTS);
-          return new SearchResultPage(
-              query, count, versions, devVersions, 'cse', sw.elapsed);
-        }
-      }
+      final int count = min(
+          int.parse(search.searchInformation.totalResults), SEARCH_MAX_RESULTS);
+      return await _loadResultForPackages(query, count, packages, 'cse');
     }
     return new SearchResultPage.empty(query);
+  }
+
+  Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
+      int totalCount, List<String> packages, String backend) async {
+    final List<Key> packageKeys = packages
+        .map((package) => dbService.emptyKey.append(Package, id: package))
+        .toList();
+    final List<Package> packageEntries = await dbService.lookup(packageKeys);
+    packageEntries.removeWhere((p) => p == null);
+
+    final List<Key> versionKeys =
+        packageEntries.map((p) => p.latestVersionKey).toList();
+    final List<Key> devVersionKeys =
+        packageEntries.map((p) => p.latestDevVersionKey).toList();
+    if (versionKeys.isNotEmpty) {
+      final allVersions = await dbService
+          .lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+      final versions = allVersions.sublist(0, versionKeys.length);
+      final devVersions = allVersions.sublist(versionKeys.length);
+      return new SearchResultPage(
+          query, totalCount, versions, devVersions, backend);
+    } else {
+      return new SearchResultPage(query, 0, [], [], backend);
+    }
   }
 }
 
@@ -296,12 +285,9 @@ class SearchResultPage {
   /// Which search backend was used.
   final String backend;
 
-  /// How much time was needed to prepare the results.
-  final Duration latency;
-
   SearchResultPage(this.query, this.totalCount, this.stableVersions,
-      this.devVersions, this.backend, this.latency);
+      this.devVersions, this.backend);
 
   factory SearchResultPage.empty(SearchQuery query) =>
-      new SearchResultPage(query, 0, [], [], 'none', Duration.ZERO);
+      new SearchResultPage(query, 0, [], [], 'none');
 }

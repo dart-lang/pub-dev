@@ -113,7 +113,6 @@ void main() {
         [testPackageVersion, flutterPackageVersion],
         [testPackageVersion, flutterPackageVersion],
         'service',
-        Duration.ZERO,
       );
       final String html =
           templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
