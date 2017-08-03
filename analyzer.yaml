@@ -13,12 +13,12 @@ resources:
   cpu: 1
   memory_gb: 4
 
-manual_scaling:
-  instances: 1
+#manual_scaling:
+#  instances: 1
 
-#automatic_scaling:
-#  min_num_instances: 1
-#  max_num_instances: 4
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 4
 
 skip_files:
 - ^.*/packages.*$
