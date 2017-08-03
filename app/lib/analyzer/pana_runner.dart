@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
@@ -28,9 +29,14 @@ class PanaRunner {
     }
 
     Summary summary;
+    Directory tempDir;
     try {
-      final PackageAnalyzer analyzer =
-          new PackageAnalyzer(flutterDir: envConfig.flutterSdkDir);
+      tempDir = await Directory.systemTemp.createTemp('pana');
+      final pubCacheDir = await tempDir.resolveSymbolicLinks();
+      final PackageAnalyzer analyzer = new PackageAnalyzer(
+        flutterDir: envConfig.flutterSdkDir,
+        pubCacheDir: pubCacheDir,
+      );
       summary = await analyzer.inspectPackage(
         task.package,
         version: task.version,
@@ -38,6 +44,10 @@ class PanaRunner {
       );
     } catch (e, st) {
       _logger.severe('Pana execution failed.', e, st);
+    } finally {
+      if (tempDir != null) {
+        await tempDir.delete(recursive: true);
+      }
     }
 
     final Analysis analysis = new Analysis.init(task.package, task.version);
