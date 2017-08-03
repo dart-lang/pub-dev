@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
@@ -75,6 +76,7 @@ void _runScheduler(List<SendPort> sendPorts) {
   withAppEngineServices(() async {
     await withCorrectDatastore(() async {
       _registerServices();
+      _startAnalysisGC();
       final PanaRunner runner = new PanaRunner(analysisBackend);
       await new TaskScheduler(runner.runTask, [
         new ManualTriggerTaskSource(taskReceivePort),
@@ -110,4 +112,19 @@ Future _initFlutterSdk() async {
 
 void _registerServices() {
   registerAnalysisBackend(new AnalysisBackend(db.dbService));
+}
+
+final Random _random = new Random.secure();
+void _startAnalysisGC() {
+  // Run GC about every week.
+  // Random period to reduce the race when instances started about the same time
+  // (e.g. isolates) try to delete the same entries simultaneously.
+  final Duration period = new Duration(
+    days: 6,
+    hours: _random.nextInt(47),
+    minutes: _random.nextInt(60),
+  );
+  new Timer.periodic(period, (_) {
+    analysisBackend.deleteObsoleteAnalysisEntries();
+  });
 }
