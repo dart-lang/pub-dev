@@ -1,4 +1,4 @@
-FROM google/dart-runtime-base:1.24.0
+FROM google/dart-runtime-base:1.25.0-dev.9.0
 
 # We install memcached and remove the apt-index again to keep the
 # docker image diff small.
