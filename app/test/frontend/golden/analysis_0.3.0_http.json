@@ -1,0 +1,302 @@
+{
+  "packageName": "http",
+  "packageVersion": "0.11.3+12",
+  "analysis": 5697642411589632,
+  "timestamp": "2017-07-25T16:36:06.447252Z",
+  "panaVersion": "0.3.0",
+  "flutterVersion": "0.0.11",
+  "analysisStatus": "success",
+  "analysisContent": {
+    "panaVersion": "0.3.0",
+    "sdkVersion": "Dart VM version: 1.24.2 (Thu Jun 22 08:42:17 2017) on \"macos_x64\"",
+    "packageName": "http",
+    "packageVersion": "0.11.3+12",
+    "pubSummary": {
+      "pubspecContent": {
+        "author": "Dart Team <misc@dartlang.org>",
+        "dependencies": {
+          "async": "^1.10.0",
+          "collection": "^1.5.0",
+          "http_parser": ">=0.0.1 <4.0.0",
+          "path": ">=0.9.0 <2.0.0",
+          "stack_trace": ">=0.9.1 <2.0.0"
+        },
+        "description": "A composable, Future-based API for making HTTP requests.",
+        "dev_dependencies": {
+          "unittest": ">=0.9.0 <0.12.0"
+        },
+        "environment": {
+          "sdk": ">=1.23.0-dev.0.0 <2.0.0"
+        },
+        "homepage": "https://github.com/dart-lang/http",
+        "name": "http",
+        "version": "0.11.3+12"
+      },
+      "packages": {
+        "async": "1.13.3",
+        "charcode": "1.1.1",
+        "collection": "1.14.3",
+        "http_parser": "3.1.1",
+        "path": "1.4.2",
+        "source_span": "1.4.0",
+        "stack_trace": "1.8.0",
+        "string_scanner": "1.0.2",
+        "typed_data": "1.1.4",
+        "unittest": "0.11.7"
+      },
+      "availablePackages": {
+        "unittest": "0.12.4+1"
+      }
+    },
+    "dartFiles": {
+      "lib/browser_client.dart": {
+        "uri": "package:http/browser_client.dart",
+        "size": 3688,
+        "isFormatted": false,
+        "analyzerItems": [],
+        "directLibs": [
+          "dart:html",
+          "dart:web_safe_io"
+        ],
+        "platform": {
+          "uses": [
+            "dart:html",
+            "dart:web_safe_io"
+          ]
+        }
+      },
+      "lib/http.dart": {
+        "uri": "package:http/http.dart",
+        "size": 7234,
+        "isFormatted": false,
+        "analyzerItems": [],
+        "directLibs": [
+          "dart:web_safe_io"
+        ],
+        "platform": {
+          "uses": [
+            "dart:web_safe_io"
+          ]
+        }
+      },
+      "lib/src/base_client.dart": {
+        "uri": "package:http/src/base_client.dart",
+        "size": 7821,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/base_request.dart": {
+        "uri": "package:http/src/base_request.dart",
+        "size": 4739,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/base_response.dart": {
+        "uri": "package:http/src/base_response.dart",
+        "size": 1727,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/byte_stream.dart": {
+        "uri": "package:http/src/byte_stream.dart",
+        "size": 1391,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/client.dart": {
+        "uri": "package:http/src/client.dart",
+        "size": 6152,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/exception.dart": {
+        "uri": "package:http/src/exception.dart",
+        "size": 502,
+        "isFormatted": true,
+        "analyzerItems": []
+      },
+      "lib/src/io_client.dart": {
+        "uri": "package:http/src/io_client.dart",
+        "size": 2530,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/mock_client.dart": {
+        "uri": "package:http/src/mock_client.dart",
+        "size": 3320,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/multipart_file.dart": {
+        "uri": "package:http/src/multipart_file.dart",
+        "size": 4431,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/multipart_request.dart": {
+        "uri": "package:http/src/multipart_request.dart",
+        "size": 6665,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/request.dart": {
+        "uri": "package:http/src/request.dart",
+        "size": 5952,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/response.dart": {
+        "uri": "package:http/src/response.dart",
+        "size": 3431,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/streamed_request.dart": {
+        "uri": "package:http/src/streamed_request.dart",
+        "size": 1650,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/streamed_response.dart": {
+        "uri": "package:http/src/streamed_response.dart",
+        "size": 1326,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/src/utils.dart": {
+        "uri": "package:http/src/utils.dart",
+        "size": 4843,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "lib/testing.dart": {
+        "uri": "package:http/testing.dart",
+        "size": 966,
+        "isFormatted": true,
+        "analyzerItems": [],
+        "directLibs": [
+          "package:http/src/mock_client.dart"
+        ],
+        "platform": {
+          "uses": [
+            "dart:async",
+            "dart:collection",
+            "dart:convert",
+            "dart:io",
+            "dart:math",
+            "dart:typed_data"
+          ]
+        }
+      },
+      "test/html/client_test.dart": {
+        "uri": "path:http/test/html/client_test.dart",
+        "size": 1144,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/html/streamed_request_test.dart": {
+        "uri": "path:http/test/html/streamed_request_test.dart",
+        "size": 1210,
+        "isFormatted": true,
+        "analyzerItems": []
+      },
+      "test/html/utils.dart": {
+        "uri": "path:http/test/html/utils.dart",
+        "size": 391,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/io/client_test.dart": {
+        "uri": "path:http/test/io/client_test.dart",
+        "size": 3502,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/io/http_test.dart": {
+        "uri": "path:http/test/io/http_test.dart",
+        "size": 14300,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/io/multipart_test.dart": {
+        "uri": "path:http/test/io/multipart_test.dart",
+        "size": 1195,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/io/request_test.dart": {
+        "uri": "path:http/test/io/request_test.dart",
+        "size": 1952,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/io/streamed_request_test.dart": {
+        "uri": "path:http/test/io/streamed_request_test.dart",
+        "size": 1883,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/io/utils.dart": {
+        "uri": "path:http/test/io/utils.dart",
+        "size": 4551,
+        "isFormatted": false,
+        "analyzerItems": [
+          {
+            "type": "ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR",
+            "file": "test/io/utils.dart",
+            "line": 99,
+            "col": 29,
+            "error": "The operator '[]=' isn't defined for the class 'Object'."
+          }
+        ]
+      },
+      "test/mock_client_test.dart": {
+        "uri": "path:http/test/mock_client_test.dart",
+        "size": 2033,
+        "isFormatted": false,
+        "analyzerItems": [
+          {
+            "type": "INFO|HINT|UNUSED_IMPORT",
+            "file": "test/mock_client_test.dart",
+            "line": 9,
+            "col": 8,
+            "error": "Unused import."
+          }
+        ]
+      },
+      "test/multipart_test.dart": {
+        "uri": "path:http/test/multipart_test.dart",
+        "size": 6975,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/request_test.dart": {
+        "uri": "path:http/test/request_test.dart",
+        "size": 12436,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/response_test.dart": {
+        "uri": "path:http/test/response_test.dart",
+        "size": 2641,
+        "isFormatted": false,
+        "analyzerItems": []
+      },
+      "test/streamed_request_test.dart": {
+        "uri": "path:http/test/streamed_request_test.dart",
+        "size": 916,
+        "isFormatted": true,
+        "analyzerItems": []
+      },
+      "test/utils.dart": {
+        "uri": "path:http/test/utils.dart",
+        "size": 3632,
+        "isFormatted": false,
+        "analyzerItems": []
+      }
+    },
+    "license": {
+      "name": "BSD"
+    }
+  }
+}
