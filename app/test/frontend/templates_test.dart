@@ -72,10 +72,10 @@ void main() {
 
       // stored analysis of http
       final String json =
-          await new File('$goldenDir/analysis_0.2.4_http.json').readAsString();
+          await new File('$goldenDir/analysis_0.3.0_http.json').readAsString();
       final String html = templates.renderAnalysisTab(
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
-      expectGoldenFile(html, 'analysis_0.2.4_http.html', isFragment: true);
+      expectGoldenFile(html, 'analysis_0.3.0_http.html', isFragment: true);
     });
 
     test('package index page', () {

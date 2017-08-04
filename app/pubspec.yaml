@@ -22,7 +22,7 @@ dependencies:
   stream_transform: ^0.0.7
   # pana version to be pinned
   # keep in-sync with app/lib/analyzer/versions.dart
-  pana: '0.2.4'
+  pana: '0.3.0'
   # 3rd-party packages with pinned versions
   archive: '1.0.31'
   uuid: '0.5.3'

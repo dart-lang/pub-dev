@@ -187,6 +187,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  json_serializable:
+    description:
+      name: json_serializable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.1"
   kernel:
     description:
       name: kernel
@@ -252,7 +258,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.4"
+    version: "0.3.0"
   path:
     description:
       name: path
@@ -324,7 +330,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.10+1"
+    version: "0.7.0"
   source_map_stack_trace:
     description:
       name: source_map_stack_trace
@@ -416,4 +422,4 @@ packages:
     source: hosted
     version: "2.1.12"
 sdks:
-  dart: ">=1.23.0-dev.0.0 <2.0.0"
+  dart: ">=1.24.2 <2.0.0-dev.infinity"
