@@ -23,6 +23,9 @@ AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
 
 final Logger _logger = new Logger('pub.analyzer.backend');
 
+const Duration freshThreshold = const Duration(hours: 12);
+const Duration obsoleteThreshold = const Duration(days: 180);
+
 /// Datastore-related access methods for the analyzer service
 class AnalysisBackend {
   final DatastoreDB db;
@@ -118,9 +121,9 @@ class AnalysisBackend {
     if (pv == null) return false;
 
     // Does package have any analysis?
-    final List<PackageAnalysis> list =
-        await db.lookup([db.emptyKey.append(PackageAnalysis, id: packageName)]);
-    final PackageAnalysis packageAnalysis = list.first;
+    final Key packageKey = db.emptyKey.append(PackageAnalysis, id: packageName);
+    final PackageAnalysis packageAnalysis =
+        (await db.lookup([packageKey])).single;
     if (packageAnalysis == null) return true;
 
     // Does package have newer version than latest analyzed version?
@@ -129,8 +132,10 @@ class AnalysisBackend {
     }
 
     // Does package have analysis for the current version?
+    final Key versionKey =
+        packageKey.append(PackageVersionAnalysis, id: packageVersion);
     final PackageVersionAnalysis versionAnalysis =
-        (await db.lookup([packageAnalysis.latestVersionKey])).first;
+        (await db.lookup([versionKey])).single;
     if (versionAnalysis == null) return true;
 
     // Is current analysis version newer?
@@ -160,7 +165,7 @@ class AnalysisBackend {
 
     // Is latest analysis older than 4 hours?
     final DateTime now = new DateTime.now().toUtc();
-    if (now.difference(versionAnalysis.analysisTimestamp).inHours < 4) {
+    if (now.difference(versionAnalysis.analysisTimestamp) < freshThreshold) {
       return false;
     }
 
@@ -169,7 +174,7 @@ class AnalysisBackend {
 
   Future deleteObsoleteAnalysisEntries() async {
     final DateTime threshold =
-        new DateTime.now().toUtc().subtract(const Duration(days: 180));
+        new DateTime.now().toUtc().subtract(obsoleteThreshold);
     final Query query = db.query(Analysis)
       ..order('timestamp')
       ..filter('timestamp <', threshold);
