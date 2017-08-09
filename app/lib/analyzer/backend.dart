@@ -65,9 +65,11 @@ class AnalysisBackend {
 
   /// Stores the analysis, and either creates or updates its parent
   /// [PackageAnalysis] and [PackageVersionAnalysis] records.
-  Future storeAnalysis(Analysis analysis) async {
+  ///
+  /// Returns whether an analysis race was detected.
+  Future<bool> storeAnalysis(Analysis analysis) {
     // update package and version too
-    await db.withTransaction((Transaction tx) async {
+    return db.withTransaction((Transaction tx) async {
       final incompleteRawKey = tx.db.modelDB.toDatastoreKey(analysis.key);
       final completeRawKey =
           (await tx.db.datastore.allocateIds([incompleteRawKey])).single;
@@ -88,21 +90,31 @@ class AnalysisBackend {
         inserts.add(package);
       }
 
+      final DateTime prevTimestamp = version?.analysisTimestamp;
       if (version == null) {
         version = new PackageVersionAnalysis.fromAnalysis(analysis);
         inserts.add(version);
       } else if (version.updateWithLatest(analysis)) {
         inserts.add(version);
       }
+      final bool wasRace = inserts.isEmpty &&
+          prevTimestamp != null &&
+          version.analysisTimestamp.difference(prevTimestamp) < freshThreshold;
 
-      inserts.add(analysis);
-      tx.queueMutations(inserts: inserts);
-      await tx.commit();
+      if (wasRace) {
+        await tx.rollback();
+      } else {
+        inserts.add(analysis);
+        tx.queueMutations(inserts: inserts);
+        await tx.commit();
 
-      // Notify search only if new analysis is of the latest stable version.
-      if (package.latestVersion == version.packageVersion) {
-        notifySearch(analysis.packageName);
+        // Notify search only if new analysis is of the latest stable version.
+        if (package.latestVersion == version.packageVersion) {
+          notifySearch(analysis.packageName);
+        }
       }
+
+      return wasRace;
     });
   }
 

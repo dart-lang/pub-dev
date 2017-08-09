@@ -7,10 +7,20 @@ import 'dart:collection';
 
 import 'package:logging/logging.dart';
 
+import 'utils.dart';
+
 final Logger _logger = new Logger('pub.scheduler');
 
 /// Interface for task execution.
-typedef Future TaskRunner(Task task);
+abstract class TaskRunner {
+  /// Whether the task has been run and completed recently, with the results
+  /// stored in the database.
+  Future<bool> hasCompletedRecently(Task task);
+
+  /// Run the task.
+  /// Returns whether a race was detected while the run completed.
+  Future<bool> runTask(Task task);
+}
 
 // ignore: one_member_abstracts
 abstract class TaskSource {
@@ -32,20 +42,56 @@ class ManualTriggerTaskSource implements TaskSource {
 class TaskScheduler {
   final TaskRunner taskRunner;
   final List<TaskSource> sources;
+  final LastNTracker<String> _statusTracker = new LastNTracker();
+  final LastNTracker<num> _allLatencyTracker = new LastNTracker();
+  final LastNTracker<num> _workLatencyTracker = new LastNTracker();
+  int _pendingCount = 0;
 
   TaskScheduler(this.taskRunner, this.sources);
 
   Future run() async {
-    final StreamIterator<Task> taskIterator = new PrioritizedStreamIterator(
-        sources.map((TaskSource ts) => ts.startStreaming()).toList());
+    final PrioritizedStreamIterator<Task> taskIterator =
+        new PrioritizedStreamIterator(
+            sources.map((TaskSource ts) => ts.startStreaming()).toList());
     while (await taskIterator.moveNext()) {
       final Task task = taskIterator.current;
+      _pendingCount = taskIterator.pendingCount;
+      final Stopwatch sw = new Stopwatch()..start();
       try {
-        await taskRunner(task);
+        if (await taskRunner.hasCompletedRecently(task)) {
+          _logger.info('Skipping task: $task');
+          _statusTracker.add('skip');
+          _allLatencyTracker.add(sw.elapsedMilliseconds);
+          continue;
+        }
+        final bool raceDetected = await taskRunner.runTask(task);
+        _statusTracker.add(raceDetected ? 'race' : 'normal');
       } catch (e, st) {
         _logger.severe('Error processing task: $task', e, st);
+        _statusTracker.add('error');
       }
+      _workLatencyTracker.add(sw.elapsedMilliseconds);
+      _allLatencyTracker.add(sw.elapsedMilliseconds);
     }
+  }
+
+  Map stats() {
+    final Map<String, dynamic> stats = <String, dynamic>{
+      'pending': _pendingCount,
+      'status': _statusTracker.toCounts(),
+    };
+    final double avgWorkMillis = _workLatencyTracker.average;
+    if (avgWorkMillis > 0.0) {
+      final double tph = 60 * 60 * 1000.0 / avgWorkMillis;
+      stats['taskPerHour'] = tph;
+    }
+    final double avgMillis = _allLatencyTracker.average;
+    if (avgMillis > 0.0) {
+      final remaining =
+          new Duration(milliseconds: (_pendingCount * avgMillis).round());
+      stats['remaining'] = formatDuration(remaining);
+    }
+    return stats;
   }
 }
 
@@ -101,6 +147,10 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
       );
     }
   }
+
+  /// The number of pending items in the queues.
+  int get pendingCount =>
+      _priorityQueues.fold(0, (int sum, Queue queue) => sum + queue.length);
 
   /// Moves to the next element.
   /// Returns whether the iterator has another item.

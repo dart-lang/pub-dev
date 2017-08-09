@@ -64,7 +64,7 @@ void _main(int isolateId) {
       await batchIndexUpdater.initSnapshot();
 
       final scheduler = new TaskScheduler(
-        batchIndexUpdater.updateIndex,
+        batchIndexUpdater,
         [
           new ManualTriggerTaskSource(taskReceivePort),
           new IndexUpdateTaskSource(batchIndexUpdater),

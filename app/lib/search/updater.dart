@@ -36,7 +36,7 @@ class IndexUpdateTaskSource implements TaskSource {
   }
 }
 
-class BatchIndexUpdater {
+class BatchIndexUpdater implements TaskRunner {
   final List<Task> _batch = [];
   Timer _batchUpdateTimer;
   Future _ongoingBatchUpdate;
@@ -85,7 +85,14 @@ class BatchIndexUpdater {
     }
   }
 
-  Future updateIndex(Task task) async {
+  @override
+  Future<bool> hasCompletedRecently(Task task) async {
+    // re-running indexing is not expensive, better to be on the latest
+    return false;
+  }
+
+  @override
+  Future<bool> runTask(Task task) async {
     while (_ongoingBatchUpdate != null) {
       await _ongoingBatchUpdate;
     }
@@ -97,6 +104,8 @@ class BatchIndexUpdater {
     } else {
       await _updateBatch();
     }
+    // no race here
+    return false;
   }
 
   Future _updateBatch() async {

@@ -258,10 +258,35 @@ class LastNTracker<T extends Comparable<T>> {
     });
   }
 
+  double get average {
+    if (_lastItems.isEmpty) return 0.0;
+    final double sum = _lastItems
+        .where((item) => item is num)
+        .fold(0.0, (a, b) => a + (b as num));
+    return sum / _lastItems.length;
+  }
+
   T _getP(double p) {
     if (_lastItems.isEmpty) return null;
     final List<T> list = new List.from(_lastItems);
     list.sort();
     return list[(list.length * p).floor()];
   }
+}
+
+String formatDuration(Duration d) {
+  final List<String> parts = [];
+  int minutes = d.inMinutes;
+  if (minutes == 0) return '0 mins';
+
+  int hours = minutes ~/ 60;
+  minutes = minutes % 60;
+  final int days = hours ~/ 24;
+  hours = hours % 24;
+
+  if (days > 0) parts.add('$days days');
+  if (hours > 0) parts.add('$hours hours');
+  if (minutes > 0) parts.add('$minutes mins');
+
+  return parts.join(' ');
 }

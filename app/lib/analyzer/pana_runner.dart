@@ -10,24 +10,25 @@ import 'package:pana/pana.dart';
 
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
-import '../shared/task_scheduler.dart' show Task;
+import '../shared/task_scheduler.dart' show Task, TaskRunner;
 
 import 'backend.dart';
 import 'models.dart';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
 
-class PanaRunner {
+class PanaRunner implements TaskRunner {
   final AnalysisBackend _analysisBackend;
 
   PanaRunner(this._analysisBackend);
 
-  Future runTask(Task task) async {
-    if (!await _analysisBackend.isValidTarget(task.package, task.version)) {
-      _logger.info('Skipping task: $task');
-      return;
-    }
+  @override
+  Future<bool> hasCompletedRecently(Task task) async {
+    return !(await _analysisBackend.isValidTarget(task.package, task.version));
+  }
 
+  @override
+  Future<bool> runTask(Task task) async {
     Summary summary;
     Directory tempDir;
     try {
@@ -63,6 +64,6 @@ class PanaRunner {
       analysis.analysisJson = summary.toJson();
     }
 
-    await _analysisBackend.storeAnalysis(analysis);
+    return await _analysisBackend.storeAnalysis(analysis);
   }
 }
