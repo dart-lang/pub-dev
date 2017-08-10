@@ -218,7 +218,7 @@ List<String> exampleFileCandidates(String package) => [
 Stream<T> randomizeStream<T>(
   Stream<T> stream, {
   Duration duration: const Duration(minutes: 1),
-  int maxPositionDiff: 100,
+  int maxPositionDiff: 1000,
   Random random,
 }) {
   random ??= new Random.secure();
