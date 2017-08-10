@@ -86,6 +86,12 @@ pub-dartlang-dart/app $ pub run test
 
 ## Deploying a new version to production
 
+### Shortcut
+
+Run `dart deploy.dart all --delete-old`
+
+### Longer version
+
 Before being able to deploy, please ensure you have an up-to-date version of the
 [Google Cloud SDK](https://cloud.google.com/sdk/) installed.
 
@@ -120,8 +126,8 @@ pub-dartlang-dart $ git push origin <version>
 ### Services
 
 The pub site uses two services:
-- `search` (production ready)
-- `analyzer` (experimental, staging only)
+- `search`
+- `analyzer`
 
 To deploy each, use the following:
 
