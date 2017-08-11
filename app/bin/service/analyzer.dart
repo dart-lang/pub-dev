@@ -34,15 +34,17 @@ Future main() async {
       Future startIsolate() async {
         logger.info('About to start analyzer isolate...');
         final ReceivePort mainReceivePort = new ReceivePort();
+        final ReceivePort statsReceivePort = new ReceivePort();
         await Isolate.spawn(
           _runScheduler,
-          [mainReceivePort.sendPort],
+          [mainReceivePort.sendPort, statsReceivePort.sendPort],
           onError: errorReceivePort.sendPort,
           onExit: errorReceivePort.sendPort,
           errorsAreFatal: true,
         );
         final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
         registerTaskSendPort(sendPorts[0]);
+        registerSchedulerStatsStream(statsReceivePort as Stream<Map>);
         logger.info('Analyzer isolate started.');
       }
 
@@ -70,6 +72,7 @@ void _runScheduler(List<SendPort> sendPorts) {
   useLoggingPackageAdaptor();
 
   final SendPort mainSendPort = sendPorts[0];
+  final SendPort statsSendPort = sendPorts[1];
   final ReceivePort taskReceivePort = new ReceivePort();
   mainSendPort.send(taskReceivePort.sendPort);
 
@@ -78,11 +81,15 @@ void _runScheduler(List<SendPort> sendPorts) {
       _registerServices();
       _startAnalysisGC();
       final PanaRunner runner = new PanaRunner(analysisBackend);
-      await new TaskScheduler(runner.runTask, [
+      final scheduler = new TaskScheduler(runner, [
         new ManualTriggerTaskSource(taskReceivePort),
         new DatastoreHeadTaskSource(db.dbService),
         new DatastoreHistoryTaskSource(db.dbService),
-      ]).run();
+      ]);
+      new Timer.periodic(const Duration(minutes: 1), (_) {
+        statsSendPort.send(scheduler.stats());
+      });
+      await scheduler.run();
     });
   });
 }
