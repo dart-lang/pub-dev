@@ -14,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
+import '../shared/search_service.dart' show maxSearchResults;
 import '../shared/utils.dart';
 
 import 'atom_feed.dart';
@@ -163,7 +164,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   }
 
   final int page = _pageFromUrl(request.url,
-      maxPages: SEARCH_MAX_RESULTS ~/ PageLinks.RESULTS_PER_PAGE);
+      maxPages: maxSearchResults ~/ PageLinks.RESULTS_PER_PAGE);
   final SearchBias expBias =
       parseExperimentalBias(request.url.queryParameters['experimental-bias']);
 
