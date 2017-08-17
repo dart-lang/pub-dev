@@ -7,6 +7,7 @@ part of pub_dartlang_org.shared.mock_scores;
 // **************************************************************************
 
 const _$mockScoresJsonLiteral = const {
+  'foobar_pkg': 0.001,
   'angular2': 1,
   'collection': 0.996157439184336,
   'http': 0.9920624036642567,
