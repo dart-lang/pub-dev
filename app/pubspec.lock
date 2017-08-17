@@ -55,6 +55,18 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.0+1"
+  build_barback:
+    description:
+      name: build_barback
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0"
+  build_runner:
+    description:
+      name: build_runner
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0+3"
   charcode:
     description:
       name: charcode
@@ -67,6 +79,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.2"
+  code_transformers:
+    description:
+      name: code_transformers
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.1+3"
   collection:
     description:
       name: collection
@@ -198,7 +216,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.2"
+    version: "0.2.2+1"
   kernel:
     description:
       name: kernel
