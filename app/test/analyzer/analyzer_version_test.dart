@@ -16,11 +16,13 @@ void main() {
     expect(lock['packages']['pana']['version'], panaVersion);
   });
 
-  test('flutter version should match the tag in setup-flutter.sh', () async {
-    final List<String> lines =
-        await new File('script/setup-flutter.sh').readAsLines();
-    final String line = lines.firstWhere(
-        (s) => s.startsWith(r'cd $FLUTTER_SDK && git checkout tags/'));
-    expect(line.endsWith('/$flutterVersion'), isTrue);
+  test('flutter version should match the tag in setup-flutter.sh', () {
+    final flutterSetupContent =
+        new File('script/setup-flutter.sh').readAsStringSync();
+
+    expect(
+        flutterSetupContent,
+        contains("git clone -b $flutterVersion --single-branch "
+            "https://github.com/flutter/flutter.git \$FLUTTER_SDK"));
   });
 }
