@@ -11,7 +11,12 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchBias, SearchQuery, SearchResultPage;
+    show
+        SearchBias,
+        SearchQuery,
+        SearchResultPage,
+        buildCseQueryText,
+        buildCseSort;
 
 import 'utils.dart';
 
@@ -231,20 +236,20 @@ void main() {
   group('URLs', () {
     test('CSE query text parameter', () {
       var query = new SearchQuery('web framework');
-      expect(query.buildCseQueryText(), 'web framework');
+      expect(buildCseQueryText(query), 'web framework');
 
       query = new SearchQuery('web framework', type: 'pkg_type');
-      expect(query.buildCseQueryText(),
+      expect(buildCseQueryText(query),
           'web framework more:pagemap:document-dt_pkg_type:1');
     });
 
     test('CSE sort parameter', () {
       var query = new SearchQuery('query');
-      expect(query.buildCseSort(), isNull);
+      expect(buildCseSort(query.bias), isNull);
       query = new SearchQuery('query', bias: SearchBias.weak);
-      expect(query.buildCseSort(), 'document-exp_score:d:w');
+      expect(buildCseSort(query.bias), 'document-exp_score:d:w');
       query = new SearchQuery('query', bias: SearchBias.strong);
-      expect(query.buildCseSort(), 'document-exp_score:d:s');
+      expect(buildCseSort(query.bias), 'document-exp_score:d:s');
     });
 
     test('SearchLinks defaults', () {
