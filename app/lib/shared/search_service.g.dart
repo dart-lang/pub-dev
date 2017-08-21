@@ -17,7 +17,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         readme: json['readme'] as String,
         detectedTypes:
             (json['detectedTypes'] as List)?.map((e) => e as String)?.toList(),
-        popularity: json['popularity'] as double);
+        popularity: (json['popularity'] as num)?.toDouble());
 
 abstract class _$PackageDocumentSerializerMixin {
   String get url;
@@ -69,7 +69,7 @@ PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) =>
         package: json['package'] as String,
         version: json['version'] as String,
         devVersion: json['devVersion'] as String,
-        score: json['score'] as double);
+        score: (json['score'] as num)?.toDouble());
 
 abstract class _$PackageScoreSerializerMixin {
   String get url;

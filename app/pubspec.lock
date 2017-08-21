@@ -216,7 +216,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.2+1"
+    version: "0.2.3"
   kernel:
     description:
       name: kernel
