@@ -70,7 +70,7 @@ void main() {
               'package': 'pkg_foo',
               'version': '1.0.1',
               'devVersion': '1.0.1-dev',
-              'score': closeTo(80.6, 0.1),
+              'score': closeTo(75.6, 0.1),
             }
           ],
         });
