@@ -14,6 +14,7 @@ import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://pub.dartlang.org$path';
@@ -166,6 +167,7 @@ class TemplateMock implements TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisView analysis,
       String analysisTabContent) {
     return Response;
   }

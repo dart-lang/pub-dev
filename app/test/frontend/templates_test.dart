@@ -54,6 +54,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
+          new MockAnalysisView()..licenseText = 'BSD',
           'Mock analysis tab content.');
       expectGoldenFile(html, 'pkg_show_page.html');
     });
@@ -67,6 +68,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
+          null,
           null);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
@@ -268,4 +270,18 @@ void main() {
           links.formatHref(2), '/search?q=web+framework&page=2&type=pkg_type');
     });
   });
+}
+
+class MockAnalysisView implements AnalysisView {
+  @override
+  AnalysisStatus analysisStatus;
+
+  @override
+  List<String> getDependencies() => throw 'Not implemented';
+
+  @override
+  String licenseText;
+
+  @override
+  DateTime timestamp;
 }
