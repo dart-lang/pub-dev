@@ -131,6 +131,11 @@ $ <strong>{{package.install_command}}</strong>
     <h4>{{package.uploaders_title}}</h4>
     <p>{{& package.uploaders_html}}</p>
 
+    {{#package.license}}
+      <h4>License</h4>
+      <p>{{package.license}}</p>
+    {{/package.license}}
+
     <h4>Published</h4>
     <p>{{package.short_created}}</p>
 

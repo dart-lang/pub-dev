@@ -417,12 +417,13 @@ Future<shelf.Response> packageVersionHandlerHtml(
         selectedVersion = latestStable;
       }
     }
+    AnalysisView analysisView;
     String analysisTabContent;
     if (useService) {
       final Stopwatch serviceSw = new Stopwatch()..start();
       final AnalysisData analysisData = await analyzerClient.getAnalysisData(
           selectedVersion.package, selectedVersion.version);
-      final AnalysisView analysisView = (analysisData != null &&
+      analysisView = (analysisData != null &&
               analysisData.analysisStatus != AnalysisStatus.aborted)
           ? new AnalysisView(analysisData)
           : null;
@@ -445,6 +446,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
         latestStable,
         latestDev,
         versions.length,
+        analysisView,
         analysisTabContent);
 
     if (backend.uiPackageCache != null && !useService) {

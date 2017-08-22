@@ -53,11 +53,19 @@ class AnalysisView {
   final AnalysisData _data;
   final Summary _summary;
 
-  AnalysisView(this._data) :
-    _summary = new Summary.fromJson(_data.analysisContent);
+  AnalysisView(this._data)
+      : _summary = new Summary.fromJson(_data.analysisContent);
 
   DateTime get timestamp => _data.timestamp;
   AnalysisStatus get analysisStatus => _data.analysisStatus;
+
+  String get licenseText {
+    final String text = _summary?.license?.toString();
+    if (text == LicenseNames.unknown || text == LicenseNames.missing) {
+      return null;
+    }
+    return text;
+  }
 
   List<String> getDependencies() {
     final List<String> list = _summary.pubSummary.packageVersions.keys.toList();
