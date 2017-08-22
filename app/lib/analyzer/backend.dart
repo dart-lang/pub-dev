@@ -110,6 +110,7 @@ class AnalysisBackend {
 
         // Notify search only if new analysis is of the latest stable version.
         if (package.latestVersion == version.packageVersion) {
+          // Do not await on the notification.
           notifySearch(analysis.packageName);
         }
       }
