@@ -200,7 +200,7 @@ class SearchServiceMock implements SearchService {
   SearchServiceMock(this.searchFun);
 
   @override
-  Future<SearchResultPage> search(SearchQuery query, bool useService) async {
+  Future<SearchResultPage> search(SearchQuery query) async {
     return searchFun(query);
   }
 
