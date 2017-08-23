@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 
+import 'package:pub_dartlang_org/analyzer/versions.dart';
+
 import 'analyzer_service.dart';
 export 'analyzer_service.dart';
 
@@ -33,7 +35,7 @@ class AnalyzerClient {
   /// Gets the analysis data from the analyzer service via HTTP.
   Future<AnalysisData> getAnalysisData(String package, String version) async {
     final String uri =
-        '$_analyzerServiceHttpHostPort/packages/$package/$version';
+        '$_analyzerServiceHttpHostPort/packages/$package/$version?panaVersion=$panaVersion';
     try {
       final http.Response rs = await _client.get(uri);
       if (rs.statusCode == 200) {

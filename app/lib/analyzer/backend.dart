@@ -35,8 +35,13 @@ class AnalysisBackend {
   /// Gets the [Analysis] object from the Datastore. [version] and [analysis] is
   /// optional, when they are missing the analysis from the latest rollup will
   /// be returned.
+  ///
+  /// When [panaVersion] is set (and [analysis] is not), we'll try to return the
+  /// latest [Analysis] instance with a matching `panaVersion` value. Note:
+  /// If there is no matching `Analysis` instance with the requested version,
+  /// we'll still return the latest one, regardless of its version.
   Future<Analysis> getAnalysis(String package,
-      [String version, int analysis]) async {
+      {String version, int analysis, String panaVersion}) async {
     final Key packageKey = db.emptyKey.append(PackageAnalysis, id: package);
 
     if (version == null) {
@@ -50,11 +55,24 @@ class AnalysisBackend {
     final Key versionKey =
         packageKey.append(PackageVersionAnalysis, id: version);
 
+    bool lookupMatchingPanaVersion = false;
     if (analysis == null) {
       final list = await db.lookup([versionKey]);
       final PackageVersionAnalysis pva = list[0];
       if (pva == null) return null;
       analysis = pva.latestAnalysis;
+      lookupMatchingPanaVersion =
+          panaVersion != null && pva.panaVersion != panaVersion;
+    }
+
+    if (lookupMatchingPanaVersion) {
+      final Query query = db.query(Analysis, ancestorKey: versionKey)
+        ..filter('panaVersion =', panaVersion);
+      final List<Analysis> list = await query.run().toList();
+      if (list.isNotEmpty) {
+        list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
+        return list[0];
+      }
     }
 
     // analysis was set
