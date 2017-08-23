@@ -58,8 +58,12 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   final String packageName = path;
   final String requestMethod = request.method.toUpperCase();
   if (requestMethod == 'POST') {
-    triggerTask(packageName, null);
-    return jsonResponse({'success': true});
+    if (await validateNotificationSecret(request)) {
+      triggerTask(packageName, null);
+      return jsonResponse({'success': true});
+    } else {
+      return jsonResponse({'success': false});
+    }
   }
 
   return notFoundHandler(request);

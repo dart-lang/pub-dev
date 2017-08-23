@@ -5,15 +5,12 @@
 library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
-import 'package:pub_dartlang_org/shared/task_client.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart' show Task;
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
@@ -38,15 +35,9 @@ void main() {
 
     group('trigger analysis', () {
       scopedTest('/packages/pkg_foo', () async {
-        final ReceivePort rp = new ReceivePort();
-        final Future<Task> taskFuture = rp.first;
-        registerTaskSendPort(rp.sendPort);
+        // TODO: mock notification secret and re-enable testing task receive
         await expectJsonResponse(await issuePost('/packages/pkg_foo'),
-            body: {'success': true});
-        final Task task = await taskFuture;
-        expect(task.package, 'pkg_foo');
-        expect(task.version, isNull);
-        rp.close();
+            body: {'success': false});
       });
     });
 

@@ -86,14 +86,13 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
       // trigger should have version and shouldn't contain analysis id
       return notFoundHandler(request);
     }
-    return _triggerAnalysis(request, package, version);
+    if (await validateNotificationSecret(request)) {
+      triggerTask(package, version);
+      return jsonResponse({'success': true});
+    } else {
+      return jsonResponse({'success': false});
+    }
   }
 
   return notFoundHandler(request);
-}
-
-Future<shelf.Response> _triggerAnalysis(
-    shelf.Request request, String package, String version) async {
-  triggerTask(package, version);
-  return jsonResponse({'status': 'OK'});
 }
