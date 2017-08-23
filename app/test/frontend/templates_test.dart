@@ -274,10 +274,16 @@ void main() {
 
 class MockAnalysisView implements AnalysisView {
   @override
+  bool hasAnalysisData = true;
+
+  @override
   AnalysisStatus analysisStatus;
 
   @override
   List<String> getDependencies() => throw 'Not implemented';
+
+  @override
+  double health;
 
   @override
   String licenseText;

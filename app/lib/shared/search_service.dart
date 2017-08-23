@@ -36,6 +36,8 @@ class PackageDocument {
   final String readme;
 
   final List<String> detectedTypes;
+
+  final double health;
   final double popularity;
 
   PackageDocument({
@@ -47,6 +49,7 @@ class PackageDocument {
     this.lastUpdated,
     this.readme,
     this.detectedTypes,
+    this.health,
     this.popularity,
   });
 
@@ -59,6 +62,7 @@ class PackageDocument {
         lastUpdated: json['lastUpdated'],
         readme: json['readme'],
         detectedTypes: json['detectedTypes'],
+        health: json['health'] ?? 0.0,
         popularity: json['popularity'],
       );
 
@@ -71,6 +75,7 @@ class PackageDocument {
         'lastUpdated': lastUpdated,
         'readme': readme,
         'detectedTypes': detectedTypes,
+        'health': health,
         'popularity': popularity,
       };
 }

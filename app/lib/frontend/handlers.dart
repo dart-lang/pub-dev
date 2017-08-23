@@ -423,13 +423,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
       final Stopwatch serviceSw = new Stopwatch()..start();
       final AnalysisData analysisData = await analyzerClient.getAnalysisData(
           selectedVersion.package, selectedVersion.version);
-      analysisView = (analysisData != null &&
-              analysisData.analysisStatus != AnalysisStatus.aborted)
-          ? new AnalysisView(analysisData)
-          : null;
-      analysisTabContent = analysisView == null
-          ? null
-          : templateService.renderAnalysisTab(analysisView);
+      analysisView = new AnalysisView(analysisData);
+      analysisTabContent = templateService.renderAnalysisTab(analysisView);
       _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
     }
 

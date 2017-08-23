@@ -116,7 +116,7 @@ class TemplateService {
 
   /// Renders the `views/pkg/analysis_tab.mustache` template.
   String renderAnalysisTab(AnalysisView analysis) {
-    if (analysis == null) return null;
+    if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
     switch (analysis.analysisStatus) {

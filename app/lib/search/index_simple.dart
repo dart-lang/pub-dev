@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
+// TODO: move scoring to a separate package or outside of pana/src
+import 'package:pana/src/scoring.dart' as scoring;
 
 import '../shared/search_service.dart';
 
@@ -23,6 +25,7 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _nameIndex = new TokenIndex();
   final TokenIndex _descrIndex = new TokenIndex();
   final TokenIndex _readmeIndex = new TokenIndex();
+  Map<String, double> _healthScores;
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -36,6 +39,7 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.add(doc.url, doc.package);
     _descrIndex.add(doc.url, compactDescription(doc.description));
     _readmeIndex.add(doc.url, compactReadme(doc.readme));
+    _clearScores();
   }
 
   @override
@@ -52,6 +56,7 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.removeUrl(url);
     _descrIndex.removeUrl(url);
     _readmeIndex.removeUrl(url);
+    _clearScores();
   }
 
   @override
@@ -59,12 +64,14 @@ class SimplePackageIndex implements PackageIndex {
     final Map<String, double> total = <String, double>{};
     void addAll(Map<String, double> scores, double weight) {
       scores?.forEach((String url, double score) {
-        final double prev = total[url] ?? 0.0;
-        total[url] = prev + score * weight;
+        if (score != null) {
+          final double prev = total[url] ?? 0.0;
+          total[url] = prev + score * weight;
+        }
       });
     }
 
-    addAll(_nameIndex.search(query.text), 0.80);
+    addAll(_nameIndex.search(query.text), 0.75);
     addAll(_descrIndex.search(query.text), 0.10);
     addAll(_readmeIndex.search(query.text), 0.05);
 
@@ -73,11 +80,8 @@ class SimplePackageIndex implements PackageIndex {
       addAll(_nameIndex.search(query.packagePrefix), 0.8);
     }
 
-    final Map<String, double> popularityScores = new Map.fromIterable(
-      total.keys,
-      value: (String url) => _documents[url].popularity * 100,
-    );
-    addAll(popularityScores, 0.05);
+    addAll(getHealthScore(total.keys), 0.05);
+    addAll(getPopularityScore(total.keys), 0.05);
 
     List<PackageScore> results = <PackageScore>[];
     for (String url in total.keys) {
@@ -140,6 +144,37 @@ class SimplePackageIndex implements PackageIndex {
   Future merge() async {
     _isReady = true;
     _lastUpdated = new DateTime.now().toUtc();
+  }
+
+  void _clearScores() {
+    _healthScores = null;
+  }
+
+  void _initScoresIfNeeded() {
+    if (_healthScores != null) return;
+    _healthScores = <String, double>{};
+
+    final healthScorer =
+        new scoring.Summary(_documents.values.map((pd) => pd.health ?? 0.0));
+    for (PackageDocument doc in _documents.values) {
+      if (doc.health != null) {
+        _healthScores[doc.url] = healthScorer.bezierScore(doc.health) * 100.0;
+      }
+    }
+  }
+
+  // visible for testing only
+  Map<String, double> getHealthScore(Iterable<String> urls) {
+    _initScoresIfNeeded();
+    return new Map.fromIterable(urls, value: (url) => _healthScores[url]);
+  }
+
+  // visible for testing only
+  Map<String, double> getPopularityScore(Iterable<String> urls) {
+    return new Map.fromIterable(
+      urls,
+      value: (String url) => _documents[url].popularity * 100,
+    );
   }
 }
 
