@@ -181,8 +181,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }
 
-  final resultPage =
-      await searchService.search(query, true /* use search service */);
+  final resultPage = await searchService.search(query);
   final links = new SearchLinks(query, resultPage.totalCount);
   final String content = templateService.renderSearchPage(resultPage, links);
 

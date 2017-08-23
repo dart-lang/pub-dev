@@ -92,23 +92,22 @@ class SearchService {
 
   /// Search for packes using [queryText], starting at offset [offset] returning
   /// max [numResults].
-  Future<SearchResultPage> search(SearchQuery query, bool useService) async {
-    if (useService) {
-      try {
-        final SearchResultPage page =
-            await _serviceClient._searchService(query).timeout(
-          searchServiceTimeout,
-          onTimeout: () async {
-            _logger.warning('Search service exceeded timeout.');
-            return null;
-          },
-        );
-        if (page != null) return page;
-        _logger.warning('Search service was not ready.');
-      } catch (e, st) {
-        _logger.severe('Unable to call search service.', e, st);
-      }
+  Future<SearchResultPage> search(SearchQuery query) async {
+    try {
+      final SearchResultPage page =
+          await _serviceClient._searchService(query).timeout(
+        searchServiceTimeout,
+        onTimeout: () async {
+          _logger.warning('Search service exceeded timeout.');
+          return null;
+        },
+      );
+      if (page != null) return page;
+      _logger.warning('Search service was not ready.');
+    } catch (e, st) {
+      _logger.severe('Unable to call search service.', e, st);
     }
+    _logger.severe('Fallback to CSE search backend.');
     return _cseClient._searchCSE(query);
   }
 
