@@ -4,8 +4,7 @@
 
 import 'package:gcloud/db.dart';
 
-import '../shared/analyzer_service.dart'
-    show AnalysisStatus, analysisStatusCodec;
+import '../shared/analyzer_service.dart' show AnalysisStatus;
 
 class AnalysisStatusProperty extends StringProperty {
   const AnalysisStatusProperty({String propertyName, bool required: false})
@@ -19,17 +18,35 @@ class AnalysisStatusProperty extends StringProperty {
   @override
   String encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
     if (value is AnalysisStatus) {
-      return analysisStatusCodec.encode(value);
+      switch (value) {
+        case AnalysisStatus.aborted:
+          return 'aborted';
+        case AnalysisStatus.failure:
+          return 'failure';
+        case AnalysisStatus.success:
+          return 'success';
+        default:
+          throw new Exception('Unable to encode AnalysisStatus: $value');
+      }
     }
     return null;
   }
 
   @override
   Object decodePrimitiveValue(ModelDB db, Object value) {
-    if (value is String) {
-      return analysisStatusCodec.decode(value);
-    }
     if (value == null) return null;
+    if (value is String) {
+      switch (value) {
+        case 'aborted':
+          return AnalysisStatus.aborted;
+        case 'failure':
+          return AnalysisStatus.failure;
+        case 'success':
+          return AnalysisStatus.success;
+        default:
+          throw new Exception('Unable to decode AnalysisStatus: $value');
+      }
+    }
     throw new Exception('Unknown analysis status: $value');
   }
 }

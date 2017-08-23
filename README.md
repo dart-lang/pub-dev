@@ -157,6 +157,13 @@ To minimize the risk of such issues, a two-phase release is required:
 While the new `analyzer` is running, the old `frontend` will request and work with old `Analysis` objects,
 and by the time we deploy the new version, the new `Analysis` instances will be ready.
 
+## Updating generated code
+
+The app uses `json_serializable` to generate `toJson` and `fromJson` for several
+classes. The associated files all have an associated `.g.dart` file. If you
+change any of the associated classes, you can regenerate the code by running
+`./tool/build.dart` from the `app` directory.
+
 ## Using custom third-party packages (or any non-published packages)
 
 If one wants to use customized versions of packages we depend on (e.g. `package:markdown` with a fix)

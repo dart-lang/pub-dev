@@ -2,8 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: annotate_overrides
+library pub_dartlang_org.shared.search_service;
+
 import 'dart:async';
 import 'dart:math' show min, max;
+
+import 'package:json_serializable/annotations.dart';
+
+part 'search_service.g.dart';
 
 const int defaultSearchLimit = 100;
 const int minSearchLimit = 10;
@@ -26,7 +33,8 @@ abstract class PackageIndex {
 /// It is also part of the data structure returned by a search query, except for
 /// the [readme] and [popularity] fields, which are excluded when returning the
 /// results.
-class PackageDocument {
+@JsonSerializable()
+class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final String url;
   final String package;
   final String version;
@@ -53,31 +61,8 @@ class PackageDocument {
     this.popularity,
   });
 
-  factory PackageDocument.fromJson(Map json) => new PackageDocument(
-        url: json['url'],
-        package: json['package'],
-        version: json['version'],
-        devVersion: json['devVersion'],
-        description: json['description'],
-        lastUpdated: json['lastUpdated'],
-        readme: json['readme'],
-        detectedTypes: json['detectedTypes'],
-        health: json['health'] ?? 0.0,
-        popularity: json['popularity'],
-      );
-
-  Map toJson() => {
-        'url': url,
-        'package': package,
-        'version': version,
-        'devVersion': devVersion,
-        'description': description,
-        'lastUpdated': lastUpdated,
-        'readme': readme,
-        'detectedTypes': detectedTypes,
-        'health': health,
-        'popularity': popularity,
-      };
+  factory PackageDocument.fromJson(Map<String, dynamic> json) =>
+      _$PackageDocumentFromJson(json);
 }
 
 class PackageQuery {
@@ -129,38 +114,32 @@ class PackageQuery {
   }
 }
 
-class PackageSearchResult {
+@JsonSerializable()
+class PackageSearchResult extends Object
+    with _$PackageSearchResultSerializerMixin {
   /// The last update of the search index.
   final String indexUpdated;
   final int totalCount;
   final List<PackageScore> packages;
 
-  PackageSearchResult({this.indexUpdated, this.totalCount, this.packages});
+  PackageSearchResult(
+      {this.indexUpdated, this.totalCount, List<PackageScore> packages})
+      : this.packages = packages ?? [];
 
   PackageSearchResult.notReady()
       : indexUpdated = null,
         totalCount = 0,
         packages = [];
 
-  factory PackageSearchResult.fromJson(Map json) => new PackageSearchResult(
-        indexUpdated: json['indexUpdated'],
-        totalCount: json['totalCount'],
-        packages: (json['packages'] ?? [])
-            .map((Map m) => new PackageScore.fromJson(m))
-            .toList(),
-      );
+  factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
+      _$PackageSearchResultFromJson(json);
 
   /// Whether the search service has already updated its index after a startup.
   bool get isLegit => indexUpdated != null;
-
-  Map toJson() => {
-        'indexUpdated': indexUpdated,
-        'totalCount': totalCount,
-        'packages': packages,
-      };
 }
 
-class PackageScore {
+@JsonSerializable()
+class PackageScore extends Object with _$PackageScoreSerializerMixin {
   final String url;
   final String package;
   final String version;
@@ -170,19 +149,6 @@ class PackageScore {
   PackageScore(
       {this.url, this.package, this.version, this.devVersion, this.score});
 
-  factory PackageScore.fromJson(Map json) => new PackageScore(
-        url: json['url'],
-        package: json['package'],
-        version: json['version'],
-        devVersion: json['devVersion'],
-        score: json['score'],
-      );
-
-  Map toJson() => {
-        'url': url,
-        'package': package,
-        'version': version,
-        'devVersion': devVersion,
-        'score': score,
-      };
+  factory PackageScore.fromJson(Map<String, dynamic> json) =>
+      _$PackageScoreFromJson(json);
 }

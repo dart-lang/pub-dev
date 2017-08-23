@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: annotate_overrides
+library pub_dartlang_org.search.backend;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -10,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:json_serializable/annotations.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
@@ -17,6 +21,8 @@ import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
 
 import 'text_utils.dart';
+
+part 'backend.g.dart';
 
 Logger _logger = new Logger('pub.search.backend');
 
@@ -162,8 +168,12 @@ class SnapshotStorage {
   }
 }
 
-class SearchSnapshot {
+@JsonSerializable()
+class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
+  @JsonKey(nullable: false)
   DateTime updated;
+
+  @JsonKey(nullable: false)
   Map<String, PackageDocument> documents;
 
   SearchSnapshot._(this.updated, this.documents);
@@ -171,15 +181,7 @@ class SearchSnapshot {
   factory SearchSnapshot() =>
       new SearchSnapshot._(new DateTime.now().toUtc(), {});
 
-  factory SearchSnapshot.fromJson(Map json) {
-    final DateTime updated = DateTime.parse(json['updated']);
-    final Map documentsMap = json['documents'];
-    final Map<String, PackageDocument> documents = {};
-    documentsMap.forEach((String key, Map data) {
-      documents[key] = new PackageDocument.fromJson(data);
-    });
-    return new SearchSnapshot._(updated, documents);
-  }
+  factory SearchSnapshot.fromJson(Map json) => _$SearchSnapshotFromJson(json);
 
   void add(PackageDocument doc) {
     updated = new DateTime.now().toUtc();
@@ -188,16 +190,5 @@ class SearchSnapshot {
 
   void addAll(Iterable<PackageDocument> docs) {
     docs.forEach(add);
-  }
-
-  Map toJson() {
-    final Map documentsMap = {};
-    documents.forEach((String key, PackageDocument doc) {
-      documentsMap[key] = doc.toJson();
-    });
-    return {
-      'updated': updated.toIso8601String(),
-      'documents': documentsMap,
-    };
   }
 }
