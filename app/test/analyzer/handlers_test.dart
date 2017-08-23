@@ -151,7 +151,7 @@ class MockAnalysisBackend implements AnalysisBackend {
 
   @override
   Future<Analysis> getAnalysis(String package,
-      [String version, int analysis]) async {
+      {String version, int analysis, String panaVersion}) async {
     return _map.values.firstWhere(
         (Analysis a) =>
             (package == a.packageName) &&

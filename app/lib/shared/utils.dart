@@ -166,40 +166,45 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
       (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
 }
 
-void notifyAnalyzer(String package, String version) {
+Future notifyAnalyzer(String package, String version) async {
   try {
     final String httpHostPort = activeConfiguration.analyzerServicePrefix;
     final String uri = '$httpHostPort/packages/$package/$version';
-    _doNotify(uri);
+    await _doNotify(uri);
   } catch (e) {
     // we are running in travis
     _logger.info('Environment was not initialized: $e');
   }
 }
 
-void notifySearch(String package) {
+Future notifySearch(String package) async {
   try {
     final String httpHostPort = activeConfiguration.searchServicePrefix;
     final String uri = '$httpHostPort/packages/$package';
-    _doNotify(uri);
+    await _doNotify(uri);
   } catch (e) {
     // we are running in travis
     _logger.info('Environment was not initialized: $e');
   }
 }
 
-void _doNotify(String uri) {
+Future _doNotify(String uri) async {
   // Don't block on the notification request, and don't fail even if there was
   // an error.
-  _client.post(uri).then((http.Response response) {
+  try {
+    final response = await _client.post(uri);
     if (response.statusCode != 200) {
       _logger.warning('Notification request on $uri failed. '
           'Status code: ${response.statusCode}. '
           'Body: ${response.body}');
     }
-  }, onError: (e) {
+  } catch (e) {
     _logger.severe('Notification request on $uri aborted: $e');
-  });
+  }
+}
+
+void closeNotifyClient() {
+  _client.close();
 }
 
 /// Returns the candidates in priority order to display under the 'Example' tab.

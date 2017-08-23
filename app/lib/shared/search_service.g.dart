@@ -17,6 +17,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         readme: json['readme'] as String,
         detectedTypes:
             (json['detectedTypes'] as List)?.map((e) => e as String)?.toList(),
+        health: (json['health'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble());
 
 abstract class _$PackageDocumentSerializerMixin {
@@ -28,6 +29,7 @@ abstract class _$PackageDocumentSerializerMixin {
   String get lastUpdated;
   String get readme;
   List<String> get detectedTypes;
+  double get health;
   double get popularity;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'url': url,
@@ -38,6 +40,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'lastUpdated': lastUpdated,
         'readme': readme,
         'detectedTypes': detectedTypes,
+        'health': health,
         'popularity': popularity
       };
 }

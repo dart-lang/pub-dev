@@ -21,13 +21,9 @@ import '../shared/search_service.dart' as search_service;
 import 'keys.dart';
 import 'models.dart';
 
+part 'search_service_cse.dart';
+
 Logger _logger = new Logger('pub.frontend.search');
-
-/// The Custom Search ID used for making calls to the Custom Search API.
-const String _CUSTOM_SEARCH_ID = "009011925481577436976:h931xn2j7o0";
-
-/// The maximum number of results the Custom Search API will provide.
-const SEARCH_MAX_RESULTS = 100;
 
 /// Timeout to try search service and after that fall back to CSE.
 const searchServiceTimeout = const Duration(seconds: 4);
@@ -38,66 +34,11 @@ SearchService get searchService => ss.lookup(#_search);
 /// Register a new [SearchService] in the current service scope.
 void registerSearchService(SearchService s) => ss.register(#_search, s);
 
-abstract class CseTokens {
-  static const String pageMapDocument = 'document';
-  static const String detectedTypePrefix = 'dt_';
-  static const String experimentalScore = 'exp_score';
-
-  static String detectedType(String type) => '$detectedTypePrefix$type';
-}
-
-/// Uses the datastore API in the current service scope to retrieve the private
-/// Key and creates a new SearchService.
-///
-/// If the private key cannot be retrieved from datastore this method will
-/// complete with `null`.
-Future<SearchService> searchServiceViaApiKeyFromDb() async {
-  final String keyString = await customSearchKeyFromDB();
-  final httpClient = auth.clientViaApiKey(keyString);
-  final csearch = new customsearch.CustomsearchApi(httpClient);
-  final searchServiceClient = new http.Client();
-  return new SearchService(httpClient, csearch, searchServiceClient);
-}
-
-/// A wrapper around the Custom Search API, used for searching for pub packages.
-class SearchService {
-  /// The URL pattern used to extract the package name from the result of a
-  /// call to the Custom Search API.
-  static final RegExp _PackageUrlPattern =
-      new RegExp(r'https?://pub\.dartlang\.org/packages/([a-z0-9_]+)');
-
-  /// The HTTP client used for making authenticated calls to the
-  /// Custom Search API.
+class _ServiceClient {
+  /// The HTTP client used for making calls to our search service.
   final http.Client httpClient;
 
-  /// The Custom Search client API stub.
-  final customsearch.CustomsearchApi csearch;
-
-  /// The HTTP client used for making calls to our search service.
-  final http.Client searchServiceClient;
-
-  SearchService(this.httpClient, this.csearch, this.searchServiceClient);
-
-  /// Search for packes using [queryText], starting at offset [offset] returning
-  /// max [numResults].
-  Future<SearchResultPage> search(SearchQuery query, bool useService) async {
-    if (useService) {
-      try {
-        final SearchResultPage page = await _searchService(query).timeout(
-          searchServiceTimeout,
-          onTimeout: () async {
-            _logger.warning('Search service exceeded timeout.');
-            return null;
-          },
-        );
-        if (page != null) return page;
-        _logger.warning('Search service was not ready.');
-      } catch (e, st) {
-        _logger.severe('Unable to call search service.', e, st);
-      }
-    }
-    return _searchCSE(query);
-  }
+  _ServiceClient(this.httpClient);
 
   Future<SearchResultPage> _searchService(SearchQuery query) async {
     final search_service.PackageQuery packageQuery =
@@ -114,7 +55,7 @@ class SearchService {
         new Uri(queryParameters: packageQuery.toServiceQueryParameters())
             .toString();
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
-    final http.Response response = await searchServiceClient.get(serviceUrl);
+    final http.Response response = await httpClient.get(serviceUrl);
     if (response.statusCode == search_service.searchIndexNotReadyCode) {
       // Search request before the service initialization completed.
       return null;
@@ -137,62 +78,67 @@ class SearchService {
     return await _loadResultForPackages(
         query, result.totalCount, packages, 'service');
   }
+}
 
-  Future<SearchResultPage> _searchCSE(SearchQuery query) async {
-    final search = await csearch.cse.list(query.buildCseQueryText(),
-        cx: _CUSTOM_SEARCH_ID,
-        num: query.limit,
-        start: 1 + query.offset,
-        sort: query.buildCseSort());
-    if (search.items != null) {
-      final List<String> packages = search.items
-          .map((item) {
-            final match = _PackageUrlPattern.matchAsPrefix(item.link);
-            return match == null ? null : match.group(1);
-          })
-          .where((String package) => package != null)
-          .toList();
-      final int count = min(
-          int.parse(search.searchInformation.totalResults), SEARCH_MAX_RESULTS);
-      return await _loadResultForPackages(query, count, packages, 'cse');
+/// A wrapper around the Custom Search API, used for searching for pub packages.
+class SearchService {
+  final _GoogleCseClient _cseClient;
+  final _ServiceClient _serviceClient;
+
+  SearchService(http.Client httpClient, customsearch.CustomsearchApi csearch,
+      http.Client searchServiceClient)
+      : _cseClient = new _GoogleCseClient(httpClient, csearch),
+        _serviceClient = new _ServiceClient(searchServiceClient);
+
+  /// Search for packes using [queryText], starting at offset [offset] returning
+  /// max [numResults].
+  Future<SearchResultPage> search(SearchQuery query) async {
+    try {
+      final SearchResultPage page =
+          await _serviceClient._searchService(query).timeout(
+        searchServiceTimeout,
+        onTimeout: () async {
+          _logger.warning('Search service exceeded timeout.');
+          return null;
+        },
+      );
+      if (page != null) return page;
+      _logger.warning('Search service was not ready.');
+    } catch (e, st) {
+      _logger.severe('Unable to call search service.', e, st);
     }
-    return new SearchResultPage.empty(query);
+    _logger.severe('Fallback to CSE search backend.');
+    return _cseClient._searchCSE(query);
   }
 
-  Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
-      int totalCount, List<String> packages, String backend) async {
-    final List<Key> packageKeys = packages
-        .map((package) => dbService.emptyKey.append(Package, id: package))
-        .toList();
-    final List<Package> packageEntries = await dbService.lookup(packageKeys);
-    packageEntries.removeWhere((p) => p == null);
-
-    final List<Key> versionKeys =
-        packageEntries.map((p) => p.latestVersionKey).toList();
-    final List<Key> devVersionKeys =
-        packageEntries.map((p) => p.latestDevVersionKey).toList();
-    if (versionKeys.isNotEmpty) {
-      final allVersions = await dbService
-          .lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
-      final versions = allVersions.sublist(0, versionKeys.length);
-      final devVersions = allVersions.sublist(versionKeys.length);
-      return new SearchResultPage(
-          query, totalCount, versions, devVersions, backend);
-    } else {
-      return new SearchResultPage(query, 0, [], [], backend);
-    }
+  Future close() async {
+    _cseClient.httpClient.close();
+    _serviceClient.httpClient.close();
   }
 }
 
-// https://developers.google.com/custom-search/docs/structured_search#bias-by-attribute
-enum SearchBias { hard, strong, weak }
+Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
+    int totalCount, List<String> packages, String backend) async {
+  final List<Key> packageKeys = packages
+      .map((package) => dbService.emptyKey.append(Package, id: package))
+      .toList();
+  final List<Package> packageEntries = await dbService.lookup(packageKeys);
+  packageEntries.removeWhere((p) => p == null);
 
-SearchBias parseExperimentalBias(String value) {
-  if (value == null) return null;
-  if (value == 'hard') return SearchBias.hard;
-  if (value == 'strong') return SearchBias.strong;
-  if (value == 'weak') return SearchBias.weak;
-  return null;
+  final List<Key> versionKeys =
+      packageEntries.map((p) => p.latestVersionKey).toList();
+  final List<Key> devVersionKeys =
+      packageEntries.map((p) => p.latestDevVersionKey).toList();
+  if (versionKeys.isNotEmpty) {
+    final allVersions =
+        await dbService.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+    final versions = allVersions.sublist(0, versionKeys.length);
+    final devVersions = allVersions.sublist(versionKeys.length);
+    return new SearchResultPage(
+        query, totalCount, versions, devVersions, backend);
+  } else {
+    return new SearchResultPage(query, 0, [], [], backend);
+  }
 }
 
 class SearchQuery {
@@ -222,41 +168,6 @@ class SearchQuery {
     this.packagePrefix,
     this.bias,
   });
-
-  /// Returns the query text to use in CSE.
-  String buildCseQueryText() {
-    String queryText = text;
-    if (packagePrefix != null) {
-      queryText += ' $packagePrefix';
-    }
-    if (type != null && type.isNotEmpty) {
-      // Corresponds with the <PageMap> entry in views/layout.mustache.
-      queryText +=
-          ' more:pagemap:${CseTokens.pageMapDocument}-${CseTokens.detectedType(type)}:1';
-    }
-    return queryText;
-  }
-
-  /// Returns the sort attribute to use in CSE.
-  /// https://developers.google.com/custom-search/docs/structured_search#bias-by-attribute
-  String buildCseSort() {
-    if (bias != null) {
-      String suffix;
-      switch (bias) {
-        case SearchBias.hard:
-          suffix = 'h';
-          break;
-        case SearchBias.strong:
-          suffix = 's';
-          break;
-        case SearchBias.weak:
-          suffix = 'w';
-          break;
-      }
-      return '${CseTokens.pageMapDocument}-${CseTokens.experimentalScore}:d:$suffix';
-    }
-    return null;
-  }
 
   /// Whether the query object can be used for running a search using the custom
   /// search api.

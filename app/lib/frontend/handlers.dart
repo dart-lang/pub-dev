@@ -181,8 +181,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }
 
-  final resultPage =
-      await searchService.search(query, true /* use search service */);
+  final resultPage = await searchService.search(query);
   final links = new SearchLinks(query, resultPage.totalCount);
   final String content = templateService.renderSearchPage(resultPage, links);
 
@@ -417,18 +416,14 @@ Future<shelf.Response> packageVersionHandlerHtml(
         selectedVersion = latestStable;
       }
     }
+    AnalysisView analysisView;
     String analysisTabContent;
     if (useService) {
       final Stopwatch serviceSw = new Stopwatch()..start();
       final AnalysisData analysisData = await analyzerClient.getAnalysisData(
           selectedVersion.package, selectedVersion.version);
-      final AnalysisView analysisView = (analysisData != null &&
-              analysisData.analysisStatus != AnalysisStatus.aborted)
-          ? new AnalysisView(analysisData)
-          : null;
-      analysisTabContent = analysisView == null
-          ? null
-          : templateService.renderAnalysisTab(analysisView);
+      analysisView = new AnalysisView(analysisData);
+      analysisTabContent = templateService.renderAnalysisTab(analysisView);
       _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
     }
 
@@ -445,6 +440,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
         latestStable,
         latestDev,
         versions.length,
+        analysisView,
         analysisTabContent);
 
     if (backend.uiPackageCache != null && !useService) {

@@ -103,6 +103,7 @@ void main() {
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
         lastUpdated: 'Jul 20, 2017',
         popularity: 0.7,
+        health: 1.0,
       ));
       await index.add(new PackageDocument(
         url: 'uri://async',
@@ -119,6 +120,7 @@ The CancelableOperation class defines an operation that can be canceled by its c
 The delegating wrapper classes allow users to easily add functionality on top of existing instances of core types from dart:async. These include DelegatingFuture, DelegatingStream, DelegatingStreamSubscription, DelegatingStreamConsumer, DelegatingSink, DelegatingEventSink, and DelegatingStreamSink.''',
         lastUpdated: 'May 17, 2017',
         popularity: 0.8,
+        health: 1.0,
       ));
       await index.add(new PackageDocument(
         url: 'uri://chrome_net',
@@ -131,8 +133,31 @@ tcp.dart contains abstractions over chrome.sockets to aid in working with TCP cl
 server.dart adds a small, prescriptive server (PicoServer) that can be configured with different handlers for HTTP requests.''',
         lastUpdated: 'Sep 17, 2014',
         popularity: 0.0,
+        health: 0.5,
       ));
       await index.merge();
+    });
+
+    test('normalized health scores', () {
+      expect(
+          index.getHealthScore(
+              ['uri://http', 'uri://async', 'uri://chrome_net']),
+          {
+            'uri://http': 100.0,
+            'uri://async': 100.0,
+            'uri://chrome_net': 0.0,
+          });
+    });
+
+    test('popularity scores', () {
+      expect(
+          index.getPopularityScore(
+              ['uri://http', 'uri://async', 'uri://chrome_net']),
+          {
+            'uri://http': 70.0,
+            'uri://async': 80.0,
+            'uri://chrome_net': 0.0,
+          });
     });
 
     test('package name match: async', () async {
@@ -154,7 +179,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'http',
             'version': '0.11.3+14',
             'devVersion': '0.11.3+14',
-            'score': closeTo(3.5116, 0.0001),
+            'score': closeTo(8.5115, 0.0001),
           },
         ]
       });
@@ -172,14 +197,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'http',
             'version': '0.11.3+14',
             'devVersion': '0.11.3+14',
-            'score': closeTo(7.4149, 0.0001),
+            'score': closeTo(12.41463, 0.0001),
           },
           {
             'url': 'uri://async',
             'package': 'async',
             'version': '1.13.3',
             'devVersion': '1.13.3',
-            'score': closeTo(4.0258, 0.0001),
+            'score': closeTo(9.0247, 0.0001),
           },
         ]
       });
@@ -197,21 +222,21 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'chrome_net',
             'version': '0.1.0',
             'devVersion': '0.1.0',
-            'score': closeTo(33.5032, 0.0001),
+            'score': closeTo(31.4848, 0.0001),
           },
           {
             'url': 'uri://async',
             'package': 'async',
             'version': '1.13.3',
             'devVersion': '1.13.3',
-            'score': closeTo(4.0155, 0.0001),
+            'score': closeTo(9.0149, 0.0001),
           },
           {
             'url': 'uri://http',
             'package': 'http',
             'version': '0.11.3+14',
             'devVersion': '0.11.3+14',
-            'score': closeTo(3.5291, 0.0001),
+            'score': closeTo(8.5279, 0.0001),
           },
         ]
       });

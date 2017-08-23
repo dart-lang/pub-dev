@@ -11,7 +11,12 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchBias, SearchQuery, SearchResultPage;
+    show
+        SearchBias,
+        SearchQuery,
+        SearchResultPage,
+        buildCseQueryText,
+        buildCseSort;
 
 import 'utils.dart';
 
@@ -49,6 +54,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
+          new MockAnalysisView()..licenseText = 'BSD',
           'Mock analysis tab content.');
       expectGoldenFile(html, 'pkg_show_page.html');
     });
@@ -62,6 +68,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
+          null,
           null);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
@@ -231,20 +238,20 @@ void main() {
   group('URLs', () {
     test('CSE query text parameter', () {
       var query = new SearchQuery('web framework');
-      expect(query.buildCseQueryText(), 'web framework');
+      expect(buildCseQueryText(query), 'web framework');
 
       query = new SearchQuery('web framework', type: 'pkg_type');
-      expect(query.buildCseQueryText(),
+      expect(buildCseQueryText(query),
           'web framework more:pagemap:document-dt_pkg_type:1');
     });
 
     test('CSE sort parameter', () {
       var query = new SearchQuery('query');
-      expect(query.buildCseSort(), isNull);
+      expect(buildCseSort(query.bias), isNull);
       query = new SearchQuery('query', bias: SearchBias.weak);
-      expect(query.buildCseSort(), 'document-exp_score:d:w');
+      expect(buildCseSort(query.bias), 'document-exp_score:d:w');
       query = new SearchQuery('query', bias: SearchBias.strong);
-      expect(query.buildCseSort(), 'document-exp_score:d:s');
+      expect(buildCseSort(query.bias), 'document-exp_score:d:s');
     });
 
     test('SearchLinks defaults', () {
@@ -263,4 +270,24 @@ void main() {
           links.formatHref(2), '/search?q=web+framework&page=2&type=pkg_type');
     });
   });
+}
+
+class MockAnalysisView implements AnalysisView {
+  @override
+  bool hasAnalysisData = true;
+
+  @override
+  AnalysisStatus analysisStatus;
+
+  @override
+  List<String> getDependencies() => throw 'Not implemented';
+
+  @override
+  double health;
+
+  @override
+  String licenseText;
+
+  @override
+  DateTime timestamp;
 }

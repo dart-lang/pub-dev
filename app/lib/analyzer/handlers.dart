@@ -66,11 +66,12 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   if (analysisId == -1) {
     return notFoundHandler(request);
   }
+  final String panaVersion = request.url.queryParameters['panaVersion'];
 
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
-    final Analysis analysis =
-        await analysisBackend.getAnalysis(package, version, analysisId);
+    final Analysis analysis = await analysisBackend.getAnalysis(package,
+        version: version, analysis: analysisId, panaVersion: panaVersion);
     if (analysis == null) {
       return notFoundHandler(request);
     }

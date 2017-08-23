@@ -44,6 +44,8 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final String readme;
 
   final List<String> detectedTypes;
+
+  final double health;
   final double popularity;
 
   PackageDocument({
@@ -55,6 +57,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.lastUpdated,
     this.readme,
     this.detectedTypes,
+    this.health,
     this.popularity,
   });
 

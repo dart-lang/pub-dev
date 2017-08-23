@@ -16,6 +16,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_serializable/annotations.dart';
 
 import '../frontend/models.dart';
+import '../shared/analyzer_client.dart';
 import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
 
@@ -72,6 +73,9 @@ class SearchBackend {
       final PackageVersion pv = versions[p.name];
       if (pv == null) continue;
 
+      final analysisView = new AnalysisView(
+          await analyzerClient.getAnalysisData(pv.package, pv.version));
+
       results[i] = new PackageDocument(
         url: _toUrl(pv.package),
         package: pv.package,
@@ -81,6 +85,7 @@ class SearchBackend {
         description: compactDescription(pv.pubspec.description),
         lastUpdated: pv.shortCreated,
         readme: compactReadme(pv.readmeContent),
+        health: analysisView.health,
         popularity: mockScores[pv.package] ?? 0.0,
       );
     }

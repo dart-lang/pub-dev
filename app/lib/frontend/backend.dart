@@ -335,9 +335,10 @@ class GCloudPackageRepository extends PackageRepository {
       }
     });
 
-    /// Notify analyzer services about a new version, and *DO NOT* do the
-    /// same with search service. The later will get notified after analyzer
-    /// ran the first analysis on the new version.
+    // Notify analyzer services about a new version, and *DO NOT* do the
+    // same with search service. The later will get notified after analyzer
+    // ran the first analysis on the new version.
+    // Do not await on the notification.
     notifyAnalyzer(pv.packageName, pv.versionString);
 
     return pv;

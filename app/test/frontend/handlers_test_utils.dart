@@ -14,6 +14,7 @@ import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://pub.dartlang.org$path';
@@ -166,6 +167,7 @@ class TemplateMock implements TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisView analysis,
       String analysisTabContent) {
     return Response;
   }
@@ -193,24 +195,15 @@ class TemplateMock implements TemplateService {
 }
 
 class SearchServiceMock implements SearchService {
-  @override
-  // ignore: always_declare_return_types
-  get csearch => throw 'unexpected csearch';
-
-  @override
-  // ignore: always_declare_return_types
-  get httpClient => throw 'unexpected httpClient';
-
-  @override
-  // ignore: always_declare_return_types
-  get searchServiceClient => throw 'unexpected searchServiceClient';
-
   final Function searchFun;
 
   SearchServiceMock(this.searchFun);
 
   @override
-  Future<SearchResultPage> search(SearchQuery query, bool useService) async {
+  Future<SearchResultPage> search(SearchQuery query) async {
     return searchFun(query);
   }
+
+  @override
+  Future close() async => null;
 }

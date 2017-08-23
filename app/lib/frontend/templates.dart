@@ -116,7 +116,7 @@ class TemplateService {
 
   /// Renders the `views/pkg/analysis_tab.mustache` template.
   String renderAnalysisTab(AnalysisView analysis) {
-    if (analysis == null) return null;
+    if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
     switch (analysis.analysisStatus) {
@@ -162,6 +162,7 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisView analysis,
       String analysisTabContent) {
     assert(versions.length == versionDownloadUrls.length);
 
@@ -334,6 +335,7 @@ class TemplateService {
         'short_created': selectedVersion.shortCreated,
         'install_command': isFlutterPlugin ? 'flutter packages get' : 'pub get',
         'install_tool': isFlutterPlugin ? '\'packages get\'' : '\'pub get\'',
+        'license': analysis?.licenseText,
       },
       'versions': versionsJson,
       'show_versions_link': totalNumberOfVersions > versions.length,

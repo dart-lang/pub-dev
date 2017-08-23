@@ -142,6 +142,21 @@ Check the following URLs for immediate feedback on the services:
 
 Services can be deployed and updated independently, but version-specific deploy instructions may apply in the PR description.
 
+### Version upgrade with breaking changes: pana
+
+When a breaking change of `pana` is applied, the newly deployed `analyzer` service will
+populate new `Analysis` instances with the new format. There is a short window, where this
+could lead to issues, either the old `frontend` reading new values badly, or the new `frontend`
+reading the old values in a wrong way.
+
+To minimize the risk of such issues, a two-phase release is required:
+- First, deploy the new version of the `analyzer` service, and wait until its done with its first round.
+  Wait roughly 1-2 days at the moment, the `/debug` url should give a good estimate, for how long.
+- Then deploy the `search` service and the `app` frontend.
+
+While the new `analyzer` is running, the old `frontend` will request and work with old `Analysis` objects,
+and by the time we deploy the new version, the new `Analysis` instances will be ready.
+
 ## Using custom third-party packages (or any non-published packages)
 
 If one wants to use customized versions of packages we depend on (e.g. `package:markdown` with a fix)
