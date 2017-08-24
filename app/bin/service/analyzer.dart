@@ -14,7 +14,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
@@ -29,36 +28,7 @@ Future main() async {
 
   withAppEngineServices(() async {
     _initFlutterSdk().then((_) async {
-      final ReceivePort errorReceivePort = new ReceivePort();
-
-      Future startIsolate() async {
-        logger.info('About to start analyzer isolate...');
-        final ReceivePort mainReceivePort = new ReceivePort();
-        final ReceivePort statsReceivePort = new ReceivePort();
-        await Isolate.spawn(
-          _runScheduler,
-          [mainReceivePort.sendPort, statsReceivePort.sendPort],
-          onError: errorReceivePort.sendPort,
-          onExit: errorReceivePort.sendPort,
-          errorsAreFatal: true,
-        );
-        final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
-        registerTaskSendPort(sendPorts[0]);
-        registerSchedulerStatsStream(statsReceivePort as Stream<Map>);
-        logger.info('Analyzer isolate started.');
-      }
-
-      errorReceivePort.listen((e) async {
-        logger.severe('ERROR from isolate', e);
-        // restart isolate after a brief pause
-        await new Future.delayed(new Duration(minutes: 1));
-        logger.warning('Restarting isolate...');
-        await startIsolate();
-      });
-
-      for (int i = 0; i < envConfig.isolateCount; i++) {
-        await startIsolate();
-      }
+      startIsolates(logger, _runScheduler);
     });
     return withCorrectDatastore(() async {
       _registerServices();

@@ -5,6 +5,7 @@
 import 'package:pub_dartlang_org/shared/configuration.dart';
 
 import 'service/analyzer.dart' as analyzer;
+import 'service/dartdoc.dart' as dartdoc;
 import 'service/frontend.dart' as frontend;
 import 'service/search.dart' as search;
 
@@ -12,6 +13,9 @@ void main() {
   switch (envConfig.gaeService) {
     case 'analyzer':
       analyzer.main();
+      break;
+    case 'dartdoc':
+      dartdoc.main();
       break;
     case 'default':
       frontend.main();
