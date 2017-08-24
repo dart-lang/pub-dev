@@ -14,14 +14,6 @@ import '../shared/task_client.dart';
 import 'backend.dart';
 import 'models.dart';
 
-Map _latestStats;
-
-void registerSchedulerStatsStream(Stream<Map> stream) {
-  stream.listen((stats) {
-    _latestStats = stats;
-  });
-}
-
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
@@ -43,7 +35,7 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
   return jsonResponse({
     'currentRss': ProcessInfo.currentRss,
     'maxRss': ProcessInfo.maxRss,
-    'scheduler': _latestStats,
+    'scheduler': latestSchedulerStats,
   }, indent: true);
 }
 

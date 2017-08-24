@@ -13,11 +13,15 @@ Future main(List<String> args) async {
   if (args.isNotEmpty) {
     switch (args[0]) {
       case 'all':
-        services = ['analyzer', 'search', 'default'];
+        services = ['analyzer', 'dartdoc', 'search', 'default'];
         break;
       case 'analyzer':
       case 'analyzer.yaml':
         services = ['analyzer'];
+        break;
+      case 'dartdoc':
+      case 'dartdoc.yaml':
+        services = ['dartdoc'];
         break;
       case 'search':
       case 'search.yaml':
@@ -33,7 +37,8 @@ Future main(List<String> args) async {
 
   if (services == null) {
     print('Specify at least one argument:');
-    print('deploy.dart ( app | analyzer | search | all ) [ --delete-old ]');
+    print(
+        'deploy.dart ( app | analyzer | dartdoc | search | all ) [ --delete-old ]');
     exit(1);
   }
 

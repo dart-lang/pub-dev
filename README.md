@@ -125,20 +125,23 @@ pub-dartlang-dart $ git push origin <version>
 
 ### Services
 
-The pub site uses two services:
-- `search`
+The pub site uses three services:
 - `analyzer`
+- `dartdoc` (pending)
+- `search`
 
 To deploy each, use the following:
 
 ```
-pub-dartlang-dart $ gcloud app deploy --no-promote search.yaml
 pub-dartlang-dart $ gcloud app deploy --no-promote analyzer.yaml
+pub-dartlang-dart $ gcloud app deploy --no-promote dartdoc.yaml
+pub-dartlang-dart $ gcloud app deploy --no-promote search.yaml
 ```
 
 Check the following URLs for immediate feedback on the services:
-- `search`: [prod](https://search-dot-dartlang-pub.appspot.com/debug), [staging](https://search-dot-dartlang-pub-dev.appspot.com/debug). Make sure that `ready` flag is `true` before diverting traffic to the new version.
 - `analyzer`: [prod](https://analyzer-dot-dartlang-pub.appspot.com/debug), [staging](https://analyzer-dot-dartlang-pub-dev.appspot.com/debug)
+- `dartdoc`: [prod](https://dartdoc-dot-dartlang-pub.appspot.com/debug), [staging](https://dartdoc-dot-dartlang-pub-dev.appspot.com/debug).
+- `search`: [prod](https://search-dot-dartlang-pub.appspot.com/debug), [staging](https://search-dot-dartlang-pub-dev.appspot.com/debug). Make sure that `ready` flag is `true` before diverting traffic to the new version.
 
 Services can be deployed and updated independently, but version-specific deploy instructions may apply in the PR description.
 
