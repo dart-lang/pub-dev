@@ -71,7 +71,7 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
-    addAll(_nameIndex.search(query.text), 0.75);
+    addAll(_nameIndex.search(query.text), 0.70);
     addAll(_descrIndex.search(query.text), 0.10);
     addAll(_readmeIndex.search(query.text), 0.05);
 
@@ -81,7 +81,7 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     addAll(getHealthScore(total.keys), 0.05);
-    addAll(getPopularityScore(total.keys), 0.05);
+    addAll(getPopularityScore(total.keys), 0.10);
 
     List<PackageScore> results = <PackageScore>[];
     for (String url in total.keys) {
