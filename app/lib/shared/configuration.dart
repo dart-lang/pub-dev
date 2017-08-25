@@ -25,6 +25,9 @@ class Configuration {
   /// The scheme://host:port prefix for the analyzer service.
   final String analyzerServicePrefix;
 
+  /// The scheme://host:port prefix for the dartdoc service.
+  final String dartdocServicePrefix;
+
   /// The scheme://host:port prefix for the search service.
   final String searchServicePrefix;
 
@@ -54,6 +57,7 @@ class Configuration {
       : projectId = 'dartlang-pub',
         packageBucketName = 'pub-packages',
         analyzerServicePrefix = 'https://analyzer-dot-dartlang-pub.appspot.com',
+        dartdocServicePrefix = 'https://dartdoc-dot-dartlang-pub.appspot.com',
         searchServicePrefix = 'https://search-dot-dartlang-pub.appspot.com',
         searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
 
@@ -63,6 +67,8 @@ class Configuration {
         packageBucketName = 'dartlang-pub-dev--pub-packages',
         analyzerServicePrefix =
             'https://analyzer-dot-dartlang-pub-dev.appspot.com',
+        dartdocServicePrefix =
+            'https://dartdoc-dot-dartlang-pub-dev.appspot.com',
         searchServicePrefix = 'https://search-dot-dartlang-pub-dev.appspot.com',
         searchSnapshotBucketName = 'dartlang-pub-dev--search-snapshot';
 
