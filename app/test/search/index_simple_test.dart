@@ -172,14 +172,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'async',
             'version': '1.13.3',
             'devVersion': '1.13.3',
-            'score': closeTo(84.4345, 0.0001),
+            'score': closeTo(83.4, 0.1),
           },
           {
             'url': 'uri://http',
             'package': 'http',
             'version': '0.11.3+14',
             'devVersion': '0.11.3+14',
-            'score': closeTo(8.5115, 0.0001),
+            'score': closeTo(12.0, 0.1),
           },
         ]
       });
@@ -197,14 +197,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'http',
             'version': '0.11.3+14',
             'devVersion': '0.11.3+14',
-            'score': closeTo(12.41463, 0.0001),
+            'score': closeTo(15.9, 0.1),
           },
           {
             'url': 'uri://async',
             'package': 'async',
             'version': '1.13.3',
             'devVersion': '1.13.3',
-            'score': closeTo(9.0247, 0.0001),
+            'score': closeTo(13.0, 0.1),
           },
         ]
       });
@@ -222,21 +222,21 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'chrome_net',
             'version': '0.1.0',
             'devVersion': '0.1.0',
-            'score': closeTo(31.4848, 0.0001),
+            'score': closeTo(29.4, 0.1),
           },
           {
             'url': 'uri://async',
             'package': 'async',
             'version': '1.13.3',
             'devVersion': '1.13.3',
-            'score': closeTo(9.0149, 0.0001),
+            'score': closeTo(13.0, 0.1),
           },
           {
             'url': 'uri://http',
             'package': 'http',
             'version': '0.11.3+14',
             'devVersion': '0.11.3+14',
-            'score': closeTo(8.5279, 0.0001),
+            'score': closeTo(12.0, 0.1),
           },
         ]
       });

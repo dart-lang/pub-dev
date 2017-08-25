@@ -70,7 +70,7 @@ void main() {
               'package': 'pkg_foo',
               'version': '1.0.1',
               'devVersion': '1.0.1-dev',
-              'score': closeTo(75.6, 0.1),
+              'score': closeTo(71.1, 0.1),
             }
           ],
         });
@@ -87,7 +87,7 @@ void main() {
               'package': 'pkg_foo',
               'version': '1.0.1',
               'devVersion': '1.0.1-dev',
-              'score': closeTo(1.9, 0.1),
+              'score': closeTo(2.4, 0.1),
             }
           ],
         });
@@ -105,7 +105,7 @@ void main() {
                   'package': 'pkg_foo',
                   'version': '1.0.1',
                   'devVersion': '1.0.1-dev',
-                  'score': closeTo(1.9, 0.1),
+                  'score': closeTo(2.4, 0.1),
                 }
               ],
             });
@@ -122,7 +122,7 @@ void main() {
               'package': 'pkg_foo',
               'version': '1.0.1',
               'devVersion': '1.0.1-dev',
-              'score': closeTo(12.8, 0.1),
+              'score': closeTo(13.3, 0.1),
             }
           ],
         });
