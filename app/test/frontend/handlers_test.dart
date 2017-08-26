@@ -14,6 +14,7 @@ import 'package:pub_dartlang_org/frontend/handlers_redirects.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
@@ -94,6 +95,7 @@ void main() {
           return Uri.parse('http://blobstore/$package/$version');
         });
         registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
         await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
       });
 

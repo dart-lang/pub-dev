@@ -207,3 +207,14 @@ class SearchServiceMock implements SearchService {
   @override
   Future close() async => null;
 }
+
+class AnalyzerClientMock implements AnalyzerClient {
+  AnalysisData mockAnalysisData;
+
+  @override
+  Future<AnalysisData> getAnalysisData(String package, String version) async =>
+      mockAnalysisData;
+
+  @override
+  Future close() async => null;
+}
