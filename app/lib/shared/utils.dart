@@ -16,6 +16,7 @@ import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
 import 'configuration.dart';
+import 'handlers.dart';
 
 final Logger _logger = new Logger('pub.utils');
 final http.Client _client = new http.Client();
@@ -192,7 +193,8 @@ Future _doNotify(String uri) async {
   // Don't block on the notification request, and don't fail even if there was
   // an error.
   try {
-    final response = await _client.post(uri);
+    final response =
+        await _client.post(uri, headers: await prepareNotificationHeaders());
     if (response.statusCode != 200) {
       _logger.warning('Notification request on $uri failed. '
           'Status code: ${response.statusCode}. '

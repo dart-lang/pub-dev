@@ -51,8 +51,12 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   if (requestMethod == 'GET') {
     return notFoundHandler(request);
   } else if (requestMethod == 'POST') {
-    triggerTask(package, version);
-    return jsonResponse({'success': true});
+    if (await validateNotificationSecret(request)) {
+      triggerTask(package, version);
+      return jsonResponse({'success': true});
+    } else {
+      return jsonResponse({'success': false});
+    }
   }
 
   return notFoundHandler(request);

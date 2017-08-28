@@ -5,7 +5,6 @@
 library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
@@ -14,8 +13,6 @@ import 'package:pub_dartlang_org/shared/analyzer_service.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/models.dart';
-import 'package:pub_dartlang_org/shared/task_client.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart' show Task;
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
@@ -125,15 +122,9 @@ void main() {
       });
 
       scopedTest('/packages/pkg/1.0.1', () async {
-        final ReceivePort rp = new ReceivePort();
-        final Future<Task> taskFuture = rp.first;
-        registerTaskSendPort(rp.sendPort);
+        // TODO: mock notification secret and re-enable testing task receive
         await expectJsonResponse(await issuePost('/packages/pkg/1.0.1'),
-            body: {'status': 'OK'});
-        final Task task = await taskFuture;
-        expect(task.package, 'pkg');
-        expect(task.version, '1.0.1');
-        rp.close();
+            body: {'success': false});
       });
     });
   });
