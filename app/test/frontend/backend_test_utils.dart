@@ -369,7 +369,7 @@ Future withTestPackage(Future func(List<int> tarball),
 }
 
 class NotificationClientMock implements NotificationClient {
-  List<String> notificationLog = [];
+  final List<String> notificationLog = [];
 
   @override
   Future notifyAnalyzer(String package, String version) async {

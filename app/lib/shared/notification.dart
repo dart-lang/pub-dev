@@ -44,8 +44,6 @@ class NotificationClient {
   }
 
   Future _doNotify(String uri) async {
-    // Don't block on the notification request, and don't fail even if there was
-    // an error.
     try {
       final response =
           await _client.post(uri, headers: await prepareNotificationHeaders());
