@@ -11,15 +11,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
-import 'package:http/http.dart' as http;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
-import 'configuration.dart';
-import 'handlers.dart';
-
 final Logger _logger = new Logger('pub.utils');
-final http.Client _client = new http.Client();
 
 Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
     {String prefix: 'dart-tempdir'}) {
@@ -165,48 +160,6 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
   final int maxPageIndex = (list.length - 1) ~/ limit;
   return new List.generate(maxPageIndex + 1,
       (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
-}
-
-Future notifyAnalyzer(String package, String version) async {
-  try {
-    final String httpHostPort = activeConfiguration.analyzerServicePrefix;
-    final String uri = '$httpHostPort/packages/$package/$version';
-    await _doNotify(uri);
-  } catch (e) {
-    // we are running in travis
-    _logger.info('Environment was not initialized: $e');
-  }
-}
-
-Future notifySearch(String package) async {
-  try {
-    final String httpHostPort = activeConfiguration.searchServicePrefix;
-    final String uri = '$httpHostPort/packages/$package';
-    await _doNotify(uri);
-  } catch (e) {
-    // we are running in travis
-    _logger.info('Environment was not initialized: $e');
-  }
-}
-
-Future _doNotify(String uri) async {
-  // Don't block on the notification request, and don't fail even if there was
-  // an error.
-  try {
-    final response =
-        await _client.post(uri, headers: await prepareNotificationHeaders());
-    if (response.statusCode != 200) {
-      _logger.warning('Notification request on $uri failed. '
-          'Status code: ${response.statusCode}. '
-          'Body: ${response.body}');
-    }
-  } catch (e) {
-    _logger.severe('Notification request on $uri aborted: $e');
-  }
-}
-
-void closeNotifyClient() {
-  _client.close();
 }
 
 /// Returns the candidates in priority order to display under the 'Example' tab.
