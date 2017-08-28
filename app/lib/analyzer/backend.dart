@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
+import '../shared/notification.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
@@ -129,7 +130,7 @@ class AnalysisBackend {
         // Notify search only if new analysis is of the latest stable version.
         if (package.latestVersion == version.packageVersion) {
           // Do not await on the notification.
-          notifySearch(analysis.packageName);
+          notificationClient.notifySearch(analysis.packageName);
         }
       }
 

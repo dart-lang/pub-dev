@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
+import '../shared/notification.dart';
 import '../shared/package_memcache.dart';
 import '../shared/utils.dart';
 
@@ -339,7 +340,7 @@ class GCloudPackageRepository extends PackageRepository {
     // same with search service. The later will get notified after analyzer
     // ran the first analysis on the new version.
     // Do not await on the notification.
-    notifyAnalyzer(pv.packageName, pv.versionString);
+    notificationClient.notifyAnalyzer(pv.packageName, pv.versionString);
 
     return pv;
   }

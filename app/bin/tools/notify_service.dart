@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:pub_dartlang_org/shared/utils.dart';
+import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/shared/notification.dart';
 
 void _printHelp() {
   print('Notifies the auxilliary services about a new package or version.');
@@ -20,13 +21,16 @@ Future main(List<String> args) async {
     return;
   }
 
-  final String service = args[0];
-  if (service == 'analyzer' && args.length == 3) {
-    await notifyAnalyzer(args[1], args[2]);
-  } else if (service == 'search' && args.length == 2) {
-    await notifySearch(args[1]);
-  } else {
-    _printHelp();
-  }
-  closeNotifyClient();
+  await withProdServices(() async {
+    registerNotificationClient(new NotificationClient());
+    final String service = args[0];
+    if (service == 'analyzer' && args.length == 3) {
+      await notificationClient.notifyAnalyzer(args[1], args[2]);
+    } else if (service == 'search' && args.length == 2) {
+      await notificationClient.notifySearch(args[1]);
+    } else {
+      _printHelp();
+    }
+    await notificationClient.close();
+  });
 }
