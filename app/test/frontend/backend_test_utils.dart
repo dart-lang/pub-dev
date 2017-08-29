@@ -377,6 +377,11 @@ class NotificationClientMock implements NotificationClient {
   }
 
   @override
+  Future notifyDartdoc(String package, String version) async {
+    notificationLog.add('dartdoc: $package $version');
+  }
+
+  @override
   Future notifySearch(String package) async {
     notificationLog.add('search: $package');
   }

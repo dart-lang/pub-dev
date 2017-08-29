@@ -32,6 +32,17 @@ class NotificationClient {
     }
   }
 
+  Future notifyDartdoc(String package, String version) async {
+    try {
+      final String httpHostPort = activeConfiguration.dartdocServicePrefix;
+      final String uri = '$httpHostPort/packages/$package/$version';
+      await _doNotify(uri);
+    } catch (e) {
+      // we are running in travis
+      _logger.info('Environment was not initialized: $e');
+    }
+  }
+
   Future notifySearch(String package) async {
     try {
       final String httpHostPort = activeConfiguration.searchServicePrefix;
