@@ -341,6 +341,7 @@ class GCloudPackageRepository extends PackageRepository {
     // ran the first analysis on the new version.
     // Do not await on the notification.
     notificationClient.notifyAnalyzer(pv.packageName, pv.versionString);
+    // TODO: enable notification of dartdoc service
 
     return pv;
   }
