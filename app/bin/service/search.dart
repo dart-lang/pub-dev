@@ -67,7 +67,7 @@ void _main(int isolateId) {
         batchIndexUpdater,
         [
           new ManualTriggerTaskSource(taskReceivePort),
-          new IndexUpdateTaskSource(batchIndexUpdater),
+          new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
         ],
       );
       scheduler.run();

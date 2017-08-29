@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
 import '../shared/task_scheduler.dart';
+import '../shared/task_sources.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
@@ -18,43 +19,20 @@ final Logger _logger = new Logger('pub.analyzer.source');
 
 /// Creates a task when a version uploaded in the past 10 minutes has no
 /// analysis yet.
-class DatastoreHeadTaskSource implements TaskSource {
+class DatastoreHeadTaskSource extends DatastoreVersionsHeadTaskSource {
   final DatastoreDB _db;
-  DateTime _lastTs;
-  DatastoreHeadTaskSource(this._db);
+  DatastoreHeadTaskSource(DatastoreDB db)
+      : _db = db,
+        super(db, skipHistory: true);
 
   @override
-  Stream<Task> startStreaming() async* {
-    for (;;) {
-      try {
-        final DateTime now = new DateTime.now().toUtc();
-        final DateTime tenMinutesAgo =
-            now.subtract(const Duration(minutes: 10));
-        _lastTs ??= tenMinutesAgo;
-        final DateTime minCreated =
-            _lastTs.isBefore(tenMinutesAgo) ? _lastTs : tenMinutesAgo;
-
-        final Query q = _db.query(PackageVersion)
-          ..filter('created >=', minCreated)
-          ..order('created');
-        await for (PackageVersion pv in q.run()) {
-          if (_lastTs == null || _lastTs.isBefore(pv.created)) {
-            _lastTs = pv.created;
-          }
-          final List<PackageVersionAnalysis> items = await _db.lookup([
-            _db.emptyKey
-                .append(PackageAnalysis, id: pv.package)
-                .append(PackageVersionAnalysis, id: pv.version)
-          ]);
-          if (items.first == null) {
-            yield new Task(pv.package, pv.version);
-          }
-        }
-      } catch (e, st) {
-        _logger.severe('Error polling head.', e, st);
-      }
-      await new Future.delayed(const Duration(minutes: 1));
-    }
+  Future<bool> shouldYieldTask(Task task) async {
+    final List<PackageVersionAnalysis> items = await _db.lookup([
+      _db.emptyKey
+          .append(PackageAnalysis, id: task.package)
+          .append(PackageVersionAnalysis, id: task.version)
+    ]);
+    return items.first == null;
   }
 }
 

@@ -91,14 +91,6 @@ class SearchBackend {
     }
     return results;
   }
-
-  Stream<String> listPackages({DateTime updatedAfter}) {
-    final Query q = _db.query(Package);
-    if (updatedAfter != null) {
-      q.filter('updated >=', updatedAfter);
-    }
-    return q.run().map((Model m) => (m as Package).name);
-  }
 }
 
 String _toUrl(String package) => 'https://pub.dartlang.org/packages/$package';

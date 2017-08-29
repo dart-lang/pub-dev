@@ -136,11 +136,6 @@ class MockSearchBackend implements SearchBackend {
   List<String> packages = ['pkg_foo'];
 
   @override
-  Stream<String> listPackages({DateTime updatedAfter}) {
-    return new Stream.fromIterable(packages);
-  }
-
-  @override
   Future<List<PackageDocument>> loadDocuments(List<String> packages) async {
     return packages.map((String package) {
       return new PackageDocument(
