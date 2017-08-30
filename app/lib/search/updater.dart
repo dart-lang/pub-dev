@@ -4,35 +4,26 @@
 
 import 'dart:async';
 
+import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
 import '../shared/search_service.dart';
 import '../shared/task_scheduler.dart';
+import '../shared/task_sources.dart';
 
 import 'backend.dart';
 import 'index_simple.dart';
 
 Logger _logger = new Logger('pub.search.updater');
 
-class IndexUpdateTaskSource implements TaskSource {
+class IndexUpdateTaskSource extends DatastoreVersionsHeadTaskSource {
   final BatchIndexUpdater _batchIndexUpdater;
-  DateTime _lastTs;
-  IndexUpdateTaskSource(this._batchIndexUpdater);
+  IndexUpdateTaskSource(DatastoreDB db, this._batchIndexUpdater)
+      : super(db, onlyLatest: true, sleep: const Duration(minutes: 30));
 
   @override
-  Stream<Task> startStreaming() async* {
-    for (;;) {
-      final DateTime now = new DateTime.now().toUtc();
-      int count = 0;
-      await for (String package
-          in searchBackend.listPackages(updatedAfter: _lastTs)) {
-        count++;
-        yield new Task(package, null);
-      }
-      _batchIndexUpdater.reportScanCount(count);
-      _lastTs = now.subtract(const Duration(minutes: 10));
-      await new Future.delayed(new Duration(minutes: 30));
-    }
+  Future dbScanComplete(int count) async {
+    _batchIndexUpdater.reportScanCount(count);
   }
 }
 
