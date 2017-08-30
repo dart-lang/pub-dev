@@ -21,41 +21,21 @@ NotificationClient get notificationClient => ss.lookup(#_notificationClient);
 class NotificationClient {
   final http.Client _client = new http.Client();
 
-  Future notifyAnalyzer(String package, String version) async {
-    try {
-      final String httpHostPort = activeConfiguration.analyzerServicePrefix;
-      final String uri = '$httpHostPort/packages/$package/$version';
-      await _doNotify(uri);
-    } catch (e) {
-      // we are running in travis
-      _logger.info('Environment was not initialized: $e');
-    }
-  }
+  Future notifyAnalyzer(String package, String version) =>
+      _doNotify(activeConfiguration.analyzerServicePrefix, package, version);
 
-  Future notifyDartdoc(String package, String version) async {
-    try {
-      final String httpHostPort = activeConfiguration.dartdocServicePrefix;
-      final String uri = '$httpHostPort/packages/$package/$version';
-      await _doNotify(uri);
-    } catch (e) {
-      // we are running in travis
-      _logger.info('Environment was not initialized: $e');
-    }
-  }
+  Future notifyDartdoc(String package, String version) =>
+      _doNotify(activeConfiguration.dartdocServicePrefix, package, version);
 
-  Future notifySearch(String package) async {
-    try {
-      final String httpHostPort = activeConfiguration.searchServicePrefix;
-      final String uri = '$httpHostPort/packages/$package';
-      await _doNotify(uri);
-    } catch (e) {
-      // we are running in travis
-      _logger.info('Environment was not initialized: $e');
-    }
-  }
+  Future notifySearch(String package) =>
+      _doNotify(activeConfiguration.searchServicePrefix, package, null);
 
-  Future _doNotify(String uri) async {
+  Future _doNotify(String servicePrefix, String package, String version) async {
     try {
+      var uri = '$servicePrefix/packages/$package';
+      if (version != null) {
+        uri = '$uri/$version';
+      }
       final response =
           await _client.post(uri, headers: await prepareNotificationHeaders());
       if (response.statusCode != 200) {
