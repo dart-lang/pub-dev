@@ -31,11 +31,11 @@ class NotificationClient {
       _doNotify(activeConfiguration.searchServicePrefix, package, null);
 
   Future _doNotify(String servicePrefix, String package, String version) async {
+    var uri = '$servicePrefix/packages/$package';
+    if (version != null) {
+      uri = '$uri/$version';
+    }
     try {
-      var uri = '$servicePrefix/packages/$package';
-      if (version != null) {
-        uri = '$uri/$version';
-      }
       final response =
           await _client.post(uri, headers: await prepareNotificationHeaders());
       if (response.statusCode != 200) {
