@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
-import '../shared/notification.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
@@ -85,8 +84,8 @@ class AnalysisBackend {
   /// Stores the analysis, and either creates or updates its parent
   /// [PackageAnalysis] and [PackageVersionAnalysis] records.
   ///
-  /// Returns whether an analysis race was detected.
-  Future<bool> storeAnalysis(Analysis analysis) {
+  /// Returns the backend status of the [Analysis].
+  Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) {
     // update package and version too
     return db.withTransaction((Transaction tx) async {
       final incompleteRawKey = tx.db.modelDB.toDatastoreKey(analysis.key);
@@ -100,6 +99,7 @@ class AnalysisBackend {
       final List parents = await tx.lookup([packageKey, packageVersionKey]);
       PackageAnalysis package = parents[0];
       PackageVersionAnalysis version = parents[1];
+      final isNewVersion = version == null;
 
       final List<Model> inserts = [];
       if (package == null) {
@@ -119,6 +119,7 @@ class AnalysisBackend {
       final bool wasRace = inserts.isEmpty &&
           prevTimestamp != null &&
           version.analysisTimestamp.difference(prevTimestamp) < freshThreshold;
+      final isLatestStable = package.latestVersion == version.packageVersion;
 
       if (wasRace) {
         await tx.rollback();
@@ -126,15 +127,9 @@ class AnalysisBackend {
         inserts.add(analysis);
         tx.queueMutations(inserts: inserts);
         await tx.commit();
-
-        // Notify search only if new analysis is of the latest stable version.
-        if (package.latestVersion == version.packageVersion) {
-          // Do not await on the notification.
-          notificationClient.notifySearch(analysis.packageName);
-        }
       }
 
-      return wasRace;
+      return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
     });
   }
 
@@ -226,4 +221,11 @@ class AnalysisBackend {
       }
     }
   }
+}
+
+class BackendAnalysisStatus {
+  final bool wasRace;
+  final bool isLatestStable;
+  final bool isNewVersion;
+  BackendAnalysisStatus(this.wasRace, this.isLatestStable, this.isNewVersion);
 }
