@@ -33,6 +33,21 @@ class SimplePackageIndex implements PackageIndex {
   bool get isReady => _isReady;
 
   @override
+  Future<bool> containsPackage(String package,
+      {String version, Duration maxAge}) async {
+    final String url = pubUrlOfPackage(package);
+    final PackageDocument doc = _documents[url];
+    if (doc == null) return false;
+    if (version != null && doc.version != version) return false;
+    if (maxAge != null &&
+        (doc.timestamp == null ||
+            new DateTime.now().toUtc().difference(doc.timestamp) > maxAge)) {
+      return false;
+    }
+    return true;
+  }
+
+  @override
   Future add(PackageDocument doc) async {
     await removeUrl(doc.url);
     _documents[doc.url] = doc;

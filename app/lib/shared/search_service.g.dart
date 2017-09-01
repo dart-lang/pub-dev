@@ -18,7 +18,10 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         detectedTypes:
             (json['detectedTypes'] as List)?.map((e) => e as String)?.toList(),
         health: (json['health'] as num)?.toDouble(),
-        popularity: (json['popularity'] as num)?.toDouble());
+        popularity: (json['popularity'] as num)?.toDouble(),
+        timestamp: json['timestamp'] == null
+            ? null
+            : DateTime.parse(json['timestamp'] as String));
 
 abstract class _$PackageDocumentSerializerMixin {
   String get url;
@@ -31,6 +34,7 @@ abstract class _$PackageDocumentSerializerMixin {
   List<String> get detectedTypes;
   double get health;
   double get popularity;
+  DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'url': url,
         'package': package,
@@ -41,7 +45,8 @@ abstract class _$PackageDocumentSerializerMixin {
         'readme': readme,
         'detectedTypes': detectedTypes,
         'health': health,
-        'popularity': popularity
+        'popularity': popularity,
+        'timestamp': timestamp?.toIso8601String()
       };
 }
 

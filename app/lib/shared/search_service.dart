@@ -21,6 +21,8 @@ const String searchIndexNotReadyText = 'Not ready yet.';
 /// Package search index and lookup.
 abstract class PackageIndex {
   bool get isReady;
+  Future<bool> containsPackage(String package,
+      {String version, Duration maxAge});
   Future add(PackageDocument doc);
   Future addAll(Iterable<PackageDocument> documents);
   Future removeUrl(String url);
@@ -48,6 +50,9 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final double health;
   final double popularity;
 
+  /// The creation timestamp of this document.
+  final DateTime timestamp;
+
   PackageDocument({
     this.url,
     this.package,
@@ -59,6 +64,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.detectedTypes,
     this.health,
     this.popularity,
+    this.timestamp,
   });
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
@@ -152,3 +158,6 @@ class PackageScore extends Object with _$PackageScoreSerializerMixin {
   factory PackageScore.fromJson(Map<String, dynamic> json) =>
       _$PackageScoreFromJson(json);
 }
+
+String pubUrlOfPackage(String package) =>
+    'https://pub.dartlang.org/packages/$package';

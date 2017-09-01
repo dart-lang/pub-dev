@@ -16,6 +16,11 @@ import 'index_simple.dart';
 
 Logger _logger = new Logger('pub.search.updater');
 
+/// The time between building new PackageDocuments for the same package version.
+/// This affects the update frequency of metrics and data from analyzer
+/// (e.g. health score, dependencies...)
+final _indexUpdateThreshold = const Duration(days: 1);
+
 class IndexUpdateTaskSource extends DatastoreVersionsHeadTaskSource {
   final BatchIndexUpdater _batchIndexUpdater;
   IndexUpdateTaskSource(DatastoreDB db, this._batchIndexUpdater)
@@ -78,8 +83,12 @@ class BatchIndexUpdater implements TaskRunner {
 
   @override
   Future<bool> hasCompletedRecently(Task task) async {
-    // re-running indexing is not expensive, better to be on the latest
-    return false;
+    final contains = await packageIndex.containsPackage(
+      task.package,
+      version: task.version,
+      maxAge: _indexUpdateThreshold,
+    );
+    return !contains;
   }
 
   @override
