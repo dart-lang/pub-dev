@@ -152,14 +152,14 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  Future<bool> storeAnalysis(Analysis analysis) async {
+  Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) async {
     final String key = [
       analysis.packageName,
       analysis.packageVersion,
       analysis.analysis,
     ].join('/');
     _map[key] = analysis;
-    return false;
+    return new BackendAnalysisStatus(false, false, false);
   }
 
   @override

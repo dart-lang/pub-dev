@@ -10,6 +10,7 @@ import 'package:pana/pana.dart';
 
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
+import '../shared/notification.dart';
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 
 import 'backend.dart';
@@ -64,6 +65,17 @@ class PanaRunner implements TaskRunner {
       analysis.analysisJson = summary.toJson();
     }
 
-    return await _analysisBackend.storeAnalysis(analysis);
+    final backendStatus = await _analysisBackend.storeAnalysis(analysis);
+
+    if (backendStatus.isNewVersion) {
+      // TODO: trigger re-analysis of packages depending on this one
+    }
+
+    if (backendStatus.isLatestStable) {
+      // Do not await on the notification.
+      notificationClient.notifySearch(analysis.packageName);
+    }
+
+    return backendStatus.wasRace;
   }
 }
