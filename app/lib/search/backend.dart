@@ -77,7 +77,7 @@ class SearchBackend {
           await analyzerClient.getAnalysisData(pv.package, pv.version));
 
       results[i] = new PackageDocument(
-        url: _toUrl(pv.package),
+        url: pubUrlOfPackage(pv.package),
         package: pv.package,
         version: p.latestVersion,
         devVersion: p.latestDevVersion,
@@ -87,13 +87,12 @@ class SearchBackend {
         readme: compactReadme(pv.readmeContent),
         health: analysisView.health,
         popularity: mockScores[pv.package] ?? 0.0,
+        timestamp: new DateTime.now().toUtc(),
       );
     }
     return results;
   }
 }
-
-String _toUrl(String package) => 'https://pub.dartlang.org/packages/$package';
 
 class SnapshotStorage {
   final Storage storage;
