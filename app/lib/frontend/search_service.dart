@@ -5,7 +5,6 @@
 library pub_dartlang_org.search_service;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' show min;
 
 import 'package:gcloud/db.dart';
@@ -15,8 +14,8 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
-import '../shared/configuration.dart';
-import '../shared/search_service.dart' as search_service;
+import '../shared/search_client.dart';
+import '../shared/search_service.dart';
 
 import 'keys.dart';
 import 'models.dart';
@@ -34,76 +33,41 @@ SearchService get searchService => ss.lookup(#_search);
 /// Register a new [SearchService] in the current service scope.
 void registerSearchService(SearchService s) => ss.register(#_search, s);
 
-class _ServiceClient {
-  /// The HTTP client used for making calls to our search service.
-  final http.Client httpClient;
-
-  _ServiceClient(this.httpClient);
-
-  Future<SearchResultPage> _searchService(SearchQuery query) async {
-    final search_service.PackageQuery packageQuery =
-        new search_service.PackageQuery(
-      query.text,
-      type: query.type,
-      packagePrefix: query.packagePrefix,
-      offset: query.offset,
-      limit: query.limit,
-    );
-
-    final String httpHostPort = activeConfiguration.searchServicePrefix;
-    final String serviceUrlParams =
-        new Uri(queryParameters: packageQuery.toServiceQueryParameters())
-            .toString();
-    final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
-    final http.Response response = await httpClient.get(serviceUrl);
-    if (response.statusCode == search_service.searchIndexNotReadyCode) {
-      // Search request before the service initialization completed.
-      return null;
-    }
-    if (response.statusCode != 200) {
-      // There has been an issue with the service
-      throw new Exception(
-          'Service returned status code ${response.statusCode}');
-    }
-    final search_service.PackageSearchResult result =
-        new search_service.PackageSearchResult.fromJson(
-            JSON.decode(response.body));
-    if (!result.isLegit) {
-      // Search request before the service initialization completed.
-      return null;
-    }
-
-    final List<String> packages =
-        result.packages.map((ps) => ps.package).toList();
-    return await _loadResultForPackages(
-        query, result.totalCount, packages, 'service');
-  }
-}
-
 /// A wrapper around the Custom Search API, used for searching for pub packages.
 class SearchService {
   final _GoogleCseClient _cseClient;
-  final _ServiceClient _serviceClient;
 
-  SearchService(http.Client httpClient, customsearch.CustomsearchApi csearch,
-      http.Client searchServiceClient)
-      : _cseClient = new _GoogleCseClient(httpClient, csearch),
-        _serviceClient = new _ServiceClient(searchServiceClient);
+  SearchService(http.Client httpClient, customsearch.CustomsearchApi csearch)
+      : _cseClient = new _GoogleCseClient(httpClient, csearch);
 
   /// Search for packes using [queryText], starting at offset [offset] returning
   /// max [numResults].
   Future<SearchResultPage> search(SearchQuery query) async {
     try {
-      final SearchResultPage page =
-          await _serviceClient._searchService(query).timeout(
+      final PackageQuery packageQuery = new PackageQuery(
+        query.text,
+        type: query.type,
+        packagePrefix: query.packagePrefix,
+        offset: query.offset,
+        limit: query.limit,
+      );
+
+      final result = await searchClient.search(packageQuery).timeout(
         searchServiceTimeout,
         onTimeout: () async {
           _logger.warning('Search service exceeded timeout.');
           return null;
         },
       );
-      if (page != null) return page;
-      _logger.warning('Search service was not ready.');
+      final List<String> packages =
+          result.packages.map((ps) => ps.package).toList();
+      final page = await _loadResultForPackages(
+          query, result.totalCount, packages, 'service');
+      if (page != null) {
+        return page;
+      } else {
+        _logger.warning('Search service was not ready.');
+      }
     } catch (e, st) {
       _logger.severe('Unable to call search service.', e, st);
     }
@@ -113,7 +77,6 @@ class SearchService {
 
   Future close() async {
     _cseClient.httpClient.close();
-    _serviceClient.httpClient.close();
   }
 }
 
