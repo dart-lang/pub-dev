@@ -27,8 +27,7 @@ Future<SearchService> searchServiceViaApiKeyFromDb() async {
   final String keyString = await customSearchKeyFromDB();
   final httpClient = auth.clientViaApiKey(keyString);
   final csearch = new customsearch.CustomsearchApi(httpClient);
-  final searchServiceClient = new http.Client();
-  return new SearchService(httpClient, csearch, searchServiceClient);
+  return new SearchService(httpClient, csearch);
 }
 
 class _GoogleCseClient {

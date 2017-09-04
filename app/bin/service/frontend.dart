@@ -18,6 +18,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -72,10 +73,16 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   final NotificationClient notificationClient = new NotificationClient();
   registerNotificationClient(notificationClient);
   registerScopeExitCallback(notificationClient.close);
+
   final AnalyzerClient analyzerClient =
       new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
+
+  final SearchClient searchClient = new SearchClient();
+  registerSearchClient(searchClient);
+  registerScopeExitCallback(searchClient.close);
+
   registerTemplateService(
       new TemplateService(templateDirectory: TemplateLocation));
 
