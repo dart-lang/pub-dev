@@ -221,6 +221,12 @@ class AnalysisBackend {
       }
     }
   }
+
+  Future<String> getLatestStableVersion(String package) async {
+    final Package p =
+        (await db.lookup([db.emptyKey.append(Package, id: package)])).single;
+    return p?.latestVersion ?? p?.latestDevVersion;
+  }
 }
 
 class BackendAnalysisStatus {

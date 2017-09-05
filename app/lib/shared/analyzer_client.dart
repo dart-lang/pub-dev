@@ -91,7 +91,9 @@ class AnalysisView {
   }
 
   List<String> getDependencies() {
-    final List<String> list = _summary.pubSummary.packageVersions.keys.toList();
+    final packageVersions = _summary?.pubSummary?.packageVersions;
+    if (packageVersions == null) return null;
+    final List<String> list = packageVersions.keys.toList();
     list.remove(_summary.packageName);
     list.sort();
     return list;

@@ -51,6 +51,20 @@ class SearchClient {
     return result;
   }
 
+  /// List packages that have [package] as their transitive dependency.
+  Future<List<String>> listDependeePackages(String package) async {
+    final String httpHostPort = activeConfiguration.searchServicePrefix;
+    final String serviceUrl = '$httpHostPort/dependees/$package';
+    final http.Response response = await _httpClient.get(serviceUrl);
+    if (response.statusCode != 200) {
+      // There has been an issue with the service
+      throw new Exception(
+          'Service call on /dependees/ returned status code ${response.statusCode}');
+    }
+    final Map result = JSON.decode(response.body);
+    return result['packages'];
+  }
+
   Future close() async {
     _httpClient.close();
   }

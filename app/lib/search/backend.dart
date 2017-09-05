@@ -81,10 +81,11 @@ class SearchBackend {
         package: pv.package,
         version: p.latestVersion,
         devVersion: p.latestDevVersion,
-        detectedTypes: pv.detectedTypes,
         description: compactDescription(pv.pubspec.description),
         lastUpdated: pv.shortCreated,
         readme: compactReadme(pv.readmeContent),
+        detectedTypes: pv.detectedTypes,
+        transitiveDeps: analysisView.getDependencies(),
         health: analysisView.health,
         popularity: mockScores[pv.package] ?? 0.0,
       );

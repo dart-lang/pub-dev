@@ -141,6 +141,17 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
+  Future<List<String>> listDependeePackages(String package) async {
+    final List<String> list = _documents.values
+        .where((pd) =>
+            pd.transitiveDeps != null && pd.transitiveDeps.contains(package))
+        .map((pd) => pd.package)
+        .toList();
+    list.sort();
+    return list;
+  }
+
+  @override
   Future merge() async {
     _isReady = true;
     _lastUpdated = new DateTime.now().toUtc();

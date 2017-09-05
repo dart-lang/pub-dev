@@ -26,6 +26,8 @@ abstract class PackageIndex {
   Future removeUrl(String url);
   Future merge();
   Future<PackageSearchResult> search(PackageQuery query);
+  /// List packages that have [package] as their transitive dependency.
+  Future<List<String>> listDependeePackages(String package);
 }
 
 /// A summary information about a package that goes into the search index.
@@ -44,6 +46,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final String readme;
 
   final List<String> detectedTypes;
+  final List<String> transitiveDeps;
 
   final double health;
   final double popularity;
@@ -57,6 +60,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.lastUpdated,
     this.readme,
     this.detectedTypes,
+    this.transitiveDeps,
     this.health,
     this.popularity,
   });

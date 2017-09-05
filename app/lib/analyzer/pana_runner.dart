@@ -11,6 +11,7 @@ import 'package:pana/pana.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
 import '../shared/notification.dart';
+import '../shared/search_client.dart';
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 
 import 'backend.dart';
@@ -68,7 +69,8 @@ class PanaRunner implements TaskRunner {
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
 
     if (backendStatus.isNewVersion) {
-      // TODO: trigger re-analysis of packages depending on this one
+      // Do not await on the notification.
+      _triggerDependees(analysis.packageName);
     }
 
     if (backendStatus.isLatestStable) {
@@ -77,5 +79,23 @@ class PanaRunner implements TaskRunner {
     }
 
     return backendStatus.wasRace;
+  }
+
+  Future _triggerDependees(String package) async {
+    try {
+      final List<String> list =
+          await searchClient.listDependeePackages(package);
+      if (list != null) {
+        for (String pkg in list) {
+          final version = await analysisBackend.getLatestStableVersion(pkg);
+          if (version != null) {
+            await notificationClient.notifyAnalyzer(pkg, version);
+          }
+        }
+      }
+    } catch (e, st) {
+      _logger.warning(
+          'Dependee notification failed on package $package.', e, st);
+    }
   }
 }

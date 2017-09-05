@@ -130,6 +130,22 @@ void main() {
       });
     });
   });
+
+  group('lookups', () {
+    Future setUpInServiceScope() async {
+      registerSearchBackend(new MockSearchBackend());
+      registerPackageIndex(new SimplePackageIndex());
+      await packageIndex.addAll(await searchBackend.loadDocuments(['pkg_foo']));
+      await packageIndex.merge();
+    }
+
+    scopedTest('dependees lookup', () async {
+      await setUpInServiceScope();
+      expectJsonResponse(await issueGet('/dependees/http'), body: {
+        'packages': ['pkg_foo'],
+      });
+    });
+  });
 }
 
 class MockSearchBackend implements SearchBackend {
@@ -146,6 +162,7 @@ class MockSearchBackend implements SearchBackend {
         detectedTypes: ['browser'],
         description: 'Foo package about nothing really. Maybe JSON.',
         readme: 'Some JSON to XML mapping.',
+        transitiveDeps: ['async', 'http', 'json', 'xml'],
         popularity: 0.1,
       );
     }).toList();
