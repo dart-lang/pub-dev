@@ -82,7 +82,9 @@ class _ServiceDeployer {
     await _gcloudDeploy();
     await _checkHealth();
     await _migrateTraffic();
-    await _deleteOldVersion();
+    if (deleteOld) {
+      await _deleteOldVersion();
+    }
   }
 
   Future _detectOldVersion() async {
