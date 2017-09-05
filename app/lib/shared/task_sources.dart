@@ -42,8 +42,9 @@ class DatastoreVersionsHeadTaskSource implements TaskSource {
       : _window = window ?? _defaultWindow,
         _sleep = sleep ?? _defaultSleep,
         _onlyLatest = onlyLatest,
-        _lastTs =
-            skipHistory ? new DateTime.now().toUtc().subtract(window) : null;
+        _lastTs = skipHistory
+            ? new DateTime.now().toUtc().subtract(window ?? _defaultWindow)
+            : null;
 
   @override
   Stream<Task> startStreaming() async* {
