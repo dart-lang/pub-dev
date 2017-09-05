@@ -66,6 +66,15 @@ class SearchBackend {
         versionList.where((pv) => pv != null),
         key: (PackageVersion pv) => pv.package);
 
+    final List<AnalysisView> analysisViews = await Future.wait(packages.map(
+      (Package p) async {
+        if (p == null) return null;
+        final PackageVersion pv = versions[p.name];
+        return new AnalysisView(
+            await analyzerClient.getAnalysisData(pv.package, pv.version));
+      },
+    ));
+
     final List<PackageDocument> results = new List(packages.length);
     for (int i = 0; i < packages.length; i++) {
       final Package p = packages[i];
@@ -73,8 +82,7 @@ class SearchBackend {
       final PackageVersion pv = versions[p.name];
       if (pv == null) continue;
 
-      final analysisView = new AnalysisView(
-          await analyzerClient.getAnalysisData(pv.package, pv.version));
+      final analysisView = analysisViews[i];
 
       results[i] = new PackageDocument(
         url: pubUrlOfPackage(pv.package),
