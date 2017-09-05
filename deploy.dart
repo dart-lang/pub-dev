@@ -88,9 +88,8 @@ class _ServiceDeployer {
   }
 
   Future _detectOldVersion() async {
-    final pr = await Process.run(
-      'gcloud',
-      ['app', 'versions', 'list', '--service', service, '--format=value(id)'],
+    final pr = await _runGCloudApp(
+      ['versions', 'list', '--service', service, '--format=value(id)'],
     );
     if (pr.exitCode != 0) {
       print('[ERR] Couldn\'t detect old $service version.');
@@ -109,9 +108,8 @@ class _ServiceDeployer {
 
   Future _gcloudDeploy() async {
     final String yamlFile = service == 'default' ? 'app.yaml' : '$service.yaml';
-    final pr = await Process.run(
-      'gcloud',
-      ['app', 'deploy', yamlFile, '--no-promote', '-v', newVersion, '-q'],
+    final pr = await _runGCloudApp(
+      ['deploy', yamlFile, '--no-promote', '-v', newVersion, '-q'],
     );
     if (pr.exitCode != 0) {
       print('[ERR] Couldn\'t deploy $service.');
@@ -153,7 +151,6 @@ class _ServiceDeployer {
 
   Future _migrateTraffic() async {
     final List<String> args = [
-      'app',
       'services',
       'set-traffic',
       service,
@@ -164,7 +161,7 @@ class _ServiceDeployer {
       args.add('--migrate');
     }
     args.add('-q');
-    final pr = await Process.run('gcloud', args);
+    final pr = await _runGCloudApp(args);
     if (pr.exitCode != 0) {
       print('[ERR] Couldn\'t migrate traffic for $service.');
       print(pr.stderr);
@@ -174,12 +171,20 @@ class _ServiceDeployer {
 
   Future _deleteOldVersion() async {
     if (_oldVersion == null) return;
-    final pr = await Process.run('gcloud',
-        ['app', 'versions', 'delete', '--service', service, _oldVersion, '-q']);
+    final pr = await _runGCloudApp(
+        ['versions', 'delete', '--service', service, _oldVersion, '-q']);
     if (pr.exitCode != 0) {
       print('[ERR] Couldn\'t delete old version of $service.');
       print(pr.stderr);
       exit(1);
     }
   }
+
+  Future<ProcessResult> _runGCloudApp(List<String> args) => Process.run(
+      'gcloud',
+      [
+        '--project',
+        project,
+        'app',
+      ]..addAll(args));
 }
