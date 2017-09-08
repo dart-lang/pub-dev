@@ -47,19 +47,7 @@ Future<shelf.Response> appHandler(
 
   logPubHeaders(request);
 
-  final handler = {
-    '/': indexHandler,
-    '/debug': debugHandler,
-    '/feed.atom': atomFeedHandler,
-    '/authorized': authorizedHandler,
-    '/search': searchHandler,
-    '/packages': packagesHandler,
-    '/packages.json': packagesHandler,
-    '/flutter': redirectToFlutterPackages,
-    '/flutter/': redirectToFlutterPackages,
-    '/flutter/packages': flutterPackagesHandler,
-    '/flutter/plugins': redirectToFlutterPackages,
-  }[path];
+  final handler = _handlers[path];
 
   if (handler != null) {
     return handler(request);
@@ -80,6 +68,20 @@ Future<shelf.Response> appHandler(
     return _formattedNotFoundHandler(request);
   }
 }
+
+const _handlers = const <String, shelf.Handler>{
+  '/': indexHandler,
+  '/debug': debugHandler,
+  '/feed.atom': atomFeedHandler,
+  '/authorized': authorizedHandler,
+  '/search': searchHandler,
+  '/packages': packagesHandler,
+  '/packages.json': packagesHandler,
+  '/flutter': redirectToFlutterPackages,
+  '/flutter/': redirectToFlutterPackages,
+  '/flutter/packages': flutterPackagesHandler,
+  '/flutter/plugins': redirectToFlutterPackages,
+};
 
 /// Handles requests for /debug
 Future<shelf.Response> debugHandler(shelf.Request request) async {

@@ -328,12 +328,14 @@ class BucketMock implements Bucket {
   }
 }
 
-Future withTempDirectory(Future func(temp)) async {
+Future<T> withTempDirectory<T>(Future<T> func(String temp)) async {
   final Directory dir =
       await Directory.systemTemp.createTemp('pub.dartlang.org-backend-test');
-  return func(dir.absolute.path).whenComplete(() {
-    return dir.delete(recursive: true);
-  });
+  try {
+    return await func(dir.absolute.path);
+  } finally {
+    await dir.delete(recursive: true);
+  }
 }
 
 Future withTestPackage(Future func(List<int> tarball),
