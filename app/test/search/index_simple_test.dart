@@ -102,6 +102,7 @@ void main() {
           A composable, Future-based library for making HTTP requests.
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
         lastUpdated: 'Jul 20, 2017',
+        transitiveDeps: ['async', 'path'],
         popularity: 0.7,
         health: 1.0,
       ));
@@ -258,6 +259,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           },
         ]
       });
+    });
+
+    test('list transitive dependees', () async {
+      expect(await index.listDependeePackages('unknown'), []);
+      expect(await index.listDependeePackages('async'), ['http']);
     });
   });
 }
