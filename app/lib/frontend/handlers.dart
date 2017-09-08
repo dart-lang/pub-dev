@@ -69,7 +69,7 @@ Future<shelf.Response> appHandler(
   }
 }
 
-final _handlers = new Map<String, shelf.Handler>.unmodifiable({
+const _handlers = const <String, shelf.Handler>{
   '/': indexHandler,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
@@ -81,7 +81,7 @@ final _handlers = new Map<String, shelf.Handler>.unmodifiable({
   '/flutter/': redirectToFlutterPackages,
   '/flutter/packages': flutterPackagesHandler,
   '/flutter/plugins': redirectToFlutterPackages,
-});
+};
 
 /// Handles requests for /debug
 Future<shelf.Response> debugHandler(shelf.Request request) async {

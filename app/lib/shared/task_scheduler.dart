@@ -132,7 +132,7 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
 
     // Listen on the streams and put items into their own queues.
     for (int i = 0; i < sources.length; i++) {
-      final source = sources[i];
+      final Stream<T> source = sources[i];
       final Queue<T> queue = _priorityQueues[i];
       _subscriptions[i] = source.listen(
         (T item) {
