@@ -102,10 +102,9 @@ class SimplePackageIndex implements PackageIndex {
     for (String url in total.keys) {
       final PackageDocument doc = _documents[url];
 
-      // filter on type
-      if (query.type != null &&
-          (doc.detectedTypes == null ||
-              !doc.detectedTypes.contains(query.type))) {
+      // filter on platform
+      if (query.platformPredicate != null &&
+          !query.platformPredicate.matches(doc.platforms)) {
         continue;
       }
 

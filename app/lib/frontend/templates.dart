@@ -634,8 +634,8 @@ class SearchLinks extends PageLinks {
       'q': query.text,
       'page': page.toString(),
     };
-    if (query.type != null) {
-      params['type'] = query.type;
+    if (query.platformPredicate != null && query.platformPredicate.isNotEmpty) {
+      params['platforms'] = query.platformPredicate.toQueryParamValue();
     }
     return new Uri(path: '/search', queryParameters: params).toString();
   }

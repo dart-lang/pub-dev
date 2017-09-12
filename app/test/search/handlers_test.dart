@@ -143,7 +143,7 @@ class MockSearchBackend implements SearchBackend {
         package: package,
         version: '1.0.1',
         devVersion: '1.0.1-dev',
-        detectedTypes: ['browser'],
+        platforms: ['server', 'web'],
         description: 'Foo package about nothing really. Maybe JSON.',
         readme: 'Some JSON to XML mapping.',
         popularity: 0.1,

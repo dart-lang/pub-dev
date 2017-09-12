@@ -14,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
+import '../shared/platform.dart';
 import '../shared/search_service.dart' show maxSearchResults;
 import '../shared/utils.dart';
 
@@ -174,7 +175,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     queryText,
     offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
     limit: PageLinks.RESULTS_PER_PAGE,
-    type: request.url.queryParameters['type'],
+    platformPredicate: new PlatformPredicate.fromUri(request.url),
     packagePrefix: packagePrefix,
     bias: expBias,
   );

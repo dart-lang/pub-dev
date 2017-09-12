@@ -18,6 +18,7 @@ import 'package:json_serializable/annotations.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/mock_scores.dart';
+import '../shared/platform.dart';
 import '../shared/search_service.dart';
 
 import 'text_utils.dart';
@@ -89,7 +90,7 @@ class SearchBackend {
         package: pv.package,
         version: p.latestVersion,
         devVersion: p.latestDevVersion,
-        detectedTypes: pv.detectedTypes,
+        platforms: indexDartPlatform(analysisView.platform),
         description: compactDescription(pv.pubspec.description),
         lastUpdated: pv.shortCreated,
         readme: compactReadme(pv.readmeContent),

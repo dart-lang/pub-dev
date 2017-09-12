@@ -15,8 +15,8 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         description: json['description'] as String,
         lastUpdated: json['lastUpdated'] as String,
         readme: json['readme'] as String,
-        detectedTypes:
-            (json['detectedTypes'] as List)?.map((e) => e as String)?.toList(),
+        platforms:
+            (json['platforms'] as List)?.map((e) => e as String)?.toList(),
         health: (json['health'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),
         timestamp: json['timestamp'] == null
@@ -31,7 +31,7 @@ abstract class _$PackageDocumentSerializerMixin {
   String get description;
   String get lastUpdated;
   String get readme;
-  List<String> get detectedTypes;
+  List<String> get platforms;
   double get health;
   double get popularity;
   DateTime get timestamp;
@@ -43,7 +43,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'description': description,
         'lastUpdated': lastUpdated,
         'readme': readme,
-        'detectedTypes': detectedTypes,
+        'platforms': platforms,
         'health': health,
         'popularity': popularity,
         'timestamp': timestamp?.toIso8601String()

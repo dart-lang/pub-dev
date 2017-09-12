@@ -84,11 +84,11 @@ String buildCseQueryText(SearchQuery query) {
   if (query.packagePrefix != null) {
     queryText += ' ${query.packagePrefix}';
   }
-  if (query.type != null && query.type.isNotEmpty) {
+  query.platformPredicate?.required?.forEach((String platform) {
     // Corresponds with the <PageMap> entry in views/layout.mustache.
     queryText +=
-        ' more:pagemap:${CseTokens.pageMapDocument}-${CseTokens.detectedType(query.type)}:1';
-  }
+        ' more:pagemap:${CseTokens.pageMapDocument}-${CseTokens.detectedType(platform)}:1';
+  });
   return queryText;
 }
 
