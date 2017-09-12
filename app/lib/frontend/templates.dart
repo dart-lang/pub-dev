@@ -132,7 +132,7 @@ class TemplateService {
     }
 
     final List<Map> dependencies = analysis
-        .getDependencies()
+        .getTransientDependencies()
         .map((String pkg) => {
               'text': pkg,
               'href': 'https://pub.dartlang.org/packages/$pkg',
