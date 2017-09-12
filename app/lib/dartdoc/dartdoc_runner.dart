@@ -7,8 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-// TODO: export library in pana
-import 'package:pana/src/sdk_env.dart';
+import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
