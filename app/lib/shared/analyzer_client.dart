@@ -90,7 +90,7 @@ class AnalysisView {
     return text;
   }
 
-  List<String> getTransientDependencies() {
+  List<String> getTransitiveDependencies() {
     final List<String> list = _summary?.pkgResolution?.dependencies
         ?.map((pd) => pd.package)
         ?.toList();

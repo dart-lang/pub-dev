@@ -280,7 +280,7 @@ class MockAnalysisView implements AnalysisView {
   AnalysisStatus analysisStatus;
 
   @override
-  List<String> getTransientDependencies() => throw 'Not implemented';
+  List<String> getTransitiveDependencies() => throw 'Not implemented';
 
   @override
   double health;
