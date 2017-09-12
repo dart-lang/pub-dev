@@ -57,7 +57,7 @@ class PanaRunner implements TaskRunner {
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
-      if (summary.issues == null || summary.issues.isEmpty) {
+      if (summary.toolProblems == null || summary.toolProblems.isEmpty) {
         analysis.analysisStatus = AnalysisStatus.success;
       } else {
         analysis.analysisStatus = AnalysisStatus.failure;
