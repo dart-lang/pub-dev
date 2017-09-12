@@ -41,7 +41,7 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   static String _prefixWithNamespace(String prefix, String namespace) =>
       (namespace == null || namespace.isEmpty)
           ? prefix
-          : 'ns_${namespace}_${prefix}';
+          : 'ns_${namespace}_$prefix';
 
   AppEnginePackageMemcache(this._memcache, String namespace)
       : _keyPrefix = _prefixWithNamespace('package_json_', namespace),
