@@ -79,10 +79,10 @@ void main() {
 
       // stored analysis of http
       final String json =
-          await new File('$goldenDir/analysis_0.4.0_http.json').readAsString();
+          await new File('$goldenDir/analysis_tab_http.json').readAsString();
       final String html = templates.renderAnalysisTab(
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
-      expectGoldenFile(html, 'analysis_0.4.0_http.html', isFragment: true);
+      expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
     test('package index page', () {
@@ -280,7 +280,7 @@ class MockAnalysisView implements AnalysisView {
   AnalysisStatus analysisStatus;
 
   @override
-  List<String> getDependencies() => throw 'Not implemented';
+  List<String> getTransitiveDependencies() => throw 'Not implemented';
 
   @override
   double health;
