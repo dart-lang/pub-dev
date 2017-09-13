@@ -136,6 +136,16 @@ class MockSearchBackend implements SearchBackend {
   List<String> packages = ['pkg_foo'];
 
   @override
+  Future updatePackage(PackageDocument document) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Stream<PackageDocument> listRecentPackages({DateTime since}) {
+    throw new UnimplementedError();
+  }
+
+  @override
   Future<List<PackageDocument>> loadDocuments(List<String> packages) async {
     return packages.map((String package) {
       return new PackageDocument(
