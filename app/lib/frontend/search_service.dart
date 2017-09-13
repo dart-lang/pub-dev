@@ -121,16 +121,12 @@ class SearchQuery {
   /// Filter the results for this package prefix phrase.
   final String packagePrefix;
 
-  /// Bias responses and use score to adjust response order.
-  final SearchBias bias;
-
   SearchQuery(
     this.text, {
     this.offset: 0,
     this.limit: 10,
     this.platformPredicate,
     this.packagePrefix,
-    this.bias,
   });
 
   /// Whether the query object can be used for running a search using the custom

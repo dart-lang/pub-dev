@@ -168,8 +168,6 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
 
   final int page = _pageFromUrl(request.url,
       maxPages: maxSearchResults ~/ PageLinks.RESULTS_PER_PAGE);
-  final SearchBias expBias =
-      parseExperimentalBias(request.url.queryParameters['experimental-bias']);
 
   final SearchQuery query = new SearchQuery(
     queryText,
@@ -177,7 +175,6 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     limit: PageLinks.RESULTS_PER_PAGE,
     platformPredicate: new PlatformPredicate.fromUri(request.url),
     packagePrefix: packagePrefix,
-    bias: expBias,
   );
   if (!query.isValid) {
     return htmlResponse(templateService.renderSearchPage(

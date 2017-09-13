@@ -13,12 +13,7 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show
-        SearchBias,
-        SearchQuery,
-        SearchResultPage,
-        buildCseQueryText,
-        buildCseSort;
+    show SearchQuery, SearchResultPage, buildCseQueryText;
 
 import 'utils.dart';
 
@@ -246,15 +241,6 @@ void main() {
           platformPredicate: new PlatformPredicate(required: ['server']));
       expect(buildCseQueryText(query),
           'web framework more:pagemap:document-dt_server:1');
-    });
-
-    test('CSE sort parameter', () {
-      var query = new SearchQuery('query');
-      expect(buildCseSort(query.bias), isNull);
-      query = new SearchQuery('query', bias: SearchBias.weak);
-      expect(buildCseSort(query.bias), 'document-exp_score:d:w');
-      query = new SearchQuery('query', bias: SearchBias.strong);
-      expect(buildCseSort(query.bias), 'document-exp_score:d:s');
     });
 
     test('SearchLinks defaults', () {
