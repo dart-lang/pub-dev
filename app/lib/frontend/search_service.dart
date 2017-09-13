@@ -14,7 +14,6 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
-import '../shared/platform.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 
@@ -45,15 +44,7 @@ class SearchService {
   /// max [numResults].
   Future<SearchResultPage> search(SearchQuery query) async {
     try {
-      final PackageQuery packageQuery = new PackageQuery(
-        query.text,
-        platformPredicate: query.platformPredicate,
-        packagePrefix: query.packagePrefix,
-        offset: query.offset,
-        limit: query.limit,
-      );
-
-      final result = await searchClient.search(packageQuery).timeout(
+      final result = await searchClient.search(query).timeout(
         searchServiceTimeout,
         onTimeout: () async {
           _logger.warning('Search service exceeded timeout.');
@@ -102,43 +93,6 @@ Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
         query, totalCount, versions, devVersions, backend);
   } else {
     return new SearchResultPage(query, 0, [], [], backend);
-  }
-}
-
-class SearchQuery {
-  /// The query string used for the search.
-  final String text;
-
-  /// The offset used for the search.
-  final int offset;
-
-  /// The maximum number of items queried when search.
-  final int limit;
-
-  /// Filter the results for this platform.
-  final PlatformPredicate platformPredicate;
-
-  /// Filter the results for this package prefix phrase.
-  final String packagePrefix;
-
-  /// Bias responses and use score to adjust response order.
-  final SearchBias bias;
-
-  SearchQuery(
-    this.text, {
-    this.offset: 0,
-    this.limit: 10,
-    this.platformPredicate,
-    this.packagePrefix,
-    this.bias,
-  });
-
-  /// Whether the query object can be used for running a search using the custom
-  /// search api.
-  bool get isValid {
-    if ((text == null || text.isEmpty) &&
-        (packagePrefix == null || packagePrefix.isEmpty)) return false;
-    return true;
   }
 }
 

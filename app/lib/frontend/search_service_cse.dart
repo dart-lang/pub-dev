@@ -49,8 +49,7 @@ class _GoogleCseClient {
     final search = await csearch.cse.list(buildCseQueryText(query),
         cx: _CUSTOM_SEARCH_ID,
         num: query.limit,
-        start: 1 + query.offset,
-        sort: buildCseSort(query.bias));
+        start: 1 + query.offset);
     if (search.items != null) {
       final List<String> packages = search.items
           .map((item) {
@@ -67,17 +66,6 @@ class _GoogleCseClient {
   }
 }
 
-// https://developers.google.com/custom-search/docs/structured_search#bias-by-attribute
-enum SearchBias { hard, strong, weak }
-
-SearchBias parseExperimentalBias(String value) {
-  if (value == null) return null;
-  if (value == 'hard') return SearchBias.hard;
-  if (value == 'strong') return SearchBias.strong;
-  if (value == 'weak') return SearchBias.weak;
-  return null;
-}
-
 /// Returns the query text to use in CSE.
 String buildCseQueryText(SearchQuery query) {
   String queryText = query.text;
@@ -90,25 +78,4 @@ String buildCseQueryText(SearchQuery query) {
         ' more:pagemap:${CseTokens.pageMapDocument}-${CseTokens.detectedType(platform)}:1';
   });
   return queryText;
-}
-
-/// Returns the sort attribute to use in CSE.
-/// https://developers.google.com/custom-search/docs/structured_search#bias-by-attribute
-String buildCseSort(SearchBias bias) {
-  if (bias != null) {
-    String suffix;
-    switch (bias) {
-      case SearchBias.hard:
-        suffix = 'h';
-        break;
-      case SearchBias.strong:
-        suffix = 's';
-        break;
-      case SearchBias.weak:
-        suffix = 'w';
-        break;
-    }
-    return '${CseTokens.pageMapDocument}-${CseTokens.experimentalScore}:d:$suffix';
-  }
-  return null;
 }

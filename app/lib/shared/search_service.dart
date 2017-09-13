@@ -29,7 +29,7 @@ abstract class PackageIndex {
   Future addAll(Iterable<PackageDocument> documents);
   Future removeUrl(String url);
   Future merge();
-  Future<PackageSearchResult> search(PackageQuery query);
+  Future<PackageSearchResult> search(SearchQuery query);
 }
 
 /// A summary information about a package that goes into the search index.
@@ -73,22 +73,22 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
       _$PackageDocumentFromJson(json);
 }
 
-class PackageQuery {
+class SearchQuery {
   final String text;
   final PlatformPredicate platformPredicate;
   final String packagePrefix;
   final int offset;
   final int limit;
 
-  PackageQuery(
+  SearchQuery(
     this.text, {
     this.platformPredicate,
     this.packagePrefix,
-    this.offset,
-    this.limit,
+    this.offset: 0,
+    this.limit: 10,
   });
 
-  factory PackageQuery.fromServiceUrl(Uri uri) {
+  factory SearchQuery.fromServiceUrl(Uri uri) {
     final String text = uri.queryParameters['q'];
     final platform = new PlatformPredicate.fromUri(uri);
     String type = uri.queryParameters['type'];
@@ -104,7 +104,7 @@ class PackageQuery {
     offset = max(0, offset);
     limit = max(minSearchLimit, limit);
 
-    return new PackageQuery(
+    return new SearchQuery(
       text,
       platformPredicate: platform,
       packagePrefix: packagePrefix,
@@ -124,6 +124,14 @@ class PackageQuery {
       map['pkg-prefix'] = packagePrefix;
     }
     return map;
+  }
+
+  /// Sanity check, whether the query object is to be expected a valid result.
+  bool get isValid {
+    final bool hasText = text != null && text.isNotEmpty;
+    final bool hasPackagePrefix =
+        packagePrefix != null && packagePrefix.isNotEmpty;
+    return hasText || hasPackagePrefix;
   }
 }
 

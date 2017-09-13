@@ -15,9 +15,10 @@ import 'package:mustache/mustache.dart' as mustache;
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/mock_scores.dart';
+import '../shared/search_service.dart' show SearchQuery;
 
 import 'models.dart';
-import 'search_service.dart' show CseTokens, SearchQuery, SearchResultPage;
+import 'search_service.dart' show CseTokens, SearchResultPage;
 
 final Logger _logger = new Logger('pub.templates');
 

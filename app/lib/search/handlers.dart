@@ -47,7 +47,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   }
   final bool indent = request.url.queryParameters['indent'] == 'true';
   final PackageSearchResult result =
-      await packageIndex.search(new PackageQuery.fromServiceUrl(request.url));
+      await packageIndex.search(new SearchQuery.fromServiceUrl(request.url));
   return jsonResponse(result.toJson(), indent: indent);
 }
 

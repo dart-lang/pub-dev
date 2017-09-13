@@ -27,7 +27,7 @@ class SearchClient {
   /// The HTTP client used for making calls to our search service.
   final http.Client _httpClient = new http.Client();
 
-  Future<PackageSearchResult> search(PackageQuery query) async {
+  Future<PackageSearchResult> search(SearchQuery query) async {
     final String httpHostPort = activeConfiguration.searchServicePrefix;
     final String serviceUrlParams =
         new Uri(queryParameters: query.toServiceQueryParameters()).toString();
