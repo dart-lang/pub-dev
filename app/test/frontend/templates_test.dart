@@ -6,9 +6,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:html/parser.dart';
+import 'package:pana/src/platform.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
     show
@@ -240,9 +242,10 @@ void main() {
       var query = new SearchQuery('web framework');
       expect(buildCseQueryText(query), 'web framework');
 
-      query = new SearchQuery('web framework', type: 'pkg_type');
+      query = new SearchQuery('web framework',
+          platformPredicate: new PlatformPredicate(required: ['server']));
       expect(buildCseQueryText(query),
-          'web framework more:pagemap:document-dt_pkg_type:1');
+          'web framework more:pagemap:document-dt_server:1');
     });
 
     test('CSE sort parameter', () {
@@ -262,12 +265,13 @@ void main() {
     });
 
     test('SearchLinks with type', () {
-      final query = new SearchQuery('web framework', type: 'pkg_type');
+      final query = new SearchQuery('web framework',
+          platformPredicate: new PlatformPredicate(required: ['server']));
       final SearchLinks links = new SearchLinks(query, 100);
-      expect(
-          links.formatHref(1), '/search?q=web+framework&page=1&type=pkg_type');
-      expect(
-          links.formatHref(2), '/search?q=web+framework&page=2&type=pkg_type');
+      expect(links.formatHref(1),
+          '/search?q=web+framework&page=1&platforms=server');
+      expect(links.formatHref(2),
+          '/search?q=web+framework&page=2&platforms=server');
     });
   });
 }
@@ -290,4 +294,7 @@ class MockAnalysisView implements AnalysisView {
 
   @override
   DateTime timestamp;
+
+  @override
+  DartPlatform get platform => null;
 }

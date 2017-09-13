@@ -14,6 +14,7 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
+import '../shared/platform.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 
@@ -46,7 +47,7 @@ class SearchService {
     try {
       final PackageQuery packageQuery = new PackageQuery(
         query.text,
-        type: query.type,
+        platformPredicate: query.platformPredicate,
         packagePrefix: query.packagePrefix,
         offset: query.offset,
         limit: query.limit,
@@ -114,8 +115,8 @@ class SearchQuery {
   /// The maximum number of items queried when search.
   final int limit;
 
-  /// Filter the results for this type.
-  final String type;
+  /// Filter the results for this platform.
+  final PlatformPredicate platformPredicate;
 
   /// Filter the results for this package prefix phrase.
   final String packagePrefix;
@@ -127,7 +128,7 @@ class SearchQuery {
     this.text, {
     this.offset: 0,
     this.limit: 10,
-    this.type,
+    this.platformPredicate,
     this.packagePrefix,
     this.bias,
   });
@@ -135,7 +136,6 @@ class SearchQuery {
   /// Whether the query object can be used for running a search using the custom
   /// search api.
   bool get isValid {
-    if (type != null && !BuiltinTypes.isKnownType(type)) return false;
     if ((text == null || text.isEmpty) &&
         (packagePrefix == null || packagePrefix.isEmpty)) return false;
     return true;

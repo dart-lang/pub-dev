@@ -10,6 +10,8 @@ import 'dart:math' show min, max;
 
 import 'package:json_serializable/annotations.dart';
 
+import 'platform.dart';
+
 part 'search_service.g.dart';
 
 const int defaultSearchLimit = 100;
@@ -45,7 +47,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final String lastUpdated;
   final String readme;
 
-  final List<String> detectedTypes;
+  final List<String> platforms;
 
   final double health;
   final double popularity;
@@ -61,7 +63,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.description,
     this.lastUpdated,
     this.readme,
-    this.detectedTypes,
+    this.platforms,
     this.health,
     this.popularity,
     this.timestamp,
@@ -73,46 +75,51 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
 
 class PackageQuery {
   final String text;
-  final String type;
+  final PlatformPredicate platformPredicate;
   final String packagePrefix;
   final int offset;
   final int limit;
 
   PackageQuery(
     this.text, {
-    this.type,
+    this.platformPredicate,
     this.packagePrefix,
     this.offset,
     this.limit,
   });
 
-  factory PackageQuery.fromServiceQueryParameters(Map<String, String> params) {
-    final String text = params['q'];
-    String type = params['type'];
+  factory PackageQuery.fromServiceUrl(Uri uri) {
+    final String text = uri.queryParameters['q'];
+    final platform = new PlatformPredicate.fromUri(uri);
+    String type = uri.queryParameters['type'];
     if (type != null && type.isEmpty) type = null;
-    String packagePrefix = params['pkg-prefix'];
+    String packagePrefix = uri.queryParameters['pkg-prefix'];
     if (packagePrefix != null && packagePrefix.isEmpty) packagePrefix = null;
-    int offset = int.parse(params['offset'] ?? '0', onError: (_) => 0);
-    int limit =
-        int.parse(params['limit'] ?? '0', onError: (_) => defaultSearchLimit);
+    int offset =
+        int.parse(uri.queryParameters['offset'] ?? '0', onError: (_) => 0);
+    int limit = int.parse(uri.queryParameters['limit'] ?? '0',
+        onError: (_) => defaultSearchLimit);
 
     offset = min(maxSearchResults - minSearchLimit, offset);
     offset = max(0, offset);
     limit = max(minSearchLimit, limit);
 
-    return new PackageQuery(text,
-        type: type, packagePrefix: packagePrefix, offset: offset, limit: limit);
+    return new PackageQuery(
+      text,
+      platformPredicate: platform,
+      packagePrefix: packagePrefix,
+      offset: offset,
+      limit: limit,
+    );
   }
 
   Map<String, String> toServiceQueryParameters() {
     final Map<String, String> map = <String, String>{
       'q': text,
+      'platforms': platformPredicate?.toQueryParamValue(),
       'offset': offset?.toString(),
       'limit': limit?.toString(),
     };
-    if (type != null) {
-      map['type'] = type;
-    }
     if (packagePrefix != null) {
       map['pkg-prefix'] = packagePrefix;
     }

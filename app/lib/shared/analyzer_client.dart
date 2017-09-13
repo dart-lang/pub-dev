@@ -82,6 +82,8 @@ class AnalysisView {
   DateTime get timestamp => _data.timestamp;
   AnalysisStatus get analysisStatus => _data.analysisStatus;
 
+  DartPlatform get platform => _summary?.platform;
+
   String get licenseText {
     final String text = _summary?.license?.toString();
     if (text == LicenseNames.unknown || text == LicenseNames.missing) {
