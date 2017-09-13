@@ -75,7 +75,7 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future<PackageSearchResult> search(PackageQuery query) async {
+  Future<PackageSearchResult> search(SearchQuery query) async {
     final Map<String, double> total = <String, double>{};
     void addAll(Map<String, double> scores, double weight) {
       scores?.forEach((String url, double score) {

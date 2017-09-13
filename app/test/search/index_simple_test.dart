@@ -162,7 +162,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package name match: async', () async {
       final PackageSearchResult result =
-          await index.search(new PackageQuery('async'));
+          await index.search(new SearchQuery('async'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -187,7 +187,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('description match: composable', () async {
       final PackageSearchResult result =
-          await index.search(new PackageQuery('composable'));
+          await index.search(new SearchQuery('composable'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -212,7 +212,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('readme match: chrome.sockets', () async {
       final PackageSearchResult result =
-          await index.search(new PackageQuery('chrome.sockets'));
+          await index.search(new SearchQuery('chrome.sockets'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 3,
@@ -244,7 +244,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package prefix: chrome', () async {
       final PackageSearchResult result =
-          await index.search(new PackageQuery('', packagePrefix: 'chrome'));
+          await index.search(new SearchQuery('', packagePrefix: 'chrome'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,

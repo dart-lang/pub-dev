@@ -11,9 +11,10 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/shared/platform.dart';
+import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchQuery, SearchResultPage, buildCseQueryText;
+    show SearchResultPage, buildCseQueryText;
 
 import 'utils.dart';
 

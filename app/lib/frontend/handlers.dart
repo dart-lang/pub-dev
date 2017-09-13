@@ -15,7 +15,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/platform.dart';
-import '../shared/search_service.dart' show maxSearchResults;
+import '../shared/search_service.dart' show SearchQuery, maxSearchResults;
 import '../shared/utils.dart';
 
 import 'atom_feed.dart';
