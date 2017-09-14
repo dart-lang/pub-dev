@@ -13,7 +13,9 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         version: json['version'] as String,
         devVersion: json['devVersion'] as String,
         description: json['description'] as String,
-        lastUpdated: json['lastUpdated'] as String,
+        updated: json['updated'] == null
+            ? null
+            : DateTime.parse(json['updated'] as String),
         readme: json['readme'] as String,
         platforms:
             (json['platforms'] as List)?.map((e) => e as String)?.toList(),
@@ -29,7 +31,7 @@ abstract class _$PackageDocumentSerializerMixin {
   String get version;
   String get devVersion;
   String get description;
-  String get lastUpdated;
+  DateTime get updated;
   String get readme;
   List<String> get platforms;
   double get health;
@@ -41,7 +43,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'version': version,
         'devVersion': devVersion,
         'description': description,
-        'lastUpdated': lastUpdated,
+        'updated': updated?.toIso8601String(),
         'readme': readme,
         'platforms': platforms,
         'health': health,
