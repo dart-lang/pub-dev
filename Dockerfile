@@ -1,5 +1,11 @@
 FROM google/dart-runtime-base:1.25.0-dev.9.0
 
+ # After install we remove the apt-index again to keep the docker image diff small.
+ RUN apt-get update && \
+     apt-get upgrade -y && \
+     apt-get install -y git unzip && \
+     rm -rf /var/lib/apt/lists/*
+
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 
