@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:html/parser.dart';
-import 'package:pana/src/platform.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:test/test.dart';
 
@@ -66,7 +65,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
-          null,
+          new MockAnalysisView()..platforms = ['flutter'],
           null);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
@@ -283,5 +282,5 @@ class MockAnalysisView implements AnalysisView {
   DateTime timestamp;
 
   @override
-  DartPlatform get platform => null;
+  List<String> platforms;
 }

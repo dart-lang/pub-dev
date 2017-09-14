@@ -5193,8 +5193,8 @@ table.search-results p {
   margin: 0;
 }
 
-.package-icons {
-  margin: 0 0 16px 0;
+.package-icon {
+  margin: 4px 0 12px 0;
 }
 
 .package-icons .package-icon-img {
