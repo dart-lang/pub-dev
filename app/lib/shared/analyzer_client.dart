@@ -14,6 +14,8 @@ import 'package:pana/pana.dart';
 import 'package:pub_dartlang_org/analyzer/versions.dart';
 
 import 'analyzer_service.dart';
+import 'platform.dart';
+
 export 'analyzer_service.dart';
 
 /// Sets the analyzer client.
@@ -82,7 +84,7 @@ class AnalysisView {
   DateTime get timestamp => _data.timestamp;
   AnalysisStatus get analysisStatus => _data.analysisStatus;
 
-  DartPlatform get platform => _summary?.platform;
+  List<String> get platforms => indexDartPlatform(_summary?.platform);
 
   String get licenseText {
     final String text = _summary?.license?.toString();

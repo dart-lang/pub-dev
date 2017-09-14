@@ -15,6 +15,7 @@ import 'package:mustache/mustache.dart' as mustache;
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/mock_scores.dart';
+import '../shared/platform.dart';
 import '../shared/search_service.dart' show SearchQuery;
 
 import 'models.dart';
@@ -319,7 +320,7 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'icons': _renderIconsBlockHtml(selectedVersion),
+        'icons': _renderIconsBlockHtml(analysis?.platforms),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -492,8 +493,8 @@ class TemplateService {
   }
 
   /// Renders the icons and related text using the pkg/icons_block template.
-  String _renderIconsBlockHtml(PackageVersion version) {
-    final List icons = _mapIconsData(version);
+  String _renderIconsBlockHtml(List<String> platforms) {
+    final List icons = _mapIconsDataFromPlatforms(platforms);
     return _renderTemplate('pkg/icons_block', {
       'has_icons': icons.isNotEmpty,
       'icons': icons,
@@ -521,6 +522,19 @@ class TemplateService {
         });
       }
     }
+    return icons;
+  }
+
+  List _mapIconsDataFromPlatforms(List<String> platforms) {
+    final List icons = [];
+    platforms?.forEach((String platform) {
+      final Map iconData = _logoData[platform];
+      if (iconData == null) {
+        // TODO: log missing
+      } else {
+        icons.add(iconData);
+      }
+    });
     return icons;
   }
 
@@ -666,6 +680,22 @@ abstract class LogoUrls {
   // Original source: https://pixabay.com/en/bash-command-line-linux-shell-148836/
   static const String shellLogo32x32 = '/static/img/shell-logo-32x32.png';
 }
+
+final Map<String, Map> _logoData = const {
+  KnownPlatforms.flutter: const {
+    'src': LogoUrls.flutterLogo32x32,
+    'label': 'Flutter package',
+    'href': '/flutter/packages',
+  },
+  KnownPlatforms.server: const {
+    'src': LogoUrls.shellLogo32x32,
+    'label': 'Server',
+  },
+  KnownPlatforms.web: const {
+    'src': LogoUrls.html5Logo32x32,
+    'label': 'Web',
+  },
+};
 
 const String flutterPackagesDescriptionHtml =
     '<p><a href="https://flutter.io/using-packages/">Learn more about using packages with Flutter.</a></p>';
