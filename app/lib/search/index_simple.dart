@@ -121,6 +121,7 @@ class SimplePackageIndex implements PackageIndex {
         package: doc.package,
         version: doc.version,
         devVersion: doc.devVersion,
+        platforms: doc.platforms,
         score: total[url],
       ));
     }
