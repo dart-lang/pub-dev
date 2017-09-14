@@ -54,7 +54,7 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.0+1"
+    version: "0.10.1"
   build_barback:
     description:
       name: build_barback
@@ -66,7 +66,7 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0+3"
+    version: "0.5.0"
   charcode:
     description:
       name: charcode
@@ -342,7 +342,7 @@ packages:
       name: shelf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.8"
+    version: "0.7.0"
   shelf_packages_handler:
     description:
       name: shelf_packages_handler
@@ -420,7 +420,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.24+2"
+    version: "0.12.24+4"
   typed_data:
     description:
       name: typed_data
