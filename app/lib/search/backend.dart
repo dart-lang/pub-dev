@@ -92,7 +92,7 @@ class SearchBackend {
         devVersion: p.latestDevVersion,
         platforms: indexDartPlatform(analysisView.platform),
         description: compactDescription(pv.pubspec.description),
-        lastUpdated: pv.shortCreated,
+        updated: pv.created,
         readme: compactReadme(pv.readmeContent),
         health: analysisView.health,
         popularity: mockScores[pv.package] ?? 0.0,

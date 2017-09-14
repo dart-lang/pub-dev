@@ -101,7 +101,7 @@ void main() {
         readme: '''http
           A composable, Future-based library for making HTTP requests.
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
-        lastUpdated: 'Jul 20, 2017',
+        updated: new DateTime.utc(2017, 07, 20),
         popularity: 0.7,
         health: 1.0,
       ));
@@ -118,7 +118,7 @@ The AsyncCache class allows expensive asynchronous computations values to be cac
 The AsyncMemoizer class makes it easy to only run an asynchronous operation once on demand.
 The CancelableOperation class defines an operation that can be canceled by its consumer. The producer can then listen for this cancellation and stop producing the future when it's received. It can be created using a CancelableCompleter.
 The delegating wrapper classes allow users to easily add functionality on top of existing instances of core types from dart:async. These include DelegatingFuture, DelegatingStream, DelegatingStreamSubscription, DelegatingStreamConsumer, DelegatingSink, DelegatingEventSink, and DelegatingStreamSink.''',
-        lastUpdated: 'May 17, 2017',
+        updated: new DateTime.utc(2017, 05, 17),
         popularity: 0.8,
         health: 1.0,
       ));
@@ -131,7 +131,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         readme: '''TCP client and server libraries for Dart based Chrome Apps.
 tcp.dart contains abstractions over chrome.sockets to aid in working with TCP client sockets and server sockets (TcpClient and TcpServer).
 server.dart adds a small, prescriptive server (PicoServer) that can be configured with different handlers for HTTP requests.''',
-        lastUpdated: 'Sep 17, 2014',
+        updated: new DateTime.utc(2014, 09, 17),
         popularity: 0.0,
         health: 0.5,
       ));

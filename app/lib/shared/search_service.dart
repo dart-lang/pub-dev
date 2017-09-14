@@ -44,7 +44,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final String version;
   final String devVersion;
   final String description;
-  final String lastUpdated;
+  final DateTime updated;
   final String readme;
 
   final List<String> platforms;
@@ -61,7 +61,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.version,
     this.devVersion,
     this.description,
-    this.lastUpdated,
+    this.updated,
     this.readme,
     this.platforms,
     this.health,
