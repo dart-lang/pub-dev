@@ -20,6 +20,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
 
+import 'models.dart';
 import 'text_utils.dart';
 
 part 'backend.g.dart';
@@ -45,6 +46,35 @@ class SearchBackend {
   final DatastoreDB _db;
 
   SearchBackend(this._db);
+
+  /// Updates the reference document the search service will use for indexing.
+  Future updatePackage(PackageDocument document) {
+    return _db.withTransaction((tx) async {
+      final PackageSearch old = (await tx.lookup(
+              [_db.emptyKey.append(PackageSearch, id: document.package)]))
+          .single;
+      if (old == null) {
+        tx.queueMutations(inserts: [new PackageSearch.fromDocument(document)]);
+        await tx.commit();
+      } else if (old.lastAnalyzed.isBefore(document.timestamp)) {
+        old.lastAnalyzed = document.timestamp;
+        old.document = document;
+        tx.queueMutations(inserts: [old]);
+        await tx.commit();
+      } else {
+        await tx.rollback();
+      }
+    });
+  }
+
+  /// Lists the recently updated reference documents.
+  Stream<PackageDocument> listRecentPackages({DateTime since}) {
+    final Query query = _db.query(PackageSearch);
+    if (since != null) {
+      query.filter('lastAnalyzed >=', since);
+    }
+    return query.run().map((Model model) => (model as PackageSearch).document);
+  }
 
   /// Loads the list of packages, their latest stable versions and returns a
   /// matching list of [PackageDocument] objects for search.

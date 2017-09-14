@@ -65,6 +65,14 @@ class PanaRunner implements TaskRunner {
       analysis.analysisJson = summary.toJson();
     }
 
+    // Storing the search reference document before storing the analysis without
+    // transaction has a risk of the two getting out of sync, however the effect
+    // is acceptable: at worst, the search will work on the correct data, while
+    // the analyzer service serves an older version (which should self-correct
+    // in a day or so).
+    // TODO: build PackageDocument (migrate from SearchBackend.loadDocuments)
+    // TODO: store PackageDocument (calling SearchBackend.updatePackage)
+
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
 
     if (backendStatus.isNewVersion) {
