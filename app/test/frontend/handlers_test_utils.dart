@@ -180,11 +180,6 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderPrivateKeysNewPage(bool wasAlreadySet, bool isProduction) {
-    return Response;
-  }
-
-  @override
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     return Response;
   }

@@ -47,15 +47,6 @@ class TemplateService {
 
   TemplateService({this.templateDirectory: '/project/app/views'});
 
-  /// Renders the `views/private_keys/new.mustache` template.
-  String renderPrivateKeysNewPage(bool wasAlreadySet, bool isProduction) {
-    final values = {
-      'already_set': wasAlreadySet,
-      'production': isProduction,
-    };
-    return _renderPage('private_keys/new', values);
-  }
-
   /// Renders the `views/pkg/versions/index` template.
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
