@@ -77,6 +77,8 @@ PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) =>
         package: json['package'] as String,
         version: json['version'] as String,
         devVersion: json['devVersion'] as String,
+        platforms:
+            (json['platforms'] as List)?.map((e) => e as String)?.toList(),
         score: (json['score'] as num)?.toDouble());
 
 abstract class _$PackageScoreSerializerMixin {
@@ -84,12 +86,24 @@ abstract class _$PackageScoreSerializerMixin {
   String get package;
   String get version;
   String get devVersion;
+  List<String> get platforms;
   double get score;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'url': url,
-        'package': package,
-        'version': version,
-        'devVersion': devVersion,
-        'score': score
-      };
+  Map<String, dynamic> toJson() {
+    var val = <String, dynamic>{
+      'url': url,
+      'package': package,
+      'version': version,
+      'devVersion': devVersion,
+    };
+
+    void writeNotNull(String key, dynamic value) {
+      if (value != null) {
+        val[key] = value;
+      }
+    }
+
+    writeNotNull('platforms', platforms);
+    val['score'] = score;
+    return val;
+  }
 }

@@ -165,10 +165,20 @@ class PackageScore extends Object with _$PackageScoreSerializerMixin {
   final String package;
   final String version;
   final String devVersion;
+
+  @JsonKey(includeIfNull: false)
+  final List<String> platforms;
+
   final double score;
 
-  PackageScore(
-      {this.url, this.package, this.version, this.devVersion, this.score});
+  PackageScore({
+    this.url,
+    this.package,
+    this.version,
+    this.devVersion,
+    this.platforms,
+    this.score,
+  });
 
   factory PackageScore.fromJson(Map<String, dynamic> json) =>
       _$PackageScoreFromJson(json);
