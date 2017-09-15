@@ -13,6 +13,7 @@ import 'package:pana/pana.dart';
 
 import 'package:pub_dartlang_org/analyzer/versions.dart';
 
+import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
 import 'platform.dart';
 
@@ -36,12 +37,20 @@ class AnalyzerClient {
 
   /// Gets the analysis data from the analyzer service via HTTP.
   Future<AnalysisData> getAnalysisData(String package, String version) async {
+    final String cachedContent =
+        await analyzerMemcache?.getContent(package, version, panaVersion);
+    if (cachedContent != null) {
+      return new AnalysisData.fromJson(JSON.decode(cachedContent));
+    }
     final String uri =
         '$_analyzerServiceHttpHostPort/packages/$package/$version?panaVersion=$panaVersion';
     try {
       final http.Response rs = await _client.get(uri);
       if (rs.statusCode == 200) {
-        return new AnalysisData.fromJson(JSON.decode(rs.body));
+        final String content = rs.body;
+        await analyzerMemcache?.setContent(
+            package, version, panaVersion, content);
+        return new AnalysisData.fromJson(JSON.decode(content));
       }
     } catch (e, st) {
       _logger.warning('Analysis request failed on $uri', e, st);

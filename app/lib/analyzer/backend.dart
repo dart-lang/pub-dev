@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
+import '../shared/analyzer_memcache.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
@@ -128,6 +129,9 @@ class AnalysisBackend {
         tx.queueMutations(inserts: inserts);
         await tx.commit();
       }
+
+      analyzerMemcache.invalidateContent(
+          analysis.packageName, analysis.packageVersion, analysis.panaVersion);
 
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
     });

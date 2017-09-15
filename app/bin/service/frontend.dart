@@ -15,6 +15,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
@@ -74,6 +75,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerNotificationClient(notificationClient);
   registerScopeExitCallback(notificationClient.close);
 
+  registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
   final AnalyzerClient analyzerClient =
       new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
   registerAnalyzerClient(analyzerClient);
