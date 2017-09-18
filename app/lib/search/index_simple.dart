@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
-// TODO: move scoring to a separate package or outside of pana/src
-import 'package:pana/src/scoring.dart' as scoring;
 
 import '../shared/search_service.dart';
 
@@ -25,7 +23,6 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _nameIndex = new TokenIndex();
   final TokenIndex _descrIndex = new TokenIndex();
   final TokenIndex _readmeIndex = new TokenIndex();
-  Map<String, double> _healthScores;
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -54,7 +51,6 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.add(doc.url, doc.package);
     _descrIndex.add(doc.url, compactDescription(doc.description));
     _readmeIndex.add(doc.url, compactReadme(doc.readme));
-    _clearScores();
   }
 
   @override
@@ -71,7 +67,6 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.removeUrl(url);
     _descrIndex.removeUrl(url);
     _readmeIndex.removeUrl(url);
-    _clearScores();
   }
 
   @override
@@ -158,27 +153,12 @@ class SimplePackageIndex implements PackageIndex {
     _lastUpdated = new DateTime.now().toUtc();
   }
 
-  void _clearScores() {
-    _healthScores = null;
-  }
-
-  void _initScoresIfNeeded() {
-    if (_healthScores != null) return;
-    _healthScores = <String, double>{};
-
-    final healthScorer =
-        new scoring.Summary(_documents.values.map((pd) => pd.health ?? 0.0));
-    for (PackageDocument doc in _documents.values) {
-      if (doc.health != null) {
-        _healthScores[doc.url] = healthScorer.bezierScore(doc.health) * 100.0;
-      }
-    }
-  }
-
   // visible for testing only
   Map<String, double> getHealthScore(Iterable<String> urls) {
-    _initScoresIfNeeded();
-    return new Map.fromIterable(urls, value: (url) => _healthScores[url]);
+    return new Map.fromIterable(
+      urls,
+      value: (String url) => (_documents[url].health ?? 0.0) * 100,
+    );
   }
 
   // visible for testing only
