@@ -20,43 +20,38 @@ void registerAnalyzerMemcache(AnalyzerMemcache value) =>
 AnalyzerMemcache get analyzerMemcache => ss.lookup(#_analyzerMemcache);
 
 class AnalyzerMemcache {
-  final Memcache _memcache;
+  final SimpleMemcache<_DataKey> _data;
 
-  AnalyzerMemcache(this._memcache);
+  AnalyzerMemcache(Memcache memcache)
+      : _data = new SimpleMemcache(
+          _logger,
+          memcache,
+          analyzerDataPrefix,
+          analyzerDataExpiration,
+        );
 
   Future<String> getContent(
-      String package, String version, String panaVersion) async {
-    try {
-      return await _memcache.get(_key(package, version, panaVersion));
-    } catch (e, st) {
-      _logger.severe('ERROR', e, st);
-      // ignore errors
-    }
-    _logger.fine('Couldn\'t find memcache entry for $package $version');
-    return null;
+      String package, String version, String panaVersion) {
+    return _data.getText(new _DataKey(package, version, panaVersion));
   }
 
-  Future setContent(String package, String version, String panaVersion,
-      String content) async {
-    try {
-      await _memcache.set(_key(package, version, panaVersion), content,
-          expiration: analyzerDataExpiration);
-    } catch (e, st) {
-      _logger.warning(
-          'Couldn\'t set memcache entry for $package $version', e, st);
-    }
+  Future setContent(
+      String package, String version, String panaVersion, String content) {
+    return _data.setText(new _DataKey(package, version, panaVersion), content);
   }
 
-  Future invalidateContent(
-      String package, String version, String panaVersion) async {
-    try {
-      await _memcache.remove(_key(package, version, panaVersion));
-    } catch (e, st) {
-      _logger.warning(
-          'Couldn\'t remove memcache entry for $package $version', e, st);
-    }
+  Future invalidateContent(String package, String version, String panaVersion) {
+    return _data.invalidate(new _DataKey(package, version, panaVersion));
   }
+}
 
-  String _key(String package, String version, String panaVersion) =>
-      '$analyzerDataPrefix/$package/$version/$panaVersion';
+class _DataKey {
+  final String package;
+  final String version;
+  final String panaVersion;
+
+  _DataKey(this.package, this.version, this.panaVersion);
+
+  @override
+  String toString() => '/$package/$version/$panaVersion';
 }

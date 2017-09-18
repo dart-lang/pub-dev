@@ -96,7 +96,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   await initSearchService();
 
-  final cache = new AppEnginePackageMemcache(memcacheService, '');
+  final cache = new AppEnginePackageMemcache(memcacheService);
   initBackend(cache: cache);
   registerSearchMemcache(new SearchMemcache(memcacheService));
 

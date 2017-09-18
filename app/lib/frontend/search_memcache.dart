@@ -20,28 +20,17 @@ void registerSearchMemcache(SearchMemcache value) =>
 SearchMemcache get searchMemcache => ss.lookup(#_searchMemcache);
 
 class SearchMemcache {
-  final Memcache _memcache;
+  final SimpleMemcache<String> _uiPage;
 
-  SearchMemcache(this._memcache);
+  SearchMemcache(Memcache memcache)
+      : _uiPage = new SimpleMemcache<String>(
+          _logger,
+          memcache,
+          searchUiPagePrefix,
+          searchUiPageExpiration,
+        );
 
-  Future<String> getUiSearchPage(String url) async {
-    try {
-      return await _memcache.get(_key(url));
-    } catch (e, st) {
-      _logger.severe('ERROR', e, st);
-      // ignore errors
-    }
-    _logger.fine('Couldn\'t find memcache entry for url: $url');
-    return null;
-  }
+  Future<String> getUiSearchPage(String url) => _uiPage.getText(url);
 
-  Future setUiSearchPage(String url, String html) async {
-    try {
-      await _memcache.set(_key(url), html, expiration: searchUiPageExpiration);
-    } catch (e, st) {
-      _logger.warning('Couldn\'t set memcache entry for url: $url', e, st);
-    }
-  }
-
-  String _key(String url) => '$searchUiPagePrefix$url';
+  Future setUiSearchPage(String url, String html) => _uiPage.setText(url, html);
 }
