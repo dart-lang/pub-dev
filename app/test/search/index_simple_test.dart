@@ -170,15 +170,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://async',
             'package': 'async',
-            'version': '1.13.3',
-            'devVersion': '1.13.3',
             'score': closeTo(83.4, 0.1),
           },
           {
             'url': 'uri://http',
             'package': 'http',
-            'version': '0.11.3+14',
-            'devVersion': '0.11.3+14',
             'score': closeTo(12.0, 0.1),
           },
         ]
@@ -195,15 +191,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://http',
             'package': 'http',
-            'version': '0.11.3+14',
-            'devVersion': '0.11.3+14',
             'score': closeTo(15.9, 0.1),
           },
           {
             'url': 'uri://async',
             'package': 'async',
-            'version': '1.13.3',
-            'devVersion': '1.13.3',
             'score': closeTo(13.0, 0.1),
           },
         ]
@@ -220,22 +212,16 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://chrome_net',
             'package': 'chrome_net',
-            'version': '0.1.0',
-            'devVersion': '0.1.0',
             'score': closeTo(29.4, 0.1),
           },
           {
             'url': 'uri://async',
             'package': 'async',
-            'version': '1.13.3',
-            'devVersion': '1.13.3',
             'score': closeTo(13.0, 0.1),
           },
           {
             'url': 'uri://http',
             'package': 'http',
-            'version': '0.11.3+14',
-            'devVersion': '0.11.3+14',
             'score': closeTo(12.0, 0.1),
           },
         ]
@@ -252,8 +238,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://chrome_net',
             'package': 'chrome_net',
-            'version': '0.1.0',
-            'devVersion': '0.1.0',
             'score': closeTo(71.2139, 0.0001),
           },
         ]

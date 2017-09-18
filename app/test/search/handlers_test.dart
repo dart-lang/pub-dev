@@ -59,9 +59,6 @@ void main() {
             {
               'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
-              'version': '1.0.1',
-              'devVersion': '1.0.1-dev',
-              'platforms': ['server', 'web'],
               'score': closeTo(71.1, 0.1),
             }
           ],
@@ -77,9 +74,6 @@ void main() {
             {
               'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
-              'version': '1.0.1',
-              'devVersion': '1.0.1-dev',
-              'platforms': ['server', 'web'],
               'score': closeTo(2.4, 0.1),
             }
           ],
@@ -96,9 +90,6 @@ void main() {
                 {
                   'url': 'https://pub.domain/packages/pkg_foo',
                   'package': 'pkg_foo',
-                  'version': '1.0.1',
-                  'devVersion': '1.0.1-dev',
-                  'platforms': ['server', 'web'],
                   'score': closeTo(2.4, 0.1),
                 }
               ],
@@ -114,9 +105,6 @@ void main() {
             {
               'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
-              'version': '1.0.1',
-              'devVersion': '1.0.1-dev',
-              'platforms': ['server', 'web'],
               'score': closeTo(13.3, 0.1),
             }
           ],
