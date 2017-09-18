@@ -13,6 +13,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
+import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
@@ -94,6 +95,7 @@ void _registerServices() {
   registerNotificationClient(notificationClient);
   registerScopeExitCallback(notificationClient.close);
   registerAnalysisBackend(new AnalysisBackend(db.dbService));
+  registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
 }
 
 final Random _random = new Random.secure();
