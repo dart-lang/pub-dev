@@ -13,7 +13,7 @@ import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchResultPage, buildCseQueryText;
+    show SearchResultPage, SearchResultPackage, buildCseQueryText;
 
 import 'utils.dart';
 
@@ -114,8 +114,11 @@ void main() {
       final resultPage = new SearchResultPage(
         query,
         2,
-        [testPackageVersion, flutterPackageVersion],
-        [testPackageVersion, flutterPackageVersion],
+        [
+          new SearchResultPackage(testPackageVersion, testPackageVersion, null),
+          new SearchResultPackage(
+              flutterPackageVersion, flutterPackageVersion, ['flutter']),
+        ],
         'service',
       );
       final String html =
