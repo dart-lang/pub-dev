@@ -145,7 +145,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'uri://http': 100.0,
             'uri://async': 100.0,
-            'uri://chrome_net': 0.0,
+            'uri://chrome_net': 50.0,
           });
     });
 
@@ -186,7 +186,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           await index.search(new SearchQuery('composable'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 2,
+        'totalCount': 3,
         'packages': [
           {
             'url': 'uri://http',
@@ -197,6 +197,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'url': 'uri://async',
             'package': 'async',
             'score': closeTo(13.0, 0.1),
+          },
+          {
+            'url': 'uri://chrome_net',
+            'package': 'chrome_net',
+            'score': closeTo(2.6, 0.1),
           },
         ]
       });
@@ -212,7 +217,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://chrome_net',
             'package': 'chrome_net',
-            'score': closeTo(29.4, 0.1),
+            'score': closeTo(32.0, 0.1),
           },
           {
             'url': 'uri://async',
@@ -238,7 +243,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://chrome_net',
             'package': 'chrome_net',
-            'score': closeTo(71.2139, 0.0001),
+            'score': closeTo(73.7, 0.1),
           },
         ]
       });
