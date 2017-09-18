@@ -5,7 +5,6 @@
 library pub_dartlang_org.package_memcache;
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
@@ -33,105 +32,56 @@ abstract class UIPackageCache {
 
 /// Uses a [Memache] to set/get/invalidate metadata for packages.
 class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
-  final Memcache _memcache;
+  final SimpleMemcache _json;
+  final SimpleMemcache _uiPage;
+  final SimpleMemcache _uiIndexPage;
 
-  AppEnginePackageMemcache(this._memcache);
-
-  @override
-  Future<List<int>> getPackageData(String package) async {
-    final result = await _ignoreErrors(
-        _memcache.get(_packageKey(package), asBinary: true));
-
-    if (result != null)
-      _logger.info('memcache["$package"] found');
-    else
-      _logger.info('memcache["$package"] not found');
-
-    return result;
-  }
+  AppEnginePackageMemcache(Memcache memcache)
+      : _json = new SimpleMemcache(
+            _logger, memcache, packageJsonPrefix, packageJsonExpiration),
+        _uiPage = new SimpleMemcache(
+            _logger, memcache, packageUiPagePrefix, packageUiPageExpiration),
+        _uiIndexPage =
+            new SimpleMemcache(_logger, memcache, '', indexUiPageExpiration);
 
   @override
-  Future setPackageData(String package, List<int> data) {
-    _logger.info('memcache["$package"] setting to new data');
-    return _ignoreErrors(_memcache.set(_packageKey(package), data,
-        expiration: packageJsonExpiration));
-  }
+  Future<List<int>> getPackageData(String package) => _json.getBytes(package);
 
   @override
-  Future<String> getUIPackagePage(String package, String version) async {
-    final result = await _ignoreErrors(
-        _memcache.get(_packageUIKey(package, version), asBinary: true));
-
-    if (result != null) {
-      _logger.info('memcache["$package"] rendered UI found');
-      return UTF8.decode(result);
-    }
-
-    _logger.info('memcache["$package"] rendered UI not found');
-    return null;
-  }
+  Future setPackageData(String package, List<int> data) =>
+      _json.setBytes(package, data);
 
   @override
-  Future setUIPackagePage(String package, String version, String data) async {
-    _logger.info('memcache["$package"] setting to new rendered UI data');
-    return _ignoreErrors(_memcache.set(
-        _packageUIKey(package, version), UTF8.encode(data),
-        expiration: packageUiPageExpiration));
-  }
+  Future<String> getUIPackagePage(String package, String version) =>
+      _uiPage.getText(_pvKey(package, version));
 
   @override
-  Future invalidateUIPackagePage(String package) async {
-    _logger.info('memcache["$package"] invalidating UI data');
-    return _ignoreErrors(Future.wait([
-      _memcache.remove(_packageUIKey(package, null)),
-      _memcache.remove(indexUiPageKey),
-    ]));
+  Future setUIPackagePage(String package, String version, String data) =>
+      _uiPage.setText(_pvKey(package, version), data);
+
+  @override
+  Future invalidateUIPackagePage(String package) {
+    return Future.wait([
+      _uiPage.invalidate(_pvKey(package, null)),
+      _uiIndexPage.invalidate(indexUiPageKey),
+    ]);
   }
 
   @override
   Future invalidatePackageData(String package) {
-    _logger.info('memcache["$package"] invalidate entry');
-    return _ignoreErrors(Future.wait([
-      _memcache.remove(_packageKey(package)),
-      _memcache.remove(_packageUIKey(package, null)),
-      _memcache.remove(indexUiPageKey),
-    ]));
+    return Future.wait([
+      _json.invalidate(package),
+      _uiIndexPage.invalidate(indexUiPageKey),
+      _uiPage.invalidate(_pvKey(package, null)),
+    ]);
   }
 
   @override
-  Future<String> getUIIndexPage() async {
-    final result = await _ignoreErrors(_memcache.get(indexUiPageKey));
-    if (result != null) {
-      _logger.info('memcache[index-page] found rendered UI data');
-    } else {
-      _logger.info('memcache[index-page] no rendered UI data found');
-    }
-    return result;
-  }
+  Future<String> getUIIndexPage() => _uiIndexPage.getText(indexUiPageKey);
 
   @override
-  Future setUIIndexPage(String content) async {
-    _logger.info('memcache[index-page] setting to new rendered UI data');
-    await _ignoreErrors(_memcache.set(indexUiPageKey, content,
-        expiration: indexUiPageExpiration));
-  }
+  Future setUIIndexPage(String content) =>
+      _uiIndexPage.setText(indexUiPageKey, content);
 
-  String _packageKey(String package) => '$packageJsonPrefix$package';
-
-  String _packageUIKey(String package, String version) {
-    if (version == null) return '$packageUiPagePrefix$package';
-    return '$packageUiPagePrefix$package**$version';
-  }
-
-  // We are ignoring any memcache errors and just return `null` in this case.
-  //
-  // NOTE: The worst what can happen is that up to `EXPIRATION` time passes
-  // before a value gets automatically evicted from memcache
-  //    => The duration for inconsistency is limited to 60 minutes ATM.
-  Future _ignoreErrors(Future f) {
-    return f.catchError((error, stackTrace) {
-      _logger.warning('Ignoring failed memcache API call (error: $error)',
-          error, stackTrace);
-    });
-  }
+  String _pvKey(String package, String version) => '/$package/$version';
 }

@@ -19,7 +19,7 @@ const String packageUiPagePrefix = 'package_ui_';
 const String analyzerDataPrefix = 'dart_analyzer_api_';
 const String searchUiPagePrefix = 'dart_search_ui_';
 
-class SimpleMemcache<T> {
+class SimpleMemcache {
   final Logger _logger;
   final Memcache _memcache;
   final String _prefix;
@@ -27,9 +27,9 @@ class SimpleMemcache<T> {
 
   SimpleMemcache(this._logger, this._memcache, this._prefix, this._expiration);
 
-  String _key(T key) => '$_prefix$key';
+  String _key(String key) => '$_prefix$key';
 
-  Future<String> getText(T key) async {
+  Future<String> getText(String key) async {
     try {
       return await _memcache.get(_key(key));
     } catch (e, st) {
@@ -39,7 +39,7 @@ class SimpleMemcache<T> {
     return null;
   }
 
-  Future setText(T key, String content) async {
+  Future setText(String key, String content) async {
     try {
       await _memcache.set(_key(key), content, expiration: _expiration);
     } catch (e, st) {
@@ -47,7 +47,26 @@ class SimpleMemcache<T> {
     }
   }
 
-  Future invalidate(T key) async {
+  Future<List<int>> getBytes(String key) async {
+    try {
+      return await _memcache.get(_key(key), asBinary: true);
+    } catch (e, st) {
+      _logger.severe('Error accessing memcache:', e, st);
+    }
+    _logger.fine('Couldn\'t find memcache entry for $key');
+    return null;
+  }
+
+  Future setBytes(String key, List<int> content) async {
+    try {
+      await _memcache.set(_key(key), content, expiration: _expiration);
+    } catch (e, st) {
+      _logger.warning('Couldn\'t set memcache entry for $key', e, st);
+    }
+  }
+
+  Future invalidate(String key) async {
+    _logger.info('Invalidating memcache key: $key');
     try {
       await _memcache.remove(_key(key));
     } catch (e, st) {
