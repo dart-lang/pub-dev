@@ -163,20 +163,11 @@ class PackageSearchResult extends Object
 class PackageScore extends Object with _$PackageScoreSerializerMixin {
   final String url;
   final String package;
-  final String version;
-  final String devVersion;
-
-  @JsonKey(includeIfNull: false)
-  final List<String> platforms;
-
   final double score;
 
   PackageScore({
     this.url,
     this.package,
-    this.version,
-    this.devVersion,
-    this.platforms,
     this.score,
   });
 

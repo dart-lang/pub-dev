@@ -119,9 +119,6 @@ class SimplePackageIndex implements PackageIndex {
       results.add(new PackageScore(
         url: doc.url,
         package: doc.package,
-        version: doc.version,
-        devVersion: doc.devVersion,
-        platforms: doc.platforms,
         score: total[url],
       ));
     }
