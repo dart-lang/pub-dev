@@ -73,10 +73,56 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
       _$PackageDocumentFromJson(json);
 }
 
+/// How search results should be ordered.
+enum SearchOrder {
+  /// Search score should be a weighted value of [text], [updated],
+  /// [popularity], [health] and [maintenance], ordered decreasing.
+  overall,
+
+  /// Search score should depend only on text match similarity, ordered
+  /// decreasing.
+  text,
+
+  /// Search order should be in decreasing last updated time.
+  updated,
+
+  /// Search order should be in decreasing popularity score.
+  popularity,
+
+  /// Search order should be in decreasing health score.
+  health,
+}
+
+/// Returns null if [value] is not a recognized search order.
+SearchOrder parseSearchOrder(String value, {SearchOrder defaultsTo}) {
+  if (value != null) {
+    switch (value) {
+      case 'overall':
+        return SearchOrder.overall;
+      case 'text':
+        return SearchOrder.text;
+      case 'updated':
+        return SearchOrder.updated;
+      case 'popularity':
+        return SearchOrder.popularity;
+      case 'health':
+        return SearchOrder.health;
+    }
+  }
+  if (defaultsTo != null) return defaultsTo;
+  throw new Exception('Unable to parse SearchOrder: $value');
+}
+
+String serializeSearchOrder(SearchOrder order) {
+  if (order == null) return null;
+  return order.toString().split('.').last;
+}
+
 class SearchQuery {
   final String text;
   final PlatformPredicate platformPredicate;
   final String packagePrefix;
+  final SearchOrder order;
   final int offset;
   final int limit;
 
@@ -84,6 +130,7 @@ class SearchQuery {
     this.text, {
     this.platformPredicate,
     this.packagePrefix,
+    this.order,
     this.offset: 0,
     this.limit: 10,
   });
@@ -95,6 +142,10 @@ class SearchQuery {
     if (type != null && type.isEmpty) type = null;
     String packagePrefix = uri.queryParameters['pkg-prefix'];
     if (packagePrefix != null && packagePrefix.isEmpty) packagePrefix = null;
+    final SearchOrder order = parseSearchOrder(
+      uri.queryParameters['order'],
+      defaultsTo: SearchOrder.overall,
+    );
     int offset =
         int.parse(uri.queryParameters['offset'] ?? '0', onError: (_) => 0);
     int limit = int.parse(uri.queryParameters['limit'] ?? '0',
@@ -108,6 +159,7 @@ class SearchQuery {
       text,
       platformPredicate: platform,
       packagePrefix: packagePrefix,
+      order: order,
       offset: offset,
       limit: limit,
     );
@@ -120,6 +172,9 @@ class SearchQuery {
       'offset': offset?.toString(),
       'limit': limit?.toString(),
     };
+    if (order != null) {
+      map['order'] = serializeSearchOrder(order);
+    }
     if (packagePrefix != null) {
       map['pkg-prefix'] = packagePrefix;
     }
@@ -131,7 +186,10 @@ class SearchQuery {
     final bool hasText = text != null && text.isNotEmpty;
     final bool hasPackagePrefix =
         packagePrefix != null && packagePrefix.isNotEmpty;
-    return hasText || hasPackagePrefix;
+    final bool hasNonTextOrdering = order != null &&
+        order != SearchOrder.overall &&
+        order != SearchOrder.text;
+    return hasText || hasPackagePrefix || hasNonTextOrdering;
   }
 }
 
