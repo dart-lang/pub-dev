@@ -8,6 +8,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 
+import 'memcache.dart';
+
 final Logger _logger = new Logger('pub.analyzer_memcache');
 
 /// Sets the analyzer memcache.
@@ -19,8 +21,6 @@ AnalyzerMemcache get analyzerMemcache => ss.lookup(#_analyzerMemcache);
 
 class AnalyzerMemcache {
   final Memcache _memcache;
-  final String _prefix = 'dart_analyzer_api_';
-  final Duration _expiration = new Duration(minutes: 60);
 
   AnalyzerMemcache(this._memcache);
 
@@ -40,7 +40,7 @@ class AnalyzerMemcache {
       String content) async {
     try {
       await _memcache.set(_key(package, version, panaVersion), content,
-          expiration: _expiration);
+          expiration: analyzerDataExpiration);
     } catch (e, st) {
       _logger.warning(
           'Couldn\'t set memcache entry for $package $version', e, st);
@@ -58,5 +58,5 @@ class AnalyzerMemcache {
   }
 
   String _key(String package, String version, String panaVersion) =>
-      '$_prefix/$package/$version/$panaVersion';
+      '$analyzerDataPrefix/$package/$version/$panaVersion';
 }

@@ -8,6 +8,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 
+import '../shared/memcache.dart';
+
 final Logger _logger = new Logger('pub.search_memcache');
 
 /// Sets the search memcache.
@@ -19,8 +21,6 @@ SearchMemcache get searchMemcache => ss.lookup(#_searchMemcache);
 
 class SearchMemcache {
   final Memcache _memcache;
-  final String _prefix = 'dart_search_ui_';
-  final Duration _expiration = new Duration(minutes: 10);
 
   SearchMemcache(this._memcache);
 
@@ -37,11 +37,11 @@ class SearchMemcache {
 
   Future setUiSearchPage(String url, String html) async {
     try {
-      await _memcache.set(_key(url), html, expiration: _expiration);
+      await _memcache.set(_key(url), html, expiration: searchUiPageExpiration);
     } catch (e, st) {
       _logger.warning('Couldn\'t set memcache entry for url: $url', e, st);
     }
   }
 
-  String _key(String url) => '$_prefix$url';
+  String _key(String url) => '$searchUiPagePrefix$url';
 }
