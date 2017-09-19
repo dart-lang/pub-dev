@@ -20,10 +20,10 @@ void registerSearchMemcache(SearchMemcache value) =>
 SearchMemcache get searchMemcache => ss.lookup(#_searchMemcache);
 
 class SearchMemcache {
-  final SimpleMemcache<String> _uiPage;
+  final SimpleMemcache _uiPage;
 
   SearchMemcache(Memcache memcache)
-      : _uiPage = new SimpleMemcache<String>(
+      : _uiPage = new SimpleMemcache(
           _logger,
           memcache,
           searchUiPagePrefix,

@@ -20,7 +20,7 @@ void registerAnalyzerMemcache(AnalyzerMemcache value) =>
 AnalyzerMemcache get analyzerMemcache => ss.lookup(#_analyzerMemcache);
 
 class AnalyzerMemcache {
-  final SimpleMemcache<_DataKey> _data;
+  final SimpleMemcache _data;
 
   AnalyzerMemcache(Memcache memcache)
       : _data = new SimpleMemcache(
@@ -32,26 +32,18 @@ class AnalyzerMemcache {
 
   Future<String> getContent(
       String package, String version, String panaVersion) {
-    return _data.getText(new _DataKey(package, version, panaVersion));
+    return _data.getText(_dataKey(package, version, panaVersion));
   }
 
   Future setContent(
       String package, String version, String panaVersion, String content) {
-    return _data.setText(new _DataKey(package, version, panaVersion), content);
+    return _data.setText(_dataKey(package, version, panaVersion), content);
   }
 
   Future invalidateContent(String package, String version, String panaVersion) {
-    return _data.invalidate(new _DataKey(package, version, panaVersion));
+    return _data.invalidate(_dataKey(package, version, panaVersion));
   }
-}
 
-class _DataKey {
-  final String package;
-  final String version;
-  final String panaVersion;
-
-  _DataKey(this.package, this.version, this.panaVersion);
-
-  @override
-  String toString() => '/$package/$version/$panaVersion';
+  String _dataKey(String package, String version, String panaVersion) =>
+      '/$package/$version/$panaVersion';
 }
