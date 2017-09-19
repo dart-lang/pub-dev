@@ -184,12 +184,14 @@ class SearchQuery {
   /// Sanity check, whether the query object is to be expected a valid result.
   bool get isValid {
     final bool hasText = text != null && text.isNotEmpty;
-    final bool hasPackagePrefix =
-        packagePrefix != null && packagePrefix.isNotEmpty;
-    final bool hasNonTextOrdering = order != null &&
-        order != SearchOrder.overall &&
-        order != SearchOrder.text;
-    return hasText || hasPackagePrefix || hasNonTextOrdering;
+    final bool hasNonTextOrdering = order != SearchOrder.text;
+    final bool isEmpty = !hasText &&
+        order == null &&
+        packagePrefix == null &&
+        (platformPredicate == null || !platformPredicate.isNotEmpty);
+    if (isEmpty) return false;
+
+    return hasText || hasNonTextOrdering;
   }
 }
 
@@ -221,6 +223,8 @@ class PackageSearchResult extends Object
 class PackageScore extends Object with _$PackageScoreSerializerMixin {
   final String url;
   final String package;
+
+  @JsonKey(includeIfNull: false)
   final double score;
 
   PackageScore({

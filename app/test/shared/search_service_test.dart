@@ -39,7 +39,7 @@ void main() {
     });
 
     test('has text-based ordering', () {
-      expect(new SearchQuery('', order: SearchOrder.overall).isValid, isFalse);
+      expect(new SearchQuery('', order: SearchOrder.overall).isValid, isTrue);
       expect(new SearchQuery('', order: SearchOrder.text).isValid, isFalse);
 
       expect(
@@ -61,7 +61,7 @@ void main() {
             order: SearchOrder.text,
           )
               .isValid,
-          isTrue);
+          isFalse);
     });
 
     test('has non-text-based ordering', () {

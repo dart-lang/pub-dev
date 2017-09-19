@@ -71,66 +71,59 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
-    final Map<String, double> total = <String, double>{};
-    void addAll(Map<String, double> scores, double weight) {
-      scores?.forEach((String url, double score) {
-        if (score != null) {
-          final double prev = total[url] ?? 0.0;
-          total[url] = prev + score * weight;
-        }
-      });
+    // do text matching
+    final Score textScore = _searchText(query.text, query.packagePrefix);
+
+    // The set of urls to filter on.
+    final Set<String> urls =
+        textScore?.getKeys()?.toSet() ?? _documents.keys.toSet();
+
+    // filter on package prefix
+    if (query.packagePrefix != null) {
+      urls.removeWhere(
+        (url) => !_documents[url]
+            .package
+            .toLowerCase()
+            .startsWith(query.packagePrefix.toLowerCase()),
+      );
     }
 
-    addAll(_nameIndex.search(query.text), 0.70);
-    addAll(_descrIndex.search(query.text), 0.10);
-    addAll(_readmeIndex.search(query.text), 0.05);
-
-    if ((query.text == null || query.text.isEmpty) &&
-        query.packagePrefix != null) {
-      addAll(_nameIndex.search(query.packagePrefix), 0.8);
+    // filter on platform
+    if (query.platformPredicate != null) {
+      urls.removeWhere(
+          (url) => !query.platformPredicate.matches(_documents[url].platforms));
     }
 
-    addAll(getHealthScore(total.keys), 0.05);
-    addAll(getPopularityScore(total.keys), 0.10);
+    // reduce text results if filter did remove an url
+    textScore?.removeWhere((key) => !urls.contains(key));
 
-    List<PackageScore> results = <PackageScore>[];
-    for (String url in total.keys) {
-      final PackageDocument doc = _documents[url];
-
-      // filter on platform
-      if (query.platformPredicate != null &&
-          !query.platformPredicate.matches(doc.platforms)) {
-        continue;
-      }
-
-      // filter on package prefix
-      if (query.packagePrefix != null &&
-          !doc.package
-              .toLowerCase()
-              .startsWith(query.packagePrefix.toLowerCase())) {
-        continue;
-      }
-
-      results.add(new PackageScore(
-        url: doc.url,
-        package: doc.package,
-        score: total[url],
-      ));
-    }
-
-    results.sort((a, b) => -a.score.compareTo(b.score));
-
-    // filter out the noise (maybe a single matching ngram)
-    if (results.isNotEmpty) {
-      final double bestScore = results.first.score;
-      final double scoreTreshold = bestScore / 25;
-      results.removeWhere((pr) => pr.score < scoreTreshold);
+    List<PackageScore> results;
+    switch (query.order ?? SearchOrder.overall) {
+      case SearchOrder.overall:
+        final Score overallScore = new Score()
+          ..addValues(textScore?.values, 0.85)
+          ..addValues(getPopularityScore(urls), 0.10)
+          ..addValues(getHealthScore(urls), 0.05);
+        results = _rankWithValues(overallScore.values);
+        break;
+      case SearchOrder.text:
+        results = _rankWithValues(textScore.values);
+        break;
+      case SearchOrder.updated:
+        results = _rankWithComparator(urls, _compareUpdated);
+        break;
+      case SearchOrder.popularity:
+        results = _rankWithValues(getPopularityScore(urls));
+        break;
+      case SearchOrder.health:
+        results = _rankWithValues(getHealthScore(urls));
+        break;
     }
 
     // bound by offset and limit
-    final int totalCount = min(maxSearchResults, results.length);
+    final int totalCount = results.length;
     if (query.offset != null && query.offset > 0) {
-      if (query.offset > totalCount) {
+      if (query.offset >= results.length) {
         results = <PackageScore>[];
       } else {
         results = results.sublist(query.offset);
@@ -167,6 +160,81 @@ class SimplePackageIndex implements PackageIndex {
       urls,
       value: (String url) => _documents[url].popularity * 100,
     );
+  }
+
+  Score _searchText(String text, String packagePrefix) {
+    if (text != null && text.isNotEmpty) {
+      final Score textScore = new Score()
+        ..addValues(_nameIndex.search(text), 0.82)
+        ..addValues(_descrIndex.search(text), 0.12)
+        ..addValues(_readmeIndex.search(text), 0.06);
+      // removes scores that are less than 5% of the best
+      textScore.removeLowScores(0.05);
+      // removes scores that are low
+      textScore.removeWhere((url) => textScore.values[url] < 1.0);
+      return textScore;
+    }
+    return null;
+  }
+
+  List<PackageScore> _rankWithValues(Map<String, double> values) {
+    final List<PackageScore> list = values.keys
+        .map((url) => new PackageScore(
+              url: url,
+              package: _documents[url].package,
+              score: values[url],
+            ))
+        .toList();
+    list.sort((a, b) {
+      final int scoreCompare = -a.score.compareTo(b.score);
+      if (scoreCompare != 0) return scoreCompare;
+      // if two packages got the same score, order by last updated
+      return _compareUpdated(_documents[a.url], _documents[b.url]);
+    });
+    return list;
+  }
+
+  List<PackageScore> _rankWithComparator(
+      Set<String> urls, int compare(PackageDocument a, PackageDocument b)) {
+    final List<PackageScore> list = urls
+        .map((url) =>
+            new PackageScore(url: url, package: _documents[url].package))
+        .toList();
+    list.sort((a, b) => compare(_documents[a.url], _documents[b.url]));
+    return list;
+  }
+
+  int _compareUpdated(PackageDocument a, PackageDocument b) {
+    if (a.updated == null) return -1;
+    if (b.updated == null) return 1;
+    return -a.updated.compareTo(b.updated);
+  }
+}
+
+class Score {
+  final Map<String, double> values = <String, double>{};
+
+  Iterable<String> getKeys() => values.keys;
+
+  void addValues(Map<String, double> newValues, double weight) {
+    if (newValues == null) return;
+    newValues.forEach((String key, double score) {
+      if (score != null) {
+        final double prev = values[key] ?? 0.0;
+        values[key] = prev + score * weight;
+      }
+    });
+  }
+
+  void removeWhere(bool keyCondition(String key)) {
+    final Set<String> keysToRemove = values.keys.where(keyCondition).toSet();
+    keysToRemove.forEach(values.remove);
+  }
+
+  void removeLowScores(double fraction) {
+    final double maxValue = values.values.fold(0.0, max);
+    final double cutoff = maxValue * fraction;
+    removeWhere((key) => values[key] < cutoff);
   }
 }
 

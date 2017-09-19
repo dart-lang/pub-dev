@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/index_simple.dart';
+import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 void main() {
@@ -87,6 +88,36 @@ void main() {
     });
   });
 
+  group('Score', () {
+    Score score;
+    setUp(() {
+      score = new Score()..addValues({'a': 100.0, 'b': 30.0, 'c': 55.0}, 1.0);
+    });
+
+    test('add values with weight', () {
+      score.addValues({'c': 50.0, 'd': 10.0}, 0.1);
+      expect(score.values, {
+        'a': 100.0,
+        'b': 30.0,
+        'c': 60.0,
+        'd': 1.0,
+      });
+    });
+
+    test('remove low scores', () {
+      expect(score.values, {
+        'a': 100.0,
+        'b': 30.0,
+        'c': 55.0,
+      });
+      score.removeLowScores(0.31);
+      expect(score.values, {
+        'a': 100.0,
+        'c': 55.0,
+      });
+    });
+  });
+
   group('SimplePackageIndex', () {
     SimplePackageIndex index;
 
@@ -102,6 +133,7 @@ void main() {
           A composable, Future-based library for making HTTP requests.
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
         updated: new DateTime.utc(2017, 07, 20),
+        platforms: ['flutter', 'server', 'web'],
         popularity: 0.7,
         health: 1.0,
       ));
@@ -119,6 +151,7 @@ The AsyncMemoizer class makes it easy to only run an asynchronous operation once
 The CancelableOperation class defines an operation that can be canceled by its consumer. The producer can then listen for this cancellation and stop producing the future when it's received. It can be created using a CancelableCompleter.
 The delegating wrapper classes allow users to easily add functionality on top of existing instances of core types from dart:async. These include DelegatingFuture, DelegatingStream, DelegatingStreamSubscription, DelegatingStreamConsumer, DelegatingSink, DelegatingEventSink, and DelegatingStreamSink.''',
         updated: new DateTime.utc(2017, 05, 17),
+        platforms: ['flutter', 'server', 'web'],
         popularity: 0.8,
         health: 1.0,
       ));
@@ -132,6 +165,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
 tcp.dart contains abstractions over chrome.sockets to aid in working with TCP client sockets and server sockets (TcpClient and TcpServer).
 server.dart adds a small, prescriptive server (PicoServer) that can be configured with different handlers for HTTP requests.''',
         updated: new DateTime.utc(2014, 09, 17),
+        platforms: ['server'],
         popularity: 0.0,
         health: 0.5,
       ));
@@ -165,17 +199,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           await index.search(new SearchQuery('async'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 2,
+        'totalCount': 1,
         'packages': [
           {
             'url': 'uri://async',
             'package': 'async',
-            'score': closeTo(83.4, 0.1),
-          },
-          {
-            'url': 'uri://http',
-            'package': 'http',
-            'score': closeTo(12.0, 0.1),
+            'score': closeTo(83.1, 0.1),
           },
         ]
       });
@@ -186,22 +215,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           await index.search(new SearchQuery('composable'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 3,
+        'totalCount': 1,
         'packages': [
           {
             'url': 'uri://http',
             'package': 'http',
             'score': closeTo(15.9, 0.1),
-          },
-          {
-            'url': 'uri://async',
-            'package': 'async',
-            'score': closeTo(13.0, 0.1),
-          },
-          {
-            'url': 'uri://chrome_net',
-            'package': 'chrome_net',
-            'score': closeTo(2.6, 0.1),
           },
         ]
       });
@@ -212,22 +231,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           await index.search(new SearchQuery('chrome.sockets'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 3,
+        'totalCount': 1,
         'packages': [
           {
             'url': 'uri://chrome_net',
             'package': 'chrome_net',
-            'score': closeTo(32.0, 0.1),
-          },
-          {
-            'url': 'uri://async',
-            'package': 'async',
-            'score': closeTo(13.0, 0.1),
-          },
-          {
-            'url': 'uri://http',
-            'package': 'http',
-            'score': closeTo(12.0, 0.1),
+            'score': closeTo(31.9, 0.1),
           },
         ]
       });
@@ -243,9 +252,85 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {
             'url': 'uri://chrome_net',
             'package': 'chrome_net',
-            'score': closeTo(73.7, 0.1),
+            'score': closeTo(2.5, 0.1),
           },
         ]
+      });
+    });
+
+    test('order by text: single-letter t', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery('t', order: SearchOrder.text));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {
+            'url': 'uri://http',
+            'package': 'http',
+            'score': closeTo(1.68, 0.01),
+          },
+        ],
+      });
+    });
+
+    test('order by updated: no filter', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery('', order: SearchOrder.updated));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'url': 'uri://http', 'package': 'http'},
+          {'url': 'uri://async', 'package': 'async'},
+          {'url': 'uri://chrome_net', 'package': 'chrome_net'},
+        ],
+      });
+    });
+
+    test('order by updated: platform filter', () async {
+      final PackageSearchResult result = await index.search(new SearchQuery(
+        '',
+        order: SearchOrder.updated,
+        platformPredicate: new PlatformPredicate(
+          required: ['web'],
+        ),
+      ));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'url': 'uri://http', 'package': 'http'},
+          {'url': 'uri://async', 'package': 'async'},
+        ],
+      });
+    });
+
+    test('order by popularity', () async {
+      final PackageSearchResult result = await index
+          .search(new SearchQuery('', order: SearchOrder.popularity));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'url': 'uri://async', 'package': 'async', 'score': 80.0},
+          {'url': 'uri://http', 'package': 'http', 'score': 70.0},
+          {'url': 'uri://chrome_net', 'package': 'chrome_net', 'score': 0.0},
+        ],
+      });
+    });
+
+    test('order by health', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery('', order: SearchOrder.health));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'url': 'uri://http', 'package': 'http', 'score': 100.0},
+          {'url': 'uri://async', 'package': 'async', 'score': 100.0},
+          {'url': 'uri://chrome_net', 'package': 'chrome_net', 'score': 50.0},
+        ],
       });
     });
   });
