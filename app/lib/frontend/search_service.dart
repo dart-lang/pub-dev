@@ -14,6 +14,7 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
+import '../shared/analyzer_client.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 
@@ -85,14 +86,30 @@ Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
   final List<Key> devVersionKeys =
       packageEntries.map((p) => p.latestDevVersionKey).toList();
   if (versionKeys.isNotEmpty) {
-    final allVersions =
-        await dbService.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+    // Analysis data fetched concurrently to reduce overall latency.
+    final Future<List<AnalysisData>> allAnalysisFuture = Future.wait(
+        packageEntries.map(
+            (p) => analyzerClient.getAnalysisData(p.name, p.latestVersion)));
+    final Future<List<PackageVersion>> allVersionsFuture =
+        dbService.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+
+    final List batchResults =
+        await Future.wait([allAnalysisFuture, allVersionsFuture]);
+    final List<AnalysisData> analysisDataList = await batchResults[0];
+    final List<PackageVersion> allVersions = await batchResults[1];
+
     final versions = allVersions.sublist(0, versionKeys.length);
     final devVersions = allVersions.sublist(versionKeys.length);
-    return new SearchResultPage(
-        query, totalCount, versions, devVersions, backend);
+    final List<SearchResultPackage> resultPackages =
+        new List.generate(versions.length, (i) {
+      final AnalysisView view = new AnalysisView(analysisDataList[i]);
+      return new SearchResultPackage(
+          versions[i], devVersions[i], view.platforms);
+    });
+
+    return new SearchResultPage(query, totalCount, resultPackages, backend);
   } else {
-    return new SearchResultPage(query, 0, [], [], backend);
+    return new SearchResultPage.empty(query, backend: backend);
   }
 }
 
@@ -104,18 +121,23 @@ class SearchResultPage {
   /// The total number of results available for the search.
   final int totalCount;
 
-  /// The latest stable versions of the packages found by the search.
-  final List<PackageVersion> stableVersions;
-
-  /// The latest development versions of the packages found by the search.
-  final List<PackageVersion> devVersions;
+  /// The packages found by the search.
+  final List<SearchResultPackage> packages;
 
   /// Which search backend was used.
   final String backend;
 
-  SearchResultPage(this.query, this.totalCount, this.stableVersions,
-      this.devVersions, this.backend);
+  SearchResultPage(this.query, this.totalCount, this.packages, this.backend);
 
-  factory SearchResultPage.empty(SearchQuery query) =>
-      new SearchResultPage(query, 0, [], [], 'none');
+  factory SearchResultPage.empty(SearchQuery query, {String backend}) =>
+      new SearchResultPage(query, 0, [], backend ?? 'none');
+}
+
+/// The composed package data to be displayed on the search results page.
+class SearchResultPackage {
+  final PackageVersion stableVersion;
+  final PackageVersion devVersion;
+  final List<String> platforms;
+
+  SearchResultPackage(this.stableVersion, this.devVersion, this.platforms);
 }

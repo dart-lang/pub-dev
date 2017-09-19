@@ -430,11 +430,10 @@ class TemplateService {
   /// Renders the `views/search.mustache` template.
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     final List results = [];
-    for (int i = 0; i < resultPage.stableVersions.length; i++) {
-      PackageVersion stable = resultPage.stableVersions[i];
-      final PackageVersion dev = resultPage.devVersions.length > i
-          ? resultPage.devVersions[i]
-          : stable;
+    for (int i = 0; i < resultPage.packages.length; i++) {
+      final resultPkg = resultPage.packages[i];
+      PackageVersion stable = resultPkg.stableVersion;
+      final PackageVersion dev = resultPkg.devVersion ?? stable;
 
       if (stable == null) {
         stable = dev;
@@ -448,7 +447,7 @@ class TemplateService {
         'show_dev_version': stable.id != dev.id,
         'dev_version': HTML_ESCAPE.convert(dev.id),
         'dev_version_href': Uri.encodeComponent(dev.id),
-        'icons': _renderIconsColumnHtml(stable),
+        'icons': _renderIconsColumnHtmlFromPlatforms(resultPkg.platforms),
         'last_uploaded': stable.shortCreated,
         'desc': stable.ellipsizedDescription,
       });
@@ -498,6 +497,17 @@ class TemplateService {
     return _renderTemplate('pkg/icons_column', {
       'has_icons': icons.isNotEmpty,
       'icons': icons,
+      'min_width_px': icons.length * 25,
+    });
+  }
+
+  /// Renders the icons and related text using the pkg/icons_column template.
+  String _renderIconsColumnHtmlFromPlatforms(List<String> platforms) {
+    final List icons = _mapIconsDataFromPlatforms(platforms);
+    return _renderTemplate('pkg/icons_column', {
+      'has_icons': icons.isNotEmpty,
+      'icons': icons,
+      'min_width_px': icons.length * 25,
     });
   }
 
