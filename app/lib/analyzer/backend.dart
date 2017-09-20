@@ -24,7 +24,7 @@ AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
 
 final Logger _logger = new Logger('pub.analyzer.backend');
 
-const Duration freshThreshold = const Duration(hours: 12);
+const Duration freshThreshold = const Duration(hours: 22);
 const Duration obsoleteThreshold = const Duration(days: 180);
 
 /// Datastore-related access methods for the analyzer service
@@ -194,7 +194,7 @@ class AnalysisBackend {
           '${versionAnalysis.flutterVersion} - $flutterVersion');
     }
 
-    // Is latest analysis older than 4 hours?
+    // Is latest analysis older than 1 hour?
     final DateTime now = new DateTime.now().toUtc();
     if (now.difference(versionAnalysis.analysisTimestamp) < freshThreshold) {
       return false;
