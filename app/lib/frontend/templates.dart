@@ -159,7 +159,7 @@ class TemplateService {
       String analysisTabContent) {
     assert(versions.length == versionDownloadUrls.length);
 
-    var importExamples;
+    List importExamples;
     if (selectedVersion.libraries.contains('${package.id}.dart')) {
       importExamples = [
         {
@@ -212,16 +212,16 @@ class TemplateService {
       return null;
     }
 
-    var readmeFilename;
-    var renderedReadme;
+    String readmeFilename;
+    String renderedReadme;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
       renderedReadme =
           renderFile(selectedVersion.readme, selectedVersion.homepage);
     }
 
-    var changelogFilename;
-    var renderedChangelog;
+    String changelogFilename;
+    String renderedChangelog;
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
       renderedChangelog =

@@ -43,7 +43,7 @@ void initOAuth2Service() {
   registerScopeExitCallback(client.close);
 }
 
-void initStorage(String projectId, authClient) {
+void initStorage(String projectId, http.Client authClient) {
   registerStorageService(new Storage(authClient, projectId));
 }
 
