@@ -77,7 +77,7 @@ String canonicalizeVersion(String version) {
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 int compareSemanticVersionsDesc(
-    semver.Version a, semver.Version b, bool decreasing, pubSorted) {
+    semver.Version a, semver.Version b, bool decreasing, bool pubSorted) {
   if (pubSorted) {
     if (decreasing) {
       return semver.Version.prioritize(b, a);

@@ -56,7 +56,8 @@ shelf.Response htmlResponse(String content, {int status: 200}) =>
       headers: {'content-type': 'text/html; charset="utf-8"'},
     );
 
-shelf.Response notFoundHandler(request, {body: default404NotFound}) =>
+shelf.Response notFoundHandler(shelf.Request request,
+        {String body: default404NotFound}) =>
     htmlResponse(body, status: 404);
 
 void logPubHeaders(shelf.Request request) {

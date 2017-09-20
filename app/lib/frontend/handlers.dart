@@ -378,7 +378,7 @@ Future<shelf.Response> packageVersionsHandler(
 
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
-    request, String packageName, String versionName) async {
+    shelf.Request request, String packageName, String versionName) async {
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
@@ -455,7 +455,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
 Future<shelf.Response> packageVersionHandlerYaml(
-    request, String package, String version) async {
+    shelf.Request request, String package, String version) async {
   final packageVersion = await backend.lookupPackageVersion(package, version);
   if (packageVersion == null) {
     return _formattedNotFoundHandler(request);
@@ -562,7 +562,7 @@ Future<shelf.Response> flutterPackagesHandler(shelf.Request request) async {
   );
 }
 
-shelf.Response _formattedNotFoundHandler(request) {
+shelf.Response _formattedNotFoundHandler(shelf.Request request) {
   final message = 'The path \'${request.requestedUri.path}\' was not found.';
   return htmlResponse(
     templateService.renderErrorPage(default404NotFound, message, null),
