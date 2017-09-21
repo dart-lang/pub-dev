@@ -110,10 +110,11 @@ class Task {
       identical(this, other) ||
       other is Task &&
           runtimeType == other.runtimeType &&
+          package == other.package &&
           version == other.version;
 
   @override
-  int get hashCode => version.hashCode;
+  int get hashCode => package.hashCode ^ version.hashCode;
 }
 
 /// A pull-based interface for accessing events from multiple streams, in the
