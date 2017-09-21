@@ -83,7 +83,7 @@ void main() {
       expect(index.tokenCount, 9);
       index.add('url2', 'another');
       expect(index.tokenCount, 32);
-      index.removeUrl('url2');
+      index.remove('url2');
       expect(index.tokenCount, 9);
     });
   });

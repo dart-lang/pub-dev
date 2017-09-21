@@ -27,7 +27,7 @@ abstract class PackageIndex {
       {String version, Duration maxAge});
   Future add(PackageDocument doc);
   Future addAll(Iterable<PackageDocument> documents);
-  Future removeUrl(String url);
+  Future removePackage(String package);
   Future merge();
   Future<PackageSearchResult> search(SearchQuery query);
 }
