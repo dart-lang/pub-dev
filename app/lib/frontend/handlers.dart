@@ -15,7 +15,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/platform.dart';
-import '../shared/search_service.dart' show SearchQuery, maxSearchResults;
+import '../shared/search_service.dart' show SearchQuery;
 import '../shared/utils.dart';
 
 import 'atom_feed.dart';
@@ -166,8 +166,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
   }
 
-  final int page = _pageFromUrl(request.url,
-      maxPages: maxSearchResults ~/ PageLinks.RESULTS_PER_PAGE);
+  final int page = _pageFromUrl(request.url);
 
   final SearchQuery query = new SearchQuery(
     queryText,
@@ -572,9 +571,8 @@ shelf.Response _formattedNotFoundHandler(shelf.Request request) {
 
 /// Extracts the 'page' query parameter from [url].
 ///
-/// Returns a valid positive integer. If [maxPages] is given, the result is
-/// clamped to [maxPages].
-int _pageFromUrl(Uri url, {int maxPages}) {
+/// Returns a valid positive integer.
+int _pageFromUrl(Uri url) {
   final pageAsString = url.queryParameters['page'];
   int pageAsInt = 1;
   if (pageAsString != null) {
@@ -582,8 +580,6 @@ int _pageFromUrl(Uri url, {int maxPages}) {
       pageAsInt = max(int.parse(pageAsString), 1);
     } catch (_, __) {}
   }
-
-  if (maxPages != null && pageAsInt > maxPages) pageAsInt = maxPages;
   return pageAsInt;
 }
 

@@ -6,7 +6,7 @@
 library pub_dartlang_org.shared.search_service;
 
 import 'dart:async';
-import 'dart:math' show min, max;
+import 'dart:math' show max;
 
 import 'package:json_serializable/annotations.dart';
 
@@ -16,7 +16,6 @@ part 'search_service.g.dart';
 
 const int defaultSearchLimit = 100;
 const int minSearchLimit = 10;
-const int maxSearchResults = 500;
 const int searchIndexNotReadyCode = 600;
 const String searchIndexNotReadyText = 'Not ready yet.';
 
@@ -149,7 +148,6 @@ class SearchQuery {
     int limit = int.parse(uri.queryParameters['limit'] ?? '0',
         onError: (_) => defaultSearchLimit);
 
-    offset = min(maxSearchResults - minSearchLimit, offset);
     offset = max(0, offset);
     limit = max(minSearchLimit, limit);
 
