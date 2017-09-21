@@ -60,7 +60,7 @@ class BatchIndexUpdater implements TaskRunner {
         final int count = _snapshot.documents.length;
         _logger
             .info('Got $count packages from snapshot at ${_snapshot.updated}');
-        await packageIndex.addAll(_snapshot.documents.values);
+        await packageIndex.addPackages(_snapshot.documents.values);
         // Arbitrary sanity check that the snapshot is not entirely bogus.
         // Index merge will enable search.
         if (count > 10) {
@@ -129,7 +129,7 @@ class BatchIndexUpdater implements TaskRunner {
       final List<PackageDocument> docs = await searchBackend
           .loadDocuments(tasks.map((t) => t.package).toList());
       _snapshot.addAll(docs);
-      await packageIndex.addAll(docs);
+      await packageIndex.addPackages(docs);
       final bool doMerge =
           _firstScanCount != null && _taskCount >= _firstScanCount;
       if (doMerge) {

@@ -25,8 +25,8 @@ abstract class PackageIndex {
   bool get isReady;
   Future<bool> containsPackage(String package,
       {String version, Duration maxAge});
-  Future add(PackageDocument doc);
-  Future addAll(Iterable<PackageDocument> documents);
+  Future addPackage(PackageDocument doc);
+  Future addPackages(Iterable<PackageDocument> documents);
   Future removePackage(String package);
   Future merge();
   Future<PackageSearchResult> search(SearchQuery query);

@@ -46,7 +46,7 @@ void main() {
         registerSearchBackend(new MockSearchBackend());
         registerPackageIndex(new SimplePackageIndex());
         await packageIndex
-            .addAll(await searchBackend.loadDocuments(['pkg_foo']));
+            .addPackages(await searchBackend.loadDocuments(['pkg_foo']));
         await packageIndex.merge();
       }
 

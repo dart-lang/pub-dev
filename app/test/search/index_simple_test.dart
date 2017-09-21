@@ -123,7 +123,7 @@ void main() {
 
     setUpAll(() async {
       index = new SimplePackageIndex();
-      await index.add(new PackageDocument(
+      await index.addPackage(new PackageDocument(
         package: 'http',
         version: '0.11.3+14',
         devVersion: '0.11.3+14',
@@ -136,7 +136,7 @@ void main() {
         popularity: 0.7,
         health: 1.0,
       ));
-      await index.add(new PackageDocument(
+      await index.addPackage(new PackageDocument(
         package: 'async',
         version: '1.13.3',
         devVersion: '1.13.3',
@@ -153,7 +153,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         popularity: 0.8,
         health: 1.0,
       ));
-      await index.add(new PackageDocument(
+      await index.addPackage(new PackageDocument(
         package: 'chrome_net',
         version: '0.1.0',
         devVersion: '0.1.0',

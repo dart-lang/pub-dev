@@ -44,7 +44,7 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future add(PackageDocument doc) async {
+  Future addPackage(PackageDocument doc) async {
     await removePackage(doc.package);
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
@@ -53,9 +53,9 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future addAll(Iterable<PackageDocument> documents) async {
+  Future addPackages(Iterable<PackageDocument> documents) async {
     for (PackageDocument doc in documents) {
-      await add(doc);
+      await addPackage(doc);
     }
   }
 
