@@ -44,6 +44,13 @@ class PlatformPredicate {
     return new PlatformPredicate._(reduce(required), reduce(prohibited));
   }
 
+  factory PlatformPredicate.only(String platform) {
+    return new PlatformPredicate(
+      required: [platform],
+      prohibited: new List.from(KnownPlatforms.all)..remove(platform),
+    );
+  }
+
   factory PlatformPredicate.fromUri(Uri uri) {
     final String pluralStr = uri.queryParameters['platforms'];
     List<String> platforms;
