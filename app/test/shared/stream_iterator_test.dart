@@ -99,4 +99,37 @@ void main() {
       expect(await iterator.moveNext(), isFalse);
     });
   });
+
+  group('Duplicates', () {
+    test('keeps duplicates', () async {
+      final iterator = new PrioritizedStreamIterator([
+        new Stream.fromIterable([1, 2, 1, 2]),
+      ]);
+      expect(await iterator.moveNext(), isTrue);
+      expect(iterator.current, 1);
+      expect(await iterator.moveNext(), isTrue);
+      expect(iterator.current, 2);
+      expect(await iterator.moveNext(), isTrue);
+      expect(iterator.current, 1);
+      expect(await iterator.moveNext(), isTrue);
+      expect(iterator.current, 2);
+      expect(await iterator.moveNext(), isFalse);
+    });
+
+    test('removes duplicates', () async {
+      final iterator = new PrioritizedStreamIterator(
+        [
+          new Stream.fromIterable([1, 2, 1, 2]),
+        ],
+        deduplicateWaiting: true,
+      );
+      // allow Stream listeners to be triggered
+      await new Future.delayed(Duration.ZERO);
+      expect(await iterator.moveNext(), isTrue);
+      expect(iterator.current, 1);
+      expect(await iterator.moveNext(), isTrue);
+      expect(iterator.current, 2);
+      expect(await iterator.moveNext(), isFalse);
+    });
+  });
 }
