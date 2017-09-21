@@ -200,7 +200,7 @@ class LastNTracker<T extends Comparable<T>> {
   final Queue<T> _lastItems = new Queue();
   final int _n;
 
-  LastNTracker({int lastN: 500}) : _n = lastN;
+  LastNTracker({int lastN: 1000}) : _n = lastN;
 
   void add(T d) {
     _lastItems.addLast(d);
