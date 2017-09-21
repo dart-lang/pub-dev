@@ -82,13 +82,12 @@ class BatchIndexUpdater implements TaskRunner {
   }
 
   @override
-  Future<bool> hasCompletedRecently(Task task) async {
-    final contains = await packageIndex.containsPackage(
+  Future<bool> hasCompletedRecently(Task task) {
+    return packageIndex.containsPackage(
       task.package,
       version: task.version,
       maxAge: _indexUpdateThreshold,
     );
-    return !contains;
   }
 
   @override
