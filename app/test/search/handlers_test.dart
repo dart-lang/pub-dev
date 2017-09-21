@@ -59,7 +59,7 @@ void main() {
             {
               'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
-              'score': closeTo(71.1, 0.1),
+              'score': closeTo(70.9, 0.1),
             }
           ],
         });
@@ -105,7 +105,7 @@ void main() {
             {
               'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
-              'score': closeTo(13.3, 0.1),
+              'score': closeTo(1.0, 0.1),
             }
           ],
         });

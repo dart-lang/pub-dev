@@ -83,6 +83,19 @@ abstract class _$PackageScoreSerializerMixin {
   String get url;
   String get package;
   double get score;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'url': url, 'package': package, 'score': score};
+  Map<String, dynamic> toJson() {
+    var val = <String, dynamic>{
+      'url': url,
+      'package': package,
+    };
+
+    void writeNotNull(String key, dynamic value) {
+      if (value != null) {
+        val[key] = value;
+      }
+    }
+
+    writeNotNull('score', score);
+    return val;
+  }
 }
