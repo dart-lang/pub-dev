@@ -52,7 +52,9 @@ class TaskScheduler {
   Future run() async {
     final PrioritizedStreamIterator<Task> taskIterator =
         new PrioritizedStreamIterator(
-            sources.map((TaskSource ts) => ts.startStreaming()).toList());
+      sources.map((TaskSource ts) => ts.startStreaming()).toList(),
+      deduplicateWaiting: true,
+    );
     while (await taskIterator.moveNext()) {
       final Task task = taskIterator.current;
       _pendingCount = taskIterator.pendingCount;
@@ -120,25 +122,30 @@ class Task {
 /// A pull-based interface for accessing events from multiple streams, in the
 /// priority order of the streams provided.
 class PrioritizedStreamIterator<T> implements StreamIterator<T> {
-  List<Queue<T>> _priorityQueues;
+  final bool deduplicateWaiting;
+  List<Set<T>> _priorityQueues;
   List<StreamSubscription> _subscriptions;
   bool _hasMoved = false;
   bool _isClosed = false;
   T _current;
   Completer<bool> _hasNextCompleter;
 
-  PrioritizedStreamIterator(List<Stream<T>> sources) {
-    _priorityQueues = new List.generate(sources.length, (_) => new Queue());
+  PrioritizedStreamIterator(List<Stream<T>> sources,
+      {this.deduplicateWaiting: true}) {
+    _priorityQueues =
+        new List.generate(sources.length, (_) => new LinkedHashSet());
     _subscriptions = new List(sources.length);
 
     // Listen on the streams and put items into their own queues.
     for (int i = 0; i < sources.length; i++) {
       final Stream<T> source = sources[i];
-      final Queue<T> queue = _priorityQueues[i];
+      final Set<T> queue = _priorityQueues[i];
       _subscriptions[i] = source.listen(
         (T item) {
-          queue.add(item);
-          _triggerComplete();
+          if (!deduplicateWaiting || !queue.contains(item)) {
+            queue.add(item);
+            _triggerComplete();
+          }
         },
         onDone: () {
           _subscriptions[i] = null;
@@ -151,7 +158,7 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
 
   /// The number of pending items in the queues.
   int get pendingCount =>
-      _priorityQueues.fold(0, (int sum, Queue queue) => sum + queue.length);
+      _priorityQueues.fold(0, (int sum, Set queue) => sum + queue.length);
 
   /// Moves to the next element.
   /// Returns whether the iterator has another item.
@@ -161,9 +168,10 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
       throw new StateError('Another moveNext() is underway.');
     }
     if (_isClosed) return false;
-    final Queue<T> queue = _firstQueue();
+    final Set<T> queue = _firstQueue();
     if (queue != null) {
-      _current = queue.removeFirst();
+      _current = queue.first;
+      queue.remove(_current);
       _hasMoved = true;
       return true;
     } else {
@@ -198,7 +206,7 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
     _isClosed = true;
   }
 
-  Queue<T> _firstQueue() {
+  Set<T> _firstQueue() {
     if (_isClosed) {
       throw new StateError('StreamIterator closed');
     }
@@ -207,8 +215,9 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
 
   void _triggerComplete() {
     if (_hasNextCompleter != null) {
-      final Queue<T> queue = _firstQueue();
-      _current = queue.removeFirst();
+      final Set<T> queue = _firstQueue();
+      _current = queue.first;
+      queue.remove(_current);
       _hasMoved = true;
       _hasNextCompleter.complete(true);
       _hasNextCompleter = null;
