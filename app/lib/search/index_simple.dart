@@ -167,9 +167,7 @@ class SimplePackageIndex implements PackageIndex {
         ..addValues(_nameIndex.search(text), 0.82)
         ..addValues(_descrIndex.search(text), 0.12)
         ..addValues(_readmeIndex.search(text), 0.06);
-      // removes scores that are less than 5% of the best
       textScore.removeLowScores(0.05);
-      // removes scores that are low
       textScore.removeWhere((id) => textScore.values[id] < 1.0);
       return textScore;
     }
