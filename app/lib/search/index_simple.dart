@@ -32,8 +32,7 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future<bool> containsPackage(String package,
       {String version, Duration maxAge}) async {
-    final String url = pubUrlOfPackage(package);
-    final PackageDocument doc = _documents[url];
+    final PackageDocument doc = _documents[package];
     if (doc == null) return false;
     if (version != null && doc.version != version) return false;
     if (maxAge != null &&
@@ -46,11 +45,11 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future add(PackageDocument doc) async {
-    await removeUrl(doc.url);
-    _documents[doc.url] = doc;
-    _nameIndex.add(doc.url, doc.package);
-    _descrIndex.add(doc.url, compactDescription(doc.description));
-    _readmeIndex.add(doc.url, compactReadme(doc.readme));
+    await removeUrl(doc.package);
+    _documents[doc.package] = doc;
+    _nameIndex.add(doc.package, doc.package);
+    _descrIndex.add(doc.package, compactDescription(doc.description));
+    _readmeIndex.add(doc.package, compactReadme(doc.readme));
   }
 
   @override
@@ -180,7 +179,6 @@ class SimplePackageIndex implements PackageIndex {
   List<PackageScore> _rankWithValues(Map<String, double> values) {
     final List<PackageScore> list = values.keys
         .map((url) => new PackageScore(
-              url: url,
               package: _documents[url].package,
               score: values[url],
             ))
@@ -189,7 +187,7 @@ class SimplePackageIndex implements PackageIndex {
       final int scoreCompare = -a.score.compareTo(b.score);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
-      return _compareUpdated(_documents[a.url], _documents[b.url]);
+      return _compareUpdated(_documents[a.package], _documents[b.package]);
     });
     return list;
   }
@@ -197,10 +195,9 @@ class SimplePackageIndex implements PackageIndex {
   List<PackageScore> _rankWithComparator(
       Set<String> urls, int compare(PackageDocument a, PackageDocument b)) {
     final List<PackageScore> list = urls
-        .map((url) =>
-            new PackageScore(url: url, package: _documents[url].package))
+        .map((url) => new PackageScore(package: _documents[url].package))
         .toList();
-    list.sort((a, b) => compare(_documents[a.url], _documents[b.url]));
+    list.sort((a, b) => compare(_documents[a.package], _documents[b.package]));
     return list;
   }
 

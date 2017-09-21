@@ -39,7 +39,6 @@ abstract class PackageIndex {
 /// results.
 @JsonSerializable()
 class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
-  final String url;
   final String package;
   final String version;
   final String devVersion;
@@ -56,7 +55,6 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final DateTime timestamp;
 
   PackageDocument({
-    this.url,
     this.package,
     this.version,
     this.devVersion,
@@ -221,14 +219,12 @@ class PackageSearchResult extends Object
 
 @JsonSerializable()
 class PackageScore extends Object with _$PackageScoreSerializerMixin {
-  final String url;
   final String package;
 
   @JsonKey(includeIfNull: false)
   final double score;
 
   PackageScore({
-    this.url,
     this.package,
     this.score,
   });
@@ -236,6 +232,3 @@ class PackageScore extends Object with _$PackageScoreSerializerMixin {
   factory PackageScore.fromJson(Map<String, dynamic> json) =>
       _$PackageScoreFromJson(json);
 }
-
-String pubUrlOfPackage(String package) =>
-    'https://pub.dartlang.org/packages/$package';

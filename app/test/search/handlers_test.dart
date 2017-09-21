@@ -57,7 +57,6 @@ void main() {
           'totalCount': 1,
           'packages': [
             {
-              'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
               'score': closeTo(70.9, 0.1),
             }
@@ -72,7 +71,6 @@ void main() {
           'totalCount': 1,
           'packages': [
             {
-              'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
               'score': closeTo(2.4, 0.1),
             }
@@ -88,7 +86,6 @@ void main() {
               'totalCount': 1,
               'packages': [
                 {
-                  'url': 'https://pub.domain/packages/pkg_foo',
                   'package': 'pkg_foo',
                   'score': closeTo(2.4, 0.1),
                 }
@@ -103,7 +100,6 @@ void main() {
           'totalCount': 1,
           'packages': [
             {
-              'url': 'https://pub.domain/packages/pkg_foo',
               'package': 'pkg_foo',
               'score': closeTo(1.0, 0.1),
             }
@@ -131,7 +127,6 @@ class MockSearchBackend implements SearchBackend {
   Future<List<PackageDocument>> loadDocuments(List<String> packages) async {
     return packages.map((String package) {
       return new PackageDocument(
-        url: 'https://pub.domain/packages/$package',
         package: package,
         version: '1.0.1',
         devVersion: '1.0.1-dev',
