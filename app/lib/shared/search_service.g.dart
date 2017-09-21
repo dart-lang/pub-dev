@@ -8,7 +8,6 @@ part of pub_dartlang_org.shared.search_service;
 
 PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
     new PackageDocument(
-        url: json['url'] as String,
         package: json['package'] as String,
         version: json['version'] as String,
         devVersion: json['devVersion'] as String,
@@ -26,7 +25,6 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
             : DateTime.parse(json['timestamp'] as String));
 
 abstract class _$PackageDocumentSerializerMixin {
-  String get url;
   String get package;
   String get version;
   String get devVersion;
@@ -38,7 +36,6 @@ abstract class _$PackageDocumentSerializerMixin {
   double get popularity;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'url': url,
         'package': package,
         'version': version,
         'devVersion': devVersion,
@@ -75,17 +72,14 @@ abstract class _$PackageSearchResultSerializerMixin {
 
 PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) =>
     new PackageScore(
-        url: json['url'] as String,
         package: json['package'] as String,
         score: (json['score'] as num)?.toDouble());
 
 abstract class _$PackageScoreSerializerMixin {
-  String get url;
   String get package;
   double get score;
   Map<String, dynamic> toJson() {
     var val = <String, dynamic>{
-      'url': url,
       'package': package,
     };
 

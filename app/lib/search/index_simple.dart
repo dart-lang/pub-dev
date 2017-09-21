@@ -19,7 +19,7 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
-  final Map<String, PackageDocument> _documents = <String, PackageDocument>{};
+  final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final TokenIndex _nameIndex = new TokenIndex();
   final TokenIndex _descrIndex = new TokenIndex();
   final TokenIndex _readmeIndex = new TokenIndex();
@@ -32,8 +32,7 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future<bool> containsPackage(String package,
       {String version, Duration maxAge}) async {
-    final String url = pubUrlOfPackage(package);
-    final PackageDocument doc = _documents[url];
+    final PackageDocument doc = _packages[package];
     if (doc == null) return false;
     if (version != null && doc.version != version) return false;
     if (maxAge != null &&
@@ -45,28 +44,28 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future add(PackageDocument doc) async {
-    await removeUrl(doc.url);
-    _documents[doc.url] = doc;
-    _nameIndex.add(doc.url, doc.package);
-    _descrIndex.add(doc.url, compactDescription(doc.description));
-    _readmeIndex.add(doc.url, compactReadme(doc.readme));
+  Future addPackage(PackageDocument doc) async {
+    await removePackage(doc.package);
+    _packages[doc.package] = doc;
+    _nameIndex.add(doc.package, doc.package);
+    _descrIndex.add(doc.package, compactDescription(doc.description));
+    _readmeIndex.add(doc.package, compactReadme(doc.readme));
   }
 
   @override
-  Future addAll(Iterable<PackageDocument> documents) async {
+  Future addPackages(Iterable<PackageDocument> documents) async {
     for (PackageDocument doc in documents) {
-      await add(doc);
+      await addPackage(doc);
     }
   }
 
   @override
-  Future removeUrl(String url) async {
-    final PackageDocument doc = _documents.remove(url);
+  Future removePackage(String package) async {
+    final PackageDocument doc = _packages.remove(package);
     if (doc == null) return;
-    _nameIndex.removeUrl(url);
-    _descrIndex.removeUrl(url);
-    _readmeIndex.removeUrl(url);
+    _nameIndex.remove(package);
+    _descrIndex.remove(package);
+    _readmeIndex.remove(package);
   }
 
   @override
@@ -74,14 +73,14 @@ class SimplePackageIndex implements PackageIndex {
     // do text matching
     final Score textScore = _searchText(query.text, query.packagePrefix);
 
-    // The set of urls to filter on.
-    final Set<String> urls =
-        textScore?.getKeys()?.toSet() ?? _documents.keys.toSet();
+    // The set of packages to filter on.
+    final Set<String> packages =
+        textScore?.getKeys()?.toSet() ?? _packages.keys.toSet();
 
     // filter on package prefix
     if (query.packagePrefix != null) {
-      urls.removeWhere(
-        (url) => !_documents[url]
+      packages.removeWhere(
+        (package) => !_packages[package]
             .package
             .toLowerCase()
             .startsWith(query.packagePrefix.toLowerCase()),
@@ -90,33 +89,33 @@ class SimplePackageIndex implements PackageIndex {
 
     // filter on platform
     if (query.platformPredicate != null) {
-      urls.removeWhere(
-          (url) => !query.platformPredicate.matches(_documents[url].platforms));
+      packages.removeWhere((package) =>
+          !query.platformPredicate.matches(_packages[package].platforms));
     }
 
-    // reduce text results if filter did remove an url
-    textScore?.removeWhere((key) => !urls.contains(key));
+    // reduce text results if filter did remove a package
+    textScore?.removeWhere((key) => !packages.contains(key));
 
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.overall) {
       case SearchOrder.overall:
         final Score overallScore = new Score()
           ..addValues(textScore?.values, 0.85)
-          ..addValues(getPopularityScore(urls), 0.10)
-          ..addValues(getHealthScore(urls), 0.05);
+          ..addValues(getPopularityScore(packages), 0.10)
+          ..addValues(getHealthScore(packages), 0.05);
         results = _rankWithValues(overallScore.values);
         break;
       case SearchOrder.text:
         results = _rankWithValues(textScore.values);
         break;
       case SearchOrder.updated:
-        results = _rankWithComparator(urls, _compareUpdated);
+        results = _rankWithComparator(packages, _compareUpdated);
         break;
       case SearchOrder.popularity:
-        results = _rankWithValues(getPopularityScore(urls));
+        results = _rankWithValues(getPopularityScore(packages));
         break;
       case SearchOrder.health:
-        results = _rankWithValues(getHealthScore(urls));
+        results = _rankWithValues(getHealthScore(packages));
         break;
     }
 
@@ -147,18 +146,18 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   // visible for testing only
-  Map<String, double> getHealthScore(Iterable<String> urls) {
+  Map<String, double> getHealthScore(Iterable<String> packages) {
     return new Map.fromIterable(
-      urls,
-      value: (String url) => (_documents[url].health ?? 0.0) * 100,
+      packages,
+      value: (String package) => (_packages[package].health ?? 0.0) * 100,
     );
   }
 
   // visible for testing only
-  Map<String, double> getPopularityScore(Iterable<String> urls) {
+  Map<String, double> getPopularityScore(Iterable<String> packages) {
     return new Map.fromIterable(
-      urls,
-      value: (String url) => _documents[url].popularity * 100,
+      packages,
+      value: (String package) => _packages[package].popularity * 100,
     );
   }
 
@@ -168,10 +167,8 @@ class SimplePackageIndex implements PackageIndex {
         ..addValues(_nameIndex.search(text), 0.82)
         ..addValues(_descrIndex.search(text), 0.12)
         ..addValues(_readmeIndex.search(text), 0.06);
-      // removes scores that are less than 5% of the best
       textScore.removeLowScores(0.05);
-      // removes scores that are low
-      textScore.removeWhere((url) => textScore.values[url] < 1.0);
+      textScore.removeWhere((id) => textScore.values[id] < 1.0);
       return textScore;
     }
     return null;
@@ -179,28 +176,26 @@ class SimplePackageIndex implements PackageIndex {
 
   List<PackageScore> _rankWithValues(Map<String, double> values) {
     final List<PackageScore> list = values.keys
-        .map((url) => new PackageScore(
-              url: url,
-              package: _documents[url].package,
-              score: values[url],
+        .map((package) => new PackageScore(
+              package: _packages[package].package,
+              score: values[package],
             ))
         .toList();
     list.sort((a, b) {
       final int scoreCompare = -a.score.compareTo(b.score);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
-      return _compareUpdated(_documents[a.url], _documents[b.url]);
+      return _compareUpdated(_packages[a.package], _packages[b.package]);
     });
     return list;
   }
 
   List<PackageScore> _rankWithComparator(
-      Set<String> urls, int compare(PackageDocument a, PackageDocument b)) {
-    final List<PackageScore> list = urls
-        .map((url) =>
-            new PackageScore(url: url, package: _documents[url].package))
+      Set<String> packages, int compare(PackageDocument a, PackageDocument b)) {
+    final List<PackageScore> list = packages
+        .map((package) => new PackageScore(package: _packages[package].package))
         .toList();
-    list.sort((a, b) => compare(_documents[a.url], _documents[b.url]));
+    list.sort((a, b) => compare(_packages[a.package], _packages[b.package]));
     return list;
   }
 
@@ -239,32 +234,32 @@ class Score {
 }
 
 class TokenIndex {
-  final Map<String, Set<String>> _inverseUrls = <String, Set<String>>{};
+  final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
   final Map<String, double> _weights = <String, double>{};
 
   /// The number of tokens stored in the index.
-  int get tokenCount => _inverseUrls.length;
+  int get tokenCount => _inverseIds.length;
 
-  void add(String url, String text) {
+  void add(String id, String text) {
     final Set<String> tokens = _tokenize(text);
     if (tokens == null || tokens.isEmpty) return;
     double sumWeight = 0.0;
     for (String token in tokens) {
-      final Set<String> set = _inverseUrls.putIfAbsent(token, () => new Set());
-      set.add(url);
+      final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
+      set.add(id);
       sumWeight += _tokenWeight(token);
     }
-    _weights[url] = sumWeight;
+    _weights[id] = sumWeight;
   }
 
-  void removeUrl(String url) {
-    _weights.remove(url);
+  void remove(String id) {
+    _weights.remove(id);
     final List<String> removeKeys = [];
-    _inverseUrls.forEach((String key, Set<String> set) {
-      set.remove(url);
+    _inverseIds.forEach((String key, Set<String> set) {
+      set.remove(id);
       if (set.isEmpty) removeKeys.add(key);
     });
-    removeKeys.forEach(_inverseUrls.remove);
+    removeKeys.forEach(_inverseIds.remove);
   }
 
   // A TF-IDF-like scoring, with more weight for longer terms.
@@ -277,17 +272,17 @@ class TokenIndex {
       final double tokenWeight = _tokenWeight(token);
       sumWeight += tokenWeight;
 
-      final Set<String> set = _inverseUrls[token];
+      final Set<String> set = _inverseIds[token];
       if (set == null || set.isEmpty) continue;
 
-      for (String url in set) {
-        final double prevValue = counts[url] ?? 0.0;
-        counts[url] = prevValue + tokenWeight;
+      for (String id in set) {
+        final double prevValue = counts[id] ?? 0.0;
+        counts[id] = prevValue + tokenWeight;
       }
     }
-    for (String url in counts.keys.toList()) {
-      final double current = counts[url];
-      counts[url] = 100.0 * (current / _weights[url]) * (current / sumWeight);
+    for (String id in counts.keys.toList()) {
+      final double current = counts[id];
+      counts[id] = 100.0 * (current / _weights[id]) * (current / sumWeight);
     }
     return counts;
   }

@@ -85,7 +85,6 @@ class SearchBackend {
       final analysisView = analysisViews[i];
 
       results[i] = new PackageDocument(
-        url: pubUrlOfPackage(pv.package),
         package: pv.package,
         version: p.latestVersion,
         devVersion: p.latestDevVersion,
