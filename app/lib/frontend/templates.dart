@@ -653,6 +653,9 @@ class SearchLinks extends PageLinks {
     if (query.platformPredicate != null && query.platformPredicate.isNotEmpty) {
       params['platforms'] = query.platformPredicate.toQueryParamValue();
     }
+    if (query.packagePrefix != null && query.packagePrefix.isNotEmpty) {
+      params['pkg-prefix'] = query.packagePrefix;
+    }
     return new Uri(path: '/search', queryParameters: params).toString();
   }
 }
