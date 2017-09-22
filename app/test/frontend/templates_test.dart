@@ -37,8 +37,13 @@ void main() {
     }
 
     test('index page', () {
-      final String html = templates
-          .renderIndexPage([testPackageVersion, flutterPackageVersion]);
+      final String html = templates.renderIndexPage([
+        testPackageVersion,
+        flutterPackageVersion,
+      ], [
+        new MockAnalysisView(),
+        new MockAnalysisView(platforms: ['flutter']),
+      ]);
       expectGoldenFile(html, 'index_page.html');
     });
 
@@ -83,10 +88,16 @@ void main() {
     });
 
     test('package index page', () {
-      final String html = templates.renderPkgIndexPage(
-          [testPackage, testPackage],
-          [testPackageVersion, flutterPackageVersion],
-          new PackageLinks.empty());
+      final String html = templates.renderPkgIndexPage([
+        testPackage,
+        testPackage
+      ], [
+        testPackageVersion,
+        flutterPackageVersion
+      ], [
+        new MockAnalysisView(),
+        new MockAnalysisView(platforms: ['flutter']),
+      ], new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
@@ -100,6 +111,9 @@ void main() {
       final String html = templates.renderPkgIndexPage(
         [testPackage],
         [flutterPackageVersion],
+        [
+          new MockAnalysisView(platforms: ['flutter']),
+        ],
         new PackageLinks(
             PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
         title: 'Flutter Packages',
@@ -286,4 +300,6 @@ class MockAnalysisView implements AnalysisView {
 
   @override
   List<String> platforms;
+
+  MockAnalysisView({this.platforms});
 }

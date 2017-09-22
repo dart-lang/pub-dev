@@ -111,7 +111,9 @@ Future<shelf.Response> indexHandler(_) async {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
     assert(!versions.any((version) => version == null));
-    pageContent = templateService.renderIndexPage(versions);
+    final List<AnalysisView> analysisViews = await Future.wait(versions
+        .map((p) => analyzerClient.getAnalysisView(p.package, p.version)));
+    pageContent = templateService.renderIndexPage(versions, analysisViews);
     await backend.uiPackageCache?.setUIIndexPage(pageContent);
   }
   return htmlResponse(pageContent);
@@ -292,10 +294,20 @@ Future<shelf.Response> packagesHandlerHtml(
   final links =
       new PackageLinks(offset, offset + packages.length, basePath: basePath);
   final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
-  final versions = await backend.lookupLatestVersions(pagePackages);
+
+  // Fetched concurrently to reduce overall latency.
+  final versionsFuture = backend.lookupLatestVersions(pagePackages);
+  final allAnalysisFuture = Future.wait(pagePackages
+      .map((p) => analyzerClient.getAnalysisView(p.name, p.latestVersion)));
+
+  final batchResults = await Future.wait([versionsFuture, allAnalysisFuture]);
+  final versions = batchResults[0];
+  final analysisViews = batchResults[1];
+
   return htmlResponse(templateService.renderPkgIndexPage(
     pagePackages,
     versions,
+    analysisViews,
     links,
     title: title,
     faviconUrl: faviconUrl,

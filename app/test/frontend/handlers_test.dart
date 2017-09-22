@@ -50,6 +50,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
 
         await expectHtmlResponse(await issueGet('/'));
       });
@@ -67,6 +68,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
         await expectHtmlResponse(await issueGet('/packages'));
       });
 
@@ -83,6 +85,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
         await expectHtmlResponse(await issueGet('/packages?page=2'));
       });
 
@@ -165,6 +168,7 @@ void main() {
           },
         );
         registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
         await expectHtmlResponse(await issueGet('/flutter/packages'));
       });
 
@@ -191,6 +195,7 @@ void main() {
           },
         );
         registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
         await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
       });
 

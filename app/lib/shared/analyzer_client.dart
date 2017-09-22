@@ -35,6 +35,10 @@ class AnalyzerClient {
   final String _analyzerServiceHttpHostPort;
   AnalyzerClient(this._analyzerServiceHttpHostPort);
 
+  Future<AnalysisView> getAnalysisView(String package, String version) async {
+    return new AnalysisView(await getAnalysisData(package, version));
+  }
+
   /// Gets the analysis data from the analyzer service via HTTP.
   Future<AnalysisData> getAnalysisData(String package, String version) async {
     final String cachedContent =
