@@ -264,9 +264,9 @@ class TemplateService {
     final bool should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
-    final bool isFlutterPlugin = latestStableVersion.detectedTypes
-            ?.contains(BuiltinTypes.flutterPlugin) ==
-        true;
+    final bool isFlutterPlugin =
+        latestStableVersion.pubspec.dependsOnFlutterSdk ||
+            latestStableVersion.pubspec.hasFlutterPlugin;
 
     final List<Map<String, String>> tabs = <Map<String, String>>[];
     void addFileTab(String id, String title, String content) {
