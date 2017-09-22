@@ -10,14 +10,6 @@ const String _CUSTOM_SEARCH_ID = "009011925481577436976:h931xn2j7o0";
 /// The maximum number of results the Custom Search API will provide.
 const SEARCH_MAX_RESULTS = 100;
 
-abstract class CseTokens {
-  static const String pageMapDocument = 'document';
-  static const String detectedTypePrefix = 'dt_';
-  static const String experimentalScore = 'exp_score';
-
-  static String detectedType(String type) => '$detectedTypePrefix$type';
-}
-
 /// Uses the datastore API in the current service scope to retrieve the private
 /// Key and creates a new SearchService.
 ///
@@ -72,10 +64,5 @@ String buildCseQueryText(SearchQuery query) {
   if (query.packagePrefix != null) {
     queryText += ' ${query.packagePrefix}';
   }
-  query.platformPredicate?.required?.forEach((String platform) {
-    // Corresponds with the <PageMap> entry in views/layout.mustache.
-    queryText +=
-        ' more:pagemap:${CseTokens.pageMapDocument}-${CseTokens.detectedType(platform)}:1';
-  });
   return queryText;
 }

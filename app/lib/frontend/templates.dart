@@ -14,12 +14,11 @@ import 'package:mustache/mustache.dart' as mustache;
 
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
-import '../shared/mock_scores.dart';
 import '../shared/platform.dart';
 import '../shared/search_service.dart' show SearchQuery;
 
 import 'models.dart';
-import 'search_service.dart' show CseTokens, SearchResultPage;
+import 'search_service.dart' show SearchResultPage;
 
 final Logger _logger = new Logger('pub.templates');
 
@@ -259,18 +258,6 @@ class TemplateService {
     final bool should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
-    final Map<String, String> pageMapAttributes = {};
-    latestStableVersion.detectedTypes?.forEach((String type) {
-      pageMapAttributes[CseTokens.detectedType(type)] = '1';
-    });
-
-    if (mockScores.containsKey(package.name)) {
-      final int score = (mockScores[package.name] * 10000).round();
-      pageMapAttributes[CseTokens.experimentalScore] = score.toString();
-    } else {
-      pageMapAttributes[CseTokens.experimentalScore] = '0';
-    }
-
     final bool isFlutterPlugin = latestStableVersion.detectedTypes
             ?.contains(BuiltinTypes.flutterPlugin) ==
         true;
@@ -341,7 +328,6 @@ class TemplateService {
       values,
       title: '${package.name} ${selectedVersion.id} | Dart Package',
       packageVersion: selectedVersion,
-      pageMapAttributes: pageMapAttributes,
       faviconUrl: isFlutterPlugin ? LogoUrls.flutterLogo32x32 : null,
     );
   }
@@ -384,17 +370,9 @@ class TemplateService {
   /// Renders the `views/layout.mustache` template.
   String renderLayoutPage(String title, String contentString,
       {PackageVersion packageVersion,
-      Map<String, String> pageMapAttributes,
       String faviconUrl,
       String searchQuery,
       bool includeSurvey: true}) {
-    final List<Map<String, String>> pageMapAttrList = [];
-    pageMapAttributes?.forEach((String attr, String value) {
-      pageMapAttrList.add({
-        'attr': HTML_ESCAPE.convert(attr),
-        'value': HTML_ESCAPE.convert(value),
-      });
-    });
     final String escapedSearchQuery =
         searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
     final values = {
@@ -410,8 +388,6 @@ class TemplateService {
       'search_query': escapedSearchQuery,
       // This is not escaped as it is already escaped by the caller.
       'content': contentString,
-      'has_pagemap': pageMapAttrList.isNotEmpty,
-      'pagemap_attributes': pageMapAttrList,
       // TODO: The python implementation used
       'message': false,
       'include_survey': includeSurvey
@@ -469,14 +445,12 @@ class TemplateService {
   String _renderPage(String template, values,
       {String title: 'pub.dartlang.org',
       PackageVersion packageVersion,
-      Map<String, String> pageMapAttributes,
       String faviconUrl,
       String searchQuery,
       bool includeSurvey: true}) {
     final renderedContent = _renderTemplate(template, values);
     return renderLayoutPage(title, renderedContent,
         packageVersion: packageVersion,
-        pageMapAttributes: pageMapAttributes,
         faviconUrl: faviconUrl,
         searchQuery: searchQuery,
         includeSurvey: includeSurvey);
