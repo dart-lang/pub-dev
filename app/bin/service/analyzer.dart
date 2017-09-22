@@ -17,6 +17,7 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
+import 'package:pub_dartlang_org/shared/deps_graph.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
@@ -48,6 +49,12 @@ void _runScheduler(List<SendPort> sendPorts) {
 
   withAppEngineServices(() async {
     _registerServices();
+
+    final depsGraphBuilder = new PackageDependencyBuilder(db.dbService);
+    final sw = new Stopwatch()..start();
+    await depsGraphBuilder.scanExistingPackageGraph();
+    print('${sw.elapsed} Scanned graph');
+
     final PanaRunner runner = new PanaRunner(analysisBackend);
     final scheduler = new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
