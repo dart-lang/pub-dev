@@ -67,6 +67,12 @@ class PanaRunner implements TaskRunner {
 
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
 
+    try {
+      await _analysisBackend.deleteObsoleteAnalysis(task.package, task.version);
+    } catch (e) {
+      _logger.warning('Analysis GC failed: $task', e);
+    }
+
     if (backendStatus.isNewVersion) {
       // TODO: trigger re-analysis of packages depending on this one
     }

@@ -168,7 +168,7 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  Future deleteObsoleteAnalysisEntries() {
+  Future deleteObsoleteAnalysis(String package, String version) {
     throw 'Not implemented yet.';
   }
 }

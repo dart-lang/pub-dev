@@ -203,26 +203,50 @@ class AnalysisBackend {
     return true;
   }
 
-  Future deleteObsoleteAnalysisEntries() async {
+  /// Deletes the obsolete [Analysis] instances from Datastore. An instance is
+  /// obsolete, if:
+  /// - it is **not** the latest for the pana version, or
+  /// - it is older than 6 months (except if it is the latest one).
+  Future deleteObsoleteAnalysis(String package, String version) async {
     final DateTime threshold =
         new DateTime.now().toUtc().subtract(obsoleteThreshold);
-    final Query query = db.query(Analysis)
-      ..order('timestamp')
-      ..filter('timestamp <', threshold);
-    await for (Analysis analysis in query.run()) {
-      final PackageVersionAnalysis pva =
-          (await db.lookup([analysis.parentKey])).single;
-      if (pva.latestAnalysis != analysis.analysis) {
-        _logger.info('Deleting obsolete Analysis: ${analysis.packageName} '
-            '${analysis.packageVersion} ${analysis.analysis}');
-        await db.withTransaction((Transaction tx) async {
-          final List list = await tx.lookup([analysis.key]);
-          if (list[0] != null) {
-            tx.queueMutations(deletes: [list[0].key]);
-          }
-          await tx.commit();
-        });
+    final Query scanQuery = db.query(
+      Analysis,
+      ancestorKey: db.emptyKey
+          .append(PackageAnalysis, id: package)
+          .append(PackageVersionAnalysis, id: version),
+    );
+    final List<Key> obsoleteKeys = <Key>[];
+
+    final List<Analysis> existingAnalysis = await scanQuery.run().toList();
+    existingAnalysis.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    final Map<String, Analysis> panaVersion2LatestAnalysis = {};
+    for (Analysis analysis in existingAnalysis) {
+      final bool isTooOld = analysis.timestamp.isBefore(threshold);
+      if (isTooOld) {
+        obsoleteKeys.add(analysis.key);
+        continue;
       }
+      final Analysis prev = panaVersion2LatestAnalysis[analysis.panaVersion];
+      panaVersion2LatestAnalysis[analysis.panaVersion] = analysis;
+      if (prev != null) {
+        obsoleteKeys.add(prev.key);
+      }
+    }
+
+    // sanity check that we keep the latest, even if it is too old
+    if (obsoleteKeys.length == existingAnalysis.length) {
+      obsoleteKeys.removeLast();
+    }
+
+    if (obsoleteKeys.isNotEmpty) {
+      _logger.info('Deleting Analysis entries for $package $version: '
+          '${obsoleteKeys.map((k)=> k.id).join(',')}');
+      await db.withTransaction((tx) async {
+        tx.queueMutations(deletes: obsoleteKeys);
+        await tx.commit();
+      });
     }
   }
 }
