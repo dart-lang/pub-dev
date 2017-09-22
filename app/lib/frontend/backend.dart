@@ -55,15 +55,11 @@ class Backend {
         uiPackageCache = cache;
 
   /// Retrieves packages ordered by their latest version date.
-  Future<List<models.Package>> latestPackages(
-      {int offset, int limit, String detectedType}) {
+  Future<List<models.Package>> latestPackages({int offset, int limit}) {
     final query = db.query(models.Package)
       ..order('-updated')
       ..offset(offset)
       ..limit(limit);
-    if (detectedType != null) {
-      query.filter('detectedTypes =', detectedType);
-    }
     return query.run().toList();
   }
 
@@ -78,6 +74,13 @@ class Backend {
   Future<models.Package> lookupPackage(String packageName) async {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
     return (await db.lookup([packageKey])).first;
+  }
+
+  /// Looks up a package by name.
+  Future<List<models.Package>> lookupPackages(Iterable<String> packageNames) {
+    return db.lookup(packageNames
+        .map((p) => db.emptyKey.append(models.Package, id: p))
+        .toList());
   }
 
   /// Looks up a specific package version.

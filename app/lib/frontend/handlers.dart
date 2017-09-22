@@ -15,7 +15,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/platform.dart';
-import '../shared/search_service.dart' show SearchQuery;
+import '../shared/search_client.dart';
+import '../shared/search_service.dart' show SearchQuery, SearchOrder;
 import '../shared/utils.dart';
 
 import 'atom_feed.dart';
@@ -265,7 +266,7 @@ Future<shelf.Response> packagesHandlerHtml(
   shelf.Request request,
   int page, {
   String basePath,
-  String detectedType,
+  PlatformPredicate platformPredicate,
   String title,
   String faviconUrl,
   String descriptionHtml,
@@ -273,8 +274,21 @@ Future<shelf.Response> packagesHandlerHtml(
   final offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
   final limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
 
-  final packages = await backend.latestPackages(
-      offset: offset, limit: limit, detectedType: detectedType);
+  List<Package> packages;
+  if (platformPredicate != null && platformPredicate.isNotEmpty) {
+    final results = await searchClient.search(new SearchQuery(
+      null,
+      platformPredicate: platformPredicate,
+      order: SearchOrder.updated,
+      offset: offset,
+      limit: limit,
+    ));
+    packages =
+        await backend.lookupPackages(results.packages.map((ps) => ps.package));
+  } else {
+    packages = await backend.latestPackages(offset: offset, limit: limit);
+  }
+
   final links =
       new PackageLinks(offset, offset + packages.length, basePath: basePath);
   final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
@@ -554,7 +568,7 @@ Future<shelf.Response> flutterPackagesHandler(shelf.Request request) async {
     request,
     page,
     basePath: '/flutter/packages',
-    detectedType: BuiltinTypes.flutterPackage,
+    platformPredicate: new PlatformPredicate.only(KnownPlatforms.flutter),
     title: 'Flutter Packages',
     faviconUrl: LogoUrls.flutterLogo32x32,
     descriptionHtml: flutterPackagesDescriptionHtml,

@@ -6,6 +6,7 @@ library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
 
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
@@ -94,6 +95,11 @@ class BackendMock implements Backend {
   Future<Package> lookupPackage(String packageName) async {
     if (lookupPackageFun == null) throw 'no lookupPackageVersionFun';
     return lookupPackageFun(packageName);
+  }
+
+  @override
+  Future<List<Package>> lookupPackages(Iterable<String> packageNames) {
+    return Future.wait(packageNames.map(lookupPackage));
   }
 
   @override
@@ -188,6 +194,20 @@ class TemplateMock implements TemplateService {
   String renderAnalysisTab(analysis) {
     return Response;
   }
+}
+
+class SearchClientMock implements SearchClient {
+  final Function searchFun;
+  SearchClientMock({this.searchFun});
+
+  @override
+  Future<PackageSearchResult> search(SearchQuery query) async {
+    if (searchFun == null) throw 'no searchFun';
+    return searchFun(query);
+  }
+
+  @override
+  Future close() async {}
 }
 
 class SearchServiceMock implements SearchService {
