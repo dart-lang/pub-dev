@@ -237,13 +237,8 @@ void main() {
 
   group('URLs', () {
     test('CSE query text parameter', () {
-      var query = new SearchQuery('web framework');
+      final query = new SearchQuery('web framework');
       expect(buildCseQueryText(query), 'web framework');
-
-      query = new SearchQuery('web framework',
-          platformPredicate: new PlatformPredicate(required: ['server']));
-      expect(buildCseQueryText(query),
-          'web framework more:pagemap:document-dt_server:1');
     });
 
     test('SearchLinks defaults', () {
