@@ -139,7 +139,8 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderIndexPage(List<PackageVersion> recentPackages) {
+  String renderIndexPage(
+      List<PackageVersion> recentPackages, List<AnalysisView> analysisViews) {
     return Response;
   }
 
@@ -159,8 +160,13 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderPkgIndexPage(
-      List<Package> packages, List<PackageVersion> versions, PageLinks links,
-      {String title, String faviconUrl, String descriptionHtml}) {
+      List<Package> packages,
+      List<PackageVersion> versions,
+      List<AnalysisView> analysisViews,
+      PageLinks links,
+      {String title,
+      String faviconUrl,
+      String descriptionHtml}) {
     return Response;
   }
 
@@ -232,4 +238,8 @@ class AnalyzerClientMock implements AnalyzerClient {
 
   @override
   Future close() async => null;
+
+  @override
+  Future<AnalysisView> getAnalysisView(String package, String version) async =>
+      new AnalysisView(await getAnalysisData(package, version));
 }

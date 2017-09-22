@@ -74,14 +74,20 @@ class TemplateService {
 
   /// Renders the `views/pkg/index.mustache` template.
   String renderPkgIndexPage(
-      List<Package> packages, List<PackageVersion> versions, PageLinks links,
-      {String title, String faviconUrl, String descriptionHtml}) {
+      List<Package> packages,
+      List<PackageVersion> versions,
+      List<AnalysisView> analysisViews,
+      PageLinks links,
+      {String title,
+      String faviconUrl,
+      String descriptionHtml}) {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final package = packages[i];
       final version = versions[i];
+      final analysis = analysisViews[i];
       packagesJson.add({
-        'icons': _renderIconsColumnHtml(version),
+        'icons': _renderIconsColumnHtml(analysis.platforms),
         'name': package.name,
         'description': {
           'ellipsized_description': version.ellipsizedDescription,
@@ -350,12 +356,15 @@ class TemplateService {
   }
 
   /// Renders the `views/index.mustache` template.
-  String renderIndexPage(List<PackageVersion> recentPackages) {
+  String renderIndexPage(
+      List<PackageVersion> recentPackages, List<AnalysisView> analysisViews) {
     final values = {
-      'recent_packages': recentPackages.map((PackageVersion version) {
+      'recent_packages': new List.generate(recentPackages.length, (index) {
+        final PackageVersion version = recentPackages[index];
+        final AnalysisView analysis = analysisViews[index];
         final description = version.ellipsizedDescription;
         return {
-          'icons': _renderIconsColumnHtml(version),
+          'icons': _renderIconsColumnHtml(analysis.platforms),
           'name': version.packageKey.id,
           'short_updated': version.shortCreated,
           'latest_version': {'version': version.id},
@@ -423,7 +432,7 @@ class TemplateService {
         'show_dev_version': stable.id != dev.id,
         'dev_version': HTML_ESCAPE.convert(dev.id),
         'dev_version_href': Uri.encodeComponent(dev.id),
-        'icons': _renderIconsColumnHtmlFromPlatforms(resultPkg.platforms),
+        'icons': _renderIconsColumnHtml(resultPkg.platforms),
         'last_uploaded': stable.shortCreated,
         'desc': stable.ellipsizedDescription,
       });
@@ -466,38 +475,13 @@ class TemplateService {
   }
 
   /// Renders the icons and related text using the pkg/icons_column template.
-  String _renderIconsColumnHtml(PackageVersion version) {
-    final List icons = _mapIconsData(version);
-    return _renderTemplate('pkg/icons_column', {
-      'has_icons': icons.isNotEmpty,
-      'icons': icons,
-      'min_width_px': icons.length * 25,
-    });
-  }
-
-  /// Renders the icons and related text using the pkg/icons_column template.
-  String _renderIconsColumnHtmlFromPlatforms(List<String> platforms) {
+  String _renderIconsColumnHtml(List<String> platforms) {
     final List icons = _mapIconsDataFromPlatforms(platforms);
     return _renderTemplate('pkg/icons_column', {
       'has_icons': icons.isNotEmpty,
       'icons': icons,
       'min_width_px': icons.length * 25,
     });
-  }
-
-  List _mapIconsData(PackageVersion version) {
-    final List icons = [];
-    if (version.detectedTypes != null) {
-      if (version.detectedTypes.contains(BuiltinTypes.flutterPackage) ||
-          version.detectedTypes.contains(BuiltinTypes.flutterPlugin)) {
-        icons.add({
-          'src': LogoUrls.flutterLogo32x32,
-          'label': 'Flutter package',
-          'href': '/flutter/packages',
-        });
-      }
-    }
-    return icons;
   }
 
   List _mapIconsDataFromPlatforms(List<String> platforms) {
