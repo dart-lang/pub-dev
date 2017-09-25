@@ -223,7 +223,6 @@ void main() {
               new SearchResultPackage(
                   testPackageVersion, testPackageVersion, null),
             ],
-            'service',
           );
         }));
         await expectHtmlResponse(await issueGet('/search?q=foobar'),
@@ -242,7 +241,6 @@ void main() {
               new SearchResultPackage(
                   testPackageVersion, testPackageVersion, null),
             ],
-            'service',
           );
         }));
         await expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
