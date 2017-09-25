@@ -59,10 +59,6 @@ final PackageVersion testPackageVersion = new PackageVersion()
 
 final PackageVersion flutterPackageVersion =
     clonePackageVersion(testPackageVersion)
-      ..detectedTypes = [
-        BuiltinTypes.flutterPackage,
-        BuiltinTypes.flutterPlugin,
-      ]
       ..pubspec = new Pubspec.fromYaml(TestPackagePubspec +
           '''
 flutter:

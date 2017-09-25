@@ -304,8 +304,6 @@ class GCloudPackageRepository extends PackageRepository {
       // Keep the latest version in the package object up-to-date.
       package.updateVersion(newVersion);
 
-      package.updateSearchFields(newVersion);
-
       try {
         _logger.info('Trying to upload tarball to cloud storage.');
         // Apply update: Push to cloud storage
@@ -666,8 +664,6 @@ Future<models.PackageVersion> parseAndValidateUpload(
 
   final versionString = canonicalizeVersion(pubspec.version);
 
-  final List<String> detectedTypes = detectTypes(pubspec);
-
   final version = new models.PackageVersion()
     ..id = versionString
     ..parentKey = packageKey
@@ -683,24 +679,9 @@ Future<models.PackageVersion> parseAndValidateUpload(
     ..exampleContent = exampleContent
     ..libraries = libraries
     ..downloads = 0
-    ..detectedTypes = detectedTypes
     ..sortOrder = 1
     ..uploaderEmail = user;
   return version;
-}
-
-/// Automatically detects the built-in types.
-/// The returned list should be alphabetically sorted.
-List<String> detectTypes(Pubspec pubspec) {
-  final Set<String> detectedTypes = new Set();
-  if (pubspec.hasFlutterPlugin) {
-    detectedTypes.add(models.BuiltinTypes.flutterPackage);
-    detectedTypes.add(models.BuiltinTypes.flutterPlugin);
-  }
-  if (pubspec.dependsOnFlutterSdk) {
-    detectedTypes.add(models.BuiltinTypes.flutterPackage);
-  }
-  return detectedTypes.toList()..sort();
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
