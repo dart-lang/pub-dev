@@ -48,8 +48,7 @@ void initStorage(String projectId, http.Client authClient) {
 }
 
 Future initSearchService() async {
-  final searchService = await searchServiceViaApiKeyFromDb();
-  registerSearchService(searchService);
+  registerSearchService(new SearchService());
   registerScopeExitCallback(searchService.close);
 }
 

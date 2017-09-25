@@ -12,21 +12,6 @@ import 'models.dart';
 
 const String notificationSecretKey = 'notification-secret';
 
-/// Uses the datastore API in the current service scope to retrieve custom
-/// search API Key.
-Future<String> customSearchKeyFromDB() async {
-  final db = dbService;
-
-  final privateKeyKey = db.emptyKey.append(PrivateKey, id: 'api');
-  final PrivateKey apiKey = (await db.lookup([privateKeyKey])).first;
-
-  if (apiKey == null) {
-    throw new Exception('Could not find Custom search API key in DB.');
-  }
-
-  return apiKey.value;
-}
-
 String _cachedNotificationSecret;
 
 /// Gets the shared notification secret from the datastore (or local cache).

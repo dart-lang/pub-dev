@@ -13,7 +13,7 @@ import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchResultPage, SearchResultPackage, buildCseQueryText;
+    show SearchResultPage, SearchResultPackage;
 
 import 'utils.dart';
 
@@ -133,7 +133,6 @@ void main() {
           new SearchResultPackage(
               flutterPackageVersion, flutterPackageVersion, ['flutter']),
         ],
-        'service',
       );
       final String html =
           templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
@@ -250,11 +249,6 @@ void main() {
   });
 
   group('URLs', () {
-    test('CSE query text parameter', () {
-      final query = new SearchQuery('web framework');
-      expect(buildCseQueryText(query), 'web framework');
-    });
-
     test('SearchLinks defaults', () {
       final query = new SearchQuery('web framework');
       final SearchLinks links = new SearchLinks(query, 100);

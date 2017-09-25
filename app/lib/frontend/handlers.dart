@@ -36,7 +36,6 @@ RegExp _packageRegexp =
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
 final _packageOverallLatencyTracker = new LastNTracker<Duration>();
-final _searchBackendTracker = new LastNTracker<String>();
 final _searchOverallLatencyTracker = new LastNTracker<Duration>();
 
 /// Handler for the whole URL space of pub.dartlang.org
@@ -98,7 +97,6 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
       'overall_latency': toShortStat(_packageOverallLatencyTracker),
     },
     'search': {
-      'backend_counts': _searchBackendTracker.toCounts(),
       'overall_latency': toShortStat(_searchOverallLatencyTracker),
     },
   }, indent: true);
@@ -187,7 +185,6 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   final links = new SearchLinks(query, resultPage.totalCount);
   final String content = templateService.renderSearchPage(resultPage, links);
 
-  _searchBackendTracker.add(resultPage.backend);
   _searchOverallLatencyTracker.add(sw.elapsed);
 
   await searchMemcache?.setUiSearchPage(cacheUrl, content);
