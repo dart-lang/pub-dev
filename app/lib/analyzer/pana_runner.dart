@@ -25,7 +25,8 @@ class PanaRunner implements TaskRunner {
 
   @override
   Future<bool> hasCompletedRecently(Task task) async {
-    return !(await _analysisBackend.isValidTarget(task.package, task.version));
+    return !(await _analysisBackend.isValidTarget(
+        task.package, task.version, task.updated));
   }
 
   @override

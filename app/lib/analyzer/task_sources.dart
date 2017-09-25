@@ -59,12 +59,12 @@ class DatastoreHistoryTaskSource implements TaskSource {
         final Query packageQuery = _db.query(Package)..order('-updated');
         await for (Package p in packageQuery.run()) {
           if (await _requiresUpdate(p.name, p.latestVersion)) {
-            yield new Task(p.name, p.latestVersion);
+            yield new Task(p.name, p.latestVersion, p.updated);
           }
 
           if (p.latestVersion != p.latestDevVersion &&
               await _requiresUpdate(p.name, p.latestDevVersion)) {
-            yield new Task(p.name, p.latestDevVersion);
+            yield new Task(p.name, p.latestDevVersion, p.updated);
           }
         }
 
@@ -73,7 +73,7 @@ class DatastoreHistoryTaskSource implements TaskSource {
         final Query versionQuery = _db.query(PackageVersion)..order('-created');
         await for (PackageVersion pv in versionQuery.run()) {
           if (await _requiresUpdate(pv.package, pv.version)) {
-            yield new Task(pv.package, pv.version);
+            yield new Task(pv.package, pv.version, pv.created);
           }
         }
       } catch (e, st) {
