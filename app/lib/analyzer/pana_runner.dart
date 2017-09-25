@@ -32,6 +32,7 @@ class PanaRunner implements TaskRunner {
   Future<bool> runTask(Task task) async {
     Summary summary;
     Directory tempDir;
+    final DateTime timestamp = new DateTime.now().toUtc();
     try {
       tempDir = await Directory.systemTemp.createTemp('pana');
       final pubCacheDir = await tempDir.resolveSymbolicLinks();
@@ -52,7 +53,8 @@ class PanaRunner implements TaskRunner {
       }
     }
 
-    final Analysis analysis = new Analysis.init(task.package, task.version);
+    final Analysis analysis =
+        new Analysis.init(task.package, task.version, timestamp);
 
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
