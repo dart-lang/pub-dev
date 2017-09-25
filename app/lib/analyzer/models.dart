@@ -139,8 +139,7 @@ class Analysis extends db.ExpandoModel {
   Analysis();
 
   /// Proper constructor that initializes the required fields.
-  Analysis.init(this.packageName, this.packageVersion) {
-    timestamp = new DateTime.now().toUtc();
+  Analysis.init(this.packageName, this.packageVersion, this.timestamp) {
     parentKey = db.dbService.emptyKey
         .append(PackageAnalysis, id: packageName)
         .append(PackageVersionAnalysis, id: packageVersion);
