@@ -100,24 +100,6 @@ class Package extends db.ExpandoModel {
       latestDevVersionKey = pv.key;
     }
   }
-
-  /// Updates the search-related fields (eg. [detectedTypes]) to match the
-  /// latest stable [PackageVersion].
-  ///
-  /// Returns whether any field has been updated.
-  bool updateSearchFields(PackageVersion pv) {
-    if (latestVersion == pv.version) {
-      if (!isSameDetectedType(detectedTypes, pv.detectedTypes)) {
-        detectedTypes = pv.detectedTypes;
-        return true;
-      }
-    }
-    if (detectedTypes == null) {
-      detectedTypes = [];
-      return true;
-    }
-    return false;
-  }
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -273,35 +255,4 @@ void sortPackageVersionsDesc(List<PackageVersion> versions,
   versions.sort((PackageVersion a, PackageVersion b) =>
       compareSemanticVersionsDesc(
           a.semanticVersion, b.semanticVersion, decreasing, pubSorting));
-}
-
-/// The list of built-in types.
-/// TODO: rename to DetectedTypes
-/// TODO: move isSameDetectedType method inside
-class BuiltinTypes {
-  /// Package is related to angular.
-  static final String angular = 'angular';
-
-  /// Package is related to Flutter: is a plugin, or depends on the Flutter SDK.
-  static final String flutterPackage = 'flutter_package';
-
-  /// Package is related to Flutter and it is a plugin.
-  static final String flutterPlugin = 'flutter_plugin';
-
-  static final Set<String> _used = new Set.from([
-    BuiltinTypes.flutterPackage,
-    BuiltinTypes.flutterPlugin,
-  ]);
-
-  /// Verifies that the client-provided [type] is a known type.
-  static bool isKnownType(String type) => _used.contains(type);
-}
-
-/// Returns true if the two list of detected types are the same.
-bool isSameDetectedType(List<String> a, List<String> b) {
-  final int lengthA = a?.length ?? 0;
-  final int lengthB = b?.length ?? 0;
-  if (lengthA != lengthB) return false;
-  if (lengthA == 0) return true;
-  return (a.toSet()..removeAll(b)).isEmpty;
 }
