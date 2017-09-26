@@ -25,6 +25,7 @@ AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
 final Logger _logger = new Logger('pub.analyzer.backend');
 
 const Duration freshThreshold = const Duration(hours: 12);
+const Duration reanalyzeThreshold = const Duration(days: 30);
 const Duration obsoleteThreshold = const Duration(days: 180);
 
 /// Datastore-related access methods for the analyzer service
@@ -140,7 +141,8 @@ class AnalysisBackend {
   /// Whether [packageName] with [packageVersion] exists, and
   /// - it has no recent [Analysis] with the current [panaVersion] or [flutterVersion], or
   /// - it has no newer [Analysis] than [panaVersion] or [flutterVersion].
-  Future<bool> isValidTarget(String packageName, String packageVersion) async {
+  Future<bool> isValidTarget(
+      String packageName, String packageVersion, DateTime updated) async {
     if (packageName == null || packageVersion == null) return false;
     final List<PackageVersion> versions = await db.lookup([
       db.emptyKey
@@ -194,9 +196,15 @@ class AnalysisBackend {
           '${versionAnalysis.flutterVersion} - $flutterVersion');
     }
 
-    // Is latest analysis older than 4 hours?
+    // Is it due to re-analyze?
     final DateTime now = new DateTime.now().toUtc();
-    if (now.difference(versionAnalysis.analysisTimestamp) < freshThreshold) {
+    final Duration age = now.difference(versionAnalysis.analysisTimestamp);
+    if (age > reanalyzeThreshold) {
+      return true;
+    }
+
+    // Is it a newer analysis than the trigger timestamp?
+    if (versionAnalysis.analysisTimestamp.isAfter(updated)) {
       return false;
     }
 

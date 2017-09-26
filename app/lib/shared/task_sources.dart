@@ -75,7 +75,8 @@ class DatastoreVersionsHeadTaskSource implements TaskSource {
     }
     int count = 0;
     await for (Package p in q.run()) {
-      final task = new Task(p.name, p.latestVersion ?? p.latestDevVersion);
+      final task =
+          new Task(p.name, p.latestVersion ?? p.latestDevVersion, p.updated);
       if (await shouldYieldTask(task)) {
         count++;
         yield task;
@@ -91,7 +92,7 @@ class DatastoreVersionsHeadTaskSource implements TaskSource {
     }
     int count = 0;
     await for (PackageVersion pv in q.run()) {
-      final task = new Task(pv.package, pv.version);
+      final task = new Task(pv.package, pv.version, pv.created);
       if (await shouldYieldTask(task)) {
         count++;
         yield task;

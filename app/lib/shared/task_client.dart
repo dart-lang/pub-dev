@@ -24,7 +24,7 @@ void registerTaskSendPort(SendPort taskSendPort) {
 /// Triggers task processing via sending tasks to the [Scheduler] in the other
 /// isolate.
 void triggerTask(String package, String version) {
-  final Task task = new Task(package, version);
+  final Task task = new Task.now(package, version);
   if (_taskSendPort == null) {
     _taskQueue.add(task);
   } else {
