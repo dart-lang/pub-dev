@@ -44,7 +44,7 @@ class PanaRunner implements TaskRunner {
       summary = await analyzer.inspectPackage(
         task.package,
         version: task.version,
-        keepTransitiveLibs: true, // TODO: decide if this is really needed
+        keepTransitiveLibs: false,
       );
     } catch (e, st) {
       _logger.severe('Pana execution failed.', e, st);
