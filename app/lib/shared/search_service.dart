@@ -42,6 +42,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final String version;
   final String devVersion;
   final String description;
+  final DateTime created;
   final DateTime updated;
   final String readme;
 
@@ -58,6 +59,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.version,
     this.devVersion,
     this.description,
+    this.created,
     this.updated,
     this.readme,
     this.platforms,
@@ -80,7 +82,10 @@ enum SearchOrder {
   /// decreasing.
   text,
 
-  /// Search order should be in decreasing last updated time.
+  /// Search order should be in decreasing last package creation time.
+  created,
+
+  /// Search order should be in decreasing last package updated time.
   updated,
 
   /// Search order should be in decreasing popularity score.
@@ -98,6 +103,8 @@ SearchOrder parseSearchOrder(String value, {SearchOrder defaultsTo}) {
         return SearchOrder.overall;
       case 'text':
         return SearchOrder.text;
+      case 'created':
+        return SearchOrder.created;
       case 'updated':
         return SearchOrder.updated;
       case 'popularity':

@@ -108,6 +108,9 @@ class SimplePackageIndex implements PackageIndex {
       case SearchOrder.text:
         results = _rankWithValues(textScore.values);
         break;
+      case SearchOrder.created:
+        results = _rankWithComparator(packages, _compareCreated);
+        break;
       case SearchOrder.updated:
         results = _rankWithComparator(packages, _compareUpdated);
         break;
@@ -197,6 +200,12 @@ class SimplePackageIndex implements PackageIndex {
         .toList();
     list.sort((a, b) => compare(_packages[a.package], _packages[b.package]));
     return list;
+  }
+
+  int _compareCreated(PackageDocument a, PackageDocument b) {
+    if (a.created == null) return -1;
+    if (b.created == null) return 1;
+    return -a.created.compareTo(b.created);
   }
 
   int _compareUpdated(PackageDocument a, PackageDocument b) {
