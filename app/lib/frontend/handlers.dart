@@ -109,8 +109,9 @@ Future<shelf.Response> indexHandler(_) async {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
     assert(!versions.any((version) => version == null));
-    final List<AnalysisView> analysisViews = await Future.wait(versions
-        .map((p) => analyzerClient.getAnalysisView(p.package, p.version)));
+    final List<AnalysisView> analysisViews =
+        await analyzerClient.getAnalysisViews(
+            versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
     pageContent = templateService.renderIndexPage(versions, analysisViews);
     await backend.uiPackageCache?.setUIIndexPage(pageContent);
   }
@@ -294,12 +295,13 @@ Future<shelf.Response> packagesHandlerHtml(
 
   // Fetched concurrently to reduce overall latency.
   final versionsFuture = backend.lookupLatestVersions(pagePackages);
-  final allAnalysisFuture = Future.wait(pagePackages
-      .map((p) => analyzerClient.getAnalysisView(p.name, p.latestVersion)));
+  final Future<List<AnalysisView>> analysisViewsFuture =
+      analyzerClient.getAnalysisViews(
+          pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
 
-  final batchResults = await Future.wait([versionsFuture, allAnalysisFuture]);
+  final batchResults = await Future.wait([versionsFuture, analysisViewsFuture]);
   final versions = batchResults[0];
-  final analysisViews = batchResults[1];
+  final List<AnalysisView> analysisViews = batchResults[1];
 
   return htmlResponse(templateService.renderPkgIndexPage(
     pagePackages,
@@ -436,9 +438,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
       }
     }
     final Stopwatch serviceSw = new Stopwatch()..start();
-    final AnalysisData analysisData = await analyzerClient.getAnalysisData(
-        selectedVersion.package, selectedVersion.version);
-    final analysisView = new AnalysisView(analysisData);
+    final AnalysisView analysisView = await analyzerClient.getAnalysisView(
+        new AnalysisKey(selectedVersion.package, selectedVersion.version));
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
 
     final versionDownloadUrls =
