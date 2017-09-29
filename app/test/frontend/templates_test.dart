@@ -13,8 +13,9 @@ import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchResultPage, SearchResultPackage;
+    show SearchResultPage, PackageVersionView;
 
+import '../shared/utils.dart';
 import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
@@ -129,9 +130,9 @@ void main() {
         query,
         2,
         [
-          new SearchResultPackage(testPackageVersion, testPackageVersion, null),
-          new SearchResultPackage(
-              flutterPackageVersion, flutterPackageVersion, ['flutter']),
+          new PackageVersionView(testPackageVersion, new MockAnalysisView()),
+          new PackageVersionView(flutterPackageVersion,
+              new MockAnalysisView(platforms: ['flutter'])),
         ],
       );
       final String html =
@@ -266,29 +267,4 @@ void main() {
           '/search?q=web+framework&page=2&platforms=server');
     });
   });
-}
-
-class MockAnalysisView implements AnalysisView {
-  @override
-  bool hasAnalysisData = true;
-
-  @override
-  AnalysisStatus analysisStatus;
-
-  @override
-  List<String> getTransitiveDependencies() => throw 'Not implemented';
-
-  @override
-  double health;
-
-  @override
-  String licenseText;
-
-  @override
-  DateTime timestamp;
-
-  @override
-  List<String> platforms;
-
-  MockAnalysisView({this.platforms});
 }

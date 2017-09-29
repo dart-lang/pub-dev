@@ -220,8 +220,8 @@ void main() {
             query,
             1,
             [
-              new SearchResultPackage(
-                  testPackageVersion, testPackageVersion, null),
+              new PackageVersionView(
+                  testPackageVersion, new MockAnalysisView()),
             ],
           );
         }));
@@ -238,8 +238,8 @@ void main() {
             query,
             1,
             [
-              new SearchResultPackage(
-                  testPackageVersion, testPackageVersion, null),
+              new PackageVersionView(
+                  testPackageVersion, new MockAnalysisView()),
             ],
           );
         }));

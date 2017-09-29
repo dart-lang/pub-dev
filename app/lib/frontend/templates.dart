@@ -417,22 +417,17 @@ class TemplateService {
     final List results = [];
     for (int i = 0; i < resultPage.packages.length; i++) {
       final resultPkg = resultPage.packages[i];
-      PackageVersion stable = resultPkg.stableVersion;
-      final PackageVersion dev = resultPkg.devVersion ?? stable;
-
-      if (stable == null) {
-        stable = dev;
-        _logger.warning("Stable version `null` for ${dev.package}.");
-      }
+      final PackageVersion stable = resultPkg.version;
+      final showDevVersion = resultPkg.devVersion != null;
 
       results.add({
         'url': '/packages/${stable.packageKey.id}',
         'name': stable.packageKey.id,
         'version': HTML_ESCAPE.convert(stable.id),
-        'show_dev_version': stable.id != dev.id,
-        'dev_version': HTML_ESCAPE.convert(dev.id),
-        'dev_version_href': Uri.encodeComponent(dev.id),
-        'icons': _renderIconsColumnHtml(resultPkg.platforms),
+        'show_dev_version': showDevVersion,
+        'dev_version': HTML_ESCAPE.convert(resultPkg.devVersion ?? ''),
+        'dev_version_href': Uri.encodeComponent(resultPkg.devVersion ?? ''),
+        'icons': _renderIconsColumnHtml(resultPkg.analysis.platforms),
         'last_uploaded': stable.shortCreated,
         'desc': stable.ellipsizedDescription,
       });
