@@ -13,8 +13,9 @@ import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchResultPage, SearchResultPackage;
+    show SearchResultPage, PackageVersionView;
 
+import '../shared/mocks.dart';
 import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
@@ -41,8 +42,8 @@ void main() {
         testPackageVersion,
         flutterPackageVersion,
       ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new AnalysisViewMock(),
+        new AnalysisViewMock(platforms: ['flutter']),
       ]);
       expectGoldenFile(html, 'index_page.html');
     });
@@ -56,7 +57,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new MockAnalysisView()..licenseText = 'BSD',
+          new AnalysisViewMock()..licenseText = 'BSD',
           'Mock analysis tab content.');
       expectGoldenFile(html, 'pkg_show_page.html');
     });
@@ -70,7 +71,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
-          new MockAnalysisView()..platforms = ['flutter'],
+          new AnalysisViewMock()..platforms = ['flutter'],
           null);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
@@ -95,8 +96,8 @@ void main() {
         testPackageVersion,
         flutterPackageVersion
       ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new AnalysisViewMock(),
+        new AnalysisViewMock(platforms: ['flutter']),
       ], new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
@@ -112,7 +113,7 @@ void main() {
         [testPackage],
         [flutterPackageVersion],
         [
-          new MockAnalysisView(platforms: ['flutter']),
+          new AnalysisViewMock(platforms: ['flutter']),
         ],
         new PackageLinks(
             PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
@@ -129,9 +130,9 @@ void main() {
         query,
         2,
         [
-          new SearchResultPackage(testPackageVersion, testPackageVersion, null),
-          new SearchResultPackage(
-              flutterPackageVersion, flutterPackageVersion, ['flutter']),
+          new PackageVersionView(testPackageVersion, new AnalysisViewMock()),
+          new PackageVersionView(flutterPackageVersion,
+              new AnalysisViewMock(platforms: ['flutter'])),
         ],
       );
       final String html =
@@ -266,29 +267,4 @@ void main() {
           '/search?q=web+framework&page=2&platforms=server');
     });
   });
-}
-
-class MockAnalysisView implements AnalysisView {
-  @override
-  bool hasAnalysisData = true;
-
-  @override
-  AnalysisStatus analysisStatus;
-
-  @override
-  List<String> getTransitiveDependencies() => throw 'Not implemented';
-
-  @override
-  double health;
-
-  @override
-  String licenseText;
-
-  @override
-  DateTime timestamp;
-
-  @override
-  List<String> platforms;
-
-  MockAnalysisView({this.platforms});
 }

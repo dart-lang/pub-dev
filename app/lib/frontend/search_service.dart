@@ -48,28 +48,28 @@ Future<SearchResultPage> _loadResultForPackages(
 
   final List<Key> versionKeys =
       packageEntries.map((p) => p.latestVersionKey).toList();
-  final List<Key> devVersionKeys =
-      packageEntries.map((p) => p.latestDevVersionKey).toList();
   if (versionKeys.isNotEmpty) {
     // Analysis data fetched concurrently to reduce overall latency.
     final Future<List<AnalysisData>> allAnalysisFuture = Future.wait(
         packageEntries.map(
             (p) => analyzerClient.getAnalysisData(p.name, p.latestVersion)));
-    final Future<List<PackageVersion>> allVersionsFuture =
-        dbService.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+    final Future<List<PackageVersion>> versionsFuture =
+        dbService.lookup(versionKeys);
 
     final List batchResults =
-        await Future.wait([allAnalysisFuture, allVersionsFuture]);
+        await Future.wait([allAnalysisFuture, versionsFuture]);
     final List<AnalysisData> analysisDataList = await batchResults[0];
-    final List<PackageVersion> allVersions = await batchResults[1];
+    final List<PackageVersion> versions = await batchResults[1];
 
-    final versions = allVersions.sublist(0, versionKeys.length);
-    final devVersions = allVersions.sublist(versionKeys.length);
-    final List<SearchResultPackage> resultPackages =
+    final List<PackageVersionView> resultPackages =
         new List.generate(versions.length, (i) {
+      final Package package = packageEntries[i];
+      final String devVersion =
+          package.latestVersion == package.latestDevVersion
+              ? null
+              : package.latestDevVersion;
       final AnalysisView view = new AnalysisView(analysisDataList[i]);
-      return new SearchResultPackage(
-          versions[i], devVersions[i], view.platforms);
+      return new PackageVersionView(versions[i], view, devVersion: devVersion);
     });
 
     return new SearchResultPage(query, totalCount, resultPackages);
@@ -87,7 +87,7 @@ class SearchResultPage {
   final int totalCount;
 
   /// The packages found by the search.
-  final List<SearchResultPackage> packages;
+  final List<PackageVersionView> packages;
 
   SearchResultPage(this.query, this.totalCount, this.packages);
 
@@ -96,10 +96,15 @@ class SearchResultPage {
 }
 
 /// The composed package data to be displayed on the search results page.
-class SearchResultPackage {
-  final PackageVersion stableVersion;
-  final PackageVersion devVersion;
-  final List<String> platforms;
+class PackageVersionView {
+  /// The reference data from Datastore.
+  final PackageVersion version;
 
-  SearchResultPackage(this.stableVersion, this.devVersion, this.platforms);
+  /// The latest analysis.
+  final AnalysisView analysis;
+
+  /// The latest dev version (if needs to distinguished).
+  final String devVersion;
+
+  PackageVersionView(this.version, this.analysis, {this.devVersion});
 }

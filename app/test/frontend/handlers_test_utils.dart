@@ -6,7 +6,6 @@ library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
 
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
@@ -16,7 +15,6 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/search_service.dart';
 
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://pub.dartlang.org$path';
@@ -199,47 +197,4 @@ class TemplateMock implements TemplateService {
   String renderAnalysisTab(analysis) {
     return Response;
   }
-}
-
-class SearchClientMock implements SearchClient {
-  final Function searchFun;
-  SearchClientMock({this.searchFun});
-
-  @override
-  Future<PackageSearchResult> search(SearchQuery query) async {
-    if (searchFun == null) throw 'no searchFun';
-    return searchFun(query);
-  }
-
-  @override
-  Future close() async {}
-}
-
-class SearchServiceMock implements SearchService {
-  final Function searchFun;
-
-  SearchServiceMock(this.searchFun);
-
-  @override
-  Future<SearchResultPage> search(SearchQuery query) async {
-    return searchFun(query);
-  }
-
-  @override
-  Future close() async => null;
-}
-
-class AnalyzerClientMock implements AnalyzerClient {
-  AnalysisData mockAnalysisData;
-
-  @override
-  Future<AnalysisData> getAnalysisData(String package, String version) async =>
-      mockAnalysisData;
-
-  @override
-  Future close() async => null;
-
-  @override
-  Future<AnalysisView> getAnalysisView(String package, String version) async =>
-      new AnalysisView(await getAnalysisData(package, version));
 }

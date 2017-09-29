@@ -19,6 +19,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../shared/handlers_test_utils.dart';
+import '../shared/mocks.dart';
 import '../shared/utils.dart';
 
 import 'handlers_test_utils.dart';
@@ -220,8 +221,8 @@ void main() {
             query,
             1,
             [
-              new SearchResultPackage(
-                  testPackageVersion, testPackageVersion, null),
+              new PackageVersionView(
+                  testPackageVersion, new AnalysisViewMock()),
             ],
           );
         }));
@@ -238,8 +239,8 @@ void main() {
             query,
             1,
             [
-              new SearchResultPackage(
-                  testPackageVersion, testPackageVersion, null),
+              new PackageVersionView(
+                  testPackageVersion, new AnalysisViewMock()),
             ],
           );
         }));
