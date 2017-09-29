@@ -15,7 +15,7 @@ import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
     show SearchResultPage, PackageVersionView;
 
-import '../shared/utils.dart';
+import '../shared/mocks.dart';
 import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
@@ -42,8 +42,8 @@ void main() {
         testPackageVersion,
         flutterPackageVersion,
       ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new AnalysisViewMock(),
+        new AnalysisViewMock(platforms: ['flutter']),
       ]);
       expectGoldenFile(html, 'index_page.html');
     });
@@ -57,7 +57,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new MockAnalysisView()..licenseText = 'BSD',
+          new AnalysisViewMock()..licenseText = 'BSD',
           'Mock analysis tab content.');
       expectGoldenFile(html, 'pkg_show_page.html');
     });
@@ -71,7 +71,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
-          new MockAnalysisView()..platforms = ['flutter'],
+          new AnalysisViewMock()..platforms = ['flutter'],
           null);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
@@ -96,8 +96,8 @@ void main() {
         testPackageVersion,
         flutterPackageVersion
       ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new AnalysisViewMock(),
+        new AnalysisViewMock(platforms: ['flutter']),
       ], new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
@@ -113,7 +113,7 @@ void main() {
         [testPackage],
         [flutterPackageVersion],
         [
-          new MockAnalysisView(platforms: ['flutter']),
+          new AnalysisViewMock(platforms: ['flutter']),
         ],
         new PackageLinks(
             PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
@@ -130,9 +130,9 @@ void main() {
         query,
         2,
         [
-          new PackageVersionView(testPackageVersion, new MockAnalysisView()),
+          new PackageVersionView(testPackageVersion, new AnalysisViewMock()),
           new PackageVersionView(flutterPackageVersion,
-              new MockAnalysisView(platforms: ['flutter'])),
+              new AnalysisViewMock(platforms: ['flutter'])),
         ],
       );
       final String html =
