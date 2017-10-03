@@ -10,6 +10,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:intl/intl.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../shared/analyzer_client.dart' show AnalysisView;
 import '../shared/model_properties.dart';
 import '../shared/utils.dart';
 
@@ -230,6 +231,46 @@ class PackageVersion extends db.ExpandoModel {
 class PrivateKey extends db.Model {
   @db.StringProperty(required: true)
   String value;
+}
+
+/// An extract of [Package] and [PackageVersion] and [AnalysisView], for
+/// display-only uses.
+class PackageView {
+  final String name;
+  final String version;
+  // Not null only if there is a difference compared to the [version].
+  final String devVersion;
+  final String ellipsizedDescription;
+  final String shortUpdated;
+  final List<String> platforms;
+
+  PackageView({
+    this.name,
+    this.version,
+    this.devVersion,
+    this.ellipsizedDescription,
+    this.shortUpdated,
+    this.platforms,
+  });
+
+  factory PackageView.fromModel({
+    Package package,
+    PackageVersion version,
+    AnalysisView analysis,
+  }) {
+    final String devVersion =
+        package != null && package.latestVersion != package.latestDevVersion
+            ? package.latestDevVersion
+            : null;
+    return new PackageView(
+      name: version?.package ?? package?.name,
+      version: version?.version ?? package?.latestVersion,
+      devVersion: devVersion,
+      ellipsizedDescription: version?.ellipsizedDescription,
+      shortUpdated: version?.shortCreated ?? package?.shortUpdated,
+      platforms: analysis?.platforms,
+    );
+  }
 }
 
 /// Removes the scheme part from `url`. (i.e. http://a/b becomes a/b).
