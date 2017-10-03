@@ -5,15 +5,15 @@
 <div class="pagination">
   <ul>
     {{#page_links}}
-      <li {{#state}}class="{{state}}"{{/state}}>
-        {{#href}}
+      <li class="{{#active}}active{{/active}}{{#disabled}}disabled{{/disabled}}">
+        {{#render_link}}
         <a href="{{href}}">
           <span>{{{text}}}</span>
         </a>
-        {{/href}}
-        {{^href}}
+        {{/render_link}}
+        {{^render_link}}
         <span>{{{text}}}</span>
-        {{/href}}
+        {{/render_link}}
       </li>
     {{/page_links}}
   </ul>

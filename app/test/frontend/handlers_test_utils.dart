@@ -154,6 +154,11 @@ class TemplateMock implements TemplateService {
   }
 
   @override
+  String renderNewPagination(PageLinks pageLinks) {
+    return Response;
+  }
+
+  @override
   String renderPagination(PageLinks pageLinks) {
     return Response;
   }
