@@ -49,12 +49,13 @@ shelf.Response jsonResponse(Map json, {int status: 200, bool indent: false}) {
   );
 }
 
-shelf.Response htmlResponse(String content, {int status: 200}) =>
-    new shelf.Response(
-      status,
-      body: content,
-      headers: {'content-type': 'text/html; charset="utf-8"'},
-    );
+shelf.Response htmlResponse(String content, {int status: 200, String cookie}) {
+  final headers = {'content-type': 'text/html; charset="utf-8"'};
+  if (cookie != null) {
+    headers['set-cookie'] = cookie;
+  }
+  return new shelf.Response(status, body: content, headers: headers);
+}
 
 shelf.Response notFoundHandler(shelf.Request request,
         {String body: default404NotFound}) =>
