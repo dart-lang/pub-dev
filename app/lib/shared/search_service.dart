@@ -189,6 +189,23 @@ class SearchQuery {
 
     return hasText || hasNonTextOrdering;
   }
+
+  String toSearchLink({int page}) {
+    final Map<String, String> params = {'q': text};
+    if (platformPredicate != null && platformPredicate.isNotEmpty) {
+      params['platforms'] = platformPredicate.toQueryParamValue();
+    }
+    if (packagePrefix != null && packagePrefix.isNotEmpty) {
+      params['pkg-prefix'] = packagePrefix;
+    }
+    if (order != null) {
+      params['order'] = serializeSearchOrder(order);
+    }
+    if (page != null) {
+      params['page'] = page.toString();
+    }
+    return new Uri(path: '/search', queryParameters: params).toString();
+  }
 }
 
 @JsonSerializable()
