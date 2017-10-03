@@ -168,6 +168,23 @@ class SearchQuery {
     );
   }
 
+  SearchQuery change({
+    String text,
+    PlatformPredicate platformPredicate,
+    String packagePrefix,
+    SearchOrder order,
+    int offset,
+    int limit,
+  }) =>
+      new SearchQuery(
+        text ?? this.text,
+        platformPredicate: platformPredicate ?? this.platformPredicate,
+        packagePrefix: packagePrefix ?? this.packagePrefix,
+        order: order ?? this.order,
+        offset: offset ?? this.offset,
+        limit: limit ?? this.limit,
+      );
+
   Map<String, String> toServiceQueryParameters() {
     final Map<String, String> map = <String, String>{
       'q': text,
