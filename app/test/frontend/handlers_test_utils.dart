@@ -145,6 +145,19 @@ class TemplateMock implements TemplateService {
   }
 
   @override
+  String renderNewLayoutPage(
+    String title,
+    String contentHtml, {
+    String packageName,
+    String packageDescription,
+    String faviconUrl,
+    String searchQuery,
+    bool homeBanner: false,
+    bool includeSurvey: true,
+  }) =>
+      Response;
+
+  @override
   String renderLayoutPage(String title, String contentString,
       {PackageVersion packageVersion,
       String faviconUrl,
