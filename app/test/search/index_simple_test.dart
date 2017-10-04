@@ -30,7 +30,7 @@ void main() {
         ..add('uri://http_magic', 'http_magic');
       expect(index.search('http'), {
         'uri://http': closeTo(100.0, 0.1),
-        'uri://http_magic': closeTo(32.9, 0.1),
+        'uri://http_magic': closeTo(31.8, 0.1),
       });
     });
 
@@ -41,19 +41,19 @@ void main() {
         ..add('queue_lower', queueText.toLowerCase())
         ..add('unmodifiable', 'CustomUnmodifiableMapBase');
       expect(index.search('queue'), {
-        'queue': closeTo(7.6, 0.1),
-        'queue_lower': closeTo(5.8, 0.1),
+        'queue': closeTo(5.0, 0.1),
+        'queue_lower': closeTo(3.6, 0.1),
         'unmodifiable': closeTo(0.0, 0.1),
       });
       expect(index.search('unmodifiab'), {
         'queue': closeTo(0.0, 0.1),
         'queue_lower': closeTo(0.0, 0.1),
-        'unmodifiable': closeTo(15.0, 0.1),
+        'unmodifiable': closeTo(11.9, 0.1),
       });
       expect(index.search('unmodifiable'), {
         'queue': closeTo(0.1, 0.1),
         'queue_lower': closeTo(0.1, 0.1),
-        'unmodifiable': closeTo(20.6, 0.1),
+        'unmodifiable': closeTo(17.1, 0.1),
       });
     });
 
@@ -64,14 +64,14 @@ void main() {
         ..add('uri://teamspeak', 'teamspeak');
 
       expect(index.search('riak'), {
-        'uri://riak_client': closeTo(24.6, 0.1),
+        'uri://riak_client': closeTo(22.7, 0.1),
         'uri://cli': closeTo(0.1, 0.1),
-        'uri://teamspeak': closeTo(0.2, 0.1),
+        'uri://teamspeak': closeTo(0.16, 0.1),
       });
 
       expect(index.search('riak client'), {
         'uri://riak_client': closeTo(100.0, 0.1),
-        'uri://cli': closeTo(9.8, 0.1),
+        'uri://cli': closeTo(9.1, 0.1),
         'uri://teamspeak': closeTo(0.1, 0.1),
       });
     });
@@ -197,7 +197,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'async',
-            'score': closeTo(83.1, 0.1),
+            'score': closeTo(75.4, 0.1),
           },
         ]
       });
@@ -212,7 +212,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'http',
-            'score': closeTo(15.9, 0.1),
+            'score': closeTo(31.2, 0.1),
           },
         ]
       });
@@ -227,7 +227,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(31.9, 0.1),
+            'score': closeTo(33.2, 0.1),
           },
         ]
       });
@@ -253,11 +253,21 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           await index.search(new SearchQuery('t', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
+        'totalCount': 0,
+        'packages': [],
+      });
+    });
+
+    test('order by text: double-letter tt', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery('tt', order: SearchOrder.text));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
           {
             'package': 'http',
-            'score': closeTo(1.68, 0.01),
+            'score': closeTo(9.6, 0.1),
           },
         ],
       });
