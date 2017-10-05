@@ -593,19 +593,7 @@ class SearchLinks extends PageLinks {
   SearchLinks.empty(this.query) : super.empty();
 
   @override
-  String formatHref(int page) {
-    final Map<String, String> params = {
-      'q': query.text,
-      'page': page.toString(),
-    };
-    if (query.platformPredicate != null && query.platformPredicate.isNotEmpty) {
-      params['platforms'] = query.platformPredicate.toQueryParamValue();
-    }
-    if (query.packagePrefix != null && query.packagePrefix.isNotEmpty) {
-      params['pkg-prefix'] = query.packagePrefix;
-    }
-    return new Uri(path: '/search', queryParameters: params).toString();
-  }
+  String formatHref(int page) => query.toSearchLink(page: page);
 }
 
 class PackageLinks extends PageLinks {

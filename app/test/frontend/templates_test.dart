@@ -258,9 +258,9 @@ void main() {
           platformPredicate: new PlatformPredicate(required: ['server']));
       final SearchLinks links = new SearchLinks(query, 100);
       expect(links.formatHref(1),
-          '/search?q=web+framework&page=1&platforms=server');
+          '/search?q=web+framework&platforms=server&page=1');
       expect(links.formatHref(2),
-          '/search?q=web+framework&page=2&platforms=server');
+          '/search?q=web+framework&platforms=server&page=2');
     });
   });
 }
