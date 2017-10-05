@@ -179,8 +179,7 @@ class TemplateMock implements TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
-      AnalysisView analysis,
-      String analysisTabContent) {
+      AnalysisView analysis) {
     return Response;
   }
 
