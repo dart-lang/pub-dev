@@ -1,0 +1,13 @@
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<ul class="pagination">
+  {{#page_links}}
+    <li class="{{#active}}-active{{/active}}{{#disabled}}-disabled{{/disabled}}">
+      <a href="{{#render_link}}{{href}}{{/render_link}}">
+        <span>{{{text}}}</span>
+      </a>
+    </li>
+  {{/page_links}}
+</ul>

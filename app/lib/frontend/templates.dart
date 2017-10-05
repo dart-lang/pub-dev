@@ -26,6 +26,7 @@ String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
 
 const HtmlEscape _HtmlEscaper = const HtmlEscape();
+const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.ATTRIBUTE);
 
 final _AuthorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
 
@@ -400,6 +401,14 @@ class TemplateService {
     return _renderTemplate('layout', values, escapeValues: false);
   }
 
+  /// Renders the `views/v2/pagination.mustache` template.
+  String renderNewPagination(PageLinks pageLinks) {
+    final values = {
+      'page_links': pageLinks.hrefPatterns(),
+    };
+    return _renderTemplate('v2/pagination', values, escapeValues: false);
+  }
+
   /// Renders the `views/pagination.mustache` template.
   String renderPagination(PageLinks pageLinks) {
     final values = {
@@ -557,28 +566,33 @@ abstract class PageLinks {
 
     final bool hasPrevious = currentPage > 1;
     results.add({
-      'state': {'state': hasPrevious ? null : 'disabled'},
-      'href': hasPrevious ? {'href': formatHref(currentPage - 1)} : null,
+      'disabled': !hasPrevious,
+      'render_link': hasPrevious,
+      'href': _attrEscaper.convert(formatHref(currentPage - 1)),
       'text': '&laquo;',
     });
 
     for (int page = leftmostPage; page <= rightmostPage; page++) {
       final bool isCurrent = page == currentPage;
-      final String state = isCurrent ? 'active' : null;
-
       results.add({
-        'state': {'state': state},
-        'href': isCurrent ? null : {'href': formatHref(page)},
+        'active': isCurrent,
+        'render_link': !isCurrent,
+        'href': _attrEscaper.convert(formatHref(page)),
         'text': '$page',
       });
     }
 
     final bool hasNext = currentPage < rightmostPage;
     results.add({
-      'state': {'state': hasNext ? null : 'disabled'},
-      'href': hasNext ? {'href': formatHref(currentPage + 1)} : null,
+      'disabled': !hasNext,
+      'render_link': hasNext,
+      'href': _attrEscaper.convert(formatHref(currentPage + 1)),
       'text': '&raquo;',
     });
+
+    // should not happen
+    assert(!results
+        .any((map) => map['disabled'] == true && map['active'] == true));
     return results;
   }
 
