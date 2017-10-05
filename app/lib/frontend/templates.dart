@@ -373,6 +373,39 @@ class TemplateService {
     return _renderPage('index', values, title: 'Pub: Dart Package Manager');
   }
 
+  /// Renders the `views/v2/layout.mustache` template.
+  String renderNewLayoutPage(
+    String title,
+    String contentHtml, {
+    String packageName,
+    String packageDescription,
+    String faviconUrl,
+    String searchQuery,
+    bool homeBanner: false,
+    bool includeSurvey: true,
+  }) {
+    final String escapedSearchQuery =
+        searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
+    final values = {
+      'static_assets_dir': LogoUrls.newDesignAssetsDir,
+      'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
+      'package': packageName == null
+          ? false
+          : {
+              'name': HTML_ESCAPE.convert(packageName),
+              'description': HTML_ESCAPE.convert(packageDescription ?? ''),
+            },
+      'title': HTML_ESCAPE.convert(title),
+      'search_query': escapedSearchQuery,
+      // This is not escaped as it is already escaped by the caller.
+      'content_html': contentHtml,
+      'include_survey': includeSurvey,
+      'home_banner': homeBanner,
+      'default_banner': !homeBanner,
+    };
+    return _renderTemplate('v2/layout', values, escapeValues: false);
+  }
+
   /// Renders the `views/layout.mustache` template.
   String renderLayoutPage(String title, String contentString,
       {PackageVersion packageVersion,
@@ -628,6 +661,8 @@ class PackageLinks extends PageLinks {
 }
 
 abstract class LogoUrls {
+  static const String newDesignAssetsDir = '/static/v2';
+
   static const String smallDartFavicon = '/static/favicon.ico';
   static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
   static const String html5Logo32x32 = '/static/img/html5-logo-32x32.png';
