@@ -129,9 +129,8 @@ void main() {
         query,
         2,
         [
-          new SearchResultPackage(testPackageVersion, testPackageVersion, null),
-          new SearchResultPackage(
-              flutterPackageVersion, flutterPackageVersion, ['flutter']),
+          new SearchResultPackage(testPackageVersion, null, null),
+          new SearchResultPackage(flutterPackageVersion, null, ['flutter']),
         ],
       );
       final String html =

@@ -48,28 +48,27 @@ Future<SearchResultPage> _loadResultForPackages(
 
   final List<Key> versionKeys =
       packageEntries.map((p) => p.latestVersionKey).toList();
-  final List<Key> devVersionKeys =
-      packageEntries.map((p) => p.latestDevVersionKey).toList();
   if (versionKeys.isNotEmpty) {
     // Analysis data fetched concurrently to reduce overall latency.
     final Future<List<AnalysisData>> allAnalysisFuture = Future.wait(
         packageEntries.map(
             (p) => analyzerClient.getAnalysisData(p.name, p.latestVersion)));
     final Future<List<PackageVersion>> allVersionsFuture =
-        dbService.lookup([]..addAll(versionKeys)..addAll(devVersionKeys));
+        dbService.lookup(versionKeys);
 
     final List batchResults =
         await Future.wait([allAnalysisFuture, allVersionsFuture]);
     final List<AnalysisData> analysisDataList = await batchResults[0];
-    final List<PackageVersion> allVersions = await batchResults[1];
+    final List<PackageVersion> versions = await batchResults[1];
 
-    final versions = allVersions.sublist(0, versionKeys.length);
-    final devVersions = allVersions.sublist(versionKeys.length);
     final List<SearchResultPackage> resultPackages =
         new List.generate(versions.length, (i) {
       final AnalysisView view = new AnalysisView(analysisDataList[i]);
-      return new SearchResultPackage(
-          versions[i], devVersions[i], view.platforms);
+      final Package pkg = packageEntries[i];
+      final String devVersion = pkg.latestVersion != pkg.latestDevVersion
+          ? pkg.latestDevVersion
+          : null;
+      return new SearchResultPackage(versions[i], devVersion, view.platforms);
     });
 
     return new SearchResultPage(query, totalCount, resultPackages);
@@ -98,7 +97,7 @@ class SearchResultPage {
 /// The composed package data to be displayed on the search results page.
 class SearchResultPackage {
   final PackageVersion stableVersion;
-  final PackageVersion devVersion;
+  final String devVersion;
   final List<String> platforms;
 
   SearchResultPackage(this.stableVersion, this.devVersion, this.platforms);
