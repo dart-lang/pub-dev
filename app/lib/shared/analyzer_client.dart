@@ -35,25 +35,30 @@ class AnalyzerClient {
   final String _analyzerServiceHttpHostPort;
   AnalyzerClient(this._analyzerServiceHttpHostPort);
 
-  Future<AnalysisView> getAnalysisView(String package, String version) async {
-    return new AnalysisView(await getAnalysisData(package, version));
+  Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) {
+    return Future.wait(keys.map(getAnalysisView));
+  }
+
+  Future<AnalysisView> getAnalysisView(AnalysisKey key) async {
+    return new AnalysisView(await getAnalysisData(key));
   }
 
   /// Gets the analysis data from the analyzer service via HTTP.
-  Future<AnalysisData> getAnalysisData(String package, String version) async {
-    final String cachedContent =
-        await analyzerMemcache?.getContent(package, version, panaVersion);
+  Future<AnalysisData> getAnalysisData(AnalysisKey key) async {
+    if (key == null) return null;
+    final String cachedContent = await analyzerMemcache?.getContent(
+        key.package, key.version, panaVersion);
     if (cachedContent != null) {
       return new AnalysisData.fromJson(JSON.decode(cachedContent));
     }
     final String uri =
-        '$_analyzerServiceHttpHostPort/packages/$package/$version?panaVersion=$panaVersion';
+        '$_analyzerServiceHttpHostPort/packages/${key.package}/${key.version}?panaVersion=$panaVersion';
     try {
       final http.Response rs = await _client.get(uri);
       if (rs.statusCode == 200) {
         final String content = rs.body;
         await analyzerMemcache?.setContent(
-            package, version, panaVersion, content);
+            key.package, key.version, panaVersion, content);
         return new AnalysisData.fromJson(JSON.decode(content));
       }
     } catch (e, st) {

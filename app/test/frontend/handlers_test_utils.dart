@@ -232,13 +232,17 @@ class AnalyzerClientMock implements AnalyzerClient {
   AnalysisData mockAnalysisData;
 
   @override
-  Future<AnalysisData> getAnalysisData(String package, String version) async =>
+  Future<AnalysisData> getAnalysisData(AnalysisKey key) async =>
       mockAnalysisData;
 
   @override
   Future close() async => null;
 
   @override
-  Future<AnalysisView> getAnalysisView(String package, String version) async =>
-      new AnalysisView(await getAnalysisData(package, version));
+  Future<AnalysisView> getAnalysisView(AnalysisKey key) async =>
+      new AnalysisView(await getAnalysisData(key));
+
+  @override
+  Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) =>
+      Future.wait(keys.map(getAnalysisView));
 }
