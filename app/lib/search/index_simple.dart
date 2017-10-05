@@ -20,9 +20,9 @@ void registerPackageIndex(PackageIndex index) =>
 
 class SimplePackageIndex implements PackageIndex {
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
-  final TokenIndex _nameIndex = new TokenIndex();
-  final TokenIndex _descrIndex = new TokenIndex();
-  final TokenIndex _readmeIndex = new TokenIndex();
+  final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
+  final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
+  final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -167,9 +167,9 @@ class SimplePackageIndex implements PackageIndex {
   Score _searchText(String text, String packagePrefix) {
     if (text != null && text.isNotEmpty) {
       final Score textScore = new Score()
-        ..addValues(_nameIndex.search(text), 0.82)
-        ..addValues(_descrIndex.search(text), 0.12)
-        ..addValues(_readmeIndex.search(text), 0.06);
+        ..addValues(_nameIndex.search(text, coverageWeight: 0.90), 0.60)
+        ..addValues(_descrIndex.search(text, coverageWeight: 0.75), 0.20)
+        ..addValues(_readmeIndex.search(text, coverageWeight: 0.50), 0.20);
       textScore.removeLowScores(0.05);
       textScore.removeWhere((id) => textScore.values[id] < 1.0);
       return textScore;
@@ -245,18 +245,21 @@ class Score {
 class TokenIndex {
   final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
   final Map<String, double> _weights = <String, double>{};
+  final int _minLength;
+
+  TokenIndex({int minLength: 0}) : _minLength = minLength;
 
   /// The number of tokens stored in the index.
   int get tokenCount => _inverseIds.length;
 
   void add(String id, String text) {
-    final Set<String> tokens = _tokenize(text);
+    final Set<String> tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) return;
     double sumWeight = 0.0;
     for (String token in tokens) {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
-      sumWeight += _tokenWeight(token);
+      sumWeight += _tokenWeight(token, _minLength);
     }
     _weights[id] = sumWeight;
   }
@@ -271,29 +274,49 @@ class TokenIndex {
     removeKeys.forEach(_inverseIds.remove);
   }
 
-  // A TF-IDF-like scoring, with more weight for longer terms.
-  Map<String, double> search(String text) {
-    final Set<String> tokens = _tokenize(text);
+  /// Search the index for [text], with a (term-match / document coverage percent)
+  /// scoring. Longer tokens weight more in the relevance score.
+  ///
+  /// [coverageWeight] controls the weight of the document coverage percent in
+  /// the final score. 1.0 - full coverage score is used, 0.0 - none is used.
+  Map<String, double> search(String text, {double coverageWeight: 1.0}) {
+    final Set<String> tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) return null;
-    double sumWeight = 0.0;
-    final Map<String, double> counts = <String, double>{};
+    // the sum of all token weights in the search query
+    double queryWeight = 0.0;
+    final Map<String, double> docScores = <String, double>{};
+
+    // use the inverted index to aggregate scores for each document
     for (String token in tokens) {
-      final double tokenWeight = _tokenWeight(token);
-      sumWeight += tokenWeight;
+      final double tokenWeight = _tokenWeight(token, _minLength);
+      queryWeight += tokenWeight;
 
       final Set<String> set = _inverseIds[token];
       if (set == null || set.isEmpty) continue;
 
       for (String id in set) {
-        final double prevValue = counts[id] ?? 0.0;
-        counts[id] = prevValue + tokenWeight;
+        final double prevValue = docScores[id] ?? 0.0;
+        docScores[id] = prevValue + tokenWeight;
       }
     }
-    for (String id in counts.keys.toList()) {
-      final double current = counts[id];
-      counts[id] = 100.0 * (current / _weights[id]) * (current / sumWeight);
+
+    // normalize token weights to 0.0-1.0 range, also adjust to document coverage
+    for (String id in docScores.keys.toList()) {
+      final double matchWeight = docScores[id];
+
+      // the percent of the match in relation to the total query [0.0 - 1.0]
+      final double queryScore = matchWeight / queryWeight;
+
+      // the percent of the match in relation to the document [0.0 - 1.0]
+      final double coverageScore = matchWeight / _weights[id];
+
+      final double weightedCoverageScore =
+          1 - (coverageWeight * (1.0 - coverageScore));
+
+      final double score = 100.0 * queryScore * weightedCoverageScore;
+      docScores[id] = score;
     }
-    return counts;
+    return docScores;
   }
 
   // The longer the token, the more importance it has.
@@ -302,19 +325,26 @@ class TokenIndex {
   // 2 ->  4 (Length * Length)
   // 3 ->  9 (Length * Length)
   // 4 -> 16 (Length * Length)
-  // 5 -> 20 (Length * 4)
-  // 6 -> 24 (Length * 4)
-  // 7 -> 28 (Length * 4)
-  // 8 -> 32 (Length * 4)
-  double _tokenWeight(String token) =>
-      (token.length * min(token.length, 4)).toDouble();
+  // 5 -> 25 (Length * Length)
+  // 6 -> 36 (Length * Length)
+  // 7 -> 49 (Length * Length)
+  // 8 -> 64 (Length * Length)
+  // 9 -> 72 (Length * 8)
+  //10 -> 80 (Length * 8)
+  double _tokenWeight(String token, int minLength) {
+    int tokenLength = token.length;
+    if (minLength > 0) {
+      tokenLength -= minLength - 1;
+    }
+    return (tokenLength * min(token.length, 8)).toDouble();
+  }
 }
 
 const int minNgram = 1;
 const int maxNgram = 4;
 const int maxWordLength = 80;
 
-Set<String> _tokenize(String originalText) {
+Set<String> _tokenize(String originalText, int minLength) {
   if (originalText == null || originalText.isEmpty) return null;
   final Set<String> tokens = new Set();
 
@@ -331,7 +361,9 @@ Set<String> _tokenize(String originalText) {
     final String normalizedWord = normalizeBeforeIndexing(word);
     if (normalizedWord.isEmpty) continue;
 
-    for (int ngramLength = minNgram; ngramLength <= maxNgram; ngramLength++) {
+    for (int ngramLength = max(minNgram, minLength);
+        ngramLength <= maxNgram;
+        ngramLength++) {
       if (normalizedWord.length <= ngramLength) {
         tokens.add(normalizedWord);
       } else {
@@ -356,6 +388,9 @@ Set<String> _tokenize(String originalText) {
       }
       prevLower = lower;
     }
+  }
+  if (minLength > 0) {
+    tokens.removeWhere((t) => t.length < minLength);
   }
   return tokens;
 }

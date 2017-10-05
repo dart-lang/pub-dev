@@ -58,7 +58,7 @@ void main() {
           'packages': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(70.9, 0.1),
+              'score': closeTo(54.2, 0.1),
             }
           ],
         });
@@ -72,7 +72,7 @@ void main() {
           'packages': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(2.4, 0.1),
+              'score': closeTo(15.0, 0.1),
             }
           ],
         });
@@ -87,7 +87,7 @@ void main() {
               'packages': [
                 {
                   'package': 'pkg_foo',
-                  'score': closeTo(2.4, 0.1),
+                  'score': closeTo(15.0, 0.1),
                 }
               ],
             });
