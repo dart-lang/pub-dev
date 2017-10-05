@@ -518,11 +518,11 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
     dataSubscription = data.listen(
         (List<int> chunk) {
           receivedBytes += chunk.length;
-          if (receivedBytes <= UploadSignerService.MAX_UPLOAD_SIZE) {
+          if (receivedBytes <= UploadSignerService.maxUploadSize) {
             intermediary.add(chunk);
           } else {
             final error = 'Invalid upload: Exceeded '
-                '${UploadSignerService.MAX_UPLOAD_SIZE} upload size.';
+                '${UploadSignerService.maxUploadSize} upload size.';
             intermediary.addError(error);
             intermediary.close();
 

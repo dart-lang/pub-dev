@@ -200,9 +200,9 @@ void main() {
       });
 
       tScopedTest('/doc', () async {
-        for (var path in REDIRECT_PATHS.keys) {
+        for (var path in redirectPaths.keys) {
           final redirectUrl =
-              'https://www.dartlang.org/tools/pub/${REDIRECT_PATHS[path]}';
+              'https://www.dartlang.org/tools/pub/${redirectPaths[path]}';
           expectRedirectResponse(await issueGet(path), redirectUrl);
         }
       });

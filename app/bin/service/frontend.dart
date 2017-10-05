@@ -85,8 +85,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerSearchClient(searchClient);
   registerScopeExitCallback(searchClient.close);
 
-  registerTemplateService(
-      new TemplateService(templateDirectory: TemplateLocation));
+  registerTemplateService(new TemplateService(templateDirectory: templatePath));
 
   final bucket = storageService.bucket(configuration.packageBucketName);
   final tarballStorage = new TarballStorage(storageService, bucket, null);

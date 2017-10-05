@@ -25,7 +25,7 @@ final Logger _logger = new Logger('pub.templates');
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
 
-const HtmlEscape _HtmlEscaper = const HtmlEscape();
+const HtmlEscape _htmlEscaper = const HtmlEscape();
 const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.ATTRIBUTE);
 
 final _AuthorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
@@ -241,7 +241,7 @@ class TemplateService {
           renderFile(selectedVersion.example, selectedVersion.homepage);
       if (renderedExample != null) {
         renderedExample = '<p style="font-family: monospace">'
-            '<b>${_HtmlEscaper.convert(exampleFilename)}</b>'
+            '<b>${_htmlEscaper.convert(exampleFilename)}</b>'
             '</p>\n'
             '$renderedExample';
       }
@@ -572,8 +572,8 @@ String _getUploadersHtml(Package package) {
 }
 
 abstract class PageLinks {
-  static const int RESULTS_PER_PAGE = 10;
-  static const int MAX_PAGES = 10;
+  static const int resultsPerPage = 10;
+  static const int maxPages = 10;
 
   final int offset;
   final int count;
@@ -584,13 +584,13 @@ abstract class PageLinks {
       : offset = 1,
         count = 1;
 
-  int get leftmostPage => max(currentPage - MAX_PAGES ~/ 2, 1);
+  int get leftmostPage => max(currentPage - maxPages ~/ 2, 1);
 
-  int get currentPage => 1 + offset ~/ RESULTS_PER_PAGE;
+  int get currentPage => 1 + offset ~/ resultsPerPage;
 
   int get rightmostPage {
-    final int fromSymmetry = currentPage + MAX_PAGES ~/ 2;
-    final int fromCount = 1 + ((count - 1) ~/ RESULTS_PER_PAGE);
+    final int fromSymmetry = currentPage + maxPages ~/ 2;
+    final int fromCount = 1 + ((count - 1) ~/ resultsPerPage);
     return min(fromSymmetry, max(currentPage, fromCount));
   }
 
@@ -644,8 +644,8 @@ class SearchLinks extends PageLinks {
 }
 
 class PackageLinks extends PageLinks {
-  static const int RESULTS_PER_PAGE = 10;
-  static const int MAX_PAGES = 15;
+  static const int resultsPerPage = 10;
+  static const int maxPages = 15;
   final String _basePath;
 
   PackageLinks(int offset, int count, {String basePath})

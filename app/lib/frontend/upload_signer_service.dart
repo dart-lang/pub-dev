@@ -39,13 +39,13 @@ void registerUploadSigner(UploadSignerService uploadSigner) =>
 /// See here for a broader explanation:
 /// https://cloud.google.com/storage/docs/xml-api/post-object
 abstract class UploadSignerService {
-  static const int MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
-  static final Uri UploadUrl = Uri.parse('https://storage.googleapis.com');
+  static const int maxUploadSize = 100 * 1024 * 1024;
+  static final Uri _uploadUrl = Uri.parse('https://storage.googleapis.com');
 
   Future<AsyncUploadInfo> buildUpload(String bucket, String object,
       Duration lifetime, String successRedirectUrl,
       {String predefinedAcl: 'project-private',
-      int maxUploadSize: MAX_UPLOAD_SIZE}) async {
+      int maxUploadSize: maxUploadSize}) async {
     final now = new DateTime.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
 
@@ -77,7 +77,7 @@ abstract class UploadSignerService {
       'success_action_redirect': successRedirectUrl,
     };
 
-    return new AsyncUploadInfo(UploadUrl, fields);
+    return new AsyncUploadInfo(_uploadUrl, fields);
   }
 
   Future<SigningResult> sign(List<int> bytes);

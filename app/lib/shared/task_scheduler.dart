@@ -105,8 +105,7 @@ class Task {
 
   Task(this.package, this.version, this.updated);
 
-  Task.now(this.package, this.version)
-      : updated = new DateTime.now().toUtc();
+  Task.now(this.package, this.version) : updated = new DateTime.now().toUtc();
 
   @override
   String toString() => '$package $version';
@@ -121,8 +120,7 @@ class Task {
           updated == other.updated;
 
   @override
-  int get hashCode =>
-      package.hashCode ^ version.hashCode ^ updated.hashCode;
+  int get hashCode => package.hashCode ^ version.hashCode ^ updated.hashCode;
 }
 
 /// A pull-based interface for accessing events from multiple streams, in the
