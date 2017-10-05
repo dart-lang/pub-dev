@@ -659,9 +659,7 @@ void main() {
         scopedTest('upload-too-big', () async {
           final oneKB = new List.filled(1024, 42);
           final bigTarball = [];
-          for (int i = 0;
-              i < UploadSignerService.MAX_UPLOAD_SIZE ~/ 1024;
-              i++) {
+          for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
           }
           // Add one more byte than allowed.
@@ -681,7 +679,7 @@ void main() {
           final Future result = repo.finishAsyncUpload(redirectUri);
           await result.catchError(expectAsync2((error, _) {
             expect(error, contains('Exceeded ${UploadSignerService
-                        .MAX_UPLOAD_SIZE} upload size'));
+                        .maxUploadSize} upload size'));
           }));
         }, timeout: new Timeout.factor(2));
 
@@ -833,9 +831,7 @@ void main() {
         scopedTest('upload-too-big', () async {
           final oneKB = new List.filled(1024, 42);
           final List<List<int>> bigTarball = [];
-          for (int i = 0;
-              i < UploadSignerService.MAX_UPLOAD_SIZE ~/ 1024;
-              i++) {
+          for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
           }
           // Add one more byte than allowed.
@@ -850,7 +846,7 @@ void main() {
               repo.upload(new Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
             expect(error, contains('Exceeded ${UploadSignerService
-                        .MAX_UPLOAD_SIZE} upload size'));
+                        .maxUploadSize} upload size'));
           }));
         }, timeout: new Timeout.factor(2));
 

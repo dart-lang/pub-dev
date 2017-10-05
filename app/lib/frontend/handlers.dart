@@ -27,8 +27,7 @@ import 'search_memcache.dart';
 import 'search_service.dart';
 import 'templates.dart';
 
-final String StaticsLocation =
-    Platform.script.resolve('../../static').toFilePath();
+final String _staticPath = Platform.script.resolve('../../static').toFilePath();
 
 RegExp _packageRegexp =
     new RegExp('package:([_a-z0-9]+)\\*?', caseSensitive: false);
@@ -139,7 +138,7 @@ shelf.Response authorizedHandler(_) =>
 /// Handles requests for /doc
 shelf.Response docHandler(shelf.Request request) {
   final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
-  final dartlangDotOrgPath = REDIRECT_PATHS[request.requestedUri.path];
+  final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
     return redirectResponse('$pubDocUrl$dartlangDotOrgPath');
   }
@@ -172,8 +171,8 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
 
   final SearchQuery query = new SearchQuery(
     queryText,
-    offset: PageLinks.RESULTS_PER_PAGE * (page - 1),
-    limit: PageLinks.RESULTS_PER_PAGE,
+    offset: PageLinks.resultsPerPage * (page - 1),
+    limit: PageLinks.resultsPerPage,
     platformPredicate: new PlatformPredicate.fromUri(request.url),
     packagePrefix: packagePrefix,
   );
@@ -212,8 +211,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
   if (normalized.startsWith('/static/')) {
-    final assetPath =
-        '$StaticsLocation/${normalized.substring('/static/'.length)}';
+    final assetPath = '$_staticPath/${normalized.substring('/static/'.length)}';
 
     final StaticFile staticFile = staticsCache.staticFiles[assetPath];
     if (staticFile != null) {
@@ -271,8 +269,8 @@ Future<shelf.Response> packagesHandlerHtml(
   String faviconUrl,
   String descriptionHtml,
 }) async {
-  final offset = PackageLinks.RESULTS_PER_PAGE * (page - 1);
-  final limit = PackageLinks.MAX_PAGES * PackageLinks.RESULTS_PER_PAGE + 1;
+  final offset = PackageLinks.resultsPerPage * (page - 1);
+  final limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
 
   List<Package> packages;
   if (platformPredicate != null && platformPredicate.isNotEmpty) {
@@ -291,7 +289,7 @@ Future<shelf.Response> packagesHandlerHtml(
 
   final links =
       new PackageLinks(offset, offset + packages.length, basePath: basePath);
-  final pagePackages = packages.take(PackageLinks.RESULTS_PER_PAGE).toList();
+  final pagePackages = packages.take(PackageLinks.resultsPerPage).toList();
 
   // Fetched concurrently to reduce overall latency.
   final versionsFuture = backend.lookupLatestVersions(pagePackages);
@@ -602,7 +600,7 @@ class StaticsCache {
   final Map<String, StaticFile> staticFiles = <String, StaticFile>{};
 
   StaticsCache() {
-    final Directory staticsDirectory = new Directory(StaticsLocation);
+    final Directory staticsDirectory = new Directory(_staticPath);
     final files = staticsDirectory
         .listSync(recursive: true)
         .where((fse) => fse is File)

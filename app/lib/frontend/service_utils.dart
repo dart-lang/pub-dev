@@ -24,14 +24,7 @@ import 'oauth2_service.dart';
 import 'search_service.dart';
 import 'upload_signer_service.dart';
 
-final TemplateLocation = Platform.script.resolve('../views').toFilePath();
-
-const List<String> SCOPES = const [
-  'https://www.googleapis.com/auth/cloud-platform',
-  'https://www.googleapis.com/auth/datastore',
-  'https://www.googleapis.com/auth/devstorage.full_control',
-  'https://www.googleapis.com/auth/userinfo.email',
-];
+final String templatePath = Platform.script.resolve('../views').toFilePath();
 
 final Logger logger = new Logger('pub');
 

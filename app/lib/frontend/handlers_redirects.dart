@@ -4,7 +4,7 @@
 
 library pub_dartlang_org.handlers_redirects;
 
-const Map<String, String> REDIRECT_PATHS = const <String, String>{
+const Map<String, String> redirectPaths = const <String, String>{
   // /doc/ goes to "Getting started".
   '/doc': 'get-started.html',
   '/doc/': 'get-started.html',

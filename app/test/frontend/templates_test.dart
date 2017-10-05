@@ -113,7 +113,7 @@ void main() {
           new MockAnalysisView(platforms: ['flutter']),
         ],
         new PackageLinks(
-            PackageLinks.RESULTS_PER_PAGE, PackageLinks.RESULTS_PER_PAGE + 1),
+            PackageLinks.resultsPerPage, PackageLinks.resultsPerPage + 1),
         title: 'Flutter Packages',
         faviconUrl: LogoUrls.flutterLogo32x32,
         descriptionHtml: flutterPackagesDescriptionHtml,
@@ -184,27 +184,27 @@ void main() {
     });
 
     test('PackageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = new PackageLinks(0, PackageLinks.RESULTS_PER_PAGE - 1);
+      final links = new PackageLinks(0, PackageLinks.resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PackageLinks.RESULTS_PER_PAGE', () {
-      final links = new PackageLinks(0, PackageLinks.RESULTS_PER_PAGE);
+      final links = new PackageLinks(0, PackageLinks.resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PackageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = new PackageLinks(0, PackageLinks.RESULTS_PER_PAGE + 1);
+      final links = new PackageLinks(0, PackageLinks.resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    final int page2Offset = PackageLinks.RESULTS_PER_PAGE;
+    final int page2Offset = PackageLinks.resultsPerPage;
 
     test('page=2 + one item', () {
       final links = new PackageLinks(page2Offset, page2Offset + 1);
@@ -215,7 +215,7 @@ void main() {
 
     test('page=2 + PackageLinks.RESULTS_PER_PAGE - 1', () {
       final links = new PackageLinks(
-          page2Offset, page2Offset + PackageLinks.RESULTS_PER_PAGE - 1);
+          page2Offset, page2Offset + PackageLinks.resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -223,7 +223,7 @@ void main() {
 
     test('page=2 + PackageLinks.RESULTS_PER_PAGE', () {
       final links = new PackageLinks(
-          page2Offset, page2Offset + PackageLinks.RESULTS_PER_PAGE);
+          page2Offset, page2Offset + PackageLinks.resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -231,7 +231,7 @@ void main() {
 
     test('page=2 + PackageLinks.RESULTS_PER_PAGE + 1', () {
       final links = new PackageLinks(
-          page2Offset, page2Offset + PackageLinks.RESULTS_PER_PAGE + 1);
+          page2Offset, page2Offset + PackageLinks.resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);

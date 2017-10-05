@@ -258,7 +258,7 @@ class UploadSignerServiceMock implements UploadSignerService {
   Future<AsyncUploadInfo> buildUpload(String bucket, String object,
       Duration lifetime, String successRedirectUrl,
       {String predefinedAcl: 'project-private',
-      int maxUploadSize: UploadSignerService.MAX_UPLOAD_SIZE}) async {
+      int maxUploadSize: UploadSignerService.maxUploadSize}) async {
     return buildUploadFun(bucket, object, lifetime, successRedirectUrl,
         predefinedAcl: predefinedAcl, maxUploadSize: maxUploadSize);
   }
