@@ -408,10 +408,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
         await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
   }
 
-  final bool showAnalysisTab =
-      request.url.queryParameters['experimental-analysis-tab'] == 'true';
-
-  if (cachedPage == null || showAnalysisTab) {
+  if (cachedPage == null) {
     final Package package = await backend.lookupPackage(packageName);
     if (package == null) return _formattedNotFoundHandler(request);
 
@@ -444,11 +441,6 @@ Future<shelf.Response> packageVersionHandlerHtml(
     final analysisView = new AnalysisView(analysisData);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
 
-    String analysisTabContent;
-    if (showAnalysisTab) {
-      analysisTabContent = templateService.renderAnalysisTab(analysisView);
-    }
-
     final versionDownloadUrls =
         await Future.wait(first10Versions.map((PackageVersion version) {
       return backend.downloadUrl(packageName, version.version);
@@ -462,10 +454,9 @@ Future<shelf.Response> packageVersionHandlerHtml(
         latestStable,
         latestDev,
         versions.length,
-        analysisView,
-        analysisTabContent);
+        analysisView);
 
-    if (backend.uiPackageCache != null && !showAnalysisTab) {
+    if (backend.uiPackageCache != null) {
       await backend.uiPackageCache
           .setUIPackagePage(packageName, versionName, cachedPage);
     }

@@ -160,8 +160,7 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
-      AnalysisView analysis,
-      String analysisTabContent) {
+      AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
 
     List importExamples;
@@ -282,9 +281,6 @@ class TemplateService {
     addFileTab('readme', readmeFilename, renderedReadme);
     addFileTab('changelog', changelogFilename, renderedChangelog);
     addFileTab('example', 'Example', renderedExample);
-    if (analysisTabContent != null) {
-      addFileTab('analysis', 'Analysis', analysisTabContent);
-    }
     if (tabs.isNotEmpty) tabs.first['class'] = 'active';
 
     final values = {

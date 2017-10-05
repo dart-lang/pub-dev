@@ -56,8 +56,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new MockAnalysisView()..licenseText = 'BSD',
-          'Mock analysis tab content.');
+          new MockAnalysisView()..licenseText = 'BSD');
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
@@ -70,8 +69,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
-          new MockAnalysisView()..platforms = ['flutter'],
-          null);
+          new MockAnalysisView()..platforms = ['flutter']);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
