@@ -131,6 +131,7 @@ void main() {
         readme: '''http
           A composable, Future-based library for making HTTP requests.
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
+        created: new DateTime.utc(2015, 01, 01),
         updated: new DateTime.utc(2017, 07, 20),
         platforms: ['flutter', 'server', 'web'],
         popularity: 0.7,
@@ -148,6 +149,7 @@ The AsyncCache class allows expensive asynchronous computations values to be cac
 The AsyncMemoizer class makes it easy to only run an asynchronous operation once on demand.
 The CancelableOperation class defines an operation that can be canceled by its consumer. The producer can then listen for this cancellation and stop producing the future when it's received. It can be created using a CancelableCompleter.
 The delegating wrapper classes allow users to easily add functionality on top of existing instances of core types from dart:async. These include DelegatingFuture, DelegatingStream, DelegatingStreamSubscription, DelegatingStreamConsumer, DelegatingSink, DelegatingEventSink, and DelegatingStreamSink.''',
+        created: new DateTime.utc(2015, 04, 01),
         updated: new DateTime.utc(2017, 05, 17),
         platforms: ['flutter', 'server', 'web'],
         popularity: 0.8,
@@ -161,6 +163,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         readme: '''TCP client and server libraries for Dart based Chrome Apps.
 tcp.dart contains abstractions over chrome.sockets to aid in working with TCP client sockets and server sockets (TcpClient and TcpServer).
 server.dart adds a small, prescriptive server (PicoServer) that can be configured with different handlers for HTTP requests.''',
+        created: new DateTime.utc(2014, 04, 01),
         updated: new DateTime.utc(2014, 09, 17),
         platforms: ['server'],
         popularity: 0.0,
@@ -256,6 +259,20 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'package': 'http',
             'score': closeTo(1.68, 0.01),
           },
+        ],
+      });
+    });
+
+    test('order by created: no filter', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery('', order: SearchOrder.created));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'package': 'async'},
+          {'package': 'http'},
+          {'package': 'chrome_net'},
         ],
       });
     });

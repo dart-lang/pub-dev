@@ -65,6 +65,7 @@ void main() {
     });
 
     test('has non-text-based ordering', () {
+      expect(new SearchQuery('', order: SearchOrder.created).isValid, isTrue);
       expect(new SearchQuery('', order: SearchOrder.updated).isValid, isTrue);
       expect(
           new SearchQuery('', order: SearchOrder.popularity).isValid, isTrue);

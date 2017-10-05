@@ -90,6 +90,7 @@ class SearchBackend {
         devVersion: p.latestDevVersion,
         platforms: analysisView.platforms,
         description: compactDescription(pv.pubspec.description),
+        created: p.created,
         updated: pv.created,
         readme: compactReadme(pv.readmeContent),
         health: analysisView.health,
