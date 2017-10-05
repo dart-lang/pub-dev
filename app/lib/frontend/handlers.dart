@@ -38,6 +38,8 @@ final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
 final _packageOverallLatencyTracker = new LastNTracker<Duration>();
 final _searchOverallLatencyTracker = new LastNTracker<Duration>();
 
+final String _designCookieName = 'design';
+
 /// Handler for the whole URL space of pub.dartlang.org
 ///
 /// The passed in [shelfPubApi] handler will be used for handling requests to
@@ -82,6 +84,7 @@ const _handlers = const <String, shelf.Handler>{
   '/flutter/': redirectToFlutterPackages,
   '/flutter/packages': flutterPackagesHandler,
   '/flutter/plugins': redirectToFlutterPackages,
+  '/experimental': experimentalHandler,
 };
 
 /// Handles requests for /debug
@@ -100,6 +103,40 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
       'overall_latency': toShortStat(_searchOverallLatencyTracker),
     },
   }, indent: true);
+}
+
+bool _displayNewDesign(shelf.Request request) {
+  if (request.requestedUri.queryParameters[_designCookieName] == 'new') {
+    return true;
+  }
+  final Set<String> cookieValuePairs = (request.headers['cookie'] ?? '')
+      .split(';')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toSet();
+  return cookieValuePairs.contains('$_designCookieName=new');
+}
+
+/// Handles requests for /experimental
+Future<shelf.Response> experimentalHandler(shelf.Request request) async {
+  if (request.requestedUri.queryParameters[_designCookieName] == 'new') {
+    return htmlResponse(
+      '`$_designCookieName` cookie set, <a href="/">visit site</a>',
+      cookie: '$_designCookieName=new; Path=/',
+    );
+  }
+  if (request.requestedUri.queryParameters[_designCookieName] == 'old') {
+    return htmlResponse(
+      '`$_designCookieName` cookie cleared, <a href="/">visit site</a>',
+      cookie: '$_designCookieName=; Path=/',
+    );
+  }
+  return jsonResponse(
+    {
+      _designCookieName: _displayNewDesign(request) ? 'new' : 'old',
+    },
+    indent: true,
+  );
 }
 
 /// Handles requests for /
