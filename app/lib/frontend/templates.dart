@@ -74,27 +74,19 @@ class TemplateService {
   }
 
   /// Renders the `views/pkg/index.mustache` template.
-  String renderPkgIndexPage(
-      List<Package> packages,
-      List<PackageVersion> versions,
-      List<AnalysisView> analysisViews,
-      PageLinks links,
-      {String title,
-      String faviconUrl,
-      String descriptionHtml}) {
+  String renderPkgIndexPage(List<PackageView> packages, PageLinks links,
+      {String title, String faviconUrl, String descriptionHtml}) {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
-      final package = packages[i];
-      final version = versions[i];
-      final analysis = analysisViews[i];
+      final view = packages[i];
       packagesJson.add({
-        'icons': _renderIconsColumnHtml(analysis.platforms),
-        'name': package.name,
+        'icons': _renderIconsColumnHtml(view.platforms),
+        'name': view.name,
         'description': {
-          'ellipsized_description': version.ellipsizedDescription,
+          'ellipsized_description': view.ellipsizedDescription,
         },
-        'authors_html': _getAuthorsHtml(version),
-        'short_updated': package.shortUpdated,
+        'authors_html': _getAuthorsHtml(view.authors),
+        'short_updated': view.shortUpdated,
       });
     }
     final values = {
@@ -305,7 +297,8 @@ class TemplateService {
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
-        'authors_html': _getAuthorsHtml(selectedVersion),
+        'authors_html':
+            _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
         'nice_homepage': selectedVersion.homepageNice,
         'documentation': selectedVersion.documentation,
@@ -541,14 +534,8 @@ class TemplateService {
   }
 }
 
-String _getAuthorsHtml(PackageVersion version) {
-  final author = version.pubspec.author;
-  var authors = version.pubspec.authors;
-
-  if (authors == null && author != null) authors = [author];
-  if (authors == null) authors = const [];
-
-  return authors.map((String value) {
+String _getAuthorsHtml(List<String> authors) {
+  return (authors ?? const []).map((String value) {
     var name = value;
     var email = value;
 

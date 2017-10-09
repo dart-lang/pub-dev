@@ -88,14 +88,16 @@ void main() {
 
     test('package index page', () {
       final String html = templates.renderPkgIndexPage([
-        testPackage,
-        testPackage
-      ], [
-        testPackageVersion,
-        flutterPackageVersion
-      ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(),
+        ),
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter']),
+        ),
       ], new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
@@ -108,10 +110,12 @@ void main() {
 
     test('flutter packages - index page #2', () {
       final String html = templates.renderPkgIndexPage(
-        [testPackage],
-        [flutterPackageVersion],
         [
-          new MockAnalysisView(platforms: ['flutter']),
+          new PackageView.fromModel(
+            package: testPackage,
+            version: flutterPackageVersion,
+            analysis: new MockAnalysisView(platforms: ['flutter']),
+          ),
         ],
         new PackageLinks(
             PackageLinks.resultsPerPage, PackageLinks.resultsPerPage + 1),

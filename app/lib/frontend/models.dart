@@ -242,6 +242,7 @@ class PackageView {
   final String devVersion;
   final String ellipsizedDescription;
   final String shortUpdated;
+  final List<String> authors;
   final List<String> platforms;
 
   PackageView({
@@ -250,6 +251,7 @@ class PackageView {
     this.devVersion,
     this.ellipsizedDescription,
     this.shortUpdated,
+    this.authors,
     this.platforms,
   });
 
@@ -268,6 +270,7 @@ class PackageView {
       devVersion: devVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
+      authors: version?.pubspec?.getAllAuthors(),
       platforms: analysis?.platforms,
     );
   }

@@ -47,6 +47,14 @@ class Pubspec {
     return _asListOfString(_json['authors']);
   }
 
+  List<String> getAllAuthors() {
+    final authorsList = authors;
+    if (authorsList != null) return authorsList;
+    final singleAuthor = author;
+    if (singleAuthor != null) return [singleAuthor];
+    return const [];
+  }
+
   String get homepage {
     _load();
     return _asString(_json['homepage']);
