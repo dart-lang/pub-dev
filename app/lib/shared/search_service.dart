@@ -50,6 +50,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
 
   final double health;
   final double popularity;
+  final double frequency;
 
   /// The creation timestamp of this document.
   final DateTime timestamp;
@@ -65,6 +66,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.platforms,
     this.health,
     this.popularity,
+    this.frequency,
     this.timestamp,
   });
 
