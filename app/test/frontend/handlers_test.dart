@@ -220,7 +220,7 @@ void main() {
             query,
             1,
             [
-              new SearchResultPackage(testPackageVersion, null, null),
+              new PackageView.fromModel(version: testPackageVersion),
             ],
           );
         }));
@@ -237,7 +237,7 @@ void main() {
             query,
             1,
             [
-              new SearchResultPackage(testPackageVersion, null, null),
+              new PackageView.fromModel(version: testPackageVersion),
             ],
           );
         }));

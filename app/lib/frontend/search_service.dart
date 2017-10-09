@@ -61,16 +61,13 @@ Future<SearchResultPage> _loadResultForPackages(
     final List<AnalysisView> analysisViews = await batchResults[0];
     final List<PackageVersion> versions = await batchResults[1];
 
-    final List<SearchResultPackage> resultPackages =
-        new List.generate(versions.length, (i) {
-      final AnalysisView view = analysisViews[i];
-      final Package pkg = packageEntries[i];
-      final String devVersion = pkg.latestVersion != pkg.latestDevVersion
-          ? pkg.latestDevVersion
-          : null;
-      return new SearchResultPackage(versions[i], devVersion, view.platforms);
-    });
-
+    final List<PackageView> resultPackages = new List.generate(
+        versions.length,
+        (i) => new PackageView.fromModel(
+              package: packageEntries[i],
+              version: versions[i],
+              analysis: analysisViews[i],
+            ));
     return new SearchResultPage(query, totalCount, resultPackages);
   } else {
     return new SearchResultPage.empty(query);
@@ -86,19 +83,10 @@ class SearchResultPage {
   final int totalCount;
 
   /// The packages found by the search.
-  final List<SearchResultPackage> packages;
+  final List<PackageView> packages;
 
   SearchResultPage(this.query, this.totalCount, this.packages);
 
   factory SearchResultPage.empty(SearchQuery query) =>
       new SearchResultPage(query, 0, []);
-}
-
-/// The composed package data to be displayed on the search results page.
-class SearchResultPackage {
-  final PackageVersion stableVersion;
-  final String devVersion;
-  final List<String> platforms;
-
-  SearchResultPackage(this.stableVersion, this.devVersion, this.platforms);
 }
