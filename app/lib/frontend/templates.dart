@@ -52,6 +52,13 @@ class TemplateService {
       List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
+    final Map<String, Object> values =
+        _pkgVersionsValues(package, versions, versionDownloadUrls);
+    return _renderPage('pkg/versions/index', values);
+  }
+
+  Map<String, Object> _pkgVersionsValues(String package,
+      List<PackageVersion> versions, List<Uri> versionDownloadUrls) {
     final versionsJson = [];
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
@@ -69,8 +76,20 @@ class TemplateService {
         'name': package,
       },
       'versions': versionsJson,
+      'icons': LogoUrls.versionsTableIcons, // experimental_design: new
     };
-    return _renderPage('pkg/versions/index', values);
+    return values;
+  }
+
+  /// Renders the `views/v2/pkg/versions/index` template.
+  String renderNewPkgVersionsPage(String package, List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls) {
+    assert(versions.length == versionDownloadUrls.length);
+
+    final Map<String, Object> values =
+        _pkgVersionsValues(package, versions, versionDownloadUrls);
+    final content = _renderTemplate('v2/pkg/versions/index', values);
+    return renderNewLayoutPage(content);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
@@ -155,7 +174,40 @@ class TemplateService {
       int totalNumberOfVersions,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
+    final bool isFlutterPlugin =
+        latestStableVersion.pubspec.dependsOnFlutterSdk ||
+            latestStableVersion.pubspec.hasFlutterPlugin;
 
+    final Map<String, Object> values = _pkgShowPageValues(
+      package,
+      versions,
+      versionDownloadUrls,
+      selectedVersion,
+      latestStableVersion,
+      latestDevVersion,
+      totalNumberOfVersions,
+      analysis,
+      isFlutterPlugin,
+    );
+    return _renderPage(
+      'pkg/show',
+      values,
+      title: '${package.name} ${selectedVersion.id} | Dart Package',
+      packageVersion: selectedVersion,
+      faviconUrl: isFlutterPlugin ? LogoUrls.flutterLogo32x32 : null,
+    );
+  }
+
+  Map<String, Object> _pkgShowPageValues(
+      Package package,
+      List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls,
+      PackageVersion selectedVersion,
+      PackageVersion latestStableVersion,
+      PackageVersion latestDevVersion,
+      int totalNumberOfVersions,
+      AnalysisView analysis,
+      isFlutterPlugin) {
     List importExamples;
     if (selectedVersion.libraries.contains('${package.id}.dart')) {
       importExamples = [
@@ -256,10 +308,6 @@ class TemplateService {
     final bool should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
-    final bool isFlutterPlugin =
-        latestStableVersion.pubspec.dependsOnFlutterSdk ||
-            latestStableVersion.pubspec.hasFlutterPlugin;
-
     final List<Map<String, String>> tabs = <Map<String, String>>[];
     void addFileTab(String id, String title, String content) {
       if (content != null) {
@@ -274,7 +322,10 @@ class TemplateService {
     addFileTab('readme', readmeFilename, renderedReadme);
     addFileTab('changelog', changelogFilename, renderedChangelog);
     addFileTab('example', 'Example', renderedExample);
-    if (tabs.isNotEmpty) tabs.first['class'] = 'active';
+    if (tabs.isNotEmpty) {
+      tabs.first['class'] = 'active'; // experimental_design: obsolete
+      tabs.first['active'] = '-active'; // experimental_design: new
+    }
 
     final values = {
       'package': {
@@ -293,7 +344,10 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'icons': _renderIconsBlockHtml(analysis?.platforms),
+        'icons': _renderIconsBlockHtml(
+            analysis?.platforms), // experimental_design: obsolete
+        'tags_html': _renderTags(analysis?.platforms,
+            wrapperDiv: true), // experimental_design: new
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -318,12 +372,43 @@ class TemplateService {
       'tabs': tabs,
       'has_no_file_tab': tabs.isEmpty,
       'version_count': '$totalNumberOfVersions',
+      'icons': LogoUrls.versionsTableIcons, // experimental_design: new
     };
-    return _renderPage(
-      'pkg/show',
-      values,
+    return values;
+  }
+
+  /// Renders the `views/private_keys/show.mustache` template.
+  String renderNewPkgShowPage(
+      Package package,
+      List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls,
+      PackageVersion selectedVersion,
+      PackageVersion latestStableVersion,
+      PackageVersion latestDevVersion,
+      int totalNumberOfVersions,
+      AnalysisView analysis) {
+    assert(versions.length == versionDownloadUrls.length);
+    final bool isFlutterPlugin =
+        latestStableVersion.pubspec.dependsOnFlutterSdk ||
+            latestStableVersion.pubspec.hasFlutterPlugin;
+
+    final Map<String, Object> values = _pkgShowPageValues(
+      package,
+      versions,
+      versionDownloadUrls,
+      selectedVersion,
+      latestStableVersion,
+      latestDevVersion,
+      totalNumberOfVersions,
+      analysis,
+      isFlutterPlugin,
+    );
+    final content = _renderTemplate('v2/pkg/show', values);
+    return renderNewLayoutPage(
+      content,
       title: '${package.name} ${selectedVersion.id} | Dart Package',
-      packageVersion: selectedVersion,
+      packageName: selectedVersion.package,
+      packageDescription: selectedVersion.ellipsizedDescription,
       faviconUrl: isFlutterPlugin ? LogoUrls.flutterLogo32x32 : null,
     );
   }
@@ -368,8 +453,8 @@ class TemplateService {
 
   /// Renders the `views/v2/layout.mustache` template.
   String renderNewLayoutPage(
-    String title,
     String contentHtml, {
+    String title: 'pub.dartlang.org',
     String packageName,
     String packageDescription,
     String faviconUrl,
@@ -520,6 +605,19 @@ class TemplateService {
     return icons;
   }
 
+  /// Renders the tags using the pkg/tags template.
+  String _renderTags(List<String> platforms, {bool wrapperDiv: false}) {
+    final List tags = platforms?.map((platform) {
+      final Map tagData = _logoData[platform];
+      return tagData ?? {'text': platform};
+    })?.toList();
+    return _renderTemplate('v2/pkg/tags', {
+      'has_tags': tags != null && tags.isNotEmpty,
+      'wrapper_div': wrapperDiv,
+      'tags': tags,
+    });
+  }
+
   /// Renders [template] with given [values].
   ///
   /// If [escapeValues] is `false`, values in `values` will not be escaped.
@@ -647,12 +745,21 @@ class PackageLinks extends PageLinks {
 
 abstract class LogoUrls {
   static const String newDesignAssetsDir = '/static/v2';
+  static const String documentationIcon =
+      '$newDesignAssetsDir/img/ic_drive_document_black_24dp.svg';
+  static const String downloadIcon =
+      '$newDesignAssetsDir/img/ic_get_app_black_24dp.svg';
 
   static const String smallDartFavicon = '/static/favicon.ico';
   static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
   static const String html5Logo32x32 = '/static/img/html5-logo-32x32.png';
   // Original source: https://pixabay.com/en/bash-command-line-linux-shell-148836/
   static const String shellLogo32x32 = '/static/img/shell-logo-32x32.png';
+
+  static const versionsTableIcons = const {
+    'documentation': LogoUrls.documentationIcon,
+    'download': LogoUrls.downloadIcon,
+  };
 }
 
 final Map<String, Map> _logoData = const {
