@@ -20,11 +20,13 @@ import '../shared/analyzer_client.dart';
 import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
 
+import 'scoring.dart';
 import 'text_utils.dart';
 
 part 'backend.g.dart';
 
 Logger _logger = new Logger('pub.search.backend');
+final Duration _year = const Duration(days: 365);
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -70,6 +72,9 @@ class SearchBackend {
         await analyzerClient.getAnalysisViews(packages.map((p) =>
             p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
 
+    final List<double> frequencyScores =
+        await Future.wait(packages.map((p) => _calculateFrequency(p)));
+
     final List<PackageDocument> results = new List(packages.length);
     for (int i = 0; i < packages.length; i++) {
       final Package p = packages[i];
@@ -90,10 +95,39 @@ class SearchBackend {
         readme: compactReadme(pv.readmeContent),
         health: analysisView.health,
         popularity: mockScores[pv.package] ?? 0.0,
+        frequency: frequencyScores[i],
         timestamp: new DateTime.now().toUtc(),
       );
     }
     return results;
+  }
+
+  Future<double> _calculateFrequency(Package p) async {
+    final DateTime now = new DateTime.now().toUtc();
+    final DateTime yearAgo = now.subtract(_year);
+
+    // last package upload older than a year?
+    if (p.updated.isBefore(yearAgo)) {
+      return 0.0;
+    }
+
+    List<int> releaseDays;
+
+    if (p.updated == p.created) {
+      // no need for database query
+      releaseDays = [now.difference(p.updated).inDays];
+    } else {
+      final Query query = _db.query(PackageVersion, ancestorKey: p.key)
+        ..order('-created')
+        ..filter('created >=', yearAgo);
+      releaseDays = await query
+          .run()
+          .map((model) =>
+              now.difference((model as PackageVersion).created).inDays)
+          .toList();
+    }
+
+    return scoreReleaseFrequency(releaseDays);
   }
 }
 
