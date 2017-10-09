@@ -52,11 +52,6 @@ class Package extends db.ExpandoModel {
   @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
-  // Fields that contain the properties of the latest stable version
-
-  @CompatibleStringListProperty()
-  List<String> detectedTypes;
-
   // Convenience Fields:
 
   String get latestVersion => latestVersionKey.id;
@@ -181,9 +176,6 @@ class PackageVersion extends db.ExpandoModel {
 
   @db.StringProperty(required: true)
   String uploaderEmail;
-
-  @CompatibleStringListProperty()
-  List<String> detectedTypes;
 
   // Convenience Fields:
 

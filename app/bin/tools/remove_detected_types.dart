@@ -25,7 +25,7 @@ Future main(List<String> args) async {
 Future _updatePackageVersion(Key pvKey) async {
   await dbService.withTransaction((Transaction t) async {
     final PackageVersion pv = (await t.lookup([pvKey])).single;
-    pv.detectedTypes = null;
+    pv.additionalProperties.remove('detectedTypes');
     t.queueMutations(inserts: [pv]);
     await t.commit();
   });
@@ -34,7 +34,7 @@ Future _updatePackageVersion(Key pvKey) async {
 Future _updatePackage(Key pKey) async {
   await dbService.withTransaction((Transaction t) async {
     final Package p = (await t.lookup([pKey])).single;
-    p.detectedTypes = null;
+    p.additionalProperties.remove('detectedTypes');
     t.queueMutations(inserts: [p]);
     await t.commit();
   });
