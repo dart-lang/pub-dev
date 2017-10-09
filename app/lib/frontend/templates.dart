@@ -454,19 +454,17 @@ class TemplateService {
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     final List results = [];
     for (int i = 0; i < resultPage.packages.length; i++) {
-      final resultPkg = resultPage.packages[i];
-      final PackageVersion version = resultPkg.stableVersion;
-
+      final PackageView view = resultPage.packages[i];
       results.add({
-        'url': '/packages/${version.packageKey.id}',
-        'name': version.packageKey.id,
-        'version': HTML_ESCAPE.convert(version.id),
-        'show_dev_version': resultPkg.devVersion != null,
-        'dev_version': HTML_ESCAPE.convert(resultPkg.devVersion ?? ''),
-        'dev_version_href': Uri.encodeComponent(resultPkg.devVersion ?? ''),
-        'icons': _renderIconsColumnHtml(resultPkg.platforms),
-        'last_uploaded': version.shortCreated,
-        'desc': version.ellipsizedDescription,
+        'url': '/packages/${view.name}',
+        'name': view.name,
+        'version': HTML_ESCAPE.convert(view.version),
+        'show_dev_version': view.devVersion != null,
+        'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
+        'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
+        'icons': _renderIconsColumnHtml(view.platforms),
+        'last_uploaded': view.shortUpdated,
+        'desc': view.ellipsizedDescription,
       });
     }
     final String queryText = resultPage.query.text;

@@ -11,9 +11,10 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchResultPage, SearchResultPackage;
+    show SearchResultPage;
 
 import 'utils.dart';
 
@@ -127,8 +128,10 @@ void main() {
         query,
         2,
         [
-          new SearchResultPackage(testPackageVersion, null, null),
-          new SearchResultPackage(flutterPackageVersion, null, ['flutter']),
+          new PackageView.fromModel(version: testPackageVersion),
+          new PackageView.fromModel(
+              version: flutterPackageVersion,
+              analysis: new MockAnalysisView(platforms: ['flutter'])),
         ],
       );
       final String html =
