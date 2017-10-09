@@ -301,10 +301,16 @@ Future<shelf.Response> packagesHandlerHtml(
   final versions = batchResults[0];
   final List<AnalysisView> analysisViews = batchResults[1];
 
+  final packageViews = new List.generate(
+      pagePackages.length,
+      (i) => new PackageView.fromModel(
+            package: pagePackages[i],
+            version: versions[i],
+            analysis: analysisViews[i],
+          ));
+
   return htmlResponse(templateService.renderPkgIndexPage(
-    pagePackages,
-    versions,
-    analysisViews,
+    packageViews,
     links,
     title: title,
     faviconUrl: faviconUrl,

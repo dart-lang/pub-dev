@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart'
     show SearchResultPage, SearchResultPackage;
@@ -87,14 +88,16 @@ void main() {
 
     test('package index page', () {
       final String html = templates.renderPkgIndexPage([
-        testPackage,
-        testPackage
-      ], [
-        testPackageVersion,
-        flutterPackageVersion
-      ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(),
+        ),
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter']),
+        ),
       ], new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
@@ -107,10 +110,12 @@ void main() {
 
     test('flutter packages - index page #2', () {
       final String html = templates.renderPkgIndexPage(
-        [testPackage],
-        [flutterPackageVersion],
         [
-          new MockAnalysisView(platforms: ['flutter']),
+          new PackageView.fromModel(
+            package: testPackage,
+            version: flutterPackageVersion,
+            analysis: new MockAnalysisView(platforms: ['flutter']),
+          ),
         ],
         new PackageLinks(
             PackageLinks.resultsPerPage, PackageLinks.resultsPerPage + 1),

@@ -59,6 +59,7 @@ final PackageVersion testPackageVersion = new PackageVersion()
 
 final PackageVersion flutterPackageVersion =
     clonePackageVersion(testPackageVersion)
+      ..created = new DateTime.utc(2015)
       ..pubspec = new Pubspec.fromYaml(TestPackagePubspec +
           '''
 flutter:
