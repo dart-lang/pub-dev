@@ -82,14 +82,14 @@ class TemplateService {
   }
 
   /// Renders the `views/v2/pkg/versions/index` template.
-  String renderNewPkgVersionsPage(String package, List<PackageVersion> versions,
+  String renderPkgVersionsPageV2(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
     final Map<String, Object> values =
         _pkgVersionsValues(package, versions, versionDownloadUrls);
     final content = _renderTemplate('v2/pkg/versions/index', values);
-    return renderNewLayoutPage(content);
+    return renderLayoutPageV2(content);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
@@ -163,7 +163,7 @@ class TemplateService {
     return _renderTemplate('pkg/analysis_tab', data);
   }
 
-  /// Renders the `views/private_keys/show.mustache` template.
+  /// Renders the `views/pkg/show.mustache` template.
   String renderPkgShowPage(
       Package package,
       List<PackageVersion> versions,
@@ -377,8 +377,8 @@ class TemplateService {
     return values;
   }
 
-  /// Renders the `views/private_keys/show.mustache` template.
-  String renderNewPkgShowPage(
+  /// Renders the `views/v2/pkg/show.mustache` template.
+  String renderPkgShowPageV2(
       Package package,
       List<PackageVersion> versions,
       List<Uri> versionDownloadUrls,
@@ -404,7 +404,7 @@ class TemplateService {
       isFlutterPlugin,
     );
     final content = _renderTemplate('v2/pkg/show', values);
-    return renderNewLayoutPage(
+    return renderLayoutPageV2(
       content,
       title: '${package.name} ${selectedVersion.id} | Dart Package',
       packageName: selectedVersion.package,
@@ -452,7 +452,7 @@ class TemplateService {
   }
 
   /// Renders the `views/v2/layout.mustache` template.
-  String renderNewLayoutPage(
+  String renderLayoutPageV2(
     String contentHtml, {
     String title: 'pub.dartlang.org',
     String packageName,
@@ -513,7 +513,7 @@ class TemplateService {
   }
 
   /// Renders the `views/v2/pagination.mustache` template.
-  String renderNewPagination(PageLinks pageLinks) {
+  String renderPaginationV2(PageLinks pageLinks) {
     final values = {
       'page_links': pageLinks.hrefPatterns(),
     };

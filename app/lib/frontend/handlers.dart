@@ -61,7 +61,7 @@ Future<shelf.Response> appHandler(
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
   } else if (path.startsWith('/experimental/packages/')) {
-    return experimentalPackageHandler(request);
+    return packageHandlerV2(request);
   } else if (path.startsWith('/doc')) {
     return docHandler(request);
   } else if (path.startsWith('/static')) {
@@ -370,7 +370,7 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
 /// Handles the following URLs:
 ///   - /packages/<package>
 ///   - /packages/<package>/versions
-FutureOr<shelf.Response> experimentalPackageHandler(shelf.Request request) {
+FutureOr<shelf.Response> packageHandlerV2(shelf.Request request) {
   var path =
       request.requestedUri.path.substring('/experimental/packages/'.length);
   if (path.length == 0) {
@@ -387,7 +387,7 @@ FutureOr<shelf.Response> experimentalPackageHandler(shelf.Request request) {
     if (responseAsJson) {
       return packageShowHandlerJson(request, Uri.decodeComponent(path));
     } else {
-      return experimentalPackageVersionHandlerHtml(
+      return packageVersionHandlerHtmlV2(
           request, Uri.decodeComponent(path), null);
     }
   }
@@ -403,10 +403,10 @@ FutureOr<shelf.Response> experimentalPackageHandler(shelf.Request request) {
       } else {
         path = path.substring(1);
         final String version = Uri.decodeComponent(path);
-        return experimentalPackageVersionHandlerHtml(request, package, version);
+        return packageVersionHandlerHtmlV2(request, package, version);
       }
     } else {
-      return experimentalPackageVersionsHandler(request, package);
+      return packageVersionsHandlerV2(request, package);
     }
   }
   return _formattedNotFoundHandler(request);
@@ -462,21 +462,22 @@ Future<shelf.Response> _packageVersionsHandler(
 }
 
 /// Handles requests for /experimental/packages/<package>/versions
-Future<shelf.Response> experimentalPackageVersionsHandler(
+Future<shelf.Response> packageVersionsHandlerV2(
     shelf.Request request, String packageName) {
   return _packageVersionsHandler(
-      request, packageName, templateService.renderNewPkgVersionsPage);
+      request, packageName, templateService.renderPkgVersionsPageV2);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName, String versionName) {
-  return _packageVersionHandlerHtml(request, packageName, versionName,
-      templateService.renderPkgShowPage, true);
+  return _packageVersionHandlerHtml(request, false, packageName, versionName,
+      templateService.renderPkgShowPage);
 }
 
 Future<shelf.Response> _packageVersionHandlerHtml(
     shelf.Request request,
+    bool isV2,
     String packageName,
     String versionName,
     String render(
@@ -487,13 +488,12 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         PackageVersion latestStableVersion,
         PackageVersion latestDevVersion,
         int totalNumberOfVersions,
-        AnalysisView analysis),
-    bool cachePage) async {
+        AnalysisView analysis)) async {
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
-  if (cachePage && backend.uiPackageCache != null) {
+  if (backend.uiPackageCache != null) {
     cachedPage = await backend.uiPackageCache
-        .getUIPackagePage(false, packageName, versionName);
+        .getUIPackagePage(isV2, packageName, versionName);
   }
 
   if (cachedPage == null) {
@@ -543,9 +543,9 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         versions.length,
         analysisView);
 
-    if (cachePage && backend.uiPackageCache != null) {
+    if (backend.uiPackageCache != null) {
       await backend.uiPackageCache
-          .setUIPackagePage(false, packageName, versionName, cachedPage);
+          .setUIPackagePage(isV2, packageName, versionName, cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }
@@ -554,10 +554,10 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 }
 
 /// Handles requests for /experimental/packages/<package>/versions/<version>
-Future<shelf.Response> experimentalPackageVersionHandlerHtml(
+Future<shelf.Response> packageVersionHandlerHtmlV2(
     shelf.Request request, String packageName, String versionName) {
-  return _packageVersionHandlerHtml(request, packageName, versionName,
-      templateService.renderNewPkgShowPage, false);
+  return _packageVersionHandlerHtml(request, true, packageName, versionName,
+      templateService.renderPkgShowPageV2);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
