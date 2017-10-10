@@ -103,7 +103,7 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 
 /// Handles requests for /
 Future<shelf.Response> indexHandler(_) async {
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage();
+  String pageContent = await backend.uiPackageCache?.getUIIndexPage(false);
   if (pageContent == null) {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
@@ -112,7 +112,7 @@ Future<shelf.Response> indexHandler(_) async {
         await analyzerClient.getAnalysisViews(
             versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
     pageContent = templateService.renderIndexPage(versions, analysisViews);
-    await backend.uiPackageCache?.setUIIndexPage(pageContent);
+    await backend.uiPackageCache?.setUIIndexPage(false, pageContent);
   }
   return htmlResponse(pageContent);
 }
@@ -410,8 +410,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
-    cachedPage =
-        await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
+    cachedPage = await backend.uiPackageCache
+        .getUIPackagePage(false, packageName, versionName);
   }
 
   if (cachedPage == null) {
@@ -463,7 +463,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
     if (backend.uiPackageCache != null) {
       await backend.uiPackageCache
-          .setUIPackagePage(packageName, versionName, cachedPage);
+          .setUIPackagePage(false, packageName, versionName, cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }

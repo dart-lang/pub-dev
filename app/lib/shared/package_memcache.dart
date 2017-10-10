@@ -17,15 +17,16 @@ final Logger _logger = new Logger('pub.package_memcache');
 abstract class UIPackageCache {
   // If [version] is `null` then it corresponds to the cache entry which can be
   // invalidated via [invalidateUiPackagePage].
-  Future<String> getUIPackagePage(String package, String version);
+  Future<String> getUIPackagePage(bool isV2, String package, String version);
 
   // If [version] is `null` then it corresponds to the cache entry which can be
   // invalidated via [invalidateUiPackagePage].
-  Future setUIPackagePage(String package, String version, String data);
+  Future setUIPackagePage(
+      bool isV2, String package, String version, String data);
 
-  Future<String> getUIIndexPage();
+  Future<String> getUIIndexPage(bool isV2);
 
-  Future setUIIndexPage(String content);
+  Future setUIIndexPage(bool isV2, String content);
 
   Future invalidateUIPackagePage(String package);
 }
@@ -52,18 +53,21 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _json.setBytes(package, data);
 
   @override
-  Future<String> getUIPackagePage(String package, String version) =>
-      _uiPage.getText(_pvKey(package, version));
+  Future<String> getUIPackagePage(bool isV2, String package, String version) =>
+      _uiPage.getText(_pvKey(isV2, package, version));
 
   @override
-  Future setUIPackagePage(String package, String version, String data) =>
-      _uiPage.setText(_pvKey(package, version), data);
+  Future setUIPackagePage(
+          bool isV2, String package, String version, String data) =>
+      _uiPage.setText(_pvKey(isV2, package, version), data);
 
   @override
   Future invalidateUIPackagePage(String package) {
     return Future.wait([
-      _uiPage.invalidate(_pvKey(package, null)),
-      _uiIndexPage.invalidate(indexUiPageKey),
+      _uiPage.invalidate(_pvKey(false, package, null)),
+      _uiPage.invalidate(_pvKey(true, package, null)),
+      _uiIndexPage.invalidate(_indexPageKey(false)),
+      _uiIndexPage.invalidate(_indexPageKey(true)),
     ]);
   }
 
@@ -71,17 +75,25 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   Future invalidatePackageData(String package) {
     return Future.wait([
       _json.invalidate(package),
-      _uiIndexPage.invalidate(indexUiPageKey),
-      _uiPage.invalidate(_pvKey(package, null)),
+      _uiIndexPage.invalidate(_indexPageKey(false)),
+      _uiIndexPage.invalidate(_indexPageKey(true)),
+      _uiPage.invalidate(_pvKey(false, package, null)),
+      _uiPage.invalidate(_pvKey(true, package, null)),
     ]);
   }
 
   @override
-  Future<String> getUIIndexPage() => _uiIndexPage.getText(indexUiPageKey);
+  Future<String> getUIIndexPage(bool isV2) =>
+      _uiIndexPage.getText(_indexPageKey(isV2));
 
   @override
-  Future setUIIndexPage(String content) =>
-      _uiIndexPage.setText(indexUiPageKey, content);
+  Future setUIIndexPage(bool isV2, String content) =>
+      _uiIndexPage.setText(_indexPageKey(isV2), content);
 
-  String _pvKey(String package, String version) => '/$package/$version';
+  String _indexPageKey(bool isV2) => isV2 ? v2IndexUiPageKey : indexUiPageKey;
+
+  String _pvKey(bool isV2, String package, String version) {
+    final String prefix = isV2 ? '/experimental' : '';
+    return '$prefix/$package/$version';
+  }
 }
