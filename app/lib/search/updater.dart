@@ -24,7 +24,7 @@ final _indexUpdateThreshold = const Duration(days: 1);
 class IndexUpdateTaskSource extends DatastoreVersionsHeadTaskSource {
   final BatchIndexUpdater _batchIndexUpdater;
   IndexUpdateTaskSource(DatastoreDB db, this._batchIndexUpdater)
-      : super(db, onlyLatest: true, sleep: const Duration(minutes: 30));
+      : super(db, TaskSourceModel.package, sleep: const Duration(minutes: 30));
 
   @override
   Future dbScanComplete(int count) async {

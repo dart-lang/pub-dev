@@ -23,7 +23,7 @@ class DatastoreHeadTaskSource extends DatastoreVersionsHeadTaskSource {
   final DatastoreDB _db;
   DatastoreHeadTaskSource(DatastoreDB db)
       : _db = db,
-        super(db, skipHistory: true);
+        super(db, TaskSourceModel.version, skipHistory: true);
 
   @override
   Future<bool> shouldYieldTask(Task task) async {
