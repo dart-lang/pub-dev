@@ -451,6 +451,36 @@ class TemplateService {
     return _renderPage('index', values, title: 'Pub: Dart Package Manager');
   }
 
+  /// Renders the `views/v2/index.mustache` template.
+  String renderIndexPageV2(
+      String popularHtml, String updatedHtml, String newestHtml) {
+    final values = {
+      'popular_html': popularHtml,
+      'updated_html': updatedHtml,
+      'newest_html': newestHtml,
+    };
+    final String content = _renderTemplate('v2/index', values);
+    return renderLayoutPageV2(
+      content,
+      title: 'Pub: Dart Package Manager',
+      homeBanner: true,
+    );
+  }
+
+  /// Renders the `views/v2/mini_list.mustache` template.
+  String renderMiniList(List<PackageView> packages) {
+    final values = {
+      'packages': packages.map((package) {
+        return {
+          'name': package.name,
+          'ellipsized_description': package.ellipsizedDescription,
+          'tags_html': _renderTags(package.platforms),
+        };
+      }).toList(),
+    };
+    return _renderTemplate('v2/mini_list', values);
+  }
+
   /// Renders the `views/v2/layout.mustache` template.
   String renderLayoutPageV2(
     String contentHtml, {
@@ -800,6 +830,8 @@ abstract class LogoUrls {
   };
 }
 
+// 'text': experimental_design: new
+// 'label', 'src': experimental_design: obsolete
 final Map<String, Map> _logoData = const {
   KnownPlatforms.flutter: const {
     'src': LogoUrls.flutterLogo32x32,

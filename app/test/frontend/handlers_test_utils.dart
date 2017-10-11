@@ -40,6 +40,7 @@ Future expectAtomXmlResponse(shelf.Response response,
 }
 
 class BackendMock implements Backend {
+  final Function newestPackagesFun;
   final Function latestPackageVersionsFun;
   final Function latestPackagesFun;
   final Function lookupLatestVersionsFun;
@@ -48,14 +49,16 @@ class BackendMock implements Backend {
   final Function versionsOfPackageFun;
   final Function downloadUrlFun;
 
-  BackendMock(
-      {this.latestPackageVersionsFun,
-      this.latestPackagesFun,
-      this.lookupLatestVersionsFun,
-      this.lookupPackageFun,
-      this.lookupPackageVersionFun,
-      this.versionsOfPackageFun,
-      this.downloadUrlFun});
+  BackendMock({
+    this.newestPackagesFun,
+    this.latestPackageVersionsFun,
+    this.latestPackagesFun,
+    this.lookupLatestVersionsFun,
+    this.lookupPackageFun,
+    this.lookupPackageVersionFun,
+    this.versionsOfPackageFun,
+    this.downloadUrlFun,
+  });
 
   @override
   // ignore: always_declare_return_types
@@ -68,6 +71,12 @@ class BackendMock implements Backend {
   @override
   // ignore: always_declare_return_types
   get uiPackageCache => null;
+
+  @override
+  Future<List<Package>> newestPackages({int offset, int limit}) async {
+    if (newestPackagesFun == null) throw 'no newestPackagesFun';
+    return newestPackagesFun(offset: offset, limit: limit);
+  }
 
   @override
   Future<List<PackageVersion>> latestPackageVersions(
@@ -141,6 +150,17 @@ class TemplateMock implements TemplateService {
   @override
   String renderIndexPage(
       List<PackageVersion> recentPackages, List<AnalysisView> analysisViews) {
+    return Response;
+  }
+
+  @override
+  String renderIndexPageV2(
+      String popularHtml, String updatedHtml, String newestHtml) {
+    return Response;
+  }
+
+  @override
+  String renderMiniList(List<PackageView> packages) {
     return Response;
   }
 

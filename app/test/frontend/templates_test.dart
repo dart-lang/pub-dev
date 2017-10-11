@@ -48,6 +48,33 @@ void main() {
       expectGoldenFile(html, 'index_page.html');
     });
 
+    test('index page v2', () {
+      final popularHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['web']),
+        ),
+      ]);
+      final updatedHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter']),
+        ),
+      ]);
+      final newestHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter', 'server']),
+        ),
+      ]);
+      final String html =
+          templates.renderIndexPageV2(popularHtml, updatedHtml, newestHtml);
+      expectGoldenFile(html, 'v2/index_page.html');
+    });
+
     test('package show page', () {
       final String html = templates.renderPkgShowPage(
           testPackage,

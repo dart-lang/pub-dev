@@ -73,6 +73,8 @@ Future<shelf.Response> appHandler(
 
 const _handlers = const <String, shelf.Handler>{
   '/': indexHandler,
+  '/experimental': experimentalIndexHandler,
+  '/experimental/': experimentalIndexHandler,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
@@ -116,6 +118,48 @@ Future<shelf.Response> indexHandler(_) async {
             versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
     pageContent = templateService.renderIndexPage(versions, analysisViews);
     await backend.uiPackageCache?.setUIIndexPage(false, pageContent);
+  }
+  return htmlResponse(pageContent);
+}
+
+/// Handles requests for /experimental/
+Future<shelf.Response> experimentalIndexHandler(_) async {
+  String pageContent = await backend.uiPackageCache?.getUIIndexPage(true);
+  if (pageContent == null) {
+    Future<String> searchAndRenderMiniList(SearchOrder order) async {
+      final result = await searchService
+          .search(new SearchQuery(null, limit: 5, order: order));
+      final packages = (result.packages.length <= 5)
+          ? result.packages
+          : result.packages.sublist(0, 5);
+      return templateService.renderMiniList(packages);
+    }
+
+    Future<String> renderMiniList(Future<List<Package>> selected) async {
+      final packages = await selected;
+      final versions = await backend.lookupLatestVersions(packages);
+      assert(!versions.any((version) => version == null));
+      final List<AnalysisView> analysisViews =
+          await analyzerClient.getAnalysisViews(
+              versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
+      final views = new List<PackageView>.generate(versions.length, (index) {
+        return new PackageView.fromModel(
+          package: packages[index],
+          version: versions[index],
+          analysis: analysisViews[index],
+        );
+      });
+      return templateService.renderMiniList(views);
+    }
+
+    final List<String> miniListHtmls = await Future.wait([
+      searchAndRenderMiniList(SearchOrder.popularity),
+      renderMiniList(backend.latestPackages(limit: 5)),
+      renderMiniList(backend.newestPackages(limit: 5)),
+    ]);
+    pageContent = templateService.renderIndexPageV2(
+        miniListHtmls[0], miniListHtmls[1], miniListHtmls[2]);
+    await backend.uiPackageCache?.setUIIndexPage(true, pageContent);
   }
   return htmlResponse(pageContent);
 }
