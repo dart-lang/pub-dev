@@ -32,11 +32,9 @@ Future main() async {
     _initFlutterSdk().then((_) async {
       startIsolates(logger, _runScheduler);
     });
-    return withCorrectDatastore(() async {
-      _registerServices();
-      await runAppEngine((HttpRequest request) =>
-          shelf_io.handleRequest(request, analyzerServiceHandler));
-    });
+    _registerServices();
+    await runAppEngine((HttpRequest request) =>
+        shelf_io.handleRequest(request, analyzerServiceHandler));
   });
 }
 
@@ -49,19 +47,17 @@ void _runScheduler(List<SendPort> sendPorts) {
   mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {
-    await withCorrectDatastore(() async {
-      _registerServices();
-      final PanaRunner runner = new PanaRunner(analysisBackend);
-      final scheduler = new TaskScheduler(runner, [
-        new ManualTriggerTaskSource(taskReceivePort),
-        new DatastoreHeadTaskSource(db.dbService),
-        new DatastoreHistoryTaskSource(db.dbService),
-      ]);
-      new Timer.periodic(const Duration(minutes: 1), (_) {
-        statsSendPort.send(scheduler.stats());
-      });
-      await scheduler.run();
+    _registerServices();
+    final PanaRunner runner = new PanaRunner(analysisBackend);
+    final scheduler = new TaskScheduler(runner, [
+      new ManualTriggerTaskSource(taskReceivePort),
+      new DatastoreHeadTaskSource(db.dbService),
+      new DatastoreHistoryTaskSource(db.dbService),
+    ]);
+    new Timer.periodic(const Duration(minutes: 1), (_) {
+      statsSendPort.send(scheduler.stats());
     });
+    await scheduler.run();
   });
 }
 

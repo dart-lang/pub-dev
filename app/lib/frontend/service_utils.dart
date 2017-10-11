@@ -17,7 +17,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/configuration.dart';
 import '../shared/package_memcache.dart';
-import '../shared/service_utils.dart';
 
 import 'backend.dart';
 import 'oauth2_service.dart';
@@ -79,11 +78,9 @@ Future withProdServices(Future fun()) {
     if (!envConfig.hasGcloudKey) {
       throw 'Missing GCLOUD_* environments for package:appengine';
     }
-    return withCorrectDatastore(() {
-      registerUploadSigner(
-          new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
-      initBackend();
-      return fun();
-    });
+    registerUploadSigner(
+        new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
+    initBackend();
+    return fun();
   });
 }

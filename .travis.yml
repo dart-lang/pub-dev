@@ -1,7 +1,6 @@
 language: dart
 sudo: false
 dart:
-  - stable
   - dev
 script:
   - cd app && pub get && pub run test
