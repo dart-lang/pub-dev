@@ -60,6 +60,8 @@ Future<shelf.Response> appHandler(
     return shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
+  } else if (path.startsWith('/experimental/packages/')) {
+    return packageHandlerV2(request);
   } else if (path.startsWith('/doc')) {
     return docHandler(request);
   } else if (path.startsWith('/static')) {
@@ -363,6 +365,53 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
   return _formattedNotFoundHandler(request);
 }
 
+/// Handles requests for /experimental/packages/...  - multiplexes to HTML/JSON handlers
+///
+/// Handles the following URLs:
+///   - /packages/<package>
+///   - /packages/<package>/versions
+FutureOr<shelf.Response> packageHandlerV2(shelf.Request request) {
+  var path =
+      request.requestedUri.path.substring('/experimental/packages/'.length);
+  if (path.length == 0) {
+    return _formattedNotFoundHandler(request);
+  }
+
+  final int slash = path.indexOf('/');
+  if (slash == -1) {
+    bool responseAsJson = request.url.queryParameters['format'] == 'json';
+    if (path.endsWith('.json')) {
+      responseAsJson = true;
+      path = path.substring(0, path.length - '.json'.length);
+    }
+    if (responseAsJson) {
+      return packageShowHandlerJson(request, Uri.decodeComponent(path));
+    } else {
+      return packageVersionHandlerHtmlV2(
+          request, Uri.decodeComponent(path), null);
+    }
+  }
+
+  final package = Uri.decodeComponent(path.substring(0, slash));
+  if (path.substring(slash).startsWith('/versions')) {
+    path = path.substring(slash + '/versions'.length);
+    if (path.startsWith('/')) {
+      if (path.endsWith('.yaml')) {
+        path = path.substring(1, path.length - '.yaml'.length);
+        final String version = Uri.decodeComponent(path);
+        return packageVersionHandlerYaml(request, package, version);
+      } else {
+        path = path.substring(1);
+        final String version = Uri.decodeComponent(path);
+        return packageVersionHandlerHtmlV2(request, package, version);
+      }
+    } else {
+      return packageVersionsHandlerV2(request, package);
+    }
+  }
+  return _formattedNotFoundHandler(request);
+}
+
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
@@ -389,7 +438,16 @@ Future<shelf.Response> packageShowHandlerHtml(
 
 /// Handles requests for /packages/<package>/versions
 Future<shelf.Response> packageVersionsHandler(
-    shelf.Request request, String packageName) async {
+    shelf.Request request, String packageName) {
+  return _packageVersionsHandler(
+      request, packageName, templateService.renderPkgVersionsPage);
+}
+
+Future<shelf.Response> _packageVersionsHandler(
+    shelf.Request request,
+    String packageName,
+    String render(String packageName, List<PackageVersion> versions,
+        List<Uri> versionDownloadUrls)) async {
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) return _formattedNotFoundHandler(request);
 
@@ -400,18 +458,42 @@ Future<shelf.Response> packageVersionsHandler(
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
-  return htmlResponse(templateService.renderPkgVersionsPage(
-      packageName, versions, versionDownloadUrls));
+  return htmlResponse(render(packageName, versions, versionDownloadUrls));
+}
+
+/// Handles requests for /experimental/packages/<package>/versions
+Future<shelf.Response> packageVersionsHandlerV2(
+    shelf.Request request, String packageName) {
+  return _packageVersionsHandler(
+      request, packageName, templateService.renderPkgVersionsPageV2);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
-    shelf.Request request, String packageName, String versionName) async {
+    shelf.Request request, String packageName, String versionName) {
+  return _packageVersionHandlerHtml(request, false, packageName, versionName,
+      templateService.renderPkgShowPage);
+}
+
+Future<shelf.Response> _packageVersionHandlerHtml(
+    shelf.Request request,
+    bool isV2,
+    String packageName,
+    String versionName,
+    String render(
+        Package package,
+        List<PackageVersion> first10Versions,
+        List<Uri> versionDownloadUrls,
+        PackageVersion selectedVersion,
+        PackageVersion latestStableVersion,
+        PackageVersion latestDevVersion,
+        int totalNumberOfVersions,
+        AnalysisView analysis)) async {
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
     cachedPage = await backend.uiPackageCache
-        .getUIPackagePage(false, packageName, versionName);
+        .getUIPackagePage(isV2, packageName, versionName);
   }
 
   if (cachedPage == null) {
@@ -451,7 +533,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
       return backend.downloadUrl(packageName, version.version);
     }).toList());
 
-    cachedPage = templateService.renderPkgShowPage(
+    cachedPage = render(
         package,
         first10Versions,
         versionDownloadUrls,
@@ -463,12 +545,19 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
     if (backend.uiPackageCache != null) {
       await backend.uiPackageCache
-          .setUIPackagePage(false, packageName, versionName, cachedPage);
+          .setUIPackagePage(isV2, packageName, versionName, cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }
 
   return htmlResponse(cachedPage);
+}
+
+/// Handles requests for /experimental/packages/<package>/versions/<version>
+Future<shelf.Response> packageVersionHandlerHtmlV2(
+    shelf.Request request, String packageName, String versionName) {
+  return _packageVersionHandlerHtml(request, true, packageName, versionName,
+      templateService.renderPkgShowPageV2);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml

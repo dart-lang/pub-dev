@@ -145,9 +145,9 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderNewLayoutPage(
-    String title,
+  String renderLayoutPageV2(
     String contentHtml, {
+    String title: 'pub.dartlang.org',
     String packageName,
     String packageDescription,
     String faviconUrl,
@@ -167,7 +167,7 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderNewPagination(PageLinks pageLinks) {
+  String renderPaginationV2(PageLinks pageLinks) {
     return Response;
   }
 
@@ -200,7 +200,26 @@ class TemplateMock implements TemplateService {
   }
 
   @override
+  String renderPkgShowPageV2(
+      Package package,
+      List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls,
+      PackageVersion selectedVersion,
+      PackageVersion latestStableVersion,
+      PackageVersion latestDevVersion,
+      int totalNumberOfVersions,
+      AnalysisView analysis) {
+    return Response;
+  }
+
+  @override
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls) {
+    return Response;
+  }
+
+  @override
+  String renderPkgVersionsPageV2(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
     return Response;
   }

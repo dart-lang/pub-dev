@@ -61,6 +61,19 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
+    test('package show page v2', () {
+      final String html = templates.renderPkgShowPageV2(
+          testPackage,
+          [testPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          testPackageVersion,
+          testPackageVersion,
+          testPackageVersion,
+          1,
+          new MockAnalysisView()..licenseText = 'BSD');
+      expectGoldenFile(html, 'v2/pkg_show_page.html');
+    });
+
     test('package show page with flutter_plugin', () {
       final String html = templates.renderPkgShowPage(
           testPackage,
@@ -72,6 +85,19 @@ void main() {
           1,
           new MockAnalysisView()..platforms = ['flutter']);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
+    });
+
+    test('package show page with flutter_plugin v2', () {
+      final String html = templates.renderPkgShowPageV2(
+          testPackage,
+          [flutterPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          flutterPackageVersion,
+          flutterPackageVersion,
+          flutterPackageVersion,
+          1,
+          new MockAnalysisView()..platforms = ['flutter']);
+      expectGoldenFile(html, 'v2/pkg_show_page_flutter_plugin.html');
     });
 
     test('package analysis tab', () async {
