@@ -34,13 +34,13 @@ key variant.
 
 #### Variant a) Running locally without Docker
 
-To run the `frontend` application locally follow these steps:
+To run the `frontend` (default) application locally, follow these steps:
 ```
 pub-dartlang-dart $ cd app
 pub-dartlang-dart/app $ pub get
 pub-dartlang-dart/app $ export GCLOUD_PROJECT=dartlang-pub
 pub-dartlang-dart/app $ export GCLOUD_KEY=<path-to-service-account-key.json>
-pub-dartlang-dart/app $ dart bin/server.dart
+pub-dartlang-dart/app $ GAE_SERVICE="default" dart bin/server.dart
 ```
 
 The server will be available via at [localhost:8080](http://localhost:8080)
