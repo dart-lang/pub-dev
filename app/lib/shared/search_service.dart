@@ -8,7 +8,7 @@ library pub_dartlang_org.shared.search_service;
 import 'dart:async';
 import 'dart:math' show max;
 
-import 'package:json_serializable/annotations.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'platform.dart';
 

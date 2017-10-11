@@ -4,7 +4,7 @@
 
 library pub_dartlang_org.shared.mock_scores;
 
-import 'package:json_serializable/annotations.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'mock_scores.g.dart';
 
