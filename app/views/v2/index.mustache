@@ -1,0 +1,19 @@
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="home-lists-container">
+  <section class="home-section">
+    <h2 class="title">Popular</h2>
+    {{& popular_html}}
+  </section>
+  <section class="home-section">
+    <h2 class="title">Recently updated</h2>
+    {{& updated_html}}
+    <a class="more" href="/experimental/packages">More packages...</a>
+  </section>
+  <section class="home-section">
+    <h2 class="title">Newest</h2>
+    {{& newest_html}}
+  </section>
+</div>

@@ -54,6 +54,15 @@ class Backend {
         repository = new GCloudPackageRepository(db, storage, cache: cache),
         uiPackageCache = cache;
 
+  /// Retrieves packages ordered by their created date.
+  Future<List<models.Package>> newestPackages({int offset, int limit}) {
+    final query = db.query(models.Package)
+      ..order('-created')
+      ..offset(offset)
+      ..limit(limit);
+    return query.run().toList();
+  }
+
   /// Retrieves packages ordered by their latest version date.
   Future<List<models.Package>> latestPackages({int offset, int limit}) {
     final query = db.query(models.Package)
