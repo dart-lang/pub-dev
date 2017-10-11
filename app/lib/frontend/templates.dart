@@ -530,6 +530,25 @@ class TemplateService {
 
   /// Renders the `views/search.mustache` template.
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
+    final String queryText = resultPage.query.text;
+    final Map<String, Object> values =
+        _searchPage(resultPage, renderPagination(pageLinks));
+    return _renderPage('search', values,
+        title: 'Search results for $queryText.', searchQuery: queryText);
+  }
+
+  /// Renders the `views/v2/search.mustache` template.
+  String renderSearchPageV2(SearchResultPage resultPage, PageLinks pageLinks) {
+    final String queryText = resultPage.query.text;
+    final Map<String, Object> values =
+        _searchPage(resultPage, renderPaginationV2(pageLinks));
+    final content = _renderTemplate('v2/search', values);
+    return renderLayoutPageV2(content,
+        title: 'Search results for $queryText.', searchQuery: queryText);
+  }
+
+  Map<String, Object> _searchPage(
+      SearchResultPage resultPage, String paginationHtml) {
     final List results = [];
     for (int i = 0; i < resultPage.packages.length; i++) {
       final PackageView view = resultPage.packages[i];
@@ -540,21 +559,40 @@ class TemplateService {
         'show_dev_version': view.devVersion != null,
         'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
-        'icons': _renderIconsColumnHtml(view.platforms),
+        'icons': _renderIconsColumnHtml(
+            view.platforms), // experimental_design: obsolete
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
+        'tags_html': _renderTags(view.platforms), // experimental_design: new
       });
     }
-    final String queryText = resultPage.query.text;
+    final String currentUrl = resultPage.query.toSearchLink();
+    Map platformTabData(String text, String platform) {
+      final url = resultPage.query
+          .change(
+              platformPredicate: platform == null
+                  ? new PlatformPredicate()
+                  : new PlatformPredicate(required: [platform]))
+          .toSearchLink();
+      return {'text': text, 'href': url, 'active': url == currentUrl};
+    }
+
+    final platformTabs = [
+      platformTabData('Flutter', KnownPlatforms.flutter),
+      platformTabData('Web', KnownPlatforms.web),
+      platformTabData('Server', KnownPlatforms.server),
+      platformTabData('All', null),
+    ];
     final values = {
-      'query': queryText,
+      'platform_tabs': platformTabs, // experimental_design: new
+      'query': resultPage.query.text,
       'results': results,
-      'pagination': renderPagination(pageLinks),
+      'total_count': resultPage.totalCount, // experimental_design: new
+      'pagination': paginationHtml,
       'hasResults': results.length > 0,
       'search_service': 'service',
     };
-    return _renderPage('search', values,
-        title: 'Search results for $queryText.', searchQuery: queryText);
+    return values;
   }
 
   /// Renders a whole HTML page using the `views/layout.mustache` template and
@@ -767,14 +805,17 @@ final Map<String, Map> _logoData = const {
     'src': LogoUrls.flutterLogo32x32,
     'label': 'Flutter package',
     'href': '/flutter/packages',
+    'text': 'Flutter',
   },
   KnownPlatforms.server: const {
     'src': LogoUrls.shellLogo32x32,
     'label': 'Server',
+    'text': 'Server',
   },
   KnownPlatforms.web: const {
     'src': LogoUrls.html5Logo32x32,
     'label': 'Web',
+    'text': 'Web',
   },
 };
 

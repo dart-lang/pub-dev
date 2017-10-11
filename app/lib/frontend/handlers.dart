@@ -77,6 +77,7 @@ const _handlers = const <String, shelf.Handler>{
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
   '/search': searchHandler,
+  '/experimental/search': searchHandlerV2,
   '/packages': packagesHandler,
   '/packages.json': packagesHandler,
   '/flutter': redirectToFlutterPackages,
@@ -148,7 +149,17 @@ shelf.Response docHandler(shelf.Request request) {
 }
 
 /// Handles requests for /search
-Future<shelf.Response> searchHandler(shelf.Request request) async {
+Future<shelf.Response> searchHandler(shelf.Request request) {
+  return _searchHandler(request, templateService.renderSearchPage);
+}
+
+/// Handles requests for /experimental/search
+Future<shelf.Response> searchHandlerV2(shelf.Request request) {
+  return _searchHandler(request, templateService.renderSearchPageV2);
+}
+
+Future<shelf.Response> _searchHandler(shelf.Request request,
+    String render(SearchResultPage page, PageLinks links)) async {
   final Stopwatch sw = new Stopwatch();
   sw.start();
 
@@ -179,13 +190,13 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     packagePrefix: packagePrefix,
   );
   if (!query.isValid) {
-    return htmlResponse(templateService.renderSearchPage(
+    return htmlResponse(render(
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }
 
   final resultPage = await searchService.search(query);
   final links = new SearchLinks(query, resultPage.totalCount);
-  final String content = templateService.renderSearchPage(resultPage, links);
+  final String content = render(resultPage, links);
 
   _searchOverallLatencyTracker.add(sw.elapsed);
 
