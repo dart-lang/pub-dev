@@ -5,7 +5,7 @@
 // ignore_for_file: annotate_overrides
 library pub_dartlang_org.shared.analyzer_service;
 
-import 'package:json_serializable/annotations.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'analyzer_service.g.dart';
 

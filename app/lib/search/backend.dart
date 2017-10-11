@@ -13,7 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:json_serializable/annotations.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
