@@ -1,0 +1,41 @@
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="list-filters">
+  {{#platform_tabs}}
+    <a class="filter {{#active}}-active{{/active}}" href="/experimental{{href}}">{{text}}</a>
+  {{/platform_tabs}}
+</div>
+
+<p class="package-count"><span>{{total_count}}</span> results for <span>{{query}}</span></p>
+
+<ul class="package-list">
+  {{#results}}
+    <li class="list-item -full">
+      <div class="score-box"><span class="number -solid">??</span><span class="text">?????</span>
+      </div>
+      <h3 class="title"><a href="/experimental{{url}}">{{name}}</a></h3>
+      <p class="description">{{desc}}</p>
+      <p class="metadata">
+        v <a href="/experimental{{url}}">{{version}}</a>
+        {{#show_dev_version}} / <a href="/experimental{{url}}/versions/{{dev_version_href}}">{{dev_version}}</a> {{/show_dev_version}}
+        • Updated: <span>{{last_uploaded}}</span>
+        {{& tags_html}}
+      </p>
+    </li>
+  {{/results}}
+</ul>
+
+{{#hasResults}}
+  {{{pagination}}}
+{{/hasResults}}
+
+{{#search_service}}
+  <br/>
+  <p style="font-size: smaller">
+    You are using our new search backend.
+    Please <a href="https://github.com/dart-lang/pub-dartlang-dart/issues/new?labels=Area%3A+search%26title=Search+issue%3A+%3Cdescribe+issue+here%3E%26body=Please+describe+the+issue+and+include+the+search+URL">let us know</a>
+    if you encounter issues or unexpected results.
+  </p>
+{{/search_service}}

@@ -169,6 +169,23 @@ void main() {
       expectGoldenFile(html, 'search_page.html');
     });
 
+    test('search page v2', () {
+      final query = new SearchQuery('foobar', offset: 0);
+      final resultPage = new SearchResultPage(
+        query,
+        2,
+        [
+          new PackageView.fromModel(version: testPackageVersion),
+          new PackageView.fromModel(
+              version: flutterPackageVersion,
+              analysis: new MockAnalysisView(platforms: ['flutter'])),
+        ],
+      );
+      final String html =
+          templates.renderSearchPageV2(resultPage, new SearchLinks(query, 2));
+      expectGoldenFile(html, 'v2/search_page.html');
+    });
+
     test('authorized page', () {
       final String html = templates.renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');

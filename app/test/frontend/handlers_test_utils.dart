@@ -177,12 +177,8 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderPkgIndexPage(
-      List<PackageView> packages,
-      PageLinks links,
-      {String title,
-      String faviconUrl,
-      String descriptionHtml}) {
+  String renderPkgIndexPage(List<PackageView> packages, PageLinks links,
+      {String title, String faviconUrl, String descriptionHtml}) {
     return Response;
   }
 
@@ -226,6 +222,11 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
+    return Response;
+  }
+
+  @override
+  String renderSearchPageV2(SearchResultPage resultPage, PageLinks pageLinks) {
     return Response;
   }
 
