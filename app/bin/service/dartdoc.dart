@@ -23,11 +23,9 @@ Future main() async {
 
   withAppEngineServices(() async {
     await startIsolates(logger, _runScheduler);
-    return withCorrectDatastore(() async {
-      _registerServices();
-      await runAppEngine((HttpRequest request) =>
-          shelf_io.handleRequest(request, dartdocServiceHandler));
-    });
+    _registerServices();
+    await runAppEngine((HttpRequest request) =>
+        shelf_io.handleRequest(request, dartdocServiceHandler));
   });
 }
 
@@ -40,20 +38,18 @@ void _runScheduler(List<SendPort> sendPorts) {
   mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {
-    await withCorrectDatastore(() async {
-      _registerServices();
-      final runner = new DartdocRunner();
-      final scheduler = new TaskScheduler(runner, [
-        new ManualTriggerTaskSource(taskReceivePort),
-        // TODO: decide how frequently we want to poll the datastore
-        // new DatastoreHeadTaskSource(db.dbService),
-        // new DatastoreHistoryTaskSource(db.dbService),
-      ]);
-      new Timer.periodic(const Duration(minutes: 1), (_) {
-        statsSendPort.send(scheduler.stats());
-      });
-      await scheduler.run();
+    _registerServices();
+    final runner = new DartdocRunner();
+    final scheduler = new TaskScheduler(runner, [
+      new ManualTriggerTaskSource(taskReceivePort),
+      // TODO: decide how frequently we want to poll the datastore
+      // new DatastoreHeadTaskSource(db.dbService),
+      // new DatastoreHistoryTaskSource(db.dbService),
+    ]);
+    new Timer.periodic(const Duration(minutes: 1), (_) {
+      statsSendPort.send(scheduler.stats());
     });
+    await scheduler.run();
   });
 }
 

@@ -20,7 +20,6 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -33,39 +32,35 @@ void main() {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    return withCorrectDatastore(() async {
-      final shelf.Handler apiHandler = await setupServices(activeConfiguration);
+    final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
-      await runAppEngine((HttpRequest ioRequest) async {
-        return withCorrectDatastore(() {
-          if (context.isProductionEnvironment &&
-              ioRequest.requestedUri.scheme != 'https') {
-            final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
-            ioRequest.response
-              ..redirect(secureUri)
-              ..close();
-          } else {
+    await runAppEngine((HttpRequest ioRequest) async {
+      if (context.isProductionEnvironment &&
+          ioRequest.requestedUri.scheme != 'https') {
+        final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
+        ioRequest.response
+          ..redirect(secureUri)
+          ..close();
+      } else {
+        try {
+          return shelf_io.handleRequest(ioRequest,
+              (shelf.Request request) async {
+            logger.info('Handling request: ${request.requestedUri}');
+            await registerLoggedInUserIfPossible(request);
             try {
-              return shelf_io.handleRequest(ioRequest,
-                  (shelf.Request request) async {
-                logger.info('Handling request: ${request.requestedUri}');
-                await registerLoggedInUserIfPossible(request);
-                try {
-                  final sanitizedRequest = sanitizeRequestedUri(request);
-                  return await appHandler(sanitizedRequest, apiHandler);
-                } catch (error, s) {
-                  logger.severe('Request handler failed', error, s);
-                  return new shelf.Response.internalServerError();
-                } finally {
-                  logger.info('Request handler done.');
-                }
-              });
-            } catch (error, stack) {
-              logger.severe('Request handler failed', error, stack);
+              final sanitizedRequest = sanitizeRequestedUri(request);
+              return await appHandler(sanitizedRequest, apiHandler);
+            } catch (error, s) {
+              logger.severe('Request handler failed', error, s);
+              return new shelf.Response.internalServerError();
+            } finally {
+              logger.info('Request handler done.');
             }
-          }
-        });
-      });
+          });
+        } catch (error, stack) {
+          logger.severe('Request handler failed', error, stack);
+        }
+      }
     });
   });
 }

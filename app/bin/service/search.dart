@@ -15,7 +15,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
@@ -44,42 +43,40 @@ void _main(int isolateId) {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    return withCorrectDatastore(() async {
-      registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-      final AnalyzerClient analyzerClient =
-          new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
-      registerAnalyzerClient(analyzerClient);
-      registerScopeExitCallback(analyzerClient.close);
+    registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
+    final AnalyzerClient analyzerClient =
+        new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
+    registerAnalyzerClient(analyzerClient);
+    registerScopeExitCallback(analyzerClient.close);
 
-      registerSearchBackend(new SearchBackend(db.dbService));
+    registerSearchBackend(new SearchBackend(db.dbService));
 
-      final Bucket bucket = await _createOrGetBucket(
-          storageService, activeConfiguration.searchSnapshotBucketName);
-      registerSnapshotStorage(new SnapshotStorage(storageService, bucket));
+    final Bucket bucket = await _createOrGetBucket(
+        storageService, activeConfiguration.searchSnapshotBucketName);
+    registerSnapshotStorage(new SnapshotStorage(storageService, bucket));
 
-      registerPackageIndex(new SimplePackageIndex());
+    registerPackageIndex(new SimplePackageIndex());
 
-      final ReceivePort taskReceivePort = new ReceivePort();
-      registerTaskSendPort(taskReceivePort.sendPort);
+    final ReceivePort taskReceivePort = new ReceivePort();
+    registerTaskSendPort(taskReceivePort.sendPort);
 
-      final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
-      await batchIndexUpdater.initSnapshot();
+    final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
+    await batchIndexUpdater.initSnapshot();
 
-      final scheduler = new TaskScheduler(
-        batchIndexUpdater,
-        [
-          new ManualTriggerTaskSource(taskReceivePort),
-          new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
-        ],
-      );
-      scheduler.run();
+    final scheduler = new TaskScheduler(
+      batchIndexUpdater,
+      [
+        new ManualTriggerTaskSource(taskReceivePort),
+        new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
+      ],
+    );
+    scheduler.run();
 
-      await runAppEngine(
-        (HttpRequest request) =>
-            shelf_io.handleRequest(request, searchServiceHandler),
-        shared: true,
-      );
-    });
+    await runAppEngine(
+      (HttpRequest request) =>
+          shelf_io.handleRequest(request, searchServiceHandler),
+      shared: true,
+    );
   });
 }
 

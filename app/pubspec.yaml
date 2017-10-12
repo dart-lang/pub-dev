@@ -3,7 +3,7 @@ version: 0.1.0
 author: Dart Team
 description: The pub.dartlang.org website.
 environment:
-  sdk: ">=1.19.0 <2.0.0"
+  sdk: ">=1.25.0-dev.9.0 <2.0.0"
 dependencies:
   appengine: '^0.4.2'
   args: '^0.13.7'
