@@ -124,8 +124,8 @@ class TemplateService {
         title: pageTitle, faviconUrl: faviconUrl);
   }
 
-  /// Renders the `views/pkg/analysis_tab.mustache` template.
-  String renderAnalysisTab(AnalysisView analysis) {
+  /// Renders the `views/v2/pkg/analysis_tab.mustache` template.
+  String renderAnalysisTabV2(AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
@@ -144,8 +144,8 @@ class TemplateService {
     final List<Map> dependencies = analysis
         .getTransitiveDependencies()
         .map((String pkg) => {
+              'name': pkg,
               'text': pkg,
-              'href': 'https://pub.dartlang.org/packages/$pkg',
               'sep': ',',
             })
         .toList();
@@ -158,9 +158,10 @@ class TemplateService {
       'status': statusText,
       'has_dependency': dependencies.isNotEmpty,
       'dependencies': dependencies,
+      'health': analysis.health,
     };
 
-    return _renderTemplate('pkg/analysis_tab', data);
+    return _renderTemplate('v2/pkg/analysis_tab', data);
   }
 
   /// Renders the `views/pkg/show.mustache` template.
@@ -366,6 +367,7 @@ class TemplateService {
         'install_command': isFlutterPlugin ? 'flutter packages get' : 'pub get',
         'install_tool': isFlutterPlugin ? '\'packages get\'' : '\'pub get\'',
         'license': analysis?.licenseText,
+        'analysis_html': renderAnalysisTabV2(analysis),
       },
       'versions': versionsJson,
       'show_versions_link': totalNumberOfVersions > versions.length,
