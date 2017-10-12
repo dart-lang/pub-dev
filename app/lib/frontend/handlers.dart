@@ -73,8 +73,8 @@ Future<shelf.Response> appHandler(
 
 const _handlers = const <String, shelf.Handler>{
   '/': indexHandler,
-  '/experimental': experimentalIndexHandler,
-  '/experimental/': experimentalIndexHandler,
+  '/experimental': indexHandlerV2,
+  '/experimental/': indexHandlerV2,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
@@ -123,7 +123,7 @@ Future<shelf.Response> indexHandler(_) async {
 }
 
 /// Handles requests for /experimental/
-Future<shelf.Response> experimentalIndexHandler(_) async {
+Future<shelf.Response> indexHandlerV2(_) async {
   String pageContent = await backend.uiPackageCache?.getUIIndexPage(true);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
