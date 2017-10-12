@@ -124,6 +124,66 @@ class TemplateService {
         title: pageTitle, faviconUrl: faviconUrl);
   }
 
+  /// Renders the `views/v2/pkg/index.mustache` template.
+  String renderPkgIndexPageV2(
+      List<PackageView> packages, PageLinks links, String currentPlatform) {
+    final packagesJson = [];
+    for (int i = 0; i < packages.length; i++) {
+      final view = packages[i];
+      packagesJson.add({
+        'url': '/packages/${view.name}',
+        'name': view.name,
+        'version': HTML_ESCAPE.convert(view.version),
+        'show_dev_version': view.devVersion != null,
+        'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
+        'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
+        'last_uploaded': view.shortUpdated,
+        'desc': view.ellipsizedDescription,
+        'tags_html': _renderTags(view.platforms), // experimental_design: new
+        // TODO: add authors (?) - old version had it, new design may not have the space for it
+      });
+    }
+
+    String title = 'Packages';
+    String descriptionHtml = '';
+    if (currentPlatform == KnownPlatforms.flutter) {
+      title = 'Flutter Packages';
+      descriptionHtml = flutterPackagesDescriptionHtml;
+    }
+
+    Map platformTabData(String text, String platform) {
+      final String param = platform == null
+          ? null
+          : new PlatformPredicate(required: [platform]).toQueryParamValue();
+      final String query = param == null ? '' : '?platform=$param';
+      final String url = '/packages$query';
+      return {'text': text, 'href': url, 'active': platform == currentPlatform};
+    }
+
+    final platformTabs = [
+      platformTabData('Flutter', KnownPlatforms.flutter),
+      platformTabData('Web', KnownPlatforms.web),
+      platformTabData('Server', KnownPlatforms.server),
+      platformTabData('All', null),
+    ];
+
+    final values = {
+      'platform_tabs': platformTabs, // experimental_design: new
+      'title': title ?? 'Packages',
+      'description_html': descriptionHtml,
+      'packages': packagesJson,
+      'has_packages': packages.isNotEmpty,
+      'pagination': renderPaginationV2(links),
+    };
+    final content = _renderTemplate('v2/pkg/index', values);
+
+    String pageTitle = title ?? 'All Packages';
+    if (links.rightmostPage > 1) {
+      pageTitle = 'Page ${links.currentPage} | $pageTitle';
+    }
+    return renderLayoutPageV2(content, title: pageTitle);
+  }
+
   /// Renders the `views/v2/pkg/analysis_tab.mustache` template.
   String renderAnalysisTabV2(AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
@@ -800,17 +860,27 @@ class PackageLinks extends PageLinks {
   static const int resultsPerPage = 10;
   static const int maxPages = 15;
   final String _basePath;
+  final String _platform;
 
-  PackageLinks(int offset, int count, {String basePath})
+  PackageLinks(int offset, int count, {String basePath, String platform})
       : _basePath = basePath,
+        _platform = platform,
         super(offset, count);
 
-  PackageLinks.empty({String basePath})
+  PackageLinks.empty({String basePath, String platform})
       : _basePath = basePath,
+        _platform = platform,
         super.empty();
 
   @override
-  String formatHref(int page) => '${_basePath ?? '/packages'}?page=$page';
+  String formatHref(int page) {
+    final String basePath = _basePath ?? '/packages';
+    String url = '$basePath?';
+    if (_platform != null) {
+      url = '${url}platform=$_platform&';
+    }
+    return '${url}page=$page';
+  }
 }
 
 abstract class LogoUrls {
