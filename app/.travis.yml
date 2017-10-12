@@ -1,16 +1,12 @@
 language: dart
+
 dart:
   - dev
-  - stable
+
 dart_task:
   - test
   - dartfmt
   - dartanalyzer
-
-matrix:
-  allow_failures:
-  - dart: dev
-    dart_task: dartfmt
 
 # Only building master means that we don't run two builds for each pull request.
 branches:

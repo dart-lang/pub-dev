@@ -252,8 +252,7 @@ void main() {
           return [testPackageVersion];
         });
         registerBackend(backend);
-        await expectAtomXmlResponse(await issueGet('/feed.atom'),
-            regexp: '''
+        await expectAtomXmlResponse(await issueGet('/feed.atom'), regexp: '''
 <\\?xml version="1.0" encoding="UTF-8"\\?>
 <feed xmlns="http://www.w3.org/2005/Atom">
         <id>https://pub.dartlang.org/feed.atom</id>
