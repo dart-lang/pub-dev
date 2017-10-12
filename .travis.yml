@@ -3,17 +3,11 @@ language: dart
 
 dart:
   - dev
-  - stable
 
 env:
   - PKG=app TASK=dartanalyzer
   - PKG=app TASK=dartfmt
   - PKG=app TASK=test
-
-matrix:
-  allow_failures:
-    - dart: dev
-      env: PKG=app TASK=dartfmt
 
 script: ./tool/travis.sh
 
