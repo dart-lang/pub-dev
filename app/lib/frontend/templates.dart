@@ -76,7 +76,7 @@ class TemplateService {
         'name': package,
       },
       'versions': versionsJson,
-      'icons': LogoUrls.versionsTableIcons, // experimental_design: new
+      'icons': LogoUrls.versionsTableIcons, // used in v2 only
     };
     return values;
   }
@@ -139,7 +139,7 @@ class TemplateService {
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.platforms), // experimental_design: new
+        'tags_html': _renderTags(view.platforms), // used in v2 only
         // TODO: add authors (?) - old version had it, new design may not have the space for it
       });
     }
@@ -168,7 +168,7 @@ class TemplateService {
     ];
 
     final values = {
-      'platform_tabs': platformTabs, // experimental_design: new
+      'platform_tabs': platformTabs, // used in v2 only
       'title': title ?? 'Packages',
       'description_html': descriptionHtml,
       'packages': packagesJson,
@@ -384,8 +384,8 @@ class TemplateService {
     addFileTab('changelog', changelogFilename, renderedChangelog);
     addFileTab('example', 'Example', renderedExample);
     if (tabs.isNotEmpty) {
-      tabs.first['class'] = 'active'; // experimental_design: obsolete
-      tabs.first['active'] = '-active'; // experimental_design: new
+      tabs.first['class'] = 'active'; // used in old design only
+      tabs.first['active'] = '-active'; // used in v2 only
     }
 
     final values = {
@@ -406,9 +406,9 @@ class TemplateService {
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
         'icons': _renderIconsBlockHtml(
-            analysis?.platforms), // experimental_design: obsolete
+            analysis?.platforms), // used in old design only
         'tags_html': _renderTags(analysis?.platforms,
-            wrapperDiv: true), // experimental_design: new
+            wrapperDiv: true), // used in v2 only
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -434,7 +434,7 @@ class TemplateService {
       'tabs': tabs,
       'has_no_file_tab': tabs.isEmpty,
       'version_count': '$totalNumberOfVersions',
-      'icons': LogoUrls.versionsTableIcons, // experimental_design: new
+      'icons': LogoUrls.versionsTableIcons, // used in v2 only
     };
     return values;
   }
@@ -651,11 +651,11 @@ class TemplateService {
         'show_dev_version': view.devVersion != null,
         'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
-        'icons': _renderIconsColumnHtml(
-            view.platforms), // experimental_design: obsolete
+        'icons':
+            _renderIconsColumnHtml(view.platforms), // used in old design only
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.platforms), // experimental_design: new
+        'tags_html': _renderTags(view.platforms), // used in v2 only
       });
     }
     final String currentUrl = resultPage.query.toSearchLink();
@@ -676,10 +676,10 @@ class TemplateService {
       platformTabData('All', null),
     ];
     final values = {
-      'platform_tabs': platformTabs, // experimental_design: new
+      'platform_tabs': platformTabs, // used in v2 only
       'query': resultPage.query.text,
       'results': results,
-      'total_count': resultPage.totalCount, // experimental_design: new
+      'total_count': resultPage.totalCount, // used in v2 only
       'pagination': paginationHtml,
       'hasResults': results.length > 0,
       'search_service': 'service',
@@ -902,8 +902,8 @@ abstract class LogoUrls {
   };
 }
 
-// 'text': experimental_design: new
-// 'label', 'src': experimental_design: obsolete
+// 'text': used in v2 only
+// 'label', 'src': used in old design only
 final Map<String, Map> _logoData = const {
   KnownPlatforms.flutter: const {
     'src': LogoUrls.flutterLogo32x32,
