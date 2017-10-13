@@ -40,9 +40,10 @@ class SimpleMemcache {
     return null;
   }
 
-  Future setText(String key, String content) async {
+  Future setText(String key, String content, {Duration expiration}) async {
     try {
-      await _memcache.set(_key(key), content, expiration: _expiration);
+      await _memcache.set(_key(key), content,
+          expiration: expiration ?? _expiration);
     } catch (e, st) {
       _logger.warning('Couldn\'t set memcache entry for $key', e, st);
     }

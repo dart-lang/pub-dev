@@ -15,18 +15,9 @@ import 'memcache.dart';
 final Logger _logger = new Logger('pub.package_memcache');
 
 abstract class UIPackageCache {
-  // If [version] is `null` then it corresponds to the cache entry which can be
-  // invalidated via [invalidateUiPackagePage].
-  Future<String> getUIPackagePage(bool isV2, String package, String version);
+  Future<String> getUIPageHtml(String url);
 
-  // If [version] is `null` then it corresponds to the cache entry which can be
-  // invalidated via [invalidateUiPackagePage].
-  Future setUIPackagePage(
-      bool isV2, String package, String version, String data);
-
-  Future<String> getUIIndexPage(bool isV2);
-
-  Future setUIIndexPage(bool isV2, String content);
+  Future setUIPageHtml(String url, String content, {Duration expiration});
 
   Future invalidateUIPackagePage(String package);
 }
@@ -35,15 +26,12 @@ abstract class UIPackageCache {
 class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   final SimpleMemcache _json;
   final SimpleMemcache _uiPage;
-  final SimpleMemcache _uiIndexPage;
 
   AppEnginePackageMemcache(Memcache memcache)
       : _json = new SimpleMemcache(
             _logger, memcache, packageJsonPrefix, packageJsonExpiration),
         _uiPage = new SimpleMemcache(
-            _logger, memcache, packageUiPagePrefix, packageUiPageExpiration),
-        _uiIndexPage =
-            new SimpleMemcache(_logger, memcache, '', indexUiPageExpiration);
+            _logger, memcache, packageUiPagePrefix, packageUiPageExpiration);
 
   @override
   Future<List<int>> getPackageData(String package) => _json.getBytes(package);
@@ -53,47 +41,27 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _json.setBytes(package, data);
 
   @override
-  Future<String> getUIPackagePage(bool isV2, String package, String version) =>
-      _uiPage.getText(_pvKey(isV2, package, version));
+  Future<String> getUIPageHtml(String url) => _uiPage.getText(url);
 
   @override
-  Future setUIPackagePage(
-          bool isV2, String package, String version, String data) =>
-      _uiPage.setText(_pvKey(isV2, package, version), data);
+  Future setUIPageHtml(String url, String content, {Duration expiration}) =>
+      _uiPage.setText(url, content, expiration: expiration);
 
   @override
   Future invalidateUIPackagePage(String package) {
-    return Future.wait([
-      _uiPage.invalidate(_pvKey(false, package, null)),
-      _uiPage.invalidate(_pvKey(true, package, null)),
-      _uiIndexPage.invalidate(_indexPageKey(false)),
-      _uiIndexPage.invalidate(_indexPageKey(true)),
-    ]);
+    return Future.wait(_invalidateUrls(package).map(_uiPage.invalidate));
   }
 
   @override
-  Future invalidatePackageData(String package) {
-    return Future.wait([
-      _json.invalidate(package),
-      _uiIndexPage.invalidate(_indexPageKey(false)),
-      _uiIndexPage.invalidate(_indexPageKey(true)),
-      _uiPage.invalidate(_pvKey(false, package, null)),
-      _uiPage.invalidate(_pvKey(true, package, null)),
-    ]);
+  Future invalidatePackageData(String package) async {
+    await _json.invalidate(package);
+    await invalidateUIPackagePage(package);
   }
 
-  @override
-  Future<String> getUIIndexPage(bool isV2) =>
-      _uiIndexPage.getText(_indexPageKey(isV2));
-
-  @override
-  Future setUIIndexPage(bool isV2, String content) =>
-      _uiIndexPage.setText(_indexPageKey(isV2), content);
-
-  String _indexPageKey(bool isV2) => isV2 ? v2IndexUiPageKey : indexUiPageKey;
-
-  String _pvKey(bool isV2, String package, String version) {
-    final String prefix = isV2 ? '/experimental' : '';
-    return '$prefix/$package/$version';
-  }
+  List<String> _invalidateUrls(String package) => [
+        '/packages/$package',
+        '/experimental/packages/$package',
+        '/',
+        '/experimental',
+      ];
 }
