@@ -127,16 +127,16 @@ void main() {
       expectGoldenFile(html, 'v2/pkg_show_page_flutter_plugin.html');
     });
 
-    test('package analysis tab', () async {
+    test('package analysis tab v2', () async {
       // no content
-      expect(templates.renderAnalysisTab(null), isNull);
+      expect(templates.renderAnalysisTabV2(null), isNull);
 
       // stored analysis of http
       final String json =
-          await new File('$goldenDir/analysis_tab_http.json').readAsString();
-      final String html = templates.renderAnalysisTab(
+          await new File('$goldenDir/v2/analysis_tab_http.json').readAsString();
+      final String html = templates.renderAnalysisTabV2(
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
-      expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
+      expectGoldenFile(html, 'v2/analysis_tab_http.html', isFragment: true);
     });
 
     test('package index page', () {
@@ -343,6 +343,8 @@ void main() {
 }
 
 class MockAnalysisView implements AnalysisView {
+  List<String> transitiveDependencies;
+
   @override
   bool hasAnalysisData = true;
 
@@ -350,7 +352,7 @@ class MockAnalysisView implements AnalysisView {
   AnalysisStatus analysisStatus;
 
   @override
-  List<String> getTransitiveDependencies() => throw 'Not implemented';
+  List<String> getTransitiveDependencies() => transitiveDependencies;
 
   @override
   double health;
@@ -364,5 +366,8 @@ class MockAnalysisView implements AnalysisView {
   @override
   List<String> platforms;
 
-  MockAnalysisView({this.platforms});
+  MockAnalysisView({
+    this.platforms,
+    this.transitiveDependencies: const [],
+  });
 }
