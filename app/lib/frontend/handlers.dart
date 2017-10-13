@@ -108,8 +108,9 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /
-Future<shelf.Response> indexHandler(_) async {
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage(false);
+Future<shelf.Response> indexHandler(shelf.Request request) async {
+  String pageContent =
+      await backend.uiPackageCache?.getUIPageHtml(request.requestedUri.path);
   if (pageContent == null) {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
@@ -118,14 +119,16 @@ Future<shelf.Response> indexHandler(_) async {
         await analyzerClient.getAnalysisViews(
             versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
     pageContent = templateService.renderIndexPage(versions, analysisViews);
-    await backend.uiPackageCache?.setUIIndexPage(false, pageContent);
+    await backend.uiPackageCache
+        ?.setUIPageHtml(request.requestedUri.path, pageContent);
   }
   return htmlResponse(pageContent);
 }
 
 /// Handles requests for /experimental/
-Future<shelf.Response> indexHandlerV2(_) async {
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage(true);
+Future<shelf.Response> indexHandlerV2(shelf.Request request) async {
+  String pageContent =
+      await backend.uiPackageCache?.getUIPageHtml(request.requestedUri.path);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
       final result = await searchService
@@ -160,7 +163,8 @@ Future<shelf.Response> indexHandlerV2(_) async {
     ]);
     pageContent = templateService.renderIndexPageV2(
         miniListHtmls[0], miniListHtmls[1], miniListHtmls[2]);
-    await backend.uiPackageCache?.setUIIndexPage(true, pageContent);
+    await backend.uiPackageCache
+        ?.setUIPageHtml(request.requestedUri.path, pageContent);
   }
   return htmlResponse(pageContent);
 }
@@ -597,8 +601,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
-    cachedPage = await backend.uiPackageCache
-        .getUIPackagePage(isV2, packageName, versionName);
+    cachedPage =
+        await backend.uiPackageCache.getUIPageHtml(request.requestedUri.path);
   }
 
   if (cachedPage == null) {
@@ -650,7 +654,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
     if (backend.uiPackageCache != null) {
       await backend.uiPackageCache
-          .setUIPackagePage(isV2, packageName, versionName, cachedPage);
+          .setUIPageHtml(request.requestedUri.path, cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }
