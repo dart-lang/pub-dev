@@ -82,6 +82,7 @@ const _handlers = const <String, shelf.Handler>{
   '/experimental/search': searchHandlerV2,
   '/packages': packagesHandler,
   '/packages.json': packagesHandler,
+  '/experimental/packages': packagesHandlerHtmlV2,
   '/flutter': redirectToFlutterPackages,
   '/flutter/': redirectToFlutterPackages,
   '/flutter/packages': flutterPackagesHandler,
@@ -373,6 +374,55 @@ Future<shelf.Response> packagesHandlerHtml(
     faviconUrl: faviconUrl,
     descriptionHtml: descriptionHtml,
   ));
+}
+
+/// Handles /experimental/packages - package listing
+Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) async {
+  final int page = _pageFromUrl(request.url);
+  final int offset = PackageLinks.resultsPerPage * (page - 1);
+  final PlatformPredicate platformPredicate =
+      new PlatformPredicate.fromUri(request.url);
+
+  int totalCount;
+  List<PackageView> packageViews;
+  if (platformPredicate.isNotEmpty) {
+    final searchResult = await searchService.search(new SearchQuery('',
+        platformPredicate: platformPredicate,
+        order: SearchOrder.updated,
+        offset: offset,
+        limit: PackageLinks.resultsPerPage));
+    totalCount = searchResult.totalCount;
+    packageViews = searchResult.packages;
+  } else {
+    final int limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
+    final List<Package> packages =
+        await backend.latestPackages(offset: offset, limit: limit);
+    totalCount = offset + packages.length;
+
+    final List<Package> pagePackages =
+        packages.take(PackageLinks.resultsPerPage).toList();
+    final versionsFuture = backend.lookupLatestVersions(pagePackages);
+    final analysisViewsFuture = analyzerClient.getAnalysisViews(
+        pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
+
+    final batchResults =
+        await Future.wait([versionsFuture, analysisViewsFuture]);
+    final List<PackageVersion> versions = batchResults[0];
+    final List<AnalysisView> analysisViews = batchResults[1];
+
+    packageViews = new List.generate(
+        pagePackages.length,
+        (i) => new PackageView.fromModel(
+              package: pagePackages[i],
+              version: versions[i],
+              analysis: analysisViews[i],
+            ));
+  }
+
+  final String currentPlatform = platformPredicate.single;
+  final links = new PackageLinks(offset, totalCount, platform: currentPlatform);
+  return htmlResponse(templateService.renderPkgIndexPageV2(
+      packageViews, links, currentPlatform));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers

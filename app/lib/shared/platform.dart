@@ -71,6 +71,12 @@ class PlatformPredicate {
     return new PlatformPredicate(required: required, prohibited: prohibited);
   }
 
+  String get single {
+    if (required == null || prohibited != null) return null;
+    if (required.length != 1) return null;
+    return required.single;
+  }
+
   bool get isNotEmpty => required != null || prohibited != null;
 
   bool matches(List<String> platforms) {

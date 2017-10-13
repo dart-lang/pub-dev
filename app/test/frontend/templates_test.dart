@@ -155,6 +155,22 @@ void main() {
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
+    test('package index page v2', () {
+      final String html = templates.renderPkgIndexPageV2([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(),
+        ),
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter']),
+        ),
+      ], new PackageLinks.empty(), null);
+      expectGoldenFile(html, 'v2/pkg_index_page.html');
+    });
+
     test('package versions page', () {
       final String html = templates.renderPkgVersionsPage(testPackage.name,
           [testPackageVersion], [Uri.parse('http://dart-example.com/')]);

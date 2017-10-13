@@ -203,6 +203,12 @@ class TemplateMock implements TemplateService {
   }
 
   @override
+  String renderPkgIndexPageV2(
+      List<PackageView> packages, PageLinks links, String currentPlatform) {
+    return Response;
+  }
+
+  @override
   String renderPkgShowPage(
       Package package,
       List<PackageVersion> versions,
