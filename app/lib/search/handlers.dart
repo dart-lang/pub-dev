@@ -59,7 +59,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   final String requestMethod = request.method.toUpperCase();
   if (requestMethod == 'POST') {
     if (await validateNotificationSecret(request)) {
-      triggerTask(packageName, null);
+      triggerTask(packageName, null, const <String>[]);
       return jsonResponse({'success': true});
     } else {
       return jsonResponse({'success': false});

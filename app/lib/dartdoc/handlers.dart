@@ -52,7 +52,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
     return notFoundHandler(request);
   } else if (requestMethod == 'POST') {
     if (await validateNotificationSecret(request)) {
-      triggerTask(package, version);
+      triggerTask(package, version, const <String>[]);
       return jsonResponse({'success': true});
     } else {
       return jsonResponse({'success': false});

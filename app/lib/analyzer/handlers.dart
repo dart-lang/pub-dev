@@ -87,7 +87,10 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     if (await validateNotificationSecret(request)) {
-      triggerTask(package, version);
+      final String body = (await request.readAsString()).trim();
+      final List<String> dependentPackages = body.split('\n');
+
+      triggerTask(package, version, dependentPackages);
       return jsonResponse({'success': true});
     } else {
       return jsonResponse({'success': false});

@@ -21,8 +21,14 @@ NotificationClient get notificationClient => ss.lookup(#_notificationClient);
 class NotificationClient {
   final http.Client _client = new http.Client();
 
-  Future notifyAnalyzer(String package, String version) =>
-      _doNotify(activeConfiguration.analyzerServicePrefix, package, version);
+  Future notifyAnalyzer(
+      String package, String version, Set<String> dependentPackages) {
+    // We sent the set of dependent packages as one per line.
+    final String body = dependentPackages?.toList()?.join('\n');
+
+    return _doNotifyBatch(
+        activeConfiguration.analyzerServicePrefix, package, version, body);
+  }
 
   Future notifyDartdoc(String package, String version) =>
       _doNotify(activeConfiguration.dartdocServicePrefix, package, version);
@@ -30,14 +36,18 @@ class NotificationClient {
   Future notifySearch(String package) =>
       _doNotify(activeConfiguration.searchServicePrefix, package, null);
 
-  Future _doNotify(String servicePrefix, String package, String version) async {
+  Future _doNotify(String servicePrefix, String package, String version) =>
+      _doNotifyBatch(servicePrefix, package, version);
+
+  Future _doNotifyBatch(String servicePrefix, String package, String version,
+      [String body]) async {
     var uri = '$servicePrefix/packages/$package';
     if (version != null) {
       uri = '$uri/$version';
     }
     try {
-      final response =
-          await _client.post(uri, headers: await prepareNotificationHeaders());
+      final response = await _client.post(uri,
+          headers: await prepareNotificationHeaders(), body: body);
       if (response.statusCode != 200) {
         _logger.warning('Notification request on $uri failed. '
             'Status code: ${response.statusCode}. '

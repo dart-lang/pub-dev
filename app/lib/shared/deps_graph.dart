@@ -8,7 +8,6 @@ import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 final Logger _logger = new Logger('pub.package_graph');
 
@@ -77,16 +76,23 @@ class PackageDependencyBuilder {
 
   final DatastoreDB db;
 
-  // The forward (transitive) dependencies could be easily calculated, but
-  // right now we have no need for them.
-  //final TransitiveDependencyGraph normalDeps = new TransitiveDependencyGraph();
-
   final TransitiveDependencyGraph reverseDeps = new TransitiveDependencyGraph();
-  final String Function(String) canonicalize = new StringCanonicalization().canonicalize;
+  final String Function(String) canonicalize =
+      new StringCanonicalization().canonicalize;
 
   DateTime _lastTs;
 
-  PackageDependencyBuilder(this.db);
+  static Future<PackageDependencyBuilder> loadInitialGraphFromDb(
+      DatastoreDB db) async {
+    final sw = new Stopwatch()..start();
+    final builder = new PackageDependencyBuilder._(db);
+    await builder.scanExistingPackageGraph();
+    _logger.warning('Scanned initial dependency graph in ${sw.elapsed}.');
+    builder.monitorInBackground();
+    return builder;
+  }
+
+  PackageDependencyBuilder._(this.db);
 
   Future scanExistingPackageGraph() async {
     final sw = new Stopwatch()..start();
@@ -97,7 +103,7 @@ class PackageDependencyBuilder {
         // increasing.
         final query = dbService.query(PackageVersion)..order('created');
         await for (PackageVersion pv in query.run()) {
-          _addPackageVersion(pv);
+          addPackageVersion(pv);
           _lastTs = pv.created;
         }
       } catch (e, s) {
@@ -109,18 +115,16 @@ class PackageDependencyBuilder {
     }
   }
 
-  Stream<Set<String>> run() async* {
-    _logger.info('Monitoring new package uploads & trigger analysis');
+  // Note, this method never returns.
+  Future monitorInBackground() async {
+    _logger.info('Monitoring new package uploads.');
     for (;;) {
       try {
         final query = dbService.query(PackageVersion)
           ..filter('created >', _lastTs)
           ..order('created');
         await for (PackageVersion pv in query.run()) {
-          // Emit a set of packages depending on this one.
-          _addPackageVersion(pv);
-          yield _affectedPackages(pv.package);
-
+          addPackageVersion(pv);
           _lastTs = pv.created;
         }
       } catch (e, s) {
@@ -130,29 +134,18 @@ class PackageDependencyBuilder {
     }
   }
 
-  void _addPackageVersion(PackageVersion pv) {
-    final String package = pv.package;
-    final Map pubspec = pv.pubspec.asJson;
-
-    final Set<String> depsSet = new Set<String>();
-    final normalDeps = pubspec['dependencies'];
-    if (normalDeps is Map) {
-      depsSet.addAll(normalDeps.keys);
-    }
-
-    final Set<String> devDepsSet = new Set<String>();
-    final devDeps = pubspec['dev_dependencies'];
-    if (devDeps is Map) {
-      devDepsSet.addAll(devDeps.keys);
-    }
+  void addPackageVersion(PackageVersion pv) {
+    final Set<String> depsSet = new Set<String>.from(pv.pubspec.dependencies);
+    final Set<String> devDepsSet =
+        new Set<String>.from(pv.pubspec.devDependencies);
 
     // First we add the [package] together with the dependencies /
     // dev_dependencies to the graph.  This will update the graph transitively,
     // thereby calculating new users of the [package].
-    _add(package, depsSet, devDepsSet);
+    _add(pv.package, depsSet, devDepsSet);
   }
 
-  Set<String> _affectedPackages(String package) {
+  Set<String> affectedPackages(String package) {
     // Due to the constraints in the new [pubspec] it might cause a number of
     // packages to get new transitive dependencies during a `pub get` and
     // therefore might cause new analysis results.
@@ -166,7 +159,8 @@ class PackageDependencyBuilder {
     // (the dev packages are a superset of the normal packages).
     final Set<String> all = transitiveUsers
         .where((String p) => p.startsWith(devPrefix))
-        .map((String p) => p.substring(devPrefix.length)).toSet();
+        .map((String p) => p.substring(devPrefix.length))
+        .toSet();
     return all;
   }
 
@@ -177,14 +171,11 @@ class PackageDependencyBuilder {
     final canonicalizedDeps = deps.map(canonicalize).toSet();
     final canonicalizedDevDeps = devDeps.map(canonicalize).toSet();
 
-    //normalDeps.addAll(canonicalizedPackage, canonicalizedDeps);
-    //normalDeps.addAll(canonicalizedDevPackage, canonicalizedDeps);
     for (final String dep in canonicalizedDeps) {
       reverseDeps.add(dep, canonicalizedPackage);
       reverseDeps.add(dep, canonicalizedDevPackage);
     }
 
-    //normalDeps.addAll(canonicalizedDevPackage, canonicalizedDevDeps);
     for (final String dep in canonicalizedDevDeps) {
       reverseDeps.add(dep, canonicalizedDevPackage);
     }
@@ -193,26 +184,4 @@ class PackageDependencyBuilder {
   // We use a synthetic package to handle weak dependencies / dev
   // dependencies (no package is depending on this one).
   String _devPackage(String package) => '$devPrefix$package';
-}
-
-class DepsGraphBasedAnalysisTaskSource implements TaskSource {
-  final DatastoreDB db;
-  final PackageDependencyBuilder builder;
-
-  DepsGraphBasedAnalysisTaskSource(this.db, this.builder);
-
-  @override
-  Stream<Task> startStreaming() async* {
-    await for (final Set<String> packages in builder.run()) {
-      for (final String packageName in packages) {
-        final Key packageKey = db.emptyKey.append(Package, id: packageName);
-        final Package package = (await db.lookup([packageKey]))[0];
-        if (package != null) {
-          yield new Task(package.name, package.latestVersion);
-        } else {
-          _logger.warning('Package "$packageName" was not found. Maybe it got deleted?');
-        }
-      }
-    }
-  }
 }

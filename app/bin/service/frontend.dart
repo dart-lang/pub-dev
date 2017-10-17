@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
@@ -17,12 +18,14 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_memcache.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
@@ -90,8 +93,40 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   await initSearchService();
 
+  // The future will complete once the initial database has been scanned and a
+  // graph has been built.  It will nonetheless continue to monitor the database
+  // in the background and maintains a global set of package dependencies.
+  //
+  // It can take up to 1 minute until this future completes.  Though normally we
+  // don't have a new package upload within the first minute of deployment, so
+  // for all practical purposes this future will be ready.
+  final Future<PackageDependencyBuilder> depsGraphBuilderFuture =
+      PackageDependencyBuilder.loadInitialGraphFromDb(db.dbService);
+
+  Future uploadFinished(PackageVersion pv) async {
+    final depsGraphBuilder = await depsGraphBuilderFuture;
+
+    // Even though the deps graph builder would pick up the new [pv] eventually,
+    // we'll add it explicitly here right after the upload to ensure the graph
+    // is up-to-date.
+    depsGraphBuilder.addPackageVersion(pv);
+
+    // Notify analyzer services about a new version, and *DO NOT* do the
+    // same with search service.  The later will get notified after analyzer
+    // ran the first analysis on the new version.
+    //
+    // Note: We provide the analyzer service with a list of packages which need
+    // re-analyzis.
+    final Set<String> dependentPackages =
+        depsGraphBuilder.affectedPackages(pv.package);
+    await notificationClient.notifyAnalyzer(
+        pv.package, pv.version, dependentPackages);
+
+    // TODO: enable notification of dartdoc service
+  }
+
   final cache = new AppEnginePackageMemcache(memcacheService);
-  initBackend(cache: cache);
+  initBackend(cache: cache, finishCallback: uploadFinished);
   registerSearchMemcache(new SearchMemcache(memcacheService));
 
   UploadSignerService uploadSigner;

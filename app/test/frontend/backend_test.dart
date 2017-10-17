@@ -15,7 +15,6 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
-import 'package:pub_dartlang_org/shared/notification.dart';
 
 import '../shared/utils.dart';
 
@@ -718,16 +717,17 @@ void main() {
                 },
                 commitFun: expectAsync0(() {}, count: 2),
                 queryMock: queryMock);
-            final notificationClientMock = new NotificationClientMock();
-            registerNotificationClient(notificationClientMock);
+            final finishCallback = expectAsync1((PackageVersion pv) {
+              expect(pv.package, 'foobar_pkg');
+              expect(pv.version, '0.1.1');
+            });
             final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage);
+            final repo = new GCloudPackageRepository(db, tarballStorage,
+                finishCallback: finishCallback);
             registerLoggedInUser('hans@juergen.com');
             final version = await repo.finishAsyncUpload(redirectUri);
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
-            expect(notificationClientMock.notificationLog,
-                ['analyzer: foobar_pkg 0.1.1']);
           });
         });
       });
@@ -892,17 +892,19 @@ void main() {
                 },
                 commitFun: expectAsync0(() {}, count: 2),
                 queryMock: queryMock);
-            final notificationClientMock = new NotificationClientMock();
-            registerNotificationClient(notificationClientMock);
+            final finishCallback = expectAsync1((PackageVersion pv) {
+              expect(pv.package, 'foobar_pkg');
+              expect(pv.version, '0.1.1');
+            });
+
             final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage);
+            final repo = new GCloudPackageRepository(db, tarballStorage,
+                finishCallback: finishCallback);
             registerLoggedInUser('hans@juergen.com');
             final version =
                 await repo.upload(new Stream.fromIterable([tarball]));
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
-            expect(notificationClientMock.notificationLog,
-                ['analyzer: foobar_pkg 0.1.1']);
           });
         });
       });

@@ -55,6 +55,24 @@ class Pubspec {
     return const [];
   }
 
+  Iterable<String> get dependencies {
+    _load();
+    final deps = _json['dependencies'];
+    if (deps is Map) {
+      return deps.keys.map((key) => key as String);
+    }
+    return const <String>[];
+  }
+
+  Iterable<String> get devDependencies {
+    _load();
+    final deps = _json['dev_dependencies'];
+    if (deps is Map) {
+      return deps.keys.map((key) => key as String);
+    }
+    return const <String>[];
+  }
+
   String get homepage {
     _load();
     return _asString(_json['homepage']);
