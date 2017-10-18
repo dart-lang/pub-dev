@@ -14,7 +14,6 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
-import '../shared/notification.dart';
 import '../shared/package_memcache.dart';
 import '../shared/utils.dart';
 
@@ -43,13 +42,18 @@ void registerBackend(Backend backend) => ss.register(#_backend, backend);
 /// The active backend service.
 Backend get backend => ss.lookup(#_backend);
 
+/// A callback to be invoked after an upload of a new [PackageVersion].
+typedef Future FinishedUploadCallback(models.PackageVersion pv);
+
 /// Represents the backend for the pub.dartlang.org site.
 class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
   final UIPackageCache uiPackageCache;
+  final FinishedUploadCallback finishCallback;
 
-  Backend(DatastoreDB db, TarballStorage storage, {UIPackageCache cache})
+  Backend(DatastoreDB db, TarballStorage storage,
+      {UIPackageCache cache, this.finishCallback})
       : db = db,
         repository = new GCloudPackageRepository(db, storage, cache: cache),
         uiPackageCache = cache;
@@ -137,8 +141,10 @@ class GCloudPackageRepository extends PackageRepository {
   final DatastoreDB db;
   final TarballStorage storage;
   final UIPackageCache cache;
+  final FinishedUploadCallback finishCallback;
 
-  GCloudPackageRepository(this.db, this.storage, {this.cache});
+  GCloudPackageRepository(this.db, this.storage,
+      {this.cache, this.finishCallback});
 
   // Metadata support.
 
@@ -346,13 +352,9 @@ class GCloudPackageRepository extends PackageRepository {
       }
     });
 
-    // Notify analyzer services about a new version, and *DO NOT* do the
-    // same with search service. The later will get notified after analyzer
-    // ran the first analysis on the new version.
-    // Do not await on the notification.
-    notificationClient.notifyAnalyzer(pv.packageName, pv.versionString);
-    // TODO: enable notification of dartdoc service
-
+    if (finishCallback != null) {
+      await finishCallback(newVersion);
+    }
     return pv;
   }
 

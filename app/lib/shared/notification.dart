@@ -21,8 +21,16 @@ NotificationClient get notificationClient => ss.lookup(#_notificationClient);
 class NotificationClient {
   final http.Client _client = new http.Client();
 
-  Future notifyAnalyzer(String package, String version) =>
-      _doNotify(activeConfiguration.analyzerServicePrefix, package, version);
+  Future notifyAnalyzer(
+      String package, String version, Set<String> dependentPackages) async {
+    await _doNotify(
+        activeConfiguration.analyzerServicePrefix, package, version);
+
+    for (final String package in dependentPackages) {
+      return _doNotify(
+          activeConfiguration.analyzerServicePrefix, package, null);
+    }
+  }
 
   Future notifyDartdoc(String package, String version) =>
       _doNotify(activeConfiguration.dartdocServicePrefix, package, version);

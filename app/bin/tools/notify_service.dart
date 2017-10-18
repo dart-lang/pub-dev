@@ -25,7 +25,8 @@ Future main(List<String> args) async {
     registerNotificationClient(new NotificationClient());
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
-      await notificationClient.notifyAnalyzer(args[1], args[2]);
+      await notificationClient.notifyAnalyzer(
+          args[1], args[2], new Set<String>());
     } else if (service == 'search' && args.length == 2) {
       await notificationClient.notifySearch(args[1]);
     } else {
