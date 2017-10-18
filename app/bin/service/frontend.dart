@@ -119,7 +119,10 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     // re-analyzis.
     final Set<String> dependentPackages =
         depsGraphBuilder.affectedPackages(pv.package);
-    await notificationClient.notifyAnalyzer(
+
+    // Since there can be many [dependentPackages], we'll not wait for the
+    // notifcation to be done.
+    notificationClient.notifyAnalyzer(
         pv.package, pv.version, dependentPackages);
 
     // TODO: enable notification of dartdoc service
