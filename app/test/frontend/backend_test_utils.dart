@@ -374,8 +374,8 @@ class NotificationClientMock implements NotificationClient {
   final List<String> notificationLog = [];
 
   @override
-  Future notifyAnalyzer(String package, String version,
-      Set<String> dependentPackages) async {
+  Future notifyAnalyzer(
+      String package, String version, Set<String> dependentPackages) async {
     notificationLog.add('analyzer: $package $version $dependentPackages');
   }
 
