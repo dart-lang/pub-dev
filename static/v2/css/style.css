@@ -128,12 +128,11 @@ body{
 
 }
 
-.site-nav > .link{
+.site-nav{
   margin: 0 10px;
   font-size: 14px;
   text-transform: capitalize;
   vertical-align: middle;
-  font-weight: 500;
   padding: 12px 10px;
 }
 
@@ -167,16 +166,13 @@ body{
 
 .sub-wrap > .button{
   padding: 8px 10px;
-  color: inherit;
-  background-color: transparent;
-}
-
-.sub-wrap > .button{
-  margin: 0 10px;
+  margin-left: 10px;
   font-size: 14px;
   text-transform: capitalize;
   vertical-align: middle;
   font-weight: 500;
+  color: inherit;
+  background-color: transparent;
 }
 
 .sub-wrap > .button:after{
@@ -186,7 +182,6 @@ body{
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  margin-left: 8px;
 }
 
 .sub-nav{
