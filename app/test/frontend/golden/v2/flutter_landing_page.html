@@ -1,32 +1,19 @@
-{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
-    for details. All rights reserved. Use of this source code is governed by a
-    BSD-style license that can be found in the LICENSE file. }}
 
 <!DOCTYPE html>
-<html lang="en-us" {{#package}}itemscope itemtype="http://schema.org/CreativeWork"{{/package}}>
+<html lang="en-us" >
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{title}}</title>
+  <title>Pub: Dart Package Manager</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" />
   <meta itemprop="image" content="/static/img/dart-logo-400x400.png" />
-  {{#favicon}}
-    <link rel="shortcut icon" href="{{{favicon}}}" />
-  {{/favicon}}
-  {{#package}}
-    <meta itemprop="name" content="{{package.name}} - a Dart package" />
-    <meta name="description" content="{{package.name}} - {{package.description}}" />
-    <meta itemprop="description" content="{{package.name}} - {{package.description}}" />
-    <link href="/static/github.css" rel="stylesheet" />
-  {{/package}}
-  {{^package}}
+    <link rel="shortcut icon" href="/static/favicon.ico" />
     <meta name="description" content="Pub is a package manager for the
         Dart programming language." />
-  {{/package}}
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />
-  <link href="{{{static_assets_dir}}}/css/style.css" rel="stylesheet" type="text/css" />
-  <script src="{{{static_assets_dir}}}/js/script.js" defer></script>
+  <link href="/static/v2/css/style.css" rel="stylesheet" type="text/css" />
+  <script src="/static/v2/js/script.js" defer></script>
   <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -35,9 +22,7 @@
       ga('create', 'UA-26406144-13', 'auto');
       ga('send', 'pageview');
     </script>
-  {{#include_survey}}
     <script async="" defer="" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
-  {{/include_survey}}
 </head>
 <body>
 <header class="site-header">
@@ -45,7 +30,7 @@
   <button class="hamburger"></button>
   <div class="mask"></div>
   <div class="nav-wrap">
-    <div class="nav-header"><a class="logo" href="/experimental/"><img src="{{{static_assets_dir}}}/img/dart-logo.svg" alt="dart pub logo"></a>
+    <div class="nav-header"><a class="logo" href="/experimental/"><img src="/static/v2/img/dart-logo.svg" alt="dart pub logo"></a>
       <div class="_flex-space"></div>
       <button class="close"></button>
     </div>
@@ -70,34 +55,77 @@
   </div>
 </header>
 
-{{#default_banner}}
-  <div class="_banner-bg">
-    <main class="package-banner">
-      <form class="search-bar" action="/experimental/search">
-        <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus{{#search_query}} value="{{search_query}}"{{/search_query}}>
-        {{#search_platform}}<input type="hidden" name="platform" value="{{search_platform}}"/>{{/search_platform}}
-        <button class="icon"></button>
-      </form>
-    </main>
-  </div>
-{{/default_banner}}
 
-{{#home_banner}}
   <div class="_banner-bg">
     <main class="home-banner">
-      <h2 class="_visuallyhidden">Dart package manager</h2><img class="logo" src="{{{static_assets_dir}}}/img/site-logo.svg" alt="Dart package manager">
+      <h2 class="_visuallyhidden">Dart package manager</h2><img class="logo" src="/static/v2/img/site-logo.svg" alt="Dart package manager">
       <p class="text">Find and use packages to build <a href="/experimental/flutter">Flutter</a>, <a href="/experimental/web">web</a> and <a href="/experimental/server">server</a> apps with <a target="_blank" href="https://www.dartlang.org">Dart</a>.</p>
       <form class="search-bar" action="/experimental/search">
         <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus />
-        {{#search_platform}}<input type="hidden" name="platform" value="{{search_platform}}"/>{{/search_platform}}
+        <input type="hidden" name="platform" value="flutter"/>
         <button class="icon"></button>
       </form>
     </main>
   </div>
-{{/home_banner}}
 
 <main>
-  {{& content_html}}
+  
+<div class="home-lists-container">
+  <section class="home-section">
+    <h2 class="title">Popular</h2>
+    
+<ul class="package-list">
+    <li class="list-item -simple">
+      <h3 class="title"><a href="/experimental/packages/foobar_pkg">foobar_pkg</a></h3>
+      <p class="description">my package description</p>
+      <p class="metadata">
+          
+        <a class="package-tag" href="/flutter/packages">Flutter</a>
+  
+
+      </p>
+    </li>
+</ul>
+
+  </section>
+  <section class="home-section">
+    <h2 class="title">Recently updated</h2>
+    
+<ul class="package-list">
+    <li class="list-item -simple">
+      <h3 class="title"><a href="/experimental/packages/foobar_pkg">foobar_pkg</a></h3>
+      <p class="description">my package description</p>
+      <p class="metadata">
+          
+        <a class="package-tag" href="/flutter/packages">Flutter</a>
+  
+
+      </p>
+    </li>
+</ul>
+
+    <a class="more" href="/experimental/packages">More packages...</a>
+  </section>
+  <section class="home-section">
+    <h2 class="title">Newest</h2>
+    
+<ul class="package-list">
+    <li class="list-item -simple">
+      <h3 class="title"><a href="/experimental/packages/foobar_pkg">foobar_pkg</a></h3>
+      <p class="description">my package description</p>
+      <p class="metadata">
+          
+        <a class="package-tag" href="/flutter/packages">Flutter</a>
+        <span class="package-tag">Server</span>
+  
+
+      </p>
+    </li>
+</ul>
+
+  </section>
+</div>
+
 </main>
 
 <footer class="site-footer">
@@ -114,6 +142,6 @@
       })();
     </script>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-<script src="{{{static_assets_dir}}}/js/script.js" defer></script>
+<script src="/static/v2/js/script.js" defer></script>
 </body>
 </html>

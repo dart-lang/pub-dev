@@ -159,7 +159,11 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderIndexPageV2(
-      String popularHtml, String updatedHtml, String newestHtml) {
+    String popularHtml,
+    String updatedHtml,
+    String newestHtml,
+    String platform,
+  ) {
     return Response;
   }
 
@@ -175,6 +179,7 @@ class TemplateMock implements TemplateService {
     String packageName,
     String packageDescription,
     String faviconUrl,
+    String platform,
     String searchQuery,
     bool homeBanner: false,
     bool includeSurvey: true,

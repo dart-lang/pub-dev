@@ -33,6 +33,7 @@ void main() {
       } else {
         htmlParser.parse();
       }
+      new File('$goldenDir/$fileName').writeAsStringSync(content);
       final golden = new File('$goldenDir/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
     }
@@ -70,9 +71,90 @@ void main() {
           analysis: new MockAnalysisView(platforms: ['flutter', 'server']),
         ),
       ]);
-      final String html =
-          templates.renderIndexPageV2(popularHtml, updatedHtml, newestHtml);
+      final String html = templates.renderIndexPageV2(
+          popularHtml, updatedHtml, newestHtml, null);
       expectGoldenFile(html, 'v2/index_page.html');
+    });
+
+    test('landing page v2: flutter', () {
+      final popularHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter']),
+        ),
+      ]);
+      final updatedHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter']),
+        ),
+      ]);
+      final newestHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['flutter', 'server']),
+        ),
+      ]);
+      final String html = templates.renderIndexPageV2(
+          popularHtml, updatedHtml, newestHtml, KnownPlatforms.flutter);
+      expectGoldenFile(html, 'v2/flutter_landing_page.html');
+    });
+
+    test('landing page v2: server', () {
+      final popularHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['server']),
+        ),
+      ]);
+      final updatedHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['server']),
+        ),
+      ]);
+      final newestHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['server', 'web']),
+        ),
+      ]);
+      final String html = templates.renderIndexPageV2(
+          popularHtml, updatedHtml, newestHtml, KnownPlatforms.server);
+      expectGoldenFile(html, 'v2/server_landing_page.html');
+    });
+
+    test('landing page v2: web', () {
+      final popularHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: testPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['web']),
+        ),
+      ]);
+      final updatedHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['web']),
+        ),
+      ]);
+      final newestHtml = templates.renderMiniList([
+        new PackageView.fromModel(
+          package: testPackage,
+          version: flutterPackageVersion,
+          analysis: new MockAnalysisView(platforms: ['server', 'web']),
+        ),
+      ]);
+      final String html = templates.renderIndexPageV2(
+          popularHtml, updatedHtml, newestHtml, KnownPlatforms.server);
+      expectGoldenFile(html, 'v2/web_landing_page.html');
     });
 
     test('package show page', () {
