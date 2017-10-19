@@ -11,6 +11,7 @@ import 'package:memcache/memcache.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 
 import 'memcache.dart';
+import 'platform.dart' show KnownPlatforms;
 
 final Logger _logger = new Logger('pub.package_memcache');
 
@@ -24,9 +25,9 @@ abstract class UIPackageCache {
   Future setUIPackagePage(
       bool isV2, String package, String version, String data);
 
-  Future<String> getUIIndexPage(bool isV2);
+  Future<String> getUIIndexPage(bool isV2, String platform);
 
-  Future setUIIndexPage(bool isV2, String content);
+  Future setUIIndexPage(bool isV2, String platform, String content);
 
   Future invalidateUIPackagePage(String package);
 }
@@ -62,35 +63,40 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _uiPage.setText(_pvKey(isV2, package, version), data);
 
   @override
-  Future invalidateUIPackagePage(String package) {
-    return Future.wait([
-      _uiPage.invalidate(_pvKey(false, package, null)),
-      _uiPage.invalidate(_pvKey(true, package, null)),
-      _uiIndexPage.invalidate(_indexPageKey(false)),
-      _uiIndexPage.invalidate(_indexPageKey(true)),
-    ]);
+  Future invalidateUIPackagePage(String package) =>
+      Future.wait(_invalidatePackage(package));
+
+  @override
+  Future invalidatePackageData(String package) =>
+      Future.wait(_invalidatePackage(package, invalidateData: true));
+
+  Iterable<Future> _invalidatePackage(String package,
+      {bool invalidateData: false}) sync* {
+    if (invalidateData) {
+      yield _json.invalidate(package);
+    }
+    yield _uiPage.invalidate(_pvKey(false, package, null));
+    yield _uiPage.invalidate(_pvKey(true, package, null));
+    yield _uiIndexPage.invalidate(_indexPageKey(false, null));
+    yield _uiIndexPage.invalidate(_indexPageKey(true, null));
+    for (String platform in KnownPlatforms.all) {
+      yield _uiIndexPage.invalidate(_indexPageKey(false, platform));
+      yield _uiIndexPage.invalidate(_indexPageKey(true, platform));
+    }
   }
 
   @override
-  Future invalidatePackageData(String package) {
-    return Future.wait([
-      _json.invalidate(package),
-      _uiIndexPage.invalidate(_indexPageKey(false)),
-      _uiIndexPage.invalidate(_indexPageKey(true)),
-      _uiPage.invalidate(_pvKey(false, package, null)),
-      _uiPage.invalidate(_pvKey(true, package, null)),
-    ]);
+  Future<String> getUIIndexPage(bool isV2, String platform) =>
+      _uiIndexPage.getText(_indexPageKey(isV2, platform));
+
+  @override
+  Future setUIIndexPage(bool isV2, String platform, String content) =>
+      _uiIndexPage.setText(_indexPageKey(isV2, platform), content);
+
+  String _indexPageKey(bool isV2, String platform) {
+    final String prefix = isV2 ? v2IndexUiPageKey : indexUiPageKey;
+    return '$prefix/$platform';
   }
-
-  @override
-  Future<String> getUIIndexPage(bool isV2) =>
-      _uiIndexPage.getText(_indexPageKey(isV2));
-
-  @override
-  Future setUIIndexPage(bool isV2, String content) =>
-      _uiIndexPage.setText(_indexPageKey(isV2), content);
-
-  String _indexPageKey(bool isV2) => isV2 ? v2IndexUiPageKey : indexUiPageKey;
 
   String _pvKey(bool isV2, String package, String version) {
     final String prefix = isV2 ? '/experimental' : '';
