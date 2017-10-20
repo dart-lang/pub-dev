@@ -70,6 +70,8 @@ void main() {
       expect(
           new SearchQuery('', order: SearchOrder.popularity).isValid, isTrue);
       expect(new SearchQuery('', order: SearchOrder.health).isValid, isTrue);
+      expect(
+          new SearchQuery('', order: SearchOrder.maintenance).isValid, isTrue);
     });
   });
 }

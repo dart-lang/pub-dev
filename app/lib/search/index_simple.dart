@@ -120,6 +120,9 @@ class SimplePackageIndex implements PackageIndex {
       case SearchOrder.health:
         results = _rankWithValues(getHealthScore(packages));
         break;
+      case SearchOrder.maintenance:
+        results = _rankWithValues(getMaintenanceScore(packages));
+        break;
     }
 
     // bound by offset and limit
@@ -161,6 +164,14 @@ class SimplePackageIndex implements PackageIndex {
     return new Map.fromIterable(
       packages,
       value: (String package) => _packages[package].popularity * 100,
+    );
+  }
+
+  // visible for testing only
+  Map<String, double> getMaintenanceScore(Iterable<String> packages) {
+    return new Map.fromIterable(
+      packages,
+      value: (String package) => (_packages[package].maintenance ?? 0.0) * 100,
     );
   }
 

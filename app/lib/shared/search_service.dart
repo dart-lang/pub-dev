@@ -95,6 +95,9 @@ enum SearchOrder {
 
   /// Search order should be in decreasing health score.
   health,
+
+  /// Search order should be in decreasing maintenance score.
+  maintenance,
 }
 
 /// Returns null if [value] is not a recognized search order.
@@ -113,6 +116,8 @@ SearchOrder parseSearchOrder(String value, {SearchOrder defaultsTo}) {
         return SearchOrder.popularity;
       case 'health':
         return SearchOrder.health;
+      case 'maintenance':
+        return SearchOrder.maintenance;
     }
   }
   if (defaultsTo != null) return defaultsTo;

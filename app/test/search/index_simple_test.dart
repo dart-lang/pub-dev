@@ -136,6 +136,7 @@ void main() {
         platforms: ['flutter', 'server', 'web'],
         popularity: 0.7,
         health: 1.0,
+        maintenance: 1.0,
       ));
       await index.addPackage(new PackageDocument(
         package: 'async',
@@ -154,6 +155,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         platforms: ['flutter', 'server', 'web'],
         popularity: 0.8,
         health: 1.0,
+        maintenance: 1.0,
       ));
       await index.addPackage(new PackageDocument(
         package: 'chrome_net',
@@ -168,6 +170,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         platforms: ['server'],
         popularity: 0.0,
         health: 0.5,
+        maintenance: 0.9,
       ));
       await index.merge();
     });
@@ -185,6 +188,14 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'http': 70.0,
         'async': 80.0,
         'chrome_net': 0.0,
+      });
+    });
+
+    test('maintenance scores', () {
+      expect(index.getMaintenanceScore(['http', 'async', 'chrome_net']), {
+        'http': 100.0,
+        'async': 100.0,
+        'chrome_net': 90.0,
       });
     });
 
@@ -343,6 +354,20 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': 100.0},
           {'package': 'async', 'score': 100.0},
           {'package': 'chrome_net', 'score': 50.0},
+        ],
+      });
+    });
+
+    test('order by maintenance', () async {
+      final PackageSearchResult result = await index
+          .search(new SearchQuery('', order: SearchOrder.maintenance));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'package': 'http', 'score': 100.0},
+          {'package': 'async', 'score': 100.0},
+          {'package': 'chrome_net', 'score': 90.0},
         ],
       });
     });
