@@ -75,6 +75,9 @@ const _handlers = const <String, shelf.Handler>{
   '/': indexHandler,
   '/experimental': indexHandlerV2,
   '/experimental/': indexHandlerV2,
+  '/experimental/flutter': flutterLandingHandlerV2,
+  '/experimental/server': serverLandingHandlerV2,
+  '/experimental/web': webLandingHandlerV2,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
@@ -109,7 +112,8 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 
 /// Handles requests for /
 Future<shelf.Response> indexHandler(_) async {
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage(false);
+  String pageContent =
+      await backend.uiPackageCache?.getUIIndexPage(false, null);
   if (pageContent == null) {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
@@ -118,18 +122,44 @@ Future<shelf.Response> indexHandler(_) async {
         await analyzerClient.getAnalysisViews(
             versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
     pageContent = templateService.renderIndexPage(versions, analysisViews);
-    await backend.uiPackageCache?.setUIIndexPage(false, pageContent);
+    await backend.uiPackageCache?.setUIIndexPage(false, null, pageContent);
   }
   return htmlResponse(pageContent);
 }
 
 /// Handles requests for /experimental/
-Future<shelf.Response> indexHandlerV2(_) async {
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage(true);
+Future<shelf.Response> indexHandlerV2(shelf.Request request) =>
+    _indexHandlerV2(request, null);
+
+/// Handles requests for /experimental/flutter
+Future<shelf.Response> flutterLandingHandlerV2(shelf.Request request) =>
+    _indexHandlerV2(request, KnownPlatforms.flutter);
+
+/// Handles requests for /experimental/server
+Future<shelf.Response> serverLandingHandlerV2(shelf.Request request) =>
+    _indexHandlerV2(request, KnownPlatforms.server);
+
+/// Handles requests for /experimental/web
+Future<shelf.Response> webLandingHandlerV2(shelf.Request request) =>
+    _indexHandlerV2(request, KnownPlatforms.web);
+
+/// Handles requests for:
+/// - /experimental/
+/// - /experimental/flutter
+/// - /experimental/server
+/// - /experimental/web
+Future<shelf.Response> _indexHandlerV2(
+    shelf.Request request, String platform) async {
+  String pageContent =
+      await backend.uiPackageCache?.getUIIndexPage(true, platform);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
-      final result = await searchService
-          .search(new SearchQuery(null, limit: 5, order: order));
+      final result = await searchService.search(new SearchQuery(null,
+          platformPredicate: platform == null
+              ? null
+              : new PlatformPredicate(required: [platform]),
+          limit: 5,
+          order: order));
       final packages = (result.packages.length <= 5)
           ? result.packages
           : result.packages.sublist(0, 5);
@@ -153,14 +183,25 @@ Future<shelf.Response> indexHandlerV2(_) async {
       return templateService.renderMiniList(views);
     }
 
-    final List<String> miniListHtmls = await Future.wait([
+    final List<Future<String>> miniListFutures = [
       searchAndRenderMiniList(SearchOrder.popularity),
-      renderMiniList(backend.latestPackages(limit: 5)),
-      renderMiniList(backend.newestPackages(limit: 5)),
-    ]);
+    ];
+    if (platform == null) {
+      miniListFutures.addAll([
+        renderMiniList(backend.latestPackages(limit: 5)),
+        renderMiniList(backend.newestPackages(limit: 5)),
+      ]);
+    } else {
+      miniListFutures.addAll([
+        searchAndRenderMiniList(SearchOrder.updated),
+        searchAndRenderMiniList(SearchOrder.created),
+      ]);
+    }
+
+    final List<String> miniListHtmls = await Future.wait(miniListFutures);
     pageContent = templateService.renderIndexPageV2(
         miniListHtmls[0], miniListHtmls[1], miniListHtmls[2]);
-    await backend.uiPackageCache?.setUIIndexPage(true, pageContent);
+    await backend.uiPackageCache?.setUIIndexPage(true, platform, pageContent);
   }
   return htmlResponse(pageContent);
 }
