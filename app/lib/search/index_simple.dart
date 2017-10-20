@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
 
@@ -72,10 +72,10 @@ class SimplePackageIndex implements PackageIndex {
   Future<PackageSearchResult> search(SearchQuery query) async {
     // do text matching
     final Score textScore = _searchText(query.text, query.packagePrefix);
+    final Score base = textScore ?? _allPackages();
 
     // The set of packages to filter on.
-    final Set<String> packages =
-        textScore?.getKeys()?.toSet() ?? _packages.keys.toSet();
+    final Set<String> packages = base.getKeys();
 
     // filter on package prefix
     if (query.packagePrefix != null) {
@@ -93,20 +93,22 @@ class SimplePackageIndex implements PackageIndex {
           !query.platformPredicate.matches(_packages[package].platforms));
     }
 
-    // reduce text results if filter did remove a package
-    textScore?.removeWhere((key) => !packages.contains(key));
+    // reduce base results if filter did remove a package
+    final Score filtered = base.project(packages);
 
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.overall) {
       case SearchOrder.overall:
-        final Score overallScore = new Score()
-          ..addValues(textScore?.values, 0.85)
-          ..addValues(getPopularityScore(packages), 0.10)
-          ..addValues(getHealthScore(packages), 0.05);
-        results = _rankWithValues(overallScore.values);
+        final Score overallScore = Score.multiply([
+          filtered,
+          new Score(getPopularityScore(packages)).map((v) => 0.5 + 0.5 * v),
+          new Score(getHealthScore(packages)).map((v) => 0.75 + 0.25 * v),
+          new Score(getMaintenanceScore(packages)).map((v) => 0.9 + 0.1 * v),
+        ]).removeLowValues(fraction: 0.01);
+        results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
-        results = _rankWithValues(textScore.values);
+        results = _rankWithValues(textScore.getValues());
         break;
       case SearchOrder.created:
         results = _rankWithComparator(packages, _compareCreated);
@@ -155,7 +157,7 @@ class SimplePackageIndex implements PackageIndex {
   Map<String, double> getHealthScore(Iterable<String> packages) {
     return new Map.fromIterable(
       packages,
-      value: (String package) => (_packages[package].health ?? 0.0) * 100,
+      value: (package) => (_packages[package].health ?? 0.0),
     );
   }
 
@@ -163,7 +165,7 @@ class SimplePackageIndex implements PackageIndex {
   Map<String, double> getPopularityScore(Iterable<String> packages) {
     return new Map.fromIterable(
       packages,
-      value: (String package) => _packages[package].popularity * 100,
+      value: (package) => _packages[package].popularity ?? 0.0,
     );
   }
 
@@ -171,19 +173,20 @@ class SimplePackageIndex implements PackageIndex {
   Map<String, double> getMaintenanceScore(Iterable<String> packages) {
     return new Map.fromIterable(
       packages,
-      value: (String package) => (_packages[package].maintenance ?? 0.0) * 100,
+      value: (package) => (_packages[package].maintenance ?? 0.0),
     );
   }
 
+  Score _allPackages() =>
+      new Score(new Map.fromIterable(_packages.keys, value: (_) => 1.0));
+
   Score _searchText(String text, String packagePrefix) {
     if (text != null && text.isNotEmpty) {
-      final Score textScore = new Score()
-        ..addValues(_nameIndex.search(text, coverageWeight: 0.90), 0.60)
-        ..addValues(_descrIndex.search(text, coverageWeight: 0.75), 0.20)
-        ..addValues(_readmeIndex.search(text, coverageWeight: 0.50), 0.20);
-      textScore.removeLowScores(0.05);
-      textScore.removeWhere((id) => textScore.values[id] < 1.0);
-      return textScore;
+      final name = new Score(_nameIndex.search(text, coverageWeight: 0.90));
+      final descr = new Score(_descrIndex.search(text, coverageWeight: 0.75));
+      final readme = new Score(_readmeIndex.search(text, coverageWeight: 0.50));
+      return Score.max([name, descr, readme]).removeLowValues(
+          fraction: 0.05, minValue: 1.0);
     }
     return null;
   }
@@ -227,29 +230,81 @@ class SimplePackageIndex implements PackageIndex {
 }
 
 class Score {
-  final Map<String, double> values = <String, double>{};
+  final Map<String, double> _values;
 
-  Iterable<String> getKeys() => values.keys;
+  Score(Map<String, double> values) : _values = new Map.unmodifiable(values);
 
-  void addValues(Map<String, double> newValues, double weight) {
-    if (newValues == null) return;
-    newValues.forEach((String key, double score) {
-      if (score != null) {
-        final double prev = values[key] ?? 0.0;
-        values[key] = prev + score * weight;
+  Set<String> getKeys() => _values.keys.toSet();
+  double getMaxValue() => _values.values.fold(0.0, math.max);
+  Map<String, double> getValues() => _values;
+
+  double operator [](String key) => _values[key] ?? 0.0;
+
+  /// Calculates the intersection of the [scores], by multiplying the values.
+  static Score multiply(List<Score> scores) {
+    Set<String> keys;
+    for (Score score in scores) {
+      if (keys == null) {
+        keys = score.getKeys();
+      } else {
+        keys = keys.intersection(score.getKeys());
       }
-    });
+    }
+    return new Score(new Map.fromIterable(
+      keys,
+      value: (key) =>
+          scores.fold(1.0, (double value, Score s) => s[key] * value),
+    ));
   }
 
-  void removeWhere(bool keyCondition(String key)) {
-    final Set<String> keysToRemove = values.keys.where(keyCondition).toSet();
-    keysToRemove.forEach(values.remove);
+  /// Calculates the union of the [scores], by using the maximum values from
+  /// the sets.
+  static Score max(List<Score> scores) {
+    final result = <String, double>{};
+    for (Score score in scores) {
+      for (String key in score.getKeys()) {
+        result[key] = math.max(result[key] ?? 0.0, score[key]);
+      }
+    }
+    return new Score(result);
   }
 
-  void removeLowScores(double fraction) {
-    final double maxValue = values.values.fold(0.0, max);
-    final double cutoff = maxValue * fraction;
-    removeWhere((key) => values[key] < cutoff);
+  Score removeLowValues({double fraction, double minValue}) {
+    assert(minValue != null || fraction != null);
+    double threshold = minValue;
+    if (fraction != null) {
+      final double fractionValue = getMaxValue() * fraction;
+      threshold ??= fractionValue;
+      threshold = math.max(threshold, fractionValue);
+    }
+    if (threshold == null) {
+      return this;
+    }
+    final result = <String, double>{};
+    for (String key in _values.keys) {
+      final double value = _values[key];
+      if (value < threshold) continue;
+      result[key] = value;
+    }
+    return new Score(result);
+  }
+
+  Score project(Iterable<String> keys) {
+    final result = <String, double>{};
+    for (String key in keys) {
+      final double value = _values[key];
+      if (value == null) continue;
+      result[key] = value;
+    }
+    return new Score(result);
+  }
+
+  Score map(double f(double value)) {
+    final result = <String, double>{};
+    for (String key in _values.keys) {
+      result[key] = f(_values[key]);
+    }
+    return new Score(result);
   }
 }
 
@@ -292,7 +347,9 @@ class TokenIndex {
   /// the final score. 1.0 - full coverage score is used, 0.0 - none is used.
   Map<String, double> search(String text, {double coverageWeight: 1.0}) {
     final Set<String> tokens = _tokenize(text, _minLength);
-    if (tokens == null || tokens.isEmpty) return null;
+    if (tokens == null || tokens.isEmpty) {
+      return const {};
+    }
     // the sum of all token weights in the search query
     double queryWeight = 0.0;
     final Map<String, double> docScores = <String, double>{};
@@ -347,7 +404,7 @@ class TokenIndex {
     if (minLength > 0) {
       tokenLength -= minLength - 1;
     }
-    return (tokenLength * min(token.length, 8)).toDouble();
+    return (tokenLength * math.min(token.length, 8)).toDouble();
   }
 }
 
@@ -372,7 +429,7 @@ Set<String> _tokenize(String originalText, int minLength) {
     final String normalizedWord = normalizeBeforeIndexing(word);
     if (normalizedWord.isEmpty) continue;
 
-    for (int ngramLength = max(minNgram, minLength);
+    for (int ngramLength = math.max(minNgram, minLength);
         ngramLength <= maxNgram;
         ngramLength++) {
       if (normalizedWord.length <= ngramLength) {

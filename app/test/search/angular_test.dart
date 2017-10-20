@@ -37,12 +37,12 @@ void main() {
         'totalCount': 2,
         'packages': [
           {
-            'package': 'angular_ui',
-            'score': closeTo(76.6, 0.1),
+            'package': 'angular',
+            'score': closeTo(100.0, 0.1),
           },
           {
-            'package': 'angular',
-            'score': closeTo(60.0, 0.1),
+            'package': 'angular_ui',
+            'score': closeTo(99.0, 0.1),
           },
         ],
       });
