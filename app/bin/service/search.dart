@@ -51,9 +51,16 @@ void _main(int isolateId) {
 
     registerSearchBackend(new SearchBackend(db.dbService));
 
-    final Bucket bucket = await _createOrGetBucket(
+    final Bucket snapshotBucket = await _createOrGetBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
-    registerSnapshotStorage(new SnapshotStorage(storageService, bucket));
+    registerSnapshotStorage(
+        new SnapshotStorage(storageService, snapshotBucket));
+
+    final Bucket popularityBucket = await _createOrGetBucket(
+        storageService, activeConfiguration.popularityDumpBucketName);
+    registerPopularityStorage(
+        new PopularityStorage(storageService, popularityBucket));
+    await popularityStorage.init();
 
     registerPackageIndex(new SimplePackageIndex());
 
