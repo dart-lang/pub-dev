@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
 
 import 'configuration.dart';
 import 'search_service.dart';
@@ -18,8 +17,6 @@ void registerSearchClient(SearchClient client) =>
 
 /// The active search client.
 SearchClient get searchClient => ss.lookup(#_searchClient);
-
-final Logger _logger = new Logger('pub.search_client');
 
 /// Client methods that access the search service and the internals of the
 /// indexed data.

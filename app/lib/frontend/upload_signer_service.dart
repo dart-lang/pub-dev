@@ -12,10 +12,7 @@ import 'package:googleapis/iam/v1.dart' as iam;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart' as logging;
 import 'package:pub_server/repository.dart';
-
-final logging.Logger _logger = new logging.Logger('pub.upload_signer');
 
 /// The registered [UploadSignerService] object.
 UploadSignerService get uploadSigner => ss.lookup(#_url_signer);
