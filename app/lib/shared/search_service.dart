@@ -147,19 +147,19 @@ class SearchQuery {
   });
 
   factory SearchQuery.fromServiceUrl(Uri uri) {
-    final String text = uri.queryParameters['q'];
+    final text = uri.queryParameters['q'];
     final platform = new PlatformPredicate.fromUri(uri);
-    String type = uri.queryParameters['type'];
+    var type = uri.queryParameters['type'];
     if (type != null && type.isEmpty) type = null;
-    String packagePrefix = uri.queryParameters['pkg-prefix'];
+    var packagePrefix = uri.queryParameters['pkg-prefix'];
     if (packagePrefix != null && packagePrefix.isEmpty) packagePrefix = null;
-    final SearchOrder order = parseSearchOrder(
+    final order = parseSearchOrder(
       uri.queryParameters['order'],
       defaultsTo: SearchOrder.overall,
     );
-    int offset =
+    var offset =
         int.parse(uri.queryParameters['offset'] ?? '0', onError: (_) => 0);
-    int limit = int.parse(uri.queryParameters['limit'] ?? '0',
+    var limit = int.parse(uri.queryParameters['limit'] ?? '0',
         onError: (_) => defaultSearchLimit);
 
     offset = max(0, offset);
@@ -193,7 +193,7 @@ class SearchQuery {
       );
 
   Map<String, String> toServiceQueryParameters() {
-    final Map<String, String> map = <String, String>{
+    final map = <String, String>{
       'q': text,
       'platforms': platformPredicate?.toQueryParamValue(),
       'offset': offset?.toString(),
@@ -210,9 +210,9 @@ class SearchQuery {
 
   /// Sanity check, whether the query object is to be expected a valid result.
   bool get isValid {
-    final bool hasText = text != null && text.isNotEmpty;
-    final bool hasNonTextOrdering = order != SearchOrder.text;
-    final bool isEmpty = !hasText &&
+    final hasText = text != null && text.isNotEmpty;
+    final hasNonTextOrdering = order != SearchOrder.text;
+    final isEmpty = !hasText &&
         order == null &&
         packagePrefix == null &&
         (platformPredicate == null || !platformPredicate.isNotEmpty);
@@ -222,7 +222,7 @@ class SearchQuery {
   }
 
   String toSearchLink({int page}) {
-    final Map<String, String> params = {'q': text};
+    final params = {'q': text};
     if (platformPredicate != null && platformPredicate.isNotEmpty) {
       params['platforms'] = platformPredicate.toQueryParamValue();
     }

@@ -45,8 +45,8 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
     return htmlResponse(searchIndexNotReadyText,
         status: searchIndexNotReadyCode);
   }
-  final bool indent = request.url.queryParameters['indent'] == 'true';
-  final PackageSearchResult result =
+  final indent = request.url.queryParameters['indent'] == 'true';
+  final result =
       await packageIndex.search(new SearchQuery.fromServiceUrl(request.url));
   return jsonResponse(result.toJson(), indent: indent);
 }
@@ -54,9 +54,9 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
 /// Handles requests for:
 ///   - /packages/<package>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final String path = request.requestedUri.path.substring('/packages/'.length);
-  final String packageName = path;
-  final String requestMethod = request.method.toUpperCase();
+  final path = request.requestedUri.path.substring('/packages/'.length);
+  final packageName = path;
+  final requestMethod = request.method.toUpperCase();
   if (requestMethod == 'POST') {
     if (await validateNotificationSecret(request)) {
       triggerTask(packageName, null);

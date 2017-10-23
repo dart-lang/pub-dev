@@ -13,12 +13,12 @@ import 'task_client.dart';
 
 Future startIsolates(
     Logger logger, void entryPoint(List<SendPort> ports)) async {
-  final ReceivePort errorReceivePort = new ReceivePort();
+  final errorReceivePort = new ReceivePort();
 
   Future startIsolate() async {
     logger.info('About to start isolate...');
-    final ReceivePort mainReceivePort = new ReceivePort();
-    final ReceivePort statsReceivePort = new ReceivePort();
+    final mainReceivePort = new ReceivePort();
+    final statsReceivePort = new ReceivePort();
     await Isolate.spawn(
       entryPoint,
       [mainReceivePort.sendPort, statsReceivePort.sendPort],
@@ -40,7 +40,7 @@ Future startIsolates(
     await startIsolate();
   });
 
-  for (int i = 0; i < envConfig.isolateCount; i++) {
+  for (var i = 0; i < envConfig.isolateCount; i++) {
     await startIsolate();
   }
 }

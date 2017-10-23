@@ -32,7 +32,7 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future<bool> containsPackage(String package,
       {String version, Duration maxAge}) async {
-    final PackageDocument doc = _packages[package];
+    final doc = _packages[package];
     if (doc == null) return false;
     if (version != null && doc.version != version) return false;
     if (maxAge != null &&
@@ -54,14 +54,14 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future addPackages(Iterable<PackageDocument> documents) async {
-    for (PackageDocument doc in documents) {
+    for (var doc in documents) {
       await addPackage(doc);
     }
   }
 
   @override
   Future removePackage(String package) async {
-    final PackageDocument doc = _packages.remove(package);
+    final doc = _packages.remove(package);
     if (doc == null) return;
     _nameIndex.remove(package);
     _descrIndex.remove(package);
@@ -71,11 +71,10 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
     // do text matching
-    final Score textScore = _searchText(query.text, query.packagePrefix);
+    final textScore = _searchText(query.text, query.packagePrefix);
 
     // The set of packages to filter on.
-    final Set<String> packages =
-        textScore?.getKeys()?.toSet() ?? _packages.keys.toSet();
+    final packages = textScore?.getKeys()?.toSet() ?? _packages.keys.toSet();
 
     // filter on package prefix
     if (query.packagePrefix != null) {
@@ -99,7 +98,7 @@ class SimplePackageIndex implements PackageIndex {
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.overall) {
       case SearchOrder.overall:
-        final Score overallScore = new Score()
+        final overallScore = new Score()
           ..addValues(textScore?.values, 0.85)
           ..addValues(getPopularityScore(packages), 0.10)
           ..addValues(getHealthScore(packages), 0.05);
@@ -126,7 +125,7 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // bound by offset and limit
-    final int totalCount = results.length;
+    final totalCount = results.length;
     if (query.offset != null && query.offset > 0) {
       if (query.offset >= results.length) {
         results = <PackageScore>[];
@@ -177,7 +176,7 @@ class SimplePackageIndex implements PackageIndex {
 
   Score _searchText(String text, String packagePrefix) {
     if (text != null && text.isNotEmpty) {
-      final Score textScore = new Score()
+      final textScore = new Score()
         ..addValues(_nameIndex.search(text, coverageWeight: 0.90), 0.60)
         ..addValues(_descrIndex.search(text, coverageWeight: 0.75), 0.20)
         ..addValues(_readmeIndex.search(text, coverageWeight: 0.50), 0.20);
@@ -189,14 +188,14 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   List<PackageScore> _rankWithValues(Map<String, double> values) {
-    final List<PackageScore> list = values.keys
+    final list = values.keys
         .map((package) => new PackageScore(
               package: _packages[package].package,
               score: values[package],
             ))
         .toList();
     list.sort((a, b) {
-      final int scoreCompare = -a.score.compareTo(b.score);
+      final scoreCompare = -a.score.compareTo(b.score);
       if (scoreCompare != 0) return scoreCompare;
       // if two packages got the same score, order by last updated
       return _compareUpdated(_packages[a.package], _packages[b.package]);
@@ -206,7 +205,7 @@ class SimplePackageIndex implements PackageIndex {
 
   List<PackageScore> _rankWithComparator(
       Set<String> packages, int compare(PackageDocument a, PackageDocument b)) {
-    final List<PackageScore> list = packages
+    final list = packages
         .map((package) => new PackageScore(package: _packages[package].package))
         .toList();
     list.sort((a, b) => compare(_packages[a.package], _packages[b.package]));
@@ -235,20 +234,20 @@ class Score {
     if (newValues == null) return;
     newValues.forEach((String key, double score) {
       if (score != null) {
-        final double prev = values[key] ?? 0.0;
+        final prev = values[key] ?? 0.0;
         values[key] = prev + score * weight;
       }
     });
   }
 
   void removeWhere(bool keyCondition(String key)) {
-    final Set<String> keysToRemove = values.keys.where(keyCondition).toSet();
+    final keysToRemove = values.keys.where(keyCondition).toSet();
     keysToRemove.forEach(values.remove);
   }
 
   void removeLowScores(double fraction) {
-    final double maxValue = values.values.fold(0.0, max);
-    final double cutoff = maxValue * fraction;
+    final maxValue = values.values.fold(0.0, max);
+    final cutoff = maxValue * fraction;
     removeWhere((key) => values[key] < cutoff);
   }
 }
@@ -264,11 +263,11 @@ class TokenIndex {
   int get tokenCount => _inverseIds.length;
 
   void add(String id, String text) {
-    final Set<String> tokens = _tokenize(text, _minLength);
+    final tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) return;
-    double sumWeight = 0.0;
-    for (String token in tokens) {
-      final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
+    var sumWeight = 0.0;
+    for (var token in tokens) {
+      final set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
       sumWeight += _tokenWeight(token, _minLength);
     }
@@ -277,7 +276,7 @@ class TokenIndex {
 
   void remove(String id) {
     _weights.remove(id);
-    final List<String> removeKeys = [];
+    final removeKeys = <String>[];
     _inverseIds.forEach((String key, Set<String> set) {
       set.remove(id);
       if (set.isEmpty) removeKeys.add(key);
@@ -291,40 +290,40 @@ class TokenIndex {
   /// [coverageWeight] controls the weight of the document coverage percent in
   /// the final score. 1.0 - full coverage score is used, 0.0 - none is used.
   Map<String, double> search(String text, {double coverageWeight: 1.0}) {
-    final Set<String> tokens = _tokenize(text, _minLength);
+    final tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) return null;
     // the sum of all token weights in the search query
-    double queryWeight = 0.0;
-    final Map<String, double> docScores = <String, double>{};
+    var queryWeight = 0.0;
+    final docScores = <String, double>{};
 
     // use the inverted index to aggregate scores for each document
-    for (String token in tokens) {
-      final double tokenWeight = _tokenWeight(token, _minLength);
+    for (var token in tokens) {
+      final tokenWeight = _tokenWeight(token, _minLength);
       queryWeight += tokenWeight;
 
-      final Set<String> set = _inverseIds[token];
+      final set = _inverseIds[token];
       if (set == null || set.isEmpty) continue;
 
-      for (String id in set) {
-        final double prevValue = docScores[id] ?? 0.0;
+      for (var id in set) {
+        final prevValue = docScores[id] ?? 0.0;
         docScores[id] = prevValue + tokenWeight;
       }
     }
 
     // normalize token weights to 0.0-1.0 range, also adjust to document coverage
-    for (String id in docScores.keys.toList()) {
-      final double matchWeight = docScores[id];
+    for (var id in docScores.keys.toList()) {
+      final matchWeight = docScores[id];
 
       // the percent of the match in relation to the total query [0.0 - 1.0]
-      final double queryScore = matchWeight / queryWeight;
+      final queryScore = matchWeight / queryWeight;
 
       // the percent of the match in relation to the document [0.0 - 1.0]
-      final double coverageScore = matchWeight / _weights[id];
+      final coverageScore = matchWeight / _weights[id];
 
-      final double weightedCoverageScore =
+      final weightedCoverageScore =
           1 - (coverageWeight * (1.0 - coverageScore));
 
-      final double score = 100.0 * queryScore * weightedCoverageScore;
+      final score = 100.0 * queryScore * weightedCoverageScore;
       docScores[id] = score;
     }
     return docScores;
@@ -343,7 +342,7 @@ class TokenIndex {
   // 9 -> 72 (Length * 8)
   //10 -> 80 (Length * 8)
   double _tokenWeight(String token, int minLength) {
-    int tokenLength = token.length;
+    var tokenLength = token.length;
     if (minLength > 0) {
       tokenLength -= minLength - 1;
     }
@@ -357,28 +356,28 @@ const int maxWordLength = 80;
 
 Set<String> _tokenize(String originalText, int minLength) {
   if (originalText == null || originalText.isEmpty) return null;
-  final Set<String> tokens = new Set();
+  final tokens = new Set<String>();
 
   void addAllPrefixes(String phrase) {
-    for (int i = maxNgram + 1; i < phrase.length; i++) {
+    for (var i = maxNgram + 1; i < phrase.length; i++) {
       tokens.add(phrase.substring(0, i));
     }
     tokens.add(phrase);
   }
 
-  for (String word in splitForIndexing(originalText)) {
+  for (var word in splitForIndexing(originalText)) {
     if (word.length > maxWordLength) word = word.substring(0, maxWordLength);
 
-    final String normalizedWord = normalizeBeforeIndexing(word);
+    final normalizedWord = normalizeBeforeIndexing(word);
     if (normalizedWord.isEmpty) continue;
 
-    for (int ngramLength = max(minNgram, minLength);
+    for (var ngramLength = max(minNgram, minLength);
         ngramLength <= maxNgram;
         ngramLength++) {
       if (normalizedWord.length <= ngramLength) {
         tokens.add(normalizedWord);
       } else {
-        for (int i = 0; i <= normalizedWord.length - ngramLength; i++) {
+        for (var i = 0; i <= normalizedWord.length - ngramLength; i++) {
           tokens.add(normalizedWord.substring(i, i + ngramLength));
         }
       }
@@ -389,12 +388,12 @@ Set<String> _tokenize(String originalText, int minLength) {
     addAllPrefixes(normalizedWord);
 
     // scan for CamelCase phrases and index Case
-    bool prevLower = _isLower(word[0]);
-    for (int i = 1; i < word.length; i++) {
-      final bool lower = _isLower(word[i]);
+    var prevLower = _isLower(word[0]);
+    for (var i = 1; i < word.length; i++) {
+      final lower = _isLower(word[i]);
       if (!lower && prevLower) {
-        final String part = word.substring(i);
-        final String normalizedPart = normalizeBeforeIndexing(part);
+        final part = word.substring(i);
+        final normalizedPart = normalizeBeforeIndexing(part);
         addAllPrefixes(normalizedPart);
       }
       prevLower = lower;

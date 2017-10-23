@@ -23,7 +23,7 @@ Future main(List<String> args) async {
 
   await withProdServices(() async {
     registerNotificationClient(new NotificationClient());
-    final String service = args[0];
+    final service = args[0];
     if (service == 'analyzer' && args.length == 3) {
       await notificationClient.notifyAnalyzer(
           args[1], args[2], new Set<String>());

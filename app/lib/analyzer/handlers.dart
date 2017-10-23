@@ -12,7 +12,6 @@ import '../shared/handlers.dart';
 import '../shared/task_client.dart';
 
 import 'backend.dart';
-import 'models.dart';
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
@@ -44,25 +43,25 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 ///   - /packages/<package>/<version>
 ///   - /packages/<package>/<version>/<analysis>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final bool onlyMeta = request.url.queryParameters['only-meta'] == 'true';
-  final String path = request.requestedUri.path.substring('/packages/'.length);
-  final List<String> pathParts = path.split('/');
+  final onlyMeta = request.url.queryParameters['only-meta'] == 'true';
+  final path = request.requestedUri.path.substring('/packages/'.length);
+  final pathParts = path.split('/');
   if (path.length == 0 || pathParts.length > 3) {
     return notFoundHandler(request);
   }
-  final String package = pathParts[0];
-  final String version = pathParts.length == 1 ? null : pathParts[1];
-  final int analysisId = pathParts.length <= 2
+  final package = pathParts[0];
+  final version = pathParts.length == 1 ? null : pathParts[1];
+  final analysisId = pathParts.length <= 2
       ? null
       : int.parse(pathParts[2], onError: (_) => -1);
   if (analysisId == -1) {
     return notFoundHandler(request);
   }
-  final String panaVersion = request.url.queryParameters['panaVersion'];
+  final panaVersion = request.url.queryParameters['panaVersion'];
 
-  final String requestMethod = request.method?.toUpperCase();
+  final requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
-    final Analysis analysis = await analysisBackend.getAnalysis(package,
+    final analysis = await analysisBackend.getAnalysis(package,
         version: version, analysis: analysisId, panaVersion: panaVersion);
     if (analysis == null) {
       return notFoundHandler(request);

@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
 
@@ -27,8 +26,8 @@ Future main(List<String> arguments) async {
     exit(1);
   }
 
-  final String command = arguments[0];
-  final String package = arguments[1];
+  final command = arguments[0];
+  final package = arguments[1];
   String version;
   if (arguments.length == 3) version = arguments[2];
 
@@ -51,7 +50,7 @@ Future main(List<String> arguments) async {
 }
 
 Future listPackage(String packageName) async {
-  final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
+  final packageKey = dbService.emptyKey.append(Package, id: packageName);
   final Package package = (await dbService.lookup([packageKey])).first;
   if (package == null) {
     throw new Exception("Package $packageName does not exist.");
@@ -69,7 +68,7 @@ Future listPackage(String packageName) async {
 
 Future removePackage(String packageName) async {
   return dbService.withTransaction((Transaction T) async {
-    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
+    final packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");
@@ -77,8 +76,7 @@ Future removePackage(String packageName) async {
 
     final versionsQuery = T.query(PackageVersion, packageKey);
     final List<PackageVersion> versions = await versionsQuery.run().toList();
-    final List<Version> versionNames =
-        versions.map((v) => v.semanticVersion).toList();
+    final versionNames = versions.map((v) => v.semanticVersion).toList();
 
     final deletes = versions.map((v) => v.key).toList();
     deletes.add(packageKey);
@@ -100,7 +98,7 @@ Future removePackage(String packageName) async {
 
 Future removePackageVersion(String packageName, String version) async {
   return dbService.withTransaction((Transaction T) async {
-    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
+    final packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
       throw new Exception("Package $packageName does not exist.");

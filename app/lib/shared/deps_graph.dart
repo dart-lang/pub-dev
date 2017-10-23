@@ -31,7 +31,7 @@ class TransitiveDependencyGraph {
 
   void addAll(String node, Set<String> deps) {
     final nodes = _deps.putIfAbsent(node, _newSet);
-    final int before = nodes.length;
+    final before = nodes.length;
     nodes.addAll(deps);
     if (before != nodes.length) {
       _fixpointNode(node);
@@ -47,20 +47,20 @@ class TransitiveDependencyGraph {
   Set<String> transitiveNodes(String node) => _deps.putIfAbsent(node, _newSet);
 
   void _fixpointNode(String node) {
-    final Set<String> directs = _deps[node];
+    final directs = _deps[node];
     final temp = <Set<String>>[];
     for (;;) {
-      final int before = directs.length;
+      final before = directs.length;
       temp.clear();
-      for (final String direct in directs) {
+      for (final direct in directs) {
         if (node != direct) {
-          final Set<String> transitives = _deps[direct];
+          final transitives = _deps[direct];
           if (transitives?.isNotEmpty == true) {
             temp.add(transitives);
           }
         }
       }
-      for (final Set<String> transitives in temp) {
+      for (final transitives in temp) {
         directs.addAll(transitives);
       }
       if (before == directs.length) break;
@@ -135,9 +135,8 @@ class PackageDependencyBuilder {
   }
 
   void addPackageVersion(PackageVersion pv) {
-    final Set<String> depsSet = new Set<String>.from(pv.pubspec.dependencies);
-    final Set<String> devDepsSet =
-        new Set<String>.from(pv.pubspec.devDependencies);
+    final depsSet = new Set<String>.from(pv.pubspec.dependencies);
+    final devDepsSet = new Set<String>.from(pv.pubspec.devDependencies);
 
     // First we add the [package] together with the dependencies /
     // dev_dependencies to the graph.  This will update the graph transitively,
@@ -152,12 +151,11 @@ class PackageDependencyBuilder {
     //
     // So we trigger all packages that depend (directly or indirectly) on
     // [package].
-    final Set<String> transitiveUsers =
-        reverseDeps.transitiveNodes(canonicalize(package));
+    final transitiveUsers = reverseDeps.transitiveNodes(canonicalize(package));
 
     // We filter out all dev package usages and trigger an analysis for them
     // (the dev packages are a superset of the normal packages).
-    final Set<String> all = transitiveUsers
+    final all = transitiveUsers
         .where((String p) => p.startsWith(devPrefix))
         .map((String p) => p.substring(devPrefix.length))
         .toSet();
@@ -171,12 +169,12 @@ class PackageDependencyBuilder {
     final canonicalizedDeps = deps.map(canonicalize).toSet();
     final canonicalizedDevDeps = devDeps.map(canonicalize).toSet();
 
-    for (final String dep in canonicalizedDeps) {
+    for (final dep in canonicalizedDeps) {
       reverseDeps.add(dep, canonicalizedPackage);
       reverseDeps.add(dep, canonicalizedDevPackage);
     }
 
-    for (final String dep in canonicalizedDevDeps) {
+    for (final dep in canonicalizedDevDeps) {
       reverseDeps.add(dep, canonicalizedDevPackage);
     }
   }

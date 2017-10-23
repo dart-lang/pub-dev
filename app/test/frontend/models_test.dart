@@ -15,7 +15,7 @@ void main() {
       test('only dev version', () {
         final devVersion =
             testPackageKey.append(PackageVersion, id: '0.0.1-dev');
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = devVersion
           ..latestDevVersionKey = devVersion;
         p.updateVersion(new PackageVersion()
@@ -29,7 +29,7 @@ void main() {
       test('update old with only dev version', () {
         final devVersion =
             testPackageKey.append(PackageVersion, id: '1.0.0-dev');
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = devVersion
           ..latestDevVersionKey = devVersion;
         p.updateVersion(new PackageVersion()
@@ -43,7 +43,7 @@ void main() {
       test('stable after dev', () {
         final devVersion =
             testPackageKey.append(PackageVersion, id: '1.0.0-dev');
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = devVersion
           ..latestDevVersionKey = devVersion;
         p.updateVersion(new PackageVersion()
@@ -55,7 +55,7 @@ void main() {
       });
 
       test('new stable version', () {
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
         expect(p.latestVersion, '0.1.1');
@@ -68,7 +68,7 @@ void main() {
       });
 
       test('update old stable version', () {
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
         expect(p.latestVersion, '0.1.1');
@@ -81,7 +81,7 @@ void main() {
       });
 
       test('new dev version', () {
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
         expect(p.latestVersion, '0.1.1');
@@ -94,7 +94,7 @@ void main() {
       });
 
       test('new dev version, then a stable patch', () {
-        final Package p = new Package()
+        final p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
         expect(p.latestVersion, '0.1.1');
@@ -117,14 +117,14 @@ void main() {
   });
 
   group('Pubspec', () {
-    const String pubspecBase = '''
+    const pubspecBase = '''
 name: test_package
 description: 'Test package'
 version: 1.0.9
 ''';
 
     test('properties', () {
-      final Pubspec p = new Pubspec(pubspecBase);
+      final p = new Pubspec(pubspecBase);
       expect(p.name, 'test_package');
       expect(p.description, 'Test package');
       expect(p.version, '1.0.9');
@@ -132,12 +132,12 @@ version: 1.0.9
 
     group('Flutter', () {
       test('basic package', () {
-        final Pubspec p = new Pubspec(pubspecBase);
+        final p = new Pubspec(pubspecBase);
         expect(p.hasFlutterPlugin, isFalse);
         expect(p.dependsOnFlutterSdk, isFalse);
       });
       test('Depends on Flutter SDK', () {
-        final Pubspec p = new Pubspec(pubspecBase +
+        final p = new Pubspec(pubspecBase +
             'dependencies:\n'
             '  flutter:\n'
             '    sdk: flutter\n');
@@ -145,7 +145,7 @@ version: 1.0.9
         expect(p.dependsOnFlutterSdk, isTrue);
       });
       test('Has flutter plugin', () {
-        final Pubspec p = new Pubspec(pubspecBase +
+        final p = new Pubspec(pubspecBase +
             'flutter:\n'
             '  plugin:\n'
             '    androidPackage: com.example.EntryPoint\n');

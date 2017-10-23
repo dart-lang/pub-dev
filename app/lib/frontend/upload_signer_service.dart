@@ -61,7 +61,7 @@ abstract class UploadSignerService {
     };
 
     final policyString = BASE64.encode(UTF8.encode(JSON.encode(policyMap)));
-    final SigningResult result = await sign(ASCII.encode(policyString));
+    final result = await sign(ASCII.encode(policyString));
     final signatureString = BASE64.encode(result.bytes);
 
     final fields = {
@@ -113,7 +113,7 @@ class IamBasedUploadSigner extends UploadSignerService {
   Future<SigningResult> sign(List<int> bytes) async {
     final request = new iam.SignBlobRequest()..bytesToSignAsBytes = bytes;
     final name = 'projects/$projectId/serviceAccounts/$email';
-    final iam.SignBlobResponse response =
+    final response =
         await iamApi.projects.serviceAccounts.signBlob(request, name);
     return new SigningResult(email, response.signatureAsBytes);
   }

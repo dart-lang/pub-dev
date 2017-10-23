@@ -12,7 +12,7 @@ import 'package:pub_dartlang_org/shared/utils.dart';
 void main() {
   group('Randomize Stream', () {
     test('Single batch', () async {
-      final Stream<int> randomizedStream = randomizeStream(
+      final randomizedStream = randomizeStream(
         new Stream.fromIterable(new List.generate(10, (i) => i)),
         duration: new Duration(milliseconds: 100),
         random: new Random(123),
@@ -21,13 +21,13 @@ void main() {
     });
 
     test('Two batches', () async {
-      final StreamController<int> controller = new StreamController<int>();
-      final Stream<int> randomizedStream = randomizeStream(
+      final controller = new StreamController<int>();
+      final randomizedStream = randomizeStream(
         controller.stream,
         duration: new Duration(milliseconds: 100),
         random: new Random(123),
       );
-      final Future<List<int>> valuesFuture = randomizedStream.toList();
+      final valuesFuture = randomizedStream.toList();
       new List.generate(8, (i) => i).forEach(controller.add);
       await new Future.delayed(new Duration(milliseconds: 200));
       new List.generate(8, (i) => i + 10).forEach(controller.add);
@@ -38,14 +38,14 @@ void main() {
     });
 
     test('Small slices', () async {
-      final StreamController<int> controller = new StreamController<int>();
-      final Stream<int> randomizedStream = randomizeStream(
+      final controller = new StreamController<int>();
+      final randomizedStream = randomizeStream(
         controller.stream,
         duration: new Duration(milliseconds: 100),
         maxPositionDiff: 4,
         random: new Random(123),
       );
-      final Future<List<int>> valuesFuture = randomizedStream.toList();
+      final valuesFuture = randomizedStream.toList();
       new List.generate(8, (i) => i).forEach(controller.add);
       new List.generate(8, (i) => i + 10).forEach(controller.add);
       controller.close();

@@ -377,7 +377,7 @@ MIT'''),
     });
 
     test('hoversine', () async {
-      final PackageSearchResult result = await index
+      final result = await index
           .search(new SearchQuery('haversine', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,

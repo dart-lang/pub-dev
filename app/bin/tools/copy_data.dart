@@ -44,7 +44,7 @@ Future main(List<String> args) async {
 }
 
 Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
-  final List<db.Model> entities = [];
+  final entities = <db.Model>[];
 
   Future flush({bool force: false}) async {
     if (force || entities.length >= 10) {

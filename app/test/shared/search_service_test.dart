@@ -10,9 +10,9 @@ void main() {
   group('SearchOrder enum', () {
     test('serialization', () {
       for (var value in SearchOrder.values) {
-        final String serialized = serializeSearchOrder(value);
+        final serialized = serializeSearchOrder(value);
         expect(serialized, isNotEmpty);
-        final SearchOrder deserialized = parseSearchOrder(serialized);
+        final deserialized = parseSearchOrder(serialized);
         expect(deserialized, value);
       }
     });

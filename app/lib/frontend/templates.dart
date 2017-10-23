@@ -49,17 +49,16 @@ class TemplateService {
       List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
-    final Map<String, Object> values =
-        _pkgVersionsValues(package, versions, versionDownloadUrls);
+    final values = _pkgVersionsValues(package, versions, versionDownloadUrls);
     return _renderPage('pkg/versions/index', values);
   }
 
   Map<String, Object> _pkgVersionsValues(String package,
       List<PackageVersion> versions, List<Uri> versionDownloadUrls) {
     final versionsJson = [];
-    for (int i = 0; i < versions.length; i++) {
-      final PackageVersion version = versions[i];
-      final String url = versionDownloadUrls[i].toString();
+    for (var i = 0; i < versions.length; i++) {
+      final version = versions[i];
+      final url = versionDownloadUrls[i].toString();
       versionsJson.add({
         'version': version.id,
         'short_created': version.shortCreated,
@@ -83,8 +82,7 @@ class TemplateService {
       List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
-    final Map<String, Object> values =
-        _pkgVersionsValues(package, versions, versionDownloadUrls);
+    final values = _pkgVersionsValues(package, versions, versionDownloadUrls);
     final content = _renderTemplate('v2/pkg/versions/index', values);
     return renderLayoutPageV2(content);
   }
@@ -93,7 +91,7 @@ class TemplateService {
   String renderPkgIndexPage(List<PackageView> packages, PageLinks links,
       {String title, String faviconUrl, String descriptionHtml}) {
     final packagesJson = [];
-    for (int i = 0; i < packages.length; i++) {
+    for (var i = 0; i < packages.length; i++) {
       final view = packages[i];
       packagesJson.add({
         'icons': _renderIconsColumnHtml(view.platforms),
@@ -112,7 +110,7 @@ class TemplateService {
       'pagination': renderPagination(links),
     };
 
-    String pageTitle = title ?? 'All Packages';
+    var pageTitle = title ?? 'All Packages';
     if (links.rightmostPage > 1) {
       pageTitle = 'Page ${links.currentPage} | $pageTitle';
     }
@@ -125,7 +123,7 @@ class TemplateService {
   String renderPkgIndexPageV2(
       List<PackageView> packages, PageLinks links, String currentPlatform) {
     final packagesJson = [];
-    for (int i = 0; i < packages.length; i++) {
+    for (var i = 0; i < packages.length; i++) {
       final view = packages[i];
       packagesJson.add({
         'url': '/packages/${view.name}',
@@ -141,19 +139,19 @@ class TemplateService {
       });
     }
 
-    String title = 'Packages';
-    String descriptionHtml = '';
+    var title = 'Packages';
+    var descriptionHtml = '';
     if (currentPlatform == KnownPlatforms.flutter) {
       title = 'Flutter Packages';
       descriptionHtml = flutterPackagesDescriptionHtml;
     }
 
     Map platformTabData(String text, String platform) {
-      final String param = platform == null
+      final param = platform == null
           ? null
           : new PlatformPredicate(required: [platform]).toQueryParamValue();
-      final String query = param == null ? '' : '?platform=$param';
-      final String url = '/packages$query';
+      final query = param == null ? '' : '?platform=$param';
+      final url = '/packages$query';
       return {'text': text, 'href': url, 'active': platform == currentPlatform};
     }
 
@@ -174,7 +172,7 @@ class TemplateService {
     };
     final content = _renderTemplate('v2/pkg/index', values);
 
-    String pageTitle = title ?? 'All Packages';
+    var pageTitle = title ?? 'All Packages';
     if (links.rightmostPage > 1) {
       pageTitle = 'Page ${links.currentPage} | $pageTitle';
     }
@@ -210,7 +208,7 @@ class TemplateService {
       dependencies.last['sep'] = '';
     }
 
-    final Map<String, dynamic> data = {
+    final data = <String, dynamic>{
       'timestamp': analysis.timestamp.toString(),
       'status': statusText,
       'has_dependency': dependencies.isNotEmpty,
@@ -232,11 +230,10 @@ class TemplateService {
       int totalNumberOfVersions,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
-    final bool isFlutterPlugin =
-        latestStableVersion.pubspec.dependsOnFlutterSdk ||
-            latestStableVersion.pubspec.hasFlutterPlugin;
+    final isFlutterPlugin = latestStableVersion.pubspec.dependsOnFlutterSdk ||
+        latestStableVersion.pubspec.hasFlutterPlugin;
 
-    final Map<String, Object> values = _pkgShowPageValues(
+    final values = _pkgShowPageValues(
       package,
       versions,
       versionDownloadUrls,
@@ -350,9 +347,9 @@ class TemplateService {
     }
 
     final versionsJson = [];
-    for (int i = 0; i < versions.length; i++) {
-      final PackageVersion version = versions[i];
-      final String url = versionDownloadUrls[i].toString();
+    for (var i = 0; i < versions.length; i++) {
+      final version = versions[i];
+      final url = versionDownloadUrls[i].toString();
       versionsJson.add({
         'version': version.id,
         'short_created': version.shortCreated,
@@ -361,12 +358,12 @@ class TemplateService {
       });
     }
 
-    final bool should_show_dev =
+    final should_show_dev =
         latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
-    final bool should_show =
+    final should_show =
         selectedVersion != latestStableVersion || should_show_dev;
 
-    final List<Map<String, String>> tabs = <Map<String, String>>[];
+    final tabs = <Map<String, String>>[];
     void addFileTab(String id, String title, String content) {
       if (content != null) {
         tabs.add({
@@ -445,11 +442,10 @@ class TemplateService {
       int totalNumberOfVersions,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
-    final bool isFlutterPlugin =
-        latestStableVersion.pubspec.dependsOnFlutterSdk ||
-            latestStableVersion.pubspec.hasFlutterPlugin;
+    final isFlutterPlugin = latestStableVersion.pubspec.dependsOnFlutterSdk ||
+        latestStableVersion.pubspec.hasFlutterPlugin;
 
-    final Map<String, Object> values = _pkgShowPageValues(
+    final values = _pkgShowPageValues(
       package,
       versions,
       versionDownloadUrls,
@@ -492,8 +488,8 @@ class TemplateService {
       List<PackageVersion> recentPackages, List<AnalysisView> analysisViews) {
     final values = {
       'recent_packages': new List.generate(recentPackages.length, (index) {
-        final PackageVersion version = recentPackages[index];
-        final AnalysisView analysis = analysisViews[index];
+        final version = recentPackages[index];
+        final analysis = analysisViews[index];
         final description = version.ellipsizedDescription;
         return {
           'icons': _renderIconsColumnHtml(analysis.platforms),
@@ -516,7 +512,7 @@ class TemplateService {
       'updated_html': updatedHtml,
       'newest_html': newestHtml,
     };
-    final String content = _renderTemplate('v2/index', values);
+    final content = _renderTemplate('v2/index', values);
     return renderLayoutPageV2(
       content,
       title: 'Pub: Dart Package Manager',
@@ -549,7 +545,7 @@ class TemplateService {
     bool homeBanner: false,
     bool includeSurvey: true,
   }) {
-    final String escapedSearchQuery =
+    final escapedSearchQuery =
         searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
     final values = {
       'static_assets_dir': LogoUrls.newDesignAssetsDir,
@@ -577,7 +573,7 @@ class TemplateService {
       String faviconUrl,
       String searchQuery,
       bool includeSurvey: true}) {
-    final String escapedSearchQuery =
+    final escapedSearchQuery =
         searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
     final values = {
       'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
@@ -617,18 +613,16 @@ class TemplateService {
 
   /// Renders the `views/search.mustache` template.
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
-    final String queryText = resultPage.query.text;
-    final Map<String, Object> values =
-        _searchPage(resultPage, renderPagination(pageLinks));
+    final queryText = resultPage.query.text;
+    final values = _searchPage(resultPage, renderPagination(pageLinks));
     return _renderPage('search', values,
         title: 'Search results for $queryText.', searchQuery: queryText);
   }
 
   /// Renders the `views/v2/search.mustache` template.
   String renderSearchPageV2(SearchResultPage resultPage, PageLinks pageLinks) {
-    final String queryText = resultPage.query.text;
-    final Map<String, Object> values =
-        _searchPage(resultPage, renderPaginationV2(pageLinks));
+    final queryText = resultPage.query.text;
+    final values = _searchPage(resultPage, renderPaginationV2(pageLinks));
     final content = _renderTemplate('v2/search', values);
     return renderLayoutPageV2(content,
         title: 'Search results for $queryText.', searchQuery: queryText);
@@ -636,9 +630,9 @@ class TemplateService {
 
   Map<String, Object> _searchPage(
       SearchResultPage resultPage, String paginationHtml) {
-    final List results = [];
-    for (int i = 0; i < resultPage.packages.length; i++) {
-      final PackageView view = resultPage.packages[i];
+    final results = [];
+    for (var i = 0; i < resultPage.packages.length; i++) {
+      final view = resultPage.packages[i];
       results.add({
         'url': '/packages/${view.name}',
         'name': view.name,
@@ -653,7 +647,7 @@ class TemplateService {
         'tags_html': _renderTags(view.platforms), // used in v2 only
       });
     }
-    final String currentUrl = resultPage.query.toSearchLink();
+    final currentUrl = resultPage.query.toSearchLink();
     Map platformTabData(String text, String platform) {
       final url = resultPage.query
           .change(
@@ -700,7 +694,7 @@ class TemplateService {
 
   /// Renders the icons and related text using the pkg/icons_block template.
   String _renderIconsBlockHtml(List<String> platforms) {
-    final List icons = _mapIconsDataFromPlatforms(platforms);
+    final icons = _mapIconsDataFromPlatforms(platforms);
     return _renderTemplate('pkg/icons_block', {
       'has_icons': icons.isNotEmpty,
       'icons': icons,
@@ -709,7 +703,7 @@ class TemplateService {
 
   /// Renders the icons and related text using the pkg/icons_column template.
   String _renderIconsColumnHtml(List<String> platforms) {
-    final List icons = _mapIconsDataFromPlatforms(platforms);
+    final icons = _mapIconsDataFromPlatforms(platforms);
     return _renderTemplate('pkg/icons_column', {
       'has_icons': icons.isNotEmpty,
       'icons': icons,
@@ -718,9 +712,9 @@ class TemplateService {
   }
 
   List _mapIconsDataFromPlatforms(List<String> platforms) {
-    final List icons = [];
+    final icons = [];
     platforms?.forEach((String platform) {
-      final Map iconData = _logoData[platform];
+      final iconData = _logoData[platform];
       if (iconData == null) {
         // TODO: log missing
       } else {
@@ -733,7 +727,7 @@ class TemplateService {
   /// Renders the tags using the pkg/tags template.
   String _renderTags(List<String> platforms, {bool wrapperDiv: false}) {
     final List tags = platforms?.map((platform) {
-      final Map tagData = _logoData[platform];
+      final tagData = _logoData[platform];
       return tagData ?? {'text': platform};
     })?.toList();
     return _renderTemplate('v2/pkg/tags', {
@@ -747,8 +741,7 @@ class TemplateService {
   ///
   /// If [escapeValues] is `false`, values in `values` will not be escaped.
   String _renderTemplate(String template, values, {bool escapeValues: true}) {
-    final mustache.Template parsedTemplate =
-        _CachedMustacheTemplates.putIfAbsent(template, () {
+    final parsedTemplate = _CachedMustacheTemplates.putIfAbsent(template, () {
       final file = new File('$templateDirectory/$template.mustache');
       return new mustache.Template(file.readAsStringSync(),
           htmlEscapeValues: escapeValues, lenient: true);
@@ -797,15 +790,15 @@ abstract class PageLinks {
   int get currentPage => 1 + offset ~/ resultsPerPage;
 
   int get rightmostPage {
-    final int fromSymmetry = currentPage + maxPages ~/ 2;
-    final int fromCount = 1 + ((count - 1) ~/ resultsPerPage);
+    final fromSymmetry = currentPage + maxPages ~/ 2;
+    final fromCount = 1 + ((count - 1) ~/ resultsPerPage);
     return min(fromSymmetry, max(currentPage, fromCount));
   }
 
   List<Map> hrefPatterns() {
-    final List<Map> results = [];
+    final results = <Map>[];
 
-    final bool hasPrevious = currentPage > 1;
+    final hasPrevious = currentPage > 1;
     results.add({
       'disabled': !hasPrevious,
       'render_link': hasPrevious,
@@ -813,8 +806,8 @@ abstract class PageLinks {
       'text': '&laquo;',
     });
 
-    for (int page = leftmostPage; page <= rightmostPage; page++) {
-      final bool isCurrent = page == currentPage;
+    for (var page = leftmostPage; page <= rightmostPage; page++) {
+      final isCurrent = page == currentPage;
       results.add({
         'active': isCurrent,
         'render_link': !isCurrent,
@@ -823,7 +816,7 @@ abstract class PageLinks {
       });
     }
 
-    final bool hasNext = currentPage < rightmostPage;
+    final hasNext = currentPage < rightmostPage;
     results.add({
       'disabled': !hasNext,
       'render_link': hasNext,
@@ -869,8 +862,8 @@ class PackageLinks extends PageLinks {
 
   @override
   String formatHref(int page) {
-    final String basePath = _basePath ?? '/packages';
-    String url = '$basePath?';
+    final basePath = _basePath ?? '/packages';
+    var url = '$basePath?';
     if (_platform != null) {
       url = '${url}platform=$_platform&';
     }

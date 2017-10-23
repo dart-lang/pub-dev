@@ -127,7 +127,7 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
     final title = 'v${version.version} of ${version.package}';
 
     // NOTE: A pubspec.yaml file can have "author: ..." or "authors: ...".
-    List<String> authors = const <String>[];
+    var authors = const <String>[];
     if (version.pubspec.author != null) {
       authors = [version.pubspec.author];
     } else if (version.pubspec.authors != null) {

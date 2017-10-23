@@ -32,6 +32,7 @@ linter:
     - list_remove_unrelated_type
     - literal_only_boolean_expressions
 #    - non_constant_identifier_names
+    - omit_local_variable_types
     - one_member_abstracts
 #    - only_throw_errors
     - overridden_fields

@@ -84,9 +84,9 @@ class Package extends db.ExpandoModel {
   }
 
   void updateVersion(PackageVersion pv) {
-    final Version newVersion = pv.semanticVersion;
-    final Version latestStable = latestSemanticVersion;
-    final Version latestDev = latestDevSemanticVersion;
+    final newVersion = pv.semanticVersion;
+    final latestStable = latestSemanticVersion;
+    final latestDev = latestDevSemanticVersion;
 
     if (isNewer(latestStable, newVersion, pubSorted: true)) {
       latestVersionKey = pv.key;
@@ -182,7 +182,7 @@ class PackageVersion extends db.ExpandoModel {
   Version get semanticVersion => new Version.parse(version);
 
   String get ellipsizedDescription {
-    final String description = pubspec.description;
+    final description = pubspec.description;
     if (description == null) return null;
     return description.substring(0, min(description.length, 200));
   }
@@ -244,7 +244,7 @@ class PackageView {
     PackageVersion version,
     AnalysisView analysis,
   }) {
-    final String devVersion =
+    final devVersion =
         package != null && package.latestVersion != package.latestDevVersion
             ? package.latestDevVersion
             : null;

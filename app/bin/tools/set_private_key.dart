@@ -25,8 +25,8 @@ Future main(List<String> args) async {
     _printHelp();
     return;
   }
-  final String id = args[0];
-  final String value = args[1];
+  final id = args[0];
+  final value = args[1];
 
   if (!allowedIds.contains(id)) {
     print('ID should be one of [$allowedIds].');

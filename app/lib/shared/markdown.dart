@@ -31,7 +31,7 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
 
   static _RelativeLinkSyntax parse(String url) {
     try {
-      final Uri uri = Uri.parse(url);
+      final uri = Uri.parse(url);
       if (uri.scheme != 'http' && uri.scheme != 'https') return null;
       if (uri.host == null || uri.host.isEmpty || !uri.host.contains('.'))
         return null;
@@ -44,14 +44,13 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
 
   @override
   m.Link getLink(m.InlineParser parser, Match match, m.TagState state) {
-    final m.Link link = super.getLink(parser, match, state);
+    final link = super.getLink(parser, match, state);
     if (link != null && _isRelativePathUrl(link.url)) {
       try {
-        final List<String> fragmentParts = link.url.split('#');
-        final String relativeUrl = fragmentParts.first;
-        final String fragment =
-            fragmentParts.length == 2 ? fragmentParts[1] : null;
-        final Uri newUri = new Uri(
+        final fragmentParts = link.url.split('#');
+        final relativeUrl = fragmentParts.first;
+        final fragment = fragmentParts.length == 2 ? fragmentParts[1] : null;
+        final newUri = new Uri(
           scheme: baseUri.scheme,
           host: baseUri.host,
           port: baseUri.port,

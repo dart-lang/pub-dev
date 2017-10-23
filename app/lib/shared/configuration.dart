@@ -103,8 +103,8 @@ class EnvConfig {
   }
 
   factory EnvConfig._detect() {
-    final String isolateCountStr = Platform.environment['ISOLATE_COUNT'] ?? '1';
-    int isolateCount = int.parse(isolateCountStr, onError: (_) => 1);
+    final isolateCountStr = Platform.environment['ISOLATE_COUNT'] ?? '1';
+    var isolateCount = int.parse(isolateCountStr, onError: (_) => 1);
     isolateCount = max(1, isolateCount);
     return new EnvConfig._(
       Platform.environment['GAE_SERVICE'],

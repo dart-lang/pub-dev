@@ -14,7 +14,7 @@ List<Task> _taskQueue = [];
 void registerTaskSendPort(SendPort taskSendPort) {
   _taskSendPort = taskSendPort;
   if (_taskQueue != null) {
-    for (Task task in _taskQueue) {
+    for (var task in _taskQueue) {
       _taskSendPort.send(task);
     }
     _taskQueue = null;
@@ -24,7 +24,7 @@ void registerTaskSendPort(SendPort taskSendPort) {
 /// Triggers task processing via sending tasks to the [Scheduler] in the other
 /// isolate.
 void triggerTask(String package, String version) {
-  final Task task = new Task.now(package, version);
+  final task = new Task.now(package, version);
   if (_taskSendPort == null) {
     _taskQueue.add(task);
   } else {

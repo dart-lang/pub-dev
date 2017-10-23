@@ -46,17 +46,17 @@ class AnalyzerClient {
   /// Gets the analysis data from the analyzer service via HTTP.
   Future<AnalysisData> getAnalysisData(AnalysisKey key) async {
     if (key == null) return null;
-    final String cachedContent = await analyzerMemcache?.getContent(
+    final cachedContent = await analyzerMemcache?.getContent(
         key.package, key.version, panaVersion);
     if (cachedContent != null) {
       return new AnalysisData.fromJson(JSON.decode(cachedContent));
     }
-    final String uri =
+    final uri =
         '$_analyzerServiceHttpHostPort/packages/${key.package}/${key.version}?panaVersion=$panaVersion';
     try {
-      final http.Response rs = await _client.get(uri);
+      final rs = await _client.get(uri);
       if (rs.statusCode == 200) {
-        final String content = rs.body;
+        final content = rs.body;
         await analyzerMemcache?.setContent(
             key.package, key.version, panaVersion, content);
         return new AnalysisData.fromJson(JSON.decode(content));
@@ -105,7 +105,7 @@ class AnalysisView {
   List<String> get platforms => indexDartPlatform(_summary?.platform);
 
   String get licenseText {
-    final String text = _summary?.license?.toString();
+    final text = _summary?.license?.toString();
     if (text == LicenseNames.unknown || text == LicenseNames.missing) {
       return null;
     }
@@ -113,7 +113,7 @@ class AnalysisView {
   }
 
   List<String> getTransitiveDependencies() {
-    final List<String> list = _summary?.pkgResolution?.dependencies
+    final list = _summary?.pkgResolution?.dependencies
         ?.map((pd) => pd.package)
         ?.toList();
     if (list == null) return [];

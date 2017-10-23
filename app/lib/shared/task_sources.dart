@@ -50,7 +50,7 @@ class DatastoreVersionsHeadTaskSource implements TaskSource {
   Stream<Task> startStreaming() async* {
     for (;;) {
       try {
-        final DateTime now = new DateTime.now().toUtc();
+        final now = new DateTime.now().toUtc();
         switch (_model) {
           case TaskSourceModel.package:
             yield* _poll(Package, 'updated', _packageToTask);
@@ -76,13 +76,13 @@ class DatastoreVersionsHeadTaskSource implements TaskSource {
 
   Stream<Task> _poll<M extends Model>(
       Type type, String field, Task modelToTask(M model)) async* {
-    final Query q = _db.query(type);
+    final q = _db.query(type);
     if (_lastTs != null) {
       q.filter('$field >=', _lastTs);
     }
-    int count = 0;
+    var count = 0;
     await for (M model in q.run()) {
-      final Task task = modelToTask(model);
+      final task = modelToTask(model);
       if (await shouldYieldTask(task)) {
         count++;
         yield task;

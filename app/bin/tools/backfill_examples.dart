@@ -22,7 +22,7 @@ Future main(List<String> args) async {
     pkg = args.single;
   }
 
-  int updated = 0;
+  var updated = 0;
   _httpClient = new http.Client();
   await withProdServices(() async {
     final query = dbService.query(PackageVersion)..order('-created');
@@ -48,25 +48,25 @@ Future main(List<String> args) async {
 }
 
 Future _backfill(PackageVersion pv) async {
-  final String uri =
+  final uri =
       'https://storage.googleapis.com/pub-packages/packages/${pv.package}-${pv.version}.tar.gz';
-  final http.Response rs = await _httpClient.get(uri);
+  final rs = await _httpClient.get(uri);
   if (rs.statusCode != 200) {
     print('Unable to download: $uri');
     return;
   }
 
-  final Archive archive = new TarDecoder()
+  final archive = new TarDecoder()
       .decodeBytes(new GZipDecoder().decodeBytes(rs.bodyBytes, verify: true));
   ArchiveFile archiveFile;
-  for (String candidate in exampleFileCandidates(pv.package)) {
+  for (var candidate in exampleFileCandidates(pv.package)) {
     archiveFile = archive.findFile(candidate);
     if (archiveFile != null) break;
   }
   if (archiveFile == null) return;
 
-  final String archiveFilename = archiveFile.name;
-  final String content = UTF8.decode(archiveFile.content, allowMalformed: true);
+  final archiveFilename = archiveFile.name;
+  final content = UTF8.decode(archiveFile.content, allowMalformed: true);
   if (content.trim().isEmpty) return;
 
   await dbService.withTransaction((Transaction t) async {

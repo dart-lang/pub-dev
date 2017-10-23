@@ -240,9 +240,9 @@ class GCloudPackageRepository extends PackageRepository {
       _logger.info('User: $userEmail.');
 
       final String guid = uuid.v4();
-      final String object = storage.tempObjectName(guid);
-      final String bucket = storage.bucket.bucketName;
-      final Duration lifetime = const Duration(minutes: 10);
+      final object = storage.tempObjectName(guid);
+      final bucket = storage.bucket.bucketName;
+      final lifetime = const Duration(minutes: 10);
 
       final url = redirectUrl.resolve('?upload_id=$guid');
 
@@ -278,8 +278,7 @@ class GCloudPackageRepository extends PackageRepository {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
-    final models.PackageVersion newVersion =
-        await parseAndValidateUpload(db, filename, userEmail);
+    final newVersion = await parseAndValidateUpload(db, filename, userEmail);
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -368,9 +367,9 @@ class GCloudPackageRepository extends PackageRepository {
           return versionA.semanticVersion.compareTo(versionB.semanticVersion);
         });
 
-        final List<models.PackageVersion> modifiedVersions = [];
+        final modifiedVersions = <models.PackageVersion>[];
 
-        for (int i = 0; i < versions.length; i++) {
+        for (var i = 0; i < versions.length; i++) {
           final version = versions[i];
           if (version.sortOrder != i) {
             version.sortOrder = i;
@@ -498,7 +497,7 @@ Future<T> withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
 /// Compeltes with an error if the incoming stream has an error or if the size
 /// exceeds `GcloudPackageRepo.MAX_TARBALL_SIZE`.
 Future saveTarballToFS(Stream<List<int>> data, String filename) async {
-  final Completer completer = new Completer();
+  final completer = new Completer();
 
   StreamSink<List<int>> sink;
   StreamSubscription dataSubscription;
@@ -524,7 +523,7 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
   }
 
   void startReading() {
-    int receivedBytes = 0;
+    var receivedBytes = 0;
 
     dataSubscription = data.listen(
         (List<int> chunk) {
@@ -609,8 +608,8 @@ Future<models.PackageVersion> parseAndValidateUpload(
   //
   // Returns `null` if not found otherwise the correct filename.
   String searchForFile(String name) {
-    final String nameLowercase = name.toLowerCase();
-    for (String filename in files) {
+    final nameLowercase = name.toLowerCase();
+    for (var filename in files) {
       if (filename.toLowerCase() == nameLowercase) {
         return filename;
       }
@@ -650,8 +649,8 @@ Future<models.PackageVersion> parseAndValidateUpload(
   }
   validatePackageName(pubspec.name);
 
-  var exampleFilename;
-  for (String candidate in exampleFileCandidates(pubspec.name)) {
+  String exampleFilename;
+  for (var candidate in exampleFileCandidates(pubspec.name)) {
     exampleFilename = searchForFile(candidate);
     if (exampleFilename != null) break;
   }
@@ -662,7 +661,7 @@ Future<models.PackageVersion> parseAndValidateUpload(
   final changelogContent = changelogFilename != null
       ? await readTarballFile(filename, changelogFilename)
       : null;
-  String exampleContent = exampleFilename != null
+  var exampleContent = exampleFilename != null
       ? await readTarballFile(filename, exampleFilename)
       : null;
 
@@ -724,7 +723,7 @@ class TarballStorage {
         bucket.absoluteObjectName(object));
 
     // Change the ACL to include a `public-read` entry.
-    final ObjectInfo info = await bucket.info(object);
+    final info = await bucket.info(object);
     final publicRead = new AclEntry(new AllUsersScope(), AclPermission.READ);
     final acl =
         new Acl(new List.from(info.metadata.acl.entries)..add(publicRead));

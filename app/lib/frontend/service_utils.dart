@@ -68,7 +68,7 @@ Future registerLoggedInUserIfPossible(shelf.Request request) async {
 }
 
 Future<String> obtainServiceAccountEmail() async {
-  final http.Response response = await http.get(
+  final response = await http.get(
       'http://metadata/computeMetadata/'
       'v1/instance/service-accounts/default/email',
       headers: const {'Metadata-Flavor': 'Google'});

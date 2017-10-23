@@ -9,12 +9,12 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 void main() {
-  final Duration millis10 = new Duration(milliseconds: 10);
-  final Duration millis100 = new Duration(milliseconds: 100);
+  final millis10 = new Duration(milliseconds: 10);
+  final millis100 = new Duration(milliseconds: 100);
 
   group('Initialization', () {
     test('Calling current without moveNext().', () async {
-      final Completer c = new Completer();
+      final c = new Completer();
       final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([c.future]),
       ]);
@@ -27,7 +27,7 @@ void main() {
     });
 
     test('Calling moveNext() while another is being evaluated.', () async {
-      final Completer c = new Completer();
+      final c = new Completer();
       final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([c.future]),
       ]);
@@ -80,9 +80,9 @@ void main() {
 
   group('Priorities', () {
     test('in mixed order', () async {
-      final Completer c1 = new Completer.sync();
-      final Completer c2 = new Completer.sync();
-      final Completer c3 = new Completer.sync();
+      final c1 = new Completer.sync();
+      final c2 = new Completer.sync();
+      final c3 = new Completer.sync();
       final iterator = new PrioritizedStreamIterator([
         new Stream.fromFutures([c1.future]),
         new Stream.fromFutures([c2.future, c3.future]),

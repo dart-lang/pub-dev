@@ -329,7 +329,7 @@ class BucketMock implements Bucket {
 }
 
 Future<T> withTempDirectory<T>(Future<T> func(String temp)) async {
-  final Directory dir =
+  final dir =
       await Directory.systemTemp.createTemp('pub.dartlang.org-backend-test');
   try {
     return await func(dir.absolute.path);
@@ -360,8 +360,7 @@ Future withTestPackage(Future func(List<int> tarball),
       'lib/test_library.dart'
     ];
     final args = ['cz']..addAll(files);
-    final Process p =
-        await Process.start('tar', args, workingDirectory: '$tmp');
+    final p = await Process.start('tar', args, workingDirectory: '$tmp');
     p.stderr.drain();
     final bytes = await p.stdout.fold([], (b, d) => b..addAll(d));
     final exitCode = await p.exitCode;

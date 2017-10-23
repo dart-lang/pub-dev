@@ -10,8 +10,8 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
-  int okCount = 0;
-  int updatedCount = 0;
+  var okCount = 0;
+  var updatedCount = 0;
   await withProdServices(() async {
     await for (PackageVersion pv in dbService.query(PackageVersion).run()) {
       if (pv.version == pv.key.id) {

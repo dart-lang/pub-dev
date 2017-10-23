@@ -50,15 +50,14 @@ class TaskScheduler {
   TaskScheduler(this.taskRunner, this.sources);
 
   Future run() async {
-    final PrioritizedStreamIterator<Task> taskIterator =
-        new PrioritizedStreamIterator(
+    final taskIterator = new PrioritizedStreamIterator(
       sources.map((TaskSource ts) => ts.startStreaming()).toList(),
       deduplicateWaiting: true,
     );
     while (await taskIterator.moveNext()) {
-      final Task task = taskIterator.current;
+      final task = taskIterator.current;
       _pendingCount = taskIterator.pendingCount;
-      final Stopwatch sw = new Stopwatch()..start();
+      final sw = new Stopwatch()..start();
       try {
         if (await taskRunner.hasCompletedRecently(task)) {
           _logger.info('Skipping task: $task');
@@ -66,7 +65,7 @@ class TaskScheduler {
           _allLatencyTracker.add(sw.elapsedMilliseconds);
           continue;
         }
-        final bool raceDetected = await taskRunner.runTask(task);
+        final raceDetected = await taskRunner.runTask(task);
         _statusTracker.add(raceDetected ? 'race' : 'normal');
       } catch (e, st) {
         _logger.severe('Error processing task: $task', e, st);
@@ -78,16 +77,16 @@ class TaskScheduler {
   }
 
   Map stats() {
-    final Map<String, dynamic> stats = <String, dynamic>{
+    final stats = <String, dynamic>{
       'pending': _pendingCount,
       'status': _statusTracker.toCounts(),
     };
-    final double avgWorkMillis = _workLatencyTracker.average;
+    final avgWorkMillis = _workLatencyTracker.average;
     if (avgWorkMillis > 0.0) {
-      final double tph = 60 * 60 * 1000.0 / avgWorkMillis;
+      final tph = 60 * 60 * 1000.0 / avgWorkMillis;
       stats['taskPerHour'] = tph;
     }
-    final double avgMillis = _allLatencyTracker.average;
+    final avgMillis = _allLatencyTracker.average;
     if (avgMillis > 0.0) {
       final remaining =
           new Duration(milliseconds: (_pendingCount * avgMillis).round());
@@ -141,9 +140,9 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
     _subscriptions = new List(sources.length);
 
     // Listen on the streams and put items into their own queues.
-    for (int i = 0; i < sources.length; i++) {
-      final Stream<T> source = sources[i];
-      final Set<T> queue = _priorityQueues[i];
+    for (var i = 0; i < sources.length; i++) {
+      final source = sources[i];
+      final queue = _priorityQueues[i];
       _subscriptions[i] = source.listen(
         (T item) {
           if (!deduplicateWaiting || !queue.contains(item)) {
@@ -172,7 +171,7 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
       throw new StateError('Another moveNext() is underway.');
     }
     if (_isClosed) return false;
-    final Set<T> queue = _firstQueue();
+    final queue = _firstQueue();
     if (queue != null) {
       _current = queue.first;
       queue.remove(_current);
@@ -200,8 +199,8 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
       _hasNextCompleter.complete(false);
       _hasNextCompleter = null;
     }
-    for (int i = 0; i < _subscriptions.length; i++) {
-      final StreamSubscription s = _subscriptions[i];
+    for (var i = 0; i < _subscriptions.length; i++) {
+      final s = _subscriptions[i];
       if (s != null) {
         s.cancel();
         _subscriptions[i] = null;
@@ -219,7 +218,7 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
 
   void _triggerComplete() {
     if (_hasNextCompleter != null) {
-      final Set<T> queue = _firstQueue();
+      final queue = _firstQueue();
       _current = queue.first;
       queue.remove(_current);
       _hasMoved = true;

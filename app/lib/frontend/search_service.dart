@@ -27,8 +27,7 @@ class SearchService {
   /// max [numResults].
   Future<SearchResultPage> search(SearchQuery query) async {
     final result = await searchClient.search(query);
-    final List<String> packages =
-        result.packages.map((ps) => ps.package).toList();
+    final packages = result.packages.map((ps) => ps.package).toList();
     return _loadResultForPackages(query, result.totalCount, packages);
   }
 
@@ -37,28 +36,26 @@ class SearchService {
 
 Future<SearchResultPage> _loadResultForPackages(
     SearchQuery query, int totalCount, List<String> packages) async {
-  final List<Key> packageKeys = packages
+  final packageKeys = packages
       .map((package) => dbService.emptyKey.append(Package, id: package))
       .toList();
   final List<Package> packageEntries = await dbService.lookup(packageKeys);
   packageEntries.removeWhere((p) => p == null);
 
-  final List<Key> versionKeys =
-      packageEntries.map((p) => p.latestVersionKey).toList();
+  final versionKeys = packageEntries.map((p) => p.latestVersionKey).toList();
   if (versionKeys.isNotEmpty) {
     // Analysis data fetched concurrently to reduce overall latency.
-    final Future<List<AnalysisView>> analysisViewsFuture =
-        analyzerClient.getAnalysisViews(packageEntries
-            .map((p) => new AnalysisKey(p.name, p.latestVersion)));
+    final analysisViewsFuture = analyzerClient.getAnalysisViews(
+        packageEntries.map((p) => new AnalysisKey(p.name, p.latestVersion)));
     final Future<List<PackageVersion>> allVersionsFuture =
         dbService.lookup(versionKeys);
 
-    final List batchResults =
+    final batchResults =
         await Future.wait([analysisViewsFuture, allVersionsFuture]);
-    final List<AnalysisView> analysisViews = await batchResults[0];
-    final List<PackageVersion> versions = await batchResults[1];
+    final List<AnalysisView> analysisViews = batchResults[0];
+    final List<PackageVersion> versions = batchResults[1];
 
-    final List<PackageView> resultPackages = new List.generate(
+    final resultPackages = new List.generate(
         versions.length,
         (i) => new PackageView.fromModel(
               package: packageEntries[i],

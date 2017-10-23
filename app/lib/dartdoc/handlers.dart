@@ -39,15 +39,15 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 ///   - /packages/<package>
 ///   - /packages/<package>/<version>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final String path = request.requestedUri.path.substring('/packages/'.length);
-  final List<String> pathParts = path.split('/');
+  final path = request.requestedUri.path.substring('/packages/'.length);
+  final pathParts = path.split('/');
   if (path.length == 0 || pathParts.length > 2) {
     return notFoundHandler(request);
   }
-  final String package = pathParts[0];
-  final String version = pathParts.length == 1 ? null : pathParts[1];
+  final package = pathParts[0];
+  final version = pathParts.length == 1 ? null : pathParts[1];
 
-  final String requestMethod = request.method?.toUpperCase();
+  final requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
     return notFoundHandler(request);
   } else if (requestMethod == 'POST') {

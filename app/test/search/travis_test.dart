@@ -30,7 +30,7 @@ void main() {
         description: compactDescription(
             'A starting point for Dart libraries or applications.'),
       ));
-      for (String packageName in packageNames) {
+      for (var packageName in packageNames) {
         await index.addPackage(new PackageDocument(
           package: packageName,
           version: '1.0.0',
@@ -52,7 +52,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     });
 
     test('travis', () async {
-      final PackageSearchResult result = await index
+      final result = await index
           .search(new SearchQuery('travis', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,

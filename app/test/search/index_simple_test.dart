@@ -13,7 +13,7 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 void main() {
   group('TokenIndex', () {
     test('No match', () {
-      final TokenIndex index = new TokenIndex()
+      final index = new TokenIndex()
         ..add('uri://http', 'http')
         ..add('uri://http_magic', 'http_magic');
 
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('Scoring exact and partial matches', () {
-      final TokenIndex index = new TokenIndex()
+      final index = new TokenIndex()
         ..add('uri://http', 'http')
         ..add('uri://http_magic', 'http_magic');
       expect(index.search('http'), {
@@ -35,8 +35,8 @@ void main() {
     });
 
     test('CamelCase indexing', () {
-      final String queueText = '.DoubleLinkedQueue()';
-      final TokenIndex index = new TokenIndex()
+      final queueText = '.DoubleLinkedQueue()';
+      final index = new TokenIndex()
         ..add('queue', queueText)
         ..add('queue_lower', queueText.toLowerCase())
         ..add('unmodifiable', 'CustomUnmodifiableMapBase');
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('Wierd cases: riak client', () {
-      final TokenIndex index = new TokenIndex()
+      final index = new TokenIndex()
         ..add('uri://cli', 'cli')
         ..add('uri://riak_client', 'riak_client')
         ..add('uri://teamspeak', 'teamspeak');
@@ -77,7 +77,7 @@ void main() {
     });
 
     test('Free up memory', () {
-      final TokenIndex index = new TokenIndex();
+      final index = new TokenIndex();
       expect(index.tokenCount, 0);
       index.add('url1', 'text');
       expect(index.tokenCount, 9);
@@ -200,8 +200,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('package name match: async', () async {
-      final PackageSearchResult result =
-          await index.search(new SearchQuery('async'));
+      final result = await index.search(new SearchQuery('async'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -215,8 +214,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('description match: composable', () async {
-      final PackageSearchResult result =
-          await index.search(new SearchQuery('composable'));
+      final result = await index.search(new SearchQuery('composable'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -230,8 +228,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('readme match: chrome.sockets', () async {
-      final PackageSearchResult result =
-          await index.search(new SearchQuery('chrome.sockets'));
+      final result = await index.search(new SearchQuery('chrome.sockets'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -245,7 +242,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('package prefix: chrome', () async {
-      final PackageSearchResult result =
+      final result =
           await index.search(new SearchQuery('', packagePrefix: 'chrome'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -260,7 +257,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by text: single-letter t', () async {
-      final PackageSearchResult result =
+      final result =
           await index.search(new SearchQuery('t', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -270,7 +267,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by text: double-letter tt', () async {
-      final PackageSearchResult result =
+      final result =
           await index.search(new SearchQuery('tt', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -285,7 +282,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by created: no filter', () async {
-      final PackageSearchResult result =
+      final result =
           await index.search(new SearchQuery('', order: SearchOrder.created));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -299,7 +296,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by updated: no filter', () async {
-      final PackageSearchResult result =
+      final result =
           await index.search(new SearchQuery('', order: SearchOrder.updated));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -313,7 +310,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by updated: platform filter', () async {
-      final PackageSearchResult result = await index.search(new SearchQuery(
+      final result = await index.search(new SearchQuery(
         '',
         order: SearchOrder.updated,
         platformPredicate: new PlatformPredicate(
@@ -331,7 +328,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by popularity', () async {
-      final PackageSearchResult result = await index
+      final result = await index
           .search(new SearchQuery('', order: SearchOrder.popularity));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -345,7 +342,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by health', () async {
-      final PackageSearchResult result =
+      final result =
           await index.search(new SearchQuery('', order: SearchOrder.health));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
@@ -359,7 +356,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('order by maintenance', () async {
-      final PackageSearchResult result = await index
+      final result = await index
           .search(new SearchQuery('', order: SearchOrder.maintenance));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
