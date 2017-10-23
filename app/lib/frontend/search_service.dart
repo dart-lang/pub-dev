@@ -8,15 +8,12 @@ import 'dart:async';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:logging/logging.dart';
 
 import '../shared/analyzer_client.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 
 import 'models.dart';
-
-Logger _logger = new Logger('pub.frontend.search');
 
 /// The [SearchService] registered in the current service scope.
 SearchService get searchService => ss.lookup(#_search);

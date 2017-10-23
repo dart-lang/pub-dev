@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:logging/logging.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
 import '../shared/analyzer_client.dart';
@@ -19,8 +18,6 @@ import '../shared/search_service.dart' show SearchQuery;
 
 import 'models.dart';
 import 'search_service.dart' show SearchResultPage;
-
-final Logger _logger = new Logger('pub.templates');
 
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
