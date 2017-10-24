@@ -33,7 +33,6 @@ void main() {
       } else {
         htmlParser.parse();
       }
-      new File('$goldenDir/$fileName').writeAsStringSync(content);
       final golden = new File('$goldenDir/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
     }

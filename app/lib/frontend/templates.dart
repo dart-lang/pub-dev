@@ -514,13 +514,13 @@ class TemplateService {
 
   /// Renders the `views/v2/index.mustache` template.
   String renderIndexPageV2(
-    String popularHtml,
+    String topHtml,
     String updatedHtml,
     String newestHtml,
     String platform,
   ) {
     final values = {
-      'popular_html': popularHtml,
+      'top_html': topHtml,
       'updated_html': updatedHtml,
       'newest_html': newestHtml,
     };
