@@ -105,11 +105,11 @@ class AnalysisView {
   List<String> get platforms => indexDartPlatform(_summary?.platform);
 
   String get licenseText {
-    final String text = _summary?.license?.toString();
-    if (text == LicenseNames.unknown || text == LicenseNames.missing) {
-      return null;
+    final hasLicense = _summary?.licenses?.isNotEmpty ?? false;
+    if (hasLicense && _summary.licenses.first.name != LicenseNames.unknown) {
+      return _summary.licenses.first.shortFormatted;
     }
-    return text;
+    return null;
   }
 
   List<String> getTransitiveDependencies() {
