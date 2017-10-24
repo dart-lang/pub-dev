@@ -56,7 +56,7 @@ class DatastoreHistoryTaskSource implements TaskSource {
     for (;;) {
       try {
         // Check and schedule the latest stable version of each package.
-        final Query packageQuery = _db.query(Package)..order('-updated');
+        final packageQuery = _db.query(Package)..order('-updated');
         await for (Package p in packageQuery.run()) {
           if (await _requiresUpdate(p.name, p.latestVersion)) {
             yield new Task(p.name, p.latestVersion, p.updated);
@@ -70,7 +70,7 @@ class DatastoreHistoryTaskSource implements TaskSource {
 
         // After we are done with the most important versions, let's check all
         // of the older versions too.
-        final Query versionQuery = _db.query(PackageVersion)..order('-created');
+        final versionQuery = _db.query(PackageVersion)..order('-created');
         await for (PackageVersion pv in versionQuery.run()) {
           if (await _requiresUpdate(pv.package, pv.version)) {
             yield new Task(pv.package, pv.version, pv.created);
@@ -90,7 +90,7 @@ class DatastoreHistoryTaskSource implements TaskSource {
           .append(PackageAnalysis, id: packageName)
           .append(PackageVersionAnalysis, id: packageVersion)
     ]);
-    final PackageVersionAnalysis version = list.first;
+    final version = list.first;
     if (version == null) return true;
 
     if (version.panaVersion != panaVersion ||
@@ -98,7 +98,7 @@ class DatastoreHistoryTaskSource implements TaskSource {
       return true;
     }
 
-    final Duration diff =
+    final diff =
         new DateTime.now().toUtc().difference(version.analysisTimestamp);
     if (diff.inDays >= afterDays) return true;
 

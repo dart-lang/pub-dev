@@ -157,7 +157,7 @@ void validatePackageName(String name) {
 
 List<List<T>> sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
-  final int maxPageIndex = (list.length - 1) ~/ limit;
+  final maxPageIndex = (list.length - 1) ~/ limit;
   return new List.generate(maxPageIndex + 1,
       (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
 }
@@ -182,13 +182,13 @@ Stream<T> randomizeStream<T>(
   Random random,
 }) {
   random ??= new Random.secure();
-  final Stream trigger = new Stream.periodic(duration);
-  final Stream<List<T>> bufferedStream = buffer(trigger).bind(stream);
+  final trigger = new Stream.periodic(duration);
+  final bufferedStream = buffer<T>(trigger).bind(stream);
   return bufferedStream.transform(new StreamTransformer.fromHandlers(
     handleData: (List<T> items, Sink<T> sink) {
-      for (List<T> list in sliceList(items, maxPositionDiff)) {
+      for (var list in sliceList(items, maxPositionDiff)) {
         list.shuffle(random);
-        for (T task in list) {
+        for (var task in list) {
           sink.add(task);
         }
       }
@@ -220,7 +220,7 @@ class LastNTracker<T extends Comparable<T>> {
 
   double get average {
     if (_lastItems.isEmpty) return 0.0;
-    final double sum = _lastItems
+    final sum = _lastItems
         .where((item) => item is num)
         .fold(0.0, (a, b) => a + (b as num));
     return sum / _lastItems.length;
@@ -228,20 +228,20 @@ class LastNTracker<T extends Comparable<T>> {
 
   T _getP(double p) {
     if (_lastItems.isEmpty) return null;
-    final List<T> list = new List.from(_lastItems);
+    final list = new List.from(_lastItems);
     list.sort();
     return list[(list.length * p).floor()];
   }
 }
 
 String formatDuration(Duration d) {
-  final List<String> parts = [];
-  int minutes = d.inMinutes;
+  final parts = <String>[];
+  var minutes = d.inMinutes;
   if (minutes == 0) return '0 mins';
 
-  int hours = minutes ~/ 60;
+  var hours = minutes ~/ 60;
   minutes = minutes % 60;
-  final int days = hours ~/ 24;
+  final days = hours ~/ 24;
   hours = hours % 24;
 
   if (days > 0) parts.add('$days days');

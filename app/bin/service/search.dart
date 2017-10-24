@@ -24,11 +24,11 @@ import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 
 Future main() async {
-  final ReceivePort errorPort = new ReceivePort();
+  final errorPort = new ReceivePort();
   errorPort.listen((error) {
     print('ERROR from isolate: $error');
   });
-  for (int i = 0; i < envConfig.isolateCount; i++) {
+  for (var i = 0; i < envConfig.isolateCount; i++) {
     await Isolate.spawn(
       _main,
       i,
@@ -44,23 +44,23 @@ void _main(int isolateId) {
 
   withAppEngineServices(() async {
     registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-    final AnalyzerClient analyzerClient =
+    final analyzerClient =
         new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
     registerAnalyzerClient(analyzerClient);
     registerScopeExitCallback(analyzerClient.close);
 
     registerSearchBackend(new SearchBackend(db.dbService));
 
-    final Bucket bucket = await _createOrGetBucket(
+    final bucket = await _createOrGetBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
     registerSnapshotStorage(new SnapshotStorage(storageService, bucket));
 
     registerPackageIndex(new SimplePackageIndex());
 
-    final ReceivePort taskReceivePort = new ReceivePort();
+    final taskReceivePort = new ReceivePort();
     registerTaskSendPort(taskReceivePort.sendPort);
 
-    final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
+    final batchIndexUpdater = new BatchIndexUpdater();
     await batchIndexUpdater.initSnapshot();
 
     final scheduler = new TaskScheduler(

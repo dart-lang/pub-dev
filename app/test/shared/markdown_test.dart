@@ -8,7 +8,7 @@ import 'package:pub_dartlang_org/shared/markdown.dart';
 
 void main() {
   group('Valid custom base URL', () {
-    final String baseUrl = 'https://github.com/example/project';
+    final baseUrl = 'https://github.com/example/project';
 
     test('relative within page', () {
       expect(markdownToHtml('[text](#relative)', null),

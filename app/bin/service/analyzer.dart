@@ -41,14 +41,14 @@ Future main() async {
 void _runScheduler(List<SendPort> sendPorts) {
   useLoggingPackageAdaptor();
 
-  final SendPort mainSendPort = sendPorts[0];
-  final SendPort statsSendPort = sendPorts[1];
-  final ReceivePort taskReceivePort = new ReceivePort();
+  final mainSendPort = sendPorts[0];
+  final statsSendPort = sendPorts[1];
+  final taskReceivePort = new ReceivePort();
   mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {
     _registerServices();
-    final PanaRunner runner = new PanaRunner(analysisBackend);
+    final runner = new PanaRunner(analysisBackend);
     final scheduler = new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
       new DatastoreHeadTaskSource(db.dbService),
@@ -71,7 +71,7 @@ Future _initFlutterSdk() async {
     // FLUTTER_SDK directory exists).
     if (FileSystemEntity.isFileSync('/project/app/script/setup-flutter.sh')) {
       logger.warning('Setting up flutter checkout. This may take some time.');
-      final ProcessResult result =
+      final result =
           await Process.run('/project/app/script/setup-flutter.sh', []);
       if (result.exitCode != 0) {
         logger.severe(
@@ -85,7 +85,7 @@ Future _initFlutterSdk() async {
 }
 
 void _registerServices() {
-  final NotificationClient notificationClient = new NotificationClient();
+  final notificationClient = new NotificationClient();
   registerNotificationClient(notificationClient);
   registerScopeExitCallback(notificationClient.close);
   registerAnalysisBackend(new AnalysisBackend(db.dbService));

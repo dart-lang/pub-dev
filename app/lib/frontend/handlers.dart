@@ -112,15 +112,13 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 
 /// Handles requests for /
 Future<shelf.Response> indexHandler(_) async {
-  String pageContent =
-      await backend.uiPackageCache?.getUIIndexPage(false, null);
+  var pageContent = await backend.uiPackageCache?.getUIIndexPage(false, null);
   if (pageContent == null) {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
     assert(!versions.any((version) => version == null));
-    final List<AnalysisView> analysisViews =
-        await analyzerClient.getAnalysisViews(
-            versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
+    final analysisViews = await analyzerClient.getAnalysisViews(
+        versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
     pageContent = templateService.renderIndexPage(versions, analysisViews);
     await backend.uiPackageCache?.setUIIndexPage(false, null, pageContent);
   }
@@ -150,7 +148,7 @@ Future<shelf.Response> webLandingHandlerV2(shelf.Request request) =>
 /// - /experimental/web
 Future<shelf.Response> _indexHandlerV2(
     shelf.Request request, String platform) async {
-  String pageContent =
+  var pageContent =
       await backend.uiPackageCache?.getUIIndexPage(true, platform);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
@@ -170,9 +168,8 @@ Future<shelf.Response> _indexHandlerV2(
       final packages = await selected;
       final versions = await backend.lookupLatestVersions(packages);
       assert(!versions.any((version) => version == null));
-      final List<AnalysisView> analysisViews =
-          await analyzerClient.getAnalysisViews(
-              versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
+      final analysisViews = await analyzerClient.getAnalysisViews(
+          versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
       final views = new List<PackageView>.generate(versions.length, (index) {
         return new PackageView.fromModel(
           package: packages[index],
@@ -183,7 +180,7 @@ Future<shelf.Response> _indexHandlerV2(
       return templateService.renderMiniList(views);
     }
 
-    final List<Future<String>> miniListFutures = [
+    final miniListFutures = [
       searchAndRenderMiniList(SearchOrder.popularity),
     ];
     if (platform == null) {
@@ -198,7 +195,7 @@ Future<shelf.Response> _indexHandlerV2(
       ]);
     }
 
-    final List<String> miniListHtmls = await Future.wait(miniListFutures);
+    final miniListHtmls = await Future.wait(miniListFutures);
     pageContent = templateService.renderIndexPageV2(
         miniListHtmls[0], miniListHtmls[1], miniListHtmls[2]);
     await backend.uiPackageCache?.setUIIndexPage(true, platform, pageContent);
@@ -208,11 +205,11 @@ Future<shelf.Response> _indexHandlerV2(
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final int PageSize = 10;
+  final PageSize = 10;
 
   // The python version had paging support, but there was no point to it, since
   // the "next page" link was never returned to the caller.
-  final int page = 1;
+  final page = 1;
 
   final versions = await backend.latestPackageVersions(
       offset: PageSize * (page - 1), limit: PageSize);
@@ -246,17 +243,17 @@ Future<shelf.Response> searchHandlerV2(shelf.Request request) {
 
 Future<shelf.Response> _searchHandler(shelf.Request request,
     String render(SearchResultPage page, PageLinks links)) async {
-  final Stopwatch sw = new Stopwatch();
+  final sw = new Stopwatch();
   sw.start();
 
-  final String cacheUrl = request.url.toString();
-  final String cachedHtml = await searchMemcache?.getUiSearchPage(cacheUrl);
+  final cacheUrl = request.url.toString();
+  final cachedHtml = await searchMemcache?.getUiSearchPage(cacheUrl);
   if (cachedHtml != null) return htmlResponse(cachedHtml);
 
-  String queryText = request.url.queryParameters['q'] ?? '';
-  String packagePrefix = request.url.queryParameters['pkg-prefix'];
+  var queryText = request.url.queryParameters['q'] ?? '';
+  var packagePrefix = request.url.queryParameters['pkg-prefix'];
 
-  final Match pkgMatch = _packageRegexp.firstMatch(queryText);
+  final pkgMatch = _packageRegexp.firstMatch(queryText);
   if (pkgMatch != null) {
     // only if query attribute was not specified
     if (packagePrefix == null) {
@@ -266,9 +263,9 @@ Future<shelf.Response> _searchHandler(shelf.Request request,
     queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
   }
 
-  final int page = _pageFromUrl(request.url);
+  final page = _pageFromUrl(request.url);
 
-  final SearchQuery query = new SearchQuery(
+  final query = new SearchQuery(
     queryText,
     offset: PageLinks.resultsPerPage * (page - 1),
     limit: PageLinks.resultsPerPage,
@@ -282,7 +279,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request,
 
   final resultPage = await searchService.search(query);
   final links = new SearchLinks(query, resultPage.totalCount);
-  final String content = render(resultPage, links);
+  final content = render(resultPage, links);
 
   _searchOverallLatencyTracker.add(sw.elapsed);
 
@@ -292,7 +289,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request,
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> packagesHandler(shelf.Request request) async {
-  final int page = _pageFromUrl(request.url);
+  final page = _pageFromUrl(request.url);
   final path = request.requestedUri.path;
   if (path.endsWith('.json')) {
     return packagesHandlerJson(request, page, true);
@@ -308,11 +305,11 @@ final StaticsCache staticsCache = new StaticsCache();
 
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
-  final String normalized = path.normalize(request.requestedUri.path);
+  final normalized = path.normalize(request.requestedUri.path);
   if (normalized.startsWith('/static/')) {
     final assetPath = '$_staticPath/${normalized.substring('/static/'.length)}';
 
-    final StaticFile staticFile = staticsCache.staticFiles[assetPath];
+    final staticFile = staticsCache.staticFiles[assetPath];
     if (staticFile != null) {
       return new shelf.Response.ok(staticFile.bytes,
           headers: {'content-type': staticFile.contentType});
@@ -330,9 +327,9 @@ Future<shelf.Response> packagesHandlerJson(
   final limit = PageSize + 1;
 
   final packages = await backend.latestPackages(offset: offset, limit: limit);
-  final bool lastPage = packages.length < limit;
+  final lastPage = packages.length < limit;
 
-  var nextPageUrl;
+  Uri nextPageUrl;
   if (!lastPage) {
     nextPageUrl =
         request.requestedUri.resolve('/packages.json?page=${page + 1}');
@@ -392,9 +389,8 @@ Future<shelf.Response> packagesHandlerHtml(
 
   // Fetched concurrently to reduce overall latency.
   final versionsFuture = backend.lookupLatestVersions(pagePackages);
-  final Future<List<AnalysisView>> analysisViewsFuture =
-      analyzerClient.getAnalysisViews(
-          pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
+  final analysisViewsFuture = analyzerClient.getAnalysisViews(
+      pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
 
   final batchResults = await Future.wait([versionsFuture, analysisViewsFuture]);
   final versions = batchResults[0];
@@ -419,10 +415,9 @@ Future<shelf.Response> packagesHandlerHtml(
 
 /// Handles /experimental/packages - package listing
 Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) async {
-  final int page = _pageFromUrl(request.url);
-  final int offset = PackageLinks.resultsPerPage * (page - 1);
-  final PlatformPredicate platformPredicate =
-      new PlatformPredicate.fromUri(request.url);
+  final page = _pageFromUrl(request.url);
+  final offset = PackageLinks.resultsPerPage * (page - 1);
+  final platformPredicate = new PlatformPredicate.fromUri(request.url);
 
   int totalCount;
   List<PackageView> packageViews;
@@ -435,13 +430,11 @@ Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) async {
     totalCount = searchResult.totalCount;
     packageViews = searchResult.packages;
   } else {
-    final int limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
-    final List<Package> packages =
-        await backend.latestPackages(offset: offset, limit: limit);
+    final limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
+    final packages = await backend.latestPackages(offset: offset, limit: limit);
     totalCount = offset + packages.length;
 
-    final List<Package> pagePackages =
-        packages.take(PackageLinks.resultsPerPage).toList();
+    final pagePackages = packages.take(PackageLinks.resultsPerPage).toList();
     final versionsFuture = backend.lookupLatestVersions(pagePackages);
     final analysisViewsFuture = analyzerClient.getAnalysisViews(
         pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
@@ -460,7 +453,7 @@ Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) async {
             ));
   }
 
-  final String currentPlatform = platformPredicate.single;
+  final currentPlatform = platformPredicate.single;
   final links = new PackageLinks(offset, totalCount, platform: currentPlatform);
   return htmlResponse(templateService.renderPkgIndexPageV2(
       packageViews, links, currentPlatform));
@@ -477,9 +470,9 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
     return _formattedNotFoundHandler(request);
   }
 
-  final int slash = path.indexOf('/');
+  final slash = path.indexOf('/');
   if (slash == -1) {
-    bool responseAsJson = request.url.queryParameters['format'] == 'json';
+    var responseAsJson = request.url.queryParameters['format'] == 'json';
     if (path.endsWith('.json')) {
       responseAsJson = true;
       path = path.substring(0, path.length - '.json'.length);
@@ -497,11 +490,11 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
     if (path.startsWith('/')) {
       if (path.endsWith('.yaml')) {
         path = path.substring(1, path.length - '.yaml'.length);
-        final String version = Uri.decodeComponent(path);
+        final version = Uri.decodeComponent(path);
         return packageVersionHandlerYaml(request, package, version);
       } else {
         path = path.substring(1);
-        final String version = Uri.decodeComponent(path);
+        final version = Uri.decodeComponent(path);
         return packageVersionHandlerHtml(request, package, version);
       }
     } else {
@@ -523,9 +516,9 @@ FutureOr<shelf.Response> packageHandlerV2(shelf.Request request) {
     return _formattedNotFoundHandler(request);
   }
 
-  final int slash = path.indexOf('/');
+  final slash = path.indexOf('/');
   if (slash == -1) {
-    bool responseAsJson = request.url.queryParameters['format'] == 'json';
+    var responseAsJson = request.url.queryParameters['format'] == 'json';
     if (path.endsWith('.json')) {
       responseAsJson = true;
       path = path.substring(0, path.length - '.json'.length);
@@ -544,11 +537,11 @@ FutureOr<shelf.Response> packageHandlerV2(shelf.Request request) {
     if (path.startsWith('/')) {
       if (path.endsWith('.yaml')) {
         path = path.substring(1, path.length - '.yaml'.length);
-        final String version = Uri.decodeComponent(path);
+        final version = Uri.decodeComponent(path);
         return packageVersionHandlerYaml(request, package, version);
       } else {
         path = path.substring(1);
-        final String version = Uri.decodeComponent(path);
+        final version = Uri.decodeComponent(path);
         return packageVersionHandlerHtmlV2(request, package, version);
       }
     } else {
@@ -561,7 +554,7 @@ FutureOr<shelf.Response> packageHandlerV2(shelf.Request request) {
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
-  final Package package = await backend.lookupPackage(packageName);
+  final package = await backend.lookupPackage(packageName);
   if (package == null) return _formattedNotFoundHandler(request);
 
   final versions = await backend.versionsOfPackage(packageName);
@@ -635,7 +628,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         PackageVersion latestDevVersion,
         int totalNumberOfVersions,
         AnalysisView analysis)) async {
-  final Stopwatch sw = new Stopwatch()..start();
+  final sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
     cachedPage = await backend.uiPackageCache
@@ -643,7 +636,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   }
 
   if (cachedPage == null) {
-    final Package package = await backend.lookupPackage(packageName);
+    final package = await backend.lookupPackage(packageName);
     if (package == null) return _formattedNotFoundHandler(request);
 
     final versions = await backend.versionsOfPackage(packageName);
@@ -669,8 +662,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         selectedVersion = latestStable;
       }
     }
-    final Stopwatch serviceSw = new Stopwatch()..start();
-    final AnalysisView analysisView = await analyzerClient.getAnalysisView(
+    final serviceSw = new Stopwatch()..start();
+    final analysisView = await analyzerClient.getAnalysisView(
         new AnalysisKey(selectedVersion.package, selectedVersion.version));
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
 
@@ -719,9 +712,9 @@ Future<shelf.Response> packageVersionHandlerYaml(
 
 /// Handles request for /api/packages?page=<num>
 Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
-  final int PageSize = 100;
+  final PageSize = 100;
 
-  final int page = _pageFromUrl(request.url);
+  final page = _pageFromUrl(request.url);
 
   final packages = await backend.latestPackages(
       offset: PageSize * (page - 1), limit: PageSize + 1);
@@ -729,9 +722,8 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
   // know it was the last page.
   // But we only use `PageSize` packages to display in the result.
-  final List<Package> pagePackages = packages.take(PageSize).toList();
-  final List<PackageVersion> pageVersions =
-      await backend.lookupLatestVersions(pagePackages);
+  final pagePackages = packages.take(PageSize).toList();
+  final pageVersions = await backend.lookupLatestVersions(pagePackages);
 
   final lastPage = packages.length == pagePackages.length;
 
@@ -780,7 +772,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     });
   }
 
-  final Map<String, dynamic> json = {
+  final json = <String, dynamic>{
     'next_url': null,
     'packages': packagesJson,
 
@@ -803,7 +795,7 @@ shelf.Response redirectToFlutterPackages(shelf.Request request) =>
 
 /// Handles requests for /flutter/packages
 Future<shelf.Response> flutterPackagesHandler(shelf.Request request) async {
-  final int page = _pageFromUrl(request.url);
+  final page = _pageFromUrl(request.url);
   return packagesHandlerHtml(
     request,
     page,
@@ -828,7 +820,7 @@ shelf.Response _formattedNotFoundHandler(shelf.Request request) {
 /// Returns a valid positive integer.
 int _pageFromUrl(Uri url) {
   final pageAsString = url.queryParameters['page'];
-  int pageAsInt = 1;
+  var pageAsInt = 1;
   if (pageAsString != null) {
     try {
       pageAsInt = max(int.parse(pageAsString), 1);
@@ -841,7 +833,7 @@ class StaticsCache {
   final Map<String, StaticFile> staticFiles = <String, StaticFile>{};
 
   StaticsCache() {
-    final Directory staticsDirectory = new Directory(_staticPath);
+    final staticsDirectory = new Directory(_staticPath);
     final files = staticsDirectory
         .listSync(recursive: true)
         .where((fse) => fse is File)

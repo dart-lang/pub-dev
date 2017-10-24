@@ -14,18 +14,17 @@ import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
-  final ArgParser parser = new ArgParser()
+  final parser = new ArgParser()
     ..addOption('output', help: 'The report output file (or stdout otherwise)');
-  final ArgResults argv = parser.parse(args);
+  final argv = parser.parse(args);
 
-  int count = 0;
-  int flutterCount = 0;
-  final List<String> flutterPlugins = [];
-  final List<String> flutterSdks = [];
+  var count = 0;
+  var flutterCount = 0;
+  final flutterPlugins = <String>[];
+  final flutterSdks = <String>[];
   await withProdServices(() async {
     await for (Package p in dbService.query(Package).run()) {
       count++;
@@ -37,8 +36,8 @@ Future main(List<String> args) async {
           await dbService.lookup([p.latestVersionKey]);
       if (versions.isEmpty) continue;
 
-      final PackageVersion latest = versions.first;
-      final Pubspec pubspec = latest.pubspec;
+      final latest = versions.first;
+      final pubspec = latest.pubspec;
 
       if (pubspec.hasFlutterPlugin) {
         flutterPlugins.add(p.name);
@@ -52,7 +51,7 @@ Future main(List<String> args) async {
     }
   });
 
-  final Map report = {
+  final report = {
     'counters': {
       'total': count,
       'flutter': {
@@ -66,9 +65,9 @@ Future main(List<String> args) async {
       'sdk': flutterSdks,
     }
   };
-  final String json = new JsonEncoder.withIndent('  ').convert(report);
+  final json = new JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
-    final File outputFile = new File(argv['output']);
+    final outputFile = new File(argv['output']);
     print('Writing report to ${outputFile.path}');
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(json + '\n');

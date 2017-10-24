@@ -38,7 +38,7 @@ void main() {
     }
 
     test('index page', () {
-      final String html = templates.renderIndexPage([
+      final html = templates.renderIndexPage([
         testPackageVersion,
         flutterPackageVersion,
       ], [
@@ -70,13 +70,13 @@ void main() {
           analysis: new MockAnalysisView(platforms: ['flutter', 'server']),
         ),
       ]);
-      final String html =
+      final html =
           templates.renderIndexPageV2(popularHtml, updatedHtml, newestHtml);
       expectGoldenFile(html, 'v2/index_page.html');
     });
 
     test('package show page', () {
-      final String html = templates.renderPkgShowPage(
+      final html = templates.renderPkgShowPage(
           testPackage,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('package show page v2', () {
-      final String html = templates.renderPkgShowPageV2(
+      final html = templates.renderPkgShowPageV2(
           testPackage,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -102,7 +102,7 @@ void main() {
     });
 
     test('package show page with flutter_plugin', () {
-      final String html = templates.renderPkgShowPage(
+      final html = templates.renderPkgShowPage(
           testPackage,
           [flutterPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -115,7 +115,7 @@ void main() {
     });
 
     test('package show page with flutter_plugin v2', () {
-      final String html = templates.renderPkgShowPageV2(
+      final html = templates.renderPkgShowPageV2(
           testPackage,
           [flutterPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -132,15 +132,15 @@ void main() {
       expect(templates.renderAnalysisTabV2(null), isNull);
 
       // stored analysis of http
-      final String json =
+      final json =
           await new File('$goldenDir/v2/analysis_tab_http.json').readAsString();
-      final String html = templates.renderAnalysisTabV2(
+      final html = templates.renderAnalysisTabV2(
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
       expectGoldenFile(html, 'v2/analysis_tab_http.html', isFragment: true);
     });
 
     test('package index page', () {
-      final String html = templates.renderPkgIndexPage([
+      final html = templates.renderPkgIndexPage([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -156,7 +156,7 @@ void main() {
     });
 
     test('package index page v2', () {
-      final String html = templates.renderPkgIndexPageV2([
+      final html = templates.renderPkgIndexPageV2([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -172,13 +172,13 @@ void main() {
     });
 
     test('package versions page', () {
-      final String html = templates.renderPkgVersionsPage(testPackage.name,
+      final html = templates.renderPkgVersionsPage(testPackage.name,
           [testPackageVersion], [Uri.parse('http://dart-example.com/')]);
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
 
     test('flutter packages - index page #2', () {
-      final String html = templates.renderPkgIndexPage(
+      final html = templates.renderPkgIndexPage(
         [
           new PackageView.fromModel(
             package: testPackage,
@@ -207,7 +207,7 @@ void main() {
               analysis: new MockAnalysisView(platforms: ['flutter'])),
         ],
       );
-      final String html =
+      final html =
           templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
       expectGoldenFile(html, 'search_page.html');
     });
@@ -224,39 +224,39 @@ void main() {
               analysis: new MockAnalysisView(platforms: ['flutter'])),
         ],
       );
-      final String html =
+      final html =
           templates.renderSearchPageV2(resultPage, new SearchLinks(query, 2));
       expectGoldenFile(html, 'v2/search_page.html');
     });
 
     test('authorized page', () {
-      final String html = templates.renderAuthorizedPage();
+      final html = templates.renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
     });
 
     test('error page', () {
-      final String html = templates.renderErrorPage(
+      final html = templates.renderErrorPage(
           'error_status', 'error_message', 'error_traceback');
       expectGoldenFile(html, 'error_page.html');
     });
 
     test('pagination: single page', () {
-      final String html = templates.renderPagination(new PackageLinks.empty());
+      final html = templates.renderPagination(new PackageLinks.empty());
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
-      final String html = templates.renderPagination(new PackageLinks(90, 299));
+      final html = templates.renderPagination(new PackageLinks(90, 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
-      final String html = templates.renderPagination(new PackageLinks(0, 600));
+      final html = templates.renderPagination(new PackageLinks(0, 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
-      final String html = templates.renderPagination(new PackageLinks(90, 91));
+      final html = templates.renderPagination(new PackageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
   });
@@ -297,7 +297,7 @@ void main() {
       expect(links.rightmostPage, 2);
     });
 
-    final int page2Offset = PackageLinks.resultsPerPage;
+    final page2Offset = PackageLinks.resultsPerPage;
 
     test('page=2 + one item', () {
       final links = new PackageLinks(page2Offset, page2Offset + 1);
@@ -341,7 +341,7 @@ void main() {
   group('URLs', () {
     test('SearchLinks defaults', () {
       final query = new SearchQuery('web framework');
-      final SearchLinks links = new SearchLinks(query, 100);
+      final links = new SearchLinks(query, 100);
       expect(links.formatHref(1), '/search?q=web+framework&page=1');
       expect(links.formatHref(2), '/search?q=web+framework&page=2');
     });
@@ -349,7 +349,7 @@ void main() {
     test('SearchLinks with type', () {
       final query = new SearchQuery('web framework',
           platformPredicate: new PlatformPredicate(required: ['server']));
-      final SearchLinks links = new SearchLinks(query, 100);
+      final links = new SearchLinks(query, 100);
       expect(links.formatHref(1),
           '/search?q=web+framework&platforms=server&page=1');
       expect(links.formatHref(2),

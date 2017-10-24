@@ -613,7 +613,7 @@ void main() {
       }
 
       group('GCloudRepository.startAsyncUpload', () {
-        final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
+        final redirectUri = Uri.parse('http://blobstore.com/upload');
 
         scopedTest('no active user', () async {
           final db = new DatastoreDBMock();
@@ -652,13 +652,13 @@ void main() {
       });
 
       group('GCloudRepository.finishAsyncUpload', () {
-        final Uri redirectUri =
+        final redirectUri =
             Uri.parse('http://blobstore.com/upload?upload_id=myguid');
 
         scopedTest('upload-too-big', () async {
           final oneKB = new List.filled(1024, 42);
           final bigTarball = [];
-          for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
+          for (var i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
           }
           // Add one more byte than allowed.
@@ -697,7 +697,7 @@ void main() {
               expect(guid, 'myguid');
             });
             final queryMock = new QueryMock(sortOrderUpdateQueryMock);
-            int queueMutationCallNr = 0;
+            var queueMutationCallNr = 0;
             final transactionMock = new TransactionMock(
                 lookupFun: (keys) {
                   expect(keys, hasLength(2));
@@ -803,7 +803,7 @@ void main() {
 
           // Returns the error message as String or null if it succeeded.
           Future<String> fn(String name) async {
-            final String pubspecContent =
+            final pubspecContent =
                 TestPackagePubspec.replaceAll('foobar_pkg', name);
             try {
               await withTestPackage((List<int> tarball) async {
@@ -830,8 +830,8 @@ void main() {
 
         scopedTest('upload-too-big', () async {
           final oneKB = new List.filled(1024, 42);
-          final List<List<int>> bigTarball = [];
-          for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
+          final bigTarball = <List<int>>[];
+          for (var i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
           }
           // Add one more byte than allowed.
@@ -868,7 +868,7 @@ void main() {
             // NOTE: There will be two transactions:
             //  a) for inserting a new Package + PackageVersion
             //  b) for inserting a new PackageVersions sorted by `sort_order`.
-            int queueMutationCallNr = 0;
+            var queueMutationCallNr = 0;
             final queryMock = new QueryMock(sortOrderUpdateQueryMock);
             final transactionMock = new TransactionMock(
                 lookupFun: expectAsync1((keys) {

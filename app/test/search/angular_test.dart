@@ -30,7 +30,7 @@ void main() {
     });
 
     test('angular', () async {
-      final PackageSearchResult result = await index
+      final result = await index
           .search(new SearchQuery('angular', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,

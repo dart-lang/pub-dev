@@ -34,7 +34,7 @@ class PlatformPredicate {
 
   factory PlatformPredicate({List<String> required, List<String> prohibited}) {
     List<String> reduce(List<String> platforms) {
-      final List<String> list = platforms
+      final list = platforms
           ?.where((p) => p != null && p.isNotEmpty)
           ?.where(KnownPlatforms.isKnownPlatform)
           ?.toList();
@@ -52,15 +52,15 @@ class PlatformPredicate {
   }
 
   factory PlatformPredicate.fromUri(Uri uri) {
-    final String pluralStr = uri.queryParameters['platforms'];
+    final pluralStr = uri.queryParameters['platforms'];
     List<String> platforms;
     if (pluralStr != null && pluralStr.isNotEmpty) {
       platforms = pluralStr.split(',');
     } else {
       platforms = uri.queryParametersAll['platform'];
     }
-    final List<String> required = <String>[];
-    final List<String> prohibited = <String>[];
+    final required = <String>[];
+    final prohibited = <String>[];
     platforms?.forEach((String p) {
       if (p.startsWith('-') || p.startsWith('!')) {
         prohibited.add(p.substring(1).trim());
@@ -93,10 +93,10 @@ class PlatformPredicate {
   }
 
   String toQueryParamValue() {
-    final List<String> parts = <String>[];
+    final parts = <String>[];
     required?.forEach(parts.add);
     prohibited?.forEach((p) => parts.add('!$p'));
-    final String value = parts.join(',');
+    final value = parts.join(',');
     return value.isEmpty ? null : value;
   }
 }

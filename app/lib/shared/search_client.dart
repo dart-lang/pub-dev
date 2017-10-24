@@ -25,11 +25,11 @@ class SearchClient {
   final http.Client _httpClient = new http.Client();
 
   Future<PackageSearchResult> search(SearchQuery query) async {
-    final String httpHostPort = activeConfiguration.searchServicePrefix;
-    final String serviceUrlParams =
+    final httpHostPort = activeConfiguration.searchServicePrefix;
+    final serviceUrlParams =
         new Uri(queryParameters: query.toServiceQueryParameters()).toString();
-    final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
-    final http.Response response = await _httpClient.get(serviceUrl);
+    final serviceUrl = '$httpHostPort/search$serviceUrlParams';
+    final response = await _httpClient.get(serviceUrl);
     if (response.statusCode == searchIndexNotReadyCode) {
       // Search request before the service initialization completed.
       return null;
@@ -39,8 +39,7 @@ class SearchClient {
       throw new Exception(
           'Service returned status code ${response.statusCode}');
     }
-    final PackageSearchResult result =
-        new PackageSearchResult.fromJson(JSON.decode(response.body));
+    final result = new PackageSearchResult.fromJson(JSON.decode(response.body));
     if (!result.isLegit) {
       // Search request before the service initialization completed.
       return null;

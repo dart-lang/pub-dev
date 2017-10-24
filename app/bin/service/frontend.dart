@@ -35,7 +35,7 @@ void main() {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    final shelf.Handler apiHandler = await setupServices(activeConfiguration);
+    final apiHandler = await setupServices(activeConfiguration);
 
     await runAppEngine((HttpRequest ioRequest) async {
       if (context.isProductionEnvironment &&
@@ -69,17 +69,17 @@ void main() {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  final NotificationClient notificationClient = new NotificationClient();
+  final notificationClient = new NotificationClient();
   registerNotificationClient(notificationClient);
   registerScopeExitCallback(notificationClient.close);
 
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-  final AnalyzerClient analyzerClient =
+  final analyzerClient =
       new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
 
-  final SearchClient searchClient = new SearchClient();
+  final searchClient = new SearchClient();
   registerSearchClient(searchClient);
   registerScopeExitCallback(searchClient.close);
 
@@ -100,7 +100,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   // It can take up to 1 minute until this future completes.  Though normally we
   // don't have a new package upload within the first minute of deployment, so
   // for all practical purposes this future will be ready.
-  final Future<PackageDependencyBuilder> depsGraphBuilderFuture =
+  final depsGraphBuilderFuture =
       PackageDependencyBuilder.loadInitialGraphFromDb(db.dbService);
 
   Future uploadFinished(PackageVersion pv) async {
@@ -117,8 +117,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     //
     // Note: We provide the analyzer service with a list of packages which need
     // re-analyzis.
-    final Set<String> dependentPackages =
-        depsGraphBuilder.affectedPackages(pv.package);
+    final dependentPackages = depsGraphBuilder.affectedPackages(pv.package);
 
     // Since there can be many [dependentPackages], we'll not wait for the
     // notifcation to be done.

@@ -57,7 +57,7 @@ class BatchIndexUpdater implements TaskRunner {
       _logger.info('Loading snapshot...');
       _snapshot = await snapshotStorage.fetch();
       if (_snapshot != null) {
-        final int count = _snapshot.documents.length;
+        final count = _snapshot.documents.length;
         _logger
             .info('Got $count packages from snapshot at ${_snapshot.updated}');
         await packageIndex.addPackages(_snapshot.documents.values);
@@ -116,21 +116,20 @@ class BatchIndexUpdater implements TaskRunner {
     }
     if (_batch.isEmpty) return;
 
-    final Completer completer = new Completer();
+    final completer = new Completer();
     _ongoingBatchUpdate = completer.future;
 
     try {
-      final List<Task> tasks = new List.from(_batch);
+      final tasks = new List<Task>.from(_batch);
       _batch.clear();
       _taskCount += tasks.length;
       _logger.info('Updating index with ${tasks.length} packages '
           '[example: ${tasks.first.package}]');
-      final List<PackageDocument> docs = await searchBackend
+      final docs = await searchBackend
           .loadDocuments(tasks.map((t) => t.package).toList());
       _snapshot.addAll(docs);
       await packageIndex.addPackages(docs);
-      final bool doMerge =
-          _firstScanCount != null && _taskCount >= _firstScanCount;
+      final doMerge = _firstScanCount != null && _taskCount >= _firstScanCount;
       if (doMerge) {
         _logger.info('Merging index after $_taskCount updates.');
         await packageIndex.merge();
@@ -145,7 +144,7 @@ class BatchIndexUpdater implements TaskRunner {
   }
 
   Future _updateSnapshotIfNeeded(List<PackageDocument> docs) async {
-    final DateTime now = new DateTime.now();
+    final now = new DateTime.now();
     if (now.difference(_lastSnapshotWrite).inHours > 12) {
       _lastSnapshotWrite = now;
       try {

@@ -21,9 +21,9 @@ Future main(List<String> arguments) async {
     exit(1);
   }
 
-  final String command = arguments[0];
-  final String package = arguments[1];
-  final String uploader = arguments.length == 3 ? arguments[2] : null;
+  final command = arguments[0];
+  final package = arguments[1];
+  final uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withProdServices(() async {
     if (command == 'list') {

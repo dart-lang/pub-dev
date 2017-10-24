@@ -153,7 +153,7 @@ class MockAnalysisBackend implements AnalysisBackend {
 
   @override
   Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) async {
-    final String key = [
+    final key = [
       analysis.packageName,
       analysis.packageVersion,
       analysis.analysis,

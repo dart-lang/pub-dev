@@ -32,9 +32,9 @@ Future main() async {
 void _runScheduler(List<SendPort> sendPorts) {
   useLoggingPackageAdaptor();
 
-  final SendPort mainSendPort = sendPorts[0];
-  final SendPort statsSendPort = sendPorts[1];
-  final ReceivePort taskReceivePort = new ReceivePort();
+  final mainSendPort = sendPorts[0];
+  final statsSendPort = sendPorts[1];
+  final taskReceivePort = new ReceivePort();
   mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {

@@ -44,7 +44,7 @@ class AnalysisBackend {
   /// we'll still return the latest one, regardless of its version.
   Future<Analysis> getAnalysis(String package,
       {String version, int analysis, String panaVersion}) async {
-    final Key packageKey = db.emptyKey.append(PackageAnalysis, id: package);
+    final packageKey = db.emptyKey.append(PackageAnalysis, id: package);
 
     if (version == null) {
       final list = await db.lookup([packageKey]);
@@ -54,10 +54,9 @@ class AnalysisBackend {
     }
 
     // version was set
-    final Key versionKey =
-        packageKey.append(PackageVersionAnalysis, id: version);
+    final versionKey = packageKey.append(PackageVersionAnalysis, id: version);
 
-    bool lookupMatchingPanaVersion = false;
+    var lookupMatchingPanaVersion = false;
     if (analysis == null) {
       final list = await db.lookup([versionKey]);
       final PackageVersionAnalysis pva = list[0];
@@ -68,7 +67,7 @@ class AnalysisBackend {
     }
 
     if (lookupMatchingPanaVersion) {
-      final Query query = db.query(Analysis, ancestorKey: versionKey)
+      final query = db.query(Analysis, ancestorKey: versionKey)
         ..filter('panaVersion =', panaVersion);
       final List<Analysis> list = await query.run().toList();
       if (list.isNotEmpty) {
@@ -78,7 +77,7 @@ class AnalysisBackend {
     }
 
     // analysis was set
-    final Key analysisKey = versionKey.append(Analysis, id: analysis);
+    final analysisKey = versionKey.append(Analysis, id: analysis);
     final List list = await db.lookup([analysisKey]);
     return list[0];
   }
@@ -94,16 +93,16 @@ class AnalysisBackend {
       final completeRawKey =
           (await tx.db.datastore.allocateIds([incompleteRawKey])).single;
       analysis.id = tx.db.modelDB.fromDatastoreKey(completeRawKey).id;
-      final Key packageKey =
+      final packageKey =
           db.emptyKey.append(PackageAnalysis, id: analysis.packageName);
-      final Key packageVersionKey = packageKey.append(PackageVersionAnalysis,
+      final packageVersionKey = packageKey.append(PackageVersionAnalysis,
           id: analysis.packageVersion);
       final List parents = await tx.lookup([packageKey, packageVersionKey]);
       PackageAnalysis package = parents[0];
       PackageVersionAnalysis version = parents[1];
       final isNewVersion = version == null;
 
-      final List<Model> inserts = [];
+      final inserts = <Model>[];
       if (package == null) {
         package = new PackageAnalysis.fromAnalysis(analysis);
         inserts.add(package);
@@ -111,14 +110,14 @@ class AnalysisBackend {
         inserts.add(package);
       }
 
-      final DateTime prevTimestamp = version?.analysisTimestamp;
+      final prevTimestamp = version?.analysisTimestamp;
       if (version == null) {
         version = new PackageVersionAnalysis.fromAnalysis(analysis);
         inserts.add(version);
       } else if (version.updateWithLatest(analysis)) {
         inserts.add(version);
       }
-      final bool wasRace = inserts.isEmpty &&
+      final wasRace = inserts.isEmpty &&
           prevTimestamp != null &&
           version.analysisTimestamp.difference(prevTimestamp) < freshThreshold;
       final isLatestStable = package.latestVersion == version.packageVersion;
@@ -150,11 +149,11 @@ class AnalysisBackend {
           .append(PackageVersion, id: packageVersion)
     ]);
     // Does package and version exist?
-    final PackageVersion pv = versions.single;
+    final pv = versions.single;
     if (pv == null) return false;
 
     // Does package have any analysis?
-    final Key packageKey = db.emptyKey.append(PackageAnalysis, id: packageName);
+    final packageKey = db.emptyKey.append(PackageAnalysis, id: packageName);
     final PackageAnalysis packageAnalysis =
         (await db.lookup([packageKey])).single;
     if (packageAnalysis == null) return true;
@@ -165,7 +164,7 @@ class AnalysisBackend {
     }
 
     // Does package have analysis for the current version?
-    final Key versionKey =
+    final versionKey =
         packageKey.append(PackageVersionAnalysis, id: packageVersion);
     final PackageVersionAnalysis versionAnalysis =
         (await db.lookup([versionKey])).single;
@@ -197,8 +196,8 @@ class AnalysisBackend {
     }
 
     // Is it due to re-analyze?
-    final DateTime now = new DateTime.now().toUtc();
-    final Duration age = now.difference(versionAnalysis.analysisTimestamp);
+    final now = new DateTime.now().toUtc();
+    final age = now.difference(versionAnalysis.analysisTimestamp);
     if (age > reanalyzeThreshold) {
       return true;
     }
@@ -216,27 +215,26 @@ class AnalysisBackend {
   /// - it is **not** the latest for the pana version, or
   /// - it is older than 6 months (except if it is the latest one).
   Future deleteObsoleteAnalysis(String package, String version) async {
-    final DateTime threshold =
-        new DateTime.now().toUtc().subtract(obsoleteThreshold);
-    final Query scanQuery = db.query(
+    final threshold = new DateTime.now().toUtc().subtract(obsoleteThreshold);
+    final scanQuery = db.query(
       Analysis,
       ancestorKey: db.emptyKey
           .append(PackageAnalysis, id: package)
           .append(PackageVersionAnalysis, id: version),
     );
-    final List<Key> obsoleteKeys = <Key>[];
+    final obsoleteKeys = <Key>[];
 
     final List<Analysis> existingAnalysis = await scanQuery.run().toList();
     existingAnalysis.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    final Map<String, Analysis> panaVersion2LatestAnalysis = {};
-    for (Analysis analysis in existingAnalysis) {
-      final bool isTooOld = analysis.timestamp.isBefore(threshold);
+    final panaVersion2LatestAnalysis = <String, Analysis>{};
+    for (var analysis in existingAnalysis) {
+      final isTooOld = analysis.timestamp.isBefore(threshold);
       if (isTooOld) {
         obsoleteKeys.add(analysis.key);
         continue;
       }
-      final Analysis prev = panaVersion2LatestAnalysis[analysis.panaVersion];
+      final prev = panaVersion2LatestAnalysis[analysis.panaVersion];
       panaVersion2LatestAnalysis[analysis.panaVersion] = analysis;
       if (prev != null) {
         obsoleteKeys.add(prev.key);

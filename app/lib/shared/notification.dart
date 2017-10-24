@@ -26,7 +26,7 @@ class NotificationClient {
     await _doNotify(
         activeConfiguration.analyzerServicePrefix, package, version);
 
-    for (final String package in dependentPackages) {
+    for (final package in dependentPackages) {
       return _doNotify(
           activeConfiguration.analyzerServicePrefix, package, null);
     }

@@ -79,7 +79,7 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
     yield _uiPage.invalidate(_pvKey(true, package, null));
     yield _uiIndexPage.invalidate(_indexPageKey(false, null));
     yield _uiIndexPage.invalidate(_indexPageKey(true, null));
-    for (String platform in KnownPlatforms.all) {
+    for (var platform in KnownPlatforms.all) {
       yield _uiIndexPage.invalidate(_indexPageKey(false, platform));
       yield _uiIndexPage.invalidate(_indexPageKey(true, platform));
     }
@@ -94,12 +94,12 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _uiIndexPage.setText(_indexPageKey(isV2, platform), content);
 
   String _indexPageKey(bool isV2, String platform) {
-    final String prefix = isV2 ? v2IndexUiPageKey : indexUiPageKey;
+    final prefix = isV2 ? v2IndexUiPageKey : indexUiPageKey;
     return '$prefix/$platform';
   }
 
   String _pvKey(bool isV2, String package, String version) {
-    final String prefix = isV2 ? '/experimental' : '';
+    final prefix = isV2 ? '/experimental' : '';
     return '$prefix/$package/$version';
   }
 }

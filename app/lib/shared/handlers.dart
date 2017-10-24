@@ -39,7 +39,7 @@ shelf.Response yamlResponse(String yamlString, {int status: 200}) =>
         headers: {'content-type': 'text/yaml; charset="utf-8"'});
 
 shelf.Response jsonResponse(Map json, {int status: 200, bool indent: false}) {
-  final String body = indent
+  final body = indent
       ? new JsonEncoder.withIndent('  ').convert(json)
       : JSON.encode(json);
   return new shelf.Response(
@@ -70,9 +70,9 @@ void logPubHeaders(shelf.Request request) {
 }
 
 Future<bool> validateNotificationSecret(shelf.Request request) async {
-  final String received = request.headers['x-notification-secret'];
+  final received = request.headers['x-notification-secret'];
   if (received == null) return false;
-  final String secret = await getNotificationSecret();
+  final secret = await getNotificationSecret();
   return received == secret;
 }
 

@@ -10,7 +10,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
-  int updatedPackages = 0;
+  var updatedPackages = 0;
   await withProdServices(() async {
     await for (Package p in dbService.query(Package).run()) {
       if (p.latestDevVersionKey == null) {
@@ -31,7 +31,7 @@ Future _updateDevVersionKey(Key packageKey) async {
     final Package package = (await t.lookup([packageKey])).first;
     final List<PackageVersion> versions =
         await t.query(PackageVersion, packageKey).run().toList();
-    for (PackageVersion pv in versions) {
+    for (var pv in versions) {
       package.updateVersion(pv);
     }
     t.queueMutations(inserts: [package]);

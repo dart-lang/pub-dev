@@ -55,34 +55,33 @@ class SearchBackend {
   /// When a package or its latest version is missing, the method returns with
   /// null at the given index.
   Future<List<PackageDocument>> loadDocuments(List<String> packageNames) async {
-    final List<Key> packageKeys = packageNames
+    final packageKeys = packageNames
         .map((String name) => _db.emptyKey.append(Package, id: name))
         .toList();
     final List<Package> packages = await _db.lookup(packageKeys);
 
     // Load only for the existing packages.
-    final List<Key> versionKeys = packages
+    final versionKeys = packages
         .where((p) => p != null)
         .map((p) => p.latestVersionKey)
         .toList();
     final List<PackageVersion> versionList = await _db.lookup(versionKeys);
-    final Map<String, PackageVersion> versions = new Map.fromIterable(
+    final versions = new Map<String, PackageVersion>.fromIterable(
         versionList.where((pv) => pv != null),
         key: (PackageVersion pv) => pv.package);
 
-    final List<AnalysisView> analysisViews =
-        await analyzerClient.getAnalysisViews(packages.map((p) =>
-            p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
+    final analysisViews = await analyzerClient.getAnalysisViews(packages.map(
+        (p) => p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
 
-    final List<PackageDocument> results = new List(packages.length);
-    for (int i = 0; i < packages.length; i++) {
-      final Package p = packages[i];
+    final results = new List<PackageDocument>(packages.length);
+    for (var i = 0; i < packages.length; i++) {
+      final p = packages[i];
       if (p == null) continue;
-      final PackageVersion pv = versions[p.name];
+      final pv = versions[p.name];
       if (pv == null) continue;
 
       final analysisView = analysisViews[i];
-      final double maintenance = _calculateMaintenance(p, pv);
+      final maintenance = _calculateMaintenance(p, pv);
 
       results[i] = new PackageDocument(
         package: pv.package,
@@ -103,18 +102,18 @@ class SearchBackend {
   }
 
   double _calculateMaintenance(Package p, PackageVersion pv) {
-    final DateTime now = new DateTime.now().toUtc();
-    final Duration age = now.difference(pv.created);
+    final now = new DateTime.now().toUtc();
+    final age = now.difference(pv.created);
 
     if (age > _twoYears) {
       return 0.0;
     }
 
-    double score = 1.0;
+    var score = 1.0;
 
     if (age > _year) {
-      final int daysLeft = (_twoYears - age).inDays;
-      final double p = daysLeft / 365;
+      final daysLeft = (_twoYears - age).inDays;
+      final p = daysLeft / 365;
       score *= max(0.0, min(1.0, p));
     }
 
@@ -146,17 +145,17 @@ class SnapshotStorage {
   SnapshotStorage(this.storage, this.bucket);
 
   Future<SearchSnapshot> fetch() async {
-    final List<BucketEntry> list = await bucket.list().toList();
-    final List<String> names = list
+    final list = await bucket.list().toList();
+    final names = list
         .where((entry) => entry.isObject)
         .map((entry) => entry.name)
         .toList();
     if (names.isEmpty) return null;
     // Try to load the available snapshots in reverse order (latest first).
     names.sort();
-    for (String selected in names.reversed) {
+    for (var selected in names.reversed) {
       try {
-        final String json = await bucket
+        final json = await bucket
             .read(selected)
             .transform(_gzip.decoder)
             .transform(UTF8.decoder)
@@ -171,18 +170,17 @@ class SnapshotStorage {
 
   Future store(SearchSnapshot snapshot) async {
     // garbage-collect old entries after upload is successful
-    final List<BucketEntry> list = await bucket.list().toList();
-    final List<String> toDelete = list
+    final list = await bucket.list().toList();
+    final toDelete = list
         .where((entry) => entry.isObject)
         .map((entry) => entry.name)
         .toList();
 
     // data buffer to write
-    final List<int> buffer =
-        _gzip.encode(UTF8.encode(JSON.encode(snapshot.toJson())));
+    final buffer = _gzip.encode(UTF8.encode(JSON.encode(snapshot.toJson())));
 
     // generate name from current timestamp
-    final String ts =
+    final ts =
         new DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
     final currentName = 'snapshot-$ts.json.gz';
 
@@ -193,7 +191,7 @@ class SnapshotStorage {
     await bucket.writeBytes(currentName, buffer);
 
     // upload successful, garbage-collect entries
-    for (String name in toDelete) {
+    for (var name in toDelete) {
       try {
         await bucket.delete(name);
       } catch (e, st) {

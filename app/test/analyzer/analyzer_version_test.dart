@@ -11,7 +11,7 @@ import 'package:pub_dartlang_org/analyzer/versions.dart';
 
 void main() {
   test('analyzer version should match resolved pana version', () async {
-    final String lockContent = await new File('pubspec.lock').readAsString();
+    final lockContent = await new File('pubspec.lock').readAsString();
     final Map lock = loadYaml(lockContent);
     expect(lock['packages']['pana']['version'], panaVersion);
   });
