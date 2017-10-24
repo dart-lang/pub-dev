@@ -178,7 +178,11 @@ class TemplateService {
     if (links.rightmostPage > 1) {
       pageTitle = 'Page ${links.currentPage} | $pageTitle';
     }
-    return renderLayoutPageV2(content, title: pageTitle);
+    return renderLayoutPageV2(
+      content,
+      title: pageTitle,
+      platform: currentPlatform,
+    );
   }
 
   /// Renders the `views/v2/pkg/analysis_tab.mustache` template.
@@ -510,7 +514,11 @@ class TemplateService {
 
   /// Renders the `views/v2/index.mustache` template.
   String renderIndexPageV2(
-      String popularHtml, String updatedHtml, String newestHtml) {
+    String popularHtml,
+    String updatedHtml,
+    String newestHtml,
+    String platform,
+  ) {
     final values = {
       'popular_html': popularHtml,
       'updated_html': updatedHtml,
@@ -521,6 +529,7 @@ class TemplateService {
       content,
       title: 'Pub: Dart Package Manager',
       homeBanner: true,
+      platform: platform,
     );
   }
 
@@ -545,6 +554,7 @@ class TemplateService {
     String packageName,
     String packageDescription,
     String faviconUrl,
+    String platform,
     String searchQuery,
     bool homeBanner: false,
     bool includeSurvey: true,
@@ -561,6 +571,7 @@ class TemplateService {
               'description': HTML_ESCAPE.convert(packageDescription ?? ''),
             },
       'title': HTML_ESCAPE.convert(title),
+      'search_platform': platform,
       'search_query': escapedSearchQuery,
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,
@@ -631,7 +642,9 @@ class TemplateService {
         _searchPage(resultPage, renderPaginationV2(pageLinks));
     final content = _renderTemplate('v2/search', values);
     return renderLayoutPageV2(content,
-        title: 'Search results for $queryText.', searchQuery: queryText);
+        title: 'Search results for $queryText.',
+        platform: resultPage.query.platformPredicate?.toQueryParamValue(),
+        searchQuery: queryText);
   }
 
   Map<String, Object> _searchPage(

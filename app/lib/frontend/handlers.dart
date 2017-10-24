@@ -200,7 +200,7 @@ Future<shelf.Response> _indexHandlerV2(
 
     final List<String> miniListHtmls = await Future.wait(miniListFutures);
     pageContent = templateService.renderIndexPageV2(
-        miniListHtmls[0], miniListHtmls[1], miniListHtmls[2]);
+        miniListHtmls[0], miniListHtmls[1], miniListHtmls[2], platform);
     await backend.uiPackageCache?.setUIIndexPage(true, platform, pageContent);
   }
   return htmlResponse(pageContent);
