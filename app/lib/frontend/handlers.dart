@@ -184,7 +184,7 @@ Future<shelf.Response> _indexHandlerV2(
     }
 
     final List<Future<String>> miniListFutures = [
-      searchAndRenderMiniList(SearchOrder.popularity),
+      searchAndRenderMiniList(SearchOrder.overall),
     ];
     if (platform == null) {
       miniListFutures.addAll([
