@@ -223,12 +223,33 @@ class PopularityStorage {
 }
 
 class SnapshotStorage {
+  final String _latestPath = 'snapshot-latest.json.gz';
   final Storage storage;
   final Bucket bucket;
 
   SnapshotStorage(this.storage, this.bucket);
 
   Future<SearchSnapshot> fetch() async {
+    Future<SearchSnapshot> load(String path) async {
+      try {
+        final String json = await bucket
+            .read(path)
+            .transform(_gzip.decoder)
+            .transform(UTF8.decoder)
+            .join();
+        return new SearchSnapshot.fromJson(JSON.decode(json));
+      } catch (e, st) {
+        _logger.severe('Unable to load search snapshot: $path', e, st);
+      }
+      return null;
+    }
+
+    final SearchSnapshot latest = await load(_latestPath);
+    if (latest != null) return latest;
+
+    // Fall back on listing the bucket.
+    _logger.severe('Falling back to list the search snapshot bucket.');
+
     final List<BucketEntry> list = await bucket.list().toList();
     final List<String> names = list
         .where((entry) => entry.isObject)
@@ -238,16 +259,8 @@ class SnapshotStorage {
     // Try to load the available snapshots in reverse order (latest first).
     names.sort();
     for (String selected in names.reversed) {
-      try {
-        final String json = await bucket
-            .read(selected)
-            .transform(_gzip.decoder)
-            .transform(UTF8.decoder)
-            .join();
-        return new SearchSnapshot.fromJson(JSON.decode(json));
-      } catch (e, st) {
-        _logger.severe('Unable to load snapshot: $selected', e, st);
-      }
+      final SearchSnapshot snapshot = await load(selected);
+      if (snapshot != null) return snapshot;
     }
     return null;
   }
@@ -274,6 +287,7 @@ class SnapshotStorage {
 
     // upload
     await bucket.writeBytes(currentName, buffer);
+    await storage.copyObject(currentName, _latestPath);
 
     // upload successful, garbage-collect entries
     for (String name in toDelete) {
