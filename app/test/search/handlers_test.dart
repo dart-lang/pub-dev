@@ -58,7 +58,7 @@ void main() {
           'packages': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(54.2, 0.1),
+              'score': closeTo(37.1, 0.1),
             }
           ],
         });
@@ -72,7 +72,7 @@ void main() {
           'packages': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(15.0, 0.1),
+              'score': closeTo(20.3, 0.1),
             }
           ],
         });
@@ -87,7 +87,7 @@ void main() {
               'packages': [
                 {
                   'package': 'pkg_foo',
-                  'score': closeTo(15.0, 0.1),
+                  'score': closeTo(20.3, 0.1),
                 }
               ],
             });
@@ -101,7 +101,7 @@ void main() {
           'packages': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(1.0, 0.1),
+              'score': closeTo(0.4, 0.1),
             }
           ],
         });
