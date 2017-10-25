@@ -271,7 +271,12 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderPlatformTabs({String platform, SearchQuery searchQuery}) {
+  String renderPlatformTabs({
+    String platform,
+    SearchQuery searchQuery,
+    String pathPrefix,
+    bool platformInPath,
+  }) {
     return Response;
   }
 }
