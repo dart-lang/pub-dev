@@ -148,24 +148,8 @@ class TemplateService {
       descriptionHtml = flutterPackagesDescriptionHtml;
     }
 
-    Map platformTabData(String text, String platform) {
-      final String param = platform == null
-          ? null
-          : new PlatformPredicate(required: [platform]).toQueryParamValue();
-      final String query = param == null ? '' : '?platform=$param';
-      final String url = '/packages$query';
-      return {'text': text, 'href': url, 'active': platform == currentPlatform};
-    }
-
-    final platformTabs = [
-      platformTabData('Flutter', KnownPlatforms.flutter),
-      platformTabData('Web', KnownPlatforms.web),
-      platformTabData('Server', KnownPlatforms.server),
-      platformTabData('All', null),
-    ];
-
     final values = {
-      'platform_tabs': platformTabs, // used in v2 only
+      'platform_tabs_html': renderPlatformTabs(platform: currentPlatform),
       'title': title ?? 'Packages',
       'description_html': descriptionHtml,
       'packages': packagesJson,
@@ -666,25 +650,8 @@ class TemplateService {
         'tags_html': _renderTags(view.platforms), // used in v2 only
       });
     }
-    final String currentUrl = resultPage.query.toSearchLink();
-    Map platformTabData(String text, String platform) {
-      final url = resultPage.query
-          .change(
-              platformPredicate: platform == null
-                  ? new PlatformPredicate()
-                  : new PlatformPredicate(required: [platform]))
-          .toSearchLink();
-      return {'text': text, 'href': url, 'active': url == currentUrl};
-    }
-
-    final platformTabs = [
-      platformTabData('Flutter', KnownPlatforms.flutter),
-      platformTabData('Web', KnownPlatforms.web),
-      platformTabData('Server', KnownPlatforms.server),
-      platformTabData('All', null),
-    ];
     final values = {
-      'platform_tabs': platformTabs, // used in v2 only
+      'platform_tabs_html': renderPlatformTabs(searchQuery: resultPage.query),
       'query': resultPage.query.text,
       'results': results,
       'total_count': resultPage.totalCount, // used in v2 only
@@ -767,6 +734,45 @@ class TemplateService {
           htmlEscapeValues: escapeValues, lenient: true);
     });
     return parsedTemplate.renderString(values);
+  }
+
+  String renderPlatformTabs({
+    String platform,
+    SearchQuery searchQuery,
+  }) {
+    final String currentPlatform =
+        platform ?? searchQuery?.platformPredicate?.single;
+    Map platformTabData(String tabText, String tabPlatform) {
+      String url;
+      if (searchQuery != null) {
+        final newQuery = searchQuery.change(
+            platformPredicate: tabPlatform == null
+                ? new PlatformPredicate()
+                : new PlatformPredicate(required: [tabPlatform]));
+        url = newQuery.toSearchLink();
+      } else {
+        final Map<String, String> params = <String, String>{};
+        if (tabPlatform != null) {
+          params['platform'] = tabPlatform;
+        }
+        url = new Uri(path: '/packages', queryParameters: params).toString();
+      }
+      return {
+        'text': tabText,
+        'href': _attrEscaper.convert(url),
+        'active': tabPlatform == currentPlatform
+      };
+    }
+
+    final values = {
+      'tabs': [
+        platformTabData('Flutter', KnownPlatforms.flutter),
+        platformTabData('Web', KnownPlatforms.web),
+        platformTabData('Server', KnownPlatforms.server),
+        platformTabData('All', null),
+      ]
+    };
+    return _renderTemplate('v2/platform_tabs', values);
   }
 }
 

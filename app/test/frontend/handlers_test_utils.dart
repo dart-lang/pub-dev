@@ -269,6 +269,11 @@ class TemplateMock implements TemplateService {
   String renderAnalysisTabV2(analysis) {
     return Response;
   }
+
+  @override
+  String renderPlatformTabs({String platform, SearchQuery searchQuery}) {
+    return Response;
+  }
 }
 
 class SearchClientMock implements SearchClient {

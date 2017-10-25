@@ -340,6 +340,20 @@ void main() {
       final String html = templates.renderPagination(new PackageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
+
+    test('platform tabs: list', () {
+      final String html = templates.renderPlatformTabs(platform: 'web');
+      expectGoldenFile(html, 'v2/platform_tabs_list.html', isFragment: true);
+    });
+
+    test('platform tabs: search', () {
+      final String html = templates.renderPlatformTabs(
+          searchQuery: new SearchQuery(
+        'foo',
+        platformPredicate: new PlatformPredicate(required: ['server']),
+      ));
+      expectGoldenFile(html, 'v2/platform_tabs_search.html', isFragment: true);
+    });
   });
 
   group('PageLinks', () {
