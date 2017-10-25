@@ -15,6 +15,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pana/src/scoring.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
@@ -43,6 +44,13 @@ void registerSnapshotStorage(SnapshotStorage storage) =>
 
 /// The active snapshot storage
 SnapshotStorage get snapshotStorage => ss.lookup(#_snapshotStorage);
+
+/// Sets the popularity storage
+void registerPopularityStorage(PopularityStorage storage) =>
+    ss.register(#_popularityStorage, storage);
+
+/// The active popularity storage
+PopularityStorage get popularityStorage => ss.lookup(#_popularityStorage);
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
@@ -82,6 +90,8 @@ class SearchBackend {
       if (pv == null) continue;
 
       final analysisView = analysisViews[i];
+      final double popularity =
+          popularityStorage.lookup(pv.package) ?? mockScores[pv.package] ?? 0.0;
       final double maintenance = _calculateMaintenance(p, pv);
 
       results[i] = new PackageDocument(
@@ -94,7 +104,7 @@ class SearchBackend {
         updated: pv.created,
         readme: compactReadme(pv.readmeContent),
         health: analysisView.health,
-        popularity: mockScores[pv.package] ?? 0.0,
+        popularity: popularity,
         maintenance: maintenance,
         timestamp: new DateTime.now().toUtc(),
       );
@@ -138,10 +148,83 @@ class SearchBackend {
   }
 }
 
+class PopularityStorage {
+  final Storage storage;
+  final Bucket bucket;
+
+  final Map<String, double> _values = {};
+
+  PopularityStorage(this.storage, this.bucket);
+
+  double lookup(String package) => _values[package];
+
+  Future init() async {
+    await fetch();
+    new Timer.periodic(const Duration(days: 1), (_) {
+      fetch();
+    });
+  }
+
+  Future fetch() async {
+    _logger.info('Updating popularity storage...');
+    List<BucketEntry> entries;
+    try {
+      entries = await bucket.list().toList();
+    } catch (e, st) {
+      _logger.severe('Unable to list popularity bucket', e, st);
+      return;
+    }
+    final List<String> names = entries
+        .where((entry) => entry.isObject)
+        .map((entry) => entry.name)
+        .toList();
+    if (names.isEmpty) {
+      _logger.warning('No popularity data found!');
+      return;
+    }
+    // Try to load the available snapshots in reverse order (latest first).
+    names.sort();
+    for (String selected in names.reversed) {
+      _logger.info('Loading popularity data: $selected');
+      try {
+        Stream<List<int>> stream = bucket.read(selected);
+        if (selected.endsWith('.gz')) {
+          stream = stream.transform(_gzip.decoder);
+        }
+        final String json = await stream.transform(UTF8.decoder).join();
+        final Map map = JSON.decode(json);
+        _updateLatest(map);
+        _logger.info('Popularity data loaded successful: $selected');
+        return;
+      } catch (e, st) {
+        _logger.severe('Unable to load popularity data: $selected', e, st);
+      }
+    }
+    return;
+  }
+
+  void _updateLatest(Map raw) {
+    final Map<String, int> rawTotals = {};
+    final List items = raw['items'];
+    for (Map item in items) {
+      final String package = item['pkg'];
+      final int devVotes = int.parse(item['votes_dev']);
+      final int directVotes = int.parse(item['votes_direct']);
+      final int totalVotes = int.parse(item['votes_total']);
+      final int finalVotes = directVotes * 25 + devVotes * 5 + totalVotes;
+      rawTotals[package] = finalVotes;
+    }
+    final summary = new Summary(rawTotals.values);
+    for (String package in rawTotals.keys) {
+      final int raw = rawTotals[package];
+      _values[package] = summary.bezierScore(raw);
+    }
+  }
+}
+
 class SnapshotStorage {
   final Storage storage;
   final Bucket bucket;
-  final GZipCodec _gzip = new GZipCodec();
 
   SnapshotStorage(this.storage, this.bucket);
 
@@ -227,3 +310,5 @@ class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
     docs.forEach(add);
   }
 }
+
+final GZipCodec _gzip = new GZipCodec();
