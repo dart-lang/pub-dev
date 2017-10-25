@@ -504,6 +504,11 @@ class TemplateService {
     String platform,
   ) {
     final values = {
+      'platform_tabs_html': renderPlatformTabs(
+        platform: platform,
+        pathPrefix: '',
+        platformInPath: true,
+      ),
       'top_html': topHtml,
       'updated_html': updatedHtml,
       'newest_html': newestHtml,
@@ -739,6 +744,8 @@ class TemplateService {
   String renderPlatformTabs({
     String platform,
     SearchQuery searchQuery,
+    String pathPrefix: '/packages',
+    bool platformInPath: false,
   }) {
     final String currentPlatform =
         platform ?? searchQuery?.platformPredicate?.single;
@@ -751,11 +758,20 @@ class TemplateService {
                 : new PlatformPredicate(required: [tabPlatform]));
         url = newQuery.toSearchLink();
       } else {
+        String path = pathPrefix;
         final Map<String, String> params = <String, String>{};
         if (tabPlatform != null) {
-          params['platform'] = tabPlatform;
+          if (platformInPath) {
+            path = '$path/$tabPlatform';
+          } else {
+            params['platform'] = tabPlatform;
+          }
         }
-        url = new Uri(path: '/packages', queryParameters: params).toString();
+        url = new Uri(
+          path: path,
+          queryParameters: params.isNotEmpty ? params : null,
+        )
+            .toString();
       }
       return {
         'text': tabText,
