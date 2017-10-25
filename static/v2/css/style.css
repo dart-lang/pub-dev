@@ -87,7 +87,7 @@ main{
 
 body{
   /* offset the body for the fixed header */
-  padding-top: 56px;
+  padding-top: 76px;
 }
 
 .site-header{
