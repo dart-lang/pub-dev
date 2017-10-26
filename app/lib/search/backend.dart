@@ -174,8 +174,10 @@ class PopularityStorage {
         if (path.endsWith('.gz')) {
           stream = stream.transform(_gzip.decoder);
         }
-        final String json = await stream.transform(UTF8.decoder).join();
-        return JSON.decode(json);
+        return await stream
+            .transform(UTF8.decoder)
+            .transform(JSON.decoder)
+            .single;
       } catch (e, st) {
         _logger.severe('Unable to load popularity data: $path', e, st);
       }
@@ -247,12 +249,13 @@ class SnapshotStorage {
   Future<SearchSnapshot> fetch() async {
     Future<SearchSnapshot> load(String path) async {
       try {
-        final String json = await bucket
+        final Map json = await bucket
             .read(path)
             .transform(_gzip.decoder)
             .transform(UTF8.decoder)
-            .join();
-        return new SearchSnapshot.fromJson(JSON.decode(json));
+            .transform(JSON.decoder)
+            .single;
+        return new SearchSnapshot.fromJson(json);
       } catch (e, st) {
         _logger.severe('Unable to load search snapshot: $path', e, st);
       }
