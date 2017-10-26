@@ -149,6 +149,7 @@ class SearchBackend {
 }
 
 class PopularityStorage {
+  final String _latestPath = 'popularity-latest.json.gz';
   final Storage storage;
   final Bucket bucket;
 
@@ -166,7 +167,29 @@ class PopularityStorage {
   }
 
   Future fetch() async {
-    _logger.info('Updating popularity storage...');
+    Future<Map> load(String path) async {
+      _logger.info('Loading popularity data: $path');
+      try {
+        Stream<List<int>> stream = bucket.read(path);
+        if (path.endsWith('.gz')) {
+          stream = stream.transform(_gzip.decoder);
+        }
+        final String json = await stream.transform(UTF8.decoder).join();
+        return JSON.decode(json);
+      } catch (e, st) {
+        _logger.severe('Unable to load popularity data: $path', e, st);
+      }
+      return null;
+    }
+
+    final Map latest = await load(_latestPath);
+    if (latest != null) {
+      _updateLatest(latest);
+      return;
+    }
+
+    // Fall back on listing the bucket.
+    _logger.severe('Falling back to list the popularity bucket.');
     List<BucketEntry> entries;
     try {
       entries = await bucket.list().toList();
@@ -185,19 +208,10 @@ class PopularityStorage {
     // Try to load the available snapshots in reverse order (latest first).
     names.sort();
     for (String selected in names.reversed) {
-      _logger.info('Loading popularity data: $selected');
-      try {
-        Stream<List<int>> stream = bucket.read(selected);
-        if (selected.endsWith('.gz')) {
-          stream = stream.transform(_gzip.decoder);
-        }
-        final String json = await stream.transform(UTF8.decoder).join();
-        final Map map = JSON.decode(json);
+      final Map map = await load(selected);
+      if (map != null) {
         _updateLatest(map);
-        _logger.info('Popularity data loaded successful: $selected');
         return;
-      } catch (e, st) {
-        _logger.severe('Unable to load popularity data: $selected', e, st);
       }
     }
     return;
@@ -219,6 +233,7 @@ class PopularityStorage {
       final int raw = rawTotals[package];
       _values[package] = summary.bezierScore(raw);
     }
+    _logger.info('Popularity updated for ${items.length} packages.');
   }
 }
 
