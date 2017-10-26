@@ -75,9 +75,13 @@ const _handlers = const <String, shelf.Handler>{
   '/': indexHandler,
   '/experimental': indexHandlerV2,
   '/experimental/': indexHandlerV2,
+  '/experimental/packages': packagesHandlerHtmlV2,
   '/experimental/flutter': flutterLandingHandlerV2,
+  '/experimental/flutter/packages': flutterPackagesHandlerHtmlV2,
   '/experimental/server': serverLandingHandlerV2,
+  '/experimental/server/packages': serverPackagesHandlerHtmlV2,
   '/experimental/web': webLandingHandlerV2,
+  '/experimental/web/packages': webPackagesHandlerHtmlV2,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
@@ -85,7 +89,6 @@ const _handlers = const <String, shelf.Handler>{
   '/experimental/search': searchHandlerV2,
   '/packages': packagesHandler,
   '/packages.json': packagesHandler,
-  '/experimental/packages': packagesHandlerHtmlV2,
   '/flutter': redirectToFlutterPackages,
   '/flutter/': redirectToFlutterPackages,
   '/flutter/packages': flutterPackagesHandler,
@@ -418,17 +421,38 @@ Future<shelf.Response> packagesHandlerHtml(
 }
 
 /// Handles /experimental/packages - package listing
-Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) async {
+Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) =>
+    _packagesHandlerHtmlV2(request, null);
+
+/// Handles /experimental/flutter/packages
+Future<shelf.Response> flutterPackagesHandlerHtmlV2(shelf.Request request) =>
+    _packagesHandlerHtmlV2(request, KnownPlatforms.flutter);
+
+/// Handles /experimental/server/packages
+Future<shelf.Response> serverPackagesHandlerHtmlV2(shelf.Request request) =>
+    _packagesHandlerHtmlV2(request, KnownPlatforms.server);
+
+/// Handles /experimental/web/packages
+Future<shelf.Response> webPackagesHandlerHtmlV2(shelf.Request request) =>
+    _packagesHandlerHtmlV2(request, KnownPlatforms.web);
+
+/// Handles:
+/// - /experimental/packages - package listing
+/// - /experimental/flutter/packages
+/// - /experimental/server/packages
+/// - /experimental/web/packages
+Future<shelf.Response> _packagesHandlerHtmlV2(
+    shelf.Request request, String platform) async {
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
-  final PlatformPredicate platformPredicate =
-      new PlatformPredicate.fromUri(request.url);
 
   int totalCount;
   List<PackageView> packageViews;
-  if (platformPredicate.isNotEmpty) {
+  if (platform != null) {
     final searchResult = await searchService.search(new SearchQuery('',
-        platformPredicate: platformPredicate,
+        platformPredicate: platform == null
+            ? null
+            : new PlatformPredicate(required: [platform]),
         order: SearchOrder.updated,
         offset: offset,
         limit: PackageLinks.resultsPerPage));
@@ -460,10 +484,9 @@ Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) async {
             ));
   }
 
-  final String currentPlatform = platformPredicate.single;
-  final links = new PackageLinks(offset, totalCount, platform: currentPlatform);
-  return htmlResponse(templateService.renderPkgIndexPageV2(
-      packageViews, links, currentPlatform));
+  final links = new PackageLinks(offset, totalCount, platform: platform);
+  return htmlResponse(
+      templateService.renderPkgIndexPageV2(packageViews, links, platform));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers

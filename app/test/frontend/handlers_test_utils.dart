@@ -274,8 +274,7 @@ class TemplateMock implements TemplateService {
   String renderPlatformTabs({
     String platform,
     SearchQuery searchQuery,
-    String pathPrefix,
-    bool platformInPath,
+    bool isLanding: false,
   }) {
     return Response;
   }
