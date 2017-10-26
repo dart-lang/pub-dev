@@ -85,16 +85,7 @@ main{
   site header
 ******************************************************/
 
-body{
-  /* offset the body for the fixed header */
-  padding-top: 76px;
-}
-
 .site-header{
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -103,7 +94,6 @@ body{
           align-items: center;
   padding: 6px;
   background: #fff;
-  z-index: 1
 }
 
 .site-header > .hamburger{
