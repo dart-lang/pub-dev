@@ -100,7 +100,9 @@ import 'package:{{package}}/{{library}}';
       {{/show_versions_link}}
     </section>
     <section class="content js-content markdown-body" data-name="score">
-      <p>(some content for the analysis results tab)</p>
+      {{^package.analysis_html}}
+        <i>Scheduled for analysis.</i>
+      {{/package.analysis_html}}
       {{& package.analysis_html}}
     </section>
   </div>

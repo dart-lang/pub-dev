@@ -133,4 +133,7 @@ class AnalysisView {
         _summary.fitness.magnitude;
     return max(-1.0, min(1.0, score));
   }
+
+  List<String> get toolProblems =>
+      _summary.toolProblems?.map((tp) => '${tp.tool}: ${tp.message}')?.toList();
 }

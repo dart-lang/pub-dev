@@ -7,7 +7,6 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
-import 'package:intl/intl.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/analyzer_client.dart' show AnalysisView;
@@ -17,8 +16,6 @@ import '../shared/utils.dart';
 import 'model_properties.dart';
 
 export 'model_properties.dart' show FileObject;
-
-final DateFormat ShortDateFormat = new DateFormat.yMMMd();
 
 /// Pub package metdata.
 ///
@@ -64,7 +61,7 @@ class Package extends db.ExpandoModel {
       latestDevVersionKey == null ? null : new Version.parse(latestDevVersion);
 
   String get shortUpdated {
-    return ShortDateFormat.format(updated);
+    return shortDateFormat.format(updated);
   }
 
   // Check if a user is an uploader for a package.
@@ -188,7 +185,7 @@ class PackageVersion extends db.ExpandoModel {
   }
 
   String get shortCreated {
-    return ShortDateFormat.format(created);
+    return shortDateFormat.format(created);
   }
 
   String get dartdocsUrl {
