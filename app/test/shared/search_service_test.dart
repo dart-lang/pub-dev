@@ -39,18 +39,17 @@ void main() {
     });
 
     test('has text-based ordering', () {
-      expect(new SearchQuery('', order: SearchOrder.overall).isValid, isTrue);
+      expect(new SearchQuery('', order: SearchOrder.top).isValid, isTrue);
       expect(new SearchQuery('', order: SearchOrder.text).isValid, isFalse);
 
-      expect(
-          new SearchQuery('text', order: SearchOrder.overall).isValid, isTrue);
+      expect(new SearchQuery('text', order: SearchOrder.top).isValid, isTrue);
       expect(new SearchQuery('text', order: SearchOrder.text).isValid, isTrue);
 
       expect(
           new SearchQuery(
             '',
             packagePrefix: 'angular_',
-            order: SearchOrder.overall,
+            order: SearchOrder.top,
           )
               .isValid,
           isTrue);

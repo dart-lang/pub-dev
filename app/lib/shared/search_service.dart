@@ -76,9 +76,9 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
 
 /// How search results should be ordered.
 enum SearchOrder {
-  /// Search score should be a weighted value of [text], [updated],
-  /// [popularity], [health] and [maintenance], ordered decreasing.
-  overall,
+  /// Search score should be a weighted value of [text], [popularity], [health]
+  /// and [maintenance], ordered decreasing.
+  top,
 
   /// Search score should depend only on text match similarity, ordered
   /// decreasing.
@@ -104,8 +104,10 @@ enum SearchOrder {
 SearchOrder parseSearchOrder(String value, {SearchOrder defaultsTo}) {
   if (value != null) {
     switch (value) {
+      // TODO: remove 'overall' after the prod services were migrated to the latest
       case 'overall':
-        return SearchOrder.overall;
+      case 'top':
+        return SearchOrder.top;
       case 'text':
         return SearchOrder.text;
       case 'created':
@@ -155,7 +157,7 @@ class SearchQuery {
     if (packagePrefix != null && packagePrefix.isEmpty) packagePrefix = null;
     final SearchOrder order = parseSearchOrder(
       uri.queryParameters['order'],
-      defaultsTo: SearchOrder.overall,
+      defaultsTo: SearchOrder.top,
     );
     int offset =
         int.parse(uri.queryParameters['offset'] ?? '0', onError: (_) => 0);

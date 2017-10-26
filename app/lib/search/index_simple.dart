@@ -97,8 +97,8 @@ class SimplePackageIndex implements PackageIndex {
     final Score filtered = base.project(packages);
 
     List<PackageScore> results;
-    switch (query.order ?? SearchOrder.overall) {
-      case SearchOrder.overall:
+    switch (query.order ?? SearchOrder.top) {
+      case SearchOrder.top:
         final Score overallScore = Score.multiply([
           filtered,
           new Score(getPopularityScore(packages)).map((v) => 0.5 + 0.5 * v),
