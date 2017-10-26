@@ -1,22 +1,6 @@
 <h4>Analysis</h4>
 
-<table class="noborder" style="margin-top: 0.5em">
-  <tr>
-    <td>Timestamp:</td>
-    <td>{{timestamp}}</td>
-  </tr>
-  <tr>
-    <td>Status:</td>
-    <td>{{status}}</td>
-  </tr>
-</table>
-
-{{#has_dependency}}
-<h4>Transitive dependencies</h4>
-{{#dependencies}}
-<a href="/experimental/packages/{{{name}}}">{{text}}</a>{{sep}}
-{{/dependencies}}
-{{/has_dependency}}
+<p>Last package analysis: <i>{{analysis_status}}</i> on {{date_completed}}.</p>
 
 <h4>Scores</h4>
 
@@ -25,3 +9,19 @@
   <li>Popularity: TBD</li>
   <li>Maintenance: TBD</li>
 </ul>
+
+{{#has_tool_problems}}
+<h4>Tool problems</h4>
+<ul>
+  {{#tool_problems}}
+    <li>{{.}}</li>
+  {{/tool_problems}}
+</ul>
+{{/has_tool_problems}}
+
+{{#has_dependency}}
+<h4>Transitive dependencies</h4>
+{{#dependencies}}
+<a href="/experimental/packages/{{{name}}}">{{text}}</a>{{sep}}
+{{/dependencies}}
+{{/has_dependency}}

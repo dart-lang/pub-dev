@@ -208,16 +208,30 @@ void main() {
       expectGoldenFile(html, 'v2/pkg_show_page_flutter_plugin.html');
     });
 
-    test('package analysis tab v2', () async {
+    test('no content for analysis tab', () async {
       // no content
       expect(templates.renderAnalysisTabV2(null), isNull);
+    });
 
+    test('analysis tab: http', () async {
       // stored analysis of http
       final String json =
           await new File('$goldenDir/v2/analysis_tab_http.json').readAsString();
       final String html = templates.renderAnalysisTabV2(
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
       expectGoldenFile(html, 'v2/analysis_tab_http.html', isFragment: true);
+    });
+
+    test('mock analysis tab', () async {
+      final String html = templates.renderAnalysisTabV2(new MockAnalysisView(
+        analysisStatus: AnalysisStatus.failure,
+        timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
+        platforms: ['web'],
+        health: 0.95,
+        toolProblems: ['dartfmt: Unable to run.'],
+        transitiveDependencies: ['async', 'http'],
+      ));
+      expectGoldenFile(html, 'v2/analysis_tab_mock.html', isFragment: true);
     });
 
     test('package index page', () {
@@ -477,8 +491,15 @@ class MockAnalysisView implements AnalysisView {
   @override
   List<String> platforms;
 
+  @override
+  List<String> toolProblems;
+
   MockAnalysisView({
+    this.analysisStatus,
+    this.timestamp,
     this.platforms,
+    this.health,
     this.transitiveDependencies: const [],
+    this.toolProblems,
   });
 }

@@ -15,6 +15,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
 import '../shared/search_service.dart' show SearchQuery;
+import '../shared/utils.dart';
 
 import 'models.dart';
 import 'search_service.dart' show SearchResultPage;
@@ -176,15 +177,17 @@ class TemplateService {
     String statusText;
     switch (analysis.analysisStatus) {
       case AnalysisStatus.aborted:
-        statusText = 'Could not analyze package.';
+        statusText = 'aborted';
         break;
       case AnalysisStatus.failure:
-        statusText = 'Analyzer had some errors.';
+        statusText = 'tool failures';
         break;
       case AnalysisStatus.success:
-        statusText = 'Analyzer completed successfully.';
+        statusText = 'completed';
         break;
     }
+
+    final List<String> toolProblems = analysis.toolProblems;
 
     final List<Map> dependencies = analysis
         .getTransitiveDependencies()
@@ -199,8 +202,12 @@ class TemplateService {
     }
 
     final Map<String, dynamic> data = {
-      'timestamp': analysis.timestamp.toString(),
-      'status': statusText,
+      'date_completed': analysis.timestamp == null
+          ? null
+          : shortDateFormat.format(analysis.timestamp),
+      'analysis_status': statusText,
+      'tool_problems': toolProblems,
+      "has_tool_problems": toolProblems != null && toolProblems.isNotEmpty,
       'has_dependency': dependencies.isNotEmpty,
       'dependencies': dependencies,
       'health': analysis.health,
