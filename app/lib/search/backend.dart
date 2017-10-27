@@ -90,8 +90,9 @@ class SearchBackend {
       if (pv == null) continue;
 
       final analysisView = analysisViews[i];
-      final double popularity =
-          popularityStorage.lookup(pv.package) ?? mockScores[pv.package] ?? 0.0;
+      final double popularity = popularityStorage.lookup(pv.package) ??
+          mockScores[pv.package]?.toDouble() ??
+          0.0;
       final double maintenance = _calculateMaintenance(p, pv);
 
       results[i] = new PackageDocument(
@@ -153,7 +154,7 @@ class PopularityStorage {
   final Storage storage;
   final Bucket bucket;
 
-  final Map<String, double> _values = {};
+  final _values = <String, double>{};
 
   PopularityStorage(this.storage, this.bucket);
 
@@ -233,7 +234,7 @@ class PopularityStorage {
     final summary = new Summary(rawTotals.values);
     for (String package in rawTotals.keys) {
       final int raw = rawTotals[package];
-      _values[package] = summary.bezierScore(raw);
+      _values[package] = summary.bezierScore(raw).toDouble();
     }
     _logger.info('Popularity updated for ${items.length} packages.');
   }
