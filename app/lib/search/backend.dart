@@ -168,59 +168,21 @@ class PopularityStorage {
   }
 
   Future fetch() async {
-    Future<Map> load(String path) async {
-      _logger.info('Loading popularity data: ${_bucketUri(bucket, path)}');
-      try {
-        Stream<List<int>> stream = bucket.read(path);
-        if (path.endsWith('.gz')) {
-          stream = stream.transform(_gzip.decoder);
-        }
-        return await stream
-            .transform(UTF8.decoder)
-            .transform(JSON.decoder)
-            .single;
-      } catch (e, st) {
-        _logger.severe(
-            'Unable to load popularity data: ${_bucketUri(bucket, path)}',
-            e,
-            st);
-      }
-      return null;
-    }
-
-    final Map latest = await load(_latestPath);
-    if (latest != null) {
-      _updateLatest(latest);
-      return;
-    }
-
-    // Fall back on listing the bucket.
-    _logger.severe('Falling back to list the popularity bucket.');
-    List<BucketEntry> entries;
+    _logger.info('Loading popularity data: ${_bucketUri(bucket, _latestPath)}');
     try {
-      entries = await bucket.list().toList();
+      final Map latest = await bucket
+          .read(_latestPath)
+          .transform(_gzip.decoder)
+          .transform(UTF8.decoder)
+          .transform(JSON.decoder)
+          .single;
+      _updateLatest(latest);
     } catch (e, st) {
-      _logger.severe('Unable to list popularity bucket', e, st);
-      return;
+      _logger.severe(
+          'Unable to load popularity data: ${_bucketUri(bucket, _latestPath)}',
+          e,
+          st);
     }
-    final List<String> names = entries
-        .where((entry) => entry.isObject)
-        .map((entry) => entry.name)
-        .toList();
-    if (names.isEmpty) {
-      _logger.warning('No popularity data found!');
-      return;
-    }
-    // Try to load the available snapshots in reverse order (latest first).
-    names.sort();
-    for (String selected in names.reversed) {
-      final Map map = await load(selected);
-      if (map != null) {
-        _updateLatest(map);
-        return;
-      }
-    }
-    return;
   }
 
   void _updateLatest(Map raw) {
@@ -272,6 +234,7 @@ class SnapshotStorage {
     final SearchSnapshot latest = await load(_latestPath);
     if (latest != null) return latest;
 
+    // TODO: remove after the prod instance is migrated to single-file uploads
     // Fall back on listing the bucket.
     _logger.severe('Falling back to list the search snapshot bucket.');
 
@@ -291,38 +254,9 @@ class SnapshotStorage {
   }
 
   Future store(SearchSnapshot snapshot) async {
-    // garbage-collect old entries after upload is successful
-    final List<BucketEntry> list = await bucket.list().toList();
-    final List<String> toDelete = list
-        .where((entry) => entry.isObject)
-        .map((entry) => entry.name)
-        .toList();
-
-    // data buffer to write
     final List<int> buffer =
         _gzip.encode(UTF8.encode(JSON.encode(snapshot.toJson())));
-
-    // generate name from current timestamp
-    final String ts =
-        new DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
-    final currentName = 'snapshot-$ts.json.gz';
-
-    // prevent race: don't delete entries that are later than current snapshot
-    toDelete.removeWhere((String name) => name.compareTo(currentName) >= 0);
-
-    // upload
-    await bucket.writeBytes(currentName, buffer);
-    await storage.copyObject(currentName, _latestPath);
-
-    // upload successful, garbage-collect entries
-    for (String name in toDelete) {
-      try {
-        await bucket.delete(name);
-      } catch (e, st) {
-        _logger.warning(
-            'Snapshot delete failed: ${_bucketUri(bucket, name)}', e, st);
-      }
-    }
+    await bucket.writeBytes(_latestPath, buffer);
   }
 }
 
