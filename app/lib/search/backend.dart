@@ -15,6 +15,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
+import 'package:_popularity/popularity.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
@@ -187,14 +188,12 @@ class PopularityStorage {
 
   void _updateLatest(Map raw) {
     final Map<String, int> rawTotals = {};
+    final popularity = new PackagePopularity.fromJson(raw);
     final List items = raw['items'];
-    for (Map item in items) {
-      final String package = item['pkg'];
-      final int devVotes = int.parse(item['votes_dev']);
-      final int directVotes = int.parse(item['votes_direct']);
-      final int totalVotes = int.parse(item['votes_total']);
-      final int finalVotes = directVotes * 25 + devVotes * 5 + totalVotes;
-      rawTotals[package] = finalVotes;
+    for (var item in popularity.items) {
+      final int finalVotes =
+          item.votesDirect * 25 + item.votesDev * 5 + item.votesTotal;
+      rawTotals[item.pkg] = finalVotes;
     }
     final summary = new Summary(rawTotals.values);
     for (String package in rawTotals.keys) {

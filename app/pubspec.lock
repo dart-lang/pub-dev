@@ -7,6 +7,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.4"
+  _popularity:
+    description:
+      path: "../popularity"
+      relative: true
+    source: path
+    version: "0.0.0"
   analyzer:
     description:
       name: analyzer
@@ -464,4 +470,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.3.0"
+  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.5.0"

@@ -8,6 +8,9 @@ env:
   - PKG=app TASK=dartanalyzer
   - PKG=app TASK=dartfmt
   - PKG=app TASK=test
+  - PKG=popularity TASK=dartanalyzer
+  - PKG=popularity TASK=dartfmt
+  - PKG=popularity TASK=test
 
 script: ./tool/travis.sh
 

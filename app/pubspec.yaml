@@ -5,6 +5,8 @@ description: The pub.dartlang.org website.
 environment:
   sdk: ">=1.25.0-dev.9.0 <2.0.0"
 dependencies:
+  _popularity:
+    path: ../popularity
   appengine: '^0.4.2'
   args: '^0.13.7'
   gcloud: '>=0.4.0 <0.5.0'
