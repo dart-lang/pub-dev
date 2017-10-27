@@ -30,6 +30,21 @@ class SimplePackageIndex implements PackageIndex {
   bool get isReady => _isReady;
 
   @override
+  Map<String, dynamic> get debugInfo {
+    final data = {
+      'packageCount': _packages.length,
+      'lastUpdated': _lastUpdated?.toIso8601String(),
+    };
+
+    if (_lastUpdated != null) {
+      data['lastUpdateDelta'] =
+          new DateTime.now().difference(_lastUpdated).toString();
+    }
+
+    return data;
+  }
+
+  @override
   Future<bool> containsPackage(String package,
       {String version, Duration maxAge}) async {
     final PackageDocument doc = _packages[package];

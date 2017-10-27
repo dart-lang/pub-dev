@@ -34,6 +34,7 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
 Future<shelf.Response> debugHandler(shelf.Request request) async {
   return jsonResponse({
     'ready': packageIndex.isReady,
+    'info': packageIndex.debugInfo,
     'currentRss': ProcessInfo.currentRss,
     'maxRss': ProcessInfo.maxRss,
   }, indent: true);

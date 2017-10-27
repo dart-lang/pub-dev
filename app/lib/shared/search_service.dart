@@ -29,6 +29,7 @@ abstract class PackageIndex {
   Future removePackage(String package);
   Future merge();
   Future<PackageSearchResult> search(SearchQuery query);
+  Map<String, dynamic> get debugInfo;
 }
 
 /// A summary information about a package that goes into the search index.
