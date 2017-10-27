@@ -150,7 +150,7 @@ class SearchBackend {
 }
 
 class PopularityStorage {
-  final String _latestPath = 'popularity-latest.json.gz';
+  static final String _latestPath = 'popularity-latest.json.gz';
   final Storage storage;
   final Bucket bucket;
 
