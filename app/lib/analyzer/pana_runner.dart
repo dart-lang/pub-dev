@@ -31,27 +31,36 @@ class PanaRunner implements TaskRunner {
 
   @override
   Future<bool> runTask(Task task) async {
-    Summary summary;
-    Directory tempDir;
     final DateTime timestamp = new DateTime.now().toUtc();
-    try {
-      tempDir = await Directory.systemTemp.createTemp('pana');
-      final pubCacheDir = await tempDir.resolveSymbolicLinks();
-      final PackageAnalyzer analyzer = new PackageAnalyzer(
-        flutterDir: envConfig.flutterSdkDir,
-        pubCacheDir: pubCacheDir,
-      );
-      summary = await analyzer.inspectPackage(
-        task.package,
-        version: task.version,
-        keepTransitiveLibs: false,
-      );
-    } catch (e, st) {
-      _logger.severe('Pana execution failed.', e, st);
-    } finally {
-      if (tempDir != null) {
-        await tempDir.delete(recursive: true);
+    Future<Summary> analyze() async {
+      Directory tempDir;
+      try {
+        tempDir = await Directory.systemTemp.createTemp('pana');
+        final pubCacheDir = await tempDir.resolveSymbolicLinks();
+        final PackageAnalyzer analyzer = new PackageAnalyzer(
+          flutterDir: envConfig.flutterSdkDir,
+          pubCacheDir: pubCacheDir,
+        );
+        return await analyzer.inspectPackage(
+          task.package,
+          version: task.version,
+          keepTransitiveLibs: false,
+        );
+      } catch (e, st) {
+        _logger.severe('Pana execution failed.', e, st);
+      } finally {
+        if (tempDir != null) {
+          await tempDir.delete(recursive: true);
+        }
       }
+      return null;
+    }
+
+    Summary summary = await analyze();
+    if (summary == null || (summary.toolProblems?.isNotEmpty ?? false)) {
+      _logger.info('Retrying $task...');
+      await new Future.delayed(new Duration(seconds: 15));
+      summary = await analyze();
     }
 
     final Analysis analysis =
