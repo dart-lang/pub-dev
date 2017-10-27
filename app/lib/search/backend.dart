@@ -169,7 +169,7 @@ class PopularityStorage {
 
   Future fetch() async {
     Future<Map> load(String path) async {
-      _logger.info('Loading popularity data: $path');
+      _logger.info('Loading popularity data: ${_bucketUri(bucket, path)}');
       try {
         Stream<List<int>> stream = bucket.read(path);
         if (path.endsWith('.gz')) {
@@ -180,7 +180,10 @@ class PopularityStorage {
             .transform(JSON.decoder)
             .single;
       } catch (e, st) {
-        _logger.severe('Unable to load popularity data: $path', e, st);
+        _logger.severe(
+            'Unable to load popularity data: ${_bucketUri(bucket, path)}',
+            e,
+            st);
       }
       return null;
     }
@@ -258,7 +261,10 @@ class SnapshotStorage {
             .single;
         return new SearchSnapshot.fromJson(json);
       } catch (e, st) {
-        _logger.severe('Unable to load search snapshot: $path', e, st);
+        _logger.severe(
+            'Unable to load search snapshot: ${_bucketUri(bucket, path)}',
+            e,
+            st);
       }
       return null;
     }
@@ -313,7 +319,8 @@ class SnapshotStorage {
       try {
         await bucket.delete(name);
       } catch (e, st) {
-        _logger.warning('Snapshot delete failed: $name', e, st);
+        _logger.warning(
+            'Snapshot delete failed: ${_bucketUri(bucket, name)}', e, st);
       }
     }
   }
@@ -345,3 +352,7 @@ class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
 }
 
 final GZipCodec _gzip = new GZipCodec();
+
+/// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
+String _bucketUri(Bucket bucket, String path) =>
+    "gs://${bucket.bucketName}/$path";
