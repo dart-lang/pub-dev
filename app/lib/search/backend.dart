@@ -15,13 +15,13 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pana/src/scoring.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/mock_scores.dart';
 import '../shared/search_service.dart';
 
+import 'scoring.dart';
 import 'text_utils.dart';
 
 part 'backend.g.dart';
@@ -234,7 +234,7 @@ class PopularityStorage {
     final summary = new Summary(rawTotals.values);
     for (String package in rawTotals.keys) {
       final int raw = rawTotals[package];
-      _values[package] = summary.bezierScore(raw).toDouble();
+      _values[package] = summary.bezierScore(raw);
     }
     _logger.info('Popularity updated for ${items.length} packages.');
   }
