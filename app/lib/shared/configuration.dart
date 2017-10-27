@@ -62,7 +62,7 @@ class Configuration {
         analyzerServicePrefix = 'https://analyzer-dot-dartlang-pub.appspot.com',
         dartdocServicePrefix = 'https://dartdoc-dot-dartlang-pub.appspot.com',
         searchServicePrefix = 'https://search-dot-dartlang-pub.appspot.com',
-        popularityDumpBucketName = 'dartlang-pub-popularity',
+        popularityDumpBucketName = 'dartlang-pub--popularity',
         searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
 
   /// Create a configuration for development/staging deployment.
