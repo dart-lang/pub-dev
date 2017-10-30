@@ -15,6 +15,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
+import 'package:_popularity/popularity.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
@@ -150,11 +151,11 @@ class SearchBackend {
 }
 
 class PopularityStorage {
-  static final String _latestPath = 'popularity-latest.json.gz';
   final Storage storage;
   final Bucket bucket;
-
   final _values = <String, double>{};
+
+  String get _latestPath => PackagePopularity.popularityFileName;
 
   PopularityStorage(this.storage, this.bucket);
 
@@ -187,21 +188,18 @@ class PopularityStorage {
 
   void _updateLatest(Map raw) {
     final Map<String, int> rawTotals = {};
-    final List items = raw['items'];
-    for (Map item in items) {
-      final String package = item['pkg'];
-      final int devVotes = int.parse(item['votes_dev']);
-      final int directVotes = int.parse(item['votes_direct']);
-      final int totalVotes = int.parse(item['votes_total']);
-      final int finalVotes = directVotes * 25 + devVotes * 5 + totalVotes;
-      rawTotals[package] = finalVotes;
-    }
+    final popularity = new PackagePopularity.fromJson(raw);
+    popularity.items.forEach((pkg, item) {
+      final int finalVotes =
+          item.votesDirect * 25 + item.votesDev * 5 + item.votesTotal;
+      rawTotals[pkg] = finalVotes;
+    });
     final summary = new Summary(rawTotals.values);
     for (String package in rawTotals.keys) {
       final int raw = rawTotals[package];
       _values[package] = summary.bezierScore(raw);
     }
-    _logger.info('Popularity updated for ${items.length} packages.');
+    _logger.info('Popularity updated for ${popularity.items.length} packages.');
   }
 }
 

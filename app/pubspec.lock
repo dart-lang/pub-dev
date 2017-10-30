@@ -7,6 +7,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.4"
+  _popularity:
+    description:
+      path: "../pkg/_popularity"
+      relative: true
+    source: path
+    version: "0.0.0"
   analyzer:
     description:
       name: analyzer
