@@ -1,12 +1,11 @@
 {
  "date_first": "2017-07-26T00:17:56.000Z",
- "date_last": "2017-10-27T02:33:29.000Z",
- "items": [
-  {
-   "pkg": "sample",
+ "date_last": "2017-10-30T01:46:34.000Z",
+ "items": {
+  "Flutter_Nectar": {
    "votes_direct": 5,
    "votes_dev": 0,
    "votes_total": 5
   }
- ]
+ }
 }

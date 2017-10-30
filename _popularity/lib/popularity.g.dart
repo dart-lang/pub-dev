@@ -12,42 +12,34 @@ part of package_popularity;
 
 PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) =>
     new PackagePopularity(
-        json['date_first'] == null
-            ? null
-            : DateTime.parse(json['date_first'] as String),
-        json['date_last'] == null
-            ? null
-            : DateTime.parse(json['date_last'] as String),
-        (json['items'] as List)
-            ?.map((e) => e == null
-                ? null
-                : new PackageInfo.fromJson(e as Map<String, dynamic>))
-            ?.toList());
+        DateTime.parse(json['date_first'] as String),
+        DateTime.parse(json['date_last'] as String),
+        new Map<String, PackageInfo>.fromIterables(
+            (json['items'] as Map<String, dynamic>).keys,
+            (json['items'] as Map).values.map(
+                (e) => new PackageInfo.fromJson(e as Map<String, dynamic>))));
 
 abstract class _$PackagePopularitySerializerMixin {
   DateTime get dateFirst;
   DateTime get dateLast;
-  List<PackageInfo> get items;
+  Map<String, PackageInfo> get items;
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'date_first': dateFirst?.toIso8601String(),
-        'date_last': dateLast?.toIso8601String(),
+        'date_first': dateFirst.toIso8601String(),
+        'date_last': dateLast.toIso8601String(),
         'items': items
       };
 }
 
 PackageInfo _$PackageInfoFromJson(Map<String, dynamic> json) => new PackageInfo(
-    json['pkg'] as String,
     json['votes_direct'] as int,
     json['votes_dev'] as int,
     json['votes_total'] as int);
 
 abstract class _$PackageInfoSerializerMixin {
-  String get pkg;
   int get votesDirect;
   int get votesDev;
   int get votesTotal;
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'pkg': pkg,
         'votes_direct': votesDirect,
         'votes_dev': votesDev,
         'votes_total': votesTotal

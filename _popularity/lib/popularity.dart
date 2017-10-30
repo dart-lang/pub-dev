@@ -10,13 +10,21 @@ part 'popularity.g.dart';
 
 @JsonSerializable()
 class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
-  @JsonKey(name: 'date_first')
+  static const int version = 2;
+
+  static String bucketName(bool dev) =>
+      dev ? 'dartlang-pub-dev--popularity' : 'dartlang-pub--popularity';
+
+  static final String popularityFileName = 'v$version/popularity.json.gz';
+
+  @JsonKey(name: 'date_first', nullable: false)
   final DateTime dateFirst;
 
-  @JsonKey(name: 'date_last')
+  @JsonKey(name: 'date_last', nullable: false)
   final DateTime dateLast;
 
-  final List<PackageInfo> items;
+  @JsonKey(nullable: false)
+  final Map<String, PackageInfo> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
 
@@ -26,18 +34,16 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
 
 @JsonSerializable()
 class PackageInfo extends Object with _$PackageInfoSerializerMixin {
-  final String pkg;
-
-  @JsonKey(name: 'votes_direct')
+  @JsonKey(name: 'votes_direct', nullable: false)
   final int votesDirect;
 
-  @JsonKey(name: 'votes_dev')
+  @JsonKey(name: 'votes_dev', nullable: false)
   final int votesDev;
 
-  @JsonKey(name: 'votes_total')
+  @JsonKey(name: 'votes_total', nullable: false)
   final int votesTotal;
 
-  PackageInfo(this.pkg, this.votesDirect, this.votesDev, this.votesTotal);
+  PackageInfo(this.votesDirect, this.votesDev, this.votesTotal);
 
   factory PackageInfo.fromJson(Map<String, dynamic> json) =>
       _$PackageInfoFromJson(json);

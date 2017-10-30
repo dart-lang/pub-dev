@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'dart:math' show max;
 
+import 'package:_popularity/popularity.dart';
 import 'package:googleapis_auth/auth.dart' as auth;
 
 final activeConfiguration = new Configuration.fromEnv(envConfig);
@@ -62,7 +63,7 @@ class Configuration {
         analyzerServicePrefix = 'https://analyzer-dot-dartlang-pub.appspot.com',
         dartdocServicePrefix = 'https://dartdoc-dot-dartlang-pub.appspot.com',
         searchServicePrefix = 'https://search-dot-dartlang-pub.appspot.com',
-        popularityDumpBucketName = 'dartlang-pub--popularity',
+        popularityDumpBucketName = PackagePopularity.bucketName(false),
         searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
 
   /// Create a configuration for development/staging deployment.
@@ -74,7 +75,7 @@ class Configuration {
         dartdocServicePrefix =
             'https://dartdoc-dot-dartlang-pub-dev.appspot.com',
         searchServicePrefix = 'https://search-dot-dartlang-pub-dev.appspot.com',
-        popularityDumpBucketName = 'dartlang-pub-dev-popularity',
+        popularityDumpBucketName = PackagePopularity.bucketName(true),
         searchSnapshotBucketName = 'dartlang-pub-dev--search-snapshot';
 
   /// Create a configuration based on the environment variables.

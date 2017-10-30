@@ -151,11 +151,11 @@ class SearchBackend {
 }
 
 class PopularityStorage {
-  static final String _latestPath = 'popularity-latest.json.gz';
   final Storage storage;
   final Bucket bucket;
-
   final _values = <String, double>{};
+
+  String get _latestPath => PackagePopularity.popularityFileName;
 
   PopularityStorage(this.storage, this.bucket);
 
@@ -189,11 +189,11 @@ class PopularityStorage {
   void _updateLatest(Map raw) {
     final Map<String, int> rawTotals = {};
     final popularity = new PackagePopularity.fromJson(raw);
-    for (var item in popularity.items) {
+    popularity.items.forEach((pkg, item) {
       final int finalVotes =
           item.votesDirect * 25 + item.votesDev * 5 + item.votesTotal;
-      rawTotals[item.pkg] = finalVotes;
-    }
+      rawTotals[pkg] = finalVotes;
+    });
     final summary = new Summary(rawTotals.values);
     for (String package in rawTotals.keys) {
       final int raw = rawTotals[package];
