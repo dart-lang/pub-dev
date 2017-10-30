@@ -1,4 +1,6 @@
 # Created with https://github.com/dart-lang/mono_repo
+# FYI: hand editted to support pkg/_popularity
+# See https://github.com/dart-lang/mono_repo/issues/26
 language: dart
 
 dart:
@@ -8,9 +10,9 @@ env:
   - PKG=app TASK=dartanalyzer
   - PKG=app TASK=dartfmt
   - PKG=app TASK=test
-  - PKG=popularity TASK=dartanalyzer
-  - PKG=popularity TASK=dartfmt
-  - PKG=popularity TASK=test
+  - PKG=pkg/_popularity TASK=dartanalyzer
+  - PKG=pkg/_popularity TASK=dartfmt
+  - PKG=pkg/_popularity TASK=test
 
 script: ./tool/travis.sh
 

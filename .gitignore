@@ -16,4 +16,4 @@ packages
 key.json
 
 # Just for pkg/popularity
-_popularity/pubspec.lock
+pkg/_popularity/pubspec.lock
