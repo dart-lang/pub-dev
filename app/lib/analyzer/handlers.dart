@@ -16,15 +16,14 @@ import 'models.dart';
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
-  final path = request.requestedUri.path;
   final handler = {
     '/debug': debugHandler,
-  }[path];
+  }[request.requestedUri.path];
 
   if (handler != null) {
     return handler(request);
-  } else if (path.startsWith('/packages/')) {
-    return packageHandler(request);
+  } else if (request.url.pathSegments.first == 'packages') {
+    return packageHandler(request.change(path: 'packages'));
   } else {
     return notFoundHandler(request);
   }
@@ -40,14 +39,14 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 }
 
 /// Handles requests for:
-///   - /packages/<package>
-///   - /packages/<package>/<version>
-///   - /packages/<package>/<version>/<analysis>
+///   - <package>
+///   - <package>/<version>
+///   - <package>/<version>/<analysis>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
   final bool onlyMeta = request.url.queryParameters['only-meta'] == 'true';
-  final String path = request.requestedUri.path.substring('/packages/'.length);
-  final List<String> pathParts = path.split('/');
-  if (path.length == 0 || pathParts.length > 3) {
+
+  final List<String> pathParts = request.url.pathSegments;
+  if (pathParts.isEmpty || pathParts.length > 3) {
     return notFoundHandler(request);
   }
   final String package = pathParts[0];
