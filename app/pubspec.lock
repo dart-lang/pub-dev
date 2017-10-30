@@ -9,7 +9,7 @@ packages:
     version: "0.1.4"
   _popularity:
     description:
-      path: "../popularity"
+      path: "../_popularity"
       relative: true
     source: path
     version: "0.0.0"

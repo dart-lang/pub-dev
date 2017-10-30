@@ -12,7 +12,7 @@ final List<BuildAction> buildActions = [
         const JsonSerializableGenerator(),
         const JsonLiteralGenerator()
       ], header: _copyrightHeader),
-      'popularity',
+      '_popularity',
       inputs: const ['lib/*.dart'])
 ];
 
