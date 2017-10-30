@@ -8,6 +8,7 @@ import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
+import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 import '../shared/utils.dart';
@@ -58,7 +59,8 @@ class DatastoreHistoryTaskSource implements TaskSource {
         // Check and schedule the latest stable version of each package.
         final Query packageQuery = _db.query(Package)..order('-updated');
         await for (Package p in packageQuery.run()) {
-          if (await _requiresUpdate(p.name, p.latestVersion)) {
+          if (await _requiresUpdate(p.name, p.latestVersion,
+              retryFailed: true)) {
             yield new Task(p.name, p.latestVersion, p.updated);
           }
 
@@ -83,8 +85,8 @@ class DatastoreHistoryTaskSource implements TaskSource {
     }
   }
 
-  Future<bool> _requiresUpdate(
-      String packageName, String packageVersion) async {
+  Future<bool> _requiresUpdate(String packageName, String packageVersion,
+      {bool retryFailed: false}) async {
     final List<PackageVersionAnalysis> list = await _db.lookup([
       _db.emptyKey
           .append(PackageAnalysis, id: packageName)
@@ -101,6 +103,12 @@ class DatastoreHistoryTaskSource implements TaskSource {
     final Duration diff =
         new DateTime.now().toUtc().difference(version.analysisTimestamp);
     if (diff.inDays >= afterDays) return true;
+
+    if (retryFailed &&
+        version.analysisStatus != AnalysisStatus.success &&
+        diff.inDays >= 1) {
+      return true;
+    }
 
     return false;
   }

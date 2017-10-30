@@ -204,7 +204,7 @@ packages:
       name: intl
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.15.1"
+    version: "0.15.2"
   io:
     description:
       name: io
@@ -276,7 +276,7 @@ packages:
       name: mime
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.3"
+    version: "0.9.4"
   mustache:
     description:
       name: mustache
@@ -306,7 +306,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.0"
+    version: "0.5.1"
   path:
     description:
       name: path
@@ -354,7 +354,7 @@ packages:
       name: shelf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.0"
+    version: "0.7.1"
   shelf_packages_handler:
     description:
       name: shelf_packages_handler
@@ -402,7 +402,7 @@ packages:
       name: stack_trace
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.2"
+    version: "1.8.3"
   stream_channel:
     description:
       name: stream_channel
@@ -432,7 +432,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.24+8"
+    version: "0.12.26"
   typed_data:
     description:
       name: typed_data
