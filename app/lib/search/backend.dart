@@ -189,7 +189,6 @@ class PopularityStorage {
   void _updateLatest(Map raw) {
     final Map<String, int> rawTotals = {};
     final popularity = new PackagePopularity.fromJson(raw);
-    final List items = raw['items'];
     for (var item in popularity.items) {
       final int finalVotes =
           item.votesDirect * 25 + item.votesDev * 5 + item.votesTotal;
@@ -200,7 +199,7 @@ class PopularityStorage {
       final int raw = rawTotals[package];
       _values[package] = summary.bezierScore(raw);
     }
-    _logger.info('Popularity updated for ${items.length} packages.');
+    _logger.info('Popularity updated for ${popularity.items.length} packages.');
   }
 }
 
