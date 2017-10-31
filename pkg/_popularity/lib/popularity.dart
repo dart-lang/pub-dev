@@ -10,7 +10,7 @@ part 'popularity.g.dart';
 
 @JsonSerializable()
 class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
-  static const int version = 2;
+  static const int version = 3;
 
   static String bucketName(bool dev) =>
       dev ? 'dartlang-pub-dev--popularity' : 'dartlang-pub--popularity';
@@ -24,12 +24,35 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
   final DateTime dateLast;
 
   @JsonKey(nullable: false)
-  final Map<String, VoteData> items;
+  final Map<String, VoteTotals> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
 
   factory PackagePopularity.fromJson(Map<String, dynamic> json) =>
       _$PackagePopularityFromJson(json);
+}
+
+@JsonSerializable()
+class VoteTotals extends Object
+    with _$VoteTotalsSerializerMixin
+    implements VoteData {
+  @JsonKey(nullable: false)
+  final VoteData flutter;
+  @JsonKey(nullable: false)
+  final VoteData notFlutter;
+
+  int get direct => flutter.direct + notFlutter.direct;
+
+  int get dev => flutter.dev + notFlutter.dev;
+
+  int get total => flutter.total + notFlutter.total;
+
+  int get score => VoteData._score(this);
+
+  VoteTotals(this.flutter, this.notFlutter);
+
+  factory VoteTotals.fromJson(Map<String, dynamic> json) =>
+      _$VoteTotalsFromJson(json);
 }
 
 @JsonSerializable()
@@ -43,10 +66,15 @@ class VoteData extends Object with _$VoteDataSerializerMixin {
   @JsonKey(name: 'votes_total', nullable: false)
   final int total;
 
-  int get score => direct * 25 + dev * 5 + total;
+  int get score => _score(this);
 
-  VoteData(this.direct, this.dev, this.total);
+  VoteData(this.direct, this.dev, this.total) {
+    assert(this.direct >= 0 && this.direct <= this.total);
+    assert(this.dev >= 0 && this.dev <= this.total);
+  }
 
   factory VoteData.fromJson(Map<String, dynamic> json) =>
       _$VoteDataFromJson(json);
+
+  static int _score(VoteData data) => data.direct * 10 + data.dev;
 }

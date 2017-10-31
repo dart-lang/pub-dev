@@ -14,21 +14,31 @@ PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) =>
     new PackagePopularity(
         DateTime.parse(json['date_first'] as String),
         DateTime.parse(json['date_last'] as String),
-        new Map<String, VoteData>.fromIterables(
+        new Map<String, VoteTotals>.fromIterables(
             (json['items'] as Map<String, dynamic>).keys,
-            (json['items'] as Map)
-                .values
-                .map((e) => new VoteData.fromJson(e as Map<String, dynamic>))));
+            (json['items'] as Map).values.map(
+                (e) => new VoteTotals.fromJson(e as Map<String, dynamic>))));
 
 abstract class _$PackagePopularitySerializerMixin {
   DateTime get dateFirst;
   DateTime get dateLast;
-  Map<String, VoteData> get items;
+  Map<String, VoteTotals> get items;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'date_first': dateFirst.toIso8601String(),
         'date_last': dateLast.toIso8601String(),
         'items': items
       };
+}
+
+VoteTotals _$VoteTotalsFromJson(Map<String, dynamic> json) => new VoteTotals(
+    new VoteData.fromJson(json['flutter'] as Map<String, dynamic>),
+    new VoteData.fromJson(json['notFlutter'] as Map<String, dynamic>));
+
+abstract class _$VoteTotalsSerializerMixin {
+  VoteData get flutter;
+  VoteData get notFlutter;
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'flutter': flutter, 'notFlutter': notFlutter};
 }
 
 VoteData _$VoteDataFromJson(Map<String, dynamic> json) => new VoteData(
