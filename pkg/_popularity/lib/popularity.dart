@@ -24,7 +24,7 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
   final DateTime dateLast;
 
   @JsonKey(nullable: false)
-  final Map<String, PackageInfo> items;
+  final Map<String, VoteData> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
 
@@ -33,20 +33,20 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
 }
 
 @JsonSerializable()
-class PackageInfo extends Object with _$PackageInfoSerializerMixin {
+class VoteData extends Object with _$VoteDataSerializerMixin {
   @JsonKey(name: 'votes_direct', nullable: false)
-  final int votesDirect;
+  final int direct;
 
   @JsonKey(name: 'votes_dev', nullable: false)
-  final int votesDev;
+  final int dev;
 
   @JsonKey(name: 'votes_total', nullable: false)
-  final int votesTotal;
+  final int total;
 
-  int get score => votesDirect * 25 + votesDev * 5 + votesTotal;
+  int get score => direct * 25 + dev * 5 + total;
 
-  PackageInfo(this.votesDirect, this.votesDev, this.votesTotal);
+  VoteData(this.direct, this.dev, this.total);
 
-  factory PackageInfo.fromJson(Map<String, dynamic> json) =>
-      _$PackageInfoFromJson(json);
+  factory VoteData.fromJson(Map<String, dynamic> json) =>
+      _$VoteDataFromJson(json);
 }
