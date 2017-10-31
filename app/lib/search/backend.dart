@@ -211,42 +211,19 @@ class SnapshotStorage {
   SnapshotStorage(this.storage, this.bucket);
 
   Future<SearchSnapshot> fetch() async {
-    Future<SearchSnapshot> load(String path) async {
-      try {
-        final Map json = await bucket
-            .read(path)
-            .transform(_gzip.decoder)
-            .transform(UTF8.decoder)
-            .transform(JSON.decoder)
-            .single;
-        return new SearchSnapshot.fromJson(json);
-      } catch (e, st) {
-        _logger.severe(
-            'Unable to load search snapshot: ${_bucketUri(bucket, path)}',
-            e,
-            st);
-      }
-      return null;
-    }
-
-    final SearchSnapshot latest = await load(_latestPath);
-    if (latest != null) return latest;
-
-    // TODO: remove after the prod instance is migrated to single-file uploads
-    // Fall back on listing the bucket.
-    _logger.severe('Falling back to list the search snapshot bucket.');
-
-    final List<BucketEntry> list = await bucket.list().toList();
-    final List<String> names = list
-        .where((entry) => entry.isObject)
-        .map((entry) => entry.name)
-        .toList();
-    if (names.isEmpty) return null;
-    // Try to load the available snapshots in reverse order (latest first).
-    names.sort();
-    for (String selected in names.reversed) {
-      final SearchSnapshot snapshot = await load(selected);
-      if (snapshot != null) return snapshot;
+    try {
+      final Map json = await bucket
+          .read(_latestPath)
+          .transform(_gzip.decoder)
+          .transform(UTF8.decoder)
+          .transform(JSON.decoder)
+          .single;
+      return new SearchSnapshot.fromJson(json);
+    } catch (e, st) {
+      _logger.severe(
+          'Unable to load search snapshot: ${_bucketUri(bucket, _latestPath)}',
+          e,
+          st);
     }
     return null;
   }
