@@ -43,6 +43,8 @@ class PackageInfo extends Object with _$PackageInfoSerializerMixin {
   @JsonKey(name: 'votes_total', nullable: false)
   final int votesTotal;
 
+  int get score => votesDirect * 25 + votesDev * 5 + votesTotal;
+
   PackageInfo(this.votesDirect, this.votesDev, this.votesTotal);
 
   factory PackageInfo.fromJson(Map<String, dynamic> json) =>
