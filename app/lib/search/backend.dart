@@ -190,9 +190,7 @@ class PopularityStorage {
     final Map<String, int> rawTotals = {};
     final popularity = new PackagePopularity.fromJson(raw);
     popularity.items.forEach((pkg, item) {
-      final int finalVotes =
-          item.votesDirect * 25 + item.votesDev * 5 + item.votesTotal;
-      rawTotals[pkg] = finalVotes;
+      rawTotals[pkg] = item.score;
     });
     final summary = new Summary(rawTotals.values);
     for (String package in rawTotals.keys) {

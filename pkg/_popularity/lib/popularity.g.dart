@@ -14,15 +14,15 @@ PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) =>
     new PackagePopularity(
         DateTime.parse(json['date_first'] as String),
         DateTime.parse(json['date_last'] as String),
-        new Map<String, PackageInfo>.fromIterables(
+        new Map<String, VoteTotals>.fromIterables(
             (json['items'] as Map<String, dynamic>).keys,
             (json['items'] as Map).values.map(
-                (e) => new PackageInfo.fromJson(e as Map<String, dynamic>))));
+                (e) => new VoteTotals.fromJson(e as Map<String, dynamic>))));
 
 abstract class _$PackagePopularitySerializerMixin {
   DateTime get dateFirst;
   DateTime get dateLast;
-  Map<String, PackageInfo> get items;
+  Map<String, VoteTotals> get items;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'date_first': dateFirst.toIso8601String(),
         'date_last': dateLast.toIso8601String(),
@@ -30,18 +30,29 @@ abstract class _$PackagePopularitySerializerMixin {
       };
 }
 
-PackageInfo _$PackageInfoFromJson(Map<String, dynamic> json) => new PackageInfo(
+VoteTotals _$VoteTotalsFromJson(Map<String, dynamic> json) => new VoteTotals(
+    new VoteData.fromJson(json['flutter'] as Map<String, dynamic>),
+    new VoteData.fromJson(json['notFlutter'] as Map<String, dynamic>));
+
+abstract class _$VoteTotalsSerializerMixin {
+  VoteData get flutter;
+  VoteData get notFlutter;
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'flutter': flutter, 'notFlutter': notFlutter};
+}
+
+VoteData _$VoteDataFromJson(Map<String, dynamic> json) => new VoteData(
     json['votes_direct'] as int,
     json['votes_dev'] as int,
     json['votes_total'] as int);
 
-abstract class _$PackageInfoSerializerMixin {
-  int get votesDirect;
-  int get votesDev;
-  int get votesTotal;
+abstract class _$VoteDataSerializerMixin {
+  int get direct;
+  int get dev;
+  int get total;
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'votes_direct': votesDirect,
-        'votes_dev': votesDev,
-        'votes_total': votesTotal
+        'votes_direct': direct,
+        'votes_dev': dev,
+        'votes_total': total
       };
 }

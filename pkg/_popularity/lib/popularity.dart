@@ -10,7 +10,7 @@ part 'popularity.g.dart';
 
 @JsonSerializable()
 class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
-  static const int version = 2;
+  static const int version = 3;
 
   static String bucketName(bool dev) =>
       dev ? 'dartlang-pub-dev--popularity' : 'dartlang-pub--popularity';
@@ -24,7 +24,7 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
   final DateTime dateLast;
 
   @JsonKey(nullable: false)
-  final Map<String, PackageInfo> items;
+  final Map<String, VoteTotals> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
 
@@ -33,18 +33,48 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
 }
 
 @JsonSerializable()
-class PackageInfo extends Object with _$PackageInfoSerializerMixin {
+class VoteTotals extends Object
+    with _$VoteTotalsSerializerMixin
+    implements VoteData {
+  @JsonKey(nullable: false)
+  final VoteData flutter;
+  @JsonKey(nullable: false)
+  final VoteData notFlutter;
+
+  int get direct => flutter.direct + notFlutter.direct;
+
+  int get dev => flutter.dev + notFlutter.dev;
+
+  int get total => flutter.total + notFlutter.total;
+
+  int get score => VoteData._score(this);
+
+  VoteTotals(this.flutter, this.notFlutter);
+
+  factory VoteTotals.fromJson(Map<String, dynamic> json) =>
+      _$VoteTotalsFromJson(json);
+}
+
+@JsonSerializable()
+class VoteData extends Object with _$VoteDataSerializerMixin {
   @JsonKey(name: 'votes_direct', nullable: false)
-  final int votesDirect;
+  final int direct;
 
   @JsonKey(name: 'votes_dev', nullable: false)
-  final int votesDev;
+  final int dev;
 
   @JsonKey(name: 'votes_total', nullable: false)
-  final int votesTotal;
+  final int total;
 
-  PackageInfo(this.votesDirect, this.votesDev, this.votesTotal);
+  int get score => _score(this);
 
-  factory PackageInfo.fromJson(Map<String, dynamic> json) =>
-      _$PackageInfoFromJson(json);
+  VoteData(this.direct, this.dev, this.total) {
+    assert(this.direct >= 0 && this.direct <= this.total);
+    assert(this.dev >= 0 && this.dev <= this.total);
+  }
+
+  factory VoteData.fromJson(Map<String, dynamic> json) =>
+      _$VoteDataFromJson(json);
+
+  static int _score(VoteData data) => data.direct * 10 + data.dev;
 }
