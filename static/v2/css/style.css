@@ -38,7 +38,7 @@ a:hover{
   opacity: 1;
 }
 
-main{
+main, .site-header {
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 20px;
