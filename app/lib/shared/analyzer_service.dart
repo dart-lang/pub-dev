@@ -65,3 +65,22 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
 
   factory AnalysisData.fromJson(Map json) => _$AnalysisDataFromJson(json);
 }
+
+@JsonSerializable()
+class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
+  final double health;
+  final double maintenance;
+  final double popularity;
+
+  final List<String> platforms;
+
+  AnalysisExtract({
+    this.health,
+    this.maintenance,
+    this.popularity,
+    this.platforms,
+  });
+
+  factory AnalysisExtract.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisExtractFromJson(json);
+}

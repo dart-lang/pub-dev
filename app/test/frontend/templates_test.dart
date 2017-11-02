@@ -42,8 +42,8 @@ void main() {
         testPackageVersion,
         flutterPackageVersion,
       ], [
-        new MockAnalysisView(),
-        new MockAnalysisView(platforms: ['flutter']),
+        new AnalysisExtract(),
+        new AnalysisExtract(platforms: ['flutter']),
       ]);
       expectGoldenFile(html, 'index_page.html');
     });
@@ -53,21 +53,21 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['web']),
+          analysis: new AnalysisExtract(platforms: ['web']),
         ),
       ]);
       final updatedHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter']),
+          analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
       ]);
       final newestHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter', 'server']),
+          analysis: new AnalysisExtract(platforms: ['flutter', 'server']),
         ),
       ]);
       final String html = templates.renderIndexPageV2(
@@ -80,21 +80,21 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter']),
+          analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
       ]);
       final updatedHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter']),
+          analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
       ]);
       final newestHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter', 'server']),
+          analysis: new AnalysisExtract(platforms: ['flutter', 'server']),
         ),
       ]);
       final String html = templates.renderIndexPageV2(
@@ -107,21 +107,21 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['server']),
+          analysis: new AnalysisExtract(platforms: ['server']),
         ),
       ]);
       final updatedHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['server']),
+          analysis: new AnalysisExtract(platforms: ['server']),
         ),
       ]);
       final newestHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['server', 'web']),
+          analysis: new AnalysisExtract(platforms: ['server', 'web']),
         ),
       ]);
       final String html = templates.renderIndexPageV2(
@@ -134,21 +134,21 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['web']),
+          analysis: new AnalysisExtract(platforms: ['web']),
         ),
       ]);
       final updatedHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['web']),
+          analysis: new AnalysisExtract(platforms: ['web']),
         ),
       ]);
       final newestHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['server', 'web']),
+          analysis: new AnalysisExtract(platforms: ['server', 'web']),
         ),
       ]);
       final String html = templates.renderIndexPageV2(
@@ -239,12 +239,12 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new MockAnalysisView(),
+          analysis: new AnalysisExtract(),
         ),
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter']),
+          analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
       ], new PackageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
@@ -255,12 +255,12 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new MockAnalysisView(),
+          analysis: new AnalysisExtract(),
         ),
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new MockAnalysisView(platforms: ['flutter']),
+          analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
       ], new PackageLinks.empty(), null);
       expectGoldenFile(html, 'v2/pkg_index_page.html');
@@ -278,7 +278,7 @@ void main() {
           new PackageView.fromModel(
             package: testPackage,
             version: flutterPackageVersion,
-            analysis: new MockAnalysisView(platforms: ['flutter']),
+            analysis: new AnalysisExtract(platforms: ['flutter']),
           ),
         ],
         new PackageLinks(
@@ -299,7 +299,7 @@ void main() {
           new PackageView.fromModel(version: testPackageVersion),
           new PackageView.fromModel(
               version: flutterPackageVersion,
-              analysis: new MockAnalysisView(platforms: ['flutter'])),
+              analysis: new AnalysisExtract(platforms: ['flutter'])),
         ],
       );
       final String html =
@@ -316,7 +316,7 @@ void main() {
           new PackageView.fromModel(version: testPackageVersion),
           new PackageView.fromModel(
               version: flutterPackageVersion,
-              analysis: new MockAnalysisView(platforms: ['flutter'])),
+              analysis: new AnalysisExtract(platforms: ['flutter'])),
         ],
       );
       final String html =

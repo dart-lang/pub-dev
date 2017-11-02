@@ -21,12 +21,19 @@ AnalyzerMemcache get analyzerMemcache => ss.lookup(#_analyzerMemcache);
 
 class AnalyzerMemcache {
   final SimpleMemcache _data;
+  final SimpleMemcache _extract;
 
   AnalyzerMemcache(Memcache memcache)
       : _data = new SimpleMemcache(
           _logger,
           memcache,
           analyzerDataPrefix,
+          analyzerDataExpiration,
+        ),
+        _extract = new SimpleMemcache(
+          _logger,
+          memcache,
+          analyzerExtractPrefix,
           analyzerDataExpiration,
         );
 
@@ -40,10 +47,23 @@ class AnalyzerMemcache {
     return _data.setText(_dataKey(package, version, panaVersion), content);
   }
 
+  Future<String> getExtract(String package, String version) {
+    return _extract.getText(_extractKey(package, version));
+  }
+
+  Future setExtract(String package, String version, String extract) {
+    return _extract.setText(_extractKey(package, version), extract);
+  }
+
   Future invalidateContent(String package, String version, String panaVersion) {
-    return _data.invalidate(_dataKey(package, version, panaVersion));
+    return Future.wait([
+      _data.invalidate(_dataKey(package, version, panaVersion)),
+      _extract.invalidate(_extractKey(package, version)),
+    ]);
   }
 
   String _dataKey(String package, String version, String panaVersion) =>
       '/$package/$version/$panaVersion';
+
+  String _extractKey(String package, String version) => '/$package/$version';
 }

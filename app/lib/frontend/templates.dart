@@ -507,15 +507,15 @@ class TemplateService {
   }
 
   /// Renders the `views/index.mustache` template.
-  String renderIndexPage(
-      List<PackageVersion> recentPackages, List<AnalysisView> analysisViews) {
+  String renderIndexPage(List<PackageVersion> recentPackages,
+      List<AnalysisExtract> analysisExtracts) {
     final values = {
       'recent_packages': new List.generate(recentPackages.length, (index) {
         final PackageVersion version = recentPackages[index];
-        final AnalysisView analysis = analysisViews[index];
+        final AnalysisExtract analysis = analysisExtracts[index];
         final description = version.ellipsizedDescription;
         return {
-          'icons': _renderIconsColumnHtml(analysis.platforms),
+          'icons': _renderIconsColumnHtml(analysis?.platforms),
           'name': version.packageKey.id,
           'short_updated': version.shortCreated,
           'latest_version': {'version': version.id},

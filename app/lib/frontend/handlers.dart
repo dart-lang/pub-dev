@@ -121,10 +121,10 @@ Future<shelf.Response> indexHandler(_) async {
     final versions =
         await backend.latestPackageVersions(limit: 5, devVersions: true);
     assert(!versions.any((version) => version == null));
-    final List<AnalysisView> analysisViews =
-        await analyzerClient.getAnalysisViews(
+    final List<AnalysisExtract> analysisExtracts =
+        await analyzerClient.getAnalysisExtracts(
             versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
-    pageContent = templateService.renderIndexPage(versions, analysisViews);
+    pageContent = templateService.renderIndexPage(versions, analysisExtracts);
     await backend.uiPackageCache?.setUIIndexPage(false, null, pageContent);
   }
   return htmlResponse(pageContent);
@@ -173,14 +173,14 @@ Future<shelf.Response> _indexHandlerV2(
       final packages = await selected;
       final versions = await backend.lookupLatestVersions(packages);
       assert(!versions.any((version) => version == null));
-      final List<AnalysisView> analysisViews =
-          await analyzerClient.getAnalysisViews(
+      final List<AnalysisExtract> analysisExtracts =
+          await analyzerClient.getAnalysisExtracts(
               versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
       final views = new List<PackageView>.generate(versions.length, (index) {
         return new PackageView.fromModel(
           package: packages[index],
           version: versions[index],
-          analysis: analysisViews[index],
+          analysis: analysisExtracts[index],
         );
       });
       return templateService.renderMiniList(views);
@@ -395,20 +395,21 @@ Future<shelf.Response> packagesHandlerHtml(
 
   // Fetched concurrently to reduce overall latency.
   final versionsFuture = backend.lookupLatestVersions(pagePackages);
-  final Future<List<AnalysisView>> analysisViewsFuture =
-      analyzerClient.getAnalysisViews(
+  final Future<List<AnalysisExtract>> analysisExtractsFuture =
+      analyzerClient.getAnalysisExtracts(
           pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
 
-  final batchResults = await Future.wait([versionsFuture, analysisViewsFuture]);
+  final batchResults =
+      await Future.wait([versionsFuture, analysisExtractsFuture]);
   final versions = batchResults[0];
-  final List<AnalysisView> analysisViews = batchResults[1];
+  final List<AnalysisExtract> analysisExtracts = batchResults[1];
 
   final packageViews = new List.generate(
       pagePackages.length,
       (i) => new PackageView.fromModel(
             package: pagePackages[i],
             version: versions[i],
-            analysis: analysisViews[i],
+            analysis: analysisExtracts[i],
           ));
 
   return htmlResponse(templateService.renderPkgIndexPage(
@@ -467,20 +468,20 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
     final List<Package> pagePackages =
         packages.take(PackageLinks.resultsPerPage).toList();
     final versionsFuture = backend.lookupLatestVersions(pagePackages);
-    final analysisViewsFuture = analyzerClient.getAnalysisViews(
+    final analysisExtractsFuture = analyzerClient.getAnalysisExtracts(
         pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
 
     final batchResults =
-        await Future.wait([versionsFuture, analysisViewsFuture]);
+        await Future.wait([versionsFuture, analysisExtractsFuture]);
     final List<PackageVersion> versions = batchResults[0];
-    final List<AnalysisView> analysisViews = batchResults[1];
+    final List<AnalysisExtract> analysisExtracts = batchResults[1];
 
     packageViews = new List.generate(
         pagePackages.length,
         (i) => new PackageView.fromModel(
               package: pagePackages[i],
               version: versions[i],
-              analysis: analysisViews[i],
+              analysis: analysisExtracts[i],
             ));
   }
 
