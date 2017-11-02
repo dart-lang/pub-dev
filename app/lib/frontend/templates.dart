@@ -666,7 +666,6 @@ class TemplateService {
       'total_count': resultPage.totalCount, // used in v2 only
       'pagination': paginationHtml,
       'hasResults': results.length > 0,
-      'search_service': 'service',
     };
     return values;
   }
