@@ -9,6 +9,8 @@ FROM google/dart-runtime-base:1.25.0-dev.9.0
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 
+ADD pkg /project/pkg
+
 WORKDIR /project/app
 
 ADD static /project/static
