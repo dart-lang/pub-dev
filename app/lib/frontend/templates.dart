@@ -414,8 +414,7 @@ class TemplateService {
         'uploaders_title': 'Uploader',
         'uploaders_html': _getUploadersHtml(package),
         'short_created': selectedVersion.shortCreated,
-        'install_command': isFlutterPlugin ? 'flutter packages get' : 'pub get',
-        'install_tool': isFlutterPlugin ? '\'packages get\'' : '\'pub get\'',
+        'install_html': _renderInstall(isFlutterPlugin, analysis?.platforms),
         'license': analysis?.licenseText,
         'analysis_html': renderAnalysisTabV2(analysis),
       },
@@ -427,6 +426,31 @@ class TemplateService {
       'icons': LogoUrls.versionsTableIcons, // used in v2 only
     };
     return values;
+  }
+
+  String _renderInstall(bool isFlutter, List<String> platforms) {
+    final bool renderGeneric = !isFlutter ||
+        platforms == null ||
+        platforms.isEmpty ||
+        platforms.length > 1 ||
+        platforms.first != KnownPlatforms.flutter;
+    final bool renderFlutter = isFlutter ||
+        (platforms != null && platforms.contains(KnownPlatforms.flutter));
+    String toolHtml;
+    if (renderGeneric && renderFlutter) {
+      toolHtml = '<code>pub get</code> or <code>packages get</code>';
+    } else if (renderFlutter) {
+      toolHtml = '<code>packages get</code>';
+    } else {
+      toolHtml = '<code>pub get</code>';
+    }
+
+    final values = {
+      'generic': renderGeneric,
+      'flutter': renderFlutter,
+      'tool_html': toolHtml,
+    };
+    return _renderTemplate('v2/pkg/install_block', values);
   }
 
   /// Renders the `views/v2/pkg/show.mustache` template.
