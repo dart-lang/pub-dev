@@ -18,6 +18,7 @@ const String v2IndexUiPageKey = 'experimental/pub_index';
 const String packageJsonPrefix = 'package_json_';
 const String packageUiPagePrefix = 'package_ui_';
 const String analyzerDataPrefix = 'dart_analyzer_api_';
+const String analyzerExtractPrefix = 'dart_analyzer_extract_';
 const String searchUiPagePrefix = 'dart_search_ui_';
 
 class SimpleMemcache {

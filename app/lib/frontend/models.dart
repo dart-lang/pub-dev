@@ -9,7 +9,7 @@ import 'dart:math';
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
-import '../shared/analyzer_client.dart' show AnalysisView;
+import '../shared/analyzer_service.dart' show AnalysisExtract;
 import '../shared/model_properties.dart';
 import '../shared/utils.dart';
 
@@ -239,7 +239,7 @@ class PackageView {
   factory PackageView.fromModel({
     Package package,
     PackageVersion version,
-    AnalysisView analysis,
+    AnalysisExtract analysis,
   }) {
     final String devVersion =
         package != null && package.latestVersion != package.latestDevVersion

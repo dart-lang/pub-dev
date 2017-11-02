@@ -47,15 +47,15 @@ Future<SearchResultPage> _loadResultForPackages(
       packageEntries.map((p) => p.latestVersionKey).toList();
   if (versionKeys.isNotEmpty) {
     // Analysis data fetched concurrently to reduce overall latency.
-    final Future<List<AnalysisView>> analysisViewsFuture =
-        analyzerClient.getAnalysisViews(packageEntries
+    final Future<List<AnalysisExtract>> analysisExtractsFuture =
+        analyzerClient.getAnalysisExtracts(packageEntries
             .map((p) => new AnalysisKey(p.name, p.latestVersion)));
     final Future<List<PackageVersion>> allVersionsFuture =
         dbService.lookup(versionKeys);
 
     final List batchResults =
-        await Future.wait([analysisViewsFuture, allVersionsFuture]);
-    final List<AnalysisView> analysisViews = await batchResults[0];
+        await Future.wait([analysisExtractsFuture, allVersionsFuture]);
+    final List<AnalysisExtract> analysisExtracts = await batchResults[0];
     final List<PackageVersion> versions = await batchResults[1];
 
     final List<PackageView> resultPackages = new List.generate(
@@ -63,7 +63,7 @@ Future<SearchResultPage> _loadResultForPackages(
         (i) => new PackageView.fromModel(
               package: packageEntries[i],
               version: versions[i],
-              analysis: analysisViews[i],
+              analysis: analysisExtracts[i],
             ));
     return new SearchResultPage(query, totalCount, resultPackages);
   } else {

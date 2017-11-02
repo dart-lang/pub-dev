@@ -152,8 +152,8 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderIndexPage(
-      List<PackageVersion> recentPackages, List<AnalysisView> analysisViews) {
+  String renderIndexPage(List<PackageVersion> recentPackages,
+      List<AnalysisExtract> analysisExtracts) {
     return Response;
   }
 
@@ -310,6 +310,7 @@ class SearchServiceMock implements SearchService {
 
 class AnalyzerClientMock implements AnalyzerClient {
   AnalysisData mockAnalysisData;
+  AnalysisExtract mockAnalysisExtract;
 
   @override
   Future<AnalysisData> getAnalysisData(AnalysisKey key) async =>
@@ -325,4 +326,13 @@ class AnalyzerClientMock implements AnalyzerClient {
   @override
   Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) =>
       Future.wait(keys.map(getAnalysisView));
+
+  @override
+  Future<AnalysisExtract> getAnalysisExtract(AnalysisKey key) async =>
+      mockAnalysisExtract;
+
+  @override
+  Future<List<AnalysisExtract>> getAnalysisExtracts(
+          Iterable<AnalysisKey> keys) =>
+      Future.wait(keys.map(getAnalysisExtract));
 }

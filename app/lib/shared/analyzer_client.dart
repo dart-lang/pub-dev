@@ -43,6 +43,30 @@ class AnalyzerClient {
     return new AnalysisView(await getAnalysisData(key));
   }
 
+  Future<List<AnalysisExtract>> getAnalysisExtracts(
+      Iterable<AnalysisKey> keys) {
+    return Future.wait(keys.map(getAnalysisExtract));
+  }
+
+  Future<AnalysisExtract> getAnalysisExtract(AnalysisKey key) async {
+    if (key == null) return null;
+    final String cachedExtract =
+        await analyzerMemcache?.getExtract(key.package, key.version);
+    if (cachedExtract != null) {
+      return new AnalysisExtract.fromJson(JSON.decode(cachedExtract));
+    }
+    final view = await getAnalysisView(key);
+    final extract = new AnalysisExtract(
+      // TODO: set popularity
+      // TODO: set maintenance
+      health: view.health,
+      platforms: view.platforms,
+    );
+    await analyzerMemcache?.setExtract(
+        key.package, key.version, JSON.encode(extract.toJson()));
+    return extract;
+  }
+
   /// Gets the analysis data from the analyzer service via HTTP.
   Future<AnalysisData> getAnalysisData(AnalysisKey key) async {
     if (key == null) return null;

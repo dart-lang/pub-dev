@@ -50,3 +50,24 @@ abstract class _$AnalysisDataSerializerMixin {
         'analysisContent': analysisContent
       };
 }
+
+AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
+    new AnalysisExtract(
+        health: (json['health'] as num)?.toDouble(),
+        maintenance: (json['maintenance'] as num)?.toDouble(),
+        popularity: (json['popularity'] as num)?.toDouble(),
+        platforms:
+            (json['platforms'] as List)?.map((e) => e as String)?.toList());
+
+abstract class _$AnalysisExtractSerializerMixin {
+  double get health;
+  double get maintenance;
+  double get popularity;
+  List<String> get platforms;
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'health': health,
+        'maintenance': maintenance,
+        'popularity': popularity,
+        'platforms': platforms
+      };
+}
