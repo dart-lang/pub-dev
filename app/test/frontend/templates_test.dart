@@ -266,6 +266,28 @@ void main() {
       expectGoldenFile(html, 'v2/pkg_index_page.html');
     });
 
+    test('package index page with search v2', () {
+      final String html = templates.renderPkgIndexPageV2(
+        [
+          new PackageView.fromModel(
+            package: testPackage,
+            version: testPackageVersion,
+            analysis: new AnalysisExtract(),
+          ),
+          new PackageView.fromModel(
+            package: testPackage,
+            version: flutterPackageVersion,
+            analysis: new AnalysisExtract(platforms: ['flutter']),
+          ),
+        ],
+        new PackageLinks.empty(),
+        null,
+        searchQuery: new SearchQuery('foobar'),
+        totalCount: 2,
+      );
+      expectGoldenFile(html, 'v2/search_page.html');
+    });
+
     test('package versions page', () {
       final String html = templates.renderPkgVersionsPage(testPackage.name,
           [testPackageVersion], [Uri.parse('http://dart-example.com/')]);
@@ -305,23 +327,6 @@ void main() {
       final String html =
           templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
       expectGoldenFile(html, 'search_page.html');
-    });
-
-    test('search page v2', () {
-      final query = new SearchQuery('foobar', offset: 0);
-      final resultPage = new SearchResultPage(
-        query,
-        2,
-        [
-          new PackageView.fromModel(version: testPackageVersion),
-          new PackageView.fromModel(
-              version: flutterPackageVersion,
-              analysis: new AnalysisExtract(platforms: ['flutter'])),
-        ],
-      );
-      final String html =
-          templates.renderSearchPageV2(resultPage, new SearchLinks(query, 2));
-      expectGoldenFile(html, 'v2/search_page.html');
     });
 
     test('authorized page', () {

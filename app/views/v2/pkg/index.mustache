@@ -4,9 +4,14 @@
 
 {{& platform_tabs_html}}
 
+{{^is_search}}
 <h1>{{title}}</h1>
 {{{description_html}}}
 <p><br/></p>
+{{/is_search}}
+{{#is_search}}
+<p class="package-count"><span>{{total_count}}</span> results for <span>{{search_query}}</span></p>
+{{/is_search}}
 
 <ul class="package-list">
   {{#packages}}

@@ -213,7 +213,8 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderPkgIndexPageV2(
-      List<PackageView> packages, PageLinks links, String currentPlatform) {
+      List<PackageView> packages, PageLinks links, String currentPlatform,
+      {SearchQuery searchQuery, int totalCount}) {
     return Response;
   }
 
@@ -257,11 +258,6 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
-    return Response;
-  }
-
-  @override
-  String renderSearchPageV2(SearchResultPage resultPage, PageLinks pageLinks) {
     return Response;
   }
 
