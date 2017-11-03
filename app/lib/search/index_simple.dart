@@ -103,9 +103,16 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // filter on platform
+    Map<String, double> platformSpecificity;
     if (query.platformPredicate != null) {
       packages.removeWhere((package) =>
           !query.platformPredicate.matches(_packages[package].platforms));
+      platformSpecificity = <String, double>{};
+      packages.forEach((String package) {
+        final PackageDocument doc = _packages[package];
+        platformSpecificity[package] =
+            _scorePlatformMatch(doc.platforms, query.platformPredicate);
+      });
     }
 
     // reduce base results if filter did remove a package
@@ -114,12 +121,17 @@ class SimplePackageIndex implements PackageIndex {
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
-        final Score overallScore = Score.multiply([
+        final List<Score> scores = [
           filtered,
           new Score(getPopularityScore(packages)).map((v) => 0.5 + 0.5 * v),
           new Score(getHealthScore(packages)).map((v) => 0.75 + 0.25 * v),
           new Score(getMaintenanceScore(packages)).map((v) => 0.9 + 0.1 * v),
-        ]).removeLowValues(fraction: 0.01);
+        ];
+        if (platformSpecificity != null) {
+          scores.add(new Score(platformSpecificity));
+        }
+        final Score overallScore =
+            Score.multiply(scores).removeLowValues(fraction: 0.01);
         results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
@@ -241,6 +253,20 @@ class SimplePackageIndex implements PackageIndex {
     if (a.updated == null) return -1;
     if (b.updated == null) return 1;
     return -a.updated.compareTo(b.updated);
+  }
+
+  double _scorePlatformMatch(List<String> platforms, PlatformPredicate p) {
+    double score = 1.0;
+    final int requiredCount = p.required?.length ?? 0;
+    final int platformCount = platforms?.length ?? 0;
+    if (requiredCount > 0) {
+      if (platformCount == requiredCount + 1) {
+        score *= 0.90;
+      } else if (platformCount > requiredCount + 1) {
+        score *= 0.80;
+      }
+    }
+    return score;
   }
 }
 

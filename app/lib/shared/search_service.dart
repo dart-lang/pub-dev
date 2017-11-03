@@ -12,6 +12,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 import 'platform.dart';
 
+export 'platform.dart';
+
 part 'search_service.g.dart';
 
 const int defaultSearchLimit = 100;

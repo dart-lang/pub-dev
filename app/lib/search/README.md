@@ -47,13 +47,26 @@ The popularity score is calculated in several steps:
   `PopularityStorage._updateLatest`. This step needs to know all of the scores
   in one place to do that calculation.
 
+### Platform specificity score
+
+When a platform filter is specified, we both check whether the predicate
+matches the platforms of the package, and also calculate how closely it
+matches them (`SimplePackageIndex._scorePlatformMatch`).
+
+For example, if the platform filter is `flutter`, we'll have the following scores:
+
+- `<missing or empty platform>`: no match, doesn't show up in the results
+- `['server', 'web']`: no match, doesn't show up in the results
+- `['flutter']`: `1.0` (specific platform match)
+- `['flutter', 'server']`: `0.9` (1 extra platform, close platform match)
+- `['flutter', 'server', 'web']`: `0.8` (2+ extra platforms, distant platform match)
+
 ## Search ranking
 
 During search, the service may use the following rankings:
 
 - numerical ordering
 - text match ranking
-- platform-specific ranking
 - combined ranking
 
 ### Numerical ordering
@@ -78,10 +91,6 @@ separately, and select the best score. (TODO: document the scoring)
 The text match score will then be either used directly (`SearchOrder.text`) or it
 will be combined with other scores (see: combined ranking).
 
-### Platform-specific ranking
-
-TBD.
-
 ### Combined ranking
 
 When combining multiple scores (e.g. popularity + health + maintenance \[+ text match score]),
@@ -92,6 +101,9 @@ score), we do the following linear transformations:
 - `health`: `[0.0 .. 1.0] -> [0.75 .. 1.0]`
 - `maintenance`: `[0.0 .. 1.0] -> [0.9 .. 1.0]`
 
+Platform specificity is already protected against low values, there is no
+transformation required for it.
+
 For example, a result with the following scores is calculated the following way:
 
 | Name | Raw Value | Transformed | 
@@ -100,4 +112,5 @@ For example, a result with the following scores is calculated the following way:
 | Popularity | 0.86 | 0.93 | 
 | Health | 0.92 | 0.98 | 
 | Maintenance | 1.0 | 1.0 | 
-| Overall |  | 0.63798 | 
+| Platform specificity | 0.9 | 0.9 |
+| Overall |  | 0.574182 | 
