@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -252,4 +253,27 @@ String formatDuration(Duration d) {
   if (minutes > 0) parts.add('$minutes mins');
 
   return parts.join(' ');
+}
+
+Future<http.Response> getUrlWithRetry(http.Client client, String url,
+    {int retryCount: 1}) async {
+  http.Response result;
+  for (int i = 0; i <= retryCount; i++) {
+    try {
+      result = await client.get(url);
+      if (i == retryCount ||
+          result.statusCode == 200 ||
+          result.statusCode == 404) {
+        return result;
+      }
+    } catch (e, st) {
+      _logger.warning(
+          'HTTP GET failed on $url (${retryCount - i} retry left)', e, st);
+      if (i == retryCount) rethrow;
+    }
+    if (i < retryCount) {
+      await new Future.delayed(const Duration(seconds: 1));
+    }
+  }
+  return result;
 }

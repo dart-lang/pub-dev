@@ -16,6 +16,7 @@ import 'package:pub_dartlang_org/analyzer/versions.dart';
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
 import 'platform.dart';
+import 'utils.dart';
 
 export 'analyzer_service.dart';
 
@@ -78,7 +79,7 @@ class AnalyzerClient {
     final String uri =
         '$_analyzerServiceHttpHostPort/packages/${key.package}/${key.version}?panaVersion=$panaVersion';
     try {
-      final http.Response rs = await _client.get(uri);
+      final http.Response rs = await getUrlWithRetry(_client, uri);
       if (rs.statusCode == 200) {
         final String content = rs.body;
         await analyzerMemcache?.setContent(
