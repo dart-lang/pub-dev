@@ -8,8 +8,10 @@ import 'package:path/path.dart' as p;
 
 final Logger _logger = new Logger('pub.markdown');
 
-final List<m.BlockSyntax> _blockSyntaxes =
-    m.ExtensionSet.gitHub.blockSyntaxes.toList();
+final List<m.BlockSyntax> _blockSyntaxes = []
+  ..addAll(m.ExtensionSet.gitHub.blockSyntaxes)
+  ..add(const m.HeaderWithIdSyntax())
+  ..add(const m.SetextHeaderWithIdSyntax());
 
 final List<m.InlineSyntax> _inlineSyntaxes = m
     .ExtensionSet.gitHub.inlineSyntaxes
