@@ -138,7 +138,6 @@ class TemplateService {
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.platforms), // used in v2 only
-        // TODO: add authors (?) - old version had it, new design may not have the space for it
       });
     }
 
@@ -404,8 +403,10 @@ class TemplateService {
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
-        'authors_html':
-            _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
+        'authors_html': _getAuthorsHtml(
+          selectedVersion.pubspec.getAllAuthors(),
+          clickableName: true,
+        ),
         'homepage': selectedVersion.homepage,
         'nice_homepage': selectedVersion.homepageNice,
         'documentation': selectedVersion.documentation,
@@ -808,7 +809,7 @@ class TemplateService {
   }
 }
 
-String _getAuthorsHtml(List<String> authors) {
+String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
   return (authors ?? const []).map((String value) {
     var name = value;
     var email = value;
@@ -819,9 +820,11 @@ String _getAuthorsHtml(List<String> authors) {
       email = match.group(2);
     }
 
-    // TODO: Properly escape this.
-    return '<span class="author"><a href="mailto:$email" title="Email $email">'
-        '<i class="icon-envelope">Email $email</i></a> $name</span>';
+    final escapedEmail = _attrEscaper.convert(email);
+    final escapedName = _htmlEscaper.convert(name);
+    final closeTag = clickableName ? ' $escapedName</a>' : '</a> $escapedName';
+    return '<span class="author"><a href="mailto:$escapedEmail" title="Email $escapedEmail">'
+        '<i class="icon-envelope"></i>$closeTag</span>';
   }).join('<br/>');
 }
 
