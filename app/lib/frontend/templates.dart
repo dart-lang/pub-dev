@@ -124,7 +124,8 @@ class TemplateService {
 
   /// Renders the `views/v2/pkg/index.mustache` template.
   String renderPkgIndexPageV2(
-      List<PackageView> packages, PageLinks links, String currentPlatform) {
+      List<PackageView> packages, PageLinks links, String currentPlatform,
+      {SearchQuery searchQuery, int totalCount}) {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final view = packages[i];
@@ -149,24 +150,34 @@ class TemplateService {
       descriptionHtml = flutterPackagesDescriptionHtml;
     }
 
+    final isSearch = searchQuery != null && searchQuery.hasText;
     final values = {
-      'platform_tabs_html': renderPlatformTabs(platform: currentPlatform),
+      'is_search': isSearch,
+      'platform_tabs_html': renderPlatformTabs(
+          platform: currentPlatform, searchQuery: searchQuery),
       'title': title ?? 'Packages',
       'description_html': descriptionHtml,
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
       'pagination': renderPaginationV2(links),
+      'search_query': searchQuery?.text,
+      'total_count': totalCount,
     };
     final content = _renderTemplate('v2/pkg/index', values);
 
-    String pageTitle = title ?? 'All Packages';
-    if (links.rightmostPage > 1) {
-      pageTitle = 'Page ${links.currentPage} | $pageTitle';
+    String pageTitle = title;
+    if (isSearch) {
+      pageTitle = 'Search results for ${searchQuery.text}.';
+    } else {
+      if (links.rightmostPage > 1) {
+        pageTitle = 'Page ${links.currentPage} | $pageTitle';
+      }
     }
     return renderLayoutPageV2(
       content,
       title: pageTitle,
       platform: currentPlatform,
+      searchQuery: searchQuery?.text,
     );
   }
 
@@ -646,26 +657,7 @@ class TemplateService {
   /// Renders the `views/search.mustache` template.
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
     final String queryText = resultPage.query.text;
-    final Map<String, Object> values =
-        _searchPage(resultPage, renderPagination(pageLinks));
-    return _renderPage('search', values,
-        title: 'Search results for $queryText.', searchQuery: queryText);
-  }
-
-  /// Renders the `views/v2/search.mustache` template.
-  String renderSearchPageV2(SearchResultPage resultPage, PageLinks pageLinks) {
-    final String queryText = resultPage.query.text;
-    final Map<String, Object> values =
-        _searchPage(resultPage, renderPaginationV2(pageLinks));
-    final content = _renderTemplate('v2/search', values);
-    return renderLayoutPageV2(content,
-        title: 'Search results for $queryText.',
-        platform: resultPage.query.platformPredicate?.toQueryParamValue(),
-        searchQuery: queryText);
-  }
-
-  Map<String, Object> _searchPage(
-      SearchResultPage resultPage, String paginationHtml) {
+    final String paginationHtml = renderPagination(pageLinks);
     final List results = [];
     for (int i = 0; i < resultPage.packages.length; i++) {
       final PackageView view = resultPage.packages[i];
@@ -676,22 +668,19 @@ class TemplateService {
         'show_dev_version': view.devVersion != null,
         'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
-        'icons':
-            _renderIconsColumnHtml(view.platforms), // used in old design only
+        'icons': _renderIconsColumnHtml(view.platforms),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.platforms), // used in v2 only
       });
     }
     final values = {
-      'platform_tabs_html': renderPlatformTabs(searchQuery: resultPage.query),
       'query': resultPage.query.text,
       'results': results,
-      'total_count': resultPage.totalCount, // used in v2 only
       'pagination': paginationHtml,
       'hasResults': results.length > 0,
     };
-    return values;
+    return _renderPage('search', values,
+        title: 'Search results for $queryText.', searchQuery: queryText);
   }
 
   /// Renders a whole HTML page using the `views/layout.mustache` template and
@@ -782,7 +771,7 @@ class TemplateService {
             platformPredicate: tabPlatform == null
                 ? new PlatformPredicate()
                 : new PlatformPredicate(required: [tabPlatform]));
-        url = newQuery.toSearchLink();
+        url = newQuery.toSearchLink(v2: true);
       } else {
         final List<String> pathParts = [''];
         if (tabPlatform != null) pathParts.add(tabPlatform);
@@ -906,26 +895,27 @@ class PackageLinks extends PageLinks {
   static const int resultsPerPage = 10;
   static const int maxPages = 15;
   final String _basePath;
-  final String _platform;
+  final SearchQuery _searchQuery;
 
-  PackageLinks(int offset, int count, {String basePath, String platform})
+  PackageLinks(int offset, int count,
+      {String basePath, SearchQuery searchQuery})
       : _basePath = basePath,
-        _platform = platform,
+        _searchQuery = searchQuery,
         super(offset, count);
 
-  PackageLinks.empty({String basePath, String platform})
+  PackageLinks.empty({String basePath})
       : _basePath = basePath,
-        _platform = platform,
+        _searchQuery = null,
         super.empty();
 
   @override
   String formatHref(int page) {
     final String basePath = _basePath ?? '/packages';
-    String url = '$basePath?';
-    if (_platform != null) {
-      url = '${url}platform=$_platform&';
+    if (_searchQuery == null) {
+      return '$basePath?page=$page';
+    } else {
+      return _searchQuery.toSearchLink(v2: true, page: page);
     }
-    return '${url}page=$page';
   }
 }
 

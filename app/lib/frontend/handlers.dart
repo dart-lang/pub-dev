@@ -86,7 +86,6 @@ const _handlers = const <String, shelf.Handler>{
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
   '/search': searchHandler,
-  '/experimental/search': searchHandlerV2,
   '/packages': packagesHandler,
   '/packages.json': packagesHandler,
   '/flutter': redirectToFlutterPackages,
@@ -238,17 +237,7 @@ shelf.Response docHandler(shelf.Request request) {
 }
 
 /// Handles requests for /search
-Future<shelf.Response> searchHandler(shelf.Request request) {
-  return _searchHandler(request, templateService.renderSearchPage);
-}
-
-/// Handles requests for /experimental/search
-Future<shelf.Response> searchHandlerV2(shelf.Request request) {
-  return _searchHandler(request, templateService.renderSearchPageV2);
-}
-
-Future<shelf.Response> _searchHandler(shelf.Request request,
-    String render(SearchResultPage page, PageLinks links)) async {
+Future<shelf.Response> searchHandler(shelf.Request request) async {
   final Stopwatch sw = new Stopwatch();
   sw.start();
 
@@ -279,13 +268,13 @@ Future<shelf.Response> _searchHandler(shelf.Request request,
     packagePrefix: packagePrefix,
   );
   if (!query.isValid) {
-    return htmlResponse(render(
+    return htmlResponse(templateService.renderSearchPage(
         new SearchResultPage.empty(query), new SearchLinks.empty(query)));
   }
 
   final resultPage = await searchService.search(query);
   final links = new SearchLinks(query, resultPage.totalCount);
-  final String content = render(resultPage, links);
+  final String content = templateService.renderSearchPage(resultPage, links);
 
   _searchOverallLatencyTracker.add(sw.elapsed);
 
@@ -446,19 +435,30 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
     shelf.Request request, String platform) async {
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
+  final queryText = request.requestedUri.queryParameters['q'] ?? '';
+  // TODO: handle package-prefix
+
+  // TODO: handle sort order
+  final SearchOrder sortOrder = SearchOrder.updated;
+  final bool clearSortFromUrl = true;
 
   int totalCount;
   List<PackageView> packageViews;
-  if (platform != null) {
-    final searchResult = await searchService.search(new SearchQuery('',
+  SearchQuery searchQuery;
+  if (platform != null || queryText.isNotEmpty) {
+    searchQuery = new SearchQuery(queryText,
         platformPredicate: platform == null
             ? null
             : new PlatformPredicate(required: [platform]),
-        order: SearchOrder.updated,
+        order: sortOrder,
         offset: offset,
-        limit: PackageLinks.resultsPerPage));
+        limit: PackageLinks.resultsPerPage);
+    final searchResult = await searchService.search(searchQuery);
     totalCount = searchResult.totalCount;
     packageViews = searchResult.packages;
+    if (clearSortFromUrl) {
+      searchQuery = searchQuery.change(order: SearchOrder.top);
+    }
   } else {
     final int limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
     final List<Package> packages =
@@ -485,9 +485,14 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
             ));
   }
 
-  final links = new PackageLinks(offset, totalCount, platform: platform);
-  return htmlResponse(
-      templateService.renderPkgIndexPageV2(packageViews, links, platform));
+  final links = new PackageLinks(offset, totalCount, searchQuery: searchQuery);
+  return htmlResponse(templateService.renderPkgIndexPageV2(
+    packageViews,
+    links,
+    platform,
+    searchQuery: searchQuery,
+    totalCount: totalCount,
+  ));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers

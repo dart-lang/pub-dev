@@ -211,6 +211,10 @@ class SearchQuery {
     return map;
   }
 
+  bool get hasText => text != null && text.isNotEmpty;
+  bool get hasPackagePrefix =>
+      packagePrefix != null && packagePrefix.isNotEmpty;
+
   /// Sanity check, whether the query object is to be expected a valid result.
   bool get isValid {
     final bool hasText = text != null && text.isNotEmpty;
@@ -224,21 +228,29 @@ class SearchQuery {
     return hasText || hasNonTextOrdering;
   }
 
-  String toSearchLink({int page}) {
-    final Map<String, String> params = {'q': text};
-    if (platformPredicate != null && platformPredicate.isNotEmpty) {
-      params['platforms'] = platformPredicate.toQueryParamValue();
+  String toSearchLink({bool v2: false, int page}) {
+    String path = v2 ? '/packages' : '/search';
+    final Map<String, String> params = {};
+    if (hasText) {
+      params['q'] = text;
     }
-    if (packagePrefix != null && packagePrefix.isNotEmpty) {
+    if (platformPredicate != null && platformPredicate.isNotEmpty) {
+      if (v2 && platformPredicate.isSingle) {
+        path = '/${platformPredicate.single}/packages';
+      } else {
+        params['platforms'] = platformPredicate.toQueryParamValue();
+      }
+    }
+    if (hasPackagePrefix) {
       params['pkg-prefix'] = packagePrefix;
     }
-    if (order != null) {
+    if (order != null && order != SearchOrder.top) {
       params['order'] = serializeSearchOrder(order);
     }
     if (page != null) {
       params['page'] = page.toString();
     }
-    return new Uri(path: '/search', queryParameters: params).toString();
+    return new Uri(path: path, queryParameters: params).toString();
   }
 }
 
