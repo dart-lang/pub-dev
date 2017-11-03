@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import 'configuration.dart';
 import 'search_service.dart';
+import 'utils.dart';
 
 /// Sets the search client.
 void registerSearchClient(SearchClient client) =>
@@ -29,7 +30,8 @@ class SearchClient {
     final String serviceUrlParams =
         new Uri(queryParameters: query.toServiceQueryParameters()).toString();
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
-    final http.Response response = await _httpClient.get(serviceUrl);
+    final http.Response response =
+        await getUrlWithRetry(_httpClient, serviceUrl);
     if (response.statusCode == searchIndexNotReadyCode) {
       // Search request before the service initialization completed.
       return null;
