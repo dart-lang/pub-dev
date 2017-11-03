@@ -152,7 +152,7 @@ void main() {
         ),
       ]);
       final String html = templates.renderIndexPageV2(
-          popularHtml, updatedHtml, newestHtml, KnownPlatforms.server);
+          popularHtml, updatedHtml, newestHtml, KnownPlatforms.web);
       expectGoldenFile(html, 'v2/web_landing_page.html');
     });
 
