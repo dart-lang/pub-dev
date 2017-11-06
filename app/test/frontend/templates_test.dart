@@ -267,7 +267,8 @@ void main() {
     });
 
     test('package index page with search v2', () {
-      final searchQuery = new SearchQuery('foobar', order: SearchOrder.top);
+      final searchQuery =
+          new SearchQuery.parse(text: 'foobar', order: SearchOrder.top);
       final String html = templates.renderPkgIndexPageV2(
         [
           new PackageView.fromModel(
@@ -314,7 +315,7 @@ void main() {
     });
 
     test('search page', () {
-      final query = new SearchQuery('foobar', offset: 0);
+      final query = new SearchQuery.parse(text: 'foobar', offset: 0);
       final resultPage = new SearchResultPage(
         query,
         2,
@@ -368,9 +369,9 @@ void main() {
 
     test('platform tabs: search', () {
       final String html = templates.renderPlatformTabs(
-          searchQuery: new SearchQuery(
-        'foo',
-        platformPredicate: new PlatformPredicate(required: ['server']),
+          searchQuery: new SearchQuery.parse(
+        text: 'foo',
+        platform: 'server',
       ));
       expectGoldenFile(html, 'v2/platform_tabs_search.html', isFragment: true);
     });
@@ -455,15 +456,15 @@ void main() {
 
   group('URLs', () {
     test('SearchLinks defaults', () {
-      final query = new SearchQuery('web framework');
+      final query = new SearchQuery.parse(text: 'web framework');
       final SearchLinks links = new SearchLinks(query, 100);
       expect(links.formatHref(1), '/search?q=web+framework&page=1');
       expect(links.formatHref(2), '/search?q=web+framework&page=2');
     });
 
     test('SearchLinks with type', () {
-      final query = new SearchQuery('web framework',
-          platformPredicate: new PlatformPredicate(required: ['server']));
+      final query =
+          new SearchQuery.parse(text: 'web framework', platform: 'server');
       final SearchLinks links = new SearchLinks(query, 100);
       expect(links.formatHref(1),
           '/search?q=web+framework&platforms=server&page=1');

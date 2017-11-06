@@ -134,6 +134,9 @@ String serializeSearchOrder(SearchOrder order) {
   return order.toString().split('.').last;
 }
 
+final RegExp _packageRegexp =
+    new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
+
 class SearchQuery {
   final String text;
   final PlatformPredicate platformPredicate;
@@ -142,14 +145,41 @@ class SearchQuery {
   final int offset;
   final int limit;
 
-  SearchQuery(
-    this.text, {
+  SearchQuery._({
+    this.text,
     this.platformPredicate,
     this.packagePrefix,
     this.order,
     this.offset: 0,
     this.limit: 10,
   });
+
+  factory SearchQuery.parse({
+    String text,
+    String platform,
+    SearchOrder order,
+    int offset: 0,
+    int limit: 10,
+  }) {
+    String queryText = text ?? '';
+    String packagePrefix;
+    final Match pkgMatch = _packageRegexp.firstMatch(queryText);
+    if (pkgMatch != null) {
+      packagePrefix = pkgMatch.group(1);
+      queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
+    }
+    if (queryText.isEmpty) {
+      queryText = null;
+    }
+    return new SearchQuery._(
+        text: queryText,
+        packagePrefix: packagePrefix,
+        platformPredicate:
+            platform == null ? null : new PlatformPredicate.parse(platform),
+        order: order,
+        offset: offset,
+        limit: limit);
+  }
 
   factory SearchQuery.fromServiceUrl(Uri uri) {
     final String text = uri.queryParameters['q'];
@@ -170,8 +200,8 @@ class SearchQuery {
     offset = max(0, offset);
     limit = max(minSearchLimit, limit);
 
-    return new SearchQuery(
-      text,
+    return new SearchQuery._(
+      text: text,
       platformPredicate: platform,
       packagePrefix: packagePrefix,
       order: order,
@@ -188,8 +218,8 @@ class SearchQuery {
     int offset,
     int limit,
   }) =>
-      new SearchQuery(
-        text ?? this.text,
+      new SearchQuery._(
+        text: text ?? this.text,
         platformPredicate: platformPredicate ?? this.platformPredicate,
         packagePrefix: packagePrefix ?? this.packagePrefix,
         order: order ?? this.order,
@@ -217,6 +247,15 @@ class SearchQuery {
   bool get hasPackagePrefix =>
       packagePrefix != null && packagePrefix.isNotEmpty;
 
+  bool get hasCompositeText => hasText || hasPackagePrefix;
+
+  String get compositeText {
+    final List<String> parts = <String>[];
+    if (hasText) parts.add(text);
+    if (hasPackagePrefix) parts.add('package:$packagePrefix');
+    return parts.join(' ');
+  }
+
   /// Sanity check, whether the query object is to be expected a valid result.
   bool get isValid {
     final bool hasText = text != null && text.isNotEmpty;
@@ -233,8 +272,8 @@ class SearchQuery {
   String toSearchLink({bool v2: false, int page}) {
     String path = v2 ? '/packages' : '/search';
     final Map<String, String> params = {};
-    if (hasText) {
-      params['q'] = text;
+    if (hasCompositeText) {
+      params['q'] = compositeText;
     }
     if (platformPredicate != null && platformPredicate.isNotEmpty) {
       if (v2 && platformPredicate.isSingle) {
@@ -243,9 +282,6 @@ class SearchQuery {
         params['platforms'] = platformPredicate.toQueryParamValue();
       }
     }
-    if (hasPackagePrefix) {
-      params['pkg-prefix'] = packagePrefix;
-    }
     if (order != null) {
       final String paramName = v2 ? 'sort' : 'order';
       params[paramName] = serializeSearchOrder(order);
@@ -253,7 +289,11 @@ class SearchQuery {
     if (page != null) {
       params['page'] = page.toString();
     }
-    return new Uri(path: path, queryParameters: params).toString();
+    if (params.isEmpty) {
+      return path;
+    } else {
+      return new Uri(path: path, queryParameters: params).toString();
+    }
   }
 }
 
