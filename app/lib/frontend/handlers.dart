@@ -16,7 +16,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/platform.dart';
 import '../shared/search_client.dart';
-import '../shared/search_service.dart' show SearchQuery, SearchOrder;
+import '../shared/search_service.dart';
 import '../shared/utils.dart';
 
 import 'atom_feed.dart';
@@ -30,7 +30,7 @@ import 'templates.dart';
 final String _staticPath = Platform.script.resolve('../../static').toFilePath();
 
 RegExp _packageRegexp =
-    new RegExp('package:([_a-z0-9]+)\\*?', caseSensitive: false);
+    new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
 
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
@@ -250,11 +250,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
 
   final Match pkgMatch = _packageRegexp.firstMatch(queryText);
   if (pkgMatch != null) {
-    // only if query attribute was not specified
-    if (packagePrefix == null) {
-      packagePrefix = pkgMatch.group(1).trim();
-      if (packagePrefix.isEmpty) packagePrefix = null;
-    }
+    packagePrefix = pkgMatch.group(1).trim();
     queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
   }
 
@@ -435,12 +431,20 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
     shelf.Request request, String platform) async {
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
-  final queryText = request.requestedUri.queryParameters['q'] ?? '';
-  // TODO: handle package-prefix
+  String queryText = request.requestedUri.queryParameters['q'] ?? '';
+  String packagePrefix = request.url.queryParameters['pkg-prefix'];
 
-  // TODO: handle sort order
-  final SearchOrder sortOrder = SearchOrder.updated;
-  final bool clearSortFromUrl = true;
+  if (queryText != null) {
+    final Match pkgMatch = _packageRegexp.firstMatch(queryText);
+    if (pkgMatch != null) {
+      packagePrefix = pkgMatch.group(1).trim();
+      queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
+    }
+  }
+
+  final String sortParam = request.requestedUri.queryParameters['sort'];
+  final SearchOrder sortOrder =
+      sortParam == null ? null : parseSearchOrder(sortParam);
 
   int totalCount;
   List<PackageView> packageViews;
@@ -453,12 +457,11 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
         order: sortOrder,
         offset: offset,
         limit: PackageLinks.resultsPerPage);
-    final searchResult = await searchService.search(searchQuery);
+    final effectiveQuery =
+        searchQuery.change(order: sortOrder ?? SearchOrder.updated);
+    final searchResult = await searchService.search(effectiveQuery);
     totalCount = searchResult.totalCount;
     packageViews = searchResult.packages;
-    if (clearSortFromUrl) {
-      searchQuery = searchQuery.change(order: SearchOrder.top);
-    }
   } else {
     final int limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
     final List<Package> packages =
