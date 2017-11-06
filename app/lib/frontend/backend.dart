@@ -650,7 +650,7 @@ Future<models.PackageVersion> parseAndValidateUpload(
   }
   validatePackageName(pubspec.name);
 
-  var exampleFilename;
+  String exampleFilename;
   for (String candidate in exampleFileCandidates(pubspec.name)) {
     exampleFilename = searchForFile(candidate);
     if (exampleFilename != null) break;
