@@ -1,0 +1,7 @@
+name: node_preamble
+author: Michael Bullington <mikebullingtn@gmail.com>
+homepage: https://github.com/mbullington/node_preamble.dart
+version: 1.4.0
+description: Better node.js preamble for dart2js, use it in your build system.
+dev_dependencies:
+  http: '^0.11.0'

@@ -1,0 +1,11 @@
+name: shelf
+author: Kevin Moore <kevmoo@google.com>
+version: 0.0.0-dev
+homepage: https://github.com/kevmoo/shelf.dart
+description: Ruby Rake and/or Node Connect for Dart
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dependencies:
+  unittest: '>=0.9.0'
+dev_dependencies:
+  hop: '>=0.28.3'

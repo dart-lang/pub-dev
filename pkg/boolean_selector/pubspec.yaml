@@ -1,0 +1,16 @@
+name: boolean_selector
+version: 1.0.2
+description: A flexible syntax for boolean expressions.
+author: Dart Team <misc@dartlang.org>
+homepage: https://github.com/dart-lang/boolean_selector
+
+environment:
+  sdk: '>=1.8.0 <2.0.0'
+
+dependencies:
+  collection: '^1.5.0'
+  source_span: '^1.0.0'
+  string_scanner: '>=0.1.1 <2.0.0'
+
+dev_dependencies:
+  test: '^0.12.0'

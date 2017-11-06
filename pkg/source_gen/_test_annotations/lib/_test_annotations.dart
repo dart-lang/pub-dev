@@ -1,0 +1,3 @@
+class TestAnnotation {
+  const TestAnnotation();
+}

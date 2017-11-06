@@ -38,3 +38,161 @@ dev_dependencies:
   json_serializable: '^0.2.4+1'
   source_gen: '^0.7.2'
   test: ">=0.12.20 <0.13.0"
+
+dependency_overrides:
+  analyzer:
+    path: ../pkg/analyzer
+  appengine:
+    path: ../pkg/appengine
+  archive:
+    path: ../pkg/archive
+  args:
+    path: ../pkg/args
+  async:
+    path: ../pkg/async
+  barback:
+    path: ../pkg/barback
+  boolean_selector:
+    path: ../pkg/boolean_selector
+  build:
+    path: ../pkg/build
+  build_barback:
+    path: ../pkg/build_barback
+  build_runner:
+    path: ../pkg/build_runner
+  charcode:
+    path: ../pkg/charcode
+  cli_util:
+    path: ../pkg/cli_util
+  code_transformers:
+    path: ../pkg/code_transformers
+  collection:
+    path: ../pkg/collection
+  convert:
+    path: ../pkg/convert
+  crypto:
+    path: ../pkg/crypto
+  csslib:
+    path: ../pkg/csslib
+  dart_style:
+    path: ../pkg/dart_style
+  _discoveryapis_commons:
+    path: ../pkg/_discoveryapis_commons
+  fixnum:
+    path: ../pkg/fixnum
+  front_end:
+    path: ../pkg/front_end
+  gcloud:
+    path: ../pkg/gcloud
+  glob:
+    path: ../pkg/glob
+  googleapis:
+    path: ../pkg/googleapis
+  googleapis_auth:
+    path: ../pkg/googleapis_auth
+  googleapis_beta:
+    path: ../pkg/googleapis_beta
+  html:
+    path: ../pkg/html
+  http:
+    path: ../pkg/http
+  http2:
+    path: ../pkg/http2
+  http_multi_server:
+    path: ../pkg/http_multi_server
+  http_parser:
+    path: ../pkg/http_parser
+  http_server:
+    path: ../pkg/http_server
+  intl:
+    path: ../pkg/intl
+  io:
+    path: ../pkg/io
+  isolate:
+    path: ../pkg/isolate
+  js:
+    path: ../pkg/js
+  json_annotation:
+    path: ../pkg/json_annotation
+  json_serializable:
+    path: ../pkg/json_serializable
+  kernel:
+    path: ../pkg/kernel
+  logging:
+    path: ../pkg/logging
+  markdown:
+    path: ../pkg/markdown
+  matcher:
+    path: ../pkg/matcher
+  memcache:
+    path: ../pkg/memcache
+  meta:
+    path: ../pkg/meta
+  mime:
+    path: ../pkg/mime
+  mustache:
+    path: ../pkg/mustache
+  node_preamble:
+    path: ../pkg/node_preamble
+  package_config:
+    path: ../pkg/package_config
+  package_resolver:
+    path: ../pkg/package_resolver
+  pana:
+    path: ../pkg/pana
+  path:
+    path: ../pkg/path
+  plugin:
+    path: ../pkg/plugin
+  pool:
+    path: ../pkg/pool
+  _popularity:
+    path: ../pkg/_popularity
+  protobuf:
+    path: ../pkg/protobuf
+  pub_semver:
+    path: ../pkg/pub_semver
+  pub_server:
+    path: ../pkg/pub_server
+  quiver:
+    path: ../pkg/quiver
+  shelf:
+    path: ../pkg/shelf
+  shelf_packages_handler:
+    path: ../pkg/shelf_packages_handler
+  shelf_static:
+    path: ../pkg/shelf_static
+  shelf_web_socket:
+    path: ../pkg/shelf_web_socket
+  source_gen:
+    path: ../pkg/source_gen
+  source_maps:
+    path: ../pkg/source_maps
+  source_map_stack_trace:
+    path: ../pkg/source_map_stack_trace
+  source_span:
+    path: ../pkg/source_span
+  stack_trace:
+    path: ../pkg/stack_trace
+  stream_channel:
+    path: ../pkg/stream_channel
+  stream_transform:
+    path: ../pkg/stream_transform
+  string_scanner:
+    path: ../pkg/string_scanner
+  term_glyph:
+    path: ../pkg/term_glyph
+  test:
+    path: ../pkg/test
+  typed_data:
+    path: ../pkg/typed_data
+  utf:
+    path: ../pkg/utf
+  uuid:
+    path: ../pkg/uuid
+  watcher:
+    path: ../pkg/watcher
+  web_socket_channel:
+    path: ../pkg/web_socket_channel
+  yaml:
+    path: ../pkg/yaml

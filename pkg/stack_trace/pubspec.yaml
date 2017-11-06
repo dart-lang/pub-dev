@@ -1,0 +1,20 @@
+name: stack_trace
+
+# Note! This version number is referenced directly in the pub source code in
+# lib/src/barback.dart. Pub implicitly places a version constraint on
+# stack_trace to ensure users only select a version of stack_trace that works
+# with their current version of pub.
+#
+# When the major version is upgraded, you *must* update that version constraint
+# in pub to stay in sync with this.
+version: 1.8.3
+author: "Dart Team <misc@dartlang.org>"
+homepage: https://github.com/dart-lang/stack_trace
+description: A package for manipulating stack traces and printing them readably.
+dependencies:
+  path: "^1.2.0"
+
+dev_dependencies:
+  test: '^0.12.17'
+environment:
+  sdk: ">=1.23.0 <2.0.0"

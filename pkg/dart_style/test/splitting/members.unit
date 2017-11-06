@@ -1,0 +1,39 @@
+40 columns                              |
+>>> prefers to wrap at => before params
+class Foo {
+  Stream methodName(AssetId id) => methodBodyHereItIs;
+}
+<<<
+class Foo {
+  Stream methodName(AssetId id) =>
+      methodBodyHereItIs;
+}
+>>> can split on getter
+class Foo {
+  VeryLongTypeAnnotation get veryLongGetter => null;
+}
+<<<
+class Foo {
+  VeryLongTypeAnnotation
+      get veryLongGetter => null;
+}
+>>> can split on setter
+class Foo {
+  VeryLongTypeAnnotation set veryLongSetter(v) {}
+}
+<<<
+class Foo {
+  VeryLongTypeAnnotation
+      set veryLongSetter(v) {}
+}
+>>> do not split after "covariant" in field (at least for now)
+class Foo {
+  covariant var soMuchSoVeryLongFieldNameHere;
+  covariant VeryLongTypeAnnotation field;
+}
+<<<
+class Foo {
+  covariant var soMuchSoVeryLongFieldNameHere;
+  covariant VeryLongTypeAnnotation
+      field;
+}

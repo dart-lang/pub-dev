@@ -1,0 +1,23 @@
+language: dart
+sudo: false
+dart:
+  - dev
+  - stable
+  - 1.23.0
+  - 1.22.1
+cache:
+  directories:
+    - $HOME/.pub-cache
+dart_task:
+  - test: --platform vm
+  # No parallelism on Firefox (-j 1)
+  # Causes flakiness – need to investigate
+  - test: --platform firefox -j 1
+  - test: --platform dartium
+    install_dartium: true
+  - dartanalyzer
+  - dartfmt
+matrix:
+  exclude:
+    - dart: 1.22.1
+      dart_task: dartfmt

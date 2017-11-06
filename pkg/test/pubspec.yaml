@@ -1,0 +1,47 @@
+name: test
+version: 0.12.26
+author: Dart Team <misc@dartlang.org>
+description: A library for writing dart unit tests.
+homepage: https://github.com/dart-lang/test
+environment:
+  sdk: '>=1.23.0 <2.0.0'
+dependencies:
+  analyzer: '>=0.26.4 <0.32.0'
+  args: '>=0.13.1 <2.0.0'
+  async: '>=1.13.0 <3.0.0'
+  barback: '>=0.14.0 <0.16.0'
+  boolean_selector: '^1.0.0'
+  collection: '^1.8.0'
+  glob: '^1.0.0'
+  http_multi_server: '>=1.0.0 <3.0.0'
+  io: '^0.3.0'
+  js: '^0.6.0'
+  meta: '^1.0.0'
+  node_preamble: '^1.3.0'
+  package_resolver: '^1.0.0'
+  path: '^1.2.0'
+  pool: '^1.3.0'
+  pub_semver: '^1.0.0'
+  shelf: '>=0.6.5 <0.8.0'
+  shelf_packages_handler: '^1.0.0'
+  shelf_static: '^0.2.6'
+  shelf_web_socket: '^0.2.0'
+  source_map_stack_trace: '^1.1.4'
+  source_maps: '^0.10.2'
+  source_span: '^1.4.0'
+  stack_trace: '^1.2.1'
+  stream_channel: '^1.6.0'
+  string_scanner: '>=0.1.1 <2.0.0'
+  term_glyph: '^1.0.0'
+  web_socket_channel: '^1.0.0'
+  yaml: '^2.0.0'
+
+  # Use a tight version constraint to ensure that a constraint on matcher
+  # properly constrains all features it provides.
+  matcher: '>=0.12.1 <0.12.2'
+dev_dependencies:
+  fake_async: '^0.1.2'
+  http: '^0.11.0'
+  shelf_test_handler: '^1.0.0'
+  test_descriptor: '^1.0.0'
+  test_process: '^1.0.0'

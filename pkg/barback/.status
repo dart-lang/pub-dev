@@ -1,0 +1,24 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Skip non-test files ending with "_test".
+packages/*: Skip
+*/packages/*: Skip
+*/*/packages/*: Skip
+*/*/*/packages/*: Skip
+*/*/*/*packages/*: Skip
+*/*/*/*/*packages/*: Skip
+
+# Only run tests from the build directory, since we don't care about the
+# difference between transformed an untransformed code.
+test/*: Skip
+
+[ $runtime == vm && $mode == debug]
+build/test/package_graph/repetition_test: Skip  # Times out
+
+[ $runtime == vm && $arch == simarm ]
+build/test/too_many_open_files_test: Skip # 14220
+
+[ $browser ]
+*: Fail, OK # Uses dart:io.

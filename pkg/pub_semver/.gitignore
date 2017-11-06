@@ -1,0 +1,6 @@
+.packages
+packages
+pubspec.lock
+
+# IntelliJ project.
+.idea
