@@ -51,14 +51,7 @@ class PlatformPredicate {
     );
   }
 
-  factory PlatformPredicate.fromUri(Uri uri) {
-    final String pluralStr = uri.queryParameters['platforms'];
-    List<String> platforms;
-    if (pluralStr != null && pluralStr.isNotEmpty) {
-      platforms = pluralStr.split(',');
-    } else {
-      platforms = uri.queryParametersAll['platform'];
-    }
+  factory PlatformPredicate._compose(List<String> platforms) {
     final List<String> required = <String>[];
     final List<String> prohibited = <String>[];
     platforms?.forEach((String p) {
@@ -70,6 +63,20 @@ class PlatformPredicate {
     });
     return new PlatformPredicate(required: required, prohibited: prohibited);
   }
+
+  factory PlatformPredicate.fromUri(Uri uri) {
+    final String pluralStr = uri.queryParameters['platforms'];
+    List<String> platforms;
+    if (pluralStr != null && pluralStr.isNotEmpty) {
+      platforms = pluralStr.split(',');
+    } else {
+      platforms = uri.queryParametersAll['platform'];
+    }
+    return new PlatformPredicate._compose(platforms);
+  }
+
+  factory PlatformPredicate.parse(String platform) =>
+      new PlatformPredicate._compose(platform.split(','));
 
   bool get isSingle =>
       !(required == null || prohibited != null || required.length != 1);

@@ -29,9 +29,6 @@ import 'templates.dart';
 
 final String _staticPath = Platform.script.resolve('../../static').toFilePath();
 
-RegExp _packageRegexp =
-    new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
-
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
 final _packageOverallLatencyTracker = new LastNTracker<Duration>();
@@ -156,12 +153,8 @@ Future<shelf.Response> _indexHandlerV2(
       await backend.uiPackageCache?.getUIIndexPage(true, platform);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
-      final result = await searchService.search(new SearchQuery(null,
-          platformPredicate: platform == null
-              ? null
-              : new PlatformPredicate(required: [platform]),
-          limit: 5,
-          order: order));
+      final result = await searchService.search(
+          new SearchQuery.parse(platform: platform, limit: 5, order: order));
       final packages = (result.packages.length <= 5)
           ? result.packages
           : result.packages.sublist(0, 5);
@@ -245,23 +238,17 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   final String cachedHtml = await searchMemcache?.getUiSearchPage(cacheUrl);
   if (cachedHtml != null) return htmlResponse(cachedHtml);
 
-  String queryText = request.url.queryParameters['q'] ?? '';
-  String packagePrefix = request.url.queryParameters['pkg-prefix'];
-
-  final Match pkgMatch = _packageRegexp.firstMatch(queryText);
-  if (pkgMatch != null) {
-    packagePrefix = pkgMatch.group(1).trim();
-    queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
-  }
+  final String queryText = request.url.queryParameters['q'] ?? '';
+  final String platform = request.url.queryParameters['platforms'] ??
+      request.url.queryParameters['platform'];
 
   final int page = _pageFromUrl(request.url);
 
-  final SearchQuery query = new SearchQuery(
-    queryText,
+  final SearchQuery query = new SearchQuery.parse(
+    text: queryText,
+    platform: platform,
     offset: PageLinks.resultsPerPage * (page - 1),
     limit: PageLinks.resultsPerPage,
-    platformPredicate: new PlatformPredicate.fromUri(request.url),
-    packagePrefix: packagePrefix,
   );
   if (!query.isValid) {
     return htmlResponse(templateService.renderSearchPage(
@@ -351,7 +338,7 @@ Future<shelf.Response> packagesHandlerHtml(
   shelf.Request request,
   int page, {
   String basePath,
-  PlatformPredicate platformPredicate,
+  String platform,
   String title,
   String faviconUrl,
   String descriptionHtml,
@@ -360,10 +347,9 @@ Future<shelf.Response> packagesHandlerHtml(
   final limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
 
   List<Package> packages;
-  if (platformPredicate != null && platformPredicate.isNotEmpty) {
-    final results = await searchClient.search(new SearchQuery(
-      null,
-      platformPredicate: platformPredicate,
+  if (platform != null) {
+    final results = await searchClient.search(new SearchQuery.parse(
+      platform: platform,
       order: SearchOrder.updated,
       offset: offset,
       limit: limit,
@@ -431,17 +417,7 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
     shelf.Request request, String platform) async {
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
-  String queryText = request.requestedUri.queryParameters['q'] ?? '';
-  String packagePrefix = request.url.queryParameters['pkg-prefix'];
-
-  if (queryText != null) {
-    final Match pkgMatch = _packageRegexp.firstMatch(queryText);
-    if (pkgMatch != null) {
-      packagePrefix = pkgMatch.group(1).trim();
-      queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
-    }
-  }
-
+  final String queryText = request.requestedUri.queryParameters['q'] ?? '';
   final String sortParam = request.requestedUri.queryParameters['sort'];
   final SearchOrder sortOrder =
       sortParam == null ? null : parseSearchOrder(sortParam);
@@ -450,10 +426,9 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
   List<PackageView> packageViews;
   SearchQuery searchQuery;
   if (platform != null || queryText.isNotEmpty) {
-    searchQuery = new SearchQuery(queryText,
-        platformPredicate: platform == null
-            ? null
-            : new PlatformPredicate(required: [platform]),
+    searchQuery = new SearchQuery.parse(
+        text: queryText,
+        platform: platform,
         order: sortOrder,
         offset: offset,
         limit: PackageLinks.resultsPerPage);
@@ -840,7 +815,8 @@ Future<shelf.Response> flutterPackagesHandler(shelf.Request request) async {
     request,
     page,
     basePath: '/flutter/packages',
-    platformPredicate: new PlatformPredicate.only(KnownPlatforms.flutter),
+    platform:
+        new PlatformPredicate.only(KnownPlatforms.flutter).toQueryParamValue(),
     title: 'Flutter Packages',
     faviconUrl: LogoUrls.flutterLogo32x32,
     descriptionHtml: flutterPackagesDescriptionHtml,
