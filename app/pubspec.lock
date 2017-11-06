@@ -60,19 +60,19 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.2+1"
+    version: "0.11.0"
   build_barback:
     description:
       name: build_barback
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0+1"
+    version: "0.4.0+2"
   build_runner:
     description:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.0"
+    version: "0.6.0+1"
   charcode:
     description:
       name: charcode
@@ -228,13 +228,13 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.0"
+    version: "0.2.1"
   json_serializable:
     description:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.4+1"
+    version: "0.2.5"
   kernel:
     description:
       name: kernel
@@ -378,7 +378,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.2"
+    version: "0.7.2+1"
   source_map_stack_trace:
     description:
       name: source_map_stack_trace
@@ -470,4 +470,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.5.0"
+  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.6.0"
