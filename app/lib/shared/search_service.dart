@@ -246,8 +246,9 @@ class SearchQuery {
     if (hasPackagePrefix) {
       params['pkg-prefix'] = packagePrefix;
     }
-    if (order != null && order != SearchOrder.top) {
-      params['order'] = serializeSearchOrder(order);
+    if (order != null) {
+      final String paramName = v2 ? 'sort' : 'order';
+      params[paramName] = serializeSearchOrder(order);
     }
     if (page != null) {
       params['page'] = page.toString();

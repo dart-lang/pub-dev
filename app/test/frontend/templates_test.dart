@@ -267,6 +267,7 @@ void main() {
     });
 
     test('package index page with search v2', () {
+      final searchQuery = new SearchQuery('foobar', order: SearchOrder.top);
       final String html = templates.renderPkgIndexPageV2(
         [
           new PackageView.fromModel(
@@ -280,9 +281,9 @@ void main() {
             analysis: new AnalysisExtract(platforms: ['flutter']),
           ),
         ],
-        new PackageLinks.empty(),
+        new PackageLinks(0, 50, searchQuery: searchQuery),
         null,
-        searchQuery: new SearchQuery('foobar'),
+        searchQuery: searchQuery,
         totalCount: 2,
       );
       expectGoldenFile(html, 'v2/search_page.html');
