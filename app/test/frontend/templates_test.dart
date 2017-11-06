@@ -165,7 +165,8 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new MockAnalysisView()..licenseText = 'BSD');
+          new MockAnalysisView()
+            ..licenses = [new LicenseFile('license.txt', 'BSD')]);
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
@@ -178,7 +179,8 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new MockAnalysisView()..licenseText = 'BSD');
+          new MockAnalysisView()
+            ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
       expectGoldenFile(html, 'v2/pkg_show_page.html');
     });
 
@@ -489,7 +491,7 @@ class MockAnalysisView implements AnalysisView {
   double health;
 
   @override
-  String licenseText;
+  List<LicenseFile> licenses;
 
   @override
   DateTime timestamp;

@@ -18,6 +18,7 @@ import 'analyzer_service.dart';
 import 'platform.dart';
 import 'utils.dart';
 
+export 'package:pana/pana.dart' show LicenseFile;
 export 'analyzer_service.dart';
 
 /// Sets the analyzer client.
@@ -129,13 +130,7 @@ class AnalysisView {
 
   List<String> get platforms => indexDartPlatform(_summary?.platform);
 
-  String get licenseText {
-    final hasLicense = _summary?.licenses?.isNotEmpty ?? false;
-    if (hasLicense && _summary.licenses.first.name != LicenseNames.unknown) {
-      return _summary.licenses.first.shortFormatted;
-    }
-    return null;
-  }
+  List<LicenseFile> get licenses => _summary?.licenses;
 
   List<String> getTransitiveDependencies() {
     final List<String> list = _summary?.pkgResolution?.dependencies
