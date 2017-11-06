@@ -291,7 +291,8 @@ main, .site-header {
     transition: transform .3s ease, -webkit-transform .3s ease;
     -webkit-transform: translateX(-100%);
             transform: translateX(-100%);
-    min-width: 270px
+    min-width: 270px;
+    z-index: 1;
   }
 
   .nav-wrap.-show{
