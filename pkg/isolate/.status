@@ -1,0 +1,11 @@
+# Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $runtime == vm ]
+test/isolaterunner_test: RuntimeError  # addOnExitListener not implemented.
+
+[ $compiler == dart2js ]
+test/registry_test: CompileTimeError  # Unimplemented: private symbol literals.
+# FunctionRef will be removed when the VM supports sending functions.
+test/isolaterunner_test: RuntimeError  # Mirrors not working - FunctionRef broken.

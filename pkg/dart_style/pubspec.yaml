@@ -1,0 +1,31 @@
+name: dart_style
+# Note: See tool/grind.dart for how to bump the version.
+version: 1.0.8
+author: Dart Team <misc@dartlang.org>
+description: Opinionated, automatic Dart source code formatter.
+homepage: https://github.com/dart-lang/dart_style
+environment:
+  sdk: ">=1.8.0 <2.0.0"
+dependencies:
+  analyzer: '^0.30.0'
+  args: '>=0.12.1 <2.0.0'
+  path: '>=1.0.0 <2.0.0'
+  source_span: '>=1.4.0 <2.0.0'
+dev_dependencies:
+  async: '>=1.0.0 <=2.0.0'
+  browser: '>=0.10.0 <0.11.0'
+  grinder: '^0.8.0'
+  js: ^0.6.0
+  node_preamble: ^1.0.0
+  pub_semver: '^1.2.3'
+  scheduled_test: '>=0.12.0 <0.13.0'
+  test: '>=0.12.0 <0.13.0'
+  yaml: '^2.0.0'
+executables:
+  dartfmt: format
+  dartformat: format # Allow the old name for compatibility.
+# Tell the bots not to bother building the tests since they don't run in a
+# browser anyway.
+transformers:
+- $dart2js:
+    $exclude: 'test/**'

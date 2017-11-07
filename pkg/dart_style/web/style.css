@@ -1,0 +1,43 @@
+body {
+  margin: 40px;
+}
+
+h2 {
+  font: 24px normal Georgia, serif;
+}
+
+pre, textarea {
+  font: 14px monospace;
+}
+
+pre, textarea {
+  margin: 0;
+  padding: 0;
+}
+
+.code-area {
+  position: relative;
+  background: hsl(220, 10%, 95%);
+  z-index: 1;
+  width: 800px;
+  overflow: hidden;
+}
+
+.column-marker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+
+  color: hsl(220, 10%, 80%);
+}
+
+textarea {
+  position: relative;
+  z-index: 2;
+
+  border: none;
+  outline: none;
+  background: none;
+  color: hsl(220, 10%, 40%);
+}

@@ -1,10 +1,11 @@
 FROM google/dart-runtime-base:1.25.0-dev.9.0
 
- # After install we remove the apt-index again to keep the docker image diff small.
- RUN apt-get update && \
-     apt-get upgrade -y && \
-     apt-get install -y git unzip && \
-     rm -rf /var/lib/apt/lists/*
+# We install memcached and remove the apt-index again to keep the
+# docker image diff small.
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git memcached unzip && \
+    rm -rf /var/lib/apt/lists/*
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
@@ -27,4 +28,4 @@ RUN pub get --offline
 # Clear out any arguments the base images might have set and ensure we start
 # memcached and wait for it to come up before running the Dart app.
 CMD []
-ENTRYPOINT /bin/bash /dart_runtime/dart_run.sh
+ENTRYPOINT service memcached start && sleep 1 && /bin/bash /dart_runtime/dart_run.sh

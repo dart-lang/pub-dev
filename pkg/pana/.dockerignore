@@ -1,0 +1,7 @@
+input_packages.*
+.dart_tool/
+.pub/
+bin/runner.dart
+test/*
+tool/*
+results/*

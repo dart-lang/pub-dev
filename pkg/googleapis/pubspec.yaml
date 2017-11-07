@@ -1,0 +1,13 @@
+name: googleapis
+version: 0.36.0
+author: Dart Team <misc@dartlang.org>
+description: "Auto-generated client libraries for accessing the following APIs:acceleratedmobilepageurl:v1, adexchangebuyer:v1.3, adexchangebuyer:v1.4, adexchangeseller:v1.1, adexchangeseller:v2.0, admin:datatransfer_v1, admin:directory_v1, admin:reports_v1, adsense:v1.4, adsensehost:v4.1, analytics:v3, analyticsreporting:v4, androidenterprise:v1, androidpublisher:v2, appengine:v1, appsactivity:v1, appstate:v1, bigquery:v2, blogger:v3, books:v1, calendar:v3, civicinfo:v2, classroom:v1, cloudbilling:v1, cloudbuild:v1, clouddebugger:v2, cloudresourcemanager:v1, cloudtrace:v1, compute:v1, consumersurveys:v2, container:v1, content:v2, content:v2sandbox, customsearch:v1, dataproc:v1, datastore:v1, deploymentmanager:v2, dfareporting:v2.6, dfareporting:v2.7, discovery:v1, dns:v1, doubleclickbidmanager:v1, doubleclicksearch:v2, drive:v2, drive:v3, firebasedynamiclinks:v1, firebaserules:v1, fitness:v1, fusiontables:v1, fusiontables:v2, games:v1, gamesConfiguration:v1configuration, gamesManagement:v1management, genomics:v1, gmail:v1, groupsmigration:v1, groupssettings:v1, iam:v1, identitytoolkit:v3, kgsearch:v1, language:v1, licensing:v1, logging:v2, manufacturers:v1, mirror:v1, monitoring:v3, oauth2:v2, pagespeedonline:v1, pagespeedonline:v2, partners:v2, people:v1, playmoviespartner:v1, plus:v1, plusDomains:v1, prediction:v1.6, pubsub:v1, qpxExpress:v1, reseller:v1, runtimeconfig:v1, safebrowsing:v4, script:v1, searchconsole:v1, servicecontrol:v1, servicemanagement:v1, serviceuser:v1, sheets:v4, siteVerification:v1, slides:v1, sourcerepo:v1, spanner:v1, storage:v1, storagetransfer:v1, surveys:v2, tagmanager:v1, tasks:v1, tracing:v1, translate:v2, urlshortener:v1, vision:v1, webfonts:v1, webmasters:v3, youtube:v3, youtubeAnalytics:v1, youtubereporting:v1"
+homepage: http://www.dartlang.org/googleapis/
+environment:
+  sdk: '>=1.14.0 <2.0.0'
+dependencies:
+  # This is a private package dependency used by the generated client stubs.
+  _discoveryapis_commons: '>=0.1.0 <0.2.0'
+  http: '>=0.11.1 <0.12.0'
+dev_dependencies:
+  unittest: '>=0.10.0 <0.12.0'

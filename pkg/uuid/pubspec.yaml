@@ -1,0 +1,13 @@
+name: uuid
+version: 0.5.3
+description: >
+  RFC4122(v1,v4,v5) UUID Generator and Parser.
+author: Yulian Kuncheff <yulian@kuncheff.com>
+homepage: https://github.com/Daegalus/dart-uuid
+environment:
+  sdk: ">=1.0.0 <2.0.0"
+dependencies:
+  crypto: ">=1.0.0 <3.0.0"
+  convert: ">=1.0.0 <3.0.0"
+dev_dependencies:
+  test: any

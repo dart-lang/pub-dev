@@ -1,0 +1,94 @@
+>>> asterisk, plus and hyphen
+* star
+- dash
++ plus
+
+<<<
+<ul><li>star</li></ul><ul><li>dash</li></ul><ul><li>plus</li></ul>
+>>> new markers begin new lists
+* a
+1. b
+
+<<<
+<ul><li>a</li></ul><ol><li>b</li></ol>
+>>> allow a tab after the marker
+*	a
+1.	b
+
+<<<
+<ul><li>a</li></ul><ol><li>b</li></ol>
+>>> wrap items in paragraphs if blank lines separate
+* one
+
+* two
+
+<<<
+<ul><li>
+<p>one</p></li><li>
+<p>two</p></li></ul>
+>>> force paragraph on item before and after blank lines
+* one
+* two
+
+* three
+
+<<<
+<ul><li>
+<p>one</p></li><li>
+<p>two</p></li><li>
+<p>three</p></li></ul>
+>>> do not force paragraph if item is already block
+* > quote
+
+* # header
+
+<<<
+<ul><li>
+<blockquote>
+<p>quote</p></blockquote></li><li>
+<h1>header</h1></li></ul>
+>>> can contain multiple paragraphs
+* one
+
+  two
+
+* three
+
+<<<
+<ul><li>
+<p>one</p>
+<p>two</p></li><li>
+<p>three</p></li></ul>
+>>> can span newlines
+* one
+  two
+* three
+
+<<<
+<ul><li>one
+two</li><li>three</li></ul>
+>>> can nest lists
+* one
+  * nested one
+  * nested two
+
+* two
+
+<<<
+<ul><li>
+<p>one</p><ul><li>nested one</li><li>nested two</li></ul></li><li>
+<p>two</p></li></ul>
+>>> list item allows lazy continuations
+- list
+item
+
+<<<
+<ul><li>list
+item</li></ul>
+>>> list item turns what might be an h2 into nothing
+- list
+---
+
+<<<
+<ul><li>list</li></ul>
+<hr />

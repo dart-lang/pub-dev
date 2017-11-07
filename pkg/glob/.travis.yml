@@ -1,0 +1,27 @@
+language: dart
+
+# Speed up builds by using containerization.
+sudo: false
+
+dart:
+  - dev
+  - stable
+
+# See https://docs.travis-ci.com/user/languages/dart/ for details.
+dart_task:
+  - test: --platform vm,dartium,firefox
+    install_dartium: true
+  - dartanalyzer
+
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only: [master]
+
+matrix:
+  include:
+    - dart: stable
+      dart_task: dartfmt
+
+cache:
+  directories:
+    - $HOME/.pub-cache

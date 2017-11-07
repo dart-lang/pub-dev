@@ -1,0 +1,29 @@
+*/packages/*: Skip
+*/*/packages/*: Skip
+*/*/*/packages/*: Skip
+
+[ $runtime == vm ]
+test/oauth2_flows/implicit/*: Skip # Uses dart:html
+build/test/oauth2_flows/implicit/*: Skip # Uses dart:html
+
+[ $runtime != vm ]
+test/oauth2_flows/auth_code_test: Skip # Uses dart:io
+build/test/oauth2_flows/auth_code_test: Skip # Uses dart:io
+
+[ $compiler == dart2js ]
+test/crypto/pem_test: Skip # Big integer
+test/crypto/rsa_sign_test: Skip # Big integer
+test/crypto/rsa_sign_test: Skip # Big integer
+test/crypto/rsa_test: Skip # Big integer
+test/oauth2_flows/jwt_test: Skip # Big integer
+test/oauth2_test: Skip # Big integer
+
+build/test/crypto/pem_test: Skip # Big integer
+build/test/crypto/rsa_sign_test: Skip # Big integer
+build/test/crypto/rsa_sign_test: Skip # Big integer
+build/test/crypto/rsa_test: Skip # Big integer
+build/test/oauth2_flows/jwt_test: Skip # Big integer
+build/test/oauth2_test: Skip # Big integer
+
+[ $compiler == dart2js && ($runtime == d8 || $runtime == jsshell) ]
+*: Skip

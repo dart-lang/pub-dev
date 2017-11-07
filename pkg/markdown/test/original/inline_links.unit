@@ -1,0 +1,63 @@
+>>> double quotes for title
+links [are](http://foo.com "woo") awesome
+
+<<<
+<p>links <a href="http://foo.com" title="woo">are</a> awesome</p>
+>>> no title
+links [are](http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com">are</a> awesome</p>
+>>> can style link contents
+links [*are*](http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com"><em>are</em></a> awesome</p>
+>>> image inside link
+links [![](/are.png)](http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com"><img alt="" src="/are.png" /></a> awesome</p>
+>>> image with alt inside link
+links [![my alt](/are.png)](http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com"><img alt="my alt" src="/are.png" /></a> awesome</p>
+>>> image with title inside link
+links [![](/are.png "my title")](http://foo.com) awesome
+
+<<<
+<p>links <a href="http://foo.com"><img alt="" src="/are.png" title="my title" /></a> awesome</p>
+>>> no URL
+links [are]() awesome
+
+<<<
+<p>links <a href="">are</a> awesome</p>
+>>> URL wrapped in angle brackets
+links [are](<http://example.com>) awesome
+
+<<<
+<p>links <a href="http://example.com">are</a> awesome</p>
+>>> multi-line link
+links [are
+awesome](<http://example.com>).
+
+<<<
+<p>links <a href="http://example.com">are
+awesome</a>.</p>
+>>> multi-line link with a title
+links [are](http://foo.com
+"woo") awesome
+
+<<<
+<p>links <a href="http://foo.com" title="woo">are</a> awesome</p>
+>>> not a real link
+links [are] (http://foo.com) awesome
+
+<<<
+<p>links [are] (http://foo.com) awesome</p>
+>>> resolver link without a resolver
+links [are *awesome*]
+
+<<<
+<p>links [are <em>awesome</em>]</p>

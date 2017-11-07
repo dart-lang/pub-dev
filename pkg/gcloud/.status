@@ -1,0 +1,39 @@
+*/packages/*: Skip
+*/*/packages/*: Skip
+*/*/*/packages/*: Skip
+
+# We do not run the e2e tests inside the build/ directory in order to prevent
+# ./tools/test.py from running several e2e in parallel.
+build/test/db_all_e2e_test: Skip
+build/test/storage/e2e_test: Skip
+build/test/pubsub/pubsub_e2e_test: Skip
+
+# This test is slow because
+# - eventual consistency forces us to put in sleep()s
+# - it does e2e testing
+# - it combines several tests to avoid concurrent tests touching the same data
+test/db_all_e2e_test: Slow, Pass
+
+# This test is slow because
+# - it does e2e testing
+test/pubsub/pubsub_e2e_test: Slow, Pass
+
+[ $browser ]
+build/test/storage/e2e_test: Skip
+test/storage/e2e_test: Skip
+
+build/test/db_all_e2e_test: Skip
+test/db_all_e2e_test: Skip
+
+build/test/pubsub/pubsub_e2e_test: Skip
+test/pubsub/pubsub_e2e_test: Skip
+
+# Imports common_e2e.dart, which uses dart:io
+build/test/storage/storage_test: Skip
+test/storage/storage_test: Skip
+
+build/test/pubsub/pubsub_test: Skip
+test/pubsub/pubsub_test: Skip
+
+[ $compiler == dart2js ]
+*: Skip

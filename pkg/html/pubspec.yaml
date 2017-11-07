@@ -1,0 +1,14 @@
+name: html
+version: 0.13.2
+author: Dart Team <misc@dartlang.org>
+description: A library for working with HTML documents. Previously known as html5lib.
+homepage: https://github.com/dart-lang/html
+environment:
+  sdk: '>=1.21.0 <2.0.0'
+dependencies:
+  csslib: '>=0.13.2 <0.15.0'
+  source_span: '>=1.0.0 <2.0.0'
+  utf: '>=0.9.0 <0.10.0'
+dev_dependencies:
+  path: '>=0.9.0 <2.0.0'
+  unittest: '>=0.10.0 <0.12.0'

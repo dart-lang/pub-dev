@@ -1,0 +1,24 @@
+language: dart
+sudo: false
+dart:
+  - dev
+  - stable
+dart_task:
+  # Run the tests -- include the default-skipped presubmit tests
+  - test: --run-skipped
+  - dartfmt: sdk
+  - dartanalyzer
+
+matrix:
+  exclude:
+    - dart: stable
+      dart_task:
+        dartfmt: sdk
+
+# Only building master means that we don't run two builds for each pull request.
+branches:
+  only: [master]
+
+cache:
+  directories:
+    - $HOME/.pub-cache

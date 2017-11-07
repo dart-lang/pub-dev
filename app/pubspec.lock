@@ -3,9 +3,9 @@
 packages:
   _discoveryapis_commons:
     description:
-      name: _discoveryapis_commons
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/_discoveryapis_commons"
+      relative: true
+    source: path
     version: "0.1.4"
   _popularity:
     description:
@@ -15,459 +15,459 @@ packages:
     version: "0.0.0"
   analyzer:
     description:
-      name: analyzer
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/analyzer"
+      relative: true
+    source: path
     version: "0.30.0+4"
   appengine:
     description:
-      name: appengine
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/appengine"
+      relative: true
+    source: path
     version: "0.4.2"
   archive:
     description:
-      name: archive
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/archive"
+      relative: true
+    source: path
     version: "1.0.31"
   args:
     description:
-      name: args
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/args"
+      relative: true
+    source: path
     version: "0.13.7"
   async:
     description:
-      name: async
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/async"
+      relative: true
+    source: path
     version: "1.13.3"
   barback:
     description:
-      name: barback
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/barback"
+      relative: true
+    source: path
     version: "0.15.2+13"
   boolean_selector:
     description:
-      name: boolean_selector
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/boolean_selector"
+      relative: true
+    source: path
     version: "1.0.2"
   build:
     description:
-      name: build
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.11.0"
+      path: "../pkg/build"
+      relative: true
+    source: path
+    version: "0.10.2+1"
   build_barback:
     description:
-      name: build_barback
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0+2"
+      path: "../pkg/build_barback"
+      relative: true
+    source: path
+    version: "0.4.0+1"
   build_runner:
     description:
-      name: build_runner
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.6.0+1"
+      path: "../pkg/build_runner"
+      relative: true
+    source: path
+    version: "0.5.0"
   charcode:
     description:
-      name: charcode
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/charcode"
+      relative: true
+    source: path
     version: "1.1.1"
   cli_util:
     description:
-      name: cli_util
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/cli_util"
+      relative: true
+    source: path
     version: "0.1.2+1"
   code_transformers:
     description:
-      name: code_transformers
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/code_transformers"
+      relative: true
+    source: path
     version: "0.5.1+3"
   collection:
     description:
-      name: collection
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/collection"
+      relative: true
+    source: path
     version: "1.14.3"
   convert:
     description:
-      name: convert
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/convert"
+      relative: true
+    source: path
     version: "2.0.1"
   crypto:
     description:
-      name: crypto
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/crypto"
+      relative: true
+    source: path
     version: "2.0.2+1"
   csslib:
     description:
-      name: csslib
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/csslib"
+      relative: true
+    source: path
     version: "0.14.1"
   dart_style:
     description:
-      name: dart_style
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/dart_style"
+      relative: true
+    source: path
     version: "1.0.8"
   fixnum:
     description:
-      name: fixnum
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/fixnum"
+      relative: true
+    source: path
     version: "0.10.6"
   front_end:
     description:
-      name: front_end
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/front_end"
+      relative: true
+    source: path
     version: "0.1.0-alpha.4.1"
   gcloud:
     description:
-      name: gcloud
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/gcloud"
+      relative: true
+    source: path
     version: "0.4.0+1"
   glob:
     description:
-      name: glob
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/glob"
+      relative: true
+    source: path
     version: "1.1.5"
   googleapis:
     description:
-      name: googleapis
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/googleapis"
+      relative: true
+    source: path
     version: "0.36.0"
   googleapis_auth:
     description:
-      name: googleapis_auth
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/googleapis_auth"
+      relative: true
+    source: path
     version: "0.2.3+6"
   googleapis_beta:
     description:
-      name: googleapis_beta
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/googleapis_beta"
+      relative: true
+    source: path
     version: "0.39.2"
   html:
     description:
-      name: html
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/html"
+      relative: true
+    source: path
     version: "0.13.2"
   http:
     description:
-      name: http
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/http"
+      relative: true
+    source: path
     version: "0.11.3+16"
   http2:
     description:
-      name: http2
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/http2"
+      relative: true
+    source: path
     version: "0.1.5"
   http_multi_server:
     description:
-      name: http_multi_server
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/http_multi_server"
+      relative: true
+    source: path
     version: "2.0.4"
   http_parser:
     description:
-      name: http_parser
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/http_parser"
+      relative: true
+    source: path
     version: "3.1.1"
   http_server:
     description:
-      name: http_server
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/http_server"
+      relative: true
+    source: path
     version: "0.9.6"
   intl:
     description:
-      name: intl
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/intl"
+      relative: true
+    source: path
     version: "0.15.2"
   io:
     description:
-      name: io
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/io"
+      relative: true
+    source: path
     version: "0.3.0"
   isolate:
     description:
-      name: isolate
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/isolate"
+      relative: true
+    source: path
     version: "1.1.0"
   js:
     description:
-      name: js
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/js"
+      relative: true
+    source: path
     version: "0.6.1"
   json_annotation:
     description:
-      name: json_annotation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.1"
+      path: "../pkg/json_annotation"
+      relative: true
+    source: path
+    version: "0.2.0"
   json_serializable:
     description:
-      name: json_serializable
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.5"
+      path: "../pkg/json_serializable"
+      relative: true
+    source: path
+    version: "0.2.4+1"
   kernel:
     description:
-      name: kernel
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/kernel"
+      relative: true
+    source: path
     version: "0.3.0-alpha.1.1"
   logging:
     description:
-      name: logging
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/logging"
+      relative: true
+    source: path
     version: "0.11.3+1"
   markdown:
     description:
-      name: markdown
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
+      path: "../pkg/markdown"
+      relative: true
+    source: path
+    version: "0.11.4"
   matcher:
     description:
-      name: matcher
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/matcher"
+      relative: true
+    source: path
     version: "0.12.1+4"
   memcache:
     description:
-      name: memcache
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/memcache"
+      relative: true
+    source: path
     version: "0.2.1+1"
   meta:
     description:
-      name: meta
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/meta"
+      relative: true
+    source: path
     version: "1.1.2"
   mime:
     description:
-      name: mime
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/mime"
+      relative: true
+    source: path
     version: "0.9.4"
   mustache:
     description:
-      name: mustache
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/mustache"
+      relative: true
+    source: path
     version: "0.2.5+1"
   node_preamble:
     description:
-      name: node_preamble
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/node_preamble"
+      relative: true
+    source: path
     version: "1.4.0"
   package_config:
     description:
-      name: package_config
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/package_config"
+      relative: true
+    source: path
     version: "1.0.3"
   package_resolver:
     description:
-      name: package_resolver
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/package_resolver"
+      relative: true
+    source: path
     version: "1.0.2"
   pana:
     description:
-      name: pana
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/pana"
+      relative: true
+    source: path
     version: "0.5.1"
   path:
     description:
-      name: path
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/path"
+      relative: true
+    source: path
     version: "1.4.2"
   plugin:
     description:
-      name: plugin
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/plugin"
+      relative: true
+    source: path
     version: "0.2.0+2"
   pool:
     description:
-      name: pool
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/pool"
+      relative: true
+    source: path
     version: "1.3.3"
   protobuf:
     description:
-      name: protobuf
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/protobuf"
+      relative: true
+    source: path
     version: "0.5.5"
   pub_semver:
     description:
-      name: pub_semver
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/pub_semver"
+      relative: true
+    source: path
     version: "1.3.2"
   pub_server:
     description:
-      name: pub_server
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.1+4"
+      path: "../pkg/pub_server"
+      relative: true
+    source: path
+    version: "0.1.2"
   quiver:
     description:
-      name: quiver
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/quiver"
+      relative: true
+    source: path
     version: "0.25.0"
   shelf:
     description:
-      name: shelf
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/shelf"
+      relative: true
+    source: path
     version: "0.7.1"
   shelf_packages_handler:
     description:
-      name: shelf_packages_handler
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/shelf_packages_handler"
+      relative: true
+    source: path
     version: "1.0.3"
   shelf_static:
     description:
-      name: shelf_static
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/shelf_static"
+      relative: true
+    source: path
     version: "0.2.6"
   shelf_web_socket:
     description:
-      name: shelf_web_socket
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/shelf_web_socket"
+      relative: true
+    source: path
     version: "0.2.2"
   source_gen:
     description:
-      name: source_gen
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.2+1"
+      path: "../pkg/source_gen"
+      relative: true
+    source: path
+    version: "0.7.2"
   source_map_stack_trace:
     description:
-      name: source_map_stack_trace
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/source_map_stack_trace"
+      relative: true
+    source: path
     version: "1.1.4"
   source_maps:
     description:
-      name: source_maps
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/source_maps"
+      relative: true
+    source: path
     version: "0.10.4"
   source_span:
     description:
-      name: source_span
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/source_span"
+      relative: true
+    source: path
     version: "1.4.0"
   stack_trace:
     description:
-      name: stack_trace
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/stack_trace"
+      relative: true
+    source: path
     version: "1.8.3"
   stream_channel:
     description:
-      name: stream_channel
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/stream_channel"
+      relative: true
+    source: path
     version: "1.6.2"
   stream_transform:
     description:
-      name: stream_transform
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/stream_transform"
+      relative: true
+    source: path
     version: "0.0.9"
   string_scanner:
     description:
-      name: string_scanner
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/string_scanner"
+      relative: true
+    source: path
     version: "1.0.2"
   term_glyph:
     description:
-      name: term_glyph
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/term_glyph"
+      relative: true
+    source: path
     version: "1.0.0"
   test:
     description:
-      name: test
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/test"
+      relative: true
+    source: path
     version: "0.12.26"
   typed_data:
     description:
-      name: typed_data
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/typed_data"
+      relative: true
+    source: path
     version: "1.1.5"
   utf:
     description:
-      name: utf
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/utf"
+      relative: true
+    source: path
     version: "0.9.0+3"
   uuid:
     description:
-      name: uuid
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/uuid"
+      relative: true
+    source: path
     version: "0.5.3"
   watcher:
     description:
-      name: watcher
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/watcher"
+      relative: true
+    source: path
     version: "0.9.7+4"
   web_socket_channel:
     description:
-      name: web_socket_channel
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/web_socket_channel"
+      relative: true
+    source: path
     version: "1.0.6"
   yaml:
     description:
-      name: yaml
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../pkg/yaml"
+      relative: true
+    source: path
     version: "2.1.13"
 sdks:
-  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.6.0"
+  dart: ">=1.25.0-dev.9.0 <=2.0.0-edge.74f4c4f3e6a318889107d152c54fbb4fa50dbafc"
