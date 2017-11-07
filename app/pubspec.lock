@@ -126,7 +126,7 @@ packages:
       name: fixnum
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.6"
+    version: "0.10.5"
   front_end:
     description:
       name: front_end
@@ -162,7 +162,7 @@ packages:
       name: googleapis_beta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.39.2"
+    version: "0.39.1"
   html:
     description:
       name: html
@@ -180,7 +180,7 @@ packages:
       name: http2
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.5"
+    version: "0.1.6"
   http_multi_server:
     description:
       name: http_multi_server
@@ -264,7 +264,7 @@ packages:
       name: memcache
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.1+1"
+    version: "0.2.1+2"
   meta:
     description:
       name: meta
@@ -330,7 +330,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.5"
+    version: "0.5.4"
   pub_semver:
     description:
       name: pub_semver
@@ -342,7 +342,7 @@ packages:
       name: pub_server
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.1+4"
+    version: "0.1.2"
   quiver:
     description:
       name: quiver
@@ -402,7 +402,7 @@ packages:
       name: stack_trace
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.3"
+    version: "1.9.0"
   stream_channel:
     description:
       name: stream_channel
@@ -432,7 +432,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.26"
+    version: "0.12.27"
   typed_data:
     description:
       name: typed_data
