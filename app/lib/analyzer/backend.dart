@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_memcache.dart';
+import '../shared/analyzer_service.dart';
 import '../shared/utils.dart';
 
 import 'models.dart';
@@ -26,6 +27,7 @@ final Logger _logger = new Logger('pub.analyzer.backend');
 
 const Duration freshThreshold = const Duration(hours: 12);
 const Duration reanalyzeThreshold = const Duration(days: 30);
+const Duration regressionThreshold = const Duration(days: 45);
 const Duration obsoleteThreshold = const Duration(days: 180);
 
 /// Datastore-related access methods for the analyzer service
@@ -102,6 +104,11 @@ class AnalysisBackend {
       PackageAnalysis package = parents[0];
       PackageVersionAnalysis version = parents[1];
       final isNewVersion = version == null;
+      final isRegression = version != null &&
+          version.panaVersion == panaVersion &&
+          version.flutterVersion == flutterVersion &&
+          (analysisStatusLevel(version.analysisStatus) >
+              analysisStatusLevel(analysis.analysisStatus));
 
       final List<Model> inserts = [];
       if (package == null) {
@@ -111,19 +118,22 @@ class AnalysisBackend {
         inserts.add(package);
       }
 
-      final DateTime prevTimestamp = version?.analysisTimestamp;
+      final Duration ageDiff = version == null
+          ? null
+          : analysis.timestamp.difference(version.analysisTimestamp);
       if (version == null) {
         version = new PackageVersionAnalysis.fromAnalysis(analysis);
         inserts.add(version);
       } else if (version.updateWithLatest(analysis)) {
         inserts.add(version);
       }
-      final bool wasRace = inserts.isEmpty &&
-          prevTimestamp != null &&
-          version.analysisTimestamp.difference(prevTimestamp) < freshThreshold;
+      final bool wasRace =
+          inserts.isEmpty && ageDiff != null && ageDiff < freshThreshold;
       final isLatestStable = package.latestVersion == version.packageVersion;
+      final bool preventRegression =
+          isRegression && ageDiff != null && ageDiff < regressionThreshold;
 
-      if (wasRace) {
+      if (wasRace || preventRegression) {
         await tx.rollback();
       } else {
         inserts.add(analysis);
