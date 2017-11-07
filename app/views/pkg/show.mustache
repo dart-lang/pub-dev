@@ -123,10 +123,10 @@ dependencies:
     <h4>{{package.uploaders_title}}</h4>
     <p>{{& package.uploaders_html}}</p>
 
-    {{#package.license}}
+    {{#package.license_html}}
       <h4>License</h4>
-      <p>{{package.license}}</p>
-    {{/package.license}}
+      <p>{{& package.license_html}}</p>
+    {{/package.license_html}}
 
     <h4>Published</h4>
     <p>{{package.short_created}}</p>

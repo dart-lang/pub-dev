@@ -125,10 +125,10 @@ import 'package:{{package}}/{{library}}';
     <h3 class="title">{{package.uploaders_title}}</h3>
     <p>{{& package.uploaders_html}}</p>
 
-    {{#package.license}}
+    {{#package.license_html}}
       <h3 class="title">License</h3>
-      <p>{{package.license}}</p>
-    {{/package.license}}
+      <p>{{& package.license_html}}</p>
+    {{/package.license_html}}
   </aside>
 </div>
 
