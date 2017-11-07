@@ -8,6 +8,13 @@ import 'dart:io';
 
 HttpClient httpClient = new HttpClient();
 
+void die(String msg) {
+  print('$msg:');
+  print('deploy.dart ( app | analyzer | dartdoc | search | all ) '
+      '[ --delete-old ] [ --migrate ]');
+  exit(1);
+}
+
 Future main(List<String> args) async {
   List<String> services;
   if (args.isNotEmpty) {
@@ -36,10 +43,14 @@ Future main(List<String> args) async {
   }
 
   if (services == null) {
-    print('Specify at least one argument:');
-    print(
-        'deploy.dart ( app | analyzer | dartdoc | search | all ) [ --delete-old ]');
-    exit(1);
+    die('Specify at least one argument');
+  }
+
+  final bool deleteOld = args.contains('--delete-old');
+  final bool migrateTraffic = args.contains('--migrate');
+
+  if (deleteOld && !migrateTraffic) {
+    die('Cannot delete the old version without migrating traffic');
   }
 
   String newVersion = new DateTime.now()
@@ -51,10 +62,10 @@ Future main(List<String> args) async {
       .first;
   print('New version: $newVersion');
 
-  final bool deleteOld = args.contains('--delete-old');
   for (String service in services) {
     print('\nDeploying $service...\n');
-    await new _ServiceDeployer(service, newVersion, deleteOld).deploy();
+    await new _ServiceDeployer(service, newVersion, deleteOld, migrateTraffic)
+        .deploy();
   }
 
   httpClient.close(force: true);
@@ -64,14 +75,13 @@ class _ServiceDeployer {
   final String project;
   final String service;
   final String newVersion;
-  final bool migrateTraffic;
   final bool deleteOld;
+  final bool migrateTraffic;
   String _oldVersion;
 
-  _ServiceDeployer(this.service, this.newVersion, this.deleteOld)
-      : project = Platform.environment['GCLOUD_PROJECT'],
-        migrateTraffic =
-            Platform.environment['GCLOUD_PROJECT'] != 'dartlang-pub-dev' {
+  _ServiceDeployer(
+      this.service, this.newVersion, this.deleteOld, this.migrateTraffic)
+      : project = Platform.environment['GCLOUD_PROJECT'] {
     if (project == null) {
       throw new StateError('GCLOUD_PROJECT must be set!');
     }
@@ -81,7 +91,9 @@ class _ServiceDeployer {
     await _detectOldVersion();
     await _gcloudDeploy();
     await _checkHealth();
-    await _migrateTraffic();
+    if (migrateTraffic) {
+      await _migrateTraffic();
+    }
     if (deleteOld) {
       await _deleteOldVersion();
     }
@@ -89,13 +101,9 @@ class _ServiceDeployer {
 
   Future _detectOldVersion() async {
     final pr = await _runGCloudApp(
-      ['versions', 'list', '--service', service, '--format=value(id)'],
-    );
-    if (pr.exitCode != 0) {
-      print('[ERR] Couldn\'t detect old $service version.');
-      print(pr.stderr);
-      return;
-    }
+        ['versions', 'list', '--service', service, '--format=value(id)'],
+        'Couldn\'t detect old $service version.');
+
     _oldVersion = pr.stdout.trim();
     if (_oldVersion.contains('\n')) {
       print('[WARN] Multiple existing versions detected: '
@@ -108,14 +116,9 @@ class _ServiceDeployer {
 
   Future _gcloudDeploy() async {
     final String yamlFile = service == 'default' ? 'app.yaml' : '$service.yaml';
-    final pr = await _runGCloudApp(
-      ['deploy', yamlFile, '--no-promote', '-v', newVersion, '-q'],
-    );
-    if (pr.exitCode != 0) {
-      print('[ERR] Couldn\'t deploy $service.');
-      print(pr.stderr);
-      exit(1);
-    }
+    await _runGCloudApp(
+        ['deploy', yamlFile, '--no-promote', '-v', newVersion, '-q'],
+        'Couldn\'t deploy $service.');
   }
 
   String get baseUrl {
@@ -157,34 +160,33 @@ class _ServiceDeployer {
       '--splits',
       '$newVersion=1',
     ];
-    if (migrateTraffic) {
-      args.add('--migrate');
-    }
     args.add('-q');
-    final pr = await _runGCloudApp(args);
-    if (pr.exitCode != 0) {
-      print('[ERR] Couldn\'t migrate traffic for $service.');
-      print(pr.stderr);
-      exit(1);
-    }
+    await _runGCloudApp(args, 'Couldn\'t migrate traffic for $service.');
   }
 
   Future _deleteOldVersion() async {
     if (_oldVersion == null) return;
-    final pr = await _runGCloudApp(
-        ['versions', 'delete', '--service', service, _oldVersion, '-q']);
-    if (pr.exitCode != 0) {
-      print('[ERR] Couldn\'t delete old version of $service.');
-      print(pr.stderr);
-      exit(1);
-    }
+    await _runGCloudApp(
+        ['versions', 'delete', '--service', service, _oldVersion, '-q'],
+        'Couldn\'t delete old version of $service.');
   }
 
-  Future<ProcessResult> _runGCloudApp(List<String> args) => Process.run(
-      'gcloud',
-      [
-        '--project',
-        project,
-        'app',
-      ]..addAll(args));
+  Future<ProcessResult> _runGCloudApp(
+      List<String> args, String errorMessage) async {
+    final allArgs = [
+      '--project',
+      project,
+      'app',
+    ]..addAll(args);
+
+    final pr = await Process.run('gcloud', allArgs);
+    if (pr.exitCode != 0) {
+      print('[ERR] $errorMessage');
+      print('Due to executing "gcloud ${allArgs.join(' ')}":');
+      print('stdout:\n    ${pr.stdout.replaceAll('\n', '    \n')}');
+      print('stderr:\n    ${pr.stderr.replaceAll('\n', '    \n')}');
+      exit(1);
+    }
+    return pr;
+  }
 }
