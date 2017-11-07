@@ -7,11 +7,11 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 
-const Duration indexUiPageExpiration = const Duration(minutes: 10);
-const Duration packageJsonExpiration = const Duration(minutes: 10);
-const Duration packageUiPageExpiration = const Duration(minutes: 10);
+const Duration indexUiPageExpiration = const Duration(minutes: 1);
+const Duration packageJsonExpiration = const Duration(minutes: 1);
+const Duration packageUiPageExpiration = const Duration(minutes: 1);
 const Duration analyzerDataExpiration = const Duration(minutes: 60);
-const Duration searchUiPageExpiration = const Duration(minutes: 10);
+const Duration searchUiPageExpiration = const Duration(minutes: 1);
 
 const String indexUiPageKey = 'pub_index';
 const String v2IndexUiPageKey = 'experimental/pub_index';
