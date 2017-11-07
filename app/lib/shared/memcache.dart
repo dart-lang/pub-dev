@@ -12,6 +12,7 @@ const Duration packageJsonExpiration = const Duration(minutes: 10);
 const Duration packageUiPageExpiration = const Duration(minutes: 10);
 const Duration analyzerDataExpiration = const Duration(minutes: 60);
 const Duration searchUiPageExpiration = const Duration(minutes: 10);
+const Duration memcacheRequestTimeout = const Duration(seconds: 5);
 
 const String indexUiPageKey = 'pub_index';
 const String v2IndexUiPageKey = 'experimental/pub_index';
@@ -33,7 +34,7 @@ class SimpleMemcache {
 
   Future<String> getText(String key) async {
     try {
-      return await _memcache.get(_key(key));
+      return await _memcache.get(_key(key)).timeout(memcacheRequestTimeout);
     } catch (e, st) {
       _logger.severe('Error accessing memcache:', e, st);
     }
@@ -43,7 +44,9 @@ class SimpleMemcache {
 
   Future setText(String key, String content) async {
     try {
-      await _memcache.set(_key(key), content, expiration: _expiration);
+      await _memcache
+          .set(_key(key), content, expiration: _expiration)
+          .timeout(memcacheRequestTimeout);
     } catch (e, st) {
       _logger.warning('Couldn\'t set memcache entry for $key', e, st);
     }
@@ -51,7 +54,9 @@ class SimpleMemcache {
 
   Future<List<int>> getBytes(String key) async {
     try {
-      return await _memcache.get(_key(key), asBinary: true);
+      return await _memcache
+          .get(_key(key), asBinary: true)
+          .timeout(memcacheRequestTimeout);
     } catch (e, st) {
       _logger.severe('Error accessing memcache:', e, st);
     }
@@ -61,7 +66,9 @@ class SimpleMemcache {
 
   Future setBytes(String key, List<int> content) async {
     try {
-      await _memcache.set(_key(key), content, expiration: _expiration);
+      await _memcache
+          .set(_key(key), content, expiration: _expiration)
+          .timeout(memcacheRequestTimeout);
     } catch (e, st) {
       _logger.warning('Couldn\'t set memcache entry for $key', e, st);
     }
@@ -70,7 +77,7 @@ class SimpleMemcache {
   Future invalidate(String key) async {
     _logger.info('Invalidating memcache key: $key');
     try {
-      await _memcache.remove(_key(key));
+      await _memcache.remove(_key(key)).timeout(memcacheRequestTimeout);
     } catch (e, st) {
       _logger.warning('Couldn\'t remove memcache entry for $key', e, st);
     }

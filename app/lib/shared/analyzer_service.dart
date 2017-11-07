@@ -24,6 +24,9 @@ class AnalysisKey {
 
   @override
   int get hashCode => package.hashCode ^ version.hashCode;
+
+  @override
+  String toString() => '$package $version';
 }
 
 /// These status codes mark the status of the analysis, not the result/report.
