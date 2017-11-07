@@ -54,7 +54,11 @@ class AnalyzerClient {
     final String cachedExtract =
         await analyzerMemcache?.getExtract(key.package, key.version);
     if (cachedExtract != null) {
-      return new AnalysisExtract.fromJson(JSON.decode(cachedExtract));
+      try {
+        return new AnalysisExtract.fromJson(JSON.decode(cachedExtract));
+      } catch (e, st) {
+        _logger.severe('Unable to parse analysis extract for $key', e, st);
+      }
     }
     final view = await getAnalysisView(key);
     final extract = new AnalysisExtract(
@@ -74,7 +78,11 @@ class AnalyzerClient {
     final String cachedContent = await analyzerMemcache?.getContent(
         key.package, key.version, panaVersion);
     if (cachedContent != null) {
-      return new AnalysisData.fromJson(JSON.decode(cachedContent));
+      try {
+        return new AnalysisData.fromJson(JSON.decode(cachedContent));
+      } catch (e, st) {
+        _logger.severe('Unable to parse analysis data for $key', e, st);
+      }
     }
     final String uri =
         '$_analyzerServiceHttpHostPort/packages/${key.package}/${key.version}?panaVersion=$panaVersion';
@@ -82,9 +90,11 @@ class AnalyzerClient {
       final http.Response rs = await getUrlWithRetry(_client, uri);
       if (rs.statusCode == 200) {
         final String content = rs.body;
+        final AnalysisData data =
+            new AnalysisData.fromJson(JSON.decode(content));
         await analyzerMemcache?.setContent(
             key.package, key.version, panaVersion, content);
-        return new AnalysisData.fromJson(JSON.decode(content));
+        return data;
       }
     } catch (e, st) {
       _logger.warning('Analysis request failed on $uri', e, st);
