@@ -11,6 +11,7 @@ const Duration indexUiPageExpiration = const Duration(minutes: 10);
 const Duration packageJsonExpiration = const Duration(minutes: 10);
 const Duration packageUiPageExpiration = const Duration(minutes: 10);
 const Duration analyzerDataExpiration = const Duration(minutes: 60);
+const Duration analyzerDataLocalExpiration = const Duration(minutes: 15);
 const Duration searchUiPageExpiration = const Duration(minutes: 10);
 const Duration memcacheRequestTimeout = const Duration(seconds: 5);
 

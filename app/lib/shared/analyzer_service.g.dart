@@ -57,17 +57,22 @@ AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
         maintenance: (json['maintenance'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),
         platforms:
-            (json['platforms'] as List)?.map((e) => e as String)?.toList());
+            (json['platforms'] as List)?.map((e) => e as String)?.toList(),
+        timestamp: json['timestamp'] == null
+            ? null
+            : DateTime.parse(json['timestamp'] as String));
 
 abstract class _$AnalysisExtractSerializerMixin {
   double get health;
   double get maintenance;
   double get popularity;
   List<String> get platforms;
+  DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'health': health,
         'maintenance': maintenance,
         'popularity': popularity,
-        'platforms': platforms
+        'platforms': platforms,
+        'timestamp': timestamp?.toIso8601String()
       };
 }

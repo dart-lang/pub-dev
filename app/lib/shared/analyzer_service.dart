@@ -91,11 +91,14 @@ class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
 
   final List<String> platforms;
 
+  final DateTime timestamp;
+
   AnalysisExtract({
     this.health,
     this.maintenance,
     this.popularity,
     this.platforms,
+    this.timestamp,
   });
 
   factory AnalysisExtract.fromJson(Map<String, dynamic> json) =>
