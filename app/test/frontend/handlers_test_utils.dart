@@ -174,14 +174,14 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderLayoutPageV2(
+    PageType type,
     String contentHtml, {
     String title: 'pub.dartlang.org',
     String packageName,
     String packageDescription,
     String faviconUrl,
     String platform,
-    String searchQuery,
-    bool homeBanner: false,
+    SearchQuery searchQuery,
     bool includeSurvey: true,
   }) =>
       Response;

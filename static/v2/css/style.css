@@ -646,7 +646,7 @@ main, .site-header {
 
 
 .list-filters > .filter{
-  background: transparent;
+  background: white;
   border-right: 1px solid #eee;
   color: #888;
   text-transform: uppercase;
