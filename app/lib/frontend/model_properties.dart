@@ -156,3 +156,39 @@ class FileObject {
 
   FileObject(this.filename, this.text);
 }
+
+final _authorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
+
+class Author {
+  final String name;
+  final String email;
+
+  Author(this.name, this.email);
+
+  factory Author.parse(String value) {
+    String name = value;
+    String email;
+
+    final match = _authorsRegExp.matchAsPrefix(value);
+    if (match != null) {
+      name = match.group(1);
+      email = match.group(2);
+    } else if (value.contains('@')) {
+      final List<String> parts = value.split(' ');
+      for (int i = 0; i < parts.length; i++) {
+        if (parts[i].contains('@') &&
+            parts[i].contains('.') &&
+            parts[i].length > 4) {
+          email = parts[i];
+          parts.removeAt(i);
+          name = parts.join(' ');
+          if (name.isEmpty) {
+            name = email;
+          }
+          break;
+        }
+      }
+    }
+    return new Author(name, email);
+  }
+}
