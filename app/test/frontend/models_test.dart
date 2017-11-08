@@ -154,4 +154,42 @@ version: 1.0.9
       });
     });
   });
+
+  group('Author', () {
+    test('empty', () {
+      final author = new Author.parse('');
+      expect(author.name, '');
+      expect(author.email, isNull);
+    });
+
+    test('John Doe', () {
+      final author = new Author.parse('John Doe');
+      expect(author.name, 'John Doe');
+      expect(author.email, isNull);
+    });
+
+    test('John Doe <email>', () {
+      final author = new Author.parse('John Doe <john.doe@example.com>');
+      expect(author.name, 'John Doe');
+      expect(author.email, 'john.doe@example.com');
+    });
+
+    test('John Doe inline email', () {
+      final author = new Author.parse('John Doe john.doe@example.com');
+      expect(author.name, 'John Doe');
+      expect(author.email, 'john.doe@example.com');
+    });
+
+    test('John Doe inline email v2', () {
+      final author = new Author.parse('John john.doe@example.com Doe');
+      expect(author.name, 'John Doe');
+      expect(author.email, 'john.doe@example.com');
+    });
+
+    test('email only', () {
+      final author = new Author.parse('john.doe@example.com');
+      expect(author.name, 'john.doe@example.com');
+      expect(author.email, 'john.doe@example.com');
+    });
+  });
 }
