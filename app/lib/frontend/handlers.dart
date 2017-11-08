@@ -425,7 +425,7 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
   int totalCount;
   List<PackageView> packageViews;
   SearchQuery searchQuery;
-  if (platform != null || queryText.isNotEmpty) {
+  if (platform != null || queryText.isNotEmpty || sortOrder != null) {
     searchQuery = new SearchQuery.parse(
         text: queryText,
         platform: platform,

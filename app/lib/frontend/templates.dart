@@ -568,7 +568,15 @@ class TemplateService {
     String newestHtml,
     String platform,
   ) {
+    final String platformName = _formattedPlatformName(platform);
     final values = {
+      'packages_url': platform == null ? '/packages' : '/$platform/packages',
+      'more_packages': platform == null
+          ? 'More packages...'
+          : 'More $platformName packages...',
+      'top_packages': platform == null
+          ? 'Top packages...'
+          : 'Top $platformName packages...',
       'platform_tabs_html':
           renderPlatformTabs(platform: platform, isLanding: true),
       'top_html': topHtml,
@@ -983,6 +991,16 @@ final Map<String, Map> _logoData = const {
     'text': 'Web',
   },
 };
+
+String _formattedPlatformName(String platform) {
+  if (platform == null) return null;
+  switch (platform) {
+    case KnownPlatforms.flutter:
+      return 'Flutter';
+    default:
+      return platform;
+  }
+}
 
 const String flutterPackagesDescriptionHtml =
     '<p><a href="https://flutter.io/using-packages/">Learn more about using packages with Flutter.</a></p>';
