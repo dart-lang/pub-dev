@@ -43,6 +43,20 @@ enum AnalysisStatus {
   success,
 }
 
+/// Gets a comparable level for analysis statuses. The bigger the better.
+int analysisStatusLevel(AnalysisStatus status) {
+  if (status == null) return -1;
+  switch (status) {
+    case AnalysisStatus.aborted:
+      return 0;
+    case AnalysisStatus.failure:
+      return 1;
+    case AnalysisStatus.success:
+      return 2;
+  }
+  return -1;
+}
+
 /// The data which is served thought the HTTP interface of the analyzer service.
 @JsonSerializable()
 class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
