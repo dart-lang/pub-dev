@@ -88,7 +88,7 @@ class TemplateService {
     final Map<String, Object> values =
         _pkgVersionsValues(package, versions, versionDownloadUrls);
     final content = _renderTemplate('v2/pkg/versions/index', values);
-    return renderLayoutPageV2(content);
+    return renderLayoutPageV2(PageType.package, content);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
@@ -153,8 +153,6 @@ class TemplateService {
     final isSearch = searchQuery != null && searchQuery.hasText;
     final values = {
       'is_search': isSearch,
-      'platform_tabs_html': renderPlatformTabs(
-          platform: currentPlatform, searchQuery: searchQuery),
       'title': title ?? 'Packages',
       'description_html': descriptionHtml,
       'packages': packagesJson,
@@ -174,10 +172,11 @@ class TemplateService {
       }
     }
     return renderLayoutPageV2(
+      PageType.listing,
       content,
       title: pageTitle,
       platform: currentPlatform,
-      searchQuery: searchQuery?.text,
+      searchQuery: searchQuery,
     );
   }
 
@@ -515,6 +514,7 @@ class TemplateService {
     );
     final content = _renderTemplate('v2/pkg/show', values);
     return renderLayoutPageV2(
+      PageType.package,
       content,
       title: '${package.name} ${selectedVersion.id} | Dart Package',
       packageName: selectedVersion.package,
@@ -577,17 +577,15 @@ class TemplateService {
       'top_packages': platform == null
           ? 'Top packages...'
           : 'Top $platformName packages...',
-      'platform_tabs_html':
-          renderPlatformTabs(platform: platform, isLanding: true),
       'top_html': topHtml,
       'updated_html': updatedHtml,
       'newest_html': newestHtml,
     };
     final String content = _renderTemplate('v2/index', values);
     return renderLayoutPageV2(
+      PageType.landing,
       content,
       title: 'Pub: Dart Package Manager',
-      homeBanner: true,
       platform: platform,
     );
   }
@@ -608,18 +606,26 @@ class TemplateService {
 
   /// Renders the `views/v2/layout.mustache` template.
   String renderLayoutPageV2(
+    PageType type,
     String contentHtml, {
     String title: 'pub.dartlang.org',
     String packageName,
     String packageDescription,
     String faviconUrl,
     String platform,
-    String searchQuery,
-    bool homeBanner: false,
+    SearchQuery searchQuery,
     bool includeSurvey: true,
   }) {
+    final queryText = searchQuery?.text;
     final String escapedSearchQuery =
-        searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
+        queryText == null ? null : HTML_ESCAPE.convert(queryText);
+    String platformTabs;
+    if (type == PageType.landing) {
+      platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
+    } else if (type == PageType.listing) {
+      platformTabs =
+          renderPlatformTabs(platform: platform, searchQuery: searchQuery);
+    }
     final values = {
       'static_assets_dir': LogoUrls.newDesignAssetsDir,
       'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
@@ -632,11 +638,13 @@ class TemplateService {
       'title': HTML_ESCAPE.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
+      'platform_tabs_html': platformTabs,
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,
       'include_survey': includeSurvey,
-      'home_banner': homeBanner,
-      'default_banner': !homeBanner,
+      'landing_banner': type == PageType.landing,
+      'listing_banner': type == PageType.listing,
+      'package_banner': type == PageType.package,
     };
     return _renderTemplate('v2/layout', values, escapeValues: false);
   }
@@ -1024,3 +1032,9 @@ String _formattedPlatformName(String platform) {
 
 const String flutterPackagesDescriptionHtml =
     '<p><a href="https://flutter.io/using-packages/">Learn more about using packages with Flutter.</a></p>';
+
+enum PageType {
+  landing,
+  listing,
+  package,
+}

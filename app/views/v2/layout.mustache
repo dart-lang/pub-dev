@@ -70,18 +70,30 @@
   </div>
 </header>
 
-{{#default_banner}}
+{{#package_banner}}
+  <div class="_banner-bg">
+    <main class="package-banner">
+      <form class="search-bar" action="/experimental/packages">
+        <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus />
+        <button class="icon"></button>
+      </form>
+    </main>
+  </div>
+{{/package_banner}}
+
+{{#listing_banner}}
   <div class="_banner-bg">
     <main class="package-banner">
       <form class="search-bar" action="/experimental/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
         <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus{{#search_query}} value="{{search_query}}"{{/search_query}}>
         <button class="icon"></button>
       </form>
+      {{& platform_tabs_html }}
     </main>
   </div>
-{{/default_banner}}
+{{/listing_banner}}
 
-{{#home_banner}}
+{{#landing_banner}}
   <div class="_banner-bg">
     <main class="home-banner">
       <h2 class="_visuallyhidden">Dart package manager</h2><img class="logo" src="{{{static_assets_dir}}}/img/site-logo.svg" alt="Dart package manager">
@@ -90,9 +102,10 @@
         <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus />
         <button class="icon"></button>
       </form>
+      {{& platform_tabs_html }}
     </main>
   </div>
-{{/home_banner}}
+{{/landing_banner}}
 
 <main>
   {{& content_html}}
