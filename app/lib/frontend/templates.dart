@@ -27,7 +27,7 @@ String _escapeAngleBrackets(String msg) =>
 const HtmlEscape _htmlEscaper = const HtmlEscape();
 const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.ATTRIBUTE);
 
-final _AuthorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
+final _authorsRegExp = new RegExp(r'^\s*(.+)\s+<(.+)>\s*$');
 
 void registerTemplateService(TemplateService service) =>
     ss.register(#_templates, service);
@@ -830,20 +830,40 @@ class TemplateService {
 
 String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
   return (authors ?? const []).map((String value) {
-    var name = value;
-    var email = value;
+    String name = value;
+    String email;
 
-    final match = _AuthorsRegExp.matchAsPrefix(value);
+    final match = _authorsRegExp.matchAsPrefix(value);
     if (match != null) {
       name = match.group(1);
       email = match.group(2);
+    } else if (value.contains('@')) {
+      final List<String> parts = value.split(' ');
+      for (int i = 0; i < parts.length; i++) {
+        if (parts[i].contains('@') &&
+            parts[i].contains('.') &&
+            parts[i].length > 4) {
+          email = parts[i];
+          parts.removeAt(i);
+          name = parts.join(' ');
+          if (name.isEmpty) {
+            name = email;
+          }
+          break;
+        }
+      }
     }
 
-    final escapedEmail = _attrEscaper.convert(email);
     final escapedName = _htmlEscaper.convert(name);
-    final closeTag = clickableName ? ' $escapedName</a>' : '</a> $escapedName';
-    return '<span class="author"><a href="mailto:$escapedEmail" title="Email $escapedEmail">'
-        '<i class="icon-envelope"></i>$closeTag</span>';
+    if (email != null) {
+      final escapedEmail = _attrEscaper.convert(email);
+      final closeTag =
+          clickableName ? ' $escapedName</a>' : '</a> $escapedName';
+      return '<span class="author"><a href="mailto:$escapedEmail" title="Email $escapedEmail">'
+          '<i class="icon-envelope"></i>$closeTag</span>';
+    } else {
+      return '<span class="author"><i class="icon-envelope"></i> $escapedName</span>';
+    }
   }).join('<br/>');
 }
 
