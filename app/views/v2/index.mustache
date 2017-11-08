@@ -8,11 +8,12 @@
   <section class="home-section">
     <h2 class="title">Top</h2>
     {{& top_html}}
+    <a class="more" href="/experimental{{{packages_url}}}?sort=top">{{top_packages}}</a>
   </section>
   <section class="home-section">
     <h2 class="title">Recently updated</h2>
     {{& updated_html}}
-    <a class="more" href="/experimental/packages">More packages...</a>
+    <a class="more" href="/experimental{{{packages_url}}}">{{more_packages}}</a>
   </section>
   <section class="home-section">
     <h2 class="title">Newest</h2>
