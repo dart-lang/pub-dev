@@ -89,11 +89,6 @@ class PanaRunner implements TaskRunner {
       // TODO: trigger re-analysis of packages depending on this one
     }
 
-    if (backendStatus.isLatestStable) {
-      // Do not await on the notification.
-      notificationClient.notifySearch(analysis.packageName);
-    }
-
     return backendStatus.wasRace;
   }
 }
