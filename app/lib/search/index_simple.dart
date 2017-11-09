@@ -209,11 +209,21 @@ class SimplePackageIndex implements PackageIndex {
 
   Score _searchText(String text, String packagePrefix) {
     if (text != null && text.isNotEmpty) {
-      final name = new Score(_nameIndex.search(text, coverageWeight: 0.90));
-      final descr = new Score(_descrIndex.search(text, coverageWeight: 0.75));
-      final readme = new Score(_readmeIndex.search(text, coverageWeight: 0.50));
-      return Score.max([name, descr, readme]).removeLowValues(
-          fraction: 0.05, minValue: 1.0);
+      final List<String> words = text.split(' ');
+      final List<Score> wordScores = words.map((String word) {
+        final name = new Score(_nameIndex.search(word, coverageWeight: 0.90));
+        final descr = new Score(_descrIndex.search(word, coverageWeight: 0.75));
+        final readme =
+            new Score(_readmeIndex.search(word, coverageWeight: 0.50));
+        return Score.max([name, descr, readme]).removeLowValues(
+            fraction: 0.05, minValue: 1.0);
+      }).toList();
+      final Score composite = Score.multiply(wordScores);
+
+      final double w = math.pow(100.0, words.length - 1);
+      final Score normalized = composite.map((double score) => score / w);
+
+      return normalized;
     }
     return null;
   }
