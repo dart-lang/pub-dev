@@ -368,5 +368,43 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         ],
       });
     });
+
+    test('multiword query: implicit AND', () async {
+      final PackageSearchResult composable = await index.search(
+          new SearchQuery.parse(text: 'composable', order: SearchOrder.text));
+      expect(JSON.decode(JSON.encode(composable)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'http', 'score': closeTo(58.9, 0.1)},
+          {'package': 'async', 'score': closeTo(4.4, 0.1)},
+        ],
+      });
+
+      final PackageSearchResult library = await index.search(
+          new SearchQuery.parse(text: 'library', order: SearchOrder.text));
+      expect(JSON.decode(JSON.encode(library)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {'package': 'http', 'score': closeTo(51.6, 0.1)},
+          {'package': 'chrome_net', 'score': closeTo(41.9, 0.1)},
+          {'package': 'async', 'score': closeTo(33.6, 0.1)},
+        ],
+      });
+
+      // Without the implicit AND, the end result would be close to the result
+      // of the `library` search.
+      final PackageSearchResult both = await index.search(new SearchQuery.parse(
+          text: 'composable library', order: SearchOrder.text));
+      expect(JSON.decode(JSON.encode(both)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'http', 'score': closeTo(30.4, 0.1)},
+          {'package': 'async', 'score': closeTo(1.5, 0.1)},
+        ],
+      });
+    });
   });
 }
