@@ -60,31 +60,31 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         'packages': [
           {
             'package': 'travis',
-            'score': closeTo(100.0, 0.1),
-          },
-          {
-            'package': 'mongo_dart_query',
-            'score': closeTo(50.9, 0.1),
+            'score': closeTo(0.267, 0.001),
           },
           {
             'package': 'rainbow_vis',
-            'score': closeTo(50.9, 0.1),
-          },
-          {
-            'package': 'angular_aria',
-            'score': closeTo(50.9, 0.1),
+            'score': closeTo(0.087, 0.001),
           },
           {
             'package': 'w_transport',
-            'score': closeTo(50.9, 0.1),
+            'score': closeTo(0.055, 0.001),
           },
           {
             'package': 'sass_transformer',
-            'score': closeTo(50.9, 0.1),
+            'score': closeTo(0.049, 0.001),
           },
           {
             'package': 'dartemis_transformer',
-            'score': closeTo(50.8, 0.1),
+            'score': closeTo(0.043, 0.001),
+          },
+          {
+            'package': 'mongo_dart_query',
+            'score': closeTo(0.026, 0.001),
+          },
+          {
+            'package': 'angular_aria',
+            'score': closeTo(0.026, 0.001),
           },
         ],
       });
