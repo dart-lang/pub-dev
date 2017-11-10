@@ -10,7 +10,6 @@ import 'package:pana/pana.dart';
 
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
-import '../shared/notification.dart';
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 
 import 'backend.dart';

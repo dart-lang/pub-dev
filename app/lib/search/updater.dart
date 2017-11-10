@@ -14,7 +14,7 @@ import '../shared/task_sources.dart';
 import 'backend.dart';
 import 'index_simple.dart';
 
-Logger _logger = new Logger('pub.search.updater');
+final Logger _logger = new Logger('pub.search.updater');
 
 class IndexUpdateTaskSource extends DatastoreVersionsHeadTaskSource {
   final BatchIndexUpdater _batchIndexUpdater;
