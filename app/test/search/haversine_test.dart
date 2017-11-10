@@ -381,32 +381,22 @@ MIT'''),
           new SearchQuery.parse(text: 'haversine', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 5,
+        'totalCount': 3,
         'packages': [
           {
             // should be the top
             'package': 'haversine',
-            'score': closeTo(100.0, 0.1),
+            'score': closeTo(0.20, 0.01),
           },
           {
             // should be present
             'package': 'latlong',
-            'score': closeTo(51.6, 0.1),
+            'score': closeTo(0.02, 0.01),
           },
           {
             // should be present
             'package': 'great_circle_distance',
-            'score': closeTo(51.0, 0.1),
-          },
-          {
-            // not relevant
-            'package': 'version',
-            'score': closeTo(7.3, 0.1),
-          },
-          {
-            // should be present
-            'package': 'reversi',
-            'score': closeTo(5.1, 0.1),
+            'score': closeTo(0.01, 0.01),
           },
         ]
       });

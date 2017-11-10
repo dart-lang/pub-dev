@@ -86,7 +86,21 @@ The indexing process prepares the package documents and parses the following fie
 - readme (first 1000 characters)
 
 When a text query is specified, we'll try to match the query against all of these
-separately, and select the best score. (TODO: document the scoring)
+separately, with the lower weights on description (0.75) and readme (0.50), and
+the maximum of these will be accepted as the text score.
+
+Internal to each field, we tokenize both the original text and the query text,
+and accumulate a score based on the following calculation:
+
+- For each token, we'll have a token weight:
+  - `idf(token) = 1 + log(number of documents / matched documents + 1)`
+  - `weight = idf(token) * token.length`
+- We remove tokens from the query where their weight is less than 0.5 * the maximum value we have in the query.
+- We accumulate the individual token scores for each document.
+- Final score is:
+  - `query weight = the token weights in the query`
+  - `doc.size = the size of the document`, calculated as `sqrt(number of tokens)`.
+  - `score(doc) = (matched token weights) / (query weight * doc.size)`
 
 The text match score will then be either used directly (`SearchOrder.text`) or it
 will be combined with other scores (see: combined ranking).

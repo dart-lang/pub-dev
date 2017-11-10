@@ -211,19 +211,13 @@ class SimplePackageIndex implements PackageIndex {
     if (text != null && text.isNotEmpty) {
       final List<String> words = text.split(' ');
       final List<Score> wordScores = words.map((String word) {
-        final name = new Score(_nameIndex.search(word, coverageWeight: 0.90));
-        final descr = new Score(_descrIndex.search(word, coverageWeight: 0.75));
-        final readme =
-            new Score(_readmeIndex.search(word, coverageWeight: 0.50));
+        final name = new Score(_nameIndex.search(word, weight: 1.0));
+        final descr = new Score(_descrIndex.search(word, weight: 0.75));
+        final readme = new Score(_readmeIndex.search(word, weight: 0.50));
         return Score.max([name, descr, readme]).removeLowValues(
-            fraction: 0.05, minValue: 1.0);
+            fraction: 0.01, minValue: 0.001);
       }).toList();
-      final Score composite = Score.multiply(wordScores);
-
-      final double w = math.pow(100.0, words.length - 1);
-      final Score normalized = composite.map((double score) => score / w);
-
-      return normalized;
+      return Score.multiply(wordScores);
     }
     return null;
   }
@@ -361,7 +355,7 @@ class Score {
 
 class TokenIndex {
   final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
-  final Map<String, double> _weights = <String, double>{};
+  final Map<String, double> _docSizes = <String, double>{};
   final int _minLength;
 
   TokenIndex({int minLength: 0}) : _minLength = minLength;
@@ -369,20 +363,22 @@ class TokenIndex {
   /// The number of tokens stored in the index.
   int get tokenCount => _inverseIds.length;
 
+  int get documentCount => _docSizes.length;
+
   void add(String id, String text) {
     final Set<String> tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) return;
-    double sumWeight = 0.0;
     for (String token in tokens) {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
-      sumWeight += _tokenWeight(token, _minLength);
     }
-    _weights[id] = sumWeight;
+    // Document size inspired by ElasticSearch's ranking.
+    final docSize = math.sqrt(tokens.length);
+    _docSizes[id] = docSize;
   }
 
   void remove(String id) {
-    _weights.remove(id);
+    _docSizes.remove(id);
     final List<String> removeKeys = [];
     _inverseIds.forEach((String key, Set<String> set) {
       set.remove(id);
@@ -393,69 +389,48 @@ class TokenIndex {
 
   /// Search the index for [text], with a (term-match / document coverage percent)
   /// scoring. Longer tokens weight more in the relevance score.
-  ///
-  /// [coverageWeight] controls the weight of the document coverage percent in
-  /// the final score. 1.0 - full coverage score is used, 0.0 - none is used.
-  Map<String, double> search(String text, {double coverageWeight: 1.0}) {
+  Map<String, double> search(String text, {double weight: 1.0}) {
     final Set<String> tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) {
       return const {};
     }
-    // the sum of all token weights in the search query
-    double queryWeight = 0.0;
-    final Map<String, double> docScores = <String, double>{};
 
-    // use the inverted index to aggregate scores for each document
+    // Check which tokens have documents, and assign their weight.
+    final Map<String, double> tokenWeights = <String, double>{};
     for (String token in tokens) {
-      final double tokenWeight = _tokenWeight(token, _minLength);
-      queryWeight += tokenWeight;
+      final int foundCount = _inverseIds[token]?.length ?? 0;
+      if (foundCount == 0) continue;
+      // Inverse document frequency score inspired by ElasticSearch's ranking.
+      final double idf = 1.0 + math.log(documentCount / (foundCount + 1));
+      tokenWeights[token] = idf * token.length;
+    }
+    if (tokenWeights.isEmpty) return const {};
 
-      final Set<String> set = _inverseIds[token];
-      if (set == null || set.isEmpty) continue;
+    // Use only the most relevant tokens.
+    final double maxWeight = tokenWeights.values.fold(0.0, math.max);
+    final double weightThreshold = maxWeight * 0.5;
+    tokens.forEach((token) {
+      if (tokenWeights.containsKey(token) &&
+          tokenWeights[token] < weightThreshold) {
+        tokenWeights.remove(token);
+      }
+    });
 
-      for (String id in set) {
+    // Summarize the scores for the documents.
+    final queryWeight = tokenWeights.values.fold(0.0, (a, b) => a + b);
+    final Map<String, double> docScores = <String, double>{};
+    for (String token in tokenWeights.keys) {
+      for (String id in _inverseIds[token]) {
         final double prevValue = docScores[id] ?? 0.0;
-        docScores[id] = prevValue + tokenWeight;
+        docScores[id] = prevValue + tokenWeights[token];
       }
     }
 
-    // normalize token weights to 0.0-1.0 range, also adjust to document coverage
+    // post-process match weights
     for (String id in docScores.keys.toList()) {
-      final double matchWeight = docScores[id];
-
-      // the percent of the match in relation to the total query [0.0 - 1.0]
-      final double queryScore = matchWeight / queryWeight;
-
-      // the percent of the match in relation to the document [0.0 - 1.0]
-      final double coverageScore = matchWeight / _weights[id];
-
-      final double weightedCoverageScore =
-          1 - (coverageWeight * (1.0 - coverageScore));
-
-      final double score = 100.0 * queryScore * weightedCoverageScore;
-      docScores[id] = score;
+      docScores[id] = weight * docScores[id] / queryWeight / _docSizes[id];
     }
     return docScores;
-  }
-
-  // The longer the token, the more importance it has.
-  // Length -> Weight
-  // 1 ->  1 (Length * Length)
-  // 2 ->  4 (Length * Length)
-  // 3 ->  9 (Length * Length)
-  // 4 -> 16 (Length * Length)
-  // 5 -> 25 (Length * Length)
-  // 6 -> 36 (Length * Length)
-  // 7 -> 49 (Length * Length)
-  // 8 -> 64 (Length * Length)
-  // 9 -> 72 (Length * 8)
-  //10 -> 80 (Length * 8)
-  double _tokenWeight(String token, int minLength) {
-    int tokenLength = token.length;
-    if (minLength > 0) {
-      tokenLength -= minLength - 1;
-    }
-    return (tokenLength * math.min(token.length, 8)).toDouble();
   }
 }
 
