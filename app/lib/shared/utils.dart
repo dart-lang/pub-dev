@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -277,3 +278,7 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
   }
   return result;
 }
+
+/// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
+String bucketUri(Bucket bucket, String path) =>
+    "gs://${bucket.bucketName}/$path";

@@ -17,6 +17,7 @@ import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
 import 'memcache.dart' show analyzerDataLocalExpiration;
 import 'platform.dart';
+import 'popularity_storage.dart';
 import 'utils.dart';
 
 export 'package:pana/pana.dart' show LicenseFile;
@@ -88,7 +89,7 @@ class AnalyzerClient {
     }
     final view = await getAnalysisView(key);
     final extract = new AnalysisExtract(
-      // TODO: set popularity
+      popularity: popularityStorage.lookup(key.package) ?? 0.0,
       // TODO: set maintenance
       health: view.health,
       platforms: view.platforms,

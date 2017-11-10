@@ -21,6 +21,7 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
+import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -73,6 +74,12 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerNotificationClient(notificationClient);
   registerScopeExitCallback(notificationClient.close);
 
+  final Bucket popularityBucket =
+      storageService.bucket(configuration.popularityDumpBucketName);
+  registerPopularityStorage(
+      new PopularityStorage(storageService, popularityBucket));
+  await popularityStorage.init();
+
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
   final AnalyzerClient analyzerClient =
       new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
@@ -85,8 +92,8 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   registerTemplateService(new TemplateService(templateDirectory: templatePath));
 
-  final bucket = storageService.bucket(configuration.packageBucketName);
-  final tarballStorage = new TarballStorage(storageService, bucket, null);
+  final pkgBucket = storageService.bucket(configuration.packageBucketName);
+  final tarballStorage = new TarballStorage(storageService, pkgBucket, null);
   registerTarballStorage(tarballStorage);
 
   initOAuth2Service();
