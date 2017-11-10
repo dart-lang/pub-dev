@@ -15,19 +15,20 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
-import 'package:_popularity/popularity.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/mock_scores.dart';
+import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
+import '../shared/utils.dart';
 
-import 'scoring.dart';
 import 'text_utils.dart';
 
 part 'backend.g.dart';
 
-Logger _logger = new Logger('pub.search.backend');
+final Logger _logger = new Logger('pub.search.backend');
+final GZipCodec _gzip = new GZipCodec();
 
 final Duration _year = const Duration(days: 365);
 final Duration _twoYears = _year * 2;
@@ -45,13 +46,6 @@ void registerSnapshotStorage(SnapshotStorage storage) =>
 
 /// The active snapshot storage
 SnapshotStorage get snapshotStorage => ss.lookup(#_snapshotStorage);
-
-/// Sets the popularity storage
-void registerPopularityStorage(PopularityStorage storage) =>
-    ss.register(#_popularityStorage, storage);
-
-/// The active popularity storage
-PopularityStorage get popularityStorage => ss.lookup(#_popularityStorage);
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
@@ -150,57 +144,6 @@ class SearchBackend {
   }
 }
 
-class PopularityStorage {
-  final Storage storage;
-  final Bucket bucket;
-  final _values = <String, double>{};
-
-  String get _latestPath => PackagePopularity.popularityFileName;
-
-  PopularityStorage(this.storage, this.bucket);
-
-  double lookup(String package) => _values[package];
-
-  Future init() async {
-    await fetch();
-    new Timer.periodic(const Duration(days: 1), (_) {
-      fetch();
-    });
-  }
-
-  Future fetch() async {
-    _logger.info('Loading popularity data: ${_bucketUri(bucket, _latestPath)}');
-    try {
-      final Map latest = await bucket
-          .read(_latestPath)
-          .transform(_gzip.decoder)
-          .transform(UTF8.decoder)
-          .transform(JSON.decoder)
-          .single;
-      _updateLatest(latest);
-    } catch (e, st) {
-      _logger.severe(
-          'Unable to load popularity data: ${_bucketUri(bucket, _latestPath)}',
-          e,
-          st);
-    }
-  }
-
-  void _updateLatest(Map raw) {
-    final Map<String, int> rawTotals = {};
-    final popularity = new PackagePopularity.fromJson(raw);
-    popularity.items.forEach((pkg, item) {
-      rawTotals[pkg] = item.score;
-    });
-    final summary = new Summary(rawTotals.values);
-    for (String package in rawTotals.keys) {
-      final int raw = rawTotals[package];
-      _values[package] = summary.bezierScore(raw);
-    }
-    _logger.info('Popularity updated for ${popularity.items.length} packages.');
-  }
-}
-
 class SnapshotStorage {
   final String _latestPath = 'snapshot-latest.json.gz';
   final Storage storage;
@@ -219,7 +162,7 @@ class SnapshotStorage {
       return new SearchSnapshot.fromJson(json);
     } catch (e, st) {
       _logger.severe(
-          'Unable to load search snapshot: ${_bucketUri(bucket, _latestPath)}',
+          'Unable to load search snapshot: ${bucketUri(bucket, _latestPath)}',
           e,
           st);
     }
@@ -257,9 +200,3 @@ class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
     docs.forEach(add);
   }
 }
-
-final GZipCodec _gzip = new GZipCodec();
-
-/// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
-String _bucketUri(Bucket bucket, String path) =>
-    "gs://${bucket.bucketName}/$path";
