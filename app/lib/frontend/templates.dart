@@ -15,7 +15,7 @@ import 'package:path/path.dart' as path;
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
-import '../shared/search_service.dart' show SearchQuery;
+import '../shared/search_service.dart' show SearchQuery, serializeSearchOrder;
 import '../shared/utils.dart';
 
 import 'model_properties.dart' show Author;
@@ -625,6 +625,9 @@ class TemplateService {
       platformTabs =
           renderPlatformTabs(platform: platform, searchQuery: searchQuery);
     }
+    final searchSort = searchQuery?.order == null
+        ? null
+        : serializeSearchOrder(searchQuery.order);
     final values = {
       'static_assets_dir': LogoUrls.newDesignAssetsDir,
       'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
@@ -637,6 +640,7 @@ class TemplateService {
       'title': HTML_ESCAPE.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
+      'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,
