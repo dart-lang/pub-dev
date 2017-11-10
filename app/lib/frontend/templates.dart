@@ -642,6 +642,7 @@ class TemplateService {
       'search_query': escapedSearchQuery,
       'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
+      'landing_blurb_html': _landingBlurb(platform),
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,
       'include_survey': includeSurvey,
@@ -999,6 +1000,25 @@ final Map<String, Map> _logoData = const {
     'text': 'Web',
   },
 };
+
+final Map<String, String> _landingBlurbs = const {
+  'default':
+      '<p class="text">Find and use packages to build <a href="/experimental/flutter">Flutter</a>, '
+      '<a href="/experimental/web">web</a> and <a href="/experimental/server">server</a> apps '
+      'with <a target="_blank" href="https://www.dartlang.org">Dart</a>.</p>',
+  KnownPlatforms.flutter:
+      '<p class="text"><a href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '
+      'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
+  KnownPlatforms.server:
+      '<p class="text">Use Dart to create command line and server applications.<br/> Start with the '
+      '<a href="https://www.dartlang.org/tutorials/dart-vm/get-started">Dart VM tutorial<sup><small>↗</small></sup></a>.</p>',
+  KnownPlatforms.web:
+      '<p class="text">Use Dart to create web applications that run on any modern browser.<br/> Start '
+      'with <a href="https://webdev.dartlang.org/angular">AngularDart<sup><small>↗</small></sup></a>.</p>'
+};
+
+String _landingBlurb(String platform) =>
+    _landingBlurbs[platform ?? 'default'] ?? _landingBlurbs['default'];
 
 String _formattedPlatformName(String platform) {
   if (platform == null) return null;

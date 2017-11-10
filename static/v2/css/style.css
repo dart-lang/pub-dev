@@ -639,7 +639,7 @@ main, .site-header {
   display: -webkit-inline-box;
   display: -ms-inline-flexbox;
   display: inline-flex;
-  margin: 32px 0 16px;
+  margin: 0 0 16px;
   border: 1px solid #eee;
   border-radius: 3px
 }
