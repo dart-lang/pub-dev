@@ -153,49 +153,15 @@ Future<shelf.Response> _indexHandlerV2(
       await backend.uiPackageCache?.getUIIndexPage(true, platform);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
-      final result = await searchService.search(
-          new SearchQuery.parse(platform: platform, limit: 5, order: order));
-      final packages = (result.packages.length <= 5)
-          ? result.packages
-          : result.packages.sublist(0, 5);
+      final count = 15;
+      final result = await searchService.search(new SearchQuery.parse(
+          platform: platform, limit: count, order: order));
+      final packages = result.packages.take(count).toList();
       return templateService.renderMiniList(packages);
     }
 
-    Future<String> renderMiniList(Future<List<Package>> selected) async {
-      final packages = await selected;
-      final versions = await backend.lookupLatestVersions(packages);
-      assert(!versions.any((version) => version == null));
-      final List<AnalysisExtract> analysisExtracts =
-          await analyzerClient.getAnalysisExtracts(
-              versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
-      final views = new List<PackageView>.generate(versions.length, (index) {
-        return new PackageView.fromModel(
-          package: packages[index],
-          version: versions[index],
-          analysis: analysisExtracts[index],
-        );
-      });
-      return templateService.renderMiniList(views);
-    }
-
-    final List<Future<String>> miniListFutures = [
-      searchAndRenderMiniList(SearchOrder.top),
-    ];
-    if (platform == null) {
-      miniListFutures.addAll([
-        renderMiniList(backend.latestPackages(limit: 5)),
-        renderMiniList(backend.newestPackages(limit: 5)),
-      ]);
-    } else {
-      miniListFutures.addAll([
-        searchAndRenderMiniList(SearchOrder.updated),
-        searchAndRenderMiniList(SearchOrder.created),
-      ]);
-    }
-
-    final List<String> miniListHtmls = await Future.wait(miniListFutures);
-    pageContent = templateService.renderIndexPageV2(
-        miniListHtmls[0], miniListHtmls[1], miniListHtmls[2], platform);
+    final minilist = await searchAndRenderMiniList(SearchOrder.top);
+    pageContent = templateService.renderIndexPageV2(minilist, platform);
     await backend.uiPackageCache?.setUIIndexPage(true, platform, pageContent);
   }
   return htmlResponse(pageContent);
