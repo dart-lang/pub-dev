@@ -15,6 +15,7 @@ import 'package:pub_dartlang_org/analyzer/versions.dart';
 
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
+import 'memcache.dart' show analyzerDataLocalExpiration;
 import 'platform.dart';
 import 'utils.dart';
 
@@ -33,6 +34,8 @@ final Logger _logger = new Logger('pub.analyzer_client');
 /// Client methods that access the analyzer service and the internals of the
 /// analysis data. This keeps the interface narrow over the raw analysis data.
 class AnalyzerClient {
+  final int _extractCacheSize = 10000;
+  final Map<AnalysisKey, AnalysisExtract> _extractCache = {};
   final http.Client _client = new http.Client();
   final String _analyzerServiceHttpHostPort;
   AnalyzerClient(this._analyzerServiceHttpHostPort);
@@ -52,6 +55,28 @@ class AnalyzerClient {
 
   Future<AnalysisExtract> getAnalysisExtract(AnalysisKey key) async {
     if (key == null) return null;
+    final cached = _extractCache[key];
+    if (cached?.timestamp != null) {
+      final now = new DateTime.now().toUtc();
+      final diff = now.difference(cached.timestamp);
+      if (diff < analyzerDataLocalExpiration) {
+        return cached;
+      } else {
+        _extractCache.remove(key);
+      }
+    }
+    final extract = await _getAnalysisExtract(key);
+    if (extract != null) {
+      while (_extractCache.length >= _extractCacheSize) {
+        _extractCache.remove(_extractCache.keys.first);
+      }
+      _extractCache[key] = extract;
+    }
+    return extract;
+  }
+
+  Future<AnalysisExtract> _getAnalysisExtract(AnalysisKey key) async {
+    if (key == null) return null;
     final String cachedExtract =
         await analyzerMemcache?.getExtract(key.package, key.version);
     if (cachedExtract != null) {
@@ -67,6 +92,7 @@ class AnalyzerClient {
       // TODO: set maintenance
       health: view.health,
       platforms: view.platforms,
+      timestamp: new DateTime.now().toUtc(),
     );
     await analyzerMemcache?.setExtract(
         key.package, key.version, JSON.encode(extract.toJson()));
