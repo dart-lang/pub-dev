@@ -27,7 +27,7 @@ Future<shelf.Response> issueGet(String path) async {
 Future expectHtmlResponse(shelf.Response response, {status: 200}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
-  expect(await response.readAsString(), TemplateMock.Response);
+  expect(await response.readAsString(), TemplateMock._response);
 }
 
 Future expectAtomXmlResponse(shelf.Response response,
@@ -136,35 +136,35 @@ class BackendMock implements Backend {
 }
 
 class TemplateMock implements TemplateService {
-  static String Response = 'foobar';
+  static final String _response = 'foobar';
 
   @override
   String get templateDirectory => null;
 
   @override
   String renderAuthorizedPage() {
-    return Response;
+    return _response;
   }
 
   @override
   String renderErrorPage(String status, String message, String traceback) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderIndexPage(List<PackageVersion> recentPackages,
       List<AnalysisExtract> analysisExtracts) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderIndexPageV2(String topHtml, String platform) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderMiniList(List<PackageView> packages) {
-    return Response;
+    return _response;
   }
 
   @override
@@ -179,7 +179,7 @@ class TemplateMock implements TemplateService {
     SearchQuery searchQuery,
     bool includeSurvey: true,
   }) =>
-      Response;
+      _response;
 
   @override
   String renderLayoutPage(String title, String contentString,
@@ -187,30 +187,30 @@ class TemplateMock implements TemplateService {
       String faviconUrl,
       String searchQuery,
       bool includeSurvey}) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderPaginationV2(PageLinks pageLinks) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderPagination(PageLinks pageLinks) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderPkgIndexPage(List<PackageView> packages, PageLinks links,
       {String title, String faviconUrl, String descriptionHtml}) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderPkgIndexPageV2(
       List<PackageView> packages, PageLinks links, String currentPlatform,
       {SearchQuery searchQuery, int totalCount}) {
-    return Response;
+    return _response;
   }
 
   @override
@@ -223,7 +223,7 @@ class TemplateMock implements TemplateService {
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
       AnalysisView analysis) {
-    return Response;
+    return _response;
   }
 
   @override
@@ -236,29 +236,29 @@ class TemplateMock implements TemplateService {
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
       AnalysisView analysis) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderPkgVersionsPageV2(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
-    return Response;
+    return _response;
   }
 
   @override
   String renderAnalysisTabV2(analysis) {
-    return Response;
+    return _response;
   }
 
   @override
@@ -267,7 +267,7 @@ class TemplateMock implements TemplateService {
     SearchQuery searchQuery,
     bool isLanding: false,
   }) {
-    return Response;
+    return _response;
   }
 }
 

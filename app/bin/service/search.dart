@@ -32,7 +32,7 @@ Future main() async {
   });
   for (int i = 0; i < envConfig.isolateCount; i++) {
     await Isolate.spawn(
-      _main,
+      _mainWrapper,
       i,
       onError: errorPort.sendPort,
       onExit: errorPort.sendPort,
@@ -40,6 +40,9 @@ Future main() async {
     );
   }
 }
+
+// Remove after https://github.com/dart-lang/sdk/issues/30755 lands.
+void _mainWrapper(message) => _main(message);
 
 void _main(int isolateId) {
   useLoggingPackageAdaptor();

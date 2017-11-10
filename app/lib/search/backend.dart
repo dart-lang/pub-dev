@@ -71,7 +71,7 @@ class SearchBackend {
     final List<PackageVersion> versionList = await _db.lookup(versionKeys);
     final Map<String, PackageVersion> versions = new Map.fromIterable(
         versionList.where((pv) => pv != null),
-        key: (PackageVersion pv) => pv.package);
+        key: (pv) => (pv as PackageVersion).package);
 
     final List<AnalysisView> analysisViews =
         await analyzerClient.getAnalysisViews(packages.map((p) =>

@@ -22,12 +22,15 @@ Future main() async {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    await startIsolates(logger, _runScheduler);
+    await startIsolates(logger, _runSchedulerWrapper);
     _registerServices();
     await runAppEngine((HttpRequest request) =>
         shelf_io.handleRequest(request, dartdocServiceHandler));
   });
 }
+
+// Remove after https://github.com/dart-lang/sdk/issues/30755 lands.
+void _runSchedulerWrapper(message) => _runScheduler(message);
 
 void _runScheduler(List<SendPort> sendPorts) {
   useLoggingPackageAdaptor();
