@@ -563,8 +563,6 @@ class TemplateService {
   /// Renders the `views/v2/index.mustache` template.
   String renderIndexPageV2(
     String topHtml,
-    String updatedHtml,
-    String newestHtml,
     String platform,
   ) {
     final String platformName = _formattedPlatformName(platform);
@@ -573,12 +571,7 @@ class TemplateService {
       'more_packages': platform == null
           ? 'More packages...'
           : 'More $platformName packages...',
-      'top_packages': platform == null
-          ? 'Top packages...'
-          : 'Top $platformName packages...',
       'top_html': topHtml,
-      'updated_html': updatedHtml,
-      'newest_html': newestHtml,
     };
     final String content = _renderTemplate('v2/index', values);
     return renderLayoutPageV2(

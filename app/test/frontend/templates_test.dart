@@ -56,22 +56,7 @@ void main() {
           analysis: new AnalysisExtract(platforms: ['web']),
         ),
       ]);
-      final updatedHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter']),
-        ),
-      ]);
-      final newestHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter', 'server']),
-        ),
-      ]);
-      final String html = templates.renderIndexPageV2(
-          popularHtml, updatedHtml, newestHtml, null);
+      final String html = templates.renderIndexPageV2(popularHtml, null);
       expectGoldenFile(html, 'v2/index_page.html');
     });
 
@@ -83,22 +68,8 @@ void main() {
           analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
       ]);
-      final updatedHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter']),
-        ),
-      ]);
-      final newestHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter', 'server']),
-        ),
-      ]);
-      final String html = templates.renderIndexPageV2(
-          popularHtml, updatedHtml, newestHtml, KnownPlatforms.flutter);
+      final String html =
+          templates.renderIndexPageV2(popularHtml, KnownPlatforms.flutter);
       expectGoldenFile(html, 'v2/flutter_landing_page.html');
     });
 
@@ -110,22 +81,8 @@ void main() {
           analysis: new AnalysisExtract(platforms: ['server']),
         ),
       ]);
-      final updatedHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['server']),
-        ),
-      ]);
-      final newestHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['server', 'web']),
-        ),
-      ]);
-      final String html = templates.renderIndexPageV2(
-          popularHtml, updatedHtml, newestHtml, KnownPlatforms.server);
+      final String html =
+          templates.renderIndexPageV2(popularHtml, KnownPlatforms.server);
       expectGoldenFile(html, 'v2/server_landing_page.html');
     });
 
@@ -137,22 +94,8 @@ void main() {
           analysis: new AnalysisExtract(platforms: ['web']),
         ),
       ]);
-      final updatedHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['web']),
-        ),
-      ]);
-      final newestHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['server', 'web']),
-        ),
-      ]);
-      final String html = templates.renderIndexPageV2(
-          popularHtml, updatedHtml, newestHtml, KnownPlatforms.web);
+      final String html =
+          templates.renderIndexPageV2(popularHtml, KnownPlatforms.web);
       expectGoldenFile(html, 'v2/web_landing_page.html');
     });
 

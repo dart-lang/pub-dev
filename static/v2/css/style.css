@@ -546,48 +546,33 @@ main, .site-header {
 }
 
 
-.home-lists-container{
+.home-lists-container {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  flex-direction: column;
   max-width: 1100px;
   margin-top: 20px;
 }
 
-
-@media screen and (max-width: 800px) {
-  .home-lists-container{
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column
-  }
-  .home-lists-container > .home-section{
-    padding: 10px 0
-  }
+.home-lists-container .more {
+  text-align: center;
+  margin-top: 10px;
 }
 
-
-.home-section{
-  padding: 20px;
-  -webkit-box-flex: 1;
-      -ms-flex: 1;
-          flex: 1
+.home-lists-container .package-list {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
 }
 
-
-.home-section > .title{
-  font-size: 14px;
-  text-transform: uppercase;
-  color: #555;
-  margin: 0 0 10px;
-  padding: 0 8px
+.home-lists-container .package-list .list-item {
+  width: 305px;
+  margin: 0 5px;
 }
 
-
-.home-section > .more{
-  display: inline-block;
-  margin: 8px
+.home-lists-container .package-list .list-item:last-child {
+  border-bottom: inherit;
 }
 
 /******************************************************

@@ -3,18 +3,8 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <div class="home-lists-container">
-  <section class="home-section">
-    <h2 class="title">Top</h2>
-    {{& top_html}}
-    <a class="more" href="/experimental{{{packages_url}}}?sort=top">{{top_packages}}</a>
-  </section>
-  <section class="home-section">
-    <h2 class="title">Recently updated</h2>
-    {{& updated_html}}
-    <a class="more" href="/experimental{{{packages_url}}}">{{more_packages}}</a>
-  </section>
-  <section class="home-section">
-    <h2 class="title">Newest</h2>
-    {{& newest_html}}
-  </section>
+  {{& top_html}}
+  <div class="more">
+    <a href="/experimental{{{packages_url}}}?sort=top">{{more_packages}}</a>
+  </div>
 </div>

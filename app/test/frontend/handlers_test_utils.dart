@@ -158,12 +158,7 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderIndexPageV2(
-    String popularHtml,
-    String updatedHtml,
-    String newestHtml,
-    String platform,
-  ) {
+  String renderIndexPageV2(String topHtml, String platform) {
     return Response;
   }
 
