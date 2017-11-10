@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 
 import '../shared/search_service.dart';
 
+import 'scoring.dart';
 import 'text_utils.dart';
 
 /// The [PackageIndex] registered in the current service scope.
@@ -123,9 +124,7 @@ class SimplePackageIndex implements PackageIndex {
       case SearchOrder.top:
         final List<Score> scores = [
           filtered,
-          new Score(getPopularityScore(packages)).map((v) => 0.5 + 0.5 * v),
-          new Score(getHealthScore(packages)).map((v) => 0.75 + 0.25 * v),
-          new Score(getMaintenanceScore(packages)).map((v) => 0.9 + 0.1 * v),
+          _getOverallScore(packages),
         ];
         if (platformSpecificity != null) {
           scores.add(new Score(platformSpecificity));
@@ -202,6 +201,19 @@ class SimplePackageIndex implements PackageIndex {
       packages,
       value: (package) => (_packages[package].maintenance ?? 0.0),
     );
+  }
+
+  Score _getOverallScore(Iterable<String> packages) {
+    final Map<String, double> values =
+        new Map.fromIterable(packages, value: (package) {
+      final doc = _packages[package];
+      return calculateOverallScore(
+        popularity: doc.popularity ?? 0.0,
+        health: doc.health ?? 0.0,
+        maintenance: doc.maintenance ?? 0.0,
+      );
+    });
+    return new Score(values);
   }
 
   Score _allPackages() =>

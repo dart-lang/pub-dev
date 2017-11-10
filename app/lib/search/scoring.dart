@@ -4,6 +4,40 @@
 
 import 'dart:math' as math;
 
+final double popularityInTopRange = 0.5;
+final double healthInTopRange = 0.25;
+final double maintenanceInTopRange = 0.1;
+
+final double topRangeLowerBound = (1.0 - popularityInTopRange) *
+    (1.0 - healthInTopRange) *
+    (1.0 - maintenanceInTopRange);
+
+/// Calculates the overall score for a package.
+double calculateOverallScore({
+  double popularity,
+  double health,
+  double maintenance,
+  bool normalize: false,
+}) {
+  assert(popularity != null && popularity >= 0.0 && popularity <= 1.0);
+  assert(health != null && health >= 0.0 && health <= 1.0);
+  assert(maintenance != null && maintenance >= 0.0 && maintenance <= 1.0);
+
+  double transform(double value, double range) => (1.0 - range) + range * value;
+
+  // between [_rangeLowerBound = 0.3375 .. 1.0]
+  final m = transform(popularity, popularityInTopRange) *
+      transform(health, healthInTopRange) *
+      transform(maintenance, maintenanceInTopRange);
+
+  if (normalize) {
+    // transform it to [0.0 .. 1.0]
+    return (m - topRangeLowerBound) / (1 - topRangeLowerBound);
+  } else {
+    return m;
+  }
+}
+
 class Summary {
   final num max;
   final num min;
