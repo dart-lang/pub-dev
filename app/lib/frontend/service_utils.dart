@@ -12,7 +12,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/configuration.dart';
@@ -24,8 +23,6 @@ import 'search_service.dart';
 import 'upload_signer_service.dart';
 
 final String templatePath = Platform.script.resolve('../views').toFilePath();
-
-final Logger logger = new Logger('pub');
 
 void initOAuth2Service() {
   // The oauth2 service is used for getting an email address from an oauth2

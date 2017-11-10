@@ -10,6 +10,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -32,6 +33,8 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
+final Logger _logger = new Logger('pub');
+
 void main() {
   useLoggingPackageAdaptor();
 
@@ -49,20 +52,20 @@ void main() {
         try {
           return shelf_io.handleRequest(ioRequest,
               (shelf.Request request) async {
-            logger.info('Handling request: ${request.requestedUri}');
+            _logger.info('Handling request: ${request.requestedUri}');
             await registerLoggedInUserIfPossible(request);
             try {
               final sanitizedRequest = sanitizeRequestedUri(request);
               return await appHandler(sanitizedRequest, apiHandler);
             } catch (error, s) {
-              logger.severe('Request handler failed', error, s);
+              _logger.severe('Request handler failed', error, s);
               return new shelf.Response.internalServerError();
             } finally {
-              logger.info('Request handler done.');
+              _logger.info('Request handler done.');
             }
           });
         } catch (error, stack) {
-          logger.severe('Request handler failed', error, stack);
+          _logger.severe('Request handler failed', error, stack);
         }
       }
     });
