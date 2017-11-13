@@ -398,8 +398,13 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
         order: sortOrder,
         offset: offset,
         limit: PackageLinks.resultsPerPage);
-    final effectiveQuery =
-        searchQuery.change(order: sortOrder ?? SearchOrder.updated);
+    // if sort was not specified:
+    // - listing page is ordered by update time
+    // - search page is ordered by overall score
+    final defaultOrder =
+        queryText.isNotEmpty ? SearchOrder.top : SearchOrder.updated;
+    final effectiveOrder = sortOrder ?? defaultOrder;
+    final effectiveQuery = searchQuery.change(order: effectiveOrder);
     final searchResult = await searchService.search(effectiveQuery);
     totalCount = searchResult.totalCount;
     packageViews = searchResult.packages;
