@@ -30,13 +30,16 @@ Future main() async {
 
   withAppEngineServices(() async {
     _initFlutterSdk().then((_) async {
-      startIsolates(logger, _runScheduler);
+      startIsolates(logger, _runSchedulerWrapper);
     });
     _registerServices();
     await runAppEngine((HttpRequest request) =>
         shelf_io.handleRequest(request, analyzerServiceHandler));
   });
 }
+
+// Remove after https://github.com/dart-lang/sdk/issues/30755 lands.
+void _runSchedulerWrapper(message) => _runScheduler(message);
 
 void _runScheduler(List<SendPort> sendPorts) {
   useLoggingPackageAdaptor();

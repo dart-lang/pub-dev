@@ -11,8 +11,7 @@ import 'configuration.dart';
 import 'handlers.dart';
 import 'task_client.dart';
 
-Future startIsolates(
-    Logger logger, void entryPoint(List<SendPort> ports)) async {
+Future startIsolates(Logger logger, void entryPoint(message)) async {
   final ReceivePort errorReceivePort = new ReceivePort();
 
   Future startIsolate() async {
