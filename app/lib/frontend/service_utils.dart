@@ -41,8 +41,10 @@ Future initSearchService() async {
   registerScopeExitCallback(searchService.close);
 }
 
-void initBackend(
-    {UIPackageCache cache, FinishedUploadCallback finishCallback}) {
+Future initBackend(
+    {UIPackageCache cache, FinishedUploadCallback finishCallback}) async {
+  registerExistingPackageValidator(new ExistingPackageValidator(dbService));
+  await existingPackageValidator.refresh();
   registerBackend(new Backend(dbService, tarballStorage,
       cache: cache, finishCallback: finishCallback));
 }
@@ -73,13 +75,13 @@ Future<String> obtainServiceAccountEmail() async {
 }
 
 Future withProdServices(Future fun()) {
-  return withAppEngineServices(() {
+  return withAppEngineServices(() async {
     if (!envConfig.hasGcloudKey) {
       throw 'Missing GCLOUD_* environments for package:appengine';
     }
     registerUploadSigner(
         new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
-    initBackend();
+    await initBackend();
     return fun();
   });
 }
