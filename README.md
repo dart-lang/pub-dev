@@ -4,7 +4,7 @@
 
 The server for hosting pub packages on [pub.dartlang.org](https://pub.dartlang.org)
 is implemented using AppEngine Custom Runtimes with Flexible environment
-(see [package:appengine](github.com/dart-lang/appengine) for more information about
+(see [package:appengine](https://github.com/dart-lang/appengine) for more information about
 Dart support for AppEngine).
 
 ## Local Development
@@ -16,21 +16,49 @@ Generally speaking it is very easy to run the entire application locally
 
 **Switch to using dev/staging data (optional)**
 
-To use a different Google Cloud Project, the `app/bin/configuration.dart` needs
-to be modified:
+To use a different Google Cloud Project, the `app/lib/shared/configuration.dart` needs
+to be modified. First, create a new `Configuration`, copying `Configuration._dev()`,
+but replacing `dartlang-pub-dev` with the name of a new Google Cloud project
+you will need to create:
+
+```dart
+  Configuration._localdev()
+      : projectId = '<gcloud-project>',
+        packageBucketName = '<gcloud-project>--pub-packages',
+        analyzerServicePrefix = 'https://analyzer-dot-<gcloud-project>.appspot.com',
+        dartdocServicePrefix = 'https://dartdoc-dot-<gcloud-project>.appspot.com',
+        searchServicePrefix = 'https://search-dot-<gcloud-project>.appspot.com',
+        popularityDumpBucketName = PackagePopularity.bucketName(true),
+        searchSnapshotBucketName = '<gcloud-project>--search-snapshot';
+```
+
+Then, make sure your new configuration is selected by the `fromEnv` method:
+
 ```diff
-- final activeConfiguration = new Configuration.prod();
-+ final activeConfiguration = new Configuration.dev();
+  factory Configuration.fromEnv(EnvConfig env) {
++    return new Configuration._localdev();
+-    if (env.gcloudProject == 'dartlang-pub-dev')) {
+-      return new Configuration._dev();
+-    } else {
+-      return new Configuration._prod();
+-    }
+  }
 ```
 
 This can be done in two ways, running with or without Docker. Running with Docker will
 be closer to the way the app runs on production (e.g. including using a memcache) -- though
 the turnaround time is a bit longer.
 
-For both variants it is necessary to obtain a service account key for the Cloud Project.
+For both variants, it is necessary to obtain a service account key for the Cloud Project.
 Such a key can be obtained via the [Developers Console](https://console.cloud.google.com/)
 under `IAM and Admin > Service Accounts > Create Service Account` using the `JSON` (not the `P12`)
 key variant.
+
+You will also need to enable Datastore support for your new project using the following link:
+
+```
+  https://console.cloud.google.com/datastore/setup?project=<gcloud-project>
+```
 
 #### Variant a) Running locally without Docker
 
@@ -38,7 +66,7 @@ To run the `frontend` (default) application locally, follow these steps:
 ```
 pub-dartlang-dart $ cd app
 pub-dartlang-dart/app $ pub get
-pub-dartlang-dart/app $ export GCLOUD_PROJECT=dartlang-pub
+pub-dartlang-dart/app $ export GCLOUD_PROJECT=<gcloud-project>
 pub-dartlang-dart/app $ export GCLOUD_KEY=<path-to-service-account-key.json>
 pub-dartlang-dart/app $ GAE_SERVICE="default" dart bin/server.dart
 ```
@@ -54,7 +82,7 @@ pub-dartlang-dart/app $ GAE_SERVICE="analyzer" dart bin/server.dart
 #### Variant b) Running locally With Docker
 
 To run the application locally with Docker follow these steps (please note you need to have the
-service account key inside the checkout (preferrably at `key.json`), because only files inside
+service account key inside the checkout (preferably at `key.json`), because only files inside
 the checkout can go into the docker context):
 ```
 pub-dartlang-dart $ vim Dockerfile
@@ -62,7 +90,7 @@ pub-dartlang-dart $ vim Dockerfile
 # NOTE: Uncomment the following lines for local testing:
 ADD key.json /project/key.json
 ENV GCLOUD_KEY /project/key.json
-ENV GCLOUD_PROJECT dartlang-pub
+ENV GCLOUD_PROJECT <gcloud-project>
 
 pub-dartlang-dart $ docker build .
 <docker-imgage-hash>
@@ -153,7 +181,7 @@ could lead to issues, either the old `frontend` reading new values badly, or the
 reading the old values in a wrong way.
 
 To minimize the risk of such issues, a two-phase release is required:
-- First, deploy the new version of the `analyzer` service, and wait until its done with its first round.
+- First, deploy the new version of the `analyzer` service, and wait until it is done with its first round.
   Wait roughly 1-2 days at the moment, the `/debug` url should give a good estimate, for how long.
 - Then deploy the `search` service and the `app` frontend.
 
