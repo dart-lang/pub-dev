@@ -20,8 +20,52 @@
 {{/has_tool_problems}}
 
 {{#has_dependency}}
-<h4>Transitive dependencies</h4>
-{{#dependencies}}
-<a href="/experimental/packages/{{{name}}}">{{text}}</a>{{sep}}
-{{/dependencies}}
+<h4>Dependencies</h4>
+<table class="dependency-table">
+  <tr>
+    <th>Package</th>
+    <th>Constraint</th>
+    <th>Resolved</th>
+    <th>Available</th>
+  </tr>
+  {{#dependencies.has_direct}}
+  <tr>
+    <th colspan="4">Direct dependencies</th>
+  </tr>
+  {{/dependencies.has_direct}}
+  {{#dependencies.direct}}
+  <tr>
+    <td><a href="/experimental/packages/{{package}}">{{package}}</a></td>
+    <td>{{constraint}}</td>
+    <td>{{resolved}}</td>
+    <td>{{available}}</td>
+  </tr>
+  {{/dependencies.direct}}
+  {{#dependencies.has_transitive}}
+  <tr>
+    <th colspan="4">Transitive dependencies</th>
+  </tr>
+  {{/dependencies.has_transitive}}
+  {{#dependencies.transitive}}
+    <tr>
+      <td><a href="/experimental/packages/{{package}}">{{package}}</a></td>
+      <td>{{constraint}}</td>
+      <td>{{resolved}}</td>
+      <td>{{available}}</td>
+    </tr>
+  {{/dependencies.transitive}}
+  {{#dependencies.has_dev}}
+  <tr>
+    <th colspan="4">Dev dependencies</th>
+  </tr>
+  {{/dependencies.has_dev}}
+  {{#dependencies.dev}}
+    <tr>
+      <td><a href="/experimental/packages/{{package}}">{{package}}</a></td>
+      <td>{{constraint}}</td>
+      <td>{{resolved}}</td>
+      <td>{{available}}</td>
+    </tr>
+  {{/dependencies.dev}}
+</table>
 {{/has_dependency}}

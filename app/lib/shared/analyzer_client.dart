@@ -21,7 +21,7 @@ import 'platform.dart';
 import 'popularity_storage.dart';
 import 'utils.dart';
 
-export 'package:pana/pana.dart' show LicenseFile;
+export 'package:pana/pana.dart' show LicenseFile, PkgDependency;
 export 'analyzer_service.dart';
 
 /// Sets the analyzer client.
@@ -180,13 +180,22 @@ class AnalysisView {
 
   List<LicenseFile> get licenses => _summary?.licenses;
 
-  List<String> getTransitiveDependencies() {
-    final List<String> list = _summary?.pkgResolution?.dependencies
-        ?.map((pd) => pd.package)
+  List<PkgDependency> get directDependencies =>
+      _getDependencies(DependencyTypes.direct);
+
+  List<PkgDependency> get transitiveDependencies =>
+      _getDependencies(DependencyTypes.transitive);
+
+  List<PkgDependency> get devDependencies =>
+      _getDependencies(DependencyTypes.dev);
+
+  List<PkgDependency> _getDependencies(String type) {
+    final List<PkgDependency> list = _summary?.pkgResolution?.dependencies
+        ?.where((pd) => pd.dependencyType == type)
+        ?.where((pd) => pd.package != _summary.packageName)
         ?.toList();
-    if (list == null) return [];
-    list.remove(_summary.packageName);
-    list.sort();
+    if (list == null || list.isEmpty) return const [];
+    list.sort((a, b) => a.package.compareTo(b.package));
     return list;
   }
 
