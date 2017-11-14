@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/shared/platform.dart';
@@ -174,7 +175,28 @@ void main() {
         platforms: ['web'],
         health: 0.95,
         toolProblems: ['dartfmt: Unable to run.'],
-        transitiveDependencies: ['async', 'http'],
+        directDependencies: [
+          new PkgDependency(
+            'http',
+            'direct',
+            'normal',
+            new VersionConstraint.parse('^1.0.0'),
+            new Version.parse('1.0.0'),
+            new Version.parse('1.1.0'),
+            null,
+          ),
+        ],
+        transitiveDependencies: [
+          new PkgDependency(
+            'async',
+            'transitive',
+            'normal',
+            new VersionConstraint.parse('>=0.3.0 <1.0.0'),
+            new Version.parse('0.5.1'),
+            new Version.parse('1.0.2'),
+            null,
+          ),
+        ],
       ));
       expectGoldenFile(html, 'v2/analysis_tab_mock.html', isFragment: true);
     });
@@ -420,8 +442,6 @@ void main() {
 }
 
 class MockAnalysisView implements AnalysisView {
-  List<String> transitiveDependencies;
-
   @override
   bool hasAnalysisData = true;
 
@@ -429,7 +449,13 @@ class MockAnalysisView implements AnalysisView {
   AnalysisStatus analysisStatus;
 
   @override
-  List<String> getTransitiveDependencies() => transitiveDependencies;
+  List<PkgDependency> directDependencies;
+
+  @override
+  List<PkgDependency> transitiveDependencies;
+
+  @override
+  List<PkgDependency> devDependencies;
 
   @override
   double health;
@@ -450,8 +476,10 @@ class MockAnalysisView implements AnalysisView {
     this.analysisStatus,
     this.timestamp,
     this.platforms,
+    this.directDependencies,
+    this.transitiveDependencies,
+    this.devDependencies,
     this.health,
-    this.transitiveDependencies: const [],
     this.toolProblems,
   });
 }

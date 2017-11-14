@@ -850,12 +850,23 @@ main, .site-header {
     }
 }
 
-.version-table{
+.version-table {
     width: 100%
 }
 
 .version-table td,
-    .version-table th{
+.version-table th {
+    width: 25%;
+    padding: 4px 10px;
+    text-align: left;
+}
+
+.dependency-table {
+    width: 100%
+}
+
+.dependency-table td,
+.dependency-table th {
     width: 25%;
     padding: 4px 10px;
     text-align: left;

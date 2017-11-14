@@ -201,17 +201,24 @@ class TemplateService {
 
     final List<String> toolProblems = analysis.toolProblems;
 
-    final List<Map> dependencies = analysis
-        .getTransitiveDependencies()
-        .map((String pkg) => {
-              'name': pkg,
-              'text': pkg,
-              'sep': ',',
-            })
-        .toList();
-    if (dependencies.isNotEmpty) {
-      dependencies.last['sep'] = '';
+    List<Map> prepareDependencies(List<PkgDependency> list) {
+      if (list == null || list.isEmpty) return const [];
+      return list
+          .map((pd) => {
+                'package': pd.package,
+                'constraint': pd.constraint?.toString(),
+                'resolved': pd.resolved?.toString(),
+                'available': pd.available?.toString(),
+              })
+          .toList();
     }
+
+    final directDeps = prepareDependencies(analysis.directDependencies);
+    final transitiveDeps = prepareDependencies(analysis.transitiveDependencies);
+    final devDeps = prepareDependencies(analysis.devDependencies);
+    final hasDependency = directDeps.isNotEmpty ||
+        transitiveDeps.isNotEmpty ||
+        devDeps.isNotEmpty;
 
     final Map<String, dynamic> data = {
       'date_completed': analysis.timestamp == null
@@ -220,8 +227,15 @@ class TemplateService {
       'analysis_status': statusText,
       'tool_problems': toolProblems,
       "has_tool_problems": toolProblems != null && toolProblems.isNotEmpty,
-      'has_dependency': dependencies.isNotEmpty,
-      'dependencies': dependencies,
+      'has_dependency': hasDependency,
+      'dependencies': {
+        'has_direct': directDeps.isNotEmpty,
+        'direct': directDeps,
+        'has_transitive': transitiveDeps.isNotEmpty,
+        'transitive': transitiveDeps,
+        'has_dev': devDeps.isNotEmpty,
+        'dev': devDeps,
+      },
       'health': _formatScore(analysis.health),
     };
 
