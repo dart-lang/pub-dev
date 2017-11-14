@@ -16,6 +16,7 @@ import 'package:pub_dartlang_org/analyzer/versions.dart';
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
 import 'memcache.dart' show analyzerDataLocalExpiration;
+import 'notification.dart' show notifyService;
 import 'platform.dart';
 import 'popularity_storage.dart';
 import 'utils.dart';
@@ -128,6 +129,16 @@ class AnalyzerClient {
       _logger.warning('Analysis request failed on $uri', e, st);
     }
     return null;
+  }
+
+  Future triggerAnalysis(
+      String package, String version, Set<String> dependentPackages) async {
+    await notifyService(
+        _client, _analyzerServiceHttpHostPort, package, version);
+
+    for (final String package in dependentPackages) {
+      await notifyService(_client, _analyzerServiceHttpHostPort, package, null);
+    }
   }
 
   Future close() async {

@@ -6,9 +6,9 @@ import 'dart:async';
 
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/frontend/keys.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/shared/notification.dart';
 
 void _printHelp() {
   print('Sets the private key value.');

@@ -13,7 +13,6 @@ import 'package:pub_server/repository.dart' show AsyncUploadInfo;
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
-import 'package:pub_dartlang_org/shared/notification.dart';
 
 import 'utils.dart';
 
@@ -368,27 +367,4 @@ Future withTestPackage(Future func(List<int> tarball),
     if (exitCode != 0) throw 'Failed to make tarball of test package.';
     return func(bytes);
   });
-}
-
-class NotificationClientMock implements NotificationClient {
-  final List<String> notificationLog = [];
-
-  @override
-  Future notifyAnalyzer(
-      String package, String version, Set<String> dependentPackages) async {
-    notificationLog.add('analyzer: $package $version $dependentPackages');
-  }
-
-  @override
-  Future notifyDartdoc(String package, String version) async {
-    notificationLog.add('dartdoc: $package $version');
-  }
-
-  @override
-  Future notifySearch(String package) async {
-    notificationLog.add('search: $package');
-  }
-
-  @override
-  Future close() async {}
 }

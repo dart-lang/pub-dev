@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
+import '../shared/notification.dart';
 import '../shared/task_client.dart';
 
 /// Handlers for the dartdoc service.
