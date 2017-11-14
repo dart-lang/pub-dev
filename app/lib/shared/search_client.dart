@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 
 import 'configuration.dart';
+import 'notification.dart';
 import 'search_service.dart';
 import 'utils.dart';
 
@@ -48,6 +49,19 @@ class SearchClient {
       return null;
     }
     return result;
+  }
+
+  /// Search service maintains a separate index in each of the running instances.
+  /// At the moment we cannot guarantee that each of them will receive the
+  /// notification.
+  Future triggerReindex(String package) {
+    // We have a good chance that Appengine's round-robin will send the requests
+    // to separate service instances.
+    final List<Future> requests = new List.generate(
+        10,
+        (_) => notifyService(_httpClient,
+            activeConfiguration.searchServicePrefix, package, null));
+    return Future.wait(requests);
   }
 
   Future close() async {

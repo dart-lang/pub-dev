@@ -5,7 +5,9 @@
 import 'dart:async';
 
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
-import 'package:pub_dartlang_org/shared/notification.dart';
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 
 void _printHelp() {
   print('Notifies the auxilliary services about a new package or version.');
@@ -22,16 +24,18 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
-    registerNotificationClient(new NotificationClient());
+    registerAnalyzerClient(
+        new AnalyzerClient(activeConfiguration.analyzerServicePrefix));
+    registerSearchClient(new SearchClient());
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
-      await notificationClient.notifyAnalyzer(
-          args[1], args[2], new Set<String>());
+      await analyzerClient.triggerAnalysis(args[1], args[2], new Set<String>());
     } else if (service == 'search' && args.length == 2) {
-      await notificationClient.notifySearch(args[1]);
+      await searchClient.triggerReindex(args[1]);
     } else {
       _printHelp();
     }
-    await notificationClient.close();
+    await analyzerClient.close();
+    await searchClient.close();
   });
 }

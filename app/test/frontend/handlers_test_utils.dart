@@ -282,6 +282,9 @@ class SearchClientMock implements SearchClient {
   }
 
   @override
+  Future triggerReindex(String package) async {}
+
+  @override
   Future close() async {}
 }
 
@@ -326,4 +329,8 @@ class AnalyzerClientMock implements AnalyzerClient {
   Future<List<AnalysisExtract>> getAnalysisExtracts(
           Iterable<AnalysisKey> keys) =>
       Future.wait(keys.map(getAnalysisExtract));
+
+  @override
+  Future triggerAnalysis(
+      String package, String version, Set<String> dependentPackages) async {}
 }

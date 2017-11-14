@@ -8,8 +8,6 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dartlang_org/frontend/keys.dart';
-
 final _pubHeaderLogger = new Logger('pub.header_logger');
 
 const String default404NotFound = '404 Not Found';
@@ -68,14 +66,3 @@ void logPubHeaders(shelf.Request request) {
     }
   });
 }
-
-Future<bool> validateNotificationSecret(shelf.Request request) async {
-  final String received = request.headers['x-notification-secret'];
-  if (received == null) return false;
-  final String secret = await getNotificationSecret();
-  return received == secret;
-}
-
-Future<Map<String, String>> prepareNotificationHeaders() async => {
-      'x-notification-secret': await getNotificationSecret(),
-    };

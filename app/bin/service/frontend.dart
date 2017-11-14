@@ -20,7 +20,6 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
-import 'package:pub_dartlang_org/shared/notification.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
@@ -73,10 +72,6 @@ void main() {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  final NotificationClient notificationClient = new NotificationClient();
-  registerNotificationClient(notificationClient);
-  registerScopeExitCallback(notificationClient.close);
-
   final Bucket popularityBucket =
       storageService.bucket(configuration.popularityDumpBucketName);
   registerPopularityStorage(
@@ -126,14 +121,13 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     // ran the first analysis on the new version.
     //
     // Note: We provide the analyzer service with a list of packages which need
-    // re-analyzis.
+    // re-analysis.
     final Set<String> dependentPackages =
         depsGraphBuilder.affectedPackages(pv.package);
 
     // Since there can be many [dependentPackages], we'll not wait for the
-    // notifcation to be done.
-    notificationClient.notifyAnalyzer(
-        pv.package, pv.version, dependentPackages);
+    // notification to be done.
+    analyzerClient.triggerAnalysis(pv.package, pv.version, dependentPackages);
 
     // TODO: enable notification of dartdoc service
   }
