@@ -66,17 +66,18 @@ class Configuration {
         popularityDumpBucketName = PackagePopularity.bucketName(false),
         searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
 
-  /// Create a configuration for development/staging deployment.
-  Configuration._dev()
-      : projectId = 'dartlang-pub-dev',
-        packageBucketName = 'dartlang-pub-dev--pub-packages',
-        analyzerServicePrefix =
-            'https://analyzer-dot-dartlang-pub-dev.appspot.com',
-        dartdocServicePrefix =
-            'https://dartdoc-dot-dartlang-pub-dev.appspot.com',
-        searchServicePrefix = 'https://search-dot-dartlang-pub-dev.appspot.com',
+  /// Base configuration for local development
+  Configuration._local(String projectId)
+      : projectId = projectId,
+        packageBucketName = '$projectId--pub-packages',
+        analyzerServicePrefix = 'https://analyzer-dot-$projectId.appspot.com',
+        dartdocServicePrefix = 'https://dartdoc-dot-$projectId.appspot.com',
+        searchServicePrefix = 'https://search-dot-$projectId.appspot.com',
         popularityDumpBucketName = PackagePopularity.bucketName(true),
-        searchSnapshotBucketName = 'dartlang-pub-dev--search-snapshot';
+        searchSnapshotBucketName = '$projectId--search-snapshot';
+
+  /// Create a configuration for development/staging deployment.
+  Configuration._dev() : this._local('dartlang-pub-dev');
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
