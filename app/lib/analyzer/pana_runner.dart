@@ -84,10 +84,6 @@ class PanaRunner implements TaskRunner {
       _logger.warning('Analysis GC failed: $task', e);
     }
 
-    if (backendStatus.isNewVersion) {
-      // TODO: trigger re-analysis of packages depending on this one
-    }
-
     return backendStatus.wasRace;
   }
 }
