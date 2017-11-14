@@ -224,6 +224,7 @@ class PackageView {
   final String ellipsizedDescription;
   final String shortUpdated;
   final List<String> authors;
+  final double overallScore;
   final List<String> platforms;
 
   PackageView({
@@ -233,6 +234,7 @@ class PackageView {
     this.ellipsizedDescription,
     this.shortUpdated,
     this.authors,
+    this.overallScore,
     this.platforms,
   });
 
@@ -252,6 +254,7 @@ class PackageView {
       ellipsizedDescription: version?.ellipsizedDescription,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
       authors: version?.pubspec?.getAllAuthors(),
+      overallScore: analysis == null ? null : analysis.overallScore,
       platforms: analysis?.platforms,
     );
   }
