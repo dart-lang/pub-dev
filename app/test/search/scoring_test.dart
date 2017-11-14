@@ -9,115 +9,61 @@ import 'package:test/test.dart';
 void main() {
   group('overall', () {
     test('popularity', () {
-      expect(
-          calculateOverallScore(
-              popularity: 0.1, health: 0.0, maintenance: 0.0, normalize: false),
-          0.37125);
       // P: 10, H: 0, M: 0 -> T: 5
       expect(
-          calculateOverallScore(
-              popularity: 0.1, health: 0.0, maintenance: 0.0, normalize: true),
-          closeTo(0.0509, 0.0001));
+          calculateOverallScore(popularity: 0.1, health: 0.0, maintenance: 0.0),
+          closeTo(0.05, 0.001));
+      // P: 90, H: 0, M: 0 -> T: 45
       expect(
-          calculateOverallScore(
-              popularity: 0.9, health: 0.0, maintenance: 0.0, normalize: false),
-          0.64125);
-      // P: 90, H: 0, M: 0 -> T: 46
-      expect(
-          calculateOverallScore(
-              popularity: 0.9, health: 0.0, maintenance: 0.0, normalize: true),
-          closeTo(0.4585, 0.0001));
+          calculateOverallScore(popularity: 0.9, health: 0.0, maintenance: 0.0),
+          closeTo(0.45, 0.001));
     });
     test('health', () {
+      // P: 0, H: 10, M: 0 -> T: 3
       expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.1, maintenance: 0.0, normalize: false),
-          0.34875);
-      // P: 0, H: 10, M: 0 -> T: 2
+          calculateOverallScore(popularity: 0.0, health: 0.1, maintenance: 0.0),
+          closeTo(0.03, 0.001));
+      // P: 0, H: 90, M: 0 -> T: 27
       expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.1, maintenance: 0.0, normalize: true),
-          closeTo(0.01698, 0.0001));
-      expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.9, maintenance: 0.0, normalize: false),
-          0.43875);
-      // P: 0, H: 90, M: 0 -> T: 15
-      expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.9, maintenance: 0.0, normalize: true),
-          closeTo(0.1528, 0.0001));
+          calculateOverallScore(popularity: 0.0, health: 0.9, maintenance: 0.0),
+          closeTo(0.27, 0.001));
     });
     test('maintenance', () {
+      // P: 0, H: 0, M: 10 -> T: 2
       expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.0, maintenance: 0.1, normalize: false),
-          0.34125);
-      // P: 0, H: 0, M: 10 -> T: 1
+          calculateOverallScore(popularity: 0.0, health: 0.0, maintenance: 0.1),
+          closeTo(0.02, 0.001));
+      // P: 0, H: 0, M: 90 -> T: 18
       expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.0, maintenance: 0.1, normalize: true),
-          closeTo(0.0057, 0.0001));
-      expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.0, maintenance: 0.9, normalize: false),
-          closeTo(0.37125, 0.0001));
-      // P: 0, H: 0, M: 90 -> T: 5
-      expect(
-          calculateOverallScore(
-              popularity: 0.0, health: 0.0, maintenance: 0.9, normalize: true),
-          closeTo(0.05094, 0.0001));
+          calculateOverallScore(popularity: 0.0, health: 0.0, maintenance: 0.9),
+          closeTo(0.18, 0.001));
     });
     test('high score', () {
+      // P: 95, H: 99, M: 99 -> T: 97
       expect(
           calculateOverallScore(
-              popularity: 0.95,
-              health: 0.99,
-              maintenance: 0.99,
-              normalize: false),
-          closeTo(0.9716, 0.0001));
-      // P: 95, H: 99, M: 99 -> T: 96
-      expect(
-          calculateOverallScore(
-              popularity: 0.95,
-              health: 0.99,
-              maintenance: 0.99,
-              normalize: true),
-          closeTo(0.9571, 0.0001));
+              popularity: 0.95, health: 0.99, maintenance: 0.99),
+          closeTo(0.97, 0.001));
     });
     test('mediocre score', () {
+      // P: 56, H: 78, M: 54 -> T: 62
       expect(
           calculateOverallScore(
-              popularity: 0.56,
-              health: 0.78,
-              maintenance: 0.54,
-              normalize: false),
-          closeTo(0.7031, 0.0001));
-      // P: 56, H: 78, M: 54 -> T: 55
-      expect(
-          calculateOverallScore(
-              popularity: 0.56,
-              health: 0.78,
-              maintenance: 0.54,
-              normalize: true),
-          closeTo(0.5519, 0.0001));
+              popularity: 0.56, health: 0.78, maintenance: 0.54),
+          closeTo(0.622, 0.001));
     });
     test('low score', () {
+      // P: 12, H: 34, M: 18-> T: 20
       expect(
           calculateOverallScore(
-              popularity: 0.12,
-              health: 0.34,
-              maintenance: 0.18,
-              normalize: false),
-          closeTo(0.4292, 0.0001));
-      // P: 12, H: 34, M: 18-> T: 14
+              popularity: 0.12, health: 0.34, maintenance: 0.18),
+          closeTo(0.198, 0.001));
+    });
+    test('new great package: 0.5', () {
+      // P: 0, H: 100, M: 100 -> T: 50
       expect(
-          calculateOverallScore(
-              popularity: 0.12,
-              health: 0.34,
-              maintenance: 0.18,
-              normalize: true),
-          closeTo(0.1385, 0.0001));
+          calculateOverallScore(popularity: 0.0, health: 1.0, maintenance: 1.0),
+          closeTo(0.5, 0.0001));
     });
   });
 

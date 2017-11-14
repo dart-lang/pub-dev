@@ -47,6 +47,14 @@ The popularity score is calculated in several steps:
   `PopularityStorage._updateLatest`. This step needs to know all of the scores
   in one place to do that calculation.
 
+### Overall package score
+
+Overall package score is calculated in the `calculateOverallScore` method as follows:
+
+- `0.5` * `popularity` +
+- `0.3` * `health` +
+- `0.2` * `maintenance`
+
 ### Platform specificity score
 
 When a platform filter is specified, we both check whether the predicate
@@ -107,24 +115,27 @@ will be combined with other scores (see: combined ranking).
 
 ### Combined ranking
 
-When combining multiple scores (e.g. popularity + health + maintenance \[+ text match score]),
+When combining multiple scores (e.g. overall \[+ text match score]),
 we multiply the values. To protect against low values (e.g. new package not having any popularity
-score), we do the following linear transformations:
+score), we do the following linear transformation:
 
-- `popularity`: `[0.0 .. 1.0] -> [0.5 .. 1.0]`
-- `health`: `[0.0 .. 1.0] -> [0.75 .. 1.0]`
-- `maintenance`: `[0.0 .. 1.0] -> [0.9 .. 1.0]`
+- `overall`: `[0.0 .. 1.0] -> [0.3 .. 1.0]`
 
 Platform specificity is already protected against low values, there is no
 transformation required for it.
 
 For example, a result with the following scores is calculated the following way:
 
+| Name | Value |
+| --- | --- |
+| Popularity | 0.86 |
+| Health | 0.92 |
+| Maintenance | 1.0 |
+| Overall | **0.906** |
+
 | Name | Raw Value | Transformed | 
 | --- | --- | --- | 
 | Text match | 0.7 | 0.7 | 
-| Popularity | 0.86 | 0.93 | 
-| Health | 0.92 | 0.98 | 
-| Maintenance | 1.0 | 1.0 | 
+| Package's overall | 0.906 | 0.9342 | 
 | Platform specificity | 0.9 | 0.9 |
-| Overall |  | 0.574182 | 
+| Result |  | 0.588546 | 
