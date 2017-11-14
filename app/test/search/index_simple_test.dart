@@ -190,7 +190,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'async',
-            'score': closeTo(0.28, 0.01),
+            'score': closeTo(0.29, 0.01),
           },
         ]
       });
@@ -205,7 +205,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.11, 0.01),
+            'score': closeTo(0.13, 0.01),
           },
           {
             'package': 'http',
@@ -224,7 +224,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.11, 0.01),
+            'score': closeTo(0.13, 0.01),
           },
         ]
       });
@@ -239,7 +239,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.4, 0.1),
+            'score': closeTo(0.53, 0.1),
           },
         ]
       });

@@ -58,7 +58,7 @@ void main() {
           'packages': [
             {
               'package': 'pkg_foo',
-              'score': closeTo(0.15, 0.01),
+              'score': closeTo(0.14, 0.01),
             }
           ],
         });

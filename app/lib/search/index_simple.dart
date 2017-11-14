@@ -207,11 +207,13 @@ class SimplePackageIndex implements PackageIndex {
     final Map<String, double> values =
         new Map.fromIterable(packages, value: (package) {
       final doc = _packages[package];
-      return calculateOverallScore(
+      final double overall = calculateOverallScore(
         popularity: doc.popularity ?? 0.0,
         health: doc.health ?? 0.0,
         maintenance: doc.maintenance ?? 0.0,
       );
+      // don't multiply with zero.
+      return 0.3 + 0.7 * overall;
     });
     return new Score(values);
   }
