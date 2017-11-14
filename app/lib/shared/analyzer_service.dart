@@ -6,6 +6,8 @@
 library pub_dartlang_org.shared.analyzer_service;
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dartlang_org/search/scoring.dart'
+    show calculateOverallScore;
 
 part 'analyzer_service.g.dart';
 
@@ -103,4 +105,10 @@ class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
 
   factory AnalysisExtract.fromJson(Map<String, dynamic> json) =>
       _$AnalysisExtractFromJson(json);
+
+  double get overallScore => calculateOverallScore(
+        health: health ?? 0.0,
+        maintenance: maintenance ?? 0.0,
+        popularity: popularity ?? 0.0,
+      );
 }

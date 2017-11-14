@@ -129,6 +129,7 @@ class TemplateService {
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final view = packages[i];
+      final overallScore = view.overallScore;
       packagesJson.add({
         'url': '/packages/${view.name}',
         'name': view.name,
@@ -139,6 +140,8 @@ class TemplateService {
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.platforms), // used in v2 only
+        'overall_score': _formatScore(overallScore),
+        'overall_class': _classifyScore(overallScore),
       });
     }
 
@@ -219,7 +222,7 @@ class TemplateService {
       "has_tool_problems": toolProblems != null && toolProblems.isNotEmpty,
       'has_dependency': dependencies.isNotEmpty,
       'dependencies': dependencies,
-      'health': analysis.health,
+      'health': _formatScore(analysis.health),
     };
 
     return _renderTemplate('v2/pkg/analysis_tab', data);
@@ -847,6 +850,20 @@ String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
       return '<span class="author"><i class="icon-envelope"></i> $escapedName</span>';
     }
   }).join('<br/>');
+}
+
+String _formatScore(double value) {
+  if (value == null) return '--';
+  if (value <= 0.0) return '0';
+  if (value >= 1.0) return '100';
+  return (value * 100.0).round().toString();
+}
+
+String _classifyScore(double value) {
+  if (value == null) return 'missing';
+  if (value <= 0.4) return 'rotten';
+  if (value <= 0.7) return 'good';
+  return 'solid';
 }
 
 String _getUploadersHtml(Package package) {

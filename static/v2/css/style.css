@@ -456,7 +456,7 @@ main, .site-header {
   cursor: pointer
 }
 
-.score-box > .number{
+.score-box > .number {
   display: block;
   border-radius: 50%;
   width: 25px;
@@ -469,17 +469,22 @@ main, .site-header {
   font-weight: 500;
 }
 
-.score-box > .number.-solid{
+.score-box > .number.-solid {
   background: #0075c9;
 }
 
-.score-box > .number.-good{
+.score-box > .number.-good {
   background: #00c4b3;
 }
 
-.score-box > .number.-ok{
+.score-box > .number.-rotten {
+  background: #bb2400;
+}
+
+.score-box > .number.-missing {
   background: #ccc;
 }
+
 
 .score-box > .text{
   font-size: 14px;
