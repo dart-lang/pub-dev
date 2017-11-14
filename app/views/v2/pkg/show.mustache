@@ -23,20 +23,20 @@
   <div class="main tabs-content">
     <ul class="package-tabs js-tabs">
       {{#tabs}}
-        <li class="tab {{active}}" data-name="pub-tab-{{id}}">{{title}}</li>
+        <li class="tab {{active}}" data-name="-{{id}}-tab-">{{title}}</li>
       {{/tabs}}
-      <li class="tab {{#has_no_file_tab}}-active{{/has_no_file_tab}}" data-name="pub-tab-installing">Installing</li>
-      <li class="tab" data-name="pub-tab-versions">Versions</li>
-      <li class="tab" data-name="score">
+      <li class="tab {{#has_no_file_tab}}-active{{/has_no_file_tab}}" data-name="-installing-tab-">Installing</li>
+      <li class="tab" data-name="-versions-tab-">Versions</li>
+      <li class="tab" data-name="-analysis-tab-">
         <div class="score-box"><span class="number -good">??</span></div>
       </li>
     </ul>
     {{#tabs}}
-      <section class="content {{active}} js-content markdown-body" data-name="pub-tab-{{id}}">
+      <section class="content {{active}} js-content markdown-body" data-name="-{{id}}-tab-">
         {{&content}}
       </section>
     {{/tabs}}
-    <section class="content {{#has_no_file_tab}}-active{{/has_no_file_tab}} js-content markdown-body" data-name="pub-tab-installing">
+    <section class="content {{#has_no_file_tab}}-active{{/has_no_file_tab}} js-content markdown-body" data-name="-installing-tab-">
       <h3>1. Depend on it</h3>
       <p>Add this to your package's pubspec.yaml file:</p>
       <pre><code class="language-yaml">
@@ -57,7 +57,7 @@ import 'package:{{package}}/{{library}}';
         </code></pre>
       {{/package.selected_version.has_libraries}}
     </section>
-    <section class="content js-content markdown-body" data-name="pub-tab-versions">
+    <section class="content js-content markdown-body" data-name="-versions-tab-">
       <table class="version-table">
         <thead>
         <tr>
@@ -94,7 +94,7 @@ import 'package:{{package}}/{{library}}';
         </p>
       {{/show_versions_link}}
     </section>
-    <section class="content js-content markdown-body" data-name="score">
+    <section class="content js-content markdown-body" data-name="-analysis-tab-">
       {{^package.analysis_html}}
         <i>Scheduled for analysis.</i>
       {{/package.analysis_html}}
