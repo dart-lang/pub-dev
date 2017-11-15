@@ -16,27 +16,13 @@ Generally speaking it is very easy to run the entire application locally
 
 **Switch to using dev/staging data (optional)**
 
-To use a different Google Cloud Project, the `app/lib/shared/configuration.dart` needs
-to be modified. First, create a new `Configuration`, copying `Configuration._dev()`,
-but replacing `dartlang-pub-dev` with the name of a new Google Cloud project
-you will need to create:
-
-```dart
-  Configuration._localdev()
-      : projectId = '<gcloud-project>',
-        packageBucketName = '<gcloud-project>--pub-packages',
-        analyzerServicePrefix = 'https://analyzer-dot-<gcloud-project>.appspot.com',
-        dartdocServicePrefix = 'https://dartdoc-dot-<gcloud-project>.appspot.com',
-        searchServicePrefix = 'https://search-dot-<gcloud-project>.appspot.com',
-        popularityDumpBucketName = PackagePopularity.bucketName(true),
-        searchSnapshotBucketName = '<gcloud-project>--search-snapshot';
-```
-
-Then, make sure your new configuration is selected by the `fromEnv` method:
+To use a different Google Cloud Project, the `app/lib/shared/configuration.dart` file needs
+to be modified. For that, change the `fromEnv` method to create a `_local` configuration
+with the name of the new Google Cloud project you will need to create:
 
 ```diff
   factory Configuration.fromEnv(EnvConfig env) {
-+    return new Configuration._localdev();
++    return new Configuration._local(<gcloud-project>);
 -    if (env.gcloudProject == 'dartlang-pub-dev')) {
 -      return new Configuration._dev();
 -    } else {
