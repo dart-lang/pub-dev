@@ -12,9 +12,6 @@ part 'popularity.g.dart';
 class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
   static const int version = 3;
 
-  static String bucketName(bool dev) =>
-      dev ? 'dartlang-pub-dev--popularity' : 'dartlang-pub--popularity';
-
   static final String popularityFileName = 'v$version/popularity.json.gz';
 
   @JsonKey(name: 'date_first', nullable: false)
