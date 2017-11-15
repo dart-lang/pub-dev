@@ -109,6 +109,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
+          null,
           new MockAnalysisView()
             ..licenses = [new LicenseFile('license.txt', 'BSD')]);
       expectGoldenFile(html, 'pkg_show_page.html');
@@ -123,6 +124,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
+          null,
           new MockAnalysisView()
             ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
       expectGoldenFile(html, 'v2/pkg_show_page.html');
@@ -137,6 +139,7 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
+          null,
           new MockAnalysisView()..platforms = ['flutter']);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
@@ -150,6 +153,12 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
+          new AnalysisExtract(
+            health: 0.99,
+            maintenance: 0.99,
+            popularity: 0.3,
+            platforms: ['flutter'],
+          ),
           new MockAnalysisView()..platforms = ['flutter']);
       expectGoldenFile(html, 'v2/pkg_show_page_flutter_plugin.html');
     });

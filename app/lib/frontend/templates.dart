@@ -140,8 +140,7 @@ class TemplateService {
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.platforms), // used in v2 only
-        'overall_score': _formatScore(overallScore),
-        'overall_class': _classifyScore(overallScore),
+        'score_box_html': _renderScoreBox(overallScore),
       });
     }
 
@@ -251,6 +250,7 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisExtract extract,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
     final bool isFlutterPlugin =
@@ -265,6 +265,7 @@ class TemplateService {
       latestStableVersion,
       latestDevVersion,
       totalNumberOfVersions,
+      extract,
       analysis,
       isFlutterPlugin,
     );
@@ -285,6 +286,7 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisExtract extract,
       AnalysisView analysis,
       isFlutterPlugin) {
     List importExamples;
@@ -445,6 +447,7 @@ class TemplateService {
         'install_html': _renderInstall(isFlutterPlugin, analysis?.platforms),
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
+        'score_box_html': _renderScoreBox(extract?.overallScore),
         'analysis_html': renderAnalysisTabV2(analysis),
       },
       'versions': versionsJson,
@@ -511,6 +514,7 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisExtract extract,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
     final bool isFlutterPlugin =
@@ -525,6 +529,7 @@ class TemplateService {
       latestStableVersion,
       latestDevVersion,
       totalNumberOfVersions,
+      extract,
       analysis,
       isFlutterPlugin,
     );
@@ -864,6 +869,15 @@ String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
       return '<span class="author"><i class="icon-envelope"></i> $escapedName</span>';
     }
   }).join('<br/>');
+}
+
+String _renderScoreBox(double overallScore) {
+  final String formattedScore = _formatScore(overallScore);
+  final String scoreClass = _classifyScore(overallScore);
+  return '<div class="score-box">'
+      '<span class="number -$scoreClass">$formattedScore</span>'
+      // TODO: decide on label - {{! <span class="text">?????</span> }}
+      '</div>';
 }
 
 String _formatScore(double value) {

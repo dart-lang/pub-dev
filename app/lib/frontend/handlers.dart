@@ -612,6 +612,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         PackageVersion latestStableVersion,
         PackageVersion latestDevVersion,
         int totalNumberOfVersions,
+        AnalysisExtract extract,
         AnalysisView analysis)) async {
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
@@ -648,8 +649,12 @@ Future<shelf.Response> _packageVersionHandlerHtml(
       }
     }
     final Stopwatch serviceSw = new Stopwatch()..start();
-    final AnalysisView analysisView = await analyzerClient.getAnalysisView(
-        new AnalysisKey(selectedVersion.package, selectedVersion.version));
+    final analysisKey =
+        new AnalysisKey(selectedVersion.package, selectedVersion.version);
+    final AnalysisExtract analysisExtract =
+        await analyzerClient.getAnalysisExtract(analysisKey);
+    final AnalysisView analysisView =
+        await analyzerClient.getAnalysisView(analysisKey);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
 
     final versionDownloadUrls =
@@ -665,6 +670,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         latestStable,
         latestDev,
         versions.length,
+        analysisExtract,
         analysisView);
 
     if (backend.uiPackageCache != null) {
