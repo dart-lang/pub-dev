@@ -110,6 +110,11 @@ and accumulate a score based on the following calculation:
   - `doc.size = the size of the document`, calculated as `sqrt(number of tokens)`.
   - `score(doc) = (matched token weights) / (query weight * doc.size)`
 
+The query text could contain exact phrases (text between quotation marks:
+`"exact phrase""`). When present, the result list is filtered by matching
+those phrases against the original text content, removing packages that doesn't
+have those.
+
 The text match score will then be either used directly (`SearchOrder.text`) or it
 will be combined with other scores (see: combined ranking).
 
