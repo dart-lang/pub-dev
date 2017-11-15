@@ -49,6 +49,7 @@ Future notifyService(http.Client client, String servicePrefix, String package,
     uri = '$uri/$version';
   }
   try {
+    _logger.fine('Notification HTTP POST $uri');
     final response =
         await client.post(uri, headers: await prepareNotificationHeaders());
     if (response.statusCode != 200) {

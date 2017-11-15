@@ -261,6 +261,7 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
   http.Response result;
   for (int i = 0; i <= retryCount; i++) {
     try {
+      _logger.info('HTTP GET $url');
       result = await client.get(url);
       if (i == retryCount ||
           result.statusCode == 200 ||
