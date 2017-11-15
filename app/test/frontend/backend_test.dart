@@ -761,7 +761,7 @@ void main() {
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage);
             registerLoggedInUser('un@authorized.com');
-            repo
+            await repo
                 .upload(new Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(error is pub_server.UnauthorizedAccessException, isTrue);
@@ -783,7 +783,7 @@ void main() {
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage);
             registerLoggedInUser('un@authorized.com');
-            repo
+            await repo
                 .upload(new Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(

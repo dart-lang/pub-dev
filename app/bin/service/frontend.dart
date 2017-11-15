@@ -133,7 +133,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   }
 
   final cache = new AppEnginePackageMemcache(memcacheService);
-  initBackend(cache: cache, finishCallback: uploadFinished);
+  await initBackend(cache: cache, finishCallback: uploadFinished);
   registerSearchMemcache(new SearchMemcache(memcacheService));
 
   UploadSignerService uploadSigner;

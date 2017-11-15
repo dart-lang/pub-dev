@@ -42,6 +42,14 @@ void registerBackend(Backend backend) => ss.register(#_backend, backend);
 /// The active backend service.
 Backend get backend => ss.lookup(#_backend);
 
+/// Sets the existing package validator service.
+void registerExistingPackageValidator(ExistingPackageValidator validator) =>
+    ss.register(#_existingPackageValidator, validator);
+
+/// The existing package validator service.
+ExistingPackageValidator get existingPackageValidator =>
+    ss.lookup(#_existingPackageValidator);
+
 /// A callback to be invoked after an upload of a new [PackageVersion].
 typedef Future FinishedUploadCallback(models.PackageVersion pv);
 
@@ -649,6 +657,9 @@ Future<models.PackageVersion> parseAndValidateUpload(
     throw 'Invalid `pubspec.yaml` file';
   }
   validatePackageName(pubspec.name);
+  if (existingPackageValidator != null) {
+    await existingPackageValidator.validate(pubspec.name);
+  }
 
   String exampleFilename;
   for (String candidate in exampleFileCandidates(pubspec.name)) {
@@ -693,6 +704,58 @@ Future<models.PackageVersion> parseAndValidateUpload(
     ..sortOrder = 1
     ..uploaderEmail = user;
   return version;
+}
+
+class ExistingPackageValidator {
+  final DatastoreDB _db;
+  final _fullNames = new Set<String>();
+  final _lowerNames = new Set<String>();
+  DateTime _timestamp;
+  ExistingPackageValidator(this._db);
+
+  Future validate(String name) async {
+    if (_fullNames.contains(name)) {
+      // existing packages are valid
+      return;
+    }
+    await refresh();
+    if (_fullNames.contains(name)) {
+      // existing packages are valid
+      return;
+    }
+    if (_fullNames.isEmpty) {
+      // error loading the packages
+      _logger.warning('Package name was not validated: $name');
+      return;
+    }
+    // package name is new, validating...
+    final lower = name.toLowerCase();
+    if (name != lower) {
+      throw new Exception('New package name must be lower case!');
+    }
+    if (_lowerNames.contains(lower)) {
+      throw new Exception('Package name in conflict with existing package!');
+    }
+  }
+
+  Future refresh() async {
+    final query = _db.query(models.Package);
+    if (_timestamp != null) {
+      query.filter('created >=', _timestamp);
+    }
+    _logger.info('Fetching package lists...');
+    final next = new DateTime.now().toUtc().subtract(const Duration(hours: 1));
+    try {
+      await for (models.Package package in query.run()) {
+        _fullNames.add(package.name);
+        _lowerNames.add(package.name.toLowerCase());
+      }
+      _logger.info('Package list updated: ${_fullNames.length} packages.');
+    } catch (e, st) {
+      _logger.severe('Error loading package list.', e, st);
+    }
+    _timestamp = next;
+  }
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
