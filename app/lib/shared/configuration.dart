@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'dart:math' show max;
 
-import 'package:_popularity/popularity.dart';
 import 'package:googleapis_auth/auth.dart' as auth;
 
 final activeConfiguration = new Configuration.fromEnv(envConfig);
@@ -57,27 +56,22 @@ class Configuration {
   /// This will use the Datastore from the cloud project and the Cloud Storage
   /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
-  Configuration._prod()
-      : projectId = 'dartlang-pub',
-        packageBucketName = 'pub-packages',
-        analyzerServicePrefix = 'https://analyzer-dot-dartlang-pub.appspot.com',
-        dartdocServicePrefix = 'https://dartdoc-dot-dartlang-pub.appspot.com',
-        searchServicePrefix = 'https://search-dot-dartlang-pub.appspot.com',
-        popularityDumpBucketName = PackagePopularity.bucketName(false),
-        searchSnapshotBucketName = 'dartlang-pub--search-snapshot';
+  Configuration._prod() : this._local('dartlang-pub');
+
+  /// Create a configuration for development/staging deployment.
+  Configuration._dev() : this._local('dartlang-pub-dev');
 
   /// Base configuration for local development
   Configuration._local(String projectId)
       : projectId = projectId,
-        packageBucketName = '$projectId--pub-packages',
+        packageBucketName = projectId == 'dartlang-pub'
+            ? 'pub-packages'
+            : '$projectId--pub-packages',
         analyzerServicePrefix = 'https://analyzer-dot-$projectId.appspot.com',
         dartdocServicePrefix = 'https://dartdoc-dot-$projectId.appspot.com',
         searchServicePrefix = 'https://search-dot-$projectId.appspot.com',
-        popularityDumpBucketName = PackagePopularity.bucketName(true),
+        popularityDumpBucketName = '$projectId--popularity',
         searchSnapshotBucketName = '$projectId--search-snapshot';
-
-  /// Create a configuration for development/staging deployment.
-  Configuration._dev() : this._local('dartlang-pub-dev');
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
