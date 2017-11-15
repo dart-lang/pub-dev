@@ -222,6 +222,7 @@ class TemplateMock implements TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisExtract extract,
       AnalysisView analysis) {
     return _response;
   }
@@ -235,6 +236,7 @@ class TemplateMock implements TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
+      AnalysisExtract extract,
       AnalysisView analysis) {
     return _response;
   }

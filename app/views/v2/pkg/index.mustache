@@ -14,9 +14,7 @@
 <ul class="package-list">
   {{#packages}}
     <li class="list-item -full">
-      <div class="score-box">
-        <span class="number -{{overall_class}}">{{overall_score}}</span>{{! <span class="text">?????</span> }}
-      </div>
+      {{& score_box_html }}
       <h3 class="title"><a href="/experimental{{url}}">{{name}}</a></h3>
       <p class="description">{{desc}}</p>
       <p class="metadata">
