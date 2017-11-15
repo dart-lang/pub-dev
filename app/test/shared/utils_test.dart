@@ -54,4 +54,18 @@ void main() {
           [3, 1, 0, 2, 4, 5, 6, 7, 11, 13, 12, 10, 16, 14, 17, 15]);
     });
   });
+
+  group('package name validation', () {
+    test('reject unknown mixed-case', () {
+      expect(() => validatePackageName('myNewPackage'), throwsException);
+    });
+
+    test('accept known mixed-case', () {
+      expect(validatePackageName('babylon'), isNull);
+    });
+
+    test('accept lower-case', () {
+      expect(validatePackageName('my_package'), isNull);
+    });
+  });
 }
