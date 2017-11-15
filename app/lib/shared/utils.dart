@@ -143,6 +143,21 @@ const List<String> _reservedWords = const <String>[
   'with'
 ];
 
+const knownMixedCasePackages = const [
+  'Autolinker',
+  'Babylon',
+  'DartDemoCLI',
+  'FileTeCouch',
+  'Flutter_Nectar',
+  'Google_Search_v2',
+  'LoadingBox',
+  'PolymerIntro',
+  'Pong',
+  'RAL',
+  'Transmission_RPC',
+  'ViAuthClient',
+];
+
 /// Sanity checks if the user would upload a package with a modified pub client
 /// that skips these verifications.
 /// TODO: share code to use the same validations as in
@@ -157,6 +172,12 @@ void validatePackageName(String name) {
   }
   if (_reservedWords.contains(name.toLowerCase())) {
     throw new Exception('Package name must not be a reserved word in Dart.');
+  }
+  final bool isLower = name == name.toLowerCase();
+  final bool matchesMixedCase =
+      knownMixedCasePackages.any((s) => s.toLowerCase() == name.toLowerCase());
+  if (!isLower && !matchesMixedCase) {
+    throw new Exception('Package name must be lowercase.');
   }
 }
 
