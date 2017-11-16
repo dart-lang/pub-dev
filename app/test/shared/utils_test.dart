@@ -60,8 +60,18 @@ void main() {
       expect(() => validatePackageName('myNewPackage'), throwsException);
     });
 
-    test('accept known mixed-case', () {
+    test('accept only lower-case babylon (original author continues it)', () {
+      expect(() => validatePackageName('Babylon'), throwsException);
       expect(validatePackageName('babylon'), isNull);
+    });
+
+    test('accept only upper-case Pong (no contact with author)', () {
+      expect(() => validatePackageName('pong'), throwsException);
+      expect(validatePackageName('Pong'), isNull);
+    });
+
+    test('reject unknown mixed-case', () {
+      expect(() => validatePackageName('pong'), throwsException);
     });
 
     test('accept lower-case', () {
