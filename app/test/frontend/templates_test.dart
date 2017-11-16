@@ -165,51 +165,60 @@ void main() {
 
     test('no content for analysis tab', () async {
       // no content
-      expect(templates.renderAnalysisTabV2(null), isNull);
+      expect(templates.renderAnalysisTabV2(null, null), isNull);
     });
 
     test('analysis tab: http', () async {
       // stored analysis of http
       final String json =
           await new File('$goldenDir/v2/analysis_tab_http.json').readAsString();
-      final String html = templates.renderAnalysisTabV2(
-          new AnalysisView(new AnalysisData.fromJson(JSON.decode(json))));
+      final view =
+          new AnalysisView(new AnalysisData.fromJson(JSON.decode(json)));
+      final extract = new AnalysisExtract(
+          health: view.health, maintenance: 0.9, popularity: 0.23);
+      final String html = templates.renderAnalysisTabV2(extract, view);
       expectGoldenFile(html, 'v2/analysis_tab_http.html', isFragment: true);
     });
 
     test('mock analysis tab', () async {
-      final String html = templates.renderAnalysisTabV2(new MockAnalysisView(
-        analysisStatus: AnalysisStatus.failure,
-        timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
-        platforms: ['web'],
-        health: 0.95,
-        suggestions: [
-          new Suggestion.error(
-              'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
-        ],
-        directDependencies: [
-          new PkgDependency(
-            'http',
-            'direct',
-            'normal',
-            new VersionConstraint.parse('^1.0.0'),
-            new Version.parse('1.0.0'),
-            new Version.parse('1.1.0'),
-            null,
+      final String html = templates.renderAnalysisTabV2(
+          new AnalysisExtract(
+            health: 0.90234,
+            maintenance: 0.8932343,
+            popularity: 0.2323232,
           ),
-        ],
-        transitiveDependencies: [
-          new PkgDependency(
-            'async',
-            'transitive',
-            'normal',
-            new VersionConstraint.parse('>=0.3.0 <1.0.0'),
-            new Version.parse('0.5.1'),
-            new Version.parse('1.0.2'),
-            null,
-          ),
-        ],
-      ));
+          new MockAnalysisView(
+            analysisStatus: AnalysisStatus.failure,
+            timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
+            platforms: ['web'],
+            health: 0.95,
+            suggestions: [
+              new Suggestion.error(
+                  'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
+            ],
+            directDependencies: [
+              new PkgDependency(
+                'http',
+                'direct',
+                'normal',
+                new VersionConstraint.parse('^1.0.0'),
+                new Version.parse('1.0.0'),
+                new Version.parse('1.1.0'),
+                null,
+              ),
+            ],
+            transitiveDependencies: [
+              new PkgDependency(
+                'async',
+                'transitive',
+                'normal',
+                new VersionConstraint.parse('>=0.3.0 <1.0.0'),
+                new Version.parse('0.5.1'),
+                new Version.parse('1.0.2'),
+                null,
+              ),
+            ],
+          ));
       expectGoldenFile(html, 'v2/analysis_tab_mock.html', isFragment: true);
     });
 

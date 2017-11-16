@@ -182,7 +182,7 @@ class TemplateService {
   }
 
   /// Renders the `views/v2/pkg/analysis_tab.mustache` template.
-  String renderAnalysisTabV2(AnalysisView analysis) {
+  String renderAnalysisTabV2(AnalysisExtract extract, AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
@@ -240,7 +240,9 @@ class TemplateService {
         'has_dev': devDeps.isNotEmpty,
         'dev': devDeps,
       },
-      'health': _formatScore(analysis.health),
+      'health': _formatScore(extract?.health),
+      'maintenance': _formatScore(extract?.maintenance),
+      'popularity': _formatScore(extract?.popularity),
     };
 
     return _renderTemplate('v2/pkg/analysis_tab', data);
@@ -453,7 +455,7 @@ class TemplateService {
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
         'score_box_html': _renderScoreBox(extract?.overallScore),
-        'analysis_html': renderAnalysisTabV2(analysis),
+        'analysis_html': renderAnalysisTabV2(extract, analysis),
       },
       'versions': versionsJson,
       'show_versions_link': totalNumberOfVersions > versions.length,
