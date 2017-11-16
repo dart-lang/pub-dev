@@ -90,7 +90,7 @@ class AnalyzerClient {
     final view = await getAnalysisView(key);
     final extract = new AnalysisExtract(
       popularity: popularityStorage.lookup(key.package) ?? 0.0,
-      // TODO: set maintenance
+      maintenance: view.maintenanceScore,
       health: view.health,
       platforms: view.platforms,
       timestamp: new DateTime.now().toUtc(),
@@ -201,4 +201,6 @@ class AnalysisView {
   double get health => _summary?.fitness?.healthScore ?? 0.0;
 
   List<Suggestion> get suggestions => _summary?.suggestions;
+
+  double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
 }

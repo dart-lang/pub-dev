@@ -80,6 +80,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
             panaVersion: analysis.panaVersion,
             flutterVersion: analysis.flutterVersion,
             analysisStatus: analysis.analysisStatus,
+            maintenanceScore: analysis.maintenanceScore,
             analysisContent: analysisContent)
         .toJson());
   } else if (requestMethod == 'POST') {

@@ -264,6 +264,17 @@ class AnalysisBackend {
       await db.commit(deletes: obsoleteKeys);
     }
   }
+
+  /// Returns the publish date of a package.
+  Future<DateTime> getPublishDate(String package, String version) async {
+    final List<PackageVersion> list = await db.lookup([
+      db.emptyKey
+          .append(Package, id: package)
+          .append(PackageVersion, id: version)
+    ]);
+    final PackageVersion pv = list.single;
+    return pv?.created;
+  }
 }
 
 class BackendAnalysisStatus {
