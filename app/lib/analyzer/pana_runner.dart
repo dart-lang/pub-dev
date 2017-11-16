@@ -56,7 +56,9 @@ class PanaRunner implements TaskRunner {
     }
 
     Summary summary = await analyze();
-    if (summary == null || (summary.toolProblems?.isNotEmpty ?? false)) {
+    final bool firstRunWithErrors =
+        summary?.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
+    if (summary == null || firstRunWithErrors) {
       _logger.info('Retrying $task...');
       await new Future.delayed(new Duration(seconds: 15));
       summary = await analyze();
@@ -68,7 +70,9 @@ class PanaRunner implements TaskRunner {
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
-      if (summary.toolProblems == null || summary.toolProblems.isEmpty) {
+      final bool lastRunWithErrors =
+          summary?.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
+      if (!lastRunWithErrors) {
         analysis.analysisStatus = AnalysisStatus.success;
       } else {
         analysis.analysisStatus = AnalysisStatus.failure;

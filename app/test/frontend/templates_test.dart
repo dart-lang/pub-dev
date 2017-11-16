@@ -6,10 +6,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:html/parser.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -183,7 +183,10 @@ void main() {
         timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
         platforms: ['web'],
         health: 0.95,
-        toolProblems: ['dartfmt: Unable to run.'],
+        suggestions: [
+          new Suggestion.error(
+              'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
+        ],
         directDependencies: [
           new PkgDependency(
             'http',
@@ -479,7 +482,7 @@ class MockAnalysisView implements AnalysisView {
   List<String> platforms;
 
   @override
-  List<String> toolProblems;
+  List<Suggestion> suggestions;
 
   MockAnalysisView({
     this.analysisStatus,
@@ -489,6 +492,6 @@ class MockAnalysisView implements AnalysisView {
     this.transitiveDependencies,
     this.devDependencies,
     this.health,
-    this.toolProblems,
+    this.suggestions,
   });
 }

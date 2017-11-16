@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
@@ -21,7 +20,7 @@ import 'platform.dart';
 import 'popularity_storage.dart';
 import 'utils.dart';
 
-export 'package:pana/pana.dart' show LicenseFile, PkgDependency;
+export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 export 'analyzer_service.dart';
 
 /// Sets the analyzer client.
@@ -199,18 +198,7 @@ class AnalysisView {
     return list;
   }
 
-  /// Returns the raw health score between -1.0 and 1.0
-  /// These need to be normalized for search and frontend purposes.
-  double get health {
-    if (_data == null) return 0.0; // missing analysis
-    if (!hasAnalysisData) return -1.0; // aborted analysis
-    if (_summary.fitness == null) return 0.0; // missing fitness
+  double get health => _summary?.fitness?.healthScore ?? 0.0;
 
-    final score = (_summary.fitness.magnitude - _summary.fitness.shortcoming) /
-        _summary.fitness.magnitude;
-    return max(-1.0, min(1.0, score));
-  }
-
-  List<String> get toolProblems =>
-      _summary.toolProblems?.map((tp) => '${tp.tool}: ${tp.message}')?.toList();
+  List<Suggestion> get suggestions => _summary?.suggestions;
 }
