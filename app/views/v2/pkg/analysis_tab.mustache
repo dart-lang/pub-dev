@@ -10,14 +10,17 @@
   <li>Maintenance: TBD</li>
 </ul>
 
-{{#has_tool_problems}}
-<h4>Tool problems</h4>
+{{#hasSuggestions}}
+<h4>Suggestions</h4>
 <ul>
-  {{#tool_problems}}
-    <li>{{.}}</li>
-  {{/tool_problems}}
+  {{#suggestions}}
+    <li>
+      <div>{{& title}}</div>
+      <blockquote>{{& description}}</blockquote>
+    </li>
+  {{/suggestions}}
 </ul>
-{{/has_tool_problems}}
+{{/hasSuggestions}}
 
 {{#has_dependency}}
 <h4>Dependencies</h4>

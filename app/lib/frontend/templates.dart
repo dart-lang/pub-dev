@@ -198,7 +198,12 @@ class TemplateService {
         break;
     }
 
-    final List<String> toolProblems = analysis.toolProblems;
+    final List suggestions = analysis.suggestions?.map((suggestion) {
+      return {
+        'title': markdownToHtml(suggestion.title, null),
+        'description': markdownToHtml(suggestion.description, null),
+      };
+    })?.toList();
 
     List<Map> prepareDependencies(List<PkgDependency> list) {
       if (list == null || list.isEmpty) return const [];
@@ -224,8 +229,8 @@ class TemplateService {
           ? null
           : shortDateFormat.format(analysis.timestamp),
       'analysis_status': statusText,
-      'tool_problems': toolProblems,
-      "has_tool_problems": toolProblems != null && toolProblems.isNotEmpty,
+      'hasSuggestions': suggestions != null && suggestions.isNotEmpty,
+      'suggestions': suggestions,
       'has_dependency': hasDependency,
       'dependencies': {
         'has_direct': directDeps.isNotEmpty,
