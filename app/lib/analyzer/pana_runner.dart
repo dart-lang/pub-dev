@@ -80,6 +80,11 @@ class PanaRunner implements TaskRunner {
       analysis.analysisJson = summary.toJson();
     }
 
+    final DateTime publishDate =
+        await _analysisBackend.getPublishDate(task.package, task.version);
+    analysis.maintenanceScore =
+        summary?.maintenance?.getMaintenanceScore(publishDate);
+
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
 
     try {

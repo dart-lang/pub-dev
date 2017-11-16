@@ -26,7 +26,8 @@ AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) =>
             ? null
             : AnalysisStatus.values.singleWhere((x) =>
                 x.toString() == "AnalysisStatus.${json['analysisStatus']}"),
-        analysisContent: json['analysisContent'] as Map<String, dynamic>);
+        analysisContent: json['analysisContent'] as Map<String, dynamic>,
+        maintenanceScore: (json['maintenanceScore'] as num)?.toDouble());
 
 abstract class _$AnalysisDataSerializerMixin {
   String get packageName;
@@ -37,6 +38,7 @@ abstract class _$AnalysisDataSerializerMixin {
   String get flutterVersion;
   AnalysisStatus get analysisStatus;
   Map<dynamic, dynamic> get analysisContent;
+  double get maintenanceScore;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'packageName': packageName,
         'packageVersion': packageVersion,
@@ -47,7 +49,8 @@ abstract class _$AnalysisDataSerializerMixin {
         'analysisStatus': analysisStatus == null
             ? null
             : analysisStatus.toString().split('.')[1],
-        'analysisContent': analysisContent
+        'analysisContent': analysisContent,
+        'maintenanceScore': maintenanceScore
       };
 }
 

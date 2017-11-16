@@ -64,7 +64,8 @@ void main() {
           'panaVersion': '0.2.0',
           'flutterVersion': '0.0.11',
           'analysisStatus': 'success',
-          'analysisContent': {'content': 'from-pana'}
+          'analysisContent': {'content': 'from-pana'},
+          'maintenanceScore': 0.86,
         });
       });
 
@@ -81,6 +82,7 @@ void main() {
               'flutterVersion': '0.0.11',
               'analysisStatus': 'success',
               'analysisContent': null,
+              'maintenanceScore': 0.86,
             });
       });
 
@@ -95,7 +97,8 @@ void main() {
               'panaVersion': '0.2.0',
               'flutterVersion': '0.0.11',
               'analysisStatus': 'success',
-              'analysisContent': {'content': 'from-pana'}
+              'analysisContent': {'content': 'from-pana'},
+              'maintenanceScore': 0.86,
             });
       });
 
@@ -111,7 +114,8 @@ void main() {
               'panaVersion': '0.2.0',
               'flutterVersion': '0.0.11',
               'analysisStatus': 'success',
-              'analysisContent': {'content': 'from-pana'}
+              'analysisContent': {'content': 'from-pana'},
+              'maintenanceScore': 0.86,
             });
       });
     });
@@ -172,6 +176,11 @@ class MockAnalysisBackend implements AnalysisBackend {
   Future deleteObsoleteAnalysis(String package, String version) {
     throw 'Not implemented yet.';
   }
+
+  @override
+  Future<DateTime> getPublishDate(String package, String version) {
+    throw 'Not implemented yet.';
+  }
 }
 
 final Analysis testAnalysis = new Analysis()
@@ -182,4 +191,5 @@ final Analysis testAnalysis = new Analysis()
   ..panaVersion = '0.2.0'
   ..flutterVersion = '0.0.11'
   ..timestamp = new DateTime(2017, 06, 26, 12, 48, 00)
+  ..maintenanceScore = 0.86
   ..analysisJson = {'content': 'from-pana'};

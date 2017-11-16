@@ -70,6 +70,7 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
   final String flutterVersion;
   final AnalysisStatus analysisStatus;
   final Map analysisContent;
+  final double maintenanceScore;
 
   AnalysisData({
     this.packageName,
@@ -80,6 +81,7 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
     this.flutterVersion,
     this.analysisStatus,
     this.analysisContent,
+    this.maintenanceScore,
   });
 
   factory AnalysisData.fromJson(Map json) => _$AnalysisDataFromJson(json);

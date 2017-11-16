@@ -484,6 +484,9 @@ class MockAnalysisView implements AnalysisView {
   @override
   List<Suggestion> suggestions;
 
+  @override
+  double maintenanceScore;
+
   MockAnalysisView({
     this.analysisStatus,
     this.timestamp,

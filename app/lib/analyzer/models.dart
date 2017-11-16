@@ -132,6 +132,9 @@ class Analysis extends db.ExpandoModel {
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;
 
+  @db.DoubleProperty()
+  double maintenanceScore;
+
   @db.BlobProperty()
   List<int> analysisJsonGz;
 

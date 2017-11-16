@@ -8,7 +8,6 @@ library pub_dartlang_org.search.backend;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
@@ -88,7 +87,6 @@ class SearchBackend {
       final double popularity = popularityStorage.lookup(pv.package) ??
           mockScores[pv.package]?.toDouble() ??
           0.0;
-      final double maintenance = _calculateMaintenance(p, pv);
 
       results[i] = new PackageDocument(
         package: pv.package,
@@ -101,46 +99,11 @@ class SearchBackend {
         readme: compactReadme(pv.readmeContent),
         health: analysisView.health,
         popularity: popularity,
-        maintenance: maintenance,
+        maintenance: analysisView.maintenanceScore,
         timestamp: new DateTime.now().toUtc(),
       );
     }
     return results;
-  }
-
-  double _calculateMaintenance(Package p, PackageVersion pv) {
-    final DateTime now = new DateTime.now().toUtc();
-    final Duration age = now.difference(pv.created);
-
-    if (age > _twoYears) {
-      return 0.0;
-    }
-
-    double score = 1.0;
-
-    if (age > _year) {
-      final int daysLeft = (_twoYears - age).inDays;
-      final double p = daysLeft / 365;
-      score *= max(0.0, min(1.0, p));
-    }
-
-    if (pv.changelogContent == null || pv.changelogContent.length < 100) {
-      score *= 0.80;
-    }
-    if (pv.readmeContent == null || pv.readmeContent.length < 100) {
-      score *= 0.95;
-    }
-
-    // no confidence from the author?
-    if (pv.version.startsWith('0.0.')) {
-      score *= 0.95;
-    } else if (pv.version.startsWith('0.')) {
-      score *= 0.99;
-    }
-
-    // TODO: check frequency of major version releases
-
-    return score;
   }
 }
 
