@@ -176,6 +176,7 @@ class AnalysisView {
   AnalysisStatus get analysisStatus => _data.analysisStatus;
 
   List<String> get platforms => indexDartPlatform(_summary?.platform);
+  String get platformsReason => _summary?.platform?.reason;
 
   List<LicenseFile> get licenses => _summary?.licenses;
 

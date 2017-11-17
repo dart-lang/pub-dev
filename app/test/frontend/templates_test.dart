@@ -191,6 +191,7 @@ void main() {
             analysisStatus: AnalysisStatus.failure,
             timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
             platforms: ['web'],
+            platformsReason: 'All libraries agree.',
             health: 0.95,
             suggestions: [
               new Suggestion.error(
@@ -491,6 +492,9 @@ class MockAnalysisView implements AnalysisView {
   List<String> platforms;
 
   @override
+  String platformsReason;
+
+  @override
   List<Suggestion> suggestions;
 
   @override
@@ -500,6 +504,7 @@ class MockAnalysisView implements AnalysisView {
     this.analysisStatus,
     this.timestamp,
     this.platforms,
+    this.platformsReason,
     this.directDependencies,
     this.transitiveDependencies,
     this.devDependencies,
