@@ -139,7 +139,7 @@ class TemplateService {
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.platforms), // used in v2 only
+        'tags_html': _renderTags(view.platforms, package: view.name),
         'score_box_html': _renderScoreBox(overallScore),
       });
     }
@@ -618,7 +618,7 @@ class TemplateService {
         return {
           'name': package.name,
           'ellipsized_description': package.ellipsizedDescription,
-          'tags_html': _renderTags(package.platforms),
+          'tags_html': _renderTags(package.platforms, package: package.name),
         };
       }).toList(),
     };
@@ -797,13 +797,24 @@ class TemplateService {
   }
 
   /// Renders the tags using the pkg/tags template.
-  String _renderTags(List<String> platforms, {bool wrapperDiv: false}) {
+  String _renderTags(List<String> platforms,
+      {String package, bool wrapperDiv: false}) {
     final List tags = platforms?.map((platform) {
-      final Map tagData = _logoData[platform];
-      return tagData ?? {'text': platform};
-    })?.toList();
+          final Map tagData = _logoData[platform];
+          return tagData ?? {'text': platform};
+        })?.toList() ??
+        <Map>[];
+    if (tags.isEmpty) {
+      final String hash = '#-analysis-tab-';
+      final String href =
+          package == null ? hash : '/experimental/packages/$package$hash';
+      tags.add({
+        'text': '[unsure]',
+        'href': href,
+      });
+    }
     return _renderTemplate('v2/pkg/tags', {
-      'has_tags': tags != null && tags.isNotEmpty,
+      'has_tags': tags.isNotEmpty,
       'wrapper_div': wrapperDiv,
       'tags': tags,
     });
