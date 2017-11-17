@@ -388,55 +388,20 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
   final SearchOrder sortOrder =
       sortParam == null ? null : parseSearchOrder(sortParam);
 
-  int totalCount;
-  List<PackageView> packageViews;
-  SearchQuery searchQuery;
-  if (platform != null || queryText.isNotEmpty || sortOrder != null) {
-    searchQuery = new SearchQuery.parse(
-        text: queryText,
-        platform: platform,
-        order: sortOrder,
-        offset: offset,
-        limit: PackageLinks.resultsPerPage);
-    // if sort was not specified:
-    // - listing page is ordered by update time
-    // - search page is ordered by overall score
-    final defaultOrder =
-        queryText.isNotEmpty ? SearchOrder.top : SearchOrder.updated;
-    final effectiveOrder = sortOrder ?? defaultOrder;
-    final effectiveQuery = searchQuery.change(order: effectiveOrder);
-    final searchResult = await searchService.search(effectiveQuery);
-    totalCount = searchResult.totalCount;
-    packageViews = searchResult.packages;
-  } else {
-    final int limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
-    final List<Package> packages =
-        await backend.latestPackages(offset: offset, limit: limit);
-    totalCount = offset + packages.length;
-
-    final List<Package> pagePackages =
-        packages.take(PackageLinks.resultsPerPage).toList();
-    final versionsFuture = backend.lookupLatestVersions(pagePackages);
-    final analysisExtractsFuture = analyzerClient.getAnalysisExtracts(
-        pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
-
-    final batchResults =
-        await Future.wait([versionsFuture, analysisExtractsFuture]);
-    final List<PackageVersion> versions = batchResults[0];
-    final List<AnalysisExtract> analysisExtracts = batchResults[1];
-
-    packageViews = new List.generate(
-        pagePackages.length,
-        (i) => new PackageView.fromModel(
-              package: pagePackages[i],
-              version: versions[i],
-              analysis: analysisExtracts[i],
-            ));
-  }
+  final SearchQuery searchQuery = new SearchQuery.parse(
+      text: queryText,
+      platform: platform,
+      order: sortOrder,
+      offset: offset,
+      limit: PackageLinks.resultsPerPage);
+  final effectiveOrder = sortOrder ?? SearchOrder.top;
+  final effectiveQuery = searchQuery.change(order: effectiveOrder);
+  final searchResult = await searchService.search(effectiveQuery);
+  final int totalCount = searchResult.totalCount;
 
   final links = new PackageLinks(offset, totalCount, searchQuery: searchQuery);
   return htmlResponse(templateService.renderPkgIndexPageV2(
-    packageViews,
+    searchResult.packages,
     links,
     platform,
     searchQuery: searchQuery,
