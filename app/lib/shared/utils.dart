@@ -143,7 +143,13 @@ const List<String> _reservedWords = const <String>[
   'with'
 ];
 
-const knownMixedCasePackages = const [
+final Set<String> knownMixedCasePackages = _knownMixedCasePackages.toSet();
+final Set<String> blockedLowerCasePackages = _knownMixedCasePackages
+    .map((s) => s.toLowerCase())
+    .toSet()
+      ..removeAll(_knownGoodLowerCasePackages);
+
+const _knownMixedCasePackages = const [
   'Autolinker',
   'Babylon',
   'DartDemoCLI',
@@ -156,6 +162,9 @@ const knownMixedCasePackages = const [
   'RAL',
   'Transmission_RPC',
   'ViAuthClient',
+];
+const _knownGoodLowerCasePackages = const [
+  'babylon',
 ];
 
 /// Sanity checks if the user would upload a package with a modified pub client
@@ -174,10 +183,19 @@ void validatePackageName(String name) {
     throw new Exception('Package name must not be a reserved word in Dart.');
   }
   final bool isLower = name == name.toLowerCase();
-  final bool matchesMixedCase =
-      knownMixedCasePackages.any((s) => s.toLowerCase() == name.toLowerCase());
+  final bool matchesMixedCase = knownMixedCasePackages.contains(name);
   if (!isLower && !matchesMixedCase) {
     throw new Exception('Package name must be lowercase.');
+  }
+  if (isLower && blockedLowerCasePackages.contains(name)) {
+    throw new Exception('Name collision with mixed-case package. '
+        'Please open new issue at: https://github.com/dart-lang/pub-dartlang-dart/issues/new');
+  }
+  if (!isLower &&
+      matchesMixedCase &&
+      !blockedLowerCasePackages.contains(name.toLowerCase())) {
+    throw new Exception('Name collision with mixed-case package. '
+        'Please open new issue at: https://github.com/dart-lang/pub-dartlang-dart/issues/new');
   }
 }
 
