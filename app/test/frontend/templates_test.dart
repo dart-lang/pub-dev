@@ -471,6 +471,15 @@ class MockAnalysisView implements AnalysisView {
   AnalysisStatus analysisStatus;
 
   @override
+  String dartSdkVersion = '2.0.0-dev.7.0';
+
+  @override
+  String panaVersion = '0.6.2';
+
+  @override
+  String flutterVersion = '0.0.17';
+
+  @override
   List<PkgDependency> directDependencies;
 
   @override

@@ -228,6 +228,9 @@ class TemplateService {
           ? null
           : shortDateFormat.format(analysis.timestamp),
       'analysis_status': statusText,
+      'dart_sdk_version': analysis.dartSdkVersion,
+      'pana_version': analysis.panaVersion,
+      'flutter_version': analysis.flutterVersion,
       'platforms_html': analysis.platforms?.join(', ') ?? '<i>unsure</i>',
       'platforms_reason_html': markdownToHtml(analysis.platformsReason, null),
       'hasSuggestions': suggestions != null && suggestions.isNotEmpty,
