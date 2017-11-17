@@ -10,7 +10,6 @@ import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:mustache/mustache.dart' as mustache;
-import 'package:path/path.dart' as path;
 
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
