@@ -469,19 +469,17 @@ class TemplateService {
 
   String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
     if (licenses == null || licenses.isEmpty) return null;
-    // temporary special case handling for github URLs, pana should handle the
-    // detection of these: https://github.com/dart-lang/pana/issues/120
-    // TODO: fix after pana implements URL detection
-    final bool validBaseUrl =
-        baseUrl != null && baseUrl.startsWith('https://github.com/');
     return licenses.map((license) {
       final String escapedName = _htmlEscaper.convert(license.shortFormatted);
       String html = escapedName;
-      if (validBaseUrl && license.path != null && license.path.isNotEmpty) {
-        final String link = path.join(baseUrl, 'tree/master', license.path);
-        final String escapedLink = _attrEscaper.convert(link);
+
+      if (license.url != null && license.path != null) {
+        final String escapedLink = _attrEscaper.convert(license.url);
         final String escapedPath = _htmlEscaper.convert(license.path);
         html += ' (<a href="$escapedLink">$escapedPath</a>)';
+      } else if (license.path != null) {
+        final String escapedPath = _htmlEscaper.convert(license.path);
+        html += ' ($escapedPath)';
       }
       return html;
     }).join('<br/>');
