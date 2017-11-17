@@ -19,6 +19,7 @@ final List<m.InlineSyntax> _inlineSyntaxes = m
     .toList();
 
 String markdownToHtml(String text, String baseUrl) {
+  if (text == null) return null;
   return m.markdownToHtml(
     text,
     extensionSet: _createCustomExtension(baseUrl),

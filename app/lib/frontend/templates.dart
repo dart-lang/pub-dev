@@ -228,6 +228,8 @@ class TemplateService {
           ? null
           : shortDateFormat.format(analysis.timestamp),
       'analysis_status': statusText,
+      'platforms_html': analysis.platforms?.join(', ') ?? '<i>unsure</i>',
+      'platforms_reason_html': markdownToHtml(analysis.platformsReason, null),
       'hasSuggestions': suggestions != null && suggestions.isNotEmpty,
       'suggestions': suggestions,
       'has_dependency': hasDependency,
