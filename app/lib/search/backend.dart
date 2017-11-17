@@ -29,9 +29,6 @@ part 'backend.g.dart';
 final Logger _logger = new Logger('pub.search.backend');
 final GZipCodec _gzip = new GZipCodec();
 
-final Duration _year = const Duration(days: 365);
-final Duration _twoYears = _year * 2;
-
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
     ss.register(#_searchBackend, backend);
