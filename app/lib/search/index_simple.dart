@@ -64,8 +64,9 @@ class SimplePackageIndex implements PackageIndex {
     await removePackage(doc.package);
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
-    _descrIndex.add(doc.package, compactDescription(doc.description));
-    _readmeIndex.add(doc.package, compactReadme(doc.readme));
+    _descrIndex.add(
+        doc.package, extendDescription(doc.package, doc.description));
+    _readmeIndex.add(doc.package, doc.readme);
   }
 
   @override
