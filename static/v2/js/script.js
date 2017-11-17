@@ -14,6 +14,7 @@
     setEventForAnchorScroll();
     setEventForMobileNav();
     changeTabOnUrlHash();
+    listenOnHashChange();
   }
 
   function setEventForTabs(){
@@ -29,7 +30,6 @@
         }
         const name = target.dataset.name;
         if (name) {
-          changeTab(name);
           location.hash = '#' + target.dataset.name;
         }
       });
@@ -76,9 +76,15 @@
     });
   }
 
+  function listenOnHashChange() {
+    window.onhashchange = function() {
+      changeTabOnUrlHash();
+    };
+  }
+
   function changeTabOnUrlHash(){
     // change the tab based on URL hash
-    if (tabs && location.hash){
+    if (tabs && location.hash) {
       changeTab(location.hash.slice(1));
     }
   }
@@ -87,14 +93,20 @@
     if (tabs.querySelector('[data-name=' + name + ']')){
       // toggle tab highlights
       Array.prototype.slice.call(tabs.children).forEach(node => {
-        if (node.dataset.name !== name) node.classList.remove('-active');
-        else node.classList.add('-active');
+        if (node.dataset.name !== name) {
+          node.classList.remove('-active');
+        } else {
+          node.classList.add('-active');
+        }
       })
 
       // toggle content
       content.forEach(node => {
-        if (node.dataset.name !== name) node.classList.remove('-active');
-        else node.classList.add('-active');
+        if (node.dataset.name !== name) {
+          node.classList.remove('-active');
+        } else {
+          node.classList.add('-active');
+        }
       })
     }
   }
