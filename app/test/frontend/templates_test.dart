@@ -21,6 +21,8 @@ import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
 
+final _regenerateGoldens = false;
+
 void main() {
   group('templates', () {
     final templates = new TemplateService(templateDirectory: 'views');
@@ -33,6 +35,11 @@ void main() {
         htmlParser.parseFragment();
       } else {
         htmlParser.parse();
+      }
+
+      if (_regenerateGoldens) {
+        new File('$goldenDir/$fileName').writeAsStringSync(content);
+        fail('Set `_regenerateGoldens` to `false` to run tests.');
       }
       final golden = new File('$goldenDir/$fileName').readAsStringSync();
       expect(content.split('\n'), golden.split('\n'));
