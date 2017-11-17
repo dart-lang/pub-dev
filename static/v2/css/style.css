@@ -769,9 +769,6 @@ main, .site-header {
     display: block;
 }
 
-.package-container{
-}
-
 .package-container > .main{
     display: inline-block;
     width: calc(100% - 300px);
@@ -792,6 +789,10 @@ main, .site-header {
     border: 1px solid #DDD;
     position: relative;
     top: -1px;
+}
+
+.package-container #scores-table td {
+  text-align: right;
 }
 
 .sidebar-content{
@@ -870,6 +871,11 @@ main, .site-header {
     width: 25%;
     padding: 4px 10px;
     text-align: left;
+}
+
+.dependency-table th.sub-header {
+  font-weight: 500;
+  font-style: italic;
 }
 
 /******************************************************

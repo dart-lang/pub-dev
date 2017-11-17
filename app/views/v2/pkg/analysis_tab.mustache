@@ -5,11 +5,11 @@
 
 <h4>Scores</h4>
 
-<ul>
-  <li>Health: {{health}}</li>
-  <li>Maintenance: {{maintenance}}</li>
-  <li>Popularity: {{popularity}}</li>
-</ul>
+<table id='scores-table'>
+  <tr><td>Popularity</td><td>{{popularity}}</td></tr>
+  <tr><td>Health</td><td>{{health}}</td></tr>
+  <tr><td>Maintenance</td><td>{{maintenance}}</td></tr>
+</table>
 
 <h4>Platforms</h4>
 
@@ -39,7 +39,7 @@
   </tr>
   {{#dependencies.has_direct}}
   <tr>
-    <th colspan="4">Direct dependencies</th>
+    <th colspan="4" class="sub-header">Direct dependencies</th>
   </tr>
   {{/dependencies.has_direct}}
   {{#dependencies.direct}}
@@ -52,7 +52,7 @@
   {{/dependencies.direct}}
   {{#dependencies.has_transitive}}
   <tr>
-    <th colspan="4">Transitive dependencies</th>
+    <th colspan="4" class="sub-header">Transitive dependencies</th>
   </tr>
   {{/dependencies.has_transitive}}
   {{#dependencies.transitive}}
@@ -65,7 +65,7 @@
   {{/dependencies.transitive}}
   {{#dependencies.has_dev}}
   <tr>
-    <th colspan="4">Dev dependencies</th>
+    <th colspan="4" class="sub-header">Dev dependencies</th>
   </tr>
   {{/dependencies.has_dev}}
   {{#dependencies.dev}}
