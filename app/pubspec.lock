@@ -126,7 +126,7 @@ packages:
       name: fixnum
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.5"
+    version: "0.10.6"
   front_end:
     description:
       name: front_end
@@ -162,7 +162,7 @@ packages:
       name: googleapis_beta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.39.1"
+    version: "0.39.2"
   html:
     description:
       name: html
@@ -306,13 +306,13 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.2"
   path:
     description:
       name: path
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.2"
+    version: "1.5.0"
   plugin:
     description:
       name: plugin
@@ -330,7 +330,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.4"
+    version: "0.5.5"
   pub_semver:
     description:
       name: pub_semver
@@ -402,7 +402,7 @@ packages:
       name: stack_trace
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.9.0"
+    version: "1.9.1"
   stream_channel:
     description:
       name: stream_channel
@@ -432,7 +432,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.27"
+    version: "0.12.28"
   typed_data:
     description:
       name: typed_data
@@ -470,4 +470,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.6.0"
+  dart: ">=1.25.0-dev.9.0 <=2.0.0-dev.7.0"
