@@ -812,7 +812,7 @@ class TemplateService {
           package == null ? hash : '/experimental/packages/$package$hash';
       tags.add({
         'text': '[unsure]',
-        'href': href,
+        'v2_href': href,
       });
     }
     return _renderTemplate('v2/pkg/tags', {
@@ -1038,24 +1038,27 @@ abstract class LogoUrls {
   };
 }
 
-// 'text': used in v2 only
-// 'label', 'src': used in old design only
+// 'text', 'v2_href': used in v2 only
+// 'href', 'label', 'src': used in old design only
 final Map<String, Map> _logoData = const {
   KnownPlatforms.flutter: const {
     'src': LogoUrls.flutterLogo32x32,
     'label': 'Flutter package',
     'href': '/flutter/packages',
     'text': 'Flutter',
+    'v2_href': '/experimental/flutter/packages',
   },
   KnownPlatforms.server: const {
     'src': LogoUrls.shellLogo32x32,
     'label': 'Server',
     'text': 'Server',
+    'v2_href': '/experimental/server/packages',
   },
   KnownPlatforms.web: const {
     'src': LogoUrls.html5Logo32x32,
     'label': 'Web',
     'text': 'Web',
+    'v2_href': '/experimental/web/packages',
   },
 };
 
