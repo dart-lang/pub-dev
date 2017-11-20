@@ -649,6 +649,7 @@ class TemplateService {
       platformTabs =
           renderPlatformTabs(platform: platform, searchQuery: searchQuery);
     }
+    final formattedPlatform = _formattedPlatformName(platform) ?? 'Dart';
     final searchSort = searchQuery?.order == null
         ? null
         : serializeSearchOrder(searchQuery.order);
@@ -664,6 +665,7 @@ class TemplateService {
       'title': HTML_ESCAPE.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
+      'search_query_placeholder': 'Search $formattedPlatform packages',
       'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
       'landing_blurb_html': _landingBlurb(platform),
