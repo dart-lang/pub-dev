@@ -174,7 +174,7 @@ main, .site-header {
   vertical-align: middle;
 }
 
-.sub-nav{
+.sub-nav {
   display: none;
   position: absolute;
   text-align: left;
@@ -186,7 +186,8 @@ main, .site-header {
   top: 40px;
   cursor: auto;
   cursor: initial;
-  font-size: 14px
+  font-size: 14px;
+  z-index: 2;
 
   /* using 2 pesudo element to create a bordered triangle */
 }
