@@ -671,6 +671,10 @@ class TemplateService {
       'content_html': contentHtml,
       'include_survey': includeSurvey,
       'landing_banner': type == PageType.landing,
+      'landing_banner_image':
+          platform == 'flutter' ? 'flutter-packages.png' : 'dart-packages.png',
+      'landing_banner_alt':
+          platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
       'listing_banner': type == PageType.listing,
       'package_banner': type == PageType.package,
     };
