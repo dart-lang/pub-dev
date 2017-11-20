@@ -4,12 +4,12 @@
 {{#has_tags}}
   {{#wrapper_div}}<div class="tags">{{/wrapper_div}}
   {{#tags}}
-    {{#href}}
-        <a class="package-tag" href="{{{href}}}">{{text}}</a>
-    {{/href}}
-    {{^href}}
+    {{#v2_href}}
+        <a class="package-tag" href="{{{v2_href}}}">{{text}}</a>
+    {{/v2_href}}
+    {{^v2_href}}
         <span class="package-tag">{{text}}</span>
-    {{/href}}
+    {{/v2_href}}
   {{/tags}}
   {{#wrapper_div}}</div>{{/wrapper_div}}
 {{/has_tags}}
