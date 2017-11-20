@@ -738,7 +738,7 @@ main, .site-header {
 
 .package-tabs > .tab{
     display: inline-block;
-    margin-right: 40px;
+    margin-right: 35px;
     padding: 10px 2px;
     border-bottom: 4px solid;
     border-bottom-color: transparent;
