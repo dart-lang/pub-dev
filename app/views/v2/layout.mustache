@@ -97,7 +97,8 @@
 {{#landing_banner}}
   <div class="_banner-bg">
     <main class="home-banner">
-      <h2 class="_visuallyhidden">Dart package manager</h2><img class="logo" src="{{{static_assets_dir}}}/img/site-logo.svg" alt="Dart package manager">
+      <h2 class="_visuallyhidden">Dart package manager</h2>
+      <img class="logo" src="{{{static_assets_dir}}}/img/{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
       <form class="search-bar" action="/experimental/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
         <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus />
         <button class="icon"></button>
