@@ -118,6 +118,22 @@ have those.
 The text match score will then be either used directly (`SearchOrder.text`) or it
 will be combined with other scores (see: combined ranking).
 
+### Text query rewrite
+
+Depending on the context and the query, we may execute another alternative query.
+The alternative query has the same settings, but certain phrases will be removed
+from it, for example: `Dart`, `Flutter` (if search is on Flutter platform) or
+`browser` (if search is on web platform).
+(Other examples can be found in `text_utils.dart`).
+
+For example, if the original query was `SomeDB Dart client`, the alternative query
+will be `SomeDB client`. The alternative query may yield more specific results, and
+we will combine them in the final result set with lower weights (depending on
+how many phrases we have removed from the original).
+
+The rewrite helps where the package name is `something`, while outside of the
+pub context it is referred as `SomethingDart`.
+
 ### Combined ranking
 
 When combining multiple scores (e.g. overall \[+ text match score]),

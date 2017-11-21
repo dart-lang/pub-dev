@@ -93,7 +93,7 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
     // do text matching
-    final Score textScore = _searchText(query.text, query.packagePrefix);
+    final Score textScore = _combinedSearchText(query);
     final Score base = textScore ?? _allPackages();
 
     // The set of packages to filter on.
@@ -226,6 +226,47 @@ class SimplePackageIndex implements PackageIndex {
 
   Score _allPackages() =>
       new Score(new Map.fromIterable(_packages.keys, value: (_) => 1.0));
+
+  Score _combinedSearchText(SearchQuery query) {
+    final Score origScore = _searchText(query.text, query.packagePrefix);
+    if (origScore == null || !query.hasText) {
+      return origScore;
+    }
+    final Score altScore = _reducedTextSearch(query);
+    if (altScore == null) {
+      return origScore;
+    }
+    return Score.max([origScore, altScore]);
+  }
+
+  Score _reducedTextSearch(SearchQuery query) {
+    // construct list of phrases to remove
+    final Set<String> removeSet = new Set.from(commonExtraPhrases);
+    if (query.platformPredicate != null && query.platformPredicate.isSingle) {
+      final String platform = query.platformPredicate.single;
+      removeSet.addAll(platformExtraPhrases[platform] ?? const []);
+    }
+    final List<String> removeList = removeSet.toList()
+      ..sort((a, b) => -a.length.compareTo(b.length));
+
+    // remove phrases and create a new query text
+    int removedCount = 0;
+    String queryText = query.text.toLowerCase();
+    for (String phrase in removeList) {
+      final int length = queryText.length;
+      queryText = queryText.replaceAll(phrase, '');
+      if (queryText.length != length) removedCount++;
+    }
+    if (removedCount == 0) return null;
+    queryText = compactText(queryText);
+    if (queryText.isEmpty) return null;
+
+    // Construct alternative score.
+    final double penalty = math.pow(0.8, removedCount);
+    final Score altScore = _searchText(queryText, query.packagePrefix)
+        ?.map((score) => score * penalty);
+    return altScore;
+  }
 
   Score _searchText(String text, String packagePrefix) {
     if (text != null && text.isNotEmpty) {
