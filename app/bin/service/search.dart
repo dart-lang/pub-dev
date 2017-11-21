@@ -10,7 +10,6 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
@@ -19,6 +18,7 @@ import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
+import 'package:pub_dartlang_org/shared/trace_context.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -92,7 +92,7 @@ void _main(int isolateId) {
 
     await runAppEngine(
       (HttpRequest request) =>
-          shelf_io.handleRequest(request, searchServiceHandler),
+          handleTracedRequest(request, searchServiceHandler),
       shared: true,
     );
   });

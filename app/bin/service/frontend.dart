@@ -14,7 +14,6 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
@@ -23,6 +22,7 @@ import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/shared/trace_context.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -49,8 +49,7 @@ void main() {
           ..close();
       } else {
         try {
-          return shelf_io.handleRequest(ioRequest,
-              (shelf.Request request) async {
+          return handleTracedRequest(ioRequest, (shelf.Request request) async {
             _logger.info('Handling request: ${request.requestedUri}');
             await registerLoggedInUserIfPossible(request);
             try {

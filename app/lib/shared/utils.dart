@@ -17,6 +17,8 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
+import 'trace_context.dart';
+
 final Logger _logger = new Logger('pub.utils');
 
 final DateFormat shortDateFormat = new DateFormat.yMMMd();
@@ -299,10 +301,15 @@ String formatDuration(Duration d) {
 Future<http.Response> getUrlWithRetry(http.Client client, String url,
     {int retryCount: 1}) async {
   http.Response result;
+  Map<String, String> headers;
+  final traceContextCopy = getTraceContext();
+  if (traceContextCopy != null) {
+    headers = {cloudTraceContextHeader: traceContextCopy};
+  }
   for (int i = 0; i <= retryCount; i++) {
     try {
       _logger.info('HTTP GET $url');
-      result = await client.get(url);
+      result = await client.get(url, headers: headers);
       if (i == retryCount ||
           result.statusCode == 200 ||
           result.statusCode == 404) {

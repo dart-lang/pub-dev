@@ -9,12 +9,12 @@ import 'dart:isolate';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
+import 'package:pub_dartlang_org/shared/trace_context.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
@@ -32,7 +32,7 @@ Future main() async {
     });
     _registerServices();
     await runAppEngine((HttpRequest request) =>
-        shelf_io.handleRequest(request, analyzerServiceHandler));
+        handleTracedRequest(request, analyzerServiceHandler));
   });
 }
 
