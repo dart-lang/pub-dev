@@ -98,6 +98,30 @@ pub-dartlang-dart/app $ pub run test
 00:17 +63: All tests passed!
 ```
 
+### Ensuring small `pngs`
+
+PNGs are compressed using Zopfli - https://github.com/google/zopfli
+
+There is a homebrew formula for Mac:
+https://github.com/Homebrew/homebrew-core/blob/master/Formula/zopfli.rb
+
+A simple wrapper is a convenient way to use it:
+
+```sh
+#!/usr/bin/env sh
+# png-press.sh
+
+tmpfile=$(mktemp)
+zopflipng -m -y $1 $tmpfile
+mv $tmpfile $1
+```
+
+To shard across multiple CPUs:
+
+```
+find . -iname '*png*' | xargs -n 1 -P 8 png-press.sh'
+```
+
 ## Deploying a new version to production
 
 ### Shortcut
