@@ -11,13 +11,27 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
   await withProdServices(() async {
+    int count = 0;
     await for (PackageVersion pv in dbService.query(PackageVersion).run()) {
-      print('Updating ${pv.package} ${pv.version}...');
-      await _updatePackageVersion(pv.key);
+      if (count % 100 == 0) {
+        print('Count: $count, current: ${pv.package} ${pv.version}');
+      }
+      if (pv.additionalProperties.containsKey('detectedTypes')) {
+        print('Update: ${pv.package} ${pv.version}');
+        await _updatePackageVersion(pv.key);
+      }
+      count++;
     }
+    count = 0;
     await for (Package p in dbService.query(Package).run()) {
-      print('Updating ${p.name}...');
-      await _updatePackage(p.key);
+      if (count % 100 == 0) {
+        print('Count: $count, current: ${p.name}');
+      }
+      if (p.additionalProperties.containsKey('detectedTypes')) {
+        print('Update: ${p.name}');
+        await _updatePackage(p.key);
+      }
+      count++;
     }
   });
 }
