@@ -5,12 +5,13 @@ packages
 .packages
 .pub
 
-# Or the files created by dart2js.
-*.dart.js
+# Or the files created by dart2js or dartdevc.
+# *.dart.js
 *.dart.precompiled.js
 *.js_
 *.js.deps
 *.js.map
+*.sum
 
 # Or local files with secrets
 key.json
