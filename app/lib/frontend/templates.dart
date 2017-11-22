@@ -602,6 +602,8 @@ class TemplateService {
       'more_packages': platform == null
           ? 'More packages...'
           : 'More $platformName packages...',
+      'top_header':
+          platform == null ? 'Top packages' : 'Top $platformName packages',
       'top_html': topHtml,
     };
     final String content = _renderTemplate('v2/index', values);
