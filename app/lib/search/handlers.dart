@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
@@ -13,6 +14,9 @@ import '../shared/search_service.dart';
 import '../shared/task_client.dart';
 
 import 'index_simple.dart';
+
+final Logger _logger = new Logger('pub.search.handlers');
+final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 
 /// Handlers for the search service.
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
@@ -48,8 +52,15 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
         status: searchIndexNotReadyCode);
   }
   final bool indent = request.url.queryParameters['indent'] == 'true';
-  final PackageSearchResult result =
-      await packageIndex.search(new SearchQuery.fromServiceUrl(request.url));
+  final Stopwatch sw = new Stopwatch()..start();
+  final SearchQuery query = new SearchQuery.fromServiceUrl(request.url);
+  final PackageSearchResult result = await packageIndex.search(query);
+  final Duration elapsed = sw.elapsed;
+  if (elapsed > _slowSearchThreshold) {
+    _logger.warning(
+        'Search handler exceeded ${_slowSearchThreshold.inMilliseconds}ms: '
+        '${query.toServiceQueryParameters()}');
+  }
   return jsonResponse(result.toJson(), indent: indent);
 }
 
