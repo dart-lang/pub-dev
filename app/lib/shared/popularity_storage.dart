@@ -61,16 +61,29 @@ class PopularityStorage {
   }
 
   void _updateLatest(Map raw) {
-    final Map<String, int> rawTotals = {};
     final popularity = new PackagePopularity.fromJson(raw);
-    popularity.items.forEach((pkg, item) {
-      rawTotals[pkg] = item.score;
+    final List<_Entry> entries = <_Entry>[];
+    popularity.items.forEach((package, totals) {
+      entries.add(new _Entry(package, totals.score, totals.total));
     });
-    final summary = new Summary(rawTotals.values);
-    for (String package in rawTotals.keys) {
-      final int raw = rawTotals[package];
-      _values[package] = summary.bezierScore(raw);
+    entries.sort();
+    for (int i = 0; i < entries.length; i++) {
+      _values[entries[i].package] = i / entries.length;
     }
     _logger.info('Popularity updated for ${popularity.items.length} packages.');
+  }
+}
+
+class _Entry implements Comparable<_Entry> {
+  final String package;
+  final int score;
+  final int total;
+
+  _Entry(this.package, this.score, this.total);
+
+  @override
+  int compareTo(_Entry other) {
+    final int x = score.compareTo(other.score);
+    return x != 0 ? x : total.compareTo(other.total);
   }
 }
