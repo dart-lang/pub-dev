@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
@@ -255,8 +256,19 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
 
     final StaticFile staticFile = staticsCache.staticFiles[assetPath];
     if (staticFile != null) {
-      return new shelf.Response.ok(staticFile.bytes,
-          headers: {'content-type': staticFile.contentType});
+      final ifModifiedSince = request.ifModifiedSince;
+      if (ifModifiedSince != null &&
+          !staticFile.lastModified.isAfter(ifModifiedSince)) {
+        return new shelf.Response.notModified();
+      }
+      return new shelf.Response.ok(
+        staticFile.bytes,
+        headers: {
+          HttpHeaders.CONTENT_TYPE: staticFile.contentType,
+          HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
+          HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
+        },
+      );
     }
   }
   return _formattedNotFoundHandler(request);
@@ -800,7 +812,8 @@ class StaticsCache {
     for (final File file in files) {
       final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
       final bytes = file.readAsBytesSync();
-      staticFiles[file.path] = new StaticFile(contentType, bytes);
+      final lastModified = file.lastModifiedSync();
+      staticFiles[file.path] = new StaticFile(contentType, bytes, lastModified);
     }
   }
 }
@@ -808,6 +821,7 @@ class StaticsCache {
 class StaticFile {
   final String contentType;
   final List<int> bytes;
+  final DateTime lastModified;
 
-  StaticFile(this.contentType, this.bytes);
+  StaticFile(this.contentType, this.bytes, this.lastModified);
 }
