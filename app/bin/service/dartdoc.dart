@@ -8,10 +8,10 @@ import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
+import 'package:pub_dartlang_org/shared/trace_context.dart';
 
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
@@ -25,7 +25,7 @@ Future main() async {
     await startIsolates(logger, _runSchedulerWrapper);
     _registerServices();
     await runAppEngine((HttpRequest request) =>
-        shelf_io.handleRequest(request, dartdocServiceHandler));
+        handleTracedRequest(request, dartdocServiceHandler));
   });
 }
 
