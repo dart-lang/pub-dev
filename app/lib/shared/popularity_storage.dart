@@ -11,7 +11,6 @@ import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:_popularity/popularity.dart';
 
-import '../search/scoring.dart';
 import '../shared/utils.dart';
 
 final Logger _logger = new Logger('pub.popularity');
