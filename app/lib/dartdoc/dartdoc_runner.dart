@@ -33,7 +33,8 @@ class DartdocRunner implements TaskRunner {
     final pubCacheDir = p.join(tempDirPath, 'pub-cache');
     final outputDir = p.join(tempDirPath, 'output');
 
-    final pubEnv = new PubEnvironment(pubCacheDir: pubCacheDir);
+    final pubEnv =
+        new PubEnvironment(await DartSdk.create(), pubCacheDir: pubCacheDir);
 
     try {
       // TODO: use direct link to download the package

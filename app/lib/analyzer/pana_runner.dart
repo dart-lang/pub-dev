@@ -36,7 +36,7 @@ class PanaRunner implements TaskRunner {
       try {
         tempDir = await Directory.systemTemp.createTemp('pana');
         final pubCacheDir = await tempDir.resolveSymbolicLinks();
-        final PackageAnalyzer analyzer = new PackageAnalyzer(
+        final PackageAnalyzer analyzer = await PackageAnalyzer.create(
           flutterDir: envConfig.flutterSdkDir,
           pubCacheDir: pubCacheDir,
         );
@@ -44,6 +44,7 @@ class PanaRunner implements TaskRunner {
           task.package,
           version: task.version,
           keepTransitiveLibs: false,
+          logger: new Logger.detached('pana/${task.package}/${task.version}'),
         );
       } catch (e, st) {
         _logger.severe('Pana execution failed.', e, st);

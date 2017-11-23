@@ -175,7 +175,7 @@ class AnalysisView {
   DateTime get timestamp => _data.timestamp;
   AnalysisStatus get analysisStatus => _data.analysisStatus;
 
-  String get dartSdkVersion => _stripSdkVersion(_summary.sdkVersion);
+  String get dartSdkVersion => _summary.sdkVersion.toString();
   String get panaVersion => _summary.panaVersion.toString();
   String get flutterVersion => _summary.flutterVersion?.toString();
 
@@ -208,8 +208,4 @@ class AnalysisView {
   List<Suggestion> get suggestions => _summary?.suggestions;
 
   double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
-}
-
-String _stripSdkVersion(String sdkVersion) {
-  return sdkVersion.split('version:').last.trim().split(' ').first;
 }
