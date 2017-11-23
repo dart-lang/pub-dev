@@ -9,6 +9,12 @@ Dart support for AppEngine).
 
 ## Local Development
 
+### Compile script.dart to script.dart.js
+
+```
+dart2js -m --trust-primitives --trust-type-annotations static/v2/js/script.dart -o static/v2/js/script.dart.js
+```
+
 ### Running the entire server locally
 
 Generally speaking it is very easy to run the entire application locally
