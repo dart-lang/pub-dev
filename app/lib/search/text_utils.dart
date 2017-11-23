@@ -6,6 +6,7 @@ final RegExp _separators =
     new RegExp(r'[_\.,;=\(\)\>\<\[\]\{\}\|\?\!\/\+\-\*]|\s');
 final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
+final RegExp _exactTermRegExp = new RegExp(r'"([^"]+)"');
 
 String compactText(String text, {int maxLength: -1}) {
   if (text == null) return '';
@@ -33,3 +34,6 @@ Iterable<String> splitForIndexing(String text) {
   if (text == null || text.isEmpty) return new Iterable.empty();
   return text.split(_separators).where((s) => s.isNotEmpty);
 }
+
+List<String> extractExactPhrases(String text) =>
+    _exactTermRegExp.allMatches(text).map((m) => m.group(1)).toList();

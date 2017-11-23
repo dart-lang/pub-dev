@@ -230,6 +230,42 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
+    test('typo match: utilito', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery.parse(text: 'utilito'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.07, 0.01)},
+          {'package': 'http', 'score': closeTo(0.02, 0.01)},
+        ]
+      });
+    });
+
+    test('exact phrase match: utilito', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery.parse(text: '"utilito"'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 0,
+        'packages': [],
+      });
+    });
+
+    test('exact phrase match: utility', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery.parse(text: '"utility"'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.07, 0.01)},
+          {'package': 'http', 'score': closeTo(0.02, 0.01)},
+        ],
+      });
+    });
+
     test('package prefix: chrome', () async {
       final PackageSearchResult result =
           await index.search(new SearchQuery.parse(text: 'package:chrome'));

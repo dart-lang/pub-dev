@@ -21,6 +21,7 @@ void registerPackageIndex(PackageIndex index) =>
 
 class SimplePackageIndex implements PackageIndex {
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
+  final Map<String, String> _normalizedPackageText = <String, String>{};
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
@@ -64,8 +65,12 @@ class SimplePackageIndex implements PackageIndex {
     await removePackage(doc.package);
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
-    _descrIndex.add(doc.package, compactDescription(doc.description));
-    _readmeIndex.add(doc.package, compactReadme(doc.readme));
+    _descrIndex.add(doc.package, doc.description);
+    _readmeIndex.add(doc.package, doc.readme);
+    final String allText = [doc.package, doc.description, doc.readme]
+        .where((s) => s != null)
+        .join(' ');
+    _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
   }
 
   @override
@@ -82,6 +87,7 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.remove(package);
     _descrIndex.remove(package);
     _readmeIndex.remove(package);
+    _normalizedPackageText.remove(package);
   }
 
   @override
@@ -231,7 +237,25 @@ class SimplePackageIndex implements PackageIndex {
         return Score.max([name, descr, readme]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
       }).toList();
-      return Score.multiply(wordScores);
+      Score score = Score.multiply(wordScores);
+
+      // filter results based on exact phrases
+      final List<String> phrases =
+          extractExactPhrases(text).map(normalizeBeforeIndexing).toList();
+      if (phrases.isNotEmpty) {
+        final Map<String, double> matched = <String, double>{};
+        for (String package in score.getKeys()) {
+          final allText = _normalizedPackageText[package];
+          final bool matchedAllPhrases =
+              phrases.every((phrase) => allText.contains(phrase));
+          if (matchedAllPhrases) {
+            matched[package] = score[package];
+          }
+        }
+        score = new Score(matched);
+      }
+
+      return score;
     }
     return null;
   }
