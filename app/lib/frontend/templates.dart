@@ -139,7 +139,7 @@ class TemplateService {
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.platforms, package: view.name),
-        'score_box_html': _renderScoreBox(overallScore),
+        'score_box_html': _renderScoreBox(overallScore, package: view.name),
       });
     }
 
@@ -899,13 +899,18 @@ String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
   }).join('<br/>');
 }
 
-String _renderScoreBox(double overallScore) {
+String _renderScoreBox(double overallScore, {String package}) {
   final String formattedScore = _formatScore(overallScore);
   final String scoreClass = _classifyScore(overallScore);
-  return '<div class="score-box">'
+  final String boxHtml = '<div class="score-box">'
       '<span class="number -$scoreClass">$formattedScore</span>'
       // TODO: decide on label - {{! <span class="text">?????</span> }}
       '</div>';
+  if (package != null) {
+    return '<a href="/experimental/packages/$package#-analysis-tab-">$boxHtml</a>';
+  } else {
+    return boxHtml;
+  }
 }
 
 String _formatScore(double value) {
