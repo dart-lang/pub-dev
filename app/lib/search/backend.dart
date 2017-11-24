@@ -51,8 +51,8 @@ class SearchBackend {
 
   /// Loads the list of packages, their latest stable versions and returns a
   /// matching list of [PackageDocument] objects for search.
-  /// When a package or its latest version is missing, the method returns with
-  /// null at the given index.
+  /// When a package, its latest version or its analysis is missing, the method
+  /// returns with null at the given index.
   Future<List<PackageDocument>> loadDocuments(List<String> packageNames) async {
     final List<Key> packageKeys = packageNames
         .map((String name) => _db.emptyKey.append(Package, id: name))
@@ -81,6 +81,7 @@ class SearchBackend {
       if (pv == null) continue;
 
       final analysisView = analysisViews[i];
+      if (!analysisView.hasAnalysisData) continue;
       final double popularity = popularityStorage.lookup(pv.package) ??
           mockScores[pv.package]?.toDouble() ??
           0.0;
