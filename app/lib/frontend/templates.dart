@@ -902,8 +902,12 @@ String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
 String _renderScoreBox(double overallScore, {String package}) {
   final String formattedScore = _formatScore(overallScore);
   final String scoreClass = _classifyScore(overallScore);
+  final String title = overallScore == null
+      ? 'Awaiting analysis to complete.'
+      : 'Analysis and more details.';
+  final String escapedTitle = _attrEscaper.convert(title);
   final String boxHtml = '<div class="score-box">'
-      '<span class="number -$scoreClass">$formattedScore</span>'
+      '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
       // TODO: decide on label - {{! <span class="text">?????</span> }}
       '</div>';
   if (package != null) {
