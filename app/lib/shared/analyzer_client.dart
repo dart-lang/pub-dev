@@ -88,6 +88,9 @@ class AnalyzerClient {
       }
     }
     final view = await getAnalysisView(key);
+    if (!view.hasAnalysisData) {
+      return null;
+    }
     final extract = new AnalysisExtract(
       popularity: popularityStorage.lookup(key.package) ?? 0.0,
       maintenance: view.maintenanceScore,
