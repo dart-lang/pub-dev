@@ -80,6 +80,7 @@ const _handlers = const <String, shelf.Handler>{
   '/experimental/server/packages': serverPackagesHandlerHtmlV2,
   '/experimental/web': webLandingHandlerV2,
   '/experimental/web/packages': webPackagesHandlerHtmlV2,
+  '/experimental/help': helpHandlerHtmlV2,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
@@ -166,6 +167,11 @@ Future<shelf.Response> _indexHandlerV2(
     await backend.uiPackageCache?.setUIIndexPage(true, platform, pageContent);
   }
   return htmlResponse(pageContent);
+}
+
+/// Handles requests for /experimental/help
+Future<shelf.Response> helpHandlerHtmlV2(shelf.Request request) async {
+  return htmlResponse(templateService.renderHelpPageV2());
 }
 
 /// Handles requests for /feed.atom

@@ -152,6 +152,11 @@ class TemplateMock implements TemplateService {
   }
 
   @override
+  String renderHelpPageV2() {
+    return _response;
+  }
+
+  @override
   String renderIndexPage(List<PackageVersion> recentPackages,
       List<AnalysisExtract> analysisExtracts) {
     return _response;
