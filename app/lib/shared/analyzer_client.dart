@@ -177,7 +177,8 @@ class AnalysisView {
 
   String get dartSdkVersion => _summary.sdkVersion.toString();
   String get panaVersion => _summary.panaVersion.toString();
-  String get flutterVersion => _summary.flutterVersion?.toString();
+  String get flutterVersion =>
+      _summary?.flutterVersion != null ? _data.flutterVersion : null;
 
   List<String> get platforms => indexDartPlatform(_summary?.platform);
   String get platformsReason => _summary?.platform?.reason;
