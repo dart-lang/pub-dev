@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -72,6 +73,9 @@ class PackageVersionAnalysis extends db.ExpandoModel {
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;
 
+  @db.StringProperty()
+  String analysisHash;
+
   PackageVersionAnalysis();
   PackageVersionAnalysis.fromAnalysis(Analysis analysis) {
     parentKey =
@@ -82,6 +86,7 @@ class PackageVersionAnalysis extends db.ExpandoModel {
     panaVersion = analysis.panaVersion;
     flutterVersion = analysis.flutterVersion;
     analysisStatus = analysis.analysisStatus;
+    analysisHash = analysis.analysisHash;
   }
 
   /// Returns true if there was a change that warrants an update in Datastore.
@@ -96,6 +101,7 @@ class PackageVersionAnalysis extends db.ExpandoModel {
     panaVersion = analysis.panaVersion;
     flutterVersion = analysis.flutterVersion;
     analysisStatus = analysis.analysisStatus;
+    analysisHash = analysis.analysisHash;
     return true;
   }
 }
@@ -138,6 +144,9 @@ class Analysis extends db.ExpandoModel {
   @db.BlobProperty()
   List<int> analysisJsonGz;
 
+  @db.StringProperty()
+  String analysisHash;
+
   /// Empty constructor only for appengine.
   Analysis();
 
@@ -159,8 +168,10 @@ class Analysis extends db.ExpandoModel {
   set analysisJson(Map map) {
     if (map == null) {
       analysisJsonGz = null;
+      analysisHash = null;
     } else {
       analysisJsonGz = _gzipCodec.encode(UTF8.encode(JSON.encode(map)));
+      analysisHash = sha256.convert(analysisJsonGz).toString();
     }
   }
 }

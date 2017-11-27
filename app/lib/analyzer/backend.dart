@@ -26,6 +26,7 @@ AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
 final Logger _logger = new Logger('pub.analyzer.backend');
 
 const Duration freshThreshold = const Duration(hours: 12);
+const Duration identicalThreshold = const Duration(days: 7);
 const Duration reanalyzeThreshold = const Duration(days: 30);
 const Duration regressionThreshold = const Duration(days: 45);
 const Duration obsoleteThreshold = const Duration(days: 180);
@@ -109,6 +110,9 @@ class AnalysisBackend {
           version.flutterVersion == flutterVersion &&
           (analysisStatusLevel(version.analysisStatus) >
               analysisStatusLevel(analysis.analysisStatus));
+      final hasIdenticalHash = version != null &&
+          version.analysisHash != null &&
+          analysis.analysisHash == version.analysisHash;
 
       final List<Model> inserts = [];
       if (package == null) {
@@ -132,8 +136,10 @@ class AnalysisBackend {
       final isLatestStable = package.latestVersion == version.packageVersion;
       final bool preventRegression =
           isRegression && ageDiff != null && ageDiff < regressionThreshold;
+      final bool preventIdentical =
+          hasIdenticalHash && ageDiff < identicalThreshold;
 
-      if (wasRace || preventRegression) {
+      if (preventRegression || preventIdentical) {
         await tx.rollback();
       } else {
         inserts.add(analysis);
