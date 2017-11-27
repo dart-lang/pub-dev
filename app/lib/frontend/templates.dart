@@ -247,6 +247,7 @@ class TemplateService {
       'health': _formatScore(extract?.health),
       'maintenance': _formatScore(extract?.maintenance),
       'popularity': _formatScore(extract?.popularity),
+      'overall': _formatScore(extract?.overallScore),
     };
 
     return _renderTemplate('v2/pkg/analysis_tab', data);
@@ -568,6 +569,12 @@ class TemplateService {
     };
     return _renderPage('error', values,
         title: 'Error $status', includeSurvey: false);
+  }
+
+  /// Renders the `views/v2/help.mustache` template.
+  String renderHelpPageV2() {
+    final String content = _renderTemplate('v2/help', {});
+    return renderLayoutPageV2(PageType.package, content);
   }
 
   /// Renders the `views/index.mustache` template.

@@ -1,4 +1,16 @@
-<h4>Analysis</h4>
+<h2>Analysis</h2>
+
+<div class="analysis-disclaimer">
+  This feature is new. <br/>
+  We welcome <a href="https://github.com/dart-lang/pub-dartlang-dart/issues/new?title=Analysis+tab:">feedback</a>.
+</div>
+
+<p>
+  We are analyzing each uploaded package and provide its scores, details and our suggestions here.
+  You can see the overall score in a colored circle, and the results below.
+</p>
+
+<hr />
 
 <p>Last package analysis: <i>{{analysis_status}}</i> on {{date_completed}}.</p>
 <p>(Dart: {{dart_sdk_version}}, pana: {{pana_version}}{{#flutter_version}}, Flutter: {{flutter_version}}{{/flutter_version}}).</p>
@@ -6,9 +18,54 @@
 <h4>Scores</h4>
 
 <table id='scores-table'>
-  <tr><td>Popularity</td><td>{{popularity}}</td></tr>
-  <tr><td>Health</td><td>{{health}}</td></tr>
-  <tr><td>Maintenance</td><td>{{maintenance}}</td></tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base">
+        <span class="tooltip-dotted">Popularity:</span>
+        <div class="tooltip-content">
+          Describes how popular the package is relative to other packages.
+          <a href="/experimental/help#popularity">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value">{{popularity}}</td>
+  </tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base">
+        <span class="tooltip-dotted">Health:</span>
+        <div class="tooltip-content">
+          Code health derived from static analysis.
+          <a href="/experimental/help#health">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value">{{health}}</td>
+  </tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base">
+        <span class="tooltip-dotted">Maintenance:</span>
+        <div class="tooltip-content">
+          Reflects how tidy and up-to-date the package is.
+          <a href="/experimental/help#maintenance">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value">{{maintenance}}</td>
+  </tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base">
+        <span class="tooltip-dotted"><b>Overall score:</b></span>
+        <div class="tooltip-content">
+          Weighted score of the above.
+          <a href="/experimental/help#overall-score">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value"><b>{{overall}}</b></td>
+  </tr>
 </table>
 
 <h4>Platforms</h4>

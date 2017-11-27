@@ -1,0 +1,73 @@
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+<div style="max-width: 600px">
+  <h2 id="scoring">Scoring</h2>
+  <p>
+    We calculate <a href="#popularity">popularity</a>, <a href="#health">health</a> and
+    <a href="#maintenance">maintenance</a> scores independently, and combine them into
+    an <a href="#overall-score">overall score</a>. The score you see in the colored circle
+    is always this overall score.
+  </p>
+
+  <h3 id="popularity">Popularity</h3>
+  <p>
+    Popularity score is good proxy for a package's use, derived from download statistics.
+    It is based on actual download counts, but compensated for automated tools (like
+    continuous builds fetching the package on each change request).
+  </p>
+
+  <p><i>How can you improve your popularity score?</i></p>
+  <p>Create useful packages that others needs and love to use.</p>
+
+  <h3 id="health">Health</h3>
+  <p>
+    The code health score is based on the static analysis of the package with <code class="hljs">dartanalyzer</code>.
+  </p>
+  <p><i>How can you improve your health score?</i></p>
+  <p>Use strong-mode checks and some linter rules, and make sure you fix all the warnings and errors before publishing. An example <code>analysis_options.yaml</code>:</p>
+  <pre><code class="hljs">
+# https://www.dartlang.org/guides/language/analysis-options
+analyzer:
+  strong-mode: true
+
+# Source of linter options:
+# http://dart-lang.github.io/linter/lints/options/options.html
+linter:
+  rules:
+    - camel_case_types
+    - hash_and_equals
+    - iterable_contains_unrelated_type
+    - list_remove_unrelated_type
+    - unrelated_type_equality_checks
+    - valid_regexps
+
+  </code></pre>
+
+  <h3 id="maintenance">Maintenance</h3>
+
+  <p>
+    Maintenance score reflects how tidy and up-to-date a package is.
+    Some of aspects that influence the score:
+  </p>
+  <ul>
+    <li>Last publish date: a package starts to loose score a year its last publish data.</li>
+    <li>Up-to-date dependencies: great if all of the dependencies are on the latest version.</li>
+    <li>Readme, changelog and example files.</li>
+    <li><code class="hljs">analysis_options.yaml</code> with strong-mode enabled.</li>
+  </ul>
+
+  <p><i>How can you improve your maintenance score?</i></p>
+  <p>
+    Follow the suggestions on the analysis tab on the package page, or
+    run <a href="https://pub.dartlang.org/packages/pana">pana</a> manually
+    to check these before publishing.
+  </p>
+
+  <h3 id="overall-score">Overall score</h3>
+  <p>
+    The overall score is the combination of <a href="#popularity">popularity</a>,
+    <a href="#health">health</a> and <a href="#maintenance">maintenance</a>.
+  </p>
+
+</div>

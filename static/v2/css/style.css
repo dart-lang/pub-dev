@@ -804,10 +804,6 @@ main, .site-header {
     top: -1px;
 }
 
-.package-container #scores-table td {
-  text-align: right;
-}
-
 .sidebar-content{
     font-size: 14px
 }
@@ -889,6 +885,73 @@ main, .site-header {
 .dependency-table th.sub-header {
   font-weight: 500;
   font-style: italic;
+}
+
+/******************************************************
+  Analysis tab
+******************************************************/
+
+.analysis-disclaimer {
+  float: right;
+  margin-left: 24px;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-left: 4px solid #00c4b3;
+}
+
+#scores-table {
+  margin-bottom: 1em;
+}
+
+#scores-table .score-name {
+  min-width: 100px;
+  padding-right: 24px;
+}
+
+#scores-table .score-value {
+  min-width: 60px;
+  text-align: right;
+}
+
+.tooltip-base {
+  position: relative;
+  display: inline-block;
+  padding: 4px;
+}
+
+.tooltip-dotted {
+  border-bottom: 1px dotted #ddd;
+}
+
+.tooltip-content {
+  visibility: hidden;
+  background: #f8f8f8;
+  color: black;
+  opacity: 0.95;
+  padding: 12px 12px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+
+  position: absolute;
+  width: 300px;
+  top: 100%;
+  left: -24px;
+  z-index: 3;
+}
+
+.tooltip-content::after {
+  content: " ";
+  position: absolute;
+  bottom: 100%;  /* At the top of the tooltip */
+  left: 48px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #ddd transparent;
+}
+
+.tooltip-base:hover .tooltip-content {
+  visibility: visible;
 }
 
 /******************************************************
