@@ -183,7 +183,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package name match: async', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: 'async'));
+          await index.search(new SearchQuery.parse(query: 'async'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -198,7 +198,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('description match: composable', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: 'composable'));
+          await index.search(new SearchQuery.parse(query: 'composable'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -217,7 +217,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('readme match: chrome.sockets', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: 'chrome.sockets'));
+          await index.search(new SearchQuery.parse(query: 'chrome.sockets'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -232,7 +232,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('typo match: utilito', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: 'utilito'));
+          await index.search(new SearchQuery.parse(query: 'utilito'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -245,7 +245,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('exact phrase match: utilito', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: '"utilito"'));
+          await index.search(new SearchQuery.parse(query: '"utilito"'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 0,
@@ -255,7 +255,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('exact phrase match: utility', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: '"utility"'));
+          await index.search(new SearchQuery.parse(query: '"utility"'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -268,7 +268,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('package prefix: chrome', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(text: 'package:chrome'));
+          await index.search(new SearchQuery.parse(query: 'package:chrome'));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -283,7 +283,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('order by text: single-letter t', () async {
       final PackageSearchResult result = await index
-          .search(new SearchQuery.parse(text: 't', order: SearchOrder.text));
+          .search(new SearchQuery.parse(query: 't', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 0,
@@ -293,7 +293,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('order by text: double-letter tt', () async {
       final PackageSearchResult result = await index
-          .search(new SearchQuery.parse(text: 'tt', order: SearchOrder.text));
+          .search(new SearchQuery.parse(query: 'tt', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -322,7 +322,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('order by updated: no filter', () async {
       final PackageSearchResult result = await index
-          .search(new SearchQuery.parse(text: '', order: SearchOrder.updated));
+          .search(new SearchQuery.parse(query: '', order: SearchOrder.updated));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 3,
@@ -394,7 +394,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('multiword query: implicit AND', () async {
       final PackageSearchResult composable = await index.search(
-          new SearchQuery.parse(text: 'composable', order: SearchOrder.text));
+          new SearchQuery.parse(query: 'composable', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(composable)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -405,7 +405,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
 
       final PackageSearchResult library = await index.search(
-          new SearchQuery.parse(text: 'library', order: SearchOrder.text));
+          new SearchQuery.parse(query: 'library', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(library)), {
         'indexUpdated': isNotNull,
         'totalCount': 3,
@@ -419,7 +419,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       // Without the implicit AND, the end result would be close to the result
       // of the `library` search.
       final PackageSearchResult both = await index.search(new SearchQuery.parse(
-          text: 'composable library', order: SearchOrder.text));
+          query: 'composable library', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(both)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,

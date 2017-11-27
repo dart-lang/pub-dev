@@ -378,7 +378,7 @@ MIT'''),
 
     test('hoversine', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(text: 'haversine', order: SearchOrder.text));
+          new SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 3,

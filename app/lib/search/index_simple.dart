@@ -93,19 +93,18 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
     // do text matching
-    final Score textScore = _searchText(query.text, query.packagePrefix);
+    final Score textScore = _searchText(query.parsedQuery.text);
     final Score base = textScore ?? _allPackages();
 
     // The set of packages to filter on.
     final Set<String> packages = base.getKeys();
 
     // filter on package prefix
-    if (query.packagePrefix != null) {
+    if (query.parsedQuery?.packagePrefix != null) {
+      final String prefix = query.parsedQuery.packagePrefix.toLowerCase();
       packages.removeWhere(
-        (package) => !_packages[package]
-            .package
-            .toLowerCase()
-            .startsWith(query.packagePrefix.toLowerCase()),
+        (package) =>
+            !_packages[package].package.toLowerCase().startsWith(prefix),
       );
     }
 
@@ -227,7 +226,7 @@ class SimplePackageIndex implements PackageIndex {
   Score _allPackages() =>
       new Score(new Map.fromIterable(_packages.keys, value: (_) => 1.0));
 
-  Score _searchText(String text, String packagePrefix) {
+  Score _searchText(String text) {
     if (text != null && text.isNotEmpty) {
       final List<String> words = text.split(' ');
       final List<Score> wordScores = words.map((String word) {
