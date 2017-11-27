@@ -5,7 +5,7 @@
 import 'package:pub_semver/pub_semver.dart';
 
 // keep in-sync with app/pubspec.yaml
-final String panaVersion = '0.7.0+1';
+final String panaVersion = '0.7.1';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
 // keep in-sync with app/script/setup-flutter.sh
