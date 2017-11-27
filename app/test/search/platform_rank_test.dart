@@ -73,15 +73,15 @@ void main() {
         'packages': [
           {
             'package': 'json_1',
-            'score': closeTo(0.122, 0.005),
+            'score': closeTo(0.1224, 0.0001),
           },
           {
             'package': 'json_2',
-            'score': closeTo(0.110, 0.005),
+            'score': closeTo(0.1212, 0.0001),
           },
           {
             'package': 'json_3',
-            'score': closeTo(0.098, 0.005),
+            'score': closeTo(0.0979, 0.0001),
           },
         ],
       });
