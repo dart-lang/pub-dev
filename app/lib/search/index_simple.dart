@@ -303,7 +303,7 @@ class SimplePackageIndex implements PackageIndex {
     final int platformCount = platforms?.length ?? 0;
     if (requiredCount > 0) {
       if (platformCount == requiredCount + 1) {
-        score *= 0.90;
+        score *= 0.99;
       } else if (platformCount > requiredCount + 1) {
         score *= 0.80;
       }
