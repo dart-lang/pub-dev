@@ -809,19 +809,28 @@ class TemplateService {
   /// Renders the tags using the pkg/tags template.
   String _renderTags(List<String> platforms,
       {String package, bool wrapperDiv: false}) {
-    final List tags = platforms?.map((platform) {
-          final Map tagData = _logoData[platform];
-          return tagData ?? {'text': platform};
-        })?.toList() ??
-        <Map>[];
-    if (tags.isEmpty) {
+    final List<Map> tags = <Map>[];
+    if (platforms == null) {
+      tags.add({
+        'status': 'missing',
+        'text': '[awaiting]',
+        'title': 'Analysis should be ready soon.',
+      });
+    } else if (platforms.isEmpty) {
       final String hash = '#-analysis-tab-';
       final String href =
           package == null ? hash : '/experimental/packages/$package$hash';
       tags.add({
-        'text': '[unsure]',
+        'status': 'unidentified',
+        'text': '[unidentified]',
+        'title': 'Check the analysis tab for further details.',
         'v2_href': href,
       });
+    } else {
+      tags.addAll(platforms.map((platform) {
+        final Map tagData = _logoData[platform];
+        return tagData ?? {'text': platform};
+      }));
     }
     return _renderTemplate('v2/pkg/tags', {
       'has_tags': tags.isNotEmpty,

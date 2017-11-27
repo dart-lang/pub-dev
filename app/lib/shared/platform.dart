@@ -21,7 +21,7 @@ List<String> indexDartPlatform(DartPlatform platform) {
     return KnownPlatforms.all;
   }
   if (platform.restrictedTo == null || platform.restrictedTo.isEmpty) {
-    return null;
+    return [];
   }
   return new List.from(platform.restrictedTo);
 }
