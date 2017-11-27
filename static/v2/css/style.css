@@ -463,9 +463,9 @@ main, .site-header {
 .score-box > .number {
   display: block;
   border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  line-height: 25px;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
   text-align: center;
   font-size: 14px;
   color: #fff;
@@ -893,10 +893,12 @@ main, .site-header {
 
 .analysis-disclaimer {
   float: right;
-  margin-left: 24px;
+  margin-left: 1em;
   margin-bottom: 12px;
   padding: 8px;
   border-left: 4px solid #00c4b3;
+  font-style: italic;
+  color: gray;
 }
 
 #scores-table {
