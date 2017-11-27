@@ -8,6 +8,13 @@ final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
 final RegExp _exactTermRegExp = new RegExp(r'"([^"]+)"');
 
+final commonExtraPhrases = const ['dart', 'dartlang'];
+final platformExtraPhrases = const <String, List<String>>{
+  'flutter': const ['flutter', 'mobile', 'phone'],
+  'server': const ['server', 'console'],
+  'web': const ['web', 'browser'],
+};
+
 String compactText(String text, {int maxLength: -1}) {
   if (text == null) return '';
   String t = text.replaceAll(_multiWhitespaceRegExp, ' ').trim();
