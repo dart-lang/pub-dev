@@ -495,7 +495,7 @@ main, .site-header {
   color: #333;
 }
 
-.package-tag{
+.package-tag {
   background: #eef9fe;
   text-transform: uppercase;
   display: inline-block;
@@ -505,6 +505,15 @@ main, .site-header {
   padding: 2px 8px;
   margin: 6px 0 4px 4px;
 }
+
+.package-tag.missing {
+  background: #f0f0f0;
+}
+
+.package-tag.unidentified {
+  background: #fff0f0;
+}
+
 /******************************************************
   home page
 ******************************************************/
