@@ -390,6 +390,39 @@ class Score {
   }
 }
 
+class TokenMatch {
+  final Map<String, double> _tokenWeights = <String, double>{};
+  double _maxWeight;
+  double _sumWeight;
+
+  double operator [](String token) => _tokenWeights[token];
+
+  void operator []=(String token, double weight) {
+    _tokenWeights[token] = weight;
+    _maxWeight = null;
+    _sumWeight = null;
+  }
+
+  Iterable<String> get tokens => _tokenWeights.keys;
+
+  bool get isEmpty => _tokenWeights.isEmpty;
+
+  double get maxWeight =>
+      _maxWeight ??= _tokenWeights.values.fold(0.0, math.max);
+
+  double get sumWeight =>
+      _sumWeight ??= _tokenWeights.values.fold(0.0, (a, b) => a + b);
+
+  void removeLowValues(double minValue) {
+    for (String token in _tokenWeights.keys.toList()) {
+      if (_tokenWeights[token] < minValue) {
+        _tokenWeights.remove(token);
+      }
+    }
+    _sumWeight = null;
+  }
+}
+
 class TokenIndex {
   final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
   final Map<String, double> _docSizes = <String, double>{};
@@ -433,33 +466,27 @@ class TokenIndex {
     }
 
     // Check which tokens have documents, and assign their weight.
-    final Map<String, double> tokenWeights = <String, double>{};
+    final TokenMatch tokenMatch = new TokenMatch();
     for (String token in tokens) {
       final int foundCount = _inverseIds[token]?.length ?? 0;
       if (foundCount == 0) continue;
       // Inverse document frequency score inspired by ElasticSearch's ranking.
       final double idf = 1.0 + math.log(documentCount / (foundCount + 1));
-      tokenWeights[token] = idf * token.length;
+      tokenMatch[token] = idf * token.length;
     }
-    if (tokenWeights.isEmpty) return const {};
+    if (tokenMatch.isEmpty) return const {};
 
     // Use only the most relevant tokens.
-    final double maxWeight = tokenWeights.values.fold(0.0, math.max);
-    final double weightThreshold = maxWeight * 0.5;
-    tokens.forEach((token) {
-      if (tokenWeights.containsKey(token) &&
-          tokenWeights[token] < weightThreshold) {
-        tokenWeights.remove(token);
-      }
-    });
+    final double weightThreshold = tokenMatch.maxWeight * 0.5;
+    tokenMatch.removeLowValues(weightThreshold);
 
     // Summarize the scores for the documents.
-    final queryWeight = tokenWeights.values.fold(0.0, (a, b) => a + b);
+    final queryWeight = tokenMatch.sumWeight;
     final Map<String, double> docScores = <String, double>{};
-    for (String token in tokenWeights.keys) {
+    for (String token in tokenMatch.tokens) {
       for (String id in _inverseIds[token]) {
         final double prevValue = docScores[id] ?? 0.0;
-        docScores[id] = prevValue + tokenWeights[token];
+        docScores[id] = prevValue + tokenMatch[token];
       }
     }
 
