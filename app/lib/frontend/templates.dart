@@ -20,6 +20,7 @@ import '../shared/utils.dart';
 import 'model_properties.dart' show Author;
 import 'models.dart';
 import 'search_service.dart' show SearchResultPage;
+import 'template_consts.dart';
 
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
@@ -603,14 +604,11 @@ class TemplateService {
     String topHtml,
     String platform,
   ) {
-    final String platformName = _formattedPlatformName(platform);
+    final platformDict = getPlatformDict(platform);
     final values = {
       'packages_url': platform == null ? '/packages' : '/$platform/packages',
-      'more_packages': platform == null
-          ? 'More packages...'
-          : 'More $platformName packages...',
-      'top_header':
-          platform == null ? 'Top packages' : 'Top $platformName packages',
+      'more_packages': 'More ${platformDict.name} packages...',
+      'top_header': 'Top ${platformDict.name} packages',
       'top_html': topHtml,
     };
     final String content = _renderTemplate('v2/index', values);
@@ -658,10 +656,10 @@ class TemplateService {
       platformTabs =
           renderPlatformTabs(platform: platform, searchQuery: searchQuery);
     }
-    final formattedPlatform = _formattedPlatformName(platform) ?? 'Dart';
     final searchSort = searchQuery?.order == null
         ? null
         : serializeSearchOrder(searchQuery.order);
+    final platformDict = getPlatformDict(platform);
     final values = {
       'static_assets_dir': LogoUrls.newDesignAssetsDir,
       'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
@@ -674,10 +672,10 @@ class TemplateService {
       'title': HTML_ESCAPE.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
-      'search_query_placeholder': 'Search $formattedPlatform packages',
+      'search_query_placeholder': 'Search ${platformDict.name} packages',
       'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
-      'landing_blurb_html': _landingBlurb(platform),
+      'landing_blurb_html': platformDict.landingBlurb,
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,
       'include_survey': includeSurvey,
@@ -813,7 +811,7 @@ class TemplateService {
     return icons;
   }
 
-  /// Renders the tags using the pkg/tags template.
+  /// Renders the tags using the v2/pkg/tags template.
   String _renderTags(List<String> platforms,
       {String package, bool wrapperDiv: false}) {
     final List<Map> tags = <Map>[];
@@ -835,8 +833,11 @@ class TemplateService {
       });
     } else {
       tags.addAll(platforms.map((platform) {
-        final Map tagData = _logoData[platform];
-        return tagData ?? {'text': platform};
+        final platformDict = getPlatformDict(platform, nullIfMissing: true);
+        return {
+          'text': platformDict.name ?? platform,
+          'v2_href': platformDict?.listingUrl,
+        };
       }));
     }
     return _renderTemplate('v2/pkg/tags', {
@@ -1071,58 +1072,22 @@ abstract class LogoUrls {
   };
 }
 
-// 'text', 'v2_href': used in v2 only
-// 'href', 'label', 'src': used in old design only
+// used in old design only
 final Map<String, Map> _logoData = const {
   KnownPlatforms.flutter: const {
     'src': LogoUrls.flutterLogo32x32,
     'label': 'Flutter package',
     'href': '/flutter/packages',
-    'text': 'Flutter',
-    'v2_href': '/experimental/flutter/packages',
   },
   KnownPlatforms.server: const {
     'src': LogoUrls.shellLogo32x32,
     'label': 'Server',
-    'text': 'Server',
-    'v2_href': '/experimental/server/packages',
   },
   KnownPlatforms.web: const {
     'src': LogoUrls.html5Logo32x32,
     'label': 'Web',
-    'text': 'Web',
-    'v2_href': '/experimental/web/packages',
   },
 };
-
-final Map<String, String> _landingBlurbs = const {
-  'default':
-      '<p class="text">Find and use packages to build <a href="/experimental/flutter">Flutter</a>, '
-      '<a href="/experimental/web">web</a> and <a href="/experimental/server">server</a> apps '
-      'with <a target="_blank" href="https://www.dartlang.org">Dart</a>.</p>',
-  KnownPlatforms.flutter:
-      '<p class="text"><a href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '
-      'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
-  KnownPlatforms.server:
-      '<p class="text">Use Dart to create command line and server applications.<br/> Start with the '
-      '<a href="https://www.dartlang.org/tutorials/dart-vm/get-started">Dart VM tutorial<sup><small>↗</small></sup></a>.</p>',
-  KnownPlatforms.web:
-      '<p class="text">Use Dart to create web applications that run on any modern browser.<br/> Start '
-      'with <a href="https://webdev.dartlang.org/angular">AngularDart<sup><small>↗</small></sup></a>.</p>'
-};
-
-String _landingBlurb(String platform) =>
-    _landingBlurbs[platform ?? 'default'] ?? _landingBlurbs['default'];
-
-String _formattedPlatformName(String platform) {
-  if (platform == null) return null;
-  switch (platform) {
-    case KnownPlatforms.flutter:
-      return 'Flutter';
-    default:
-      return platform;
-  }
-}
 
 const String flutterPackagesDescriptionHtml =
     '<p><a href="https://flutter.io/using-packages/">Learn more about using packages with Flutter.</a></p>';
