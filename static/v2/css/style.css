@@ -513,6 +513,10 @@ main, .site-header {
   home page
 ******************************************************/
 
+.landing-page-title, .listing-page-title {
+  color: gray;
+  font-weight: 500;
+}
 
 .home-banner{
   text-align: center;

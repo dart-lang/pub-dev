@@ -6,16 +6,19 @@ import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
 
 class PlatformDict {
   final String name;
+  final String pageTitle;
   final String landingBlurb;
   final String landingUrl;
   final String listingUrl;
 
   PlatformDict({
     this.name,
+    String pageTitle,
     this.landingBlurb,
     this.landingUrl,
     this.listingUrl,
-  });
+  })
+      : this.pageTitle = pageTitle ?? 'Top $name packages';
 
   factory PlatformDict.forPlatform(String platform) {
     return new PlatformDict(
