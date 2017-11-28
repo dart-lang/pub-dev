@@ -230,9 +230,23 @@ class SimplePackageIndex implements PackageIndex {
     if (text != null && text.isNotEmpty) {
       final List<String> words = text.split(' ');
       final List<Score> wordScores = words.map((String word) {
-        final name = new Score(_nameIndex.search(word));
-        final descr = new Score(_descrIndex.search(word)).map((v) => v * 0.75);
-        final readme = new Score(_readmeIndex.search(word)).map((v) => v * 0.5);
+        final nameTokens = _nameIndex.lookupTokens(word);
+        final descrTokens = _descrIndex.lookupTokens(word);
+        final readmeTokens = _readmeIndex.lookupTokens(word);
+
+        final maxTokenLength = math.max(nameTokens.maxLength,
+            math.max(descrTokens.maxLength, readmeTokens.maxLength));
+        final minTokenLength =
+            maxTokenLength - math.max(1, maxTokenLength ~/ 3);
+        nameTokens.removeShortTokens(minTokenLength);
+        descrTokens.removeShortTokens(minTokenLength);
+        readmeTokens.removeShortTokens(minTokenLength);
+
+        final name = new Score(_nameIndex.scoreDocs(nameTokens, weight: 1.00));
+        final descr =
+            new Score(_descrIndex.scoreDocs(descrTokens, weight: 0.95));
+        final readme =
+            new Score(_readmeIndex.scoreDocs(readmeTokens, weight: 0.90));
         return Score.max([name, descr, readme]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
       }).toList();
@@ -392,34 +406,33 @@ class Score {
 
 class TokenMatch {
   final Map<String, double> _tokenWeights = <String, double>{};
-  double _maxWeight;
   double _sumWeight;
+  int _maxLength;
 
   double operator [](String token) => _tokenWeights[token];
 
   void operator []=(String token, double weight) {
     _tokenWeights[token] = weight;
-    _maxWeight = null;
     _sumWeight = null;
+    _maxLength = null;
   }
 
   Iterable<String> get tokens => _tokenWeights.keys;
 
-  bool get isEmpty => _tokenWeights.isEmpty;
-
-  double get maxWeight =>
-      _maxWeight ??= _tokenWeights.values.fold(0.0, math.max);
+  int get maxLength => _maxLength ??=
+      _tokenWeights.keys.fold(0, (a, b) => math.max(a, b.length));
 
   double get sumWeight =>
       _sumWeight ??= _tokenWeights.values.fold(0.0, (a, b) => a + b);
 
-  void removeLowValues(double minValue) {
+  void removeShortTokens(int minLength) {
     for (String token in _tokenWeights.keys.toList()) {
-      if (_tokenWeights[token] < minValue) {
+      if (token.length < minLength) {
         _tokenWeights.remove(token);
       }
     }
     _sumWeight = null;
+    _maxLength = null;
   }
 }
 
@@ -476,7 +489,7 @@ class TokenIndex {
     return tokenMatch;
   }
 
-  Map<String, double> scoreDocs(TokenMatch tokenMatch) {
+  Map<String, double> scoreDocs(TokenMatch tokenMatch, {double weight: 1.0}) {
     // Summarize the scores for the documents.
     final queryWeight = tokenMatch.sumWeight;
     final Map<String, double> docScores = <String, double>{};
@@ -489,7 +502,7 @@ class TokenIndex {
 
     // post-process match weights
     for (String id in docScores.keys.toList()) {
-      docScores[id] = docScores[id] / queryWeight / _docSizes[id];
+      docScores[id] = weight * docScores[id] / queryWeight / _docSizes[id];
     }
     return docScores;
   }
@@ -498,11 +511,7 @@ class TokenIndex {
   /// scoring. Longer tokens weight more in the relevance score.
   Map<String, double> search(String text) {
     final TokenMatch tokenMatch = lookupTokens(text);
-
-    // Use only the most relevant tokens.
-    final double weightThreshold = tokenMatch.maxWeight * 0.5;
-    tokenMatch.removeLowValues(weightThreshold);
-
+    tokenMatch.removeShortTokens(tokenMatch.maxLength - 1);
     return scoreDocs(tokenMatch);
   }
 }

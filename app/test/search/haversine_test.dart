@@ -391,12 +391,12 @@ MIT'''),
           {
             // should be present
             'package': 'latlong',
-            'score': closeTo(0.02, 0.01),
+            'score': closeTo(0.04, 0.01),
           },
           {
             // should be present
             'package': 'great_circle_distance',
-            'score': closeTo(0.01, 0.01),
+            'score': closeTo(0.03, 0.01),
           },
         ]
       });
