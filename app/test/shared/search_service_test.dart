@@ -24,6 +24,14 @@ void main() {
     });
   });
 
+  group('ParsedQuery', () {
+    test('trim', () {
+      expect(new SearchQuery.parse(query: 'text').parsedQuery.text, 'text');
+      expect(new SearchQuery.parse(query: ' text ').query, 'text');
+      expect(new SearchQuery.parse(query: ' text ').parsedQuery.text, 'text');
+    });
+  });
+
   group('SearchQuery.isValid', () {
     test('empty', () {
       expect(new SearchQuery.parse().isValid, isFalse);
