@@ -36,7 +36,7 @@ void main() {
 
     test('text search without platform', () async {
       final PackageSearchResult withoutPlatform =
-          await index.search(new SearchQuery.parse(text: 'json'));
+          await index.search(new SearchQuery.parse(query: 'json'));
       expect(JSON.decode(JSON.encode(withoutPlatform)), {
         'indexUpdated': isNotNull,
         'totalCount': 4,
@@ -64,7 +64,7 @@ void main() {
     test('text search with platform', () async {
       final PackageSearchResult withPlatform =
           await index.search(new SearchQuery.parse(
-        text: 'json',
+        query: 'json',
         platform: 'flutter',
       ));
       expect(JSON.decode(JSON.encode(withPlatform)), {

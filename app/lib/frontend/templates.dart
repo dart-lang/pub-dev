@@ -150,7 +150,7 @@ class TemplateService {
       descriptionHtml = flutterPackagesDescriptionHtml;
     }
 
-    final isSearch = searchQuery != null && searchQuery.hasText;
+    final isSearch = searchQuery != null && searchQuery.hasQuery;
     final values = {
       'is_search': isSearch,
       'title': title ?? 'Packages',
@@ -158,14 +158,14 @@ class TemplateService {
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
       'pagination': renderPaginationV2(links),
-      'search_query': searchQuery?.text,
+      'search_query': searchQuery?.query,
       'total_count': totalCount,
     };
     final content = _renderTemplate('v2/pkg/index', values);
 
     String pageTitle = title;
     if (isSearch) {
-      pageTitle = 'Search results for ${searchQuery.text}.';
+      pageTitle = 'Search results for ${searchQuery.query}.';
     } else {
       if (links.rightmostPage > 1) {
         pageTitle = 'Page ${links.currentPage} | $pageTitle';
@@ -648,7 +648,7 @@ class TemplateService {
     SearchQuery searchQuery,
     bool includeSurvey: true,
   }) {
-    final queryText = searchQuery?.text;
+    final queryText = searchQuery?.query;
     final String escapedSearchQuery =
         queryText == null ? null : HTML_ESCAPE.convert(queryText);
     String platformTabs;
@@ -738,7 +738,7 @@ class TemplateService {
 
   /// Renders the `views/search.mustache` template.
   String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
-    final String queryText = resultPage.query.text;
+    final String queryText = resultPage.query.query;
     final String paginationHtml = renderPagination(pageLinks);
     final List results = [];
     for (int i = 0; i < resultPage.packages.length; i++) {
@@ -756,7 +756,7 @@ class TemplateService {
       });
     }
     final values = {
-      'query': resultPage.query.text,
+      'query': resultPage.query.query,
       'results': results,
       'pagination': paginationHtml,
       'hasResults': results.length > 0,

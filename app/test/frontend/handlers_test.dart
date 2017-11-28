@@ -213,7 +213,7 @@ void main() {
 
       tScopedTest('/search?q=foobar', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.text, 'foobar');
+          expect(query.query, 'foobar');
           expect(query.offset, 0);
           expect(query.limit, PageSize);
           return new SearchResultPage(
@@ -230,7 +230,7 @@ void main() {
 
       tScopedTest('/search?q=foobar&page=2', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.text, 'foobar');
+          expect(query.query, 'foobar');
           expect(query.offset, PageSize);
           expect(query.limit, PageSize);
           return new SearchResultPage(

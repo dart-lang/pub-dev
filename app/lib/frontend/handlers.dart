@@ -218,7 +218,7 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
   final int page = _pageFromUrl(request.url);
 
   final SearchQuery query = new SearchQuery.parse(
-    text: queryText,
+    query: queryText,
     platform: platform,
     offset: PageLinks.resultsPerPage * (page - 1),
     limit: PageLinks.resultsPerPage,
@@ -407,7 +407,7 @@ Future<shelf.Response> _packagesHandlerHtmlV2(
       sortParam == null ? null : parseSearchOrder(sortParam);
 
   final SearchQuery searchQuery = new SearchQuery.parse(
-      text: queryText,
+      query: queryText,
       platform: platform,
       order: sortOrder,
       offset: offset,

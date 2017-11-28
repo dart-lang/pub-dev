@@ -93,9 +93,9 @@ void main() {
             });
       });
 
-      scopedTest('Finds package by pkg-prefix search only', () async {
+      scopedTest('Finds package by package-prefix search only', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=&pkg-prefix=pk'), body: {
+        expectJsonResponse(await issueGet('/search?q=package:pk'), body: {
           'indexUpdated': isNotNull,
           'totalCount': 1,
           'packages': [
@@ -109,12 +109,11 @@ void main() {
 
       scopedTest('pkg-prefix filters out results', () async {
         await setUpInServiceScope();
-        expectJsonResponse(await issueGet('/search?q=json&pkg-prefix=foo'),
-            body: {
-              'indexUpdated': isNotNull,
-              'totalCount': 0,
-              'packages': [],
-            });
+        expectJsonResponse(await issueGet('/search?q=json+package:foo'), body: {
+          'indexUpdated': isNotNull,
+          'totalCount': 0,
+          'packages': [],
+        });
       });
     });
   });

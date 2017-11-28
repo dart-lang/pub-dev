@@ -31,7 +31,7 @@ void main() {
 
     test('angular', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(text: 'angular', order: SearchOrder.text));
+          new SearchQuery.parse(query: 'angular', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
