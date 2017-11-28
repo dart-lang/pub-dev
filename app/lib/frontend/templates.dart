@@ -144,18 +144,11 @@ class TemplateService {
       });
     }
 
-    String title = 'Packages';
-    String descriptionHtml = '';
-    if (currentPlatform == KnownPlatforms.flutter) {
-      title = 'Flutter Packages';
-      descriptionHtml = flutterPackagesDescriptionHtml;
-    }
-
+    final PlatformDict platformDict = getPlatformDict(currentPlatform);
     final isSearch = searchQuery != null && searchQuery.hasQuery;
     final values = {
       'is_search': isSearch,
-      'title': title ?? 'Packages',
-      'description_html': descriptionHtml,
+      'title': platformDict.pageTitle,
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
       'pagination': renderPaginationV2(links),
@@ -164,7 +157,7 @@ class TemplateService {
     };
     final content = _renderTemplate('v2/pkg/index', values);
 
-    String pageTitle = title;
+    String pageTitle = platformDict.pageTitle;
     if (isSearch) {
       pageTitle = 'Search results for ${searchQuery.query}.';
     } else {
@@ -608,7 +601,7 @@ class TemplateService {
     final values = {
       'packages_url': platform == null ? '/packages' : '/$platform/packages',
       'more_packages': 'More ${platformDict.name} packages...',
-      'top_header': 'Top ${platformDict.name} packages',
+      'top_header': platformDict.pageTitle,
       'top_html': topHtml,
     };
     final String content = _renderTemplate('v2/index', values);
