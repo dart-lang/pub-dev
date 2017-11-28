@@ -419,12 +419,7 @@ main, .site-header {
 }
 
 .list-item{
-  border-top: 1px solid #eee;
-  padding: 4px 8px
-}
-
-.list-item:last-child{
-  border-bottom: 1px solid #eee;
+  padding: 7px 8px;
 }
 
 .list-item:hover{
@@ -446,7 +441,7 @@ main, .site-header {
 
 .list-item > .metadata{
   font-size: 12px;
-  margin: 8px 0 0;
+  margin: 4px 0 0;
 }
 
 .list-item.-simple > .metadata > .package-tag:first-of-type{
@@ -503,7 +498,7 @@ main, .site-header {
   font-weight: 500;
   color: #555;
   padding: 2px 8px;
-  margin: 6px 0 4px 4px;
+  margin: 0px 0 4px 4px;
 }
 
 .package-tag.missing {
@@ -585,7 +580,8 @@ main, .site-header {
 
 .home-lists-container .package-list .list-item {
   width: 305px;
-  margin: 0 5px;
+  margin: 0 5px 10px 5px;
+  border: none;
 }
 
 .home-lists-container .package-list .list-item:last-child {
