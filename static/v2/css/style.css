@@ -419,12 +419,7 @@ main, .site-header {
 }
 
 .list-item{
-  border-top: 1px solid #eee;
-  padding: 4px 8px
-}
-
-.list-item:last-child{
-  border-bottom: 1px solid #eee;
+  padding: 7px 8px;
 }
 
 .list-item:hover{
@@ -446,7 +441,7 @@ main, .site-header {
 
 .list-item > .metadata{
   font-size: 12px;
-  margin: 8px 0 0;
+  margin: 4px 0 0;
 }
 
 .list-item.-simple > .metadata > .package-tag:first-of-type{
@@ -503,7 +498,7 @@ main, .site-header {
   font-weight: 500;
   color: #555;
   padding: 2px 8px;
-  margin: 6px 0 4px 4px;
+  margin: 0px 0 4px 4px;
 }
 
 .package-tag.missing {
@@ -521,7 +516,7 @@ main, .site-header {
 
 .home-banner{
   text-align: center;
-  padding: 40px 20px
+  padding: 40px 20px 10px 20px;
 }
 
 
@@ -552,7 +547,7 @@ main, .site-header {
 
 
 .home-banner > .search-bar{
-  margin: 0 auto 24px
+  margin: 0 auto;
 }
 
 
@@ -570,7 +565,6 @@ main, .site-header {
   display: flex;
   flex-direction: column;
   max-width: 1100px;
-  margin-top: 20px;
 }
 
 .home-lists-container .more {
@@ -586,7 +580,8 @@ main, .site-header {
 
 .home-lists-container .package-list .list-item {
   width: 305px;
-  margin: 0 5px;
+  margin: 0 5px 10px 5px;
+  border: none;
 }
 
 .home-lists-container .package-list .list-item:last-child {
@@ -642,9 +637,9 @@ main, .site-header {
   display: -webkit-inline-box;
   display: -ms-inline-flexbox;
   display: inline-flex;
-  margin: 0 0 16px;
+  margin: 16px 0;
   border: 1px solid #eee;
-  border-radius: 3px
+  border-radius: 3px;
 }
 
 
