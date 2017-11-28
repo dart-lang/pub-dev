@@ -230,9 +230,9 @@ class SimplePackageIndex implements PackageIndex {
     if (text != null && text.isNotEmpty) {
       final List<String> words = text.split(' ');
       final List<Score> wordScores = words.map((String word) {
-        final name = new Score(_nameIndex.search(word, weight: 1.0));
-        final descr = new Score(_descrIndex.search(word, weight: 0.75));
-        final readme = new Score(_readmeIndex.search(word, weight: 0.50));
+        final name = new Score(_nameIndex.search(word));
+        final descr = new Score(_descrIndex.search(word)).map((v) => v * 0.75);
+        final readme = new Score(_readmeIndex.search(word)).map((v) => v * 0.5);
         return Score.max([name, descr, readme]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
       }).toList();
@@ -457,16 +457,15 @@ class TokenIndex {
     removeKeys.forEach(_inverseIds.remove);
   }
 
-  /// Search the index for [text], with a (term-match / document coverage percent)
-  /// scoring. Longer tokens weight more in the relevance score.
-  Map<String, double> search(String text, {double weight: 1.0}) {
+  /// Match the text against the corpus and return the tokens that have match.
+  TokenMatch lookupTokens(String text) {
+    final TokenMatch tokenMatch = new TokenMatch();
     final Set<String> tokens = _tokenize(text, _minLength);
     if (tokens == null || tokens.isEmpty) {
-      return const {};
+      return tokenMatch;
     }
 
     // Check which tokens have documents, and assign their weight.
-    final TokenMatch tokenMatch = new TokenMatch();
     for (String token in tokens) {
       final int foundCount = _inverseIds[token]?.length ?? 0;
       if (foundCount == 0) continue;
@@ -474,12 +473,10 @@ class TokenIndex {
       final double idf = 1.0 + math.log(documentCount / (foundCount + 1));
       tokenMatch[token] = idf * token.length;
     }
-    if (tokenMatch.isEmpty) return const {};
+    return tokenMatch;
+  }
 
-    // Use only the most relevant tokens.
-    final double weightThreshold = tokenMatch.maxWeight * 0.5;
-    tokenMatch.removeLowValues(weightThreshold);
-
+  Map<String, double> scoreDocs(TokenMatch tokenMatch) {
     // Summarize the scores for the documents.
     final queryWeight = tokenMatch.sumWeight;
     final Map<String, double> docScores = <String, double>{};
@@ -492,9 +489,21 @@ class TokenIndex {
 
     // post-process match weights
     for (String id in docScores.keys.toList()) {
-      docScores[id] = weight * docScores[id] / queryWeight / _docSizes[id];
+      docScores[id] = docScores[id] / queryWeight / _docSizes[id];
     }
     return docScores;
+  }
+
+  /// Search the index for [text], with a (term-match / document coverage percent)
+  /// scoring. Longer tokens weight more in the relevance score.
+  Map<String, double> search(String text) {
+    final TokenMatch tokenMatch = lookupTokens(text);
+
+    // Use only the most relevant tokens.
+    final double weightThreshold = tokenMatch.maxWeight * 0.5;
+    tokenMatch.removeLowValues(weightThreshold);
+
+    return scoreDocs(tokenMatch);
   }
 }
 
