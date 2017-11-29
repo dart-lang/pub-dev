@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -17,7 +18,12 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
-import 'trace_context.dart';
+/// The value `X-Cloud-Trace-Context`.
+///
+/// Standard trace header used by
+/// [StackDriver](https://cloud.google.com/trace/docs/support) and supported by
+/// Appengine.
+const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
 final Logger _logger = new Logger('pub.utils');
 
@@ -304,7 +310,7 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
   Map<String, String> headers;
   final traceContextCopy = getTraceContext();
   if (traceContextCopy != null) {
-    headers = {cloudTraceContextHeader: traceContextCopy};
+    headers = {_cloudTraceContextHeader: traceContextCopy};
   }
   for (int i = 0; i <= retryCount; i++) {
     try {
@@ -326,6 +332,12 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
   }
   return result;
 }
+
+/// Returns the `X-Cloud-Trace-Context` header present for the original request,
+/// if any.
+///
+/// Otherwise, `null`.
+String getTraceContext() => ss.lookup(#_traceContext);
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>

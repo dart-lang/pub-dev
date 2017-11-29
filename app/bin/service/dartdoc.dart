@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
@@ -11,7 +10,7 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
-import 'package:pub_dartlang_org/shared/trace_context.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
@@ -24,8 +23,7 @@ Future main() async {
   withAppEngineServices(() async {
     await startIsolates(logger, _runSchedulerWrapper);
     _registerServices();
-    await runAppEngine((HttpRequest request) =>
-        handleTracedRequest(request, dartdocServiceHandler));
+    await runHandler(dartdocServiceHandler);
   });
 }
 
