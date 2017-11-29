@@ -1,14 +1,14 @@
 {
   "packageName": "http",
   "packageVersion": "0.11.3+12",
-  "analysis": 5660049703698432,
-  "timestamp": "2017-10-25T08:49:32.775079Z",
-  "panaVersion": "0.5.0",
+  "analysis": 5714595855466496,
+  "timestamp": "2017-11-29T02:55:18.403757Z",
+  "panaVersion": "0.7.1",
   "flutterVersion": "0.0.17",
   "analysisStatus": "success",
   "analysisContent": {
-    "panaVersion": "0.5.0",
-    "sdkVersion": "Dart VM version: 2.0.0-dev.4.0 (Wed Oct 18 16:35:12 2017) on \"linux_x64\"",
+    "panaVersion": "0.7.1",
+    "sdkVersion": "2.0.0-dev.8.0",
     "packageName": "http",
     "packageVersion": "0.11.3+12",
     "pubspec": {
@@ -31,6 +31,40 @@
         "unittest": ">=0.9.0 <0.12.0"
       }
     },
+    "platform": {
+      "worksEverywhere": true,
+      "reason": "primary library - `package:http/http.dart`"
+    },
+    "licenses": [
+      {
+        "path": "LICENSE",
+        "name": "BSD",
+        "url": "https://github.com/dart-lang/http/blob/master/LICENSE"
+      }
+    ],
+    "maintenance": {
+      "missingChangelog": false,
+      "missingReadme": false,
+      "missingAnalysisOptions": false,
+      "oldAnalysisOptions": true,
+      "strongModeEnabled": true,
+      "isExperimentalVersion": false,
+      "isPreReleaseVersion": true,
+      "errorCount": 0,
+      "warningCount": 0,
+      "hintCount": 1
+    },
+    "fitness": {
+      "magnitude": 1271.0,
+      "shortcoming": 16.0
+    },
+    "suggestions": [
+      {
+        "level": "hint",
+        "title": "Use `analysis_options.yaml`.",
+        "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
+      }
+    ],
     "pkgResolution": {
       "dependencies": [
         {
@@ -66,7 +100,7 @@
           "dependencyType": "direct",
           "constraintType": "normal",
           "constraint": ">=0.9.0 <2.0.0",
-          "resolved": "1.4.2"
+          "resolved": "1.5.1"
         },
         {
           "package": "source_span",
@@ -79,7 +113,7 @@
           "dependencyType": "direct",
           "constraintType": "normal",
           "constraint": ">=0.9.1 <2.0.0",
-          "resolved": "1.8.3"
+          "resolved": "1.9.1"
         },
         {
           "package": "string_scanner",
@@ -330,20 +364,7 @@
           "shortcoming": 0.0
         }
       }
-    },
-    "platform": {
-      "worksEverywhere": true,
-      "reason": "primary library - `package:http/http.dart`"
-    },
-    "licenses": [
-      {
-        "path": "LICENSE",
-        "name": "BSD"
-      }
-    ],
-    "fitness": {
-      "magnitude": 1271.0,
-      "shortcoming": 16.0
     }
-  }
+  },
+  "maintenanceScore": 0.98901
 }
