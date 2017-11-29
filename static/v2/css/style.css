@@ -912,6 +912,7 @@ main, .site-header {
 #scores-table .score-value {
   min-width: 60px;
   text-align: right;
+  padding-right: 18px;
 }
 
 .tooltip-base {
