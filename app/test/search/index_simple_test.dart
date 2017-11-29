@@ -419,7 +419,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.006, 0.001)},
+          {'package': 'http', 'score': closeTo(0.071, 0.001)},
         ],
       });
     });
