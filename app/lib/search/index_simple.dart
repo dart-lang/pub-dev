@@ -229,6 +229,7 @@ class SimplePackageIndex implements PackageIndex {
   Score _searchText(String text) {
     if (text != null && text.isNotEmpty) {
       final List<String> words = text.split(' ');
+      final int wordCount = words.length;
       final List<Score> wordScores = words.map((String word) {
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
@@ -242,11 +243,12 @@ class SimplePackageIndex implements PackageIndex {
         descrTokens.removeShortTokens(minTokenLength);
         readmeTokens.removeShortTokens(minTokenLength);
 
-        final name = new Score(_nameIndex.scoreDocs(nameTokens, weight: 1.00));
-        final descr =
-            new Score(_descrIndex.scoreDocs(descrTokens, weight: 0.95));
-        final readme =
-            new Score(_readmeIndex.scoreDocs(readmeTokens, weight: 0.90));
+        final name = new Score(_nameIndex.scoreDocs(nameTokens,
+            weight: 1.00, wordCount: wordCount));
+        final descr = new Score(_descrIndex.scoreDocs(descrTokens,
+            weight: 0.95, wordCount: wordCount));
+        final readme = new Score(_readmeIndex.scoreDocs(readmeTokens,
+            weight: 0.90, wordCount: wordCount));
         return Score.max([name, descr, readme]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
       }).toList();
@@ -489,7 +491,8 @@ class TokenIndex {
     return tokenMatch;
   }
 
-  Map<String, double> scoreDocs(TokenMatch tokenMatch, {double weight: 1.0}) {
+  Map<String, double> scoreDocs(TokenMatch tokenMatch,
+      {double weight: 1.0, int wordCount: 1}) {
     // Summarize the scores for the documents.
     final queryWeight = tokenMatch.sumWeight;
     final Map<String, double> docScores = <String, double>{};
@@ -500,9 +503,18 @@ class TokenIndex {
       }
     }
 
+    // In multi-word queries we will penalize the score with the document size
+    // for each word separately. As these scores will be mulitplied, we need to
+    // compensate the formula in order to prevent multiple exponential penalties.
+    final double wordSizeExponent = 1.0 / wordCount;
+
     // post-process match weights
     for (String id in docScores.keys.toList()) {
-      docScores[id] = weight * docScores[id] / queryWeight / _docSizes[id];
+      double docSize = _docSizes[id];
+      if (wordCount > 1) {
+        docSize = math.pow(docSize, wordSizeExponent);
+      }
+      docScores[id] = weight * docScores[id] / queryWeight / docSize;
     }
     return docScores;
   }
