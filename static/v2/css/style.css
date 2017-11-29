@@ -518,6 +518,11 @@ main, .site-header {
   font-weight: 500;
 }
 
+.listing-sort-header {
+  float: right;
+  margin: 0 1em 0.5em 2em;
+}
+
 .home-banner{
   text-align: center;
   padding: 40px 20px 10px 20px;
@@ -950,6 +955,16 @@ main, .site-header {
   border-width: 5px;
   border-style: solid;
   border-color: transparent transparent #ddd transparent;
+}
+
+.tooltip-bottom-left {
+  left: inherit;
+  right: -24px;
+}
+
+.tooltip-bottom-left.tooltip-content::after {
+  left: inherit;
+  right: 48px;
 }
 
 .tooltip-base:hover .tooltip-content {

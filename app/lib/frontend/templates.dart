@@ -146,7 +146,13 @@ class TemplateService {
 
     final PlatformDict platformDict = getPlatformDict(currentPlatform);
     final isSearch = searchQuery != null && searchQuery.hasQuery;
+    final String sortName = isSearch ? 'relevance' : 'overall score';
+    final String sortTooltipHtml = isSearch
+        ? 'Packages are sorted by the combination of text match and overall score.'
+        : 'Packages are sorted by the overall score.';
     final values = {
+      'sort_name': sortName,
+      'sort_tooltip_html': sortTooltipHtml,
       'is_search': isSearch,
       'title': platformDict.pageTitle,
       'packages': packagesJson,
