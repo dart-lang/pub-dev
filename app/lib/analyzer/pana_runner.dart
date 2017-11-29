@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
+import 'package:pana/src/version.dart';
 
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
@@ -47,7 +48,10 @@ class PanaRunner implements TaskRunner {
           logger: new Logger.detached('pana/${task.package}/${task.version}'),
         );
       } catch (e, st) {
-        _logger.severe('Pana execution failed.', e, st);
+        _logger.severe(
+            'Failed (v$panaPkgVersion) - ${task.package}/${task.version}',
+            e,
+            st);
       } finally {
         if (tempDir != null) {
           await tempDir.delete(recursive: true);
