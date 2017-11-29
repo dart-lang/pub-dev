@@ -241,7 +241,7 @@ class TemplateService {
       'health': _formatScore(extract?.health),
       'maintenance': _formatScore(extract?.maintenance),
       'popularity': _formatScore(extract?.popularity),
-      'overall': _formatScore(extract?.overallScore),
+      'score_box_html': _renderScoreBox(extract?.overallScore),
     };
 
     return _renderTemplate('v2/pkg/analysis_tab', data);

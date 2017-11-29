@@ -12,8 +12,13 @@
 
 <hr />
 
-<p>Last package analysis: <i>{{analysis_status}}</i> on {{date_completed}}.</p>
-<p>(Dart: {{dart_sdk_version}}, pana: {{pana_version}}{{#flutter_version}}, Flutter: {{flutter_version}}{{/flutter_version}}).</p>
+<p>Last package analysis:</p>
+<ul>
+  <li><i>{{analysis_status}}</i> on {{date_completed}}</li>
+  <li>Dart: {{dart_sdk_version}}</li>
+  <li>pana: {{pana_version}}</li>
+{{#flutter_version}}<li>Flutter: {{flutter_version}}</li>{{/flutter_version}}
+</ul>
 
 <h4>Scores</h4>
 
@@ -64,7 +69,7 @@
         </div>
       </div>
     </td>
-    <td class="score-value"><b>{{overall}}</b></td>
+    <td>{{& score_box_html }}</td>
   </tr>
 </table>
 
