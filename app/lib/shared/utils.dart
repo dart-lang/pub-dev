@@ -308,7 +308,7 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
     {int retryCount: 1}) async {
   http.Response result;
   Map<String, String> headers;
-  if (context.traceId != null) {
+  if (context?.traceId != null) {
     headers = {_cloudTraceContextHeader: context.traceId};
   }
   for (int i = 0; i <= retryCount; i++) {
