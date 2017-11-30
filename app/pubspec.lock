@@ -18,13 +18,13 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.30.0+4"
+    version: "0.31.0-alpha.2"
   appengine:
     description:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.3"
+    version: "0.4.3+1"
   archive:
     description:
       name: archive
@@ -60,7 +60,7 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.0"
+    version: "0.11.1"
   build_barback:
     description:
       name: build_barback
@@ -132,7 +132,7 @@ packages:
       name: front_end
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.0-alpha.4.1"
+    version: "0.1.0-alpha.7"
   gcloud:
     description:
       name: gcloud
@@ -240,7 +240,7 @@ packages:
       name: kernel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0-alpha.1.1"
+    version: "0.3.0-alpha.4"
   logging:
     description:
       name: logging
@@ -312,7 +312,7 @@ packages:
       name: path
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.0"
+    version: "1.5.1"
   plugin:
     description:
       name: plugin
