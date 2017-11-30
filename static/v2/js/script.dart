@@ -37,28 +37,25 @@ void _setEventsForTabs() {
 }
 
 void _setEventForAnchorScroll() {
-  // scroll to the anchor when clicking on a anchor link in the markdown
-  final Element container = document.querySelector('.markdown-body');
-  if (container != null) {
-    container.onClick.listen((e) {
-      // locate the <a> tag
-      Element target = e.target;
-      while (target != null &&
-          target.tagName.toLowerCase() != 'a' &&
-          target.tagName.toLowerCase() != 'body') {
-        target = target.parent;
-      }
-      if (target is AnchorElement &&
-          target.host == window.location.host &&
-          target.hash != null) {
+  document.body.onClick.listen((e) {
+    // locate the <a> tag
+    Element target = e.target;
+    while (target != null &&
+        target.tagName.toLowerCase() != 'a' &&
+        target.tagName.toLowerCase() != 'body') {
+      target = target.parent;
+    }
+    if (target is AnchorElement &&
+        target.getAttribute('href') == target.hash &&
+        target.hash != null &&
+        target.hash.isNotEmpty) {
+      final Element elem = document.querySelector(target.hash);
+      if (elem != null) {
         e.preventDefault();
-        final Element elem = document.querySelector(target.hash);
-        if (elem != null) {
-          _scrollTo(elem);
-        }
+        _scrollTo(elem);
       }
-    });
-  }
+    }
+  });
 }
 
 void _setEventForMobileNav() {
