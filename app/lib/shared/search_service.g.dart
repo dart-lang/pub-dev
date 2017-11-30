@@ -30,6 +30,9 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         health: (json['health'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),
         maintenance: (json['maintenance'] as num)?.toDouble(),
+        dependencies: json['dependencies'] == null
+            ? null
+            : new Map<String, String>.from(json['dependencies'] as Map),
         timestamp: json['timestamp'] == null
             ? null
             : DateTime.parse(json['timestamp'] as String));
@@ -46,6 +49,7 @@ abstract class _$PackageDocumentSerializerMixin {
   double get health;
   double get popularity;
   double get maintenance;
+  Map<String, String> get dependencies;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'package': package,
@@ -59,6 +63,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'health': health,
         'popularity': popularity,
         'maintenance': maintenance,
+        'dependencies': dependencies,
         'timestamp': timestamp?.toIso8601String()
       };
 }

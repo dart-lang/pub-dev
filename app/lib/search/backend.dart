@@ -98,10 +98,19 @@ class SearchBackend {
         health: analysisView.health,
         popularity: popularity,
         maintenance: analysisView.maintenanceScore,
+        dependencies: _buildDependencies(analysisView),
         timestamp: new DateTime.now().toUtc(),
       );
     }
     return results;
+  }
+
+  Map<String, String> _buildDependencies(AnalysisView view) {
+    final Map<String, String> dependencies = <String, String>{};
+    view.allDependencies?.forEach((pd) {
+      dependencies[pd.package] = pd.dependencyType;
+    });
+    return dependencies;
   }
 }
 
