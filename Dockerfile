@@ -19,9 +19,9 @@ WORKDIR /project/app
 
 ADD static /project/static
 ADD app/pubspec.* /project/app/
-RUN pub get
+RUN pub get --no-precompile
 ADD app /project/app
-RUN pub get --offline
+RUN pub get --offline --no-precompile
 
 ## NOTE: Uncomment the following lines for local testing:
 #ADD key.json /project/key.json
