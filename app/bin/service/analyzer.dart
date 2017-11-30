@@ -14,7 +14,7 @@ import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/trace_context.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
@@ -31,7 +31,8 @@ Future main() async {
       startIsolates(logger, _runSchedulerWrapper);
     });
     _registerServices();
-    await runHandler(analyzerServiceHandler);
+    await runAppEngine((HttpRequest request) =>
+        handleTracedRequest(request, analyzerServiceHandler));
   });
 }
 

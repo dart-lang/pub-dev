@@ -21,12 +21,10 @@ packages:
     version: "0.30.0+4"
   appengine:
     description:
-      path: "."
-      ref: fixes
-      resolved-ref: "295d62e3778b6a6ee572fff1f9321fc413037ac5"
-      url: "https://github.com/dart-lang/appengine"
-    source: git
-    version: "0.4.3"
+      name: appengine
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.2"
   archive:
     description:
       name: archive
@@ -62,7 +60,7 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.1"
+    version: "0.11.0"
   build_barback:
     description:
       name: build_barback
@@ -314,7 +312,7 @@ packages:
       name: path
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.1"
+    version: "1.5.0"
   plugin:
     description:
       name: plugin
