@@ -496,6 +496,9 @@ class MockAnalysisView implements AnalysisView {
   List<PkgDependency> devDependencies;
 
   @override
+  List<PkgDependency> allDependencies;
+
+  @override
   double health;
 
   @override

@@ -30,6 +30,19 @@ void main() {
       expect(new SearchQuery.parse(query: ' text ').query, 'text');
       expect(new SearchQuery.parse(query: ' text ').parsedQuery.text, 'text');
     });
+
+    test('only one dependency', () {
+      final query = new SearchQuery.parse(query: 'dependency:pkg');
+      expect(query.parsedQuery.text, isNull);
+      expect(query.parsedQuery.dependencies, ['pkg']);
+    });
+
+    test('two dependencies with text blocks', () {
+      final query = new SearchQuery.parse(
+          query: 'text1 dependency:pkg1 text2 dependency:pkg2');
+      expect(query.parsedQuery.text, 'text1 text2');
+      expect(query.parsedQuery.dependencies, ['pkg1', 'pkg2']);
+    });
   });
 
   group('SearchQuery.isValid', () {

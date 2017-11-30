@@ -197,6 +197,9 @@ class AnalysisView {
   List<PkgDependency> get devDependencies =>
       _getDependencies(DependencyTypes.dev);
 
+  List<PkgDependency> get allDependencies =>
+      _summary?.pkgResolution?.dependencies;
+
   List<PkgDependency> _getDependencies(String type) {
     final List<PkgDependency> list = _summary?.pkgResolution?.dependencies
         ?.where((pd) => pd.dependencyType == type)

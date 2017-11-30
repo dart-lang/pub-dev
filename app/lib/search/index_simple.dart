@@ -116,6 +116,20 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on dependency
+    if (query.parsedQuery.dependencies != null &&
+        query.parsedQuery.dependencies.isNotEmpty) {
+      for (String dependency in query.parsedQuery.dependencies) {
+        packages.removeWhere((package) {
+          final doc = _packages[package];
+          if (doc.dependencies == null) return true;
+          final bool hasDependency = doc.dependencies != null &&
+              doc.dependencies.containsKey(dependency);
+          return !hasDependency;
+        });
+      }
+    }
+
     // do text matching
     final Score textScore = _searchText(packages, query.parsedQuery.text);
     final Score filtered = textScore ?? _initScore(packages);

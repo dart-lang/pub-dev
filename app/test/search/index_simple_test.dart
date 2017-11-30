@@ -119,6 +119,7 @@ void main() {
         popularity: 0.7,
         health: 1.0,
         maintenance: 1.0,
+        dependencies: {'async': 'direct', 'test': 'dev'},
       ));
       await index.addPackage(new PackageDocument(
         package: 'async',
@@ -138,6 +139,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         popularity: 0.8,
         health: 1.0,
         maintenance: 1.0,
+        dependencies: {'test': 'dev'},
       ));
       await index.addPackage(new PackageDocument(
         package: 'chrome_net',
@@ -384,6 +386,43 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': 1.0},
           {'package': 'async', 'score': 1.0},
           {'package': 'chrome_net', 'score': 0.9},
+        ],
+      });
+    });
+
+    test('filter by one dependency', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery.parse(query: 'dependency:test'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by text and dependency', () async {
+      final PackageSearchResult result = await index
+          .search(new SearchQuery.parse(query: 'composable dependency:test'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'http', 'score': closeTo(0.105, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by two dependencies', () async {
+      final PackageSearchResult result = await index.search(
+          new SearchQuery.parse(query: 'dependency:async dependency:test'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'http', 'score': closeTo(0.895, 0.001)},
         ],
       });
     });

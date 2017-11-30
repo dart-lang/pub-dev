@@ -55,6 +55,8 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final double popularity;
   final double maintenance;
 
+  final Map<String, String> dependencies;
+
   /// The creation timestamp of this document.
   final DateTime timestamp;
 
@@ -70,6 +72,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.health,
     this.popularity,
     this.maintenance,
+    this.dependencies,
     this.timestamp,
   });
 
@@ -134,8 +137,11 @@ String serializeSearchOrder(SearchOrder order) {
   return order.toString().split('.').last;
 }
 
+final RegExp _whitespacesRegExp = new RegExp(r'\s+');
 final RegExp _packageRegexp =
     new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
+final RegExp _dependencyRegExp =
+    new RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 
 class SearchQuery {
   final String query;
@@ -273,8 +279,9 @@ class SearchQuery {
 class ParsedQuery {
   final String text;
   final String packagePrefix;
+  final List<String> dependencies;
 
-  ParsedQuery._(this.text, this.packagePrefix);
+  ParsedQuery._(this.text, this.packagePrefix, this.dependencies);
 
   factory ParsedQuery._parse(String q) {
     String queryText = q ?? '';
@@ -282,12 +289,21 @@ class ParsedQuery {
     final Match pkgMatch = _packageRegexp.firstMatch(queryText);
     if (pkgMatch != null) {
       packagePrefix = pkgMatch.group(1);
-      queryText = queryText.replaceFirst(_packageRegexp, ' ').trim();
+      queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
+    final List<String> dependencies = _dependencyRegExp
+        .allMatches(queryText)
+        .map((Match m) => m.group(1))
+        .toList();
+    if (dependencies.isNotEmpty) {
+      queryText = queryText.replaceAll(_dependencyRegExp, ' ');
+    }
+    queryText = queryText.replaceAll(_whitespacesRegExp, ' ').trim();
     if (queryText.isEmpty) {
       queryText = null;
     }
-    return new ParsedQuery._(queryText, packagePrefix);
+
+    return new ParsedQuery._(queryText, packagePrefix, dependencies);
   }
 }
 
