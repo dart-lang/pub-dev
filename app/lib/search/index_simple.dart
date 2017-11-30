@@ -92,12 +92,7 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
-    // do text matching
-    final Score textScore = _searchText(query.parsedQuery.text);
-    final Score base = textScore ?? _allPackages();
-
-    // The set of packages to filter on.
-    final Set<String> packages = base.getKeys();
+    final Set<String> packages = new Set.from(_packages.keys);
 
     // filter on package prefix
     if (query.parsedQuery?.packagePrefix != null) {
@@ -121,8 +116,9 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
-    // reduce base results if filter did remove a package
-    final Score filtered = base.project(packages);
+    // do text matching
+    final Score textScore = _searchText(packages, query.parsedQuery.text);
+    final Score filtered = textScore ?? _initScore(packages);
 
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.top) {
@@ -223,10 +219,10 @@ class SimplePackageIndex implements PackageIndex {
     return new Score(values);
   }
 
-  Score _allPackages() =>
-      new Score(new Map.fromIterable(_packages.keys, value: (_) => 1.0));
+  Score _initScore(Iterable<String> keys) =>
+      new Score(new Map.fromIterable(keys, value: (_) => 1.0));
 
-  Score _searchText(String text) {
+  Score _searchText(Set<String> packages, String text) {
     if (text != null && text.isNotEmpty) {
       final List<String> words = text.split(' ');
       final int wordCount = words.length;
@@ -253,6 +249,9 @@ class SimplePackageIndex implements PackageIndex {
             fraction: 0.01, minValue: 0.001);
       }).toList();
       Score score = Score.multiply(wordScores);
+      // Ideally this projection should happen earlier (in both lookupTokens and
+      // scoreDocs), but for the sake of simplicity it is done here.
+      score = score.project(packages);
 
       // filter results based on exact phrases
       final List<String> phrases =
