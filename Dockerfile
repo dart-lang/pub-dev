@@ -1,10 +1,14 @@
 FROM google/dart-runtime-base:1.25.0-dev.9.0
 
- # After install we remove the apt-index again to keep the docker image diff small.
- RUN apt-get update && \
-     apt-get upgrade -y && \
-     apt-get install -y git unzip && \
-     rm -rf /var/lib/apt/lists/*
+# `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
+#   We want to make sure SDK upgrades are explicit.
+
+# After install we remove the apt-index again to keep the docker image diff small.
+RUN apt-mark hold dart &&\
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git unzip && \
+    rm -rf /var/lib/apt/lists/*
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
