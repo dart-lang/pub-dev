@@ -74,7 +74,7 @@ Future _initFlutterSdk() async {
       final ProcessResult result =
           await Process.run('/project/app/script/setup-flutter.sh', []);
       if (result.exitCode != 0) {
-        logger.severe(
+        logger.shout(
             'Failed to checkout flutter (exited with ${result.exitCode})\n'
             'stdout: ${result.stdout}\nstderr: ${result.stderr}');
       } else {

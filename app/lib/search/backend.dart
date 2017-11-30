@@ -131,7 +131,7 @@ class SnapshotStorage {
           .single;
       return new SearchSnapshot.fromJson(json);
     } catch (e, st) {
-      _logger.severe(
+      _logger.shout(
           'Unable to load search snapshot: ${bucketUri(bucket, _latestPath)}',
           e,
           st);
