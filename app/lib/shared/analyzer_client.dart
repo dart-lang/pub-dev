@@ -128,7 +128,7 @@ class AnalyzerClient {
         return data;
       }
     } catch (e, st) {
-      _logger.warning('Analysis request failed on $uri', e, st);
+      _logger.severe('Analysis request failed on $uri', e, st);
     }
     return null;
   }
