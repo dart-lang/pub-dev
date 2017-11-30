@@ -14,8 +14,7 @@ void main() {
   _setEventsForTabs();
   _setEventForAnchorScroll();
   _setEventForMobileNav();
-  _changeTabOnUrlHash();
-  _listenOnHashChange();
+  _setEventForHashChange();
 }
 
 void _setEventsForTabs() {
@@ -107,10 +106,18 @@ void _changeTab(String name) {
   }
 }
 
-void _listenOnHashChange() {
+void _setEventForHashChange() {
   window.onHashChange.listen((_) {
     _changeTabOnUrlHash();
   });
+  _changeTabOnUrlHash();
+  final String hash = window.location.hash;
+  if (hash.isNotEmpty) {
+    Element elem = document.querySelector(hash);
+    if (elem != null) {
+      _scrollTo(elem);
+    }
+  }
 }
 
 Future _scrollTo(Element elem) async {
