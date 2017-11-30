@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
@@ -18,7 +17,7 @@ import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
-import 'package:pub_dartlang_org/shared/trace_context.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -90,9 +89,8 @@ void _main(int isolateId) {
     );
     scheduler.run();
 
-    await runAppEngine(
-      (HttpRequest request) =>
-          handleTracedRequest(request, searchServiceHandler),
+    await runHandler(
+      searchServiceHandler,
       shared: true,
     );
   });

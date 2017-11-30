@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -17,7 +18,12 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
-import 'trace_context.dart';
+/// The value `X-Cloud-Trace-Context`.
+///
+/// Standard trace header used by
+/// [StackDriver](https://cloud.google.com/trace/docs/support) and supported by
+/// Appengine.
+const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
 final Logger _logger = new Logger('pub.utils');
 
@@ -302,9 +308,8 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
     {int retryCount: 1}) async {
   http.Response result;
   Map<String, String> headers;
-  final traceContextCopy = getTraceContext();
-  if (traceContextCopy != null) {
-    headers = {cloudTraceContextHeader: traceContextCopy};
+  if (context.traceId != null) {
+    headers = {_cloudTraceContextHeader: context.traceId};
   }
   for (int i = 0; i <= retryCount; i++) {
     try {

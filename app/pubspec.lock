@@ -24,7 +24,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.2"
+    version: "0.4.3"
   archive:
     description:
       name: archive

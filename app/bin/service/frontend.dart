@@ -22,7 +22,7 @@ import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
-import 'package:pub_dartlang_org/shared/trace_context.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -49,7 +49,7 @@ void main() {
           ..close();
       } else {
         try {
-          return handleTracedRequest(ioRequest, (shelf.Request request) async {
+          return handleRequest(ioRequest, (shelf.Request request) async {
             _logger.info('Handling request: ${request.requestedUri}');
             await registerLoggedInUserIfPossible(request);
             try {
