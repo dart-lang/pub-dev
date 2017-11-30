@@ -9,9 +9,9 @@ import 'package:appengine/appengine.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-Future runHandler(shelf.Handler handler, {bool shared}) =>
+Future runHandler(shelf.Handler handler, {bool shared: false}) =>
     runAppEngine((HttpRequest request) => handleRequest(request, handler),
-        shared: shared);
+        shared: shared ?? false);
 
 Future handleRequest(HttpRequest request, shelf.Handler handler) =>
     shelf_io.handleRequest(request, handler);
