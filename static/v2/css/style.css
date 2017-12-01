@@ -518,6 +518,19 @@ main, .site-header {
   font-weight: 500;
 }
 
+.landing-page-title {
+  margin-bottom: 0px;
+}
+
+.landing-page-title-block {
+  text-align:center;
+  margin-bottom: 1em;
+}
+
+.landing-page-title-block .tooltip-content {
+  text-align: left;
+}
+
 .listing-sort-header {
   float: right;
   margin: 0 1em 0.5em 2em;
