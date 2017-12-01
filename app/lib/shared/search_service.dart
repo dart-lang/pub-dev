@@ -140,8 +140,10 @@ String serializeSearchOrder(SearchOrder order) {
 final RegExp _whitespacesRegExp = new RegExp(r'\s+');
 final RegExp _packageRegexp =
     new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
-final RegExp _dependencyRegExp =
+final RegExp _refDependencyRegExp =
     new RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
+final RegExp _allDependencyRegExp =
+    new RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
 
 class SearchQuery {
   final String query;
@@ -279,9 +281,19 @@ class SearchQuery {
 class ParsedQuery {
   final String text;
   final String packagePrefix;
-  final List<String> dependencies;
 
-  ParsedQuery._(this.text, this.packagePrefix, this.dependencies);
+  /// Dependency match for direct or dev dependency.
+  final List<String> refDependencies;
+
+  /// Dependency match for all dependencies, including transitive ones.
+  final List<String> allDependencies;
+
+  ParsedQuery._(
+    this.text,
+    this.packagePrefix,
+    this.refDependencies,
+    this.allDependencies,
+  );
 
   factory ParsedQuery._parse(String q) {
     String queryText = q ?? '';
@@ -291,20 +303,38 @@ class ParsedQuery {
       packagePrefix = pkgMatch.group(1);
       queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
-    final List<String> dependencies = _dependencyRegExp
+
+    final List<String> dependencies = _refDependencyRegExp
         .allMatches(queryText)
         .map((Match m) => m.group(1))
         .toList();
     if (dependencies.isNotEmpty) {
-      queryText = queryText.replaceAll(_dependencyRegExp, ' ');
+      queryText = queryText.replaceAll(_refDependencyRegExp, ' ');
     }
+
+    final List<String> allDependencies = _allDependencyRegExp
+        .allMatches(queryText)
+        .map((Match m) => m.group(1))
+        .toList();
+    if (allDependencies.isNotEmpty) {
+      queryText = queryText.replaceAll(_allDependencyRegExp, ' ');
+    }
+
     queryText = queryText.replaceAll(_whitespacesRegExp, ' ').trim();
     if (queryText.isEmpty) {
       queryText = null;
     }
 
-    return new ParsedQuery._(queryText, packagePrefix, dependencies);
+    return new ParsedQuery._(
+      queryText,
+      packagePrefix,
+      dependencies,
+      allDependencies,
+    );
   }
+
+  bool get hasAnyDependency =>
+      refDependencies.isNotEmpty || allDependencies.isNotEmpty;
 }
 
 @JsonSerializable()

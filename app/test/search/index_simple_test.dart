@@ -119,7 +119,7 @@ void main() {
         popularity: 0.7,
         health: 1.0,
         maintenance: 1.0,
-        dependencies: {'async': 'direct', 'test': 'dev'},
+        dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
       ));
       await index.addPackage(new PackageDocument(
         package: 'async',
@@ -155,6 +155,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         popularity: 0.0,
         health: 0.5,
         maintenance: 0.9,
+        dependencies: {'foo': 'direct'},
       ));
       await index.merge();
     });
@@ -399,6 +400,31 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {'package': 'async', 'score': closeTo(0.930, 0.001)},
           {'package': 'http', 'score': closeTo(0.895, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by foo as direct/dev dependency', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery.parse(query: 'dependency:foo'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'chrome_net', 'score': closeTo(0.531, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by foo as transitive dependency', () async {
+      final PackageSearchResult result =
+          await index.search(new SearchQuery.parse(query: 'dependency*:foo'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+          {'package': 'chrome_net', 'score': closeTo(0.531, 0.001)},
         ],
       });
     });

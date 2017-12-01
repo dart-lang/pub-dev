@@ -31,17 +31,46 @@ void main() {
       expect(new SearchQuery.parse(query: ' text ').parsedQuery.text, 'text');
     });
 
+    test('no dependency', () {
+      final query = new SearchQuery.parse(query: 'text');
+      expect(query.parsedQuery.text, 'text');
+      expect(query.parsedQuery.refDependencies, []);
+      expect(query.parsedQuery.allDependencies, []);
+      expect(query.parsedQuery.hasAnyDependency, isFalse);
+    });
+
     test('only one dependency', () {
       final query = new SearchQuery.parse(query: 'dependency:pkg');
       expect(query.parsedQuery.text, isNull);
-      expect(query.parsedQuery.dependencies, ['pkg']);
+      expect(query.parsedQuery.refDependencies, ['pkg']);
+      expect(query.parsedQuery.allDependencies, []);
+      expect(query.parsedQuery.hasAnyDependency, isTrue);
+    });
+
+    test('only one dependency*', () {
+      final query = new SearchQuery.parse(query: 'dependency*:pkg');
+      expect(query.parsedQuery.text, isNull);
+      expect(query.parsedQuery.refDependencies, []);
+      expect(query.parsedQuery.allDependencies, ['pkg']);
+      expect(query.parsedQuery.hasAnyDependency, isTrue);
     });
 
     test('two dependencies with text blocks', () {
       final query = new SearchQuery.parse(
           query: 'text1 dependency:pkg1 text2 dependency:pkg2');
       expect(query.parsedQuery.text, 'text1 text2');
-      expect(query.parsedQuery.dependencies, ['pkg1', 'pkg2']);
+      expect(query.parsedQuery.refDependencies, ['pkg1', 'pkg2']);
+      expect(query.parsedQuery.allDependencies, []);
+      expect(query.parsedQuery.hasAnyDependency, isTrue);
+    });
+
+    test('two mixed dependencies with text blocks', () {
+      final query = new SearchQuery.parse(
+          query: 'text1 dependency:pkg1 text2 dependency*:pkg2');
+      expect(query.parsedQuery.text, 'text1 text2');
+      expect(query.parsedQuery.refDependencies, ['pkg1']);
+      expect(query.parsedQuery.allDependencies, ['pkg2']);
+      expect(query.parsedQuery.hasAnyDependency, isTrue);
     });
   });
 
