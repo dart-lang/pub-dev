@@ -35,14 +35,15 @@ class PopularityStorage {
   double lookup(String package) => _values[package];
 
   Future init() async {
-    await fetch();
+    await fetch('init');
     new Timer.periodic(const Duration(days: 1), (_) {
-      fetch();
+      fetch('refetch');
     });
   }
 
-  Future fetch() async {
-    _logger.info('Loading popularity data: ${bucketUri(bucket, _latestPath)}');
+  Future fetch(String reason) async {
+    _logger.info(
+        'Loading popularity data ($reason): ${bucketUri(bucket, _latestPath)}');
     try {
       final Map latest = await bucket
           .read(_latestPath)
