@@ -16,7 +16,7 @@
 <h2 class="listing-page-title">{{title}}</h2>
 {{/is_search}}
 {{#is_search}}
-<p class="package-count"><span>{{total_count}}</span> results for <span>{{search_query}}</span></p>
+<p class="package-count"><span>{{total_count}}</span> results for <code>{{search_query}}</code></p>
 {{/is_search}}
 
 <ul class="package-list">
@@ -38,3 +38,6 @@
 {{#has_packages}}
   {{{pagination}}}
 {{/has_packages}}
+{{#is_search}}
+  <p>Check our help page for <a href="/experimental/help#search">advanced search expressions</a>.</p>
+{{/is_search}}
