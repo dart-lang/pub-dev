@@ -44,6 +44,12 @@ main, .site-header {
   padding: 0 20px;
 }
 
+code {
+  background: #f8f8f8;
+  border: 1px solid #eee;
+  padding: 2px;
+}
+
 ._flex-space{
   -webkit-box-flex: 1;
       -ms-flex: 1;
