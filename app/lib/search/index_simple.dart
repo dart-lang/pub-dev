@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pana/pana.dart' show DependencyTypes;
 
 import '../shared/search_service.dart';
+import '../shared/utils.dart' show StringInternPool;
 
 import 'platform_specificity.dart';
 import 'scoring.dart';
