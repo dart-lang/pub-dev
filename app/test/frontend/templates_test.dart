@@ -484,7 +484,7 @@ class MockAnalysisView implements AnalysisView {
   String panaVersion = '0.6.2';
 
   @override
-  String flutterVersion = '0.0.17';
+  String flutterVersion = '0.0.18';
 
   @override
   List<PkgDependency> directDependencies;
