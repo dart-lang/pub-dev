@@ -2,6 +2,14 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 <div style="max-width: 600px">
+  <h2 id="search">Search</h2>
+  <p>We support the following search expressions:</p>
+  <ul>
+    <li><code>"exact phrases"</code> - normally we return results with similar phrases, but putting it inside quotes makes sure that we return only results that have the expression in that form somewhere.</li>
+    <li><code>package:prefix</code> - return only packages that begin with <code>prefix</code>. Useful to search for packages of the same framework.</li>
+    <li><code>dependency:package_name</code> - return only packages that reference <code>package_name</code> in their pubspec</li>
+    <li><code>dependency*:package_name</code> - return only packages that depend on <code>package_name</code> (direct, dev or transitive dependencies)</li>
+  </ul>
   <h2 id="scoring">Scoring</h2>
   <p>
     We calculate <a href="#popularity">popularity</a>, <a href="#health">health</a> and
