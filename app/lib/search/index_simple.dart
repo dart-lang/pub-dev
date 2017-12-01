@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:pana/pana.dart' show DependencyTypes;
 
 import '../shared/search_service.dart';
 
@@ -117,17 +118,19 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // filter on dependency
-    if (query.parsedQuery.dependencies != null &&
-        query.parsedQuery.dependencies.isNotEmpty) {
-      for (String dependency in query.parsedQuery.dependencies) {
-        packages.removeWhere((package) {
-          final doc = _packages[package];
-          if (doc.dependencies == null) return true;
-          final bool hasDependency = doc.dependencies != null &&
-              doc.dependencies.containsKey(dependency);
-          return !hasDependency;
-        });
-      }
+    if (query.parsedQuery.hasAnyDependency) {
+      packages.removeWhere((package) {
+        final doc = _packages[package];
+        if (doc.dependencies == null) return true;
+        for (String dependency in query.parsedQuery.allDependencies) {
+          if (!doc.dependencies.containsKey(dependency)) return true;
+        }
+        for (String dependency in query.parsedQuery.refDependencies) {
+          final String type = doc.dependencies[dependency];
+          if (type == null || type == DependencyTypes.transitive) return true;
+        }
+        return false;
+      });
     }
 
     // do text matching
