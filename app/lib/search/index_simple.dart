@@ -27,6 +27,7 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
+  final StringInternPool _internPool = new StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -63,7 +64,8 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future addPackage(PackageDocument doc) async {
+  Future addPackage(PackageDocument document) async {
+    final PackageDocument doc = document.intern(_internPool.intern);
     await removePackage(doc.package);
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
@@ -196,6 +198,7 @@ class SimplePackageIndex implements PackageIndex {
   Future merge() async {
     _isReady = true;
     _lastUpdated = new DateTime.now().toUtc();
+    _internPool.checkUnboundGrowth();
   }
 
   // visible for testing only

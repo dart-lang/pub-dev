@@ -37,3 +37,15 @@ Iterable<String> splitForIndexing(String text) {
 
 List<String> extractExactPhrases(String text) =>
     _exactTermRegExp.allMatches(text).map((m) => m.group(1)).toList();
+
+class StringInternPool {
+  final Map<String, String> _values = <String, String>{};
+
+  String intern(String value) => _values.putIfAbsent(value, () => value);
+
+  void checkUnboundGrowth() {
+    if (_values.length > 100000) {
+      _values.clear();
+    }
+  }
+}
