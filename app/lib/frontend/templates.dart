@@ -147,12 +147,9 @@ class TemplateService {
     final PlatformDict platformDict = getPlatformDict(currentPlatform);
     final isSearch = searchQuery != null && searchQuery.hasQuery;
     final String sortName = isSearch ? 'relevance' : 'overall score';
-    final String sortTooltipHtml = isSearch
-        ? 'Packages are sorted by the combination of text match and overall score.'
-        : 'Packages are sorted by the overall score.';
     final values = {
       'sort_name': sortName,
-      'sort_tooltip_html': sortTooltipHtml,
+      'ranking_tooltip_html': _rankingTooltip(isSearch),
       'is_search': isSearch,
       'title': platformDict.pageTitle,
       'packages': packagesJson,
@@ -608,6 +605,7 @@ class TemplateService {
       'packages_url': platform == null ? '/packages' : '/$platform/packages',
       'more_packages': 'More ${platformDict.name} packages...',
       'top_header': platformDict.pageTitle,
+      'ranking_tooltip_html': _rankingTooltip(false),
       'top_html': topHtml,
     };
     final String content = _renderTemplate('v2/index', values);
@@ -1095,4 +1093,13 @@ enum PageType {
   landing,
   listing,
   package,
+}
+
+String _rankingTooltip(bool isSearch) {
+  final String sortTooltipHtml = isSearch
+      ? 'Packages are sorted by the combination of text match and overall score.'
+      : 'Packages are sorted by the overall score.';
+  final String rankingLinkHtml =
+      'More information on <a href="/experimental/help#ranking">ranking</a>.';
+  return '$sortTooltipHtml $rankingLinkHtml';
 }
