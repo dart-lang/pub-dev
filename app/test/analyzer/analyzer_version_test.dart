@@ -16,13 +16,13 @@ void main() {
     expect(lock['packages']['pana']['version'], panaVersion);
   });
 
-  test('flutter version should match the tag in setup-flutter.sh', () {
+  test('flutter version should match the tag in ../docker/Dockerfile', () {
     final flutterSetupContent =
-        new File('script/setup-flutter.sh').readAsStringSync();
+        new File('../docker/Dockerfile').readAsStringSync();
 
     expect(
         flutterSetupContent,
         contains("git clone -b $flutterVersion --single-branch "
-            "https://github.com/flutter/flutter.git \$FLUTTER_SDK"));
+            "https://github.com/flutter/flutter.git /flutter"));
   });
 }
