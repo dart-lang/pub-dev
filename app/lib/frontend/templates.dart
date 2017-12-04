@@ -445,6 +445,8 @@ class TemplateService {
           selectedVersion.pubspec.getAllAuthors(),
           clickableName: true,
         ),
+        'authors_v2_html':
+            _getAuthorsHtmlV2(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
         'nice_homepage': selectedVersion.homepageNice,
         'documentation': selectedVersion.documentation,
@@ -452,6 +454,7 @@ class TemplateService {
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getUploadersHtml(package),
+        'uploaders_v2_html': _getAuthorsHtmlV2(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
         'install_html': _renderInstall(isFlutterPlugin, analysis?.platforms),
         'license_html':
@@ -909,6 +912,23 @@ String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
           '<i class="icon-envelope"></i>$closeTag</span>';
     } else {
       return '<span class="author"><i class="icon-envelope"></i> $escapedName</span>';
+    }
+  }).join('<br/>');
+}
+
+String _getAuthorsHtmlV2(List<String> authors) {
+  return (authors ?? const []).map((String value) {
+    final Author author = new Author.parse(value);
+    final escapedName = _htmlEscaper.convert(author.name);
+    final String nameHtml =
+        '<span class="author">$escapedName</span>';
+    if (author.email != null) {
+      final escapedEmail = _attrEscaper.convert(author.email);
+      final String emailHtml =
+          '<a href="mailto:$escapedEmail" title="Email $escapedEmail">mail</a>';
+      return '$nameHtml ($emailHtml)';
+    } else {
+      return nameHtml;
     }
   }).join('<br/>');
 }
