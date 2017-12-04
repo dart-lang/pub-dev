@@ -15,6 +15,7 @@ void main() {
   _setEventForAnchorScroll();
   _setEventForMobileNav();
   _setEventForHashChange();
+  _setEventForSearchInput();
 }
 
 void _setEventsForTabs() {
@@ -129,4 +130,21 @@ Future _scrollTo(Element elem) async {
     await window.animationFrame;
     window.scrollTo(window.scrollX, scrollY + diff * (i + 1) ~/ stepCount);
   }
+}
+
+void _setEventForSearchInput() {
+  final InputElement q = document.querySelector('input[name="q"]');
+  if (q == null) return null;
+  final List<Element> anchors = document.querySelectorAll('.list-filters > a');
+  q.onChange.listen((_) {
+    final String newSearchQuery = q.value.trim();
+    for (Element a in anchors) {
+      final String oldHref = a.getAttribute('href');
+      final Uri oldUri = Uri.parse(oldHref);
+      final Map params = new Map.from(oldUri.queryParameters);
+      params['q'] = newSearchQuery;
+      final String newHref = oldUri.replace(queryParameters: params).toString();
+      a.setAttribute('href', newHref);
+    }
+  });
 }
