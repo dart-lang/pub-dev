@@ -10,6 +10,7 @@ import 'package:pana/pana.dart' show DependencyTypes;
 
 import '../shared/search_service.dart';
 
+import 'platform_specificity.dart';
 import 'scoring.dart';
 import 'text_utils.dart';
 
@@ -113,7 +114,7 @@ class SimplePackageIndex implements PackageIndex {
       packages.forEach((String package) {
         final PackageDocument doc = _packages[package];
         platformSpecificity[package] =
-            _scorePlatformMatch(doc.platforms, query.platformPredicate);
+            scorePlatformSpecificity(doc.platforms, query.platformPredicate);
       });
     }
 
@@ -326,20 +327,6 @@ class SimplePackageIndex implements PackageIndex {
     if (a.updated == null) return -1;
     if (b.updated == null) return 1;
     return -a.updated.compareTo(b.updated);
-  }
-
-  double _scorePlatformMatch(List<String> platforms, PlatformPredicate p) {
-    double score = 1.0;
-    final int requiredCount = p.required?.length ?? 0;
-    final int platformCount = platforms?.length ?? 0;
-    if (requiredCount > 0) {
-      if (platformCount == requiredCount + 1) {
-        score *= 0.99;
-      } else if (platformCount > requiredCount + 1) {
-        score *= 0.80;
-      }
-    }
-    return score;
   }
 }
 
