@@ -16,6 +16,7 @@ void main() {
   _setEventForMobileNav();
   _setEventForHashChange();
   _setEventForSearchInput();
+  _fixIssueLinks();
 }
 
 void _setEventsForTabs() {
@@ -147,4 +148,41 @@ void _setEventForSearchInput() {
       a.setAttribute('href', newHref);
     }
   });
+}
+
+void _fixIssueLinks() {
+  for (AnchorElement bugLink in document.querySelectorAll('a.github_issue')) {
+    var url = Uri.parse(bugLink.href);
+    var currentUrlWithoutFragment =
+        Uri.parse(window.location.href).replace(fragment: '').toString();
+    while (currentUrlWithoutFragment.endsWith('#')) {
+      currentUrlWithoutFragment = currentUrlWithoutFragment.substring(
+          0, currentUrlWithoutFragment.length - 1);
+    }
+    final lines = <String>[
+      'URL: $currentUrlWithoutFragment',
+      '',
+      '<Describe your issue or suggestion here>'
+    ];
+
+    final issueLabels = ['Area: site feedback'];
+
+    var bugTitle = '<Summarize your issues here>';
+    final bugTag = bugLink.dataset['bugTag'];
+    if (bugTag != null) {
+      bugTitle = "[$bugTag] $bugTitle";
+      if (bugTag == 'analysis') {
+        issueLabels.add('Area: package analysis');
+      }
+    }
+
+    final queryParams = {
+      'body': lines.join('\n'),
+      'title': bugTitle,
+      'labels': issueLabels.join(',')
+    };
+
+    url = url.replace(queryParameters: queryParams);
+    bugLink.href = url.toString();
+  }
 }
