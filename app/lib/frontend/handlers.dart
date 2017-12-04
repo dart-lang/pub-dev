@@ -151,6 +151,14 @@ Future<shelf.Response> webLandingHandlerV2(shelf.Request request) =>
 /// - /experimental/web
 Future<shelf.Response> _indexHandlerV2(
     shelf.Request request, String platform) async {
+  final String queryText = request.requestedUri.queryParameters['q']?.trim();
+  if (queryText != null) {
+    final String path = request.requestedUri.path;
+    final String separator = path.endsWith('/') ? '' : '/';
+    final String newPath = '$path${separator}packages';
+    return redirectResponse(
+        request.requestedUri.replace(path: newPath).toString());
+  }
   String pageContent =
       await backend.uiPackageCache?.getUIIndexPage(true, platform);
   if (pageContent == null) {
