@@ -7,10 +7,48 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/index_simple.dart';
+import 'package:pub_dartlang_org/search/platform_specificity.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 void main() {
+  group('specificity score', () {
+    final PlatformPredicate empty = new PlatformPredicate.parse('');
+    final PlatformPredicate flutter = new PlatformPredicate.parse('flutter');
+    final PlatformPredicate server = new PlatformPredicate.parse('server');
+    final PlatformPredicate web = new PlatformPredicate.parse('web');
+
+    test('empty or null values', () {
+      expect(scorePlatformSpecificity(null, empty), 0.8);
+      expect(scorePlatformSpecificity([], empty), 0.8);
+      expect(scorePlatformSpecificity([], null), 0.8);
+      expect(scorePlatformSpecificity([], flutter), 0.8);
+      expect(scorePlatformSpecificity([], server), 0.9);
+      expect(scorePlatformSpecificity([], web), 0.9);
+    });
+
+    test('single', () {
+      expect(scorePlatformSpecificity(['flutter'], null), 0.9);
+      expect(scorePlatformSpecificity(['flutter'], flutter), 1.0);
+      expect(scorePlatformSpecificity(['server'], server), 0.95);
+      expect(scorePlatformSpecificity(['web'], web), 1.0);
+    });
+
+    test('two platforms', () {
+      expect(scorePlatformSpecificity(['flutter', 'server'], null), 0.95);
+      expect(scorePlatformSpecificity(['flutter', 'server'], flutter), 0.9);
+      expect(scorePlatformSpecificity(['flutter', 'server'], server), 1.0);
+      expect(scorePlatformSpecificity(['flutter', 'server'], web), 0.95);
+    });
+
+    test('all platforms', () {
+      expect(scorePlatformSpecificity(KnownPlatforms.all, null), 1.0);
+      expect(scorePlatformSpecificity(KnownPlatforms.all, flutter), 0.8);
+      expect(scorePlatformSpecificity(KnownPlatforms.all, server), 0.95);
+      expect(scorePlatformSpecificity(KnownPlatforms.all, web), 0.9);
+    });
+  });
+
   group('platform rank', () {
     SimplePackageIndex index;
 
@@ -77,7 +115,7 @@ void main() {
           },
           {
             'package': 'json_2',
-            'score': closeTo(0.1212, 0.0001),
+            'score': closeTo(0.1102, 0.0001),
           },
           {
             'package': 'json_3',
