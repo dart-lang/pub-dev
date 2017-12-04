@@ -540,6 +540,12 @@ class TemplateService {
       analysis,
       isFlutterPlugin,
     );
+    values['search_deps_link'] = _attrEscaper.convert(
+      new Uri(
+        path: '/experimental/packages',
+        queryParameters: {'q': 'dependency:${package.name}'},
+      ).toString(),
+    );
     final content = _renderTemplate('v2/pkg/show', values);
     return renderLayoutPageV2(
       PageType.package,
