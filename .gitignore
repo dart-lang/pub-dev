@@ -10,7 +10,7 @@ packages
 *.dart.precompiled.js
 *.js_
 *.js.deps
-*.js.map
+# *.js.map
 *.sum
 
 # Or local files with secrets
