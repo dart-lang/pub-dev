@@ -239,3 +239,11 @@ pub-dartlang-dart $ vim Dockerfile
 +ADD pkgs project/pkgs
  RUN pub get
 ```
+
+## Debugging in production
+
+To trace what is happening during a request, use the following tool:
+
+````
+tool/trace_curl.sh https://pub.dartlang.org/
+````
