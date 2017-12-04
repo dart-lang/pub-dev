@@ -30,12 +30,11 @@
 
   <h3 id="health">Health</h3>
   <p>
-    The code health score is based on the static analysis of the package with <code class="hljs">dartanalyzer</code>.
+    The code health score is based on the static analysis of the package with <code>dartanalyzer</code>.
   </p>
   <p><i>How can you improve your health score?</i></p>
   <p>Use strong-mode checks and some linter rules, and make sure you fix all the warnings and errors before publishing. An example <code>analysis_options.yaml</code>:</p>
-  <pre><code class="hljs">
-# https://www.dartlang.org/guides/language/analysis-options
+  <pre><code class="language-yaml"># https://www.dartlang.org/guides/language/analysis-options
 analyzer:
   strong-mode: true
 
@@ -49,7 +48,6 @@ linter:
     - list_remove_unrelated_type
     - unrelated_type_equality_checks
     - valid_regexps
-
   </code></pre>
 
   <h3 id="maintenance">Maintenance</h3>
@@ -62,7 +60,7 @@ linter:
     <li>Last publish date: a package starts to lose score a year its last publish data.</li>
     <li>Up-to-date dependencies: great if all of the dependencies are on the latest version.</li>
     <li>Readme, changelog and example files.</li>
-    <li><code class="hljs">analysis_options.yaml</code> with strong-mode enabled.</li>
+    <li><code>analysis_options.yaml</code> with strong-mode enabled.</li>
   </ul>
 
   <p><i>How can you improve your maintenance score?</i></p>
@@ -89,3 +87,6 @@ linter:
     regardless of which sort order is applied on it.
   </p>
 </div>
+
+<script src="/static/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
