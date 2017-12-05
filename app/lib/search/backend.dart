@@ -17,7 +17,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
-import '../shared/mock_scores.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/utils.dart';
@@ -82,9 +81,7 @@ class SearchBackend {
 
       final analysisView = analysisViews[i];
       if (!analysisView.hasAnalysisData) continue;
-      final double popularity = popularityStorage.lookup(pv.package) ??
-          mockScores[pv.package]?.toDouble() ??
-          0.0;
+      final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
 
       results[i] = new PackageDocument(
         package: pv.package,
