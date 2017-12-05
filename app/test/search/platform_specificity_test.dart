@@ -19,23 +19,23 @@ void main() {
     final PlatformPredicate web = new PlatformPredicate.parse('web');
 
     test('empty or null values', () {
-      expect(scorePlatformSpecificity(null, empty), 0.8);
-      expect(scorePlatformSpecificity([], empty), 0.8);
-      expect(scorePlatformSpecificity([], null), 0.8);
+      expect(scorePlatformSpecificity(null, empty), 1.0);
+      expect(scorePlatformSpecificity([], empty), 1.0);
+      expect(scorePlatformSpecificity([], null), 1.0);
       expect(scorePlatformSpecificity([], flutter), 0.8);
       expect(scorePlatformSpecificity([], server), 0.9);
       expect(scorePlatformSpecificity([], web), 0.9);
     });
 
     test('single', () {
-      expect(scorePlatformSpecificity(['flutter'], null), 0.9);
+      expect(scorePlatformSpecificity(['flutter'], null), 1.0);
       expect(scorePlatformSpecificity(['flutter'], flutter), 1.0);
       expect(scorePlatformSpecificity(['server'], server), 0.95);
       expect(scorePlatformSpecificity(['web'], web), 1.0);
     });
 
     test('two platforms', () {
-      expect(scorePlatformSpecificity(['flutter', 'server'], null), 0.95);
+      expect(scorePlatformSpecificity(['flutter', 'server'], null), 1.0);
       expect(scorePlatformSpecificity(['flutter', 'server'], flutter), 0.9);
       expect(scorePlatformSpecificity(['flutter', 'server'], server), 1.0);
       expect(scorePlatformSpecificity(['flutter', 'server'], web), 0.95);

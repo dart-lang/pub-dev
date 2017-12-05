@@ -12,7 +12,7 @@ double scorePlatformSpecificity(List<String> platforms, PlatformPredicate p) {
     }
     fn ??= _lightSingle;
   } else {
-    fn = _allPlatforms;
+    fn = _defaultScore;
   }
   return fn(platforms);
 }
@@ -26,20 +26,7 @@ final _platformFns = const <String, _SpecificityFn>{
   KnownPlatforms.web: _lightSingle,
 };
 
-/// Bias towards all platforms: ['a', 'b', 'c'] > ['a', 'b'] > ['a'].
-double _allPlatforms(List<String> platforms) {
-  final int count = platforms?.length ?? 0;
-  final int diff = KnownPlatforms.all.length - count;
-  if (diff <= 0) {
-    return 1.0;
-  } else if (diff == 1) {
-    return 0.95;
-  } else if (diff == 2) {
-    return 0.90;
-  } else {
-    return 0.80;
-  }
-}
+double _defaultScore(List<String> platforms) => 1.0;
 
 /// Heavy bias towards a single platform: ['a'] >> ['a', 'b'] >> ['a', 'b', 'c'].
 double _heavySingle(List<String> platforms) {
