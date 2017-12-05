@@ -18,7 +18,7 @@ String compactText(String text, {int maxLength: -1}) {
 }
 
 String compactDescription(String text) => compactText(text, maxLength: 500);
-String compactReadme(String text) => compactText(text, maxLength: 1000);
+String compactReadme(String text) => compactText(text, maxLength: 5000);
 
 String normalizeBeforeIndexing(String text) {
   if (text == null) return '';
