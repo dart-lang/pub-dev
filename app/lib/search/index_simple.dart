@@ -251,11 +251,9 @@ class SimplePackageIndex implements PackageIndex {
 
         final maxTokenLength = math.max(nameTokens.maxLength,
             math.max(descrTokens.maxLength, readmeTokens.maxLength));
-        final minTokenLength =
-            maxTokenLength - math.max(1, maxTokenLength ~/ 3);
-        nameTokens.removeShortTokens(minTokenLength);
-        descrTokens.removeShortTokens(minTokenLength);
-        readmeTokens.removeShortTokens(minTokenLength);
+        nameTokens.removeShortTokens(maxTokenLength);
+        descrTokens.removeShortTokens(maxTokenLength);
+        readmeTokens.removeShortTokens(maxTokenLength);
 
         final name = new Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
