@@ -882,6 +882,9 @@ class TemplateService {
         if (tabPlatform != null) pathParts.add(tabPlatform);
         if (!isLanding) pathParts.add('packages');
         url = pathParts.join('/');
+        if (url.isEmpty) {
+          url = '/';
+        }
       }
       return {
         'text': tabText,
