@@ -3,12 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:logging/logging.dart';
+
+final _statsLogger = new Logger('scheduler.stats');
 
 Map _latestSchedulerStats;
+DateTime _lastLog;
 
 void registerSchedulerStatsStream(Stream<Map> stream) {
   stream.listen((stats) {
     _latestSchedulerStats = stats;
+    final now = new DateTime.now();
+    if (_lastLog == null ||
+        now.difference(_lastLog) > const Duration(minutes: 10)) {
+      _statsLogger.info(const JsonEncoder.withIndent(' ').convert(stats));
+      _lastLog = now;
+    }
   });
 }
 
