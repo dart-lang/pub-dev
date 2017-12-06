@@ -5,10 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
-
-final _pubHeaderLogger = new Logger('pub.header_logger');
 
 const String default404NotFound = '404 Not Found';
 
@@ -57,12 +54,3 @@ shelf.Response htmlResponse(String content, {int status: 200}) =>
 shelf.Response notFoundHandler(shelf.Request request,
         {String body: default404NotFound}) =>
     htmlResponse(body, status: 404);
-
-void logPubHeaders(shelf.Request request) {
-  request.headers.forEach((String key, String value) {
-    final lowerCaseKey = key.toLowerCase();
-    if (lowerCaseKey.startsWith('x-pub')) {
-      _pubHeaderLogger.info('$key: $value');
-    }
-  });
-}
