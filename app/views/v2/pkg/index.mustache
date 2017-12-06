@@ -22,11 +22,11 @@
   {{#packages}}
     <li class="list-item -full">
       {{& score_box_html }}
-      <h3 class="title"><a href="/experimental{{url}}">{{name}}</a></h3>
+      <h3 class="title"><a href="{{url}}">{{name}}</a></h3>
       <p class="description">{{desc}}</p>
       <p class="metadata">
-        v <a href="/experimental{{url}}">{{version}}</a>
-        {{#show_dev_version}} / <a href="/experimental{{url}}/versions/{{dev_version_href}}">{{dev_version}}</a> {{/show_dev_version}}
+        v <a href="{{url}}">{{version}}</a>
+        {{#show_dev_version}} / <a href="{{url}}/versions/{{dev_version_href}}">{{dev_version}}</a> {{/show_dev_version}}
         • Updated: <span>{{last_uploaded}}</span>
         {{& tags_html}}
       </p>
@@ -38,5 +38,5 @@
   {{{pagination}}}
 {{/has_packages}}
 {{#is_search}}
-  <p>Check our help page for <a href="/experimental/help#search">advanced search expressions</a>.</p>
+  <p>Check our help page for <a href="/help#search">advanced search expressions</a>.</p>
 {{/is_search}}

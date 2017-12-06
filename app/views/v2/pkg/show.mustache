@@ -9,10 +9,10 @@
     <!-- &bull; Downloads: X -->
     {{#package.latest.should_show}}
       &bull; Updated:
-      <span><a href="/experimental/packages/{{package.name}}/versions/{{package.latest.stable_href}}">{{package.latest.stable_name}}</a></span>
+      <span><a href="/packages/{{package.name}}/versions/{{package.latest.stable_href}}">{{package.latest.stable_name}}</a></span>
       {{#package.latest.should_show_dev}}
         /
-        <span><a href="/experimental/packages/{{package.name}}/versions/{{package.latest.dev_href}}">{{package.latest.dev_name}}</a></span>
+        <span><a href="/packages/{{package.name}}/versions/{{package.latest.dev_href}}">{{package.latest.dev_name}}</a></span>
       {{/package.latest.should_show_dev}}
     {{/package.latest.should_show}}
     {{& package.tags_html}}
@@ -69,7 +69,7 @@ import 'package:{{package}}/{{library}}';
         </thead>
         {{#versions}}
           <tr>
-            <th><a href="/experimental/packages/{{package.name}}/versions/{{version}}">{{version}}</a></th>
+            <th><a href="/packages/{{package.name}}/versions/{{version}}">{{version}}</a></th>
             <td>{{short_created}}</td>
             <td class="documentation">
               <a href="{{documentation}}"
@@ -88,7 +88,7 @@ import 'package:{{package}}/{{library}}';
       </table>
       {{#show_versions_link}}
         <p>
-          <a href="/experimental/packages/{{package.name}}/versions">
+          <a href="/packages/{{package.name}}/versions">
             All {{version_count}} versions...
           </a>
         </p>
