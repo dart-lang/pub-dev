@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:logging/logging.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
@@ -27,12 +28,23 @@ import 'search_memcache.dart';
 import 'search_service.dart';
 import 'templates.dart';
 
+final _pubHeaderLogger = new Logger('pub.header_logger');
+
 final String _staticPath = Platform.script.resolve('../../static').toFilePath();
 
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
 final _packageOverallLatencyTracker = new LastNTracker<Duration>();
 final _searchOverallLatencyTracker = new LastNTracker<Duration>();
+
+void _logPubHeaders(shelf.Request request) {
+  request.headers.forEach((String key, String value) {
+    final lowerCaseKey = key.toLowerCase();
+    if (lowerCaseKey.startsWith('x-pub')) {
+      _pubHeaderLogger.info('$key: $value');
+    }
+  });
+}
 
 /// Handler for the whole URL space of pub.dartlang.org
 ///
@@ -42,7 +54,7 @@ Future<shelf.Response> appHandler(
     shelf.Request request, shelf.Handler shelfPubApi) async {
   final path = request.requestedUri.path;
 
-  logPubHeaders(request);
+  _logPubHeaders(request);
 
   if (path.startsWith('/experimental')) {
     var newPath = path.substring('/experimental'.length);
