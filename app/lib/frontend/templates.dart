@@ -515,7 +515,7 @@ class TemplateService {
     return renderLayoutPage(
       PageType.landing,
       content,
-      title: 'Pub: Dart Package Manager',
+      title: platformDict.landingPageTitle,
       platform: platform,
     );
   }
