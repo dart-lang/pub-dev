@@ -15,6 +15,7 @@ import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 
+import '../frontend/model_properties.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/popularity_storage.dart';
@@ -96,6 +97,7 @@ class SearchBackend {
         popularity: popularity,
         maintenance: analysisView.maintenanceScore,
         dependencies: _buildDependencies(analysisView),
+        emails: _buildEmails(p, pv),
         timestamp: new DateTime.now().toUtc(),
       );
     }
@@ -108,6 +110,17 @@ class SearchBackend {
       dependencies[pd.package] = pd.dependencyType;
     });
     return dependencies;
+  }
+
+  List<String> _buildEmails(Package p, PackageVersion pv) {
+    final Set<String> emails = new Set<String>();
+    emails.addAll(p.uploaderEmails);
+    for (String value in pv.pubspec.getAllAuthors()) {
+      final Author author = new Author.parse(value);
+      if (author.email == null) continue;
+      emails.add(author.email);
+    }
+    return emails.toList()..sort();
   }
 }
 

@@ -56,6 +56,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final double maintenance;
 
   final Map<String, String> dependencies;
+  final List<String> emails;
 
   /// The creation timestamp of this document.
   final DateTime timestamp;
@@ -73,6 +74,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.popularity,
     this.maintenance,
     this.dependencies,
+    this.emails,
     this.timestamp,
   });
 
@@ -99,6 +101,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
               key: (key) => internFn(key),
               value: (key) => internFn(dependencies[key]),
             ),
+      emails: emails?.map(internFn)?.toList(),
       timestamp: timestamp,
     );
   }
@@ -164,6 +167,8 @@ String serializeSearchOrder(SearchOrder order) {
 final RegExp _whitespacesRegExp = new RegExp(r'\s+');
 final RegExp _packageRegexp =
     new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
+final RegExp _emailRegexp =
+    new RegExp(r'email:([_a-z0-9\@\-\.\+]+)', caseSensitive: false);
 final RegExp _refDependencyRegExp =
     new RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _allDependencyRegExp =
@@ -312,11 +317,15 @@ class ParsedQuery {
   /// Dependency match for all dependencies, including transitive ones.
   final List<String> allDependencies;
 
+  /// Match authors and uploaders.
+  final List<String> emails;
+
   ParsedQuery._(
     this.text,
     this.packagePrefix,
     this.refDependencies,
     this.allDependencies,
+    this.emails,
   );
 
   factory ParsedQuery._parse(String q) {
@@ -328,21 +337,18 @@ class ParsedQuery {
       queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
 
-    final List<String> dependencies = _refDependencyRegExp
-        .allMatches(queryText)
-        .map((Match m) => m.group(1))
-        .toList();
-    if (dependencies.isNotEmpty) {
-      queryText = queryText.replaceAll(_refDependencyRegExp, ' ');
+    List<String> extractRegExp(RegExp regExp) {
+      final List<String> values =
+          regExp.allMatches(queryText).map((Match m) => m.group(1)).toList();
+      if (values.isNotEmpty) {
+        queryText = queryText.replaceAll(regExp, ' ');
+      }
+      return values;
     }
 
-    final List<String> allDependencies = _allDependencyRegExp
-        .allMatches(queryText)
-        .map((Match m) => m.group(1))
-        .toList();
-    if (allDependencies.isNotEmpty) {
-      queryText = queryText.replaceAll(_allDependencyRegExp, ' ');
-    }
+    final List<String> dependencies = extractRegExp(_refDependencyRegExp);
+    final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
+    final List<String> emails = extractRegExp(_emailRegexp);
 
     queryText = queryText.replaceAll(_whitespacesRegExp, ' ').trim();
     if (queryText.isEmpty) {
@@ -354,6 +360,7 @@ class ParsedQuery {
       packagePrefix,
       dependencies,
       allDependencies,
+      emails,
     );
   }
 
