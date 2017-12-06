@@ -444,4 +444,13 @@ void main() {
       });
     });
   });
+
+  tScopedTest('Validate error behavior', () {
+    expect(
+        () => issueGet('/api/packages/abc_force_package_site_crash_xyz'),
+        throwsA((Object e) =>
+            e is UnsupportedError &&
+            e.message ==
+                'Requested "trigger" package `abc_force_package_site_crash_xyz`.'));
+  });
 }

@@ -18,6 +18,9 @@ import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
+export 'package:pub_dartlang_org/frontend/handlers.dart'
+    show forceRuntimeErrorPackageName;
+
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://pub.dartlang.org$path';
   final request = new shelf.Request('GET', Uri.parse(uri));
