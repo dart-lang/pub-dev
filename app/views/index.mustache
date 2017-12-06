@@ -1,73 +1,18 @@
-{{! Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<div class="intro">
-  <h2>Welcome to pub.dartlang.org!</h2>
-  <p>
-    This is your friendly repository of packages of software for the
-    <a href="https://www.dartlang.org/">Dart programming language</a>.
-    Explore packages here and install them using <strong>pub</strong>, the
-    package manager for Dart.
-  </p>
-  <a class="get-started"
-      href="https://www.dartlang.org/tools/pub/get-started.html">
-    Get started
-  </a>
-</div>
-<div class="framework_links">
-  <div class="flutter_framework_link">
-    <a href="https://flutter.io/">
-      <img class="framework_image" src="/static/flutter.png" />
-    </a>
-
-    <h2>Mobile development?</h2>
-    <a class="get-started" href="https://flutter.io/">
-      Try Flutter!
-    </a>
-    <a class="get-started" href="/flutter/packages/">
-      Flutter Packages
-    </a>
-    <br/>
-    &nbsp;
+<div class="home-lists-container">
+  <div class="landing-page-title-block">
+    <div class="tooltip-base">
+      <h2 class="center landing-page-title tooltip-dotted">{{top_header}}</h2>
+      <div class="tooltip-content">
+        {{& ranking_tooltip_html }}
+      </div>
+    </div>
   </div>
-  <div class="angular_framework_link">
-    <a href="https://webdev.dartlang.org/angular">
-      <img class="framework_image" src="/static/angulardart.png" />
-    </a>
-    <h2>Web development?</h2>
-    <a class="get-started" href="https://webdev.dartlang.org/angular">
-      Try Angular!
-    </a>
-    <br/>
-    Using the <a href="/packages/angular">angular</a> package.
+  {{& top_html}}
+  <div class="more">
+    <a href="{{{packages_url}}}">{{more_packages}}</a>
   </div>
 </div>
-<h2>Recently updated packages</h2>
-<table>
-  <thead>
-    <tr>
-      <td></td>
-      <th>Package</th>
-      <th>Version</th>
-      <th>Description</th>
-      <th width="100">Updated</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#recent_packages}}
-      <tr>
-        <td>{{{icons}}}</td>
-        <th><a href="/packages/{{name}}">{{name}}</a></th>
-        <td><span class="version">{{latest_version.version}}</span></td>
-        <td>{{#description}}{{ellipsized_description}}{{/description}}</td>
-        <td>{{short_updated}}</td>
-      </tr>
-    {{/recent_packages}}
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colspan="5"><a href="/packages">More packages...</a></td>
-    </tr>
-  </tfoot>
-</table>
