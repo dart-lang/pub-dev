@@ -15,12 +15,12 @@ const Duration analyzerDataLocalExpiration = const Duration(minutes: 15);
 const Duration searchUiPageExpiration = const Duration(minutes: 10);
 const Duration memcacheRequestTimeout = const Duration(seconds: 5);
 
-const String indexUiPageKey = 'pub_index';
-const String packageJsonPrefix = 'package_json_';
-const String packageUiPagePrefix = 'package_ui_';
-const String analyzerDataPrefix = 'dart_analyzer_api_';
-const String analyzerExtractPrefix = 'dart_analyzer_extract_';
-const String searchUiPagePrefix = 'dart_search_ui_';
+const String indexUiPageKey = 'v2_pub_index';
+const String packageJsonPrefix = 'v2_package_json_';
+const String packageUiPagePrefix = 'v2_package_ui_';
+const String analyzerDataPrefix = 'v2_dart_analyzer_api_';
+const String analyzerExtractPrefix = 'v2_dart_analyzer_extract_';
+const String searchUiPagePrefix = 'v2_dart_search_ui_';
 
 class SimpleMemcache {
   final Logger _logger;
