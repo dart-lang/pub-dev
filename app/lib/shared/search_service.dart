@@ -78,6 +78,30 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
+
+  PackageDocument intern(String internFn(String value)) {
+    return new PackageDocument(
+      package: internFn(package),
+      version: version,
+      devVersion: devVersion,
+      description: description,
+      created: created,
+      updated: updated,
+      readme: readme,
+      platforms: platforms?.map(internFn)?.toList(),
+      health: health,
+      popularity: popularity,
+      maintenance: maintenance,
+      dependencies: dependencies == null
+          ? null
+          : new Map.fromIterable(
+              dependencies.keys,
+              key: (key) => internFn(key),
+              value: (key) => internFn(dependencies[key]),
+            ),
+      timestamp: timestamp,
+    );
+  }
 }
 
 /// How search results should be ordered.

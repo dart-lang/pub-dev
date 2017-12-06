@@ -9,20 +9,9 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 
+import 'utils.dart' show StringInternPool;
+
 final Logger _logger = new Logger('pub.package_graph');
-
-// To avoid having the same package names many times in memory we canonicalize them.
-class StringCanonicalization {
-  final Map<String, String> _map = <String, String>{};
-
-  String canonicalize(String value) {
-    // Fast case is when [value] is already in the map.
-    final canonicalized = _map[value];
-    if (canonicalized != null) return canonicalized;
-
-    return _map[value] = value;
-  }
-}
 
 // TODO(kustermann): We could incorporate the pubspec constraints to make the
 // sets smaller.
@@ -77,8 +66,7 @@ class PackageDependencyBuilder {
   final DatastoreDB db;
 
   final TransitiveDependencyGraph reverseDeps = new TransitiveDependencyGraph();
-  final String Function(String) canonicalize =
-      new StringCanonicalization().canonicalize;
+  final String Function(String) _intern = new StringInternPool().intern;
 
   DateTime _lastTs;
 
@@ -153,7 +141,7 @@ class PackageDependencyBuilder {
     // So we trigger all packages that depend (directly or indirectly) on
     // [package].
     final Set<String> transitiveUsers =
-        reverseDeps.transitiveNodes(canonicalize(package));
+        reverseDeps.transitiveNodes(_intern(package));
 
     // We filter out all dev package usages and trigger an analysis for them
     // (the dev packages are a superset of the normal packages).
@@ -165,19 +153,18 @@ class PackageDependencyBuilder {
   }
 
   void _add(String package, Set<String> deps, Set<String> devDeps) {
-    final canonicalizedPackage = canonicalize(package);
-    final canonicalizedDevPackage = canonicalize(_devPackage(package));
+    final internedPackage = _intern(package);
+    final internedDevPackage = _intern(_devPackage(package));
 
-    final canonicalizedDeps = deps.map(canonicalize).toSet();
-    final canonicalizedDevDeps = devDeps.map(canonicalize).toSet();
-
-    for (final String dep in canonicalizedDeps) {
-      reverseDeps.add(dep, canonicalizedPackage);
-      reverseDeps.add(dep, canonicalizedDevPackage);
+    for (final String dep in deps) {
+      final internedDep = _intern(dep);
+      reverseDeps.add(internedDep, internedPackage);
+      reverseDeps.add(internedDep, internedDevPackage);
     }
 
-    for (final String dep in canonicalizedDevDeps) {
-      reverseDeps.add(dep, canonicalizedDevPackage);
+    for (final String dep in devDeps) {
+      final internedDep = _intern(dep);
+      reverseDeps.add(internedDep, internedDevPackage);
     }
   }
 
