@@ -5,35 +5,47 @@
   <h2 id="search">Search</h2>
   <p>We support the following search expressions:</p>
   <ul>
-    <li><code>"exact phrases"</code> - normally we return results with similar phrases, but putting it inside quotes makes sure that we return only results that have the expression in that form somewhere.</li>
-    <li><code>package:prefix</code> - return only packages that begin with <code>prefix</code>. Useful to search for packages of the same framework.</li>
-    <li><code>dependency:package_name</code> - return only packages that reference <code>package_name</code> in their pubspec</li>
-    <li><code>dependency*:package_name</code> - return only packages that depend on <code>package_name</code> (direct, dev or transitive dependencies)</li>
+    <li><code>"exact phrase"</code>: By default, when you perform a search,
+    the results include packages with similar phrases. When a phrase is inside
+    quotes, you'll see only those packages that contain exactly the specified
+    phrase.</li>
+    <li><code>package:prefix</code>: Searches for packages that begin with
+    <code>prefix</code>. Use this feature to find packages in the same framework.
+    </li>
+    <li><code>dependency:package_name</code>: Searches for packages that reference
+    <code>package_name</code> in their pubspec.</li>
+    <li><code>dependency*:package_name</code>: Searches for packages that depend
+    on <code>package_name</code> (as direct, dev, or transitive dependencies).
+    </li>
   </ul>
   <h2 id="scoring">Scoring</h2>
   <p>
-    We calculate <a href="#popularity">popularity</a>, <a href="#health">health</a> and
-    <a href="#maintenance">maintenance</a> scores independently, and combine them into
-    an <a href="#overall-score">overall score</a>. The score you see in the colored circle
-    is always this overall score.
+    For each package, this site displays an <b>overall score</b>, calculated
+    from scores for the package's <a href="#popularity">popularity</a>,
+    <a href="#health">health</a>, and <a href="#maintenance">maintenance</a>.
   </p>
 
   <h3 id="popularity">Popularity</h3>
   <p>
-    Popularity score is good proxy for a package's use, derived from download statistics.
-    It is based on actual download counts, but compensated for automated tools (like
-    continuous builds fetching the package on each change request).
+    The popularity score—representing how often a package is used—is derived
+    from download statistics. Although this score is based on actual download
+    counts, it compensates for automated tools such as continuous builds that
+    fetch the package on each change request.
   </p>
 
   <p><i>How can you improve your popularity score?</i></p>
-  <p>Create useful packages that others needs and love to use.</p>
+  <p>Create useful packages that others need and love to use.</p>
 
   <h3 id="health">Health</h3>
   <p>
-    The code health score is based on the static analysis of the package with <code>dartanalyzer</code>.
+    The code health score is based on static analysis of the package with
+    <code>dartanalyzer</code>.
   </p>
   <p><i>How can you improve your health score?</i></p>
-  <p>Use strong-mode checks and some linter rules, and make sure you fix all the warnings and errors before publishing. An example <code>analysis_options.yaml</code>:</p>
+  <p>Use strong-mode checks and linter rules, and make sure you fix all warnings
+  and errors before publishing. Here's an example of
+  <a href="https://www.dartlang.org/guides/language/analysis-options">specifying
+  checks and rules</a> using <code>analysis_options.yaml</code>:</p>
   <pre><code class="language-yaml"># https://www.dartlang.org/guides/language/analysis-options
 analyzer:
   strong-mode: true
@@ -53,38 +65,43 @@ linter:
   <h3 id="maintenance">Maintenance</h3>
 
   <p>
-    Maintenance score reflects how tidy and up-to-date a package is.
-    Some of aspects that influence the score:
+    The maintenance score reflects how tidy and up-to-date a package is.
+    Here are some of the factors that influence this score:
   </p>
   <ul>
-    <li>Last publish date: a package starts to lose score a year its last publish data.</li>
-    <li>Up-to-date dependencies: great if all of the dependencies are on the latest version.</li>
-    <li>Readme, changelog and example files.</li>
-    <li><code>analysis_options.yaml</code> with strong-mode enabled.</li>
+    <li>Last publish date: Best if the package has been published within one year.
+    </li>
+    <li>Up-to-date dependencies: Best if all of the package's dependencies are on
+    the latest version.</li>
+    <li>README, CHANGELOG, and example files: Best if all are present. For
+    information on how to provide these files, see the
+    <a href="https://www.dartlang.org/tools/pub/package-layout">pub package layout
+    conventions</a>.</li>
+    <li><code>analysis_options.yaml</code>: Best if this file is present, with
+    strong mode enabled. For more information, see
+    <a href="https://www.dartlang.org/guides/language/analysis-options">Customize
+    Static Analysis</a>.</li>
   </ul>
 
   <p><i>How can you improve your maintenance score?</i></p>
   <p>
-    Follow the suggestions on the analysis tab on the package page, or
-    run <a href="https://pub.dartlang.org/packages/pana">pana</a> manually
-    to check these before publishing.
+    Click your package's overall score to see the Analysis page, which has
+    suggestions for improving the package's score. You can find the overall score
+    either near the top of the package's page or to the right of your package in
+    any listing on this site. To get suggestions before publishing, run
+    <a href="https://pub.dartlang.org/packages/pana">pana</a> manually.
   </p>
 
-  <h3 id="overall-score">Overall score</h3>
-  <p>
-    The overall score is the combination of <a href="#popularity">popularity</a>,
-    <a href="#health">health</a> and <a href="#maintenance">maintenance</a>.
-  </p>
 
   <h2 id="ranking">Ranking</h2>
   <p>
-    We use the overall score to sort packages in default listings. When searching,
-    the overall score is combined with the text match relevancy score, and their
-    composite score will be used for sorting.
+    Default listings use the overall score to sort packages. When a user
+    searches, the sort order is based on both the overall score and the text
+    match relevancy.
   </p>
   <p>
-    We are always displaying the package's overall score at the side of the results,
-    regardless of which sort order is applied on it.
+    Each package's overall score is visible at the side of the results,
+    regardless of the sort order.
   </p>
 </div>
 
