@@ -62,6 +62,10 @@ Future<shelf.Response> appHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
+  if (path == '/search') {
+    return redirectResponse(
+        request.requestedUri.replace(path: '/packages').toString());
+  }
 
   final handler = _handlers[path];
 
@@ -98,7 +102,6 @@ const _handlers = const <String, shelf.Handler>{
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
-  '/search': searchHandler,
   '/packages.json': packagesHandler,
   '/help': helpPageHandler,
 };
@@ -202,42 +205,6 @@ shelf.Response docHandler(shelf.Request request) {
   return redirectResponse(pubDocUrl);
 }
 
-/// Handles requests for /search
-Future<shelf.Response> searchHandler(shelf.Request request) async {
-  final Stopwatch sw = new Stopwatch();
-  sw.start();
-
-  final String cacheUrl = request.url.toString();
-  final String cachedHtml = await searchMemcache?.getUiSearchPage(cacheUrl);
-  if (cachedHtml != null) return htmlResponse(cachedHtml);
-
-  final String queryText = request.url.queryParameters['q'] ?? '';
-  final String platform = request.url.queryParameters['platforms'] ??
-      request.url.queryParameters['platform'];
-
-  final int page = _pageFromUrl(request.url);
-
-  final SearchQuery query = new SearchQuery.parse(
-    query: queryText,
-    platform: platform,
-    offset: PageLinks.resultsPerPage * (page - 1),
-    limit: PageLinks.resultsPerPage,
-  );
-  if (!query.isValid) {
-    return htmlResponse(templateService.renderSearchPage(
-        new SearchResultPage.empty(query), new SearchLinks.empty(query)));
-  }
-
-  final resultPage = await searchService.search(query);
-  final links = new SearchLinks(query, resultPage.totalCount);
-  final String content = templateService.renderSearchPage(resultPage, links);
-
-  _searchOverallLatencyTracker.add(sw.elapsed);
-
-  await searchMemcache?.setUiSearchPage(cacheUrl, content);
-  return htmlResponse(content);
-}
-
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> packagesHandler(shelf.Request request) async {
   final int page = _pageFromUrl(request.url);
@@ -339,6 +306,7 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) =>
 /// - /web/packages
 Future<shelf.Response> _packagesHandlerHtml(
     shelf.Request request, String platform) async {
+  // TODO: use search memcache for all results here or remove search memcache
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
   final String queryText = request.requestedUri.queryParameters['q'] ?? '';
