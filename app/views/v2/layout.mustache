@@ -45,7 +45,7 @@
   <button class="hamburger"></button>
   <div class="mask"></div>
   <div class="nav-wrap">
-    <div class="nav-header"><a class="logo" href="/experimental/"><img src="{{{static_assets_dir}}}/img/dart-logo.svg" alt="dart pub logo"></a>
+    <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets_dir}}}/img/dart-logo.svg" alt="dart pub logo"></a>
       <div class="_flex-space"></div>
       <button class="close"></button>
     </div>
@@ -73,7 +73,7 @@
 {{#package_banner}}
   <div class="_banner-bg">
     <main class="package-banner">
-      <form class="search-bar" action="/experimental/packages">
+      <form class="search-bar" action="/packages">
         <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus />
         <button class="icon"></button>
       </form>
@@ -84,7 +84,7 @@
 {{#listing_banner}}
   <div class="_banner-bg">
     <main class="package-banner">
-      <form class="search-bar" action="/experimental/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+      <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
         <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus{{#search_query}} value="{{search_query}}"{{/search_query}}>
         <button class="icon"></button>
         {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
@@ -99,7 +99,7 @@
     <main class="home-banner">
       <h2 class="_visuallyhidden">Dart package manager</h2>
       <img class="logo" src="{{{static_assets_dir}}}/img/{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
-      <form class="search-bar" action="/experimental/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+      <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
         <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus />
         <button class="icon"></button>
       </form>

@@ -18,16 +18,15 @@ final Logger _logger = new Logger('pub.package_memcache');
 abstract class UIPackageCache {
   // If [version] is `null` then it corresponds to the cache entry which can be
   // invalidated via [invalidateUiPackagePage].
-  Future<String> getUIPackagePage(bool isV2, String package, String version);
+  Future<String> getUIPackagePage(String package, String version);
 
   // If [version] is `null` then it corresponds to the cache entry which can be
   // invalidated via [invalidateUiPackagePage].
-  Future setUIPackagePage(
-      bool isV2, String package, String version, String data);
+  Future setUIPackagePage(String package, String version, String data);
 
-  Future<String> getUIIndexPage(bool isV2, String platform);
+  Future<String> getUIIndexPage(String platform);
 
-  Future setUIIndexPage(bool isV2, String platform, String content);
+  Future setUIIndexPage(String platform, String content);
 
   Future invalidateUIPackagePage(String package);
 }
@@ -54,13 +53,12 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _json.setBytes(package, data);
 
   @override
-  Future<String> getUIPackagePage(bool isV2, String package, String version) =>
-      _uiPage.getText(_pvKey(isV2, package, version));
+  Future<String> getUIPackagePage(String package, String version) =>
+      _uiPage.getText(_pvKey(package, version));
 
   @override
-  Future setUIPackagePage(
-          bool isV2, String package, String version, String data) =>
-      _uiPage.setText(_pvKey(isV2, package, version), data);
+  Future setUIPackagePage(String package, String version, String data) =>
+      _uiPage.setText(_pvKey(package, version), data);
 
   @override
   Future invalidateUIPackagePage(String package) =>
@@ -75,31 +73,26 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
     if (invalidateData) {
       yield _json.invalidate(package);
     }
-    yield _uiPage.invalidate(_pvKey(false, package, null));
-    yield _uiPage.invalidate(_pvKey(true, package, null));
-    yield _uiIndexPage.invalidate(_indexPageKey(false, null));
-    yield _uiIndexPage.invalidate(_indexPageKey(true, null));
+    yield _uiPage.invalidate(_pvKey(package, null));
+    yield _uiIndexPage.invalidate(_indexPageKey(null));
     for (String platform in KnownPlatforms.all) {
-      yield _uiIndexPage.invalidate(_indexPageKey(false, platform));
-      yield _uiIndexPage.invalidate(_indexPageKey(true, platform));
+      yield _uiIndexPage.invalidate(_indexPageKey(platform));
     }
   }
 
   @override
-  Future<String> getUIIndexPage(bool isV2, String platform) =>
-      _uiIndexPage.getText(_indexPageKey(isV2, platform));
+  Future<String> getUIIndexPage(String platform) =>
+      _uiIndexPage.getText(_indexPageKey(platform));
 
   @override
-  Future setUIIndexPage(bool isV2, String platform, String content) =>
-      _uiIndexPage.setText(_indexPageKey(isV2, platform), content);
+  Future setUIIndexPage(String platform, String content) =>
+      _uiIndexPage.setText(_indexPageKey(platform), content);
 
-  String _indexPageKey(bool isV2, String platform) {
-    final String prefix = isV2 ? v2IndexUiPageKey : indexUiPageKey;
-    return '$prefix/$platform';
+  String _indexPageKey(String platform) {
+    return '$indexUiPageKey/$platform';
   }
 
-  String _pvKey(bool isV2, String package, String version) {
-    final String prefix = isV2 ? '/experimental' : '';
-    return '$prefix/$package/$version';
+  String _pvKey(String package, String version) {
+    return '$package/$version';
   }
 }

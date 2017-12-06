@@ -16,7 +16,6 @@ const Duration searchUiPageExpiration = const Duration(minutes: 10);
 const Duration memcacheRequestTimeout = const Duration(seconds: 5);
 
 const String indexUiPageKey = 'pub_index';
-const String v2IndexUiPageKey = 'experimental/pub_index';
 const String packageJsonPrefix = 'package_json_';
 const String packageUiPagePrefix = 'package_ui_';
 const String analyzerDataPrefix = 'dart_analyzer_api_';

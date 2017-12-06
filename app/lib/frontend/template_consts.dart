@@ -24,11 +24,8 @@ class PlatformDict {
     return new PlatformDict(
       name: _formattedPlatformName(platform),
       landingBlurb: _landingBlurb(platform),
-      landingUrl:
-          platform == null ? '/experimental' : '/experimental/$platform',
-      listingUrl: platform == null
-          ? '/experimental/packages'
-          : '/experimental/$platform/packages',
+      landingUrl: platform == null ? '/' : '/$platform',
+      listingUrl: platform == null ? '/packages' : '/$platform/packages',
     );
   }
 }
@@ -63,8 +60,8 @@ String _formattedPlatformName(String platform) {
 
 final Map<String, String> _landingBlurbs = const {
   'default':
-      '<p class="text">Find and use packages to build <a href="/experimental/flutter">Flutter</a>, '
-      '<a href="/experimental/web">web</a> and <a href="/experimental/server">server</a> apps '
+      '<p class="text">Find and use packages to build <a href="/flutter">Flutter</a>, '
+      '<a href="/web">web</a> and <a href="/server">server</a> apps '
       'with <a target="_blank" href="https://www.dartlang.org">Dart</a>.</p>',
   KnownPlatforms.flutter:
       '<p class="text"><a href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '

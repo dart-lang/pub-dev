@@ -542,7 +542,7 @@ class TemplateService {
     );
     values['search_deps_link'] = _attrEscaper.convert(
       new Uri(
-        path: '/experimental/packages',
+        path: '/packages',
         queryParameters: {'q': 'dependency:${package.name}'},
       ).toString(),
     );
@@ -826,8 +826,7 @@ class TemplateService {
       });
     } else if (platforms.isEmpty) {
       final String hash = '#-analysis-tab-';
-      final String href =
-          package == null ? hash : '/experimental/packages/$package$hash';
+      final String href = package == null ? hash : '/packages/$package$hash';
       tags.add({
         'status': 'unidentified',
         'text': '[unidentified]',
@@ -931,7 +930,7 @@ String _renderScoreBox(double overallScore, {String package}) {
       // TODO: decide on label - {{! <span class="text">?????</span> }}
       '</div>';
   if (package != null) {
-    return '<a href="/experimental/packages/$package#-analysis-tab-">$boxHtml</a>';
+    return '<a href="/packages/$package#-analysis-tab-">$boxHtml</a>';
   } else {
     return boxHtml;
   }
@@ -1106,6 +1105,6 @@ String _rankingTooltip(bool isSearch) {
       ? 'Packages are sorted by the combination of text match and overall score.'
       : 'Packages are sorted by the overall score.';
   final String rankingLinkHtml =
-      'More information on <a href="/experimental/help#ranking">ranking</a>.';
+      'More information on <a href="/help#ranking">ranking</a>.';
   return '$sortTooltipHtml $rankingLinkHtml';
 }

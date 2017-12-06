@@ -16,7 +16,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/platform.dart';
-import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 import '../shared/utils.dart';
 
@@ -45,6 +44,13 @@ Future<shelf.Response> appHandler(
 
   logPubHeaders(request);
 
+  if (path.startsWith('/experimental')) {
+    var newPath = path.substring('/experimental'.length);
+    if (newPath.isEmpty) newPath = '/';
+    return redirectResponse(
+        request.requestedUri.replace(path: newPath).toString());
+  }
+
   final handler = _handlers[path];
 
   if (handler != null) {
@@ -58,8 +64,6 @@ Future<shelf.Response> appHandler(
     return shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
-  } else if (path.startsWith('/experimental/packages/')) {
-    return packageHandlerV2(request);
   } else if (path.startsWith('/doc')) {
     return docHandler(request);
   } else if (path.startsWith('/static')) {
@@ -71,26 +75,20 @@ Future<shelf.Response> appHandler(
 
 const _handlers = const <String, shelf.Handler>{
   '/': indexHandler,
-  '/experimental': indexHandlerV2,
-  '/experimental/': indexHandlerV2,
-  '/experimental/packages': packagesHandlerHtmlV2,
-  '/experimental/flutter': flutterLandingHandlerV2,
-  '/experimental/flutter/packages': flutterPackagesHandlerHtmlV2,
-  '/experimental/server': serverLandingHandlerV2,
-  '/experimental/server/packages': serverPackagesHandlerHtmlV2,
-  '/experimental/web': webLandingHandlerV2,
-  '/experimental/web/packages': webPackagesHandlerHtmlV2,
-  '/experimental/help': helpHandlerHtmlV2,
+  '/packages': packagesHandlerHtml,
+  '/flutter': flutterLandingHandler,
+  '/flutter/packages': flutterPackagesHandlerHtml,
+  '/flutter/plugins': redirectToFlutterPackages,
+  '/server': serverLandingHandler,
+  '/server/packages': serverPackagesHandlerHtml,
+  '/web': webLandingHandler,
+  '/web/packages': webPackagesHandlerHtml,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
   '/search': searchHandler,
-  '/packages': packagesHandler,
   '/packages.json': packagesHandler,
-  '/flutter': redirectToFlutterPackages,
-  '/flutter/': redirectToFlutterPackages,
-  '/flutter/packages': flutterPackagesHandler,
-  '/flutter/plugins': redirectToFlutterPackages,
+  '/help': helpPageHandler,
 };
 
 /// Handles requests for /debug
@@ -112,44 +110,27 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /
-Future<shelf.Response> indexHandler(_) async {
-  String pageContent =
-      await backend.uiPackageCache?.getUIIndexPage(false, null);
-  if (pageContent == null) {
-    final versions =
-        await backend.latestPackageVersions(limit: 5, devVersions: true);
-    assert(!versions.any((version) => version == null));
-    final List<AnalysisExtract> analysisExtracts =
-        await analyzerClient.getAnalysisExtracts(
-            versions.map((pv) => new AnalysisKey(pv.package, pv.version)));
-    pageContent = templateService.renderIndexPage(versions, analysisExtracts);
-    await backend.uiPackageCache?.setUIIndexPage(false, null, pageContent);
-  }
-  return htmlResponse(pageContent);
-}
+Future<shelf.Response> indexHandler(shelf.Request request) =>
+    _indexHandler(request, null);
 
-/// Handles requests for /experimental/
-Future<shelf.Response> indexHandlerV2(shelf.Request request) =>
-    _indexHandlerV2(request, null);
+/// Handles requests for /flutter
+Future<shelf.Response> flutterLandingHandler(shelf.Request request) =>
+    _indexHandler(request, KnownPlatforms.flutter);
 
-/// Handles requests for /experimental/flutter
-Future<shelf.Response> flutterLandingHandlerV2(shelf.Request request) =>
-    _indexHandlerV2(request, KnownPlatforms.flutter);
+/// Handles requests for /server
+Future<shelf.Response> serverLandingHandler(shelf.Request request) =>
+    _indexHandler(request, KnownPlatforms.server);
 
-/// Handles requests for /experimental/server
-Future<shelf.Response> serverLandingHandlerV2(shelf.Request request) =>
-    _indexHandlerV2(request, KnownPlatforms.server);
-
-/// Handles requests for /experimental/web
-Future<shelf.Response> webLandingHandlerV2(shelf.Request request) =>
-    _indexHandlerV2(request, KnownPlatforms.web);
+/// Handles requests for /web
+Future<shelf.Response> webLandingHandler(shelf.Request request) =>
+    _indexHandler(request, KnownPlatforms.web);
 
 /// Handles requests for:
-/// - /experimental/
-/// - /experimental/flutter
-/// - /experimental/server
-/// - /experimental/web
-Future<shelf.Response> _indexHandlerV2(
+/// - /
+/// - /flutter
+/// - /server
+/// - /web
+Future<shelf.Response> _indexHandler(
     shelf.Request request, String platform) async {
   final String queryText = request.requestedUri.queryParameters['q']?.trim();
   if (queryText != null) {
@@ -159,8 +140,7 @@ Future<shelf.Response> _indexHandlerV2(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  String pageContent =
-      await backend.uiPackageCache?.getUIIndexPage(true, platform);
+  String pageContent = await backend.uiPackageCache?.getUIIndexPage(platform);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
       final count = 15;
@@ -172,13 +152,13 @@ Future<shelf.Response> _indexHandlerV2(
 
     final minilist = await searchAndRenderMiniList(SearchOrder.top);
     pageContent = templateService.renderIndexPageV2(minilist, platform);
-    await backend.uiPackageCache?.setUIIndexPage(true, platform, pageContent);
+    await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
   }
   return htmlResponse(pageContent);
 }
 
-/// Handles requests for /experimental/help
-Future<shelf.Response> helpHandlerHtmlV2(shelf.Request request) async {
+/// Handles requests for /help
+Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(templateService.renderHelpPageV2());
 }
 
@@ -255,7 +235,7 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
   } else if (request.url.queryParameters['format'] == 'json') {
     return packagesHandlerJson(request, page, false);
   } else {
-    return packagesHandlerHtml(request, page);
+    return packagesHandlerHtml(request);
   }
 }
 
@@ -324,88 +304,28 @@ Future<shelf.Response> packagesHandlerJson(
   return jsonResponse(json);
 }
 
-/// Handles requests for `/packages` (default behavior) or `/flutter/packages`
-/// (when [basePath] is specified) - HTML
-Future<shelf.Response> packagesHandlerHtml(
-  shelf.Request request,
-  int page, {
-  String basePath,
-  String platform,
-  String title,
-  String faviconUrl,
-  String descriptionHtml,
-}) async {
-  final offset = PackageLinks.resultsPerPage * (page - 1);
-  final limit = PackageLinks.maxPages * PackageLinks.resultsPerPage + 1;
+/// Handles /packages - package listing
+Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtml(request, null);
 
-  List<Package> packages;
-  if (platform != null) {
-    final results = await searchClient.search(new SearchQuery.parse(
-      platform: platform,
-      order: SearchOrder.updated,
-      offset: offset,
-      limit: limit,
-    ));
-    packages =
-        await backend.lookupPackages(results.packages.map((ps) => ps.package));
-  } else {
-    packages = await backend.latestPackages(offset: offset, limit: limit);
-  }
+/// Handles /flutter/packages
+Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtml(request, KnownPlatforms.flutter);
 
-  final links =
-      new PackageLinks(offset, offset + packages.length, basePath: basePath);
-  final pagePackages = packages.take(PackageLinks.resultsPerPage).toList();
+/// Handles /server/packages
+Future<shelf.Response> serverPackagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtml(request, KnownPlatforms.server);
 
-  // Fetched concurrently to reduce overall latency.
-  final versionsFuture = backend.lookupLatestVersions(pagePackages);
-  final Future<List<AnalysisExtract>> analysisExtractsFuture =
-      analyzerClient.getAnalysisExtracts(
-          pagePackages.map((p) => new AnalysisKey(p.name, p.latestVersion)));
-
-  final batchResults =
-      await Future.wait([versionsFuture, analysisExtractsFuture]);
-  final versions = batchResults[0];
-  final List<AnalysisExtract> analysisExtracts = batchResults[1];
-
-  final packageViews = new List.generate(
-      pagePackages.length,
-      (i) => new PackageView.fromModel(
-            package: pagePackages[i],
-            version: versions[i],
-            analysis: analysisExtracts[i],
-          ));
-
-  return htmlResponse(templateService.renderPkgIndexPage(
-    packageViews,
-    links,
-    title: title,
-    faviconUrl: faviconUrl,
-    descriptionHtml: descriptionHtml,
-  ));
-}
-
-/// Handles /experimental/packages - package listing
-Future<shelf.Response> packagesHandlerHtmlV2(shelf.Request request) =>
-    _packagesHandlerHtmlV2(request, null);
-
-/// Handles /experimental/flutter/packages
-Future<shelf.Response> flutterPackagesHandlerHtmlV2(shelf.Request request) =>
-    _packagesHandlerHtmlV2(request, KnownPlatforms.flutter);
-
-/// Handles /experimental/server/packages
-Future<shelf.Response> serverPackagesHandlerHtmlV2(shelf.Request request) =>
-    _packagesHandlerHtmlV2(request, KnownPlatforms.server);
-
-/// Handles /experimental/web/packages
-Future<shelf.Response> webPackagesHandlerHtmlV2(shelf.Request request) =>
-    _packagesHandlerHtmlV2(request, KnownPlatforms.web);
+/// Handles /web/packages
+Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtml(request, KnownPlatforms.web);
 
 /// Handles:
-/// - /experimental/packages - package listing
-/// - /experimental/flutter/packages
-/// - /experimental/server/packages
-/// - /experimental/web/packages
-Future<shelf.Response> _packagesHandlerHtmlV2(
+/// - /packages - package listing
+/// - /flutter/packages
+/// - /server/packages
+/// - /web/packages
+Future<shelf.Response> _packagesHandlerHtml(
     shelf.Request request, String platform) async {
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
@@ -456,7 +376,8 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
     if (responseAsJson) {
       return packageShowHandlerJson(request, Uri.decodeComponent(path));
     } else {
-      return packageShowHandlerHtml(request, Uri.decodeComponent(path));
+      return packageVersionHandlerHtml(
+          request, Uri.decodeComponent(path), null);
     }
   }
 
@@ -480,53 +401,6 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
   return _formattedNotFoundHandler(request);
 }
 
-/// Handles requests for /experimental/packages/...  - multiplexes to HTML/JSON handlers
-///
-/// Handles the following URLs:
-///   - /packages/<package>
-///   - /packages/<package>/versions
-FutureOr<shelf.Response> packageHandlerV2(shelf.Request request) {
-  var path =
-      request.requestedUri.path.substring('/experimental/packages/'.length);
-  if (path.length == 0) {
-    return _formattedNotFoundHandler(request);
-  }
-
-  final int slash = path.indexOf('/');
-  if (slash == -1) {
-    bool responseAsJson = request.url.queryParameters['format'] == 'json';
-    if (path.endsWith('.json')) {
-      responseAsJson = true;
-      path = path.substring(0, path.length - '.json'.length);
-    }
-    if (responseAsJson) {
-      return packageShowHandlerJson(request, Uri.decodeComponent(path));
-    } else {
-      return packageVersionHandlerHtmlV2(
-          request, Uri.decodeComponent(path), null);
-    }
-  }
-
-  final package = Uri.decodeComponent(path.substring(0, slash));
-  if (path.substring(slash).startsWith('/versions')) {
-    path = path.substring(slash + '/versions'.length);
-    if (path.startsWith('/')) {
-      if (path.endsWith('.yaml')) {
-        path = path.substring(1, path.length - '.yaml'.length);
-        final String version = Uri.decodeComponent(path);
-        return packageVersionHandlerYaml(request, package, version);
-      } else {
-        path = path.substring(1);
-        final String version = Uri.decodeComponent(path);
-        return packageVersionHandlerHtmlV2(request, package, version);
-      }
-    } else {
-      return packageVersionsHandlerV2(request, package);
-    }
-  }
-  return _formattedNotFoundHandler(request);
-}
-
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
@@ -543,19 +417,6 @@ Future<shelf.Response> packageShowHandlerJson(
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
   return jsonResponse(json);
-}
-
-/// Handles requests for /packages/<package> - HTML
-Future<shelf.Response> packageShowHandlerHtml(
-    shelf.Request request, String packageName) async {
-  return packageVersionHandlerHtml(request, packageName, null);
-}
-
-/// Handles requests for /packages/<package>/versions
-Future<shelf.Response> packageVersionsHandler(
-    shelf.Request request, String packageName) {
-  return _packageVersionsHandler(
-      request, packageName, templateService.renderPkgVersionsPage);
 }
 
 Future<shelf.Response> _packageVersionsHandler(
@@ -576,23 +437,15 @@ Future<shelf.Response> _packageVersionsHandler(
   return htmlResponse(render(packageName, versions, versionDownloadUrls));
 }
 
-/// Handles requests for /experimental/packages/<package>/versions
-Future<shelf.Response> packageVersionsHandlerV2(
+/// Handles requests for /packages/<package>/versions
+Future<shelf.Response> packageVersionsHandler(
     shelf.Request request, String packageName) {
   return _packageVersionsHandler(
       request, packageName, templateService.renderPkgVersionsPageV2);
 }
 
-/// Handles requests for /packages/<package>/versions/<version>
-Future<shelf.Response> packageVersionHandlerHtml(
-    shelf.Request request, String packageName, String versionName) {
-  return _packageVersionHandlerHtml(request, false, packageName, versionName,
-      templateService.renderPkgShowPage);
-}
-
 Future<shelf.Response> _packageVersionHandlerHtml(
     shelf.Request request,
-    bool isV2,
     String packageName,
     String versionName,
     String render(
@@ -608,8 +461,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
-    cachedPage = await backend.uiPackageCache
-        .getUIPackagePage(isV2, packageName, versionName);
+    cachedPage =
+        await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
   }
 
   if (cachedPage == null) {
@@ -666,7 +519,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
     if (backend.uiPackageCache != null) {
       await backend.uiPackageCache
-          .setUIPackagePage(isV2, packageName, versionName, cachedPage);
+          .setUIPackagePage(packageName, versionName, cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }
@@ -674,11 +527,11 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   return htmlResponse(cachedPage);
 }
 
-/// Handles requests for /experimental/packages/<package>/versions/<version>
-Future<shelf.Response> packageVersionHandlerHtmlV2(
+/// Handles requests for /packages/<package>/versions/<version>
+Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName, String versionName) {
-  return _packageVersionHandlerHtml(request, true, packageName, versionName,
-      templateService.renderPkgShowPageV2);
+  return _packageVersionHandlerHtml(
+      request, packageName, versionName, templateService.renderPkgShowPageV2);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
@@ -772,24 +625,9 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   return jsonResponse(json);
 }
 
-/// Handles requests for /flutter (redirects to /flutter/packages).
+/// Handles requests for /flutter/plugins (redirects to /flutter/packages).
 shelf.Response redirectToFlutterPackages(shelf.Request request) =>
     redirectResponse('/flutter/packages');
-
-/// Handles requests for /flutter/packages
-Future<shelf.Response> flutterPackagesHandler(shelf.Request request) async {
-  final int page = _pageFromUrl(request.url);
-  return packagesHandlerHtml(
-    request,
-    page,
-    basePath: '/flutter/packages',
-    platform:
-        new PlatformPredicate.only(KnownPlatforms.flutter).toQueryParamValue(),
-    title: 'Flutter Packages',
-    faviconUrl: LogoUrls.flutterLogo32x32,
-    descriptionHtml: flutterPackagesDescriptionHtml,
-  );
-}
 
 shelf.Response _formattedNotFoundHandler(shelf.Request request) {
   final message = 'The path \'${request.requestedUri.path}\' was not found.';

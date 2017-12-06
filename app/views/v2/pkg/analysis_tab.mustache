@@ -29,7 +29,7 @@
         <span class="tooltip-dotted">Popularity:</span>
         <div class="tooltip-content">
           Describes how popular the package is relative to other packages.
-          <a href="/experimental/help#popularity">[more]</a>
+          <a href="/help#popularity">[more]</a>
         </div>
       </div>
     </td>
@@ -41,7 +41,7 @@
         <span class="tooltip-dotted">Health:</span>
         <div class="tooltip-content">
           Code health derived from static analysis.
-          <a href="/experimental/help#health">[more]</a>
+          <a href="/help#health">[more]</a>
         </div>
       </div>
     </td>
@@ -53,7 +53,7 @@
         <span class="tooltip-dotted">Maintenance:</span>
         <div class="tooltip-content">
           Reflects how tidy and up-to-date the package is.
-          <a href="/experimental/help#maintenance">[more]</a>
+          <a href="/help#maintenance">[more]</a>
         </div>
       </div>
     </td>
@@ -65,7 +65,7 @@
         <span class="tooltip-dotted"><b>Overall score:</b></span>
         <div class="tooltip-content">
           Weighted score of the above.
-          <a href="/experimental/help#overall-score">[more]</a>
+          <a href="/help#overall-score">[more]</a>
         </div>
       </div>
     </td>
@@ -106,7 +106,7 @@
   {{/dependencies.has_direct}}
   {{#dependencies.direct}}
   <tr>
-    <td><a href="/experimental/packages/{{package}}">{{package}}</a></td>
+    <td><a href="/packages/{{package}}">{{package}}</a></td>
     <td>{{constraint}}</td>
     <td>{{resolved}}</td>
     <td>{{available}}</td>
@@ -119,7 +119,7 @@
   {{/dependencies.has_transitive}}
   {{#dependencies.transitive}}
     <tr>
-      <td><a href="/experimental/packages/{{package}}">{{package}}</a></td>
+      <td><a href="/packages/{{package}}">{{package}}</a></td>
       <td>{{constraint}}</td>
       <td>{{resolved}}</td>
       <td>{{available}}</td>
@@ -132,7 +132,7 @@
   {{/dependencies.has_dev}}
   {{#dependencies.dev}}
     <tr>
-      <td><a href="/experimental/packages/{{package}}">{{package}}</a></td>
+      <td><a href="/packages/{{package}}">{{package}}</a></td>
       <td>{{constraint}}</td>
       <td>{{resolved}}</td>
       <td>{{available}}</td>
