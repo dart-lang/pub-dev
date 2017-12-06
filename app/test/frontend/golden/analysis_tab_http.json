@@ -1,0 +1,370 @@
+{
+  "packageName": "http",
+  "packageVersion": "0.11.3+12",
+  "analysis": 5714595855466496,
+  "timestamp": "2017-11-29T02:55:18.403757Z",
+  "panaVersion": "0.7.1",
+  "flutterVersion": "0.0.17",
+  "analysisStatus": "success",
+  "analysisContent": {
+    "panaVersion": "0.7.1",
+    "sdkVersion": "2.0.0-dev.8.0",
+    "packageName": "http",
+    "packageVersion": "0.11.3+12",
+    "pubspec": {
+      "version": "0.11.3+12",
+      "name": "http",
+      "dependencies": {
+        "stack_trace": ">=0.9.1 <2.0.0",
+        "http_parser": ">=0.0.1 <4.0.0",
+        "async": "^1.10.0",
+        "path": ">=0.9.0 <2.0.0",
+        "collection": "^1.5.0"
+      },
+      "author": "Dart Team <misc@dartlang.org>",
+      "description": "A composable, Future-based API for making HTTP requests.",
+      "environment": {
+        "sdk": ">=1.23.0-dev.0.0 <2.0.0"
+      },
+      "homepage": "https://github.com/dart-lang/http",
+      "dev_dependencies": {
+        "unittest": ">=0.9.0 <0.12.0"
+      }
+    },
+    "platform": {
+      "worksEverywhere": true,
+      "reason": "primary library - `package:http/http.dart`"
+    },
+    "licenses": [
+      {
+        "path": "LICENSE",
+        "name": "BSD",
+        "url": "https://github.com/dart-lang/http/blob/master/LICENSE"
+      }
+    ],
+    "maintenance": {
+      "missingChangelog": false,
+      "missingReadme": false,
+      "missingAnalysisOptions": false,
+      "oldAnalysisOptions": true,
+      "strongModeEnabled": true,
+      "isExperimentalVersion": false,
+      "isPreReleaseVersion": true,
+      "errorCount": 0,
+      "warningCount": 0,
+      "hintCount": 1
+    },
+    "fitness": {
+      "magnitude": 1271.0,
+      "shortcoming": 16.0
+    },
+    "suggestions": [
+      {
+        "level": "hint",
+        "title": "Use `analysis_options.yaml`.",
+        "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
+      }
+    ],
+    "pkgResolution": {
+      "dependencies": [
+        {
+          "package": "async",
+          "dependencyType": "direct",
+          "constraintType": "normal",
+          "constraint": "^1.10.0",
+          "resolved": "1.13.3",
+          "available": "2.0.1"
+        },
+        {
+          "package": "charcode",
+          "dependencyType": "transitive",
+          "constraintType": "inherited",
+          "resolved": "1.1.1"
+        },
+        {
+          "package": "collection",
+          "dependencyType": "direct",
+          "constraintType": "normal",
+          "constraint": "^1.5.0",
+          "resolved": "1.14.3"
+        },
+        {
+          "package": "http_parser",
+          "dependencyType": "direct",
+          "constraintType": "normal",
+          "constraint": ">=0.0.1 <4.0.0",
+          "resolved": "3.1.1"
+        },
+        {
+          "package": "path",
+          "dependencyType": "direct",
+          "constraintType": "normal",
+          "constraint": ">=0.9.0 <2.0.0",
+          "resolved": "1.5.1"
+        },
+        {
+          "package": "source_span",
+          "dependencyType": "transitive",
+          "constraintType": "inherited",
+          "resolved": "1.4.0"
+        },
+        {
+          "package": "stack_trace",
+          "dependencyType": "direct",
+          "constraintType": "normal",
+          "constraint": ">=0.9.1 <2.0.0",
+          "resolved": "1.9.1"
+        },
+        {
+          "package": "string_scanner",
+          "dependencyType": "transitive",
+          "constraintType": "inherited",
+          "resolved": "1.0.2"
+        },
+        {
+          "package": "typed_data",
+          "dependencyType": "transitive",
+          "constraintType": "inherited",
+          "resolved": "1.1.5"
+        },
+        {
+          "package": "unittest",
+          "dependencyType": "dev",
+          "constraintType": "normal",
+          "constraint": ">=0.9.0 <0.12.0"
+        }
+      ]
+    },
+    "dartFiles": {
+      "lib/browser_client.dart": {
+        "uri": "package:http/browser_client.dart",
+        "size": 3688,
+        "isFormatted": false,
+        "codeProblems": [],
+        "directLibs": [
+          "dart:async",
+          "dart:html",
+          "dart:typed_data",
+          "package:http/src/base_client.dart",
+          "package:http/src/base_request.dart",
+          "package:http/src/byte_stream.dart",
+          "package:http/src/exception.dart",
+          "package:http/src/streamed_response.dart",
+          "package:stack_trace/stack_trace.dart"
+        ],
+        "platform": {
+          "worksEverywhere": false,
+          "restrictedTo": [
+            "web"
+          ]
+        },
+        "fitness": {
+          "magnitude": 83.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/http.dart": {
+        "uri": "package:http/http.dart",
+        "size": 7234,
+        "isFormatted": false,
+        "codeProblems": [],
+        "directLibs": [
+          "dart:async",
+          "dart:convert",
+          "dart:typed_data",
+          "package:http/src/base_client.dart",
+          "package:http/src/base_request.dart",
+          "package:http/src/base_response.dart",
+          "package:http/src/byte_stream.dart",
+          "package:http/src/client.dart",
+          "package:http/src/exception.dart",
+          "package:http/src/io_client.dart",
+          "package:http/src/multipart_file.dart",
+          "package:http/src/multipart_request.dart",
+          "package:http/src/request.dart",
+          "package:http/src/response.dart",
+          "package:http/src/streamed_request.dart",
+          "package:http/src/streamed_response.dart"
+        ],
+        "platform": {
+          "worksEverywhere": true
+        },
+        "fitness": {
+          "magnitude": 139.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/base_client.dart": {
+        "uri": "package:http/src/base_client.dart",
+        "size": 7821,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 136.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/base_request.dart": {
+        "uri": "package:http/src/base_request.dart",
+        "size": 4739,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 93.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/base_response.dart": {
+        "uri": "package:http/src/base_response.dart",
+        "size": 1727,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 32.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/byte_stream.dart": {
+        "uri": "package:http/src/byte_stream.dart",
+        "size": 1391,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 25.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/client.dart": {
+        "uri": "package:http/src/client.dart",
+        "size": 6152,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 101.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/exception.dart": {
+        "uri": "package:http/src/exception.dart",
+        "size": 502,
+        "isFormatted": true,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 9.0,
+          "shortcoming": 0.0
+        }
+      },
+      "lib/src/io_client.dart": {
+        "uri": "package:http/src/io_client.dart",
+        "size": 2530,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 49.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/mock_client.dart": {
+        "uri": "package:http/src/mock_client.dart",
+        "size": 3320,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 59.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/multipart_file.dart": {
+        "uri": "package:http/src/multipart_file.dart",
+        "size": 4431,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 79.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/multipart_request.dart": {
+        "uri": "package:http/src/multipart_request.dart",
+        "size": 6665,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 127.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/request.dart": {
+        "uri": "package:http/src/request.dart",
+        "size": 5952,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 109.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/response.dart": {
+        "uri": "package:http/src/response.dart",
+        "size": 3431,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 62.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/streamed_request.dart": {
+        "uri": "package:http/src/streamed_request.dart",
+        "size": 1650,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 28.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/streamed_response.dart": {
+        "uri": "package:http/src/streamed_response.dart",
+        "size": 1326,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 25.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/src/utils.dart": {
+        "uri": "package:http/src/utils.dart",
+        "size": 4843,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 96.0,
+          "shortcoming": 1.0
+        }
+      },
+      "lib/testing.dart": {
+        "uri": "package:http/testing.dart",
+        "size": 966,
+        "isFormatted": true,
+        "codeProblems": [],
+        "directLibs": [
+          "package:http/src/mock_client.dart"
+        ],
+        "platform": {
+          "worksEverywhere": false,
+          "restrictedTo": [
+            "flutter",
+            "server"
+          ]
+        },
+        "fitness": {
+          "magnitude": 19.0,
+          "shortcoming": 0.0
+        }
+      }
+    }
+  },
+  "maintenanceScore": 0.98901
+}
