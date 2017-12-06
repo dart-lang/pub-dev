@@ -7,6 +7,7 @@ import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
 class PlatformDict {
   final String name;
   final String pageTitle;
+  final String landingPageTitle;
   final String landingBlurb;
   final String landingUrl;
   final String listingUrl;
@@ -14,6 +15,7 @@ class PlatformDict {
   PlatformDict({
     this.name,
     String pageTitle,
+    this.landingPageTitle,
     this.landingBlurb,
     this.landingUrl,
     this.listingUrl,
@@ -23,6 +25,7 @@ class PlatformDict {
   factory PlatformDict.forPlatform(String platform) {
     return new PlatformDict(
       name: _formattedPlatformName(platform),
+      landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
       listingUrl: platform == null ? '/packages' : '/$platform/packages',
@@ -56,6 +59,13 @@ String _formattedPlatformName(String platform) {
     default:
       return platform;
   }
+}
+
+String _landingPageTitle(String platform) {
+  if (platform == KnownPlatforms.flutter) {
+    return 'Dart Packages';
+  }
+  return 'Flutter Packages';
 }
 
 final Map<String, String> _landingBlurbs = const {
