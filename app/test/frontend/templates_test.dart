@@ -14,8 +14,6 @@ import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
-import 'package:pub_dartlang_org/frontend/search_service.dart'
-    show SearchResultPage;
 
 import 'utils.dart';
 
@@ -46,17 +44,6 @@ void main() {
     }
 
     test('index page', () {
-      final String html = templates.renderIndexPage([
-        testPackageVersion,
-        flutterPackageVersion,
-      ], [
-        new AnalysisExtract(),
-        new AnalysisExtract(platforms: ['flutter']),
-      ]);
-      expectGoldenFile(html, 'index_page.html');
-    });
-
-    test('index page v2', () {
       final popularHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
@@ -64,11 +51,11 @@ void main() {
           analysis: new AnalysisExtract(platforms: ['web']),
         ),
       ]);
-      final String html = templates.renderIndexPageV2(popularHtml, null);
-      expectGoldenFile(html, 'v2/index_page.html');
+      final String html = templates.renderIndexPage(popularHtml, null);
+      expectGoldenFile(html, 'index_page.html');
     });
 
-    test('landing page v2: flutter', () {
+    test('landing page flutter', () {
       final popularHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
@@ -77,11 +64,11 @@ void main() {
         ),
       ]);
       final String html =
-          templates.renderIndexPageV2(popularHtml, KnownPlatforms.flutter);
-      expectGoldenFile(html, 'v2/flutter_landing_page.html');
+          templates.renderIndexPage(popularHtml, KnownPlatforms.flutter);
+      expectGoldenFile(html, 'flutter_landing_page.html');
     });
 
-    test('landing page v2: server', () {
+    test('landing page server', () {
       final popularHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
@@ -90,11 +77,11 @@ void main() {
         ),
       ]);
       final String html =
-          templates.renderIndexPageV2(popularHtml, KnownPlatforms.server);
-      expectGoldenFile(html, 'v2/server_landing_page.html');
+          templates.renderIndexPage(popularHtml, KnownPlatforms.server);
+      expectGoldenFile(html, 'server_landing_page.html');
     });
 
-    test('landing page v2: web', () {
+    test('landing page web', () {
       final popularHtml = templates.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
@@ -103,8 +90,8 @@ void main() {
         ),
       ]);
       final String html =
-          templates.renderIndexPageV2(popularHtml, KnownPlatforms.web);
-      expectGoldenFile(html, 'v2/web_landing_page.html');
+          templates.renderIndexPage(popularHtml, KnownPlatforms.web);
+      expectGoldenFile(html, 'web_landing_page.html');
     });
 
     test('package show page', () {
@@ -118,41 +105,12 @@ void main() {
           1,
           null,
           new MockAnalysisView()
-            ..licenses = [new LicenseFile('license.txt', 'BSD')]);
-      expectGoldenFile(html, 'pkg_show_page.html');
-    });
-
-    test('package show page v2', () {
-      final String html = templates.renderPkgShowPageV2(
-          testPackage,
-          [testPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
-          testPackageVersion,
-          testPackageVersion,
-          testPackageVersion,
-          1,
-          null,
-          new MockAnalysisView()
             ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
-      expectGoldenFile(html, 'v2/pkg_show_page.html');
+      expectGoldenFile(html, 'pkg_show_page.html');
     });
 
     test('package show page with flutter_plugin', () {
       final String html = templates.renderPkgShowPage(
-          testPackage,
-          [flutterPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
-          flutterPackageVersion,
-          flutterPackageVersion,
-          flutterPackageVersion,
-          1,
-          null,
-          new MockAnalysisView()..platforms = ['flutter']);
-      expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
-    });
-
-    test('package show page with flutter_plugin v2', () {
-      final String html = templates.renderPkgShowPageV2(
           testPackage,
           [flutterPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -167,28 +125,28 @@ void main() {
             platforms: ['flutter'],
           ),
           new MockAnalysisView()..platforms = ['flutter']);
-      expectGoldenFile(html, 'v2/pkg_show_page_flutter_plugin.html');
+      expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
     test('no content for analysis tab', () async {
       // no content
-      expect(templates.renderAnalysisTabV2(null, null), isNull);
+      expect(templates.renderAnalysisTab(null, null), isNull);
     });
 
     test('analysis tab: http', () async {
       // stored analysis of http
       final String json =
-          await new File('$goldenDir/v2/analysis_tab_http.json').readAsString();
+          await new File('$goldenDir/analysis_tab_http.json').readAsString();
       final view =
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json)));
       final extract = new AnalysisExtract(
           health: view.health, maintenance: 0.9, popularity: 0.23);
-      final String html = templates.renderAnalysisTabV2(extract, view);
-      expectGoldenFile(html, 'v2/analysis_tab_http.html', isFragment: true);
+      final String html = templates.renderAnalysisTab(extract, view);
+      expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
     test('mock analysis tab', () async {
-      final String html = templates.renderAnalysisTabV2(
+      final String html = templates.renderAnalysisTab(
           new AnalysisExtract(
             health: 0.90234,
             maintenance: 0.8932343,
@@ -227,7 +185,7 @@ void main() {
               ),
             ],
           ));
-      expectGoldenFile(html, 'v2/analysis_tab_mock.html', isFragment: true);
+      expectGoldenFile(html, 'analysis_tab_mock.html', isFragment: true);
     });
 
     test('package index page', () {
@@ -242,30 +200,14 @@ void main() {
           version: flutterPackageVersion,
           analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
-      ], new PackageLinks.empty());
+      ], new PackageLinks.empty(), null);
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
-    test('package index page v2', () {
-      final String html = templates.renderPkgIndexPageV2([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: testPackageVersion,
-          analysis: new AnalysisExtract(),
-        ),
-        new PackageView.fromModel(
-          package: testPackage,
-          version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter']),
-        ),
-      ], new PackageLinks.empty(), null);
-      expectGoldenFile(html, 'v2/pkg_index_page.html');
-    });
-
-    test('package index page with search v2', () {
+    test('package index page with search', () {
       final searchQuery =
           new SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
-      final String html = templates.renderPkgIndexPageV2(
+      final String html = templates.renderPkgIndexPage(
         [
           new PackageView.fromModel(
             package: testPackage,
@@ -283,47 +225,6 @@ void main() {
         searchQuery: searchQuery,
         totalCount: 2,
       );
-      expectGoldenFile(html, 'v2/search_page.html');
-    });
-
-    test('package versions page', () {
-      final String html = templates.renderPkgVersionsPage(testPackage.name,
-          [testPackageVersion], [Uri.parse('http://dart-example.com/')]);
-      expectGoldenFile(html, 'pkg_versions_page.html');
-    });
-
-    test('flutter packages - index page #2', () {
-      final String html = templates.renderPkgIndexPage(
-        [
-          new PackageView.fromModel(
-            package: testPackage,
-            version: flutterPackageVersion,
-            analysis: new AnalysisExtract(platforms: ['flutter']),
-          ),
-        ],
-        new PackageLinks(
-            PackageLinks.resultsPerPage, PackageLinks.resultsPerPage + 1),
-        title: 'Flutter Packages',
-        faviconUrl: LogoUrls.flutterLogo32x32,
-        descriptionHtml: flutterPackagesDescriptionHtml,
-      );
-      expectGoldenFile(html, 'flutter_packages_index_page2.html');
-    });
-
-    test('search page', () {
-      final query = new SearchQuery.parse(query: 'foobar', offset: 0);
-      final resultPage = new SearchResultPage(
-        query,
-        2,
-        [
-          new PackageView.fromModel(version: testPackageVersion),
-          new PackageView.fromModel(
-              version: flutterPackageVersion,
-              analysis: new AnalysisExtract(platforms: ['flutter'])),
-        ],
-      );
-      final String html =
-          templates.renderSearchPage(resultPage, new SearchLinks(query, 2));
       expectGoldenFile(html, 'search_page.html');
     });
 
@@ -360,7 +261,7 @@ void main() {
 
     test('platform tabs: list', () {
       final String html = templates.renderPlatformTabs(platform: 'web');
-      expectGoldenFile(html, 'v2/platform_tabs_list.html', isFragment: true);
+      expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
     test('platform tabs: search', () {
@@ -369,7 +270,7 @@ void main() {
         query: 'foo',
         platform: 'server',
       ));
-      expectGoldenFile(html, 'v2/platform_tabs_search.html', isFragment: true);
+      expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
   });
 

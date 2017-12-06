@@ -24,7 +24,6 @@ import 'atom_feed.dart';
 import 'backend.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
-import 'search_memcache.dart';
 import 'search_service.dart';
 import 'templates.dart';
 
@@ -166,7 +165,7 @@ Future<shelf.Response> _indexHandler(
     }
 
     final minilist = await searchAndRenderMiniList(SearchOrder.top);
-    pageContent = templateService.renderIndexPageV2(minilist, platform);
+    pageContent = templateService.renderIndexPage(minilist, platform);
     await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
   }
   return htmlResponse(pageContent);
@@ -174,7 +173,7 @@ Future<shelf.Response> _indexHandler(
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
-  return htmlResponse(templateService.renderHelpPageV2());
+  return htmlResponse(templateService.renderHelpPage());
 }
 
 /// Handles requests for /feed.atom
@@ -326,7 +325,7 @@ Future<shelf.Response> _packagesHandlerHtml(
   final int totalCount = searchResult.totalCount;
 
   final links = new PackageLinks(offset, totalCount, searchQuery: searchQuery);
-  return htmlResponse(templateService.renderPkgIndexPageV2(
+  return htmlResponse(templateService.renderPkgIndexPage(
     searchResult.packages,
     links,
     platform,
@@ -421,7 +420,7 @@ Future<shelf.Response> _packageVersionsHandler(
 Future<shelf.Response> packageVersionsHandler(
     shelf.Request request, String packageName) {
   return _packageVersionsHandler(
-      request, packageName, templateService.renderPkgVersionsPageV2);
+      request, packageName, templateService.renderPkgVersionsPage);
 }
 
 Future<shelf.Response> _packageVersionHandlerHtml(
@@ -511,7 +510,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName, String versionName) {
   return _packageVersionHandlerHtml(
-      request, packageName, versionName, templateService.renderPkgShowPageV2);
+      request, packageName, versionName, templateService.renderPkgShowPage);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
