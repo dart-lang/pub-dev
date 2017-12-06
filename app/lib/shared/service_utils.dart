@@ -8,7 +8,7 @@ import 'dart:isolate';
 import 'package:logging/logging.dart';
 
 import 'configuration.dart';
-import 'handlers.dart';
+import 'scheduler_stats.dart';
 import 'task_client.dart';
 
 Future startIsolates(Logger logger, void entryPoint(message)) async {

@@ -10,6 +10,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/analyzer_service.dart';
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
+import '../shared/scheduler_stats.dart';
 import '../shared/task_client.dart';
 
 import 'backend.dart';
