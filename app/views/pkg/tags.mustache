@@ -1,0 +1,15 @@
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+{{#has_tags}}
+  {{#wrapper_div}}<div class="tags">{{/wrapper_div}}
+  {{#tags}}
+    {{#v2_href}}
+        <a class="package-tag{{#status}} {{status}}{{/status}}" href="{{{v2_href}}}"{{#title}} title="{{title}}"{{/title}}>{{text}}</a>
+    {{/v2_href}}
+    {{^v2_href}}
+        <span class="package-tag{{#status}} {{status}}{{/status}}"{{#title}} title="{{title}}"{{/title}}>{{text}}</span>
+    {{/v2_href}}
+  {{/tags}}
+  {{#wrapper_div}}</div>{{/wrapper_div}}
+{{/has_tags}}
