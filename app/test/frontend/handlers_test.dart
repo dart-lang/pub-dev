@@ -95,6 +95,36 @@ void main() {
         await expectHtmlResponse(await issueGet('/packages'));
       });
 
+      tScopedTest('/packages?q=foobar', () async {
+        registerSearchService(new SearchServiceMock(
+          (SearchQuery query) {
+            expect(query.query, 'foobar');
+            expect(query.offset, 0);
+            expect(query.limit, PageSize);
+            expect(query.platformPredicate, isNull);
+            return new SearchResultPage(query, 1, [
+              new PackageView.fromModel(
+                  package: testPackage,
+                  version: testPackageVersion,
+                  analysis: null)
+            ]);
+          },
+        ));
+        final backend = new BackendMock(
+          lookupPackageFun: (packageName) {
+            return packageName == testPackage.name ? testPackage : null;
+          },
+          lookupLatestVersionsFun: (List<Package> packages) {
+            expect(packages.length, 1);
+            expect(packages.first, testPackage);
+            return [testPackageVersion];
+          },
+        );
+        registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
+        await expectHtmlResponse(await issueGet('/packages?q=foobar'));
+      });
+
       tScopedTest('/packages?page=2', () async {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
@@ -275,36 +305,13 @@ void main() {
       });
 
       tScopedTest('/search?q=foobar', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.query, 'foobar');
-          expect(query.offset, 0);
-          expect(query.limit, PageSize);
-          return new SearchResultPage(
-            query,
-            1,
-            [
-              new PackageView.fromModel(version: testPackageVersion),
-            ],
-          );
-        }));
-        await expectHtmlResponse(await issueGet('/search?q=foobar'),
-            status: 200);
+        expectRedirectResponse(await issueGet('/search?q=foobar'),
+            'https://pub.dartlang.org/packages?q=foobar');
       });
 
       tScopedTest('/search?q=foobar&page=2', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.query, 'foobar');
-          expect(query.offset, PageSize);
-          expect(query.limit, PageSize);
-          return new SearchResultPage(
-            query,
-            1,
-            [
-              new PackageView.fromModel(version: testPackageVersion),
-            ],
-          );
-        }));
-        await expectHtmlResponse(await issueGet('/search?q=foobar&page=2'));
+        expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
+            'https://pub.dartlang.org/packages?q=foobar&page=2');
       });
 
       tScopedTest('/feed.atom', () async {

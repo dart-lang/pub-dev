@@ -152,18 +152,12 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderHelpPageV2() {
+  String renderHelpPage() {
     return _response;
   }
 
   @override
-  String renderIndexPage(List<PackageVersion> recentPackages,
-      List<AnalysisExtract> analysisExtracts) {
-    return _response;
-  }
-
-  @override
-  String renderIndexPageV2(String topHtml, String platform) {
+  String renderIndexPage(String topHtml, String platform) {
     return _response;
   }
 
@@ -173,7 +167,7 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderLayoutPageV2(
+  String renderLayoutPage(
     PageType type,
     String contentHtml, {
     String title: 'pub.dartlang.org',
@@ -187,32 +181,12 @@ class TemplateMock implements TemplateService {
       _response;
 
   @override
-  String renderLayoutPage(String title, String contentString,
-      {PackageVersion packageVersion,
-      String faviconUrl,
-      String searchQuery,
-      bool includeSurvey}) {
-    return _response;
-  }
-
-  @override
-  String renderPaginationV2(PageLinks pageLinks) {
-    return _response;
-  }
-
-  @override
   String renderPagination(PageLinks pageLinks) {
     return _response;
   }
 
   @override
-  String renderPkgIndexPage(List<PackageView> packages, PageLinks links,
-      {String title, String faviconUrl, String descriptionHtml}) {
-    return _response;
-  }
-
-  @override
-  String renderPkgIndexPageV2(
+  String renderPkgIndexPage(
       List<PackageView> packages, PageLinks links, String currentPlatform,
       {SearchQuery searchQuery, int totalCount}) {
     return _response;
@@ -233,38 +207,13 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderPkgShowPageV2(
-      Package package,
-      List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls,
-      PackageVersion selectedVersion,
-      PackageVersion latestStableVersion,
-      PackageVersion latestDevVersion,
-      int totalNumberOfVersions,
-      AnalysisExtract extract,
-      AnalysisView analysis) {
-    return _response;
-  }
-
-  @override
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
     return _response;
   }
 
   @override
-  String renderPkgVersionsPageV2(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
-    return _response;
-  }
-
-  @override
-  String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
-    return _response;
-  }
-
-  @override
-  String renderAnalysisTabV2(extract, analysis) {
+  String renderAnalysisTab(extract, analysis) {
     return _response;
   }
 

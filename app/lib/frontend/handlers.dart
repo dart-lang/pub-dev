@@ -24,7 +24,6 @@ import 'atom_feed.dart';
 import 'backend.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
-import 'search_memcache.dart';
 import 'search_service.dart';
 import 'templates.dart';
 
@@ -62,6 +61,10 @@ Future<shelf.Response> appHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
+  if (path == '/search') {
+    return redirectResponse(
+        request.requestedUri.replace(path: '/packages').toString());
+  }
 
   final handler = _handlers[path];
 
@@ -98,7 +101,6 @@ const _handlers = const <String, shelf.Handler>{
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
   '/authorized': authorizedHandler,
-  '/search': searchHandler,
   '/packages.json': packagesHandler,
   '/help': helpPageHandler,
 };
@@ -163,7 +165,7 @@ Future<shelf.Response> _indexHandler(
     }
 
     final minilist = await searchAndRenderMiniList(SearchOrder.top);
-    pageContent = templateService.renderIndexPageV2(minilist, platform);
+    pageContent = templateService.renderIndexPage(minilist, platform);
     await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
   }
   return htmlResponse(pageContent);
@@ -171,7 +173,7 @@ Future<shelf.Response> _indexHandler(
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
-  return htmlResponse(templateService.renderHelpPageV2());
+  return htmlResponse(templateService.renderHelpPage());
 }
 
 /// Handles requests for /feed.atom
@@ -200,42 +202,6 @@ shelf.Response docHandler(shelf.Request request) {
     return redirectResponse('$pubDocUrl$dartlangDotOrgPath');
   }
   return redirectResponse(pubDocUrl);
-}
-
-/// Handles requests for /search
-Future<shelf.Response> searchHandler(shelf.Request request) async {
-  final Stopwatch sw = new Stopwatch();
-  sw.start();
-
-  final String cacheUrl = request.url.toString();
-  final String cachedHtml = await searchMemcache?.getUiSearchPage(cacheUrl);
-  if (cachedHtml != null) return htmlResponse(cachedHtml);
-
-  final String queryText = request.url.queryParameters['q'] ?? '';
-  final String platform = request.url.queryParameters['platforms'] ??
-      request.url.queryParameters['platform'];
-
-  final int page = _pageFromUrl(request.url);
-
-  final SearchQuery query = new SearchQuery.parse(
-    query: queryText,
-    platform: platform,
-    offset: PageLinks.resultsPerPage * (page - 1),
-    limit: PageLinks.resultsPerPage,
-  );
-  if (!query.isValid) {
-    return htmlResponse(templateService.renderSearchPage(
-        new SearchResultPage.empty(query), new SearchLinks.empty(query)));
-  }
-
-  final resultPage = await searchService.search(query);
-  final links = new SearchLinks(query, resultPage.totalCount);
-  final String content = templateService.renderSearchPage(resultPage, links);
-
-  _searchOverallLatencyTracker.add(sw.elapsed);
-
-  await searchMemcache?.setUiSearchPage(cacheUrl, content);
-  return htmlResponse(content);
 }
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
@@ -339,6 +305,7 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) =>
 /// - /web/packages
 Future<shelf.Response> _packagesHandlerHtml(
     shelf.Request request, String platform) async {
+  // TODO: use search memcache for all results here or remove search memcache
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
   final String queryText = request.requestedUri.queryParameters['q'] ?? '';
@@ -358,7 +325,7 @@ Future<shelf.Response> _packagesHandlerHtml(
   final int totalCount = searchResult.totalCount;
 
   final links = new PackageLinks(offset, totalCount, searchQuery: searchQuery);
-  return htmlResponse(templateService.renderPkgIndexPageV2(
+  return htmlResponse(templateService.renderPkgIndexPage(
     searchResult.packages,
     links,
     platform,
@@ -453,7 +420,7 @@ Future<shelf.Response> _packageVersionsHandler(
 Future<shelf.Response> packageVersionsHandler(
     shelf.Request request, String packageName) {
   return _packageVersionsHandler(
-      request, packageName, templateService.renderPkgVersionsPageV2);
+      request, packageName, templateService.renderPkgVersionsPage);
 }
 
 Future<shelf.Response> _packageVersionHandlerHtml(
@@ -543,7 +510,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName, String versionName) {
   return _packageVersionHandlerHtml(
-      request, packageName, versionName, templateService.renderPkgShowPageV2);
+      request, packageName, versionName, templateService.renderPkgShowPage);
 }
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml

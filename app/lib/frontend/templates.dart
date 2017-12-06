@@ -19,7 +19,6 @@ import '../shared/utils.dart';
 
 import 'model_properties.dart' show Author;
 import 'models.dart';
-import 'search_service.dart' show SearchResultPage;
 import 'template_consts.dart';
 
 String _escapeAngleBrackets(String msg) =>
@@ -45,16 +44,6 @@ class TemplateService {
 
   TemplateService({this.templateDirectory: '/project/app/views'});
 
-  /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
-    assert(versions.length == versionDownloadUrls.length);
-
-    final Map<String, Object> values =
-        _pkgVersionsValues(package, versions, versionDownloadUrls);
-    return _renderPage('pkg/versions/index', values);
-  }
-
   Map<String, Object> _pkgVersionsValues(String package,
       List<PackageVersion> versions, List<Uri> versionDownloadUrls) {
     final versionsJson = [];
@@ -74,56 +63,24 @@ class TemplateService {
         'name': package,
       },
       'versions': versionsJson,
-      'icons': LogoUrls.versionsTableIcons, // used in v2 only
+      'icons': LogoUrls.versionsTableIcons,
     };
     return values;
   }
 
-  /// Renders the `views/v2/pkg/versions/index` template.
-  String renderPkgVersionsPageV2(String package, List<PackageVersion> versions,
+  /// Renders the `views/pkg/versions/index` template.
+  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
     final Map<String, Object> values =
         _pkgVersionsValues(package, versions, versionDownloadUrls);
-    final content = _renderTemplate('v2/pkg/versions/index', values);
-    return renderLayoutPageV2(PageType.package, content);
+    final content = _renderTemplate('pkg/versions/index', values);
+    return renderLayoutPage(PageType.package, content);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
-  String renderPkgIndexPage(List<PackageView> packages, PageLinks links,
-      {String title, String faviconUrl, String descriptionHtml}) {
-    final packagesJson = [];
-    for (int i = 0; i < packages.length; i++) {
-      final view = packages[i];
-      packagesJson.add({
-        'icons': _renderIconsColumnHtml(view.platforms),
-        'name': view.name,
-        'description': {
-          'ellipsized_description': view.ellipsizedDescription,
-        },
-        'authors_html': _getAuthorsHtml(view.authors),
-        'short_updated': view.shortUpdated,
-      });
-    }
-    final values = {
-      'title': title ?? 'Packages',
-      'description_html': descriptionHtml,
-      'packages': packagesJson,
-      'pagination': renderPagination(links),
-    };
-
-    String pageTitle = title ?? 'All Packages';
-    if (links.rightmostPage > 1) {
-      pageTitle = 'Page ${links.currentPage} | $pageTitle';
-    }
-
-    return _renderPage('pkg/index', values,
-        title: pageTitle, faviconUrl: faviconUrl);
-  }
-
-  /// Renders the `views/v2/pkg/index.mustache` template.
-  String renderPkgIndexPageV2(
+  String renderPkgIndexPage(
       List<PackageView> packages, PageLinks links, String currentPlatform,
       {SearchQuery searchQuery, int totalCount}) {
     final packagesJson = [];
@@ -154,11 +111,11 @@ class TemplateService {
       'title': platformDict.pageTitle,
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
-      'pagination': renderPaginationV2(links),
+      'pagination': renderPagination(links),
       'search_query': searchQuery?.query,
       'total_count': totalCount,
     };
-    final content = _renderTemplate('v2/pkg/index', values);
+    final content = _renderTemplate('pkg/index', values);
 
     String pageTitle = platformDict.pageTitle;
     if (isSearch) {
@@ -168,7 +125,7 @@ class TemplateService {
         pageTitle = 'Page ${links.currentPage} | $pageTitle';
       }
     }
-    return renderLayoutPageV2(
+    return renderLayoutPage(
       PageType.listing,
       content,
       title: pageTitle,
@@ -177,8 +134,8 @@ class TemplateService {
     );
   }
 
-  /// Renders the `views/v2/pkg/analysis_tab.mustache` template.
-  String renderAnalysisTabV2(AnalysisExtract extract, AnalysisView analysis) {
+  /// Renders the `views/pkg/analysis_tab.mustache` template.
+  String renderAnalysisTab(AnalysisExtract extract, AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
@@ -247,44 +204,7 @@ class TemplateService {
       'score_box_html': _renderScoreBox(extract?.overallScore),
     };
 
-    return _renderTemplate('v2/pkg/analysis_tab', data);
-  }
-
-  /// Renders the `views/pkg/show.mustache` template.
-  String renderPkgShowPage(
-      Package package,
-      List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls,
-      PackageVersion selectedVersion,
-      PackageVersion latestStableVersion,
-      PackageVersion latestDevVersion,
-      int totalNumberOfVersions,
-      AnalysisExtract extract,
-      AnalysisView analysis) {
-    assert(versions.length == versionDownloadUrls.length);
-    final bool isFlutterPlugin =
-        latestStableVersion.pubspec.dependsOnFlutterSdk ||
-            latestStableVersion.pubspec.hasFlutterPlugin;
-
-    final Map<String, Object> values = _pkgShowPageValues(
-      package,
-      versions,
-      versionDownloadUrls,
-      selectedVersion,
-      latestStableVersion,
-      latestDevVersion,
-      totalNumberOfVersions,
-      extract,
-      analysis,
-      isFlutterPlugin,
-    );
-    return _renderPage(
-      'pkg/show',
-      values,
-      title: '${package.name} ${selectedVersion.id} | Dart Package',
-      packageVersion: selectedVersion,
-      faviconUrl: isFlutterPlugin ? LogoUrls.flutterLogo32x32 : null,
-    );
+    return _renderTemplate('pkg/analysis_tab', data);
   }
 
   Map<String, Object> _pkgShowPageValues(
@@ -413,8 +333,7 @@ class TemplateService {
     addFileTab('changelog', changelogFilename, renderedChangelog);
     addFileTab('example', 'Example', renderedExample);
     if (tabs.isNotEmpty) {
-      tabs.first['class'] = 'active'; // used in old design only
-      tabs.first['active'] = '-active'; // used in v2 only
+      tabs.first['active'] = '-active';
     }
 
     final values = {
@@ -434,10 +353,7 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'icons': _renderIconsBlockHtml(
-            analysis?.platforms), // used in old design only
-        'tags_html': _renderTags(analysis?.platforms,
-            wrapperDiv: true), // used in v2 only
+        'tags_html': _renderTags(analysis?.platforms, wrapperDiv: true),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -457,14 +373,14 @@ class TemplateService {
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
         'score_box_html': _renderScoreBox(extract?.overallScore),
-        'analysis_html': renderAnalysisTabV2(extract, analysis),
+        'analysis_html': renderAnalysisTab(extract, analysis),
       },
       'versions': versionsJson,
       'show_versions_link': totalNumberOfVersions > versions.length,
       'tabs': tabs,
       'has_no_file_tab': tabs.isEmpty,
       'version_count': '$totalNumberOfVersions',
-      'icons': LogoUrls.versionsTableIcons, // used in v2 only
+      'icons': LogoUrls.versionsTableIcons,
     };
     return values;
   }
@@ -509,11 +425,11 @@ class TemplateService {
       'flutter': renderFlutter,
       'tool_html': toolHtml,
     };
-    return _renderTemplate('v2/pkg/install_block', values);
+    return _renderTemplate('pkg/install_block', values);
   }
 
-  /// Renders the `views/v2/pkg/show.mustache` template.
-  String renderPkgShowPageV2(
+  /// Renders the `views/pkg/show.mustache` template.
+  String renderPkgShowPage(
       Package package,
       List<PackageVersion> versions,
       List<Uri> versionDownloadUrls,
@@ -546,8 +462,8 @@ class TemplateService {
         queryParameters: {'q': 'dependency:${package.name}'},
       ).toString(),
     );
-    final content = _renderTemplate('v2/pkg/show', values);
-    return renderLayoutPageV2(
+    final content = _renderTemplate('pkg/show', values);
+    return renderLayoutPage(
       PageType.package,
       content,
       title: '${package.name} ${selectedVersion.id} | Dart Package',
@@ -559,7 +475,8 @@ class TemplateService {
 
   /// Renders the `views/authorized.mustache` template.
   String renderAuthorizedPage() {
-    return _renderPage('authorized', {},
+    final String content = _renderTemplate('authorized', {});
+    return renderLayoutPage(PageType.package, content,
         title: 'Pub Authorized Successfully', includeSurvey: false);
   }
 
@@ -570,39 +487,19 @@ class TemplateService {
       'message': message,
       'traceback': traceback
     };
-    return _renderPage('error', values,
+    final String content = _renderTemplate('error', values);
+    return renderLayoutPage(PageType.package, content,
         title: 'Error $status', includeSurvey: false);
   }
 
-  /// Renders the `views/v2/help.mustache` template.
-  String renderHelpPageV2() {
-    final String content = _renderTemplate('v2/help', {});
-    return renderLayoutPageV2(PageType.package, content);
+  /// Renders the `views/help.mustache` template.
+  String renderHelpPage() {
+    final String content = _renderTemplate('help', {});
+    return renderLayoutPage(PageType.package, content);
   }
 
   /// Renders the `views/index.mustache` template.
-  String renderIndexPage(List<PackageVersion> recentPackages,
-      List<AnalysisExtract> analysisExtracts) {
-    final values = {
-      'recent_packages': new List.generate(recentPackages.length, (index) {
-        final PackageVersion version = recentPackages[index];
-        final AnalysisExtract analysis = analysisExtracts[index];
-        final description = version.ellipsizedDescription;
-        return {
-          'icons': _renderIconsColumnHtml(analysis?.platforms),
-          'name': version.packageKey.id,
-          'short_updated': version.shortCreated,
-          'latest_version': {'version': version.id},
-          'description': description != null,
-          'ellipsized_description': description,
-        };
-      }).toList(),
-    };
-    return _renderPage('index', values, title: 'Pub: Dart Package Manager');
-  }
-
-  /// Renders the `views/v2/index.mustache` template.
-  String renderIndexPageV2(
+  String renderIndexPage(
     String topHtml,
     String platform,
   ) {
@@ -614,8 +511,8 @@ class TemplateService {
       'ranking_tooltip_html': _rankingTooltip(false),
       'top_html': topHtml,
     };
-    final String content = _renderTemplate('v2/index', values);
-    return renderLayoutPageV2(
+    final String content = _renderTemplate('index', values);
+    return renderLayoutPage(
       PageType.landing,
       content,
       title: 'Pub: Dart Package Manager',
@@ -623,7 +520,7 @@ class TemplateService {
     );
   }
 
-  /// Renders the `views/v2/mini_list.mustache` template.
+  /// Renders the `views/mini_list.mustache` template.
   String renderMiniList(List<PackageView> packages) {
     final values = {
       'packages': packages.map((package) {
@@ -634,11 +531,11 @@ class TemplateService {
         };
       }).toList(),
     };
-    return _renderTemplate('v2/mini_list', values);
+    return _renderTemplate('mini_list', values);
   }
 
-  /// Renders the `views/v2/layout.mustache` template.
-  String renderLayoutPageV2(
+  /// Renders the `views/layout.mustache` template.
+  String renderLayoutPage(
     PageType type,
     String contentHtml, {
     String title: 'pub.dartlang.org',
@@ -690,43 +587,7 @@ class TemplateService {
       'listing_banner': type == PageType.listing,
       'package_banner': type == PageType.package,
     };
-    return _renderTemplate('v2/layout', values, escapeValues: false);
-  }
-
-  /// Renders the `views/layout.mustache` template.
-  String renderLayoutPage(String title, String contentString,
-      {PackageVersion packageVersion,
-      String faviconUrl,
-      String searchQuery,
-      bool includeSurvey: true}) {
-    final String escapedSearchQuery =
-        searchQuery == null ? null : HTML_ESCAPE.convert(searchQuery);
-    final values = {
-      'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
-      'package': packageVersion == null
-          ? false
-          : {
-              'name': HTML_ESCAPE.convert(packageVersion.packageKey.id),
-              'description':
-                  HTML_ESCAPE.convert(packageVersion.ellipsizedDescription),
-            },
-      'title': HTML_ESCAPE.convert(title),
-      'search_query': escapedSearchQuery,
-      // This is not escaped as it is already escaped by the caller.
-      'content': contentString,
-      // TODO: The python implementation used
-      'message': false,
-      'include_survey': includeSurvey
-    };
     return _renderTemplate('layout', values, escapeValues: false);
-  }
-
-  /// Renders the `views/v2/pagination.mustache` template.
-  String renderPaginationV2(PageLinks pageLinks) {
-    final values = {
-      'page_links': pageLinks.hrefPatterns(),
-    };
-    return _renderTemplate('v2/pagination', values, escapeValues: false);
   }
 
   /// Renders the `views/pagination.mustache` template.
@@ -737,84 +598,7 @@ class TemplateService {
     return _renderTemplate('pagination', values, escapeValues: false);
   }
 
-  /// Renders the `views/search.mustache` template.
-  String renderSearchPage(SearchResultPage resultPage, PageLinks pageLinks) {
-    final String queryText = resultPage.query.query;
-    final String paginationHtml = renderPagination(pageLinks);
-    final List results = [];
-    for (int i = 0; i < resultPage.packages.length; i++) {
-      final PackageView view = resultPage.packages[i];
-      results.add({
-        'url': '/packages/${view.name}',
-        'name': view.name,
-        'version': HTML_ESCAPE.convert(view.version),
-        'show_dev_version': view.devVersion != null,
-        'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
-        'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
-        'icons': _renderIconsColumnHtml(view.platforms),
-        'last_uploaded': view.shortUpdated,
-        'desc': view.ellipsizedDescription,
-      });
-    }
-    final values = {
-      'query': resultPage.query.query,
-      'results': results,
-      'pagination': paginationHtml,
-      'hasResults': results.length > 0,
-    };
-    return _renderPage('search', values,
-        title: 'Search results for $queryText.', searchQuery: queryText);
-  }
-
-  /// Renders a whole HTML page using the `views/layout.mustache` template and
-  /// the provided [template] for the content.
-  String _renderPage(String template, values,
-      {String title: 'pub.dartlang.org',
-      PackageVersion packageVersion,
-      String faviconUrl,
-      String searchQuery,
-      bool includeSurvey: true}) {
-    final renderedContent = _renderTemplate(template, values);
-    return renderLayoutPage(title, renderedContent,
-        packageVersion: packageVersion,
-        faviconUrl: faviconUrl,
-        searchQuery: searchQuery,
-        includeSurvey: includeSurvey);
-  }
-
-  /// Renders the icons and related text using the pkg/icons_block template.
-  String _renderIconsBlockHtml(List<String> platforms) {
-    final List icons = _mapIconsDataFromPlatforms(platforms);
-    return _renderTemplate('pkg/icons_block', {
-      'has_icons': icons.isNotEmpty,
-      'icons': icons,
-    });
-  }
-
-  /// Renders the icons and related text using the pkg/icons_column template.
-  String _renderIconsColumnHtml(List<String> platforms) {
-    final List icons = _mapIconsDataFromPlatforms(platforms);
-    return _renderTemplate('pkg/icons_column', {
-      'has_icons': icons.isNotEmpty,
-      'icons': icons,
-      'min_width_px': icons.length * 25,
-    });
-  }
-
-  List _mapIconsDataFromPlatforms(List<String> platforms) {
-    final List icons = [];
-    platforms?.forEach((String platform) {
-      final Map iconData = _logoData[platform];
-      if (iconData == null) {
-        // TODO: log missing
-      } else {
-        icons.add(iconData);
-      }
-    });
-    return icons;
-  }
-
-  /// Renders the tags using the v2/pkg/tags template.
+  /// Renders the tags using the pkg/tags template.
   String _renderTags(List<String> platforms,
       {String package, bool wrapperDiv: false}) {
     final List<Map> tags = <Map>[];
@@ -842,7 +626,7 @@ class TemplateService {
         };
       }));
     }
-    return _renderTemplate('v2/pkg/tags', {
+    return _renderTemplate('pkg/tags', {
       'has_tags': tags.isNotEmpty,
       'wrapper_div': wrapperDiv,
       'tags': tags,
@@ -901,7 +685,7 @@ class TemplateService {
         platformTabData('All', null),
       ]
     };
-    return _renderTemplate('v2/platform_tabs', values);
+    return _renderTemplate('platform_tabs', values);
   }
 }
 
@@ -1076,23 +860,6 @@ abstract class LogoUrls {
     'download': LogoUrls.downloadIcon,
   };
 }
-
-// used in old design only
-final Map<String, Map> _logoData = const {
-  KnownPlatforms.flutter: const {
-    'src': LogoUrls.flutterLogo32x32,
-    'label': 'Flutter package',
-    'href': '/flutter/packages',
-  },
-  KnownPlatforms.server: const {
-    'src': LogoUrls.shellLogo32x32,
-    'label': 'Server',
-  },
-  KnownPlatforms.web: const {
-    'src': LogoUrls.html5Logo32x32,
-    'label': 'Web',
-  },
-};
 
 const String flutterPackagesDescriptionHtml =
     '<p><a href="https://flutter.io/using-packages/">Learn more about using packages with Flutter.</a></p>';

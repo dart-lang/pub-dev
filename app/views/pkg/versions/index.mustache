@@ -1,35 +1,35 @@
+{{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
 <h1>All versions of {{package.name}}</h1>
-<table>
+<table class="version-table">
   <thead>
-    <tr>
-      <th>Version</th>
-      <th>Uploaded</th>
-      <th class="documentation" width="80">Documentation</th>
-      <th class="archive" width="80">Archive</th>
-    </tr>
+  <tr>
+    <th>Version</th>
+    <th>Uploaded</th>
+    <th class="documentation" width="80">Documentation</th>
+    <th class="archive" width="80">Archive</th>
+  </tr>
   </thead>
   <tbody>
-    {{#versions}}
-      <tr>
-        <td><strong>{{version}}</strong></td>
-        <td>{{short_created}}</td>
-        <td class="documentation">
-          <a href="{{documentation}}"
-             title="Go to the documentation of {{package.name}} {{version}}">
-            <i class="icon-book">
-              Go to the documentation of {{package.name}} {{version}}
-            </i>
-          </a>
-        </td>
-        <td class="archive">
-          <a href="{{download_url}}"
-              title="Download {{package.name}} {{version}} archive">
-            <i class="icon-download-alt">
-              Download {{package.name}} {{version}} archive
-            </i>
-          </a>
-        </td>
-      </tr>
-    {{/versions}}
+  {{#versions}}
+    <tr>
+      <td><strong><a href="/packages/{{package.name}}/versions/{{version}}">{{version}}</a></strong></td>
+      <td>{{short_created}}</td>
+      <td class="documentation">
+        <a href="{{documentation}}"
+           title="Go to the documentation of {{package.name}} {{version}}">
+          <img src="{{icons.documentation}}" alt="Go to the documentation of {{package.name}} {{version}}" />
+        </a>
+      </td>
+      <td class="archive">
+        <a href="{{download_url}}"
+           title="Download {{package.name}} {{version}} archive">
+          <img src="{{icons.download}}" alt="Download {{package.name}} {{version}} archive" />
+        </a>
+      </td>
+    </tr>
+  {{/versions}}
   </tbody>
 </table>
