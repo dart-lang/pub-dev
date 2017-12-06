@@ -6,7 +6,6 @@ library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
 
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
