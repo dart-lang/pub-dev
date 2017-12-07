@@ -618,14 +618,14 @@ class TemplateService {
         'status': 'unidentified',
         'text': '[unidentified]',
         'title': 'Check the analysis tab for further details.',
-        'v2_href': href,
+        'href': href,
       });
     } else {
       tags.addAll(platforms.map((platform) {
         final platformDict = getPlatformDict(platform, nullIfMissing: true);
         return {
           'text': platformDict.name ?? platform,
-          'v2_href': platformDict?.listingUrl,
+          'href': platformDict?.listingUrl,
         };
       }));
     }
