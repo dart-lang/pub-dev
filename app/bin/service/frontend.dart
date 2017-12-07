@@ -57,7 +57,14 @@ void main() {
               return await appHandler(sanitizedRequest, apiHandler);
             } catch (error, s) {
               _logger.severe('Request handler failed', error, s);
-              return new shelf.Response.internalServerError();
+
+              Map<String, String> debugHeaders;
+              if (context.traceId != null) {
+                debugHeaders = {'package-site-request-id': context.traceId};
+              }
+
+              return new shelf.Response.internalServerError(
+                  body: 'Fatal package site error', headers: debugHeaders);
             } finally {
               _logger.info('Request handler done.');
             }
