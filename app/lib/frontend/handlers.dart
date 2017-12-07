@@ -27,6 +27,12 @@ import 'models.dart';
 import 'search_service.dart';
 import 'templates.dart';
 
+// TODO(kevmoo): Disallow package publish packages that start w/ this String
+//               Unlikely, but might be worth-wile.
+/// [String] that triggers an exception in the request handler for packages with
+/// this name.
+final forceRuntimeErrorPackageName = 'abc_force_package_site_crash_xyz';
+
 final _pubHeaderLogger = new Logger('pub.header_logger');
 
 final String _staticPath = Platform.script.resolve('../../static').toFilePath();
@@ -76,6 +82,12 @@ Future<shelf.Response> appHandler(
     return apiPackagesHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
+    // Allows validating client behavior against a known-bad end-point
+    if (path.startsWith('/api/packages/$forceRuntimeErrorPackageName')) {
+      throw new UnsupportedError(
+          'Requested "trigger" package `$forceRuntimeErrorPackageName`.');
+    }
+
     return shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
