@@ -127,21 +127,21 @@ void main() {
       final query = new SearchQuery.parse();
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, isNull);
-      expect(query.toSearchLink(v2: true), '/packages');
+      expect(query.toSearchLink(), '/packages');
     });
 
     test('platform: flutter', () {
       final query = new SearchQuery.parse(platform: 'flutter');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, isNull);
-      expect(query.toSearchLink(v2: true), '/flutter/packages');
+      expect(query.toSearchLink(), '/flutter/packages');
     });
 
     test('package prefix: angular', () {
       final query = new SearchQuery.parse(query: 'package:angular');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, 'angular');
-      expect(query.toSearchLink(v2: true), '/packages?q=package%3Aangular');
+      expect(query.toSearchLink(), '/packages?q=package%3Aangular');
     });
 
     test('complex search', () {
@@ -149,7 +149,7 @@ void main() {
           query: 'package:angular widget', order: SearchOrder.top);
       expect(query.parsedQuery.text, 'widget');
       expect(query.parsedQuery.packagePrefix, 'angular');
-      expect(query.toSearchLink(v2: true),
+      expect(query.toSearchLink(),
           '/packages?q=package%3Aangular+widget&sort=top');
     });
   });

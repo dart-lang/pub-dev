@@ -274,21 +274,21 @@ class SearchQuery {
     return hasText || hasNonTextOrdering;
   }
 
-  String toSearchLink({bool v2: false, int page}) {
-    String path = v2 ? '/packages' : '/search';
+  String toSearchLink({int page}) {
+    String path = '/packages';
     final Map<String, String> params = {};
     if (query != null && query.isNotEmpty) {
       params['q'] = query;
     }
     if (platformPredicate != null && platformPredicate.isNotEmpty) {
-      if (v2 && platformPredicate.isSingle) {
+      if (platformPredicate.isSingle) {
         path = '/${platformPredicate.single}/packages';
       } else {
         params['platforms'] = platformPredicate.toQueryParamValue();
       }
     }
     if (order != null) {
-      final String paramName = v2 ? 'sort' : 'order';
+      final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
     }
     if (page != null) {
