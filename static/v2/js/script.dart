@@ -111,6 +111,7 @@ void _changeTab(String name) {
 void _setEventForHashChange() {
   window.onHashChange.listen((_) {
     _changeTabOnUrlHash();
+    _fixIssueLinks();
   });
   _changeTabOnUrlHash();
   final String hash = window.location.hash;
@@ -153,14 +154,8 @@ void _setEventForSearchInput() {
 void _fixIssueLinks() {
   for (AnchorElement bugLink in document.querySelectorAll('a.github_issue')) {
     var url = Uri.parse(bugLink.href);
-    var currentUrlWithoutFragment =
-        Uri.parse(window.location.href).replace(fragment: '').toString();
-    while (currentUrlWithoutFragment.endsWith('#')) {
-      currentUrlWithoutFragment = currentUrlWithoutFragment.substring(
-          0, currentUrlWithoutFragment.length - 1);
-    }
     final lines = <String>[
-      'URL: $currentUrlWithoutFragment',
+      'URL: ${window.location.href}',
       '',
       '<Describe your issue or suggestion here>'
     ];
