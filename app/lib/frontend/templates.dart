@@ -803,17 +803,6 @@ abstract class PageLinks {
   String formatHref(int page);
 }
 
-class SearchLinks extends PageLinks {
-  final SearchQuery query;
-
-  SearchLinks(this.query, int count) : super(query.offset, count);
-
-  SearchLinks.empty(this.query) : super.empty();
-
-  @override
-  String formatHref(int page) => query.toSearchLink(page: page);
-}
-
 class PackageLinks extends PageLinks {
   static const int resultsPerPage = 10;
   static const int maxPages = 15;
