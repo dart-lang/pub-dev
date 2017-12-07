@@ -47,7 +47,14 @@ main, .site-header {
 code {
   background: #f8f8f8;
   border: 1px solid #eee;
+  color: #333;
   padding: 2px;
+}
+
+pre > code {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
 }
 
 ._flex-space{
