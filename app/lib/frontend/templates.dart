@@ -663,7 +663,7 @@ class TemplateService {
             platformPredicate: tabPlatform == null
                 ? new PlatformPredicate()
                 : new PlatformPredicate(required: [tabPlatform]));
-        url = newQuery.toSearchLink(v2: true);
+        url = newQuery.toSearchLink();
       } else {
         final List<String> pathParts = [''];
         if (tabPlatform != null) pathParts.add(tabPlatform);
@@ -829,7 +829,7 @@ class PackageLinks extends PageLinks {
     if (_searchQuery == null) {
       return '$basePath?page=$page';
     } else {
-      return _searchQuery.toSearchLink(v2: true, page: page);
+      return _searchQuery.toSearchLink(page: page);
     }
   }
 }
