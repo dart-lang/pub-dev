@@ -63,9 +63,9 @@ String _formattedPlatformName(String platform) {
 
 String _landingPageTitle(String platform) {
   if (platform == KnownPlatforms.flutter) {
-    return 'Dart Packages';
+    return 'Flutter Packages';
   }
-  return 'Flutter Packages';
+  return 'Dart Packages';
 }
 
 final Map<String, String> _landingBlurbs = const {
