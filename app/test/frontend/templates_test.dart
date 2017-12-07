@@ -352,21 +352,19 @@ void main() {
   });
 
   group('URLs', () {
-    test('SearchLinks defaults', () {
+    test('PackageLinks defaults', () {
       final query = new SearchQuery.parse(query: 'web framework');
-      final SearchLinks links = new SearchLinks(query, 100);
-      expect(links.formatHref(1), '/search?q=web+framework&page=1');
-      expect(links.formatHref(2), '/search?q=web+framework&page=2');
+      final PackageLinks links = new PackageLinks(0, 100, searchQuery: query);
+      expect(links.formatHref(1), '/packages?q=web+framework&page=1');
+      expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
-    test('SearchLinks with type', () {
+    test('PackageLinks with platform', () {
       final query =
           new SearchQuery.parse(query: 'web framework', platform: 'server');
-      final SearchLinks links = new SearchLinks(query, 100);
-      expect(links.formatHref(1),
-          '/search?q=web+framework&platforms=server&page=1');
-      expect(links.formatHref(2),
-          '/search?q=web+framework&platforms=server&page=2');
+      final PackageLinks links = new PackageLinks(0, 100, searchQuery: query);
+      expect(links.formatHref(1), '/server/packages?q=web+framework&page=1');
+      expect(links.formatHref(2), '/server/packages?q=web+framework&page=2');
     });
   });
 }
