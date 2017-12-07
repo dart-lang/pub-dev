@@ -33,296 +33,293 @@ void tScopedTest(String name, Future func()) {
 void main() {
   final PageSize = 10;
 
-  group('handlers', () {
-    group('not found', () {
-      tScopedTest('/xxx', () async {
-        await expectNotFoundResponse(await issueGet('/xxx'));
+  group('not found', () {
+    tScopedTest('/xxx', () async {
+      await expectNotFoundResponse(await issueGet('/xxx'));
+    });
+  });
+
+  group('ui', () {
+    tScopedTest('/', () async {
+      registerSearchService(new SearchServiceMock((SearchQuery query) {
+        expect(query.order, SearchOrder.top);
+        expect(query.offset, 0);
+        expect(query.limit, 15);
+        expect(query.platformPredicate, isNull);
+        expect(query.query, isNull);
+        return new SearchResultPage(
+          query,
+          1,
+          [new PackageView.fromModel(version: testPackageVersion)],
+        );
+      }));
+      final backend =
+          new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
+        expect(offset, isNull);
+        expect(limit, equals(5));
+        return [testPackageVersion];
       });
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+
+      await expectHtmlResponse(await issueGet('/'));
     });
 
-    group('ui', () {
-      tScopedTest('/', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.order, SearchOrder.top);
+    tScopedTest('/packages', () async {
+      registerSearchService(new SearchServiceMock(
+        (SearchQuery query) {
           expect(query.offset, 0);
-          expect(query.limit, 15);
+          expect(query.limit, PageSize);
           expect(query.platformPredicate, isNull);
-          expect(query.query, isNull);
-          return new SearchResultPage(
-            query,
-            1,
-            [new PackageView.fromModel(version: testPackageVersion)],
-          );
-        }));
-        final backend =
-            new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
-          expect(offset, isNull);
-          expect(limit, equals(5));
+          return new SearchResultPage(query, 1, [
+            new PackageView.fromModel(
+                package: testPackage,
+                version: testPackageVersion,
+                analysis: null)
+          ]);
+        },
+      ));
+      final backend = new BackendMock(
+        lookupPackageFun: (packageName) {
+          return packageName == testPackage.name ? testPackage : null;
+        },
+        lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
           return [testPackageVersion];
-        });
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
+        },
+      );
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+      await expectHtmlResponse(await issueGet('/packages'));
+    });
 
-        await expectHtmlResponse(await issueGet('/'));
-      });
-
-      tScopedTest('/packages', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 0);
-            expect(query.limit, PageSize);
-            expect(query.platformPredicate, isNull);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  analysis: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages'));
-      });
-
-      tScopedTest('/packages?q=foobar', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.query, 'foobar');
-            expect(query.offset, 0);
-            expect(query.limit, PageSize);
-            expect(query.platformPredicate, isNull);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  analysis: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages?q=foobar'));
-      });
-
-      tScopedTest('/packages?page=2', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 10);
-            expect(query.limit, PageSize);
-            expect(query.platformPredicate, isNull);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  analysis: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages?page=2'));
-      });
-
-      tScopedTest('/packages/foobar_pkg - found', () async {
-        final backend = new BackendMock(lookupPackageFun: (String packageName) {
-          expect(packageName, 'foobar_pkg');
-          return testPackage;
-        }, versionsOfPackageFun: (String package) {
-          expect(package, testPackage.name);
-          return [testPackageVersion];
-        }, downloadUrlFun: (String package, String version) {
-          return Uri.parse('http://blobstore/$package/$version');
-        });
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
-      });
-
-      tScopedTest('/packages/foobar_pkg - not found', () async {
-        final backend = new BackendMock(lookupPackageFun: (String packageName) {
-          expect(packageName, 'foobar_pkg');
-          return null;
-        });
-        registerBackend(backend);
-        await expectHtmlResponse(await issueGet('/packages/foobar_pkg'),
-            status: 404);
-      });
-
-      tScopedTest('/packages/foobar_pkg/versions - found', () async {
-        final backend = new BackendMock(versionsOfPackageFun: (String package) {
-          expect(package, testPackage.name);
-          return [testPackageVersion];
-        }, downloadUrlFun: (String package, String version) {
-          return Uri.parse('http://blobstore/$package/$version');
-        });
-        registerBackend(backend);
-        await expectHtmlResponse(
-            await issueGet('/packages/foobar_pkg/versions'));
-      });
-
-      tScopedTest('/packages/foobar_pkg/versions - not found', () async {
-        final backend = new BackendMock(versionsOfPackageFun: (String package) {
-          expect(package, testPackage.name);
-          return [];
-        });
-        registerBackend(backend);
-        await expectHtmlResponse(
-            await issueGet('/packages/foobar_pkg/versions'),
-            status: 404);
-      });
-
-      tScopedTest('/flutter', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.order, SearchOrder.top);
+    tScopedTest('/packages?q=foobar', () async {
+      registerSearchService(new SearchServiceMock(
+        (SearchQuery query) {
+          expect(query.query, 'foobar');
           expect(query.offset, 0);
-          expect(query.limit, 15);
+          expect(query.limit, PageSize);
+          expect(query.platformPredicate, isNull);
+          return new SearchResultPage(query, 1, [
+            new PackageView.fromModel(
+                package: testPackage,
+                version: testPackageVersion,
+                analysis: null)
+          ]);
+        },
+      ));
+      final backend = new BackendMock(
+        lookupPackageFun: (packageName) {
+          return packageName == testPackage.name ? testPackage : null;
+        },
+        lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
+          return [testPackageVersion];
+        },
+      );
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+      await expectHtmlResponse(await issueGet('/packages?q=foobar'));
+    });
+
+    tScopedTest('/packages?page=2', () async {
+      registerSearchService(new SearchServiceMock(
+        (SearchQuery query) {
+          expect(query.offset, 10);
+          expect(query.limit, PageSize);
+          expect(query.platformPredicate, isNull);
+          return new SearchResultPage(query, 1, [
+            new PackageView.fromModel(
+                package: testPackage,
+                version: testPackageVersion,
+                analysis: null)
+          ]);
+        },
+      ));
+      final backend = new BackendMock(
+        lookupPackageFun: (packageName) {
+          return packageName == testPackage.name ? testPackage : null;
+        },
+        lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
+          return [testPackageVersion];
+        },
+      );
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+      await expectHtmlResponse(await issueGet('/packages?page=2'));
+    });
+
+    tScopedTest('/packages/foobar_pkg - found', () async {
+      final backend = new BackendMock(lookupPackageFun: (String packageName) {
+        expect(packageName, 'foobar_pkg');
+        return testPackage;
+      }, versionsOfPackageFun: (String package) {
+        expect(package, testPackage.name);
+        return [testPackageVersion];
+      }, downloadUrlFun: (String package, String version) {
+        return Uri.parse('http://blobstore/$package/$version');
+      });
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+      await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
+    });
+
+    tScopedTest('/packages/foobar_pkg - not found', () async {
+      final backend = new BackendMock(lookupPackageFun: (String packageName) {
+        expect(packageName, 'foobar_pkg');
+        return null;
+      });
+      registerBackend(backend);
+      await expectHtmlResponse(await issueGet('/packages/foobar_pkg'),
+          status: 404);
+    });
+
+    tScopedTest('/packages/foobar_pkg/versions - found', () async {
+      final backend = new BackendMock(versionsOfPackageFun: (String package) {
+        expect(package, testPackage.name);
+        return [testPackageVersion];
+      }, downloadUrlFun: (String package, String version) {
+        return Uri.parse('http://blobstore/$package/$version');
+      });
+      registerBackend(backend);
+      await expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));
+    });
+
+    tScopedTest('/packages/foobar_pkg/versions - not found', () async {
+      final backend = new BackendMock(versionsOfPackageFun: (String package) {
+        expect(package, testPackage.name);
+        return [];
+      });
+      registerBackend(backend);
+      await expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'),
+          status: 404);
+    });
+
+    tScopedTest('/flutter', () async {
+      registerSearchService(new SearchServiceMock((SearchQuery query) {
+        expect(query.order, SearchOrder.top);
+        expect(query.offset, 0);
+        expect(query.limit, 15);
+        expect(query.platformPredicate.single, 'flutter');
+        expect(query.query, isNull);
+        return new SearchResultPage(
+          query,
+          1,
+          [new PackageView.fromModel(version: testPackageVersion)],
+        );
+      }));
+      final backend =
+          new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
+        expect(offset, isNull);
+        expect(limit, equals(5));
+        return [testPackageVersion];
+      });
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+
+      await expectHtmlResponse(await issueGet('/flutter'));
+    });
+
+    tScopedTest('/flutter/plugins', () async {
+      expectRedirectResponse(
+          await issueGet('/flutter/plugins'), '/flutter/packages');
+    });
+
+    tScopedTest('/flutter/packages', () async {
+      registerSearchService(new SearchServiceMock(
+        (SearchQuery query) {
+          expect(query.offset, 0);
+          expect(query.limit, PageSize);
+          expect(query.platformPredicate.isNotEmpty, isTrue);
           expect(query.platformPredicate.single, 'flutter');
-          expect(query.query, isNull);
-          return new SearchResultPage(
-            query,
-            1,
-            [new PackageView.fromModel(version: testPackageVersion)],
-          );
-        }));
-        final backend =
-            new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
-          expect(offset, isNull);
-          expect(limit, equals(5));
+          return new SearchResultPage(query, 1, [
+            new PackageView.fromModel(
+                package: testPackage,
+                version: testPackageVersion,
+                analysis: null)
+          ]);
+        },
+      ));
+      final backend = new BackendMock(
+        lookupPackageFun: (packageName) {
+          return packageName == testPackage.name ? testPackage : null;
+        },
+        lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
           return [testPackageVersion];
-        });
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
+        },
+      );
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+      await expectHtmlResponse(await issueGet('/flutter/packages'));
+    });
 
-        await expectHtmlResponse(await issueGet('/flutter'));
-      });
-
-      tScopedTest('/flutter/plugins', () async {
-        expectRedirectResponse(
-            await issueGet('/flutter/plugins'), '/flutter/packages');
-      });
-
-      tScopedTest('/flutter/packages', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 0);
-            expect(query.limit, PageSize);
-            expect(query.platformPredicate.isNotEmpty, isTrue);
-            expect(query.platformPredicate.single, 'flutter');
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  analysis: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/flutter/packages'));
-      });
-
-      tScopedTest('/flutter/packages&page=2', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 10);
-            expect(query.limit, PageSize);
-            expect(query.platformPredicate.isNotEmpty, isTrue);
-            expect(query.platformPredicate.single, 'flutter');
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  analysis: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
-      });
-
-      tScopedTest('/doc', () async {
-        for (var path in redirectPaths.keys) {
-          final redirectUrl =
-              'https://www.dartlang.org/tools/pub/${redirectPaths[path]}';
-          expectRedirectResponse(await issueGet(path), redirectUrl);
-        }
-      });
-
-      tScopedTest('/authorized', () async {
-        await expectHtmlResponse(await issueGet('/authorized'));
-      });
-
-      tScopedTest('/search?q=foobar', () async {
-        expectRedirectResponse(await issueGet('/search?q=foobar'),
-            'https://pub.dartlang.org/packages?q=foobar');
-      });
-
-      tScopedTest('/search?q=foobar&page=2', () async {
-        expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
-            'https://pub.dartlang.org/packages?q=foobar&page=2');
-      });
-
-      tScopedTest('/feed.atom', () async {
-        final backend =
-            new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
-          expect(offset, 0);
-          expect(limit, PageSize);
+    tScopedTest('/flutter/packages&page=2', () async {
+      registerSearchService(new SearchServiceMock(
+        (SearchQuery query) {
+          expect(query.offset, 10);
+          expect(query.limit, PageSize);
+          expect(query.platformPredicate.isNotEmpty, isTrue);
+          expect(query.platformPredicate.single, 'flutter');
+          return new SearchResultPage(query, 1, [
+            new PackageView.fromModel(
+                package: testPackage,
+                version: testPackageVersion,
+                analysis: null)
+          ]);
+        },
+      ));
+      final backend = new BackendMock(
+        lookupPackageFun: (packageName) {
+          return packageName == testPackage.name ? testPackage : null;
+        },
+        lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
           return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectAtomXmlResponse(await issueGet('/feed.atom'), regexp: '''
+        },
+      );
+      registerBackend(backend);
+      registerAnalyzerClient(new AnalyzerClientMock());
+      await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
+    });
+
+    tScopedTest('/doc', () async {
+      for (var path in redirectPaths.keys) {
+        final redirectUrl =
+            'https://www.dartlang.org/tools/pub/${redirectPaths[path]}';
+        expectRedirectResponse(await issueGet(path), redirectUrl);
+      }
+    });
+
+    tScopedTest('/authorized', () async {
+      await expectHtmlResponse(await issueGet('/authorized'));
+    });
+
+    tScopedTest('/search?q=foobar', () async {
+      expectRedirectResponse(await issueGet('/search?q=foobar'),
+          'https://pub.dartlang.org/packages?q=foobar');
+    });
+
+    tScopedTest('/search?q=foobar&page=2', () async {
+      expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
+          'https://pub.dartlang.org/packages?q=foobar&page=2');
+    });
+
+    tScopedTest('/feed.atom', () async {
+      final backend =
+          new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
+        expect(offset, 0);
+        expect(limit, PageSize);
+        return [testPackageVersion];
+      });
+      registerBackend(backend);
+      await expectAtomXmlResponse(await issueGet('/feed.atom'), regexp: '''
 <\\?xml version="1.0" encoding="UTF-8"\\?>
 <feed xmlns="http://www.w3.org/2005/Atom">
         <id>https://pub.dartlang.org/feed.atom</id>
@@ -354,97 +351,96 @@ void main() {
 (\\s*)
 </feed>
 ''');
+    });
+  });
+
+  group('old api', () {
+    scopedTest('/packages.json', () async {
+      final backend =
+          new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
+        expect(offset, 0);
+        expect(limit, greaterThan(PageSize));
+        return [testPackage];
+      }, lookupLatestVersionsFun: (List<Package> packages) {
+        expect(packages.length, 1);
+        expect(packages.first, testPackage);
+        return [testPackageVersion];
+      });
+      registerBackend(backend);
+      await expectJsonResponse(await issueGet('/packages.json'), body: {
+        "packages": ["https://pub.dartlang.org/packages/foobar_pkg.json"],
+        "next": null
       });
     });
 
-    group('old api', () {
-      scopedTest('/packages.json', () async {
-        final backend =
-            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
-          expect(offset, 0);
-          expect(limit, greaterThan(PageSize));
-          return [testPackage];
-        }, lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectJsonResponse(await issueGet('/packages.json'), body: {
-          "packages": ["https://pub.dartlang.org/packages/foobar_pkg.json"],
-          "next": null
-        });
+    tScopedTest('/packages/foobar_pkg.json', () async {
+      final backend = new BackendMock(lookupPackageFun: (String package) {
+        expect(package, 'foobar_pkg');
+        return testPackage;
+      }, versionsOfPackageFun: (String package) {
+        expect(package, 'foobar_pkg');
+        return [testPackageVersion];
       });
-
-      tScopedTest('/packages/foobar_pkg.json', () async {
-        final backend = new BackendMock(lookupPackageFun: (String package) {
-          expect(package, 'foobar_pkg');
-          return testPackage;
-        }, versionsOfPackageFun: (String package) {
-          expect(package, 'foobar_pkg');
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
-            body: {
-              "name": 'foobar_pkg',
-              "uploaders": ['hans@juergen.com'],
-              "versions": ['0.1.1'],
-            });
-      });
-
-      tScopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
-        final backend = new BackendMock(
-            lookupPackageVersionFun: (String package, String version) {
-          expect(package, 'foobar_pkg');
-          expect(version, '0.1.1');
-          return testPackageVersion;
-        });
-        registerBackend(backend);
-        await expectYamlResponse(
-            await issueGet('/packages/foobar_pkg/versions/0.1.1.yaml'),
-            body: loadYaml(TestPackagePubspec));
-      });
+      registerBackend(backend);
+      await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
+          body: {
+            "name": 'foobar_pkg',
+            "uploaders": ['hans@juergen.com'],
+            "versions": ['0.1.1'],
+          });
     });
 
-    group('editor api', () {
-      tScopedTest('/api/packages', () async {
-        final backend =
-            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
-          expect(offset, 0);
-          expect(limit, greaterThan(10));
-          return [testPackage];
-        }, lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectJsonResponse(await issueGet('/api/packages'), body: {
-          'next_url': null,
-          'packages': [
-            {
-              'name': 'foobar_pkg',
-              'latest': {
-                'version': '0.1.1',
-                'pubspec': loadYaml(TestPackagePubspec),
-                'archive_url': 'https://pub.dartlang.org'
-                    '/packages/foobar_pkg/versions/0.1.1.tar.gz',
-                'package_url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg',
-                'url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg/versions/0.1.1'
-              },
-              'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
-              'version_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/versions/%7Bversion%7D',
-              'new_version_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/new',
-              'uploaders_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/uploaders'
-            }
-          ]
-        });
+    tScopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
+      final backend = new BackendMock(
+          lookupPackageVersionFun: (String package, String version) {
+        expect(package, 'foobar_pkg');
+        expect(version, '0.1.1');
+        return testPackageVersion;
+      });
+      registerBackend(backend);
+      await expectYamlResponse(
+          await issueGet('/packages/foobar_pkg/versions/0.1.1.yaml'),
+          body: loadYaml(TestPackagePubspec));
+    });
+  });
+
+  group('editor api', () {
+    tScopedTest('/api/packages', () async {
+      final backend =
+          new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
+        expect(offset, 0);
+        expect(limit, greaterThan(10));
+        return [testPackage];
+      }, lookupLatestVersionsFun: (List<Package> packages) {
+        expect(packages.length, 1);
+        expect(packages.first, testPackage);
+        return [testPackageVersion];
+      });
+      registerBackend(backend);
+      await expectJsonResponse(await issueGet('/api/packages'), body: {
+        'next_url': null,
+        'packages': [
+          {
+            'name': 'foobar_pkg',
+            'latest': {
+              'version': '0.1.1',
+              'pubspec': loadYaml(TestPackagePubspec),
+              'archive_url': 'https://pub.dartlang.org'
+                  '/packages/foobar_pkg/versions/0.1.1.tar.gz',
+              'package_url': 'https://pub.dartlang.org'
+                  '/api/packages/foobar_pkg',
+              'url': 'https://pub.dartlang.org'
+                  '/api/packages/foobar_pkg/versions/0.1.1'
+            },
+            'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
+            'version_url': 'https://pub.dartlang.org'
+                '/api/packages/foobar_pkg/versions/%7Bversion%7D',
+            'new_version_url': 'https://pub.dartlang.org'
+                '/api/packages/foobar_pkg/new',
+            'uploaders_url': 'https://pub.dartlang.org'
+                '/api/packages/foobar_pkg/uploaders'
+          }
+        ]
       });
     });
   });
