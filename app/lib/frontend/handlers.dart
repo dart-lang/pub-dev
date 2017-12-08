@@ -310,8 +310,9 @@ Future<shelf.Response> _packagesHandlerHtml(
   final int offset = PackageLinks.resultsPerPage * (page - 1);
   final String queryText = request.requestedUri.queryParameters['q'] ?? '';
   final String sortParam = request.requestedUri.queryParameters['sort'];
-  final SearchOrder sortOrder =
-      sortParam == null ? null : parseSearchOrder(sortParam);
+  final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
+      ? null
+      : parseSearchOrder(sortParam);
 
   final SearchQuery searchQuery = new SearchQuery.parse(
       query: queryText,
@@ -319,9 +320,7 @@ Future<shelf.Response> _packagesHandlerHtml(
       order: sortOrder,
       offset: offset,
       limit: PackageLinks.resultsPerPage);
-  final effectiveOrder = sortOrder ?? SearchOrder.top;
-  final effectiveQuery = searchQuery.change(order: effectiveOrder);
-  final searchResult = await searchService.search(effectiveQuery);
+  final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
 
   final links = new PackageLinks(offset, totalCount, searchQuery: searchQuery);

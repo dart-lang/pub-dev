@@ -17,6 +17,7 @@ void main() {
   _setEventForHashChange();
   _setEventForSearchInput();
   _fixIssueLinks();
+  _setEventForSortControl();
 }
 
 void _setEventsForTabs() {
@@ -149,6 +150,56 @@ void _setEventForSearchInput() {
       a.setAttribute('href', newHref);
     }
   });
+}
+
+void _setEventForSortControl() {
+  final Element sortControl = document.getElementById('sort-control');
+  final InputElement queryText = document.querySelector('input[name="q"]');
+  if (sortControl == null || queryText == null) return;
+  final formElement = queryText.form;
+
+  final String originalSort = sortControl.dataset['sort'] ?? '';
+  sortControl.innerHtml = '';
+  final select = new SelectElement();
+
+  void add(String sort, String label) {
+    select.append(new OptionElement(
+        value: sort, data: label, selected: originalSort == sort));
+  }
+
+  // Synchronize with `template_consts.dart`'s SortDict.
+  if (queryText.value.trim().isEmpty) {
+    add('listing_relevance', 'listing relevance');
+  } else {
+    add('search_relevance', 'search relevance');
+  }
+  add('top', 'overall score');
+  add('updated', 'recently updated');
+  add('created', 'newest package');
+  add('popularity', 'popularity');
+
+  select.onChange.listen((_) {
+    final String value = select.selectedOptions.first.value;
+    InputElement sortInput = document.querySelector('input[name="sort"]');
+    if (sortInput == null) {
+      sortInput = new InputElement(type: 'hidden')..name = 'sort';
+      queryText.parent.append(sortInput);
+    }
+    if (value == 'listing_relevance' || value == 'search_relevance') {
+      sortInput.remove();
+    } else {
+      sortInput.value = value;
+    }
+
+    // Removes the q= part from the URL
+    if (queryText.value.isEmpty) {
+      queryText.name = '';
+    }
+
+    // TODO: instead of submitting, compose the URL here (also removing the single `?`)
+    formElement.submit();
+  });
+  sortControl.append(select);
 }
 
 void _fixIssueLinks() {

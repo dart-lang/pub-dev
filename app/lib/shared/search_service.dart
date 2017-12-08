@@ -209,10 +209,9 @@ class SearchQuery {
   factory SearchQuery.fromServiceUrl(Uri uri) {
     final String q = uri.queryParameters['q'];
     final platform = new PlatformPredicate.fromUri(uri);
-    final SearchOrder order = parseSearchOrder(
-      uri.queryParameters['order'],
-      defaultsTo: SearchOrder.top,
-    );
+    final String orderValue = uri.queryParameters['order'];
+    final SearchOrder order =
+        orderValue == null ? null : parseSearchOrder(orderValue);
     int offset =
         int.parse(uri.queryParameters['offset'] ?? '0', onError: (_) => 0);
     int limit = int.parse(uri.queryParameters['limit'] ?? '0',
