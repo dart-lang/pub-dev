@@ -69,8 +69,8 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
   final String panaVersion;
   final String flutterVersion;
   final AnalysisStatus analysisStatus;
-  final Map analysisContent;
   final double maintenanceScore;
+  final Map analysisContent;
 
   AnalysisData({
     this.packageName,
