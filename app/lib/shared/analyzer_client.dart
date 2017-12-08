@@ -14,6 +14,7 @@ import 'package:pub_dartlang_org/analyzer/versions.dart';
 
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
+import 'configuration.dart';
 import 'memcache.dart' show analyzerDataLocalExpiration;
 import 'notification.dart' show notifyService;
 import 'platform.dart';
@@ -38,8 +39,8 @@ class AnalyzerClient {
   final int _extractCacheSize = 10000;
   final Map<AnalysisKey, AnalysisExtract> _extractCache = {};
   final http.Client _client = new http.Client();
-  final String _analyzerServiceHttpHostPort;
-  AnalyzerClient(this._analyzerServiceHttpHostPort);
+  String get _analyzerServiceHttpHostPort =>
+      activeConfiguration.analyzerServicePrefix;
 
   Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) {
     return Future.wait(keys.map(getAnalysisView));

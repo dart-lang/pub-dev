@@ -54,8 +54,7 @@ void _main(int isolateId) {
     await popularityStorage.init();
 
     registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-    final AnalyzerClient analyzerClient =
-        new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
+    final AnalyzerClient analyzerClient = new AnalyzerClient();
     registerAnalyzerClient(analyzerClient);
     registerScopeExitCallback(analyzerClient.close);
 
