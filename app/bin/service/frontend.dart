@@ -85,8 +85,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   await popularityStorage.init();
 
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-  final AnalyzerClient analyzerClient =
-      new AnalyzerClient(activeConfiguration.analyzerServicePrefix);
+  final AnalyzerClient analyzerClient = new AnalyzerClient();
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
 
