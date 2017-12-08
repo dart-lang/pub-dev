@@ -251,9 +251,13 @@ class SearchQuery {
       'platforms': platformPredicate?.toQueryParamValue(),
       'offset': offset?.toString(),
       'limit': limit?.toString(),
+      'order': serializeSearchOrder(order),
     };
-    if (order != null) {
-      map['order'] = serializeSearchOrder(order);
+
+    for (var key in map.keys.toList()) {
+      if (map[key] == null) {
+        map.remove(key);
+      }
     }
     return map;
   }
