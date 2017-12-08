@@ -15,18 +15,21 @@ import 'platform.dart' show KnownPlatforms;
 
 final Logger _logger = new Logger('pub.package_memcache');
 
+const _pubHost = 'pub.dartlang.org';
+
 abstract class UIPackageCache {
   // If [version] is `null` then it corresponds to the cache entry which can be
   // invalidated via [invalidateUiPackagePage].
-  Future<String> getUIPackagePage(String package, String version);
+  Future<String> getUIPackagePage(String host, String package, String version);
 
   // If [version] is `null` then it corresponds to the cache entry which can be
   // invalidated via [invalidateUiPackagePage].
-  Future setUIPackagePage(String package, String version, String data);
+  Future setUIPackagePage(
+      String host, String package, String version, String data);
 
-  Future<String> getUIIndexPage(String platform);
+  Future<String> getUIIndexPage(String host, String platform);
 
-  Future setUIIndexPage(String platform, String content);
+  Future setUIIndexPage(String host, String platform, String content);
 
   Future invalidateUIPackagePage(String package);
 }
@@ -53,12 +56,14 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _json.setBytes(package, data);
 
   @override
-  Future<String> getUIPackagePage(String package, String version) =>
-      _uiPage.getText(_pvKey(package, version));
+  Future<String> getUIPackagePage(
+          String host, String package, String version) =>
+      _uiPage.getText(_pvKey(host, package, version));
 
   @override
-  Future setUIPackagePage(String package, String version, String data) =>
-      _uiPage.setText(_pvKey(package, version), data);
+  Future setUIPackagePage(
+          String host, String package, String version, String data) =>
+      _uiPage.setText(_pvKey(host, package, version), data);
 
   @override
   Future invalidateUIPackagePage(String package) =>
@@ -73,26 +78,26 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
     if (invalidateData) {
       yield _json.invalidate(package);
     }
-    yield _uiPage.invalidate(_pvKey(package, null));
-    yield _uiIndexPage.invalidate(_indexPageKey(null));
+    yield _uiPage.invalidate(_pvKey(null, package, null));
+    yield _uiIndexPage.invalidate(_indexPageKey(null, null));
     for (String platform in KnownPlatforms.all) {
-      yield _uiIndexPage.invalidate(_indexPageKey(platform));
+      yield _uiIndexPage.invalidate(_indexPageKey(null, platform));
     }
   }
 
   @override
-  Future<String> getUIIndexPage(String platform) =>
-      _uiIndexPage.getText(_indexPageKey(platform));
+  Future<String> getUIIndexPage(String host, String platform) =>
+      _uiIndexPage.getText(_indexPageKey(host, platform));
 
   @override
-  Future setUIIndexPage(String platform, String content) =>
-      _uiIndexPage.setText(_indexPageKey(platform), content);
+  Future setUIIndexPage(String host, String platform, String content) =>
+      _uiIndexPage.setText(_indexPageKey(host, platform), content);
 
-  String _indexPageKey(String platform) {
-    return '$indexUiPageKey/$platform';
+  String _indexPageKey(String host, String platform) {
+    return '$indexUiPageKey/${host ?? _pubHost}/$platform';
   }
 
-  String _pvKey(String package, String version) {
-    return '$package/$version';
+  String _pvKey(String host, String package, String version) {
+    return '${host ?? _pubHost}/$package/$version';
   }
 }
