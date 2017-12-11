@@ -264,7 +264,8 @@ pre > code {
 
 /* open sub nav */
 
-.sub-wrap:hover .sub-nav{
+.sub-wrap:hover .sub-nav,
+.sub-wrap.hover .sub-nav {
   display: block;
 }
 
@@ -993,7 +994,8 @@ pre > code {
   right: 48px;
 }
 
-.tooltip-base:hover .tooltip-content {
+.tooltip-base:hover .tooltip-content,
+.tooltip-base.hover .tooltip-content {
   visibility: visible;
 }
 
