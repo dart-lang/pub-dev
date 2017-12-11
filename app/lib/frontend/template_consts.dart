@@ -86,3 +86,46 @@ final Map<String, String> _landingBlurbs = const {
 
 String _landingBlurb(String platform) =>
     _landingBlurbs[platform ?? 'default'] ?? _landingBlurbs['default'];
+
+class SortDict {
+  final String label;
+  final String tooltip;
+
+  const SortDict({this.label, String tooltip})
+      : this.tooltip =
+            '$tooltip More information on <a href="/help#ranking">ranking</a>.';
+}
+
+// Synchronize with `script.dart`'s dropdown.
+final _sortDicts = const <String, SortDict>{
+  'listing_relevance': const SortDict(
+      label: 'listing relevance',
+      tooltip:
+          'Packages are sorted by the combination of their overall score and '
+          'their specificity to the selected platform.'),
+  'search_relevance': const SortDict(
+      label: 'search relevance',
+      tooltip: 'Packages are sorted by the combination of the text match, '
+          'their overall score and their specificity to the selected platform.'),
+  'top': const SortDict(
+      label: 'overall score',
+      tooltip: 'Packages are sorted by the overall score.'),
+  'updated': const SortDict(
+      label: 'recently updated',
+      tooltip: 'Packages are sorted by their updated time.'),
+  'created': const SortDict(
+      label: 'newest package',
+      tooltip: 'Packages are sorted by their created time.'),
+  'popularity': const SortDict(
+      label: 'popularity',
+      tooltip: 'Packages are sorted by their popularity score.'),
+};
+
+SortDict getSortDict(String sort) {
+  final SortDict dict = _sortDicts[sort];
+  if (dict != null) return dict;
+  return new SortDict(
+    label: sort,
+    tooltip: 'Packages are sort by $sort.',
+  );
+}

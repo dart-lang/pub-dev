@@ -4,7 +4,8 @@
 
 <div class="listing-sort-header">
   <div class="tooltip-base">
-    <span class="tooltip-dotted">Sorted by:</span> {{sort_name}}
+    <span class="tooltip-dotted">Sorted by:</span>
+    <span id="sort-control" data-sort="{{sort_value}}">{{sort_name}}</span>
     <div class="tooltip-content tooltip-bottom-left">
       {{& ranking_tooltip_html }}
     </div>

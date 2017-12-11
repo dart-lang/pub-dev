@@ -139,20 +139,20 @@ class SimplePackageIndex implements PackageIndex {
 
     // do text matching
     final Score textScore = _searchText(packages, query.parsedQuery.text);
-    final Score filtered = textScore ?? _initScore(packages);
 
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
         final List<Score> scores = [
-          filtered,
           _getOverallScore(packages),
         ];
-        if (platformSpecificity != null) {
+        if (query.order == null && textScore != null) {
+          scores.add(textScore);
+        }
+        if (query.order == null && platformSpecificity != null) {
           scores.add(new Score(platformSpecificity));
         }
-        final Score overallScore =
-            Score.multiply(scores).removeLowValues(fraction: 0.01);
+        final Score overallScore = Score.multiply(scores);
         results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
@@ -240,9 +240,6 @@ class SimplePackageIndex implements PackageIndex {
     });
     return new Score(values);
   }
-
-  Score _initScore(Iterable<String> keys) =>
-      new Score(new Map.fromIterable(keys, value: (_) => 1.0));
 
   Score _searchText(Set<String> packages, String text) {
     if (text != null && text.isNotEmpty) {
