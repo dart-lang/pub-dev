@@ -91,7 +91,7 @@ The indexing process prepares the package documents and parses the following fie
 
 - package name
 - package description (first 500 characters)
-- readme (first 1000 characters)
+- readme (first 5000 characters)
 
 When a text query is specified, we'll try to match the query against all of these
 separately, with the lower weights on description (0.75) and readme (0.50), and
