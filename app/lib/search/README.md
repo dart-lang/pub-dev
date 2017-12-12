@@ -144,3 +144,17 @@ For example, a result with the following scores is calculated the following way:
 | Package's overall | 0.906 | 0.9342 | 
 | Platform specificity | 0.9 | 0.9 |
 | Result |  | 0.588546 | 
+
+## Process for search tuning
+
+When a weird search result is reported:
+
+1. Create a test with multiple packages that represent the failure case.
+   If needed, this should use the description and readme of the given packages.
+
+2. Adjust the search index and/or scoring to satisfy the new test.
+
+3. Before committing, check the changes in the other test, whether they
+   could cause any regression (e.g. if they hide or re-surface another package). 
+   This is not always bad, but if that happens, take extra precaution whether
+   it is aligned with the expected behaviour or within quality threshold.
