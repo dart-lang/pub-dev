@@ -7,7 +7,7 @@ dependencies:
   _popularity:
     path: ../pkg/_popularity
   appengine: '^0.4.3'
-  args: '^0.13.7'
+  args: '>=0.13.7 <2.0.0'
   crypto: '^2.0.2'
   gcloud: '>=0.4.0 <0.5.0'
   googleapis: '>=0.31.0 <0.37.0'
@@ -32,7 +32,7 @@ dependencies:
   # keep in-sync with app/lib/analyzer/versions.dart
   pana: '0.7.3+1'
   # 3rd-party packages with pinned versions
-  archive: '1.0.31'
+  archive: '1.0.33'
   uuid: '0.5.3'
 
 dev_dependencies:
