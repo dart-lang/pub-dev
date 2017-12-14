@@ -154,7 +154,8 @@ Future<shelf.Response> _indexHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage(platform);
+  String pageContent = await backend.uiPackageCache
+      ?.getUIIndexPage(request.requestedUri.host, platform);
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
       final count = 15;
@@ -166,7 +167,8 @@ Future<shelf.Response> _indexHandler(
 
     final minilist = await searchAndRenderMiniList(SearchOrder.top);
     pageContent = templateService.renderIndexPage(minilist, platform);
-    await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
+    await backend.uiPackageCache
+        ?.setUIIndexPage(request.requestedUri.host, platform, pageContent);
   }
   return htmlResponse(pageContent);
 }
@@ -439,8 +441,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   if (backend.uiPackageCache != null) {
-    cachedPage =
-        await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
+    cachedPage = await backend.uiPackageCache
+        .getUIPackagePage(request.requestedUri.host, packageName, versionName);
   }
 
   if (cachedPage == null) {
@@ -496,8 +498,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         analysisView);
 
     if (backend.uiPackageCache != null) {
-      await backend.uiPackageCache
-          .setUIPackagePage(packageName, versionName, cachedPage);
+      await backend.uiPackageCache.setUIPackagePage(
+          request.requestedUri.host, packageName, versionName, cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }
