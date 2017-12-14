@@ -228,6 +228,14 @@ void main() {
       expectGoldenFile(html, 'search_page.html');
     });
 
+    test('package versions page', () {
+      final String html = templates.renderPkgVersionsPage(
+          'foobar',
+          [testPackageVersion],
+          [Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz')]);
+      expectGoldenFile(html, 'pkg_versions_page.html');
+    });
+
     test('authorized page', () {
       final String html = templates.renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');

@@ -67,24 +67,7 @@ import 'package:{{package}}/{{library}}';
           <th class="archive" width="60">Archive</th>
         </tr>
         </thead>
-        {{#versions}}
-          <tr>
-            <th><a href="/packages/{{package.name}}/versions/{{version}}">{{version}}</a></th>
-            <td>{{short_created}}</td>
-            <td class="documentation">
-              <a href="{{documentation}}"
-                 title="Go to the documentation of {{package.name}} {{version}}">
-                <img src="{{icons.documentation}}" alt="Go to the documentation of {{package.name}} {{version}}" />
-              </a>
-            </td>
-            <td class="archive">
-              <a href="{{download_url}}"
-                 title="Download {{package.name}} {{version}} archive">
-                <img src="{{icons.download}}" alt="Download {{package.name}} {{version}} archive" />
-              </a>
-            </td>
-          </tr>
-        {{/versions}}
+        {{#version_table_rows}}{{& .}}{{/version_table_rows}}
       </table>
       {{#show_versions_link}}
         <p>

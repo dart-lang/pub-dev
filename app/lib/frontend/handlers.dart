@@ -397,11 +397,9 @@ Future<shelf.Response> packageShowHandlerJson(
   return jsonResponse(json);
 }
 
-Future<shelf.Response> _packageVersionsHandler(
-    shelf.Request request,
-    String packageName,
-    String render(String packageName, List<PackageVersion> versions,
-        List<Uri> versionDownloadUrls)) async {
+/// Handles requests for /packages/<package>/versions
+Future<shelf.Response> packageVersionsHandler(
+    shelf.Request request, String packageName) async {
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) return _formattedNotFoundHandler(request);
 
@@ -412,14 +410,8 @@ Future<shelf.Response> _packageVersionsHandler(
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
-  return htmlResponse(render(packageName, versions, versionDownloadUrls));
-}
-
-/// Handles requests for /packages/<package>/versions
-Future<shelf.Response> packageVersionsHandler(
-    shelf.Request request, String packageName) {
-  return _packageVersionsHandler(
-      request, packageName, templateService.renderPkgVersionsPage);
+  return htmlResponse(templateService.renderPkgVersionsPage(
+      packageName, versions, versionDownloadUrls));
 }
 
 Future<shelf.Response> _packageVersionHandlerHtml(
