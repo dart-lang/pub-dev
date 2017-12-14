@@ -57,6 +57,10 @@ pre > code {
   padding: 0.5em;
 }
 
+highlight {
+  background: #ffffe0;
+}
+
 ._flex-space{
   -webkit-box-flex: 1;
       -ms-flex: 1;

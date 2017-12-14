@@ -17,6 +17,7 @@ import '../shared/platform.dart';
 import '../shared/search_service.dart' show SearchQuery, serializeSearchOrder;
 import '../shared/utils.dart';
 
+import 'highlight.dart';
 import 'model_properties.dart' show Author;
 import 'models.dart';
 import 'template_consts.dart';
@@ -83,19 +84,26 @@ class TemplateService {
   String renderPkgIndexPage(
       List<PackageView> packages, PageLinks links, String currentPlatform,
       {SearchQuery searchQuery, int totalCount}) {
+    final highlightWords = searchQuery?.parsedQuery?.text
+        ?.split(' ')
+        ?.where((s) => s.isNotEmpty)
+        ?.toSet();
+
     final packagesJson = [];
     for (int i = 0; i < packages.length; i++) {
       final view = packages[i];
       final overallScore = view.overallScore;
       packagesJson.add({
         'url': '/packages/${view.name}',
-        'name': view.name,
+        'name_html':
+            highlightText(_htmlEscaper.convert(view.name), highlightWords),
         'version': HTML_ESCAPE.convert(view.version),
         'show_dev_version': view.devVersion != null,
         'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
         'last_uploaded': view.shortUpdated,
-        'desc': view.ellipsizedDescription,
+        'descr_html': highlightText(
+            _htmlEscaper.convert(view.ellipsizedDescription), highlightWords),
         'tags_html': _renderTags(view.platforms, package: view.name),
         'score_box_html': _renderScoreBox(overallScore, package: view.name),
       });
@@ -863,4 +871,8 @@ enum PageType {
   landing,
   listing,
   package,
+}
+
+String _highlightText(String text, Set<String> words) {
+  final String escaped = _htmlEscaper.convert(text);
 }

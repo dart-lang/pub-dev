@@ -23,8 +23,8 @@
   {{#packages}}
     <li class="list-item -full">
       {{& score_box_html }}
-      <h3 class="title"><a href="{{url}}">{{name}}</a></h3>
-      <p class="description">{{desc}}</p>
+      <h3 class="title"><a href="{{url}}">{{& name_html}}</a></h3>
+      <p class="description">{{& descr_html}}</p>
       <p class="metadata">
         v <a href="{{url}}">{{version}}</a>
         {{#show_dev_version}} / <a href="{{url}}/versions/{{dev_version_href}}">{{dev_version}}</a> {{/show_dev_version}}
