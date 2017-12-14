@@ -44,39 +44,38 @@ class TemplateService {
 
   TemplateService({this.templateDirectory: '/project/app/views'});
 
-  Map<String, Object> _pkgVersionsValues(String package,
-      List<PackageVersion> versions, List<Uri> versionDownloadUrls) {
-    final versionsJson = [];
+  /// Renders the `views/pkg/versions/index` template.
+  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
+      List<Uri> versionDownloadUrls) {
+    assert(versions.length == versionDownloadUrls.length);
+
+    final versionTableRows = [];
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
       final String url = versionDownloadUrls[i].toString();
-      versionsJson.add({
-        'version': version.id,
-        'short_created': version.shortCreated,
-        'documentation': version.documentation,
-        'download_url': url,
-      });
+      versionTableRows.add(_renderVersionTableRow(version, url));
     }
 
     final values = {
       'package': {
         'name': package,
       },
-      'versions': versionsJson,
-      'icons': LogoUrls.versionsTableIcons,
+      'version_table_rows': versionTableRows,
     };
-    return values;
-  }
-
-  /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
-    assert(versions.length == versionDownloadUrls.length);
-
-    final Map<String, Object> values =
-        _pkgVersionsValues(package, versions, versionDownloadUrls);
     final content = _renderTemplate('pkg/versions/index', values);
     return renderLayoutPage(PageType.package, content);
+  }
+
+  String _renderVersionTableRow(PackageVersion version, String downloadUrl) {
+    final versionData = {
+      'package': version.package,
+      'version': version.id,
+      'short_created': version.shortCreated,
+      'documentation': version.documentation,
+      'download_url': downloadUrl,
+      'icons': LogoUrls.versionsTableIcons,
+    };
+    return _renderTemplate('pkg/versions/version_row', versionData);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
@@ -307,16 +306,11 @@ class TemplateService {
       }
     }
 
-    final versionsJson = [];
+    final versionTableRows = [];
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
       final String url = versionDownloadUrls[i].toString();
-      versionsJson.add({
-        'version': version.id,
-        'short_created': version.shortCreated,
-        'documentation': version.documentation,
-        'download_url': url,
-      });
+      versionTableRows.add(_renderVersionTableRow(version, url));
     }
 
     final bool should_show_dev =
@@ -381,7 +375,7 @@ class TemplateService {
         'score_box_html': _renderScoreBox(extract?.overallScore),
         'analysis_html': renderAnalysisTab(extract, analysis),
       },
-      'versions': versionsJson,
+      'version_table_rows': versionTableRows,
       'show_versions_link': totalNumberOfVersions > versions.length,
       'tabs': tabs,
       'has_no_file_tab': tabs.isEmpty,
