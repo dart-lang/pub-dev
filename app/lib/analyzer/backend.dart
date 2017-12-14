@@ -45,7 +45,7 @@ class AnalysisBackend {
   /// latest [Analysis] instance with a matching `panaVersion` value. Note:
   /// If there is no matching `Analysis` instance with the requested version,
   /// we'll still return the latest one, regardless of its version.
-  Future<Analysis> getAnalysis(String package,
+  Future<AnalysisData> getAnalysis(String package,
       {String version, int analysis, String panaVersion}) async {
     final Key packageKey = db.emptyKey.append(PackageAnalysis, id: package);
 
@@ -76,7 +76,17 @@ class AnalysisBackend {
       final List<Analysis> list = await query.run().toList();
       if (list.isNotEmpty) {
         list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-        return list[0];
+        final Analysis entry = list[0];
+        return new AnalysisData(
+            packageName: entry.packageName,
+            packageVersion: entry.packageVersion,
+            analysis: entry.analysis,
+            timestamp: entry.timestamp,
+            panaVersion: entry.panaVersion,
+            flutterVersion: entry.flutterVersion,
+            analysisStatus: entry.analysisStatus,
+            maintenanceScore: entry.maintenanceScore,
+            analysisContent: entry.analysisJson);
       }
     }
 

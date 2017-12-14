@@ -118,7 +118,7 @@ void main() {
 }
 
 class MockAnalysisBackend implements AnalysisBackend {
-  final Map<String, Analysis> _map = {};
+  final Map<String, AnalysisData> _map = {};
 
   MockAnalysisBackend() {
     storeAnalysis(testAnalysis);
@@ -128,10 +128,10 @@ class MockAnalysisBackend implements AnalysisBackend {
   DatastoreDB get db => throw 'No DB access.';
 
   @override
-  Future<Analysis> getAnalysis(String package,
+  Future<AnalysisData> getAnalysis(String package,
       {String version, int analysis, String panaVersion}) async {
     return _map.values.firstWhere(
-        (Analysis a) =>
+        (AnalysisData a) =>
             (package == a.packageName) &&
             (version == null || a.packageVersion == version) &&
             (analysis == null || a.analysis == analysis),
@@ -145,7 +145,16 @@ class MockAnalysisBackend implements AnalysisBackend {
       analysis.packageVersion,
       analysis.analysis,
     ].join('/');
-    _map[key] = analysis;
+    _map[key] = new AnalysisData(
+        packageName: analysis.packageName,
+        packageVersion: analysis.packageVersion,
+        analysis: analysis.analysis,
+        timestamp: analysis.timestamp,
+        panaVersion: analysis.panaVersion,
+        flutterVersion: analysis.flutterVersion,
+        analysisStatus: analysis.analysisStatus,
+        maintenanceScore: analysis.maintenanceScore,
+        analysisContent: analysis.analysisJson);
     return new BackendAnalysisStatus(false, false, false);
   }
 

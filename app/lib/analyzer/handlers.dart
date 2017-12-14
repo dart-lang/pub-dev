@@ -14,7 +14,6 @@ import '../shared/scheduler_stats.dart';
 import '../shared/task_client.dart';
 
 import 'backend.dart';
-import 'models.dart';
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
@@ -63,22 +62,12 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
 
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
-    final Analysis analysis = await analysisBackend.getAnalysis(package,
+    final AnalysisData data = await analysisBackend.getAnalysis(package,
         version: version, analysis: analysisId, panaVersion: panaVersion);
-    if (analysis == null) {
+    if (data == null) {
       return notFoundHandler(request);
     }
-    return jsonResponse(new AnalysisData(
-            packageName: analysis.packageName,
-            packageVersion: analysis.packageVersion,
-            analysis: analysis.analysis,
-            timestamp: analysis.timestamp,
-            panaVersion: analysis.panaVersion,
-            flutterVersion: analysis.flutterVersion,
-            analysisStatus: analysis.analysisStatus,
-            maintenanceScore: analysis.maintenanceScore,
-            analysisContent: analysis.analysisJson)
-        .toJson());
+    return jsonResponse(data.toJson());
   } else if (requestMethod == 'POST') {
     if (pathParts.length != 2) {
       // trigger should have version and shouldn't contain analysis id
