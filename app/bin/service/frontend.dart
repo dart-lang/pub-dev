@@ -130,6 +130,9 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     final Set<String> dependentPackages =
         depsGraphBuilder.affectedPackages(pv.package);
 
+    _logger.info(
+        'Found ${dependentPackages.length} dependent packages for ${pv.package}.');
+
     // Since there can be many [dependentPackages], we'll not wait for the
     // notification to be done.
     analyzerClient.triggerAnalysis(pv.package, pv.version, dependentPackages);

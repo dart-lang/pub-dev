@@ -20,7 +20,7 @@ class DartdocRunner implements TaskRunner {
   String _cachedDartdocVersion;
 
   @override
-  Future<bool> hasCompletedRecently(Task task) async {
+  Future<bool> shouldSkipTask(Task task) async {
     // TODO: implement a metadata check
     return false;
   }

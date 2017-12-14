@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/analyzer_service.dart';
@@ -15,6 +16,8 @@ import '../shared/task_client.dart';
 
 import 'backend.dart';
 import 'models.dart';
+
+final Logger _logger = new Logger('analyzer.handler');
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
@@ -85,6 +88,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     if (await validateNotificationSecret(request)) {
+      _logger.info('Received notification: $package $version');
       triggerTask(package, version);
       return jsonResponse({'success': true});
     } else {

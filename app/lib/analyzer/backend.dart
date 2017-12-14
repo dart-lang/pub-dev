@@ -154,12 +154,15 @@ class AnalysisBackend {
     });
   }
 
-  /// Whether [packageName] with [packageVersion] exists, and
+  /// Returns the task target status based on:
+  /// - whether [packageName] with [packageVersion] exists, and
   /// - it has no recent [Analysis] with the current [panaVersion] or [flutterVersion], or
   /// - it has no newer [Analysis] than [panaVersion] or [flutterVersion].
-  Future<bool> isValidTarget(
+  Future<TaskTargetStatus> getTargetStatus(
       String packageName, String packageVersion, DateTime updated) async {
-    if (packageName == null || packageVersion == null) return false;
+    if (packageName == null || packageVersion == null) {
+      return new TaskTargetStatus.skip('Insufficient package or version.');
+    }
     final List<PackageVersion> versions = await db.lookup([
       db.emptyKey
           .append(Package, id: packageName)
@@ -167,17 +170,21 @@ class AnalysisBackend {
     ]);
     // Does package and version exist?
     final PackageVersion pv = versions.single;
-    if (pv == null) return false;
+    if (pv == null) {
+      return new TaskTargetStatus.skip('PackageVersion does not exists.');
+    }
 
     // Does package have any analysis?
     final Key packageKey = db.emptyKey.append(PackageAnalysis, id: packageName);
     final PackageAnalysis packageAnalysis =
         (await db.lookup([packageKey])).single;
-    if (packageAnalysis == null) return true;
+    if (packageAnalysis == null) {
+      return new TaskTargetStatus.ok();
+    }
 
     // Does package have newer version than latest analyzed version?
     if (isNewer(packageAnalysis.latestSemanticVersion, pv.semanticVersion)) {
-      return true;
+      return new TaskTargetStatus.ok();
     }
 
     // Does package have analysis for the current version?
@@ -185,13 +192,15 @@ class AnalysisBackend {
         packageKey.append(PackageVersionAnalysis, id: packageVersion);
     final PackageVersionAnalysis versionAnalysis =
         (await db.lookup([versionKey])).single;
-    if (versionAnalysis == null) return true;
+    if (versionAnalysis == null) {
+      return new TaskTargetStatus.ok();
+    }
 
     // Is current analysis version newer?
     if (isNewer(versionAnalysis.semanticPanaVersion, semanticPanaVersion) ||
         isNewer(
             versionAnalysis.semanticFlutterVersion, semanticFlutterVersion)) {
-      return true;
+      return new TaskTargetStatus.ok();
     }
 
     // Is current analysis version obsolete?
@@ -202,7 +211,7 @@ class AnalysisBackend {
       // TODO: turn off task polling on this instance
       _logger.warning(
           'Newer analysis version detected, current instance is obsolete.');
-      return false;
+      return new TaskTargetStatus.skip('Newer analysis instance detected.');
     }
 
     if (versionAnalysis.panaVersion != panaVersion ||
@@ -216,15 +225,16 @@ class AnalysisBackend {
     final DateTime now = new DateTime.now().toUtc();
     final Duration age = now.difference(versionAnalysis.analysisTimestamp);
     if (age > reanalyzeThreshold) {
-      return true;
+      return new TaskTargetStatus.ok();
     }
 
     // Is it a newer analysis than the trigger timestamp?
     if (versionAnalysis.analysisTimestamp.isAfter(updated)) {
-      return false;
+      return new TaskTargetStatus.skip(
+          'Previous analysis completed after task\'s trigger timestamp.');
     }
 
-    return true;
+    return new TaskTargetStatus.ok();
   }
 
   /// Deletes the obsolete [Analysis] instances from Datastore. An instance is
@@ -288,4 +298,15 @@ class BackendAnalysisStatus {
   final bool isLatestStable;
   final bool isNewVersion;
   BackendAnalysisStatus(this.wasRace, this.isLatestStable, this.isNewVersion);
+}
+
+class TaskTargetStatus {
+  final bool shouldSkip;
+  final String reason;
+
+  TaskTargetStatus(this.shouldSkip, this.reason);
+  TaskTargetStatus.ok()
+      : shouldSkip = false,
+        reason = null;
+  TaskTargetStatus.skip(this.reason) : shouldSkip = true;
 }

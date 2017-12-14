@@ -13,9 +13,9 @@ final Logger _logger = new Logger('pub.scheduler');
 
 /// Interface for task execution.
 abstract class TaskRunner {
-  /// Whether the task has been run and completed recently, with the results
-  /// stored in the database.
-  Future<bool> hasCompletedRecently(Task task);
+  /// Whether the scheduler should skip the task, e.g. because it has been
+  /// completed recently.
+  Future<bool> shouldSkipTask(Task task);
 
   /// Run the task.
   /// Returns whether a race was detected while the run completed.
@@ -60,7 +60,7 @@ class TaskScheduler {
       _pendingCount = taskIterator.pendingCount;
       final Stopwatch sw = new Stopwatch()..start();
       try {
-        if (await taskRunner.hasCompletedRecently(task)) {
+        if (await taskRunner.shouldSkipTask(task)) {
           _logger.info('Skipping task: $task');
           _statusTracker.add('skip');
           _allLatencyTracker.add(sw.elapsedMilliseconds);
