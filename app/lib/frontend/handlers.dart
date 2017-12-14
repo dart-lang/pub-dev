@@ -154,7 +154,9 @@ Future<shelf.Response> _indexHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  String pageContent = await backend.uiPackageCache?.getUIIndexPage(platform);
+  final isProd = _isProd(request);
+  String pageContent =
+      isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
   if (pageContent == null) {
     Future<String> searchAndRenderMiniList(SearchOrder order) async {
       final count = 15;
@@ -166,7 +168,9 @@ Future<shelf.Response> _indexHandler(
 
     final minilist = await searchAndRenderMiniList(SearchOrder.top);
     pageContent = templateService.renderIndexPage(minilist, platform);
-    await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
+    if (isProd) {
+      await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
+    }
   }
   return htmlResponse(pageContent);
 }
@@ -430,7 +434,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         AnalysisView analysis)) async {
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
-  if (backend.uiPackageCache != null) {
+  final bool isProd = _isProd(request);
+  if (isProd && backend.uiPackageCache != null) {
     cachedPage =
         await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
   }
@@ -487,7 +492,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         analysisExtract,
         analysisView);
 
-    if (backend.uiPackageCache != null) {
+    if (isProd && backend.uiPackageCache != null) {
       await backend.uiPackageCache
           .setUIPackagePage(packageName, versionName, cachedPage);
     }
@@ -646,4 +651,9 @@ class StaticFile {
   final DateTime lastModified;
 
   StaticFile(this.contentType, this.bytes, this.lastModified);
+}
+
+bool _isProd(shelf.Request request) {
+  final String host = request.requestedUri.host;
+  return host == 'pub.dartlang.org';
 }
