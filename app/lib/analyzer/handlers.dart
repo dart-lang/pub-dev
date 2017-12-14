@@ -46,7 +46,6 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 ///   - /packages/<package>/<version>
 ///   - /packages/<package>/<version>/<analysis>
 Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final bool onlyMeta = request.url.queryParameters['only-meta'] == 'true';
   final String path = request.requestedUri.path.substring('/packages/'.length);
   final List<String> pathParts = path.split('/');
   if (path.length == 0 || pathParts.length > 3) {
@@ -69,10 +68,6 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
     if (analysis == null) {
       return notFoundHandler(request);
     }
-    Map analysisContent;
-    if (!onlyMeta) {
-      analysisContent = analysis.analysisJson;
-    }
     return jsonResponse(new AnalysisData(
             packageName: analysis.packageName,
             packageVersion: analysis.packageVersion,
@@ -82,7 +77,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
             flutterVersion: analysis.flutterVersion,
             analysisStatus: analysis.analysisStatus,
             maintenanceScore: analysis.maintenanceScore,
-            analysisContent: analysisContent)
+            analysisContent: analysis.analysisJson)
         .toJson());
   } else if (requestMethod == 'POST') {
     if (pathParts.length != 2) {

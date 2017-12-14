@@ -69,23 +69,6 @@ void main() {
         });
       });
 
-      scopedTest('/packages/pkg_foo?only-meta=true', () async {
-        registerAnalysisBackend(new MockAnalysisBackend());
-        await expectJsonResponse(
-            await issueGet('/packages/pkg_foo?only-meta=true'),
-            body: {
-              'packageName': 'pkg_foo',
-              'packageVersion': '1.2.3',
-              'analysis': 242345,
-              'timestamp': '2017-06-26T12:48:00.000',
-              'panaVersion': '0.2.0',
-              'flutterVersion': '0.0.11',
-              'analysisStatus': 'success',
-              'analysisContent': null,
-              'maintenanceScore': 0.86,
-            });
-      });
-
       scopedTest('/packages/pkg_foo/1.2.3', () async {
         registerAnalysisBackend(new MockAnalysisBackend());
         await expectJsonResponse(await issueGet('/packages/pkg_foo/1.2.3'),
