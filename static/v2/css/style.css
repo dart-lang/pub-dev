@@ -466,9 +466,10 @@ pre > code {
   margin-left: 0;
 }
 
-.score-box{
+.score-box {
   float: right;
   margin: 8px;
+  position: relative;
   text-align: center;
   width: 36px;
 }
@@ -502,6 +503,18 @@ pre > code {
   background: #ccc;
 }
 
+.score-box > .new {
+  position: absolute;
+  top: -20%;
+  right: -10%;
+
+  background: black;
+  border-radius: 3px;
+  color: yellow;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 0px 2px;
+}
 
 .score-box > .text{
   font-size: 14px;
