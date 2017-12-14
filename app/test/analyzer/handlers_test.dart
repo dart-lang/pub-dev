@@ -150,7 +150,7 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  Future<bool> isValidTarget(
+  Future<TaskTargetStatus> getTargetStatus(
       String packageName, String packageVersion, DateTime updated) {
     throw 'Not implemented yet.';
   }

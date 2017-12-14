@@ -24,9 +24,13 @@ class PanaRunner implements TaskRunner {
   PanaRunner(this._analysisBackend);
 
   @override
-  Future<bool> hasCompletedRecently(Task task) async {
-    return !(await _analysisBackend.isValidTarget(
-        task.package, task.version, task.updated));
+  Future<bool> shouldSkipTask(Task task) async {
+    final TaskTargetStatus status = await _analysisBackend.getTargetStatus(
+        task.package, task.version, task.updated);
+    if (status.shouldSkip) {
+      _logger.info('Task $task skipped because: ${status.reason}');
+    }
+    return status.shouldSkip;
   }
 
   @override
