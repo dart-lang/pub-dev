@@ -72,6 +72,21 @@ void main() {
       expect(query.parsedQuery.allDependencies, ['pkg2']);
       expect(query.parsedQuery.hasAnyDependency, isTrue);
     });
+
+    test('only email', () {
+      final query = new SearchQuery.parse(query: 'email:user@domain.com');
+      expect(query.parsedQuery.text, isNull);
+      expect(query.parsedQuery.emails, ['user@domain.com']);
+    });
+
+    test('email + text + dependency', () {
+      final query = new SearchQuery.parse(
+          query: 'email:user@domain.com text dependency:pkg1');
+      expect(query.parsedQuery.text, 'text');
+      expect(query.parsedQuery.refDependencies, ['pkg1']);
+      expect(query.parsedQuery.allDependencies, []);
+      expect(query.parsedQuery.emails, ['user@domain.com']);
+    });
   });
 
   group('SearchQuery.isValid', () {

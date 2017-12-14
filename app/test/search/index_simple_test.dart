@@ -120,6 +120,7 @@ void main() {
         health: 1.0,
         maintenance: 1.0,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
+        emails: ['user1@example.com'],
       ));
       await index.addPackage(new PackageDocument(
         package: 'async',
@@ -140,6 +141,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         health: 1.0,
         maintenance: 1.0,
         dependencies: {'test': 'dev'},
+        emails: ['user1@example.com'],
       ));
       await index.addPackage(new PackageDocument(
         package: 'chrome_net',
@@ -448,6 +450,19 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
+          {'package': 'http', 'score': closeTo(0.895, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by email', () async {
+      final PackageSearchResult result = await index
+          .search(new SearchQuery.parse(query: 'email:user1@example.com'));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
           {'package': 'http', 'score': closeTo(0.895, 0.001)},
         ],
       });

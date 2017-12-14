@@ -137,6 +137,19 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on email
+    if (query.parsedQuery.emails.isNotEmpty) {
+      packages.removeWhere((package) {
+        final doc = _packages[package];
+        for (String email in query.parsedQuery.emails) {
+          if (doc?.emails?.contains(email) ?? false) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+
     // do text matching
     final Score textScore = _searchText(packages, query.parsedQuery.text);
 
