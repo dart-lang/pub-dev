@@ -93,6 +93,9 @@ class Package extends db.ExpandoModel {
       latestDevVersionKey = pv.key;
     }
   }
+
+  bool isNewPackage() =>
+      created.difference(new DateTime.now()).abs().inDays <= 30;
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -226,6 +229,7 @@ class PackageView {
   final List<String> authors;
   final double overallScore;
   final List<String> platforms;
+  final bool isNewPackage;
 
   PackageView({
     this.name,
@@ -236,6 +240,7 @@ class PackageView {
     this.authors,
     this.overallScore,
     this.platforms,
+    this.isNewPackage,
   });
 
   factory PackageView.fromModel({
@@ -256,6 +261,7 @@ class PackageView {
       authors: version?.pubspec?.getAllAuthors(),
       overallScore: analysis == null ? null : analysis.overallScore,
       platforms: analysis?.platforms,
+      isNewPackage: package?.isNewPackage(),
     );
   }
 }

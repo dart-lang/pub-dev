@@ -96,7 +96,8 @@ class TemplateService {
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.platforms, package: view.name),
-        'score_box_html': _renderScoreBox(overallScore, package: view.name),
+        'score_box_html': _renderScoreBox(overallScore,
+            isNewPackage: view.isNewPackage, package: view.name),
       });
     }
 
@@ -372,7 +373,8 @@ class TemplateService {
         'install_html': _renderInstall(isFlutterPlugin, analysis?.platforms),
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
-        'score_box_html': _renderScoreBox(extract?.overallScore),
+        'score_box_html': _renderScoreBox(extract?.overallScore,
+            isNewPackage: package.isNewPackage()),
         'analysis_html': renderAnalysisTab(extract, analysis),
       },
       'version_table_rows': versionTableRows,
