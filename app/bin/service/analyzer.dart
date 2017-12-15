@@ -31,7 +31,7 @@ Future main() async {
       startIsolates(logger, _runSchedulerWrapper);
     });
     _registerServices();
-    await runHandler(analyzerServiceHandler);
+    await runHandler(logger, analyzerServiceHandler);
   });
 }
 

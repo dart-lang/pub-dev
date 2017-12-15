@@ -9,6 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
+import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
@@ -23,6 +24,8 @@ import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
+
+final Logger _logger = new Logger('pub.search');
 
 Future main() async {
   final ReceivePort errorPort = new ReceivePort();
@@ -87,11 +90,7 @@ void _main(int isolateId) {
       ],
     );
     scheduler.run();
-
-    await runHandler(
-      searchServiceHandler,
-      shared: true,
-    );
+    await runHandler(_logger, searchServiceHandler, shared: true);
   });
 }
 

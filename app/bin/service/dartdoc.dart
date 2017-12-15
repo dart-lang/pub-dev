@@ -23,7 +23,7 @@ Future main() async {
   withAppEngineServices(() async {
     await startIsolates(logger, _runSchedulerWrapper);
     _registerServices();
-    await runHandler(dartdocServiceHandler);
+    await runHandler(logger, dartdocServiceHandler);
   });
 }
 
