@@ -9,5 +9,5 @@ final String panaVersion = '0.7.3+1';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
 // keep in-sync with app/script/setup-flutter.sh
-final String flutterVersion = '0.0.19';
+final String flutterVersion = '0.0.20';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
