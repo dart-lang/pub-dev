@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/shared/package_memcache.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -30,8 +32,10 @@ Future main(List<String> arguments) async {
       await listUploaders(package);
     } else if (command == 'add') {
       await addUploader(package, uploader);
+      await _clearCache(package);
     } else if (command == 'remove') {
       await removeUploader(package, uploader);
+      await _clearCache(package);
     }
   });
 
@@ -93,4 +97,10 @@ Future removeUploader(String packageName, String uploader) async {
     await T.commit();
     print('Uploader $uploader removed from list of uploaders');
   });
+}
+
+Future _clearCache(package) async {
+  final cache = new AppEnginePackageMemcache(memcacheService);
+  await cache.invalidateUIPackagePage(package);
+  await cache.invalidatePackageData(package);
 }
