@@ -586,6 +586,7 @@ class TemplateService {
           platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
       'listing_banner': type == PageType.listing,
       'package_banner': type == PageType.package,
+      'schema_org_searchaction_json': JSON.encode(_schemaOrgSearchAction),
     };
     return _renderTemplate('layout', values, escapeValues: false);
   }
@@ -862,3 +863,14 @@ enum PageType {
   listing,
   package,
 }
+
+const _schemaOrgSearchAction = const {
+  '@context': 'http://schema.org',
+  '@type': 'WebSite',
+  'url': 'https://pub.dartlang.org/',
+  'potentialAction': const {
+    '@type': 'SearchAction',
+    'target': 'https://pub.dartlang.org/packages?q={query}',
+    'query-input': 'required',
+  },
+};
