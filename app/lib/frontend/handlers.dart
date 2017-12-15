@@ -224,6 +224,10 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
 /// Handles requests for /static
 final StaticsCache staticsCache = new StaticsCache();
 
+/// The max age a browser would take hold of the static files before checking
+/// with the server for a newer version.
+const _staticMaxAge = const Duration(minutes: 5);
+
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
@@ -243,6 +247,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
           HttpHeaders.CONTENT_TYPE: staticFile.contentType,
           HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
           HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
+          HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
         },
       );
     }
