@@ -23,6 +23,7 @@ import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -58,13 +59,20 @@ void main() {
             } catch (error, s) {
               _logger.severe('Request handler failed', error, s);
 
+              var body = '''Fatal package site error
+$fileAnIssueContent
+
+Add these details to help us fix the issue:
+Requested URL - ${request.requestedUri}''';
+
               Map<String, String> debugHeaders;
               if (context.traceId != null) {
                 debugHeaders = {'package-site-request-id': context.traceId};
+                body = '$body\n   Request ID - ${context.traceId}';
               }
 
               return new shelf.Response.internalServerError(
-                  body: 'Fatal package site error', headers: debugHeaders);
+                  body: body, headers: debugHeaders);
             } finally {
               _logger.info('Request handler done.');
             }

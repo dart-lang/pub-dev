@@ -25,6 +25,9 @@ import 'package:stream_transform/stream_transform.dart';
 /// Appengine.
 const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
+const fileAnIssueContent =
+    'Please open an issue: https://github.com/dart-lang/pub-dartlang-dart/issues/new';
+
 final Logger _logger = new Logger('pub.utils');
 
 final DateFormat shortDateFormat = new DateFormat.yMMMd();
@@ -197,14 +200,14 @@ void validatePackageName(String name) {
     throw new Exception('Package name must be lowercase.');
   }
   if (isLower && blockedLowerCasePackages.contains(name)) {
-    throw new Exception('Name collision with mixed-case package. '
-        'Please open new issue at: https://github.com/dart-lang/pub-dartlang-dart/issues/new');
+    throw new Exception(
+        'Name collision with mixed-case package. $fileAnIssueContent');
   }
   if (!isLower &&
       matchesMixedCase &&
       !blockedLowerCasePackages.contains(name.toLowerCase())) {
-    throw new Exception('Name collision with mixed-case package. '
-        'Please open new issue at: https://github.com/dart-lang/pub-dartlang-dart/issues/new');
+    throw new Exception(
+        'Name collision with mixed-case package. $fileAnIssueContent');
   }
 }
 
