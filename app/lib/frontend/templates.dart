@@ -716,8 +716,9 @@ String _renderScoreBox(double overallScore,
       ? 'Awaiting analysis to complete.'
       : 'Analysis and more details.';
   final String escapedTitle = _attrEscaper.convert(title);
-  final newIndicator =
-      (isNewPackage ?? false) ? '<span class="new">new</span>' : '';
+  final newIndicator = (isNewPackage ?? false)
+      ? '<span class="new" title="Created in the last 30 days">new</span>'
+      : '';
   final String boxHtml = '<div class="score-box">'
       '$newIndicator'
       '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'

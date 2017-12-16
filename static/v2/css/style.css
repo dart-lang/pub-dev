@@ -505,15 +505,19 @@ pre > code {
 
 .score-box > .new {
   position: absolute;
-  top: -20%;
-  right: -10%;
-
-  background: black;
+  top: -30%;
+  right: -25%;
+  background: #646464;
   border-radius: 3px;
-  color: yellow;
+  color: #ffeb3b;
   font-size: 10px;
   font-weight: bold;
   padding: 0px 2px;
+  transition: background 0.2s ease-out;
+}
+
+.score-box > .new:hover {
+  background: #424242;
 }
 
 .score-box > .text{
