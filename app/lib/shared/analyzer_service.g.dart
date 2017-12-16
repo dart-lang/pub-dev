@@ -6,7 +6,7 @@
 
 // ignore_for_file: prefer_final_locals
 
-part of pub_dartlang_org.shared.analyzer_service;
+part of 'analyzer_service.dart';
 
 // **************************************************************************
 // Generator: JsonSerializableGenerator

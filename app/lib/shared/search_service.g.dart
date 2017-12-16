@@ -6,7 +6,7 @@
 
 // ignore_for_file: prefer_final_locals
 
-part of pub_dartlang_org.shared.search_service;
+part of 'search_service.dart';
 
 // **************************************************************************
 // Generator: JsonSerializableGenerator
@@ -33,6 +33,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
         dependencies: json['dependencies'] == null
             ? null
             : new Map<String, String>.from(json['dependencies'] as Map),
+        emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
         timestamp: json['timestamp'] == null
             ? null
             : DateTime.parse(json['timestamp'] as String));
@@ -50,6 +51,7 @@ abstract class _$PackageDocumentSerializerMixin {
   double get popularity;
   double get maintenance;
   Map<String, String> get dependencies;
+  List<String> get emails;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'package': package,
@@ -64,6 +66,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'popularity': popularity,
         'maintenance': maintenance,
         'dependencies': dependencies,
+        'emails': emails,
         'timestamp': timestamp?.toIso8601String()
       };
 }

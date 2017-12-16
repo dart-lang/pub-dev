@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: annotate_overrides
-library pub_dartlang_org.shared.search_service;
 
 import 'dart:async';
 import 'dart:math' show max;
