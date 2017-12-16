@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: annotate_overrides
-library pub_dartlang_org.shared.analyzer_service;
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dartlang_org/search/scoring.dart'

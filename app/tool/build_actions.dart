@@ -11,7 +11,7 @@ final List<BuildAction> buildActions = [
       new PartBuilder(const [
         const JsonSerializableGenerator(),
         const JsonLiteralGenerator()
-      ], header: _copyrightHeader),
+      ], header: _copyrightHeader, requireLibraryDirective: false),
       'pub_dartlang_org',
       inputs: const ['lib/shared/*.dart', 'lib/search/backend*.dart'])
 ];
