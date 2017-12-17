@@ -112,6 +112,11 @@ import 'package:{{package}}/{{library}}';
       <p>{{& package.license_html}}</p>
     {{/package.license_html}}
 
+    {{#package.dependencies_html}}
+      <h3 class="title">Dependencies</h3>
+      <p>{{& package.dependencies_html}}</p>
+    {{/package.dependencies_html}}
+
     <h3 class="title">More</h3>
     <p><a href="{{{search_deps_link}}}">Packages that depend on {{package.name}}</a></p>
   </aside>

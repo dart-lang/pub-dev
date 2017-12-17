@@ -375,6 +375,7 @@ class TemplateService {
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
         'score_box_html': _renderScoreBox(extract?.overallScore,
             isNewPackage: package.isNewPackage()),
+        'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(extract, analysis),
       },
       'version_table_rows': versionTableRows,
@@ -403,6 +404,16 @@ class TemplateService {
       }
       return html;
     }).join('<br/>');
+  }
+
+  String _renderDependencyList(AnalysisView analysis) {
+    if (analysis == null ||
+        !analysis.hasAnalysisData ||
+        analysis.directDependencies == null) return null;
+    final List<String> packages =
+        analysis.directDependencies.map((pd) => pd.package).toList()..sort();
+    if (packages.isEmpty) return null;
+    return packages.map((p) => '<a href="/packages/$p">$p</a>').join(', ');
   }
 
   String _renderInstall(bool isFlutter, List<String> platforms) {

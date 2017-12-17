@@ -105,6 +105,24 @@ void main() {
           1,
           null,
           new MockAnalysisView()
+            ..directDependencies = [
+              new PkgDependency(
+                  'quiver',
+                  'direct',
+                  'normal',
+                  new VersionConstraint.parse('^1.0.0'),
+                  new Version.parse('1.0.0'),
+                  null,
+                  null),
+              new PkgDependency(
+                  'http',
+                  'direct',
+                  'normal',
+                  new VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                  new Version.parse('1.2.0'),
+                  new Version.parse('1.3.0'),
+                  null)
+            ]
             ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
       expectGoldenFile(html, 'pkg_show_page.html');
     });
