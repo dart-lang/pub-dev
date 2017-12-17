@@ -77,23 +77,27 @@ class AnalysisBackend {
       if (list.isNotEmpty) {
         list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
         final Analysis entry = list[0];
-        return new AnalysisData(
-            packageName: entry.packageName,
-            packageVersion: entry.packageVersion,
-            analysis: entry.analysis,
-            timestamp: entry.timestamp,
-            panaVersion: entry.panaVersion,
-            flutterVersion: entry.flutterVersion,
-            analysisStatus: entry.analysisStatus,
-            maintenanceScore: entry.maintenanceScore,
-            analysisContent: entry.analysisJson);
+        return _toData(entry);
       }
     }
 
     // analysis was set
     final Key analysisKey = versionKey.append(Analysis, id: analysis);
     final List list = await db.lookup([analysisKey]);
-    return list[0];
+    return _toData(list[0]);
+  }
+
+  AnalysisData _toData(Analysis entry) {
+    return new AnalysisData(
+        packageName: entry.packageName,
+        packageVersion: entry.packageVersion,
+        analysis: entry.analysis,
+        timestamp: entry.timestamp,
+        panaVersion: entry.panaVersion,
+        flutterVersion: entry.flutterVersion,
+        analysisStatus: entry.analysisStatus,
+        maintenanceScore: entry.maintenanceScore,
+        analysisContent: entry.analysisJson);
   }
 
   /// Stores the analysis, and either creates or updates its parent
