@@ -213,7 +213,16 @@ class AnalysisView {
 
   double get health => _summary?.fitness?.healthScore ?? 0.0;
 
-  List<Suggestion> get suggestions => _summary?.suggestions;
+  List<Suggestion> get suggestions {
+    final list = <Suggestion>[];
+    if (_summary?.suggestions != null) {
+      list.addAll(_summary.suggestions);
+    }
+    if (_summary?.maintenance?.suggestions != null) {
+      list.addAll(_summary.maintenance.suggestions);
+    }
+    return list;
+  }
 
   double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
 }

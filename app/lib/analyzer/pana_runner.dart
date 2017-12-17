@@ -91,8 +91,8 @@ class PanaRunner implements TaskRunner {
 
     final DateTime publishDate =
         await _analysisBackend.getPublishDate(task.package, task.version);
-    analysis.maintenanceScore =
-        summary?.maintenance?.getMaintenanceScore(publishDate);
+    analysis.maintenanceScore = summary?.maintenance?.getMaintenanceScore(
+        age: new DateTime.now().toUtc().difference(publishDate).abs());
 
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
 
