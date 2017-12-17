@@ -30,14 +30,14 @@ dependencies:
   yaml: '^2.1.12'
   # pana version to be pinned
   # keep in-sync with app/lib/analyzer/versions.dart
-  pana: '0.7.3+1'
+  pana: '0.8.0'
   # 3rd-party packages with pinned versions
   archive: '1.0.33'
   uuid: '0.5.3'
 
 dev_dependencies:
   build_runner: '^0.6.0'
-  json_serializable: '^0.2.4+1'
+  json_serializable: '^0.3.0'
   source_gen: '^0.7.2'
   test: ">=0.12.20 <0.13.0"
 

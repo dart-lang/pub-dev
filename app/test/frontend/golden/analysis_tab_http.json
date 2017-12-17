@@ -1,13 +1,14 @@
 {
   "packageName": "http",
   "packageVersion": "0.11.3+12",
-  "analysis": 5714595855466496,
-  "timestamp": "2017-11-29T02:55:18.403757Z",
-  "panaVersion": "0.7.1",
-  "flutterVersion": "0.0.17",
+  "analysis": 5701786853703680,
+  "timestamp": "2017-12-17T12:46:32.152247Z",
+  "panaVersion": "0.8.0",
+  "flutterVersion": "0.0.20",
   "analysisStatus": "success",
+  "maintenanceScore": 0.999,
   "analysisContent": {
-    "panaVersion": "0.7.1",
+    "panaVersion": "0.8.0",
     "sdkVersion": "2.0.0-dev.8.0",
     "packageName": "http",
     "packageVersion": "0.11.3+12",
@@ -48,23 +49,32 @@
       "missingAnalysisOptions": false,
       "oldAnalysisOptions": true,
       "strongModeEnabled": true,
-      "isExperimentalVersion": false,
-      "isPreReleaseVersion": true,
+      "isExperimentalVersion": true,
+      "isPreReleaseVersion": false,
       "errorCount": 0,
       "warningCount": 0,
-      "hintCount": 1
+      "hintCount": 0,
+      "suggestions": [
+        {
+          "level": "hint",
+          "title": "Use `analysis_options.yaml`.",
+          "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
+        },
+        {
+          "level": "hint",
+          "title": "Package is pre-v1 release.",
+          "description": "While there is nothing inherently wrong with versions of `0.*.*`, it usually means that the author is still experimenting with the general direction API.",
+          "penalty": {
+            "amount": 10,
+            "fraction": 0
+          }
+        }
+      ]
     },
     "fitness": {
       "magnitude": 1271.0,
       "shortcoming": 16.0
     },
-    "suggestions": [
-      {
-        "level": "hint",
-        "title": "Use `analysis_options.yaml`.",
-        "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
-      }
-    ],
     "pkgResolution": {
       "dependencies": [
         {
@@ -365,6 +375,5 @@
         }
       }
     }
-  },
-  "maintenanceScore": 0.98901
+  }
 }
