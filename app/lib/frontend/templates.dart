@@ -707,8 +707,14 @@ String _getAuthorsHtml(List<String> authors) {
     final escapedName = _htmlEscaper.convert(author.name);
     if (author.email != null) {
       final escapedEmail = _attrEscaper.convert(author.email);
+      final emailSearchUrl = _attrEscaper.convert(
+          new SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
       return '<span class="author">'
-          '<a href="mailto:$escapedEmail" title="Email $escapedEmail">$escapedName</a>'
+          '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
+          '<i class="email-icon"></i></a> '
+          '<a href="$emailSearchUrl" title="Search packages with $escapedEmail">'
+          '<i class="search-icon"></i></a> '
+          '$escapedName'
           '</span>';
     } else {
       return '<span class="author">$escapedName</span>';

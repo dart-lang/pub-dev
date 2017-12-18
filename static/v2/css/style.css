@@ -764,6 +764,25 @@ pre > code {
   font-weight: 600;
 }
 
+.email-icon,
+.search-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  vertical-align: text-bottom;
+}
+
+.email-icon {
+  background-image: url('../img/ic_email_black_18px.svg');
+}
+
+.search-icon {
+  background-image: url('../img/ic_search_black_18px.svg');
+}
+
+
 /******************************************************
   package page
 ******************************************************/
