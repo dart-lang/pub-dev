@@ -358,17 +358,15 @@ class TemplateService {
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
-        'authors_html': _getAuthorsHtml(
-          selectedVersion.pubspec.getAllAuthors(),
-          clickableName: true,
-        ),
+        'authors_html':
+            _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
         'nice_homepage': selectedVersion.homepageNice,
         'documentation': selectedVersion.documentation,
         'nice_documentation': selectedVersion.documentationNice,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
-        'uploaders_html': _getUploadersHtml(package),
+        'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
         'install_html': _renderInstall(isFlutterPlugin, analysis?.platforms),
         'license_html':
@@ -703,18 +701,17 @@ class TemplateService {
   }
 }
 
-String _getAuthorsHtml(List<String> authors, {bool clickableName: false}) {
+String _getAuthorsHtml(List<String> authors) {
   return (authors ?? const []).map((String value) {
     final Author author = new Author.parse(value);
     final escapedName = _htmlEscaper.convert(author.name);
     if (author.email != null) {
       final escapedEmail = _attrEscaper.convert(author.email);
-      final closeTag =
-          clickableName ? ' $escapedName</a>' : '</a> $escapedName';
-      return '<span class="author"><a href="mailto:$escapedEmail" title="Email $escapedEmail">'
-          '<i class="icon-envelope"></i>$closeTag</span>';
+      return '<span class="author">'
+          '<a href="mailto:$escapedEmail" title="Email $escapedEmail">$escapedName</a>'
+          '</span>';
     } else {
-      return '<span class="author"><i class="icon-envelope"></i> $escapedName</span>';
+      return '<span class="author">$escapedName</span>';
     }
   }).join('<br/>');
 }
@@ -754,11 +751,6 @@ String _classifyScore(double value) {
   if (value <= 0.4) return 'rotten';
   if (value <= 0.7) return 'good';
   return 'solid';
-}
-
-String _getUploadersHtml(Package package) {
-  // TODO: HTML escape email addresses.
-  return package.uploaderEmails.join('<br/>');
 }
 
 abstract class PageLinks {
