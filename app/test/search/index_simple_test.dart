@@ -335,6 +335,19 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
+    test('order by updated: query text filter', () async {
+      final PackageSearchResult result = await index.search(
+          new SearchQuery.parse(query: 'http', order: SearchOrder.updated));
+      expect(JSON.decode(JSON.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'http'},
+          {'package': 'chrome_net'},
+        ],
+      });
+    });
+
     test('order by updated: platform filter', () async {
       final PackageSearchResult result =
           await index.search(new SearchQuery.parse(

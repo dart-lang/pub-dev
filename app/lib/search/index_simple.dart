@@ -153,6 +153,12 @@ class SimplePackageIndex implements PackageIndex {
     // do text matching
     final Score textScore = _searchText(packages, query.parsedQuery.text);
 
+    // filter packages that doesn't match text query
+    if (textScore != null) {
+      final keys = textScore.getKeys();
+      packages.removeWhere((x) => !keys.contains(x));
+    }
+
     List<PackageScore> results;
     switch (query.order ?? SearchOrder.top) {
       case SearchOrder.top:
