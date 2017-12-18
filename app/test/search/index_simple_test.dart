@@ -225,7 +225,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'chrome_net',
-            'score': closeTo(0.03, 0.01),
+            'score': closeTo(0.06, 0.01),
           },
         ]
       });

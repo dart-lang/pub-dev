@@ -262,7 +262,7 @@ class SimplePackageIndex implements PackageIndex {
 
   Score _searchText(Set<String> packages, String text) {
     if (text != null && text.isNotEmpty) {
-      final List<String> words = text.split(' ');
+      final List<String> words = splitForIndexing(text).toList();
       final int wordCount = words.length;
       final List<Score> wordScores = words.map((String word) {
         final nameTokens = _nameIndex.lookupTokens(word);
