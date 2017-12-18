@@ -206,6 +206,20 @@ void main() {
       expectGoldenFile(html, 'analysis_tab_mock.html', isFragment: true);
     });
 
+    test('aborted analysis tab', () async {
+      final String html = templates.renderAnalysisTab(
+          null,
+          new AnalysisView(new AnalysisData(
+            packageName: 'foo',
+            packageVersion: '1.0.0',
+            panaVersion: '0.8.0',
+            flutterVersion: '0.0.20',
+            analysisStatus: AnalysisStatus.aborted,
+            timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
+          )));
+      expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
+    });
+
     test('package index page', () {
       final String html = templates.renderPkgIndexPage([
         new PackageView.fromModel(
@@ -398,6 +412,9 @@ void main() {
 class MockAnalysisView implements AnalysisView {
   @override
   bool hasAnalysisData = true;
+
+  @override
+  bool hasPanaSummary = true;
 
   @override
   AnalysisStatus analysisStatus;
