@@ -406,7 +406,7 @@ class TemplateService {
 
   String _renderDependencyList(AnalysisView analysis) {
     if (analysis == null ||
-        !analysis.hasAnalysisData ||
+        !analysis.hasPanaSummary ||
         analysis.directDependencies == null) return null;
     final List<String> packages =
         analysis.directDependencies.map((pd) => pd.package).toList()..sort();

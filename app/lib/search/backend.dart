@@ -80,7 +80,6 @@ class SearchBackend {
       if (pv == null) continue;
 
       final analysisView = analysisViews[i];
-      if (!analysisView.hasAnalysisData) continue;
       final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
 
       results[i] = new PackageDocument(

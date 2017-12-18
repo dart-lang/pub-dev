@@ -89,7 +89,7 @@ class AnalyzerClient {
       }
     }
     final view = await getAnalysisView(key);
-    if (!view.hasAnalysisData) {
+    if (!view.hasPanaSummary) {
       return null;
     }
     final extract = new AnalysisExtract(
@@ -174,13 +174,14 @@ class AnalysisView {
     return new AnalysisView._(data, summary);
   }
 
-  bool get hasAnalysisData => _summary != null;
+  bool get hasAnalysisData => _data != null;
+  bool get hasPanaSummary => _summary != null;
 
   DateTime get timestamp => _data.timestamp;
   AnalysisStatus get analysisStatus => _data.analysisStatus;
 
-  String get dartSdkVersion => _summary.sdkVersion.toString();
-  String get panaVersion => _summary.panaVersion.toString();
+  String get dartSdkVersion => _summary?.sdkVersion?.toString();
+  String get panaVersion => _data?.panaVersion;
   String get flutterVersion =>
       _summary?.flutterVersion != null ? _data.flutterVersion : null;
 
