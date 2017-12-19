@@ -29,11 +29,6 @@ import 'templates.dart';
 
 final _pubHeaderLogger = new Logger('pub.header_logger');
 
-final String _staticPath = Platform.script.resolve('../../static').toFilePath();
-
-/// Stores binary data of /static
-final StaticsCache staticsCache = new StaticsCache(_staticPath);
-
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
 final _packageOverallLatencyTracker = new LastNTracker<Duration>();
@@ -232,9 +227,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
   if (normalized.startsWith('/static/')) {
-    final assetPath = '$_staticPath/${normalized.substring('/static/'.length)}';
-
-    final StaticFile staticFile = staticsCache.staticFiles[assetPath];
+    final StaticFile staticFile = staticsCache.getFile(normalized);
     if (staticFile != null) {
       final ifModifiedSince = request.ifModifiedSince;
       if (ifModifiedSince != null &&

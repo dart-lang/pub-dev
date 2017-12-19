@@ -5,30 +5,49 @@
 import 'dart:io';
 
 import 'package:mime/mime.dart' as mime;
+import 'package:path/path.dart' as path;
+
+/// Stores binary data for /static
+final StaticsCache staticsCache = new StaticsCache();
 
 class StaticsCache {
-  final Map<String, StaticFile> staticFiles = <String, StaticFile>{};
+  final Map<String, StaticFile> _staticFiles = <String, StaticFile>{};
 
-  StaticsCache(String staticPath) {
-    final Directory staticsDirectory = new Directory(staticPath);
+  StaticsCache() {
+    final staticPath = Platform.script.resolve('../../static').toFilePath();
+    final staticsDirectory = new Directory(staticPath).absolute;
     final files = staticsDirectory
         .listSync(recursive: true)
         .where((fse) => fse is File)
-        .map((file) => file.absolute);
+        .map((file) => file.absolute as File);
 
-    for (final File file in files) {
-      final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
-      final bytes = file.readAsBytesSync();
-      final lastModified = file.lastModifiedSync();
-      staticFiles[file.path] = new StaticFile(contentType, bytes, lastModified);
+    final staticFiles = files
+        .map((File file) => _loadFile(staticsDirectory.path, file))
+        .toList();
+
+    for (StaticFile file in staticFiles) {
+      final requestPath = '/static/${file.relativePath}';
+      _staticFiles[requestPath] = file;
     }
   }
+
+  StaticFile _loadFile(String rootPath, File file) {
+    final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
+    final bytes = file.readAsBytesSync();
+    final lastModified = file.lastModifiedSync();
+    final String relativePath = path.relative(file.path, from: rootPath);
+    return new StaticFile(relativePath, contentType, bytes, lastModified);
+  }
+
+  StaticFile getFile(String requestedPath) => _staticFiles[requestedPath];
 }
 
 class StaticFile {
+  final String relativePath;
   final String contentType;
   final List<int> bytes;
   final DateTime lastModified;
 
-  StaticFile(this.contentType, this.bytes, this.lastModified);
+  StaticFile(
+      this.relativePath, this.contentType, this.bytes, this.lastModified);
 }
