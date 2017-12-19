@@ -375,6 +375,8 @@ class TemplateService {
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(extract, analysis),
+        'schema_org_pkgmeta_json':
+            JSON.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
       },
       'version_table_rows': versionTableRows,
       'show_versions_link': totalNumberOfVersions > versions.length,
@@ -880,3 +882,25 @@ const _schemaOrgSearchAction = const {
     'query-input': 'required',
   },
 };
+
+Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
+  final Map map = {
+    '@context': 'http://schema.org',
+    '@type': 'SoftwareSourceCode',
+    'name': pv.package,
+    'version': pv.version,
+    'description': '${pv.package} - ${pv.pubspec.description}',
+    'url': 'https://pub.dartlang.org/packages/${pv.package}',
+    'dateCreated': p.created.toIso8601String(),
+    'dateUpdated': pv.created.toIso8601String(),
+    'programmingLanguage': 'Dart',
+  };
+  final licenses = analysis?.licenses;
+  final firstUrl =
+      licenses?.firstWhere((lf) => lf.url != null, orElse: () => null)?.url;
+  if (firstUrl != null) {
+    map['license'] = firstUrl;
+  }
+  // TODO: add http://schema.org/codeRepository for github and gitlab links
+  return map;
+}
