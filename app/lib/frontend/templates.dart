@@ -19,6 +19,7 @@ import '../shared/utils.dart';
 
 import 'model_properties.dart' show Author;
 import 'models.dart';
+import 'static_files.dart';
 import 'template_consts.dart';
 
 String _escapeAngleBrackets(String msg) =>
@@ -73,7 +74,7 @@ class TemplateService {
       'short_created': version.shortCreated,
       'documentation': version.documentation,
       'download_url': downloadUrl,
-      'icons': LogoUrls.versionsTableIcons,
+      'icons': staticUrls.versionsTableIcons,
     };
     return _renderTemplate('pkg/versions/version_row', versionData);
   }
@@ -383,7 +384,7 @@ class TemplateService {
       'tabs': tabs,
       'has_no_file_tab': tabs.isEmpty,
       'version_count': '$totalNumberOfVersions',
-      'icons': LogoUrls.versionsTableIcons,
+      'icons': staticUrls.versionsTableIcons,
     };
     return values;
   }
@@ -482,7 +483,7 @@ class TemplateService {
       title: '${package.name} ${selectedVersion.id} | Dart Package',
       packageName: selectedVersion.package,
       packageDescription: selectedVersion.ellipsizedDescription,
-      faviconUrl: isFlutterPlugin ? LogoUrls.flutterLogo32x32 : null,
+      faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
     );
   }
 
@@ -574,8 +575,8 @@ class TemplateService {
         : serializeSearchOrder(searchQuery.order);
     final platformDict = getPlatformDict(platform);
     final values = {
-      'static_assets_dir': LogoUrls.newDesignAssetsDir,
-      'favicon': faviconUrl ?? LogoUrls.smallDartFavicon,
+      'static_assets_dir': staticUrls.newDesignAssetsDir,
+      'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
       'package': packageName == null
           ? false
           : {
@@ -848,22 +849,6 @@ class PackageLinks extends PageLinks {
       return _searchQuery.toSearchLink(page: page);
     }
   }
-}
-
-abstract class LogoUrls {
-  static const String newDesignAssetsDir = '/static/v2';
-  static const String documentationIcon =
-      '$newDesignAssetsDir/img/ic_drive_document_black_24dp.svg';
-  static const String downloadIcon =
-      '$newDesignAssetsDir/img/ic_get_app_black_24dp.svg';
-
-  static const String smallDartFavicon = '/static/favicon.ico';
-  static const String flutterLogo32x32 = '/static/img/flutter-logo-32x32.png';
-
-  static const versionsTableIcons = const {
-    'documentation': LogoUrls.documentationIcon,
-    'download': LogoUrls.downloadIcon,
-  };
 }
 
 enum PageType {

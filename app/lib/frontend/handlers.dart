@@ -79,7 +79,7 @@ Future<shelf.Response> appHandler(
     return packageHandler(request);
   } else if (path.startsWith('/doc')) {
     return docHandler(request);
-  } else if (path.startsWith('/static')) {
+  } else if (path.startsWith(staticUrls.staticPath)) {
     return staticsHandler(request);
   } else {
     return _formattedNotFoundHandler(request);
@@ -226,24 +226,22 @@ const _staticMaxAge = const Duration(minutes: 5);
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
-  if (normalized.startsWith('/static/')) {
-    final StaticFile staticFile = staticsCache.getFile(normalized);
-    if (staticFile != null) {
-      final ifModifiedSince = request.ifModifiedSince;
-      if (ifModifiedSince != null &&
-          !staticFile.lastModified.isAfter(ifModifiedSince)) {
-        return new shelf.Response.notModified();
-      }
-      return new shelf.Response.ok(
-        staticFile.bytes,
-        headers: {
-          HttpHeaders.CONTENT_TYPE: staticFile.contentType,
-          HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
-          HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
-          HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
-        },
-      );
+  final StaticFile staticFile = staticsCache.getFile(normalized);
+  if (staticFile != null) {
+    final ifModifiedSince = request.ifModifiedSince;
+    if (ifModifiedSince != null &&
+        !staticFile.lastModified.isAfter(ifModifiedSince)) {
+      return new shelf.Response.notModified();
     }
+    return new shelf.Response.ok(
+      staticFile.bytes,
+      headers: {
+        HttpHeaders.CONTENT_TYPE: staticFile.contentType,
+        HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
+        HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
+        HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
+      },
+    );
   }
   return _formattedNotFoundHandler(request);
 }

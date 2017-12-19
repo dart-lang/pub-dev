@@ -8,14 +8,15 @@ import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 
 /// Stores binary data for /static
-final StaticsCache staticsCache = new StaticsCache();
+final StaticsCache staticsCache = new StaticsCache('/static');
 
 class StaticsCache {
+  final String staticPath;
   final Map<String, StaticFile> _staticFiles = <String, StaticFile>{};
 
-  StaticsCache() {
-    final staticPath = Platform.script.resolve('../../static').toFilePath();
-    final staticsDirectory = new Directory(staticPath).absolute;
+  StaticsCache(this.staticPath) {
+    final staticDirPath = Platform.script.resolve('../../static').toFilePath();
+    final staticsDirectory = new Directory(staticDirPath).absolute;
     final files = staticsDirectory
         .listSync(recursive: true)
         .where((fse) => fse is File)
@@ -26,7 +27,7 @@ class StaticsCache {
         .toList();
 
     for (StaticFile file in staticFiles) {
-      final requestPath = '/static/${file.relativePath}';
+      final requestPath = '$staticPath/${file.relativePath}';
       _staticFiles[requestPath] = file;
     }
   }
@@ -50,4 +51,31 @@ class StaticFile {
 
   StaticFile(
       this.relativePath, this.contentType, this.bytes, this.lastModified);
+}
+
+final staticUrls = new StaticUrls(staticsCache.staticPath);
+
+class StaticUrls {
+  final String staticPath;
+  final String smallDartFavicon;
+  final String flutterLogo32x32;
+  final String newDesignAssetsDir;
+  final String documentationIcon;
+  final String downloadIcon;
+  Map _versionsTableIcons;
+
+  StaticUrls(this.staticPath)
+      : smallDartFavicon = '$staticPath/favicon.ico',
+        flutterLogo32x32 = '$staticPath/img/flutter-logo-32x32.png',
+        newDesignAssetsDir = '$staticPath/v2',
+        documentationIcon =
+            '$staticPath/v2/img/ic_drive_document_black_24dp.svg',
+        downloadIcon = '$staticPath/v2/img/ic_get_app_black_24dp.svg';
+
+  Map get versionsTableIcons {
+    return _versionsTableIcons ??= {
+      'documentation': documentationIcon,
+      'download': downloadIcon,
+    };
+  }
 }
