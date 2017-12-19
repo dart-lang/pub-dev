@@ -593,6 +593,7 @@ class TemplateService {
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,
       'include_survey': includeSurvey,
+      'include_highlight': type == PageType.package,
       'landing_banner': type == PageType.landing,
       'landing_banner_image':
           platform == 'flutter' ? 'flutter-packages.png' : 'dart-packages.png',
