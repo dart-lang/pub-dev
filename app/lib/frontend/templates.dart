@@ -865,7 +865,7 @@ const _schemaOrgSearchAction = const {
   'potentialAction': const {
     '@type': 'SearchAction',
     'target': 'https://pub.dartlang.org/packages?q={query}',
-    'query-input': 'required',
+    'query-input': 'required name=query',
   },
 };
 
@@ -878,7 +878,7 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     'description': '${pv.package} - ${pv.pubspec.description}',
     'url': 'https://pub.dartlang.org/packages/${pv.package}',
     'dateCreated': p.created.toIso8601String(),
-    'dateUpdated': pv.created.toIso8601String(),
+    'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
   };
   final licenses = analysis?.licenses;
