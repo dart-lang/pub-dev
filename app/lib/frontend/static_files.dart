@@ -10,12 +10,22 @@ import 'package:path/path.dart' as path;
 /// Stores binary data for /static
 final StaticsCache staticsCache = new StaticsCache('/static');
 
+String _resolveStaticDirPath() {
+  if (Platform.script.path.contains('bin/server.dart')) {
+    return Platform.script.resolve('../../static').toFilePath();
+  }
+  if (Platform.script.path.contains('app/test')) {
+    return path.join(Directory.current.path, '../static');
+  }
+  throw new Exception('Unknown script: ${Platform.script}');
+}
+
 class StaticsCache {
   final String staticPath;
   final Map<String, StaticFile> _staticFiles = <String, StaticFile>{};
 
   StaticsCache(this.staticPath) {
-    final staticDirPath = Platform.script.resolve('../../static').toFilePath();
+    final staticDirPath = _resolveStaticDirPath();
     final staticsDirectory = new Directory(staticDirPath).absolute;
     final files = staticsDirectory
         .listSync(recursive: true)
