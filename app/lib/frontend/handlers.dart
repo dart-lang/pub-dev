@@ -10,7 +10,6 @@ import 'dart:math';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:logging/logging.dart';
-import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -25,11 +24,10 @@ import 'backend.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
 import 'search_service.dart';
+import 'static_files.dart';
 import 'templates.dart';
 
 final _pubHeaderLogger = new Logger('pub.header_logger');
-
-final String _staticPath = Platform.script.resolve('../../static').toFilePath();
 
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
@@ -81,7 +79,7 @@ Future<shelf.Response> appHandler(
     return packageHandler(request);
   } else if (path.startsWith('/doc')) {
     return docHandler(request);
-  } else if (path.startsWith('/static')) {
+  } else if (path.startsWith(staticUrls.staticPath)) {
     return staticsHandler(request);
   } else {
     return _formattedNotFoundHandler(request);
@@ -221,9 +219,6 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
   }
 }
 
-/// Handles requests for /static
-final StaticsCache staticsCache = new StaticsCache();
-
 /// The max age a browser would take hold of the static files before checking
 /// with the server for a newer version.
 const _staticMaxAge = const Duration(minutes: 5);
@@ -231,26 +226,24 @@ const _staticMaxAge = const Duration(minutes: 5);
 Future<shelf.Response> staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized = path.normalize(request.requestedUri.path);
-  if (normalized.startsWith('/static/')) {
-    final assetPath = '$_staticPath/${normalized.substring('/static/'.length)}';
-
-    final StaticFile staticFile = staticsCache.staticFiles[assetPath];
-    if (staticFile != null) {
-      final ifModifiedSince = request.ifModifiedSince;
-      if (ifModifiedSince != null &&
-          !staticFile.lastModified.isAfter(ifModifiedSince)) {
-        return new shelf.Response.notModified();
-      }
-      return new shelf.Response.ok(
-        staticFile.bytes,
-        headers: {
-          HttpHeaders.CONTENT_TYPE: staticFile.contentType,
-          HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
-          HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
-          HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
-        },
-      );
+  final StaticFile staticFile = staticsCache.getFile(normalized);
+  if (staticFile != null) {
+    final ifModifiedSince = request.ifModifiedSince;
+    if (ifModifiedSince != null &&
+        !staticFile.lastModified.isAfter(ifModifiedSince)) {
+      return new shelf.Response.notModified();
     }
+    // TODO: handle ETag header
+    return new shelf.Response.ok(
+      staticFile.bytes,
+      headers: {
+        HttpHeaders.CONTENT_TYPE: staticFile.contentType,
+        HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
+        HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
+        // TODO: emit ETag header
+        HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
+      },
+    );
   }
   return _formattedNotFoundHandler(request);
 }
@@ -629,33 +622,6 @@ int _pageFromUrl(Uri url) {
     } catch (_, __) {}
   }
   return pageAsInt;
-}
-
-class StaticsCache {
-  final Map<String, StaticFile> staticFiles = <String, StaticFile>{};
-
-  StaticsCache() {
-    final Directory staticsDirectory = new Directory(_staticPath);
-    final files = staticsDirectory
-        .listSync(recursive: true)
-        .where((fse) => fse is File)
-        .map((file) => file.absolute);
-
-    for (final File file in files) {
-      final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
-      final bytes = file.readAsBytesSync();
-      final lastModified = file.lastModifiedSync();
-      staticFiles[file.path] = new StaticFile(contentType, bytes, lastModified);
-    }
-  }
-}
-
-class StaticFile {
-  final String contentType;
-  final List<int> bytes;
-  final DateTime lastModified;
-
-  StaticFile(this.contentType, this.bytes, this.lastModified);
 }
 
 bool _isProd(shelf.Request request) {
