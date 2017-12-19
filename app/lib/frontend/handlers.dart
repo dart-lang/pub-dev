@@ -233,12 +233,14 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
         !staticFile.lastModified.isAfter(ifModifiedSince)) {
       return new shelf.Response.notModified();
     }
+    // TODO: handle ETag header
     return new shelf.Response.ok(
       staticFile.bytes,
       headers: {
         HttpHeaders.CONTENT_TYPE: staticFile.contentType,
         HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
         HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
+        // TODO: emit ETag header
         HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
       },
     );
