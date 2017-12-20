@@ -804,6 +804,8 @@ abstract class PageLinks {
         'render_link': !isCurrent,
         'href': _attrEscaper.convert(formatHref(page)),
         'text': '$page',
+        'rel_prev': currentPage == page + 1,
+        'rel_next': currentPage == page - 1,
       });
     }
 
