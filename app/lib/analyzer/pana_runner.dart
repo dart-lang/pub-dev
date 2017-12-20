@@ -18,6 +18,8 @@ import 'models.dart';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
 
+final Duration _twoYears = const Duration(days: 2 * 365);
+
 class PanaRunner implements TaskRunner {
   final AnalysisBackend _analysisBackend;
 
@@ -35,7 +37,27 @@ class PanaRunner implements TaskRunner {
 
   @override
   Future<bool> runTask(Task task) async {
+    final packageStatus =
+        await _analysisBackend.getPackageStatus(task.package, task.version);
+    if (!packageStatus.exists) {
+      _logger.info('Package does not exists: $task.');
+      return false;
+    }
+
     final DateTime timestamp = new DateTime.now().toUtc();
+    final Analysis analysis =
+        new Analysis.init(task.package, task.version, timestamp);
+
+    final Duration age = timestamp.difference(packageStatus.publishDate).abs();
+    if (age > _twoYears) {
+      _logger.info(
+          'Package is older than two years and has newer release: $task.');
+      analysis.analysisStatus = AnalysisStatus.outdated;
+      analysis.maintenanceScore = 0.0;
+      final backendStatus = await _analysisBackend.storeAnalysis(analysis);
+      return backendStatus.wasRace;
+    }
+
     Future<Summary> analyze() async {
       Directory tempDir;
       try {
@@ -73,9 +95,6 @@ class PanaRunner implements TaskRunner {
       summary = await analyze();
     }
 
-    final Analysis analysis =
-        new Analysis.init(task.package, task.version, timestamp);
-
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
@@ -87,12 +106,9 @@ class PanaRunner implements TaskRunner {
         analysis.analysisStatus = AnalysisStatus.failure;
       }
       analysis.analysisJson = summary.toJson();
+      analysis.maintenanceScore =
+          summary?.maintenance?.getMaintenanceScore(age: age);
     }
-
-    final DateTime publishDate =
-        await _analysisBackend.getPublishDate(task.package, task.version);
-    analysis.maintenanceScore = summary?.maintenance?.getMaintenanceScore(
-        age: new DateTime.now().toUtc().difference(publishDate).abs());
 
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
 

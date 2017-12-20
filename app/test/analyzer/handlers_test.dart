@@ -170,7 +170,7 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  Future<DateTime> getPublishDate(String package, String version) {
+  Future<PackageStatus> getPackageStatus(String package, String version) {
     throw 'Not implemented yet.';
   }
 }
