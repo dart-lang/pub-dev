@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 
@@ -47,7 +48,8 @@ class StaticsCache {
     final bytes = file.readAsBytesSync();
     final lastModified = file.lastModifiedSync();
     final String relativePath = path.relative(file.path, from: rootPath);
-    return new StaticFile(relativePath, contentType, bytes, lastModified);
+    final String etag = crypto.sha256.convert(bytes).toString();
+    return new StaticFile(relativePath, contentType, bytes, lastModified, etag);
   }
 
   StaticFile getFile(String requestedPath) => _staticFiles[requestedPath];
@@ -58,9 +60,15 @@ class StaticFile {
   final String contentType;
   final List<int> bytes;
   final DateTime lastModified;
+  final String etag;
 
   StaticFile(
-      this.relativePath, this.contentType, this.bytes, this.lastModified);
+    this.relativePath,
+    this.contentType,
+    this.bytes,
+    this.lastModified,
+    this.etag,
+  );
 }
 
 final staticUrls = new StaticUrls(staticsCache.staticPath);
