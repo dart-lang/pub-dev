@@ -40,6 +40,10 @@ enum AnalysisStatus {
   /// One or more tools failed to produce the expected output.
   failure,
 
+  /// Analysis was not started, because package is considered old and has a
+  /// newer stable release.
+  outdated,
+
   /// Analysis was completed without issues.
   success,
 }
@@ -52,6 +56,7 @@ int analysisStatusLevel(AnalysisStatus status) {
       return 0;
     case AnalysisStatus.failure:
       return 1;
+    case AnalysisStatus.outdated:
     case AnalysisStatus.success:
       return 2;
   }

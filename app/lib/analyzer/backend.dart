@@ -311,16 +311,30 @@ class AnalysisBackend {
     }
   }
 
-  /// Returns the publish date of a package.
-  Future<DateTime> getPublishDate(String package, String version) async {
-    final List<PackageVersion> list = await db.lookup([
-      db.emptyKey
-          .append(Package, id: package)
-          .append(PackageVersion, id: version)
-    ]);
-    final PackageVersion pv = list.single;
-    return pv?.created;
+  /// Returns the status of a package and version.
+  Future<PackageStatus> getPackageStatus(String package, String version) async {
+    final packageKey = db.emptyKey.append(Package, id: package);
+    final List list = await db
+        .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
+    final Package p = list[0];
+    final PackageVersion pv = list[1];
+    if (p == null || pv == null) {
+      return new PackageStatus(exists: false);
+    }
+    return new PackageStatus(
+      exists: true,
+      publishDate: pv.created,
+      isLatestStable: p.latestVersion == version,
+    );
   }
+}
+
+class PackageStatus {
+  final bool exists;
+  final DateTime publishDate;
+  final bool isLatestStable;
+
+  PackageStatus({this.exists, this.publishDate, this.isLatestStable: false});
 }
 
 class BackendAnalysisStatus {

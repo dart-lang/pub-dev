@@ -150,6 +150,9 @@ class TemplateService {
       case AnalysisStatus.failure:
         statusText = 'tool failures';
         break;
+      case AnalysisStatus.outdated:
+        statusText = 'skipped (outdated)';
+        break;
       case AnalysisStatus.success:
         statusText = 'completed';
         break;
