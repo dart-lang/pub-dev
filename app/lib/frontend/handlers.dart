@@ -259,7 +259,7 @@ Future<shelf.Response> packagesHandlerJson(
   final packages = await backend.latestPackages(offset: offset, limit: limit);
   final bool lastPage = packages.length < limit;
 
-  var nextPageUrl;
+  Uri nextPageUrl;
   if (!lastPage) {
     nextPageUrl =
         request.requestedUri.resolve('/packages.json?page=${page + 1}');

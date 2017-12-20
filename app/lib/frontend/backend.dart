@@ -150,8 +150,8 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Stream<PackageVersion> versions(String package) {
-    var controller;
-    var subscription;
+    StreamController controller;
+    StreamSubscription subscription;
 
     controller = new StreamController(
         onListen: () {
@@ -273,8 +273,10 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future<PackageVersion> _performTarballUpload(String userEmail,
-      String filename, Future tarballUpload(name, version)) async {
+  Future<PackageVersion> _performTarballUpload(
+      String userEmail,
+      String filename,
+      Future tarballUpload(String name, String version)) async {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
@@ -505,7 +507,7 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
   StreamController<List<int>> intermediary;
   Future addStreamFuture;
 
-  void abort(error, stack) {
+  void abort(Object error, StackTrace stack) {
     _logger.warning(
         'An error occured while streaming tarball to FS.', error, stack);
 
@@ -546,7 +548,7 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
           addStreamFuture.then((_) async {
             await sink.close();
             finish();
-          }).catchError((error, stack) {
+          }).catchError((Object error, StackTrace stack) {
             // NOTE: There is also an error handler further down for `addStream()`,
             // since an error might occur before we get this `onDone` callback.
             // In this case `abort` will not do anything.
