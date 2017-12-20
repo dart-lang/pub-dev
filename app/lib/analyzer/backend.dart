@@ -52,7 +52,10 @@ class AnalysisBackend {
     if (version == null) {
       final list = await db.lookup([packageKey]);
       final PackageAnalysis pa = list[0];
-      if (pa == null) return null;
+      if (pa == null) {
+        _logger.info('PackageAnalysis lookup failed: no entry for $package.');
+        return null;
+      }
       version = pa.latestVersion;
     }
 
@@ -64,7 +67,11 @@ class AnalysisBackend {
     if (analysis == null) {
       final list = await db.lookup([versionKey]);
       final PackageVersionAnalysis pva = list[0];
-      if (pva == null) return null;
+      if (pva == null) {
+        _logger.info(
+            'PackageVersionAnalysis lookup failed: no entry for $package $version.');
+        return null;
+      }
       analysis = pva.latestAnalysis;
       lookupMatchingPanaVersion =
           panaVersion != null && pva.panaVersion != panaVersion;
@@ -78,13 +85,22 @@ class AnalysisBackend {
         list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
         final Analysis entry = list[0];
         return _toData(entry);
+      } else {
+        _logger.info(
+            "Analysis lookup failed for $package $version (panaVersion=$panaVersion)");
       }
     }
 
     // analysis was set
     final Key analysisKey = versionKey.append(Analysis, id: analysis);
     final List list = await db.lookup([analysisKey]);
-    return _toData(list[0]);
+    final Analysis entry = list[0];
+    if (entry == null) {
+      _logger.info(
+          "Analysis lookup failed for $package $version (id=${analysis ?? ''}).");
+      return null;
+    }
+    return _toData(entry);
   }
 
   AnalysisData _toData(Analysis entry) {
