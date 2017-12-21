@@ -60,7 +60,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         'packages': [
           {
             'package': 'travis',
-            'score': closeTo(0.267, 0.001),
+            'score': closeTo(0.974, 0.001),
           },
         ],
       });
