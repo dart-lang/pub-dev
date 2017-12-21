@@ -56,35 +56,11 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
           new SearchQuery.parse(query: 'travis', order: SearchOrder.text));
       expect(JSON.decode(JSON.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 7,
+        'totalCount': 1,
         'packages': [
           {
             'package': 'travis',
             'score': closeTo(0.267, 0.001),
-          },
-          {
-            'package': 'rainbow_vis',
-            'score': closeTo(0.047, 0.001),
-          },
-          {
-            'package': 'mongo_dart_query',
-            'score': closeTo(0.047, 0.001),
-          },
-          {
-            'package': 'angular_aria',
-            'score': closeTo(0.047, 0.001),
-          },
-          {
-            'package': 'w_transport',
-            'score': closeTo(0.047, 0.001),
-          },
-          {
-            'package': 'sass_transformer',
-            'score': closeTo(0.046, 0.001),
-          },
-          {
-            'package': 'dartemis_transformer',
-            'score': closeTo(0.046, 0.001),
           },
         ],
       });

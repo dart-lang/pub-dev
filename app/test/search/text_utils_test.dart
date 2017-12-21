@@ -43,4 +43,15 @@ void main() {
           ['abc', 'cde', '123 456']);
     });
   });
+
+  group('compact readme', () {
+    test('No formatting', () {
+      expect(compactReadme('abc  123 '), 'abc 123');
+    });
+
+    test('link', () {
+      expect(compactReadme('some [link](http://example.com) with text'),
+          'some link with text');
+    });
+  });
 }
