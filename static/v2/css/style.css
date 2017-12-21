@@ -576,9 +576,30 @@ pre > code {
 }
 
 
-.home-banner > .logo{
-  width: 100%;
-  max-width: 520px
+.home-banner > .logo {
+  width: 520px;
+  height: 72px;
+}
+
+@media (max-width: 520px) {
+  .home-banner > .logo {
+    width: 455px;
+    height: 63px;
+  }
+}
+
+@media (max-width: 460px) {
+  .home-banner > .logo {
+    width: 390px;
+    height: 54px;
+  }
+}
+
+@media (max-width: 400px) {
+  .home-banner > .logo {
+    width: 325px;
+    height: 45px;
+  }
 }
 
 
