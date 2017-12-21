@@ -386,17 +386,17 @@ MIT'''),
           {
             // should be the top
             'package': 'haversine',
-            'score': closeTo(0.196, 0.001),
+            'score': closeTo(0.968, 0.001),
           },
           {
             // should be present
             'package': 'great_circle_distance',
-            'score': closeTo(0.030, 0.001),
+            'score': closeTo(0.843, 0.001),
           },
           {
             // should be present
             'package': 'latlong',
-            'score': closeTo(0.026, 0.001),
+            'score': closeTo(0.841, 0.001),
           },
         ]
       });

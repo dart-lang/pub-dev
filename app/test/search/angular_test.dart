@@ -38,11 +38,11 @@ void main() {
         'packages': [
           {
             'package': 'angular',
-            'score': closeTo(0.236, 0.001),
+            'score': closeTo(0.971, 0.001),
           },
           {
             'package': 'angular_ui',
-            'score': closeTo(0.229, 0.001),
+            'score': closeTo(0.970, 0.001),
           },
         ],
       });

@@ -478,8 +478,8 @@ class TokenIndex {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
     }
-    // Document size inspired by ElasticSearch's ranking.
-    final docSize = math.sqrt(tokens.length);
+    // Document size is a highly scaled-down proxy of the length.
+    final docSize = 1 + math.log(1 + tokens.length) / 100;
     _docSizes[id] = docSize;
   }
 
