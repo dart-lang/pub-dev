@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:html/parser.dart';
+
+import '../shared/markdown.dart';
+
 final RegExp _separators =
     new RegExp(r'[_\.,;=\(\)\>\<\[\]\{\}\|\?\!\/\+\-\*]|\s');
 final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
@@ -18,7 +22,13 @@ String compactText(String text, {int maxLength: -1}) {
 }
 
 String compactDescription(String text) => compactText(text, maxLength: 500);
-String compactReadme(String text) => compactText(text, maxLength: 5000);
+
+String compactReadme(String text) {
+  if (text == null || text.isEmpty) return '';
+  final html = markdownToHtml(text, null);
+  final root = parseFragment(html);
+  return compactText(root.text, maxLength: 5000);
+}
 
 String normalizeBeforeIndexing(String text) {
   if (text == null) return '';
