@@ -579,6 +579,7 @@ class TemplateService {
     final platformDict = getPlatformDict(platform);
     final values = {
       'static_assets_dir': staticUrls.newDesignAssetsDir,
+      'static_assets': staticUrls.assets,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
       'package': packageName == null
           ? false
