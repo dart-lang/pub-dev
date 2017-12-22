@@ -484,8 +484,8 @@ class TemplateService {
       PageType.package,
       content,
       title: '${package.name} ${selectedVersion.id} | Dart Package',
-      packageName: selectedVersion.package,
-      packageDescription: selectedVersion.ellipsizedDescription,
+      pageDescription:
+          '${selectedVersion.package} - ${selectedVersion.ellipsizedDescription}',
       faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
     );
   }
@@ -556,8 +556,7 @@ class TemplateService {
     PageType type,
     String contentHtml, {
     String title: 'pub.dartlang.org',
-    String packageName,
-    String packageDescription,
+    String pageDescription,
     String faviconUrl,
     String platform,
     SearchQuery searchQuery,
@@ -580,12 +579,9 @@ class TemplateService {
     final values = {
       'static_assets_dir': staticUrls.newDesignAssetsDir,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
-      'package': packageName == null
-          ? false
-          : {
-              'name': HTML_ESCAPE.convert(packageName),
-              'description': HTML_ESCAPE.convert(packageDescription ?? ''),
-            },
+      'pageDescription': pageDescription == null
+          ? 'Pub is a package manager for the Dart programming language.'
+          : HTML_ESCAPE.convert(pageDescription),
       'title': HTML_ESCAPE.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,

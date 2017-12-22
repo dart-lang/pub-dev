@@ -14,12 +14,7 @@
   {{#favicon}}
   <link rel="shortcut icon" href="{{{favicon}}}" />
   {{/favicon}}
-  {{#package}}
-  <meta name="description" content="{{package.name}} - {{package.description}}" />
-  {{/package}}
-  {{^package}}
-  <meta name="description" content="Pub is a package manager for the Dart programming language." />
-  {{/package}}
+  <meta name="description" content="{{pageDescription}}" />
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />
   <link href="{{{static_assets_dir}}}/highlight/github.css" rel="stylesheet" />
   <link href="{{{static_assets_dir}}}/css/style.css" rel="stylesheet" type="text/css" />

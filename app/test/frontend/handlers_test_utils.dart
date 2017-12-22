@@ -172,7 +172,7 @@ class TemplateMock implements TemplateService {
     String contentHtml, {
     String title: 'pub.dartlang.org',
     String packageName,
-    String packageDescription,
+    String pageDescription,
     String faviconUrl,
     String platform,
     SearchQuery searchQuery,
