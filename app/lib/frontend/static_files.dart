@@ -11,6 +11,11 @@ import 'package:path/path.dart' as path;
 /// Stores binary data for /static
 final StaticsCache staticsCache = new StaticsCache('/static');
 
+final Set<String> staticRootFiles = new Set<String>.from([
+  '/favicon.ico',
+  '/robots.txt',
+]);
+
 String _resolveStaticDirPath() {
   if (Platform.script.path.contains('bin/server.dart')) {
     return Platform.script.resolve('../../static').toFilePath();
