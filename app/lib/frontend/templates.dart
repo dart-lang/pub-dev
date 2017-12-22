@@ -107,6 +107,8 @@ class TemplateService {
 
     final PlatformDict platformDict = getPlatformDict(currentPlatform);
     final isSearch = searchQuery != null && searchQuery.hasQuery;
+    final unsupportedQualifier =
+        isSearch && searchQuery.parsedQuery.text.contains(':');
     final String sortValue = serializeSearchOrder(searchQuery?.order) ??
         (isSearch ? 'search_relevance' : 'listing_relevance');
     final SortDict sortDict = getSortDict(sortValue);
@@ -115,6 +117,7 @@ class TemplateService {
       'sort_name': sortDict.label,
       'ranking_tooltip_html': sortDict.tooltip,
       'is_search': isSearch,
+      'unsupported_qualifier': unsupportedQualifier,
       'title': platformDict.pageTitle,
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
