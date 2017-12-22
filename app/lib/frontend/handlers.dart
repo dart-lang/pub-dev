@@ -359,8 +359,7 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
     if (responseAsJson) {
       return packageShowHandlerJson(request, Uri.decodeComponent(path));
     } else {
-      return packageVersionHandlerHtml(
-          request, Uri.decodeComponent(path), null);
+      return packageVersionHandlerHtml(request, Uri.decodeComponent(path));
     }
   }
 
@@ -375,7 +374,7 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
       } else {
         path = path.substring(1);
         final String version = Uri.decodeComponent(path);
-        return packageVersionHandlerHtml(request, package, version);
+        return packageVersionHandlerHtml(request, package, version: version);
       }
     } else {
       return packageVersionsHandler(request, package);
@@ -422,7 +421,6 @@ Future<shelf.Response> packageVersionsHandler(
 Future<shelf.Response> _packageVersionHandlerHtml(
     shelf.Request request,
     String packageName,
-    String versionName,
     String render(
         Package package,
         List<PackageVersion> first10Versions,
@@ -432,7 +430,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         PackageVersion latestDevVersion,
         int totalNumberOfVersions,
         AnalysisExtract extract,
-        AnalysisView analysis)) async {
+        AnalysisView analysis),
+    {String versionName}) async {
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   final bool isProd = _isProd(request);
@@ -503,12 +502,13 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   return htmlResponse(cachedPage);
 }
 
+/// Handles requests for /packages/<package>
 /// Handles requests for /packages/<package>/versions/<version>
 Future<shelf.Response> packageVersionHandlerHtml(
-    shelf.Request request, String packageName, String versionName) {
-  return _packageVersionHandlerHtml(
-      request, packageName, versionName, templateService.renderPkgShowPage);
-}
+        shelf.Request request, String packageName, {String version}) =>
+    _packageVersionHandlerHtml(
+        request, packageName, templateService.renderPkgShowPage,
+        versionName: version);
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
 Future<shelf.Response> packageVersionHandlerYaml(
