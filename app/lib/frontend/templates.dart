@@ -245,8 +245,6 @@ class TemplateService {
       }).toList();
     }
 
-    // TODO(nweiz): Once the 1.11 SDK is out and pub supports ">=1.2.3-pre
-    // <1.2.3", suggest that as the version constraint for prerelease versions.
     final exampleVersionConstraint = '"^${selectedVersion.version}"';
 
     bool isMarkdownFile(String filename) {
