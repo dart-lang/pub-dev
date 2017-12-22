@@ -227,7 +227,7 @@ class TemplateService {
       int totalNumberOfVersions,
       AnalysisExtract extract,
       AnalysisView analysis,
-      isFlutterPlugin) {
+      bool isFlutterPlugin) {
     List importExamples;
     if (selectedVersion.libraries.contains('${package.id}.dart')) {
       importExamples = [
