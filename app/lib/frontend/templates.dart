@@ -450,7 +450,8 @@ class TemplateService {
     final content = _renderTemplate('pkg/show', values);
     final versionString = isVersionPage ? '${selectedVersion.id} ' : '';
     return renderLayoutPage(PageType.package, content,
-        title: '${package.name} $versionString| Dart Package',
+        title:
+            '${package.name} $versionString| ${isFlutterPlugin ? 'Flutter' : 'Dart'} Package',
         pageDescription:
             '${selectedVersion.package} - ${selectedVersion.ellipsizedDescription}',
         faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
