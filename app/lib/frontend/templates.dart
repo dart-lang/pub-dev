@@ -64,7 +64,8 @@ class TemplateService {
       'version_table_rows': versionTableRows,
     };
     final content = _renderTemplate('pkg/versions/index', values);
-    return renderLayoutPage(PageType.package, content);
+    return renderLayoutPage(PageType.package, content,
+        canonicalUrl: _canonicalUrlForPackage(package));
   }
 
   String _renderVersionTableRow(PackageVersion version, String downloadUrl) {
@@ -448,14 +449,13 @@ class TemplateService {
     );
     final content = _renderTemplate('pkg/show', values);
     final versionString = isVersionPage ? '${selectedVersion.id} ' : '';
-    return renderLayoutPage(
-      PageType.package,
-      content,
-      title: '${package.name} $versionString| Dart Package',
-      pageDescription:
-          '${selectedVersion.package} - ${selectedVersion.ellipsizedDescription}',
-      faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
-    );
+    return renderLayoutPage(PageType.package, content,
+        title: '${package.name} $versionString| Dart Package',
+        pageDescription:
+            '${selectedVersion.package} - ${selectedVersion.ellipsizedDescription}',
+        faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
+        canonicalUrl:
+            isVersionPage ? _canonicalUrlForPackage(package.name) : null);
   }
 
   /// Renders the `views/authorized.mustache` template.
@@ -526,6 +526,7 @@ class TemplateService {
     String title: hostedDomain,
     String pageDescription,
     String faviconUrl,
+    String canonicalUrl,
     String platform,
     SearchQuery searchQuery,
     bool includeSurvey: true,
@@ -547,6 +548,7 @@ class TemplateService {
     final values = {
       'static_assets_dir': staticUrls.newDesignAssetsDir,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
+      'canonicalUrl': canonicalUrl,
       'pageDescription': pageDescription == null
           ? 'Pub is a package manager for the Dart programming language.'
           : HTML_ESCAPE.convert(pageDescription),
@@ -859,6 +861,9 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return map;
 }
+
+String _canonicalUrlForPackage(String packageName) =>
+    '$siteRoot/packages/$packageName';
 
 String _renderFile(FileObject file, String baseUrl) {
   final filename = file.filename;

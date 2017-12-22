@@ -14,6 +14,9 @@
   {{#favicon}}
   <link rel="shortcut icon" href="{{{favicon}}}" />
   {{/favicon}}
+  {{#canonicalUrl}}
+  <link rel="canonical" href="{{{canonicalUrl}}}"/>
+  {{/canonicalUrl}}
   <meta name="description" content="{{pageDescription}}" />
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />
   <link href="{{{static_assets_dir}}}/highlight/github.css" rel="stylesheet" />
