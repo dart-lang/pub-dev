@@ -423,6 +423,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     String packageName,
     String render(
         Package package,
+        bool isVersionPage,
         List<PackageVersion> first10Versions,
         List<Uri> versionDownloadUrls,
         PackageVersion selectedVersion,
@@ -483,6 +484,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
     cachedPage = render(
         package,
+        versionName != null,
         first10Versions,
         versionDownloadUrls,
         selectedVersion,

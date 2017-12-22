@@ -195,6 +195,7 @@ class TemplateMock implements TemplateService {
   @override
   String renderPkgShowPage(
       Package package,
+      bool isVersionPage,
       List<PackageVersion> versions,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,

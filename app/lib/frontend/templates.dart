@@ -414,6 +414,7 @@ class TemplateService {
   /// Renders the `views/pkg/show.mustache` template.
   String renderPkgShowPage(
       Package package,
+      bool isVersionPage,
       List<PackageVersion> versions,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,
@@ -446,10 +447,11 @@ class TemplateService {
       ).toString(),
     );
     final content = _renderTemplate('pkg/show', values);
+    final versionString = isVersionPage ? '${selectedVersion.id} ' : '';
     return renderLayoutPage(
       PageType.package,
       content,
-      title: '${package.name} ${selectedVersion.id} | Dart Package',
+      title: '${package.name} $versionString| Dart Package',
       pageDescription:
           '${selectedVersion.package} - ${selectedVersion.ellipsizedDescription}',
       faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
