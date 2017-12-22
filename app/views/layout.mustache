@@ -3,7 +3,7 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <!DOCTYPE html>
-<html lang="en-us" {{#package}}itemscope itemtype="http://schema.org/CreativeWork"{{/package}}>
+<html lang="en-us">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -12,16 +12,13 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" />
   <meta itemprop="image" content="{{{static_assets_dir}}}/img/dart-logo-400x400.png" />
   {{#favicon}}
-    <link rel="shortcut icon" href="{{{favicon}}}" />
+  <link rel="shortcut icon" href="{{{favicon}}}" />
   {{/favicon}}
   {{#package}}
-    <meta itemprop="name" content="{{package.name}} - a Dart package" />
-    <meta name="description" content="{{package.name}} - {{package.description}}" />
-    <meta itemprop="description" content="{{package.name}} - {{package.description}}" />
+  <meta name="description" content="{{package.name}} - {{package.description}}" />
   {{/package}}
   {{^package}}
-    <meta name="description" content="Pub is a package manager for the
-        Dart programming language." />
+  <meta name="description" content="Pub is a package manager for the Dart programming language." />
   {{/package}}
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />
   <link href="{{{static_assets_dir}}}/highlight/github.css" rel="stylesheet" />
