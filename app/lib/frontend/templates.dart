@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
 import '../shared/analyzer_client.dart';
@@ -65,6 +66,7 @@ class TemplateService {
     };
     final content = _renderTemplate('pkg/versions/index', values);
     return renderLayoutPage(PageType.package, content,
+        title: '$package package - All Versions',
         canonicalUrl: _canonicalUrlForPackage(package));
   }
 
@@ -481,7 +483,8 @@ class TemplateService {
   /// Renders the `views/help.mustache` template.
   String renderHelpPage() {
     final String content = _renderTemplate('help', {});
-    return renderLayoutPage(PageType.package, content);
+    return renderLayoutPage(PageType.package, content,
+        title: 'Help | Dart Packages');
   }
 
   /// Renders the `views/index.mustache` template.
@@ -524,7 +527,7 @@ class TemplateService {
   String renderLayoutPage(
     PageType type,
     String contentHtml, {
-    String title: hostedDomain,
+    @required String title,
     String pageDescription,
     String faviconUrl,
     String canonicalUrl,

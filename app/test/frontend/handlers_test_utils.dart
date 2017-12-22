@@ -6,6 +6,7 @@ library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
@@ -170,10 +171,10 @@ class TemplateMock implements TemplateService {
   String renderLayoutPage(
     PageType type,
     String contentHtml, {
-    String title: 'pub.dartlang.org',
-    String packageName,
+    @required String title,
     String pageDescription,
     String faviconUrl,
+    String canonicalUrl,
     String platform,
     SearchQuery searchQuery,
     bool includeSurvey: true,
