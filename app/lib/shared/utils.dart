@@ -18,6 +18,10 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
+const hostedDomain = 'pub.dartlang.org';
+
+const siteRoot = 'https://$hostedDomain';
+
 /// The value `X-Cloud-Trace-Context`.
 ///
 /// Standard trace header used by

@@ -631,5 +631,5 @@ int _pageFromUrl(Uri url) {
 
 bool _isProd(shelf.Request request) {
   final String host = request.requestedUri.host;
-  return host == 'pub.dartlang.org';
+  return host == hostedDomain;
 }

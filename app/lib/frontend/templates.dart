@@ -523,7 +523,7 @@ class TemplateService {
   String renderLayoutPage(
     PageType type,
     String contentHtml, {
-    String title: 'pub.dartlang.org',
+    String title: hostedDomain,
     String pageDescription,
     String faviconUrl,
     String platform,
@@ -830,10 +830,10 @@ enum PageType {
 const _schemaOrgSearchAction = const {
   '@context': 'http://schema.org',
   '@type': 'WebSite',
-  'url': 'https://pub.dartlang.org/',
+  'url': '$siteRoot/',
   'potentialAction': const {
     '@type': 'SearchAction',
-    'target': 'https://pub.dartlang.org/packages?q={query}',
+    'target': '$siteRoot/packages?q={query}',
     'query-input': 'required name=query',
   },
 };
@@ -845,7 +845,7 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     'name': pv.package,
     'version': pv.version,
     'description': '${pv.package} - ${pv.pubspec.description}',
-    'url': 'https://pub.dartlang.org/packages/${pv.package}',
+    'url': '$siteRoot/packages/${pv.package}',
     'dateCreated': p.created.toIso8601String(),
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',

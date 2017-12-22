@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:markdown/markdown.dart' as md;
 import 'package:uuid/uuid.dart';
 
+import '../shared/utils.dart';
 import 'models.dart';
 
 class FeedEntry {
@@ -112,7 +113,7 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
   final uuid = new Uuid();
 
   // TODO: Remove this after the we moved the to the dart version of the app.
-  final requestedUri = Uri.parse('https://pub.dartlang.org/feed.atom');
+  final requestedUri = Uri.parse('$siteRoot/feed.atom');
 
   final entries = versions.map((PackageVersion version) {
     final url = requestedUri
