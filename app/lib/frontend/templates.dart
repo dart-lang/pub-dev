@@ -247,44 +247,12 @@ class TemplateService {
 
     final exampleVersionConstraint = '"^${selectedVersion.version}"';
 
-    bool isMarkdownFile(String filename) {
-      return filename.toLowerCase().endsWith('.md');
-    }
-
-    bool isDartFile(String filename) {
-      return filename.toLowerCase().endsWith('.dart');
-    }
-
-    String renderPlainText(String text) {
-      return '<div class="highlight"><pre>${_escapeAngleBrackets(text)}'
-          '</pre></div>';
-    }
-
-    String renderDartCode(String text) {
-      return markdownToHtml('````dart\n${text.trim()}\n````\n', null);
-    }
-
-    String renderFile(FileObject file, String baseUrl) {
-      final filename = file.filename;
-      final content = file.text;
-      if (content != null) {
-        if (isMarkdownFile(filename)) {
-          return markdownToHtml(content, baseUrl);
-        } else if (isDartFile(filename)) {
-          return renderDartCode(content);
-        } else {
-          return renderPlainText(content);
-        }
-      }
-      return null;
-    }
-
     String readmeFilename;
     String renderedReadme;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
       renderedReadme =
-          renderFile(selectedVersion.readme, selectedVersion.homepage);
+          _renderFile(selectedVersion.readme, selectedVersion.homepage);
     }
 
     String changelogFilename;
@@ -292,7 +260,7 @@ class TemplateService {
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
       renderedChangelog =
-          renderFile(selectedVersion.changelog, selectedVersion.homepage);
+          _renderFile(selectedVersion.changelog, selectedVersion.homepage);
     }
 
     String exampleFilename;
@@ -300,7 +268,7 @@ class TemplateService {
     if (selectedVersion.example != null) {
       exampleFilename = selectedVersion.example.filename;
       renderedExample =
-          renderFile(selectedVersion.example, selectedVersion.homepage);
+          _renderFile(selectedVersion.example, selectedVersion.homepage);
       if (renderedExample != null) {
         renderedExample = '<p style="font-family: monospace">'
             '<b>${_htmlEscaper.convert(exampleFilename)}</b>'
@@ -889,3 +857,28 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return map;
 }
+
+String _renderFile(FileObject file, String baseUrl) {
+  final filename = file.filename;
+  final content = file.text;
+  if (content != null) {
+    if (_isMarkdownFile(filename)) {
+      return markdownToHtml(content, baseUrl);
+    } else if (_isDartFile(filename)) {
+      return _renderDartCode(content);
+    } else {
+      return _renderPlainText(content);
+    }
+  }
+  return null;
+}
+
+bool _isMarkdownFile(String filename) => filename.toLowerCase().endsWith('.md');
+
+bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
+
+String _renderDartCode(String text) =>
+    markdownToHtml('````dart\n${text.trim()}\n````\n', null);
+
+String _renderPlainText(String text) =>
+    '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';
