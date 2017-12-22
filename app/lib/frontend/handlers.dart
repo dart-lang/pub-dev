@@ -81,6 +81,9 @@ Future<shelf.Response> appHandler(
     return docHandler(request);
   } else if (path.startsWith(staticUrls.staticPath)) {
     return staticsHandler(request);
+  } else if (staticRootFiles.contains(path)) {
+    return staticsHandler(request,
+        pathOverride: '${staticUrls.staticPath}$path');
   } else {
     return _formattedNotFoundHandler(request);
   }
@@ -223,9 +226,11 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
 /// with the server for a newer version.
 const _staticMaxAge = const Duration(minutes: 5);
 
-Future<shelf.Response> staticsHandler(shelf.Request request) async {
+Future<shelf.Response> staticsHandler(shelf.Request request,
+    {String pathOverride}) async {
   // Simplifies all of '.', '..', '//'!
-  final String normalized = path.normalize(request.requestedUri.path);
+  final String normalized =
+      path.normalize(pathOverride ?? request.requestedUri.path);
   final StaticFile staticFile = staticsCache.getFile(normalized);
   if (staticFile != null) {
     final ifModifiedSince = request.ifModifiedSince;
