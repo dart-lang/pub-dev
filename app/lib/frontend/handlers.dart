@@ -71,18 +71,18 @@ Future<shelf.Response> appHandler(
   } else if (path == '/api/packages') {
     // NOTE: This is special-cased, since it is not an API used by pub but
     // rather by the editor.
-    return apiPackagesHandler(request);
+    return _apiPackagesHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
-    return packageHandler(request);
+    return _packageHandler(request);
   } else if (path.startsWith('/doc')) {
-    return docHandler(request);
+    return _docHandler(request);
   } else if (path.startsWith(staticUrls.staticPath)) {
-    return staticsHandler(request);
+    return _staticsHandler(request);
   } else if (staticRootFiles.contains(path)) {
-    return staticsHandler(request,
+    return _staticsHandler(request,
         pathOverride: '${staticUrls.staticPath}$path');
   } else {
     return _formattedNotFoundHandler(request);
@@ -90,25 +90,25 @@ Future<shelf.Response> appHandler(
 }
 
 const _handlers = const <String, shelf.Handler>{
-  '/': indexHandler,
-  '/packages': packagesHandlerHtml,
-  '/flutter': flutterLandingHandler,
-  '/flutter/packages': flutterPackagesHandlerHtml,
-  '/flutter/plugins': redirectToFlutterPackages,
-  '/server': serverLandingHandler,
-  '/server/packages': serverPackagesHandlerHtml,
-  '/web': webLandingHandler,
-  '/web/packages': webPackagesHandlerHtml,
-  '/debug': debugHandler,
-  '/feed.atom': atomFeedHandler,
+  '/': __indexHandler,
+  '/packages': _packagesHandlerHtml,
+  '/flutter': _flutterLandingHandler,
+  '/flutter/packages': _flutterPackagesHandlerHtml,
+  '/flutter/plugins': _redirectToFlutterPackages,
+  '/server': _serverLandingHandler,
+  '/server/packages': _serverPackagesHandlerHtml,
+  '/web': _webLandingHandler,
+  '/web/packages': _webPackagesHandlerHtml,
+  '/debug': _debugHandler,
+  '/feed.atom': _atomFeedHandler,
   '/sitemap.txt': _siteMapHandler,
-  '/authorized': authorizedHandler,
-  '/packages.json': packagesHandler,
-  '/help': helpPageHandler,
+  '/authorized': _authorizedHandler,
+  '/packages.json': _packagesHandler,
+  '/help': _helpPageHandler,
 };
 
 /// Handles requests for /debug
-Future<shelf.Response> debugHandler(shelf.Request request) async {
+Future<shelf.Response> _debugHandler(shelf.Request request) async {
   Map toShortStat(LastNTracker<Duration> tracker) => {
         'median': tracker.median?.inMilliseconds,
         'p90': tracker.p90?.inMilliseconds,
@@ -126,19 +126,19 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /
-Future<shelf.Response> indexHandler(shelf.Request request) =>
+Future<shelf.Response> __indexHandler(shelf.Request request) =>
     _indexHandler(request, null);
 
 /// Handles requests for /flutter
-Future<shelf.Response> flutterLandingHandler(shelf.Request request) =>
+Future<shelf.Response> _flutterLandingHandler(shelf.Request request) =>
     _indexHandler(request, KnownPlatforms.flutter);
 
 /// Handles requests for /server
-Future<shelf.Response> serverLandingHandler(shelf.Request request) =>
+Future<shelf.Response> _serverLandingHandler(shelf.Request request) =>
     _indexHandler(request, KnownPlatforms.server);
 
 /// Handles requests for /web
-Future<shelf.Response> webLandingHandler(shelf.Request request) =>
+Future<shelf.Response> _webLandingHandler(shelf.Request request) =>
     _indexHandler(request, KnownPlatforms.web);
 
 /// Handles requests for:
@@ -178,12 +178,12 @@ Future<shelf.Response> _indexHandler(
 }
 
 /// Handles requests for /help
-Future<shelf.Response> helpPageHandler(shelf.Request request) async {
+Future<shelf.Response> _helpPageHandler(shelf.Request request) async {
   return htmlResponse(templateService.renderHelpPage());
 }
 
 /// Handles requests for /feed.atom
-Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
+Future<shelf.Response> _atomFeedHandler(shelf.Request request) async {
   final int PageSize = 10;
 
   // The python version had paging support, but there was no point to it, since
@@ -207,11 +207,11 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /authorized
-shelf.Response authorizedHandler(_) =>
+shelf.Response _authorizedHandler(_) =>
     htmlResponse(templateService.renderAuthorizedPage());
 
 /// Handles requests for /doc
-shelf.Response docHandler(shelf.Request request) {
+shelf.Response _docHandler(shelf.Request request) {
   final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
   final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
@@ -221,15 +221,15 @@ shelf.Response docHandler(shelf.Request request) {
 }
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
-Future<shelf.Response> packagesHandler(shelf.Request request) async {
+Future<shelf.Response> _packagesHandler(shelf.Request request) async {
   final int page = _pageFromUrl(request.url);
   final path = request.requestedUri.path;
   if (path.endsWith('.json')) {
-    return packagesHandlerJson(request, page, true);
+    return _packagesHandlerJson(request, page, true);
   } else if (request.url.queryParameters['format'] == 'json') {
-    return packagesHandlerJson(request, page, false);
+    return _packagesHandlerJson(request, page, false);
   } else {
-    return packagesHandlerHtml(request);
+    return _packagesHandlerHtml(request);
   }
 }
 
@@ -237,7 +237,7 @@ Future<shelf.Response> packagesHandler(shelf.Request request) async {
 /// with the server for a newer version.
 const _staticMaxAge = const Duration(minutes: 5);
 
-Future<shelf.Response> staticsHandler(shelf.Request request,
+Future<shelf.Response> _staticsHandler(shelf.Request request,
     {String pathOverride}) async {
   // Simplifies all of '.', '..', '//'!
   final String normalized =
@@ -268,7 +268,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request,
 }
 
 /// Handles requests for /packages - JSON
-Future<shelf.Response> packagesHandlerJson(
+Future<shelf.Response> _packagesHandlerJson(
     shelf.Request request, int page, bool dotJsonResponse) async {
   final PageSize = 50;
 
@@ -304,27 +304,27 @@ Future<shelf.Response> packagesHandlerJson(
 }
 
 /// Handles /packages - package listing
-Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtml(request, null);
+Future<shelf.Response> _packagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtmlCore(request, null);
 
 /// Handles /flutter/packages
-Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtml(request, KnownPlatforms.flutter);
+Future<shelf.Response> _flutterPackagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtmlCore(request, KnownPlatforms.flutter);
 
 /// Handles /server/packages
-Future<shelf.Response> serverPackagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtml(request, KnownPlatforms.server);
+Future<shelf.Response> _serverPackagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtmlCore(request, KnownPlatforms.server);
 
 /// Handles /web/packages
-Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtml(request, KnownPlatforms.web);
+Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>
+    _packagesHandlerHtmlCore(request, KnownPlatforms.web);
 
 /// Handles:
 /// - /packages - package listing
 /// - /flutter/packages
 /// - /server/packages
 /// - /web/packages
-Future<shelf.Response> _packagesHandlerHtml(
+Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
   final int page = _pageFromUrl(request.url);
@@ -359,7 +359,7 @@ Future<shelf.Response> _packagesHandlerHtml(
 /// Handles the following URLs:
 ///   - /packages/<package>
 ///   - /packages/<package>/versions
-FutureOr<shelf.Response> packageHandler(shelf.Request request) {
+FutureOr<shelf.Response> _packageHandler(shelf.Request request) {
   var path = request.requestedUri.path.substring('/packages/'.length);
   if (path.length == 0) {
     return _formattedNotFoundHandler(request);
@@ -373,9 +373,9 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
       path = path.substring(0, path.length - '.json'.length);
     }
     if (responseAsJson) {
-      return packageShowHandlerJson(request, Uri.decodeComponent(path));
+      return _packageShowHandlerJson(request, Uri.decodeComponent(path));
     } else {
-      return packageVersionHandlerHtml(request, Uri.decodeComponent(path));
+      return _packageVersionHandlerHtml(request, Uri.decodeComponent(path));
     }
   }
 
@@ -386,21 +386,21 @@ FutureOr<shelf.Response> packageHandler(shelf.Request request) {
       if (path.endsWith('.yaml')) {
         path = path.substring(1, path.length - '.yaml'.length);
         final String version = Uri.decodeComponent(path);
-        return packageVersionHandlerYaml(request, package, version);
+        return _packageVersionHandlerYaml(request, package, version);
       } else {
         path = path.substring(1);
         final String version = Uri.decodeComponent(path);
-        return packageVersionHandlerHtml(request, package, version: version);
+        return _packageVersionHandlerHtml(request, package, version: version);
       }
     } else {
-      return packageVersionsHandler(request, package);
+      return _packageVersionsHandler(request, package);
     }
   }
   return _formattedNotFoundHandler(request);
 }
 
 /// Handles requests for /packages/<package> - JSON
-Future<shelf.Response> packageShowHandlerJson(
+Future<shelf.Response> _packageShowHandlerJson(
     shelf.Request request, String packageName) async {
   final Package package = await backend.lookupPackage(packageName);
   if (package == null) return _formattedNotFoundHandler(request);
@@ -418,7 +418,7 @@ Future<shelf.Response> packageShowHandlerJson(
 }
 
 /// Handles requests for /packages/<package>/versions
-Future<shelf.Response> packageVersionsHandler(
+Future<shelf.Response> _packageVersionsHandler(
     shelf.Request request, String packageName) async {
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) return _formattedNotFoundHandler(request);
@@ -434,7 +434,7 @@ Future<shelf.Response> packageVersionsHandler(
       packageName, versions, versionDownloadUrls));
 }
 
-Future<shelf.Response> _packageVersionHandlerHtml(
+Future<shelf.Response> _packageVersionHandlerHtmlCore(
     shelf.Request request,
     String packageName,
     String render(
@@ -522,14 +522,14 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
 /// Handles requests for /packages/<package>
 /// Handles requests for /packages/<package>/versions/<version>
-Future<shelf.Response> packageVersionHandlerHtml(
+Future<shelf.Response> _packageVersionHandlerHtml(
         shelf.Request request, String packageName, {String version}) =>
-    _packageVersionHandlerHtml(
+    _packageVersionHandlerHtmlCore(
         request, packageName, templateService.renderPkgShowPage,
         versionName: version);
 
 /// Handles requests for /packages/<package>/versions/<version>.yaml
-Future<shelf.Response> packageVersionHandlerYaml(
+Future<shelf.Response> _packageVersionHandlerYaml(
     shelf.Request request, String package, String version) async {
   final packageVersion = await backend.lookupPackageVersion(package, version);
   if (packageVersion == null) {
@@ -540,7 +540,7 @@ Future<shelf.Response> packageVersionHandlerYaml(
 }
 
 /// Handles request for /api/packages?page=<num>
-Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
+Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
   final int PageSize = 100;
 
   final int page = _pageFromUrl(request.url);
@@ -620,7 +620,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /flutter/plugins (redirects to /flutter/packages).
-shelf.Response redirectToFlutterPackages(shelf.Request request) =>
+shelf.Response _redirectToFlutterPackages(shelf.Request request) =>
     redirectResponse('/flutter/packages');
 
 shelf.Response _formattedNotFoundHandler(shelf.Request request) {
