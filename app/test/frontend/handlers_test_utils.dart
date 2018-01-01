@@ -112,7 +112,7 @@ class BackendMock implements Backend {
 
   @override
   Future<Package> lookupPackage(String packageName) async {
-    if (lookupPackageFun == null) throw 'no lookupPackageVersionFun';
+    if (lookupPackageFun == null) throw 'no lookupPackageFun';
     return lookupPackageFun(packageName);
   }
 
