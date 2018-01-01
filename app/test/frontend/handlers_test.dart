@@ -392,19 +392,6 @@ void main() {
               "versions": ['0.1.1'],
             });
       });
-
-      tScopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
-        final backend = new BackendMock(
-            lookupPackageVersionFun: (String package, String version) {
-          expect(package, 'foobar_pkg');
-          expect(version, '0.1.1');
-          return testPackageVersion;
-        });
-        registerBackend(backend);
-        await expectYamlResponse(
-            await issueGet('/packages/foobar_pkg/versions/0.1.1.yaml'),
-            body: loadYaml(TestPackagePubspec));
-      });
     });
 
     group('editor api', () {
