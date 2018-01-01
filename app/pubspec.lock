@@ -204,7 +204,7 @@ packages:
       name: html
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.2"
+    version: "0.13.2+1"
   http:
     description:
       name: http
@@ -426,7 +426,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.2+1"
+    version: "0.7.3"
   source_map_stack_trace:
     description:
       name: source_map_stack_trace
@@ -456,7 +456,7 @@ packages:
       name: stream_channel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.2"
+    version: "1.6.3"
   stream_transform:
     description:
       name: stream_transform
@@ -480,7 +480,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.29"
+    version: "0.12.29+1"
   typed_data:
     description:
       name: typed_data
