@@ -76,6 +76,12 @@ class Backend {
     return query.run().toList();
   }
 
+  /// Retrieves the names of all packages, ordered by name.
+  Stream<String> allPackageNames() {
+    final query = db.query(models.Package);
+    return query.run().map((p) => (p as models.Package).name);
+  }
+
   /// Retrieves package versions ordered by their latest version date.
   Future<List<models.PackageVersion>> latestPackageVersions(
       {int offset, int limit, bool devVersions: false}) async {

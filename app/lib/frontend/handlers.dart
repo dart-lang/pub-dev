@@ -101,6 +101,7 @@ const _handlers = const <String, shelf.Handler>{
   '/web/packages': webPackagesHandlerHtml,
   '/debug': debugHandler,
   '/feed.atom': atomFeedHandler,
+  '/sitemap.txt': _siteMapHandler,
   '/authorized': authorizedHandler,
   '/packages.json': packagesHandler,
   '/help': helpPageHandler,
@@ -193,6 +194,16 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
       offset: PageSize * (page - 1), limit: PageSize);
   final feed = feedFromPackageVersions(request.requestedUri, versions);
   return atomXmlResponse(feed.toXmlDocument());
+}
+
+Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
+  // Google wants the return page to have < 50,000 entries and be less than
+  // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
+  // As of 2018-01-01, the return page is ~3,000 entries and ~140KB
+  return new shelf.Response.ok(await backend
+      .allPackageNames()
+      .map((packageName) => '$siteRoot/packages/$packageName')
+      .join('\n'));
 }
 
 /// Handles requests for /authorized
