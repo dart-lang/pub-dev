@@ -367,7 +367,7 @@ FutureOr<shelf.Response> _packageHandler(shelf.Request request) {
 
   final int slash = path.indexOf('/');
   if (slash == -1) {
-    bool responseAsJson = request.url.queryParameters['format'] == 'json';
+    var responseAsJson = false;
     if (path.endsWith('.json')) {
       responseAsJson = true;
       path = path.substring(0, path.length - '.json'.length);
