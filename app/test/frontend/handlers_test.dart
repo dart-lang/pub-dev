@@ -202,6 +202,39 @@ void main() {
             status: 404);
       });
 
+      tScopedTest('/packages/foobar_pkg/versions/0.1.1 - found', () async {
+        final backend = new BackendMock(lookupPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return testPackage;
+        }, versionsOfPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return [testPackageVersion];
+        }, downloadUrlFun: (String package, String version) {
+          return Uri.parse('http://blobstore/$package/$version');
+        });
+        registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
+        await expectHtmlResponse(
+            await issueGet('/packages/foobar_pkg/versions/0.1.1'));
+      });
+
+      tScopedTest('/packages/foobar_pkg/versions/0.1.2 - not found', () async {
+        final backend = new BackendMock(lookupPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return testPackage;
+        }, versionsOfPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return [testPackageVersion];
+        }, downloadUrlFun: (String package, String version) {
+          return Uri.parse('http://blobstore/$package/$version');
+        });
+        registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
+        await expectHtmlResponse(
+            await issueGet('/packages/foobar_pkg/versions/0.1.2'),
+            status: 404);
+      });
+
       tScopedTest('/flutter', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.order, SearchOrder.top);
