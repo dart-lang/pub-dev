@@ -84,6 +84,11 @@ class BackendMock implements Backend {
   }
 
   @override
+  Stream<String> allPackageNames() {
+    throw new UnsupportedError('sorry!');
+  }
+
+  @override
   Future<List<PackageVersion>> latestPackageVersions(
       {int offset, int limit, bool devVersions: false}) async {
     if (latestPackageVersionsFun == null) throw 'no latestPackageVersionsFun';
