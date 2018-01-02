@@ -202,6 +202,39 @@ void main() {
             status: 404);
       });
 
+      tScopedTest('/packages/foobar_pkg/versions/0.1.1 - found', () async {
+        final backend = new BackendMock(lookupPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return testPackage;
+        }, versionsOfPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return [testPackageVersion];
+        }, downloadUrlFun: (String package, String version) {
+          return Uri.parse('http://blobstore/$package/$version');
+        });
+        registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
+        await expectHtmlResponse(
+            await issueGet('/packages/foobar_pkg/versions/0.1.1'));
+      });
+
+      tScopedTest('/packages/foobar_pkg/versions/0.1.2 - not found', () async {
+        final backend = new BackendMock(lookupPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return testPackage;
+        }, versionsOfPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return [testPackageVersion];
+        }, downloadUrlFun: (String package, String version) {
+          return Uri.parse('http://blobstore/$package/$version');
+        });
+        registerBackend(backend);
+        registerAnalyzerClient(new AnalyzerClientMock());
+        await expectHtmlResponse(
+            await issueGet('/packages/foobar_pkg/versions/0.1.2'),
+            status: 404);
+      });
+
       tScopedTest('/flutter', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.order, SearchOrder.top);
@@ -391,19 +424,6 @@ void main() {
               "uploaders": ['hans@juergen.com'],
               "versions": ['0.1.1'],
             });
-      });
-
-      tScopedTest('/packages/foobar_pkg/versions/0.1.1.yaml', () async {
-        final backend = new BackendMock(
-            lookupPackageVersionFun: (String package, String version) {
-          expect(package, 'foobar_pkg');
-          expect(version, '0.1.1');
-          return testPackageVersion;
-        });
-        registerBackend(backend);
-        await expectYamlResponse(
-            await issueGet('/packages/foobar_pkg/versions/0.1.1.yaml'),
-            body: loadYaml(TestPackagePubspec));
       });
     });
 

@@ -25,7 +25,7 @@ Future<shelf.Response> issueGet(String path) async {
   return appHandler(request, null);
 }
 
-Future expectHtmlResponse(shelf.Response response, {status: 200}) async {
+Future expectHtmlResponse(shelf.Response response, {int status: 200}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
   expect(await response.readAsString(), TemplateMock._response);
@@ -112,7 +112,7 @@ class BackendMock implements Backend {
 
   @override
   Future<Package> lookupPackage(String packageName) async {
-    if (lookupPackageFun == null) throw 'no lookupPackageVersionFun';
+    if (lookupPackageFun == null) throw 'no lookupPackageFun';
     return lookupPackageFun(packageName);
   }
 

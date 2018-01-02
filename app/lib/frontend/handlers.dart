@@ -360,38 +360,24 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
 ///   - /packages/<package>
 ///   - /packages/<package>/versions
 FutureOr<shelf.Response> _packageHandler(shelf.Request request) {
-  var path = request.requestedUri.path.substring('/packages/'.length);
-  if (path.length == 0) {
-    return _formattedNotFoundHandler(request);
-  }
+  final segments = request.url.pathSegments;
+  assert(segments.first == 'packages');
 
-  final int slash = path.indexOf('/');
-  if (slash == -1) {
-    bool responseAsJson = request.url.queryParameters['format'] == 'json';
-    if (path.endsWith('.json')) {
-      responseAsJson = true;
-      path = path.substring(0, path.length - '.json'.length);
-    }
-    if (responseAsJson) {
-      return _packageShowHandlerJson(request, Uri.decodeComponent(path));
+  final package = segments[1];
+
+  if (segments.length == 2) {
+    if (package.endsWith('.json')) {
+      final packageName = package.substring(0, package.length - '.json'.length);
+      return _packageShowHandlerJson(request, Uri.decodeComponent(packageName));
     } else {
-      return _packageVersionHandlerHtml(request, Uri.decodeComponent(path));
+      return _packageVersionHandlerHtml(request, Uri.decodeComponent(package));
     }
   }
 
-  final package = Uri.decodeComponent(path.substring(0, slash));
-  if (path.substring(slash).startsWith('/versions')) {
-    path = path.substring(slash + '/versions'.length);
-    if (path.startsWith('/')) {
-      if (path.endsWith('.yaml')) {
-        path = path.substring(1, path.length - '.yaml'.length);
-        final String version = Uri.decodeComponent(path);
-        return _packageVersionHandlerYaml(request, package, version);
-      } else {
-        path = path.substring(1);
-        final String version = Uri.decodeComponent(path);
-        return _packageVersionHandlerHtml(request, package, version: version);
-      }
+  if (segments[2] == 'versions') {
+    if (segments.length == 4) {
+      final String version = Uri.decodeComponent(segments[3]);
+      return _packageVersionHandlerHtml(request, package, version: version);
     } else {
       return _packageVersionsHandler(request, package);
     }
@@ -527,17 +513,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     _packageVersionHandlerHtmlCore(
         request, packageName, templateService.renderPkgShowPage,
         versionName: version);
-
-/// Handles requests for /packages/<package>/versions/<version>.yaml
-Future<shelf.Response> _packageVersionHandlerYaml(
-    shelf.Request request, String package, String version) async {
-  final packageVersion = await backend.lookupPackageVersion(package, version);
-  if (packageVersion == null) {
-    return _formattedNotFoundHandler(request);
-  } else {
-    return yamlResponse(packageVersion.pubspec.jsonString);
-  }
-}
 
 /// Handles request for /api/packages?page=<num>
 Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
