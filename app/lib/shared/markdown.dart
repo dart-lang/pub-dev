@@ -8,23 +8,24 @@ import 'package:path/path.dart' as p;
 
 final Logger _logger = new Logger('pub.markdown');
 
-final List<m.BlockSyntax> _blockSyntaxes = []
-  ..addAll(m.ExtensionSet.gitHub.blockSyntaxes)
-  ..add(const m.HeaderWithIdSyntax())
-  ..add(const m.SetextHeaderWithIdSyntax());
-
 final List<m.InlineSyntax> _inlineSyntaxes = m
-    .ExtensionSet.gitHub.inlineSyntaxes
+    .ExtensionSet.gitHubWeb.inlineSyntaxes
     .where((s) => s is! m.InlineHtmlSyntax)
     .toList();
 
 String markdownToHtml(String text, String baseUrl) {
   if (text == null) return null;
+  final m.InlineSyntax relativeLink = _RelativeLinkSyntax.parse(baseUrl);
+  final inlineSyntaxes = <m.InlineSyntax>[];
+  if (relativeLink != null) {
+    inlineSyntaxes.insert(0, relativeLink);
+  }
+  inlineSyntaxes.addAll(_inlineSyntaxes);
   return m.markdownToHtml(
     text,
-    extensionSet: _createCustomExtension(baseUrl),
-    blockSyntaxes: _blockSyntaxes,
-    inlineSyntaxes: _inlineSyntaxes,
+    extensionSet: m.ExtensionSet.none,
+    blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes,
+    inlineSyntaxes: inlineSyntaxes,
   );
 }
 
@@ -71,20 +72,4 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
 
   bool _isRelativePathUrl(String url) =>
       url != null && !url.startsWith('#') && !url.contains(':');
-}
-
-m.ExtensionSet _createCustomExtension(String baseUrl) {
-  final m.InlineSyntax relativeLink = _RelativeLinkSyntax.parse(baseUrl);
-  if (relativeLink == null) return m.ExtensionSet.none;
-  return new _ExtensionSet(inlineSyntaxes: [relativeLink]);
-}
-
-class _ExtensionSet implements m.ExtensionSet {
-  @override
-  final List<m.BlockSyntax> blockSyntaxes;
-
-  @override
-  final List<m.InlineSyntax> inlineSyntaxes;
-
-  _ExtensionSet({this.blockSyntaxes: const [], this.inlineSyntaxes: const []});
 }

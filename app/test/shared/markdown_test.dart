@@ -7,6 +7,16 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/shared/markdown.dart';
 
 void main() {
+  group('markup', () {
+    test('emoji support', () {
+      expect(markdownToHtml(':white_check_mark:', null), '<p>✅</p>\n');
+    });
+
+    test('do not render inline html', () {
+      expect(markdownToHtml('<a></a>', null), '<p>&lt;a>&lt;/a></p>\n');
+    });
+  });
+
   group('Valid custom base URL', () {
     final String baseUrl = 'https://github.com/example/project';
 
