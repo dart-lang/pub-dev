@@ -549,6 +549,7 @@ class TemplateService {
         ? null
         : serializeSearchOrder(searchQuery.order);
     final platformDict = getPlatformDict(platform);
+    final isRoot = type == PageType.landing && platform == null;
     final values = {
       'static_assets_dir': staticUrls.newDesignAssetsDir,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
@@ -574,7 +575,8 @@ class TemplateService {
           platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
       'listing_banner': type == PageType.listing,
       'package_banner': type == PageType.package,
-      'schema_org_searchaction_json': JSON.encode(_schemaOrgSearchAction),
+      'schema_org_searchaction_json':
+          isRoot ? JSON.encode(_schemaOrgSearchAction) : null,
     };
     return _renderTemplate('layout', values, escapeValues: false);
   }
@@ -839,8 +841,8 @@ const _schemaOrgSearchAction = const {
   'url': '$siteRoot/',
   'potentialAction': const {
     '@type': 'SearchAction',
-    'target': '$siteRoot/packages?q={query}',
-    'query-input': 'required name=query',
+    'target': '$siteRoot/packages?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
   },
 };
 

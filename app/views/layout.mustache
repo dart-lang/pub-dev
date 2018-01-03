@@ -117,8 +117,10 @@
 <script src="{{{static_assets_dir}}}/highlight/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 {{/include_highlight}}
+{{#schema_org_searchaction_json}}
 <script type="application/ld+json">
 {{& schema_org_searchaction_json}}
 </script>
+{{/schema_org_searchaction_json}}
 </body>
 </html>
