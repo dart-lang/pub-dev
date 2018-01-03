@@ -171,7 +171,18 @@ class SimplePackageIndex implements PackageIndex {
         if (query.order == null && platformSpecificity != null) {
           scores.add(new Score(platformSpecificity));
         }
-        final Score overallScore = Score.multiply(scores);
+        Score overallScore = Score.multiply(scores);
+        // If there is an exact match for a package name (in the filtered result
+        // set), promote that package to the top position.
+        if (query.order == null &&
+            query.hasQuery &&
+            query?.parsedQuery?.text != null &&
+            overallScore.containsKey(query.parsedQuery.text)) {
+          final matchedPackage = query.parsedQuery.text;
+          final double maxValue = overallScore.getMaxValue();
+          overallScore = overallScore.map(
+              (key, value) => key == matchedPackage ? maxValue : value * 0.999);
+        }
         results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
@@ -356,6 +367,7 @@ class Score {
   Set<String> getKeys() => _values.keys.toSet();
   double getMaxValue() => _values.values.fold(0.0, math.max);
   Map<String, double> getValues() => _values;
+  bool containsKey(String key) => _values.containsKey(key);
 
   double operator [](String key) => _values[key] ?? 0.0;
 
@@ -418,10 +430,10 @@ class Score {
     return new Score(result);
   }
 
-  Score map(double f(double value)) {
+  Score map(double f(String key, double value)) {
     final result = <String, double>{};
     for (String key in _values.keys) {
-      result[key] = f(_values[key]);
+      result[key] = f(key, _values[key]);
     }
     return new Score(result);
   }
