@@ -213,6 +213,8 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
     items.add('packages/$package');
   }
 
+  items.sort();
+
   return new shelf.Response.ok(items.map((e) => '$siteRoot/$e').join('\n'));
 }
 
