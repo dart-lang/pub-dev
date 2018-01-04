@@ -496,9 +496,12 @@ class TemplateService {
     String platform,
   ) {
     final platformDict = getPlatformDict(platform);
+    final packagesUrl = platform == null ? '/packages' : '/$platform/packages';
     final values = {
-      'packages_url': platform == null ? '/packages' : '/$platform/packages',
-      'more_packages': 'More ${platformDict.name} packages...',
+      'packages_url': packagesUrl,
+      'updated_url': '$packagesUrl?sort=updated',
+      'created_url': '$packagesUrl?sort=created',
+      'more_packages': 'More ${platformDict.name} packages:',
       'top_header': platformDict.pageTitle,
       'ranking_tooltip_html': getSortDict('top').tooltip,
       'top_html': topHtml,
