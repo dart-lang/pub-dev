@@ -543,6 +543,11 @@ pre > code {
   background: #fff0f0;
 }
 
+.feedback-critical {
+  background: #fff0f0;
+  padding: 0.5em;
+}
+
 /******************************************************
   home page
 ******************************************************/
