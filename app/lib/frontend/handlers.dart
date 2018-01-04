@@ -200,8 +200,12 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
   // Google wants the return page to have < 50,000 entries and be less than
   // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
   // As of 2018-01-01, the return page is ~3,000 entries and ~140KB
+  // By restricting to packages that have been updated in the last two years,
+  // the count is closer to ~1,500
+
+  final twoYearsAgo = new DateTime.now().subtract(twoYears);
   return new shelf.Response.ok(await backend
-      .allPackageNames()
+      .allPackageNames(updatedSince: twoYearsAgo)
       .map((packageName) => '$siteRoot/packages/$packageName')
       .join('\n'));
 }

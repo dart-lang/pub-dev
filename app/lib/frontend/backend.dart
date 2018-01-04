@@ -77,8 +77,13 @@ class Backend {
   }
 
   /// Retrieves the names of all packages, ordered by name.
-  Stream<String> allPackageNames() {
+  Stream<String> allPackageNames({DateTime updatedSince}) {
     final query = db.query(models.Package);
+
+    if (updatedSince != null) {
+      query.filter('updated >', updatedSince);
+    }
+
     return query.run().map((p) => (p as models.Package).name);
   }
 

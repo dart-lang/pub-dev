@@ -12,13 +12,12 @@ import 'package:pana/src/version.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
+import '../shared/utils.dart';
 
 import 'backend.dart';
 import 'models.dart';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
-
-final Duration _twoYears = const Duration(days: 2 * 365);
 
 class PanaRunner implements TaskRunner {
   final AnalysisBackend _analysisBackend;
@@ -49,7 +48,7 @@ class PanaRunner implements TaskRunner {
         new Analysis.init(task.package, task.version, timestamp);
 
     final Duration age = timestamp.difference(packageStatus.publishDate).abs();
-    if (age > _twoYears) {
+    if (age > twoYears) {
       _logger.info(
           'Package is older than two years and has newer release: $task.');
       analysis.analysisStatus = AnalysisStatus.outdated;
