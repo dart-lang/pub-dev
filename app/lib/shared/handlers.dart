@@ -43,3 +43,6 @@ shelf.Response htmlResponse(String content, {int status: 200}) =>
 shelf.Response notFoundHandler(shelf.Request request,
         {String body: default404NotFound}) =>
     htmlResponse(body, status: 404);
+
+shelf.Response rejectRobotsHandler(shelf.Request request) =>
+    new shelf.Response.ok('User-agent: *\nDisallow: /\n');

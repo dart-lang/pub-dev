@@ -24,6 +24,7 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final handler = {
     '/debug': debugHandler,
     '/search': searchHandler,
+    '/robots.txt': rejectRobotsHandler,
   }[path];
 
   if (handler != null) {

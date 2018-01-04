@@ -79,6 +79,8 @@ Future<shelf.Response> appHandler(
     return _packageHandler(request);
   } else if (path.startsWith('/doc')) {
     return _docHandler(request);
+  } else if (path == '/robots.txt' && !_isProd(request)) {
+    return rejectRobotsHandler(request);
   } else if (path.startsWith(staticUrls.staticPath)) {
     return _staticsHandler(request);
   } else if (staticRootFiles.contains(path)) {

@@ -23,6 +23,7 @@ Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
     '/debug': debugHandler,
+    '/robots.txt': rejectRobotsHandler,
   }[path];
 
   if (handler != null) {

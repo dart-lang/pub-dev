@@ -17,6 +17,8 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
     '/debug': debugHandler,
+    // TODO: have a proper robots.txt after we are serving content
+    '/robots.txt': rejectRobotsHandler,
   }[path];
 
   if (handler != null) {
