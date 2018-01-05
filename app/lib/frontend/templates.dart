@@ -860,6 +860,8 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     'dateCreated': p.created.toIso8601String(),
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
+    'image':
+        '$siteRoot${staticUrls.newDesignAssetsDir}/img/dart-logo-400x400.png'
   };
   final licenses = analysis?.licenses;
   final firstUrl =
