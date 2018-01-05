@@ -64,6 +64,10 @@ String _formattedPlatformName(String platform) {
 String _landingPageTitle(String platform) {
   if (platform == KnownPlatforms.flutter) {
     return 'Flutter Packages';
+  } else if (platform == KnownPlatforms.server) {
+    return 'Dart Packages for Server';
+  } else if (platform == KnownPlatforms.web) {
+    return 'Dart Packages for Web';
   }
   return 'Dart Packages';
 }
