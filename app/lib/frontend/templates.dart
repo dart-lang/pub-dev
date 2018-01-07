@@ -108,7 +108,7 @@ class TemplateService {
     final PlatformDict platformDict = getPlatformDict(currentPlatform);
     final isSearch = searchQuery != null && searchQuery.hasQuery;
     final unsupportedQualifier =
-        isSearch && searchQuery.parsedQuery.text.contains(':');
+        isSearch && (searchQuery.parsedQuery.text?.contains(':') ?? false);
     final String sortValue = serializeSearchOrder(searchQuery?.order) ??
         (isSearch ? 'search_relevance' : 'listing_relevance');
     final SortDict sortDict = getSortDict(sortValue);

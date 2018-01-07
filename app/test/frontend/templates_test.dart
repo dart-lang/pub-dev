@@ -296,6 +296,18 @@ void main() {
       expectGoldenFile(html, 'search_page.html');
     });
 
+    test('search with supported qualifier', () {
+      final searchQuery = new SearchQuery.parse(query: 'email:user@domain.com');
+      final String html = templates.renderPkgIndexPage(
+        [],
+        new PackageLinks.empty(),
+        null,
+        searchQuery: searchQuery,
+        totalCount: 0,
+      );
+      expectGoldenFile(html, 'search_supported_qualifier.html');
+    });
+
     test('search with unsupported qualifier', () {
       final searchQuery = new SearchQuery.parse(query: 'foo:bar');
       final String html = templates.renderPkgIndexPage(
