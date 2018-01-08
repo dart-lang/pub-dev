@@ -48,7 +48,7 @@ class PanaRunner implements TaskRunner {
         new Analysis.init(task.package, task.version, timestamp);
 
     final Duration age = timestamp.difference(packageStatus.publishDate).abs();
-    if (age > twoYears) {
+    if (age > twoYears && !packageStatus.isLatestStable) {
       _logger.info(
           'Package is older than two years and has newer release: $task.');
       analysis.analysisStatus = AnalysisStatus.outdated;
