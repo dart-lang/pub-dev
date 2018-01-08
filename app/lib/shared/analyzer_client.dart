@@ -93,6 +93,7 @@ class AnalyzerClient {
       return null;
     }
     final extract = new AnalysisExtract(
+      isOutdated: view.analysisStatus == AnalysisStatus.outdated,
       popularity: popularityStorage.lookup(key.package) ?? 0.0,
       maintenance: view.maintenanceScore,
       health: view.health,

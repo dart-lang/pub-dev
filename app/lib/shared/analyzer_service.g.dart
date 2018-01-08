@@ -56,6 +56,7 @@ abstract class _$AnalysisDataSerializerMixin {
 
 AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
     new AnalysisExtract(
+        isOutdated: json['isOutdated'] as bool,
         health: (json['health'] as num)?.toDouble(),
         maintenance: (json['maintenance'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),
@@ -66,12 +67,14 @@ AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
             : DateTime.parse(json['timestamp'] as String));
 
 abstract class _$AnalysisExtractSerializerMixin {
+  bool get isOutdated;
   double get health;
   double get maintenance;
   double get popularity;
   List<String> get platforms;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
+        'isOutdated': isOutdated,
         'health': health,
         'maintenance': maintenance,
         'popularity': popularity,

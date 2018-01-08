@@ -182,6 +182,21 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
+    test('package show page with outdated version', () {
+      final String html = templates.renderPkgShowPage(
+          testPackage,
+          false,
+          [testPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          testPackageVersion,
+          testPackageVersion,
+          testPackageVersion,
+          1,
+          new AnalysisExtract(isOutdated: true),
+          new MockAnalysisView());
+      expectGoldenFile(html, 'pkg_show_page_outdated.html');
+    });
+
     test('no content for analysis tab', () async {
       // no content
       expect(templates.renderAnalysisTab('pkg_foo', null, null), isNull);

@@ -99,9 +99,12 @@ class TemplateService {
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.platforms, package: view.name),
+        'tags_html': _renderTags(view.platforms,
+            package: view.name, isOutdated: view.isOutdated),
         'score_box_html': _renderScoreBox(overallScore,
-            isNewPackage: view.isNewPackage, package: view.name),
+            isOutdated: view.isOutdated,
+            isNewPackage: view.isNewPackage,
+            package: view.name),
       });
     }
 
@@ -220,7 +223,8 @@ class TemplateService {
       'health': _formatScore(extract?.health),
       'maintenance': _formatScore(extract?.maintenance),
       'popularity': _formatScore(extract?.popularity),
-      'score_box_html': _renderScoreBox(extract?.overallScore),
+      'score_box_html': _renderScoreBox(extract?.overallScore,
+          isOutdated: extract?.isOutdated),
     };
 
     return _renderTemplate('pkg/analysis_tab', data);
@@ -333,7 +337,8 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'tags_html': _renderTags(analysis?.platforms, wrapperDiv: true),
+        'tags_html': _renderTags(analysis?.platforms,
+            isOutdated: extract?.isOutdated, wrapperDiv: true),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -351,6 +356,7 @@ class TemplateService {
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
         'score_box_html': _renderScoreBox(extract?.overallScore,
+            isOutdated: extract?.isOutdated,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(package.name, extract, analysis),
@@ -522,7 +528,8 @@ class TemplateService {
         return {
           'name': package.name,
           'ellipsized_description': package.ellipsizedDescription,
-          'tags_html': _renderTags(package.platforms, package: package.name),
+          'tags_html': _renderTags(package.platforms,
+              package: package.name, isOutdated: package.isOutdated),
         };
       }).toList(),
     };
@@ -598,14 +605,22 @@ class TemplateService {
 
   /// Renders the tags using the pkg/tags template.
   String _renderTags(List<String> platforms,
-      {String package, bool wrapperDiv: false}) {
+      {bool isOutdated, String package, bool wrapperDiv: false}) {
     final List<Map> tags = <Map>[];
     if (platforms == null) {
-      tags.add({
-        'status': 'missing',
-        'text': '[awaiting]',
-        'title': 'Analysis should be ready soon.',
-      });
+      if (isOutdated ?? false) {
+        tags.add({
+          'status': 'missing',
+          'text': '[outdated]',
+          'title': 'Package version too old, check latest stable.',
+        });
+      } else {
+        tags.add({
+          'status': 'missing',
+          'text': '[awaiting]',
+          'title': 'Analysis should be ready soon.',
+        });
+      }
     } else if (platforms.isEmpty) {
       final String hash = '#-analysis-tab-';
       final String href = package == null ? hash : '/packages/$package$hash';
@@ -709,12 +724,18 @@ String _getAuthorsHtml(List<String> authors) {
 }
 
 String _renderScoreBox(double overallScore,
-    {bool isNewPackage, String package}) {
-  final String formattedScore = _formatScore(overallScore);
-  final String scoreClass = _classifyScore(overallScore);
-  final String title = overallScore == null
-      ? 'Awaiting analysis to complete.'
-      : 'Analysis and more details.';
+    {bool isOutdated, bool isNewPackage, String package}) {
+  final score = (isOutdated ?? false) ? null : overallScore;
+  final String formattedScore = _formatScore(score);
+  final String scoreClass = _classifyScore(score);
+  String title;
+  if (isOutdated ?? false) {
+    title = 'No analysis for this version.';
+  } else {
+    title = overallScore == null
+        ? 'Awaiting analysis to complete.'
+        : 'Analysis and more details.';
+  }
   final String escapedTitle = _attrEscaper.convert(title);
   final newIndicator = (isNewPackage ?? false)
       ? '<span class="new" title="Created in the last 30 days">new</span>'
