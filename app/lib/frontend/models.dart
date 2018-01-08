@@ -230,6 +230,7 @@ class PackageView {
   final double overallScore;
   final List<String> platforms;
   final bool isNewPackage;
+  final bool isOutdated;
 
   PackageView({
     this.name,
@@ -241,6 +242,7 @@ class PackageView {
     this.overallScore,
     this.platforms,
     this.isNewPackage,
+    this.isOutdated,
   });
 
   factory PackageView.fromModel({
@@ -262,6 +264,7 @@ class PackageView {
       overallScore: analysis == null ? null : analysis.overallScore,
       platforms: analysis?.platforms,
       isNewPackage: package?.isNewPackage(),
+      isOutdated: analysis?.isOutdated ?? false,
     );
   }
 }
