@@ -245,9 +245,13 @@ Future<shelf.Response> _packagesHandler(shelf.Request request) async {
   }
 }
 
-/// The max age a browser would take hold of the static files before checking
-/// with the server for a newer version.
-const _staticMaxAge = const Duration(minutes: 5);
+/// The default age a browser would take hold of the static files before
+/// checking with the server for a newer version.
+const _staticShortCache = const Duration(minutes: 5);
+
+/// The age the browser should cache the static file if there is a hash provided
+/// and it matches the etag.
+const _staticLongCache = const Duration(hours: 24);
 
 Future<shelf.Response> _staticsHandler(shelf.Request request,
     {String pathOverride}) async {
@@ -265,6 +269,10 @@ Future<shelf.Response> _staticsHandler(shelf.Request request,
     if (ifNoneMatch != null && ifNoneMatch == staticFile.etag) {
       return new shelf.Response.notModified();
     }
+    final String hash = request.requestedUri.queryParameters['hash'];
+    final Duration cacheAge = hash != null && hash == staticFile.etag
+        ? _staticLongCache
+        : _staticShortCache;
     return new shelf.Response.ok(
       staticFile.bytes,
       headers: {
@@ -272,7 +280,7 @@ Future<shelf.Response> _staticsHandler(shelf.Request request,
         HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
         HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
         HttpHeaders.ETAG: staticFile.etag,
-        HttpHeaders.CACHE_CONTROL: 'max-age: ${_staticMaxAge.inSeconds}',
+        HttpHeaders.CACHE_CONTROL: 'max-age: ${cacheAge.inSeconds}',
       },
     );
   }

@@ -555,6 +555,7 @@ class TemplateService {
     final isRoot = type == PageType.landing && platform == null;
     final values = {
       'static_assets_dir': staticUrls.newDesignAssetsDir,
+      'static_assets': staticUrls.assets,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
       'canonicalUrl': canonicalUrl,
       'pageDescription': pageDescription == null

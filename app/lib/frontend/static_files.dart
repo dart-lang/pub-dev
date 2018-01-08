@@ -53,7 +53,9 @@ class StaticsCache {
     final bytes = file.readAsBytesSync();
     final lastModified = file.lastModifiedSync();
     final String relativePath = path.relative(file.path, from: rootPath);
-    final String etag = crypto.sha256.convert(bytes).toString();
+    final digest = crypto.sha256.convert(bytes);
+    final String etag =
+        digest.bytes.map((b) => (b & 31).toRadixString(32)).join();
     return new StaticFile(relativePath, contentType, bytes, lastModified, etag);
   }
 
@@ -86,6 +88,7 @@ class StaticUrls {
   final String documentationIcon;
   final String downloadIcon;
   Map _versionsTableIcons;
+  Map _assets;
 
   StaticUrls(this.staticPath)
       : smallDartFavicon = '$staticPath/favicon.ico',
@@ -100,5 +103,25 @@ class StaticUrls {
       'documentation': documentationIcon,
       'download': downloadIcon,
     };
+  }
+
+  Map get assets {
+    return _assets ??= {
+      'script_dart_js': _getCacheableStaticUrl('/v2/js/script.dart.js'),
+    };
+  }
+}
+
+/// Returns the URL of a static resource
+String _getCacheableStaticUrl(String relativePath) {
+  if (!relativePath.startsWith('/')) {
+    relativePath = '/$relativePath';
+  }
+  final String requestPath = '${staticUrls.staticPath}$relativePath';
+  final file = staticsCache.getFile(requestPath);
+  if (file == null) {
+    throw new Exception('Static resource not found: $relativePath');
+  } else {
+    return '$requestPath?hash=${file.etag}';
   }
 }
