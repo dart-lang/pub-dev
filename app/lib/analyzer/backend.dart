@@ -172,13 +172,15 @@ class AnalysisBackend {
       if (preventRegression || preventIdentical) {
         await tx.rollback();
       } else {
+        _logger.info(
+            'Storing analysis for: ${analysis.packageName} ${analysis.packageVersion}');
         inserts.add(analysis);
         tx.queueMutations(inserts: inserts);
         await tx.commit();
-      }
 
-      analyzerMemcache.invalidateContent(
-          analysis.packageName, analysis.packageVersion, analysis.panaVersion);
+        analyzerMemcache.invalidateContent(analysis.packageName,
+            analysis.packageVersion, analysis.panaVersion);
+      }
 
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
     });
