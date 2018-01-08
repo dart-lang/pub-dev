@@ -240,7 +240,7 @@ class TemplateService {
       int totalNumberOfVersions,
       AnalysisExtract extract,
       AnalysisView analysis,
-      bool isFlutterPlugin) {
+      bool isFlutterPackage) {
     List importExamples;
     if (selectedVersion.libraries.contains('${package.id}.dart')) {
       importExamples = [
@@ -352,7 +352,7 @@ class TemplateService {
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
-        'install_html': _renderInstall(isFlutterPlugin, analysis?.platforms),
+        'install_html': _renderInstall(isFlutterPackage, analysis?.platforms),
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
         'score_box_html': _renderScoreBox(extract?.overallScore,
@@ -439,9 +439,12 @@ class TemplateService {
       AnalysisExtract extract,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
-    final bool isFlutterPlugin =
+    final bool hasOnlyFlutterPlatform = extract?.platforms != null &&
+        extract.platforms.length == 1 &&
+        extract.platforms.single == KnownPlatforms.flutter;
+    final bool isFlutterPackage = hasOnlyFlutterPlatform ||
         latestStableVersion.pubspec.dependsOnFlutterSdk ||
-            latestStableVersion.pubspec.hasFlutterPlugin;
+        latestStableVersion.pubspec.hasFlutterPlugin;
 
     final Map<String, Object> values = _pkgShowPageValues(
       package,
@@ -453,7 +456,7 @@ class TemplateService {
       totalNumberOfVersions,
       extract,
       analysis,
-      isFlutterPlugin,
+      isFlutterPackage,
     );
     values['search_deps_link'] = _attrEscaper.convert(
       new Uri(
@@ -465,7 +468,7 @@ class TemplateService {
     final versionString = isVersionPage ? '${selectedVersion.id} ' : '';
     var pageDescription =
         '${selectedVersion.package} ${selectedVersion.version}';
-    if (isFlutterPlugin) {
+    if (isFlutterPackage) {
       pageDescription += ' Flutter and Dart package';
     } else {
       pageDescription += ' Dart package';
@@ -473,9 +476,9 @@ class TemplateService {
     pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
     return renderLayoutPage(PageType.package, content,
         title:
-            '${package.name} $versionString| ${isFlutterPlugin ? 'Flutter' : 'Dart'} Package',
+            '${package.name} $versionString| ${isFlutterPackage ? 'Flutter' : 'Dart'} Package',
         pageDescription: pageDescription,
-        faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
+        faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
         canonicalUrl:
             isVersionPage ? _canonicalUrlForPackage(package.name) : null);
   }
