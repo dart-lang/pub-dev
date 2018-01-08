@@ -463,11 +463,18 @@ class TemplateService {
     );
     final content = _renderTemplate('pkg/show', values);
     final versionString = isVersionPage ? '${selectedVersion.id} ' : '';
+    var pageDescription =
+        '${selectedVersion.package} ${selectedVersion.version}';
+    if (isFlutterPlugin) {
+      pageDescription += ' Flutter and Dart package';
+    } else {
+      pageDescription += ' Dart package';
+    }
+    pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
     return renderLayoutPage(PageType.package, content,
         title:
             '${package.name} $versionString| ${isFlutterPlugin ? 'Flutter' : 'Dart'} Package',
-        pageDescription:
-            '${selectedVersion.package} - ${selectedVersion.ellipsizedDescription}',
+        pageDescription: pageDescription,
         faviconUrl: isFlutterPlugin ? staticUrls.flutterLogo32x32 : null,
         canonicalUrl:
             isVersionPage ? _canonicalUrlForPackage(package.name) : null);
