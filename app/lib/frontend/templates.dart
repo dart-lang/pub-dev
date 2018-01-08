@@ -473,14 +473,25 @@ class TemplateService {
     } else {
       pageDescription += ' Dart package';
     }
+    final pageTitle =
+        '${package.name} $versionString| ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
     pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
-    return renderLayoutPage(PageType.package, content,
-        title:
-            '${package.name} $versionString| ${isFlutterPackage ? 'Flutter' : 'Dart'} Package',
-        pageDescription: pageDescription,
-        faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
-        canonicalUrl:
-            isVersionPage ? _canonicalUrlForPackage(package.name) : null);
+    final canonicalUrl =
+        isVersionPage ? _canonicalUrlForPackage(package.name) : null;
+    final headerHtml = _renderTemplate('pkg/meta_header', {
+      'title': pageTitle,
+      'description': pageDescription,
+      'canonicalUrl': canonicalUrl,
+    });
+    return renderLayoutPage(
+      PageType.package,
+      content,
+      title: pageTitle,
+      pageDescription: pageDescription,
+      faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
+      canonicalUrl: canonicalUrl,
+      headerHtml: headerHtml,
+    );
   }
 
   /// Renders the `views/authorized.mustache` template.
@@ -557,6 +568,7 @@ class TemplateService {
     String platform,
     SearchQuery searchQuery,
     bool includeSurvey: true,
+    String headerHtml,
   }) {
     final queryText = searchQuery?.query;
     final String escapedSearchQuery =
@@ -582,6 +594,7 @@ class TemplateService {
           ? 'Pub is a package manager for the Dart programming language.'
           : HTML_ESCAPE.convert(pageDescription),
       'title': HTML_ESCAPE.convert(title),
+      'header_html': headerHtml,
       'search_platform': platform,
       'search_query': escapedSearchQuery,
       'search_query_placeholder': 'Search ${platformDict.name} packages',
