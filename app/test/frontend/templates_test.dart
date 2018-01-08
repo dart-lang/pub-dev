@@ -184,7 +184,7 @@ void main() {
 
     test('no content for analysis tab', () async {
       // no content
-      expect(templates.renderAnalysisTab(null, null), isNull);
+      expect(templates.renderAnalysisTab('pkg_foo', null, null), isNull);
     });
 
     test('analysis tab: http', () async {
@@ -195,12 +195,13 @@ void main() {
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json)));
       final extract = new AnalysisExtract(
           health: view.health, maintenance: 0.9, popularity: 0.23);
-      final String html = templates.renderAnalysisTab(extract, view);
+      final String html = templates.renderAnalysisTab('http', extract, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
     test('mock analysis tab', () async {
       final String html = templates.renderAnalysisTab(
+          'pkg_foo',
           new AnalysisExtract(
             health: 0.90234,
             maintenance: 0.8932343,
@@ -244,6 +245,7 @@ void main() {
 
     test('aborted analysis tab', () async {
       final String html = templates.renderAnalysisTab(
+          'pkg_foo',
           null,
           new AnalysisView(new AnalysisData(
             packageName: 'foo',
@@ -254,6 +256,21 @@ void main() {
             timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
           )));
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
+    });
+
+    test('outdated analysis tab', () async {
+      final String html = templates.renderAnalysisTab(
+          'pkg_foo',
+          null,
+          new AnalysisView(new AnalysisData(
+            packageName: 'foo',
+            packageVersion: '1.0.0',
+            panaVersion: '0.8.0',
+            flutterVersion: '0.0.20',
+            analysisStatus: AnalysisStatus.outdated,
+            timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
+          )));
+      expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
     test('package index page', () {

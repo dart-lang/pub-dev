@@ -5,6 +5,13 @@
   We welcome <a class='github_issue' data-bug-tag='analysis' href="https://github.com/dart-lang/pub-dartlang-dart/issues/new">feedback</a>.
 </div>
 
+{{#show_outdated}}
+<p>
+  This package version is not analyzed, because it is more than two years old.
+  Check the <a href="/packages/{{{package}}}#-analysis-tab-">latest stable version</a> for its analysis.
+</p>
+{{/show_outdated}}
+{{^show_outdated}}
 <p>
   We analyzed this package, and provided a score, details, and suggestions below.
 </p>
@@ -140,3 +147,4 @@
 </table>
 </div>
 {{/has_dependency}}
+{{/show_outdated}}
