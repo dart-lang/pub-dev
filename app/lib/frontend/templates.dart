@@ -145,7 +145,8 @@ class TemplateService {
   }
 
   /// Renders the `views/pkg/analysis_tab.mustache` template.
-  String renderAnalysisTab(AnalysisExtract extract, AnalysisView analysis) {
+  String renderAnalysisTab(
+      String package, AnalysisExtract extract, AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
@@ -191,6 +192,8 @@ class TemplateService {
         devDeps.isNotEmpty;
 
     final Map<String, dynamic> data = {
+      'package': package,
+      'show_outdated': analysis.analysisStatus == AnalysisStatus.outdated,
       'date_completed': analysis.timestamp == null
           ? null
           : shortDateFormat.format(analysis.timestamp),
@@ -350,7 +353,7 @@ class TemplateService {
         'score_box_html': _renderScoreBox(extract?.overallScore,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
-        'analysis_html': renderAnalysisTab(extract, analysis),
+        'analysis_html': renderAnalysisTab(package.name, extract, analysis),
         'schema_org_pkgmeta_json':
             JSON.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
       },

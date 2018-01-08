@@ -220,7 +220,7 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderAnalysisTab(extract, analysis) {
+  String renderAnalysisTab(String package, extract, analysis) {
     return _response;
   }
 
