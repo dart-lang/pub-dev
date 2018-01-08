@@ -92,6 +92,11 @@ pub-dartlang-dart $ docker run -it <docker-imgage-hash>
 The server will be available via at [172.17.0.2:8080](http://172.17.0.2:8080/). The IP address might differ
 and can be obtained via `docker ps` and `docker inspect <container-id>`.
 
+In addition to the app, you can also run a local memcache instance with docker:
+
+```
+docker run -ti -p 11211:11211 memcached -vv
+```
 
 ### Running unit tests
 
