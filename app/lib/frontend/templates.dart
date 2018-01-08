@@ -694,7 +694,7 @@ String _getAuthorsHtml(List<String> authors) {
       return '<span class="author">'
           '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
           '<i class="email-icon"></i></a> '
-          '<a href="$emailSearchUrl" title="Search packages with $escapedEmail">'
+          '<a href="$emailSearchUrl" title="Search packages with $escapedEmail" rel="nofollow">'
           '<i class="search-icon"></i></a> '
           '$escapedName'
           '</span>';
