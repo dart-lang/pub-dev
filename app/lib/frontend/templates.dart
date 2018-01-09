@@ -265,7 +265,7 @@ class TemplateService {
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
       renderedReadme =
-          _renderFile(selectedVersion.readme, selectedVersion.homepage);
+          _renderFile(selectedVersion.readme, selectedVersion.repository);
     }
 
     String changelogFilename;
@@ -273,7 +273,7 @@ class TemplateService {
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
       renderedChangelog =
-          _renderFile(selectedVersion.changelog, selectedVersion.homepage);
+          _renderFile(selectedVersion.changelog, selectedVersion.repository);
     }
 
     String exampleFilename;
@@ -281,7 +281,7 @@ class TemplateService {
     if (selectedVersion.example != null) {
       exampleFilename = selectedVersion.example.filename;
       renderedExample =
-          _renderFile(selectedVersion.example, selectedVersion.homepage);
+          _renderFile(selectedVersion.example, selectedVersion.repository);
       if (renderedExample != null) {
         renderedExample = '<p style="font-family: monospace">'
             '<b>${_htmlEscaper.convert(exampleFilename)}</b>'
@@ -346,6 +346,8 @@ class TemplateService {
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
         'nice_homepage': selectedVersion.homepageNice,
+        'repository': selectedVersion.repository,
+        'nice_repository': selectedVersion.repositoryNice,
         'documentation': selectedVersion.documentation,
         'nice_documentation': selectedVersion.documentationNice,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
@@ -354,7 +356,7 @@ class TemplateService {
         'short_created': selectedVersion.shortCreated,
         'install_html': _renderInstall(isFlutterPackage, analysis?.platforms),
         'license_html':
-            _renderLicenses(selectedVersion.homepage, analysis?.licenses),
+            _renderLicenses(selectedVersion.repository, analysis?.licenses),
         'score_box_html': _renderScoreBox(extract?.overallScore,
             isOutdated: extract?.isOutdated,
             isNewPackage: package.isNewPackage()),

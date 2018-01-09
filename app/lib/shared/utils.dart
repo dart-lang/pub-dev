@@ -358,3 +358,9 @@ class StringInternPool {
     }
   }
 }
+
+bool isRepositoryUrl(String url) {
+  if (url == null) return false;
+  return url.startsWith('https://github.com/') ||
+      url.startsWith('https://gitlab.com/');
+}

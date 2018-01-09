@@ -205,10 +205,22 @@ class PackageVersion extends db.ExpandoModel {
   String get documentationNice => niceUrl(documentation);
 
   String get homepage {
+    if (pubspec.repository == null && isRepositoryUrl(pubspec.homepage)) {
+      return null;
+    }
     return pubspec.homepage;
   }
 
   String get homepageNice => niceUrl(homepage);
+
+  String get repository {
+    if (pubspec.repository == null && isRepositoryUrl(pubspec.homepage)) {
+      return pubspec.homepage;
+    }
+    return pubspec.repository;
+  }
+
+  String get repositoryNice => niceUrl(repository);
 }
 
 @db.Kind(name: 'PrivateKey', idType: db.IdType.String)
