@@ -51,21 +51,35 @@ class TemplateService {
       List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
-    final versionTableRows = [];
+    final stableVersionRows = [];
+    final devVersionRows = [];
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
       final String url = versionDownloadUrls[i].toString();
-      versionTableRows.add(_renderVersionTableRow(version, url));
+      final rowHtml = _renderVersionTableRow(version, url);
+      if (version.semanticVersion.isPreRelease) {
+        devVersionRows.add(rowHtml);
+      } else {
+        stableVersionRows.add(rowHtml);
+      }
     }
 
-    final values = {
-      'package': {
-        'name': package,
-      },
-      'version_table_rows': versionTableRows,
-    };
-    final content = _renderTemplate('pkg/versions/index', values);
-    return renderLayoutPage(PageType.package, content,
+    final htmlBlocks = <String>[];
+    if (stableVersionRows.isNotEmpty) {
+      htmlBlocks.add(_renderTemplate('pkg/versions/index', {
+        'kind': 'Stable',
+        'package': {'name': package},
+        'version_table_rows': stableVersionRows,
+      }));
+    }
+    if (devVersionRows.isNotEmpty) {
+      htmlBlocks.add(_renderTemplate('pkg/versions/index', {
+        'kind': 'Dev',
+        'package': {'name': package},
+        'version_table_rows': devVersionRows,
+      }));
+    }
+    return renderLayoutPage(PageType.package, htmlBlocks.join(),
         title: '$package package - All Versions',
         canonicalUrl: _canonicalUrlForPackage(package));
   }
