@@ -6,6 +6,8 @@ import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:path/path.dart' as p;
 
+import 'package:pana/src/download_utils.dart' show getRepositoryUrl;
+
 final Logger _logger = new Logger('pub.markdown');
 
 final List<m.InlineSyntax> _inlineSyntaxes = m
@@ -30,16 +32,19 @@ String markdownToHtml(String text, String baseUrl) {
 }
 
 class _RelativeLinkSyntax extends m.LinkSyntax {
-  final Uri baseUri;
-  _RelativeLinkSyntax(this.baseUri);
+  final String url;
+  _RelativeLinkSyntax(this.url);
 
   static _RelativeLinkSyntax parse(String url) {
     try {
       final Uri uri = Uri.parse(url);
-      if (uri.scheme != 'http' && uri.scheme != 'https') return null;
-      if (uri.host == null || uri.host.isEmpty || !uri.host.contains('.'))
+      if (uri.scheme != 'http' && uri.scheme != 'https') {
         return null;
-      return new _RelativeLinkSyntax(uri);
+      }
+      if (uri.host == null || uri.host.isEmpty || !uri.host.contains('.')) {
+        return null;
+      }
+      return new _RelativeLinkSyntax(url);
     } catch (e) {
       // url is user-provided, may be malicious, ignoring errors.
     }
@@ -55,14 +60,11 @@ class _RelativeLinkSyntax extends m.LinkSyntax {
         final String relativeUrl = fragmentParts.first;
         final String fragment =
             fragmentParts.length == 2 ? fragmentParts[1] : null;
-        final Uri newUri = new Uri(
-          scheme: baseUri.scheme,
-          host: baseUri.host,
-          port: baseUri.port,
-          path: p.join(baseUri.path, relativeUrl),
-          fragment: fragment,
-        );
-        return new m.Link(link.id, newUri.toString(), link.title);
+        String newUrl = getRepositoryUrl(url, relativeUrl);
+        if (fragment != null) {
+          newUrl = '$newUrl#$fragment';
+        }
+        return new m.Link(link.id, newUrl, link.title);
       } catch (e, st) {
         _logger.warning('Relative link rewrite failed: ${link.url}', e, st);
       }

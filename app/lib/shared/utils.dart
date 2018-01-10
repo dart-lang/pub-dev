@@ -18,6 +18,8 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
+export 'package:pana/src/maintenance.dart' show exampleFileCandidates;
+
 final Duration twoYears = const Duration(days: 2 * 365);
 
 const hostedDomain = 'pub.dartlang.org';
@@ -223,16 +225,6 @@ List<List<T>> sliceList<T>(List<T> list, int limit) {
   return new List.generate(maxPageIndex + 1,
       (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
 }
-
-/// Returns the candidates in priority order to display under the 'Example' tab.
-List<String> exampleFileCandidates(String package) => [
-      'example/lib/main.dart',
-      'example/main.dart',
-      'example/lib/$package.dart',
-      'example/$package.dart',
-      'example/${package}_example.dart',
-      'example/example.dart',
-    ];
 
 /// Buffers for [duration] and then randomizes the order of the items in the
 /// stream. For every single item, their final position would be in the range of
