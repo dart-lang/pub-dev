@@ -1,15 +1,15 @@
 {
   "packageName": "http",
   "packageVersion": "0.11.3+12",
-  "analysis": 5701786853703680,
-  "timestamp": "2017-12-17T12:46:32.152247Z",
-  "panaVersion": "0.8.0",
+  "analysis": 5643013481037824,
+  "timestamp": "2018-01-10T18:58:13.417466Z",
+  "panaVersion": "0.9.0+1",
   "flutterVersion": "0.0.20",
   "analysisStatus": "success",
-  "maintenanceScore": 0.999,
+  "maintenanceScore": 0.9965,
   "analysisContent": {
-    "panaVersion": "0.8.0",
-    "sdkVersion": "2.0.0-dev.8.0",
+    "panaVersion": "0.9.0+1",
+    "sdkVersion": "2.0.0-dev.15.0",
     "packageName": "http",
     "packageVersion": "0.11.3+12",
     "pubspec": {
@@ -34,7 +34,7 @@
     },
     "platform": {
       "worksEverywhere": true,
-      "reason": "primary library - `package:http/http.dart`"
+      "reason": "No platform restriction found in primary library `package:http/http.dart`."
     },
     "licenses": [
       {
@@ -45,6 +45,7 @@
     ],
     "maintenance": {
       "missingChangelog": false,
+      "missingExample": true,
       "missingReadme": false,
       "missingAnalysisOptions": false,
       "oldAnalysisOptions": true,
@@ -57,6 +58,15 @@
       "suggestions": [
         {
           "level": "hint",
+          "title": "Maintain an example.",
+          "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
+          "penalty": {
+            "amount": 5,
+            "fraction": 0
+          }
+        },
+        {
+          "level": "hint",
           "title": "Use `analysis_options.yaml`.",
           "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
         },
@@ -66,6 +76,15 @@
           "description": "While there is nothing inherently wrong with versions of `0.*.*`, it usually means that the author is still experimenting with the general direction API.",
           "penalty": {
             "amount": 10,
+            "fraction": 0
+          }
+        },
+        {
+          "level": "hint",
+          "title": "The description is too short.",
+          "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
+          "penalty": {
+            "amount": 20,
             "fraction": 0
           }
         }
@@ -83,7 +102,7 @@
           "constraintType": "normal",
           "constraint": "^1.10.0",
           "resolved": "1.13.3",
-          "available": "2.0.1"
+          "available": "2.0.3"
         },
         {
           "package": "charcode",
@@ -96,7 +115,7 @@
           "dependencyType": "direct",
           "constraintType": "normal",
           "constraint": "^1.5.0",
-          "resolved": "1.14.3"
+          "resolved": "1.14.5"
         },
         {
           "package": "http_parser",
