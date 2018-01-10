@@ -78,6 +78,11 @@ class Pubspec {
     return _asString(_json['homepage']);
   }
 
+  String get repository {
+    _load();
+    return _asString(_json['repository']);
+  }
+
   String get description {
     _load();
     return _asString(_json['description']);

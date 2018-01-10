@@ -99,6 +99,11 @@ import 'package:{{package}}/{{library}}';
       <a class="link" href="{{package.homepage}}">{{package.nice_homepage}}</a>
     {{/package.homepage}}
 
+    {{#package.repository}}
+      <h3 class="title">Repository</h3>
+      <a class="link" href="{{package.repository}}">{{package.nice_repository}}</a>
+    {{/package.repository}}
+
     {{#package.documentation}}
       <h3 class="title">Documentation</h3>
       <a class="link" href="{{package.documentation}}">{{package.nice_documentation}}</a>
