@@ -478,11 +478,6 @@ class TemplateService {
     pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
     final canonicalUrl =
         isVersionPage ? _canonicalUrlForPackage(package.name) : null;
-    final headerHtml = _renderTemplate('pkg/meta_header', {
-      'title': pageTitle,
-      'description': pageDescription,
-      'canonicalUrl': canonicalUrl,
-    });
     return renderLayoutPage(
       PageType.package,
       content,
@@ -490,7 +485,6 @@ class TemplateService {
       pageDescription: pageDescription,
       faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
       canonicalUrl: canonicalUrl,
-      headerHtml: headerHtml,
     );
   }
 
@@ -568,7 +562,6 @@ class TemplateService {
     String platform,
     SearchQuery searchQuery,
     bool includeSurvey: true,
-    String headerHtml,
   }) {
     final queryText = searchQuery?.query;
     final String escapedSearchQuery =
@@ -594,7 +587,6 @@ class TemplateService {
           ? 'Pub is a package manager for the Dart programming language.'
           : HTML_ESCAPE.convert(pageDescription),
       'title': HTML_ESCAPE.convert(title),
-      'header_html': headerHtml,
       'search_platform': platform,
       'search_query': escapedSearchQuery,
       'search_query_placeholder': 'Search ${platformDict.name} packages',

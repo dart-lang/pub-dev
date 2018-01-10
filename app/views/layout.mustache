@@ -7,7 +7,11 @@
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@dart_lang" />
+  <meta property="og:site_name" content="Dart Packages" />
   <title>{{title}}</title>
+  <meta property="og:title" content="{{title}}" />
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" />
   <meta itemprop="image" content="{{{static_assets_dir}}}/img/dart-logo-400x400.png" />
   {{#favicon}}
@@ -15,8 +19,10 @@
   {{/favicon}}
   {{#canonicalUrl}}
   <link rel="canonical" href="{{{canonicalUrl}}}"/>
+  <meta property="og:url" content="{{{canonicalUrl}}}" />
   {{/canonicalUrl}}
   <meta name="description" content="{{pageDescription}}" />
+  <meta property="og:description" content="{{pageDescription}}" />
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />
   <link href="{{{static_assets_dir}}}/highlight/github.css" rel="stylesheet" />
   <link href="{{{static_assets_dir}}}/css/style.css" rel="stylesheet" type="text/css" />
@@ -28,13 +34,10 @@
       })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
       ga('create', 'UA-26406144-13', 'auto');
       ga('send', 'pageview');
-    </script>
+  </script>
   {{#include_survey}}
-    <script async="" defer="" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
+  <script async="" defer="" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
   {{/include_survey}}
-  {{#header_html}}
-{{& header_html}}
-  {{/header_html}}
 </head>
 <body>
 <header class="site-header">
