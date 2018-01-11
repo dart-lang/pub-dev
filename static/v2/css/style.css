@@ -1012,6 +1012,11 @@ pre > code {
   padding-right: 18px;
 }
 
+#scores-table .score-range {
+  color: #666;
+  font-size: 10pt;
+}
+
 .tooltip-base {
   position: relative;
   display: inline-block;
