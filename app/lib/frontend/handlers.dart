@@ -162,15 +162,12 @@ Future<shelf.Response> _indexHandler(
   String pageContent =
       isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
   if (pageContent == null) {
-    Future<String> searchAndRenderMiniList(SearchOrder order) async {
-      final count = 15;
-      final result = await searchService.search(new SearchQuery.parse(
-          platform: platform, limit: count, order: order));
-      final packages = result.packages.take(count).toList();
-      return templateService.renderMiniList(packages);
-    }
+    final count = 15;
+    final result = await searchService
+        .search(new SearchQuery.parse(platform: platform, limit: count));
+    final packages = result.packages.take(count).toList();
+    final minilist = templateService.renderMiniList(packages);
 
-    final minilist = await searchAndRenderMiniList(SearchOrder.top);
     pageContent = templateService.renderIndexPage(minilist, platform);
     if (isProd) {
       await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);

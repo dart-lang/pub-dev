@@ -43,7 +43,7 @@ void main() {
     group('ui', () {
       tScopedTest('/', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.order, SearchOrder.top);
+          expect(query.order, isNull);
           expect(query.offset, 0);
           expect(query.limit, 15);
           expect(query.platformPredicate, isNull);
@@ -237,7 +237,7 @@ void main() {
 
       tScopedTest('/flutter', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.order, SearchOrder.top);
+          expect(query.order, isNull);
           expect(query.offset, 0);
           expect(query.limit, 15);
           expect(query.platformPredicate.single, 'flutter');
