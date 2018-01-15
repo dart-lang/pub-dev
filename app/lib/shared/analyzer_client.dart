@@ -89,19 +89,24 @@ class AnalyzerClient {
       }
     }
     final view = await getAnalysisView(key);
-    if (!view.hasPanaSummary) {
-      return null;
+    AnalysisExtract extract;
+    if (view.analysisStatus == AnalysisStatus.outdated) {
+      extract = new AnalysisExtract(
+          isOutdated: true, timestamp: new DateTime.now().toUtc());
+    } else if (view.hasPanaSummary) {
+      extract = new AnalysisExtract(
+        isOutdated: false,
+        popularity: popularityStorage.lookup(key.package) ?? 0.0,
+        maintenance: view.maintenanceScore,
+        health: view.health,
+        platforms: view.platforms,
+        timestamp: new DateTime.now().toUtc(),
+      );
     }
-    final extract = new AnalysisExtract(
-      isOutdated: view.analysisStatus == AnalysisStatus.outdated,
-      popularity: popularityStorage.lookup(key.package) ?? 0.0,
-      maintenance: view.maintenanceScore,
-      health: view.health,
-      platforms: view.platforms,
-      timestamp: new DateTime.now().toUtc(),
-    );
-    await analyzerMemcache?.setExtract(
-        key.package, key.version, JSON.encode(extract.toJson()));
+    if (extract != null) {
+      await analyzerMemcache?.setExtract(
+          key.package, key.version, JSON.encode(extract.toJson()));
+    }
     return extract;
   }
 
