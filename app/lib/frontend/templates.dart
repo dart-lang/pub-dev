@@ -53,11 +53,13 @@ class TemplateService {
 
     final stableVersionRows = [];
     final devVersionRows = [];
+    PackageVersion latestDevVersion;
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
       final String url = versionDownloadUrls[i].toString();
       final rowHtml = _renderVersionTableRow(version, url);
       if (version.semanticVersion.isPreRelease) {
+        latestDevVersion ??= version;
         devVersionRows.add(rowHtml);
       } else {
         stableVersionRows.add(rowHtml);
@@ -65,8 +67,14 @@ class TemplateService {
     }
 
     final htmlBlocks = <String>[];
+    if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
+      htmlBlocks.add(
+          '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
+          'on ${latestDevVersion.shortCreated}.</p>');
+    }
     if (stableVersionRows.isNotEmpty) {
       htmlBlocks.add(_renderTemplate('pkg/versions/index', {
+        'id': 'stable',
         'kind': 'Stable',
         'package': {'name': package},
         'version_table_rows': stableVersionRows,
@@ -74,6 +82,7 @@ class TemplateService {
     }
     if (devVersionRows.isNotEmpty) {
       htmlBlocks.add(_renderTemplate('pkg/versions/index', {
+        'id': 'dev',
         'kind': 'Dev',
         'package': {'name': package},
         'version_table_rows': devVersionRows,
