@@ -261,7 +261,8 @@ class AnalysisBackend {
     }
 
     // Is it a newer analysis than the trigger timestamp?
-    if (versionAnalysis.analysisTimestamp.isAfter(updated)) {
+    if (versionAnalysis.analysisTimestamp.isAfter(updated) &&
+        versionAnalysis.analysisStatus == AnalysisStatus.success) {
       return new TaskTargetStatus.skip(
           'Previous analysis completed after task\'s trigger timestamp.');
     }
