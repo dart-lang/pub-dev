@@ -28,6 +28,8 @@ final Key testPackageKey =
 
 final Key testPackageVersionKey =
     testPackageKey.append(PackageVersion, id: '0.1.1');
+final Key devPackageVersionKey =
+    testPackageKey.append(PackageVersion, id: '0.2.0-dev');
 
 final Pubspec testPubspec = new Pubspec.fromYaml(TestPackagePubspec);
 
@@ -66,6 +68,10 @@ flutter:
   plugin:
     class: SomeClass
   ''');
+
+final PackageVersion devPackageVersion = clonePackageVersion(testPackageVersion)
+  ..id = devPackageVersionKey.id
+  ..version = devPackageVersionKey.id;
 
 PackageVersion clonePackageVersion(PackageVersion original) =>
     new PackageVersion()

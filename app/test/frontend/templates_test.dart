@@ -353,10 +353,13 @@ void main() {
     });
 
     test('package versions page', () {
-      final String html = templates.renderPkgVersionsPage(
-          'foobar',
-          [testPackageVersion],
-          [Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz')]);
+      final String html = templates.renderPkgVersionsPage('foobar', [
+        testPackageVersion,
+        devPackageVersion,
+      ], [
+        Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
+        Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
+      ]);
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
 
