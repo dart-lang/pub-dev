@@ -136,8 +136,8 @@ Future<shelf.Response> _flutterLandingHandler(shelf.Request request) =>
     _indexHandler(request, KnownPlatforms.flutter);
 
 /// Handles requests for /server
-Future<shelf.Response> _serverLandingHandler(shelf.Request request) =>
-    _indexHandler(request, KnownPlatforms.server);
+shelf.Response _serverLandingHandler(shelf.Request request) =>
+    redirectResponse('/');
 
 /// Handles requests for /web
 Future<shelf.Response> _webLandingHandler(shelf.Request request) =>
@@ -329,8 +329,14 @@ Future<shelf.Response> _flutterPackagesHandlerHtml(shelf.Request request) =>
     _packagesHandlerHtmlCore(request, KnownPlatforms.flutter);
 
 /// Handles /server/packages
-Future<shelf.Response> _serverPackagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtmlCore(request, KnownPlatforms.server);
+shelf.Response _serverPackagesHandlerHtml(shelf.Request request) {
+  final params = request.requestedUri.queryParameters;
+  final uri = new Uri(
+    path: '/packages',
+    queryParameters: params.isNotEmpty ? params : null,
+  );
+  return redirectResponse(uri.toString());
+}
 
 /// Handles /web/packages
 Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>

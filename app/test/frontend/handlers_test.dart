@@ -325,6 +325,19 @@ void main() {
         await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
       });
 
+      tScopedTest('/server', () async {
+        expectRedirectResponse(await issueGet('/server'), '/');
+      });
+
+      tScopedTest('/server/packages with parameters', () async {
+        expectRedirectResponse(
+            await issueGet('/server/packages?sort=top'), '/packages?sort=top');
+      });
+
+      tScopedTest('/server/packages', () async {
+        expectRedirectResponse(await issueGet('/server/packages'), '/packages');
+      });
+
       tScopedTest('/doc', () async {
         for (var path in redirectPaths.keys) {
           final redirectUrl =
