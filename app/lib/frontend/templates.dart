@@ -171,8 +171,8 @@ class TemplateService {
   }
 
   /// Renders the `views/pkg/analysis_tab.mustache` template.
-  String renderAnalysisTab(
-      String package, AnalysisExtract extract, AnalysisView analysis) {
+  String renderAnalysisTab(String package, String sdkConstraint,
+      AnalysisExtract extract, AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
 
     String statusText;
@@ -210,10 +210,12 @@ class TemplateService {
           .toList();
     }
 
+    final hasSdkConstraint = sdkConstraint != null && sdkConstraint.isNotEmpty;
     final directDeps = prepareDependencies(analysis.directDependencies);
     final transitiveDeps = prepareDependencies(analysis.transitiveDependencies);
     final devDeps = prepareDependencies(analysis.devDependencies);
-    final hasDependency = directDeps.isNotEmpty ||
+    final hasDependency = hasSdkConstraint ||
+        directDeps.isNotEmpty ||
         transitiveDeps.isNotEmpty ||
         devDeps.isNotEmpty;
 
@@ -236,7 +238,9 @@ class TemplateService {
       'suggestions': suggestions,
       'has_dependency': hasDependency,
       'dependencies': {
-        'has_direct': directDeps.isNotEmpty,
+        'has_sdk': hasSdkConstraint,
+        'sdk': sdkConstraint,
+        'has_direct': hasSdkConstraint || directDeps.isNotEmpty,
         'direct': directDeps,
         'has_transitive': transitiveDeps.isNotEmpty,
         'transitive': transitiveDeps,
@@ -382,7 +386,8 @@ class TemplateService {
             isOutdated: extract?.isOutdated,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
-        'analysis_html': renderAnalysisTab(package.name, extract, analysis),
+        'analysis_html': renderAnalysisTab(package.name,
+            selectedVersion.pubspec.sdkConstraint, extract, analysis),
         'schema_org_pkgmeta_json':
             JSON.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
       },

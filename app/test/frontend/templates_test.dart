@@ -199,7 +199,7 @@ void main() {
 
     test('no content for analysis tab', () async {
       // no content
-      expect(templates.renderAnalysisTab('pkg_foo', null, null), isNull);
+      expect(templates.renderAnalysisTab('pkg_foo', null, null, null), isNull);
     });
 
     test('analysis tab: http', () async {
@@ -210,13 +210,15 @@ void main() {
           new AnalysisView(new AnalysisData.fromJson(JSON.decode(json)));
       final extract = new AnalysisExtract(
           health: view.health, maintenance: 0.9, popularity: 0.23);
-      final String html = templates.renderAnalysisTab('http', extract, view);
+      final String html = templates.renderAnalysisTab(
+          'http', '>=1.23.0-dev.0.0 <2.0.0', extract, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
     test('mock analysis tab', () async {
       final String html = templates.renderAnalysisTab(
           'pkg_foo',
+          '>=1.25.0-dev.9.0 <2.0.0',
           new AnalysisExtract(
             health: 0.90234,
             maintenance: 0.8932343,
@@ -262,6 +264,7 @@ void main() {
       final String html = templates.renderAnalysisTab(
           'pkg_foo',
           null,
+          null,
           new AnalysisView(new AnalysisData(
             packageName: 'foo',
             packageVersion: '1.0.0',
@@ -276,6 +279,7 @@ void main() {
     test('outdated analysis tab', () async {
       final String html = templates.renderAnalysisTab(
           'pkg_foo',
+          null,
           null,
           new AnalysisView(new AnalysisData(
             packageName: 'foo',

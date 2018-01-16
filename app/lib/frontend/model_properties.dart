@@ -83,6 +83,13 @@ class Pubspec {
     return _asString(_json['description']);
   }
 
+  String get sdkConstraint {
+    _load();
+    final environment = _json['environment'];
+    if (environment == null || environment is! Map) return null;
+    return _asString(environment['sdk']);
+  }
+
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
     _load();

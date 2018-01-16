@@ -114,6 +114,14 @@
     <th colspan="4" class="sub-header">Direct dependencies</th>
   </tr>
   {{/dependencies.has_direct}}
+  {{#dependencies.has_sdk}}
+  <tr>
+    <td>Dart SDK</td>
+    <td>{{dependencies.sdk}}</td>
+    <td></td>
+    <td></td>
+  </tr>
+  {{/dependencies.has_sdk}}
   {{#dependencies.direct}}
   <tr>
     <td><a href="/packages/{{package}}">{{package}}</a></td>
