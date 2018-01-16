@@ -133,3 +133,6 @@ SortDict getSortDict(String sort) {
     tooltip: 'Packages are sort by $sort.',
   );
 }
+
+String flutterSpecificPackagesHtml =
+    '<a href="/packages?q=dependency%3Aflutter">Flutter-specific packages...</a>';
