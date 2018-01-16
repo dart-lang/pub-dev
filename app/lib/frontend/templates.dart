@@ -681,13 +681,17 @@ class TemplateService {
         'href': href,
       });
     } else {
-      tags.addAll(platforms.map((platform) {
-        final platformDict = getPlatformDict(platform, nullIfMissing: true);
-        return {
-          'text': platformDict.name ?? platform,
-          'href': platformDict?.listingUrl,
-        };
-      }));
+      tags.addAll(
+        platforms
+            .where((platform) => platform != KnownPlatforms.server)
+            .map((platform) {
+          final platformDict = getPlatformDict(platform, nullIfMissing: true);
+          return {
+            'text': platformDict.name ?? platform,
+            'href': platformDict?.listingUrl,
+          };
+        }),
+      );
     }
     return _renderTemplate('pkg/tags', {
       'has_tags': tags.isNotEmpty,
