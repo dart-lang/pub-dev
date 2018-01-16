@@ -22,7 +22,7 @@ void main() {
 
     expect(
         flutterSetupContent,
-        contains("git clone -b $flutterVersion --single-branch "
+        contains("git clone -b v$flutterVersion --single-branch "
             "https://github.com/flutter/flutter.git \$FLUTTER_SDK"));
   });
 }
