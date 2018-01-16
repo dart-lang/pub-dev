@@ -748,7 +748,6 @@ class TemplateService {
       'tabs': [
         platformTabData('Flutter', KnownPlatforms.flutter),
         platformTabData('Web', KnownPlatforms.web),
-        platformTabData('Server', KnownPlatforms.server),
         platformTabData('All', null),
       ]
     };
