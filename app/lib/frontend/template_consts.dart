@@ -74,9 +74,8 @@ String _landingPageTitle(String platform) {
 
 final Map<String, String> _landingBlurbs = const {
   'default':
-      '<p class="text">Find and use packages to build <a href="/flutter">Flutter</a>, '
-      '<a href="/web">web</a> and <a href="/server">server</a> apps '
-      'with <a target="_blank" href="https://www.dartlang.org">Dart</a>.</p>',
+      '<p class="text">Find and use packages to build <a href="/flutter">Flutter</a> and '
+      '<a href="/web">web</a> apps with <a target="_blank" href="https://www.dartlang.org">Dart</a>.</p>',
   KnownPlatforms.flutter:
       '<p class="text"><a href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '
       'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
