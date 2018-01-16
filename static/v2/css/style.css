@@ -566,13 +566,11 @@ pre > code {
   margin-bottom: 1em;
 }
 
-.landing-page-title-block .tooltip-content {
-  text-align: left;
-}
-
 .listing-sort-header {
   float: right;
-  margin: 0 1em 0.5em 2em;
+  margin: 0 0.5em 0.5em 0.5em;
+  max-width: 30%;
+  text-align: right;
 }
 
 .home-banner{
@@ -715,10 +713,11 @@ pre > code {
 }
 
 
-.list-filters{
+.list-filters {
   display: -webkit-inline-box;
   display: -ms-inline-flexbox;
   display: inline-flex;
+  flex-flow: row wrap;
   margin: 16px 0;
   border: 1px solid #eee;
   border-radius: 3px;
@@ -1035,6 +1034,7 @@ pre > code {
   padding: 12px 12px;
   border: 1px solid #ddd;
   border-radius: 2px;
+  text-align: left;
 
   position: absolute;
   width: 300px;

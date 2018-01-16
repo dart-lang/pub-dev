@@ -108,6 +108,7 @@ class StaticUrls {
   Map get assets {
     return _assets ??= {
       'script_dart_js': _getCacheableStaticUrl('/v2/js/script.dart.js'),
+      'style_css': _getCacheableStaticUrl('/v2/css/style.css'),
     };
   }
 }
