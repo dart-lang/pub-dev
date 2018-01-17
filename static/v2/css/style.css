@@ -652,6 +652,10 @@ pre > code {
   margin-top: 10px;
 }
 
+.home-lists-container .more > a {
+  margin: 0 1em;
+}
+
 .home-lists-container .package-list {
   display: flex;
   flex-flow: row wrap;

@@ -548,9 +548,16 @@ class TemplateService {
     String platform,
   ) {
     final platformDict = getPlatformDict(platform);
+    final packagesUrl = platform == null ? '/packages' : '/$platform/packages';
+    final morePackages = 'More ${platformDict.name} packages...';
+    final links = <String>[
+      '<a href="$packagesUrl">${_htmlEscaper.convert(morePackages)}</a>'
+    ];
+    if (platform == KnownPlatforms.flutter) {
+      links.add(flutterSpecificPackagesHtml);
+    }
     final values = {
-      'packages_url': platform == null ? '/packages' : '/$platform/packages',
-      'more_packages': 'More ${platformDict.name} packages...',
+      'more_links_html': links.join(' '),
       'top_header': platformDict.pageTitle,
       'ranking_tooltip_html': getSortDict('top').tooltip,
       'top_html': topHtml,
