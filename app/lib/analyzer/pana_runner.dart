@@ -43,6 +43,12 @@ class PanaRunner implements TaskRunner {
       return false;
     }
 
+    try {
+      await _analysisBackend.deleteObsoleteAnalysis(task.package, task.version);
+    } catch (e) {
+      _logger.warning('Analysis GC failed: $task', e);
+    }
+
     final DateTime timestamp = new DateTime.now().toUtc();
     final Analysis analysis =
         new Analysis.init(task.package, task.version, timestamp);
@@ -110,13 +116,6 @@ class PanaRunner implements TaskRunner {
     }
 
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
-
-    try {
-      await _analysisBackend.deleteObsoleteAnalysis(task.package, task.version);
-    } catch (e) {
-      _logger.warning('Analysis GC failed: $task', e);
-    }
-
     return backendStatus.wasRace;
   }
 }

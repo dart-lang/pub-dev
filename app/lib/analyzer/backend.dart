@@ -275,14 +275,15 @@ class AnalysisBackend {
   /// - it is **not** the latest for the pana version, or
   /// - it is older than 6 months (except if it is the latest one).
   Future deleteObsoleteAnalysis(String package, String version) async {
+    final pvaKey = db.emptyKey
+        .append(PackageAnalysis, id: package)
+        .append(PackageVersionAnalysis, id: version);
+    final PackageVersionAnalysis pva = (await db.lookup([pvaKey])).single;
+    if (pva == null) return;
+
     final DateTime threshold =
         new DateTime.now().toUtc().subtract(obsoleteThreshold);
-    final Query scanQuery = db.query(
-      Analysis,
-      ancestorKey: db.emptyKey
-          .append(PackageAnalysis, id: package)
-          .append(PackageVersionAnalysis, id: version),
-    );
+    final Query scanQuery = db.query(Analysis, ancestorKey: pvaKey);
     final List<Key> obsoleteKeys = <Key>[];
 
     final List<Analysis> existingAnalysis = await scanQuery.run().toList();
@@ -290,6 +291,10 @@ class AnalysisBackend {
 
     final Map<String, Analysis> panaVersion2LatestAnalysis = {};
     for (Analysis analysis in existingAnalysis) {
+      if (analysis.analysis == pva.latestAnalysis) {
+        // Don't remove the current Analysis instance.
+        continue;
+      }
       final bool isTooOld = analysis.timestamp.isBefore(threshold);
       if (isTooOld) {
         obsoleteKeys.add(analysis.key);
@@ -302,9 +307,12 @@ class AnalysisBackend {
       }
     }
 
-    // sanity check that we keep the latest, even if it is too old
-    if (obsoleteKeys.length == existingAnalysis.length) {
-      obsoleteKeys.removeLast();
+    // sanity check that we don't delete everything
+    if (obsoleteKeys.isNotEmpty &&
+        obsoleteKeys.length == existingAnalysis.length) {
+      _logger.warning(
+          'Inconsistency: all Analysis entries are marked as obsolete for $package $version.');
+      return;
     }
 
     if (obsoleteKeys.isNotEmpty) {
