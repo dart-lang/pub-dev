@@ -89,11 +89,14 @@ class AnalyzerClient {
       }
     }
     final view = await getAnalysisView(key);
+    if (!view.hasPanaSummary) {
+      return null;
+    }
     AnalysisExtract extract;
     if (view.analysisStatus == AnalysisStatus.outdated) {
       extract = new AnalysisExtract(
           isOutdated: true, timestamp: new DateTime.now().toUtc());
-    } else if (view.hasPanaSummary) {
+    } else {
       extract = new AnalysisExtract(
         isOutdated: false,
         popularity: popularityStorage.lookup(key.package) ?? 0.0,
