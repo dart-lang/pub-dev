@@ -57,13 +57,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.15.2+13"
-  bazel_worker:
-    dependency: transitive
-    description:
-      name: bazel_worker
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.8"
   boolean_selector:
     dependency: transitive
     description:
@@ -84,28 +77,21 @@ packages:
       name: build_barback
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0+2"
-  build_compilers:
-    dependency: transitive
-    description:
-      name: build_compilers
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
+    version: "0.5.0+1"
   build_config:
     dependency: transitive
     description:
       name: build_config
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.1"
+    version: "0.2.1"
   build_runner:
     dependency: "direct dev"
     description:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.1"
+    version: "0.7.5+1"
   built_collection:
     dependency: transitive
     description:
@@ -232,6 +218,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.39.2"
+  graphs:
+    dependency: transitive
+    description:
+      name: graphs
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   html:
     dependency: "direct main"
     description:
@@ -315,7 +308,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0"
+    version: "0.3.1"
   kernel:
     dependency: transitive
     description:
@@ -456,13 +449,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.26.2"
-  scratch_space:
-    dependency: transitive
-    description:
-      name: scratch_space
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.1+2"
   shelf:
     dependency: "direct main"
     description:
@@ -604,4 +590,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=2.0.0-dev <=2.0.0-dev.15.0"
+  dart: ">=2.0.0-dev <=2.0.0-dev.17.0"

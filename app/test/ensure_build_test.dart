@@ -30,7 +30,7 @@ void main() {
     expect(_changedGeneratedFiles(), isEmpty);
 
     // 2 - run build - should be no output, since nothing should change
-    final result = _runProc('dart', ['--checked', 'tool/build.dart']);
+    final result = _runProc('pub', ['run', 'build_runner', 'build']);
     expect(result,
         contains(new RegExp(r'Build: Succeeded after \S+ with \d+ outputs')));
 
