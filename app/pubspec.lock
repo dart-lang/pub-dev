@@ -399,7 +399,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.1"
+    version: "0.10.0"
   path:
     dependency: "direct main"
     description:
@@ -590,4 +590,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=2.0.0-dev <=2.0.0-dev.17.0"
+  dart: ">=2.0.0-dev <=2.0.0-dev.15.0"

@@ -22,8 +22,8 @@ typedef double _SpecificityFn(List<String> platforms);
 
 final _platformFns = const <String, _SpecificityFn>{
   KnownPlatforms.flutter: _heavySingle,
-  KnownPlatforms.server: _nonGeneric,
   KnownPlatforms.web: _lightSingle,
+  KnownPlatforms.other: _nonGeneric,
 };
 
 double _defaultScore(List<String> platforms) => 1.0;

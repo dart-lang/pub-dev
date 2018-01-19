@@ -1,14 +1,14 @@
 {
   "packageName": "http",
   "packageVersion": "0.11.3+12",
-  "analysis": 5643013481037824,
-  "timestamp": "2018-01-10T18:58:13.417466Z",
-  "panaVersion": "0.9.0+1",
+  "analysis": 5752937129181184,
+  "timestamp": "2018-01-19T13:59:37.267984Z",
+  "panaVersion": "0.10.0",
   "flutterVersion": "0.0.20",
   "analysisStatus": "success",
   "maintenanceScore": 0.9965,
   "analysisContent": {
-    "panaVersion": "0.9.0+1",
+    "panaVersion": "0.10.0",
     "sdkVersion": "2.0.0-dev.15.0",
     "packageName": "http",
     "packageVersion": "0.11.3+12",
@@ -33,7 +33,12 @@
       }
     },
     "platform": {
-      "worksEverywhere": true,
+      "components": [],
+      "uses": {
+        "flutter": "allowed",
+        "web": "allowed",
+        "other": "allowed"
+      },
       "reason": "No platform restriction found in primary library `package:http/http.dart`."
     },
     "licenses": [
@@ -58,17 +63,12 @@
       "suggestions": [
         {
           "level": "hint",
-          "title": "Maintain an example.",
-          "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
+          "title": "The description is too short.",
+          "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
           "penalty": {
-            "amount": 5,
+            "amount": 20,
             "fraction": 0
           }
-        },
-        {
-          "level": "hint",
-          "title": "Use `analysis_options.yaml`.",
-          "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
         },
         {
           "level": "hint",
@@ -81,12 +81,17 @@
         },
         {
           "level": "hint",
-          "title": "The description is too short.",
-          "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
+          "title": "Maintain an example.",
+          "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
           "penalty": {
-            "amount": 20,
+            "amount": 5,
             "fraction": 0
           }
+        },
+        {
+          "level": "hint",
+          "title": "Use `analysis_options.yaml`.",
+          "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
         }
       ]
     },
@@ -182,10 +187,14 @@
           "package:stack_trace/stack_trace.dart"
         ],
         "platform": {
-          "worksEverywhere": false,
-          "restrictedTo": [
-            "web"
-          ]
+          "components": [
+            "html"
+          ],
+          "uses": {
+            "flutter": "forbidden",
+            "web": "used",
+            "other": "forbidden"
+          }
         },
         "fitness": {
           "magnitude": 83.0,
@@ -216,7 +225,12 @@
           "package:http/src/streamed_response.dart"
         ],
         "platform": {
-          "worksEverywhere": true
+          "components": [],
+          "uses": {
+            "flutter": "allowed",
+            "web": "allowed",
+            "other": "allowed"
+          }
         },
         "fitness": {
           "magnitude": 139.0,
@@ -382,11 +396,14 @@
           "package:http/src/mock_client.dart"
         ],
         "platform": {
-          "worksEverywhere": false,
-          "restrictedTo": [
-            "flutter",
-            "server"
-          ]
+          "components": [
+            "io"
+          ],
+          "uses": {
+            "flutter": "allowed",
+            "web": "forbidden",
+            "other": "used"
+          }
         },
         "fitness": {
           "magnitude": 19.0,

@@ -45,8 +45,8 @@ PlatformDict getPlatformDict(String platform, {bool nullIfMissing: false}) {
 final _dictionaries = <String, PlatformDict>{
   'default': new PlatformDict.forPlatform(null),
   KnownPlatforms.flutter: new PlatformDict.forPlatform(KnownPlatforms.flutter),
-  KnownPlatforms.server: new PlatformDict.forPlatform(KnownPlatforms.server),
   KnownPlatforms.web: new PlatformDict.forPlatform(KnownPlatforms.web),
+  KnownPlatforms.other: new PlatformDict(name: KnownPlatforms.other),
 };
 
 String _formattedPlatformName(String platform) {
@@ -64,8 +64,6 @@ String _formattedPlatformName(String platform) {
 String _landingPageTitle(String platform) {
   if (platform == KnownPlatforms.flutter) {
     return 'Flutter Packages';
-  } else if (platform == KnownPlatforms.server) {
-    return 'Dart Packages for Server';
   } else if (platform == KnownPlatforms.web) {
     return 'Dart Packages for Web';
   }
@@ -79,9 +77,6 @@ final Map<String, String> _landingBlurbs = const {
   KnownPlatforms.flutter:
       '<p class="text"><a href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '
       'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
-  KnownPlatforms.server:
-      '<p class="text">Use Dart to create command line and server applications.<br/> Start with the '
-      '<a href="https://www.dartlang.org/tutorials/dart-vm/get-started">Dart VM tutorial<sup><small>↗</small></sup></a>.</p>',
   KnownPlatforms.web:
       '<p class="text">Use Dart to create web applications that run on any modern browser.<br/> Start '
       'with <a href="https://webdev.dartlang.org/angular">AngularDart<sup><small>↗</small></sup></a>.</p>'

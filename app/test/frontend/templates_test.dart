@@ -68,19 +68,6 @@ void main() {
       expectGoldenFile(html, 'flutter_landing_page.html');
     });
 
-    test('landing page server', () {
-      final popularHtml = templates.renderMiniList([
-        new PackageView.fromModel(
-          package: testPackage,
-          version: testPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['server']),
-        ),
-      ]);
-      final String html =
-          templates.renderIndexPage(popularHtml, KnownPlatforms.server);
-      expectGoldenFile(html, 'server_landing_page.html');
-    });
-
     test('landing page web', () {
       final popularHtml = templates.renderMiniList([
         new PackageView.fromModel(
@@ -407,7 +394,7 @@ void main() {
       final String html = templates.renderPlatformTabs(
           searchQuery: new SearchQuery.parse(
         query: 'foo',
-        platform: 'server',
+        platform: 'web',
       ));
       expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
@@ -500,10 +487,10 @@ void main() {
 
     test('PackageLinks with platform', () {
       final query =
-          new SearchQuery.parse(query: 'web framework', platform: 'server');
+          new SearchQuery.parse(query: 'some framework', platform: 'flutter');
       final PackageLinks links = new PackageLinks(0, 100, searchQuery: query);
-      expect(links.formatHref(1), '/server/packages?q=web+framework&page=1');
-      expect(links.formatHref(2), '/server/packages?q=web+framework&page=2');
+      expect(links.formatHref(1), '/flutter/packages?q=some+framework&page=1');
+      expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
     });
   });
 }
