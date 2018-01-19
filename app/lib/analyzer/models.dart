@@ -58,6 +58,8 @@ class PackageVersionAnalysis extends db.ExpandoModel {
 
   int get latestAnalysis => latestAnalysisKey.id;
 
+  /// The timestamp of the analysis (either the linked one, or an identical,
+  /// but not stored one).
   @db.DateTimeProperty()
   DateTime analysisTimestamp;
 
