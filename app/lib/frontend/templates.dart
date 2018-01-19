@@ -681,13 +681,17 @@ class TemplateService {
         'href': href,
       });
     } else {
-      tags.addAll(platforms.map((platform) {
-        final platformDict = getPlatformDict(platform, nullIfMissing: true);
-        return {
-          'text': platformDict.name ?? platform,
-          'href': platformDict?.listingUrl,
-        };
-      }));
+      tags.addAll(
+        platforms
+            .where((platform) => platform != KnownPlatforms.server)
+            .map((platform) {
+          final platformDict = getPlatformDict(platform, nullIfMissing: true);
+          return {
+            'text': platformDict.name ?? platform,
+            'href': platformDict?.listingUrl,
+          };
+        }),
+      );
     }
     return _renderTemplate('pkg/tags', {
       'has_tags': tags.isNotEmpty,
@@ -744,7 +748,6 @@ class TemplateService {
       'tabs': [
         platformTabData('Flutter', KnownPlatforms.flutter),
         platformTabData('Web', KnownPlatforms.web),
-        platformTabData('Server', KnownPlatforms.server),
         platformTabData('All', null),
       ]
     };
