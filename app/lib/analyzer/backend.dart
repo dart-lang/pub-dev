@@ -121,6 +121,7 @@ class AnalysisBackend {
   ///
   /// Returns the backend status of the [Analysis].
   Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) {
+    final pvText = '${analysis.packageName} ${analysis.packageVersion}';
     // update package and version too
     return db.withTransaction((Transaction tx) async {
       final incompleteRawKey = tx.db.modelDB.toDatastoreKey(analysis.key);
@@ -155,8 +156,14 @@ class AnalysisBackend {
       final Duration ageDiff = version == null
           ? null
           : analysis.timestamp.difference(version.analysisTimestamp);
+      final bool preventIdentical =
+          hasIdenticalHash && ageDiff < identicalThreshold;
+
       if (version == null) {
         version = new PackageVersionAnalysis.fromAnalysis(analysis);
+        inserts.add(version);
+      } else if (preventIdentical) {
+        version.analysisTimestamp = analysis.timestamp;
         inserts.add(version);
       } else if (version.updateWithLatest(analysis)) {
         inserts.add(version);
@@ -166,14 +173,19 @@ class AnalysisBackend {
       final isLatestStable = package.latestVersion == version.packageVersion;
       final bool preventRegression =
           isRegression && ageDiff != null && ageDiff < regressionThreshold;
-      final bool preventIdentical =
-          hasIdenticalHash && ageDiff < identicalThreshold;
 
-      if (preventRegression || preventIdentical) {
+      if (preventRegression) {
+        _logger.info('Analysis regression detected, not storing: $pvText');
         await tx.rollback();
+      } else if (preventIdentical) {
+        _logger
+            .info('Identical analysis detected, updating timestamp: $pvText');
+        // sanity check that we haven't updated the version's latest analysis
+        assert(version.latestAnalysis != analysis.analysis);
+        tx.queueMutations(inserts: inserts);
+        await tx.commit();
       } else {
-        _logger.info(
-            'Storing analysis for: ${analysis.packageName} ${analysis.packageVersion}');
+        _logger.info('Storing analysis for: $pvText');
         inserts.add(analysis);
         tx.queueMutations(inserts: inserts);
         await tx.commit();
@@ -181,7 +193,6 @@ class AnalysisBackend {
         analyzerMemcache.invalidateContent(analysis.packageName,
             analysis.packageVersion, analysis.panaVersion);
       }
-
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
     });
   }
