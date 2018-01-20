@@ -687,6 +687,7 @@ class TemplateService {
           return {
             'text': platformDict.name ?? platform,
             'href': platformDict?.listingUrl,
+            'title': platformDict?.tagTitle,
           };
         }),
       );

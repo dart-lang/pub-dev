@@ -11,6 +11,7 @@ class PlatformDict {
   final String landingBlurb;
   final String landingUrl;
   final String listingUrl;
+  final String tagTitle;
 
   PlatformDict({
     this.name,
@@ -19,16 +20,18 @@ class PlatformDict {
     this.landingBlurb,
     this.landingUrl,
     this.listingUrl,
+    this.tagTitle,
   })
       : this.pageTitle = pageTitle ?? 'Top $name packages';
 
-  factory PlatformDict.forPlatform(String platform) {
+  factory PlatformDict.forPlatform(String platform, {String tagTitle}) {
     return new PlatformDict(
       name: _formattedPlatformName(platform),
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
       listingUrl: platform == null ? '/packages' : '/$platform/packages',
+      tagTitle: tagTitle,
     );
   }
 }
@@ -44,9 +47,18 @@ PlatformDict getPlatformDict(String platform, {bool nullIfMissing: false}) {
 
 final _dictionaries = <String, PlatformDict>{
   'default': new PlatformDict.forPlatform(null),
-  KnownPlatforms.flutter: new PlatformDict.forPlatform(KnownPlatforms.flutter),
-  KnownPlatforms.web: new PlatformDict.forPlatform(KnownPlatforms.web),
-  KnownPlatforms.other: new PlatformDict(name: KnownPlatforms.other),
+  KnownPlatforms.flutter: new PlatformDict.forPlatform(
+    KnownPlatforms.flutter,
+    tagTitle: 'Compatible with the Flutter platform.',
+  ),
+  KnownPlatforms.web: new PlatformDict.forPlatform(
+    KnownPlatforms.web,
+    tagTitle: 'Compatible with the web platform.',
+  ),
+  KnownPlatforms.other: new PlatformDict(
+    name: KnownPlatforms.other,
+    tagTitle: 'Compatible with other platforms (terminal, server, etc.).',
+  ),
 };
 
 String _formattedPlatformName(String platform) {
