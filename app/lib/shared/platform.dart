@@ -6,24 +6,24 @@ import 'package:pana/pana.dart';
 
 abstract class KnownPlatforms {
   static const String flutter = PlatformNames.flutter;
-  static const String server = PlatformNames.server;
   static const String web = PlatformNames.web;
-  static const List<String> all = const [flutter, server, web];
+  static const String other = PlatformNames.other;
+  static const List<String> all = const [flutter, web, other];
 
   static bool isKnownPlatform(String platform) => all.contains(platform);
 }
 
 List<String> indexDartPlatform(DartPlatform platform) {
-  if (platform == null) {
+  if (platform == null || platform.uses == null || platform.hasConflict) {
     return null;
   }
   if (platform.worksEverywhere) {
     return KnownPlatforms.all;
   }
-  if (platform.restrictedTo == null || platform.restrictedTo.isEmpty) {
-    return [];
-  }
-  return new List.from(platform.restrictedTo);
+  return KnownPlatforms.all.where((p) {
+    final PlatformUse use = platform.uses[p];
+    return use == PlatformUse.allowed || use == PlatformUse.used;
+  }).toList();
 }
 
 class PlatformPredicate {

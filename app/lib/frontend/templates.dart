@@ -682,13 +682,12 @@ class TemplateService {
       });
     } else {
       tags.addAll(
-        platforms
-            .where((platform) => platform != KnownPlatforms.server)
-            .map((platform) {
+        platforms.map((platform) {
           final platformDict = getPlatformDict(platform, nullIfMissing: true);
           return {
             'text': platformDict.name ?? platform,
             'href': platformDict?.listingUrl,
+            'title': platformDict?.tagTitle,
           };
         }),
       );

@@ -15,36 +15,36 @@ void main() {
   group('specificity score', () {
     final PlatformPredicate empty = new PlatformPredicate.parse('');
     final PlatformPredicate flutter = new PlatformPredicate.parse('flutter');
-    final PlatformPredicate server = new PlatformPredicate.parse('server');
     final PlatformPredicate web = new PlatformPredicate.parse('web');
+    final PlatformPredicate other = new PlatformPredicate.parse('other');
 
     test('empty or null values', () {
       expect(scorePlatformSpecificity(null, empty), 1.0);
       expect(scorePlatformSpecificity([], empty), 1.0);
       expect(scorePlatformSpecificity([], null), 1.0);
       expect(scorePlatformSpecificity([], flutter), 0.8);
-      expect(scorePlatformSpecificity([], server), 0.9);
+      expect(scorePlatformSpecificity([], other), 0.9);
       expect(scorePlatformSpecificity([], web), 0.9);
     });
 
     test('single', () {
       expect(scorePlatformSpecificity(['flutter'], null), 1.0);
       expect(scorePlatformSpecificity(['flutter'], flutter), 1.0);
-      expect(scorePlatformSpecificity(['server'], server), 0.95);
+      expect(scorePlatformSpecificity(['other'], other), 0.95);
       expect(scorePlatformSpecificity(['web'], web), 1.0);
     });
 
     test('two platforms', () {
-      expect(scorePlatformSpecificity(['flutter', 'server'], null), 1.0);
-      expect(scorePlatformSpecificity(['flutter', 'server'], flutter), 0.9);
-      expect(scorePlatformSpecificity(['flutter', 'server'], server), 1.0);
-      expect(scorePlatformSpecificity(['flutter', 'server'], web), 0.95);
+      expect(scorePlatformSpecificity(['flutter', 'other'], null), 1.0);
+      expect(scorePlatformSpecificity(['flutter', 'other'], flutter), 0.9);
+      expect(scorePlatformSpecificity(['flutter', 'other'], other), 1.0);
+      expect(scorePlatformSpecificity(['flutter', 'other'], web), 0.95);
     });
 
     test('all platforms', () {
       expect(scorePlatformSpecificity(KnownPlatforms.all, null), 1.0);
       expect(scorePlatformSpecificity(KnownPlatforms.all, flutter), 0.8);
-      expect(scorePlatformSpecificity(KnownPlatforms.all, server), 0.95);
+      expect(scorePlatformSpecificity(KnownPlatforms.all, other), 0.95);
       expect(scorePlatformSpecificity(KnownPlatforms.all, web), 0.9);
     });
   });
@@ -63,7 +63,7 @@ void main() {
       ));
       await index.addPackage(new PackageDocument(
         package: 'json_2',
-        platforms: ['flutter', 'server'],
+        platforms: ['flutter', 'other'],
       ));
       await index.addPackage(new PackageDocument(
         package: 'json_3',
