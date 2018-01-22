@@ -12,7 +12,7 @@ Dart support for AppEngine).
 ### Compile script.dart to script.dart.js
 
 ```
-dart2js --dump-info --minify --trust-primitives --trust-type-annotations static/v2/js/script.dart -o static/v2/js/script.dart.js
+dart2js --dump-info --minify --trust-primitives --trust-type-annotations static/js/script.dart -o static/js/script.dart.js
 ```
 
 ### Running the entire server locally
