@@ -685,7 +685,7 @@ class TemplateService {
         platforms.map((platform) {
           final platformDict = getPlatformDict(platform, nullIfMissing: true);
           return {
-            'text': platformDict.name ?? platform,
+            'text': platformDict?.name ?? platform,
             'href': platformDict?.listingUrl,
             'title': platformDict?.tagTitle,
           };
