@@ -1,3 +1,6 @@
+{{! Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
 <h2>Analysis</h2>
 
 <div class="analysis-disclaimer">
@@ -122,40 +125,19 @@
     <td></td>
   </tr>
   {{/dependencies.has_sdk}}
-  {{#dependencies.direct}}
-  <tr>
-    <td><a href="/packages/{{package}}">{{package}}</a></td>
-    <td>{{constraint}}</td>
-    <td>{{resolved}}</td>
-    <td>{{available}}</td>
-  </tr>
-  {{/dependencies.direct}}
+{{#dependencies.direct}}{{& row_html}}{{/dependencies.direct}}
   {{#dependencies.has_transitive}}
   <tr>
     <th colspan="4" class="sub-header">Transitive dependencies</th>
   </tr>
   {{/dependencies.has_transitive}}
-  {{#dependencies.transitive}}
-    <tr>
-      <td><a href="/packages/{{package}}">{{package}}</a></td>
-      <td>{{constraint}}</td>
-      <td>{{resolved}}</td>
-      <td>{{available}}</td>
-    </tr>
-  {{/dependencies.transitive}}
+{{#dependencies.transitive}}{{& row_html}}{{/dependencies.transitive}}
   {{#dependencies.has_dev}}
   <tr>
     <th colspan="4" class="sub-header">Dev dependencies</th>
   </tr>
   {{/dependencies.has_dev}}
-  {{#dependencies.dev}}
-    <tr>
-      <td><a href="/packages/{{package}}">{{package}}</a></td>
-      <td>{{constraint}}</td>
-      <td>{{resolved}}</td>
-      <td>{{available}}</td>
-    </tr>
-  {{/dependencies.dev}}
+{{#dependencies.dev}}{{& row_html}}{{/dependencies.dev}}
 </table>
 </div>
 {{/has_dependency}}

@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
+import 'package:pana/pana.dart' show ConstraintTypes;
 
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
@@ -170,6 +171,20 @@ class TemplateService {
     );
   }
 
+  String _renderAnalysisDepRow(PkgDependency pd) {
+    final isHosted = pd.constraintType != ConstraintTypes.sdk &&
+        pd.constraintType != ConstraintTypes.git &&
+        pd.constraintType != ConstraintTypes.path &&
+        pd.constraintType != ConstraintTypes.unknown;
+    return _renderTemplate('pkg/analysis_dep_row', {
+      'is_hosted': isHosted,
+      'package': pd.package,
+      'constraint': pd.constraint?.toString(),
+      'resolved': pd.resolved?.toString(),
+      'available': pd.available?.toString(),
+    });
+  }
+
   /// Renders the `views/pkg/analysis_tab.mustache` template.
   String renderAnalysisTab(String package, String sdkConstraint,
       AnalysisExtract extract, AnalysisView analysis) {
@@ -200,14 +215,7 @@ class TemplateService {
 
     List<Map> prepareDependencies(List<PkgDependency> list) {
       if (list == null || list.isEmpty) return const [];
-      return list
-          .map((pd) => {
-                'package': pd.package,
-                'constraint': pd.constraint?.toString(),
-                'resolved': pd.resolved?.toString(),
-                'available': pd.available?.toString(),
-              })
-          .toList();
+      return list.map((pd) => {'row_html': _renderAnalysisDepRow(pd)}).toList();
     }
 
     final hasSdkConstraint = sdkConstraint != null && sdkConstraint.isNotEmpty;
