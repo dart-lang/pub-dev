@@ -96,12 +96,12 @@ import 'package:{{package}}/{{library}}';
 
     {{#package.homepage}}
       <h3 class="title">Homepage</h3>
-      <a class="link" href="{{package.homepage}}">{{package.nice_homepage}}</a>
+      <a class="link" href="{{& package.homepage}}">{{package.nice_homepage}}</a>
     {{/package.homepage}}
 
     {{#package.documentation}}
       <h3 class="title">Documentation</h3>
-      <a class="link" href="{{package.documentation}}">{{package.nice_documentation}}</a>
+      <a class="link" href="{{& package.documentation}}">{{package.nice_documentation}}</a>
     {{/package.documentation}}
 
     <h3 class="title">{{package.uploaders_title}}</h3>

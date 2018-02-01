@@ -6,15 +6,15 @@
   <td><strong><a href="/packages/{{package}}/versions/{{version}}">{{version}}</a></strong></td>
   <td>{{short_created}}</td>
   <td class="documentation">
-    <a href="{{documentation}}"
+    <a href="{{& documentation_url}}"
        title="Go to the documentation of {{package}} {{version}}">
-      <img src="{{icons.documentation}}" alt="Go to the documentation of {{package}} {{version}}" />
+      <img src="{{& icons.documentation}}" alt="Go to the documentation of {{package}} {{version}}" />
     </a>
   </td>
   <td class="archive">
-    <a href="{{download_url}}"
+    <a href="{{& download_url}}"
        title="Download {{package}} {{version}} archive">
-      <img src="{{icons.download}}" alt="Download {{package}} {{version}} archive" />
+      <img src="{{& icons.download}}" alt="Download {{package}} {{version}} archive" />
     </a>
   </td>
 </tr>

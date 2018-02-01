@@ -99,8 +99,8 @@ class TemplateService {
       'package': version.package,
       'version': version.id,
       'short_created': version.shortCreated,
-      'documentation': version.documentation,
-      'download_url': downloadUrl,
+      'documentation_url': _attr(version.documentation),
+      'download_url': _attr(downloadUrl),
       'icons': staticUrls.versionsTableIcons,
     };
     return _renderTemplate('pkg/versions/version_row', versionData);
@@ -379,9 +379,9 @@ class TemplateService {
         'authors_title': 'Author',
         'authors_html':
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
-        'homepage': selectedVersion.homepage,
+        'homepage': _attr(selectedVersion.homepage),
         'nice_homepage': selectedVersion.homepageNice,
-        'documentation': selectedVersion.documentation,
+        'documentation': _attr(selectedVersion.documentation),
         'nice_documentation': selectedVersion.documentationNice,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
@@ -980,3 +980,8 @@ String _renderDartCode(String text) =>
 
 String _renderPlainText(String text) =>
     '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';
+
+String _attr(String value) {
+  if (value == null) return null;
+  return _attrEscaper.convert(value);
+}
