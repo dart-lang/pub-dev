@@ -23,6 +23,8 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return handler(request);
+  } else if (path.startsWith('/documentation/')) {
+    return documentationHandler(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
   } else {
@@ -64,4 +66,51 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   }
 
   return notFoundHandler(request);
+}
+
+/// Handles requests for:
+///   - /documentation/<package>/<version>
+Future<shelf.Response> documentationHandler(shelf.Request request) async {
+  final docFilePath = parseRequestUri(request.requestedUri);
+  if (docFilePath == null) {
+    return notFoundHandler(request);
+  }
+  final String requestMethod = request.method?.toUpperCase();
+  if (requestMethod == 'GET') {
+    // placeholder response until proper implementation is done
+    return jsonResponse({
+      'package': docFilePath.package,
+      'version': docFilePath.version,
+      'path': docFilePath.path,
+    });
+  }
+  return notFoundHandler(request);
+}
+
+class DocFilePath {
+  final String package;
+  final String version;
+  final String path;
+
+  DocFilePath(this.package, this.version, this.path);
+}
+
+DocFilePath parseRequestUri(Uri uri) {
+  final pathSegments = uri.pathSegments;
+  if (pathSegments.length < 3) {
+    return null;
+  }
+  if (pathSegments[0] != 'documentation') {
+    return null;
+  }
+  final String package = pathSegments[1];
+  final String version = pathSegments[2];
+  if (package.isEmpty || version.isEmpty) {
+    return null;
+  }
+  String path = '/${pathSegments.skip(3).join('/')}';
+  if (path.endsWith('/')) {
+    path = '${path}index.html';
+  }
+  return new DocFilePath(package, version, path);
 }
