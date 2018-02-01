@@ -69,7 +69,6 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
 }
 
 /// Handles requests for:
-///   - /documentation/<package>
 ///   - /documentation/<package>/<version>
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final docFilePath = parseRequestUri(request.requestedUri);
