@@ -10,15 +10,14 @@ import 'package:http/http.dart' as http;
 import 'configuration.dart';
 import 'notification.dart' show notifyService;
 
-/// Sets the analyzer client.
+/// Sets the dartdoc client.
 void registerDartdocClient(DartdocClient client) =>
     ss.register(#_dartdocClient, client);
 
-/// The active analyzer client.
+/// The active dartdoc client.
 DartdocClient get dartdocClient => ss.lookup(#_dartdocClient);
 
-/// Client methods that access the analyzer service and the internals of the
-/// analysis data. This keeps the interface narrow over the raw analysis data.
+/// Client methods that access the dartdoc service.
 class DartdocClient {
   final http.Client _client = new http.Client();
   String get _dartdocServiceHttpHostPort =>
