@@ -372,8 +372,8 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'tags_html': _renderTags(analysis?.platforms,
-            isOutdated: extract?.isOutdated, wrapperDiv: true),
+        'tags_html':
+            _renderTags(analysis?.platforms, isOutdated: extract?.isOutdated),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -663,7 +663,7 @@ class TemplateService {
 
   /// Renders the tags using the pkg/tags template.
   String _renderTags(List<String> platforms,
-      {bool isOutdated, String package, bool wrapperDiv: false}) {
+      {bool isOutdated, String package}) {
     final List<Map> tags = <Map>[];
     if (platforms == null) {
       if (isOutdated ?? false) {
@@ -700,11 +700,7 @@ class TemplateService {
         }),
       );
     }
-    return _renderTemplate('pkg/tags', {
-      'has_tags': tags.isNotEmpty,
-      'wrapper_div': wrapperDiv,
-      'tags': tags,
-    });
+    return _renderTemplate('pkg/tags', {'tags': tags});
   }
 
   /// Renders [template] with given [values].
