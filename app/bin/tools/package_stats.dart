@@ -22,15 +22,22 @@ Future main(List<String> args) async {
     ..addOption('output', help: 'The report output file (or stdout otherwise)');
   final ArgResults argv = parser.parse(args);
 
-  int count = 0;
+  int totalCount = 0;
   int flutterCount = 0;
+
   final List<String> flutterPlugins = [];
   final List<String> flutterSdks = [];
+
+  Map<String, int> homepageDomains = {};
+  void addHomepage(String key) {
+    homepageDomains[key] = homepageDomains[key] ?? 0 + 1;
+  }
+
   await withProdServices(() async {
     await for (Package p in dbService.query(Package).run()) {
-      count++;
-      if (count % 25 == 0) {
-        print('Reading package #$count: ${p.name}');
+      totalCount++;
+      if (totalCount % 25 == 0) {
+        print('Reading package #$totalCount: ${p.name}');
       }
 
       final List<PackageVersion> versions =
@@ -49,22 +56,39 @@ Future main(List<String> args) async {
       if (pubspec.hasFlutterPlugin || pubspec.dependsOnFlutterSdk) {
         flutterCount++;
       }
+
+      if (pubspec.homepage == null) {
+        addHomepage('empty');
+      } else {
+        try {
+          final uri = Uri.parse(pubspec.homepage);
+          if (uri.scheme != 'http' && uri.scheme != 'https') {
+            addHomepage('not_http');
+          } else {
+            addHomepage(uri.host);
+          }
+        } catch (_) {
+          addHomepage('parse_error');
+        }
+      }
     }
   });
+  homepageDomains = _sortDomains(homepageDomains);
 
   final Map report = {
     'counters': {
-      'total': count,
+      'total': totalCount,
       'flutter': {
         'total': flutterCount,
         'plugins': flutterPlugins.length,
         'sdk': flutterSdks.length,
-      }
+      },
     },
     'flutter': {
       'plugins': flutterPlugins,
       'sdk': flutterSdks,
-    }
+    },
+    'homepage': homepageDomains,
   };
   final String json = new JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
@@ -75,4 +99,14 @@ Future main(List<String> args) async {
   } else {
     print(json);
   }
+}
+
+Map<String, int> _sortDomains(Map<String, int> counts) {
+  final List<String> domains = counts.keys.toList();
+  domains.sort((a, b) => -counts[a].compareTo(counts[b]));
+  final result = {};
+  for (String domain in domains) {
+    result[domain] = counts[domain];
+  }
+  return result;
 }
