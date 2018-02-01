@@ -18,6 +18,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
@@ -97,6 +98,10 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
 
+  final dartdocClient = new DartdocClient();
+  registerDartdocClient(dartdocClient);
+  registerScopeExitCallback(dartdocClient.close);
+
   final SearchClient searchClient = new SearchClient();
   registerSearchClient(searchClient);
   registerScopeExitCallback(searchClient.close);
@@ -146,6 +151,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     analyzerClient.triggerAnalysis(pv.package, pv.version, dependentPackages);
 
     // TODO: enable notification of dartdoc service
+    // dartdocClient.triggerDartdoc(pv.package, pv.version, dependentPackages);
   }
 
   final cache = new AppEnginePackageMemcache(memcacheService);
