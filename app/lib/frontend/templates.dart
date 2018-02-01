@@ -622,7 +622,7 @@ class TemplateService {
     final platformDict = getPlatformDict(platform);
     final isRoot = type == PageType.landing && platform == null;
     final values = {
-      'static_assets_dir': staticUrls.newDesignAssetsDir,
+      'static_assets_dir': staticUrls.staticPath,
       'static_assets': staticUrls.assets,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
       'canonicalUrl': canonicalUrl,
@@ -941,8 +941,7 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     'dateCreated': p.created.toIso8601String(),
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
-    'image':
-        '$siteRoot${staticUrls.newDesignAssetsDir}/img/dart-logo-400x400.png'
+    'image': '$siteRoot${staticUrls.staticPath}/img/dart-logo-400x400.png'
   };
   final licenses = analysis?.licenses;
   final firstUrl =

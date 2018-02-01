@@ -84,7 +84,6 @@ class StaticUrls {
   final String staticPath;
   final String smallDartFavicon;
   final String flutterLogo32x32;
-  final String newDesignAssetsDir;
   final String documentationIcon;
   final String downloadIcon;
   Map _versionsTableIcons;
@@ -93,10 +92,8 @@ class StaticUrls {
   StaticUrls(this.staticPath)
       : smallDartFavicon = '$staticPath/favicon.ico',
         flutterLogo32x32 = '$staticPath/img/flutter-logo-32x32.png',
-        newDesignAssetsDir = '$staticPath/v2',
-        documentationIcon =
-            '$staticPath/v2/img/ic_drive_document_black_24dp.svg',
-        downloadIcon = '$staticPath/v2/img/ic_get_app_black_24dp.svg';
+        documentationIcon = '$staticPath/img/ic_drive_document_black_24dp.svg',
+        downloadIcon = '$staticPath/img/ic_get_app_black_24dp.svg';
 
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {
@@ -107,8 +104,8 @@ class StaticUrls {
 
   Map get assets {
     return _assets ??= {
-      'script_dart_js': _getCacheableStaticUrl('/v2/js/script.dart.js'),
-      'style_css': _getCacheableStaticUrl('/v2/css/style.css'),
+      'script_dart_js': _getCacheableStaticUrl('/js/script.dart.js'),
+      'style_css': _getCacheableStaticUrl('/css/style.css'),
     };
   }
 }
