@@ -123,12 +123,10 @@ class TemplateService {
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.platforms,
-            package: view.name, isOutdated: view.isOutdated),
-        'score_box_html': _renderScoreBox(overallScore,
-            isOutdated: view.isOutdated,
-            isNewPackage: view.isNewPackage,
+        'tags_html': _renderTags(view.analysisStatus, view.platforms,
             package: view.name),
+        'score_box_html': _renderScoreBox(view.analysisStatus, overallScore,
+            isNewPackage: view.isNewPackage, package: view.name),
       });
     }
 
@@ -172,12 +170,8 @@ class TemplateService {
   }
 
   String _renderAnalysisDepRow(PkgDependency pd) {
-    final isHosted = pd.constraintType != ConstraintTypes.sdk &&
-        pd.constraintType != ConstraintTypes.git &&
-        pd.constraintType != ConstraintTypes.path &&
-        pd.constraintType != ConstraintTypes.unknown;
     return _renderTemplate('pkg/analysis_dep_row', {
-      'is_hosted': isHosted,
+      'is_hosted': pd.isHosted,
       'package': pd.package,
       'constraint': pd.constraint?.toString(),
       'resolved': pd.resolved?.toString(),
@@ -189,9 +183,10 @@ class TemplateService {
   String renderAnalysisTab(String package, String sdkConstraint,
       AnalysisExtract extract, AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
+    final analysisStatus = extract?.analysisStatus ?? analysis.analysisStatus;
 
     String statusText;
-    switch (analysis.analysisStatus) {
+    switch (analysisStatus) {
       case AnalysisStatus.aborted:
         statusText = 'aborted';
         break;
@@ -229,7 +224,7 @@ class TemplateService {
 
     final Map<String, dynamic> data = {
       'package': package,
-      'show_outdated': analysis.analysisStatus == AnalysisStatus.outdated,
+      'show_outdated': analysisStatus == AnalysisStatus.outdated,
       'date_completed': analysis.timestamp == null
           ? null
           : shortDateFormat.format(analysis.timestamp),
@@ -258,8 +253,7 @@ class TemplateService {
       'health': _formatScore(extract?.health),
       'maintenance': _formatScore(extract?.maintenance),
       'popularity': _formatScore(extract?.popularity),
-      'score_box_html': _renderScoreBox(extract?.overallScore,
-          isOutdated: extract?.isOutdated),
+      'score_box_html': _renderScoreBox(analysisStatus, extract?.overallScore),
     };
 
     return _renderTemplate('pkg/analysis_tab', data);
@@ -354,6 +348,7 @@ class TemplateService {
     if (tabs.isNotEmpty) {
       tabs.first['active'] = '-active';
     }
+    final analysisStatus = analysis?.analysisStatus ?? extract?.analysisStatus;
 
     final values = {
       'package': {
@@ -372,8 +367,7 @@ class TemplateService {
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
           'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
         },
-        'tags_html':
-            _renderTags(analysis?.platforms, isOutdated: extract?.isOutdated),
+        'tags_html': _renderTags(analysisStatus, analysis?.platforms),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -390,8 +384,7 @@ class TemplateService {
         'install_html': _renderInstall(isFlutterPackage, analysis?.platforms),
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
-        'score_box_html': _renderScoreBox(extract?.overallScore,
-            isOutdated: extract?.isOutdated,
+        'score_box_html': _renderScoreBox(analysisStatus, extract?.overallScore,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(package.name,
@@ -586,8 +579,8 @@ class TemplateService {
         return {
           'name': package.name,
           'ellipsized_description': package.ellipsizedDescription,
-          'tags_html': _renderTags(package.platforms,
-              package: package.name, isOutdated: package.isOutdated),
+          'tags_html': _renderTags(package.analysisStatus, package.platforms,
+              package: package.name),
         };
       }).toList(),
     };
@@ -662,24 +655,31 @@ class TemplateService {
   }
 
   /// Renders the tags using the pkg/tags template.
-  String _renderTags(List<String> platforms,
-      {bool isOutdated, String package}) {
+  String _renderTags(AnalysisStatus status, List<String> platforms,
+      {String package}) {
     final List<Map> tags = <Map>[];
-    if (platforms == null) {
-      if (isOutdated ?? false) {
-        tags.add({
-          'status': 'missing',
-          'text': '[outdated]',
-          'title': 'Package version too old, check latest stable.',
-        });
-      } else {
-        tags.add({
-          'status': 'missing',
-          'text': '[awaiting]',
-          'title': 'Analysis should be ready soon.',
-        });
-      }
-    } else if (platforms.isEmpty) {
+    if (platforms != null && platforms.isNotEmpty) {
+      tags.addAll(platforms.map((platform) {
+        final platformDict = getPlatformDict(platform, nullIfMissing: true);
+        return {
+          'text': platformDict?.name ?? platform,
+          'href': platformDict?.listingUrl,
+          'title': platformDict?.tagTitle,
+        };
+      }));
+    } else if (status == null) {
+      tags.add({
+        'status': 'missing',
+        'text': '[awaiting]',
+        'title': 'Analysis should be ready soon.',
+      });
+    } else if (status == AnalysisStatus.outdated) {
+      tags.add({
+        'status': 'missing',
+        'text': '[outdated]',
+        'title': 'Package version too old, check latest stable.',
+      });
+    } else {
       final String hash = '#-analysis-tab-';
       final String href = package == null ? hash : '/packages/$package$hash';
       tags.add({
@@ -688,17 +688,6 @@ class TemplateService {
         'title': 'Check the analysis tab for further details.',
         'href': href,
       });
-    } else {
-      tags.addAll(
-        platforms.map((platform) {
-          final platformDict = getPlatformDict(platform, nullIfMissing: true);
-          return {
-            'text': platformDict?.name ?? platform,
-            'href': platformDict?.listingUrl,
-            'title': platformDict?.tagTitle,
-          };
-        }),
-      );
     }
     return _renderTemplate('pkg/tags', {'tags': tags});
   }
@@ -779,8 +768,9 @@ String _getAuthorsHtml(List<String> authors) {
   }).join('<br/>');
 }
 
-String _renderScoreBox(double overallScore,
-    {bool isOutdated, bool isNewPackage, String package}) {
+String _renderScoreBox(AnalysisStatus status, double overallScore,
+    {bool isNewPackage, String package}) {
+  final isOutdated = status == AnalysisStatus.outdated;
   final score = (isOutdated ?? false) ? null : overallScore;
   final String formattedScore = _formatScore(score);
   final String scoreClass = _classifyScore(score);

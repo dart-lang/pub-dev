@@ -93,7 +93,7 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
 
 @JsonSerializable()
 class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
-  final bool isOutdated;
+  final AnalysisStatus analysisStatus;
 
   final double health;
   final double maintenance;
@@ -104,7 +104,7 @@ class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
   final DateTime timestamp;
 
   AnalysisExtract({
-    this.isOutdated,
+    this.analysisStatus,
     this.health,
     this.maintenance,
     this.popularity,

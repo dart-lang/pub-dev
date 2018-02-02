@@ -83,22 +83,29 @@ class AnalyzerClient {
         await analyzerMemcache?.getExtract(key.package, key.version);
     if (cachedExtract != null) {
       try {
-        return new AnalysisExtract.fromJson(JSON.decode(cachedExtract));
+        final cached = new AnalysisExtract.fromJson(JSON.decode(cachedExtract));
+        // return the cached version only if status is populated (ignoring the
+        // cache values from the previous version).
+        // TODO: remove this check in the next release
+        if (cached != null && cached.analysisStatus != null) {
+          return cached;
+        }
       } catch (e, st) {
         _logger.severe('Unable to parse analysis extract for $key', e, st);
       }
     }
     final view = await getAnalysisView(key);
-    if (!view.hasPanaSummary) {
-      return null;
-    }
     AnalysisExtract extract;
-    if (view.analysisStatus == AnalysisStatus.outdated) {
+    if (!view.hasAnalysisData) {
+      return null;
+    } else if (!view.hasPanaSummary) {
       extract = new AnalysisExtract(
-          isOutdated: true, timestamp: new DateTime.now().toUtc());
+        analysisStatus: view.analysisStatus,
+        timestamp: new DateTime.now().toUtc(),
+      );
     } else {
       extract = new AnalysisExtract(
-        isOutdated: false,
+        analysisStatus: view.analysisStatus,
         popularity: popularityStorage.lookup(key.package) ?? 0.0,
         maintenance: view.maintenanceScore,
         health: view.health,
@@ -106,10 +113,8 @@ class AnalyzerClient {
         timestamp: new DateTime.now().toUtc(),
       );
     }
-    if (extract != null) {
-      await analyzerMemcache?.setExtract(
-          key.package, key.version, JSON.encode(extract.toJson()));
-    }
+    await analyzerMemcache?.setExtract(
+        key.package, key.version, JSON.encode(extract.toJson()));
     return extract;
   }
 
@@ -193,7 +198,7 @@ class AnalysisView {
   bool get hasPanaSummary => _summary != null;
 
   DateTime get timestamp => _data.timestamp;
-  AnalysisStatus get analysisStatus => _data.analysisStatus;
+  AnalysisStatus get analysisStatus => _data?.analysisStatus;
 
   String get dartSdkVersion => _summary?.sdkVersion?.toString();
   String get panaVersion => _data?.panaVersion;

@@ -91,7 +91,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          null,
+          new AnalysisExtract(analysisStatus: AnalysisStatus.success),
           new MockAnalysisView()
             ..analysisStatus = AnalysisStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
@@ -127,7 +127,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          null,
+          new AnalysisExtract(analysisStatus: AnalysisStatus.success),
           new MockAnalysisView()
             ..analysisStatus = AnalysisStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
@@ -186,10 +186,12 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new AnalysisExtract(isOutdated: true),
-          new MockAnalysisView()
-            ..analysisStatus = AnalysisStatus.success
-            ..timestamp = new DateTime(2018, 02, 05));
+          new AnalysisExtract(analysisStatus: AnalysisStatus.outdated),
+          new MockAnalysisView(
+            analysisStatus: AnalysisStatus.outdated,
+            timestamp: new DateTime(2018, 02, 05),
+          ));
+
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
