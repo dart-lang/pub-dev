@@ -5,6 +5,9 @@
 runtime: custom
 env: flex
 service: dartdoc
+env_variables:
+  # Needs to be in sync with app/script/setup-flutter.sh and with lib/shared/configuration.dart
+  FLUTTER_SDK: '/flutter'
 
 resources:
   cpu: 1
@@ -14,8 +17,8 @@ resources:
 #  instances: 1
 
 automatic_scaling:
-  min_num_instances: 1
-  max_num_instances: 2
+  min_num_instances: 2
+  max_num_instances: 4
 
 skip_files:
 - ^\.git/.*$

@@ -21,7 +21,8 @@ Future main() async {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    await startIsolates(logger, _runSchedulerWrapper);
+    initFlutterSdk(logger)
+        .then((_) => startIsolates(logger, _runSchedulerWrapper));
     _registerServices();
     await runHandler(logger, dartdocServiceHandler);
   });

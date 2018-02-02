@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'dart:isolate';
 import 'package:logging/logging.dart';
@@ -41,5 +42,28 @@ Future startIsolates(Logger logger, void entryPoint(message)) async {
 
   for (int i = 0; i < envConfig.isolateCount; i++) {
     await startIsolate();
+  }
+}
+
+Future initFlutterSdk(Logger logger) async {
+  if (envConfig.flutterSdkDir == null) {
+    logger.warning('FLUTTER_SDK is not set, assuming flutter is in PATH.');
+  } else {
+    // If the script exists, it is very likely that we are inside the appengine.
+    // In local development environment the setup should happen only once, and
+    // running the setup script multiple times should be safe (no-op if
+    // FLUTTER_SDK directory exists).
+    if (FileSystemEntity.isFileSync('/project/app/script/setup-flutter.sh')) {
+      logger.warning('Setting up flutter checkout. This may take some time.');
+      final ProcessResult result =
+          await Process.run('/project/app/script/setup-flutter.sh', []);
+      if (result.exitCode != 0) {
+        logger.shout(
+            'Failed to checkout flutter (exited with ${result.exitCode})\n'
+            'stdout: ${result.stdout}\nstderr: ${result.stderr}');
+      } else {
+        logger.info('Flutter checkout completed.');
+      }
+    }
   }
 }
