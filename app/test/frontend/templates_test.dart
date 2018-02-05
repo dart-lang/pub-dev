@@ -93,6 +93,8 @@ void main() {
           1,
           null,
           new MockAnalysisView()
+            ..analysisStatus = AnalysisStatus.success
+            ..timestamp = new DateTime(2018, 02, 05)
             ..directDependencies = [
               new PkgDependency(
                   'quiver',
@@ -127,6 +129,8 @@ void main() {
           1,
           null,
           new MockAnalysisView()
+            ..analysisStatus = AnalysisStatus.success
+            ..timestamp = new DateTime(2018, 02, 05)
             ..directDependencies = [
               new PkgDependency(
                   'quiver',
@@ -165,7 +169,10 @@ void main() {
             popularity: 0.3,
             platforms: ['flutter'],
           ),
-          new MockAnalysisView()..platforms = ['flutter']);
+          new MockAnalysisView()
+            ..analysisStatus = AnalysisStatus.success
+            ..timestamp = new DateTime(2018, 02, 05)
+            ..platforms = ['flutter']);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
@@ -180,7 +187,9 @@ void main() {
           testPackageVersion,
           1,
           new AnalysisExtract(isOutdated: true),
-          new MockAnalysisView());
+          new MockAnalysisView()
+            ..analysisStatus = AnalysisStatus.success
+            ..timestamp = new DateTime(2018, 02, 05));
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
