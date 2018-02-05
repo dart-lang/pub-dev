@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
+import 'package:pana/src/download_utils.dart';
 import 'package:path/path.dart' as p;
 
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
@@ -30,6 +31,7 @@ class DartdocRunner implements TaskRunner {
     final tempDir =
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
     final tempDirPath = tempDir.resolveSymbolicLinksSync();
+    final pkgPath = p.join(tempDirPath, 'pkg');
     final pubCacheDir = p.join(tempDirPath, 'pub-cache');
     final outputDir = p.join(tempDirPath, 'output');
 
@@ -37,10 +39,9 @@ class DartdocRunner implements TaskRunner {
         new PubEnvironment(await DartSdk.create(), pubCacheDir: pubCacheDir);
 
     try {
-      // TODO: use direct link to download the package
-      final pkgLocation =
-          await pubEnv.getLocation(task.package, version: task.version);
-      final pkgPath = pkgLocation.location;
+      final pkgDir = await downloadPackage(task.package, task.version);
+      if (pkgDir == null) return false;
+      await pkgDir.rename(pkgPath);
 
       // resolve dependencies
       await pubEnv.runUpgrade(pkgPath, /* isFlutter */ false);
