@@ -17,11 +17,11 @@
 {{/show_outdated}}
 {{^show_outdated}}
 <p>
-  We analyzed this package, and provided a score, details, and suggestions below.
+  We analyzed this package on {{date_completed}}, and provided a score, details, and suggestions below.
+  Analysis was completed with status <i>{{analysis_status}}</i> using:
 </p>
 
 <ul>
-  <li><i>{{analysis_status}}</i> on {{date_completed}}</li>
   <li>Dart: {{dart_sdk_version}}</li>
   <li>pana: {{pana_version}}</li>
 {{#flutter_version}}<li>Flutter: {{flutter_version}}</li>{{/flutter_version}}
