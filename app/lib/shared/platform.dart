@@ -13,6 +13,16 @@ abstract class KnownPlatforms {
   static bool isKnownPlatform(String platform) => all.contains(platform);
 }
 
+final _whitelistedOverride = 'Whitelisted platform override.';
+
+final packagePlatformOverrides = <String, DartPlatform>{
+  // categorized as "flutter, other", override to "web"
+  'dart_to_js_script_rewriter': new DartPlatform.fromComponents(
+    [ComponentNames.html],
+    reason: _whitelistedOverride,
+  ),
+};
+
 List<String> indexDartPlatform(DartPlatform platform) {
   if (platform == null || platform.uses == null || platform.hasConflict) {
     return null;
