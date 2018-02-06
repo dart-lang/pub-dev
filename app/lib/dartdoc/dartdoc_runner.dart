@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
+final String _hostedUrl = 'https://www.dartdocs.org';
 
 const metadataFilePath = 'doc/api/pub-dartlang-metadata.json';
 
@@ -60,7 +61,14 @@ class DartdocRunner implements TaskRunner {
   Future _generateDocs(Task task, String pkgPath, String outputDir) async {
     final pr = await Process.run(
       'dartdoc',
-      ['--output', outputDir],
+      [
+        '--output',
+        outputDir,
+        '--hosted-url',
+        _hostedUrl,
+        '--rel-canonical-prefix',
+        p.join(_hostedUrl, 'documentation', task.package, task.version),
+      ],
       workingDirectory: pkgPath,
     );
     if (pr.exitCode != 0) {
