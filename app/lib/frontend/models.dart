@@ -9,7 +9,7 @@ import 'dart:math';
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
-import '../shared/analyzer_service.dart' show AnalysisExtract;
+import '../shared/analyzer_service.dart' show AnalysisExtract, AnalysisStatus;
 import '../shared/model_properties.dart';
 import '../shared/utils.dart';
 
@@ -227,10 +227,10 @@ class PackageView {
   final String ellipsizedDescription;
   final String shortUpdated;
   final List<String> authors;
+  final AnalysisStatus analysisStatus;
   final double overallScore;
   final List<String> platforms;
   final bool isNewPackage;
-  final bool isOutdated;
 
   PackageView({
     this.name,
@@ -239,10 +239,10 @@ class PackageView {
     this.ellipsizedDescription,
     this.shortUpdated,
     this.authors,
+    this.analysisStatus,
     this.overallScore,
     this.platforms,
     this.isNewPackage,
-    this.isOutdated,
   });
 
   factory PackageView.fromModel({
@@ -261,10 +261,10 @@ class PackageView {
       ellipsizedDescription: version?.ellipsizedDescription,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
       authors: version?.pubspec?.getAllAuthors(),
-      overallScore: analysis == null ? null : analysis.overallScore,
+      analysisStatus: analysis?.analysisStatus,
+      overallScore: analysis?.overallScore,
       platforms: analysis?.platforms,
       isNewPackage: package?.isNewPackage(),
-      isOutdated: analysis?.isOutdated ?? false,
     );
   }
 }
