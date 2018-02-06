@@ -11,12 +11,14 @@ import 'package:pana/pana.dart';
 import 'package:pana/src/download_utils.dart';
 import 'package:path/path.dart' as p;
 
+import '../shared/configuration.dart' show envConfig;
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
 final String _hostedUrl = 'https://www.dartdocs.org';
 
-const metadataFilePath = 'doc/api/pub-dartlang-metadata.json';
+const metadataFilePath = '_metadata.json';
+const buildLogFilePath = '_build_log.txt';
 
 class DartdocRunner implements TaskRunner {
   String _cachedDartdocVersion;
@@ -36,8 +38,15 @@ class DartdocRunner implements TaskRunner {
     final pubCacheDir = p.join(tempDirPath, 'pub-cache');
     final outputDir = p.join(tempDirPath, 'output');
 
-    final pubEnv =
-        new PubEnvironment(await DartSdk.create(), pubCacheDir: pubCacheDir);
+    // pub cache dir needs to be created
+    await new Directory(pubCacheDir).create(recursive: true);
+    final pubEnv = new PubEnvironment(
+      await DartSdk.create(),
+      pubCacheDir: pubCacheDir,
+      flutterSdk: envConfig.flutterSdkDir == null
+          ? null
+          : new FlutterSdk(sdkDir: envConfig.flutterSdkDir),
+    );
 
     try {
       final pkgDir = await downloadPackage(task.package, task.version);
@@ -45,17 +54,27 @@ class DartdocRunner implements TaskRunner {
       await pkgDir.rename(pkgPath);
 
       // resolve dependencies
-      await pubEnv.runUpgrade(pkgPath, /* isFlutter */ false);
+      await _resolveDependencies(pubEnv, task, pkgPath);
 
       await _generateDocs(task, pkgPath, outputDir);
-
-      await _writeMetadata(task, pkgPath);
 
       // TODO: upload doc/api to the appropriate bucket
     } finally {
       await tempDir.delete(recursive: true);
     }
     return false; // no race detection
+  }
+
+  Future _resolveDependencies(
+      PubEnvironment pubEnv, Task task, String pkgPath) async {
+    final pr = await pubEnv.runUpgrade(pkgPath, /* isFlutter */ false);
+    if (pr.exitCode != 0) {
+      _logger.severe('Error while running pub upgrade for $task.\n'
+          'exitCode: ${pr.exitCode}\n'
+          'stdout: ${pr.stdout}\n'
+          'stderr: ${pr.stderr}\n');
+      throw new Exception('pub upgrade failed with code ${pr.exitCode}');
+    }
   }
 
   Future _generateDocs(Task task, String pkgPath, String outputDir) async {
@@ -71,6 +90,21 @@ class DartdocRunner implements TaskRunner {
       ],
       workingDirectory: pkgPath,
     );
+
+    // write build logs
+    await new File(p.join(outputDir, buildLogFilePath))
+        .writeAsString('STDOUT:\n${pr.stdout}\n\nSTDERR:\n${pr.stderr}\n');
+
+    // write status and metadata
+    await new File(p.join(outputDir, metadataFilePath))
+        .writeAsString(JSON.encode({
+      'package': task.package,
+      'version': task.version,
+      'dartdoc': await _getDartdocVersion(),
+      'timestamp': new DateTime.now().toUtc().toIso8601String(),
+      'success': pr.exitCode == 0,
+    }));
+
     if (pr.exitCode != 0) {
       _logger.severe('Error while running dartdoc for $task.\n'
           'exitCode: ${pr.exitCode}\n'
@@ -78,16 +112,6 @@ class DartdocRunner implements TaskRunner {
           'stderr: ${pr.stderr}\n');
       throw new Exception('dartdoc execution failed with code ${pr.exitCode}');
     }
-  }
-
-  Future _writeMetadata(Task task, String pkgPath) async {
-    await new File(p.join(pkgPath, metadataFilePath))
-        .writeAsString(JSON.encode({
-      'package': task.package,
-      'version': task.version,
-      'dartdoc': await _getDartdocVersion(),
-      'timestamp': new DateTime.now().toUtc().toIso8601String(),
-    }));
   }
 
   Future<String> _getDartdocVersion() async {
@@ -101,7 +125,7 @@ class DartdocRunner implements TaskRunner {
       throw new Exception('dartdoc execution failed with code ${pr.exitCode}');
     }
 
-    final match = _versionRegExp.firstMatch(pr.stdout);
+    final match = _versionRegExp.firstMatch(pr.stdout.toString().trim());
     if (match == null) {
       _logger.severe('Unable to parse dartdoc version: ${pr.stdout}');
       throw new Exception('Unable to parse dartdoc version: ${pr.stdout}');
