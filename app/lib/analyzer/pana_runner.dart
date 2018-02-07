@@ -53,6 +53,14 @@ class PanaRunner implements TaskRunner {
     final Analysis analysis =
         new Analysis.init(task.package, task.version, timestamp);
 
+    if (packageStatus.isDeprecated) {
+      _logger.info('Package is deprecated: $task.');
+      analysis.analysisStatus = AnalysisStatus.deprecated;
+      analysis.maintenanceScore = 0.0;
+      final backendStatus = await _analysisBackend.storeAnalysis(analysis);
+      return backendStatus.wasRace;
+    }
+
     final Duration age = timestamp.difference(packageStatus.publishDate).abs();
     if (age > twoYears && !packageStatus.isLatestStable) {
       _logger.info(

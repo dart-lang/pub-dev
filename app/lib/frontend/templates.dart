@@ -192,6 +192,9 @@ class TemplateService {
       case AnalysisStatus.failure:
         statusText = 'tool failures';
         break;
+      case AnalysisStatus.deprecated:
+        statusText = 'skipped (deprecated)';
+        break;
       case AnalysisStatus.outdated:
         statusText = 'skipped (outdated)';
         break;
@@ -223,7 +226,10 @@ class TemplateService {
 
     final Map<String, dynamic> data = {
       'package': package,
+      'show_deprecated': analysisStatus == AnalysisStatus.deprecated,
       'show_outdated': analysisStatus == AnalysisStatus.outdated,
+      'show_analysis': analysisStatus != AnalysisStatus.outdated &&
+          analysisStatus != AnalysisStatus.deprecated,
       'date_completed': analysis.timestamp == null
           ? null
           : shortDateFormat.format(analysis.timestamp),
@@ -677,6 +683,13 @@ class TemplateService {
         'text': '[awaiting]',
         'title': 'Analysis should be ready soon.',
       });
+    } else if (status == AnalysisStatus.deprecated) {
+      tags.add({
+        // TODO: replace with a new deprecated style
+        'status': 'unidentified',
+        'text': '[deprecated]',
+        'title': 'Package was deprecated.',
+      });
     } else if (status == AnalysisStatus.outdated) {
       tags.add({
         'status': 'missing',
@@ -774,12 +787,13 @@ String _getAuthorsHtml(List<String> authors) {
 
 String _renderScoreBox(AnalysisStatus status, double overallScore,
     {bool isNewPackage, String package}) {
-  final isOutdated = status == AnalysisStatus.outdated;
-  final score = (isOutdated ?? false) ? null : overallScore;
+  final skippedAnalysis =
+      status == AnalysisStatus.outdated || status == AnalysisStatus.deprecated;
+  final score = skippedAnalysis ? null : overallScore;
   final String formattedScore = _formatScore(score);
   final String scoreClass = _classifyScore(score);
   String title;
-  if (isOutdated ?? false) {
+  if (skippedAnalysis) {
     title = 'No analysis for this version.';
   } else {
     title = overallScore == null

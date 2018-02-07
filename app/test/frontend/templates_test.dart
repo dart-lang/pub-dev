@@ -195,6 +195,25 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
+    test('package show page with deprecated version', () {
+      final String html = templates.renderPkgShowPage(
+          deprecatedPackage,
+          false,
+          [testPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          testPackageVersion,
+          testPackageVersion,
+          testPackageVersion,
+          1,
+          new AnalysisExtract(analysisStatus: AnalysisStatus.deprecated),
+          new MockAnalysisView(
+            analysisStatus: AnalysisStatus.deprecated,
+            timestamp: new DateTime(2018, 02, 05),
+          ));
+
+      expectGoldenFile(html, 'pkg_show_page_deprecated.html');
+    });
+
     test('no content for analysis tab', () async {
       // no content
       expect(templates.renderAnalysisTab('pkg_foo', null, null, null), isNull);

@@ -347,6 +347,7 @@ class AnalysisBackend {
       exists: true,
       publishDate: pv.created,
       isLatestStable: p.latestVersion == version,
+      isDeprecated: p.isDeprecated ?? false,
     );
   }
 }
@@ -355,8 +356,14 @@ class PackageStatus {
   final bool exists;
   final DateTime publishDate;
   final bool isLatestStable;
+  final bool isDeprecated;
 
-  PackageStatus({this.exists, this.publishDate, this.isLatestStable: false});
+  PackageStatus({
+    this.exists,
+    this.publishDate,
+    this.isLatestStable: false,
+    this.isDeprecated: false,
+  });
 }
 
 class BackendAnalysisStatus {

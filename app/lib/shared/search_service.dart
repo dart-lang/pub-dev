@@ -47,6 +47,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final DateTime created;
   final DateTime updated;
   final String readme;
+  final bool isDeprecated;
 
   final List<String> platforms;
 
@@ -68,6 +69,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.created,
     this.updated,
     this.readme,
+    this.isDeprecated,
     this.platforms,
     this.health,
     this.popularity,

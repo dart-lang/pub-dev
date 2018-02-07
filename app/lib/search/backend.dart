@@ -91,6 +91,7 @@ class SearchBackend {
         created: p.created,
         updated: pv.created,
         readme: compactReadme(pv.readmeContent),
+        isDeprecated: p.isDeprecated ?? false,
         health: analysisView.health,
         popularity: popularity,
         maintenance: analysisView.maintenanceScore,

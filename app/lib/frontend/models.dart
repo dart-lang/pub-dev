@@ -49,6 +49,9 @@ class Package extends db.ExpandoModel {
   @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
+  @db.BoolProperty()
+  bool isDeprecated;
+
   // Convenience Fields:
 
   String get latestVersion => latestVersionKey.id;

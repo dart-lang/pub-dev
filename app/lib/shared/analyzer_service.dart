@@ -40,6 +40,9 @@ enum AnalysisStatus {
   /// One or more tools failed to produce the expected output.
   failure,
 
+  /// Analysis was not started, because package is considered deprecated.
+  deprecated,
+
   /// Analysis was not started, because package is considered old and has a
   /// newer stable release.
   outdated,
@@ -56,6 +59,7 @@ int analysisStatusLevel(AnalysisStatus status) {
       return 0;
     case AnalysisStatus.failure:
       return 1;
+    case AnalysisStatus.deprecated:
     case AnalysisStatus.outdated:
     case AnalysisStatus.success:
       return 2;
