@@ -30,7 +30,7 @@ Future main(List<String> args) async {
 
   Map<String, int> homepageDomains = {};
   void addHomepage(String key) {
-    homepageDomains[key] = homepageDomains[key] ?? 0 + 1;
+    homepageDomains[key] = (homepageDomains[key] ?? 0) + 1;
   }
 
   await withProdServices(() async {
