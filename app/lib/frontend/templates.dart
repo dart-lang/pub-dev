@@ -11,7 +11,6 @@ import 'dart:math';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
-import 'package:pana/pana.dart' show ConstraintTypes;
 
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
