@@ -301,7 +301,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.1+2"
+    version: "0.3.2"
   kernel:
     dependency: transitive
     description:
@@ -476,7 +476,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.4+3"
+    version: "0.7.5"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -583,4 +583,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=2.0.0-dev.15.0 <=2.0.0-dev.20.0"
+  dart: ">=2.0.0-dev.20.0 <=2.0.0-dev.23.0"

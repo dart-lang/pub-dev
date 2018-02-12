@@ -38,8 +38,8 @@ dependencies:
 
 dev_dependencies:
   build_runner: '^0.7.0'
-  json_serializable: '^0.3.1'
-  source_gen: '^0.7.2'
+  json_serializable: '^0.3.2'
+  source_gen: '^0.7.5'
   test: ">=0.12.20 <0.13.0"
 
 dependency_overrides:
