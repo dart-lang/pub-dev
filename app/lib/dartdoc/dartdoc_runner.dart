@@ -59,6 +59,7 @@ class DartdocRunner implements TaskRunner {
       final dartdocEnv = {'PUB_CACHE': pubCacheDir};
       await _generateDocs(task, pkgPath, outputDir, dartdocEnv);
 
+      // TODO: generate prefix for bucket upload
       // TODO: upload doc/api to the appropriate bucket
     } finally {
       await tempDir.delete(recursive: true);

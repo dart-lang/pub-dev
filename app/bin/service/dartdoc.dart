@@ -6,12 +6,15 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
+import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
 
@@ -23,7 +26,7 @@ Future main() async {
   withAppEngineServices(() async {
     initFlutterSdk(logger)
         .then((_) => startIsolates(logger, _runSchedulerWrapper));
-    _registerServices();
+    await _registerServices();
     await runHandler(logger, dartdocServiceHandler);
   });
 }
@@ -40,7 +43,7 @@ void _runScheduler(List<SendPort> sendPorts) {
   mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {
-    _registerServices();
+    await _registerServices();
     final runner = new DartdocRunner();
     final scheduler = new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
@@ -55,6 +58,15 @@ void _runScheduler(List<SendPort> sendPorts) {
   });
 }
 
-void _registerServices() {
-  // placeholder
+Future _registerServices() async {
+  final Bucket storageBucket = await _createOrGetBucket(
+      storageService, activeConfiguration.dartdocStorageBucketName);
+  registerDartdocBackend(new DartdocBackend(storageBucket));
+}
+
+Future<Bucket> _createOrGetBucket(Storage storage, String name) async {
+  if (!await storage.bucketExists(name)) {
+    await storage.createBucket(name);
+  }
+  return storage.bucket(name);
 }
