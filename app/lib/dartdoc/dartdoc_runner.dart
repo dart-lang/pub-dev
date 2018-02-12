@@ -56,7 +56,8 @@ class DartdocRunner implements TaskRunner {
       // resolve dependencies
       await _resolveDependencies(pubEnv, task, pkgPath);
 
-      await _generateDocs(task, pkgPath, outputDir);
+      final dartdocEnv = {'PUB_CACHE': pubCacheDir};
+      await _generateDocs(task, pkgPath, outputDir, dartdocEnv);
 
       // TODO: upload doc/api to the appropriate bucket
     } finally {
@@ -77,7 +78,12 @@ class DartdocRunner implements TaskRunner {
     }
   }
 
-  Future _generateDocs(Task task, String pkgPath, String outputDir) async {
+  Future _generateDocs(
+    Task task,
+    String pkgPath,
+    String outputDir,
+    Map<String, String> environment,
+  ) async {
     final pr = await Process.run(
       'dartdoc',
       [
@@ -89,6 +95,7 @@ class DartdocRunner implements TaskRunner {
         p.join(_hostedUrl, 'documentation', task.package, task.version),
       ],
       workingDirectory: pkgPath,
+      environment: environment,
     );
 
     // write build logs
