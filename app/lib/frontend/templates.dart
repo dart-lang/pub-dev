@@ -467,9 +467,13 @@ class TemplateService {
       AnalysisExtract extract,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
-    final bool hasOnlyFlutterPlatform = extract?.platforms != null &&
-        extract.platforms.length == 1 &&
-        extract.platforms.single == KnownPlatforms.flutter;
+    final int platformCount = extract?.platforms?.length ?? 0;
+    final String singlePlatform =
+        platformCount == 1 ? extract.platforms.single : null;
+    final bool hasPlatformSearch =
+        singlePlatform != null && singlePlatform != KnownPlatforms.other;
+    final bool hasOnlyFlutterPlatform =
+        singlePlatform == KnownPlatforms.flutter;
     final bool isFlutterPackage = hasOnlyFlutterPlatform ||
         latestStableVersion.pubspec.dependsOnFlutterSdk ||
         latestStableVersion.pubspec.hasFlutterPlugin;
@@ -513,6 +517,7 @@ class TemplateService {
       pageDescription: pageDescription,
       faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
       canonicalUrl: canonicalUrl,
+      platform: hasPlatformSearch ? singlePlatform : null,
     );
   }
 

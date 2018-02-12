@@ -74,7 +74,7 @@
 {{#package_banner}}
   <div class="_banner-bg">
     <main class="package-banner">
-      <form class="search-bar" action="/packages">
+      <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
         <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus />
         <button class="icon"></button>
       </form>
