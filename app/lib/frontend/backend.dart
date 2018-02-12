@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
+import '../shared/name_tracker.dart';
 import '../shared/package_memcache.dart';
 import '../shared/utils.dart';
 
@@ -661,7 +662,11 @@ Future<models.PackageVersion> parseAndValidateUpload(
       pubspec.version.trim().isEmpty) {
     throw 'Invalid `pubspec.yaml` file';
   }
+
   validatePackageName(pubspec.name);
+  if (!nameTracker.accept(pubspec.name)) {
+    throw new Exception('Package name is too similar to another package.');
+  }
 
   String exampleFilename;
   for (String candidate in exampleFileCandidates(pubspec.name)) {
