@@ -18,7 +18,7 @@ final Logger _logger = new Logger('pub.dartdoc.runner');
 final String _hostedUrl = 'https://www.dartdocs.org';
 
 const metadataFilePath = '_metadata.json';
-const buildLogFilePath = '_build_log.txt';
+const buildLogFilePath = 'log.txt';
 
 class DartdocRunner implements TaskRunner {
   String _cachedDartdocVersion;
