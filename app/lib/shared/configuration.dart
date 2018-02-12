@@ -31,6 +31,9 @@ class Configuration {
   /// The scheme://host:port prefix for the search service.
   final String searchServicePrefix;
 
+  /// The name of the Cloud Storage bucket to use for dartdoc generated output.
+  final String dartdocStorageBucketName;
+
   /// The name of the Cloud Storage bucket to use for popularity data dumps.
   final String popularityDumpBucketName;
 
@@ -70,6 +73,7 @@ class Configuration {
         analyzerServicePrefix = 'https://analyzer-dot-$projectId.appspot.com',
         dartdocServicePrefix = 'https://dartdoc-dot-$projectId.appspot.com',
         searchServicePrefix = 'https://search-dot-$projectId.appspot.com',
+        dartdocStorageBucketName = '$projectId--dartdoc-storage',
         popularityDumpBucketName = '$projectId--popularity',
         searchSnapshotBucketName = '$projectId--search-snapshot';
 
