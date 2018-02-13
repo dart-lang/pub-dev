@@ -9,13 +9,16 @@
   More details: <a href="/help#scoring">scoring</a>.
 </div>
 
+{{#show_deprecated}}
+<p>This package is not analyzed, because it is deprecated.</p>
+{{/show_deprecated}}
 {{#show_outdated}}
 <p>
   This package version is not analyzed, because it is more than two years old.
   Check the <a href="/packages/{{{package}}}#-analysis-tab-">latest stable version</a> for its analysis.
 </p>
 {{/show_outdated}}
-{{^show_outdated}}
+{{#show_analysis}}
 <p>
   We analyzed this package on {{date_completed}}, and provided a score, details, and suggestions below.
   Analysis was completed with status <i>{{analysis_status}}</i> using:
@@ -141,4 +144,4 @@
 </table>
 </div>
 {{/has_dependency}}
-{{/show_outdated}}
+{{/show_analysis}}

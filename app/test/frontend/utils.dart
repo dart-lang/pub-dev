@@ -33,7 +33,7 @@ final Key devPackageVersionKey =
 
 final Pubspec testPubspec = new Pubspec.fromYaml(TestPackagePubspec);
 
-final Package testPackage = new Package()
+Package _createPackage() => new Package()
   ..parentKey = testPackageKey.parent
   ..id = testPackageKey.id
   ..name = testPackageKey.id
@@ -42,6 +42,10 @@ final Package testPackage = new Package()
   ..uploaderEmails = ['hans@juergen.com']
   ..latestVersionKey = testPackageVersionKey
   ..latestDevVersionKey = testPackageVersionKey;
+
+final Package testPackage = _createPackage();
+
+final Package deprecatedPackage = _createPackage()..isDeprecated = true;
 
 final PackageVersion testPackageVersion = new PackageVersion()
   ..parentKey = testPackageVersionKey.parent

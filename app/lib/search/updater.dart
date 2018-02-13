@@ -55,7 +55,9 @@ class BatchIndexUpdater implements TaskRunner {
         final int count = _snapshot.documents.length;
         _logger
             .info('Got $count packages from snapshot at ${_snapshot.updated}');
-        await packageIndex.addPackages(_snapshot.documents.values);
+        await packageIndex.addPackages(_snapshot.documents.values.where(
+          (pd) => pd.isDeprecated != true, // isDeprecated may be null
+        ));
         // Arbitrary sanity check that the snapshot is not entirely bogus.
         // Index merge will enable search.
         if (count > 10) {
@@ -118,8 +120,9 @@ class BatchIndexUpdater implements TaskRunner {
               .loadDocuments(tasks.map((t) => t.package).toList()))
           .where((doc) => doc != null)
           .toList();
+      // TODO: decide if deprecated packages should be removed from the snapshot
       _snapshot.addAll(docs);
-      await packageIndex.addPackages(docs);
+      await packageIndex.addPackages(docs.where((d) => d.isDeprecated != true));
       final bool doMerge =
           _firstScanCount != null && _taskCount >= _firstScanCount;
       if (doMerge) {
