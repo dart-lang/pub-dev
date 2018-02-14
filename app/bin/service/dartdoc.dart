@@ -6,17 +6,19 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
+import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
+import 'package:pub_dartlang_org/dartdoc/task_sources.dart';
 
 final Logger logger = new Logger('pub.dartdoc');
 
@@ -47,9 +49,8 @@ void _runScheduler(List<SendPort> sendPorts) {
     final runner = new DartdocRunner();
     final scheduler = new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
-      // TODO: decide how frequently we want to poll the datastore
-      // new DatastoreHeadTaskSource(db.dbService),
-      // new DatastoreHistoryTaskSource(db.dbService),
+      new DartdocDatastoreHeadTaskSource(dbService),
+      new DartdocDatastoreHistoryTaskSource(dbService),
     ]);
     new Timer.periodic(const Duration(minutes: 1), (_) {
       statsSendPort.send(scheduler.stats());
