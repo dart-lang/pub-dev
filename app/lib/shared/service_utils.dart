@@ -4,8 +4,9 @@
 
 import 'dart:async';
 import 'dart:io';
-
 import 'dart:isolate';
+
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'configuration.dart';
@@ -66,4 +67,11 @@ Future initFlutterSdk(Logger logger) async {
       }
     }
   }
+}
+
+Future<Bucket> getOrCreateBucket(Storage storage, String name) async {
+  if (!await storage.bucketExists(name)) {
+    await storage.createBucket(name);
+  }
+  return storage.bucket(name);
 }
