@@ -582,12 +582,11 @@ Set<String> _tokenize(String originalText, int minLength) {
     final String normalizedWord = normalizeBeforeIndexing(word);
     if (normalizedWord.isEmpty) continue;
 
+    tokens.add(normalizedWord);
     for (int ngramLength = math.max(minNgram, minLength);
         ngramLength <= maxNgram;
         ngramLength++) {
-      if (normalizedWord.length <= ngramLength) {
-        tokens.add(normalizedWord);
-      } else {
+      if (normalizedWord.length > ngramLength) {
         for (int i = 0; i <= normalizedWord.length - ngramLength; i++) {
           tokens.add(normalizedWord.substring(i, i + ngramLength));
         }
@@ -609,9 +608,6 @@ Set<String> _tokenize(String originalText, int minLength) {
       }
       prevLower = lower;
     }
-  }
-  if (minLength > 0) {
-    tokens.removeWhere((t) => t.length < minLength);
   }
   return tokens;
 }
