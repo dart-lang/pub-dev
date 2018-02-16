@@ -14,11 +14,12 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -50,7 +51,7 @@ void _main(int isolateId) {
   useLoggingPackageAdaptor();
 
   withAppEngineServices(() async {
-    final Bucket popularityBucket = await _createOrGetBucket(
+    final Bucket popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
         new PopularityStorage(storageService, popularityBucket));
@@ -63,7 +64,7 @@ void _main(int isolateId) {
 
     registerSearchBackend(new SearchBackend(db.dbService));
 
-    final Bucket snapshotBucket = await _createOrGetBucket(
+    final Bucket snapshotBucket = await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
     registerSnapshotStorage(
         new SnapshotStorage(storageService, snapshotBucket));
@@ -92,11 +93,4 @@ void _main(int isolateId) {
     scheduler.run();
     await runHandler(_logger, searchServiceHandler, shared: true);
   });
-}
-
-Future<Bucket> _createOrGetBucket(Storage storage, String name) async {
-  if (!await storage.bucketExists(name)) {
-    await storage.createBucket(name);
-  }
-  return storage.bucket(name);
 }
