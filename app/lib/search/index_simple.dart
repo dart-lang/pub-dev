@@ -195,13 +195,16 @@ class SimplePackageIndex implements PackageIndex {
         results = _rankWithComparator(packages, _compareUpdated);
         break;
       case SearchOrder.popularity:
-        results = _rankWithValues(getPopularityScore(packages));
+        results = _rankWithValues(getPopularityScore(packages),
+            deprecatedRank: _DeprecatedRank.keep);
         break;
       case SearchOrder.health:
-        results = _rankWithValues(getHealthScore(packages));
+        results = _rankWithValues(getHealthScore(packages),
+            deprecatedRank: _DeprecatedRank.remove);
         break;
       case SearchOrder.maintenance:
-        results = _rankWithValues(getMaintenanceScore(packages));
+        results = _rankWithValues(getMaintenanceScore(packages),
+            deprecatedRank: _DeprecatedRank.remove);
         break;
     }
 
@@ -321,12 +324,28 @@ class SimplePackageIndex implements PackageIndex {
     return null;
   }
 
-  List<PackageScore> _rankWithValues(Map<String, double> values) {
+  List<PackageScore> _rankWithValues(Map<String, double> values,
+      {_DeprecatedRank deprecatedRank: _DeprecatedRank.back}) {
     final List<PackageScore> list = values.keys
-        .map((package) => new PackageScore(
-              package: _packages[package].package,
-              score: values[package],
-            ))
+        .map((package) {
+          final doc = _packages[package];
+          double score = values[package];
+          // isDeprecated may be null
+          if (doc.isDeprecated == true) {
+            switch (deprecatedRank) {
+              case _DeprecatedRank.keep:
+                // keeps score
+                break;
+              case _DeprecatedRank.back:
+                score -= 100.0;
+                break;
+              case _DeprecatedRank.remove:
+                return null;
+            }
+          }
+          return new PackageScore(package: package, score: score);
+        })
+        .where((ps) => ps != null)
         .toList();
     list.sort((a, b) {
       final int scoreCompare = -a.score.compareTo(b.score);
@@ -613,3 +632,14 @@ Set<String> _tokenize(String originalText, int minLength) {
 }
 
 bool _isLower(String c) => c.toLowerCase() == c;
+
+enum _DeprecatedRank {
+  /// Keep original score.
+  keep,
+
+  /// Remove deprecated package from the results.
+  remove,
+
+  /// Move deprecated package to the back.
+  back,
+}
