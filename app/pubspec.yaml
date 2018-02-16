@@ -31,7 +31,7 @@ dependencies:
   yaml: '^2.1.12'
   # pana version to be pinned
   # keep in-sync with app/lib/analyzer/versions.dart
-  pana: '0.10.1'
+  pana: '0.10.2'
   # 3rd-party packages with pinned versions
   archive: '1.0.33'
   uuid: '0.5.3'
@@ -41,8 +41,3 @@ dev_dependencies:
   json_serializable: '^0.3.2'
   source_gen: '^0.7.5'
   test: ">=0.12.20 <0.13.0"
-
-dependency_overrides:
-  # Fixes https://github.com/dart-lang/pana/issues/138
-  # Required until we have a 'gold' release
-  analyzer: 0.31.1

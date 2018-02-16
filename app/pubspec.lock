@@ -16,7 +16,7 @@ packages:
     source: path
     version: "0.0.0"
   analyzer:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
@@ -392,7 +392,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.1"
+    version: "0.10.2"
   path:
     dependency: "direct main"
     description:
@@ -441,7 +441,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.27.0"
+    version: "0.28.0"
   shelf:
     dependency: "direct main"
     description:
@@ -476,7 +476,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.5"
+    version: "0.7.5+1"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -583,4 +583,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=2.0.0-dev.23.0 <=2.0.0-dev.26.0"
+  dart: ">=2.0.0-dev.23.0 <=2.0.0-dev.24.0"
