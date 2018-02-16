@@ -3,6 +3,7 @@
 targets:
   pub_dartlang_org:
     sources:
+      - 'lib/dartdoc/models.dart'
       - 'lib/shared/*.dart'
       - 'lib/search/backend*.dart'
     builders:
