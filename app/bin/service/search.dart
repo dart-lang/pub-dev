@@ -82,7 +82,7 @@ void _main(int isolateId) {
       [
         new ManualTriggerTaskSource(taskReceivePort),
         new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
-        new DatastoreVersionsHeadTaskSource(
+        new DatastoreHeadTaskSource(
           db.dbService,
           TaskSourceModel.analysis,
           sleep: const Duration(minutes: 10),

@@ -11,6 +11,7 @@ import '../analyzer/models.dart';
 import '../frontend/models.dart';
 
 import 'task_scheduler.dart';
+import 'utils.dart';
 
 final Logger _logger = new Logger('pub.shared.task_sources');
 
@@ -20,14 +21,14 @@ const Duration _defaultSleep = const Duration(minutes: 1);
 enum TaskSourceModel { package, version, analysis }
 
 /// Creates tasks by polling the datastore for new versions.
-class DatastoreVersionsHeadTaskSource implements TaskSource {
+class DatastoreHeadTaskSource implements TaskSource {
   final DatastoreDB _db;
   final Duration _window;
   final Duration _sleep;
   final TaskSourceModel _model;
   DateTime _lastTs;
 
-  DatastoreVersionsHeadTaskSource(
+  DatastoreHeadTaskSource(
     this._db,
     this._model, {
 
@@ -99,4 +100,53 @@ class DatastoreVersionsHeadTaskSource implements TaskSource {
 
   Task _analysisToTask(Analysis a) =>
       new Task(a.packageName, a.packageVersion, a.timestamp);
+}
+
+/// Creates a task when the most recent output is older than [afterDays] days.
+abstract class DatastoreHistoryTaskSource implements TaskSource {
+  final DatastoreDB _db;
+  final int afterDays;
+
+  DatastoreHistoryTaskSource(
+    this._db, {
+    this.afterDays: 30,
+  });
+
+  Future<bool> requiresUpdate(String packageName, String packageVersion,
+      {bool retryFailed: false});
+
+  @override
+  Stream<Task> startStreaming() => randomizeStream(_startStreaming());
+
+  Stream<Task> _startStreaming() async* {
+    for (;;) {
+      try {
+        // Check and schedule the latest stable version of each package.
+        final Query packageQuery = _db.query(Package)..order('-updated');
+        await for (Package p in packageQuery.run()) {
+          if (await requiresUpdate(p.name, p.latestVersion,
+              retryFailed: true)) {
+            yield new Task(p.name, p.latestVersion, p.updated);
+          }
+
+          if (p.latestVersion != p.latestDevVersion &&
+              await requiresUpdate(p.name, p.latestDevVersion)) {
+            yield new Task(p.name, p.latestDevVersion, p.updated);
+          }
+        }
+
+        // After we are done with the most important versions, let's check all
+        // of the older versions too.
+        final Query versionQuery = _db.query(PackageVersion)..order('-created');
+        await for (PackageVersion pv in versionQuery.run()) {
+          if (await requiresUpdate(pv.package, pv.version)) {
+            yield new Task(pv.package, pv.version, pv.created);
+          }
+        }
+      } catch (e, st) {
+        _logger.severe('Error polling history.', e, st);
+      }
+      await new Future.delayed(const Duration(days: 1));
+    }
+  }
 }

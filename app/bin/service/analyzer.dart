@@ -48,8 +48,8 @@ void _runScheduler(List<SendPort> sendPorts) {
     final PanaRunner runner = new PanaRunner(analysisBackend);
     final scheduler = new TaskScheduler(runner, [
       new ManualTriggerTaskSource(taskReceivePort),
-      new DatastoreHeadTaskSource(db.dbService),
-      new DatastoreHistoryTaskSource(db.dbService),
+      new AnalyzerDatastoreHeadTaskSource(db.dbService),
+      new AnalyzerDatastoreHistoryTaskSource(db.dbService),
     ]);
     new Timer.periodic(const Duration(minutes: 1), (_) {
       statsSendPort.send(scheduler.stats());
