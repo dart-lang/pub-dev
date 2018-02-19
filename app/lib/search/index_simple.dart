@@ -400,6 +400,9 @@ class Score {
         keys = keys.intersection(score.getKeys());
       }
     }
+    if (keys == null || keys.isEmpty) {
+      return new Score({});
+    }
     return new Score(new Map.fromIterable(
       keys,
       value: (key) =>
