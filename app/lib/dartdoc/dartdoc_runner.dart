@@ -13,6 +13,7 @@ import 'package:uuid/uuid.dart';
 
 import '../shared/configuration.dart' show envConfig;
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
+import '../shared/utils.dart' show redirectDartdocPages;
 
 import 'backend.dart';
 import 'models.dart';
@@ -29,6 +30,9 @@ class DartdocRunner implements TaskRunner {
 
   @override
   Future<bool> shouldSkipTask(Task task) async {
+    if (redirectDartdocPages.containsKey(task.package)) {
+      return true;
+    }
     final dartdocVersion = await _getDartdocVersion();
     final shouldRun = await dartdocBackend.shouldRunTask(task, dartdocVersion);
     return !shouldRun;
