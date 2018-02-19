@@ -11,6 +11,9 @@ import '../shared/handlers.dart';
 import '../shared/notification.dart';
 import '../shared/scheduler_stats.dart';
 import '../shared/task_client.dart';
+import '../shared/utils.dart' show contentType;
+
+import 'backend.dart';
 
 /// Handlers for the dartdoc service.
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
@@ -80,12 +83,14 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
-    // placeholder response until proper implementation is done
-    return jsonResponse({
-      'package': docFilePath.package,
-      'version': docFilePath.version,
-      'path': docFilePath.path,
-    });
+    final entry = await dartdocBackend.getLatestEntry(
+        docFilePath.package, docFilePath.version);
+    final stream = dartdocBackend.readContent(entry, docFilePath.path);
+    return new shelf.Response(
+      HttpStatus.OK,
+      body: stream,
+      headers: {HttpHeaders.CONTENT_TYPE: contentType(docFilePath.path)},
+    );
   }
   return notFoundHandler(request);
 }
@@ -99,7 +104,7 @@ class DocFilePath {
 }
 
 DocFilePath parseRequestUri(Uri uri) {
-  final pathSegments = uri.pathSegments;
+  final pathSegments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
   if (pathSegments.length < 3) {
     return null;
   }
@@ -111,9 +116,12 @@ DocFilePath parseRequestUri(Uri uri) {
   if (package.isEmpty || version.isEmpty) {
     return null;
   }
-  String path = '/${pathSegments.skip(3).join('/')}';
-  if (path.endsWith('/')) {
-    path = '${path}index.html';
+  final relativeSegments = pathSegments.skip(3).toList();
+  String path = relativeSegments.join('/');
+  if (path.isEmpty) {
+    path = 'index.html';
+  } else if (path.isNotEmpty && !relativeSegments.last.contains('.')) {
+    path = '$path/index.html';
   }
   return new DocFilePath(package, version, path);
 }

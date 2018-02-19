@@ -41,23 +41,23 @@ void main() {
     });
     test('/documentation/angular/4.0.0%2B2', () {
       testUri('/documentation/angular/4.0.0%2B2', 'angular', '4.0.0+2',
-          '/index.html');
+          'index.html');
     });
     test('/documentation/angular/4.0.0%2B2/', () {
       testUri('/documentation/angular/4.0.0%2B2/', 'angular', '4.0.0+2',
-          '/index.html');
+          'index.html');
     });
     test('/documentation/angular/4.0.0%2B2/subdir/', () {
       testUri('/documentation/angular/4.0.0%2B2/subdir/', 'angular', '4.0.0+2',
-          '/subdir/index.html');
+          'subdir/index.html');
     });
     test('/documentation/angular/4.0.0%2B2/file.html', () {
       testUri('/documentation/angular/4.0.0%2B2/file.html', 'angular',
-          '4.0.0+2', '/file.html');
+          '4.0.0+2', 'file.html');
     });
     test('/documentation/angular/4.0.0+2/file.html', () {
       testUri('/documentation/angular/4.0.0%2B2/file.html', 'angular',
-          '4.0.0+2', '/file.html');
+          '4.0.0+2', 'file.html');
     });
   });
 

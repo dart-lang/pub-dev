@@ -9,6 +9,8 @@ import 'package:gcloud/db.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
+import 'backend.dart';
+
 /// Creates a task when a version uploaded in the past 10 minutes has no
 /// dartdoc yet.
 class DartdocDatastoreHeadTaskSource extends DatastoreHeadTaskSource {
@@ -17,8 +19,9 @@ class DartdocDatastoreHeadTaskSource extends DatastoreHeadTaskSource {
 
   @override
   Future<bool> shouldYieldTask(Task task) async {
-    // TODO: implement using the bucket-based backend.
-    return false;
+    final entry =
+        await dartdocBackend.getLatestEntry(task.package, task.version);
+    return entry == null;
   }
 }
 
@@ -29,7 +32,24 @@ class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
   @override
   Future<bool> requiresUpdate(String packageName, String packageVersion,
       {bool retryFailed: false}) async {
-    // TODO: implement using the bucket-based backend.
+    final entry =
+        await dartdocBackend.getLatestEntry(packageName, packageVersion);
+    if (entry == null) {
+      return true;
+    }
+
+    // TODO: trigger task if current dartdoc version is newer
+
+    final now = new DateTime.now().toUtc();
+    final age = now.difference(entry.timestamp).abs();
+    if (age.inDays >= afterDays) {
+      return true;
+    }
+
+    if (retryFailed && !entry.hasContent && age.inDays >= 1) {
+      return true;
+    }
+
     return false;
   }
 }
