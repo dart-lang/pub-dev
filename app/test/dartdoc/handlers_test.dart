@@ -4,9 +4,14 @@
 
 library pub_dartlang_org.handlers_test;
 
+import 'dart:async';
+
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
+
+import '../shared/handlers_test_utils.dart';
 
 void main() {
   group('path parsing', () {
@@ -53,6 +58,24 @@ void main() {
     test('/documentation/angular/4.0.0+2/file.html', () {
       testUri('/documentation/angular/4.0.0%2B2/file.html', 'angular',
           '4.0.0+2', '/file.html');
+    });
+  });
+
+  group('dartdoc handlers', () {
+    Future<shelf.Response> issueGet(String uri) => dartdocServiceHandler(
+        new shelf.Request('GET', Uri.parse('https://www.dartdocs.org$uri')));
+
+    test('/documentation/flutter redirect', () async {
+      expectRedirectResponse(
+        await issueGet('/documentation/flutter'),
+        'https://docs.flutter.io/',
+      );
+    });
+    test('/documentation/flutter/version redirect', () async {
+      expectRedirectResponse(
+        await issueGet('/documentation/flutter/version'),
+        'https://docs.flutter.io/',
+      );
     });
   });
 }

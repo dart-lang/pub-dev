@@ -458,6 +458,9 @@ Future<shelf.Response> _packageVersionHandlerHtmlCore(
         AnalysisExtract extract,
         AnalysisView analysis),
     {String versionName}) async {
+  if (packageName == 'flutter') {
+    return redirectResponse('https://flutter.io/');
+  }
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
   final bool isProd = _isProd(request);

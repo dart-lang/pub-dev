@@ -23,6 +23,9 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return handler(request);
+  } else if (path == '/documentation/flutter' ||
+      path.startsWith('/documentation/flutter/')) {
+    return redirectResponse('https://docs.flutter.io/');
   } else if (path.startsWith('/documentation/')) {
     return documentationHandler(request);
   } else if (path.startsWith('/packages/')) {
