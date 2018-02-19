@@ -235,6 +235,20 @@ void main() {
             status: 404);
       });
 
+      tScopedTest('/packages/flutter - redirect', () async {
+        expectRedirectResponse(
+          await issueGet('/packages/flutter'),
+          'https://flutter.io/',
+        );
+      });
+
+      tScopedTest('/packages/flutter/versions/* - redirect', () async {
+        expectRedirectResponse(
+          await issueGet('/packages/flutter/versions/0.20'),
+          'https://flutter.io/',
+        );
+      });
+
       tScopedTest('/flutter', () async {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.order, isNull);
