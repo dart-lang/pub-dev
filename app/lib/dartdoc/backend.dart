@@ -10,7 +10,8 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:pub_dartlang_org/shared/task_scheduler.dart' show Task;
+import '../shared/task_scheduler.dart' show Task;
+import '../shared/utils.dart' show contentType;
 
 import 'models.dart';
 
@@ -43,12 +44,14 @@ class DartdocBackend {
         .list(recursive: true)
         .where((fse) => fse is File)
         .map((fse) => fse as File);
-    await for (File file in fileStream) {
+
+    Future upload(File file) async {
       final relativePath = p.relative(file.path, from: dir.path);
       final objectName = p.join(objectPrefix, relativePath);
       _logger.info('Uploading to $objectName...');
       try {
-        final sink = _storage.write(objectName);
+        final sink =
+            _storage.write(objectName, contentType: contentType(objectName));
         await sink.addStream(file.openRead());
         await sink.close();
       } catch (e, st) {
@@ -56,6 +59,21 @@ class DartdocBackend {
         rethrow;
       }
     }
+
+    final List<Future> concurrentUploads = [];
+    Future completeConcurrents() async {
+      if (concurrentUploads.isEmpty) return;
+      await Future.wait(concurrentUploads);
+      concurrentUploads.clear();
+    }
+
+    await for (File file in fileStream) {
+      concurrentUploads.add(upload(file));
+      if (concurrentUploads.length >= 4) {
+        await completeConcurrents();
+      }
+    }
+    await completeConcurrents();
 
     // upload was completed
     await _storage.writeBytes(entry.entryPath, entry.asBytes());
@@ -85,6 +103,7 @@ class DartdocBackend {
 
   /// Return the latest entry that should be used to serve the content.
   Future<DartdocEntry> getLatestEntry(String package, String version) async {
+    // TODO: add caching with memcache
     final List<DartdocEntry> completedList =
         await _listEntries(DartdocEntryPaths.entryPrefix(package, version));
     if (completedList.isEmpty) return null;
@@ -95,6 +114,8 @@ class DartdocBackend {
   /// Returns a file's content from the storage bucket.
   Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
     final objectName = p.join(entry.contentPrefix, relativePath);
+    // TODO: add caching with memcache
+    _logger.info('Retrieving $objectName from bucket.');
     return _storage.read(objectName);
   }
 

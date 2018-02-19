@@ -15,6 +15,8 @@ import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:mime/src/default_extension_map.dart' as mime;
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
@@ -349,4 +351,10 @@ class StringInternPool {
       _values.clear();
     }
   }
+}
+
+/// Returns the MIME content type based on the name of the file.
+String contentType(String name) {
+  final ext = p.extension(name).replaceAll('.', '');
+  return mime.defaultExtensionMap[ext] ?? 'application/octet-stream';
 }

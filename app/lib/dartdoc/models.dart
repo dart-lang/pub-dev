@@ -56,15 +56,16 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   String get entryPath => '$entryPrefix/$uuid.json';
 
   /// The path prefix where the content of this instance is stored.
-  String get contentPrefix => '/$packageName/$packageVersion/content/$uuid';
+  String get contentPrefix => '$packageName/$packageVersion/content/$uuid';
 
   List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
 }
 
+// TODO: use dartdocVersion in the prefix paths
 abstract class DartdocEntryPaths {
   static String inProgressPrefix(String packageName, String packageVersion) =>
-      '/$packageName/$packageVersion/in-progress';
+      '$packageName/$packageVersion/in-progress';
 
   static String entryPrefix(String packageName, String packageVersion) =>
-      '/$packageName/$packageVersion/entry';
+      '$packageName/$packageVersion/entry';
 }
