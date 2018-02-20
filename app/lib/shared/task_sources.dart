@@ -102,15 +102,11 @@ class DatastoreHeadTaskSource implements TaskSource {
       new Task(a.packageName, a.packageVersion, a.timestamp);
 }
 
-/// Creates a task when the most recent output is older than [afterDays] days.
+/// Creates a task when the most recent output requires an update (e.g. too old).
 abstract class DatastoreHistoryTaskSource implements TaskSource {
   final DatastoreDB _db;
-  final int afterDays;
 
-  DatastoreHistoryTaskSource(
-    this._db, {
-    this.afterDays: 30,
-  });
+  DatastoreHistoryTaskSource(this._db);
 
   Future<bool> requiresUpdate(String packageName, String packageVersion,
       {bool retryFailed: false});

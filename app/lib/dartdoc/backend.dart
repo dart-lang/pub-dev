@@ -17,7 +17,7 @@ import 'models.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.backend');
 
-final Duration _entryUpdateThreshold = const Duration(days: 30);
+final Duration entryUpdateThreshold = const Duration(days: 90);
 final Duration _contentDeleteThreshold = const Duration(days: 1);
 
 /// Sets the dartdoc backend.
@@ -95,7 +95,7 @@ class DartdocBackend {
       return true;
     }
     final age = new DateTime.now().difference(entry.timestamp).abs();
-    if (age > _entryUpdateThreshold) {
+    if (age > entryUpdateThreshold) {
       return true;
     }
     return false;

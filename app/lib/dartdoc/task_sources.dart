@@ -25,9 +25,10 @@ class DartdocDatastoreHeadTaskSource extends DatastoreHeadTaskSource {
   }
 }
 
-/// Creates a task when the most recent dartdoc run is older than 30 days.
+/// Creates a task when the most recent dartdoc run is older than
+/// [entryUpdateThreshold] days.
 class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
-  DartdocDatastoreHistoryTaskSource(DatastoreDB db) : super(db, afterDays: 30);
+  DartdocDatastoreHistoryTaskSource(DatastoreDB db) : super(db);
 
   @override
   Future<bool> requiresUpdate(String packageName, String packageVersion,
@@ -42,7 +43,7 @@ class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
 
     final now = new DateTime.now().toUtc();
     final age = now.difference(entry.timestamp).abs();
-    if (age.inDays >= afterDays) {
+    if (age >= entryUpdateThreshold) {
       return true;
     }
 
