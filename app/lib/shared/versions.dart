@@ -11,3 +11,7 @@ final Version semanticPanaVersion = new Version.parse(panaVersion);
 // keep in-sync with app/script/setup-flutter.sh
 final String flutterVersion = '0.0.22';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
+
+// keep in-sync with SDK version in .travis.yml and Dockerfile
+final String dartdocVersion = '0.16.0';
+final Version semanticDartdocVersion = new Version.parse(dartdocVersion);

@@ -14,6 +14,7 @@ import 'package:uuid/uuid.dart';
 import '../shared/configuration.dart' show envConfig;
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 import '../shared/utils.dart' show redirectDartdocPages;
+import '../shared/versions.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -26,14 +27,11 @@ const statusFilePath = 'status.json';
 const buildLogFilePath = 'log.txt';
 
 class DartdocRunner implements TaskRunner {
-  String _cachedDartdocVersion;
-
   @override
   Future<bool> shouldSkipTask(Task task) async {
     if (redirectDartdocPages.containsKey(task.package)) {
       return true;
     }
-    final dartdocVersion = await _getDartdocVersion();
     final shouldRun = await dartdocBackend.shouldRunTask(task, dartdocVersion);
     return !shouldRun;
   }
@@ -121,7 +119,7 @@ class DartdocRunner implements TaskRunner {
         uuid: _uuid.v4(),
         packageName: task.package,
         packageVersion: task.version,
-        dartdocVersion: await _getDartdocVersion(),
+        dartdocVersion: dartdocVersion,
         timestamp: new DateTime.now().toUtc(),
         hasContent: hasContent);
 
@@ -135,30 +133,4 @@ class DartdocRunner implements TaskRunner {
 
     return entry;
   }
-
-  Future<String> _getDartdocVersion() async {
-    if (_cachedDartdocVersion != null) return _cachedDartdocVersion;
-    final pr = await Process.run('dartdoc', ['--version']);
-    if (pr.exitCode != 0) {
-      _logger.severe('Unable to detect dartdoc version\n'
-          'exitCode: ${pr.exitCode}\n'
-          'stdout: ${pr.stdout}\n'
-          'stderr: ${pr.stderr}\n');
-      throw new Exception('dartdoc execution failed with code ${pr.exitCode}');
-    }
-
-    final match = _versionRegExp.firstMatch(pr.stdout.toString().trim());
-    if (match == null) {
-      _logger.severe('Unable to parse dartdoc version: ${pr.stdout}');
-      throw new Exception('Unable to parse dartdoc version: ${pr.stdout}');
-    }
-
-    final version = match.group(1).trim();
-    if (version.isNotEmpty) {
-      _cachedDartdocVersion = version;
-    }
-    return _cachedDartdocVersion;
-  }
 }
-
-final RegExp _versionRegExp = new RegExp(r'dartdoc version: (.*)$');
