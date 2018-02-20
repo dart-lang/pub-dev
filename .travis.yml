@@ -4,6 +4,7 @@
 language: dart
 
 dart:
+  # Keep version in-sync with Dockerfile
   - 2.0.0-dev.26.0
 
 env:
