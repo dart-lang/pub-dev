@@ -26,6 +26,9 @@ class PanaRunner implements TaskRunner {
 
   @override
   Future<bool> shouldSkipTask(Task task) async {
+    if (redirectPackagePages.containsKey(task.package)) {
+      return true;
+    }
     final TaskTargetStatus status = await _analysisBackend.getTargetStatus(
         task.package, task.version, task.updated);
     if (status.shouldSkip) {

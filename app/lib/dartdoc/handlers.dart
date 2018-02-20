@@ -11,7 +11,7 @@ import '../shared/handlers.dart';
 import '../shared/notification.dart';
 import '../shared/scheduler_stats.dart';
 import '../shared/task_client.dart';
-import '../shared/utils.dart' show contentType;
+import '../shared/utils.dart' show contentType, redirectDartdocPages;
 
 import 'backend.dart';
 
@@ -26,9 +26,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return handler(request);
-  } else if (path == '/documentation/flutter' ||
-      path.startsWith('/documentation/flutter/')) {
-    return redirectResponse('https://docs.flutter.io/');
   } else if (path.startsWith('/documentation/')) {
     return documentationHandler(request);
   } else if (path.startsWith('/packages/')) {
@@ -81,6 +78,9 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath == null) {
     return notFoundHandler(request);
   }
+  if (redirectDartdocPages.containsKey(docFilePath.package)) {
+    return redirectResponse(redirectDartdocPages[docFilePath.package]);
+  }
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
     final entry = await dartdocBackend.getLatestEntry(
@@ -106,6 +106,7 @@ class DocFilePath {
 DocFilePath parseRequestUri(Uri uri) {
   final pathSegments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
   if (pathSegments.length < 3) {
+    // TODO: handle URLs without versions, redirect to latest stable version
     return null;
   }
   if (pathSegments[0] != 'documentation') {

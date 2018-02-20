@@ -189,6 +189,14 @@ const _knownGoodLowerCasePackages = const [
   'babylon',
 ];
 
+const redirectPackagePages = const <String, String>{
+  'flutter': 'https://flutter.io/',
+};
+
+const redirectDartdocPages = const <String, String>{
+  'flutter': 'https://docs.flutter.io/',
+};
+
 /// Sanity checks if the user would upload a package with a modified pub client
 /// that skips these verifications.
 /// TODO: share code to use the same validations as in
