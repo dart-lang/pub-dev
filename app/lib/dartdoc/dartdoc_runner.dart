@@ -14,7 +14,7 @@ import 'package:uuid/uuid.dart';
 import '../shared/configuration.dart' show envConfig;
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
 import '../shared/utils.dart' show redirectDartdocPages;
-import '../shared/versions.dart';
+import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
 import 'customization.dart';
@@ -33,7 +33,7 @@ class DartdocRunner implements TaskRunner {
     if (redirectDartdocPages.containsKey(task.package)) {
       return true;
     }
-    final shouldRun = await dartdocBackend.shouldRunTask(task, dartdocVersion);
+    final shouldRun = await dartdocBackend.shouldRunTask(task);
     return !shouldRun;
   }
 
@@ -61,11 +61,14 @@ class DartdocRunner implements TaskRunner {
       if (pkgDir == null) return false;
       await pkgDir.rename(pkgPath);
 
+      final usesFlutter = await _usesFlutter(pkgPath);
+
       // resolve dependencies
-      await _resolveDependencies(pubEnv, task, pkgPath);
+      await _resolveDependencies(pubEnv, task, pkgPath, usesFlutter);
 
       final dartdocEnv = {'PUB_CACHE': pubCacheDir};
-      final entry = await _generateDocs(task, pkgPath, outputDir, dartdocEnv);
+      final entry = await _generateDocs(
+          task, pkgPath, outputDir, dartdocEnv, usesFlutter);
 
       await new DartdocCustomizer(task.package, task.version)
           .customizeDir(outputDir);
@@ -79,9 +82,14 @@ class DartdocRunner implements TaskRunner {
     return false; // no race detection
   }
 
-  Future _resolveDependencies(
-      PubEnvironment pubEnv, Task task, String pkgPath) async {
-    final pr = await pubEnv.runUpgrade(pkgPath, /* isFlutter */ false);
+  Future<bool> _usesFlutter(String pkgPath) async {
+    // TODO: detect if package is Flutter
+    return false;
+  }
+
+  Future _resolveDependencies(PubEnvironment pubEnv, Task task, String pkgPath,
+      bool usesFlutter) async {
+    final pr = await pubEnv.runUpgrade(pkgPath, usesFlutter);
     if (pr.exitCode != 0) {
       _logger.severe('Error while running pub upgrade for $task.\n'
           'exitCode: ${pr.exitCode}\n'
@@ -96,6 +104,7 @@ class DartdocRunner implements TaskRunner {
     String pkgPath,
     String outputDir,
     Map<String, String> environment,
+    bool usesFlutter,
   ) async {
     final pr = await Process.run(
       'dartdoc',
@@ -123,7 +132,10 @@ class DartdocRunner implements TaskRunner {
         uuid: _uuid.v4(),
         packageName: task.package,
         packageVersion: task.version,
-        dartdocVersion: dartdocVersion,
+        usesFlutter: usesFlutter,
+        dartdocVersion: versions.dartdocVersion,
+        flutterVersion: versions.flutterVersion,
+        customizationVersion: versions.customizationVersion,
         timestamp: new DateTime.now().toUtc(),
         hasContent: hasContent);
 

@@ -39,7 +39,7 @@ class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
       return true;
     }
 
-    // TODO: trigger task if current dartdoc version is newer
+    if (entry.requiresNewRun()) return true;
 
     final now = new DateTime.now().toUtc();
     final age = now.difference(entry.timestamp).abs();
