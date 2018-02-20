@@ -24,7 +24,7 @@ fi
 
 git clone -b v0.0.22 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
 
-# Keep in-sync with app/lib/analyzer/versions.dart
+# Keep in-sync with app/lib/shared/versions.dart
 cd $FLUTTER_SDK
 
 # Downloads the Dart SDK and disables analytics tracking – which we always want.

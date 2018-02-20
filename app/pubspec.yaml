@@ -30,7 +30,7 @@ dependencies:
   stream_transform: ^0.0.7
   yaml: '^2.1.12'
   # pana version to be pinned
-  # keep in-sync with app/lib/analyzer/versions.dart
+  # keep in-sync with app/lib/shared/versions.dart
   pana: '0.10.2'
   # 3rd-party packages with pinned versions
   archive: '1.0.33'

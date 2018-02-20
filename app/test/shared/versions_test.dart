@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_dartlang_org/analyzer/versions.dart';
+import 'package:pub_dartlang_org/shared/versions.dart';
 
 void main() {
   test('analyzer version should match resolved pana version', () async {

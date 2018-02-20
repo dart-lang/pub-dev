@@ -12,9 +12,9 @@ import '../frontend/models.dart';
 import '../shared/analyzer_memcache.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/utils.dart';
+import '../shared/versions.dart';
 
 import 'models.dart';
-import 'versions.dart';
 
 /// Sets the backend service.
 void registerAnalysisBackend(AnalysisBackend backend) =>
