@@ -686,7 +686,7 @@ class TemplateService {
     } else if (status == AnalysisStatus.deprecated) {
       tags.add({
         // TODO: replace with a new deprecated style
-        'status': 'unidentified',
+        'status': 'deprecated',
         'text': '[deprecated]',
         'title': 'Package was deprecated.',
       });
