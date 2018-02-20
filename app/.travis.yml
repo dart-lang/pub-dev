@@ -1,7 +1,8 @@
 language: dart
 
 dart:
-  - dev
+  # Keep version in-sync with Dockerfile
+  - 2.0.0-dev.26.0
 
 dart_task:
   - test

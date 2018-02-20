@@ -9,9 +9,9 @@ import 'package:gcloud/db.dart';
 import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
+import '../shared/versions.dart';
 
 import 'models.dart';
-import 'versions.dart';
 
 /// Creates a task when a version uploaded in the past 10 minutes has no
 /// analysis yet.

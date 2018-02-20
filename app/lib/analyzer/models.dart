@@ -11,9 +11,9 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/utils.dart';
+import '../shared/versions.dart' as versions;
 
 import 'model_properties.dart';
-import 'versions.dart' as versions;
 
 /// Analyzed package report.
 @db.Kind(name: 'PackageAnalysis', idType: db.IdType.String)

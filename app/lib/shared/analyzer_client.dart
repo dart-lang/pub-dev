@@ -10,8 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 
-import 'package:pub_dartlang_org/analyzer/versions.dart';
-
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
 import 'configuration.dart';
@@ -20,6 +18,7 @@ import 'notification.dart' show notifyService;
 import 'platform.dart';
 import 'popularity_storage.dart';
 import 'utils.dart';
+import 'versions.dart';
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 export 'analyzer_service.dart';
