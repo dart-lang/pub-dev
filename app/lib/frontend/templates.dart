@@ -192,8 +192,8 @@ class TemplateService {
       case AnalysisStatus.failure:
         statusText = 'tool failures';
         break;
-      case AnalysisStatus.deprecated:
-        statusText = 'skipped (deprecated)';
+      case AnalysisStatus.discontinued:
+        statusText = 'skipped (discontinued)';
         break;
       case AnalysisStatus.outdated:
         statusText = 'skipped (outdated)';
@@ -226,10 +226,10 @@ class TemplateService {
 
     final Map<String, dynamic> data = {
       'package': package,
-      'show_deprecated': analysisStatus == AnalysisStatus.deprecated,
+      'show_discontinued': analysisStatus == AnalysisStatus.discontinued,
       'show_outdated': analysisStatus == AnalysisStatus.outdated,
       'show_analysis': analysisStatus != AnalysisStatus.outdated &&
-          analysisStatus != AnalysisStatus.deprecated,
+          analysisStatus != AnalysisStatus.discontinued,
       'date_completed': analysis.timestamp == null
           ? null
           : shortDateFormat.format(analysis.timestamp),
@@ -683,12 +683,11 @@ class TemplateService {
         'text': '[awaiting]',
         'title': 'Analysis should be ready soon.',
       });
-    } else if (status == AnalysisStatus.deprecated) {
+    } else if (status == AnalysisStatus.discontinued) {
       tags.add({
-        // TODO: replace with a new deprecated style
-        'status': 'unidentified',
-        'text': '[deprecated]',
-        'title': 'Package was deprecated.',
+        'status': 'discontinued',
+        'text': '[discontinued]',
+        'title': 'Package was discontinued.',
       });
     } else if (status == AnalysisStatus.outdated) {
       tags.add({
@@ -787,8 +786,8 @@ String _getAuthorsHtml(List<String> authors) {
 
 String _renderScoreBox(AnalysisStatus status, double overallScore,
     {bool isNewPackage, String package}) {
-  final skippedAnalysis =
-      status == AnalysisStatus.outdated || status == AnalysisStatus.deprecated;
+  final skippedAnalysis = status == AnalysisStatus.outdated ||
+      status == AnalysisStatus.discontinued;
   final score = skippedAnalysis ? null : overallScore;
   final String formattedScore = _formatScore(score);
   final String scoreClass = _classifyScore(score);

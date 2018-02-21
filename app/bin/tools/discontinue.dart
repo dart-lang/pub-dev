@@ -54,8 +54,8 @@ Future _read(String packageName) async {
   if (p == null) {
     throw new Exception('Package $packageName does not exist.');
   }
-  final isDeprecated = p.isDeprecated ?? false;
-  final label = isDeprecated ? 'deprecated' : '-';
+  final isDiscontinued = p.isDiscontinued ?? false;
+  final label = isDiscontinued ? 'discontinued' : '-';
   print('Package $packageName: $label');
 }
 
@@ -67,10 +67,10 @@ Future _set(String packageName, bool value) {
     if (p == null) {
       throw new Exception('Package $packageName does not exist.');
     }
-    p.isDeprecated = value;
+    p.isDiscontinued = value;
     tx.queueMutations(inserts: [p]);
     await tx.commit();
-    print('Package $packageName: isDeprecated=$value');
+    print('Package $packageName: isDiscontinued=$value');
     await new AnalyzerClient()
         .triggerAnalysis(packageName, p.latestVersion, new Set());
   });
