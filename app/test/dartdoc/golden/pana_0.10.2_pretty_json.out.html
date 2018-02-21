@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,7 +28,7 @@
   </ol>
   <div class="self-name">prettyJson</div>
   <form class="search navbar-right" role="search">
-    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+    <input type="text" id="search-box" autocomplete="off" disabled="" class="form-control typeahead" placeholder="Loading search...">
   </form>
 </header>
 
@@ -114,17 +112,17 @@
       <h2><span>Implementation</span> </h2>
       <pre class="language-dart"><code class="language-dart">String prettyJson(obj) {
   try {
-    return const JsonEncoder.withIndent(&#39; &#39;).convert(obj);
+    return const JsonEncoder.withIndent(' ').convert(obj);
   } on JsonUnsupportedObjectError catch (e) {
     var error = e;
 
     while (error is JsonUnsupportedObjectError) {
       stderr.writeln([
         error,
-        &quot;${error.unsupportedObject} - (${error.unsupportedObject.runtimeType})&quot;,
-        error.cause == null ? null : &quot;Nested cause: ${error.cause}&quot;,
+        "${error.unsupportedObject} - (${error.unsupportedObject.runtimeType})",
+        error.cause == null ? null : "Nested cause: ${error.cause}",
         error.stackTrace
-      ].where((i) =&gt; i != null).join(&#39;\n&#39;));
+      ].where((i) =&gt; i != null).join('\n'));
 
       error = error.cause;
     }
@@ -154,6 +152,7 @@
 <script src="static-assets/script.js"></script>
 
 
-</body>
 
-</html>
+
+
+</body></html>

@@ -5,6 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:html/dom.dart';
+import 'package:html/parser.dart' as html_parser;
+
 class DartdocCustomizer {
   final String packageName;
   final String packageVersion;
@@ -23,7 +26,8 @@ class DartdocCustomizer {
   }
 
   String customizeHtml(String html) {
-    return null;
+    final doc = html_parser.parse(html);
+    return doc.outerHtml;
   }
 }
 
