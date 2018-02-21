@@ -118,10 +118,16 @@ void _setEventForMobileNav() {
   });
 }
 
+/// change the tab based on URL hash
 void _changeTabOnUrlHash() {
-  // change the tab based on URL hash
-  if (tabRoot != null && (window.location.hash ?? '').isNotEmpty) {
-    _changeTab(window.location.hash.substring(1));
+  if (tabRoot == null) return;
+  final hash = window.location.hash ?? '';
+  // Navigating back to a non-hashed package page will result an empty hash.
+  // Displaying the default tab: readme.
+  if (hash.isEmpty) {
+    _changeTab('-readme-tab-');
+  } else {
+    _changeTab(hash.substring(1));
   }
 }
 
