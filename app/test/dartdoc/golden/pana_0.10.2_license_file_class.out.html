@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the LicenseFile class from the pana library, for the Dart programming language.">
+  <title>LicenseFile class - pana library - Dart API</title>
+  <link rel="canonical" href="https://www.dartdocs.org/documentation/pana/0.10.2/pana/LicenseFile-class.html">
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">pana</a></li>
+    <li><a href="pana/pana-library.html">pana</a></li>
+    <li class="self-crumb">LicenseFile class</li>
+  </ol>
+  <div class="self-name">LicenseFile</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>pana library</h5>
+    <ol>
+      <li class="section-title"><a href="pana/pana-library.html#classes">Classes</a></li>
+      <li><a href="pana/CodeProblem-class.html">CodeProblem</a></li>
+      <li><a href="pana/ComponentDef-class.html">ComponentDef</a></li>
+      <li><a href="pana/ComponentNames-class.html">ComponentNames</a></li>
+      <li><a href="pana/ConstraintTypes-class.html">ConstraintTypes</a></li>
+      <li><a href="pana/DartFileSummary-class.html">DartFileSummary</a></li>
+      <li><a href="pana/DartPlatform-class.html">DartPlatform</a></li>
+      <li><a href="pana/DartSdk-class.html">DartSdk</a></li>
+      <li><a href="pana/DependencyTypes-class.html">DependencyTypes</a></li>
+      <li><a href="pana/Fitness-class.html">Fitness</a></li>
+      <li><a href="pana/FlutterSdk-class.html">FlutterSdk</a></li>
+      <li><a href="pana/LicenseFile-class.html">LicenseFile</a></li>
+      <li><a href="pana/LicenseNames-class.html">LicenseNames</a></li>
+      <li><a href="pana/PackageAnalyzer-class.html">PackageAnalyzer</a></li>
+      <li><a href="pana/PackageLocation-class.html">PackageLocation</a></li>
+      <li><a href="pana/Penalty-class.html">Penalty</a></li>
+      <li><a href="pana/PkgDependency-class.html">PkgDependency</a></li>
+      <li><a href="pana/PkgResolution-class.html">PkgResolution</a></li>
+      <li><a href="pana/PlatformDef-class.html">PlatformDef</a></li>
+      <li><a href="pana/PlatformNames-class.html">PlatformNames</a></li>
+      <li><a href="pana/PubEntry-class.html">PubEntry</a></li>
+      <li><a href="pana/PubEnvironment-class.html">PubEnvironment</a></li>
+      <li><a href="pana/Pubspec-class.html">Pubspec</a></li>
+      <li><a href="pana/Suggestion-class.html">Suggestion</a></li>
+      <li><a href="pana/SuggestionLevel-class.html">SuggestionLevel</a></li>
+      <li><a href="pana/Summary-class.html">Summary</a></li>
+    
+    
+    
+      <li class="section-title"><a href="pana/pana-library.html#functions">Functions</a></li>
+      <li><a href="pana/applyPenalties.html">applyPenalties</a></li>
+      <li><a href="pana/byteStreamSplit.html">byteStreamSplit</a></li>
+      <li><a href="pana/calcFitness.html">calcFitness</a></li>
+      <li><a href="pana/calcPkgFitness.html">calcPkgFitness</a></li>
+      <li><a href="pana/classifyLibPlatform.html">classifyLibPlatform</a></li>
+      <li><a href="pana/classifyPkgPlatform.html">classifyPkgPlatform</a></li>
+      <li><a href="pana/detectLicenseInContent.html">detectLicenseInContent</a></li>
+      <li><a href="pana/detectLicenseInFile.html">detectLicenseInFile</a></li>
+      <li><a href="pana/detectLicensesInDir.html">detectLicensesInDir</a></li>
+      <li><a href="pana/fileSize.html">fileSize</a></li>
+      <li><a href="pana/getPubspecContent.html">getPubspecContent</a></li>
+      <li><a href="pana/getSignals.html">getSignals</a></li>
+      <li><a href="pana/handleProcessErrors.html">handleProcessErrors</a></li>
+      <li><a href="pana/listFiles.html">listFiles</a></li>
+      <li><a href="pana/listFocusDirs.html">listFocusDirs</a></li>
+      <li><a href="pana/prettyJson.html">prettyJson</a></li>
+      <li><a href="pana/runProc.html">runProc</a></li>
+      <li><a href="pana/runProcSync.html">runProcSync</a></li>
+      <li><a href="pana/sortedJson.html">sortedJson</a></li>
+      <li><a href="pana/toPackageUri.html">toPackageUri</a></li>
+      <li><a href="pana/toRelativePath.html">toRelativePath</a></li>
+      <li><a href="pana/updateLicenseUrls.html">updateLicenseUrls</a></li>
+      <li><a href="pana/yamlToJson.html">yamlToJson</a></li>
+    
+      <li class="section-title"><a href="pana/pana-library.html#enums">Enums</a></li>
+      <li><a href="pana/PlatformUse-class.html">PlatformUse</a></li>
+      <li><a href="pana/VersionResolutionType-class.html">VersionResolutionType</a></li>
+    
+    
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>LicenseFile class</h1>
+
+    
+    <section>
+      <dl class="dl-horizontal">
+
+
+
+
+        <dt>Annotations</dt>
+        <dd><ul class="annotation-list clazz-relationships">
+          <li>@JsonSerializable()</li>
+        </ul></dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="constructors">
+      <h2>Constructors</h2>
+
+      <dl class="constructor-summary-list">
+        <dt id="LicenseFile" class="callable">
+          <span class="name"><a href="pana/LicenseFile/LicenseFile.html">LicenseFile</a></span><span class="signature">(<span class="parameter" id="-param-path"><span class="type-annotation">String</span> <span class="parameter-name">path</span>, </span> <span class="parameter" id="-param-name"><span class="type-annotation">String</span> <span class="parameter-name">name</span>, {</span> <span class="parameter" id="-param-version"><span class="type-annotation">String</span> <span class="parameter-name">version</span>, </span> <span class="parameter" id="-param-url"><span class="type-annotation">String</span> <span class="parameter-name">url</span></span> })</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="LicenseFile.fromJson" class="callable">
+          <span class="name"><a href="pana/LicenseFile/LicenseFile.fromJson.html">LicenseFile.fromJson</a></span><span class="signature">(<span class="parameter" id="fromJson-param-json"><span class="type-annotation">Map<span class="signature">&lt;String, dynamic&gt;</span></span> <span class="parameter-name">json</span></span>)</span>
+        </dt>
+        <dd>
+          
+          <div class="constructor-modifier features">factory</div>
+        </dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="hashCode" class="property">
+          <span class="name"><a href="pana/LicenseFile/hashCode.html">hashCode</a></span>
+          <span class="signature">&#8594; int</span>
+        </dt>
+        <dd>
+          The hash code for this object. <a href="pana/LicenseFile/hashCode.html">[...]</a>
+          <div class="features">read-only</div>
+</dd>
+        <dt id="name" class="property">
+          <span class="name"><a href="pana/LicenseFile/name.html">name</a></span>
+          <span class="signature">&#8594; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">final</div>
+</dd>
+        <dt id="path" class="property">
+          <span class="name"><a href="pana/LicenseFile/path.html">path</a></span>
+          <span class="signature">&#8594; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">final</div>
+</dd>
+        <dt id="shortFormatted" class="property">
+          <span class="name"><a href="pana/LicenseFile/shortFormatted.html">shortFormatted</a></span>
+          <span class="signature">&#8594; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read-only</div>
+</dd>
+        <dt id="url" class="property">
+          <span class="name"><a href="pana/LicenseFile/url.html">url</a></span>
+          <span class="signature">&#8594; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">@JsonKey(includeIfNull: false), final</div>
+</dd>
+        <dt id="version" class="property">
+          <span class="name"><a href="pana/LicenseFile/version.html">version</a></span>
+          <span class="signature">&#8594; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">@JsonKey(includeIfNull: false), final</div>
+</dd>
+        <dt id="runtimeType" class="property inherited">
+          <span class="name"><a href="pana/LicenseFile/runtimeType.html">runtimeType</a></span>
+          <span class="signature">&#8594; Type</span>
+        </dt>
+        <dd class="inherited">
+          A representation of the runtime type of the object.
+          <div class="features">read-only, inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-methods">
+      <h2>Methods</h2>
+      <dl class="callables">
+        <dt id="change" class="callable">
+          <span class="name"><a href="pana/LicenseFile/change.html">change</a></span><span class="signature">(<wbr>{<span class="parameter" id="change-param-url"><span class="type-annotation">String</span> <span class="parameter-name">url</span></span> })
+            <span class="returntype parameter">&#8594; <a href="pana/LicenseFile-class.html">LicenseFile</a></span>
+          </span>
+        </dt>
+        <dd>
+          
+          
+</dd>
+        <dt id="toString" class="callable">
+          <span class="name"><a href="pana/LicenseFile/toString.html">toString</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd>
+          Returns a string representation of this object.
+          
+</dd>
+        <dt id="noSuchMethod" class="callable inherited">
+          <span class="name"><a href="pana/LicenseFile/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation">Invocation</span> <span class="parameter-name">invocation</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Invoked when a non-existent method or property is accessed. <a href="pana/LicenseFile/noSuchMethod.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toJson" class="callable inherited">
+          <span class="name"><a href="pana/LicenseFile/toJson.html">toJson</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Map<span class="signature">&lt;String, dynamic&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="operators">
+      <h2>Operators</h2>
+      <dl class="callables">
+        <dt id="operator ==" class="callable">
+          <span class="name"><a href="pana/LicenseFile/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation">Object</span> <span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd>
+          The equality operator. <a href="pana/LicenseFile/operator_equals.html">[...]</a>
+          
+</dd>
+      </dl>
+    </section>
+
+
+
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+    <ol>
+      <li class="section-title"><a href="pana/LicenseFile-class.html#constructors">Constructors</a></li>
+      <li><a href="pana/LicenseFile/LicenseFile.html">LicenseFile</a></li>
+      <li><a href="pana/LicenseFile/LicenseFile.fromJson.html">fromJson</a></li>
+    
+      <li class="section-title">
+        <a href="pana/LicenseFile-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="pana/LicenseFile/hashCode.html">hashCode</a></li>
+      <li><a href="pana/LicenseFile/name.html">name</a></li>
+      <li><a href="pana/LicenseFile/path.html">path</a></li>
+      <li><a href="pana/LicenseFile/shortFormatted.html">shortFormatted</a></li>
+      <li><a href="pana/LicenseFile/url.html">url</a></li>
+      <li><a href="pana/LicenseFile/version.html">version</a></li>
+      <li class="inherited"><a href="pana/LicenseFile/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="pana/LicenseFile-class.html#instance-methods">Methods</a></li>
+      <li><a href="pana/LicenseFile/change.html">change</a></li>
+      <li><a href="pana/LicenseFile/toString.html">toString</a></li>
+      <li class="inherited"><a href="pana/LicenseFile/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="pana/LicenseFile/toJson.html">toJson</a></li>
+    
+      <li class="section-title"><a href="pana/LicenseFile-class.html#operators">Operators</a></li>
+      <li><a href="pana/LicenseFile/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    pana 0.10.2
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>
