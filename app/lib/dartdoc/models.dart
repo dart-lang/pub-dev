@@ -9,6 +9,10 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_semver/pub_semver.dart';
+
+import '../shared/utils.dart' show isNewer;
+import '../shared/versions.dart' as versions;
 
 part 'models.g.dart';
 
@@ -17,7 +21,10 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final String uuid;
   final String packageName;
   final String packageVersion;
+  final bool usesFlutter;
   final String dartdocVersion;
+  final String flutterVersion;
+  final String customizationVersion;
   final DateTime timestamp;
   final bool hasContent;
 
@@ -25,7 +32,10 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     @required this.uuid,
     @required this.packageName,
     @required this.packageVersion,
+    @required this.usesFlutter,
     @required this.dartdocVersion,
+    @required this.flutterVersion,
+    @required this.customizationVersion,
     @required this.timestamp,
     @required this.hasContent,
   });
@@ -40,6 +50,11 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     final bytes = await stream.fold([], (sum, list) => sum..addAll(list));
     return new DartdocEntry.fromBytes(bytes);
   }
+
+  Version get _semanticDartdocVersion => new Version.parse(dartdocVersion);
+  Version get _semanticFlutterVersion => new Version.parse(flutterVersion);
+  Version get _semanticCustomizationVersion =>
+      new Version.parse(customizationVersion);
 
   /// The path of the status while the upload is in progress
   String get inProgressPrefix =>
@@ -59,6 +74,30 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   String get contentPrefix => '$packageName/$packageVersion/content/$uuid';
 
   List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
+
+  bool requiresNewRun() {
+    if (isNewer(_semanticDartdocVersion, versions.semanticDartdocVersion)) {
+      // our dartdoc version is newer -> regenerate
+      return true;
+    }
+    if (isNewer(versions.semanticDartdocVersion, _semanticDartdocVersion)) {
+      // our dartdoc version is older -> skip generating
+      return false;
+    }
+
+    if (usesFlutter &&
+        isNewer(_semanticFlutterVersion, versions.semanticFlutterVersion)) {
+      // our flutter version is newer -> regenerate
+      return true;
+    }
+
+    if (isNewer(
+        _semanticCustomizationVersion, versions.semanticCustomizationVersion)) {
+      // our customization version is newer -> regenerate
+      return true;
+    }
+    return false;
+  }
 }
 
 // TODO: use dartdocVersion in the prefix paths

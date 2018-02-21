@@ -83,12 +83,12 @@ class DartdocBackend {
     await _storage.delete(entry.inProgressPath);
   }
 
-  Future<bool> shouldRunTask(Task task, String dartdocVersion) async {
+  Future<bool> shouldRunTask(Task task) async {
     final entry = await getLatestEntry(task.package, task.version);
     if (entry == null) {
       return true;
     }
-    if (entry.dartdocVersion != dartdocVersion) {
+    if (entry.requiresNewRun()) {
       return true;
     }
     if (task.updated != null && task.updated.isAfter(entry.timestamp)) {
