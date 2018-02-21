@@ -19,6 +19,7 @@ import 'backend.dart';
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
+    '/': indexHandler,
     '/debug': debugHandler,
     // TODO: have a proper robots.txt after we are serving content
     '/robots.txt': rejectRobotsHandler,
@@ -42,6 +43,11 @@ Future<shelf.Response> debugHandler(shelf.Request request) async {
     'maxRss': ProcessInfo.maxRss,
     'scheduler': latestSchedulerStats,
   }, indent: true);
+}
+
+/// Handles / requests
+Future<shelf.Response> indexHandler(shelf.Request request) async {
+  return htmlResponse(indexHtmlContent);
 }
 
 /// Handles requests for:
@@ -126,3 +132,32 @@ DocFilePath parseRequestUri(Uri uri) {
   }
   return new DocFilePath(package, version, path);
 }
+
+const indexHtmlContent = '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dart package API docs | Dartdocs</title>
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,700' rel='stylesheet' type='text/css'>
+  </head>
+
+  <body class="default hide_toc">
+    <header id="page-header">
+      <nav id="mainnav">
+        <a href="https://pub.dartlang.org/" class="brand" title="Dart">
+          <img src="https://dartlang.org/assets/logo-61576b6c2423c80422c986036ead4a7fc64c70edd7639c6171eba19e992c87d9.svg" alt="Dart" height="50px">
+        </a>
+      </nav>
+    </header>
+
+    <main id="page-content">
+      <h2>Dart package API docs</h2>
+      <p>
+        API documentation for a package published on the
+        <a href="https://pub.dartlang.org/">Pub package manager</a>, is
+        available via the <b>Documentation</b> link located on any individual
+        package page on Pub.</p>
+    </main>
+  </body>
+</html>
+''';
