@@ -11,6 +11,7 @@ import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 import '../shared/versions.dart';
 
+import 'backend.dart' show reanalyzeThreshold;
 import 'models.dart';
 
 /// Creates a task when a version uploaded in the past 10 minutes has no
@@ -32,13 +33,14 @@ class AnalyzerDatastoreHeadTaskSource extends DatastoreHeadTaskSource {
   }
 }
 
-/// Creates a task when the most recent analysis is older than 30 days.
+/// Creates a task when the most recent analysis is older than
+/// [reanalyzeThreshold] days.
 class AnalyzerDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
   final DatastoreDB _db;
 
   AnalyzerDatastoreHistoryTaskSource(DatastoreDB db)
       : _db = db,
-        super(db, afterDays: 30);
+        super(db);
 
   @override
   Future<bool> requiresUpdate(String packageName, String packageVersion,
@@ -58,7 +60,7 @@ class AnalyzerDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
 
     final Duration diff =
         new DateTime.now().toUtc().difference(version.analysisTimestamp);
-    if (diff.inDays >= afterDays) return true;
+    if (diff >= reanalyzeThreshold) return true;
 
     if (retryFailed &&
         version.analysisStatus != AnalysisStatus.success &&
