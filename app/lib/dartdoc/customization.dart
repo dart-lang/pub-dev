@@ -29,9 +29,22 @@ class DartdocCustomizer {
     final doc = html_parser.parse(html);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
     if (breadcrumbs != null) {
+      _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
     }
     return doc.outerHtml;
+  }
+
+  void _addPubSiteLogo(Element breadcrumbs) {
+    final parent = breadcrumbs.parent;
+    final logoLink = new Element.tag('a');
+    logoLink.attributes['href'] = 'https://pub.dartlang.org/';
+    final imgRef = new Element.tag('img');
+    imgRef.attributes['src'] = 'https://pub.dartlang.org/static/img/dart-logo.svg';
+    imgRef.attributes['style'] = 'height: 30px; margin-right: 1em;';
+    logoLink.append(imgRef);
+    parent.insertBefore(logoLink, breadcrumbs);
+    parent.insertBefore(new Text('\n  '), breadcrumbs);
   }
 
   void _addPubPackageLink(Element breadcrumbs) {
