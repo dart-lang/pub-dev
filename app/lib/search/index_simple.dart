@@ -331,7 +331,7 @@ class SimplePackageIndex implements PackageIndex {
           final doc = _packages[package];
           double score = values[package];
           // isDeprecated may be null
-          if (doc.isDeprecated == true) {
+          if (doc.isDiscontinued == true) {
             switch (deprecatedRank) {
               case _DeprecatedRank.keep:
                 // keeps score

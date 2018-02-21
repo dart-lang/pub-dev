@@ -50,7 +50,7 @@ class Package extends db.ExpandoModel {
   List<String> uploaderEmails;
 
   @db.BoolProperty()
-  bool isDeprecated;
+  bool isDiscontinued;
 
   // Convenience Fields:
 

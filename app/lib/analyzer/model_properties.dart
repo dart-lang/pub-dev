@@ -25,8 +25,8 @@ class AnalysisStatusProperty extends StringProperty {
           return 'failure';
         case AnalysisStatus.success:
           return 'success';
-        case AnalysisStatus.deprecated:
-          return 'deprecated';
+        case AnalysisStatus.discontinued:
+          return 'discontinued';
         case AnalysisStatus.outdated:
           return 'outdated';
         default:
@@ -47,8 +47,8 @@ class AnalysisStatusProperty extends StringProperty {
           return AnalysisStatus.failure;
         case 'success':
           return AnalysisStatus.success;
-        case 'deprecated':
-          return AnalysisStatus.deprecated;
+        case 'discontinued':
+          return AnalysisStatus.discontinued;
         case 'outdated':
           return AnalysisStatus.outdated;
         default:

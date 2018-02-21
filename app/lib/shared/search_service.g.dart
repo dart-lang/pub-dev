@@ -25,7 +25,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
             ? null
             : DateTime.parse(json['updated'] as String),
         readme: json['readme'] as String,
-        isDeprecated: json['isDeprecated'] as bool,
+        isDiscontinued: json['isDiscontinued'] as bool,
         platforms:
             (json['platforms'] as List)?.map((e) => e as String)?.toList(),
         health: (json['health'] as num)?.toDouble(),
@@ -47,7 +47,7 @@ abstract class _$PackageDocumentSerializerMixin {
   DateTime get created;
   DateTime get updated;
   String get readme;
-  bool get isDeprecated;
+  bool get isDiscontinued;
   List<String> get platforms;
   double get health;
   double get popularity;
@@ -63,7 +63,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'created': created?.toIso8601String(),
         'updated': updated?.toIso8601String(),
         'readme': readme,
-        'isDeprecated': isDeprecated,
+        'isDiscontinued': isDiscontinued,
         'platforms': platforms,
         'health': health,
         'popularity': popularity,
