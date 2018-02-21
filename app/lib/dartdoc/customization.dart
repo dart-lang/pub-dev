@@ -14,6 +14,18 @@ class DartdocCustomizer {
 
   DartdocCustomizer(this.packageName, this.packageVersion);
 
+  Future<bool> customizeDir(String path) async {
+    bool changed = false;
+    final dir = new Directory(path);
+    await for (var fse in dir.list(recursive: true)) {
+      if (fse is File && fse.path.endsWith('.html')) {
+        final c = await customizeFile(fse);
+        changed = changed || c;
+      }
+    }
+    return changed;
+  }
+
   Future<bool> customizeFile(File file) async {
     final String oldContent = await file.readAsString();
     final String newContent = customizeHtml(oldContent);
@@ -40,7 +52,8 @@ class DartdocCustomizer {
     final logoLink = new Element.tag('a');
     logoLink.attributes['href'] = 'https://pub.dartlang.org/';
     final imgRef = new Element.tag('img');
-    imgRef.attributes['src'] = 'https://pub.dartlang.org/static/img/dart-logo.svg';
+    imgRef.attributes['src'] =
+        'https://pub.dartlang.org/static/img/dart-logo.svg';
     imgRef.attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);

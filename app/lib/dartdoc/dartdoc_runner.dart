@@ -17,6 +17,7 @@ import '../shared/utils.dart' show redirectDartdocPages;
 import '../shared/versions.dart';
 
 import 'backend.dart';
+import 'customization.dart';
 import 'models.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
@@ -65,6 +66,9 @@ class DartdocRunner implements TaskRunner {
 
       final dartdocEnv = {'PUB_CACHE': pubCacheDir};
       final entry = await _generateDocs(task, pkgPath, outputDir, dartdocEnv);
+
+      await new DartdocCustomizer(task.package, task.version)
+          .customizeDir(outputDir);
 
       if (entry.hasContent) {
         await dartdocBackend.uploadDir(entry, outputDir);
