@@ -27,7 +27,35 @@ class DartdocCustomizer {
 
   String customizeHtml(String html) {
     final doc = html_parser.parse(html);
+    final breadcrumbs = doc.body.querySelector('.breadcrumbs');
+    if (breadcrumbs != null) {
+      _addPubPackageLink(breadcrumbs);
+    }
     return doc.outerHtml;
   }
-}
 
+  void _addPubPackageLink(Element breadcrumbs) {
+    final pubPackageLink =
+        'https://pub.dartlang.org/packages/$packageName/versions/$packageVersion';
+    final pubPackageText = '$packageName package';
+    if (breadcrumbs.children.length == 1) {
+      // we are on the index page
+      final firstLink = breadcrumbs.querySelector('a');
+      firstLink.attributes['href'] = pubPackageLink;
+      firstLink.text = pubPackageText;
+    } else if (breadcrumbs.children.isNotEmpty) {
+      // we are inside
+      final firstLink = breadcrumbs.querySelector('a');
+      firstLink.text = 'documentation';
+
+      final lead = new Element.tag('li');
+      final leadLink = new Element.tag('a');
+      leadLink.attributes['href'] = pubPackageLink;
+      leadLink.text = pubPackageText;
+      lead.append(leadLink);
+
+      breadcrumbs.insertBefore(lead, breadcrumbs.firstChild);
+      breadcrumbs.insertBefore(new Text('\n    '), breadcrumbs.firstChild);
+    }
+  }
+}
