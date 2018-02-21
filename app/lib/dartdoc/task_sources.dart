@@ -20,7 +20,7 @@ class DartdocDatastoreHeadTaskSource extends DatastoreHeadTaskSource {
   @override
   Future<bool> shouldYieldTask(Task task) async {
     final entry =
-        await dartdocBackend.getLatestEntry(task.package, task.version);
+        await dartdocBackend.getLatestEntry(task.package, task.version, false);
     return entry == null;
   }
 }
@@ -34,7 +34,7 @@ class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
   Future<bool> requiresUpdate(String packageName, String packageVersion,
       {bool retryFailed: false}) async {
     final entry =
-        await dartdocBackend.getLatestEntry(packageName, packageVersion);
+        await dartdocBackend.getLatestEntry(packageName, packageVersion, false);
     if (entry == null) {
       return true;
     }

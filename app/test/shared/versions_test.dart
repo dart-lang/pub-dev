@@ -36,4 +36,44 @@ void main() {
     final version = match.group(1).trim();
     expect(version, dartdocVersion);
   });
+
+  group('dartdoc serving', () {
+    test('old versions are serving', () {
+      expect(shouldServeDartdoc('0.15.0', '0.0.21', '0.0.0'), isTrue);
+    });
+
+    test('max versions are serving', () {
+      expect(
+          shouldServeDartdoc(
+            dartdocVersion,
+            flutterVersion,
+            customizationVersion,
+          ),
+          isTrue);
+    });
+
+    test('next versions are not serving', () {
+      expect(
+          shouldServeDartdoc(
+            '0.16.1',
+            flutterVersion,
+            customizationVersion,
+          ),
+          isFalse);
+      expect(
+          shouldServeDartdoc(
+            dartdocVersion,
+            '0.0.23',
+            customizationVersion,
+          ),
+          isFalse);
+      expect(
+          shouldServeDartdoc(
+            dartdocVersion,
+            flutterVersion,
+            '0.0.2',
+          ),
+          isFalse);
+    });
+  });
 }
