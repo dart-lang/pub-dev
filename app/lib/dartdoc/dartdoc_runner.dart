@@ -6,10 +6,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:pana/pana.dart';
+import 'package:pana/pana.dart' hide Pubspec;
 import 'package:pana/src/download_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+
+import '../frontend/model_properties.dart' show Pubspec;
 
 import '../shared/configuration.dart' show envConfig;
 import '../shared/task_scheduler.dart' show Task, TaskRunner;
@@ -83,7 +85,14 @@ class DartdocRunner implements TaskRunner {
   }
 
   Future<bool> _usesFlutter(String pkgPath) async {
-    // TODO: detect if package is Flutter
+    final File file = new File(p.join(pkgPath, 'pubspec.yaml'));
+    if (await file.exists()) {
+      final content = await file.readAsString();
+      final pubspec = new Pubspec.fromYaml(content);
+      return pubspec.usesFlutter;
+    }
+    // something may be wrong with the package with a missing pubspec.yaml
+    _logger.warning('Missing pubspec.yaml in $pkgPath');
     return false;
   }
 
