@@ -84,7 +84,8 @@ class BackendMock implements Backend {
   }
 
   @override
-  Stream<String> allPackageNames({DateTime updatedSince}) {
+  Stream<String> allPackageNames(
+      {DateTime updatedSince, bool excludeDiscontinued: false}) {
     throw new UnsupportedError('sorry!');
   }
 

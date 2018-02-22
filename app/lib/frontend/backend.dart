@@ -78,14 +78,22 @@ class Backend {
   }
 
   /// Retrieves the names of all packages, ordered by name.
-  Stream<String> allPackageNames({DateTime updatedSince}) {
+  Stream<String> allPackageNames(
+      {DateTime updatedSince, bool excludeDiscontinued: false}) {
     final query = db.query(models.Package);
 
     if (updatedSince != null) {
       query.filter('updated >', updatedSince);
     }
 
-    return query.run().map((p) => (p as models.Package).name);
+    bool isExcluded(models.Package p) =>
+        // isDiscontinued may be null
+        excludeDiscontinued && p.isDiscontinued == true;
+
+    return query
+        .run()
+        .where((p) => !isExcluded(p))
+        .map((p) => (p as models.Package).name);
   }
 
   /// Retrieves package versions ordered by their latest version date.
