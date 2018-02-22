@@ -183,6 +183,7 @@ class TemplateMock implements TemplateService {
     String platform,
     SearchQuery searchQuery,
     bool includeSurvey: true,
+    bool noIndex: false,
   }) =>
       _response;
 
