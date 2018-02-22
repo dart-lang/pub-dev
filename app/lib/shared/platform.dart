@@ -14,13 +14,16 @@ abstract class KnownPlatforms {
 }
 
 final _whitelistedOverride = 'Whitelisted platform override.';
+DartPlatform _webOnly() => new DartPlatform.fromComponents(
+      [ComponentNames.html],
+      reason: _whitelistedOverride,
+    );
 
 final packagePlatformOverrides = <String, DartPlatform>{
+  // categorized as "flutter, web, other", override to "web"
+  'browser': _webOnly(),
   // categorized as "flutter, other", override to "web"
-  'dart_to_js_script_rewriter': new DartPlatform.fromComponents(
-    [ComponentNames.html],
-    reason: _whitelistedOverride,
-  ),
+  'dart_to_js_script_rewriter': _webOnly(),
 };
 
 List<String> indexDartPlatform(DartPlatform platform) {
