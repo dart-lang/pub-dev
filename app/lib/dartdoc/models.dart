@@ -56,6 +56,9 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   Version get _semanticCustomizationVersion =>
       new Version.parse(customizationVersion);
 
+  bool get isServing => versions.shouldServeDartdoc(
+      dartdocVersion, flutterVersion, customizationVersion);
+
   /// The path of the status while the upload is in progress
   String get inProgressPrefix =>
       DartdocEntryPaths.inProgressPrefix(packageName, packageVersion);

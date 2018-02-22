@@ -84,7 +84,7 @@ class DartdocBackend {
   }
 
   Future<bool> shouldRunTask(Task task) async {
-    final entry = await getLatestEntry(task.package, task.version);
+    final entry = await getLatestEntry(task.package, task.version, false);
     if (entry == null) {
       return true;
     }
@@ -102,10 +102,14 @@ class DartdocBackend {
   }
 
   /// Return the latest entry that should be used to serve the content.
-  Future<DartdocEntry> getLatestEntry(String package, String version) async {
+  Future<DartdocEntry> getLatestEntry(
+      String package, String version, bool serving) async {
     // TODO: add caching with memcache
     final List<DartdocEntry> completedList =
         await _listEntries(DartdocEntryPaths.entryPrefix(package, version));
+    if (serving) {
+      completedList.removeWhere((entry) => !entry.isServing);
+    }
     if (completedList.isEmpty) return null;
     completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
     return completedList.first;
@@ -140,9 +144,17 @@ class DartdocBackend {
       }
     }
 
-    // delete everything except the latest
-    completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-    for (var entry in completedList.skip(1)) {
+    // keep entries that are not serving (there is a coordinated upgrade in progress)
+    completedList.removeWhere((entry) => !entry.isServing);
+
+    // keep the latest serving
+    if (completedList.isNotEmpty) {
+      completedList.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      completedList.removeLast();
+    }
+
+    // delete everything else
+    for (var entry in completedList) {
       final age = new DateTime.now().difference(entry.timestamp).abs();
       if (age > _contentDeleteThreshold) {
         await _deleteAll(entry);

@@ -90,7 +90,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
     final entry = await dartdocBackend.getLatestEntry(
-        docFilePath.package, docFilePath.version);
+        docFilePath.package, docFilePath.version, true);
+    if (entry == null) {
+      return notFoundHandler(request);
+    }
     final stream = dartdocBackend.readContent(entry, docFilePath.path);
     return new shelf.Response(
       HttpStatus.OK,
