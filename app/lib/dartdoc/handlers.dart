@@ -88,7 +88,13 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
   }
   if (docFilePath.version == null) {
-    // TODO: redirect to latest
+    final version = await dartdocBackend.getLatestVersion(docFilePath.package);
+    if (version == null) {
+      return notFoundHandler(request);
+    } else {
+      return redirectResponse(
+          '/documentation/${docFilePath.package}/$version/');
+    }
   }
   if (docFilePath.path == null) {
     return redirectResponse('${request.requestedUri}/');
