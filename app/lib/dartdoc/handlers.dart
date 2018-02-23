@@ -87,6 +87,12 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
   }
+  if (docFilePath.version == null) {
+    // TODO: redirect to latest
+  }
+  if (docFilePath.path == null) {
+    return redirectResponse('${request.requestedUri}/');
+  }
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
     final entry = await dartdocBackend.getLatestEntry(
@@ -113,20 +119,26 @@ class DocFilePath {
 }
 
 DocFilePath parseRequestUri(Uri uri) {
-  final pathSegments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
-  if (pathSegments.length < 3) {
-    // TODO: handle URLs without versions, redirect to latest stable version
-    return null;
+  final int segmentCount = uri.pathSegments.length;
+  if (segmentCount < 2) return null;
+  if (uri.pathSegments[0] != 'documentation') return null;
+
+  final String package = uri.pathSegments[1];
+  if (package.isEmpty) return null;
+  if (segmentCount == 2) {
+    return new DocFilePath(package, null, null);
   }
-  if (pathSegments[0] != 'documentation') {
-    return null;
+
+  final String version = uri.pathSegments[2];
+  if (version.isEmpty) {
+    return new DocFilePath(package, null, null);
   }
-  final String package = pathSegments[1];
-  final String version = pathSegments[2];
-  if (package.isEmpty || version.isEmpty) {
-    return null;
+  if (segmentCount == 3) {
+    return new DocFilePath(package, version, null);
   }
-  final relativeSegments = pathSegments.skip(3).toList();
+
+  final relativeSegments =
+      uri.pathSegments.skip(3).where((s) => s.isNotEmpty).toList();
   String path = relativeSegments.join('/');
   if (path.isEmpty) {
     path = 'index.html';
