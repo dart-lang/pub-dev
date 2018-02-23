@@ -205,8 +205,9 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
   final twoYearsAgo = new DateTime.now().subtract(twoYears);
   final items = new List.from(const ['', 'help', 'web', 'flutter']);
 
-  await for (var package
-      in backend.allPackageNames(updatedSince: twoYearsAgo)) {
+  final stream = backend.allPackageNames(
+      updatedSince: twoYearsAgo, excludeDiscontinued: true);
+  await for (var package in stream) {
     items.add('packages/$package');
   }
 
