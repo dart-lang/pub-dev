@@ -524,6 +524,7 @@ class TemplateService {
       faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
       canonicalUrl: canonicalUrl,
       platform: hasPlatformSearch ? singlePlatform : null,
+      noIndex: package.isDiscontinued == true, // isDiscontinued may be null
     );
   }
 
@@ -608,6 +609,7 @@ class TemplateService {
     String platform,
     SearchQuery searchQuery,
     bool includeSurvey: true,
+    bool noIndex: false,
   }) {
     final queryText = searchQuery?.query;
     final String escapedSearchQuery =
@@ -625,6 +627,7 @@ class TemplateService {
     final platformDict = getPlatformDict(platform);
     final isRoot = type == PageType.landing && platform == null;
     final values = {
+      'no_index': noIndex,
       'static_assets_dir': staticUrls.staticPath,
       'static_assets': staticUrls.assets,
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
