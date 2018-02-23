@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
+
+import 'scheduler_stats.dart';
+import 'versions.dart';
 
 const String default404NotFound = '404 Not Found';
 
@@ -46,3 +50,24 @@ shelf.Response notFoundHandler(shelf.Request request,
 
 shelf.Response rejectRobotsHandler(shelf.Request request) =>
     new shelf.Response.ok('User-agent: *\nDisallow: /\n');
+
+/// Combines a response for /debug requests
+shelf.Response debugResponse([Map data]) {
+  final map = {
+    'vm': {
+      'currentRss': ProcessInfo.currentRss,
+      'maxRss': ProcessInfo.maxRss,
+    },
+    'scheduler': latestSchedulerStats,
+    'versions': {
+      'pana': panaVersion,
+      'flutter': flutterVersion,
+      'dartdoc': dartdocVersion,
+      'customization': customizationVersion,
+    },
+  };
+  if (data != null) {
+    map.addAll(data);
+  }
+  return jsonResponse(map, indent: true);
+}

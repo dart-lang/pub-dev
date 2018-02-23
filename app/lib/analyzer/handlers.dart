@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -11,7 +10,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/analyzer_service.dart';
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
-import '../shared/scheduler_stats.dart';
 import '../shared/task_client.dart';
 
 import 'backend.dart';
@@ -22,7 +20,7 @@ final Logger _logger = new Logger('analyzer.handler');
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
-    '/debug': debugHandler,
+    '/debug': _debugHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
 
@@ -36,13 +34,7 @@ Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
 }
 
 /// Handler /debug requests
-Future<shelf.Response> debugHandler(shelf.Request request) async {
-  return jsonResponse({
-    'currentRss': ProcessInfo.currentRss,
-    'maxRss': ProcessInfo.maxRss,
-    'scheduler': latestSchedulerStats,
-  }, indent: true);
-}
+shelf.Response _debugHandler(shelf.Request request) => debugResponse();
 
 /// Handles requests for:
 ///   - /packages/<package>

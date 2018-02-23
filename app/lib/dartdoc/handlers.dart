@@ -9,7 +9,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
-import '../shared/scheduler_stats.dart';
 import '../shared/task_client.dart';
 import '../shared/utils.dart' show contentType, redirectDartdocPages;
 
@@ -20,7 +19,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
     '/': indexHandler,
-    '/debug': debugHandler,
+    '/debug': _debugHandler,
     // TODO: have a proper robots.txt after we are serving content
     '/robots.txt': rejectRobotsHandler,
   }[path];
@@ -37,13 +36,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 }
 
 /// Handler /debug requests
-Future<shelf.Response> debugHandler(shelf.Request request) async {
-  return jsonResponse({
-    'currentRss': ProcessInfo.currentRss,
-    'maxRss': ProcessInfo.maxRss,
-    'scheduler': latestSchedulerStats,
-  }, indent: true);
-}
+shelf.Response _debugHandler(shelf.Request request) => debugResponse();
 
 /// Handles / requests
 Future<shelf.Response> indexHandler(shelf.Request request) async {

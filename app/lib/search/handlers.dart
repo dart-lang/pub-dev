@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -22,7 +21,7 @@ final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
-    '/debug': debugHandler,
+    '/debug': _debugHandler,
     '/search': searchHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
@@ -37,13 +36,11 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
 }
 
 /// Handler /debug requests
-Future<shelf.Response> debugHandler(shelf.Request request) async {
-  return jsonResponse({
+shelf.Response _debugHandler(shelf.Request request) {
+  return debugResponse({
     'ready': packageIndex.isReady,
     'info': packageIndex.debugInfo,
-    'currentRss': ProcessInfo.currentRss,
-    'maxRss': ProcessInfo.maxRss,
-  }, indent: true);
+  });
 }
 
 /// Handles /search requests.
