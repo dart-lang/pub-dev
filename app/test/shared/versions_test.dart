@@ -39,7 +39,7 @@ void main() {
 
   group('dartdoc serving', () {
     test('old versions are serving', () {
-      expect(shouldServeDartdoc('0.15.0', '0.0.21', '0.0.0'), isTrue);
+      expect(shouldServeDartdoc('0.15.0', '0.1.3', '0.0.0'), isTrue);
     });
 
     test('max versions are serving', () {
@@ -63,7 +63,7 @@ void main() {
       expect(
           shouldServeDartdoc(
             dartdocVersion,
-            '0.0.23',
+            '0.1.5',
             customizationVersion,
           ),
           isFalse);

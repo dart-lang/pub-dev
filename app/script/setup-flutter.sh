@@ -2,9 +2,9 @@
 
 set -e
 
-if [ "$GAE_SERVICE" != "analyzer" ];
+if [ "$GAE_SERVICE" != "analyzer" ] && [ "$GAE_SERVICE" != "dartdoc" ];
 then
-  echo "Flutter setup aborted: GAE_SERVICE must be \"analyzer\"."
+  echo "Flutter setup aborted: GAE_SERVICE must be \"analyzer\" or \"dartdoc\"."
   # This shouldn't happen, GAE_SERVICE must be set.
   exit 1
 fi
@@ -22,7 +22,7 @@ then
   exit 1
 fi
 
-git clone -b v0.0.22 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
+git clone -b v0.1.4 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
 
 # Keep in-sync with app/lib/shared/versions.dart
 cd $FLUTTER_SDK
