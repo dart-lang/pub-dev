@@ -5,10 +5,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+
+import '../frontend/models.dart' show Package;
 
 import '../shared/task_scheduler.dart' show Task;
 import '../shared/utils.dart' show contentType;
@@ -28,9 +31,17 @@ void registerDartdocBackend(DartdocBackend backend) =>
 DartdocBackend get dartdocBackend => ss.lookup(#_dartdocBackend);
 
 class DartdocBackend {
+  DatastoreDB _db;
   Bucket _storage;
 
-  DartdocBackend(this._storage);
+  DartdocBackend(this._db, this._storage);
+
+  /// Returns the latest stable version of a package.
+  Future<String> getLatestVersion(String package) async {
+    final list = await _db.lookup([_db.emptyKey.append(Package, id: package)]);
+    final Package p = list.single;
+    return p?.latestVersion;
+  }
 
   /// Uploads a directory to the storage bucket.
   Future uploadDir(DartdocEntry entry, String dirPath) async {

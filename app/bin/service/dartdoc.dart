@@ -62,5 +62,5 @@ void _runScheduler(List<SendPort> sendPorts) {
 Future _registerServices() async {
   final Bucket storageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(new DartdocBackend(storageBucket));
+  registerDartdocBackend(new DartdocBackend(dbService, storageBucket));
 }

@@ -34,14 +34,13 @@ void main() {
       testUri('/documentation/', null);
     });
     test('/documentation/angular', () {
-      testUri('/documentation/angular', null);
+      testUri('/documentation/angular', 'angular');
     });
     test('/documentation/angular/', () {
-      testUri('/documentation/angular/', null);
+      testUri('/documentation/angular/', 'angular');
     });
     test('/documentation/angular/4.0.0%2B2', () {
-      testUri('/documentation/angular/4.0.0%2B2', 'angular', '4.0.0+2',
-          'index.html');
+      testUri('/documentation/angular/4.0.0%2B2', 'angular', '4.0.0+2');
     });
     test('/documentation/angular/4.0.0%2B2/', () {
       testUri('/documentation/angular/4.0.0%2B2/', 'angular', '4.0.0+2',
@@ -66,14 +65,23 @@ void main() {
         new shelf.Request('GET', Uri.parse('https://www.dartdocs.org$uri')));
 
     test('/documentation/flutter redirect', () async {
-      // TODO: this should be redirect (after the url is redirected to the latest version)
-      expectNotFoundResponse(await issueGet('/documentation/flutter'));
+      expectRedirectResponse(
+        await issueGet('/documentation/flutter'),
+        'https://docs.flutter.io/',
+      );
     });
 
     test('/documentation/flutter/version redirect', () async {
       expectRedirectResponse(
         await issueGet('/documentation/flutter/version'),
         'https://docs.flutter.io/',
+      );
+    });
+
+    test('/documentation/foo/bar redirect', () async {
+      expectRedirectResponse(
+        await issueGet('/documentation/foor/bar'),
+        'https://www.dartdocs.org/documentation/foor/bar/',
       );
     });
   });
