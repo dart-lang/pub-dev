@@ -63,17 +63,30 @@ class DartdocRunner implements TaskRunner {
       if (pkgDir == null) return false;
       await pkgDir.rename(pkgPath);
 
+      final logFileOutput = new StringBuffer();
+      logFileOutput.write('Dartdoc generation for $task\n\n'
+          'dartdoc: ${versions.dartdocVersion}\n'
+          'flutter: ${versions.flutterVersion}\n'
+          'customization: ${versions.customizationVersion}\n'
+          'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
       final usesFlutter = await _usesFlutter(pkgPath);
 
       // resolve dependencies
-      await _resolveDependencies(pubEnv, task, pkgPath, usesFlutter);
+      final bool depsResolved = await _resolveDependencies(
+          pubEnv, task, pkgPath, usesFlutter, logFileOutput);
 
       final dartdocEnv = {'PUB_CACHE': pubCacheDir};
-      final entry = await _generateDocs(
-          task, pkgPath, outputDir, dartdocEnv, usesFlutter);
+      final hasContent = await _generateDocs(
+          task, pkgPath, outputDir, dartdocEnv, logFileOutput);
 
       await new DartdocCustomizer(task.package, task.version)
           .customizeDir(outputDir);
+
+      final entry = await _createEntry(
+          task, outputDir, usesFlutter, depsResolved, hasContent);
+
+      logFileOutput.write('completed: ${entry.timestamp.toIso8601String()}\n');
+      await _writeLog(outputDir, logFileOutput);
 
       if (entry.hasContent) {
         await dartdocBackend.uploadDir(entry, outputDir);
@@ -96,25 +109,29 @@ class DartdocRunner implements TaskRunner {
     return false;
   }
 
-  Future _resolveDependencies(PubEnvironment pubEnv, Task task, String pkgPath,
-      bool usesFlutter) async {
+  Future<bool> _resolveDependencies(PubEnvironment pubEnv, Task task,
+      String pkgPath, bool usesFlutter, StringBuffer logFileOutput) async {
+    logFileOutput.write('Running pub upgrade:\n');
     final pr = await pubEnv.runUpgrade(pkgPath, usesFlutter);
+    _appendLog(logFileOutput, pr);
     if (pr.exitCode != 0) {
-      _logger.severe('Error while running pub upgrade for $task.\n'
+      _logger.warning('Error while running pub upgrade for $task.\n'
           'exitCode: ${pr.exitCode}\n'
           'stdout: ${pr.stdout}\n'
           'stderr: ${pr.stderr}\n');
-      throw new Exception('pub upgrade failed with code ${pr.exitCode}');
+      return false;
     }
+    return true;
   }
 
-  Future<DartdocEntry> _generateDocs(
+  Future<bool> _generateDocs(
     Task task,
     String pkgPath,
     String outputDir,
     Map<String, String> environment,
-    bool usesFlutter,
+    StringBuffer logFileOutput,
   ) async {
+    logFileOutput.write('Running dartdoc:\n');
     final pr = await Process.run(
       'dartdoc',
       [
@@ -128,15 +145,21 @@ class DartdocRunner implements TaskRunner {
       workingDirectory: pkgPath,
       environment: environment,
     );
+    _appendLog(logFileOutput, pr);
 
     if (pr.exitCode != 0) {
-      _logger.severe('Error while running dartdoc for $task.\n'
+      _logger.warning('Error while running dartdoc for $task.\n'
           'exitCode: ${pr.exitCode}\n'
           'stdout: ${pr.stdout}\n'
           'stderr: ${pr.stderr}\n');
     }
 
     final hasContent = await new File(p.join(outputDir, 'index.html')).exists();
+    return hasContent;
+  }
+
+  Future<DartdocEntry> _createEntry(Task task, String outputDir,
+      bool usesFlutter, bool depsResolved, bool hasContent) async {
     final entry = new DartdocEntry(
         uuid: _uuid.v4(),
         packageName: task.package,
@@ -146,16 +169,23 @@ class DartdocRunner implements TaskRunner {
         flutterVersion: versions.flutterVersion,
         customizationVersion: versions.customizationVersion,
         timestamp: new DateTime.now().toUtc(),
+        depsResolved: depsResolved,
         hasContent: hasContent);
-
-    // write build logs
-    await new File(p.join(outputDir, buildLogFilePath))
-        .writeAsString('STDOUT:\n${pr.stdout}\n\nSTDERR:\n${pr.stderr}\n');
 
     // write entry into local file
     await new File(p.join(outputDir, statusFilePath))
         .writeAsBytes(entry.asBytes());
 
     return entry;
+  }
+
+  Future _writeLog(String outputDir, StringBuffer buffer) async {
+    await new File(p.join(outputDir, buildLogFilePath))
+        .writeAsString(buffer.toString());
+  }
+
+  void _appendLog(StringBuffer buffer, ProcessResult pr) {
+    buffer.write('STDOUT:\n${pr.stdout}\n\n');
+    buffer.write('STDERR:\n${pr.stderr}\n\n');
   }
 }
