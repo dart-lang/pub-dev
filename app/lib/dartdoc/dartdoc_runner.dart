@@ -88,7 +88,11 @@ class DartdocRunner implements TaskRunner {
       logFileOutput.write('completed: ${entry.timestamp.toIso8601String()}\n');
       await _writeLog(outputDir, logFileOutput);
 
-      if (entry.hasContent) {
+      final oldEntry = await dartdocBackend.getLatestEntry(
+          task.package, task.version, false);
+      if (entry.isRegression(oldEntry)) {
+        _logger.severe('Regression detected in $task, aborting upload.');
+      } else {
         await dartdocBackend.uploadDir(entry, outputDir);
       }
     } finally {
