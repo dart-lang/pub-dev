@@ -35,7 +35,8 @@ class DartdocRunner implements TaskRunner {
     if (redirectDartdocPages.containsKey(task.package)) {
       return true;
     }
-    final shouldRun = await dartdocBackend.shouldRunTask(task);
+    final shouldRun = await dartdocBackend.shouldRunTask(
+        task.package, task.version, task.updated, true);
     return !shouldRun;
   }
 
