@@ -69,6 +69,13 @@ class DartdocCustomizer {
       final firstLink = breadcrumbs.querySelector('a');
       firstLink.attributes['href'] = pubPackageLink;
       firstLink.text = pubPackageText;
+
+      final docitem = new Element.tag('li')
+        ..className = 'self-crumb'
+        ..text = 'documentation';
+      breadcrumbs.append(new Text('  '));
+      breadcrumbs.append(docitem);
+      breadcrumbs.append(new Text('\n  '));
     } else if (breadcrumbs.children.isNotEmpty) {
       // we are inside
       final firstLink = breadcrumbs.querySelector('a');
