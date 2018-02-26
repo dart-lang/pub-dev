@@ -21,8 +21,7 @@ class PlatformDict {
     this.landingUrl,
     this.listingUrl,
     this.tagTitle,
-  })
-      : this.pageTitle = pageTitle ?? 'Top $name packages';
+  }) : this.pageTitle = pageTitle ?? 'Top $name packages';
 
   factory PlatformDict.forPlatform(String platform, {String tagTitle}) {
     return new PlatformDict(

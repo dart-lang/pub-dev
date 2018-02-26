@@ -40,8 +40,7 @@ class DatastoreHeadTaskSource implements TaskSource {
 
     /// Inactivity duration between two polls.
     Duration sleep,
-  })
-      : _window = window ?? _defaultWindow,
+  })  : _window = window ?? _defaultWindow,
         _sleep = sleep ?? _defaultSleep,
         _lastTs = skipHistory
             ? new DateTime.now().toUtc().subtract(window ?? _defaultWindow)

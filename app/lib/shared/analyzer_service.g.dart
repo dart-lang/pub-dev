@@ -25,7 +25,7 @@ AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) =>
         analysisStatus: json['analysisStatus'] == null
             ? null
             : AnalysisStatus.values.singleWhere((x) =>
-                x.toString() == "AnalysisStatus.${json['analysisStatus']}"),
+                x.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
         analysisContent: json['analysisContent'] as Map<String, dynamic>,
         maintenanceScore: (json['maintenanceScore'] as num)?.toDouble());
 
@@ -59,7 +59,7 @@ AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
         analysisStatus: json['analysisStatus'] == null
             ? null
             : AnalysisStatus.values.singleWhere((x) =>
-                x.toString() == "AnalysisStatus.${json['analysisStatus']}"),
+                x.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
         health: (json['health'] as num)?.toDouble(),
         maintenance: (json['maintenance'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),

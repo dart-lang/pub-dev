@@ -190,8 +190,7 @@ class SearchQuery {
     this.order,
     this.offset,
     this.limit,
-  })
-      : parsedQuery = new ParsedQuery._parse(query);
+  }) : parsedQuery = new ParsedQuery._parse(query);
 
   factory SearchQuery.parse({
     String query,
