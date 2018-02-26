@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:http_parser/http_parser.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
@@ -99,12 +100,25 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     if (entry == null) {
       return notFoundHandler(request);
     }
+    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
+    if (info == null) {
+      return notFoundHandler(request);
+    }
+    if (isNotModified(request, info.lastModified, info.etag)) {
+      return new shelf.Response.notModified();
+    }
     final stream = dartdocBackend.readContent(entry, docFilePath.path);
-    return new shelf.Response(
-      HttpStatus.OK,
-      body: stream,
-      headers: {HttpHeaders.CONTENT_TYPE: contentType(docFilePath.path)},
-    );
+    final headers = {
+      HttpHeaders.CONTENT_TYPE: contentType(docFilePath.path),
+      HttpHeaders.CACHE_CONTROL: 'max-age: ${staticShortCache.inSeconds}',
+    };
+    if (info.lastModified != null) {
+      headers[HttpHeaders.LAST_MODIFIED] = formatHttpDate(info.lastModified);
+    }
+    if (info.etag != null) {
+      headers[HttpHeaders.ETAG] = info.etag;
+    }
+    return new shelf.Response(HttpStatus.OK, body: stream, headers: headers);
   }
   return notFoundHandler(request);
 }

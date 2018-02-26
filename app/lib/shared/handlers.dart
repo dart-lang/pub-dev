@@ -12,6 +12,14 @@ import 'versions.dart';
 
 const String default404NotFound = '404 Not Found';
 
+/// The default age a browser would take hold of the static files before
+/// checking with the server for a newer version.
+const staticShortCache = const Duration(minutes: 5);
+
+/// The age the browser should cache the static file if there is a hash provided
+/// and it matches the etag.
+const staticLongCache = const Duration(hours: 24);
+
 shelf.Response redirectResponse(String url) => new shelf.Response.seeOther(url);
 
 shelf.Response atomXmlResponse(String content, {int status: 200}) =>
@@ -70,4 +78,20 @@ shelf.Response debugResponse([Map data]) {
     map.addAll(data);
   }
   return jsonResponse(map, indent: true);
+}
+
+bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
+  final ifModifiedSince = request.ifModifiedSince;
+  if (ifModifiedSince != null &&
+      lastModified != null &&
+      !lastModified.isAfter(ifModifiedSince)) {
+    return true;
+  }
+
+  final ifNoneMatch = request.headers[HttpHeaders.IF_NONE_MATCH];
+  if (ifNoneMatch != null && ifNoneMatch == etag) {
+    return true;
+  }
+
+  return false;
 }
