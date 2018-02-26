@@ -14,14 +14,12 @@ import 'package:pool/pool.dart';
 
 import '../frontend/models.dart' show Package;
 
-import '../shared/task_scheduler.dart' show Task;
 import '../shared/utils.dart' show contentType;
 
 import 'models.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.backend');
 
-final Duration entryUpdateThreshold = const Duration(days: 90);
 final Duration _contentDeleteThreshold = const Duration(days: 1);
 final int concurrentUploads = 4;
 final int concurrentDeletes = 4;
@@ -91,22 +89,16 @@ class DartdocBackend {
     await _storage.delete(entry.inProgressPath);
   }
 
-  Future<bool> shouldRunTask(Task task) async {
-    final entry = await getLatestEntry(task.package, task.version, false);
+  Future<bool> shouldRunTask(String package, String version, DateTime updated,
+      bool retryFailed) async {
+    final entry = await getLatestEntry(package, version, false);
     if (entry == null) {
       return true;
     }
-    if (entry.requiresNewRun()) {
+    if (updated != null && updated.isAfter(entry.timestamp)) {
       return true;
     }
-    if (task.updated != null && task.updated.isAfter(entry.timestamp)) {
-      return true;
-    }
-    final age = new DateTime.now().difference(entry.timestamp).abs();
-    if (age > entryUpdateThreshold) {
-      return true;
-    }
-    return false;
+    return entry.requiresNewRun(retryFailed: retryFailed);
   }
 
   /// Return the latest entry that should be used to serve the content.

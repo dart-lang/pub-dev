@@ -16,6 +16,8 @@ import '../shared/versions.dart' as versions;
 
 part 'models.g.dart';
 
+final Duration entryUpdateThreshold = const Duration(days: 90);
+
 @JsonSerializable()
 class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final String uuid;
@@ -80,7 +82,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
 
   List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
 
-  bool requiresNewRun() {
+  bool requiresNewRun({bool retryFailed: false}) {
     if (isNewer(_semanticDartdocVersion, versions.semanticDartdocVersion)) {
       // our dartdoc version is newer -> regenerate
       return true;
@@ -101,6 +103,15 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
       // our customization version is newer -> regenerate
       return true;
     }
+
+    final age = new DateTime.now().difference(timestamp).abs();
+    if (age > entryUpdateThreshold) {
+      return true;
+    }
+    if (retryFailed && !hasContent && age.inDays >= 1) {
+      return true;
+    }
+
     return false;
   }
 

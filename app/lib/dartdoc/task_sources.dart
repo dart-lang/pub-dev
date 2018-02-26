@@ -32,25 +32,8 @@ class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
 
   @override
   Future<bool> requiresUpdate(String packageName, String packageVersion,
-      {bool retryFailed: false}) async {
-    final entry =
-        await dartdocBackend.getLatestEntry(packageName, packageVersion, false);
-    if (entry == null) {
-      return true;
-    }
-
-    if (entry.requiresNewRun()) return true;
-
-    final now = new DateTime.now().toUtc();
-    final age = now.difference(entry.timestamp).abs();
-    if (age >= entryUpdateThreshold) {
-      return true;
-    }
-
-    if (retryFailed && !entry.hasContent && age.inDays >= 1) {
-      return true;
-    }
-
-    return false;
+      {bool retryFailed: false}) {
+    return dartdocBackend.shouldRunTask(
+        packageName, packageVersion, null, retryFailed);
   }
 }
