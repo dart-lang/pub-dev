@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:pool/pool.dart';
 
 import '../frontend/models.dart' show Package;
 
@@ -22,6 +23,8 @@ final Logger _logger = new Logger('pub.dartdoc.backend');
 
 final Duration entryUpdateThreshold = const Duration(days: 90);
 final Duration _contentDeleteThreshold = const Duration(days: 1);
+final int concurrentUploads = 4;
+final int concurrentDeletes = 4;
 
 /// Sets the dartdoc backend.
 void registerDartdocBackend(DartdocBackend backend) =>
@@ -71,20 +74,14 @@ class DartdocBackend {
       }
     }
 
-    final List<Future> concurrentUploads = [];
-    Future completeConcurrents() async {
-      if (concurrentUploads.isEmpty) return;
-      await Future.wait(concurrentUploads);
-      concurrentUploads.clear();
-    }
-
+    final uploadPool = new Pool(concurrentUploads);
+    final List<Future> uploadFutures = [];
     await for (File file in fileStream) {
-      concurrentUploads.add(upload(file));
-      if (concurrentUploads.length >= 4) {
-        await completeConcurrents();
-      }
+      final pooledUpload = uploadPool.withResource(() => upload(file));
+      uploadFutures.add(pooledUpload);
     }
-    await completeConcurrents();
+    await Future.wait(uploadFutures);
+    await uploadPool.close();
 
     // upload was completed
     await _storage.writeBytes(entry.entryPath, entry.asBytes());
@@ -190,16 +187,22 @@ class DartdocBackend {
 
   Future _deleteAll(DartdocEntry entry) async {
     var page = await _storage.page(prefix: entry.contentPrefix);
+    final deletePool = new Pool(concurrentDeletes);
     for (;;) {
+      final List<Future> deleteFutures = [];
       for (var item in page.items) {
-        await _storage.delete(item.name);
+        final pooledDelete =
+            deletePool.withResource(() => _storage.delete(item.name));
+        deleteFutures.add(pooledDelete);
       }
+      await Future.wait(deleteFutures);
       if (page.isLast) {
         break;
       } else {
         page = await page.next();
       }
     }
+    await deletePool.close();
     await _storage.delete(entry.entryPath);
   }
 }
