@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 
@@ -115,6 +116,19 @@ class DartdocBackend {
     return completedList.first;
   }
 
+  /// Returns the file's header from the storage bucket
+  Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) async {
+    final objectName = p.join(entry.contentPrefix, relativePath);
+    try {
+      final info = await _storage.info(objectName);
+      if (info == null) return null;
+      return new FileInfo(lastModified: info.updated, etag: info.etag);
+    } catch (e) {
+      _logger.info('Requested path $objectName does not exists.');
+    }
+    return null;
+  }
+
   /// Returns a file's content from the storage bucket.
   Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
     final objectName = p.join(entry.contentPrefix, relativePath);
@@ -197,4 +211,10 @@ class DartdocBackend {
     await deletePool.close();
     await _storage.delete(entry.entryPath);
   }
+}
+
+class FileInfo {
+  final DateTime lastModified;
+  final String etag;
+  FileInfo({@required this.lastModified, @required this.etag});
 }
