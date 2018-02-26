@@ -110,13 +110,13 @@ const _handlers = const <String, shelf.Handler>{
 };
 
 /// Handles requests for /debug
-Future<shelf.Response> _debugHandler(shelf.Request request) async {
+shelf.Response _debugHandler(shelf.Request request) {
   Map toShortStat(LastNTracker<Duration> tracker) => {
         'median': tracker.median?.inMilliseconds,
         'p90': tracker.p90?.inMilliseconds,
         'p99': tracker.p99?.inMilliseconds,
       };
-  return jsonResponse({
+  return debugResponse({
     'package': {
       'analysis_latency': toShortStat(_packageAnalysisLatencyTracker),
       'overall_latency': toShortStat(_packageOverallLatencyTracker),
@@ -124,7 +124,7 @@ Future<shelf.Response> _debugHandler(shelf.Request request) async {
     'search': {
       'overall_latency': toShortStat(_searchOverallLatencyTracker),
     },
-  }, indent: true);
+  });
 }
 
 /// Handles requests for /
