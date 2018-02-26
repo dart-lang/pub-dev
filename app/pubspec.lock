@@ -408,7 +408,7 @@ packages:
     source: hosted
     version: "0.2.0+2"
   pool:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pool
       url: "https://pub.dartlang.org"
