@@ -26,6 +26,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final String flutterVersion;
   final String customizationVersion;
   final DateTime timestamp;
+  final bool depsResolved;
   final bool hasContent;
 
   DartdocEntry({
@@ -37,6 +38,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     @required this.flutterVersion,
     @required this.customizationVersion,
     @required this.timestamp,
+    @required this.depsResolved,
     @required this.hasContent,
   });
 

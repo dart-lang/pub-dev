@@ -24,6 +24,7 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) =>
         timestamp: json['timestamp'] == null
             ? null
             : DateTime.parse(json['timestamp'] as String),
+        depsResolved: json['depsResolved'] as bool,
         hasContent: json['hasContent'] as bool);
 
 abstract class _$DartdocEntrySerializerMixin {
@@ -35,6 +36,7 @@ abstract class _$DartdocEntrySerializerMixin {
   String get flutterVersion;
   String get customizationVersion;
   DateTime get timestamp;
+  bool get depsResolved;
   bool get hasContent;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'uuid': uuid,
@@ -45,6 +47,7 @@ abstract class _$DartdocEntrySerializerMixin {
         'flutterVersion': flutterVersion,
         'customizationVersion': customizationVersion,
         'timestamp': timestamp?.toIso8601String(),
+        'depsResolved': depsResolved,
         'hasContent': hasContent
       };
 }
