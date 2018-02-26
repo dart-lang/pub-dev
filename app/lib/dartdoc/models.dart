@@ -103,6 +103,23 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     }
     return false;
   }
+
+  bool isRegression(DartdocEntry oldEntry) {
+    if (oldEntry == null) {
+      // Old entry does not exists, new entry wins.
+      return false;
+    }
+    if (!oldEntry.hasContent) {
+      // The old entry had no content, the new should be better.
+      return false;
+    }
+    if (hasContent) {
+      // Having new content wins.
+      return false;
+    }
+    // Older entry seems to be better.
+    return true;
+  }
 }
 
 // TODO: use dartdocVersion in the prefix paths
