@@ -7,16 +7,18 @@ library pub_dartlang_org.handlers_test;
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 Future<shelf.Response> issueGet(String path) async {
@@ -205,6 +207,7 @@ class TemplateMock implements TemplateService {
       Package package,
       bool isVersionPage,
       List<PackageVersion> versions,
+      List<DartdocEntry> dartdocEntries,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,
       PackageVersion latestStableVersion,
@@ -217,7 +220,7 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
+      List<DartdocEntry> dartdocEntries, List<Uri> versionDownloadUrls) {
     return _response;
   }
 
@@ -299,4 +302,19 @@ class AnalyzerClientMock implements AnalyzerClient {
   @override
   Future triggerAnalysis(
       String package, String version, Set<String> dependentPackages) async {}
+}
+
+class DartdocClientMock implements DartdocClient {
+  @override
+  Future<List<DartdocEntry>> getEntries(
+      String package, List<String> versions) async {
+    return versions.map((s) => null).toList();
+  }
+
+  @override
+  Future triggerDartdoc(
+      String package, String version, Set<String> dependentPackages) async {}
+
+  @override
+  Future close() async {}
 }
