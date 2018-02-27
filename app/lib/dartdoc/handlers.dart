@@ -100,6 +100,10 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     if (entry == null) {
       return notFoundHandler(request);
     }
+    if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
+      return redirectResponse(
+          '/documentation/${docFilePath.package}/${docFilePath.version}/log.txt');
+    }
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
     if (info == null) {
       return notFoundHandler(request);
