@@ -49,8 +49,10 @@ class DartdocRunner implements TaskRunner {
     final pubCacheDir = p.join(tempDirPath, 'pub-cache');
     final outputDir = p.join(tempDirPath, 'output');
 
-    // pub cache dir needs to be created
+    // directories need to be created
     await new Directory(pubCacheDir).create(recursive: true);
+    await new Directory(outputDir).create(recursive: true);
+
     final pubEnv = new PubEnvironment(
       await DartSdk.create(),
       pubCacheDir: pubCacheDir,
