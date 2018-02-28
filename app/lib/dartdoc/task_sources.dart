@@ -5,11 +5,14 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:logging/logging.dart';
 
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
 import 'backend.dart';
+
+final Logger _logger = new Logger('dartdoc.task_sources');
 
 /// Creates a task when a version uploaded in the past 10 minutes has no
 /// dartdoc yet.
@@ -32,8 +35,13 @@ class DartdocDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
 
   @override
   Future<bool> requiresUpdate(String packageName, String packageVersion,
-      {bool retryFailed: false}) {
-    return dartdocBackend.shouldRunTask(
+      {bool retryFailed: false}) async {
+    final status = await dartdocBackend.checkTargetStatus(
         packageName, packageVersion, null, retryFailed);
+    if (status.shouldSkip) {
+      _logger.info(
+          'Task source skipping $packageName $packageVersion, reason: ${status.reason}.');
+    }
+    return !status.shouldSkip;
   }
 }

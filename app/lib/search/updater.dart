@@ -77,7 +77,8 @@ class BatchIndexUpdater implements TaskRunner {
   }
 
   @override
-  Future<bool> shouldSkipTask(Task task) async => false;
+  Future<TaskTargetStatus> checkTargetStatus(Task task) async =>
+      new TaskTargetStatus.ok();
 
   @override
   Future<bool> runTask(Task task) async {

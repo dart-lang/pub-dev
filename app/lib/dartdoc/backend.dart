@@ -16,6 +16,7 @@ import 'package:pool/pool.dart';
 import '../frontend/models.dart' show Package;
 
 import '../shared/dartdoc_memcache.dart';
+import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart' show contentType;
 
 import 'models.dart';
@@ -93,16 +94,16 @@ class DartdocBackend {
     await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
   }
 
-  Future<bool> shouldRunTask(String package, String version, DateTime updated,
-      bool retryFailed) async {
+  Future<TaskTargetStatus> checkTargetStatus(String package, String version,
+      DateTime updated, bool retryFailed) async {
     final entry = await getLatestEntry(package, version, false);
     if (entry == null) {
-      return true;
+      return new TaskTargetStatus.ok();
     }
     if (updated != null && updated.isAfter(entry.timestamp)) {
-      return true;
+      return new TaskTargetStatus.ok();
     }
-    return entry.requiresNewRun(retryFailed: retryFailed);
+    return entry.checkTargetStatus(retryFailed: retryFailed);
   }
 
   /// Return the latest entry that should be used to serve the content.

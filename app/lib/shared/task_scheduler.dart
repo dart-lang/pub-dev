@@ -15,7 +15,7 @@ final Logger _logger = new Logger('pub.scheduler');
 abstract class TaskRunner {
   /// Whether the scheduler should skip the task, e.g. because it has been
   /// completed recently.
-  Future<bool> shouldSkipTask(Task task);
+  Future<TaskTargetStatus> checkTargetStatus(Task task);
 
   /// Run the task.
   /// Returns whether a race was detected while the run completed.
@@ -60,8 +60,13 @@ class TaskScheduler {
       _pendingCount = taskIterator.pendingCount;
       final Stopwatch sw = new Stopwatch()..start();
       try {
-        if (await taskRunner.shouldSkipTask(task)) {
-          _logger.info('Skipping task: $task');
+        TaskTargetStatus status;
+        if (redirectPackagePages.containsKey(task.package)) {
+          status = new TaskTargetStatus.skip('Package is redirected from pub.');
+        }
+        status ??= await taskRunner.checkTargetStatus(task);
+        if (status.shouldSkip) {
+          _logger.info('Skipping scheduled task: $task: ${status.reason}.');
           _statusTracker.add('skip');
           _allLatencyTracker.add(sw.elapsedMilliseconds);
           continue;
@@ -121,6 +126,19 @@ class Task {
 
   @override
   int get hashCode => package.hashCode ^ version.hashCode ^ updated.hashCode;
+}
+
+class TaskTargetStatus {
+  final bool shouldSkip;
+  final String reason;
+
+  TaskTargetStatus(this.shouldSkip, this.reason);
+
+  TaskTargetStatus.ok()
+      : shouldSkip = false,
+        reason = null;
+
+  TaskTargetStatus.skip(this.reason) : shouldSkip = true;
 }
 
 /// A pull-based interface for accessing events from multiple streams, in the
