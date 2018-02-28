@@ -11,6 +11,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
@@ -60,6 +61,8 @@ void _runScheduler(List<SendPort> sendPorts) {
 }
 
 Future _registerServices() async {
+  registerDartdocMemcache(new DartdocMemcache(memcacheService));
+
   final Bucket storageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
   registerDartdocBackend(new DartdocBackend(dbService, storageBucket));

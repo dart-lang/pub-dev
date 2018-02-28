@@ -19,6 +19,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/name_tracker.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
@@ -99,6 +100,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
 
+  registerDartdocMemcache(new DartdocMemcache(memcacheService));
   final dartdocClient = new DartdocClient();
   registerDartdocClient(dartdocClient);
   registerScopeExitCallback(dartdocClient.close);

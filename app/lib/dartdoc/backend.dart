@@ -15,6 +15,7 @@ import 'package:pool/pool.dart';
 
 import '../frontend/models.dart' show Package;
 
+import '../shared/dartdoc_memcache.dart';
 import '../shared/utils.dart' show contentType;
 
 import 'models.dart';
@@ -88,6 +89,8 @@ class DartdocBackend {
     // there is a small chance that the process is interrupted before this gets
     // deleted, but the [removeObsolete] should be able to validate it.
     await _storage.delete(entry.inProgressPath);
+
+    await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
   }
 
   Future<bool> shouldRunTask(String package, String version, DateTime updated,
@@ -105,7 +108,11 @@ class DartdocBackend {
   /// Return the latest entry that should be used to serve the content.
   Future<DartdocEntry> getLatestEntry(
       String package, String version, bool serving) async {
-    // TODO: add caching with memcache
+    final cachedContent =
+        await dartdocMemcache?.getEntryBytes(package, version, serving);
+    if (cachedContent != null) {
+      return new DartdocEntry.fromBytes(cachedContent);
+    }
     final List<DartdocEntry> completedList =
         await _listEntries(DartdocEntryPaths.entryPrefix(package, version));
     if (serving) {
@@ -113,7 +120,10 @@ class DartdocBackend {
     }
     if (completedList.isEmpty) return null;
     completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-    return completedList.first;
+    final entry = completedList.first;
+    await dartdocMemcache?.setEntryBytes(
+        package, version, serving, entry.asBytes());
+    return entry;
   }
 
   /// Returns the file's header from the storage bucket
