@@ -15,6 +15,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -166,6 +167,7 @@ void main() {
         });
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
+        registerDartdocClient(new DartdocClientMock());
         await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
       });
 
@@ -187,6 +189,7 @@ void main() {
           return Uri.parse('http://blobstore/$package/$version');
         });
         registerBackend(backend);
+        registerDartdocClient(new DartdocClientMock());
         await expectHtmlResponse(
             await issueGet('/packages/foobar_pkg/versions'));
       });
@@ -214,6 +217,7 @@ void main() {
         });
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
+        registerDartdocClient(new DartdocClientMock());
         await expectHtmlResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.1'));
       });
@@ -230,6 +234,7 @@ void main() {
         });
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
+        registerDartdocClient(new DartdocClientMock());
         await expectHtmlResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.2'),
             status: 404);

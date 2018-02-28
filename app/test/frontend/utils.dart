@@ -7,8 +7,10 @@ library pub_dartlang_org.utils;
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/shared/versions.dart' as v;
 
 class TestDelayCompletion {
   final int count;
@@ -128,3 +130,29 @@ description: 'my package description'
 dependencies:
   gcloud: any
 ''';
+
+final okDartdocEntry = new DartdocEntry(
+  uuid: 'uuid-value-ok',
+  packageName: testPackage.name,
+  packageVersion: testPackageVersion.version,
+  dartdocVersion: v.dartdocVersion,
+  flutterVersion: v.flutterVersion,
+  customizationVersion: v.customizationVersion,
+  usesFlutter: false,
+  depsResolved: true,
+  hasContent: true,
+  timestamp: new DateTime.now(),
+);
+
+final failedDartdocEntry = new DartdocEntry(
+  uuid: 'uuid-value-failed',
+  packageName: testPackage.name,
+  packageVersion: testPackageVersion.version,
+  dartdocVersion: v.dartdocVersion,
+  flutterVersion: v.flutterVersion,
+  customizationVersion: v.customizationVersion,
+  usesFlutter: false,
+  depsResolved: false,
+  hasContent: false,
+  timestamp: new DateTime.now(),
+);
