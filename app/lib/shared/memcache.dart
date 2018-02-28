@@ -12,6 +12,7 @@ const Duration packageJsonExpiration = const Duration(minutes: 10);
 const Duration packageUiPageExpiration = const Duration(minutes: 10);
 const Duration analyzerDataExpiration = const Duration(minutes: 60);
 const Duration analyzerDataLocalExpiration = const Duration(minutes: 15);
+const Duration dartdocEntryExpiration = const Duration(minutes: 60);
 const Duration searchUiPageExpiration = const Duration(minutes: 10);
 const Duration memcacheRequestTimeout = const Duration(seconds: 5);
 
@@ -20,6 +21,7 @@ const String packageJsonPrefix = 'v2_package_json_';
 const String packageUiPagePrefix = 'v2_package_ui_';
 const String analyzerDataPrefix = 'v2_dart_analyzer_api_';
 const String analyzerExtractPrefix = 'v2_dart_analyzer_extract_';
+const String dartdocEntryPrefix = 'dartdoc_entry_';
 const String searchUiPagePrefix = 'v2_dart_search_ui_';
 
 class SimpleMemcache {

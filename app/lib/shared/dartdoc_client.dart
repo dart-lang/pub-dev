@@ -13,6 +13,7 @@ import '../dartdoc/dartdoc_runner.dart' show statusFilePath;
 import '../dartdoc/models.dart' show DartdocEntry;
 
 import 'configuration.dart';
+import 'dartdoc_memcache.dart';
 import 'notification.dart' show notifyService;
 
 export '../dartdoc/models.dart' show DartdocEntry;
@@ -57,11 +58,20 @@ class DartdocClient {
   }
 
   Future<DartdocEntry> _getEntry(String package, String version) async {
+    final cachedContent =
+        await dartdocMemcache?.getEntryBytes(package, version, true);
+    if (cachedContent != null) {
+      return new DartdocEntry.fromBytes(cachedContent);
+    }
     final url =
         '$_dartdocServiceHttpHostPort/documentation/$package/$version/$statusFilePath';
     try {
       final rs = await _client.get(url);
-      if (rs.statusCode != 200) return null;
+      if (rs.statusCode != 200) {
+        return null;
+      }
+      await dartdocMemcache?.setEntryBytes(
+          package, version, true, rs.bodyBytes);
       return new DartdocEntry.fromBytes(rs.bodyBytes);
     } catch (e) {
       _logger.info('Error requesting entry for: $package $version');
