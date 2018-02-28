@@ -40,7 +40,8 @@ class DartdocRunner implements TaskRunner {
     final tempDirPath = tempDir.resolveSymbolicLinksSync();
     final pkgPath = p.join(tempDirPath, 'pkg');
     final pubCacheDir = p.join(tempDirPath, 'pub-cache');
-    final outputDir = p.join(tempDirPath, 'output');
+    final tarDir = p.join(tempDirPath, 'output');
+    final outputDir = p.join(tarDir, task.package, task.version);
 
     // directories need to be created
     await new Directory(pubCacheDir).create(recursive: true);
@@ -75,8 +76,12 @@ class DartdocRunner implements TaskRunner {
       final hasContent = await _generateDocs(
           task, pkgPath, outputDir, dartdocEnv, logFileOutput);
 
-      await new DartdocCustomizer(task.package, task.version)
-          .customizeDir(outputDir);
+      if (hasContent) {
+        await new DartdocCustomizer(task.package, task.version)
+            .customizeDir(outputDir);
+
+        await _tar(task, tempDirPath, tarDir, outputDir, logFileOutput);
+      }
 
       final entry = await _createEntry(
           task, outputDir, usesFlutter, depsResolved, hasContent);
@@ -178,5 +183,19 @@ class DartdocRunner implements TaskRunner {
   void _appendLog(StringBuffer buffer, ProcessResult pr) {
     buffer.write('STDOUT:\n${pr.stdout}\n\n');
     buffer.write('STDERR:\n${pr.stderr}\n\n');
+  }
+
+  Future _tar(Task task, String tmpDir, String tarDir, String outputDir,
+      StringBuffer logFileOutput) async {
+    logFileOutput.write('Running tar:\n');
+    final archive = 'package.tar.gz';
+    final File tmpTar = new File(p.join(tmpDir, archive));
+    final pr = await Process.run(
+      'tar',
+      ['-czf', tmpTar.path, '.'],
+      workingDirectory: tarDir,
+    );
+    await tmpTar.rename(p.join(outputDir, archive));
+    _appendLog(logFileOutput, pr);
   }
 }
