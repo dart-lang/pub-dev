@@ -72,7 +72,7 @@ class DartdocRunner implements TaskRunner {
           'flutter: ${versions.flutterVersion}\n'
           'customization: ${versions.customizationVersion}\n'
           'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
-      final usesFlutter = await _usesFlutter(pkgPath);
+      final usesFlutter = await pubEnv.detectFlutterUse(pkgPath);
 
       // resolve dependencies
       final bool depsResolved = await _resolveDependencies(
@@ -105,18 +105,6 @@ class DartdocRunner implements TaskRunner {
     await dartdocBackend.removeObsolete(task.package, task.version);
 
     return false; // no race detection
-  }
-
-  Future<bool> _usesFlutter(String pkgPath) async {
-    final File file = new File(p.join(pkgPath, 'pubspec.yaml'));
-    if (await file.exists()) {
-      final content = await file.readAsString();
-      final pubspec = new Pubspec.fromYaml(content);
-      return pubspec.usesFlutter;
-    }
-    // something may be wrong with the package with a missing pubspec.yaml
-    _logger.warning('Missing pubspec.yaml in $pkgPath');
-    return false;
   }
 
   Future<bool> _resolveDependencies(PubEnvironment pubEnv, Task task,
