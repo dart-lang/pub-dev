@@ -124,6 +124,7 @@ class _ServiceDeployer {
   String get baseUrl {
     switch (service) {
       case 'analyzer':
+      case 'dartdoc':
       case 'search':
         return 'https://$newVersion-dot-$service-dot-$project.appspot.com';
       case 'default':
@@ -135,21 +136,31 @@ class _ServiceDeployer {
   Future _checkHealth() async {
     final String debugUrl = '$baseUrl/debug';
     print('Checking $debugUrl');
-    final req = await httpClient.openUrl('GET', Uri.parse(debugUrl));
-    final res = await req.close();
-    if (res.statusCode != 200) {
-      print('[ERR] $service health check failed.');
-      exit(1);
+    Future<HttpClientResponse> request() async {
+      final req = await httpClient.openUrl('GET', Uri.parse(debugUrl));
+      return req.close();
     }
-    List<int> bytes =
-        await res.fold([], (List<int> all, List<int> d) => all..addAll(d));
-    Map map = JSON.decode(UTF8.decode(bytes));
-    if (map != null && map.isNotEmpty) {
-      print('$service health check OK.');
-    } else {
-      print('[ERR] $service health check failed.');
-      exit(1);
+
+    for (int i = 5; i > 0; i--) {
+      final res = await request();
+      if (res.statusCode == 200) {
+        List<int> bytes =
+            await res.fold([], (List<int> all, List<int> d) => all..addAll(d));
+        Map map = JSON.decode(UTF8.decode(bytes));
+        if (map != null && map.isNotEmpty) {
+          print('$service health check OK.');
+          return;
+        }
+      }
+
+      // wait before retry
+      if (i > 0) {
+        await new Future.delayed(const Duration(seconds: 15));
+      }
     }
+
+    print('[ERR] $service health check failed.');
+    exit(1);
   }
 
   Future _migrateTraffic() async {
