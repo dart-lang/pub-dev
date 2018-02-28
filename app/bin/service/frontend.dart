@@ -152,9 +152,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     // Since there can be many [dependentPackages], we'll not wait for the
     // notification to be done.
     analyzerClient.triggerAnalysis(pv.package, pv.version, dependentPackages);
-
-    // TODO: enable notification of dartdoc service
-    // dartdocClient.triggerDartdoc(pv.package, pv.version, dependentPackages);
+    dartdocClient.triggerDartdoc(pv.package, pv.version, dependentPackages);
   }
 
   final cache = new AppEnginePackageMemcache(memcacheService);
