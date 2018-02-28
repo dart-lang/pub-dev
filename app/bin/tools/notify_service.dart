@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 
 void _printHelp() {
@@ -24,10 +25,13 @@ Future main(List<String> args) async {
 
   await withProdServices(() async {
     registerAnalyzerClient(new AnalyzerClient());
+    registerDartdocClient(new DartdocClient());
     registerSearchClient(new SearchClient());
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
       await analyzerClient.triggerAnalysis(args[1], args[2], new Set<String>());
+    } else if (service == 'dartdoc' && args.length == 3) {
+      await dartdocClient.triggerDartdoc(args[1], args[2], new Set<String>());
     } else if (service == 'search' && args.length == 2) {
       await searchClient.triggerReindex(args[1]);
     } else {
