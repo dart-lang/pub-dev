@@ -11,7 +11,7 @@ import 'package:pana/src/version.dart';
 
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
-import '../shared/task_scheduler.dart' show Task, TaskRunner;
+import '../shared/task_scheduler.dart' show Task, TaskRunner, TaskTargetStatus;
 import '../shared/utils.dart';
 
 import 'backend.dart';
@@ -25,16 +25,9 @@ class PanaRunner implements TaskRunner {
   PanaRunner(this._analysisBackend);
 
   @override
-  Future<bool> shouldSkipTask(Task task) async {
-    if (redirectPackagePages.containsKey(task.package)) {
-      return true;
-    }
-    final TaskTargetStatus status = await _analysisBackend.getTargetStatus(
+  Future<TaskTargetStatus> checkTargetStatus(Task task) {
+    return _analysisBackend.checkTargetStatus(
         task.package, task.version, task.updated);
-    if (status.shouldSkip) {
-      _logger.info('Task $task skipped because: ${status.reason}');
-    }
-    return status.shouldSkip;
   }
 
   @override

@@ -11,11 +11,8 @@ import 'package:pana/src/download_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
-import '../frontend/model_properties.dart' show Pubspec;
-
 import '../shared/configuration.dart' show envConfig;
-import '../shared/task_scheduler.dart' show Task, TaskRunner;
-import '../shared/utils.dart' show redirectDartdocPages;
+import '../shared/task_scheduler.dart' show Task, TaskRunner, TaskTargetStatus;
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
@@ -31,13 +28,9 @@ const buildLogFilePath = 'log.txt';
 
 class DartdocRunner implements TaskRunner {
   @override
-  Future<bool> shouldSkipTask(Task task) async {
-    if (redirectDartdocPages.containsKey(task.package)) {
-      return true;
-    }
-    final shouldRun = await dartdocBackend.shouldRunTask(
+  Future<TaskTargetStatus> checkTargetStatus(Task task) {
+    return dartdocBackend.checkTargetStatus(
         task.package, task.version, task.updated, true);
-    return !shouldRun;
   }
 
   @override

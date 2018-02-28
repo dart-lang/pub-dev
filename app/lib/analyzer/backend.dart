@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_memcache.dart';
 import '../shared/analyzer_service.dart';
+import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart';
 import '../shared/versions.dart';
 
@@ -201,7 +202,7 @@ class AnalysisBackend {
   /// - whether [packageName] with [packageVersion] exists, and
   /// - it has no recent [Analysis] with the current [panaVersion] or [flutterVersion], or
   /// - it has no newer [Analysis] than [panaVersion] or [flutterVersion].
-  Future<TaskTargetStatus> getTargetStatus(
+  Future<TaskTargetStatus> checkTargetStatus(
       String packageName, String packageVersion, DateTime updated) async {
     if (packageName == null || packageVersion == null) {
       return new TaskTargetStatus.skip('Insufficient package or version.');
@@ -371,15 +372,4 @@ class BackendAnalysisStatus {
   final bool isLatestStable;
   final bool isNewVersion;
   BackendAnalysisStatus(this.wasRace, this.isLatestStable, this.isNewVersion);
-}
-
-class TaskTargetStatus {
-  final bool shouldSkip;
-  final String reason;
-
-  TaskTargetStatus(this.shouldSkip, this.reason);
-  TaskTargetStatus.ok()
-      : shouldSkip = false,
-        reason = null;
-  TaskTargetStatus.skip(this.reason) : shouldSkip = true;
 }
