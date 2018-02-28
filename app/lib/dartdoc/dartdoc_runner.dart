@@ -101,6 +101,9 @@ class DartdocRunner implements TaskRunner {
     } finally {
       await tempDir.delete(recursive: true);
     }
+
+    await dartdocBackend.removeObsolete(task.package, task.version);
+
     return false; // no race detection
   }
 
