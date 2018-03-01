@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'scheduler_stats.dart';
+import 'utils.dart';
 import 'versions.dart';
 
 const String default404NotFound = '404 Not Found';
@@ -94,4 +95,9 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
   }
 
   return false;
+}
+
+bool isProductionHost(shelf.Request request) {
+  final String host = request.requestedUri.host;
+  return host == pubHostedDomain || host == dartdocsHostedDomain;
 }

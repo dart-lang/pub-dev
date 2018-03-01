@@ -81,7 +81,7 @@ Future<shelf.Response> appHandler(
     return _packageHandler(request);
   } else if (path.startsWith('/doc')) {
     return _docHandler(request);
-  } else if (path == '/robots.txt' && !_isProd(request)) {
+  } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
   } else if (path.startsWith(staticUrls.staticPath)) {
     return _staticsHandler(request);
@@ -161,7 +161,7 @@ Future<shelf.Response> _indexHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  final isProd = _isProd(request);
+  final isProd = isProductionHost(request);
   String pageContent =
       isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
   if (pageContent == null) {
@@ -457,7 +457,7 @@ Future<shelf.Response> _packageVersionHandlerHtmlCore(
   }
   final Stopwatch sw = new Stopwatch()..start();
   String cachedPage;
-  final bool isProd = _isProd(request);
+  final bool isProd = isProductionHost(request);
   if (isProd && backend.uiPackageCache != null) {
     cachedPage =
         await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
@@ -655,9 +655,4 @@ int _pageFromUrl(Uri url) {
     } catch (_, __) {}
   }
   return pageAsInt;
-}
-
-bool _isProd(shelf.Request request) {
-  final String host = request.requestedUri.host;
-  return host == hostedDomain;
 }
