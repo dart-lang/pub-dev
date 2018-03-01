@@ -17,6 +17,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/handlers.dart';
 import '../shared/platform.dart';
+import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 import '../shared/utils.dart';
 
@@ -102,6 +103,7 @@ const _handlers = const <String, shelf.Handler>{
   '/server/packages': _serverPackagesHandlerHtml,
   '/web': _webLandingHandler,
   '/web/packages': _webPackagesHandlerHtml,
+  '/api/search': _apiSearchHandler,
   '/debug': _debugHandler,
   '/feed.atom': _atomFeedHandler,
   '/sitemap.txt': _siteMapHandler,
@@ -625,6 +627,20 @@ shelf.Response _formattedNotFoundHandler(shelf.Request request) {
     templateService.renderErrorPage(default404NotFound, message, null),
     status: 404,
   );
+}
+
+/// Handles requests for /api/search
+Future<shelf.Response> _apiSearchHandler(shelf.Request request) async {
+  final q = request.requestedUri.queryParameters['q']?.trim();
+  if (q == null || q.isEmpty) {
+    return jsonResponse({}, status: HttpStatus.BAD_REQUEST);
+  }
+  final sr = await searchClient.search(new SearchQuery.parse(query: q));
+  final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
+  final result = {
+    'packages': packages,
+  };
+  return jsonResponse(result);
 }
 
 /// Extracts the 'page' query parameter from [url].
