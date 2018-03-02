@@ -145,7 +145,6 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   }
 }
 
-// TODO: use dartdocVersion in the prefix paths
 abstract class DartdocEntryPaths {
   static String inProgressPrefix(String packageName, String packageVersion) =>
       '$packageName/$packageVersion/in-progress';
