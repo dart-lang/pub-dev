@@ -11,7 +11,7 @@ final String panaVersion = '0.10.3';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
 // keep in-sync with app/script/setup-flutter.sh
-final String flutterVersion = '0.1.4';
+final String flutterVersion = '0.1.7';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 // keep in-sync with SDK version in .travis.yml and Dockerfile
@@ -26,7 +26,7 @@ final Version semanticCustomizationVersion =
 
 // Versions that control the dartdoc serving.
 final _dartdocVersion = new Version.parse('0.16.0');
-final _dartdocFlutter = new Version.parse('0.1.4');
+final _dartdocFlutter = new Version.parse('0.1.7');
 final _dartdocCustomization = new Version.parse('0.0.1');
 
 /// Whether the given [dartdoc], [flutter] and [customization] versions should
