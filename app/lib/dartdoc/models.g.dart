@@ -51,3 +51,18 @@ abstract class _$DartdocEntrySerializerMixin {
         'hasContent': hasContent
       };
 }
+
+FileInfo _$FileInfoFromJson(Map<String, dynamic> json) => new FileInfo(
+    lastModified: json['lastModified'] == null
+        ? null
+        : DateTime.parse(json['lastModified'] as String),
+    etag: json['etag'] as String);
+
+abstract class _$FileInfoSerializerMixin {
+  DateTime get lastModified;
+  String get etag;
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'lastModified': lastModified?.toIso8601String(),
+        'etag': etag
+      };
+}
