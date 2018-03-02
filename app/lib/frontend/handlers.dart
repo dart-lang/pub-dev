@@ -340,6 +340,22 @@ Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>
 Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
+  final searchQuery = _parseSearchQuery(request, platform);
+  final searchResult = await searchService.search(searchQuery);
+  final int totalCount = searchResult.totalCount;
+
+  final links = new PackageLinks(searchQuery.offset, totalCount,
+      searchQuery: searchQuery);
+  return htmlResponse(templateService.renderPkgIndexPage(
+    searchResult.packages,
+    links,
+    platform,
+    searchQuery: searchQuery,
+    totalCount: totalCount,
+  ));
+}
+
+SearchQuery _parseSearchQuery(shelf.Request request, String platform) {
   final int page = _pageFromUrl(request.url);
   final int offset = PackageLinks.resultsPerPage * (page - 1);
   final String queryText = request.requestedUri.queryParameters['q'] ?? '';
@@ -348,23 +364,12 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       ? null
       : parseSearchOrder(sortParam);
 
-  final SearchQuery searchQuery = new SearchQuery.parse(
+  return new SearchQuery.parse(
       query: queryText,
       platform: platform,
       order: sortOrder,
       offset: offset,
       limit: PackageLinks.resultsPerPage);
-  final searchResult = await searchService.search(searchQuery);
-  final int totalCount = searchResult.totalCount;
-
-  final links = new PackageLinks(offset, totalCount, searchQuery: searchQuery);
-  return htmlResponse(templateService.renderPkgIndexPage(
-    searchResult.packages,
-    links,
-    platform,
-    searchQuery: searchQuery,
-    totalCount: totalCount,
-  ));
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
@@ -631,15 +636,21 @@ shelf.Response _formattedNotFoundHandler(shelf.Request request) {
 
 /// Handles requests for /api/search
 Future<shelf.Response> _apiSearchHandler(shelf.Request request) async {
-  final q = request.requestedUri.queryParameters['q']?.trim();
-  if (q == null || q.isEmpty) {
-    return jsonResponse({}, status: HttpStatus.BAD_REQUEST);
-  }
-  final sr = await searchClient.search(new SearchQuery.parse(query: q));
+  final searchQuery = _parseSearchQuery(request, null);
+  final sr = await searchClient.search(searchQuery);
   final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
-  final result = {
+  final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
+  final result = <String, dynamic>{
     'packages': packages,
   };
+  if (hasNextPage) {
+    final newParams = new Map.from(request.requestedUri.queryParameters);
+    final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
+    newParams['page'] = nextPageIndex.toString();
+    final nextPageUrl =
+        request.requestedUri.replace(queryParameters: newParams).toString();
+    result['next'] = nextPageUrl;
+  }
   return jsonResponse(result);
 }
 
