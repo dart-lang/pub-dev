@@ -21,6 +21,7 @@ DartdocMemcache get dartdocMemcache => ss.lookup(#_dartdocMemcache);
 
 class DartdocMemcache {
   final SimpleMemcache _entry;
+  final SimpleMemcache _fileInfo;
 
   DartdocMemcache(Memcache memcache)
       : _entry = new SimpleMemcache(
@@ -28,6 +29,12 @@ class DartdocMemcache {
           memcache,
           dartdocEntryPrefix,
           dartdocEntryExpiration,
+        ),
+        _fileInfo = new SimpleMemcache(
+          _logger,
+          memcache,
+          dartdocFileInfoPrefix,
+          dartdocFileInfoExpiration,
         );
 
   Future<List<int>> getEntryBytes(
@@ -40,6 +47,14 @@ class DartdocMemcache {
     return _entry.setBytes(_entryKey(package, version, serving), bytes);
   }
 
+  Future<List<int>> getFileInfoBytes(String objectName) {
+    return _fileInfo.getBytes(_fileInfoKey(objectName));
+  }
+
+  Future setFileInfoBytes(String objectName, List<int> bytes) {
+    return _fileInfo.setBytes(_fileInfoKey(objectName), bytes);
+  }
+
   Future invalidate(String package, String version) {
     return Future.wait([
       _entry.invalidate(_entryKey(package, version, true)),
@@ -49,4 +64,6 @@ class DartdocMemcache {
 
   String _entryKey(String package, String version, bool serving) =>
       '/$package/$version/$serving';
+
+  String _fileInfoKey(String objectName) => objectName;
 }

@@ -9,7 +9,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 
@@ -130,10 +129,16 @@ class DartdocBackend {
   /// Returns the file's header from the storage bucket
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) async {
     final objectName = p.join(entry.contentPrefix, relativePath);
+    final cachedContent = await dartdocMemcache?.getFileInfoBytes(objectName);
+    if (cachedContent != null) {
+      return new FileInfo.fromBytes(cachedContent);
+    }
     try {
       final info = await _storage.info(objectName);
       if (info == null) return null;
-      return new FileInfo(lastModified: info.updated, etag: info.etag);
+      final fileInfo =
+          new FileInfo(lastModified: info.updated, etag: info.etag);
+      dartdocMemcache?.setFileInfoBytes(objectName, fileInfo.asBytes());
     } catch (e) {
       _logger.info('Requested path $objectName does not exists.');
     }
@@ -222,10 +227,4 @@ class DartdocBackend {
     await deletePool.close();
     await _storage.delete(entry.entryPath);
   }
-}
-
-class FileInfo {
-  final DateTime lastModified;
-  final String etag;
-  FileInfo({@required this.lastModified, @required this.etag});
 }

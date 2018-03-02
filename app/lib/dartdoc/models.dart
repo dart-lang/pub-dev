@@ -153,3 +153,19 @@ abstract class DartdocEntryPaths {
   static String entryPrefix(String packageName, String packageVersion) =>
       '$packageName/$packageVersion/entry';
 }
+
+@JsonSerializable()
+class FileInfo extends Object with _$FileInfoSerializerMixin {
+  final DateTime lastModified;
+  final String etag;
+
+  FileInfo({@required this.lastModified, @required this.etag});
+
+  factory FileInfo.fromJson(Map<String, dynamic> json) =>
+      _$FileInfoFromJson(json);
+
+  factory FileInfo.fromBytes(List<int> bytes) =>
+      new FileInfo.fromJson(JSON.decode(UTF8.decode(bytes)));
+
+  List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
+}
