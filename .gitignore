@@ -4,6 +4,7 @@ packages
 .buildlog
 .packages
 .pub
+.dart_tool
 
 # Or the files created by dart2js or dartdevc.
 # *.dart.js
