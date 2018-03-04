@@ -47,7 +47,8 @@ Package _createPackage() => new Package()
 
 final Package testPackage = _createPackage();
 
-final Package discontinuedPackage = _createPackage()..isDiscontinued = true;
+final Package discontinuedPackage = _createPackage()
+  ..discontinuedMessage = 'Package is discontinued.';
 
 final PackageVersion testPackageVersion = new PackageVersion()
   ..parentKey = testPackageVersionKey.parent
