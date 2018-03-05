@@ -62,7 +62,7 @@ class DartdocBackend {
     Future upload(File file) async {
       final relativePath = p.relative(file.path, from: dir.path);
       final objectName = p.join(objectPrefix, relativePath);
-      _logger.info('Uploading to $objectName...');
+      _logger.fine('Uploading to $objectName...');
       try {
         final sink =
             _storage.write(objectName, contentType: contentType(objectName));
