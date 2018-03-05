@@ -39,7 +39,7 @@ void main() {
 
   group('dartdoc serving', () {
     test('old versions are serving', () {
-      expect(shouldServeDartdoc('0.15.0', '0.1.6', '0.0.0'), isTrue);
+      expect(shouldServeDartdoc('0.16.0', '0.1.6', '0.0.0'), isTrue);
     });
 
     test('max versions are serving', () {
@@ -55,7 +55,7 @@ void main() {
     test('next versions are not serving', () {
       expect(
           shouldServeDartdoc(
-            '0.16.1',
+            '0.17.1',
             flutterVersion,
             customizationVersion,
           ),

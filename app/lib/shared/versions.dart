@@ -15,7 +15,7 @@ final String flutterVersion = '0.1.7';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 // keep in-sync with SDK version in .travis.yml and Dockerfile
-final String dartdocVersion = '0.16.0';
+final String dartdocVersion = '0.17.0';
 final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
 /// The version of our customization going into the output of the dartdoc static
@@ -25,7 +25,7 @@ final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 
 // Versions that control the dartdoc serving.
-final _dartdocVersion = new Version.parse('0.16.0');
+final _dartdocVersion = new Version.parse('0.17.0');
 final _dartdocFlutter = new Version.parse('0.1.7');
 final _dartdocCustomization = new Version.parse('0.0.1');
 

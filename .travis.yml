@@ -5,7 +5,7 @@ language: dart
 
 dart:
   # Keep version in-sync with Dockerfile
-  - 2.0.0-dev.31.0
+  - 2.0.0-dev.32.0
 
 env:
   - PKG=app TASK=dartanalyzer
