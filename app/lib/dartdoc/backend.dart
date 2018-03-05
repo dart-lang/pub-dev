@@ -139,6 +139,7 @@ class DartdocBackend {
       final fileInfo =
           new FileInfo(lastModified: info.updated, etag: info.etag);
       dartdocMemcache?.setFileInfoBytes(objectName, fileInfo.asBytes());
+      return fileInfo;
     } catch (e) {
       _logger.info('Requested path $objectName does not exists.');
     }
