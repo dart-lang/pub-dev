@@ -995,16 +995,6 @@ pre > code {
   Analysis tab
 ******************************************************/
 
-.analysis-disclaimer {
-  float: right;
-  margin-left: 1em;
-  margin-bottom: 12px;
-  padding: 8px;
-  border-left: 4px solid #00c4b3;
-  font-style: italic;
-  color: gray;
-}
-
 #scores-table {
   margin-bottom: 1em;
 }
