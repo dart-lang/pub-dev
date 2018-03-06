@@ -111,17 +111,19 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     }
 
     if (hasContent) {
-      return new TaskTargetStatus.skip('Entry has content and is not too old.');
+      return new TaskTargetStatus.skip(
+          'Entry has content, its age (${age.inDays} days) is less than the '
+          'threshold (${entryUpdateThreshold.inDays} days).');
     }
 
     if (!retryFailed) {
       return new TaskTargetStatus.skip(
-          'Previous run failed, but no retry was set.');
+          'Previous run failed, and retry was not requested.');
     }
 
     if (age.inDays == 0) {
       return new TaskTargetStatus.skip(
-          'Previous run failed, but less than a day passed.');
+          'Previous run failed, and less than a day passed.');
     } else {
       return new TaskTargetStatus.ok();
     }
