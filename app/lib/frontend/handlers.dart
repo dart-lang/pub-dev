@@ -395,7 +395,7 @@ FutureOr<shelf.Response> _packageHandler(shelf.Request request) {
   if (segments[2] == 'versions') {
     if (segments.length == 4) {
       final String version = Uri.decodeComponent(segments[3]);
-      return _packageVersionHandlerHtml(request, package, version: version);
+      return _packageVersionHandlerHtml(request, package, versionName: version);
     } else {
       return _packageVersionsHandler(request, package);
     }
@@ -441,21 +441,10 @@ Future<shelf.Response> _packageVersionsHandler(
       packageName, versions, dartdocEntries, versionDownloadUrls));
 }
 
-Future<shelf.Response> _packageVersionHandlerHtmlCore(
-    shelf.Request request,
-    String packageName,
-    String render(
-        Package package,
-        bool isVersionPage,
-        List<PackageVersion> first10Versions,
-        List<DartdocEntry> dartdocEntries,
-        List<Uri> versionDownloadUrls,
-        PackageVersion selectedVersion,
-        PackageVersion latestStableVersion,
-        PackageVersion latestDevVersion,
-        int totalNumberOfVersions,
-        AnalysisExtract extract,
-        AnalysisView analysis),
+/// Handles requests for /packages/<package>
+/// Handles requests for /packages/<package>/versions/<version>
+Future<shelf.Response> _packageVersionHandlerHtml(
+    shelf.Request request, String packageName,
     {String versionName}) async {
   if (redirectPackagePages.containsKey(packageName)) {
     return redirectResponse(redirectPackagePages[packageName]);
@@ -511,7 +500,7 @@ Future<shelf.Response> _packageVersionHandlerHtmlCore(
       return backend.downloadUrl(packageName, version.version);
     }).toList());
 
-    cachedPage = render(
+    cachedPage = templateService.renderPkgShowPage(
         package,
         versionName != null,
         first10Versions,
@@ -533,14 +522,6 @@ Future<shelf.Response> _packageVersionHandlerHtmlCore(
 
   return htmlResponse(cachedPage);
 }
-
-/// Handles requests for /packages/<package>
-/// Handles requests for /packages/<package>/versions/<version>
-Future<shelf.Response> _packageVersionHandlerHtml(
-        shelf.Request request, String packageName, {String version}) =>
-    _packageVersionHandlerHtmlCore(
-        request, packageName, templateService.renderPkgShowPage,
-        versionName: version);
 
 /// Handles request for /api/packages?page=<num>
 Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
