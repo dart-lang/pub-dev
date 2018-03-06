@@ -150,8 +150,11 @@ class DartdocRunner implements TaskRunner {
           'stderr: ${pr.stderr}\n');
     }
 
-    final hasContent = await new File(p.join(outputDir, 'index.html')).exists();
-    return hasContent;
+    final hasIndexHtml =
+        await new File(p.join(outputDir, 'index.html')).exists();
+    final hasIndexJson =
+        await new File(p.join(outputDir, 'index.json')).exists();
+    return hasIndexHtml && hasIndexJson;
   }
 
   Future<DartdocEntry> _createEntry(Task task, String outputDir,
