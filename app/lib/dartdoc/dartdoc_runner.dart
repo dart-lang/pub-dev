@@ -155,8 +155,11 @@ class DartdocRunner implements TaskRunner {
   ) async {
     logFileOutput.write('Running dartdoc:\n');
     final pr = await runProc(
-      'dartdoc',
+      'pub',
       [
+        'global',
+        'run',
+        'dartdoc',
         '--output',
         outputDir,
         '--hosted-url',

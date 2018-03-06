@@ -48,17 +48,6 @@ void main() {
             "https://github.com/flutter/flutter.git \$FLUTTER_SDK"));
   });
 
-  test('dartdoc version should match SDK dartdoc', () async {
-    final pr = await Process.run('dartdoc', ['--version']);
-    final RegExp versionRegExp = new RegExp(r'dartdoc version: (.*)$');
-    final match = versionRegExp.firstMatch(pr.stdout.toString().trim());
-    if (match == null) {
-      throw new Exception('Unable to parse dartdoc version: ${pr.stdout}');
-    }
-    final version = match.group(1).trim();
-    expect(version, dartdocVersion);
-  });
-
   group('dartdoc serving', () {
     test('old versions are serving', () {
       expect(shouldServeDartdoc('0.16.0', '0.1.6', '0.0.0'), isTrue);
