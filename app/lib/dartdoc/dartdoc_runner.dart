@@ -26,6 +26,19 @@ final Uuid _uuid = new Uuid();
 const statusFilePath = 'status.json';
 const buildLogFilePath = 'log.txt';
 
+const _excludedLibraries = const <String>[
+  'dart:async',
+  'dart:collection',
+  'dart:convert',
+  'dart:core',
+  'dart:developer',
+  'dart:io',
+  'dart:isolate',
+  'dart:math',
+  'dart:typed_data',
+  'dart:ui',
+];
+
 class DartdocRunner implements TaskRunner {
   @override
   Future<TaskTargetStatus> checkTargetStatus(Task task) {
@@ -137,6 +150,8 @@ class DartdocRunner implements TaskRunner {
         _hostedUrl,
         '--rel-canonical-prefix',
         p.join(_hostedUrl, 'documentation', task.package, task.version),
+        '--exclude',
+        _excludedLibraries.join(','),
       ],
       workingDirectory: pkgPath,
       environment: environment,
