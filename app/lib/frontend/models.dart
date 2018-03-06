@@ -49,10 +49,13 @@ class Package extends db.ExpandoModel {
   @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
-  @db.BoolProperty()
-  bool isDiscontinued;
+  @db.StringProperty()
+  String discontinuedMessage;
 
   // Convenience Fields:
+
+  bool get isDiscontinued =>
+      discontinuedMessage != null && discontinuedMessage.isNotEmpty;
 
   String get latestVersion => latestVersionKey.id;
 

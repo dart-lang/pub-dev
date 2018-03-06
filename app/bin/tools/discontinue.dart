@@ -16,7 +16,7 @@ import 'package:pub_dartlang_org/shared/package_memcache.dart';
 void _printUsage() {
   print('Usage:');
   print('    ${Platform.script} read  <package>');
-  print('    ${Platform.script} set   <package>');
+  print('    ${Platform.script} set   <package> [<message>]');
   print('    ${Platform.script} clear <package>');
 }
 
@@ -33,10 +33,14 @@ Future main(List<String> arguments) async {
     if (command == 'read') {
       await _read(package);
     } else if (command == 'set') {
-      await _set(package, true);
+      var message = arguments.skip(2).join(' ').trim();
+      if (message.isEmpty) {
+        message = 'Package is discontinued.';
+      }
+      await _set(package, message);
       await _clearCaches(package);
     } else if (command == 'clear') {
-      await _set(package, false);
+      await _set(package, null);
       await _clearCaches(package);
     } else {
       _printUsage();
@@ -56,10 +60,10 @@ Future _read(String packageName) async {
   }
   final isDiscontinued = p.isDiscontinued ?? false;
   final label = isDiscontinued ? 'discontinued' : '-';
-  print('Package $packageName: $label');
+  print('Package $packageName: $label (${p.discontinuedMessage})');
 }
 
-Future _set(String packageName, bool value) {
+Future _set(String packageName, String value) {
   return dbService.withTransaction((Transaction tx) async {
     final Package p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -67,7 +71,7 @@ Future _set(String packageName, bool value) {
     if (p == null) {
       throw new Exception('Package $packageName does not exist.');
     }
-    p.isDiscontinued = value;
+    p.discontinuedMessage = value;
     tx.queueMutations(inserts: [p]);
     await tx.commit();
     print('Package $packageName: isDiscontinued=$value');
