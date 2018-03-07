@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../shared/configuration.dart' show envConfig;
-import '../shared/task_scheduler.dart' show Task, TaskRunner, TaskTargetStatus;
+import '../shared/task_scheduler.dart';
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
@@ -68,6 +68,9 @@ class DartdocRunner implements TaskRunner {
           : new FlutterSdk(sdkDir: envConfig.flutterSdkDir),
     );
 
+    final latestVersion = await dartdocBackend.getLatestVersion(task.package);
+    final bool isLatestStable = latestVersion == task.version;
+
     try {
       final pkgDir = await downloadPackage(task.package, task.version);
       if (pkgDir == null) return false;
@@ -109,6 +112,15 @@ class DartdocRunner implements TaskRunner {
       } else {
         await dartdocBackend.uploadDir(entry, outputDir);
       }
+
+      if (!hasContent && isLatestStable) {
+        reportIssueWithLatest('dartdoc', task, 'No content.');
+      }
+    } catch (e, st) {
+      if (isLatestStable) {
+        reportIssueWithLatest('dartdoc', task, '$e\n$st');
+      }
+      rethrow;
     } finally {
       await tempDir.delete(recursive: true);
     }
