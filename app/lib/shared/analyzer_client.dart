@@ -105,7 +105,7 @@ class AnalyzerClient {
     } else {
       extract = new AnalysisExtract(
         analysisStatus: view.analysisStatus,
-        popularity: popularityStorage.lookup(key.package) ?? 0.0,
+        popularity: popularityStorage?.lookup(key.package) ?? 0.0,
         maintenance: view.maintenanceScore,
         health: view.health,
         platforms: view.platforms,
