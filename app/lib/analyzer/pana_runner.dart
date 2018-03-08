@@ -11,7 +11,7 @@ import 'package:pana/src/version.dart';
 
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
-import '../shared/task_scheduler.dart' show Task, TaskRunner, TaskTargetStatus;
+import '../shared/task_scheduler.dart';
 import '../shared/utils.dart';
 
 import 'backend.dart';
@@ -120,6 +120,13 @@ class PanaRunner implements TaskRunner {
     }
 
     final backendStatus = await _analysisBackend.storeAnalysis(analysis);
+
+    if (backendStatus.isLatestStable &&
+        analysis.analysisStatus != AnalysisStatus.success &&
+        analysis.analysisStatus != AnalysisStatus.discontinued) {
+      reportIssueWithLatest('analyzer', task, '${analysis.analysisStatus}');
+    }
+
     return backendStatus.wasRace;
   }
 }
