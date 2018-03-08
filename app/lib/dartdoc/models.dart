@@ -15,6 +15,8 @@ import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart' show isNewer;
 import '../shared/versions.dart' as versions;
 
+import 'storage_path.dart' as storage_path;
+
 part 'models.g.dart';
 
 final Duration entryUpdateThreshold = const Duration(days: 90);
@@ -66,20 +68,26 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
 
   /// The path of the status while the upload is in progress
   String get inProgressPrefix =>
-      DartdocEntryPaths.inProgressPrefix(packageName, packageVersion);
+      storage_path.inProgressPrefix(packageName, packageVersion);
 
   /// The path of the particular JSON status while upload is in progress
-  String get inProgressPath => '$inProgressPrefix/$uuid.json';
+  String get inProgressObjectName =>
+      storage_path.inProgressObjectName(packageName, packageVersion, uuid);
 
   /// The path prefix where all of the entry JSON files are stored.
   String get entryPrefix =>
-      DartdocEntryPaths.entryPrefix(packageName, packageVersion);
+      storage_path.entryPrefix(packageName, packageVersion);
 
   /// The path of the particular JSON entry after the upload was completed.
-  String get entryPath => '$entryPrefix/$uuid.json';
+  String get entryObjectName =>
+      storage_path.entryObjectName(packageName, packageVersion, uuid);
 
   /// The path prefix where the content of this instance is stored.
-  String get contentPrefix => '$packageName/$packageVersion/content/$uuid';
+  String get contentPrefix =>
+      storage_path.contentPrefix(packageName, packageVersion, uuid);
+
+  String objectName(String relativePath) => storage_path.contentObjectName(
+      packageName, packageVersion, uuid, relativePath);
 
   List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
 
@@ -145,14 +153,6 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     // Older entry seems to be better.
     return true;
   }
-}
-
-abstract class DartdocEntryPaths {
-  static String inProgressPrefix(String packageName, String packageVersion) =>
-      '$packageName/$packageVersion/in-progress';
-
-  static String entryPrefix(String packageName, String packageVersion) =>
-      '$packageName/$packageVersion/entry';
 }
 
 @JsonSerializable()
