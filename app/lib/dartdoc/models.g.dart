@@ -18,6 +18,8 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) =>
         packageName: json['packageName'] as String,
         packageVersion: json['packageVersion'] as String,
         usesFlutter: json['usesFlutter'] as bool,
+        runtimeVersion: json['runtimeVersion'] as String,
+        sdkVersion: json['sdkVersion'] as String,
         dartdocVersion: json['dartdocVersion'] as String,
         flutterVersion: json['flutterVersion'] as String,
         customizationVersion: json['customizationVersion'] as String,
@@ -32,6 +34,8 @@ abstract class _$DartdocEntrySerializerMixin {
   String get packageName;
   String get packageVersion;
   bool get usesFlutter;
+  String get runtimeVersion;
+  String get sdkVersion;
   String get dartdocVersion;
   String get flutterVersion;
   String get customizationVersion;
@@ -43,6 +47,8 @@ abstract class _$DartdocEntrySerializerMixin {
         'packageName': packageName,
         'packageVersion': packageVersion,
         'usesFlutter': usesFlutter,
+        'runtimeVersion': runtimeVersion,
+        'sdkVersion': sdkVersion,
         'dartdocVersion': dartdocVersion,
         'flutterVersion': flutterVersion,
         'customizationVersion': customizationVersion,

@@ -4,7 +4,7 @@
 language: dart
 
 dart:
-  # Keep version in-sync with Dockerfile
+  # Keep version in-sync with Dockerfile and app/lib/shared/versions.dart
   - 2.0.0-dev.32.0
 
 env:

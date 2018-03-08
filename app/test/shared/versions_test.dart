@@ -10,6 +10,28 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 
 void main() {
+  test('do not forget to update runtimeVersion when any version changes', () {
+    final hash = [
+      runtimeVersion,
+      sdkVersion,
+      flutterVersion,
+      panaVersion,
+      dartdocVersion,
+      customizationVersion,
+    ].join('//').hashCode;
+    expect(hash, 464514207);
+  });
+
+  test('sdk version should match travis and dockerfile', () async {
+    final String docker = await new File('../Dockerfile').readAsString();
+    expect(docker.contains('\nFROM google/dart-runtime-base:$sdkVersion\n'),
+        isTrue);
+    final String rootTravis = await new File('../.travis.yml').readAsString();
+    expect(rootTravis.contains('\n  - $sdkVersion\n'), isTrue);
+    final String appTravis = await new File('.travis.yml').readAsString();
+    expect(appTravis.contains('\n  - $sdkVersion\n'), isTrue);
+  });
+
   test('analyzer version should match resolved pana version', () async {
     final String lockContent = await new File('pubspec.lock').readAsString();
     final Map lock = loadYaml(lockContent);
