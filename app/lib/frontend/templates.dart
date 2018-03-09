@@ -172,6 +172,7 @@ class TemplateService {
       title: pageTitle,
       platform: currentPlatform,
       searchQuery: searchQuery,
+      noIndex: true,
     );
   }
 
