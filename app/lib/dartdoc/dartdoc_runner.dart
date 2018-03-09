@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec;
 import 'package:pana/src/download_utils.dart';
+import 'package:pana/src/utils.dart' show runProc;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -153,7 +154,7 @@ class DartdocRunner implements TaskRunner {
     StringBuffer logFileOutput,
   ) async {
     logFileOutput.write('Running dartdoc:\n');
-    final pr = await Process.run(
+    final pr = await runProc(
       'dartdoc',
       [
         '--output',
@@ -220,7 +221,7 @@ class DartdocRunner implements TaskRunner {
     logFileOutput.write('Running tar:\n');
     final archive = 'package.tar.gz';
     final File tmpTar = new File(p.join(tmpDir, archive));
-    final pr = await Process.run(
+    final pr = await runProc(
       'tar',
       ['-czf', tmpTar.path, '.'],
       workingDirectory: tarDir,
