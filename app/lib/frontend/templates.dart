@@ -645,7 +645,7 @@ class TemplateService {
       'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
       'canonicalUrl': canonicalUrl,
       'pageDescription': pageDescription == null
-          ? 'Pub is a package manager for the Dart programming language.'
+          ? defaultPageDescriptionEscaped
           : HTML_ESCAPE.convert(pageDescription),
       'title': HTML_ESCAPE.convert(title),
       'search_platform': platform,

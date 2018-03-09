@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
 
 class PlatformDict {
@@ -138,6 +140,10 @@ SortDict getSortDict(String sort) {
     tooltip: 'Packages are sort by $sort.',
   );
 }
+
+final String defaultPageDescriptionEscaped = HTML_ESCAPE.convert(
+    'Pub is the package manager for the Dart programming language, containing reusable '
+    'libraries & packages for Flutter, AngularDart, and general Dart programs.');
 
 String flutterSpecificPackagesHtml =
     '<a href="/packages?q=dependency%3Aflutter">Flutter-specific packages...</a>';
