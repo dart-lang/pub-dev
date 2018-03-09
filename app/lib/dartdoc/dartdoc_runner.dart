@@ -192,6 +192,8 @@ class DartdocRunner implements TaskRunner {
         packageName: task.package,
         packageVersion: task.version,
         usesFlutter: usesFlutter,
+        runtimeVersion: versions.runtimeVersion,
+        sdkVersion: versions.sdkVersion,
         dartdocVersion: versions.dartdocVersion,
         flutterVersion: versions.flutterVersion,
         customizationVersion: versions.customizationVersion,

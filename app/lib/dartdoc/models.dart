@@ -25,6 +25,8 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final String packageName;
   final String packageVersion;
   final bool usesFlutter;
+  final String runtimeVersion;
+  final String sdkVersion;
   final String dartdocVersion;
   final String flutterVersion;
   final String customizationVersion;
@@ -37,6 +39,8 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     @required this.packageName,
     @required this.packageVersion,
     @required this.usesFlutter,
+    @required this.runtimeVersion,
+    @required this.sdkVersion,
     @required this.dartdocVersion,
     @required this.flutterVersion,
     @required this.customizationVersion,
@@ -55,11 +59,6 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     final bytes = await stream.fold([], (sum, list) => sum..addAll(list));
     return new DartdocEntry.fromBytes(bytes);
   }
-
-  Version get _semanticDartdocVersion => new Version.parse(dartdocVersion);
-  Version get _semanticFlutterVersion => new Version.parse(flutterVersion);
-  Version get _semanticCustomizationVersion =>
-      new Version.parse(customizationVersion);
 
   bool get isServing => versions.shouldServeDartdoc(
       dartdocVersion, flutterVersion, customizationVersion);
@@ -84,30 +83,27 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
 
   TaskTargetStatus checkTargetStatus({bool retryFailed: false}) {
-    if (isNewer(_semanticDartdocVersion, versions.semanticDartdocVersion)) {
-      // our dartdoc version is newer -> regenerate
-      return new TaskTargetStatus.ok();
-    }
-    if (isNewer(versions.semanticDartdocVersion, _semanticDartdocVersion)) {
-      // our dartdoc version is older -> skip generating
-      return new TaskTargetStatus.skip('Entry has newer dartdoc version.');
-    }
-
-    if (usesFlutter &&
-        isNewer(_semanticFlutterVersion, versions.semanticFlutterVersion)) {
-      // our flutter version is newer -> regenerate
-      return new TaskTargetStatus.ok();
-    }
-
-    if (isNewer(
-        _semanticCustomizationVersion, versions.semanticCustomizationVersion)) {
-      // our customization version is newer -> regenerate
-      return new TaskTargetStatus.ok();
-    }
-
     final age = new DateTime.now().difference(timestamp).abs();
     if (age > entryUpdateThreshold) {
       return new TaskTargetStatus.ok();
+    }
+
+    // TODO: remove hardcoded runtime version after the deploy is solid
+    final semanticRuntimeVersion =
+        new Version.parse(runtimeVersion ?? '2018.3.8');
+    if (isNewer(semanticRuntimeVersion, versions.semanticRuntimeVersion)) {
+      if (hasContent &&
+          !usesFlutter &&
+          flutterVersion != versions.flutterVersion &&
+          sdkVersion == versions.sdkVersion &&
+          dartdocVersion == versions.dartdocVersion &&
+          customizationVersion == versions.customizationVersion) {
+        return new TaskTargetStatus.skip(
+            'Only Flutter version changed and package does not depend on it.');
+      } else {
+        // our runtime version is newer -> regenerate
+        return new TaskTargetStatus.ok();
+      }
     }
 
     if (hasContent) {
