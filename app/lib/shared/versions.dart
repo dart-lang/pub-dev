@@ -32,14 +32,17 @@ final String customizationVersion = '0.0.1';
 final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 
-// Versions that control the dartdoc serving.
-final _dartdocVersion = new Version.parse('0.17.0');
-final _dartdocFlutter = new Version.parse('0.1.7');
-final _dartdocCustomization = new Version.parse('0.0.1');
+// Version that control the dartdoc serving.
+final _dartdocServingRuntime = new Version.parse('2018.3.8');
 
-/// Whether the given [dartdoc], [flutter] and [customization] versions should
+// Version that marks the default runtime version for dartdoc entries created
+// before the runtime version was tracked.
+// TODO: remove hardcoded runtime version after the deploy is solid
+final dartdocRuntimeEpoch = '2018.3.8';
+
+/// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
-bool shouldServeDartdoc(String dartdoc, String flutter, String customization) =>
-    !isNewer(_dartdocVersion, new Version.parse(dartdoc)) &&
-    !isNewer(_dartdocFlutter, new Version.parse(flutter)) &&
-    !isNewer(_dartdocCustomization, new Version.parse(customization));
+bool shouldServeDartdoc(String storedRuntimeVersion) {
+  final stored = new Version.parse(storedRuntimeVersion ?? dartdocRuntimeEpoch);
+  return !isNewer(_dartdocServingRuntime, stored);
+}
