@@ -60,8 +60,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     return new DartdocEntry.fromBytes(bytes);
   }
 
-  bool get isServing => versions.shouldServeDartdoc(
-      dartdocVersion, flutterVersion, customizationVersion);
+  bool get isServing => versions.shouldServeDartdoc(runtimeVersion);
 
   /// The path of the status while the upload is in progress
   String get inProgressPrefix =>
@@ -88,9 +87,8 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
       return new TaskTargetStatus.ok();
     }
 
-    // TODO: remove hardcoded runtime version after the deploy is solid
     final semanticRuntimeVersion =
-        new Version.parse(runtimeVersion ?? '2018.3.8');
+        new Version.parse(runtimeVersion ?? versions.dartdocRuntimeEpoch);
     if (isNewer(semanticRuntimeVersion, versions.semanticRuntimeVersion)) {
       if (hasContent &&
           !usesFlutter &&

@@ -61,41 +61,16 @@ void main() {
 
   group('dartdoc serving', () {
     test('old versions are serving', () {
-      expect(shouldServeDartdoc('0.16.0', '0.1.6', '0.0.0'), isTrue);
+      expect(shouldServeDartdoc(null), isTrue);
+      expect(shouldServeDartdoc('2017.1.1'), isTrue);
     });
 
-    test('max versions are serving', () {
-      expect(
-          shouldServeDartdoc(
-            dartdocVersion,
-            flutterVersion,
-            customizationVersion,
-          ),
-          isTrue);
+    test('current version is serving', () {
+      expect(shouldServeDartdoc(runtimeVersion), isTrue);
     });
 
-    test('next versions are not serving', () {
-      expect(
-          shouldServeDartdoc(
-            '0.17.1',
-            flutterVersion,
-            customizationVersion,
-          ),
-          isFalse);
-      expect(
-          shouldServeDartdoc(
-            dartdocVersion,
-            '0.1.8',
-            customizationVersion,
-          ),
-          isFalse);
-      expect(
-          shouldServeDartdoc(
-            dartdocVersion,
-            flutterVersion,
-            '0.0.2',
-          ),
-          isFalse);
+    test('next version is not serving', () {
+      expect(shouldServeDartdoc('2099.12.31'), isFalse);
     });
   });
 }
