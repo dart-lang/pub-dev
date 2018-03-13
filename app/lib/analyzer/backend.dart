@@ -110,6 +110,7 @@ class AnalysisBackend {
         packageVersion: entry.packageVersion,
         analysis: entry.analysis,
         timestamp: entry.timestamp,
+        runtimeVersion: entry.runtimeVersion,
         panaVersion: entry.panaVersion,
         flutterVersion: entry.flutterVersion,
         analysisStatus: entry.analysisStatus,
@@ -138,8 +139,7 @@ class AnalysisBackend {
       PackageVersionAnalysis version = parents[1];
       final isNewVersion = version == null;
       final isRegression = version != null &&
-          version.panaVersion == panaVersion &&
-          version.flutterVersion == flutterVersion &&
+          version.runtimeVersion == runtimeVersion &&
           (analysisStatusLevel(version.analysisStatus) >
               analysisStatusLevel(analysis.analysisStatus));
       final hasIdenticalHash = version != null &&
@@ -241,16 +241,15 @@ class AnalysisBackend {
     }
 
     // Is current analysis version newer?
-    if (isNewer(versionAnalysis.semanticPanaVersion, semanticPanaVersion) ||
-        isNewer(
-            versionAnalysis.semanticFlutterVersion, semanticFlutterVersion)) {
+    if (isNewer(
+        versionAnalysis.semanticRuntimeVersion, semanticRuntimeVersion)) {
+      // TODO: skip re-analysis of non-Flutter packages if only the flutterVersion changed
       return new TaskTargetStatus.ok();
     }
 
     // Is current analysis version obsolete?
-    if (isNewer(semanticPanaVersion, versionAnalysis.semanticPanaVersion) ||
-        isNewer(
-            semanticFlutterVersion, versionAnalysis.semanticFlutterVersion)) {
+    if (isNewer(
+        semanticRuntimeVersion, versionAnalysis.semanticRuntimeVersion)) {
       // existing analysis version is newer, current analyzer is obsolete?
       // TODO: turn off task polling on this instance
       _logger.warning(

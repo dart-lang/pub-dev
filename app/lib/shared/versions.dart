@@ -35,6 +35,11 @@ final Version semanticCustomizationVersion =
 // Version that control the dartdoc serving.
 final _dartdocServingRuntime = new Version.parse('2018.3.8');
 
+// Version that marks the default runtime version for analyzer entries created
+// before the runtime version was tracked.
+// TODO: remove hardcoded runtime version after the deploy is solid
+final analyzerRuntimeEpoch = '2018.3.8';
+
 // Version that marks the default runtime version for dartdoc entries created
 // before the runtime version was tracked.
 // TODO: remove hardcoded runtime version after the deploy is solid

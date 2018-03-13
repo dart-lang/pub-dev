@@ -63,6 +63,7 @@ void main() {
           'packageVersion': '1.2.3',
           'analysis': 242345,
           'timestamp': '2017-06-26T12:48:00.000',
+          'runtimeVersion': '2018.3.8',
           'panaVersion': '0.2.0',
           'flutterVersion': '0.0.11',
           'analysisStatus': 'success',
@@ -79,6 +80,7 @@ void main() {
               'packageVersion': '1.2.3',
               'analysis': 242345,
               'timestamp': '2017-06-26T12:48:00.000',
+              'runtimeVersion': '2018.3.8',
               'panaVersion': '0.2.0',
               'flutterVersion': '0.0.11',
               'analysisStatus': 'success',
@@ -96,6 +98,7 @@ void main() {
               'packageVersion': '1.2.3',
               'analysis': 242345,
               'timestamp': '2017-06-26T12:48:00.000',
+              'runtimeVersion': '2018.3.8',
               'panaVersion': '0.2.0',
               'flutterVersion': '0.0.11',
               'analysisStatus': 'success',
@@ -152,6 +155,7 @@ class MockAnalysisBackend implements AnalysisBackend {
         packageVersion: analysis.packageVersion,
         analysis: analysis.analysis,
         timestamp: analysis.timestamp,
+        runtimeVersion: analysis.runtimeVersion,
         panaVersion: analysis.panaVersion,
         flutterVersion: analysis.flutterVersion,
         analysisStatus: analysis.analysisStatus,
@@ -182,6 +186,7 @@ final Analysis testAnalysis = new Analysis()
   ..packageVersion = '1.2.3'
   ..id = 242345
   ..analysisStatus = AnalysisStatus.success
+  ..runtimeVersion = '2018.3.8'
   ..panaVersion = '0.2.0'
   ..flutterVersion = '0.0.11'
   ..timestamp = new DateTime(2017, 06, 26, 12, 48, 00)
