@@ -19,6 +19,7 @@ import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart' show contentType;
 
 import 'models.dart';
+import 'storage_path.dart' as storage_path;
 
 final Logger _logger = new Logger('pub.dartdoc.backend');
 
@@ -49,10 +50,9 @@ class DartdocBackend {
   /// Uploads a directory to the storage bucket.
   Future uploadDir(DartdocEntry entry, String dirPath) async {
     // upload is in progress
-    await _storage.writeBytes(entry.inProgressPath, entry.asBytes());
+    await _storage.writeBytes(entry.inProgressObjectName, entry.asBytes());
 
     // upload all files
-    final objectPrefix = entry.contentPrefix;
     final dir = new Directory(dirPath);
     final Stream<File> fileStream = dir
         .list(recursive: true)
@@ -61,7 +61,7 @@ class DartdocBackend {
 
     Future upload(File file) async {
       final relativePath = p.relative(file.path, from: dir.path);
-      final objectName = p.join(objectPrefix, relativePath);
+      final objectName = entry.objectName(relativePath);
       _logger.fine('Uploading to $objectName...');
       try {
         final sink =
@@ -84,11 +84,11 @@ class DartdocBackend {
     await uploadPool.close();
 
     // upload was completed
-    await _storage.writeBytes(entry.entryPath, entry.asBytes());
+    await _storage.writeBytes(entry.entryObjectName, entry.asBytes());
 
     // there is a small chance that the process is interrupted before this gets
     // deleted, but the [removeObsolete] should be able to validate it.
-    await _storage.delete(entry.inProgressPath);
+    await _storage.delete(entry.inProgressObjectName);
 
     await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
   }
@@ -114,7 +114,7 @@ class DartdocBackend {
       return new DartdocEntry.fromBytes(cachedContent);
     }
     final List<DartdocEntry> completedList =
-        await _listEntries(DartdocEntryPaths.entryPrefix(package, version));
+        await _listEntries(storage_path.entryPrefix(package, version));
     if (serving) {
       completedList.removeWhere((entry) => !entry.isServing);
     }
@@ -128,7 +128,7 @@ class DartdocBackend {
 
   /// Returns the file's header from the storage bucket
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) async {
-    final objectName = p.join(entry.contentPrefix, relativePath);
+    final objectName = entry.objectName(relativePath);
     final cachedContent = await dartdocMemcache?.getFileInfoBytes(objectName);
     if (cachedContent != null) {
       return new FileInfo.fromBytes(cachedContent);
@@ -148,7 +148,7 @@ class DartdocBackend {
 
   /// Returns a file's content from the storage bucket.
   Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
-    final objectName = p.join(entry.contentPrefix, relativePath);
+    final objectName = entry.objectName(relativePath);
     // TODO: add caching with memcache
     _logger.info('Retrieving $objectName from bucket.');
     return _storage.read(objectName);
@@ -157,20 +157,20 @@ class DartdocBackend {
   /// Removes incomplete uploads and old outputs from the bucket.
   Future removeObsolete(String package, String version) async {
     final List<DartdocEntry> completedList =
-        await _listEntries(DartdocEntryPaths.entryPrefix(package, version));
-    final List<DartdocEntry> inProgressList = await _listEntries(
-        DartdocEntryPaths.inProgressPrefix(package, version));
+        await _listEntries(storage_path.entryPrefix(package, version));
+    final List<DartdocEntry> inProgressList =
+        await _listEntries(storage_path.inProgressPrefix(package, version));
 
     for (var entry in inProgressList) {
       if (completedList.any((e) => e.uuid == entry.uuid)) {
         // upload was interrupted between setting the final entry and removing
         // the in-progress indicator. Doing the later now.
-        await _storage.delete(entry.inProgressPath);
+        await _storage.delete(entry.inProgressObjectName);
       } else {
         final age = new DateTime.now().difference(entry.timestamp).abs();
         if (age > _contentDeleteThreshold) {
           await _deleteAll(entry);
-          await _storage.delete(entry.inProgressPath);
+          await _storage.delete(entry.inProgressObjectName);
         }
       }
     }
@@ -226,6 +226,6 @@ class DartdocBackend {
       }
     }
     await deletePool.close();
-    await _storage.delete(entry.entryPath);
+    await _storage.delete(entry.entryObjectName);
   }
 }
