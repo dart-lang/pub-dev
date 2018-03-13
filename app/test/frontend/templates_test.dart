@@ -288,12 +288,16 @@ void main() {
           null,
           null,
           new AnalysisView(new AnalysisData(
+            analysis: 1,
             packageName: 'foo',
             packageVersion: '1.0.0',
+            runtimeVersion: '2018.3.8',
             panaVersion: '0.8.0',
             flutterVersion: '0.0.20',
             analysisStatus: AnalysisStatus.aborted,
             timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
+            maintenanceScore: null,
+            analysisContent: null,
           )));
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
     });
@@ -304,12 +308,16 @@ void main() {
           null,
           null,
           new AnalysisView(new AnalysisData(
+            analysis: 1,
             packageName: 'foo',
             packageVersion: '1.0.0',
+            runtimeVersion: '2018.3.8',
             panaVersion: '0.8.0',
             flutterVersion: '0.0.20',
             analysisStatus: AnalysisStatus.outdated,
             timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
+            maintenanceScore: null,
+            analysisContent: null,
           )));
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });

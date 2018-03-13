@@ -20,6 +20,7 @@ AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) =>
         timestamp: json['timestamp'] == null
             ? null
             : DateTime.parse(json['timestamp'] as String),
+        runtimeVersion: json['runtimeVersion'] as String,
         panaVersion: json['panaVersion'] as String,
         flutterVersion: json['flutterVersion'] as String,
         analysisStatus: json['analysisStatus'] == null
@@ -34,6 +35,7 @@ abstract class _$AnalysisDataSerializerMixin {
   String get packageVersion;
   int get analysis;
   DateTime get timestamp;
+  String get runtimeVersion;
   String get panaVersion;
   String get flutterVersion;
   AnalysisStatus get analysisStatus;
@@ -44,6 +46,7 @@ abstract class _$AnalysisDataSerializerMixin {
         'packageVersion': packageVersion,
         'analysis': analysis,
         'timestamp': timestamp?.toIso8601String(),
+        'runtimeVersion': runtimeVersion,
         'panaVersion': panaVersion,
         'flutterVersion': flutterVersion,
         'analysisStatus': analysisStatus == null

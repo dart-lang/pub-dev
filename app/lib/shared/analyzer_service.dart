@@ -5,6 +5,7 @@
 // ignore_for_file: annotate_overrides
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dartlang_org/search/scoring.dart'
     show calculateOverallScore;
 
@@ -74,6 +75,7 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
   final String packageVersion;
   final int analysis;
   final DateTime timestamp;
+  final String runtimeVersion;
   final String panaVersion;
   final String flutterVersion;
   final AnalysisStatus analysisStatus;
@@ -81,15 +83,16 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
   final Map analysisContent;
 
   AnalysisData({
-    this.packageName,
-    this.packageVersion,
-    this.analysis,
-    this.timestamp,
-    this.panaVersion,
-    this.flutterVersion,
-    this.analysisStatus,
-    this.analysisContent,
-    this.maintenanceScore,
+    @required this.packageName,
+    @required this.packageVersion,
+    @required this.analysis,
+    @required this.timestamp,
+    @required this.runtimeVersion,
+    @required this.panaVersion,
+    @required this.flutterVersion,
+    @required this.analysisStatus,
+    @required this.analysisContent,
+    @required this.maintenanceScore,
   });
 
   factory AnalysisData.fromJson(Map json) => _$AnalysisDataFromJson(json);

@@ -64,13 +64,16 @@ class PackageVersionAnalysis extends db.ExpandoModel {
   DateTime analysisTimestamp;
 
   @db.StringProperty()
+  String runtimeVersion;
+
+  @db.StringProperty()
   String panaVersion;
 
   @db.StringProperty()
   String flutterVersion;
 
-  Version get semanticPanaVersion => new Version.parse(panaVersion);
-  Version get semanticFlutterVersion => new Version.parse(flutterVersion);
+  Version get semanticRuntimeVersion =>
+      new Version.parse(runtimeVersion ?? versions.analyzerRuntimeEpoch);
 
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;
@@ -85,6 +88,7 @@ class PackageVersionAnalysis extends db.ExpandoModel {
     id = analysis.packageVersion;
     latestAnalysisKey = analysis.key;
     analysisTimestamp = analysis.timestamp;
+    runtimeVersion = analysis.runtimeVersion;
     panaVersion = analysis.panaVersion;
     flutterVersion = analysis.flutterVersion;
     analysisStatus = analysis.analysisStatus;
@@ -93,13 +97,13 @@ class PackageVersionAnalysis extends db.ExpandoModel {
 
   /// Returns true if there was a change that warrants an update in Datastore.
   bool updateWithLatest(Analysis analysis) {
-    if (isNewer(analysis.semanticPanaVersion, semanticPanaVersion) ||
-        isNewer(analysis.semanticFlutterVersion, semanticFlutterVersion)) {
+    if (isNewer(analysis.semanticRuntimeVersion, semanticRuntimeVersion)) {
       // the new analysis' version is older, result probably obsolete
       return false;
     }
     latestAnalysisKey = analysis.key;
     analysisTimestamp = analysis.timestamp;
+    runtimeVersion = analysis.runtimeVersion;
     panaVersion = analysis.panaVersion;
     flutterVersion = analysis.flutterVersion;
     analysisStatus = analysis.analysisStatus;
@@ -129,13 +133,16 @@ class Analysis extends db.ExpandoModel {
   // how its execution went, and the raw output.
 
   @db.StringProperty()
+  String runtimeVersion;
+
+  @db.StringProperty()
   String panaVersion;
 
   @db.StringProperty()
   String flutterVersion;
 
-  Version get semanticPanaVersion => new Version.parse(panaVersion);
-  Version get semanticFlutterVersion => new Version.parse(flutterVersion);
+  Version get semanticRuntimeVersion =>
+      new Version.parse(runtimeVersion ?? versions.analyzerRuntimeEpoch);
 
   @AnalysisStatusProperty()
   AnalysisStatus analysisStatus;
@@ -158,6 +165,7 @@ class Analysis extends db.ExpandoModel {
         .append(PackageAnalysis, id: packageName)
         .append(PackageVersionAnalysis, id: packageVersion);
     timestamp = new DateTime.now().toUtc();
+    runtimeVersion = versions.runtimeVersion;
     panaVersion = versions.panaVersion;
     flutterVersion = versions.flutterVersion;
   }

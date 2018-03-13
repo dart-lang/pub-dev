@@ -9,6 +9,7 @@ import 'package:gcloud/db.dart';
 import '../shared/analyzer_service.dart' show AnalysisStatus;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
+import '../shared/utils.dart';
 import '../shared/versions.dart';
 
 import 'backend.dart' show reanalyzeThreshold;
@@ -53,8 +54,7 @@ class AnalyzerDatastoreHistoryTaskSource extends DatastoreHistoryTaskSource {
     final PackageVersionAnalysis version = list.first;
     if (version == null) return true;
 
-    if (version.panaVersion != panaVersion ||
-        version.flutterVersion != flutterVersion) {
+    if (isNewer(version.semanticRuntimeVersion, semanticRuntimeVersion)) {
       return true;
     }
 
