@@ -10,23 +10,23 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
+import 'package:pub_dartlang_org/job/backend.dart';
+import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
-import 'package:pub_dartlang_org/dartdoc/task_sources.dart';
 
 final Logger logger = new Logger('pub.dartdoc');
 
 Future main() async {
   useLoggingPackageAdaptor();
 
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     await initDartdoc(logger);
     initFlutterSdk(logger)
         .then((_) => startIsolates(logger, _runSchedulerWrapper));
@@ -48,16 +48,32 @@ void _runScheduler(List<SendPort> sendPorts) {
 
   withAppEngineServices(() async {
     await _registerServices();
-    final runner = new DartdocRunner();
-    final scheduler = new TaskScheduler(runner, [
-      new ManualTriggerTaskSource(taskReceivePort),
-      new DartdocDatastoreHeadTaskSource(dbService),
-      new DartdocDatastoreHistoryTaskSource(dbService),
-    ]);
-    new Timer.periodic(const Duration(minutes: 1), (_) {
-      statsSendPort.send(scheduler.stats());
+
+    Future<bool> shouldUpdate(
+        String package, String version, DateTime updated) async {
+      final status = await dartdocBackend.checkTargetStatus(
+          package, version, updated, true);
+      return !status.shouldSkip;
+    }
+
+    final jobProcessor =
+        new DartdocJobProcessor(lockDuration: const Duration(minutes: 30));
+
+    final jobMaintenance =
+        new JobMaintenance(dbService, JobService.dartdoc, shouldUpdate);
+
+    new Timer.periodic(const Duration(minutes: 15), (_) async {
+      statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
     });
-    await scheduler.run();
+
+    await Future.wait([
+      jobMaintenance.syncNotifications(taskReceivePort),
+      jobMaintenance.syncDatastoreHead(),
+      jobMaintenance.syncDatastoreHistory(),
+      jobMaintenance.updateStates(),
+      jobProcessor.run(),
+      jobProcessor.run(), // a second processing, to better saturate the CPU
+    ]);
   });
 }
 
@@ -67,4 +83,5 @@ Future _registerServices() async {
   final Bucket storageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
   registerDartdocBackend(new DartdocBackend(dbService, storageBucket));
+  registerJobBackend(new JobBackend(dbService));
 }

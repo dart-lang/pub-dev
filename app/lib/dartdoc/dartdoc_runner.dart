@@ -12,8 +12,8 @@ import 'package:pana/src/utils.dart' show runProc;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../job/job.dart';
 import '../shared/configuration.dart' show envConfig;
-import '../shared/task_scheduler.dart';
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
@@ -41,22 +41,19 @@ const _excludedLibraries = const <String>[
   'dart:ui',
 ];
 
-class DartdocRunner implements TaskRunner {
-  @override
-  Future<TaskTargetStatus> checkTargetStatus(Task task) {
-    return dartdocBackend.checkTargetStatus(
-        task.package, task.version, task.updated, true);
-  }
+class DartdocJobProcessor extends JobProcessor {
+  DartdocJobProcessor({Duration lockDuration})
+      : super(service: JobService.dartdoc, lockDuration: lockDuration);
 
   @override
-  Future<bool> runTask(Task task) async {
+  Future<JobStatus> process(Job job) async {
     final tempDir =
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
     final tempDirPath = tempDir.resolveSymbolicLinksSync();
     final pkgPath = p.join(tempDirPath, 'pkg');
     final pubCacheDir = p.join(tempDirPath, 'pub-cache');
     final tarDir = p.join(tempDirPath, 'output');
-    final outputDir = p.join(tarDir, task.package, task.version);
+    final outputDir = p.join(tarDir, job.packageName, job.packageVersion);
 
     // directories need to be created
     await new Directory(pubCacheDir).create(recursive: true);
@@ -70,77 +67,82 @@ class DartdocRunner implements TaskRunner {
           : new FlutterSdk(sdkDir: envConfig.flutterSdkDir),
     );
 
-    final latestVersion = await dartdocBackend.getLatestVersion(task.package);
-    final bool isLatestStable = latestVersion == task.version;
+    final latestVersion =
+        await dartdocBackend.getLatestVersion(job.packageName);
+    final bool isLatestStable = latestVersion == job.packageVersion;
+    bool hasContent = false;
 
     try {
-      final pkgDir = await downloadPackage(task.package, task.version);
-      if (pkgDir == null) return false;
+      final pkgDir = await downloadPackage(job.packageName, job.packageVersion);
+      if (pkgDir == null) {
+        return JobStatus.failed;
+      }
       await pkgDir.rename(pkgPath);
+      final usesFlutter = await pubEnv.detectFlutterUse(pkgPath);
 
       final logFileOutput = new StringBuffer();
-      logFileOutput.write('Dartdoc generation for $task\n\n'
+      logFileOutput.write('Dartdoc generation for $job\n\n'
+          'runtime: ${versions.runtimeVersion}\n'
           'dartdoc: ${versions.dartdocVersion}\n'
           'flutter: ${versions.flutterVersion}\n'
           'customization: ${versions.customizationVersion}\n'
+          'usesFlutter: $usesFlutter\n'
           'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
-      final usesFlutter = await pubEnv.detectFlutterUse(pkgPath);
 
       // resolve dependencies
       final bool depsResolved = await _resolveDependencies(
-          pubEnv, task, pkgPath, usesFlutter, logFileOutput);
+          pubEnv, job, pkgPath, usesFlutter, logFileOutput);
 
-      bool hasContent = false;
       if (depsResolved) {
         hasContent =
-            await _generateDocs(task, pkgPath, outputDir, logFileOutput);
+            await _generateDocs(job, pkgPath, outputDir, logFileOutput);
       }
 
       if (hasContent) {
-        await new DartdocCustomizer(task.package, task.version)
+        await new DartdocCustomizer(job.packageName, job.packageVersion)
             .customizeDir(outputDir);
 
-        await _tar(task, tempDirPath, tarDir, outputDir, logFileOutput);
+        await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
       }
 
       final entry = await _createEntry(
-          task, outputDir, usesFlutter, depsResolved, hasContent);
+          job, outputDir, usesFlutter, depsResolved, hasContent);
 
       logFileOutput.write('completed: ${entry.timestamp.toIso8601String()}\n');
       await _writeLog(outputDir, logFileOutput);
 
       final oldEntry = await dartdocBackend.getLatestEntry(
-          task.package, task.version, false);
+          job.packageName, job.packageVersion, false);
       if (entry.isRegression(oldEntry)) {
-        _logger.severe('Regression detected in $task, aborting upload.');
+        _logger.severe('Regression detected in $job, aborting upload.');
       } else {
         await dartdocBackend.uploadDir(entry, outputDir);
       }
 
       if (!hasContent && isLatestStable) {
-        reportIssueWithLatest('dartdoc', task, 'No content.');
+        reportIssueWithLatest('dartdoc', job, 'No content.');
       }
     } catch (e, st) {
       if (isLatestStable) {
-        reportIssueWithLatest('dartdoc', task, '$e\n$st');
+        reportIssueWithLatest('dartdoc', job, '$e\n$st');
       }
       rethrow;
     } finally {
       await tempDir.delete(recursive: true);
     }
 
-    await dartdocBackend.removeObsolete(task.package, task.version);
+    await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
 
-    return false; // no race detection
+    return hasContent ? JobStatus.success : JobStatus.failed;
   }
 
-  Future<bool> _resolveDependencies(PubEnvironment pubEnv, Task task,
+  Future<bool> _resolveDependencies(PubEnvironment pubEnv, Job job,
       String pkgPath, bool usesFlutter, StringBuffer logFileOutput) async {
     logFileOutput.write('Running pub upgrade:\n');
     final pr = await pubEnv.runUpgrade(pkgPath, usesFlutter);
     _appendLog(logFileOutput, pr);
     if (pr.exitCode != 0) {
-      _logger.warning('Error while running pub upgrade for $task.\n'
+      _logger.warning('Error while running pub upgrade for $job.\n'
           'exitCode: ${pr.exitCode}\n'
           'stdout: ${pr.stdout}\n'
           'stderr: ${pr.stderr}\n');
@@ -150,7 +152,7 @@ class DartdocRunner implements TaskRunner {
   }
 
   Future<bool> _generateDocs(
-    Task task,
+    Job job,
     String pkgPath,
     String outputDir,
     StringBuffer logFileOutput,
@@ -167,7 +169,8 @@ class DartdocRunner implements TaskRunner {
         '--hosted-url',
         _hostedUrl,
         '--rel-canonical-prefix',
-        p.join(_hostedUrl, 'documentation', task.package, task.version),
+        p.join(
+            _hostedUrl, 'documentation', job.packageName, job.packageVersion),
         '--exclude',
         _excludedLibraries.join(','),
       ],
@@ -177,7 +180,7 @@ class DartdocRunner implements TaskRunner {
     _appendLog(logFileOutput, pr);
 
     if (pr.exitCode != 0) {
-      _logger.warning('Error while running dartdoc for $task.\n'
+      _logger.warning('Error while running dartdoc for $job.\n'
           'exitCode: ${pr.exitCode}\n'
           'stdout: ${pr.stdout}\n'
           'stderr: ${pr.stderr}\n');
@@ -190,12 +193,12 @@ class DartdocRunner implements TaskRunner {
     return hasIndexHtml && hasIndexJson;
   }
 
-  Future<DartdocEntry> _createEntry(Task task, String outputDir,
-      bool usesFlutter, bool depsResolved, bool hasContent) async {
+  Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,
+      bool depsResolved, bool hasContent) async {
     final entry = new DartdocEntry(
         uuid: _uuid.v4(),
-        packageName: task.package,
-        packageVersion: task.version,
+        packageName: job.packageName,
+        packageVersion: job.packageVersion,
         usesFlutter: usesFlutter,
         runtimeVersion: versions.runtimeVersion,
         sdkVersion: versions.sdkVersion,
@@ -223,7 +226,7 @@ class DartdocRunner implements TaskRunner {
     buffer.write('STDERR:\n${pr.stderr}\n\n');
   }
 
-  Future _tar(Task task, String tmpDir, String tarDir, String outputDir,
+  Future _tar(String tmpDir, String tarDir, String outputDir,
       StringBuffer logFileOutput) async {
     logFileOutput.write('Running tar:\n');
     final archive = 'package.tar.gz';
@@ -236,4 +239,9 @@ class DartdocRunner implements TaskRunner {
     await tmpTar.rename(p.join(outputDir, archive));
     _appendLog(logFileOutput, pr);
   }
+}
+
+void reportIssueWithLatest(String service, Job job, String message) {
+  _logger.severe(
+      '$service failed for latest version of ${job.packageName} (${job.packageVersion}): $message');
 }
