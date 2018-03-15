@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'configuration.dart';
 import 'scheduler_stats.dart';
 import 'task_client.dart';
+import 'versions.dart';
 
 Future startIsolates(Logger logger, void entryPoint(message)) async {
   final ReceivePort errorReceivePort = new ReceivePort();
@@ -66,6 +67,43 @@ Future initFlutterSdk(Logger logger) async {
         logger.info('Flutter checkout completed.');
       }
     }
+  }
+}
+
+Future initDartdoc(Logger logger) async {
+  Future<bool> checkVersion() async {
+    final pr =
+        await Process.run('pub', ['global', 'run', 'dartdoc', '--version']);
+    if (pr.exitCode == 0) {
+      final RegExp versionRegExp = new RegExp(r'dartdoc version: (.*)$');
+      final match = versionRegExp.firstMatch(pr.stdout.toString().trim());
+      if (match == null) {
+        throw new Exception('Unable to parse dartdoc version: ${pr.stdout}');
+      }
+      final version = match.group(1).trim();
+      return version == dartdocVersion;
+    } else {
+      return false;
+    }
+  }
+
+  final exists = await checkVersion();
+  if (exists) return;
+
+  final pr = await Process
+      .run('pub', ['global', 'activate', 'dartdoc', dartdocVersion]);
+  if (pr.exitCode != 0) {
+    final message = 'Failed to activate dartdoc (exited with ${pr.exitCode})\n'
+        'stdout: ${pr.stdout}\nstderr: ${pr.stderr}';
+    logger.shout(message);
+    throw new Exception(message);
+  }
+
+  final matches = await checkVersion();
+  if (!matches) {
+    final message = 'Failed to setup dartdoc.';
+    logger.shout(message);
+    throw new Exception(message);
   }
 }
 
