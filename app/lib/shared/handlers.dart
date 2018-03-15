@@ -35,10 +35,9 @@ shelf.Response yamlResponse(String yamlString, {int status: 200}) =>
         body: yamlString,
         headers: {'content-type': 'text/yaml; charset="utf-8"'});
 
-shelf.Response jsonResponse(Map json, {int status: 200, bool indent: false}) {
-  final String body = indent
-      ? new JsonEncoder.withIndent('  ').convert(json)
-      : JSON.encode(json);
+shelf.Response jsonResponse(Map map, {int status: 200, bool indent: false}) {
+  final String body =
+      indent ? new JsonEncoder.withIndent('  ').convert(map) : json.encode(map);
   return new shelf.Response(
     status,
     body: body,

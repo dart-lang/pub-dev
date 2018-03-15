@@ -51,7 +51,7 @@ void main() {
     test('flutter iap', () async {
       final PackageSearchResult result = await index.search(
           new SearchQuery.parse(query: 'flutter iap', order: SearchOrder.text));
-      expect(JSON.decode(JSON.encode(result)), {
+      expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
@@ -66,7 +66,7 @@ void main() {
     test('flutter_iap', () async {
       final PackageSearchResult result = await index.search(
           new SearchQuery.parse(query: 'flutter_iap', order: SearchOrder.text));
-      expect(JSON.decode(JSON.encode(result)), {
+      expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [

@@ -15,9 +15,9 @@ class Pubspec {
 
   Pubspec(this.jsonString);
 
-  Pubspec.fromJson(Map json)
-      : jsonString = JSON.encode(json),
-        _json = json;
+  Pubspec.fromJson(Map jsonMap)
+      : jsonString = json.encode(jsonMap),
+        _json = jsonMap;
 
   factory Pubspec.fromYaml(String yamlString) =>
       new Pubspec.fromJson(loadYaml(yamlString));

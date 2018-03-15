@@ -188,7 +188,7 @@ List<num> solveCubic(num a, num b, num c, num d) {
       final u = 2 * math.sqrt(-p / 3);
       final t = math.acos(3 * q / p / u) /
           3; // D < 0 implies p < 0 and acos argument in [-1..1]
-      final k = 2 * math.PI / 3;
+      final k = 2 * math.pi / 3;
       roots = [u * math.cos(t), u * math.cos(t - k), u * math.cos(t - 2 * k)];
     }
   }

@@ -141,7 +141,7 @@ SortDict getSortDict(String sort) {
   );
 }
 
-final String defaultPageDescriptionEscaped = HTML_ESCAPE.convert(
+final String defaultPageDescriptionEscaped = htmlEscape.convert(
     'Pub is the package manager for the Dart programming language, containing reusable '
     'libraries & packages for Flutter, AngularDart, and general Dart programs.');
 

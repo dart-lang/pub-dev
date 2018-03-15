@@ -25,6 +25,8 @@ void main() {
       packageName: 'pkg_foo',
       packageVersion: '1.2.3',
       usesFlutter: false,
+      runtimeVersion: '2018.3.8',
+      sdkVersion: '2.0.0-dev.32.0',
       dartdocVersion: '0.16.0',
       flutterVersion: '0.1.6',
       customizationVersion: '0.0.1',

@@ -25,7 +25,7 @@ class FeedEntry {
       this.alternateUrl, this.alternateTitle);
 
   void writeToXmlBuffer(StringBuffer buffer) {
-    final escape = HTML_ESCAPE.convert;
+    final escape = htmlEscape.convert;
 
     var authorTags = '';
     if (authors.isNotEmpty) {
@@ -84,7 +84,7 @@ class Feed {
   }
 
   void writeToXmlBuffer(StringBuffer buffer) {
-    final escape = HTML_ESCAPE.convert;
+    final escape = htmlEscape.convert;
 
     buffer.writeln('<feed xmlns="http://www.w3.org/2005/Atom">');
 

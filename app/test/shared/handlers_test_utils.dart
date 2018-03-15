@@ -11,13 +11,13 @@ import 'package:test/test.dart';
 Future expectJsonResponse(shelf.Response response, {status: 200, body}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'application/json; charset="utf-8"');
-  expect(JSON.decode(await response.readAsString()), body);
+  expect(json.decode(await response.readAsString()), body);
 }
 
 Future expectYamlResponse(shelf.Response response, {status: 200, body}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/yaml; charset="utf-8"');
-  expect(JSON.decode(await response.readAsString()), body);
+  expect(json.decode(await response.readAsString()), body);
 }
 
 Future expectRedirectResponse(shelf.Response response, String url) async {

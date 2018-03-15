@@ -43,7 +43,7 @@ class SearchClient {
           'Service returned status code ${response.statusCode}');
     }
     final PackageSearchResult result =
-        new PackageSearchResult.fromJson(JSON.decode(response.body));
+        new PackageSearchResult.fromJson(json.decode(response.body));
     if (!result.isLegit) {
       // Search request before the service initialization completed.
       return null;

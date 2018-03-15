@@ -48,8 +48,8 @@ class PopularityStorage {
       final Map latest = await bucket
           .read(_latestPath)
           .transform(_gzip.decoder)
-          .transform(UTF8.decoder)
-          .transform(JSON.decoder)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
           .single;
       _updateLatest(latest);
     } catch (e, st) {

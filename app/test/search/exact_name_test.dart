@@ -36,7 +36,7 @@ void main() {
     test('build_config', () async {
       final PackageSearchResult result =
           await index.search(new SearchQuery.parse(query: 'build_config'));
-      expect(JSON.decode(JSON.encode(result)), {
+      expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [

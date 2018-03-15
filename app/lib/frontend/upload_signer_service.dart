@@ -60,9 +60,9 @@ abstract class UploadSignerService {
       'conditions': conditions,
     };
 
-    final policyString = BASE64.encode(UTF8.encode(JSON.encode(policyMap)));
-    final SigningResult result = await sign(ASCII.encode(policyString));
-    final signatureString = BASE64.encode(result.bytes);
+    final policyString = base64.encode(utf8.encode(json.encode(policyMap)));
+    final SigningResult result = await sign(ascii.encode(policyString));
+    final signatureString = base64.encode(result.bytes);
 
     final fields = {
       'key': object,

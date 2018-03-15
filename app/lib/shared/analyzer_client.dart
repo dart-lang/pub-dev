@@ -82,7 +82,7 @@ class AnalyzerClient {
         await analyzerMemcache?.getExtract(key.package, key.version);
     if (cachedExtract != null) {
       try {
-        final cached = new AnalysisExtract.fromJson(JSON.decode(cachedExtract));
+        final cached = new AnalysisExtract.fromJson(json.decode(cachedExtract));
         // return the cached version only if status is populated (ignoring the
         // cache values from the previous version).
         // TODO: remove this check in the next release
@@ -113,7 +113,7 @@ class AnalyzerClient {
       );
     }
     await analyzerMemcache?.setExtract(
-        key.package, key.version, JSON.encode(extract.toJson()));
+        key.package, key.version, json.encode(extract.toJson()));
     return extract;
   }
 
@@ -124,7 +124,7 @@ class AnalyzerClient {
         key.package, key.version, panaVersion);
     if (cachedContent != null) {
       try {
-        return new AnalysisData.fromJson(JSON.decode(cachedContent));
+        return new AnalysisData.fromJson(json.decode(cachedContent));
       } catch (e, st) {
         _logger.severe('Unable to parse analysis data for $key', e, st);
       }
@@ -136,7 +136,7 @@ class AnalyzerClient {
       if (rs.statusCode == 200) {
         final String content = rs.body;
         final AnalysisData data =
-            new AnalysisData.fromJson(JSON.decode(content));
+            new AnalysisData.fromJson(json.decode(content));
         await analyzerMemcache?.setContent(
             key.package, key.version, panaVersion, content);
         return data;

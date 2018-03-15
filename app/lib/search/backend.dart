@@ -132,13 +132,13 @@ class SnapshotStorage {
 
   Future<SearchSnapshot> fetch() async {
     try {
-      final Map json = await bucket
+      final Map map = await bucket
           .read(_latestPath)
           .transform(_gzip.decoder)
-          .transform(UTF8.decoder)
-          .transform(JSON.decoder)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
           .single;
-      return new SearchSnapshot.fromJson(json);
+      return new SearchSnapshot.fromJson(map);
     } catch (e, st) {
       _logger.shout(
           'Unable to load search snapshot: ${bucketUri(bucket, _latestPath)}',
@@ -150,7 +150,7 @@ class SnapshotStorage {
 
   Future store(SearchSnapshot snapshot) async {
     final List<int> buffer =
-        _gzip.encode(UTF8.encode(JSON.encode(snapshot.toJson())));
+        _gzip.encode(utf8.encode(json.encode(snapshot.toJson())));
     await bucket.writeBytes(_latestPath, buffer);
   }
 }
