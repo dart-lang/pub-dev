@@ -55,8 +55,7 @@ void main() {
     });
 
     test('current version is serving', () {
-      // TODO: should use _dartdocServingRuntime instead
-      expect(shouldServeDartdoc(runtimeVersion), isTrue);
+      expect(shouldServeDartdoc(dartdocServingRuntime.toString()), isTrue);
     });
 
     test('next version is not serving', () {
