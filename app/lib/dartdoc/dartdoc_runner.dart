@@ -91,9 +91,8 @@ class DartdocRunner implements TaskRunner {
 
       bool hasContent = false;
       if (depsResolved) {
-        final dartdocEnv = {'PUB_CACHE': pubCacheDir};
-        hasContent = await _generateDocs(
-            task, pkgPath, outputDir, dartdocEnv, logFileOutput);
+        hasContent =
+            await _generateDocs(task, pkgPath, outputDir, logFileOutput);
       }
 
       if (hasContent) {
@@ -153,7 +152,6 @@ class DartdocRunner implements TaskRunner {
     Task task,
     String pkgPath,
     String outputDir,
-    Map<String, String> environment,
     StringBuffer logFileOutput,
   ) async {
     logFileOutput.write('Running dartdoc:\n');
@@ -173,7 +171,6 @@ class DartdocRunner implements TaskRunner {
         _excludedLibraries.join(','),
       ],
       workingDirectory: pkgPath,
-      environment: environment,
     );
     _appendLog(logFileOutput, pr);
 
