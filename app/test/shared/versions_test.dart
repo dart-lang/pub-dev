@@ -19,7 +19,7 @@ void main() {
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 464514207);
+    expect(hash, 522779640);
   });
 
   test('sdk version should match travis and dockerfile', () async {
@@ -55,6 +55,7 @@ void main() {
     });
 
     test('current version is serving', () {
+      // TODO: should use _dartdocServingRuntime instead
       expect(shouldServeDartdoc(runtimeVersion), isTrue);
     });
 
