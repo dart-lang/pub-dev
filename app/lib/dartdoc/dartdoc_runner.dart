@@ -89,9 +89,12 @@ class DartdocRunner implements TaskRunner {
       final bool depsResolved = await _resolveDependencies(
           pubEnv, task, pkgPath, usesFlutter, logFileOutput);
 
-      final dartdocEnv = {'PUB_CACHE': pubCacheDir};
-      final hasContent = await _generateDocs(
-          task, pkgPath, outputDir, dartdocEnv, logFileOutput);
+      bool hasContent = false;
+      if (depsResolved) {
+        final dartdocEnv = {'PUB_CACHE': pubCacheDir};
+        hasContent = await _generateDocs(
+            task, pkgPath, outputDir, dartdocEnv, logFileOutput);
+      }
 
       if (hasContent) {
         await new DartdocCustomizer(task.package, task.version)
