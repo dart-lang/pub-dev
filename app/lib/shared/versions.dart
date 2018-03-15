@@ -33,7 +33,7 @@ final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 
 // Version that control the dartdoc serving.
-final _dartdocServingRuntime = new Version.parse('2018.3.15');
+final dartdocServingRuntime = new Version.parse('2018.3.15');
 
 // Version that marks the default runtime version for analyzer entries created
 // before the runtime version was tracked.
@@ -49,5 +49,5 @@ final dartdocRuntimeEpoch = '2018.3.8';
 /// be displayed on the live site (or a coordinated upgrade is in progress).
 bool shouldServeDartdoc(String storedRuntimeVersion) {
   final stored = new Version.parse(storedRuntimeVersion ?? dartdocRuntimeEpoch);
-  return !isNewer(_dartdocServingRuntime, stored);
+  return !isNewer(dartdocServingRuntime, stored);
 }
