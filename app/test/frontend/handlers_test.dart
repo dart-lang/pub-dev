@@ -243,14 +243,14 @@ void main() {
       tScopedTest('/packages/flutter - redirect', () async {
         expectRedirectResponse(
           await issueGet('/packages/flutter'),
-          'https://flutter.io/',
+          'https://pub.dartlang.org/flutter',
         );
       });
 
       tScopedTest('/packages/flutter/versions/* - redirect', () async {
         expectRedirectResponse(
           await issueGet('/packages/flutter/versions/0.20'),
-          'https://flutter.io/',
+          'https://pub.dartlang.org/flutter',
         );
       });
 

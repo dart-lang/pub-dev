@@ -191,7 +191,7 @@ const _knownGoodLowerCasePackages = const [
 ];
 
 const redirectPackagePages = const <String, String>{
-  'flutter': 'https://flutter.io/',
+  'flutter': 'https://pub.dartlang.org/flutter',
 };
 
 const redirectDartdocPages = const <String, String>{
