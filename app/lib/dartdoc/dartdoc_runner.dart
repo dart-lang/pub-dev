@@ -26,6 +26,7 @@ final Uuid _uuid = new Uuid();
 
 const statusFilePath = 'status.json';
 const buildLogFilePath = 'log.txt';
+const dartdocTimeout = const Duration(minutes: 10);
 
 const _excludedLibraries = const <String>[
   'dart:async',
@@ -171,6 +172,7 @@ class DartdocRunner implements TaskRunner {
         _excludedLibraries.join(','),
       ],
       workingDirectory: pkgPath,
+      timeout: dartdocTimeout,
     );
     _appendLog(logFileOutput, pr);
 
