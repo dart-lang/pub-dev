@@ -5,7 +5,7 @@ language: dart
 
 dart:
   # Keep version in-sync with Dockerfile and app/lib/shared/versions.dart
-  - 2.0.0-dev.32.0
+  - 2.0.0-dev.37.0
 
 env:
   - PKG=app TASK=dartanalyzer

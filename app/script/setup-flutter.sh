@@ -22,7 +22,7 @@ then
   exit 1
 fi
 
-git clone -b v0.1.7 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
+git clone -b v0.2.1 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
 
 # Keep in-sync with app/lib/shared/versions.dart
 cd $FLUTTER_SDK
