@@ -66,7 +66,7 @@ Future _backfill(PackageVersion pv) async {
   if (archiveFile == null) return;
 
   final String archiveFilename = archiveFile.name;
-  final String content = UTF8.decode(archiveFile.content, allowMalformed: true);
+  final String content = utf8.decode(archiveFile.content, allowMalformed: true);
   if (content.trim().isEmpty) return;
 
   await dbService.withTransaction((Transaction t) async {

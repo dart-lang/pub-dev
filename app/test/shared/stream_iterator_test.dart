@@ -124,7 +124,7 @@ void main() {
         deduplicateWaiting: true,
       );
       // allow Stream listeners to be triggered
-      await new Future.delayed(Duration.ZERO);
+      await new Future.delayed(Duration.zero);
       expect(await iterator.moveNext(), isTrue);
       expect(iterator.current, 1);
       expect(await iterator.moveNext(), isTrue);

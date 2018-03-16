@@ -54,7 +54,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     test('travis', () async {
       final PackageSearchResult result = await index.search(
           new SearchQuery.parse(query: 'travis', order: SearchOrder.text));
-      expect(JSON.decode(JSON.encode(result)), {
+      expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [

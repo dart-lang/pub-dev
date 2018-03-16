@@ -146,7 +146,7 @@ class _ServiceDeployer {
       if (res.statusCode == 200) {
         List<int> bytes =
             await res.fold([], (List<int> all, List<int> d) => all..addAll(d));
-        Map map = JSON.decode(UTF8.decode(bytes));
+        Map map = json.decode(utf8.decode(bytes));
         if (map != null && map.isNotEmpty) {
           print('$service health check OK.');
           return;

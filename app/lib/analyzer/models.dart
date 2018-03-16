@@ -172,7 +172,7 @@ class Analysis extends db.ExpandoModel {
 
   Map get analysisJson {
     if (analysisJsonGz == null) return null;
-    return JSON.decode(UTF8.decode(_gzipCodec.decode(analysisJsonGz)));
+    return json.decode(utf8.decode(_gzipCodec.decode(analysisJsonGz)));
   }
 
   set analysisJson(Map map) {
@@ -180,7 +180,7 @@ class Analysis extends db.ExpandoModel {
       analysisJsonGz = null;
       analysisHash = null;
     } else {
-      analysisJsonGz = _gzipCodec.encode(UTF8.encode(JSON.encode(map)));
+      analysisJsonGz = _gzipCodec.encode(utf8.encode(json.encode(map)));
       analysisHash = sha256.convert(analysisJsonGz).toString();
     }
   }

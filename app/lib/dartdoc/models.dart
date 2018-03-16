@@ -55,7 +55,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
       _$DartdocEntryFromJson(json);
 
   factory DartdocEntry.fromBytes(List<int> bytes) =>
-      new DartdocEntry.fromJson(JSON.decode(UTF8.decode(bytes)));
+      new DartdocEntry.fromJson(json.decode(utf8.decode(bytes)));
 
   static Future<DartdocEntry> fromStream(Stream<List<int>> stream) async {
     final bytes = await stream.fold([], (sum, list) => sum..addAll(list));
@@ -87,7 +87,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   String objectName(String relativePath) => storage_path.contentObjectName(
       packageName, packageVersion, uuid, relativePath);
 
-  List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
+  List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
 
   TaskTargetStatus checkTargetStatus({bool retryFailed: false}) {
     final age = new DateTime.now().difference(timestamp).abs();
@@ -160,7 +160,7 @@ class FileInfo extends Object with _$FileInfoSerializerMixin {
       _$FileInfoFromJson(json);
 
   factory FileInfo.fromBytes(List<int> bytes) =>
-      new FileInfo.fromJson(JSON.decode(UTF8.decode(bytes)));
+      new FileInfo.fromJson(json.decode(utf8.decode(bytes)));
 
-  List<int> asBytes() => UTF8.encode(JSON.encode(this.toJson()));
+  List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
 }

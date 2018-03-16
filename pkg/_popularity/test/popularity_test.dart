@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 void main() {
   test('popularity round trip', () {
     var string = new File('test/popularity-sample.json').readAsStringSync();
-    var popularity = new PackagePopularity.fromJson(JSON.decode(string));
+    var popularity = new PackagePopularity.fromJson(json.decode(string));
     expect(popularity.dateFirst.isUtc, isTrue);
     expect(popularity.dateFirst.isUtc, isTrue);
 

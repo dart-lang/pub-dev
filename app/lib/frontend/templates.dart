@@ -25,10 +25,10 @@ import 'static_files.dart';
 import 'template_consts.dart';
 
 String _escapeAngleBrackets(String msg) =>
-    const HtmlEscape(HtmlEscapeMode.ELEMENT).convert(msg);
+    const HtmlEscape(HtmlEscapeMode.element).convert(msg);
 
 const HtmlEscape _htmlEscaper = const HtmlEscape();
-const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.ATTRIBUTE);
+const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.attribute);
 
 void registerTemplateService(TemplateService service) =>
     ss.register(#_templates, service);
@@ -123,9 +123,9 @@ class TemplateService {
       packagesJson.add({
         'url': '/packages/${view.name}',
         'name': view.name,
-        'version': HTML_ESCAPE.convert(view.version),
+        'version': htmlEscape.convert(view.version),
         'show_dev_version': view.devVersion != null,
-        'dev_version': HTML_ESCAPE.convert(view.devVersion ?? ''),
+        'dev_version': htmlEscape.convert(view.devVersion ?? ''),
         'dev_version_href': Uri.encodeComponent(view.devVersion ?? ''),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
@@ -378,9 +378,9 @@ class TemplateService {
           'should_show': should_show,
           'should_show_dev': should_show_dev,
           'stable_href': Uri.encodeComponent(latestStableVersion.id),
-          'stable_name': HTML_ESCAPE.convert(latestStableVersion.id),
+          'stable_name': htmlEscape.convert(latestStableVersion.id),
           'dev_href': Uri.encodeComponent(latestDevVersion.id),
-          'dev_name': HTML_ESCAPE.convert(latestDevVersion.id),
+          'dev_name': htmlEscape.convert(latestDevVersion.id),
         },
         'tags_html': _renderTags(analysisStatus, analysis?.platforms),
         'description': selectedVersion.pubspec.description,
@@ -405,7 +405,7 @@ class TemplateService {
         'analysis_html': renderAnalysisTab(package.name,
             selectedVersion.pubspec.sdkConstraint, extract, analysis),
         'schema_org_pkgmeta_json':
-            JSON.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
+            json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
       },
       'version_table_rows': versionTableRows,
       'show_versions_link': totalNumberOfVersions > versions.length,
@@ -625,7 +625,7 @@ class TemplateService {
   }) {
     final queryText = searchQuery?.query;
     final String escapedSearchQuery =
-        queryText == null ? null : HTML_ESCAPE.convert(queryText);
+        queryText == null ? null : htmlEscape.convert(queryText);
     String platformTabs;
     if (type == PageType.landing) {
       platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
@@ -646,8 +646,8 @@ class TemplateService {
       'canonicalUrl': canonicalUrl,
       'pageDescription': pageDescription == null
           ? defaultPageDescriptionEscaped
-          : HTML_ESCAPE.convert(pageDescription),
-      'title': HTML_ESCAPE.convert(title),
+          : htmlEscape.convert(pageDescription),
+      'title': htmlEscape.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
       'search_query_placeholder': 'Search ${platformDict.name} packages',
@@ -666,7 +666,7 @@ class TemplateService {
       'listing_banner': type == PageType.listing,
       'package_banner': type == PageType.package,
       'schema_org_searchaction_json':
-          isRoot ? JSON.encode(_schemaOrgSearchAction) : null,
+          isRoot ? json.encode(_schemaOrgSearchAction) : null,
     };
     return _renderTemplate('layout', values, escapeValues: false);
   }
