@@ -62,6 +62,14 @@ class DartdocBackend {
     Future upload(File file) async {
       final relativePath = p.relative(file.path, from: dir.path);
       final objectName = entry.objectName(relativePath);
+      final isShared = storage_path.isSharedAsset(relativePath);
+      if (isShared) {
+        final info = await getFileInfo(entry, relativePath);
+        if (info != null) {
+          _logger.fine('$objectName has been already uploaded.');
+          return;
+        }
+      }
       _logger.fine('Uploading to $objectName...');
       try {
         final sink =

@@ -84,8 +84,15 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   String get contentPrefix =>
       storage_path.contentPrefix(packageName, packageVersion, uuid);
 
-  String objectName(String relativePath) => storage_path.contentObjectName(
-      packageName, packageVersion, uuid, relativePath);
+  String objectName(String relativePath) {
+    final isShared = storage_path.isSharedAsset(relativePath);
+    if (isShared) {
+      return storage_path.sharedAssetObjectName(dartdocVersion, relativePath);
+    } else {
+      return storage_path.contentObjectName(
+          packageName, packageVersion, uuid, relativePath);
+    }
+  }
 
   List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
 
