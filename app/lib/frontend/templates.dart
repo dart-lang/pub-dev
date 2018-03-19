@@ -548,15 +548,14 @@ class TemplateService {
   }
 
   /// Renders the `views/index.mustache` template.
-  String renderErrorPage(String status, String message, String traceback) {
+  String renderErrorPage(String title, String message) {
     final values = {
-      'status': status,
+      'title': title,
       'message': message,
-      'traceback': traceback
     };
     final String content = _renderTemplate('error', values);
     return renderLayoutPage(PageType.package, content,
-        title: 'Error $status', includeSurvey: false);
+        title: title, includeSurvey: false);
   }
 
   /// Renders the `views/help.mustache` template.
