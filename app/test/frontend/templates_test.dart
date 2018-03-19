@@ -411,8 +411,8 @@ void main() {
     });
 
     test('error page', () {
-      final String html = templates.renderErrorPage(
-          'error_status', 'error_message', 'error_traceback');
+      final String html =
+          templates.renderErrorPage('error_title', 'error_message');
       expectGoldenFile(html, 'error_page.html');
     });
 

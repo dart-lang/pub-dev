@@ -610,7 +610,7 @@ shelf.Response _redirectToFlutterPackages(shelf.Request request) =>
 shelf.Response _formattedNotFoundHandler(shelf.Request request) {
   final message = 'The path \'${request.requestedUri.path}\' was not found.';
   return htmlResponse(
-    templateService.renderErrorPage(default404NotFound, message, null),
+    templateService.renderErrorPage(default404NotFound, message),
     status: 404,
   );
 }
