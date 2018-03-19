@@ -1,4 +1,6 @@
 analyzer:
+  language:
+    enablePreviewDart2: true
   strong-mode: true
   errors:
     dead_code: error
