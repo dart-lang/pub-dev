@@ -41,7 +41,7 @@ void main() {
     expect(entry.entryObjectName, 'pkg_foo/1.2.3/entry/12345678-abcdef10.json');
     expect(entry.contentPrefix, 'pkg_foo/1.2.3/content/12345678-abcdef10');
     expect(entry.objectName('static-assets/css/style.css'),
-        'pkg_foo/1.2.3/content/12345678-abcdef10/static-assets/css/style.css');
+        'shared-assets/dartdoc/0.16.0/static-assets/css/style.css');
     expect(entry.objectName('index.html'),
         'pkg_foo/1.2.3/content/12345678-abcdef10/index.html');
     expect(entry.objectName('library/index.html'),
