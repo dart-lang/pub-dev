@@ -154,7 +154,7 @@ DocFilePath parseRequestUri(Uri uri) {
   }
 
   final String version = uri.pathSegments[2];
-  if (version.isEmpty) {
+  if (version.isEmpty || version == 'latest') {
     return new DocFilePath(package, null, null);
   }
   if (segmentCount == 3) {
