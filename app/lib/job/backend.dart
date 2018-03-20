@@ -46,8 +46,14 @@ class JobBackend {
         ],
       ).toString();
 
-  Future createOrUpdate(JobService service, String package, String version,
-      bool isLatestStable, DateTime updated, bool shouldProcess) async {
+  Future createOrUpdate(
+    JobService service,
+    String package,
+    String version,
+    bool isLatestStable,
+    DateTime packageVersionUpdated,
+    bool shouldProcess,
+  ) async {
     final id = _id(service, package, version);
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
@@ -56,8 +62,9 @@ class JobBackend {
       final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
       final current = list.single as Job;
       if (current != null) {
-        if (current.isLatestStable == isLatestStable &&
-            current.packageVersionUpdated == updated &&
+        if (!shouldProcess &&
+            current.isLatestStable == isLatestStable &&
+            current.packageVersionUpdated == packageVersionUpdated &&
             current.runtimeVersion == versions.runtimeVersion) {
           return;
         }
@@ -68,7 +75,7 @@ class JobBackend {
         _logger.info('Updating job: $id');
         current
           ..isLatestStable = isLatestStable
-          ..packageVersionUpdated = updated
+          ..packageVersionUpdated = packageVersionUpdated
           ..runtimeVersion = versions.runtimeVersion
           ..state = state
           ..lockedUntil = lockedUntil
@@ -85,7 +92,7 @@ class JobBackend {
           ..packageName = package
           ..packageVersion = version
           ..isLatestStable = isLatestStable
-          ..packageVersionUpdated = updated
+          ..packageVersionUpdated = packageVersionUpdated
           ..state = state
           ..lockedUntil = lockedUntil
           ..lastStatus = JobStatus.none
