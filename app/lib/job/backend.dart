@@ -231,8 +231,9 @@ class JobBackend {
       final Job selected = items.single;
       if (selected != null && selected.processingKey == job.processingKey) {
         _logger.info('Updating $job with $status');
-        final errorCount =
-            status == JobStatus.success ? 0 : selected.errorCount + 1;
+        final isError =
+            (status == JobStatus.failed) || (status == JobStatus.aborted);
+        final errorCount = isError ? selected.errorCount + 1 : 0;
         selected
           ..state = JobState.idle
           ..lastStatus = status

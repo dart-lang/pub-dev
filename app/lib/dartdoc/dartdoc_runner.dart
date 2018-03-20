@@ -120,11 +120,11 @@ class DartdocJobProcessor extends JobProcessor {
       }
 
       if (!hasContent && isLatestStable) {
-        reportIssueWithLatest('dartdoc', job, 'No content.');
+        reportIssueWithLatest(job, 'No content.');
       }
     } catch (e, st) {
       if (isLatestStable) {
-        reportIssueWithLatest('dartdoc', job, '$e\n$st');
+        reportIssueWithLatest(job, '$e\n$st');
       }
       rethrow;
     } finally {
@@ -239,9 +239,4 @@ class DartdocJobProcessor extends JobProcessor {
     await tmpTar.rename(p.join(outputDir, archive));
     _appendLog(logFileOutput, pr);
   }
-}
-
-void reportIssueWithLatest(String service, Job job, String message) {
-  _logger.severe(
-      '$service failed for latest version of ${job.packageName} (${job.packageVersion}): $message');
 }

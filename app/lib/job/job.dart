@@ -63,6 +63,11 @@ abstract class JobProcessor {
       await new Future.delayed(new Duration(seconds: sleepSeconds));
     }
   }
+
+  void reportIssueWithLatest(Job job, String message) {
+    _logger.severe(
+        '$_serviceAsString failed for latest version of ${job.packageName} (${job.packageVersion}): $message');
+  }
 }
 
 class JobMaintenance {
