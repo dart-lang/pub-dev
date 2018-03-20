@@ -68,6 +68,7 @@ shelf.Response debugResponse([Map data]) {
     },
     'scheduler': latestSchedulerStats,
     'versions': {
+      'runtime': runtimeVersion,
       'pana': panaVersion,
       'flutter': flutterVersion,
       'dartdoc': dartdocVersion,
