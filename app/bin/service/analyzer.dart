@@ -9,15 +9,15 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 
+import 'package:pub_dartlang_org/job/backend.dart';
+import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
 import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
-import 'package:pub_dartlang_org/analyzer/task_sources.dart';
 
 final Logger logger = new Logger('pub.analyzer');
 
@@ -45,20 +45,34 @@ void _runScheduler(List<SendPort> sendPorts) {
 
   withAppEngineServices(() async {
     _registerServices();
-    final PanaRunner runner = new PanaRunner(analysisBackend);
-    final scheduler = new TaskScheduler(runner, [
-      new ManualTriggerTaskSource(taskReceivePort),
-      new AnalyzerDatastoreHeadTaskSource(db.dbService),
-      new AnalyzerDatastoreHistoryTaskSource(db.dbService),
-    ]);
-    new Timer.periodic(const Duration(minutes: 1), (_) {
-      statsSendPort.send(scheduler.stats());
+    final jobProcessor = new AnalyzerJobProcessor();
+
+    Future<bool> shouldUpdate(
+        String package, String version, DateTime updated) async {
+      final status =
+          await analysisBackend.checkTargetStatus(package, version, updated);
+      return !status.shouldSkip;
+    }
+
+    final jobMaintenance =
+        new JobMaintenance(db.dbService, JobService.analyzer, shouldUpdate);
+
+    new Timer.periodic(const Duration(minutes: 15), (_) async {
+      statsSendPort.send(await jobBackend.stats(JobService.analyzer));
     });
-    await scheduler.run();
+
+    await Future.wait([
+      jobMaintenance.syncNotifications(taskReceivePort),
+      jobMaintenance.syncDatastoreHead(),
+      jobMaintenance.syncDatastoreHistory(),
+      jobMaintenance.updateStates(),
+      jobProcessor.run(),
+    ]);
   });
 }
 
 void _registerServices() {
   registerAnalysisBackend(new AnalysisBackend(db.dbService));
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
+  registerJobBackend(new JobBackend(db.dbService));
 }

@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 enum JobService { analyzer, dartdoc }
 enum JobState { available, processing, idle }
-enum JobStatus { none, success, failed, aborted }
+enum JobStatus { none, success, skipped, failed, aborted }
 
 @Kind(name: 'Job', idType: IdType.String)
 class Job extends ExpandoModel {
