@@ -25,7 +25,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return handler(request);
-  } else if (path.startsWith('/documentation/')) {
+  } else if (path.startsWith('/documentation')) {
     return documentationHandler(request);
   } else if (path.startsWith('/packages/')) {
     return packageHandler(request);
@@ -83,7 +83,7 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final docFilePath = parseRequestUri(request.requestedUri);
   if (docFilePath == null) {
-    return notFoundHandler(request);
+    return indexHandler(request);
   }
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
