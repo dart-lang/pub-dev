@@ -24,7 +24,8 @@ final Logger logger = new Logger('pub.analyzer');
 Future main() async {
   useLoggingPackageAdaptor();
 
-  withAppEngineServices(() async {
+  await initDartdoc(logger);
+  await withAppEngineServices(() async {
     initFlutterSdk(logger)
         .then((_) => startIsolates(logger, _runSchedulerWrapper));
     _registerServices();
