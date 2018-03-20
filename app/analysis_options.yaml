@@ -1,5 +1,7 @@
 # https://www.dartlang.org/guides/language/analysis-options
 analyzer:
+  language:
+    enablePreviewDart2: true
   strong-mode: true
 
 # http://dart-lang.github.io/linter/lints/options/options.html
