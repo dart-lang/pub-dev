@@ -91,9 +91,8 @@ class JobMaintenance {
     if (p == null || pv == null) return;
 
     final isLatestStable = p.latestVersion == task.version;
-    final updated = new DateTime.now().toUtc();
     await jobBackend.createOrUpdate(
-        _service, task.package, task.version, isLatestStable, updated, true);
+        _service, task.package, task.version, isLatestStable, pv.created, true);
   }
 
   /// Never completes.
