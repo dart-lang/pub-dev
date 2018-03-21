@@ -62,14 +62,21 @@ class JobBackend {
       final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
       final current = list.single as Job;
       if (current != null) {
-        if (!shouldProcess &&
-            current.isLatestStable == isLatestStable &&
+        final hasNotChanged = current.isLatestStable == isLatestStable &&
             current.packageVersionUpdated == packageVersionUpdated &&
-            current.runtimeVersion == versions.runtimeVersion) {
-          return;
+            current.runtimeVersion == versions.runtimeVersion;
+        if (hasNotChanged) {
+          if (!shouldProcess) {
+            // no reason to re-schedule to job
+            return;
+          } else if (current.errorCount > 0) {
+            // prevent untimely re-try of a failed job
+            return;
+          }
         }
         if (isNewer(
             versions.semanticRuntimeVersion, current.semanticRuntimeVersion)) {
+          // a new instance has already updated the Job with new runtimeVersion
           return;
         }
         _logger.info('Updating job: $id');
@@ -147,12 +154,13 @@ class JobBackend {
         final Job current = list.single;
         if (current.state == JobState.processing &&
             current.lockedUntil == job.lockedUntil) {
+          final errorCount = current.errorCount + 1;
           current
             ..state = JobState.idle
             ..processingKey = null
-            ..errorCount = current.errorCount + 1
+            ..errorCount = errorCount
             ..lastStatus = JobStatus.aborted
-            ..lockedUntil = null
+            ..lockedUntil = _extendLock(errorCount)
             ..updatePriority();
           tx.queueMutations(inserts: [current]);
           await tx.commit();
@@ -239,8 +247,7 @@ class JobBackend {
           ..lastStatus = status
           ..processingKey = null
           ..errorCount = errorCount
-          ..lockedUntil =
-              new DateTime.now().toUtc().add(extendDuration ?? _extendDuration)
+          ..lockedUntil = _extendLock(errorCount, duration: extendDuration)
           ..updatePriority();
         tx.queueMutations(inserts: [selected]);
         await tx.commit();
@@ -279,5 +286,12 @@ class JobBackend {
         'status': latestStatus,
       },
     };
+  }
+
+  DateTime _extendLock(int errorCount, {Duration duration}) {
+    return new DateTime.now()
+        .toUtc()
+        .add(duration ?? _extendDuration)
+        .add(new Duration(hours: math.min(errorCount, 168 /* one week */)));
   }
 }
