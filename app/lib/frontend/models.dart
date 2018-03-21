@@ -197,7 +197,7 @@ class PackageVersion extends db.ExpandoModel {
   String get dartdocsUrl {
     final name = Uri.encodeComponent(packageKey.id);
     final version = Uri.encodeComponent(id);
-    return 'http://www.dartdocs.org/documentation/$name/$version/';
+    return 'https://pub.dartlang.org/documentation/$name/$version/';
   }
 
   String get documentation {
