@@ -99,5 +99,5 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
 
 bool isProductionHost(shelf.Request request) {
   final String host = request.requestedUri.host;
-  return host == pubHostedDomain || host == dartdocsHostedDomain;
+  return host == pubHostedDomain;
 }

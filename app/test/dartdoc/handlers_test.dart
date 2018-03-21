@@ -62,7 +62,7 @@ void main() {
 
   group('dartdoc handlers', () {
     Future<shelf.Response> issueGet(String uri) => dartdocServiceHandler(
-        new shelf.Request('GET', Uri.parse('https://www.dartdocs.org$uri')));
+        new shelf.Request('GET', Uri.parse('https://pub.dartlang.org$uri')));
 
     test('/documentation/flutter redirect', () async {
       expectRedirectResponse(
@@ -81,7 +81,7 @@ void main() {
     test('/documentation/foo/bar redirect', () async {
       expectRedirectResponse(
         await issueGet('/documentation/foor/bar'),
-        'https://www.dartdocs.org/documentation/foor/bar/',
+        'https://pub.dartlang.org/documentation/foor/bar/',
       );
     });
   });
