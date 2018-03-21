@@ -59,7 +59,8 @@ class DartdocCustomizer {
     head.insertBefore(gtagScript, firstChild);
     head.insertBefore(new Text('\n  '), firstChild);
     final gtagInit = new Element.tag('script');
-    gtagInit.append(new Text('''\n\n    window.dataLayer = window.dataLayer || [];
+    gtagInit
+        .append(new Text('''\n\n    window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'UA-26406144-13');
