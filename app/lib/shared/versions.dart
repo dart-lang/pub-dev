@@ -28,7 +28,7 @@ final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
 /// The version of our customization going into the output of the dartdoc static
 /// HTML files.
-final String customizationVersion = '0.0.1';
+final String customizationVersion = '0.0.2';
 final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 
