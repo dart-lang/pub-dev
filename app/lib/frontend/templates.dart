@@ -515,16 +515,17 @@ class TemplateService {
       ).toString(),
     );
     final content = _renderTemplate('pkg/show', values);
-    final versionString = isVersionPage ? '${selectedVersion.id} ' : '';
-    var pageDescription =
-        '${selectedVersion.package} ${selectedVersion.version}';
+    final packageAndVersion = isVersionPage
+        ? '${selectedVersion.package} ${selectedVersion.version}'
+        : selectedVersion.package;
+    var pageDescription = packageAndVersion;
     if (isFlutterPackage) {
       pageDescription += ' Flutter and Dart package';
     } else {
       pageDescription += ' Dart package';
     }
     final pageTitle =
-        '${package.name} $versionString| ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
+        '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
     pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
     final canonicalUrl =
         isVersionPage ? _canonicalUrlForPackage(package.name) : null;
