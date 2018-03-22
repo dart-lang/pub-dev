@@ -74,6 +74,8 @@ Future<shelf.Response> appHandler(
     // NOTE: This is special-cased, since it is not an API used by pub but
     // rather by the editor.
     return _apiPackagesHandler(request);
+  } else if (path.startsWith('/api/documentation')) {
+    return _apiDocumentationHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return shelfPubApi(request);
@@ -601,6 +603,46 @@ Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
   }
 
   return jsonResponse(json);
+}
+
+/// Handles requests for /api/documentation/<package>
+Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
+  final parts = path.split(request.requestedUri.path).skip(1).toList();
+  if (parts.length != 3 || parts[2].isEmpty) {
+    return jsonResponse({}, status: 404);
+  }
+  final String package = parts[2];
+  final versions = await backend.versionsOfPackage(package);
+  if (versions.isEmpty) {
+    return jsonResponse({}, status: 404);
+  }
+
+  versions.sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
+  String latestStableVersion = versions.last.version;
+  for (int i = versions.length - 1; i >= 0; i--) {
+    if (!versions[i].semanticVersion.isPreRelease) {
+      latestStableVersion = versions[i].version;
+      break;
+    }
+  }
+
+  final dartdocEntries = await dartdocClient.getEntries(
+      package, versions.map((pv) => pv.version).toList());
+  final versionsData = [];
+
+  for (int i = 0; i < versions.length; i++) {
+    final hasDocumentation =
+        dartdocEntries[i] != null && dartdocEntries[i].hasContent;
+    versionsData.add({
+      'version': versions[i].version,
+      'hasDocumentation': hasDocumentation,
+    });
+  }
+  return jsonResponse({
+    'name': package,
+    'latestStableVersion': latestStableVersion,
+    'versions': versionsData,
+  });
 }
 
 /// Handles requests for /flutter/plugins (redirects to /flutter/packages).
