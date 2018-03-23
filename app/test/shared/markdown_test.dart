@@ -137,4 +137,29 @@ void main() {
           '<p>[a][b]</p>\n');
     });
   });
+
+  group('GitHub rewrites', () {
+    test('absolute url: http://[..]/blob/master/[path].gif', () {
+      expect(
+          markdownToHtml(
+              '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)',
+              null),
+          '<p><img alt="text" src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" /></p>\n');
+    });
+
+    test('root path: /[..]/blob/master/[path].gif', () {
+      expect(
+          markdownToHtml(
+              '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
+              'https://github.com/rcpassos/progress_hud'),
+          '<p><img alt="text" src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" /></p>\n');
+    });
+
+    test('relative path: [path].gif', () {
+      expect(
+          markdownToHtml('![text](progress_hud.gif)',
+              'https://github.com/rcpassos/progress_hud'),
+          '<p><img alt="text" src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" /></p>\n');
+    });
+  });
 }
