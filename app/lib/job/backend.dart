@@ -283,6 +283,13 @@ class JobBackend {
       'last90': last90.toMap(),
     };
   }
+
+  DateTime _extendLock(int errorCount, {Duration duration}) {
+    return new DateTime.now()
+        .toUtc()
+        .add(duration ?? _extendDuration)
+        .add(new Duration(hours: math.min(errorCount, 168 /* one week */)));
+  }
 }
 
 class _Stat {
@@ -315,12 +322,5 @@ class _Stat {
       map['failed'] = _failedPackages.toList()..sort();
     }
     return map;
-  }
-
-  DateTime _extendLock(int errorCount, {Duration duration}) {
-    return new DateTime.now()
-        .toUtc()
-        .add(duration ?? _extendDuration)
-        .add(new Duration(hours: math.min(errorCount, 168 /* one week */)));
   }
 }
