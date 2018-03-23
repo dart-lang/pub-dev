@@ -119,7 +119,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   initOAuth2Service();
 
-  await initSearchService();
+  initSearchService();
 
   // The future will complete once the initial database has been scanned and a
   // graph has been built.  It will nonetheless continue to monitor the database
