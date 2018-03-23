@@ -25,7 +25,6 @@ export 'package:pana/src/maintenance.dart' show exampleFileCandidates;
 final Duration twoYears = const Duration(days: 2 * 365);
 
 const pubHostedDomain = 'pub.dartlang.org';
-const dartdocsHostedDomain = 'www.dartdocs.org';
 
 const siteRoot = 'https://$pubHostedDomain';
 
