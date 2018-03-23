@@ -26,19 +26,17 @@ String markdownToHtml(String text, String baseUrl) {
   final lines = text.replaceAll('\r\n', '\n').split('\n');
   final nodes = document.parseLines(lines);
 
-  if (sanitizedBaseUrl != null) {
-    final visitor = new _RelativeUrlRewriter(sanitizedBaseUrl);
-    for (final node in nodes) {
-      node.accept(visitor);
-    }
+  final visitor = new _UrlRewriter(sanitizedBaseUrl);
+  for (final node in nodes) {
+    node.accept(visitor);
   }
 
   return m.renderToHtml(nodes) + '\n';
 }
 
-class _RelativeUrlRewriter implements m.NodeVisitor {
-  final String url;
-  _RelativeUrlRewriter(this.url);
+class _UrlRewriter implements m.NodeVisitor {
+  final String baseUrl;
+  _UrlRewriter(this.baseUrl);
 
   @override
   void visitText(m.Text text) {}
@@ -49,39 +47,64 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
   @override
   void visitElementAfter(m.Element element) {
     if (element.tag == 'a') {
-      element.attributes['href'] =
-          _rewriteLink(element.attributes['href'], true);
+      element.attributes['href'] = _rewriteUrl(element.attributes['href']);
     } else if (element.tag == 'img') {
       element.attributes['src'] =
-          _rewriteLink(element.attributes['src'], false);
+          _rewriteUrl(element.attributes['src'], raw: true);
     }
   }
 
-  String _rewriteLink(String link, bool includeFragments) {
-    if (link == null || link.startsWith('#') || link.contains(':')) {
-      return link;
+  String _rewriteUrl(String url, {bool raw: false}) {
+    if (url == null || url.startsWith('#')) {
+      return url;
     }
     try {
-      final linkUri = Uri.parse(link);
-      final linkPath = linkUri.path;
-      final linkFragment = linkUri.fragment;
-      if (linkPath == null || linkPath.isEmpty) {
-        return link;
+      String newUrl = url;
+      if (baseUrl != null && !_isAbsolute(newUrl)) {
+        newUrl = _rewriteRelativeUrl(newUrl);
       }
-      String newUrl;
-      if (linkPath.startsWith('/')) {
-        newUrl = Uri.parse(url).replace(path: linkPath).toString();
-      } else {
-        newUrl = getRepositoryUrl(url, linkPath);
-      }
-      if (linkFragment != null && linkFragment.isNotEmpty) {
-        newUrl = '$newUrl#$linkFragment';
+      if (raw && _isAbsolute(newUrl)) {
+        newUrl = _rewriteAbsoluteUrl(newUrl);
       }
       return newUrl;
     } catch (e, st) {
-      _logger.warning('Relative link rewrite failed: $link', e, st);
+      _logger.warning('Link rewrite failed: $url', e, st);
     }
-    return link;
+    return url;
+  }
+
+  bool _isAbsolute(String url) => url.contains(':');
+
+  String _rewriteAbsoluteUrl(String url) {
+    final uri = Uri.parse(url);
+    if (uri.host == 'github.com') {
+      final segments = uri.pathSegments;
+      if (segments.length > 3 && segments[2] == 'blob') {
+        final newSegments = new List<String>.from(segments);
+        newSegments[2] = 'raw';
+        return uri.replace(pathSegments: newSegments).toString();
+      }
+    }
+    return url;
+  }
+
+  String _rewriteRelativeUrl(String url) {
+    final uri = Uri.parse(url);
+    final linkPath = uri.path;
+    final linkFragment = uri.fragment;
+    if (linkPath == null || linkPath.isEmpty) {
+      return url;
+    }
+    String newUrl;
+    if (linkPath.startsWith('/')) {
+      newUrl = Uri.parse(baseUrl).replace(path: linkPath).toString();
+    } else {
+      newUrl = getRepositoryUrl(baseUrl, linkPath);
+    }
+    if (linkFragment != null && linkFragment.isNotEmpty) {
+      newUrl = '$newUrl#$linkFragment';
+    }
+    return newUrl;
   }
 }
 
