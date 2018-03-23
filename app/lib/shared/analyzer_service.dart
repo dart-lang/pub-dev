@@ -80,7 +80,7 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
   final String flutterVersion;
   final AnalysisStatus analysisStatus;
   final double maintenanceScore;
-  final Map analysisContent;
+  final Map<String, dynamic> analysisContent;
 
   AnalysisData({
     @required this.packageName,

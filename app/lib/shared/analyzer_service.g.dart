@@ -40,7 +40,7 @@ abstract class _$AnalysisDataSerializerMixin {
   String get flutterVersion;
   AnalysisStatus get analysisStatus;
   double get maintenanceScore;
-  Map<dynamic, dynamic> get analysisContent;
+  Map<String, dynamic> get analysisContent;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'packageName': packageName,
         'packageVersion': packageVersion,
