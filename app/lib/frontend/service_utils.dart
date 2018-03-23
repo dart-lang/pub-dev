@@ -36,7 +36,7 @@ void initStorage(String projectId, http.Client authClient) {
   registerStorageService(new Storage(authClient, projectId));
 }
 
-Future initSearchService() async {
+void initSearchService() {
   registerSearchService(new SearchService());
   registerScopeExitCallback(searchService.close);
 }
