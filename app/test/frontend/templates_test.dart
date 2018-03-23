@@ -182,7 +182,7 @@ void main() {
     test('package show page with outdated version', () {
       final String html = templates.renderPkgShowPage(
           testPackage,
-          false,
+          true /* isVersionPage */,
           [testPackageVersion],
           [failedDartdocEntry],
           [Uri.parse('http://dart-example.com/')],
