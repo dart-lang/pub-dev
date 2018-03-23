@@ -36,6 +36,7 @@ JobBackend get jobBackend => ss.lookup(#_job_backend);
 
 class JobBackend {
   final db.DatastoreDB _db;
+  final _lastStats = <JobService, List<_AllStats>>{};
   JobBackend(this._db);
 
   String _id(JobService service, String package, String version) => new Uri(
@@ -259,29 +260,23 @@ class JobBackend {
   }
 
   Future<Map> stats(JobService service) async {
-    final _Stat all = new _Stat();
-    final _Stat latest = new _Stat();
-    final _Stat last90 = new _Stat(collectFailed: true);
+    final _AllStats stats = new _AllStats();
 
     final query = _db.query(Job)..filter('service =', service);
-    final now = new DateTime.now().toUtc();
     await for (Job job in query.run()) {
-      all.add(job);
-      if (job.isLatestStable) {
-        latest.add(job);
-      }
-      final age = now.difference(job.packageVersionUpdated).abs();
-      if (age.inDays <= 90) {
-        last90.add(job);
-      }
+      stats.add(job);
     }
 
-    return {
-      'timestamp': now.toIso8601String(),
-      'all': all.toMap(),
-      'latest': latest.toMap(),
-      'last90': last90.toMap(),
-    };
+    final List<_AllStats> list = _lastStats.putIfAbsent(service, () => []);
+    stats.updateEstimates(list.isEmpty ? null : list.first);
+    // keep only the last 60-90 minutes of stats
+    while (list.isNotEmpty &&
+        list.first.timestamp.difference(stats.timestamp).abs().inMinutes > 90) {
+      list.removeAt(0);
+    }
+    list.add(stats);
+
+    return stats.toMap();
   }
 
   DateTime _extendLock(int errorCount, {Duration duration}) {
@@ -297,10 +292,19 @@ class _Stat {
   final _statusMap = <String, int>{};
   final bool _collectFailed;
   final _failedPackages = new Set<String>();
+  int _totalCount = 0;
+  int _availableCount = 0;
 
   _Stat({bool collectFailed: false}) : _collectFailed = collectFailed;
 
+  int get totalCount => _totalCount;
+  int get availableCount => _availableCount;
+
   void add(Job job) {
+    _totalCount++;
+    if (job.state == JobState.available) {
+      _availableCount++;
+    }
     final stateKey = jobStateAsString(job.state);
     final statusKey = jobStatusAsString(job.lastStatus);
     _stateMap[stateKey] = (_stateMap[stateKey] ?? 0) + 1;
@@ -322,5 +326,56 @@ class _Stat {
       map['failed'] = _failedPackages.toList()..sort();
     }
     return map;
+  }
+}
+
+class _AllStats {
+  final DateTime timestamp = new DateTime.now().toUtc();
+  final _Stat all = new _Stat();
+  final _Stat latest = new _Stat();
+  final _Stat last90 = new _Stat(collectFailed: true);
+  String _estimate;
+
+  void add(Job job) {
+    all.add(job);
+    if (job.isLatestStable) {
+      latest.add(job);
+    }
+    final age = timestamp.difference(job.packageVersionUpdated).abs();
+    if (age.inDays <= 90) {
+      last90.add(job);
+    }
+  }
+
+  void updateEstimates(_AllStats prev) {
+    if (prev == null) {
+      _estimate = 'no estimate yet';
+      return;
+    }
+    final doneCount = prev.all.availableCount - all.availableCount;
+    if (doneCount < 0) {
+      _estimate = '# of jobs to do increasing, not able to estimate';
+      return;
+    }
+    if (doneCount == 0) {
+      _estimate = 'no change in # of jobs to do, nothing to estimate';
+      return;
+    }
+    final diff = timestamp.difference(prev.timestamp).abs();
+    final Duration timePerJob = diff ~/ doneCount;
+    final allRemaining = formatDuration(timePerJob * all.availableCount);
+    final jobsPerMinute = (doneCount * 60 / diff.inSeconds).toStringAsFixed(2);
+    _estimate =
+        '$jobsPerMinute jobs/minutes (estimated to complete in $allRemaining)';
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'timestamp': timestamp.toIso8601String(),
+      'estimate': _estimate,
+      'all': all.toMap(),
+      'latest': latest.toMap(),
+      'last90': last90.toMap(),
+    };
   }
 }
