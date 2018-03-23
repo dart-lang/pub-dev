@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'utils.dart' show isNewer;
 
 // update this whenever one of the other versions change
-final String runtimeVersion = '2018.3.15+1';
+final String runtimeVersion = '2018.3.21';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
 // keep in-sync with SDK version in .travis.yml and Dockerfile
@@ -28,7 +28,7 @@ final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
 /// The version of our customization going into the output of the dartdoc static
 /// HTML files.
-final String customizationVersion = '0.0.1';
+final String customizationVersion = '0.0.2';
 final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 

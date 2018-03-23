@@ -21,7 +21,7 @@ import 'customization.dart';
 import 'models.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
-final String _hostedUrl = 'https://www.dartdocs.org';
+final String _hostedUrl = 'https://pub.dartlang.org';
 final Uuid _uuid = new Uuid();
 
 const statusFilePath = 'status.json';

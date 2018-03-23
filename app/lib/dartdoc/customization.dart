@@ -39,12 +39,33 @@ class DartdocCustomizer {
 
   String customizeHtml(String html) {
     final doc = html_parser.parse(html);
+    _addAnalyticsTracker(doc.head);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
     }
     return doc.outerHtml;
+  }
+
+  void _addAnalyticsTracker(Element head) {
+    final firstChild = head.firstChild;
+    head.insertBefore(new Text('\n  '), firstChild);
+    final gtagScript = new Element.tag('script')
+      ..attributes['async'] = 'async'
+      ..attributes['src'] =
+          'https://www.googletagmanager.com/gtag/js?id=UA-26406144-13'
+      ..text = '';
+    head.insertBefore(gtagScript, firstChild);
+    head.insertBefore(new Text('\n  '), firstChild);
+    final gtagInit = new Element.tag('script');
+    gtagInit
+        .append(new Text('''\n\n    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-26406144-13');
+  '''));
+    head.insertBefore(gtagInit, firstChild);
   }
 
   void _addPubSiteLogo(Element breadcrumbs) {
