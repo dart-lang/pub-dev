@@ -259,33 +259,62 @@ class JobBackend {
   }
 
   Future<Map> stats(JobService service) async {
-    final allState = <String, int>{};
-    final allStatus = <String, int>{};
-    final latestState = <String, int>{};
-    final latestStatus = <String, int>{};
+    final _Stat all = new _Stat();
+    final _Stat latest = new _Stat();
+    final _Stat last90 = new _Stat(collectFailed: true);
 
     final query = _db.query(Job)..filter('service =', service);
+    final now = new DateTime.now().toUtc();
     await for (Job job in query.run()) {
-      final stateKey = jobStateAsString(job.state);
-      final statusKey = jobStatusAsString(job.lastStatus);
-      allState[stateKey] = (allState[stateKey] ?? 0) + 1;
-      allStatus[statusKey] = (allStatus[statusKey] ?? 0) + 1;
+      all.add(job);
       if (job.isLatestStable) {
-        latestState[stateKey] = (latestState[stateKey] ?? 0) + 1;
-        latestStatus[statusKey] = (latestStatus[statusKey] ?? 0) + 1;
+        latest.add(job);
+      }
+      final age = now.difference(job.packageVersionUpdated).abs();
+      if (age.inDays <= 90) {
+        last90.add(job);
       }
     }
 
     return {
-      'all': {
-        'state': allState,
-        'status': allStatus,
-      },
-      'latest': {
-        'state': latestState,
-        'status': latestStatus,
-      },
+      'timestamp': now.toIso8601String(),
+      'all': all.toMap(),
+      'latest': latest.toMap(),
+      'last90': last90.toMap(),
     };
+  }
+}
+
+class _Stat {
+  final _stateMap = <String, int>{};
+  final _statusMap = <String, int>{};
+  final bool _collectFailed;
+  final _failedPackages = new Set<String>();
+
+  _Stat({bool collectFailed: false}) : _collectFailed = collectFailed;
+
+  void add(Job job) {
+    final stateKey = jobStateAsString(job.state);
+    final statusKey = jobStatusAsString(job.lastStatus);
+    _stateMap[stateKey] = (_stateMap[stateKey] ?? 0) + 1;
+    _statusMap[statusKey] = (_statusMap[statusKey] ?? 0) + 1;
+
+    final bool isError = job.lastStatus == JobStatus.failed ||
+        job.lastStatus == JobStatus.aborted;
+    if (_collectFailed && isError) {
+      _failedPackages.add(job.packageName);
+    }
+  }
+
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{
+      'state': _stateMap,
+      'status': _statusMap,
+    };
+    if (_collectFailed) {
+      map['failed'] = _failedPackages.toList()..sort();
+    }
+    return map;
   }
 
   DateTime _extendLock(int errorCount, {Duration duration}) {
