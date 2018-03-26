@@ -2,5 +2,12 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<h1>{{title}}</h1>
-<p>{{message}}</p>
+<h2>{{title}}</h2>
+{{& message_html}}
+
+{{#has_top_packages}}
+<h2>Top packages</h2>
+<div class="home-lists-container">
+  {{& top_packages_html }}
+</div>
+{{/has_top_packages}}

@@ -168,10 +168,7 @@ Future<shelf.Response> _indexHandler(
   String pageContent =
       isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
   if (pageContent == null) {
-    final count = 15;
-    final result = await searchService
-        .search(new SearchQuery.parse(platform: platform, limit: count));
-    final packages = result.packages.take(count).toList();
+    final packages = await _topPackages(platform: platform);
     final minilist = templateService.renderMiniList(packages);
 
     pageContent = templateService.renderIndexPage(minilist, platform);
@@ -180,6 +177,13 @@ Future<shelf.Response> _indexHandler(
     }
   }
   return htmlResponse(pageContent);
+}
+
+Future<List<PackageView>> _topPackages({String platform, int count: 15}) async {
+  // TODO: store top packages in memcache
+  final result = await searchService
+      .search(new SearchQuery.parse(platform: platform, limit: count));
+  return result.packages.take(count).toList();
 }
 
 /// Handles requests for /help
@@ -655,10 +659,16 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
 shelf.Response _redirectToFlutterPackages(shelf.Request request) =>
     redirectResponse('/flutter/packages');
 
-shelf.Response _formattedNotFoundHandler(shelf.Request request) {
-  final message = 'The path \'${request.requestedUri.path}\' was not found.';
+Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
+  final packages = await _topPackages();
+  final message =
+      'You\'ve stumbled onto a page (`${request.requestedUri.path}`) that doesn\'t exist. '
+      'Luckily you have several options:\n\n'
+      '- Use the search box above, which will list packages that match your query.\n'
+      '- Visit the [packages](/packages) page and start browsing.\n'
+      '- Pick one of the top packages, listed below.\n';
   return htmlResponse(
-    templateService.renderErrorPage(default404NotFound, message),
+    templateService.renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
 }

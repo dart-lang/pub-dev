@@ -549,10 +549,15 @@ class TemplateService {
   }
 
   /// Renders the `views/index.mustache` template.
-  String renderErrorPage(String title, String message) {
+  String renderErrorPage(
+      String title, String message, List<PackageView> topPackages) {
+    final hasTopPackages = topPackages != null && topPackages.isNotEmpty;
+    final topPackagesHtml = hasTopPackages ? renderMiniList(topPackages) : null;
     final values = {
       'title': title,
-      'message': message,
+      'message_html': markdownToHtml(message, null),
+      'has_top_packages': hasTopPackages,
+      'top_packages_html': topPackagesHtml,
     };
     final String content = _renderTemplate('error', values);
     return renderLayoutPage(PageType.package, content,

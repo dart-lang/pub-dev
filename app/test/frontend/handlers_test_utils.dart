@@ -156,7 +156,8 @@ class TemplateMock implements TemplateService {
   }
 
   @override
-  String renderErrorPage(String title, String message) {
+  String renderErrorPage(
+      String title, String message, List<PackageView> packages) {
     return _response;
   }
 

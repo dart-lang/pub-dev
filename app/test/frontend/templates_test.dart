@@ -412,7 +412,15 @@ void main() {
 
     test('error page', () {
       final String html =
-          templates.renderErrorPage('error_title', 'error_message');
+          templates.renderErrorPage('error_title', 'error_message', [
+        new PackageView(
+          name: 'popular_pkg',
+          version: '1.0.2',
+          ellipsizedDescription:
+              'Some popular package that is shown on the error page.',
+          platforms: KnownPlatforms.all,
+        ),
+      ]);
       expectGoldenFile(html, 'error_page.html');
     });
 
