@@ -177,8 +177,8 @@ void main() {
           return null;
         });
         registerBackend(backend);
-        await expectHtmlResponse(await issueGet('/packages/foobar_pkg'),
-            status: 404);
+        await expectRedirectResponse(
+            await issueGet('/packages/foobar_pkg'), '/packages?q=foobar_pkg');
       });
 
       tScopedTest('/packages/foobar_pkg/versions - found', () async {
@@ -200,9 +200,9 @@ void main() {
           return [];
         });
         registerBackend(backend);
-        await expectHtmlResponse(
+        await expectRedirectResponse(
             await issueGet('/packages/foobar_pkg/versions'),
-            status: 404);
+            '/packages?q=foobar_pkg');
       });
 
       tScopedTest('/packages/foobar_pkg/versions/0.1.1 - found', () async {
@@ -235,9 +235,9 @@ void main() {
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
         registerDartdocClient(new DartdocClientMock());
-        await expectHtmlResponse(
+        await expectRedirectResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.2'),
-            status: 404);
+            '/packages/foobar_pkg#-versions-tab-');
       });
 
       tScopedTest('/packages/flutter - redirect', () async {

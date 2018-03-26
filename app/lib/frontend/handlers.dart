@@ -19,6 +19,7 @@ import '../shared/handlers.dart';
 import '../shared/platform.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
+import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'atom_feed.dart';
@@ -427,7 +428,9 @@ Future<shelf.Response> _packageShowHandlerJson(
 Future<shelf.Response> _packageVersionsHandler(
     shelf.Request request, String packageName) async {
   final versions = await backend.versionsOfPackage(packageName);
-  if (versions.isEmpty) return _formattedNotFoundHandler(request);
+  if (versions.isEmpty) {
+    return _redirectToSearch(packageName);
+  }
 
   sortPackageVersionsDesc(versions);
 
@@ -461,7 +464,9 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
   if (cachedPage == null) {
     final Package package = await backend.lookupPackage(packageName);
-    if (package == null) return _formattedNotFoundHandler(request);
+    if (package == null) {
+      return _redirectToSearch(packageName);
+    }
 
     final versions = await backend.versionsOfPackage(packageName);
 
@@ -476,12 +481,13 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
     PackageVersion selectedVersion;
     if (versionName != null) {
-      for (var v in versions) {
-        if (v.version == versionName) selectedVersion = v;
-      }
+      selectedVersion = versions.firstWhere(
+        (v) => v.version == versionName,
+        orElse: () => null,
+      );
       // TODO: cache error?
       if (selectedVersion == null) {
-        return _formattedNotFoundHandler(request);
+        return redirectResponse(urls.versionsTabUrl(packageName));
       }
     } else {
       if (selectedVersion == null) {
@@ -655,6 +661,11 @@ shelf.Response _formattedNotFoundHandler(shelf.Request request) {
     templateService.renderErrorPage(default404NotFound, message),
     status: 404,
   );
+}
+
+shelf.Response _redirectToSearch(String query) {
+  final uri = new Uri(path: '/packages', queryParameters: {'q': query});
+  return redirectResponse(uri.toString());
 }
 
 /// Handles requests for /api/search
