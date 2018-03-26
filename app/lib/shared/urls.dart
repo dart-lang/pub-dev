@@ -12,6 +12,8 @@
 
 // TODO: lib/frontend/handlers.dart
 
+String versionsTabUrl(String package) => '/packages/$package#-versions-tab-';
+
 // TODO: lib/frontend/models.dart
 
 // TODO: lib/frontend/service_utils.dart
