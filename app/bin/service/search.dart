@@ -29,26 +29,18 @@ import 'package:pub_dartlang_org/search/updater.dart';
 final Logger _logger = new Logger('pub.search');
 
 Future main() async {
-  final ReceivePort errorPort = new ReceivePort();
-  errorPort.listen((error) {
-    print('ERROR from isolate: $error');
-  });
-  for (int i = 0; i < envConfig.isolateCount; i++) {
-    await Isolate.spawn(
-      _mainWrapper,
-      i,
-      onError: errorPort.sendPort,
-      onExit: errorPort.sendPort,
-      errorsAreFatal: true,
-    );
-  }
+  await startIsolates(_logger, _mainWrapper);
 }
 
 // Remove after https://github.com/dart-lang/sdk/issues/30755 lands.
 void _mainWrapper(message) => _main(message);
 
-void _main(int isolateId) {
+void _main(List<SendPort> sendPorts) {
   useLoggingPackageAdaptor();
+
+  final SendPort mainSendPort = sendPorts[0];
+  final ReceivePort taskReceivePort = new ReceivePort();
+  mainSendPort.send(taskReceivePort.sendPort);
 
   withAppEngineServices(() async {
     final Bucket popularityBucket = await getOrCreateBucket(
@@ -70,8 +62,6 @@ void _main(int isolateId) {
         new SnapshotStorage(storageService, snapshotBucket));
 
     registerPackageIndex(new SimplePackageIndex());
-
-    final ReceivePort taskReceivePort = new ReceivePort();
     registerTaskSendPort(taskReceivePort.sendPort);
 
     final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
