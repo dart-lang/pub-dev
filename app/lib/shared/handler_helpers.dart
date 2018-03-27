@@ -11,9 +11,9 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 Future runHandler(Logger logger, shelf.Handler handler, {bool shared: false}) {
-  final wrappedHandler = _logRequestWrapper(logger, handler);
-  return runAppEngine(
-      (HttpRequest request) => handleRequest(request, wrappedHandler),
+  handler = redirectToHttpsWrapper(handler);
+  handler = _logRequestWrapper(logger, handler);
+  return runAppEngine((HttpRequest request) => handleRequest(request, handler),
       shared: shared ?? false);
 }
 
@@ -30,6 +30,18 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
       return new shelf.Response.internalServerError();
     } finally {
       logger.info('Request handler done.');
+    }
+  };
+}
+
+shelf.Handler redirectToHttpsWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
+    if (context.isProductionEnvironment &&
+        request.requestedUri.scheme != 'https') {
+      final secureUri = request.requestedUri.replace(scheme: 'https');
+      return new shelf.Response.seeOther(secureUri);
+    } else {
+      return handler(request);
     }
   };
 }
