@@ -37,6 +37,18 @@ void main() {
   group('handlers', () {
     group('not found', () {
       tScopedTest('/xxx', () async {
+        registerSearchService(new SearchServiceMock((SearchQuery query) {
+          expect(query.order, isNull);
+          expect(query.offset, 0);
+          expect(query.limit, 15);
+          expect(query.platformPredicate, isNull);
+          expect(query.query, isNull);
+          return new SearchResultPage(
+            query,
+            1,
+            [new PackageView.fromModel(version: testPackageVersion)],
+          );
+        }));
         await expectNotFoundResponse(await issueGet('/xxx'));
       });
     });
