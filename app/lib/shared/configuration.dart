@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:math' show max;
 
 import 'package:googleapis_auth/auth.dart' as auth;
 
@@ -93,14 +92,16 @@ class EnvConfig {
   final String gcloudKey;
   final String gcloudProject;
   final String flutterSdkDir;
-  final int isolateCount;
+  final int frontendCount;
+  final int workerCount;
 
   EnvConfig._(
     this.gaeService,
     this.gcloudProject,
     this.gcloudKey,
     this.flutterSdkDir,
-    this.isolateCount,
+    this.frontendCount,
+    this.workerCount,
   ) {
     if (this.gcloudProject == null) {
       throw new Exception('GCLOUD_PROJECT needs to be set!');
@@ -108,15 +109,21 @@ class EnvConfig {
   }
 
   factory EnvConfig._detect() {
-    final String isolateCountStr = Platform.environment['ISOLATE_COUNT'] ?? '1';
-    int isolateCount = int.parse(isolateCountStr, onError: (_) => 1);
-    isolateCount = max(1, isolateCount);
+    final frontendCount = int.parse(
+      Platform.environment['FRONTEND_COUNT'] ?? '1',
+      onError: (_) => Platform.numberOfProcessors,
+    );
+    final workerCount = int.parse(
+      Platform.environment['WORKER_COUNT'] ?? '1',
+      onError: (_) => 1,
+    );
     return new EnvConfig._(
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
       Platform.environment['FLUTTER_SDK'],
-      isolateCount,
+      frontendCount,
+      workerCount,
     );
   }
 

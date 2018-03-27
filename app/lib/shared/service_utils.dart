@@ -8,42 +8,71 @@ import 'dart:isolate';
 
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import 'configuration.dart';
 import 'scheduler_stats.dart';
 import 'task_client.dart';
 import 'versions.dart';
 
-Future startIsolates(Logger logger, void entryPoint(message)) async {
-  final ReceivePort errorReceivePort = new ReceivePort();
+class WorkerEntryMessage {
+  final int workerIndex;
+  final SendPort protocolSendPort;
+  final SendPort statsSendPort;
 
-  Future startIsolate() async {
-    logger.info('About to start isolate...');
-    final ReceivePort mainReceivePort = new ReceivePort();
+  WorkerEntryMessage({
+    @required this.workerIndex,
+    @required this.protocolSendPort,
+    @required this.statsSendPort,
+  });
+}
+
+class WorkerProtocolMessage {
+  final SendPort taskSendPort;
+
+  WorkerProtocolMessage({@required this.taskSendPort});
+}
+
+Future startIsolates({
+  @required Logger logger,
+  @required void workerEntryPoint(WorkerEntryMessage message),
+}) async {
+  final ReceivePort errorReceivePort = new ReceivePort();
+  int workersStarted = 0;
+
+  Future startWorkerIsolate() async {
+    workersStarted++;
+    final workerIndex = workersStarted;
+    logger.info('About to start worker isolate #$workerIndex...');
+    final ReceivePort protocolReceivePort = new ReceivePort();
     final ReceivePort statsReceivePort = new ReceivePort();
     await Isolate.spawn(
-      entryPoint,
-      [mainReceivePort.sendPort, statsReceivePort.sendPort],
+      workerEntryPoint,
+      new WorkerEntryMessage(
+        workerIndex: workerIndex,
+        protocolSendPort: protocolReceivePort.sendPort,
+        statsSendPort: statsReceivePort.sendPort,
+      ),
       onError: errorReceivePort.sendPort,
       onExit: errorReceivePort.sendPort,
       errorsAreFatal: true,
     );
-    final List<SendPort> sendPorts = await mainReceivePort.take(1).toList();
-    registerTaskSendPort(sendPorts[0]);
+    final WorkerProtocolMessage protocolMessage =
+        (await protocolReceivePort.take(1).toList()).single;
+    registerTaskSendPort(protocolMessage.taskSendPort);
     registerSchedulerStatsStream(statsReceivePort as Stream<Map>);
-    logger.info('Isolate started.');
+    logger.info('Worker isolate #$workerIndex started.');
   }
 
   errorReceivePort.listen((e) async {
-    logger.severe('ERROR from isolate', e);
+    logger.severe('ERROR from worker isolate', e);
     // restart isolate after a brief pause
     await new Future.delayed(new Duration(minutes: 1));
-    logger.warning('Restarting isolate...');
-    await startIsolate();
+    await startWorkerIsolate();
   });
 
-  for (int i = 0; i < envConfig.isolateCount; i++) {
-    await startIsolate();
+  for (int i = 0; i < envConfig.workerCount; i++) {
+    await startWorkerIsolate();
   }
 }
 
