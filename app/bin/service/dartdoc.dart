@@ -28,23 +28,19 @@ Future main() async {
 
   await withAppEngineServices(() async {
     await initDartdoc(logger);
-    initFlutterSdk(logger)
-        .then((_) => startIsolates(logger, _runSchedulerWrapper));
+    initFlutterSdk(logger).then(
+        (_) => startIsolates(logger: logger, workerEntryPoint: _workerMain));
     await _registerServices();
     await runHandler(logger, dartdocServiceHandler);
   });
 }
 
-// Remove after https://github.com/dart-lang/sdk/issues/30755 lands.
-void _runSchedulerWrapper(message) => _runScheduler(message);
-
-void _runScheduler(List<SendPort> sendPorts) {
+void _workerMain(WorkerEntryMessage message) {
   useLoggingPackageAdaptor();
 
-  final SendPort mainSendPort = sendPorts[0];
-  final SendPort statsSendPort = sendPorts[1];
   final ReceivePort taskReceivePort = new ReceivePort();
-  mainSendPort.send(taskReceivePort.sendPort);
+  message.protocolSendPort
+      .send(new WorkerProtocolMessage(taskSendPort: taskReceivePort.sendPort));
 
   withAppEngineServices(() async {
     await _registerServices();
@@ -63,7 +59,7 @@ void _runScheduler(List<SendPort> sendPorts) {
         new JobMaintenance(dbService, JobService.dartdoc, shouldUpdate);
 
     new Timer.periodic(const Duration(minutes: 15), (_) async {
-      statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
+      message.statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
     });
 
     await Future.wait([
