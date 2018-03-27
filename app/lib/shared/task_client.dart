@@ -6,28 +6,41 @@ import 'dart:isolate';
 
 import 'task_scheduler.dart' show Task;
 
-SendPort _taskSendPort;
+final _taskSendPorts = <SendPort>[];
+int _taskSendIndex = 0;
 
 // Temporary queue until the isolate comes online.
-List<Task> _taskQueue = [];
+final List<Task> _taskQueue = [];
 
 void registerTaskSendPort(SendPort taskSendPort) {
-  _taskSendPort = taskSendPort;
-  if (_taskQueue != null) {
-    for (Task task in _taskQueue) {
-      _taskSendPort.send(task);
+  _taskSendPorts.add(taskSendPort);
+  if (_taskQueue.isNotEmpty) {
+    final queued = new List<Task>.from(_taskQueue);
+    _taskQueue.clear();
+    for (Task task in queued) {
+      _send(task);
     }
-    _taskQueue = null;
   }
+}
+
+void unregisterTaskSendPort(SendPort taskSendPort) {
+  _taskSendPorts.remove(taskSendPort);
 }
 
 /// Triggers task processing via sending tasks to the [Scheduler] in the other
 /// isolate.
 void triggerTask(String package, String version) {
-  final Task task = new Task.now(package, version);
-  if (_taskSendPort == null) {
+  _send(new Task.now(package, version));
+}
+
+void _send(Task task) {
+  if (_taskSendPorts.isEmpty) {
     _taskQueue.add(task);
-  } else {
-    _taskSendPort.send(task);
+    return;
   }
+  _taskSendIndex++;
+  if (_taskSendIndex >= _taskSendPorts.length) {
+    _taskSendIndex = 0;
+  }
+  _taskSendPorts[_taskSendIndex].send(task);
 }
