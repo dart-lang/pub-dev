@@ -433,7 +433,7 @@ Future<shelf.Response> _packageVersionsHandler(
     shelf.Request request, String packageName) async {
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) {
-    return _redirectToSearch(packageName);
+    return redirectToSearch(packageName);
   }
 
   sortPackageVersionsDesc(versions);
@@ -469,7 +469,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   if (cachedPage == null) {
     final Package package = await backend.lookupPackage(packageName);
     if (package == null) {
-      return _redirectToSearch(packageName);
+      return redirectToSearch(packageName);
     }
 
     final versions = await backend.versionsOfPackage(packageName);
@@ -671,11 +671,6 @@ Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
     templateService.renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
-}
-
-shelf.Response _redirectToSearch(String query) {
-  final uri = new Uri(path: '/packages', queryParameters: {'q': query});
-  return redirectResponse(uri.toString());
 }
 
 /// Handles requests for /api/search

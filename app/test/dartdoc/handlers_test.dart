@@ -6,12 +6,16 @@ library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
 
+import 'package:pub_dartlang_org/dartdoc/models.dart';
+import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
 
 import '../shared/handlers_test_utils.dart';
+import '../shared/utils.dart';
 
 void main() {
   group('path parsing', () {
@@ -84,5 +88,62 @@ void main() {
         'https://pub.dartlang.org/documentation/foor/bar/',
       );
     });
+
+    scopedTest('/documentation/no_pkg redirect', () async {
+      registerDartdocBackend(new DartdocBackendMock());
+      expectRedirectResponse(
+          await issueGet('/documentation/no_pkg'), '/packages?q=no_pkg');
+    });
   });
+}
+
+class DartdocBackendMock implements DartdocBackend {
+  final List<DartdocEntry> entries;
+  final Map<String, String> latestVersions;
+
+  DartdocBackendMock({this.entries, this.latestVersions});
+
+  @override
+  Future<TaskTargetStatus> checkTargetStatus(
+      String package, String version, DateTime updated, bool retryFailed) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<DartdocEntry> getLatestEntry(
+      String package, String version, bool serving) async {
+    return entries?.lastWhere(
+      (entry) =>
+          entry.packageName == package &&
+          entry.packageVersion == version &&
+          (!serving || entry.isServing),
+      orElse: () => null,
+    );
+  }
+
+  @override
+  Future<String> getLatestVersion(String package) async {
+    if (latestVersions == null) return null;
+    return latestVersions[package];
+  }
+
+  @override
+  Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future removeObsolete(String package, String version) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future uploadDir(DartdocEntry entry, String dirPath) {
+    throw new UnimplementedError();
+  }
 }
