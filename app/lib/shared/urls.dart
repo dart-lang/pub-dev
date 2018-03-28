@@ -2,11 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: lib/dartdoc/customization.dart
+import 'package:path/path.dart' as p;
 
-// TODO: lib/dartdoc/dartdoc_runner.dart
+import 'utils.dart' show siteRoot;
+export 'utils.dart' show siteRoot;
 
-// TODO: lib/dartdoc/handlers.dart
+String pkgPageUrl(String package, {String version, bool includeHost: false}) {
+  String url = includeHost ? siteRoot : '';
+  url += '/packages/$package';
+  if (version != null) {
+    url += '/versions/$version';
+  }
+  return url;
+}
+
+String pkgDocUrl(String package,
+    {String version, bool includeHost: false, String relativePath}) {
+  String url = includeHost ? siteRoot : '';
+  url += '/documentation/$package';
+  if (version != null) {
+    url += '/$version';
+  }
+  if (relativePath != null) {
+    url = p.join(url, relativePath);
+  }
+  return url;
+}
 
 // TODO: lib/frontend/backend.dart
 
@@ -33,8 +54,6 @@ String versionsTabUrl(String package) => '/packages/$package#-versions-tab-';
 // TODO: lib/shared/utils.dart
 
 // TODO: test/analyzer/handlers_test_utils.dart
-
-// TODO: test/dartdoc/handlers_test.dart
 
 // TODO: test/frontend/handlers_test.dart
 

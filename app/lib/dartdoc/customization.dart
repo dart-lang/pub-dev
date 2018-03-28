@@ -8,6 +8,9 @@ import 'dart:io';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
+import '../frontend/static_files.dart';
+import '../shared/urls.dart';
+
 class DartdocCustomizer {
   final String packageName;
   final String packageVersion;
@@ -71,10 +74,9 @@ class DartdocCustomizer {
   void _addPubSiteLogo(Element breadcrumbs) {
     final parent = breadcrumbs.parent;
     final logoLink = new Element.tag('a');
-    logoLink.attributes['href'] = 'https://pub.dartlang.org/';
+    logoLink.attributes['href'] = '$siteRoot/';
     final imgRef = new Element.tag('img');
-    imgRef.attributes['src'] =
-        'https://pub.dartlang.org/static/img/dart-logo.svg';
+    imgRef.attributes['src'] = '$siteRoot${staticUrls.dartLogoSvg}';
     imgRef.attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);
@@ -83,7 +85,7 @@ class DartdocCustomizer {
 
   void _addPubPackageLink(Element breadcrumbs) {
     final pubPackageLink =
-        'https://pub.dartlang.org/packages/$packageName/versions/$packageVersion';
+        pkgPageUrl(packageName, version: packageVersion, includeHost: true);
     final pubPackageText = '$packageName package';
     if (breadcrumbs.children.length == 1) {
       // we are on the index page

@@ -10,13 +10,14 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
+import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../shared/handlers_test_utils.dart';
 
 void main() {
   group('path parsing', () {
     void testUri(String rqPath, String package, [String version, String path]) {
-      final p = parseRequestUri(Uri.parse('https://pub.dartlang.org$rqPath'));
+      final p = parseRequestUri(Uri.parse('$siteRoot$rqPath'));
       if (package == null) {
         expect(p, isNull);
       } else {
