@@ -11,6 +11,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
 import '../shared/task_client.dart';
+import '../shared/urls.dart';
 import '../shared/utils.dart' show contentType, redirectDartdocPages;
 
 import 'backend.dart';
@@ -93,8 +94,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     if (version == null) {
       return redirectToSearch(docFilePath.package);
     } else {
-      return redirectResponse(
-          '/documentation/${docFilePath.package}/$version/');
+      return redirectResponse(pkgDocUrl(docFilePath.package, version: version));
     }
   }
   if (docFilePath.path == null) {
@@ -108,8 +108,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
-      return redirectResponse(
-          '/documentation/${docFilePath.package}/${docFilePath.version}/log.txt');
+      return redirectResponse(pkgDocUrl(docFilePath.package,
+          version: docFilePath.version, relativePath: 'log.txt'));
     }
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
     if (info == null) {
@@ -188,7 +188,7 @@ const indexHtmlContent = '''
   <body class="default hide_toc">
     <header id="page-header">
       <nav id="mainnav">
-        <a href="https://pub.dartlang.org/" class="brand" title="Dart">
+        <a href="$siteRoot" class="brand" title="Dart">
           <img src="https://dartlang.org/assets/logo-61576b6c2423c80422c986036ead4a7fc64c70edd7639c6171eba19e992c87d9.svg" alt="Dart" height="50px">
         </a>
       </nav>
@@ -198,7 +198,7 @@ const indexHtmlContent = '''
       <h2>Dart package API docs</h2>
       <p>
         API documentation for a package published on the
-        <a href="https://pub.dartlang.org/">Pub package manager</a>, is
+        <a href="$siteRoot">Pub package manager</a>, is
         available via the <b>Documentation</b> link located on any individual
         package page on Pub.</p>
     </main>

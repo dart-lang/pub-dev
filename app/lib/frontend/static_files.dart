@@ -83,6 +83,7 @@ final staticUrls = new StaticUrls(staticsCache.staticPath);
 class StaticUrls {
   final String staticPath;
   final String smallDartFavicon;
+  final String dartLogoSvg;
   final String flutterLogo32x32;
   final String documentationIcon;
   final String downloadIcon;
@@ -91,6 +92,7 @@ class StaticUrls {
 
   StaticUrls(this.staticPath)
       : smallDartFavicon = '$staticPath/favicon.ico',
+        dartLogoSvg = '$staticPath/img/dart-logo.svg',
         flutterLogo32x32 = '$staticPath/img/flutter-logo-32x32.png',
         documentationIcon = '$staticPath/img/ic_drive_document_black_24dp.svg',
         downloadIcon = '$staticPath/img/ic_get_app_black_24dp.svg';

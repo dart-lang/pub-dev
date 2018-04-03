@@ -14,6 +14,7 @@ import 'package:uuid/uuid.dart';
 
 import '../job/job.dart';
 import '../shared/configuration.dart' show envConfig;
+import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
@@ -21,7 +22,6 @@ import 'customization.dart';
 import 'models.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
-final String _hostedUrl = 'https://pub.dartlang.org';
 final Uuid _uuid = new Uuid();
 
 const statusFilePath = 'status.json';
@@ -167,10 +167,10 @@ class DartdocJobProcessor extends JobProcessor {
         '--output',
         outputDir,
         '--hosted-url',
-        _hostedUrl,
+        siteRoot,
         '--rel-canonical-prefix',
-        p.join(
-            _hostedUrl, 'documentation', job.packageName, job.packageVersion),
+        pkgDocUrl(job.packageName,
+            version: job.packageVersion, includeHost: true),
         '--exclude',
         _excludedLibraries.join(','),
       ],
