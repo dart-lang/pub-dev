@@ -47,7 +47,7 @@ main, .site-header {
 code {
   background: #f8f8f8;
   border: 1px solid #eee;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: 'Source Code Pro', Menlo, monospace;
   font-size: 85%;
   padding: 2px;
 }
