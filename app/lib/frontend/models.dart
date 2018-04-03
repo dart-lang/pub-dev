@@ -11,6 +11,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/analyzer_service.dart' show AnalysisExtract, AnalysisStatus;
 import '../shared/model_properties.dart';
+import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
@@ -194,24 +195,21 @@ class PackageVersion extends db.ExpandoModel {
     return shortDateFormat.format(created);
   }
 
-  String get dartdocsUrl {
-    final name = Uri.encodeComponent(packageKey.id);
-    final version = Uri.encodeComponent(id);
-    return 'https://pub.dartlang.org/documentation/$name/$version/';
-  }
+  String get dartdocsUrl =>
+      urls.pkgDocUrl(package, version: version, includeHost: true);
 
   String get documentation {
     // TODO: Look first into pubspecYaml['documentation'] otherwise do this:
     return dartdocsUrl;
   }
 
-  String get documentationNice => niceUrl(documentation);
+  String get documentationNice => urls.niceUrl(documentation);
 
   String get homepage {
     return pubspec.homepage;
   }
 
-  String get homepageNice => niceUrl(homepage);
+  String get homepageNice => urls.niceUrl(homepage);
 }
 
 @db.Kind(name: 'PrivateKey', idType: db.IdType.String)
@@ -270,18 +268,6 @@ class PackageView {
       isNewPackage: package?.isNewPackage(),
     );
   }
-}
-
-/// Removes the scheme part from `url`. (i.e. http://a/b becomes a/b).
-String niceUrl(String url) {
-  if (url == null) {
-    return url;
-  } else if (url.startsWith('https://')) {
-    return url.substring('https://'.length);
-  } else if (url.startsWith('http://')) {
-    return url.substring('http://'.length);
-  }
-  return url;
 }
 
 /// Sorts [versions] according to the semantic versioning specification.

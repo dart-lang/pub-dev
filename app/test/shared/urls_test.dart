@@ -24,16 +24,16 @@ void main() {
 
   group('documentation page', () {
     test('without host', () {
-      expect(pkgDocUrl('foo_bar'), '/documentation/foo_bar');
+      expect(pkgDocUrl('foo_bar'), '/documentation/foo_bar/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0'),
-          '/documentation/foo_bar/1.0.0');
+          '/documentation/foo_bar/1.0.0/');
     });
 
     test('with host', () {
       expect(pkgDocUrl('foo_bar', includeHost: true),
-          'https://pub.dartlang.org/documentation/foo_bar');
+          'https://pub.dartlang.org/documentation/foo_bar/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
-          'https://pub.dartlang.org/documentation/foo_bar/1.0.0');
+          'https://pub.dartlang.org/documentation/foo_bar/1.0.0/');
     });
   });
 }

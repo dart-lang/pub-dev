@@ -7,6 +7,18 @@ import 'package:path/path.dart' as p;
 import 'utils.dart' show siteRoot;
 export 'utils.dart' show siteRoot;
 
+/// Removes the scheme part from `url`. (i.e. http://a/b becomes a/b).
+String niceUrl(String url) {
+  if (url == null) {
+    return url;
+  } else if (url.startsWith('https://')) {
+    return url.substring('https://'.length);
+  } else if (url.startsWith('http://')) {
+    return url.substring('http://'.length);
+  }
+  return url;
+}
+
 String pkgPageUrl(String package, {String version, bool includeHost: false}) {
   String url = includeHost ? siteRoot : '';
   url += '/packages/$package';
@@ -25,6 +37,8 @@ String pkgDocUrl(String package,
   }
   if (relativePath != null) {
     url = p.join(url, relativePath);
+  } else {
+    url = '$url/';
   }
   return url;
 }
@@ -34,8 +48,6 @@ String pkgDocUrl(String package,
 // TODO: lib/frontend/handlers.dart
 
 String versionsTabUrl(String package) => '/packages/$package#-versions-tab-';
-
-// TODO: lib/frontend/models.dart
 
 // TODO: lib/frontend/service_utils.dart
 
