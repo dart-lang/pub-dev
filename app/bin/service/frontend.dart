@@ -43,46 +43,39 @@ void main() {
 
   withAppEngineServices(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
-
     await runAppEngine((HttpRequest ioRequest) async {
-      if (context.isProductionEnvironment &&
-          ioRequest.requestedUri.scheme != 'https') {
-        final secureUri = ioRequest.requestedUri.replace(scheme: 'https');
-        ioRequest.response
-          ..redirect(secureUri)
-          ..close();
-      } else {
-        try {
-          return handleRequest(ioRequest, (shelf.Request request) async {
-            _logger.info('Handling request: ${request.requestedUri}');
-            await registerLoggedInUserIfPossible(request);
-            try {
-              final sanitizedRequest = sanitizeRequestedUri(request);
-              return await appHandler(sanitizedRequest, apiHandler);
-            } catch (error, s) {
-              _logger.severe('Request handler failed', error, s);
+      try {
+        shelf.Handler handler = (shelf.Request request) async {
+          _logger.info('Handling request: ${request.requestedUri}');
+          await registerLoggedInUserIfPossible(request);
+          try {
+            final sanitizedRequest = sanitizeRequestedUri(request);
+            return await appHandler(sanitizedRequest, apiHandler);
+          } catch (error, s) {
+            _logger.severe('Request handler failed', error, s);
 
-              var body = '''Fatal package site error
+            var body = '''Fatal package site error
 $fileAnIssueContent
 
 Add these details to help us fix the issue:
 Requested URL - ${request.requestedUri}''';
 
-              Map<String, String> debugHeaders;
-              if (context.traceId != null) {
-                debugHeaders = {'package-site-request-id': context.traceId};
-                body = '$body\n   Request ID - ${context.traceId}';
-              }
-
-              return new shelf.Response.internalServerError(
-                  body: body, headers: debugHeaders);
-            } finally {
-              _logger.info('Request handler done.');
+            Map<String, String> debugHeaders;
+            if (context.traceId != null) {
+              debugHeaders = {'package-site-request-id': context.traceId};
+              body = '$body\n   Request ID - ${context.traceId}';
             }
-          });
-        } catch (error, stack) {
-          _logger.severe('Request handler failed', error, stack);
-        }
+
+            return new shelf.Response.internalServerError(
+                body: body, headers: debugHeaders);
+          } finally {
+            _logger.info('Request handler done.');
+          }
+        };
+        handler = redirectToHttpsWrapper(handler);
+        return handleRequest(ioRequest, handler);
+      } catch (error, stack) {
+        _logger.severe('Request handler failed', error, stack);
       }
     });
   });
