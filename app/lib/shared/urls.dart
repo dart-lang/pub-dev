@@ -29,10 +29,6 @@ String pkgDocUrl(String package,
   return url;
 }
 
-// TODO: lib/frontend/backend.dart
-
-// TODO: lib/frontend/handlers.dart
-
 String versionsTabUrl(String package) => '/packages/$package#-versions-tab-';
 
 // TODO: lib/frontend/models.dart

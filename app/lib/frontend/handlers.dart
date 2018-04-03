@@ -213,17 +213,18 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
   // the count is closer to ~1,500
 
   final twoYearsAgo = new DateTime.now().subtract(twoYears);
-  final items = new List.from(const ['', 'help', 'web', 'flutter']);
+  final items = new List.from(
+      const ['', 'help', 'web', 'flutter'].map((url) => '$siteRoot/$url'));
 
   final stream = backend.allPackageNames(
       updatedSince: twoYearsAgo, excludeDiscontinued: true);
   await for (var package in stream) {
-    items.add('packages/$package');
+    items.add(urls.pkgPageUrl(package, includeHost: true));
   }
 
   items.sort();
 
-  return new shelf.Response.ok(items.map((e) => '$siteRoot/$e').join('\n'));
+  return new shelf.Response.ok(items.join('\n'));
 }
 
 /// Handles requests for /authorized
