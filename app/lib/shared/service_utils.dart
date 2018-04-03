@@ -37,13 +37,13 @@ Future startIsolates({
   @required Logger logger,
   @required void workerEntryPoint(WorkerEntryMessage message),
 }) async {
-  final ReceivePort errorReceivePort = new ReceivePort();
-  int workersStarted = 0;
+  int workerStarted = 0;
 
   Future startWorkerIsolate() async {
-    workersStarted++;
-    final workerIndex = workersStarted;
+    workerStarted++;
+    final workerIndex = workerStarted;
     logger.info('About to start worker isolate #$workerIndex...');
+    final ReceivePort errorReceivePort = new ReceivePort();
     final ReceivePort protocolReceivePort = new ReceivePort();
     final ReceivePort statsReceivePort = new ReceivePort();
     await Isolate.spawn(
@@ -62,14 +62,25 @@ Future startIsolates({
     registerTaskSendPort(protocolMessage.taskSendPort);
     registerSchedulerStatsStream(statsReceivePort as Stream<Map>);
     logger.info('Worker isolate #$workerIndex started.');
-  }
 
-  errorReceivePort.listen((e) async {
-    logger.severe('ERROR from worker isolate', e);
-    // restart isolate after a brief pause
-    await new Future.delayed(new Duration(minutes: 1));
-    await startWorkerIsolate();
-  });
+    StreamSubscription errorSubscription;
+
+    Future close() async {
+      unregisterTaskSendPort(protocolMessage.taskSendPort);
+      await errorSubscription?.cancel();
+      errorReceivePort.close();
+      protocolReceivePort.close();
+      statsReceivePort.close();
+    }
+
+    errorSubscription = errorReceivePort.listen((e) async {
+      logger.severe('ERROR from worker isolate #$workerIndex', e);
+      await close();
+      // restart isolate after a brief pause
+      await new Future.delayed(new Duration(minutes: 1));
+      await startWorkerIsolate();
+    });
+  }
 
   for (int i = 0; i < envConfig.workerCount; i++) {
     await startWorkerIsolate();
