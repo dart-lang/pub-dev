@@ -23,6 +23,11 @@ const staticLongCache = const Duration(hours: 24);
 
 shelf.Response redirectResponse(String url) => new shelf.Response.seeOther(url);
 
+shelf.Response redirectToSearch(String query) {
+  final uri = new Uri(path: '/packages', queryParameters: {'q': query});
+  return redirectResponse(uri.toString());
+}
+
 shelf.Response atomXmlResponse(String content, {int status: 200}) =>
     new shelf.Response(
       status,

@@ -91,7 +91,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath.version == null) {
     final version = await dartdocBackend.getLatestVersion(docFilePath.package);
     if (version == null) {
-      return notFoundHandler(request);
+      return redirectToSearch(docFilePath.package);
     } else {
       return redirectResponse(
           '/documentation/${docFilePath.package}/$version/');
