@@ -121,13 +121,20 @@ void _setEventForMobileNav() {
 /// change the tab based on URL hash
 void _changeTabOnUrlHash() {
   if (tabRoot == null) return;
-  final hash = window.location.hash ?? '';
+  String hash = window.location.hash ?? '';
+  if (hash.startsWith('#')) {
+    hash = hash.substring(1);
+  }
   // Navigating back to a non-hashed package page will result an empty hash.
   // Displaying the default tab: readme.
   if (hash.isEmpty) {
     _changeTab('-readme-tab-');
   } else {
-    _changeTab(hash.substring(1));
+    if (hash.startsWith('pub-pkg-tab-')) {
+      hash = '-${hash.substring(12)}-tab-';
+      window.location.hash = '#$hash';
+    }
+    _changeTab(hash);
   }
 }
 
