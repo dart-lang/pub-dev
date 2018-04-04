@@ -89,13 +89,9 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
   }
-  if (docFilePath.version == null) {
-    final version = await dartdocBackend.getLatestVersion(docFilePath.package);
-    if (version == null) {
-      return redirectToSearch(docFilePath.package);
-    } else {
-      return redirectResponse(pkgDocUrl(docFilePath.package, version: version));
-    }
+  final effectiveVersion = await _effectiveVersion(docFilePath);
+  if (effectiveVersion == null) {
+    return redirectToSearch(docFilePath.package);
   }
   if (docFilePath.path == null) {
     return redirectResponse('${request.requestedUri}/');
@@ -103,7 +99,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'GET') {
     final entry = await dartdocBackend.getLatestEntry(
-        docFilePath.package, docFilePath.version, true);
+        docFilePath.package, effectiveVersion, true);
     if (entry == null) {
       return notFoundHandler(request);
     }
@@ -134,6 +130,14 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   return notFoundHandler(request);
 }
 
+FutureOr<String> _effectiveVersion(DocFilePath docFilePath) {
+  if (docFilePath.version == 'latest') {
+    return dartdocBackend.getLatestVersion(docFilePath.package);
+  } else {
+    return docFilePath.version;
+  }
+}
+
 class DocFilePath {
   final String package;
   final String version;
@@ -154,7 +158,7 @@ DocFilePath parseRequestUri(Uri uri) {
   }
 
   final String version = uri.pathSegments[2];
-  if (version.isEmpty || version == 'latest') {
+  if (version.isEmpty) {
     return new DocFilePath(package, null, null);
   }
   if (segmentCount == 3) {
