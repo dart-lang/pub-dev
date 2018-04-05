@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
@@ -11,7 +10,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as path;
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -26,7 +24,6 @@ import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -43,41 +40,9 @@ void main() {
 
   withAppEngineServices(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
-    await runAppEngine((HttpRequest ioRequest) async {
-      try {
-        shelf.Handler handler = (shelf.Request request) async {
-          _logger.info('Handling request: ${request.requestedUri}');
-          await registerLoggedInUserIfPossible(request);
-          try {
-            final sanitizedRequest = sanitizeRequestedUri(request);
-            return await appHandler(sanitizedRequest, apiHandler);
-          } catch (error, s) {
-            _logger.severe('Request handler failed', error, s);
-
-            var body = '''Fatal package site error
-$fileAnIssueContent
-
-Add these details to help us fix the issue:
-Requested URL - ${request.requestedUri}''';
-
-            Map<String, String> debugHeaders;
-            if (context.traceId != null) {
-              debugHeaders = {'package-site-request-id': context.traceId};
-              body = '$body\n   Request ID - ${context.traceId}';
-            }
-
-            return new shelf.Response.internalServerError(
-                body: body, headers: debugHeaders);
-          } finally {
-            _logger.info('Request handler done.');
-          }
-        };
-        handler = redirectToHttpsWrapper(handler);
-        return handleRequest(ioRequest, handler);
-      } catch (error, stack) {
-        _logger.severe('Request handler failed', error, stack);
-      }
-    });
+    final shelf.Handler frontendHandler =
+        (shelf.Request request) => appHandler(request, apiHandler);
+    await runHandler(_logger, frontendHandler, sanitize: true);
   });
 }
 
@@ -168,30 +133,4 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerUploadSigner(uploadSigner);
 
   return new ShelfPubServer(backend.repository, cache: cache).requestHandler;
-}
-
-shelf.Request sanitizeRequestedUri(shelf.Request request) {
-  final uri = request.requestedUri;
-  final resource = uri.path;
-  final normalizedResource = path.normalize(resource);
-
-  if (resource == normalizedResource) {
-    return request;
-  } else {
-    // With the new flex VMs we can get requests from the load balancer which
-    // can contain [Uri]s with e.g. double slashes
-    //
-    //    -> e.g. https://pub.dartlang.org//api/packages/foo
-    //
-    // Setting PUB_HOSTED_URL to a URL with a slash at the end can cause this.
-    // (The pub client will not remove it and instead directly try to request
-    //  "GET //api/..." :-/ )
-    final changedUri = uri.replace(path: normalizedResource);
-    return new shelf.Request(request.method, changedUri,
-        protocolVersion: request.protocolVersion,
-        headers: request.headers,
-        body: request.read(),
-        encoding: request.encoding,
-        context: request.context);
-  }
 }
