@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'package:markdown/markdown.dart' as md;
 import 'package:uuid/uuid.dart';
 
-import '../shared/utils.dart';
+import '../shared/urls.dart' show siteRoot;
 import 'models.dart';
 
 class FeedEntry {

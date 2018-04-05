@@ -17,6 +17,7 @@ import '../shared/dartdoc_client.dart' show DartdocEntry;
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
 import '../shared/search_service.dart' show SearchQuery, serializeSearchOrder;
+import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'model_properties.dart' show Author;
@@ -92,7 +93,7 @@ class TemplateService {
     }
     return renderLayoutPage(PageType.package, htmlBlocks.join(),
         title: '$package package - All Versions',
-        canonicalUrl: _canonicalUrlForPackage(package));
+        canonicalUrl: urls.pkgPageUrl(package, includeHost: true));
   }
 
   String _renderVersionTableRow(
@@ -121,7 +122,7 @@ class TemplateService {
       final view = packages[i];
       final overallScore = view.overallScore;
       packagesJson.add({
-        'url': '/packages/${view.name}',
+        'url': urls.pkgPageUrl(view.name),
         'name': view.name,
         'version': htmlEscape.convert(view.version),
         'show_dev_version': view.devVersion != null,
@@ -442,7 +443,9 @@ class TemplateService {
     final List<String> packages =
         analysis.directDependencies.map((pd) => pd.package).toList()..sort();
     if (packages.isEmpty) return null;
-    return packages.map((p) => '<a href="/packages/$p">$p</a>').join(', ');
+    return packages
+        .map((p) => '<a href="${urls.pkgPageUrl(p)}">$p</a>')
+        .join(', ');
   }
 
   String _renderInstall(bool isFlutter, List<String> platforms) {
@@ -528,7 +531,7 @@ class TemplateService {
         '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
     pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
     final canonicalUrl =
-        isVersionPage ? _canonicalUrlForPackage(package.name) : null;
+        isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
     return renderLayoutPage(
       PageType.package,
       content,
@@ -716,13 +719,11 @@ class TemplateService {
         'title': 'Package version too old, check latest stable.',
       });
     } else {
-      final String hash = '#-analysis-tab-';
-      final String href = package == null ? hash : '/packages/$package$hash';
       tags.add({
         'status': 'unidentified',
         'text': '[unidentified]',
         'title': 'Check the analysis tab for further details.',
-        'href': href,
+        'href': urls.analysisTabUrl(package),
       });
     }
     return _renderTemplate('pkg/tags', {'tags': tags});
@@ -829,7 +830,7 @@ String _renderScoreBox(AnalysisStatus status, double overallScore,
       // TODO: decide on label - {{! <span class="text">?????</span> }}
       '</div>';
   if (package != null) {
-    return '<a href="/packages/$package#-analysis-tab-">$boxHtml</a>';
+    return '<a href="${urls.analysisTabUrl(package)}">$boxHtml</a>';
   } else {
     return boxHtml;
   }
@@ -949,10 +950,10 @@ enum PageType {
 const _schemaOrgSearchAction = const {
   '@context': 'http://schema.org',
   '@type': 'WebSite',
-  'url': '$siteRoot/',
+  'url': '${urls.siteRoot}/',
   'potentialAction': const {
     '@type': 'SearchAction',
-    'target': '$siteRoot/packages?q={search_term_string}',
+    'target': '${urls.siteRoot}/packages?q={search_term_string}',
     'query-input': 'required name=search_term_string',
   },
 };
@@ -964,11 +965,12 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     'name': pv.package,
     'version': pv.version,
     'description': '${pv.package} - ${pv.pubspec.description}',
-    'url': '$siteRoot/packages/${pv.package}',
+    'url': urls.pkgPageUrl(pv.package, includeHost: true),
     'dateCreated': p.created.toIso8601String(),
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
-    'image': '$siteRoot${staticUrls.staticPath}/img/dart-logo-400x400.png'
+    'image':
+        '${urls.siteRoot}${staticUrls.staticPath}/img/dart-logo-400x400.png'
   };
   final licenses = analysis?.licenses;
   final firstUrl =
@@ -979,9 +981,6 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return map;
 }
-
-String _canonicalUrlForPackage(String packageName) =>
-    '$siteRoot/packages/$packageName';
 
 String _renderFile(FileObject file, String baseUrl) {
   final filename = file.filename;

@@ -20,9 +20,10 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
+import 'package:pub_dartlang_org/shared/urls.dart';
 
 Future<shelf.Response> issueGet(String path) async {
-  final uri = 'https://pub.dartlang.org$path';
+  final uri = '$siteRoot$path';
   final request = new shelf.Request('GET', Uri.parse(uri));
   return appHandler(request, null);
 }
