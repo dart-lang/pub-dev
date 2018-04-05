@@ -113,9 +113,11 @@ void main() {
         await expectNotFoundResponse(await issuePost('/packages/pkg'));
       });
 
-      scopedTest('/packages/pkg/1.0.1', () async {
+      scopedTest('/api/notification', () async {
         // TODO: mock notification secret and re-enable testing task receive
-        await expectJsonResponse(await issuePost('/packages/pkg/1.0.1'),
+        await expectJsonResponse(
+            await issuePost('/api/notification',
+                body: {'package': 'foo', 'version': '1.0.0'}),
             body: {'success': false});
       });
     });

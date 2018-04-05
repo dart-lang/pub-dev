@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -15,8 +16,9 @@ Future<shelf.Response> issueGet(String path) async {
   return analyzerServiceHandler(request);
 }
 
-Future<shelf.Response> issuePost(String path) async {
+Future<shelf.Response> issuePost(String path, {Map body}) async {
   final uri = '$siteRoot$path';
-  final request = new shelf.Request('POST', Uri.parse(uri));
+  final encodedBody = body == null ? null : json.encode(body);
+  final request = new shelf.Request('POST', Uri.parse(uri), body: encodedBody);
   return analyzerServiceHandler(request);
 }
