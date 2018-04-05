@@ -15,6 +15,18 @@ import 'scheduler_stats.dart';
 import 'task_client.dart';
 import 'versions.dart';
 
+class FrontendEntryMessage {
+  final int frontendIndex;
+  final SendPort protocolSendPort;
+
+  FrontendEntryMessage({
+    @required this.frontendIndex,
+    @required this.protocolSendPort,
+  });
+}
+
+class FrontendProtocolMessage {}
+
 class WorkerEntryMessage {
   final int workerIndex;
   final SendPort protocolSendPort;
@@ -35,9 +47,50 @@ class WorkerProtocolMessage {
 
 Future startIsolates({
   @required Logger logger,
-  @required void workerEntryPoint(WorkerEntryMessage message),
+  void frontendEntryPoint(FrontendEntryMessage message),
+  void workerEntryPoint(WorkerEntryMessage message),
 }) async {
+  int frontendStarted = 0;
   int workerStarted = 0;
+
+  Future startFrontendIsolate() async {
+    frontendStarted++;
+    final frontendIndex = frontendStarted;
+    logger.info('About to start frontend isolate #$frontendIndex...');
+    final ReceivePort errorReceivePort = new ReceivePort();
+    final ReceivePort protocolReceivePort = new ReceivePort();
+    await Isolate.spawn(
+      frontendEntryPoint,
+      new FrontendEntryMessage(
+        frontendIndex: frontendIndex,
+        protocolSendPort: protocolReceivePort.sendPort,
+      ),
+      onError: errorReceivePort.sendPort,
+      onExit: errorReceivePort.sendPort,
+      errorsAreFatal: true,
+    );
+    // TODO: implement stat port delegation from worker to frontend
+    // ignore: unused_local_variable
+    final FrontendProtocolMessage protocolMessage =
+        (await protocolReceivePort.take(1).toList()).single;
+    logger.info('Frontend isolate #$frontendIndex started.');
+
+    StreamSubscription errorSubscription;
+
+    Future close() async {
+      await errorSubscription?.cancel();
+      errorReceivePort.close();
+      protocolReceivePort.close();
+    }
+
+    errorSubscription = errorReceivePort.listen((e) async {
+      logger.severe('ERROR from frontend isolate #$frontendIndex', e);
+      await close();
+      // restart isolate after a brief pause
+      await new Future.delayed(new Duration(seconds: 5));
+      await startFrontendIsolate();
+    });
+  }
 
   Future startWorkerIsolate() async {
     workerStarted++;
@@ -82,8 +135,15 @@ Future startIsolates({
     });
   }
 
-  for (int i = 0; i < envConfig.workerCount; i++) {
-    await startWorkerIsolate();
+  if (frontendEntryPoint != null) {
+    for (int i = 0; i < envConfig.frontendCount; i++) {
+      await startFrontendIsolate();
+    }
+  }
+  if (workerEntryPoint != null) {
+    for (int i = 0; i < envConfig.workerCount; i++) {
+      await startWorkerIsolate();
+    }
   }
 }
 

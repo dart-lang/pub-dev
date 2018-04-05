@@ -29,16 +29,13 @@ import 'package:pub_dartlang_org/search/updater.dart';
 final Logger _logger = new Logger('pub.search');
 
 Future main() async {
-  // TODO: use a "frontend" isolate
-  await startIsolates(logger: _logger, workerEntryPoint: _main);
+  await startIsolates(logger: _logger, frontendEntryPoint: _main);
 }
 
-void _main(WorkerEntryMessage message) {
+void _main(FrontendEntryMessage message) {
   useLoggingPackageAdaptor();
 
-  final ReceivePort taskReceivePort = new ReceivePort();
-  message.protocolSendPort
-      .send(new WorkerProtocolMessage(taskSendPort: taskReceivePort.sendPort));
+  message.protocolSendPort.send(new FrontendProtocolMessage());
 
   withAppEngineServices(() async {
     final Bucket popularityBucket = await getOrCreateBucket(
@@ -59,6 +56,7 @@ void _main(WorkerEntryMessage message) {
     registerSnapshotStorage(
         new SnapshotStorage(storageService, snapshotBucket));
 
+    final ReceivePort taskReceivePort = new ReceivePort();
     registerPackageIndex(new SimplePackageIndex());
     registerTaskSendPort(taskReceivePort.sendPort);
 
