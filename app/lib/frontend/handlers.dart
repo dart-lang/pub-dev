@@ -213,8 +213,8 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
   // the count is closer to ~1,500
 
   final twoYearsAgo = new DateTime.now().subtract(twoYears);
-  final items = new List.from(
-      const ['', 'help', 'web', 'flutter'].map((url) => '$siteRoot/$url'));
+  final items = new List.from(const ['', 'help', 'web', 'flutter']
+      .map((url) => '${urls.siteRoot}/$url'));
 
   final stream = backend.allPackageNames(
       updatedSince: twoYearsAgo, excludeDiscontinued: true);

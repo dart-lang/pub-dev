@@ -24,10 +24,6 @@ export 'package:pana/src/maintenance.dart' show exampleFileCandidates;
 
 final Duration twoYears = const Duration(days: 2 * 365);
 
-const pubHostedDomain = 'pub.dartlang.org';
-
-const siteRoot = 'https://$pubHostedDomain';
-
 /// The value `X-Cloud-Trace-Context`.
 ///
 /// Standard trace header used by

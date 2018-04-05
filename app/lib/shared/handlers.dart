@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'scheduler_stats.dart';
-import 'utils.dart';
+import 'urls.dart';
 import 'versions.dart';
 
 const String default404NotFound = '404 Not Found';
