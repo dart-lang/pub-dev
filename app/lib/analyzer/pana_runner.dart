@@ -12,7 +12,6 @@ import 'package:pana/src/version.dart';
 import '../job/job.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
-import '../shared/utils.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -51,8 +50,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       return JobStatus.skipped;
     }
 
-    final Duration age = timestamp.difference(packageStatus.publishDate).abs();
-    if (age > twoYears && !packageStatus.isLatestStable) {
+    if (packageStatus.isObsolete) {
       _logger
           .info('Package is older than two years and has newer release: $job.');
       analysis.analysisStatus = AnalysisStatus.outdated;
@@ -113,7 +111,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       }
       analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore =
-          summary?.maintenance?.getMaintenanceScore(age: age);
+          summary?.maintenance?.getMaintenanceScore(age: packageStatus.age);
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
