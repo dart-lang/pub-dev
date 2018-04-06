@@ -10,7 +10,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
-import '../shared/task_client.dart';
 import '../shared/urls.dart';
 import '../shared/utils.dart' show contentType, redirectDartdocPages;
 
@@ -21,6 +20,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
     '/': indexHandler,
+    apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
   }[path];
 
@@ -28,8 +28,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
     return handler(request);
   } else if (path.startsWith('/documentation')) {
     return documentationHandler(request);
-  } else if (path.startsWith('/packages/')) {
-    return packageHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
   } else if (path == '/robots.txt') {
@@ -50,33 +48,6 @@ Future<shelf.Response> indexHandler(shelf.Request request) async {
 /// Handles /robots.txt requests
 Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
   return htmlResponse(robotsTxtContent);
-}
-
-/// Handles requests for:
-///   - /packages/<package>
-///   - /packages/<package>/<version>
-Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final String path = request.requestedUri.path.substring('/packages/'.length);
-  final List<String> pathParts = path.split('/');
-  if (path.length == 0 || pathParts.length > 2) {
-    return notFoundHandler(request);
-  }
-  final String package = pathParts[0];
-  final String version = pathParts.length == 1 ? null : pathParts[1];
-
-  final String requestMethod = request.method?.toUpperCase();
-  if (requestMethod == 'GET') {
-    return notFoundHandler(request);
-  } else if (requestMethod == 'POST') {
-    if (await validateNotificationSecret(request)) {
-      triggerTask(package, version);
-      return jsonResponse({'success': true});
-    } else {
-      return jsonResponse({'success': false});
-    }
-  }
-
-  return notFoundHandler(request);
 }
 
 /// Handles requests for:

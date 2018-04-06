@@ -10,7 +10,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
 import '../shared/search_service.dart';
-import '../shared/task_client.dart';
 
 import 'index_simple.dart';
 
@@ -21,6 +20,7 @@ final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
+    apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
     '/search': searchHandler,
     '/robots.txt': rejectRobotsHandler,
@@ -28,8 +28,6 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return handler(request);
-  } else if (path.startsWith('/packages/')) {
-    return packageHandler(request);
   } else {
     return notFoundHandler(request);
   }
@@ -60,22 +58,4 @@ Future<shelf.Response> searchHandler(shelf.Request request) async {
         '${query.toServiceQueryParameters()}');
   }
   return jsonResponse(result.toJson(), indent: indent);
-}
-
-/// Handles requests for:
-///   - /packages/<package>
-Future<shelf.Response> packageHandler(shelf.Request request) async {
-  final String path = request.requestedUri.path.substring('/packages/'.length);
-  final String packageName = path;
-  final String requestMethod = request.method.toUpperCase();
-  if (requestMethod == 'POST') {
-    if (await validateNotificationSecret(request)) {
-      triggerTask(packageName, null);
-      return jsonResponse({'success': true});
-    } else {
-      return jsonResponse({'success': false});
-    }
-  }
-
-  return notFoundHandler(request);
 }

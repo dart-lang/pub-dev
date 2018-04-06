@@ -4,22 +4,19 @@
 
 import 'dart:async';
 
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/analyzer_service.dart';
 import '../shared/handlers.dart';
 import '../shared/notification.dart';
-import '../shared/task_client.dart';
 
 import 'backend.dart';
-
-final Logger _logger = new Logger('analyzer.handler');
 
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
+    apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
@@ -64,18 +61,6 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     return jsonResponse(data.toJson());
-  } else if (requestMethod == 'POST') {
-    if (pathParts.length != 2) {
-      // trigger should have version and shouldn't contain analysis id
-      return notFoundHandler(request);
-    }
-    if (await validateNotificationSecret(request)) {
-      _logger.info('Received notification: $package $version');
-      triggerTask(package, version);
-      return jsonResponse({'success': true});
-    } else {
-      return jsonResponse({'success': false});
-    }
   }
 
   return notFoundHandler(request);

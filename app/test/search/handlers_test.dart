@@ -34,9 +34,11 @@ void main() {
     });
 
     group('trigger analysis', () {
-      scopedTest('/packages/pkg_foo', () async {
+      scopedTest('/api/notification', () async {
         // TODO: mock notification secret and re-enable testing task receive
-        await expectJsonResponse(await issuePost('/packages/pkg_foo'),
+        await expectJsonResponse(
+            await issuePost('/api/notification',
+                body: {'package': 'foo', 'version': '1.0.0'}),
             body: {'success': false});
       });
     });

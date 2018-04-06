@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show HttpHeaders;
 
 import 'package:gcloud/db.dart';
 import 'package:http/http.dart' as http;
@@ -10,12 +12,35 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/models.dart';
+import 'handlers.dart' show jsonResponse, notFoundHandler;
+import 'task_client.dart';
 
 final Logger _logger = new Logger('pub.notification');
 
+const String apiNotificationEndpoint = '/api/notification';
 const String notificationSecretKey = 'notification-secret';
 
 String _cachedNotificationSecret;
+
+class NotificationData {
+  final String package;
+  final String version;
+
+  NotificationData(this.package, this.version);
+
+  factory NotificationData.fromMap(Map<String, dynamic> map) =>
+      new NotificationData(map['package'], map['version']);
+
+  bool get isValid => package != null;
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'package': package,
+        'version': version,
+      };
+
+  @override
+  String toString() => '$package $version';
+}
 
 /// Gets the shared notification secret from the datastore (or local cache).
 ///
@@ -40,24 +65,46 @@ Future<bool> validateNotificationSecret(shelf.Request request) async {
 
 Future<Map<String, String>> prepareNotificationHeaders() async => {
       'x-notification-secret': await getNotificationSecret(),
+      HttpHeaders.CONTENT_TYPE: 'application/json',
     };
 
 Future notifyService(http.Client client, String servicePrefix, String package,
     String version) async {
-  var uri = '$servicePrefix/packages/$package';
-  if (version != null) {
-    uri = '$uri/$version';
-  }
+  final uri = '$servicePrefix$apiNotificationEndpoint';
+  final data = new NotificationData(package, version);
   try {
-    _logger.fine('Notification HTTP POST $uri');
-    final response =
-        await client.post(uri, headers: await prepareNotificationHeaders());
+    _logger.fine('Notification HTTP POST $uri with $data');
+    final response = await client.post(uri,
+        body: json.encode(data.toMap()),
+        headers: await prepareNotificationHeaders());
     if (response.statusCode != 200) {
-      _logger.warning('Notification request on $uri failed. '
+      _logger.warning('Notification request on $uri with $data failed. '
           'Status code: ${response.statusCode}. '
           'Body: ${response.body}');
     }
   } catch (e) {
     _logger.severe('Notification request on $uri aborted: $e');
   }
+}
+
+/// Handles requests for: /api/notification
+Future<shelf.Response> notificationHandler(shelf.Request request) async {
+  final String requestMethod = request.method?.toUpperCase();
+  if (requestMethod == 'POST' && await validateNotificationSecret(request)) {
+    try {
+      final map = json.decode(await request.readAsString());
+      final data = new NotificationData.fromMap(map);
+      if (data.isValid) {
+        _logger.info('Received notification: $data');
+        triggerTask(data.package, data.version);
+        return jsonResponse({'success': true});
+      } else {
+        return jsonResponse({'success': false});
+      }
+    } catch (e, st) {
+      _logger.warning('Error processing notification', e, st);
+      return jsonResponse({'success': false});
+    }
+  }
+  return jsonResponse({'success': false});
 }
