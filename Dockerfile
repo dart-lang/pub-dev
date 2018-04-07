@@ -1,5 +1,5 @@
 # Keep version in-sync with .travis.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.0.0-dev.40.0
+FROM google/dart-runtime-base:2.0.0-dev.46.0
 
 # `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
 #   We want to make sure SDK upgrades are explicit.
