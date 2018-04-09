@@ -12,11 +12,16 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import '../frontend/service_utils.dart';
+import '../frontend/templates.dart';
 
+import 'markdown.dart';
+import 'handlers.dart';
 import 'utils.dart' show fileAnIssueContent;
 
 Future runHandler(Logger logger, shelf.Handler handler,
     {bool sanitize: false, bool shared: false}) {
+  registerTemplateService(new TemplateService(templateDirectory: templatePath));
+
   handler = _userAuthParsingWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
@@ -38,21 +43,28 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     } catch (error, st) {
       logger.severe('Request handler failed', error, st);
 
-      var body = '''Fatal package site error
-$fileAnIssueContent
-
-Add these details to help us fix the issue:
-Requested URL - ${request.requestedUri}''';
-
+      final title = 'Pub is not feeling well';
       Map<String, String> debugHeaders;
       if (context.traceId != null) {
         debugHeaders = {'package-site-request-id': context.traceId};
-        body = '$body\n   Request ID - ${context.traceId}';
       }
+      final markdownText = '''# $title
 
-      // TODO: user-friendly error page
-      return new shelf.Response.internalServerError(
-          body: body, headers: debugHeaders);
+**Fatal package site error.**
+
+$fileAnIssueContent
+
+Add these details to help us fix the issue:
+````
+Requested URL: ${request.requestedUri}
+Request ID: ${context.traceId}
+````
+      ''';
+
+      final content = templateService.renderLayoutPage(
+          PageType.package, markdownToHtml(markdownText, null),
+          title: title);
+      return htmlResponse(content, status: 500);
     } finally {
       logger.info('Request handler done.');
     }
