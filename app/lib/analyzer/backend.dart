@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart';
 import '../shared/analyzer_memcache.dart';
@@ -207,14 +208,9 @@ class AnalysisBackend {
     if (packageName == null || packageVersion == null) {
       return new TaskTargetStatus.skip('Insufficient package or version.');
     }
-    final List<PackageVersion> versions = await db.lookup([
-      db.emptyKey
-          .append(Package, id: packageName)
-          .append(PackageVersion, id: packageVersion)
-    ]);
-    // Does package and version exist?
-    final PackageVersion pv = versions.single;
-    if (pv == null) {
+    final pkgStatus =
+        await analysisBackend.getPackageStatus(packageName, packageVersion);
+    if (!pkgStatus.exists) {
       return new TaskTargetStatus.skip('PackageVersion does not exists.');
     }
 
@@ -227,7 +223,8 @@ class AnalysisBackend {
     }
 
     // Does package have newer version than latest analyzed version?
-    if (isNewer(packageAnalysis.latestSemanticVersion, pv.semanticVersion)) {
+    final semanticVersion = new Version.parse(packageVersion);
+    if (isNewer(packageAnalysis.latestSemanticVersion, semanticVersion)) {
       return new TaskTargetStatus.ok();
     }
 
@@ -264,10 +261,18 @@ class AnalysisBackend {
           '${versionAnalysis.flutterVersion} - $flutterVersion');
     }
 
+    if (pkgStatus.isDiscontinued) {
+      return new TaskTargetStatus.skip('Package is discontinued.');
+    }
+    if (pkgStatus.isObsolete) {
+      return new TaskTargetStatus.skip('Package is older than two years old.');
+    }
+
     // Is it due to re-analyze?
     final DateTime now = new DateTime.now().toUtc();
-    final Duration age = now.difference(versionAnalysis.analysisTimestamp);
-    if (age > reanalyzeThreshold) {
+    final Duration analysisAge =
+        now.difference(versionAnalysis.analysisTimestamp);
+    if (analysisAge > reanalyzeThreshold) {
       return new TaskTargetStatus.ok();
     }
 
@@ -343,11 +348,18 @@ class AnalysisBackend {
     if (p == null || pv == null) {
       return new PackageStatus(exists: false);
     }
+    final publishDate = pv.created;
+    final isLatestStable = p.latestVersion == version;
+    final now = new DateTime.now().toUtc();
+    final age = now.difference(publishDate).abs();
+    final isObsolete = age > twoYears && !isLatestStable;
     return new PackageStatus(
       exists: true,
-      publishDate: pv.created,
-      isLatestStable: p.latestVersion == version,
+      publishDate: publishDate,
+      age: age,
+      isLatestStable: isLatestStable,
       isDiscontinued: p.isDiscontinued ?? false,
+      isObsolete: isObsolete,
     );
   }
 }
@@ -355,14 +367,18 @@ class AnalysisBackend {
 class PackageStatus {
   final bool exists;
   final DateTime publishDate;
+  final Duration age;
   final bool isLatestStable;
   final bool isDiscontinued;
+  final bool isObsolete;
 
   PackageStatus({
     this.exists,
     this.publishDate,
+    this.age,
     this.isLatestStable: false,
     this.isDiscontinued: false,
+    this.isObsolete: false,
   });
 }
 

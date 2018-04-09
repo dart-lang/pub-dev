@@ -80,7 +80,7 @@ class JobBackend {
           // a new instance has already updated the Job with new runtimeVersion
           return;
         }
-        _logger.info('Updating job: $id');
+        _logger.info('Updating job: $id ($state, $lockedUntil)');
         current
           ..isLatestStable = isLatestStable
           ..packageVersionUpdated = packageVersionUpdated
