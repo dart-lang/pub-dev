@@ -30,7 +30,6 @@ import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_memcache.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
-import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub');
@@ -68,8 +67,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerScopeExitCallback(searchClient.close);
 
   new NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
-
-  registerTemplateService(new TemplateService(templateDirectory: templatePath));
 
   final pkgBucket = storageService.bucket(configuration.packageBucketName);
   final tarballStorage = new TarballStorage(storageService, pkgBucket, null);
