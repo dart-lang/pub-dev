@@ -11,12 +11,13 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart' show Package;
 
 import '../shared/dartdoc_memcache.dart';
 import '../shared/task_scheduler.dart' show TaskTargetStatus;
-import '../shared/utils.dart' show contentType;
+import '../shared/utils.dart' show contentType, isNewer;
 
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
@@ -186,10 +187,29 @@ class DartdocBackend {
     // keep entries that are not serving (there is a coordinated upgrade in progress)
     completedList.removeWhere((entry) => !entry.isServing);
 
-    // keep the latest serving
+    // Keep the latest two (serving) runtime versions. It is assumed that the
+    // newer is for this release, while the earlier is for the previous release.
     if (completedList.isNotEmpty) {
+      final versions = completedList
+          .map((entry) => entry.runtimeVersion)
+          .toSet()
+          .map((String version) => new Version.parse(version))
+          .toList();
+      versions.sort();
+
+      void keepOneRuntimeVersion() {
+        if (versions.isEmpty) return;
+        final version = versions.removeLast();
+        final index = completedList.lastIndexWhere(
+            (entry) => entry.runtimeVersion == version.toString());
+        if (index < 0) return;
+        completedList.removeAt(index);
+      }
+
       completedList.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      completedList.removeLast();
+
+      keepOneRuntimeVersion(); // keeps current serving version
+      keepOneRuntimeVersion(); // keeps previous serving version
     }
 
     // delete everything else
