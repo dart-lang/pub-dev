@@ -25,7 +25,13 @@ class FrontendEntryMessage {
   });
 }
 
-class FrontendProtocolMessage {}
+class FrontendProtocolMessage {
+  final SendPort statsConsumerPort;
+
+  FrontendProtocolMessage({
+    @required this.statsConsumerPort,
+  });
+}
 
 class WorkerEntryMessage {
   final int workerIndex;
@@ -52,6 +58,7 @@ Future startIsolates({
 }) async {
   int frontendStarted = 0;
   int workerStarted = 0;
+  final statConsumerPorts = <SendPort>[];
 
   Future startFrontendIsolate() async {
     frontendStarted++;
@@ -69,15 +76,15 @@ Future startIsolates({
       onExit: errorReceivePort.sendPort,
       errorsAreFatal: true,
     );
-    // TODO: implement stat port delegation from worker to frontend
-    // ignore: unused_local_variable
     final FrontendProtocolMessage protocolMessage =
         (await protocolReceivePort.take(1).toList()).single;
+    statConsumerPorts.add(protocolMessage.statsConsumerPort);
     logger.info('Frontend isolate #$frontendIndex started.');
 
     StreamSubscription errorSubscription;
 
     Future close() async {
+      statConsumerPorts.remove(protocolMessage.statsConsumerPort);
       await errorSubscription?.cancel();
       errorReceivePort.close();
       protocolReceivePort.close();
@@ -113,12 +120,19 @@ Future startIsolates({
     final WorkerProtocolMessage protocolMessage =
         (await protocolReceivePort.take(1).toList()).single;
     registerTaskSendPort(protocolMessage.taskSendPort);
-    registerSchedulerStatsStream(statsReceivePort as Stream<Map>);
+    final statsSubscription =
+        statsReceivePort?.cast<Map>()?.listen((Map stats) {
+      updateLatestStats(stats);
+      for (SendPort sp in statConsumerPorts) {
+        sp.send(stats);
+      }
+    });
     logger.info('Worker isolate #$workerIndex started.');
 
     StreamSubscription errorSubscription;
 
     Future close() async {
+      await statsSubscription?.cancel();
       unregisterTaskSendPort(protocolMessage.taskSendPort);
       await errorSubscription?.cancel();
       errorReceivePort.close();

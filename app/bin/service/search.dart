@@ -16,10 +16,11 @@ import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
+import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
+import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -35,7 +36,11 @@ Future main() async {
 void _main(FrontendEntryMessage message) {
   useLoggingPackageAdaptor();
 
-  message.protocolSendPort.send(new FrontendProtocolMessage());
+  final statsConsumer = new ReceivePort();
+  registerSchedulerStatsStream(statsConsumer as Stream<Map>);
+  message.protocolSendPort.send(new FrontendProtocolMessage(
+    statsConsumerPort: statsConsumer.sendPort,
+  ));
 
   withAppEngineServices(() async {
     final Bucket popularityBucket = await getOrCreateBucket(
