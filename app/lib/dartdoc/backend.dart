@@ -123,7 +123,9 @@ class DartdocBackend {
     }
     final List<DartdocEntry> completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
-    if (serving) {
+    final hasServing = completedList.any((entry) => entry.isServing);
+    // don't remove non-serving entries if they are the only ones left
+    if (serving && hasServing) {
       completedList.removeWhere((entry) => !entry.isServing);
     }
     if (completedList.isEmpty) return null;
