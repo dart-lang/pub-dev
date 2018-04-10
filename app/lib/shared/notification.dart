@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/models.dart';
-import 'handlers.dart' show jsonResponse, notFoundHandler;
+import 'handlers.dart' show jsonResponse;
 import 'task_client.dart';
 
 final Logger _logger = new Logger('pub.notification');

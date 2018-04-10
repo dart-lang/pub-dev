@@ -14,8 +14,8 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import '../frontend/service_utils.dart';
 import '../frontend/templates.dart';
 
-import 'markdown.dart';
 import 'handlers.dart';
+import 'markdown.dart';
 import 'utils.dart' show fileAnIssueContent;
 
 Future runHandler(Logger logger, shelf.Handler handler,
@@ -64,7 +64,7 @@ Request ID: ${context.traceId}
       final content = templateService.renderLayoutPage(
           PageType.package, markdownToHtml(markdownText, null),
           title: title);
-      return htmlResponse(content, status: 500);
+      return htmlResponse(content, status: 500, headers: debugHeaders);
     } finally {
       logger.info('Request handler done.');
     }

@@ -17,7 +17,7 @@ import '../frontend/models.dart' show Package;
 
 import '../shared/dartdoc_memcache.dart';
 import '../shared/task_scheduler.dart' show TaskTargetStatus;
-import '../shared/utils.dart' show contentType, isNewer;
+import '../shared/utils.dart' show contentType;
 
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
