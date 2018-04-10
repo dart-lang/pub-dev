@@ -719,7 +719,7 @@ void main() {
                 queryMock: queryMock);
             final finishCallback = expectAsync1((PackageVersion pv) {
               expect(pv.package, 'foobar_pkg');
-              expect(pv.version, '0.1.1');
+              expect(pv.version, '0.1.1+5');
             });
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage,
@@ -788,7 +788,7 @@ void main() {
                 .catchError(expectAsync2((error, _) {
               expect(
                   '$error'.contains(
-                      'Version 0.1.1 of package foobar_pkg already exists'),
+                      'Version 0.1.1+5 of package foobar_pkg already exists'),
                   isTrue);
             }));
           });
@@ -894,7 +894,7 @@ void main() {
                 queryMock: queryMock);
             final finishCallback = expectAsync1((PackageVersion pv) {
               expect(pv.package, 'foobar_pkg');
-              expect(pv.version, '0.1.1');
+              expect(pv.version, '0.1.1+5');
             });
 
             final db = new DatastoreDBMock(transactionMock: transactionMock);

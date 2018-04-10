@@ -231,7 +231,7 @@ void main() {
         registerAnalyzerClient(new AnalyzerClientMock());
         registerDartdocClient(new DartdocClientMock());
         await expectHtmlResponse(
-            await issueGet('/packages/foobar_pkg/versions/0.1.1'));
+            await issueGet('/packages/foobar_pkg/versions/0.1.1+5'));
       });
 
       tScopedTest('/packages/foobar_pkg/versions/0.1.2 - not found', () async {
@@ -414,8 +414,8 @@ void main() {
         <subtitle>Last Updated Packages</subtitle>
 (\\s*)
         <entry>
-          <id>urn:uuid:f38e70f0-13de-51b6-88b8-57430c66ce75</id>
-          <title>v0.1.1 of foobar_pkg</title>
+          <id>urn:uuid:d4fe7eb8-fc0e-5515-a5e5-5868b339d660</id>
+          <title>v0.1.1\\+5 of foobar_pkg</title>
           <updated>${testPackageVersion.created.toIso8601String()}</updated>
           <author><name>Hans Juergen &lt;hans@juergen.com&gt;</name></author>
           <content type="html">&lt;h1&gt;Test Package&lt;&#47;h1&gt;
@@ -466,7 +466,7 @@ void main() {
             body: {
               "name": 'foobar_pkg',
               "uploaders": ['hans@juergen.com'],
-              "versions": ['0.1.1'],
+              "versions": ['0.1.1+5'],
             });
       });
     });
@@ -490,14 +490,14 @@ void main() {
             {
               'name': 'foobar_pkg',
               'latest': {
-                'version': '0.1.1',
+                'version': '0.1.1+5',
                 'pubspec': loadYaml(TestPackagePubspec),
                 'archive_url': 'https://pub.dartlang.org'
-                    '/packages/foobar_pkg/versions/0.1.1.tar.gz',
+                    '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
                 'package_url': 'https://pub.dartlang.org'
                     '/api/packages/foobar_pkg',
                 'url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg/versions/0.1.1'
+                    '/api/packages/foobar_pkg/versions/0.1.1%2B5'
               },
               'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
               'version_url': 'https://pub.dartlang.org'

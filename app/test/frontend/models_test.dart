@@ -58,7 +58,7 @@ void main() {
         final Package p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
-        expect(p.latestVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
         p.updateVersion(new PackageVersion()
           ..parentKey = testPackageKey
           ..id = '0.2.0'
@@ -71,25 +71,25 @@ void main() {
         final Package p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
-        expect(p.latestVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
         p.updateVersion(new PackageVersion()
           ..parentKey = testPackageKey
           ..id = '0.1.0'
           ..version = '0.1.0');
-        expect(p.latestVersion, '0.1.1');
-        expect(p.latestDevVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
+        expect(p.latestDevVersion, '0.1.1+5');
       });
 
       test('new dev version', () {
         final Package p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
-        expect(p.latestVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
         p.updateVersion(new PackageVersion()
           ..parentKey = testPackageKey
           ..id = '1.0.0-dev'
           ..version = '1.0.0-dev');
-        expect(p.latestVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
         expect(p.latestDevVersion, '1.0.0-dev');
       });
 
@@ -97,13 +97,13 @@ void main() {
         final Package p = new Package()
           ..latestVersionKey = testPackageVersionKey
           ..latestDevVersionKey = testPackageVersionKey;
-        expect(p.latestVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
 
         p.updateVersion(new PackageVersion()
           ..parentKey = testPackageKey
           ..id = '1.0.0-dev'
           ..version = '1.0.0-dev');
-        expect(p.latestVersion, '0.1.1');
+        expect(p.latestVersion, '0.1.1+5');
         expect(p.latestDevVersion, '1.0.0-dev');
 
         p.updateVersion(new PackageVersion()
