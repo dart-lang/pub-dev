@@ -98,14 +98,14 @@ class TemplateService {
 
   String _renderVersionTableRow(
       PackageVersion version, DartdocEntry dartdocEntry, String downloadUrl) {
+    final dartdocOk = dartdocEntry != null && dartdocEntry.hasContent;
     final dartdocFailed = dartdocEntry != null && !dartdocEntry.hasContent;
     final versionData = {
       'package': version.package,
       'version': version.id,
       'short_created': version.shortCreated,
       'documentation_url': _attr(version.documentation),
-      // TODO: switch back to explicit hasContent check after all the versions are ready
-      'dartdoc_ok': !dartdocFailed,
+      'dartdoc_ok': dartdocOk,
       'dartdoc_failed': dartdocFailed,
       'download_url': _attr(downloadUrl),
       'icons': staticUrls.versionsTableIcons,
