@@ -16,6 +16,7 @@ import 'package:uuid/uuid.dart';
 
 import '../shared/name_tracker.dart';
 import '../shared/package_memcache.dart';
+import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
@@ -675,6 +676,7 @@ Future<models.PackageVersion> parseAndValidateUpload(
   if (!nameTracker.accept(pubspec.name)) {
     throw new Exception('Package name is too similar to another package.');
   }
+  urls.syntaxCheckHomepageUrl(pubspec.homepage);
 
   String exampleFilename;
   for (String candidate in exampleFileCandidates(pubspec.name)) {
