@@ -13,15 +13,17 @@ Map _latestSchedulerStats;
 DateTime _lastLog;
 
 void registerSchedulerStatsStream(Stream<Map> stream) {
-  stream.listen((stats) {
-    _latestSchedulerStats = stats;
-    final now = new DateTime.now();
-    if (_lastLog == null ||
-        now.difference(_lastLog) > const Duration(minutes: 10)) {
-      _statsLogger.info(const JsonEncoder.withIndent(' ').convert(stats));
-      _lastLog = now;
-    }
-  });
+  stream.listen(updateLatestStats);
+}
+
+void updateLatestStats(Map stats) {
+  _latestSchedulerStats = stats;
+  final now = new DateTime.now();
+  if (_lastLog == null ||
+      now.difference(_lastLog) > const Duration(minutes: 10)) {
+    _statsLogger.info(const JsonEncoder.withIndent(' ').convert(stats));
+    _lastLog = now;
+  }
 }
 
 Map get latestSchedulerStats => _latestSchedulerStats;
