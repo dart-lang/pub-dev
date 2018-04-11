@@ -90,7 +90,7 @@ void main() {
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
           testPackageVersion,
-          testPackageVersion,
+          devPackageVersion,
           1,
           new AnalysisExtract(analysisStatus: AnalysisStatus.success),
           new MockAnalysisView()
@@ -127,7 +127,7 @@ void main() {
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
           testPackageVersion,
-          testPackageVersion,
+          devPackageVersion,
           1,
           new AnalysisExtract(analysisStatus: AnalysisStatus.success),
           new MockAnalysisView()

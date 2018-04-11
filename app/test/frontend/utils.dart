@@ -29,7 +29,7 @@ final Key testPackageKey =
     new Key.emptyKey(new Partition(null)).append(Package, id: 'foobar_pkg');
 
 final Key testPackageVersionKey =
-    testPackageKey.append(PackageVersion, id: '0.1.1');
+    testPackageKey.append(PackageVersion, id: '0.1.1+5');
 final Key devPackageVersionKey =
     testPackageKey.append(PackageVersion, id: '0.2.0-dev');
 
@@ -45,7 +45,8 @@ Package _createPackage() => new Package()
   ..latestVersionKey = testPackageVersionKey
   ..latestDevVersionKey = testPackageVersionKey;
 
-final Package testPackage = _createPackage();
+final Package testPackage = _createPackage()
+  ..latestDevVersionKey = devPackageVersionKey;
 
 final Package discontinuedPackage = _createPackage()..isDiscontinued = true;
 
@@ -122,7 +123,7 @@ main() {
 
 final String TestPackagePubspec = '''
 name: foobar_pkg
-version: 0.1.1
+version: 0.1.1+5
 author: Hans Juergen <hans@juergen.com>
 homepage: http://hans.juergen.com
 description: 'my package description'
