@@ -19,11 +19,12 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/name_tracker.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -36,6 +37,12 @@ final Logger _logger = new Logger('pub');
 
 void main() {
   useLoggingPackageAdaptor();
+  startIsolates(logger: _logger, frontendEntryPoint: _main);
+}
+
+void _main(FrontendEntryMessage message) {
+  message.protocolSendPort
+      .send(new FrontendProtocolMessage(statsConsumerPort: null));
 
   withAppEngineServices(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
