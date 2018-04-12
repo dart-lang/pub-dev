@@ -158,6 +158,9 @@ class DartdocJobProcessor extends JobProcessor {
     StringBuffer logFileOutput,
   ) async {
     logFileOutput.write('Running dartdoc:\n');
+    final canonicalVersion = job.isLatestStable ? 'latest' : job.packageVersion;
+    final canonicalUrl = pkgDocUrl(job.packageName,
+        version: canonicalVersion, includeHost: true, omitTrailingSlash: true);
     final pr = await runProc(
       'pub',
       [
@@ -169,8 +172,7 @@ class DartdocJobProcessor extends JobProcessor {
         '--hosted-url',
         siteRoot,
         '--rel-canonical-prefix',
-        pkgDocUrl(job.packageName,
-            version: job.packageVersion, includeHost: true),
+        canonicalUrl,
         '--exclude',
         _excludedLibraries.join(','),
       ],

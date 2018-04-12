@@ -33,8 +33,13 @@ String pkgPageUrl(String package,
   return url;
 }
 
-String pkgDocUrl(String package,
-    {String version, bool includeHost: false, String relativePath}) {
+String pkgDocUrl(
+  String package, {
+  String version,
+  bool includeHost: false,
+  String relativePath,
+  bool omitTrailingSlash: false,
+}) {
   String url = includeHost ? siteRoot : '';
   url += '/documentation/$package';
   if (version != null) {
@@ -42,8 +47,11 @@ String pkgDocUrl(String package,
   }
   if (relativePath != null) {
     url = p.join(url, relativePath);
-  } else {
+  } else if (!omitTrailingSlash) {
     url = '$url/';
+  }
+  if (omitTrailingSlash && url.endsWith('/')) {
+    url = url.substring(0, url.length - 1);
   }
   return url;
 }
