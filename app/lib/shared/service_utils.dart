@@ -78,13 +78,17 @@ Future startIsolates({
     );
     final FrontendProtocolMessage protocolMessage =
         (await protocolReceivePort.take(1).toList()).single;
-    statConsumerPorts.add(protocolMessage.statsConsumerPort);
+    if (protocolMessage.statsConsumerPort != null) {
+      statConsumerPorts.add(protocolMessage.statsConsumerPort);
+    }
     logger.info('Frontend isolate #$frontendIndex started.');
 
     StreamSubscription errorSubscription;
 
     Future close() async {
-      statConsumerPorts.remove(protocolMessage.statsConsumerPort);
+      if (protocolMessage.statsConsumerPort != null) {
+        statConsumerPorts.remove(protocolMessage.statsConsumerPort);
+      }
       await errorSubscription?.cancel();
       errorReceivePort.close();
       protocolReceivePort.close();
