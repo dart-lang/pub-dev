@@ -44,24 +44,24 @@ void main() {
     test('/documentation/angular/', () {
       testUri('/documentation/angular/', 'angular');
     });
-    test('/documentation/angular/4.0.0%2B2', () {
-      testUri('/documentation/angular/4.0.0%2B2', 'angular', '4.0.0+2');
+    test('/documentation/angular/4.0.0+2', () {
+      testUri('/documentation/angular/4.0.0+2', 'angular', '4.0.0+2');
     });
-    test('/documentation/angular/4.0.0%2B2/', () {
-      testUri('/documentation/angular/4.0.0%2B2/', 'angular', '4.0.0+2',
+    test('/documentation/angular/4.0.0+2/', () {
+      testUri('/documentation/angular/4.0.0+2/', 'angular', '4.0.0+2',
           'index.html');
     });
-    test('/documentation/angular/4.0.0%2B2/subdir/', () {
-      testUri('/documentation/angular/4.0.0%2B2/subdir/', 'angular', '4.0.0+2',
+    test('/documentation/angular/4.0.0+2/subdir/', () {
+      testUri('/documentation/angular/4.0.0+2/subdir/', 'angular', '4.0.0+2',
           'subdir/index.html');
     });
-    test('/documentation/angular/4.0.0%2B2/file.html', () {
-      testUri('/documentation/angular/4.0.0%2B2/file.html', 'angular',
-          '4.0.0+2', 'file.html');
+    test('/documentation/angular/4.0.0+2/file.html', () {
+      testUri('/documentation/angular/4.0.0+2/file.html', 'angular', '4.0.0+2',
+          'file.html');
     });
     test('/documentation/angular/4.0.0+2/file.html', () {
-      testUri('/documentation/angular/4.0.0%2B2/file.html', 'angular',
-          '4.0.0+2', 'file.html');
+      testUri('/documentation/angular/4.0.0+2/file.html', 'angular', '4.0.0+2',
+          'file.html');
     });
   });
 

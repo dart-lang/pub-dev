@@ -9,10 +9,10 @@
     <!-- &bull; Downloads: X -->
     {{#package.latest.should_show}}
       &bull; Updated:
-      <span><a href="{{package.latest.stable_url}}">{{package.latest.stable_name}}</a></span>
+      <span><a href="{{& package.latest.stable_url}}">{{package.latest.stable_name}}</a></span>
       {{#package.latest.should_show_dev}}
         /
-        <span><a href="{{package.latest.dev_url}}">{{package.latest.dev_name}}</a></span>
+        <span><a href="{{& package.latest.dev_url}}">{{package.latest.dev_name}}</a></span>
       {{/package.latest.should_show_dev}}
     {{/package.latest.should_show}}
     <div class="tags">{{& package.tags_html}}</div>
