@@ -27,6 +27,8 @@ void main() {
       expect(pkgDocUrl('foo_bar'), '/documentation/foo_bar/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0'),
           '/documentation/foo_bar/1.0.0/');
+      expect(pkgDocUrl('foo_bar', version: '1.0.0', omitTrailingSlash: true),
+          '/documentation/foo_bar/1.0.0');
     });
 
     test('with host', () {
@@ -34,6 +36,10 @@ void main() {
           'https://pub.dartlang.org/documentation/foo_bar/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
           'https://pub.dartlang.org/documentation/foo_bar/1.0.0/');
+      expect(
+          pkgDocUrl('foo_bar',
+              version: '1.0.0', includeHost: true, omitTrailingSlash: true),
+          'https://pub.dartlang.org/documentation/foo_bar/1.0.0');
     });
   });
 
