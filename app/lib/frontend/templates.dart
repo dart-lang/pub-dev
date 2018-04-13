@@ -390,10 +390,8 @@ class TemplateService {
         'authors_title': 'Author',
         'authors_html':
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
-        'homepage': _attr(selectedVersion.homepage),
-        'nice_homepage': selectedVersion.homepageNice,
-        'documentation': _attr(selectedVersion.documentation),
-        'nice_documentation': selectedVersion.documentationNice,
+        'homepage': selectedVersion.homepage,
+        'documentation': selectedVersion.documentation,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),

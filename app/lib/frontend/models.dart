@@ -203,13 +203,9 @@ class PackageVersion extends db.ExpandoModel {
     return dartdocsUrl;
   }
 
-  String get documentationNice => urls.niceUrl(documentation);
-
   String get homepage {
     return pubspec.homepage;
   }
-
-  String get homepageNice => urls.niceUrl(homepage);
 }
 
 @db.Kind(name: 'PrivateKey', idType: db.IdType.String)

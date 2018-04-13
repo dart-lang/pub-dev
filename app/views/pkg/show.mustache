@@ -86,23 +86,17 @@ import 'package:{{package}}/{{library}}';
   </div>
 
   <aside class="sidebar sidebar-content">
+    <h3 class="title">About</h3>
     {{#package.description}}
-      <h3 class="title">About</h3>
       <p>{{package.description}}</p>
+      <p>
+          {{#package.homepage}}<a class="link" href="{{& package.homepage}}">Homepage</a>,{{/package.homepage}}
+          <a class="link" href="{{& package.documentation}}">API Docs</a>
+      </p>
     {{/package.description}}
 
     <h3 class="title">{{package.authors_title}}</h3>
     <div>{{& package.authors_html}}</div>
-
-    {{#package.homepage}}
-      <h3 class="title">Homepage</h3>
-      <a class="link" href="{{& package.homepage}}">{{package.nice_homepage}}</a>
-    {{/package.homepage}}
-
-    {{#package.documentation}}
-      <h3 class="title">Documentation</h3>
-      <a class="link" href="{{& package.documentation}}">{{package.nice_documentation}}</a>
-    {{/package.documentation}}
 
     <h3 class="title">{{package.uploaders_title}}</h3>
     <p>{{& package.uploaders_html}}</p>
