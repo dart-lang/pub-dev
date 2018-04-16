@@ -11,7 +11,9 @@ part 'models.g.dart';
 
 @db.Kind(name: 'History', idType: db.IdType.String)
 class History extends db.ExpandoModel implements HistoryData {
-  History({
+  History();
+
+  History.init({
     String id,
     this.packageName,
     this.packageVersion,
