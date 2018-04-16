@@ -24,8 +24,6 @@ import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
 final Logger logger = new Logger('pub.analyzer');
 
 Future main() async {
-  useLoggingPackageAdaptor();
-
   Future workerSetup() async {
     await initDartdoc(logger);
     await initFlutterSdk(logger);

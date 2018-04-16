@@ -30,7 +30,6 @@ import 'package:pub_dartlang_org/search/updater.dart';
 final Logger _logger = new Logger('pub.search');
 
 Future main() async {
-  useLoggingPackageAdaptor();
   await startIsolates(logger: _logger, frontendEntryPoint: _main);
 }
 
