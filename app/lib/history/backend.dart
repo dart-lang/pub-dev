@@ -39,7 +39,7 @@ class HistoryBackend {
     @required String source,
     @required HistoryEvent event,
   }) async {
-    final history = new History(
+    final history = new History.init(
       id: _uuid.v4(),
       packageName: package,
       packageVersion: version,
