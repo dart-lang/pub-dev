@@ -102,7 +102,8 @@ class TemplateService {
     final dartdocFailed = dartdocEntry != null && !dartdocEntry.hasContent;
     final versionData = {
       'package': version.package,
-      'version': version.id,
+      'version': version.version,
+      'version_url': urls.pkgPageUrl(version.package, version: version.version),
       'short_created': version.shortCreated,
       'documentation_url': _attr(version.documentation),
       'dartdoc_ok': dartdocOk,
@@ -181,6 +182,7 @@ class TemplateService {
     return _renderTemplate('pkg/analysis_dep_row', {
       'is_hosted': pd.isHosted,
       'package': pd.package,
+      'package_url': urls.pkgPageUrl(pd.package),
       'constraint': pd.constraint?.toString(),
       'resolved': pd.resolved?.toString(),
       'available': pd.available?.toString(),
@@ -239,6 +241,7 @@ class TemplateService {
       'show_outdated': analysisStatus == AnalysisStatus.outdated,
       'show_analysis': analysisStatus != AnalysisStatus.outdated &&
           analysisStatus != AnalysisStatus.discontinued,
+      'analysis_tab_url': urls.analysisTabUrl(package),
       'date_completed': analysis.timestamp == null
           ? null
           : shortDateFormat.format(analysis.timestamp),
@@ -409,6 +412,7 @@ class TemplateService {
       },
       'version_table_rows': versionTableRows,
       'show_versions_link': totalNumberOfVersions > versions.length,
+      'versions_url': urls.pkgVersionsUrl(package.name),
       'tabs': tabs,
       'has_no_file_tab': tabs.isEmpty,
       'version_count': '$totalNumberOfVersions',
@@ -604,6 +608,7 @@ class TemplateService {
       'packages': packages.map((package) {
         return {
           'name': package.name,
+          'package_url': urls.pkgPageUrl(package.name),
           'ellipsized_description': package.ellipsizedDescription,
           'tags_html': _renderTags(package.analysisStatus, package.platforms,
               package: package.name),

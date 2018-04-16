@@ -2,7 +2,7 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
   <tr>
-    <td>{{#is_hosted}}<a href="/packages/{{package}}">{{/is_hosted}}{{package}}{{#is_hosted}}</a>{{/is_hosted}}</td>
+    <td>{{#is_hosted}}<a href="{{& package_url}}">{{/is_hosted}}{{package}}{{#is_hosted}}</a>{{/is_hosted}}</td>
     <td>{{constraint}}</td>
     <td>{{resolved}}</td>
     <td>{{available}}</td>
