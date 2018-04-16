@@ -24,8 +24,7 @@ const staticLongCache = const Duration(hours: 24);
 shelf.Response redirectResponse(String url) => new shelf.Response.seeOther(url);
 
 shelf.Response redirectToSearch(String query) {
-  final uri = searchUrl(q: query);
-  return redirectResponse(uri.toString());
+  return redirectResponse(searchUrl(q: query));
 }
 
 shelf.Response atomXmlResponse(String content, {int status: 200}) =>
