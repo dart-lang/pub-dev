@@ -9,6 +9,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 
+import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
@@ -91,5 +92,6 @@ void _workerMain(WorkerEntryMessage message) {
 void _registerServices() {
   registerAnalysisBackend(new AnalysisBackend(db.dbService));
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
+  registerHistoryBackend(new HistoryBackend(db.dbService));
   registerJobBackend(new JobBackend(db.dbService));
 }

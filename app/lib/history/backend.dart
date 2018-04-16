@@ -22,6 +22,12 @@ HistoryBackend get historyBackend => ss.lookup(#_historyBackend);
 
 final _uuid = new Uuid();
 
+abstract class HistorySource {
+  static const String account = 'account';
+  static const String analyzer = 'analyzer';
+  static const String dartdoc = 'dartdoc';
+}
+
 class HistoryBackend {
   final DatastoreDB _db;
   HistoryBackend(this._db);
@@ -31,8 +37,7 @@ class HistoryBackend {
     String version: _latest,
     DateTime timestamp,
     @required String source,
-    @required String type,
-    Map<String, dynamic> paramsMap,
+    @required HistoryEvent event,
   }) async {
     final history = new History(
       id: _uuid.v4(),
@@ -40,8 +45,8 @@ class HistoryBackend {
       packageVersion: version,
       timestamp: timestamp,
       source: source,
-      type: type,
-      paramsMap: paramsMap,
+      type: event.getType(),
+      paramsMap: event.toJson(),
     );
     await _db.withTransaction((tx) async {
       tx.queueMutations(inserts: [history]);
