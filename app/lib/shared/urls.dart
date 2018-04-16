@@ -66,6 +66,17 @@ String analysisTabUrl(String package) {
       : pkgPageUrl(package, fragment: fragment);
 }
 
+String searchUrl({String q}) {
+  final params = <String, String>{};
+  if (q != null && q.isNotEmpty) {
+    params['q'] = q;
+  }
+  return new Uri(
+    path: '/packages',
+    queryParameters: params.isEmpty ? null : params,
+  ).toString();
+}
+
 final _invalidHostNames = const <String>[
   '..',
   '...',

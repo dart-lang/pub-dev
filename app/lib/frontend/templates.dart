@@ -510,12 +510,8 @@ class TemplateService {
       analysis,
       isFlutterPackage,
     );
-    values['search_deps_link'] = _attrEscaper.convert(
-      new Uri(
-        path: '/packages',
-        queryParameters: {'q': 'dependency:${package.name}'},
-      ).toString(),
-    );
+    values['search_deps_link'] =
+        urls.searchUrl(q: 'dependency:${package.name}');
     final content = _renderTemplate('pkg/show', values);
     final packageAndVersion = isVersionPage
         ? '${selectedVersion.package} ${selectedVersion.version}'
