@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
+import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 
@@ -24,10 +25,29 @@ final Logger logger = new Logger('pub.analyzer');
 Future main() async {
   useLoggingPackageAdaptor();
 
-  await initDartdoc(logger);
-  await withAppEngineServices(() async {
-    initFlutterSdk(logger).then(
-        (_) => startIsolates(logger: logger, workerEntryPoint: _workerMain));
+  Future workerSetup() async {
+    await initDartdoc(logger);
+    await initFlutterSdk(logger);
+  }
+
+  await startIsolates(
+    logger: logger,
+    frontendEntryPoint: _frontendMain,
+    workerSetup: workerSetup,
+    workerEntryPoint: _workerMain,
+  );
+}
+
+void _frontendMain(FrontendEntryMessage message) {
+  useLoggingPackageAdaptor();
+
+  final statsConsumer = new ReceivePort();
+  registerSchedulerStatsStream(statsConsumer as Stream<Map>);
+  message.protocolSendPort.send(new FrontendProtocolMessage(
+    statsConsumerPort: statsConsumer.sendPort,
+  ));
+
+  withAppEngineServices(() async {
     _registerServices();
     await runHandler(logger, analyzerServiceHandler);
   });

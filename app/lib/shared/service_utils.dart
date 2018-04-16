@@ -54,6 +54,7 @@ class WorkerProtocolMessage {
 Future startIsolates({
   @required Logger logger,
   void frontendEntryPoint(FrontendEntryMessage message),
+  Future workerSetup(),
   void workerEntryPoint(WorkerEntryMessage message),
 }) async {
   int frontendStarted = 0;
@@ -159,6 +160,9 @@ Future startIsolates({
     }
   }
   if (workerEntryPoint != null) {
+    if (workerSetup != null) {
+      await workerSetup();
+    }
     for (int i = 0; i < envConfig.workerCount; i++) {
       await startWorkerIsolate();
     }
