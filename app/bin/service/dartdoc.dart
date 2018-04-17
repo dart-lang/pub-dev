@@ -26,8 +26,6 @@ import 'package:pub_dartlang_org/dartdoc/handlers.dart';
 final Logger logger = new Logger('pub.dartdoc');
 
 Future main() async {
-  useLoggingPackageAdaptor();
-
   Future workerSetup() async {
     await initDartdoc(logger);
     await initFlutterSdk(logger);

@@ -36,12 +36,12 @@ import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub');
 
-void main() {
-  useLoggingPackageAdaptor();
-  startIsolates(logger: _logger, frontendEntryPoint: _main);
+Future main() async {
+  await startIsolates(logger: _logger, frontendEntryPoint: _main);
 }
 
 void _main(FrontendEntryMessage message) {
+  useLoggingPackageAdaptor();
   message.protocolSendPort
       .send(new FrontendProtocolMessage(statsConsumerPort: null));
 

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -57,6 +58,7 @@ Future startIsolates({
   Future workerSetup(),
   void workerEntryPoint(WorkerEntryMessage message),
 }) async {
+  useLoggingPackageAdaptor();
   int frontendStarted = 0;
   int workerStarted = 0;
   final statConsumerPorts = <SendPort>[];
@@ -154,19 +156,21 @@ Future startIsolates({
     });
   }
 
-  if (frontendEntryPoint != null) {
-    for (int i = 0; i < envConfig.frontendCount; i++) {
-      await startFrontendIsolate();
+  await withAppEngineServices(() async {
+    if (frontendEntryPoint != null) {
+      for (int i = 0; i < envConfig.frontendCount; i++) {
+        await startFrontendIsolate();
+      }
     }
-  }
-  if (workerEntryPoint != null) {
-    if (workerSetup != null) {
-      await workerSetup();
+    if (workerEntryPoint != null) {
+      if (workerSetup != null) {
+        await workerSetup();
+      }
+      for (int i = 0; i < envConfig.workerCount; i++) {
+        await startWorkerIsolate();
+      }
     }
-    for (int i = 0; i < envConfig.workerCount; i++) {
-      await startWorkerIsolate();
-    }
-  }
+  });
 }
 
 Future initFlutterSdk(Logger logger) async {
