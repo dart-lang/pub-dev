@@ -56,6 +56,8 @@ String pkgDocUrl(
   return url;
 }
 
+String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
+
 String versionsTabUrl(String package) =>
     pkgPageUrl(package, fragment: '-versions-tab-');
 
