@@ -58,6 +58,8 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final Map<String, String> dependencies;
   final List<String> emails;
 
+  final List<String> publicApiSymbols;
+
   /// The creation timestamp of this document.
   final DateTime timestamp;
 
@@ -76,6 +78,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.maintenance,
     this.dependencies,
     this.emails,
+    this.publicApiSymbols,
     this.timestamp,
   });
 
@@ -104,6 +107,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
               value: (key) => internFn(dependencies[key]),
             ),
       emails: emails?.map(internFn)?.toList(),
+      publicApiSymbols: publicApiSymbols?.map(internFn)?.toList(),
       timestamp: timestamp,
     );
   }

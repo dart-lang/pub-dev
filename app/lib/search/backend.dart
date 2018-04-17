@@ -97,6 +97,7 @@ class SearchBackend {
         maintenance: analysisView.maintenanceScore,
         dependencies: _buildDependencies(analysisView),
         emails: _buildEmails(p, pv),
+        publicApiSymbols: null, // TODO: populate API symbols from dartdoc output
         timestamp: new DateTime.now().toUtc(),
       );
     }
