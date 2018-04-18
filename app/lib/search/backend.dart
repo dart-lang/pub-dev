@@ -17,6 +17,7 @@ import 'package:json_annotation/json_annotation.dart';
 import '../frontend/model_properties.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/utils.dart';
@@ -68,9 +69,14 @@ class SearchBackend {
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
 
+    final indexJsonFutures = Future.wait(packages.map(
+        (p) => dartdocClient.getContentBytes(p.name, 'latest', 'index.json')));
+
     final List<AnalysisView> analysisViews =
         await analyzerClient.getAnalysisViews(packages.map((p) =>
             p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
+
+    final indexJsonContents = await indexJsonFutures;
 
     final List<PackageDocument> results = new List(packages.length);
     for (int i = 0; i < packages.length; i++) {
@@ -81,6 +87,9 @@ class SearchBackend {
 
       final analysisView = analysisViews[i];
       final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
+
+      final List<int> indexJsonContent = indexJsonContents[i];
+      final publicApiSymbols = _publicApisFromIndexJson(indexJsonContent);
 
       results[i] = new PackageDocument(
         package: pv.package,
@@ -97,7 +106,7 @@ class SearchBackend {
         maintenance: analysisView.maintenanceScore,
         dependencies: _buildDependencies(analysisView),
         emails: _buildEmails(p, pv),
-        publicApiSymbols: null, // TODO: populate API symbols from dartdoc output
+        publicApiSymbols: publicApiSymbols,
         timestamp: new DateTime.now().toUtc(),
       );
     }
@@ -121,6 +130,21 @@ class SearchBackend {
       emails.add(author.email);
     }
     return emails.toList()..sort();
+  }
+
+  List<String> _publicApisFromIndexJson(List<int> bytes) {
+    if (bytes == null) return null;
+    try {
+      final set = new Set<String>();
+      final list = json.decode(utf8.decode(bytes));
+      for (Map map in list) {
+        set.add(map['name']);
+      }
+      return set.toList()..sort();
+    } catch (e, st) {
+      _logger.warning('Parsing dartdoc index.json failed.', e, st);
+    }
+    return null;
   }
 }
 
