@@ -73,6 +73,11 @@ class Pubspec {
     return const <String>[];
   }
 
+  String get documentation {
+    _load();
+    return _asString(_json['documentation']);
+  }
+
   String get homepage {
     _load();
     return _asString(_json['homepage']);

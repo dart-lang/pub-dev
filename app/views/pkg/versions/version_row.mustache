@@ -7,13 +7,13 @@
   <td>{{short_created}}</td>
   <td class="documentation">
     {{#dartdoc_ok}}
-    <a href="{{& documentation_url}}"
+    <a href="{{& dartdocs_url}}"
        title="Go to the documentation of {{package}} {{version}}">
       <img src="{{& icons.documentation}}" alt="Go to the documentation of {{package}} {{version}}" />
     </a>
     {{/dartdoc_ok}}
     {{#dartdoc_failed}}
-    <a href="{{& documentation_url}}log.txt">failed</a>
+    <a href="{{& dartdocs_url}}log.txt">failed</a>
     {{/dartdoc_failed}}
   </td>
   <td class="archive">
