@@ -105,7 +105,7 @@ class TemplateService {
       'version': version.version,
       'version_url': urls.pkgPageUrl(version.package, version: version.version),
       'short_created': version.shortCreated,
-      'documentation_url': _attr(version.documentation),
+      'dartdocs_url': _attr(version.dartdocsUrl),
       'dartdoc_ok': dartdocOk,
       'dartdoc_failed': dartdocFailed,
       'download_url': _attr(downloadUrl),
@@ -394,7 +394,7 @@ class TemplateService {
         'authors_html':
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
-        'documentation': selectedVersion.documentation,
+        'dartdocs_url': selectedVersion.dartdocsUrl,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),

@@ -199,8 +199,7 @@ class PackageVersion extends db.ExpandoModel {
       urls.pkgDocUrl(package, version: version, includeHost: true);
 
   String get documentation {
-    // TODO: Look first into pubspecYaml['documentation'] otherwise do this:
-    return dartdocsUrl;
+    return pubspec.documentation;
   }
 
   String get homepage {
