@@ -35,6 +35,9 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
             ? null
             : new Map<String, String>.from(json['dependencies'] as Map),
         emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
+        publicApiSymbols: (json['publicApiSymbols'] as List)
+            ?.map((e) => e as String)
+            ?.toList(),
         timestamp: json['timestamp'] == null
             ? null
             : DateTime.parse(json['timestamp'] as String));
@@ -54,6 +57,7 @@ abstract class _$PackageDocumentSerializerMixin {
   double get maintenance;
   Map<String, String> get dependencies;
   List<String> get emails;
+  List<String> get publicApiSymbols;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'package': package,
@@ -70,6 +74,7 @@ abstract class _$PackageDocumentSerializerMixin {
         'maintenance': maintenance,
         'dependencies': dependencies,
         'emails': emails,
+        'publicApiSymbols': publicApiSymbols,
         'timestamp': timestamp?.toIso8601String()
       };
 }

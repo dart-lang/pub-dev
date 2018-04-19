@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 
 import '../dartdoc/dartdoc_runner.dart' show statusFilePath;
@@ -15,6 +16,7 @@ import '../dartdoc/models.dart' show DartdocEntry;
 import 'configuration.dart';
 import 'dartdoc_memcache.dart';
 import 'notification.dart' show notifyService;
+import 'utils.dart' show getUrlWithRetry;
 
 export '../dartdoc/models.dart' show DartdocEntry;
 
@@ -57,24 +59,32 @@ class DartdocClient {
     _client.close();
   }
 
+  Future<List<int>> getContentBytes(
+      String package, String version, String relativePath) async {
+    final url = p.join(_dartdocServiceHttpHostPort, 'documentation', package,
+        version, relativePath);
+    try {
+      final rs = await getUrlWithRetry(_client, url);
+      if (rs.statusCode != 200) {
+        return null;
+      }
+      return rs.bodyBytes;
+    } catch (e) {
+      _logger.info('Error requesting entry for: $package $version');
+    }
+    return null;
+  }
+
   Future<DartdocEntry> _getEntry(String package, String version) async {
     final cachedContent =
         await dartdocMemcache?.getEntryBytes(package, version, true);
     if (cachedContent != null) {
       return new DartdocEntry.fromBytes(cachedContent);
     }
-    final url =
-        '$_dartdocServiceHttpHostPort/documentation/$package/$version/$statusFilePath';
-    try {
-      final rs = await _client.get(url);
-      if (rs.statusCode != 200) {
-        return null;
-      }
-      await dartdocMemcache?.setEntryBytes(
-          package, version, true, rs.bodyBytes);
-      return new DartdocEntry.fromBytes(rs.bodyBytes);
-    } catch (e) {
-      _logger.info('Error requesting entry for: $package $version');
+    final content = await getContentBytes(package, version, statusFilePath);
+    if (content != null) {
+      await dartdocMemcache?.setEntryBytes(package, version, true, content);
+      return new DartdocEntry.fromBytes(content);
     }
     return null;
   }

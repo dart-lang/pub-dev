@@ -28,6 +28,7 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
+  final TokenIndex _apiIndex = new TokenIndex(minLength: 3);
   final StringInternPool _internPool = new StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
@@ -73,6 +74,7 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.add(doc.package, doc.package);
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
+    _apiIndex.add(doc.package, doc.publicApiSymbols?.join(' '));
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
         .join(' ');
@@ -93,6 +95,7 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.remove(package);
     _descrIndex.remove(package);
     _readmeIndex.remove(package);
+    _apiIndex.remove(package);
     _normalizedPackageText.remove(package);
   }
 
@@ -280,12 +283,18 @@ class SimplePackageIndex implements PackageIndex {
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
+        final apiTokens = _apiIndex.lookupTokens(word);
 
-        final maxTokenLength = math.max(nameTokens.maxLength,
-            math.max(descrTokens.maxLength, readmeTokens.maxLength));
+        final maxTokenLength = [
+          nameTokens.maxLength,
+          descrTokens.maxLength,
+          readmeTokens.maxLength,
+          apiTokens.maxLength
+        ].fold(0, math.max);
         nameTokens.removeShortTokens(maxTokenLength);
         descrTokens.removeShortTokens(maxTokenLength);
         readmeTokens.removeShortTokens(maxTokenLength);
+        apiTokens.removeShortTokens(maxTokenLength);
 
         final name = new Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
@@ -293,7 +302,9 @@ class SimplePackageIndex implements PackageIndex {
             weight: 0.95, wordCount: wordCount));
         final readme = new Score(_readmeIndex.scoreDocs(readmeTokens,
             weight: 0.90, wordCount: wordCount));
-        return Score.max([name, descr, readme]).removeLowValues(
+        final api = new Score(
+            _apiIndex.scoreDocs(apiTokens, weight: 0.80, wordCount: wordCount));
+        return Score.max([name, descr, readme, api]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
       }).toList();
       Score score = Score.multiply(wordScores);
