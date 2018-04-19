@@ -28,6 +28,7 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
+  final TokenIndex _apiDocIndex = new TokenIndex(minLength: 3);
   final StringInternPool _internPool = new StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
@@ -73,6 +74,10 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.add(doc.package, doc.package);
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
+    for (ApiDocPage page in doc.apiDocPages ?? const []) {
+      _apiDocIndex.add(
+          _apiDocPageId(doc.package, page), page.symbols?.join(' '));
+    }
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
         .join(' ');
@@ -94,6 +99,9 @@ class SimplePackageIndex implements PackageIndex {
     _descrIndex.remove(package);
     _readmeIndex.remove(package);
     _normalizedPackageText.remove(package);
+    for (ApiDocPage page in doc.apiDocPages ?? const []) {
+      _apiDocIndex.remove(_apiDocPageId(package, page));
+    }
   }
 
   @override
@@ -280,12 +288,17 @@ class SimplePackageIndex implements PackageIndex {
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
-
-        final maxTokenLength = math.max(nameTokens.maxLength,
-            math.max(descrTokens.maxLength, readmeTokens.maxLength));
+        final apiDocTokens = _apiDocIndex.lookupTokens(word);
+        final maxTokenLength = [
+          nameTokens.maxLength,
+          descrTokens.maxLength,
+          readmeTokens.maxLength,
+          apiDocTokens.maxLength
+        ].fold(0, math.max);
         nameTokens.removeShortTokens(maxTokenLength);
         descrTokens.removeShortTokens(maxTokenLength);
         readmeTokens.removeShortTokens(maxTokenLength);
+        apiDocTokens.removeShortTokens(maxTokenLength);
 
         final name = new Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
@@ -293,7 +306,18 @@ class SimplePackageIndex implements PackageIndex {
             weight: 0.95, wordCount: wordCount));
         final readme = new Score(_readmeIndex.scoreDocs(readmeTokens,
             weight: 0.90, wordCount: wordCount));
-        return Score.max([name, descr, readme]).removeLowValues(
+
+        final apiPages = new Score(_apiDocIndex.scoreDocs(apiDocTokens,
+            weight: 0.80, wordCount: wordCount));
+        final apiPackages = <String, double>{};
+        for (String key in apiPages.getKeys()) {
+          final pkg = _apiDocPkg(key);
+          final value = apiPages[key];
+          apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
+        }
+        final apiScore = new Score(apiPackages);
+
+        return Score.max([name, descr, readme, apiScore]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
       }).toList();
       Score score = Score.multiply(wordScores);
@@ -358,6 +382,14 @@ class SimplePackageIndex implements PackageIndex {
     if (a.updated == null) return -1;
     if (b.updated == null) return 1;
     return -a.updated.compareTo(b.updated);
+  }
+
+  String _apiDocPageId(String package, ApiDocPage page) {
+    return '$package:${page.relativePath}';
+  }
+
+  String _apiDocPkg(String id) {
+    return id.split(':').first;
   }
 }
 

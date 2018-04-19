@@ -12,6 +12,21 @@ final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
 final RegExp _exactTermRegExp = new RegExp(r'"([^"]+)"');
 
+final _commonApiSymbols = new Set.from([
+  'toString',
+  'noSuchMethod',
+  'hashCode',
+  'runtimeType',
+]);
+
+bool isCommonApiSymbol(String symbol) {
+  if (_commonApiSymbols.contains(symbol)) {
+    return true;
+  }
+  if (symbol.startsWith('operator ')) return true;
+  return false;
+}
+
 String compactText(String text, {int maxLength: -1}) {
   if (text == null) return '';
   String t = text.replaceAll(_multiWhitespaceRegExp, ' ').trim();

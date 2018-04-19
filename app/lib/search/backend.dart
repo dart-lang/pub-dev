@@ -17,6 +17,7 @@ import 'package:json_annotation/json_annotation.dart';
 import '../frontend/model_properties.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/utils.dart';
@@ -68,9 +69,14 @@ class SearchBackend {
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
 
+    final indexJsonFutures = Future.wait(packages.map(
+        (p) => dartdocClient.getContentBytes(p.name, 'latest', 'index.json')));
+
     final List<AnalysisView> analysisViews =
         await analyzerClient.getAnalysisViews(packages.map((p) =>
             p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
+
+    final indexJsonContents = await indexJsonFutures;
 
     final List<PackageDocument> results = new List(packages.length);
     for (int i = 0; i < packages.length; i++) {
@@ -81,6 +87,9 @@ class SearchBackend {
 
       final analysisView = analysisViews[i];
       final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
+
+      final List<int> indexJsonContent = indexJsonContents[i];
+      final apiDocPages = _apiDocPagesFromIndexJson(indexJsonContent);
 
       results[i] = new PackageDocument(
         package: pv.package,
@@ -97,6 +106,7 @@ class SearchBackend {
         maintenance: analysisView.maintenanceScore,
         dependencies: _buildDependencies(analysisView),
         emails: _buildEmails(p, pv),
+        apiDocPages: apiDocPages,
         timestamp: new DateTime.now().toUtc(),
       );
     }
@@ -120,6 +130,45 @@ class SearchBackend {
       emails.add(author.email);
     }
     return emails.toList()..sort();
+  }
+
+  List<ApiDocPage> _apiDocPagesFromIndexJson(List<int> bytes) {
+    if (bytes == null) return null;
+    try {
+      final list = json.decode(utf8.decode(bytes));
+
+      final pathMap = <String, String>{};
+      final symbolMap = <String, Set<String>>{};
+      for (Map map in list) {
+        final name = map['name'];
+        final type = map['type'];
+        if (isCommonApiSymbol(name) && type != 'library') {
+          continue;
+        }
+
+        final String qualifiedName = map['qualifiedName'];
+        final enclosedBy = map['enclosedBy'];
+        final enclosedByType = enclosedBy is Map ? enclosedBy['type'] : null;
+        final parentLevel = enclosedByType == 'class' ? 2 : 1;
+        final String key = qualifiedName.split('.').take(parentLevel).join('.');
+
+        if (key == qualifiedName) {
+          pathMap[key] = map['href'];
+        }
+        symbolMap.putIfAbsent(key, () => new Set()).add(map['name']);
+      }
+
+      final results = pathMap.keys.map((key) {
+        final path = pathMap[key];
+        final symbols = symbolMap[key].toList()..sort();
+        return new ApiDocPage(relativePath: path, symbols: symbols);
+      }).toList();
+      results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
+      return results;
+    } catch (e, st) {
+      _logger.warning('Parsing dartdoc index.json failed.', e, st);
+    }
+    return null;
   }
 }
 
