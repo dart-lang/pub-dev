@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
 
+import '../shared/urls.dart' as urls;
+
 class PlatformDict {
   final String name;
   final String pageTitle;
@@ -31,7 +33,7 @@ class PlatformDict {
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
-      listingUrl: platform == null ? '/packages' : '/$platform/packages',
+      listingUrl: urls.searchUrl(platform: platform),
       tagTitle: tagTitle,
     );
   }

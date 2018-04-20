@@ -281,6 +281,7 @@ class SearchQuery {
     return hasText || hasNonTextOrdering;
   }
 
+  // TODO: move this to shared/urls.dart after simplifying platformPredicate
   String toSearchLink({int page}) {
     String path = '/packages';
     final Map<String, String> params = {};

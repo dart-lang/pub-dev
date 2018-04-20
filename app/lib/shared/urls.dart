@@ -68,13 +68,17 @@ String analysisTabUrl(String package) {
       : pkgPageUrl(package, fragment: fragment);
 }
 
-String searchUrl({String q}) {
+String searchUrl({String platform, String q, int page}) {
+  final packagesPath = platform == null ? '/packages' : '/$platform/packages';
   final params = <String, String>{};
   if (q != null && q.isNotEmpty) {
     params['q'] = q;
   }
+  if (page != null && page > 1) {
+    params['page'] = page.toString();
+  }
   return new Uri(
-    path: '/packages',
+    path: packagesPath,
     queryParameters: params.isEmpty ? null : params,
   ).toString();
 }
