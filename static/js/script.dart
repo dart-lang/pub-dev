@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 
 Element tabRoot;
@@ -19,6 +20,7 @@ void main() {
   _setEventForSearchInput();
   _fixIssueLinks();
   _setEventForSortControl();
+  _updateDartdocStatus();
 }
 
 void _setEventsForTabs() {
@@ -282,3 +284,74 @@ void _fixIssueLinks() {
     bugLink.href = url.toString();
   }
 }
+
+void _updateDartdocStatus() {
+  final List<String> packages = document
+      .querySelectorAll('.version-table')
+      .map((e) => e.dataset['package'])
+      .where((s) => s != null && s.isNotEmpty)
+      .toSet()
+      .toList();
+
+  Future update(String package) async {
+    final List<Element> tables = document
+        .querySelectorAll('.version-table')
+        .where((e) => e.dataset['package'] == package)
+        .toList();
+    for (Element table in tables) {
+      table.querySelectorAll('td.documentation').forEach((e) {
+        e.dataset[_hasDocumentationAttr] = '-'; // unknown value
+      });
+    }
+
+    try {
+      final content =
+          await HttpRequest.getString('/api/documentation/$package');
+      final Map map = json.decode(content);
+      final List versionsList = map['versions'];
+      for (Map versionMap in versionsList) {
+        final String version = versionMap['version'];
+        final bool hasDocumentation = versionMap['hasDocumentation'];
+        for (Element table in tables) {
+          table
+              .querySelectorAll('tr')
+              .where((e) => e.dataset['version'] == version)
+              .forEach(
+            (row) {
+              final docCol = row.querySelector('.documentation');
+              final AnchorElement docLink = docCol.querySelector('a');
+              if (docCol == null) return;
+              if (hasDocumentation) {
+                docCol.dataset[_hasDocumentationAttr] = '1';
+              } else {
+                docCol.dataset[_hasDocumentationAttr] = '0';
+                docLink.href += 'log.txt';
+                docLink.text = 'failed';
+              }
+            },
+          );
+        }
+      }
+
+      // clear unknown values
+      for (Element table in tables) {
+        table.querySelectorAll('td.documentation').forEach((docCol) {
+          if (docCol.dataset[_hasDocumentationAttr] == '-') {
+            final AnchorElement docLink = docCol.querySelector('a');
+            if (docLink != null) {
+              docLink.remove();
+            }
+          }
+        });
+      }
+    } catch (_) {
+      // ignore errors
+    }
+  }
+
+  for (String package in packages) {
+    update(package);
+  }
+}
+
+const _hasDocumentationAttr = 'hasDocumentation';
