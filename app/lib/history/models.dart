@@ -6,33 +6,80 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 part 'models.g.dart';
+
+final _uuid = new Uuid();
+
+abstract class HistorySource {
+  static const String account = 'account';
+  static const String analyzer = 'analyzer';
+  static const String dartdoc = 'dartdoc';
+}
+
+abstract class HistoryScope {
+  static const String package = 'package';
+  static const String version = 'version';
+}
 
 @db.Kind(name: 'History', idType: db.IdType.String)
 class History extends db.ExpandoModel implements HistoryData {
   History();
 
-  History.init({
-    String id,
+  History._({
     this.packageName,
     this.packageVersion,
     this.timestamp,
     this.source,
-    this.type,
-    Map<String, dynamic> paramsMap,
+    this.scope,
+    this.eventType,
+    Map<String, dynamic> eventData,
   }) {
-    this.id = id;
+    id = _uuid.v4();
     timestamp ??= new DateTime.now().toUtc();
-    this.paramsMap = paramsMap;
+    this.eventData = eventData;
   }
+
+  factory History.package({
+    @required String packageName,
+    String packageVersion,
+    @required String source,
+    @required HistoryEvent event,
+  }) =>
+      new History._(
+        packageName: packageName,
+        packageVersion: packageVersion,
+        source: source,
+        scope: HistoryScope.package,
+        eventType: event.getType(),
+        eventData: event.toJson(),
+      );
+
+  factory History.version({
+    @required String packageName,
+    @required String packageVersion,
+    @required String source,
+    @required HistoryEvent event,
+  }) =>
+      new History._(
+        packageName: packageName,
+        packageVersion: packageVersion,
+        source: source,
+        scope: HistoryScope.version,
+        eventType: event.getType(),
+        eventData: event.toJson(),
+      );
+
+  @db.StringProperty(required: true)
+  String scope;
 
   @db.StringProperty(required: true)
   @override
   String packageName;
 
-  /// exact version or the 'latest' string
-  @db.StringProperty(required: true)
+  @db.StringProperty()
   @override
   String packageVersion;
 
@@ -45,20 +92,20 @@ class History extends db.ExpandoModel implements HistoryData {
   String source;
 
   @db.StringProperty(required: true)
-  String type;
+  String eventType;
 
   @db.StringProperty()
-  String paramsJson;
+  String eventJson;
 
-  Map<String, dynamic> get paramsMap => json.decode(paramsJson);
-  set paramsMap(Map<String, dynamic> value) {
-    paramsJson = json.encode(value);
+  Map<String, dynamic> get eventData => json.decode(eventJson);
+  set eventData(Map<String, dynamic> value) {
+    eventJson = json.encode(value);
   }
 
   HistoryEvent get historyEvent {
-    final fromJson = _eventDeserializers[type];
+    final fromJson = _eventDeserializers[eventType];
     if (fromJson == null) return null;
-    return fromJson(paramsMap);
+    return fromJson(eventData);
   }
 
   String formatMarkdown() => historyEvent?.formatMarkdown(this);
