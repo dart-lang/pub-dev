@@ -218,10 +218,8 @@ class SearchQuery {
     final String orderValue = uri.queryParameters['order'];
     final SearchOrder order =
         orderValue == null ? null : parseSearchOrder(orderValue);
-    int offset =
-        int.parse(uri.queryParameters['offset'] ?? '0', onError: (_) => 0);
-    int limit = int.parse(uri.queryParameters['limit'] ?? '0',
-        onError: (_) => defaultSearchLimit);
+    int offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
+    int limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
 
     offset = max(0, offset);
     limit = max(minSearchLimit, limit);
