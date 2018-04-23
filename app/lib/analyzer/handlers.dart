@@ -45,9 +45,8 @@ Future<shelf.Response> packageHandler(shelf.Request request) async {
   }
   final String package = pathParts[0];
   final String version = pathParts.length == 1 ? null : pathParts[1];
-  final int analysisId = pathParts.length <= 2
-      ? null
-      : int.parse(pathParts[2], onError: (_) => -1);
+  final int analysisId =
+      pathParts.length <= 2 ? null : int.tryParse(pathParts[2] ?? '-1') ?? -1;
   if (analysisId == -1) {
     return notFoundHandler(request);
   }

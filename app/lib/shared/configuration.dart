@@ -109,14 +109,10 @@ class EnvConfig {
   }
 
   factory EnvConfig._detect() {
-    final frontendCount = int.parse(
-      Platform.environment['FRONTEND_COUNT'] ?? '1',
-      onError: (_) => Platform.numberOfProcessors,
-    );
-    final workerCount = int.parse(
-      Platform.environment['WORKER_COUNT'] ?? '1',
-      onError: (_) => 1,
-    );
+    final frontendCount =
+        int.tryParse(Platform.environment['FRONTEND_COUNT'] ?? '1') ?? 1;
+    final workerCount =
+        int.tryParse(Platform.environment['WORKER_COUNT'] ?? '1') ?? 1;
     return new EnvConfig._(
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GCLOUD_PROJECT'],
