@@ -368,6 +368,14 @@ class TemplateService {
       tabs.first['active'] = '-active';
     }
     final analysisStatus = analysis?.analysisStatus ?? extract?.analysisStatus;
+    String documentationUrl = selectedVersion.documentation;
+    if (documentationUrl != null &&
+        (documentationUrl.startsWith('https://www.dartdocs.org/') ||
+            documentationUrl.startsWith('http://www.dartdocs.org/') ||
+            documentationUrl.startsWith('https://pub.dartlang.org/') ||
+            documentationUrl.startsWith('http://pub.dartlang.org/'))) {
+      documentationUrl = null;
+    }
 
     final values = {
       'package': {
@@ -394,6 +402,7 @@ class TemplateService {
         'authors_html':
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
+        'documentation': documentationUrl,
         'dartdocs_url': selectedVersion.dartdocsUrl,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',

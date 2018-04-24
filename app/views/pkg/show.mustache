@@ -90,7 +90,8 @@ import 'package:{{package}}/{{library}}';
     {{#package.description}}
       <p>{{package.description}}</p>
       <p>
-          {{#package.homepage}}<a class="link" href="{{& package.homepage}}">Homepage</a>,{{/package.homepage}}
+          {{#package.homepage}}<a class="link" href="{{& package.homepage}}">Homepage</a><br/>{{/package.homepage}}
+          {{#package.documentation}}<a class="link" href="{{& package.documentation}}">Documentation</a><br/>{{/package.documentation}}
           <a class="link" href="{{& package.dartdocs_url}}">API Docs</a>
       </p>
     {{/package.description}}
