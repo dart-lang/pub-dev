@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../history/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/handlers.dart';
@@ -107,6 +108,7 @@ const _handlers = const <String, shelf.Handler>{
   '/web': _webLandingHandler,
   '/web/packages': _webPackagesHandlerHtml,
   '/api/search': _apiSearchHandler,
+  '/api/history': _apiHistoryHandler, // experimental, do not rely on it
   '/debug': _debugHandler,
   '/feed.atom': _atomFeedHandler,
   '/sitemap.txt': _siteMapHandler,
@@ -654,6 +656,31 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
     'latestStableVersion': latestStableVersion,
     'versions': versionsData,
   });
+}
+
+/// Handles requests for /api/history
+/// NOTE: Experimental, do not rely on it.
+Future<shelf.Response> _apiHistoryHandler(shelf.Request request) async {
+  final list = await historyBackend.latest(
+    scope: request.requestedUri.queryParameters['scope'],
+    packageName: request.requestedUri.queryParameters['package'],
+    packageVersion: request.requestedUri.queryParameters['version'],
+  );
+  return jsonResponse({
+    'results': list
+        .map((h) => {
+              'id': h.id,
+              'package': h.packageName,
+              'version': h.packageVersion,
+              'timestamp': h.timestamp.toIso8601String(),
+              'scope': h.scope,
+              'source': h.source,
+              'eventType': h.eventType,
+              'eventData': h.eventData,
+              'markdown': h.formatMarkdown(),
+            })
+        .toList(),
+  }, indent: true);
 }
 
 /// Handles requests for /flutter/plugins (redirects to /flutter/packages).
