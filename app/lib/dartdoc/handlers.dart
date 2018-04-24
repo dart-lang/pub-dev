@@ -75,8 +75,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
-      return redirectResponse(pkgDocUrl(docFilePath.package,
-          version: docFilePath.version, relativePath: 'log.txt'));
+      return redirectResponse(pkgVersionsUrl(docFilePath.package));
     }
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
     if (info == null) {
