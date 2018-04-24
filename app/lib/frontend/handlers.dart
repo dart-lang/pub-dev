@@ -446,11 +446,8 @@ Future<shelf.Response> _packageVersionsHandler(
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
-  final dartdocEntries = await dartdocClient.getEntries(
-      packageName, versions.map((pv) => pv.version).toList());
-
   return htmlResponse(templateService.renderPkgVersionsPage(
-      packageName, versions, dartdocEntries, versionDownloadUrls));
+      packageName, versions, versionDownloadUrls));
 }
 
 /// Handles requests for /packages/<package>
@@ -480,8 +477,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     sortPackageVersionsDesc(versions, decreasing: true, pubSorting: true);
     final latestStable = versions[0];
     final first10Versions = versions.take(10).toList();
-    final dartdocEntries = await dartdocClient.getEntries(
-        packageName, first10Versions.map((pv) => pv.version).toList());
 
     sortPackageVersionsDesc(versions, decreasing: true, pubSorting: false);
     final latestDev = versions[0];
@@ -519,7 +514,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         package,
         versionName != null,
         first10Versions,
-        dartdocEntries,
         versionDownloadUrls,
         selectedVersion,
         latestStable,

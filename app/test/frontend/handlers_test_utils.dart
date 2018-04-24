@@ -209,7 +209,6 @@ class TemplateMock implements TemplateService {
       Package package,
       bool isVersionPage,
       List<PackageVersion> versions,
-      List<DartdocEntry> dartdocEntries,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,
       PackageVersion latestStableVersion,
@@ -222,7 +221,7 @@ class TemplateMock implements TemplateService {
 
   @override
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<DartdocEntry> dartdocEntries, List<Uri> versionDownloadUrls) {
+      List<Uri> versionDownloadUrls) {
     return _response;
   }
 

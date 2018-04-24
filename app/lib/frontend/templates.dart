@@ -13,7 +13,6 @@ import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 
 import '../shared/analyzer_client.dart';
-import '../shared/dartdoc_client.dart' show DartdocEntry;
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
 import '../shared/search_service.dart' show SearchQuery, serializeSearchOrder;
@@ -50,7 +49,7 @@ class TemplateService {
 
   /// Renders the `views/pkg/versions/index` template.
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<DartdocEntry> dartdocEntries, List<Uri> versionDownloadUrls) {
+      List<Uri> versionDownloadUrls) {
     assert(versions.length == versionDownloadUrls.length);
 
     final stableVersionRows = [];
@@ -58,9 +57,8 @@ class TemplateService {
     PackageVersion latestDevVersion;
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
-      final DartdocEntry dartdocEntry = dartdocEntries[i];
       final String url = versionDownloadUrls[i].toString();
-      final rowHtml = _renderVersionTableRow(version, dartdocEntry, url);
+      final rowHtml = _renderVersionTableRow(version, url);
       if (version.semanticVersion.isPreRelease) {
         latestDevVersion ??= version;
         devVersionRows.add(rowHtml);
@@ -96,18 +94,13 @@ class TemplateService {
         canonicalUrl: urls.pkgPageUrl(package, includeHost: true));
   }
 
-  String _renderVersionTableRow(
-      PackageVersion version, DartdocEntry dartdocEntry, String downloadUrl) {
-    final dartdocOk = dartdocEntry != null && dartdocEntry.hasContent;
-    final dartdocFailed = dartdocEntry != null && !dartdocEntry.hasContent;
+  String _renderVersionTableRow(PackageVersion version, String downloadUrl) {
     final versionData = {
       'package': version.package,
       'version': version.version,
       'version_url': urls.pkgPageUrl(version.package, version: version.version),
       'short_created': version.shortCreated,
       'dartdocs_url': _attr(version.dartdocsUrl),
-      'dartdoc_ok': dartdocOk,
-      'dartdoc_failed': dartdocFailed,
       'download_url': _attr(downloadUrl),
       'icons': staticUrls.versionsTableIcons,
     };
@@ -279,7 +272,6 @@ class TemplateService {
   Map<String, Object> _pkgShowPageValues(
       Package package,
       List<PackageVersion> versions,
-      List<DartdocEntry> dartdocEntries,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,
       PackageVersion latestStableVersion,
@@ -321,9 +313,8 @@ class TemplateService {
     final versionTableRows = [];
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
-      final DartdocEntry dartdocEntry = dartdocEntries[i];
       final String url = versionDownloadUrls[i].toString();
-      versionTableRows.add(_renderVersionTableRow(version, dartdocEntry, url));
+      versionTableRows.add(_renderVersionTableRow(version, url));
     }
 
     final bool should_show_dev =
@@ -496,7 +487,6 @@ class TemplateService {
       Package package,
       bool isVersionPage,
       List<PackageVersion> versions,
-      List<DartdocEntry> dartdocEntries,
       List<Uri> versionDownloadUrls,
       PackageVersion selectedVersion,
       PackageVersion latestStableVersion,
@@ -519,7 +509,6 @@ class TemplateService {
     final Map<String, Object> values = _pkgShowPageValues(
       package,
       versions,
-      dartdocEntries,
       versionDownloadUrls,
       selectedVersion,
       latestStableVersion,
