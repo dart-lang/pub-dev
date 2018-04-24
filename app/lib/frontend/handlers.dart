@@ -65,7 +65,7 @@ Future<shelf.Response> appHandler(
   }
   if (path == '/search') {
     return redirectResponse(
-        request.requestedUri.replace(path: '/packages').toString());
+        request.requestedUri.replace(path: urls.searchUrl()).toString());
   }
 
   final handler = _handlers[path];

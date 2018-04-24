@@ -596,7 +596,7 @@ class TemplateService {
     String platform,
   ) {
     final platformDict = getPlatformDict(platform);
-    final packagesUrl = platform == null ? '/packages' : '/$platform/packages';
+    final packagesUrl = urls.searchUrl(platform: platform);
     final morePackages = 'More ${platformDict.name} packages...';
     final links = <String>[
       '<a href="$packagesUrl">${_htmlEscaper.convert(morePackages)}</a>'
@@ -933,25 +933,20 @@ abstract class PageLinks {
 class PackageLinks extends PageLinks {
   static const int resultsPerPage = 10;
   static const int maxPages = 15;
-  final String _basePath;
   final SearchQuery _searchQuery;
 
-  PackageLinks(int offset, int count,
-      {String basePath, SearchQuery searchQuery})
-      : _basePath = basePath,
-        _searchQuery = searchQuery,
+  PackageLinks(int offset, int count, {SearchQuery searchQuery})
+      : _searchQuery = searchQuery,
         super(offset, count);
 
-  PackageLinks.empty({String basePath})
-      : _basePath = basePath,
-        _searchQuery = null,
+  PackageLinks.empty()
+      : _searchQuery = null,
         super.empty();
 
   @override
   String formatHref(int page) {
-    final String basePath = _basePath ?? '/packages';
     if (_searchQuery == null) {
-      return '$basePath?page=$page';
+      return urls.searchUrl(page: page);
     } else {
       return _searchQuery.toSearchLink(page: page);
     }
