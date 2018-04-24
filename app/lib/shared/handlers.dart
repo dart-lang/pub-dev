@@ -66,11 +66,14 @@ shelf.Response rejectRobotsHandler(shelf.Request request) =>
 /// Combines a response for /debug requests
 shelf.Response debugResponse([Map data]) {
   final map = {
+    'env': {
+      'GAE_VERSION': Platform.environment['GAE_VERSION'],
+      'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
+    },
     'vm': {
       'currentRss': ProcessInfo.currentRss,
       'maxRss': ProcessInfo.maxRss,
     },
-    'scheduler': latestSchedulerStats,
     'versions': {
       'runtime': runtimeVersion,
       'sdk': sdkVersion,
@@ -79,6 +82,7 @@ shelf.Response debugResponse([Map data]) {
       'dartdoc': dartdocVersion,
       'customization': customizationVersion,
     },
+    'scheduler': latestSchedulerStats,
   };
   if (data != null) {
     map.addAll(data);
