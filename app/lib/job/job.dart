@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/task_scheduler.dart';
@@ -116,16 +117,18 @@ class JobMaintenance {
 
   /// Reads the current package versions and syncs them with job entries.
   Future syncDatastoreHistory() async {
-    final packages = new Map<String, String>();
-    final stream = randomizeStream(_db.query(PackageVersion).run());
-    await for (PackageVersion pv in stream) {
+    final latestVersions = new Map<String, String>();
+    await for (Package p in _db.query(Package).run()) {
+      latestVersions[p.name] = p.latestVersion;
+    }
+
+    final packages = latestVersions.keys.toList();
+    packages.shuffle();
+
+    Future updateJob(PackageVersion pv, bool skipLatest) async {
       try {
-        if (!packages.containsKey(pv.package)) {
-          final list = await _db.lookup([pv.packageKey]);
-          final Package p = list.single;
-          packages[pv.package] = p.latestVersion;
-        }
-        final bool isLatestStable = packages[pv.package] == pv.version;
+        final bool isLatestStable = latestVersions[pv.package] == pv.version;
+        if (isLatestStable && skipLatest) return;
         final shouldProcess =
             await _shouldProcess(pv.package, pv.version, pv.created);
         await jobBackend.createOrUpdate(_service, pv.package, pv.version,
@@ -135,6 +138,26 @@ class JobMaintenance {
             'History sync failed for ${pv.package} ${pv.version}', e, st);
       }
     }
+
+    var pool = new Pool(4);
+    for (String package in packages) {
+      final String version = latestVersions[package];
+      final PackageVersion pv = (await _db.lookup([
+        _db.emptyKey
+            .append(Package, id: package)
+            .append(PackageVersion, id: version)
+      ]))
+          .single;
+      pool.withResource(() => updateJob(pv, false));
+    }
+    await pool.close();
+
+    pool = new Pool(4);
+    final stream = randomizeStream(_db.query(PackageVersion).run());
+    await for (PackageVersion pv in stream) {
+      pool.withResource(() => updateJob(pv, true));
+    }
+    await pool.close();
   }
 
   /// Never completes
