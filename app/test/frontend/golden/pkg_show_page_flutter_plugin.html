@@ -107,29 +107,29 @@
 
       </section>
     <section class="content  js-content markdown-body" data-name="-installing-tab-">
-      <h3>1. Depend on it</h3>
-      <p>Add this to your package's pubspec.yaml file:</p>
-      <pre><code class="language-yaml">
+<h3>1. Depend on it</h3>
+<p>Add this to your package's pubspec.yaml file:</p>
+<pre><code class="language-yaml">
 dependencies:
   <strong>foobar_pkg: &quot;^0.1.1+5&quot;</strong>
 
 </code></pre>
-      <h3>2. Install it</h3>
-      <p>You can install packages from the command line:</p>
-        <p>with Flutter:</p>
+<h3>2. Install it</h3>
+<p>You can install packages from the command line:</p>
+  <p>with Flutter:</p>
   <pre><code class="language-shell">
 $ <strong>flutter packages get</strong>
 
 </code></pre>
 <p>Alternatively, your editor might support <code>packages get</code>.
   Check the docs for your editor to learn more.</p>
+  <h3>3. Import it</h3>
+  <p>Now in your Dart code, you can use:
+  </p>
+  <pre><code class="language-dart">
+      import 'package:foobar_pkg/foolib.dart';
+  </code></pre>
 
-        <h3>3. Import it</h3>
-        <p>Now in your Dart code, you can use:
-        </p>
-        <pre><code class="language-dart">
-import 'package:foobar_pkg/foolib.dart';
-        </code></pre>
     </section>
     <section class="content js-content markdown-body" data-name="-versions-tab-">
       <table class="version-table">

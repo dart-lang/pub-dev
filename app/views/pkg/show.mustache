@@ -37,25 +37,7 @@
       </section>
     {{/tabs}}
     <section class="content {{#has_no_file_tab}}-active{{/has_no_file_tab}} js-content markdown-body" data-name="-installing-tab-">
-      <h3>1. Depend on it</h3>
-      <p>Add this to your package's pubspec.yaml file:</p>
-      <pre><code class="language-yaml">
-dependencies:
-  <strong>{{package.name}}: {{package.selected_version.example_version_constraint}}</strong>
-
-</code></pre>
-      <h3>2. Install it</h3>
-      <p>You can install packages from the command line:</p>
-      {{& package.install_html}}
-      {{#package.selected_version.has_libraries}}
-        <h3>3. Import it</h3>
-        <p>Now in your Dart code, you can use:
-        </p>
-        <pre><code class="language-dart">{{#package.selected_version.import_examples}}
-import 'package:{{package}}/{{library}}';
-{{/package.selected_version.import_examples}}
-        </code></pre>
-      {{/package.selected_version.has_libraries}}
+{{& install_tab_html}}
     </section>
     <section class="content js-content markdown-body" data-name="-versions-tab-">
       <table class="version-table">

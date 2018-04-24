@@ -288,25 +288,6 @@ class TemplateService {
       AnalysisExtract extract,
       AnalysisView analysis,
       bool isFlutterPackage) {
-    List importExamples;
-    if (selectedVersion.libraries.contains('${package.id}.dart')) {
-      importExamples = [
-        {
-          'package': package.id,
-          'library': '${package.id}.dart',
-        }
-      ];
-    } else {
-      importExamples = selectedVersion.libraries.map((library) {
-        return {
-          'package': selectedVersion.packageKey.id,
-          'library': library,
-        };
-      }).toList();
-    }
-
-    final exampleVersionConstraint = '"^${selectedVersion.version}"';
-
     String readmeFilename;
     String renderedReadme;
     if (selectedVersion.readme != null) {
@@ -382,9 +363,6 @@ class TemplateService {
         'name': package.name,
         'selected_version': {
           'version': selectedVersion.id,
-          'example_version_constraint': exampleVersionConstraint,
-          'has_libraries': importExamples.length > 0,
-          'import_examples': importExamples,
         },
         'latest': {
           'should_show': should_show,
@@ -408,7 +386,6 @@ class TemplateService {
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
-        'install_html': _renderInstall(isFlutterPackage, analysis?.platforms),
         'license_html':
             _renderLicenses(selectedVersion.homepage, analysis?.licenses),
         'score_box_html': _renderScoreBox(analysisStatus, extract?.overallScore,
@@ -460,14 +437,36 @@ class TemplateService {
         .join(', ');
   }
 
-  String _renderInstall(bool isFlutter, List<String> platforms) {
-    final bool renderGeneric = !isFlutter ||
+  String _renderInstallTab(Package package, PackageVersion selectedVersion,
+      bool isFlutterPackage, List<String> platforms) {
+    List importExamples;
+    if (selectedVersion.libraries.contains('${package.id}.dart')) {
+      importExamples = [
+        {
+          'package': package.id,
+          'library': '${package.id}.dart',
+        },
+      ];
+    } else {
+      importExamples = selectedVersion.libraries.map((library) {
+        return {
+          'package': selectedVersion.packageKey.id,
+          'library': library,
+        };
+      }).toList();
+    }
+
+    final exampleVersionConstraint = '"^${selectedVersion.version}"';
+
+    final bool renderGeneric = !isFlutterPackage ||
         platforms == null ||
         platforms.isEmpty ||
         platforms.length > 1 ||
         platforms.first != KnownPlatforms.flutter;
-    final bool renderFlutter = isFlutter ||
+
+    final bool renderFlutter = isFlutterPackage ||
         (platforms != null && platforms.contains(KnownPlatforms.flutter));
+
     String toolHtml;
     if (renderGeneric && renderFlutter) {
       toolHtml = '<code>pub get</code> or <code>packages get</code>';
@@ -477,12 +476,19 @@ class TemplateService {
       toolHtml = '<code>pub get</code>';
     }
 
-    final values = {
+    return _renderTemplate('pkg/install_tab', {
+      'package': {
+        'name': package.name,
+      },
+      'selected_version': {
+        'example_version_constraint': exampleVersionConstraint,
+        'has_libraries': importExamples.length > 0,
+        'import_examples': importExamples,
+      },
       'generic': renderGeneric,
       'flutter': renderFlutter,
       'tool_html': toolHtml,
-    };
-    return _renderTemplate('pkg/install_block', values);
+    });
   }
 
   /// Renders the `views/pkg/show.mustache` template.
@@ -525,6 +531,8 @@ class TemplateService {
     );
     values['search_deps_link'] =
         urls.searchUrl(q: 'dependency:${package.name}');
+    values['install_tab_html'] = _renderInstallTab(
+        package, selectedVersion, isFlutterPackage, analysis?.platforms);
     final content = _renderTemplate('pkg/show', values);
     final packageAndVersion = isVersionPage
         ? '${selectedVersion.package} ${selectedVersion.version}'
