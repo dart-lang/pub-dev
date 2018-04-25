@@ -27,11 +27,11 @@ AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
 
 final Logger _logger = new Logger('pub.analyzer.backend');
 
-const Duration freshThreshold = const Duration(hours: 12);
-const Duration identicalThreshold = const Duration(days: 7);
+const Duration _freshThreshold = const Duration(hours: 12);
+const Duration _identicalThreshold = const Duration(days: 7);
 const Duration reanalyzeThreshold = const Duration(days: 30);
-const Duration regressionThreshold = const Duration(days: 45);
-const Duration obsoleteThreshold = const Duration(days: 180);
+const Duration _regressionThreshold = const Duration(days: 45);
+const Duration _obsoleteThreshold = const Duration(days: 180);
 
 /// Datastore-related access methods for the analyzer service
 class AnalysisBackend {
@@ -159,7 +159,7 @@ class AnalysisBackend {
           ? null
           : analysis.timestamp.difference(version.analysisTimestamp);
       final bool preventIdentical =
-          hasIdenticalHash && ageDiff < identicalThreshold;
+          hasIdenticalHash && ageDiff < _identicalThreshold;
 
       if (version == null) {
         version = new PackageVersionAnalysis.fromAnalysis(analysis);
@@ -171,10 +171,10 @@ class AnalysisBackend {
         inserts.add(version);
       }
       final bool wasRace =
-          inserts.isEmpty && ageDiff != null && ageDiff < freshThreshold;
+          inserts.isEmpty && ageDiff != null && ageDiff < _freshThreshold;
       final isLatestStable = package.latestVersion == version.packageVersion;
       final bool preventRegression =
-          isRegression && ageDiff != null && ageDiff < regressionThreshold;
+          isRegression && ageDiff != null && ageDiff < _regressionThreshold;
 
       if (preventRegression) {
         _logger.info('Analysis regression detected, not storing: $pvText');
@@ -298,7 +298,7 @@ class AnalysisBackend {
     if (pva == null) return;
 
     final DateTime threshold =
-        new DateTime.now().toUtc().subtract(obsoleteThreshold);
+        new DateTime.now().toUtc().subtract(_obsoleteThreshold);
     final Query scanQuery = db.query(Analysis, ancestorKey: pvaKey);
     final List<Key> obsoleteKeys = <Key>[];
 

@@ -254,8 +254,3 @@ class PrioritizedStreamIterator<T> implements StreamIterator<T> {
     cancel();
   }
 }
-
-void reportIssueWithLatest(String service, Task task, String message) {
-  _logger.severe(
-      '$service failed for latest version of ${task.package} (${task.version}): $message');
-}

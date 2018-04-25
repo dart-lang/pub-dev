@@ -22,7 +22,7 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final handler = {
     apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
-    '/search': searchHandler,
+    '/search': _searchHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
 
@@ -42,7 +42,7 @@ shelf.Response _debugHandler(shelf.Request request) {
 }
 
 /// Handles /search requests.
-Future<shelf.Response> searchHandler(shelf.Request request) async {
+Future<shelf.Response> _searchHandler(shelf.Request request) async {
   if (!packageIndex.isReady) {
     return htmlResponse(searchIndexNotReadyText,
         status: searchIndexNotReadyCode);

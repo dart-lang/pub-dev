@@ -24,7 +24,7 @@ Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   if (handler != null) {
     return handler(request);
   } else if (path.startsWith('/packages/')) {
-    return packageHandler(request);
+    return _packageHandler(request);
   } else {
     return notFoundHandler(request);
   }
@@ -37,7 +37,7 @@ shelf.Response _debugHandler(shelf.Request request) => debugResponse();
 ///   - /packages/<package>
 ///   - /packages/<package>/<version>
 ///   - /packages/<package>/<version>/<analysis>
-Future<shelf.Response> packageHandler(shelf.Request request) async {
+Future<shelf.Response> _packageHandler(shelf.Request request) async {
   final String path = request.requestedUri.path.substring('/packages/'.length);
   final List<String> pathParts = path.split('/');
   if (path.length == 0 || pathParts.length > 3) {

@@ -34,11 +34,6 @@ shelf.Response atomXmlResponse(String content, {int status: 200}) =>
       headers: {'content-type': 'application/atom+xml; charset="utf-8"'},
     );
 
-shelf.Response yamlResponse(String yamlString, {int status: 200}) =>
-    new shelf.Response(status,
-        body: yamlString,
-        headers: {'content-type': 'text/yaml; charset="utf-8"'});
-
 shelf.Response jsonResponse(Map map, {int status: 200, bool indent: false}) {
   final String body =
       indent ? new JsonEncoder.withIndent('  ').convert(map) : json.encode(map);
