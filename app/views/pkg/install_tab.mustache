@@ -1,6 +1,21 @@
 {{! Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
+{{#only_global_install}}
+<h3>1. Install it</h3>
+<p>You can install the package from the command line:</p>
+<pre><code class="language-shell">
+$ <strong>pub global activate {{package}}</strong>
+</code></pre>
+<h3>2. Use it</h3>
+<p>The package has the following executables:</p>
+<pre><code class="language-shell">
+{{#executables}}
+$ <strong>{{.}}</strong>
+{{/executables}}
+</code></pre>
+{{/only_global_install}}
+{{^only_global_install}}
 <h3>1. Depend on it</h3>
 <p>Add this to your package's pubspec.yaml file:</p>
 <pre><code class="language-yaml">
@@ -37,3 +52,4 @@ $ <strong>flutter packages get</strong>
   {{/import_examples}}
   </code></pre>
 {{/has_libraries}}
+{{/only_global_install}}

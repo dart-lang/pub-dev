@@ -447,6 +447,11 @@ class TemplateService {
       }).toList();
     }
 
+    final executables = selectedVersion.pubspec.executables?.keys?.toList();
+    executables?.sort();
+    final hasExecutables = executables != null && executables.isNotEmpty;
+    final onlyGlobalInstall = hasExecutables && importExamples.isEmpty;
+
     final exampleVersionConstraint = '"^${selectedVersion.version}"';
 
     final bool usePubGet = !isFlutterPackage ||
@@ -461,9 +466,9 @@ class TemplateService {
     String editorSupportedToolHtml;
     if (usePubGet && useFlutterPackagesGet) {
       editorSupportedToolHtml =
-          '<code>pub get</code> or <code>packages get</code>';
+          '<code>pub get</code> or <code>flutter packages get</code>';
     } else if (useFlutterPackagesGet) {
-      editorSupportedToolHtml = '<code>packages get</code>';
+      editorSupportedToolHtml = '<code>flutter packages get</code>';
     } else {
       editorSupportedToolHtml = '<code>pub get</code>';
     }
@@ -477,6 +482,8 @@ class TemplateService {
       'use_flutter_packages_get': useFlutterPackagesGet,
       'show_editor_support': usePubGet || useFlutterPackagesGet,
       'editor_supported_tool_html': editorSupportedToolHtml,
+      'only_global_install': onlyGlobalInstall,
+      'executables': executables,
     });
   }
 
