@@ -318,4 +318,10 @@ class DartdocClientMock implements DartdocClient {
 
   @override
   Future close() async {}
+
+  @override
+  Future<List<int>> getContentBytes(
+      String package, String version, String relativePath) async {
+    return null;
+  }
 }

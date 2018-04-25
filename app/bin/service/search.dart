@@ -14,6 +14,8 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
@@ -53,6 +55,11 @@ void _main(FrontendEntryMessage message) {
     final AnalyzerClient analyzerClient = new AnalyzerClient();
     registerAnalyzerClient(analyzerClient);
     registerScopeExitCallback(analyzerClient.close);
+
+    registerDartdocMemcache(new DartdocMemcache(memcacheService));
+    final DartdocClient dartdocClient = new DartdocClient();
+    registerDartdocClient(dartdocClient);
+    registerScopeExitCallback(dartdocClient.close);
 
     registerSearchBackend(new SearchBackend(db.dbService));
 

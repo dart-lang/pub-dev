@@ -35,6 +35,11 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
             ? null
             : new Map<String, String>.from(json['dependencies'] as Map),
         emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
+        apiDocPages: (json['apiDocPages'] as List)
+            ?.map((e) => e == null
+                ? null
+                : new ApiDocPage.fromJson(e as Map<String, dynamic>))
+            ?.toList(),
         timestamp: json['timestamp'] == null
             ? null
             : DateTime.parse(json['timestamp'] as String));
@@ -54,6 +59,7 @@ abstract class _$PackageDocumentSerializerMixin {
   double get maintenance;
   Map<String, String> get dependencies;
   List<String> get emails;
+  List<ApiDocPage> get apiDocPages;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'package': package,
@@ -70,8 +76,20 @@ abstract class _$PackageDocumentSerializerMixin {
         'maintenance': maintenance,
         'dependencies': dependencies,
         'emails': emails,
+        'apiDocPages': apiDocPages,
         'timestamp': timestamp?.toIso8601String()
       };
+}
+
+ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) => new ApiDocPage(
+    relativePath: json['relativePath'] as String,
+    symbols: (json['symbols'] as List)?.map((e) => e as String)?.toList());
+
+abstract class _$ApiDocPageSerializerMixin {
+  String get relativePath;
+  List<String> get symbols;
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'relativePath': relativePath, 'symbols': symbols};
 }
 
 PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>

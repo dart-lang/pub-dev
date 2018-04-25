@@ -58,6 +58,8 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final Map<String, String> dependencies;
   final List<String> emails;
 
+  final List<ApiDocPage> apiDocPages;
+
   /// The creation timestamp of this document.
   final DateTime timestamp;
 
@@ -76,6 +78,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.maintenance,
     this.dependencies,
     this.emails,
+    this.apiDocPages,
     this.timestamp,
   });
 
@@ -104,7 +107,27 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
               value: (key) => internFn(dependencies[key]),
             ),
       emails: emails?.map(internFn)?.toList(),
+      apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
       timestamp: timestamp,
+    );
+  }
+}
+
+/// A reference to an API doc page
+@JsonSerializable()
+class ApiDocPage extends Object with _$ApiDocPageSerializerMixin {
+  final String relativePath;
+  final List<String> symbols;
+
+  ApiDocPage({this.relativePath, this.symbols});
+
+  factory ApiDocPage.fromJson(Map<String, dynamic> json) =>
+      _$ApiDocPageFromJson(json);
+
+  ApiDocPage intern(String internFn(String value)) {
+    return new ApiDocPage(
+      relativePath: internFn(relativePath),
+      symbols: symbols?.map(internFn)?.toList(),
     );
   }
 }
