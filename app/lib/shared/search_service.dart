@@ -15,8 +15,7 @@ export 'platform.dart';
 
 part 'search_service.g.dart';
 
-const int defaultSearchLimit = 100;
-const int minSearchLimit = 10;
+const int _minSearchLimit = 10;
 const int searchIndexNotReadyCode = 600;
 const String searchIndexNotReadyText = 'Not ready yet.';
 
@@ -245,7 +244,7 @@ class SearchQuery {
     int limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
 
     offset = max(0, offset);
-    limit = max(minSearchLimit, limit);
+    limit = max(_minSearchLimit, limit);
 
     return new SearchQuery.parse(
       query: q,

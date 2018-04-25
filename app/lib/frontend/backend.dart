@@ -29,7 +29,7 @@ final Logger _logger = new Logger('pub.cloud_repository');
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
 
 /// The active logged-in user. This is used for doing authentication checks.
-String get loggedInUser => ss.lookup(#_logged_in_user);
+String get _loggedInUser => ss.lookup(#_logged_in_user);
 
 /// Sets the active tarball storage
 void registerTarballStorage(TarballStorage ts) =>
@@ -233,12 +233,12 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future<PackageVersion> upload(Stream<List<int>> data) {
     _logger.info('Starting upload.');
-    return withAuthenticatedUser((String userEmail) {
+    return _withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
       return withTempDirectory((Directory dir) async {
         final filename = '${dir.absolute.path}/tarball.tar.gz';
-        await saveTarballToFS(data, filename);
+        await _saveTarballToFS(data, filename);
         return _performTarballUpload(userEmail, filename, (package, version) {
           return storage.upload(
               package, version, new File(filename).openRead());
@@ -257,7 +257,7 @@ class GCloudPackageRepository extends PackageRepository {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    return withAuthenticatedUser((String userEmail) {
+    return _withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
       final String guid = uuid.v4();
@@ -276,14 +276,14 @@ class GCloudPackageRepository extends PackageRepository {
   /// Finishes the upload of a package.
   @override
   Future<PackageVersion> finishAsyncUpload(Uri uri) {
-    return withAuthenticatedUser((String userEmail) async {
+    return _withAuthenticatedUser((String userEmail) async {
       final guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
       _logger.info('Reading tarball from cloud storage.');
 
       return withTempDirectory((Directory dir) async {
         final filename = '${dir.absolute.path}/tarball.tar.gz';
-        await saveTarballToFS(storage.readTempObject(guid), filename);
+        await _saveTarballToFS(storage.readTempObject(guid), filename);
         return _performTarballUpload(userEmail, filename, (package, version) {
           return storage.uploadViaTempObject(guid, package, version);
         }).whenComplete(() async {
@@ -302,7 +302,7 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Parse metadata from the tarball.
     final models.PackageVersion newVersion =
-        await parseAndValidateUpload(db, filename, userEmail);
+        await _parseAndValidateUpload(db, filename, userEmail);
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -323,7 +323,7 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       // If the package does not exist, then we create a new package.
-      if (package == null) package = newPackageFromVersion(db, newVersion);
+      if (package == null) package = _newPackageFromVersion(db, newVersion);
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
@@ -424,7 +424,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
-    return withAuthenticatedUser((String userEmail) {
+    return _withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
         final models.Package package = (await T.lookup([packageKey])).first;
@@ -461,7 +461,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
-    return withAuthenticatedUser((String userEmail) {
+    return _withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
         final models.Package package = (await T.lookup([packageKey])).first;
@@ -509,18 +509,18 @@ class GCloudPackageRepository extends PackageRepository {
 ///
 /// If no user is currently logged in, this will throw an `UnauthorizedAccess`
 /// exception.
-Future<T> withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
-  if (loggedInUser == null) {
+Future<T> _withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
+  if (_loggedInUser == null) {
     throw new UnauthorizedAccessException('No active user.');
   }
-  return func(loggedInUser);
+  return func(_loggedInUser);
 }
 
 /// Reads a tarball from a byte stream.
 ///
 /// Compeltes with an error if the incoming stream has an error or if the size
 /// exceeds `GcloudPackageRepo.MAX_TARBALL_SIZE`.
-Future saveTarballToFS(Stream<List<int>> data, String filename) async {
+Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   final Completer completer = new Completer();
 
   StreamSink<List<int>> sink;
@@ -599,7 +599,7 @@ Future saveTarballToFS(Stream<List<int>> data, String filename) async {
 }
 
 /// Creates a new `Package` and populates all of it's fields.
-models.Package newPackageFromVersion(
+models.Package _newPackageFromVersion(
     DatastoreDB db, models.PackageVersion version) {
   final now = new DateTime.now().toUtc();
   return new models.Package()
@@ -611,7 +611,7 @@ models.Package newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
-    ..uploaderEmails = [loggedInUser];
+    ..uploaderEmails = [_loggedInUser];
 }
 
 /// Parses metadata from a tarball and & validates it.
@@ -621,7 +621,7 @@ models.Package newPackageFromVersion(
 ///   * contains a valid `pubspec.yaml` file
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
-Future<models.PackageVersion> parseAndValidateUpload(
+Future<models.PackageVersion> _parseAndValidateUpload(
     DatastoreDB db, String filename, String user) async {
   assert(user != null);
 

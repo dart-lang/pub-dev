@@ -19,7 +19,7 @@ import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
 
-final Duration entryUpdateThreshold = const Duration(days: 90);
+final Duration _entryUpdateThreshold = const Duration(days: 90);
 
 @JsonSerializable()
 class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
@@ -98,7 +98,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
 
   TaskTargetStatus checkTargetStatus({bool retryFailed: false}) {
     final age = new DateTime.now().difference(timestamp).abs();
-    if (age > entryUpdateThreshold) {
+    if (age > _entryUpdateThreshold) {
       return new TaskTargetStatus.ok();
     }
 
@@ -122,7 +122,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     if (hasContent) {
       return new TaskTargetStatus.skip(
           'Entry has content, its age (${age.inDays} days) is less than the '
-          'threshold (${entryUpdateThreshold.inDays} days).');
+          'threshold (${_entryUpdateThreshold.inDays} days).');
     }
 
     if (!retryFailed) {

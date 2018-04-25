@@ -25,8 +25,8 @@ import 'storage_path.dart' as storage_path;
 final Logger _logger = new Logger('pub.dartdoc.backend');
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
-final int concurrentUploads = 4;
-final int concurrentDeletes = 4;
+final int _concurrentUploads = 4;
+final int _concurrentDeletes = 4;
 
 /// Sets the dartdoc backend.
 void registerDartdocBackend(DartdocBackend backend) =>
@@ -83,7 +83,7 @@ class DartdocBackend {
       }
     }
 
-    final uploadPool = new Pool(concurrentUploads);
+    final uploadPool = new Pool(_concurrentUploads);
     final List<Future> uploadFutures = [];
     await for (File file in fileStream) {
       final pooledUpload = uploadPool.withResource(() => upload(file));
@@ -240,7 +240,7 @@ class DartdocBackend {
 
   Future _deleteAll(DartdocEntry entry) async {
     var page = await _storage.page(prefix: entry.contentPrefix);
-    final deletePool = new Pool(concurrentDeletes);
+    final deletePool = new Pool(_concurrentDeletes);
     for (;;) {
       final List<Future> deleteFutures = [];
       for (var item in page.items) {

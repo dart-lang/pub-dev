@@ -22,14 +22,14 @@ const String notificationSecretKey = 'notification-secret';
 
 String _cachedNotificationSecret;
 
-class NotificationData {
+class _NotificationData {
   final String package;
   final String version;
 
-  NotificationData(this.package, this.version);
+  _NotificationData(this.package, this.version);
 
-  factory NotificationData.fromMap(Map<String, dynamic> map) =>
-      new NotificationData(map['package'], map['version']);
+  factory _NotificationData.fromMap(Map<String, dynamic> map) =>
+      new _NotificationData(map['package'], map['version']);
 
   bool get isValid => package != null;
 
@@ -46,7 +46,7 @@ class NotificationData {
 ///
 /// Ignoring cache invalidations for now, because at worst the notification is
 /// not acknowledged, and the related processing will happen 10 minutes later.
-Future<String> getNotificationSecret() async {
+Future<String> _getNotificationSecret() async {
   if (_cachedNotificationSecret == null) {
     final db = dbService;
     final key = db.emptyKey.append(PrivateKey, id: notificationSecretKey);
@@ -56,27 +56,27 @@ Future<String> getNotificationSecret() async {
   return _cachedNotificationSecret;
 }
 
-Future<bool> validateNotificationSecret(shelf.Request request) async {
+Future<bool> _validateNotificationSecret(shelf.Request request) async {
   final String received = request.headers['x-notification-secret'];
   if (received == null) return false;
-  final String secret = await getNotificationSecret();
+  final String secret = await _getNotificationSecret();
   return received == secret;
 }
 
-Future<Map<String, String>> prepareNotificationHeaders() async => {
-      'x-notification-secret': await getNotificationSecret(),
+Future<Map<String, String>> _prepareNotificationHeaders() async => {
+      'x-notification-secret': await _getNotificationSecret(),
       HttpHeaders.CONTENT_TYPE: 'application/json',
     };
 
 Future notifyService(http.Client client, String servicePrefix, String package,
     String version) async {
   final uri = '$servicePrefix$apiNotificationEndpoint';
-  final data = new NotificationData(package, version);
+  final data = new _NotificationData(package, version);
   try {
     _logger.fine('Notification HTTP POST $uri with $data');
     final response = await client.post(uri,
         body: json.encode(data.toMap()),
-        headers: await prepareNotificationHeaders());
+        headers: await _prepareNotificationHeaders());
     if (response.statusCode != 200) {
       _logger.warning('Notification request on $uri with $data failed. '
           'Status code: ${response.statusCode}. '
@@ -90,10 +90,10 @@ Future notifyService(http.Client client, String servicePrefix, String package,
 /// Handles requests for: /api/notification
 Future<shelf.Response> notificationHandler(shelf.Request request) async {
   final String requestMethod = request.method?.toUpperCase();
-  if (requestMethod == 'POST' && await validateNotificationSecret(request)) {
+  if (requestMethod == 'POST' && await _validateNotificationSecret(request)) {
     try {
       final map = json.decode(await request.readAsString());
-      final data = new NotificationData.fromMap(map);
+      final data = new _NotificationData.fromMap(map);
       if (data.isValid) {
         _logger.info('Received notification: $data');
         triggerTask(data.package, data.version);

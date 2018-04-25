@@ -27,7 +27,7 @@ bool isCommonApiSymbol(String symbol) {
   return false;
 }
 
-String compactText(String text, {int maxLength: -1}) {
+String _compactText(String text, {int maxLength: -1}) {
   if (text == null) return '';
   String t = text.replaceAll(_multiWhitespaceRegExp, ' ').trim();
   if (maxLength > 0 && t.length > maxLength) {
@@ -36,13 +36,13 @@ String compactText(String text, {int maxLength: -1}) {
   return t;
 }
 
-String compactDescription(String text) => compactText(text, maxLength: 500);
+String compactDescription(String text) => _compactText(text, maxLength: 500);
 
 String compactReadme(String text) {
   if (text == null || text.isEmpty) return '';
   final html = markdownToHtml(text, null);
   final root = parseFragment(html);
-  return compactText(root.text, maxLength: 5000);
+  return _compactText(root.text, maxLength: 5000);
 }
 
 String normalizeBeforeIndexing(String text) {

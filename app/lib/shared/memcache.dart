@@ -15,7 +15,7 @@ const Duration analyzerDataLocalExpiration = const Duration(minutes: 15);
 const Duration dartdocEntryExpiration = const Duration(hours: 24);
 const Duration dartdocFileInfoExpiration = const Duration(minutes: 60);
 const Duration searchUiPageExpiration = const Duration(minutes: 10);
-const Duration memcacheRequestTimeout = const Duration(seconds: 5);
+const Duration _memcacheRequestTimeout = const Duration(seconds: 5);
 
 const String indexUiPageKey = 'v2_pub_index';
 const String packageJsonPrefix = 'v2_package_json_';
@@ -38,7 +38,7 @@ class SimpleMemcache {
 
   Future<String> getText(String key) async {
     try {
-      return await _memcache.get(_key(key)).timeout(memcacheRequestTimeout);
+      return await _memcache.get(_key(key)).timeout(_memcacheRequestTimeout);
     } catch (e, st) {
       _logger.severe('Error accessing memcache:', e, st);
     }
@@ -50,7 +50,7 @@ class SimpleMemcache {
     try {
       await _memcache
           .set(_key(key), content, expiration: _expiration)
-          .timeout(memcacheRequestTimeout);
+          .timeout(_memcacheRequestTimeout);
     } catch (e, st) {
       _logger.warning('Couldn\'t set memcache entry for $key', e, st);
     }
@@ -60,7 +60,7 @@ class SimpleMemcache {
     try {
       return await _memcache
           .get(_key(key), asBinary: true)
-          .timeout(memcacheRequestTimeout);
+          .timeout(_memcacheRequestTimeout);
     } catch (e, st) {
       _logger.severe('Error accessing memcache:', e, st);
     }
@@ -72,7 +72,7 @@ class SimpleMemcache {
     try {
       await _memcache
           .set(_key(key), content, expiration: _expiration)
-          .timeout(memcacheRequestTimeout);
+          .timeout(_memcacheRequestTimeout);
     } catch (e, st) {
       _logger.warning('Couldn\'t set memcache entry for $key', e, st);
     }
@@ -81,7 +81,7 @@ class SimpleMemcache {
   Future invalidate(String key) async {
     _logger.info('Invalidating memcache key: $key');
     try {
-      await _memcache.remove(_key(key)).timeout(memcacheRequestTimeout);
+      await _memcache.remove(_key(key)).timeout(_memcacheRequestTimeout);
     } catch (e, st) {
       _logger.warning('Couldn\'t remove memcache entry for $key', e, st);
     }

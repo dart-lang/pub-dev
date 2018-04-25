@@ -25,8 +25,8 @@ final Logger _logger = new Logger('pub.dartdoc.runner');
 final Uuid _uuid = new Uuid();
 
 const statusFilePath = 'status.json';
-const buildLogFilePath = 'log.txt';
-const dartdocTimeout = const Duration(minutes: 10);
+const _buildLogFilePath = 'log.txt';
+const _dartdocTimeout = const Duration(minutes: 10);
 
 const _excludedLibraries = const <String>[
   'dart:async',
@@ -177,7 +177,7 @@ class DartdocJobProcessor extends JobProcessor {
         _excludedLibraries.join(','),
       ],
       workingDirectory: pkgPath,
-      timeout: dartdocTimeout,
+      timeout: _dartdocTimeout,
     );
     _appendLog(logFileOutput, pr);
 
@@ -219,7 +219,7 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future _writeLog(String outputDir, StringBuffer buffer) async {
-    await new File(p.join(outputDir, buildLogFilePath))
+    await new File(p.join(outputDir, _buildLogFilePath))
         .writeAsString(buffer.toString());
   }
 

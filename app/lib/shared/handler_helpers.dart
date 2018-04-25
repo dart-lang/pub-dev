@@ -26,13 +26,13 @@ Future runHandler(Logger logger, shelf.Handler handler,
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
   }
-  handler = redirectToHttpsWrapper(handler);
+  handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
-  return runAppEngine((HttpRequest request) => handleRequest(request, handler),
+  return runAppEngine((HttpRequest request) => _handleRequest(request, handler),
       shared: shared ?? false);
 }
 
-Future handleRequest(HttpRequest request, shelf.Handler handler) =>
+Future _handleRequest(HttpRequest request, shelf.Handler handler) =>
     shelf_io.handleRequest(request, handler);
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
@@ -84,7 +84,7 @@ shelf.Handler _userAuthParsingWrapper(shelf.Handler handler) {
   };
 }
 
-shelf.Handler redirectToHttpsWrapper(shelf.Handler handler) {
+shelf.Handler _redirectToHttpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     if (context.isProductionEnvironment &&
         request.requestedUri.scheme != 'https') {

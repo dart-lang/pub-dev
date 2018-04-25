@@ -8,18 +8,6 @@ const pubHostedDomain = 'pub.dartlang.org';
 
 const siteRoot = 'https://$pubHostedDomain';
 
-/// Removes the scheme part from `url`. (i.e. http://a/b becomes a/b).
-String niceUrl(String url) {
-  if (url == null) {
-    return url;
-  } else if (url.startsWith('https://')) {
-    return url.substring('https://'.length);
-  } else if (url.startsWith('http://')) {
-    return url.substring('http://'.length);
-  }
-  return url;
-}
-
 String pkgPageUrl(String package,
     {String version, bool includeHost: false, String fragment}) {
   String url = includeHost ? siteRoot : '';

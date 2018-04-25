@@ -598,30 +598,30 @@ class TokenIndex {
   }
 }
 
-const int minNgram = 1;
-const int maxNgram = 4;
-const int maxWordLength = 80;
+const int _minNgram = 1;
+const int _maxNgram = 4;
+const int _maxWordLength = 80;
 
 Set<String> _tokenize(String originalText, int minLength) {
   if (originalText == null || originalText.isEmpty) return null;
   final Set<String> tokens = new Set();
 
   void addAllPrefixes(String phrase) {
-    for (int i = maxNgram + 1; i < phrase.length; i++) {
+    for (int i = _maxNgram + 1; i < phrase.length; i++) {
       tokens.add(phrase.substring(0, i));
     }
     tokens.add(phrase);
   }
 
   for (String word in splitForIndexing(originalText)) {
-    if (word.length > maxWordLength) word = word.substring(0, maxWordLength);
+    if (word.length > _maxWordLength) word = word.substring(0, _maxWordLength);
 
     final String normalizedWord = normalizeBeforeIndexing(word);
     if (normalizedWord.isEmpty) continue;
 
     tokens.add(normalizedWord);
-    for (int ngramLength = math.max(minNgram, minLength);
-        ngramLength <= maxNgram;
+    for (int ngramLength = math.max(_minNgram, minLength);
+        ngramLength <= _maxNgram;
         ngramLength++) {
       if (normalizedWord.length > ngramLength) {
         for (int i = 0; i <= normalizedWord.length - ngramLength; i++) {
@@ -629,7 +629,7 @@ Set<String> _tokenize(String originalText, int minLength) {
         }
       }
     }
-    if (word.length <= maxNgram) continue; // ngrams covered everything
+    if (word.length <= _maxNgram) continue; // ngrams covered everything
 
     // add all prefixes for better relevancy on longer phrases
     addAllPrefixes(normalizedWord);

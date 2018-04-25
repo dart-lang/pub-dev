@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
-import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -30,10 +29,6 @@ void initOAuth2Service() {
   final client = new http.Client();
   registerOAuth2Service(new OAuth2Service(client));
   registerScopeExitCallback(client.close);
-}
-
-void initStorage(String projectId, http.Client authClient) {
-  registerStorageService(new Storage(authClient, projectId));
 }
 
 void initSearchService() {

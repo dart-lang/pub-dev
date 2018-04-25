@@ -19,7 +19,7 @@ import 'backend.dart';
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
-    '/': indexHandler,
+    '/': _indexHandler,
     apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
   }[path];
@@ -27,11 +27,11 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   if (handler != null) {
     return handler(request);
   } else if (path.startsWith('/documentation')) {
-    return documentationHandler(request);
+    return _documentationHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
   } else if (path == '/robots.txt') {
-    return robotsTxtHandler(request);
+    return _robotsTxtHandler(request);
   } else {
     return notFoundHandler(request);
   }
@@ -41,21 +41,21 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 shelf.Response _debugHandler(shelf.Request request) => debugResponse();
 
 /// Handles / requests
-Future<shelf.Response> indexHandler(shelf.Request request) async {
-  return htmlResponse(indexHtmlContent);
+Future<shelf.Response> _indexHandler(shelf.Request request) async {
+  return htmlResponse(_indexHtmlContent);
 }
 
 /// Handles /robots.txt requests
-Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
-  return htmlResponse(robotsTxtContent);
+Future<shelf.Response> _robotsTxtHandler(shelf.Request request) async {
+  return htmlResponse(_robotsTxtContent);
 }
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
-Future<shelf.Response> documentationHandler(shelf.Request request) async {
+Future<shelf.Response> _documentationHandler(shelf.Request request) async {
   final docFilePath = parseRequestUri(request.requestedUri);
   if (docFilePath == null) {
-    return indexHandler(request);
+    return _indexHandler(request);
   }
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
@@ -146,12 +146,12 @@ DocFilePath parseRequestUri(Uri uri) {
   return new DocFilePath(package, version, path);
 }
 
-const robotsTxtContent = '''
+const _robotsTxtContent = '''
 User-agent: *
 Disallow:
 ''';
 
-const indexHtmlContent = '''
+const _indexHtmlContent = '''
 <!DOCTYPE html>
 <html>
   <head>

@@ -162,7 +162,7 @@ const List<String> _reservedWords = const <String>[
 ];
 
 final Set<String> knownMixedCasePackages = _knownMixedCasePackages.toSet();
-final Set<String> blockedLowerCasePackages = _knownMixedCasePackages
+final Set<String> _blockedLowerCasePackages = _knownMixedCasePackages
     .map((s) => s.toLowerCase())
     .toSet()
       ..removeAll(_knownGoodLowerCasePackages);
@@ -213,19 +213,19 @@ void validatePackageName(String name) {
   if (!isLower && !matchesMixedCase) {
     throw new Exception('Package name must be lowercase.');
   }
-  if (isLower && blockedLowerCasePackages.contains(name)) {
+  if (isLower && _blockedLowerCasePackages.contains(name)) {
     throw new Exception(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
   if (!isLower &&
       matchesMixedCase &&
-      !blockedLowerCasePackages.contains(name.toLowerCase())) {
+      !_blockedLowerCasePackages.contains(name.toLowerCase())) {
     throw new Exception(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
 }
 
-List<List<T>> sliceList<T>(List<T> list, int limit) {
+List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
   final int maxPageIndex = (list.length - 1) ~/ limit;
   return new List.generate(maxPageIndex + 1,
@@ -246,7 +246,7 @@ Stream<T> randomizeStream<T>(
   final Stream<List<T>> bufferedStream = buffer(trigger).bind(stream);
   return bufferedStream.transform(new StreamTransformer.fromHandlers(
     handleData: (List<T> items, Sink<T> sink) {
-      for (List<T> list in sliceList(items, maxPositionDiff)) {
+      for (List<T> list in _sliceList(items, maxPositionDiff)) {
         list.shuffle(random);
         for (T task in list) {
           sink.add(task);
