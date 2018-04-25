@@ -449,36 +449,34 @@ class TemplateService {
 
     final exampleVersionConstraint = '"^${selectedVersion.version}"';
 
-    final bool renderGeneric = !isFlutterPackage ||
+    final bool usePubGet = !isFlutterPackage ||
         platforms == null ||
         platforms.isEmpty ||
         platforms.length > 1 ||
         platforms.first != KnownPlatforms.flutter;
 
-    final bool renderFlutter = isFlutterPackage ||
+    final bool useFlutterPackagesGet = isFlutterPackage ||
         (platforms != null && platforms.contains(KnownPlatforms.flutter));
 
-    String toolHtml;
-    if (renderGeneric && renderFlutter) {
-      toolHtml = '<code>pub get</code> or <code>packages get</code>';
-    } else if (renderFlutter) {
-      toolHtml = '<code>packages get</code>';
+    String editorSupportedToolHtml;
+    if (usePubGet && useFlutterPackagesGet) {
+      editorSupportedToolHtml =
+          '<code>pub get</code> or <code>packages get</code>';
+    } else if (useFlutterPackagesGet) {
+      editorSupportedToolHtml = '<code>packages get</code>';
     } else {
-      toolHtml = '<code>pub get</code>';
+      editorSupportedToolHtml = '<code>pub get</code>';
     }
 
     return _renderTemplate('pkg/install_tab', {
-      'package': {
-        'name': package.name,
-      },
-      'selected_version': {
-        'example_version_constraint': exampleVersionConstraint,
-        'has_libraries': importExamples.length > 0,
-        'import_examples': importExamples,
-      },
-      'generic': renderGeneric,
-      'flutter': renderFlutter,
-      'tool_html': toolHtml,
+      'package': package.name,
+      'example_version_constraint': exampleVersionConstraint,
+      'has_libraries': importExamples.isNotEmpty,
+      'import_examples': importExamples,
+      'use_pub_get': usePubGet,
+      'use_flutter_packages_get': useFlutterPackagesGet,
+      'show_editor_support': usePubGet || useFlutterPackagesGet,
+      'editor_supported_tool_html': editorSupportedToolHtml,
     });
   }
 
