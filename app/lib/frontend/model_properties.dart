@@ -88,6 +88,12 @@ class Pubspec {
     return _asString(_json['description']);
   }
 
+  Map<String, dynamic> get executables {
+    _load();
+    final map = _json['executables'];
+    return map is Map ? map : null;
+  }
+
   String get sdkConstraint {
     _load();
     final environment = _json['environment'];

@@ -1,37 +1,55 @@
 {{! Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
+{{#only_global_install}}
+<h3>1. Install it</h3>
+<p>You can install the package from the command line:</p>
+<pre><code class="language-shell">
+$ <strong>pub global activate {{package}}</strong>
+</code></pre>
+<h3>2. Use it</h3>
+<p>The package has the following executables:</p>
+<pre><code class="language-shell">
+{{#executables}}
+$ <strong>{{.}}</strong>
+{{/executables}}
+</code></pre>
+{{/only_global_install}}
+{{^only_global_install}}
 <h3>1. Depend on it</h3>
 <p>Add this to your package's pubspec.yaml file:</p>
 <pre><code class="language-yaml">
 dependencies:
-  <strong>{{package.name}}: {{selected_version.example_version_constraint}}</strong>
+  <strong>{{package}}: {{example_version_constraint}}</strong>
 
 </code></pre>
 <h3>2. Install it</h3>
 <p>You can install packages from the command line:</p>
-{{#generic}}
+{{#use_pub_get}}
   <p>with pub:</p>
   <pre><code class="language-shell">
 $ <strong>pub get</strong>
 
 </code></pre>
-{{/generic}}
-{{#flutter}}
+{{/use_pub_get}}
+{{#use_flutter_packages_get}}
   <p>with Flutter:</p>
   <pre><code class="language-shell">
 $ <strong>flutter packages get</strong>
 
 </code></pre>
-{{/flutter}}
-<p>Alternatively, your editor might support {{& tool_html}}.
+{{/use_flutter_packages_get}}
+{{#show_editor_support}}
+<p>Alternatively, your editor might support {{& editor_supported_tool_html}}.
   Check the docs for your editor to learn more.</p>
-{{#selected_version.has_libraries}}
+{{/show_editor_support}}
+{{#has_libraries}}
   <h3>3. Import it</h3>
   <p>Now in your Dart code, you can use:
   </p>
-  <pre><code class="language-dart">{{#selected_version.import_examples}}
+  <pre><code class="language-dart">{{#import_examples}}
       import 'package:{{package}}/{{library}}';
-  {{/selected_version.import_examples}}
+  {{/import_examples}}
   </code></pre>
-{{/selected_version.has_libraries}}
+{{/has_libraries}}
+{{/only_global_install}}
