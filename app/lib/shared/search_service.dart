@@ -9,10 +9,6 @@ import 'dart:math' show max;
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'platform.dart';
-
-export 'platform.dart';
-
 part 'search_service.g.dart';
 
 const int _minSearchLimit = 10;
@@ -201,18 +197,19 @@ final RegExp _allDependencyRegExp =
 class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
-  final PlatformPredicate platformPredicate;
+  final String platform;
   final SearchOrder order;
   final int offset;
   final int limit;
 
   SearchQuery._({
     this.query,
-    this.platformPredicate,
+    String platform,
     this.order,
     this.offset,
     this.limit,
-  }) : parsedQuery = new ParsedQuery._parse(query);
+  })  : parsedQuery = new ParsedQuery._parse(query),
+        platform = (platform == null || platform.isEmpty) ? null : platform;
 
   factory SearchQuery.parse({
     String query,
@@ -223,11 +220,9 @@ class SearchQuery {
   }) {
     final String q =
         query != null && query.trim().isNotEmpty ? query.trim() : null;
-    final PlatformPredicate platformPredicate =
-        (platform == null ? null : new PlatformPredicate.parse(platform));
     return new SearchQuery._(
       query: q,
-      platformPredicate: platformPredicate,
+      platform: platform,
       order: order,
       offset: offset,
       limit: limit,
@@ -236,7 +231,8 @@ class SearchQuery {
 
   factory SearchQuery.fromServiceUrl(Uri uri) {
     final String q = uri.queryParameters['q'];
-    final platform = new PlatformPredicate.fromUri(uri);
+    final String platform =
+        uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
     final String orderValue = uri.queryParameters['order'];
     final SearchOrder order =
         orderValue == null ? null : parseSearchOrder(orderValue);
@@ -248,7 +244,7 @@ class SearchQuery {
 
     return new SearchQuery.parse(
       query: q,
-      platform: platform?.toQueryParamValue(),
+      platform: platform,
       order: order,
       offset: offset,
       limit: limit,
@@ -257,23 +253,24 @@ class SearchQuery {
 
   SearchQuery change({
     String query,
-    PlatformPredicate platformPredicate,
+    String platform,
     SearchOrder order,
     int offset,
     int limit,
-  }) =>
-      new SearchQuery._(
-        query: query ?? this.query,
-        platformPredicate: platformPredicate ?? this.platformPredicate,
-        order: order ?? this.order,
-        offset: offset ?? this.offset,
-        limit: limit ?? this.limit,
-      );
+  }) {
+    return new SearchQuery._(
+      query: query ?? this.query,
+      platform: platform ?? this.platform,
+      order: order ?? this.order,
+      offset: offset ?? this.offset,
+      limit: limit ?? this.limit,
+    );
+  }
 
   Map<String, String> toServiceQueryParameters() {
     final Map<String, String> map = <String, String>{
       'q': query,
-      'platforms': platformPredicate?.toQueryParamValue(),
+      'platform': platform,
       'offset': offset?.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
@@ -297,7 +294,7 @@ class SearchQuery {
     final bool isEmpty = !hasText &&
         order == null &&
         parsedQuery.packagePrefix == null &&
-        (platformPredicate == null || !platformPredicate.isNotEmpty);
+        (platform == null || platform.isEmpty);
     if (isEmpty) return false;
 
     return hasText || hasNonTextOrdering;
@@ -310,12 +307,8 @@ class SearchQuery {
     if (query != null && query.isNotEmpty) {
       params['q'] = query;
     }
-    if (platformPredicate != null && platformPredicate.isNotEmpty) {
-      if (platformPredicate.isSingle) {
-        path = '/${platformPredicate.single}/packages';
-      } else {
-        params['platforms'] = platformPredicate.toQueryParamValue();
-      }
+    if (platform != null && platform.isNotEmpty) {
+      path = '/$platform/packages';
     }
     if (order != null) {
       final String paramName = 'sort';

@@ -119,14 +119,17 @@ class SimplePackageIndex implements PackageIndex {
 
     // filter on platform
     Map<String, double> platformSpecificity;
-    if (query.platformPredicate != null) {
-      packages.removeWhere((package) =>
-          !query.platformPredicate.matches(_packages[package].platforms));
+    if (query.platform != null) {
+      packages.removeWhere((package) {
+        final doc = _packages[package];
+        if (doc.platforms == null) return true;
+        return !doc.platforms.contains(query.platform);
+      });
       platformSpecificity = <String, double>{};
       packages.forEach((String package) {
         final PackageDocument doc = _packages[package];
         platformSpecificity[package] =
-            scorePlatformSpecificity(doc.platforms, query.platformPredicate);
+            scorePlatformSpecificity(doc.platforms, query.platform);
       });
     }
 
