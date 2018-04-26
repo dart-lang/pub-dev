@@ -101,13 +101,3 @@ void syntaxCheckHomepageUrl(String url) {
     throw new Exception('Homepage URL has no valid host: $url');
   }
 }
-
-// TODO: lib/shared/analyzer_client.dart
-
-// TODO: lib/shared/configuration.dart
-
-// TODO: lib/shared/dartdoc_client.dart
-
-// TODO: lib/shared/notification.dart
-
-// TODO: lib/shared/search_client.dart
