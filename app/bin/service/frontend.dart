@@ -25,12 +25,12 @@ import 'package:pub_dartlang_org/shared/name_tracker.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/shared/search_memcache.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/search_memcache.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 

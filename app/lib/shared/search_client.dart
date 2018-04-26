@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import 'configuration.dart';
 import 'notification.dart';
+import 'search_memcache.dart';
 import 'search_service.dart';
 import 'utils.dart';
 
@@ -31,6 +32,10 @@ class SearchClient {
     final String serviceUrlParams =
         new Uri(queryParameters: query.toServiceQueryParameters()).toString();
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
+
+    final cached = await searchMemcache.getPackageSearchResult(serviceUrl);
+    if (cached != null) return cached;
+
     final http.Response response =
         await getUrlWithRetry(_httpClient, serviceUrl);
     if (response.statusCode == searchIndexNotReadyCode) {
@@ -48,6 +53,7 @@ class SearchClient {
       // Search request before the service initialization completed.
       return null;
     }
+    await searchMemcache.setPackageSearchResult(serviceUrl, result);
     return result;
   }
 
