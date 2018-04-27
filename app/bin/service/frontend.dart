@@ -14,6 +14,7 @@ import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/history/backend.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -97,6 +98,14 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       PackageDependencyBuilder.loadInitialGraphFromDb(db.dbService);
 
   Future uploadFinished(PackageVersion pv) async {
+    historyBackend.store(new History.package(
+      packageName: pv.package,
+      packageVersion: pv.version,
+      timestamp: pv.created,
+      source: HistorySource.account,
+      event: new PackageVersionUploaded(uploaderEmail: pv.uploaderEmail),
+    ));
+
     final depsGraphBuilder = await depsGraphBuilderFuture;
 
     // Even though the deps graph builder would pick up the new [pv] eventually,

@@ -12,6 +12,16 @@ part of 'models.dart';
 // Generator: JsonSerializableGenerator
 // **************************************************************************
 
+PackageVersionUploaded _$PackageVersionUploadedFromJson(
+        Map<String, dynamic> json) =>
+    new PackageVersionUploaded(uploaderEmail: json['uploaderEmail'] as String);
+
+abstract class _$PackageVersionUploadedSerializerMixin {
+  String get uploaderEmail;
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'uploaderEmail': uploaderEmail};
+}
+
 AnalysisCompleted _$AnalysisCompletedFromJson(Map<String, dynamic> json) =>
     new AnalysisCompleted(
         hasErrors: json['hasErrors'] as bool,
