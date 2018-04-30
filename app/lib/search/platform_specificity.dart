@@ -4,13 +4,10 @@
 
 import '../shared/platform.dart';
 
-double scorePlatformSpecificity(List<String> platforms, PlatformPredicate p) {
+double scorePlatformSpecificity(List<String> platforms, String p) {
   _SpecificityFn fn;
   if (p != null && p.isNotEmpty) {
-    if (p.isSingle) {
-      fn = _platformFns[p.single];
-    }
-    fn ??= _lightSingle;
+    fn = _platformFns[p] ?? _lightSingle;
   } else {
     fn = _defaultScore;
   }

@@ -13,10 +13,10 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 
 void main() {
   group('specificity score', () {
-    final PlatformPredicate empty = new PlatformPredicate.parse('');
-    final PlatformPredicate flutter = new PlatformPredicate.parse('flutter');
-    final PlatformPredicate web = new PlatformPredicate.parse('web');
-    final PlatformPredicate other = new PlatformPredicate.parse('other');
+    final String empty = null;
+    final String flutter = 'flutter';
+    final String web = 'web';
+    final String other = 'other';
 
     test('empty or null values', () {
       expect(scorePlatformSpecificity(null, empty), 1.0);

@@ -758,15 +758,12 @@ class TemplateService {
     SearchQuery searchQuery,
     bool isLanding: false,
   }) {
-    final String currentPlatform =
-        platform ?? searchQuery?.platformPredicate?.single;
+    final String currentPlatform = platform ?? searchQuery?.platform;
     Map platformTabData(String tabText, String tabPlatform) {
       String url;
       if (searchQuery != null) {
         final newQuery = searchQuery.change(
-            platformPredicate: tabPlatform == null
-                ? new PlatformPredicate()
-                : new PlatformPredicate(required: [tabPlatform]));
+            platform: tabPlatform == null ? '' : tabPlatform);
         url = newQuery.toSearchLink();
       } else {
         final List<String> pathParts = [''];

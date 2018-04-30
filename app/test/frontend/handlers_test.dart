@@ -41,7 +41,7 @@ void main() {
           expect(query.order, isNull);
           expect(query.offset, 0);
           expect(query.limit, 15);
-          expect(query.platformPredicate, isNull);
+          expect(query.platform, isNull);
           expect(query.query, isNull);
           return new SearchResultPage(
             query,
@@ -59,7 +59,7 @@ void main() {
           expect(query.order, isNull);
           expect(query.offset, 0);
           expect(query.limit, 15);
-          expect(query.platformPredicate, isNull);
+          expect(query.platform, isNull);
           expect(query.query, isNull);
           return new SearchResultPage(
             query,
@@ -84,7 +84,7 @@ void main() {
           (SearchQuery query) {
             expect(query.offset, 0);
             expect(query.limit, PageSize);
-            expect(query.platformPredicate, isNull);
+            expect(query.platform, isNull);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -114,7 +114,7 @@ void main() {
             expect(query.query, 'foobar');
             expect(query.offset, 0);
             expect(query.limit, PageSize);
-            expect(query.platformPredicate, isNull);
+            expect(query.platform, isNull);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -143,7 +143,7 @@ void main() {
           (SearchQuery query) {
             expect(query.offset, 10);
             expect(query.limit, PageSize);
-            expect(query.platformPredicate, isNull);
+            expect(query.platform, isNull);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -271,7 +271,7 @@ void main() {
           expect(query.order, isNull);
           expect(query.offset, 0);
           expect(query.limit, 15);
-          expect(query.platformPredicate.single, 'flutter');
+          expect(query.platform, 'flutter');
           expect(query.query, isNull);
           return new SearchResultPage(
             query,
@@ -301,8 +301,7 @@ void main() {
           (SearchQuery query) {
             expect(query.offset, 0);
             expect(query.limit, PageSize);
-            expect(query.platformPredicate.isNotEmpty, isTrue);
-            expect(query.platformPredicate.single, 'flutter');
+            expect(query.platform, 'flutter');
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -331,8 +330,7 @@ void main() {
           (SearchQuery query) {
             expect(query.offset, 10);
             expect(query.limit, PageSize);
-            expect(query.platformPredicate.isNotEmpty, isTrue);
-            expect(query.platformPredicate.single, 'flutter');
+            expect(query.platform, 'flutter');
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
