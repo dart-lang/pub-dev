@@ -161,9 +161,9 @@ class DartdocJobProcessor extends JobProcessor {
     final canonicalVersion = job.isLatestStable ? 'latest' : job.packageVersion;
     final canonicalUrl = pkgDocUrl(job.packageName,
         version: canonicalVersion, includeHost: true, omitTrailingSlash: true);
-    final pr = await runProc(
-      'pub',
-      [
+
+    Future<ProcessResult> runDartdoc(bool validateLinks) {
+      final args = [
         'global',
         'run',
         'dartdoc',
@@ -175,10 +175,23 @@ class DartdocJobProcessor extends JobProcessor {
         canonicalUrl,
         '--exclude',
         _excludedLibraries.join(','),
-      ],
-      workingDirectory: pkgPath,
-      timeout: _dartdocTimeout,
-    );
+      ];
+      if (!validateLinks) {
+        args.add('--no-validate-links');
+      }
+      return runProc(
+        'pub',
+        args,
+        workingDirectory: pkgPath,
+        timeout: _dartdocTimeout,
+      );
+    }
+
+    var pr = await runDartdoc(true);
+    if (pr.exitCode == -15) {
+      pr = await runDartdoc(false);
+    }
+
     _appendLog(logFileOutput, pr);
 
     if (pr.exitCode != 0) {
