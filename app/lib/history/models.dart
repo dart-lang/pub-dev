@@ -45,12 +45,14 @@ class History extends db.ExpandoModel implements HistoryData {
   factory History.package({
     @required String packageName,
     String packageVersion,
+    DateTime timestamp,
     @required String source,
     @required HistoryEvent event,
   }) =>
       new History._(
         packageName: packageName,
         packageVersion: packageVersion,
+        timestamp: timestamp,
         source: source,
         scope: HistoryScope.package,
         eventType: event.getType(),
@@ -60,12 +62,14 @@ class History extends db.ExpandoModel implements HistoryData {
   factory History.version({
     @required String packageName,
     @required String packageVersion,
+    DateTime timestamp,
     @required String source,
     @required HistoryEvent event,
   }) =>
       new History._(
         packageName: packageName,
         packageVersion: packageVersion,
+        timestamp: timestamp,
         source: source,
         scope: HistoryScope.version,
         eventType: event.getType(),
@@ -128,8 +132,29 @@ abstract class HistoryEvent {
 typedef HistoryEvent HistoryEventFromJson(Map<String, dynamic> json);
 
 final _eventDeserializers = <String, HistoryEventFromJson>{
+  PackageVersionUploaded._type: _$PackageVersionUploadedFromJson,
   AnalysisCompleted._type: _$AnalysisCompletedFromJson,
 };
+
+@JsonSerializable()
+class PackageVersionUploaded extends Object
+    with _$PackageVersionUploadedSerializerMixin
+    implements HistoryEvent {
+  static const _type = 'package-version-uploaded';
+
+  @override
+  final String uploaderEmail;
+
+  PackageVersionUploaded({@required this.uploaderEmail});
+
+  @override
+  String getType() => _type;
+
+  @override
+  String formatMarkdown(HistoryData data) {
+    return 'Version ${data.packageVersion} was uploaded by `$uploaderEmail`.';
+  }
+}
 
 @JsonSerializable()
 class AnalysisCompleted extends Object

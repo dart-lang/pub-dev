@@ -655,11 +655,14 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
 /// Handles requests for /api/history
 /// NOTE: Experimental, do not rely on it.
 Future<shelf.Response> _apiHistoryHandler(shelf.Request request) async {
-  final list = await historyBackend.latest(
-    scope: request.requestedUri.queryParameters['scope'],
-    packageName: request.requestedUri.queryParameters['package'],
-    packageVersion: request.requestedUri.queryParameters['version'],
-  );
+  final list = await historyBackend
+      .getAll(
+        scope: request.requestedUri.queryParameters['scope'],
+        packageName: request.requestedUri.queryParameters['package'],
+        packageVersion: request.requestedUri.queryParameters['version'],
+        limit: 25,
+      )
+      .toList();
   return jsonResponse({
     'results': list
         .map((h) => {
