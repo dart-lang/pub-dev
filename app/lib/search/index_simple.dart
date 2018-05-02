@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
@@ -23,6 +24,7 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
+  final bool enableApiIndex;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final Map<String, String> _normalizedPackageText = <String, String>{};
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
@@ -32,6 +34,10 @@ class SimplePackageIndex implements PackageIndex {
   final StringInternPool _internPool = new StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
+
+  SimplePackageIndex({bool enableApiIndex})
+      : this.enableApiIndex =
+            enableApiIndex ?? Platform.environment['SEARCH_API_INDEX'] == '1';
 
   @override
   bool get isReady => _isReady;
@@ -74,9 +80,11 @@ class SimplePackageIndex implements PackageIndex {
     _nameIndex.add(doc.package, doc.package);
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
-    for (ApiDocPage page in doc.apiDocPages ?? const []) {
-      _apiDocIndex.add(
-          _apiDocPageId(doc.package, page), page.symbols?.join(' '));
+    if (enableApiIndex) {
+      for (ApiDocPage page in doc.apiDocPages ?? const []) {
+        _apiDocIndex.add(
+            _apiDocPageId(doc.package, page), page.symbols?.join(' '));
+      }
     }
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
