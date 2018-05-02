@@ -450,7 +450,6 @@ class TemplateService {
     final executables = selectedVersion.pubspec.executables?.keys?.toList();
     executables?.sort();
     final hasExecutables = executables != null && executables.isNotEmpty;
-    final onlyGlobalInstall = hasExecutables && importExamples.isEmpty;
 
     final exampleVersionConstraint = '"^${selectedVersion.version}"';
 
@@ -474,6 +473,8 @@ class TemplateService {
     }
 
     return _renderTemplate('pkg/install_tab', {
+      'use_as_an_executable': hasExecutables,
+      'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
       'package': package.name,
       'example_version_constraint': exampleVersionConstraint,
       'has_libraries': importExamples.isNotEmpty,
@@ -482,7 +483,6 @@ class TemplateService {
       'use_flutter_packages_get': useFlutterPackagesGet,
       'show_editor_support': usePubGet || useFlutterPackagesGet,
       'editor_supported_tool_html': editorSupportedToolHtml,
-      'only_global_install': onlyGlobalInstall,
       'executables': executables,
     });
   }
