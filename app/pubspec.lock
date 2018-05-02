@@ -42,7 +42,7 @@ packages:
       name: args
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.2"
+    version: "1.4.3"
   async:
     dependency: transitive
     description:
@@ -56,7 +56,7 @@ packages:
       name: barback
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.15.2+15"
+    version: "0.15.2+16"
   boolean_selector:
     dependency: transitive
     description:
@@ -70,7 +70,7 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.2"
+    version: "0.12.5"
   build_config:
     dependency: transitive
     description:
@@ -154,7 +154,7 @@ packages:
       name: csslib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.1"
+    version: "0.14.2"
   dart_style:
     dependency: transitive
     description:
@@ -217,7 +217,7 @@ packages:
       name: graphs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"
   html:
     dependency: "direct main"
     description:
@@ -371,7 +371,7 @@ packages:
       name: node_preamble
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.1"
   package_config:
     dependency: transitive
     description:
@@ -490,7 +490,7 @@ packages:
       name: source_maps
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.4"
+    version: "0.10.5"
   source_span:
     dependency: transitive
     description:
@@ -583,4 +583,4 @@ packages:
     source: hosted
     version: "2.1.13"
 sdks:
-  dart: ">=2.0.0-dev.40.0 <=2.0.0-dev.49.0"
+  dart: ">=2.0.0-dev.40.0 <=2.0.0-dev.52.0"
