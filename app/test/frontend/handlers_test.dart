@@ -33,6 +33,7 @@ void tScopedTest(String name, Future func()) {
 
 void main() {
   final PageSize = 10;
+  final topQueryLimit = 15 + 1; // one blacklisted library
 
   group('handlers', () {
     group('not found', () {
@@ -40,7 +41,7 @@ void main() {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.order, isNull);
           expect(query.offset, 0);
-          expect(query.limit, 15);
+          expect(query.limit, topQueryLimit);
           expect(query.platform, isNull);
           expect(query.query, isNull);
           return new SearchResultPage(
@@ -58,7 +59,7 @@ void main() {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.order, isNull);
           expect(query.offset, 0);
-          expect(query.limit, 15);
+          expect(query.limit, topQueryLimit);
           expect(query.platform, isNull);
           expect(query.query, isNull);
           return new SearchResultPage(
@@ -270,7 +271,7 @@ void main() {
         registerSearchService(new SearchServiceMock((SearchQuery query) {
           expect(query.order, isNull);
           expect(query.offset, 0);
-          expect(query.limit, 15);
+          expect(query.limit, topQueryLimit);
           expect(query.platform, 'flutter');
           expect(query.query, isNull);
           return new SearchResultPage(
