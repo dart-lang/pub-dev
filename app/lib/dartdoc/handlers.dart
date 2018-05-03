@@ -68,12 +68,23 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
     return redirectResponse('${request.requestedUri}/');
   }
   final String requestMethod = request.method?.toUpperCase();
-  if (requestMethod == 'GET') {
-    final entry = await dartdocBackend.getLatestEntry(
-        docFilePath.package, effectiveVersion, true);
-    if (entry == null) {
+  final entry = await dartdocBackend.getLatestEntry(
+      docFilePath.package, effectiveVersion, true);
+  if (entry == null) {
+    return notFoundHandler(request);
+  }
+  if (requestMethod == 'HEAD') {
+    if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
       return notFoundHandler(request);
     }
+    final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
+    if (info == null) {
+      return notFoundHandler(request);
+    }
+    // TODO: add content-length header too
+    return htmlResponse('');
+  }
+  if (requestMethod == 'GET') {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
       return redirectResponse(pkgVersionsUrl(docFilePath.package));
     }
