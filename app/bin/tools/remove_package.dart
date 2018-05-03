@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
+import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -82,7 +83,29 @@ Future removePackage(String packageName) async {
 
     final deletes = versions.map((v) => v.key).toList();
     deletes.add(packageKey);
+
+    final packageAnalysisKey =
+        dbService.emptyKey.append(PackageAnalysis, id: packageName);
+    final packageAnalysis = (await T.lookup([packageAnalysisKey])).first;
+    if (packageAnalysis == null) {
+      print('Analysis for $packageName does not exist?');
+    }
+    final pvaQuery = T.query(PackageVersionAnalysis, packageAnalysisKey);
+    final List<PackageVersionAnalysis> pvas = await pvaQuery.run().toList();
+
+    deletes.add(packageAnalysisKey);
+    deletes.addAll(pvas.map((v) => v.key));
+
+    for (final pva in pvas) {
+      final analysisQuery = T.query(Analysis,
+          packageAnalysisKey.append(PackageVersionAnalysis, id: pva.id));
+      final List<Analysis> as = await analysisQuery.run().toList();
+      deletes.addAll(as.map((a) => a.key));
+    }
+
     T.queueMutations(deletes: deletes);
+
+    // TODO: Remove Jobs
 
     print('Committing changes to DB ...');
     await T.commit();
@@ -92,6 +115,8 @@ Future removePackage(String packageName) async {
     print('Removing GCS objects ...');
     await Future.wait(versionNames
         .map((version) => storage.remove(packageName, version.toString())));
+
+    // TODO: Remove dartdoc
 
     print('Package "$packageName" got successfully removed.');
     print('WARNING: Please remember to clear the AppEngine memcache!');
