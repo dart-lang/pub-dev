@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -13,34 +14,30 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 
+final _argParser = new ArgParser(allowTrailingOptions: true)
+  ..addOption('discontinued',
+      help: 'Set or clear the discontinued flag', allowed: ['set', 'clear']);
+
 void _printUsage() {
-  print('Usage:');
-  print('    ${Platform.script} read  <package>');
-  print('    ${Platform.script} set   <package>');
-  print('    ${Platform.script} clear <package>');
+  print(_argParser.usage);
 }
 
 Future main(List<String> arguments) async {
-  if (arguments.length != 2) {
+  final argv = _argParser.parse(arguments);
+  if (argv.rest.isEmpty) {
     _printUsage();
     exit(1);
   }
 
-  final String command = arguments[0];
-  final String package = arguments[1];
+  final String package = argv.rest.single;
+  final isRead = argv['discontinued'] == null;
 
   await withProdServices(() async {
-    if (command == 'read') {
+    if (isRead) {
       await _read(package);
-    } else if (command == 'set') {
-      await _set(package, true);
-      await _clearCaches(package);
-    } else if (command == 'clear') {
-      await _set(package, false);
-      await _clearCaches(package);
     } else {
-      _printUsage();
-      exit(1);
+      await _set(package, discontinued: argv['discontinued']);
+      await _clearCaches(package);
     }
     // TODO: figure out why the services do not exit.
     exit(0);
@@ -59,7 +56,7 @@ Future _read(String packageName) async {
   print('Package $packageName: $label');
 }
 
-Future _set(String packageName, bool value) {
+Future _set(String packageName, {String discontinued}) {
   return dbService.withTransaction((Transaction tx) async {
     final Package p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -67,10 +64,12 @@ Future _set(String packageName, bool value) {
     if (p == null) {
       throw new Exception('Package $packageName does not exist.');
     }
-    p.isDiscontinued = value;
+    if (discontinued != null) {
+      p.isDiscontinued = discontinued == 'set';
+    }
     tx.queueMutations(inserts: [p]);
     await tx.commit();
-    print('Package $packageName: isDiscontinued=$value');
+    print('Package $packageName: isDiscontinued=${p.isDiscontinued}');
     await new AnalyzerClient()
         .triggerAnalysis(packageName, p.latestVersion, new Set());
   });
