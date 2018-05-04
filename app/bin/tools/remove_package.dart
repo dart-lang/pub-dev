@@ -71,6 +71,10 @@ Future listPackage(String packageName) async {
 
 Future removePackage(String packageName) async {
   final deletes = <Key>[];
+  final jobQuery = dbService.query(Job)..filter('packageName =', packageName);
+  await for (Job job in jobQuery.run()) {
+    deletes.add(job.key);
+  }
   await dbService.withTransaction((Transaction T) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
@@ -105,8 +109,6 @@ Future removePackage(String packageName) async {
       deletes.addAll(as.map((a) => a.key));
     }
 
-    // TODO: Remove Jobs
-
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
     final storage = new TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
@@ -115,13 +117,13 @@ Future removePackage(String packageName) async {
 
     // TODO: Remove dartdoc
 
-    print('Package "$packageName" got successfully removed.');
-    print('WARNING: Please remember to clear the AppEngine memcache!');
-
     print('Committing changes to DB ...');
     T.queueMutations(deletes: deletes);
     await T.commit();
   });
+
+  print('Package "$packageName" got successfully removed.');
+  print('WARNING: Please remember to clear the AppEngine memcache!');
 }
 
 Future removePackageVersion(String packageName, String version) async {
