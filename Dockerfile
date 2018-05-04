@@ -28,6 +28,9 @@ RUN pub get --offline --no-precompile
 #ADD key.json /project/key.json
 #ENV GCLOUD_KEY /project/key.json
 #ENV GCLOUD_PROJECT dartlang-pub
+# Temporarily hard-code GAE memcache address (b/79106376).
+ENV GAE_MEMCACHE_HOST 35.190.255.1
+ENV GAE_MEMCACHE_PORT 11211
 
 # Clear out any arguments the base images might have set and ensure we start
 # memcached and wait for it to come up before running the Dart app.
