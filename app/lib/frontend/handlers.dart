@@ -185,12 +185,10 @@ Future<List<PackageView>> _topPackages({String platform, int count: 15}) async {
   // TODO: store top packages in memcache
   final result = await searchService.search(new SearchQuery.parse(
     platform: platform,
-    limit: count + blacklistedTopPackages.length,
+    limit: count,
+    isAd: true,
   ));
-  return result.packages
-      .where((pv) => !blacklistedTopPackages.contains(pv.name))
-      .take(count)
-      .toList();
+  return result.packages.take(count).toList();
 }
 
 /// Handles requests for /help

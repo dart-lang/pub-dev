@@ -170,6 +170,14 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on ad
+    if (query.isAd ?? false) {
+      packages.removeWhere((package) {
+        final doc = _packages[package];
+        return doc.doNotAdvertise ?? false;
+      });
+    }
+
     // do text matching
     final Score textScore = _searchText(packages, query.parsedQuery.text);
 

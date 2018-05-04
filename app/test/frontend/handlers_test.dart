@@ -33,7 +33,7 @@ void tScopedTest(String name, Future func()) {
 
 void main() {
   final PageSize = 10;
-  final topQueryLimit = 15 + 1; // one blacklisted library
+  final topQueryLimit = 15;
 
   group('handlers', () {
     group('not found', () {
@@ -44,6 +44,7 @@ void main() {
           expect(query.limit, topQueryLimit);
           expect(query.platform, isNull);
           expect(query.query, isNull);
+          expect(query.isAd, isTrue);
           return new SearchResultPage(
             query,
             1,
@@ -62,6 +63,7 @@ void main() {
           expect(query.limit, topQueryLimit);
           expect(query.platform, isNull);
           expect(query.query, isNull);
+          expect(query.isAd, isTrue);
           return new SearchResultPage(
             query,
             1,
@@ -86,6 +88,7 @@ void main() {
             expect(query.offset, 0);
             expect(query.limit, PageSize);
             expect(query.platform, isNull);
+            expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -116,6 +119,7 @@ void main() {
             expect(query.offset, 0);
             expect(query.limit, PageSize);
             expect(query.platform, isNull);
+            expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -145,6 +149,7 @@ void main() {
             expect(query.offset, 10);
             expect(query.limit, PageSize);
             expect(query.platform, isNull);
+            expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -274,6 +279,7 @@ void main() {
           expect(query.limit, topQueryLimit);
           expect(query.platform, 'flutter');
           expect(query.query, isNull);
+          expect(query.isAd, isTrue);
           return new SearchResultPage(
             query,
             1,
@@ -303,6 +309,7 @@ void main() {
             expect(query.offset, 0);
             expect(query.limit, PageSize);
             expect(query.platform, 'flutter');
+            expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,
@@ -332,6 +339,7 @@ void main() {
             expect(query.offset, 10);
             expect(query.limit, PageSize);
             expect(query.platform, 'flutter');
+            expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
               new PackageView.fromModel(
                   package: testPackage,

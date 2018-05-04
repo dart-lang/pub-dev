@@ -16,7 +16,10 @@ import 'package:pub_dartlang_org/shared/package_memcache.dart';
 
 final _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('discontinued',
-      help: 'Set or clear the discontinued flag', allowed: ['set', 'clear']);
+      help: 'Set or clear the discontinued flag', allowed: ['set', 'clear'])
+  ..addOption('do-not-advertise',
+      help: 'Set or clear the do-not-advertise flag',
+      allowed: ['set', 'clear']);
 
 void _printUsage() {
   print(_argParser.usage);
@@ -36,7 +39,11 @@ Future main(List<String> arguments) async {
     if (isRead) {
       await _read(package);
     } else {
-      await _set(package, discontinued: argv['discontinued']);
+      await _set(
+        package,
+        discontinued: argv['discontinued'],
+        doNotAdvertise: argv['do-not-advertise'],
+      );
       await _clearCaches(package);
     }
     // TODO: figure out why the services do not exit.
@@ -51,12 +58,18 @@ Future _read(String packageName) async {
   if (p == null) {
     throw new Exception('Package $packageName does not exist.');
   }
-  final isDiscontinued = p.isDiscontinued ?? false;
-  final label = isDiscontinued ? 'discontinued' : '-';
+  final flags = <String>[];
+  if (p.isDiscontinued ?? false) {
+    flags.add('discontinued');
+  }
+  if (p.doNotAdvertise ?? false) {
+    flags.add('do-not-advertise');
+  }
+  final label = flags.isEmpty ? '-' : flags.join(', ');
   print('Package $packageName: $label');
 }
 
-Future _set(String packageName, {String discontinued}) {
+Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
   return dbService.withTransaction((Transaction tx) async {
     final Package p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -66,6 +79,9 @@ Future _set(String packageName, {String discontinued}) {
     }
     if (discontinued != null) {
       p.isDiscontinued = discontinued == 'set';
+    }
+    if (doNotAdvertise != null) {
+      p.doNotAdvertise = doNotAdvertise == 'set';
     }
     tx.queueMutations(inserts: [p]);
     await tx.commit();
