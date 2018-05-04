@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:stack_trace/stack_trace.dart';
 
 import '../frontend/service_utils.dart';
 import '../frontend/templates.dart';
@@ -41,7 +42,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     try {
       return await handler(request);
     } catch (error, st) {
-      logger.severe('Request handler failed', error, st);
+      logger.severe('Request handler failed', error, new Trace.from(st));
 
       final title = 'Pub is not feeling well';
       Map<String, String> debugHeaders;
