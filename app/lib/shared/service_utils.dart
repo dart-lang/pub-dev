@@ -10,6 +10,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'configuration.dart';
 import 'scheduler_stats.dart';
@@ -70,11 +71,14 @@ Future startIsolates({
     final ReceivePort errorReceivePort = new ReceivePort();
     final ReceivePort protocolReceivePort = new ReceivePort();
     await Isolate.spawn(
-      frontendEntryPoint,
-      new FrontendEntryMessage(
-        frontendIndex: frontendIndex,
-        protocolSendPort: protocolReceivePort.sendPort,
-      ),
+      _wrapper,
+      [
+        frontendEntryPoint,
+        new FrontendEntryMessage(
+          frontendIndex: frontendIndex,
+          protocolSendPort: protocolReceivePort.sendPort,
+        ),
+      ],
       onError: errorReceivePort.sendPort,
       onExit: errorReceivePort.sendPort,
       errorsAreFatal: true,
@@ -114,12 +118,15 @@ Future startIsolates({
     final ReceivePort protocolReceivePort = new ReceivePort();
     final ReceivePort statsReceivePort = new ReceivePort();
     await Isolate.spawn(
-      workerEntryPoint,
-      new WorkerEntryMessage(
-        workerIndex: workerIndex,
-        protocolSendPort: protocolReceivePort.sendPort,
-        statsSendPort: statsReceivePort.sendPort,
-      ),
+      _wrapper,
+      [
+        workerEntryPoint,
+        new WorkerEntryMessage(
+          workerIndex: workerIndex,
+          protocolSendPort: protocolReceivePort.sendPort,
+          statsSendPort: statsReceivePort.sendPort,
+        ),
+      ],
       onError: errorReceivePort.sendPort,
       onExit: errorReceivePort.sendPort,
       errorsAreFatal: true,
@@ -194,6 +201,12 @@ Future initFlutterSdk(Logger logger) async {
       }
     }
   }
+}
+
+void _wrapper(List fnAndMessage) {
+  final fn = fnAndMessage[0];
+  final message = fnAndMessage[1];
+  Chain.capture(() => fn(message));
 }
 
 Future initDartdoc(Logger logger) async {
