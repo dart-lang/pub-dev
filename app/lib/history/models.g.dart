@@ -22,6 +22,37 @@ abstract class _$PackageVersionUploadedSerializerMixin {
       <String, dynamic>{'uploaderEmail': uploaderEmail};
 }
 
+UploaderChanged _$UploaderChangedFromJson(Map<String, dynamic> json) =>
+    new UploaderChanged(
+        currentUserEmail: json['currentUserEmail'] as String,
+        addedUploaderEmails: (json['addedUploaderEmails'] as List)
+            ?.map((e) => e as String)
+            ?.toList(),
+        removedUploaderEmails: (json['removedUploaderEmails'] as List)
+            ?.map((e) => e as String)
+            ?.toList());
+
+abstract class _$UploaderChangedSerializerMixin {
+  String get currentUserEmail;
+  List<String> get addedUploaderEmails;
+  List<String> get removedUploaderEmails;
+  Map<String, dynamic> toJson() {
+    var val = <String, dynamic>{
+      'currentUserEmail': currentUserEmail,
+    };
+
+    void writeNotNull(String key, dynamic value) {
+      if (value != null) {
+        val[key] = value;
+      }
+    }
+
+    writeNotNull('addedUploaderEmails', addedUploaderEmails);
+    writeNotNull('removedUploaderEmails', removedUploaderEmails);
+    return val;
+  }
+}
+
 AnalysisCompleted _$AnalysisCompletedFromJson(Map<String, dynamic> json) =>
     new AnalysisCompleted(
         hasErrors: json['hasErrors'] as bool,

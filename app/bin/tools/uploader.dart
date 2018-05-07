@@ -10,6 +10,8 @@ import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/history/backend.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 
 Future main(List<String> arguments) async {
@@ -28,6 +30,7 @@ Future main(List<String> arguments) async {
   final String uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withProdServices(() async {
+    registerHistoryBackend(new HistoryBackend(dbService));
     if (command == 'list') {
       await listUploaders(package);
     } else if (command == 'add') {
@@ -73,6 +76,15 @@ Future addUploader(String packageName, String uploader) async {
     T.queueMutations(inserts: [package]);
     await T.commit();
     print('Uploader $uploader added to list of uploaders');
+
+    historyBackend.store(new History.package(
+      packageName: packageName,
+      source: HistorySource.account,
+      event: new UploaderChanged(
+        currentUserEmail: null, // TODO: get system account's email
+        addedUploaderEmails: [uploader],
+      ),
+    ));
   });
 }
 
@@ -96,6 +108,15 @@ Future removeUploader(String packageName, String uploader) async {
     T.queueMutations(inserts: [package]);
     await T.commit();
     print('Uploader $uploader removed from list of uploaders');
+
+    historyBackend.store(new History.package(
+      packageName: packageName,
+      source: HistorySource.account,
+      event: new UploaderChanged(
+        currentUserEmail: null, // TODO: get system account's email
+        removedUploaderEmails: [uploader],
+      ),
+    ));
   });
 }
 
