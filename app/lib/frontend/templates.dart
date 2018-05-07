@@ -973,7 +973,7 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     'dateModified': pv.created.toIso8601String(),
     'programmingLanguage': 'Dart',
     'image':
-        '${urls.siteRoot}${staticUrls.staticPath}/img/dart-logo-400x400.png'
+        '${urls.siteRoot}${staticUrls.staticPath}/img/dart-logo-128x128.png'
   };
   final licenses = analysis?.licenses;
   final firstUrl =
@@ -1014,3 +1014,5 @@ String _attr(String value) {
   if (value == null) return null;
   return _attrEscaper.convert(value);
 }
+
+// TODO: remove static/img/dart-logo-400x400.png after 2018/M7 release
