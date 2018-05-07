@@ -27,9 +27,13 @@ String pkgDocUrl(
   bool includeHost: false,
   String relativePath,
   bool omitTrailingSlash: false,
+  bool isLatest: false,
 }) {
   String url = includeHost ? siteRoot : '';
   url += '/documentation/$package';
+  if (isLatest) {
+    version = 'latest';
+  }
   if (version != null) {
     url += '/$version';
   }

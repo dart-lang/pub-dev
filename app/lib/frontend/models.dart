@@ -11,7 +11,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/analyzer_service.dart' show AnalysisExtract, AnalysisStatus;
 import '../shared/model_properties.dart';
-import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
@@ -194,9 +193,6 @@ class PackageVersion extends db.ExpandoModel {
   String get shortCreated {
     return shortDateFormat.format(created);
   }
-
-  String get dartdocsUrl =>
-      urls.pkgDocUrl(package, version: version, includeHost: true);
 
   String get documentation {
     return pubspec.documentation;

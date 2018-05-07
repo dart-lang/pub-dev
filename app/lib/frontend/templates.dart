@@ -100,7 +100,8 @@ class TemplateService {
       'version': version.version,
       'version_url': urls.pkgPageUrl(version.package, version: version.version),
       'short_created': version.shortCreated,
-      'dartdocs_url': _attr(version.dartdocsUrl),
+      'dartdocs_url':
+          _attr(urls.pkgDocUrl(version.package, version: version.version)),
       'download_url': _attr(downloadUrl),
       'icons': staticUrls.versionsTableIcons,
     };
@@ -372,7 +373,11 @@ class TemplateService {
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
         'homepage': selectedVersion.homepage,
         'documentation': documentationUrl,
-        'dartdocs_url': selectedVersion.dartdocsUrl,
+        'dartdocs_url': urls.pkgDocUrl(
+          package.name,
+          version: selectedVersion.version,
+          isLatest: selectedVersion.version == package.latestVersion,
+        ),
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
