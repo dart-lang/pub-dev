@@ -7,14 +7,15 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
-import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
 
+import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/job/model.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -69,20 +70,25 @@ Future listPackage(String packageName) async {
 }
 
 Future removePackage(String packageName) async {
-  return dbService.withTransaction((Transaction T) async {
+  final deletes = <Key>[];
+  final jobQuery = dbService.query(Job)..filter('packageName =', packageName);
+  await for (Job job in jobQuery.run()) {
+    deletes.add(job.key);
+  }
+  await dbService.withTransaction((Transaction T) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
-      throw new Exception("Package $packageName does not exist.");
+      print('Package $packageName does not exists.');
+    } else {
+      deletes.add(packageKey);
     }
 
     final versionsQuery = T.query(PackageVersion, packageKey);
     final List<PackageVersion> versions = await versionsQuery.run().toList();
     final List<Version> versionNames =
         versions.map((v) => v.semanticVersion).toList();
-
-    final deletes = versions.map((v) => v.key).toList();
-    deletes.add(packageKey);
+    deletes.addAll(versions.map((v) => v.key));
 
     final packageAnalysisKey =
         dbService.emptyKey.append(PackageAnalysis, id: packageName);
@@ -103,13 +109,6 @@ Future removePackage(String packageName) async {
       deletes.addAll(as.map((a) => a.key));
     }
 
-    T.queueMutations(deletes: deletes);
-
-    // TODO: Remove Jobs
-
-    print('Committing changes to DB ...');
-    await T.commit();
-
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
     final storage = new TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
@@ -118,9 +117,13 @@ Future removePackage(String packageName) async {
 
     // TODO: Remove dartdoc
 
-    print('Package "$packageName" got successfully removed.');
-    print('WARNING: Please remember to clear the AppEngine memcache!');
+    print('Committing changes to DB ...');
+    T.queueMutations(deletes: deletes);
+    await T.commit();
   });
+
+  print('Package "$packageName" got successfully removed.');
+  print('WARNING: Please remember to clear the AppEngine memcache!');
 }
 
 Future removePackageVersion(String packageName, String version) async {
