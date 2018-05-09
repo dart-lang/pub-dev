@@ -81,13 +81,20 @@ class DatastoreHeadTaskSource implements TaskSource {
       q.filter('$field >=', _lastTs);
     }
     int count = 0;
+    Timer timer;
     await for (M model in q.run()) {
+      timer?.cancel();
+      timer = new Timer(const Duration(minutes: 5), () {
+        _logger.warning(
+            'More than 5 minutes elapsed between poll stream entries.');
+      });
       final Task task = modelToTask(model);
       if (await shouldYieldTask(task)) {
         count++;
         yield task;
       }
     }
+    timer?.cancel();
     await dbScanComplete(count);
   }
 
