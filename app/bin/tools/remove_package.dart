@@ -15,6 +15,7 @@ import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/model.dart';
 
 Future main(List<String> arguments) async {
@@ -71,10 +72,18 @@ Future listPackage(String packageName) async {
 
 Future removePackage(String packageName) async {
   final deletes = <Key>[];
+
   final jobQuery = dbService.query(Job)..filter('packageName =', packageName);
   await for (Job job in jobQuery.run()) {
     deletes.add(job.key);
   }
+
+  final historyQuery = dbService.query(History)
+    ..filter('packageName =', packageName);
+  await for (History history in historyQuery.run()) {
+    deletes.add(history.key);
+  }
+
   await dbService.withTransaction((Transaction T) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
