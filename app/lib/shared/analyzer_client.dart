@@ -199,10 +199,10 @@ class AnalysisView {
   DateTime get timestamp => _data.timestamp;
   AnalysisStatus get analysisStatus => _data?.analysisStatus;
 
-  String get dartSdkVersion => _summary?.sdkVersion?.toString();
+  String get dartSdkVersion => _summary?.runtimeInfo?.sdkVersion;
   String get panaVersion => _data?.panaVersion;
   String get flutterVersion =>
-      _summary?.flutterVersion != null ? _data.flutterVersion : null;
+      (_summary?.pubspec?.usesFlutter ?? false) ? _data.flutterVersion : null;
 
   List<String> get platforms => indexDartPlatform(_summary?.platform);
   String get platformsReason => _summary?.platform?.reason;
