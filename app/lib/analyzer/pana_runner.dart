@@ -73,7 +73,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           version: job.packageVersion,
           keepTransitiveLibs: false,
           logger: new Logger.detached(
-              'pana/${job.packageVersion}/${job.packageVersion}'),
+              'pana/${job.packageName}/${job.packageVersion}'),
         );
       } catch (e, st) {
         _logger.severe(
