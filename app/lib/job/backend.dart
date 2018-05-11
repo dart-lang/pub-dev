@@ -68,9 +68,15 @@ class JobBackend {
             current.runtimeVersion == versions.runtimeVersion;
         if (hasNotChanged) {
           if (!shouldProcess) {
-            // no reason to re-schedule to job
+            // no reason to re-schedule the job
             return;
-          } else if (current.errorCount > 0) {
+          }
+          if (current.state == JobState.available &&
+              current.lockedUntil == null) {
+            // already scheduled for processing
+            return;
+          }
+          if (current.errorCount > 0) {
             // prevent untimely re-try of a failed job
             return;
           }
