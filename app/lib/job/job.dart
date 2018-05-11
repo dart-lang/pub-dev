@@ -13,7 +13,6 @@ import 'package:pool/pool.dart';
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
-import '../shared/utils.dart' show randomizeStream;
 
 import 'backend.dart';
 import 'model.dart';
@@ -153,8 +152,8 @@ class JobMaintenance {
     await pool.close();
 
     pool = new Pool(4);
-    final stream = randomizeStream(_db.query(PackageVersion).run());
-    await for (PackageVersion pv in stream) {
+    final query = _db.query(PackageVersion)..order('-created');
+    await for (PackageVersion pv in query.run()) {
       pool.withResource(() => updateJob(pv, true));
     }
     await pool.close();
