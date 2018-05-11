@@ -11,7 +11,6 @@ import '../analyzer/models.dart';
 import '../frontend/models.dart';
 
 import 'task_scheduler.dart';
-import 'utils.dart';
 
 final Logger _logger = new Logger('pub.shared.task_sources');
 
@@ -111,7 +110,7 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
       {bool retryFailed: false});
 
   @override
-  Stream<Task> startStreaming() => randomizeStream(_startStreaming());
+  Stream<Task> startStreaming() => _startStreaming();
 
   Stream<Task> _startStreaming() async* {
     for (;;) {

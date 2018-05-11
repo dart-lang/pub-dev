@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/storage.dart';
@@ -18,7 +17,6 @@ import 'package:logging/logging.dart';
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:stream_transform/stream_transform.dart';
 
 export 'package:pana/src/maintenance.dart' show exampleFileCandidates;
 
@@ -227,37 +225,6 @@ void validatePackageName(String name) {
     throw new Exception(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
-}
-
-List<List<T>> _sliceList<T>(List<T> list, int limit) {
-  if (list.length <= limit) return [list];
-  final int maxPageIndex = (list.length - 1) ~/ limit;
-  return new List.generate(maxPageIndex + 1,
-      (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
-}
-
-/// Buffers for [duration] and then randomizes the order of the items in the
-/// stream. For every single item, their final position would be in the range of
-/// [maxPositionDiff] of its original position.
-Stream<T> randomizeStream<T>(
-  Stream<T> stream, {
-  Duration duration: const Duration(minutes: 1),
-  int maxPositionDiff: 1000,
-  Random random,
-}) {
-  random ??= new Random.secure();
-  final Stream trigger = new Stream.periodic(duration);
-  final Stream<List<T>> bufferedStream = buffer(trigger).bind(stream);
-  return bufferedStream.transform(new StreamTransformer.fromHandlers(
-    handleData: (List<T> items, Sink<T> sink) {
-      for (List<T> list in _sliceList(items, maxPositionDiff)) {
-        list.shuffle(random);
-        for (T task in list) {
-          sink.add(task);
-        }
-      }
-    },
-  ));
 }
 
 class LastNTracker<T extends Comparable<T>> {
