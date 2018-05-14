@@ -14,6 +14,8 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
+import '../history/backend.dart';
+import '../history/models.dart';
 import '../shared/name_tracker.dart';
 import '../shared/package_memcache.dart';
 import '../shared/urls.dart' as urls;
@@ -455,6 +457,15 @@ class GCloudPackageRepository extends PackageRepository {
         if (cache != null) {
           await cache.invalidateUIPackagePage(package.name);
         }
+
+        historyBackend.store(new History.package(
+          packageName: packageName,
+          source: HistorySource.account,
+          event: new UploaderChanged(
+            currentUserEmail: userEmail,
+            addedUploaderEmails: [uploaderEmail],
+          ),
+        ));
       });
     });
   }
@@ -500,6 +511,15 @@ class GCloudPackageRepository extends PackageRepository {
         if (cache != null) {
           await cache.invalidateUIPackagePage(package.name);
         }
+
+        historyBackend.store(new History.package(
+          packageName: packageName,
+          source: HistorySource.account,
+          event: new UploaderChanged(
+            currentUserEmail: userEmail,
+            removedUploaderEmails: [uploaderEmail],
+          ),
+        ));
       });
     });
   }

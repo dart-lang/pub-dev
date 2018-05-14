@@ -133,6 +133,7 @@ typedef HistoryEvent HistoryEventFromJson(Map<String, dynamic> json);
 
 final _eventDeserializers = <String, HistoryEventFromJson>{
   PackageVersionUploaded._type: _$PackageVersionUploadedFromJson,
+  UploaderChanged._type: _$UploaderChangedFromJson,
   AnalysisCompleted._type: _$AnalysisCompletedFromJson,
 };
 
@@ -153,6 +154,51 @@ class PackageVersionUploaded extends Object
   @override
   String formatMarkdown(HistoryData data) {
     return 'Version ${data.packageVersion} was uploaded by `$uploaderEmail`.';
+  }
+}
+
+@JsonSerializable()
+class UploaderChanged extends Object
+    with _$UploaderChangedSerializerMixin
+    implements HistoryEvent {
+  static const _type = 'uploader-changed';
+
+  @JsonKey(includeIfNull: false)
+  @override
+  final String currentUserEmail;
+
+  @JsonKey(includeIfNull: false)
+  @override
+  final List<String> addedUploaderEmails;
+
+  @JsonKey(includeIfNull: false)
+  @override
+  final List<String> removedUploaderEmails;
+
+  UploaderChanged({
+    @required this.currentUserEmail,
+    this.addedUploaderEmails,
+    this.removedUploaderEmails,
+  });
+
+  @override
+  String getType() => _type;
+
+  @override
+  String formatMarkdown(HistoryData data) {
+    final changes = <String>[];
+    if (addedUploaderEmails != null && addedUploaderEmails.isNotEmpty) {
+      final emails = addedUploaderEmails.map((e) => '`$e`').join(', ');
+      changes.add('added $emails');
+    }
+    if (removedUploaderEmails != null && removedUploaderEmails.isNotEmpty) {
+      final emails = removedUploaderEmails.map((e) => '`$e`').join(', ');
+      changes.add('removed $emails');
+    }
+    final actor = (currentUserEmail != null && currentUserEmail.isNotEmpty)
+        ? currentUserEmail
+        : 'A site administrator';
+    return '$actor has changed uploaders: ${changes.join(' and ')}.';
   }
 }
 

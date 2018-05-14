@@ -15,6 +15,7 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
+import 'package:pub_dartlang_org/history/backend.dart';
 
 import '../shared/utils.dart';
 
@@ -339,6 +340,8 @@ void main() {
       });
 
       Future testSuccessful(user, uploaderEmails, newUploader) async {
+        final historyBackendMock = new HistoryBackendMock();
+        registerHistoryBackend(historyBackendMock);
         final completion = new TestDelayCompletion();
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
@@ -363,6 +366,7 @@ void main() {
         testPackage.uploaderEmails = uploaderEmails;
         registerLoggedInUser(user);
         await repo.addUploader(pkg, newUploader);
+        expect(historyBackendMock.storedHistories, hasLength(1));
       }
 
       test('successful', () async {
@@ -425,6 +429,8 @@ void main() {
       });
 
       scopedTest('successful', () async {
+        final historyBackendMock = new HistoryBackendMock();
+        registerHistoryBackend(historyBackendMock);
         final completion = new TestDelayCompletion();
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
@@ -446,6 +452,7 @@ void main() {
         testPackage.uploaderEmails = ['a@x.com', 'b@x.com'];
         registerLoggedInUser(testPackage.uploaderEmails.first);
         await repo.removeUploader(pkg, 'b@x.com');
+        expect(historyBackendMock.storedHistories, hasLength(1));
       });
     });
 

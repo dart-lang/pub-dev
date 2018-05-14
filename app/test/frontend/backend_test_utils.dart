@@ -9,10 +9,12 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart' as gdb;
 import 'package:gcloud/storage.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_server/repository.dart' show AsyncUploadInfo;
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
+import 'package:pub_dartlang_org/history/backend.dart';
 
 import 'utils.dart';
 
@@ -367,4 +369,19 @@ Future withTestPackage(Future func(List<int> tarball),
     if (exitCode != 0) throw 'Failed to make tarball of test package.';
     return func(bytes);
   });
+}
+
+class HistoryBackendMock implements HistoryBackend {
+  final storedHistories = <History>[];
+
+  @override
+  Stream<History> getAll(
+      {String scope, String packageName, String packageVersion, int limit}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future store(History history) {
+    storedHistories.add(history);
+  }
 }
