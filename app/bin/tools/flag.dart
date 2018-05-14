@@ -33,7 +33,9 @@ Future main(List<String> arguments) async {
   }
 
   final String package = argv.rest.single;
-  final isRead = argv['discontinued'] == null;
+  final discontinued = argv['discontinued'];
+  final doNotAdvertise = argv['do-not-advertise'];
+  final isRead = discontinued == null && doNotAdvertise == null;
 
   await withProdServices(() async {
     if (isRead) {
@@ -41,8 +43,8 @@ Future main(List<String> arguments) async {
     } else {
       await _set(
         package,
-        discontinued: argv['discontinued'],
-        doNotAdvertise: argv['do-not-advertise'],
+        discontinued: discontinued,
+        doNotAdvertise: doNotAdvertise,
       );
       await _clearCaches(package);
     }
@@ -85,7 +87,8 @@ Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
     }
     tx.queueMutations(inserts: [p]);
     await tx.commit();
-    print('Package $packageName: isDiscontinued=${p.isDiscontinued}');
+    print(
+        'Package $packageName: isDiscontinued=${p.isDiscontinued} doNotAdverise=${p.doNotAdvertise}');
     await new AnalyzerClient()
         .triggerAnalysis(packageName, p.latestVersion, new Set());
   });
