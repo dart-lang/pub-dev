@@ -52,6 +52,9 @@ class Package extends db.ExpandoModel {
   @db.BoolProperty()
   bool isDiscontinued;
 
+  @db.BoolProperty()
+  bool doNotAdvertise;
+
   // Convenience Fields:
 
   String get latestVersion => latestVersionKey.id;

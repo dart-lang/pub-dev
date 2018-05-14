@@ -43,6 +43,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
   final DateTime updated;
   final String readme;
   final bool isDiscontinued;
+  final bool doNotAdvertise;
 
   final List<String> platforms;
 
@@ -67,6 +68,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
     this.updated,
     this.readme,
     this.isDiscontinued,
+    this.doNotAdvertise,
     this.platforms,
     this.health,
     this.popularity,
@@ -201,6 +203,7 @@ class SearchQuery {
   final SearchOrder order;
   final int offset;
   final int limit;
+  final bool isAd;
 
   SearchQuery._({
     this.query,
@@ -208,6 +211,7 @@ class SearchQuery {
     this.order,
     this.offset,
     this.limit,
+    this.isAd,
   })  : parsedQuery = new ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform;
 
@@ -217,6 +221,7 @@ class SearchQuery {
     SearchOrder order,
     int offset: 0,
     int limit: 10,
+    bool isAd,
   }) {
     final String q =
         query != null && query.trim().isNotEmpty ? query.trim() : null;
@@ -226,6 +231,7 @@ class SearchQuery {
       order: order,
       offset: offset,
       limit: limit,
+      isAd: isAd ?? false,
     );
   }
 
@@ -236,11 +242,13 @@ class SearchQuery {
     final String orderValue = uri.queryParameters['order'];
     final SearchOrder order =
         orderValue == null ? null : parseSearchOrder(orderValue);
+
     int offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     int limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
-
     offset = max(0, offset);
     limit = max(_minSearchLimit, limit);
+
+    final isAd = (uri.queryParameters['ad'] ?? '0') == '1';
 
     return new SearchQuery.parse(
       query: q,
@@ -248,6 +256,7 @@ class SearchQuery {
       order: order,
       offset: offset,
       limit: limit,
+      isAd: isAd,
     );
   }
 
@@ -257,6 +266,7 @@ class SearchQuery {
     SearchOrder order,
     int offset,
     int limit,
+    bool isAd,
   }) {
     return new SearchQuery._(
       query: query ?? this.query,
@@ -264,6 +274,7 @@ class SearchQuery {
       order: order ?? this.order,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
+      isAd: isAd ?? this.isAd,
     );
   }
 
@@ -274,6 +285,7 @@ class SearchQuery {
       'offset': offset?.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
+      'ad': isAd ? '1' : null,
     };
 
     for (var key in map.keys.toList()) {
