@@ -7,11 +7,11 @@ import 'package:pub_semver/pub_semver.dart';
 import 'utils.dart' show isNewer;
 
 // update this whenever one of the other versions change
-final String runtimeVersion = '2018.5.2';
+final String runtimeVersion = '2018.5.14';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
 // keep in-sync with SDK version in .travis.yml and Dockerfile
-final String sdkVersion = '2.0.0-dev.52.0';
+final String sdkVersion = '2.0.0-dev.54.0';
 final Version semanticSdkVersion = new Version.parse(sdkVersion);
 
 // keep in-sync with app/pubspec.yaml
@@ -19,7 +19,7 @@ final String panaVersion = '0.10.6';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
 // keep in-sync with app/script/setup-flutter.sh
-final String flutterVersion = '0.3.5';
+final String flutterVersion = '0.4.4';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 // keep in-sync with SDK version in .travis.yml and Dockerfile
@@ -33,7 +33,7 @@ final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 
 // Version that control the dartdoc serving.
-final dartdocServingRuntime = new Version.parse('2018.5.2');
+final dartdocServingRuntime = new Version.parse('2018.5.14');
 
 // Version that marks the default runtime version for analyzer entries created
 // before the runtime version was tracked.
