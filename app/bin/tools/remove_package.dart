@@ -15,6 +15,7 @@ import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/model.dart';
 
 Future main(List<String> arguments) async {
@@ -69,13 +70,20 @@ Future listPackage(String packageName) async {
   }
 }
 
-Future removePackage(String packageName) async {
+Future _deleteWithQuery(Query query) async {
   final deletes = <Key>[];
-  final jobQuery = dbService.query(Job)..filter('packageName =', packageName);
-  await for (Job job in jobQuery.run()) {
-    deletes.add(job.key);
+  await for (Model m in query.run()) {
+    deletes.add(m.key);
   }
+  await dbService.withTransaction((tx) async {
+    tx.queueMutations(deletes: deletes);
+    await tx.commit();
+  });
+}
+
+Future removePackage(String packageName) async {
   await dbService.withTransaction((Transaction T) async {
+    final deletes = <Key>[];
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
@@ -121,6 +129,11 @@ Future removePackage(String packageName) async {
     T.queueMutations(deletes: deletes);
     await T.commit();
   });
+
+  await _deleteWithQuery(
+      dbService.query(Job)..filter('packageName =', packageName));
+  await _deleteWithQuery(
+      dbService.query(History)..filter('packageName =', packageName));
 
   print('Package "$packageName" got successfully removed.');
   print('WARNING: Please remember to clear the AppEngine memcache!');
