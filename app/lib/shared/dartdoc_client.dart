@@ -60,17 +60,19 @@ class DartdocClient {
   }
 
   Future<List<int>> getContentBytes(
-      String package, String version, String relativePath) async {
+      String package, String version, String relativePath,
+      {Duration timeout}) async {
     final url = p.join(_dartdocServiceHttpHostPort, 'documentation', package,
         version, relativePath);
     try {
-      final rs = await getUrlWithRetry(_client, url);
+      final rs = await getUrlWithRetry(_client, url, timeout: timeout);
       if (rs.statusCode != 200) {
         return null;
       }
       return rs.bodyBytes;
     } catch (e) {
-      _logger.info('Error requesting entry for: $package $version');
+      _logger
+          .info('Error getting content for: $package $version $relativePath');
     }
     return null;
   }

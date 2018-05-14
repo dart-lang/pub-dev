@@ -106,6 +106,9 @@ class BatchIndexUpdater implements TaskRunner {
     }
     if (_batch.isEmpty) return;
 
+    final Timer timer = new Timer(const Duration(minutes: 5), () {
+      _logger.severe('Batch updated failed to complete in 5 minutes.');
+    });
     final Completer completer = new Completer();
     _ongoingBatchUpdate = completer.future;
 
@@ -133,6 +136,7 @@ class BatchIndexUpdater implements TaskRunner {
     } finally {
       completer.complete();
       _ongoingBatchUpdate = null;
+      timer.cancel();
     }
   }
 

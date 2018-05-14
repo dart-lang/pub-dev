@@ -69,8 +69,9 @@ class SearchBackend {
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
 
-    final indexJsonFutures = Future.wait(packages.map(
-        (p) => dartdocClient.getContentBytes(p.name, 'latest', 'index.json')));
+    final indexJsonFutures = Future.wait(packages.map((p) =>
+        dartdocClient.getContentBytes(p.name, 'latest', 'index.json',
+            timeout: const Duration(seconds: 10))));
 
     final List<AnalysisView> analysisViews =
         await analyzerClient.getAnalysisViews(packages.map((p) =>

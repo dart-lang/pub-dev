@@ -321,7 +321,8 @@ class DartdocClientMock implements DartdocClient {
 
   @override
   Future<List<int>> getContentBytes(
-      String package, String version, String relativePath) async {
+      String package, String version, String relativePath,
+      {Duration timeout}) async {
     return null;
   }
 }
