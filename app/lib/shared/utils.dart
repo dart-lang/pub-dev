@@ -316,7 +316,7 @@ String formatDuration(Duration d) {
 }
 
 Future<http.Response> getUrlWithRetry(http.Client client, String url,
-    {int retryCount: 1}) async {
+    {int retryCount: 1, Duration timeout}) async {
   http.Response result;
   Map<String, String> headers;
   if (context?.traceId != null) {
@@ -325,7 +325,11 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
   for (int i = 0; i <= retryCount; i++) {
     try {
       _logger.info('HTTP GET $url');
-      result = await client.get(url, headers: headers);
+      Future<http.Response> future = client.get(url, headers: headers);
+      if (timeout != null) {
+        future = future.timeout(timeout);
+      }
+      result = await future;
       if (i == retryCount ||
           result.statusCode == 200 ||
           result.statusCode == 404) {
