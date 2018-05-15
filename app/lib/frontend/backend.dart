@@ -458,7 +458,7 @@ class GCloudPackageRepository extends PackageRepository {
           await cache.invalidateUIPackagePage(package.name);
         }
 
-        historyBackend.store(new History.package(
+        await historyBackend.store(new History.package(
           packageName: packageName,
           source: HistorySource.account,
           event: new UploaderChanged(
@@ -512,7 +512,7 @@ class GCloudPackageRepository extends PackageRepository {
           await cache.invalidateUIPackagePage(package.name);
         }
 
-        historyBackend.store(new History.package(
+        await historyBackend.store(new History.package(
           packageName: packageName,
           source: HistorySource.account,
           event: new UploaderChanged(
