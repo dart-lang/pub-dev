@@ -10,7 +10,7 @@ import 'utils.dart' show isNewer;
 final String runtimeVersion = '2018.5.14+1';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
-// keep in-sync with SDK version in .travis.yml and Dockerfile
+// keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String sdkVersion = '2.0.0-dev.54.0';
 final Version semanticSdkVersion = new Version.parse(sdkVersion);
 
@@ -22,7 +22,7 @@ final Version semanticPanaVersion = new Version.parse(panaVersion);
 final String flutterVersion = '0.4.4';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
-// keep in-sync with SDK version in .travis.yml and Dockerfile
+// keep in-sync with SDK version in .mono_repo.yml and Dockerfile
 final String dartdocVersion = '0.18.1';
 final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 

@@ -1,26 +1,33 @@
 # Created with https://github.com/dart-lang/mono_repo
-# FYI: hand editted to support pkg/_popularity
-# See https://github.com/dart-lang/mono_repo/issues/26
 language: dart
 
-dart:
-  # Keep version in-sync with Dockerfile and app/lib/shared/versions.dart
-  - 2.0.0-dev.54.0
+jobs:
+  include:
+    - stage: smoke_test
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="app"
+      dart: 2.0.0-dev.54.0
+    - stage: unit_test
+      script: ./tool/travis.sh test
+      env: PKG="app"
+      dart: 2.0.0-dev.54.0
+    - stage: smoke_test
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/_popularity"
+      dart: 2.0.0-dev.52.0
+    - stage: unit_test
+      script: ./tool/travis.sh test
+      env: PKG="pkg/_popularity"
+      dart: 2.0.0-dev.52.0
 
-env:
-  - PKG=app TASK=dartanalyzer
-  - PKG=app TASK=dartfmt
-  - PKG=app TASK=test
-  - PKG=pkg/_popularity TASK=dartanalyzer
-  - PKG=pkg/_popularity TASK=dartfmt
-  - PKG=pkg/_popularity TASK=test
-
-script: ./tool/travis.sh
+stages:
+  - smoke_test
+  - unit_test
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
   only: [master]
 
 cache:
- directories:
-   - $HOME/.pub-cache
+  directories:
+    - $HOME/.pub-cache

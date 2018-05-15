@@ -1,34 +1,45 @@
 #!/bin/bash
 # Created with https://github.com/dart-lang/mono_repo
 
-# Fast fail the script on failures.
-set -e
-
 if [ -z "$PKG" ]; then
-  echo -e "[31mPKG environment variable must be set![0m"
+  echo -e '\033[31mPKG environment variable must be set!\033[0m'
   exit 1
-elif [ -z "$TASK" ]; then
-  echo -e "[31mTASK environment variable must be set![0m"
+fi
+
+if [ "$#" == "0" ]; then
+  echo -e '\033[31mAt least one task argument must be provided!\033[0m'
   exit 1
 fi
 
 pushd $PKG
-pub upgrade
+pub upgrade || exit $?
 
-case $TASK in
-dartanalyzer) echo
-  echo -e "[1mTASK: dartanalyzer[22m"
-  dartanalyzer .
-  ;;
-dartfmt) echo
-  echo -e "[1mTASK: dartfmt[22m"
-  dartfmt -n --set-exit-if-changed .
-  ;;
-test) echo
-  echo -e "[1mTASK: test[22m"
-  pub run test
-  ;;
-*) echo -e "[31mNot expecting TASK '${TASK}'. Error![0m"
-  exit 1
-  ;;
-esac
+EXIT_CODE=0
+
+while (( "$#" )); do
+  TASK=$1
+  case $TASK in
+  dartanalyzer) echo
+    echo -e '\033[1mTASK: dartanalyzer\033[22m'
+    echo -e 'dartanalyzer --fatal-infos --fatal-warnings .'
+    dartanalyzer --fatal-infos --fatal-warnings . || EXIT_CODE=$?
+    ;;
+  dartfmt) echo
+    echo -e '\033[1mTASK: dartfmt\033[22m'
+    echo -e 'dartfmt -n --set-exit-if-changed .'
+    dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
+    ;;
+  test) echo
+    echo -e '\033[1mTASK: test\033[22m'
+    echo -e 'pub run test --run-skipped'
+    pub run test --run-skipped || EXIT_CODE=$?
+    ;;
+  *) echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"
+    EXIT_CODE=1
+    ;;
+  esac
+
+  shift
+done
+
+exit $EXIT_CODE

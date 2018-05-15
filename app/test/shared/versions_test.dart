@@ -26,9 +26,9 @@ void main() {
     final String docker = await new File('../Dockerfile').readAsString();
     expect(docker.contains('\nFROM google/dart-runtime-base:$sdkVersion\n'),
         isTrue);
-    final String rootTravis = await new File('../.travis.yml').readAsString();
+    final String rootTravis = await new File('.mono_repo.yml').readAsString();
     expect(rootTravis.contains('\n  - $sdkVersion\n'), isTrue);
-    final String appTravis = await new File('.travis.yml').readAsString();
+    final String appTravis = await new File('.mono_repo.yml').readAsString();
     expect(appTravis.contains('\n  - $sdkVersion\n'), isTrue);
   });
 
