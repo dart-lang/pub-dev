@@ -92,6 +92,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
       updated: updated,
       readme: readme,
       isDiscontinued: isDiscontinued,
+      doNotAdvertise: doNotAdvertise,
       platforms: platforms?.map(internFn)?.toList(),
       health: health,
       popularity: popularity,
