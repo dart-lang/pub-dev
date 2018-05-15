@@ -75,10 +75,13 @@ Future listPackage(String packageName) async {
   }
 }
 
-Future _deleteWithQuery(Query query) async {
+Future _deleteWithQuery<T>(Query query, {bool where(T item)}) async {
   final deletes = <Key>[];
   await for (Model m in query.run()) {
-    deletes.add(m.key);
+    final shouldDelete = where == null || where(m as T);
+    if (shouldDelete) {
+      deletes.add(m.key);
+    }
   }
   await dbService.withTransaction((tx) async {
     tx.queueMutations(deletes: deletes);
@@ -146,7 +149,7 @@ Future removePackage(String packageName) async {
 }
 
 Future removePackageVersion(String packageName, String version) async {
-  return dbService.withTransaction((Transaction T) async {
+  await dbService.withTransaction((Transaction T) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
@@ -157,8 +160,7 @@ Future removePackageVersion(String packageName, String version) async {
     final List<PackageVersion> versions = await versionsQuery.run().toList();
     final versionNames = versions.map((v) => '${v.semanticVersion}').toList();
     if (!versionNames.contains(version)) {
-      throw new Exception(
-          "Package $packageName does not have a version $version.");
+      print('Package $packageName does not have a version $version.');
     }
 
     if ('${package.latestSemanticVersion}' == version) {
@@ -174,8 +176,20 @@ Future removePackageVersion(String packageName, String version) async {
     final storage = backend.repository.storage;
     print('Removing GCS objects ...');
     await storage.remove(packageName, version);
-
-    print('Version "$version" of "$packageName" got successfully removed.');
-    print('WARNING: Please remember to clear the AppEngine memcache!');
   });
+
+  await dartdocBackend.removeAll(packageName, version: version);
+
+  await _deleteWithQuery(
+    dbService.query(Job)..filter('packageName =', packageName),
+    where: (Job job) => job.packageVersion == version,
+  );
+
+  await _deleteWithQuery(
+    dbService.query(History)..filter('packageName =', packageName),
+    where: (History history) => history.packageVersion == version,
+  );
+
+  print('Version "$version" of "$packageName" got successfully removed.');
+  print('WARNING: Please remember to clear the AppEngine memcache!');
 }
