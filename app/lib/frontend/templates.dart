@@ -349,6 +349,8 @@ class TemplateService {
             documentationUrl.startsWith('http://pub.dartlang.org/'))) {
       documentationUrl = null;
     }
+    final isGitHubHomepage = selectedVersion.homepage != null &&
+        selectedVersion.homepage.startsWith('https://github.com/');
 
     final values = {
       'package': {
@@ -371,6 +373,7 @@ class TemplateService {
         'authors_title': 'Author',
         'authors_html':
             _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
+        'homepage_label': isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage',
         'homepage': selectedVersion.homepage,
         'documentation': documentationUrl,
         'dartdocs_url': urls.pkgDocUrl(
