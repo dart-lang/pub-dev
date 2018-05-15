@@ -10,8 +10,10 @@ import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/service_utils.dart';
 
 import 'package:pub_dartlang_org/analyzer/models.dart';
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
@@ -39,6 +41,9 @@ Future main(List<String> arguments) async {
     if (command == 'list') {
       await listPackage(package);
     } else if (command == 'remove') {
+      final Bucket storageBucket = await getOrCreateBucket(
+          storageService, activeConfiguration.dartdocStorageBucketName);
+      registerDartdocBackend(new DartdocBackend(dbService, storageBucket));
       if (version == null) {
         await removePackage(package);
       } else {
@@ -123,15 +128,16 @@ Future removePackage(String packageName) async {
     await Future.wait(versionNames
         .map((version) => storage.remove(packageName, version.toString())));
 
-    // TODO: Remove dartdoc
-
     print('Committing changes to DB ...');
     T.queueMutations(deletes: deletes);
     await T.commit();
   });
 
+  await dartdocBackend.removeAll(packageName);
+
   await _deleteWithQuery(
       dbService.query(Job)..filter('packageName =', packageName));
+
   await _deleteWithQuery(
       dbService.query(History)..filter('packageName =', packageName));
 

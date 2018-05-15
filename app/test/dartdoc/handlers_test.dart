@@ -139,6 +139,11 @@ class DartdocBackendMock implements DartdocBackend {
   }
 
   @override
+  Future removeAll(String package) {
+    throw new UnimplementedError();
+  }
+
+  @override
   Future removeObsolete(String package, String version) {
     throw new UnimplementedError();
   }
