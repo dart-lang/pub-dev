@@ -12,6 +12,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+final _pub = p.join(p.dirname(Platform.resolvedExecutable), 'pub');
+
 void main() {
   String pkgRoot;
 
@@ -30,9 +32,10 @@ void main() {
     expect(_changedGeneratedFiles(), isEmpty);
 
     // 2 - run build - should be no output, since nothing should change
-    final result = _runProc('pub', ['run', 'build_runner', 'build']);
-    expect(result,
-        contains(new RegExp(r'Build: Succeeded after \S+ with \d+ outputs')));
+    final result = _runProc(
+        _pub, ['run', 'build_runner', 'build', '--delete-conflicting-outputs']);
+    expect(
+        result, contains(new RegExp(r'Succeeded after \S+ with \d+ outputs')));
 
     // 3 - get a list of modified `.g.dart` files - should still be empty
     expect(_changedGeneratedFiles(), isEmpty);
