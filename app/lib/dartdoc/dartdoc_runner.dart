@@ -28,19 +28,6 @@ const statusFilePath = 'status.json';
 const _buildLogFilePath = 'log.txt';
 const _dartdocTimeout = const Duration(minutes: 10);
 
-const _excludedLibraries = const <String>[
-  'dart:async',
-  'dart:collection',
-  'dart:convert',
-  'dart:core',
-  'dart:developer',
-  'dart:io',
-  'dart:isolate',
-  'dart:math',
-  'dart:typed_data',
-  'dart:ui',
-];
-
 class DartdocJobProcessor extends JobProcessor {
   DartdocJobProcessor({Duration lockDuration})
       : super(service: JobService.dartdoc, lockDuration: lockDuration);
@@ -59,12 +46,10 @@ class DartdocJobProcessor extends JobProcessor {
     await new Directory(pubCacheDir).create(recursive: true);
     await new Directory(outputDir).create(recursive: true);
 
-    final pubEnv = new PubEnvironment(
-      await DartSdk.create(),
+    final toolEnv = await ToolEnvironment.create(
       pubCacheDir: pubCacheDir,
-      flutterSdk: envConfig.flutterSdkDir == null
-          ? null
-          : new FlutterSdk(sdkDir: envConfig.flutterSdkDir),
+      flutterSdkDir: envConfig.flutterSdkDir,
+      useGlobalDartdoc: true,
     );
 
     final latestVersion =
@@ -78,7 +63,7 @@ class DartdocJobProcessor extends JobProcessor {
         return JobStatus.failed;
       }
       await pkgDir.rename(pkgPath);
-      final usesFlutter = await pubEnv.detectFlutterUse(pkgPath);
+      final usesFlutter = await toolEnv.detectFlutterUse(pkgPath);
 
       final logFileOutput = new StringBuffer();
       logFileOutput.write('Dartdoc generation for $job\n\n'
@@ -91,11 +76,11 @@ class DartdocJobProcessor extends JobProcessor {
 
       // resolve dependencies
       final bool depsResolved = await _resolveDependencies(
-          pubEnv, job, pkgPath, usesFlutter, logFileOutput);
+          toolEnv, job, pkgPath, usesFlutter, logFileOutput);
 
       if (depsResolved) {
-        hasContent =
-            await _generateDocs(job, pkgPath, outputDir, logFileOutput);
+        hasContent = await _generateDocs(
+            toolEnv, job, pkgPath, outputDir, logFileOutput);
       }
 
       if (hasContent) {
@@ -136,10 +121,10 @@ class DartdocJobProcessor extends JobProcessor {
     return hasContent ? JobStatus.success : JobStatus.failed;
   }
 
-  Future<bool> _resolveDependencies(PubEnvironment pubEnv, Job job,
+  Future<bool> _resolveDependencies(ToolEnvironment toolEnv, Job job,
       String pkgPath, bool usesFlutter, StringBuffer logFileOutput) async {
     logFileOutput.write('Running pub upgrade:\n');
-    final pr = await pubEnv.runUpgrade(pkgPath, usesFlutter);
+    final pr = await toolEnv.runUpgrade(pkgPath, usesFlutter);
     _appendLog(logFileOutput, pr);
     if (pr.exitCode != 0) {
       _logger.warning('Error while running pub upgrade for $job.\n'
@@ -152,6 +137,7 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future<bool> _generateDocs(
+    ToolEnvironment toolEnv,
     Job job,
     String pkgPath,
     String outputDir,
@@ -162,50 +148,32 @@ class DartdocJobProcessor extends JobProcessor {
     final canonicalUrl = pkgDocUrl(job.packageName,
         version: canonicalVersion, includeHost: true, omitTrailingSlash: true);
 
-    Future<ProcessResult> runDartdoc(bool validateLinks) {
-      final args = [
-        'global',
-        'run',
-        'dartdoc',
-        '--output',
+    Future<DartdocResult> runDartdoc(bool validateLinks) {
+      return toolEnv.dartdoc(
+        pkgPath,
         outputDir,
-        '--hosted-url',
-        siteRoot,
-        '--rel-canonical-prefix',
-        canonicalUrl,
-        '--exclude',
-        _excludedLibraries.join(','),
-      ];
-      if (!validateLinks) {
-        args.add('--no-validate-links');
-      }
-      return runProc(
-        'pub',
-        args,
-        workingDirectory: pkgPath,
+        canonicalPrefix: canonicalUrl,
+        hostedUrl: siteRoot,
         timeout: _dartdocTimeout,
+        validateLinks: validateLinks,
       );
     }
 
-    var pr = await runDartdoc(true);
-    if (pr.exitCode == -15) {
-      pr = await runDartdoc(false);
+    DartdocResult r = await runDartdoc(true);
+    if (r.wasTimeout) {
+      r = await runDartdoc(false);
     }
 
-    _appendLog(logFileOutput, pr);
+    _appendLog(logFileOutput, r.processResult);
 
-    if (pr.exitCode != 0) {
+    if (r.processResult.exitCode != 0) {
       _logger.warning('Error while running dartdoc for $job.\n'
-          'exitCode: ${pr.exitCode}\n'
-          'stdout: ${pr.stdout}\n'
-          'stderr: ${pr.stderr}\n');
+          'exitCode: ${r.processResult.exitCode}\n'
+          'stdout: ${r.processResult.stdout}\n'
+          'stderr: ${r.processResult.stderr}\n');
     }
 
-    final hasIndexHtml =
-        await new File(p.join(outputDir, 'index.html')).exists();
-    final hasIndexJson =
-        await new File(p.join(outputDir, 'index.json')).exists();
-    return hasIndexHtml && hasIndexJson;
+    return r.hasIndexHtml && r.hasIndexJson;
   }
 
   Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,

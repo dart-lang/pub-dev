@@ -7,7 +7,9 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
+import 'package:pana/src/maintenance.dart';
 import 'package:pana/src/version.dart';
+import 'package:path/path.dart' as p;
 
 import '../job/job.dart';
 import '../shared/analyzer_service.dart';
@@ -63,15 +65,18 @@ class AnalyzerJobProcessor extends JobProcessor {
       Directory tempDir;
       try {
         tempDir = await Directory.systemTemp.createTemp('pana');
-        final pubCacheDir = await tempDir.resolveSymbolicLinks();
-        final PackageAnalyzer analyzer = await PackageAnalyzer.create(
-          flutterDir: envConfig.flutterSdkDir,
+        final tempDirPath = await tempDir.resolveSymbolicLinks();
+        final pubCacheDir = p.join(tempDirPath, 'pub-cache');
+        await new Directory(pubCacheDir).create();
+        final toolEnv = await ToolEnvironment.create(
+          flutterSdkDir: envConfig.flutterSdkDir,
           pubCacheDir: pubCacheDir,
+          useGlobalDartdoc: true,
         );
+        final PackageAnalyzer analyzer = new PackageAnalyzer(toolEnv);
         return await analyzer.inspectPackage(
           job.packageName,
           version: job.packageVersion,
-          keepTransitiveLibs: false,
           logger: new Logger.detached(
               'pana/${job.packageName}/${job.packageVersion}'),
         );
@@ -110,8 +115,9 @@ class AnalyzerJobProcessor extends JobProcessor {
         analysis.analysisStatus = AnalysisStatus.failure;
       }
       analysis.analysisJson = summary.toJson();
-      analysis.maintenanceScore =
-          summary?.maintenance?.getMaintenanceScore(age: packageStatus.age);
+      analysis.maintenanceScore = summary.maintenance == null
+          ? 0.0
+          : getMaintenanceScore(summary.maintenance, age: packageStatus.age);
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
