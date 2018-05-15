@@ -15,7 +15,7 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex(enableApiIndex: true);
+      index = new SimplePackageIndex(apiSearchEnabled: true);
       await index.addPackage(new PackageDocument(
         package: 'foo',
         version: '1.0.0',
