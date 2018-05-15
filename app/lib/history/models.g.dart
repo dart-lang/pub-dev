@@ -37,9 +37,7 @@ abstract class _$UploaderChangedSerializerMixin {
   List<String> get addedUploaderEmails;
   List<String> get removedUploaderEmails;
   Map<String, dynamic> toJson() {
-    var val = <String, dynamic>{
-      'currentUserEmail': currentUserEmail,
-    };
+    var val = <String, dynamic>{};
 
     void writeNotNull(String key, dynamic value) {
       if (value != null) {
@@ -47,6 +45,7 @@ abstract class _$UploaderChangedSerializerMixin {
       }
     }
 
+    writeNotNull('currentUserEmail', currentUserEmail);
     writeNotNull('addedUploaderEmails', addedUploaderEmails);
     writeNotNull('removedUploaderEmails', removedUploaderEmails);
     return val;
