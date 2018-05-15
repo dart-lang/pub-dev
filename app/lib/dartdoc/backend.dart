@@ -165,6 +165,11 @@ class DartdocBackend {
     return _storage.read(objectName);
   }
 
+  /// Removes all files related to a package.
+  Future removeAll(String package) async {
+    await _deleteAllWithPrefix('$package/');
+  }
+
   /// Removes incomplete uploads and old outputs from the bucket.
   Future removeObsolete(String package, String version) async {
     final List<DartdocEntry> completedList =
@@ -239,7 +244,12 @@ class DartdocBackend {
   }
 
   Future _deleteAll(DartdocEntry entry) async {
-    var page = await _storage.page(prefix: entry.contentPrefix);
+    await _deleteAllWithPrefix(entry.contentPrefix);
+    await _storage.delete(entry.entryObjectName);
+  }
+
+  Future _deleteAllWithPrefix(String prefix) async {
+    var page = await _storage.page(prefix: prefix);
     final deletePool = new Pool(_concurrentDeletes);
     for (;;) {
       final List<Future> deleteFutures = [];
@@ -256,6 +266,5 @@ class DartdocBackend {
       }
     }
     await deletePool.close();
-    await _storage.delete(entry.entryObjectName);
   }
 }
