@@ -86,7 +86,7 @@ class BatchIndexUpdater implements TaskRunner {
       await _ongoingBatchUpdate;
     }
     _batch.add(task);
-    if (_batch.length < 20) {
+    if (_batch.length < 5) {
       _batchUpdateTimer ??= new Timer(const Duration(seconds: 10), () {
         _updateBatch();
       });
