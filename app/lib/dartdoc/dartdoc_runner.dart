@@ -156,6 +156,7 @@ class DartdocJobProcessor extends JobProcessor {
         hostedUrl: siteRoot,
         timeout: _dartdocTimeout,
         validateLinks: validateLinks,
+        linkToRemote: true,
       );
     }
 

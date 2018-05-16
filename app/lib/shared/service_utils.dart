@@ -211,15 +211,17 @@ void _wrapper(List fnAndMessage) {
 
 Future initDartdoc(Logger logger) async {
   Future<bool> checkVersion() async {
-    final pr =
-        await Process.run('pub', ['global', 'run', 'dartdoc', '--version']);
+    final pr = await Process.run('pub', ['global', 'list']);
     if (pr.exitCode == 0) {
-      final RegExp versionRegExp = new RegExp(r'dartdoc version: (.*)$');
-      final match = versionRegExp.firstMatch(pr.stdout.toString().trim());
-      if (match == null) {
-        throw new Exception('Unable to parse dartdoc version: ${pr.stdout}');
+      final lines = pr.stdout
+          .toString()
+          .split('\n')
+          .where((line) => line.startsWith('dartdoc '))
+          .toList();
+      if (lines.isEmpty) {
+        return false;
       }
-      final version = match.group(1).trim();
+      final version = lines.single.split(' ').last;
       return version == dartdocVersion;
     } else {
       return false;
