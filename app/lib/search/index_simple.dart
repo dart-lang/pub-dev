@@ -72,8 +72,13 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future addPackage(PackageDocument document) async {
     final PackageDocument doc = document.intern(_internPool.intern);
-    await removePackage(doc.package);
-    if (document.isDiscontinued == true) return; // isDiscontinued may be null
+
+    // isDiscontinued may be null
+    if (document.isDiscontinued == true) {
+      await removePackage(doc.package);
+      return;
+    }
+
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
     _descrIndex.add(doc.package, doc.description);
@@ -531,6 +536,7 @@ class TokenMatch {
 }
 
 class TokenIndex {
+  final Map<String, String> _textHashes = <String, String>{};
   final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
   final Map<String, double> _docSizes = <String, double>{};
   final int _minLength;
@@ -544,7 +550,16 @@ class TokenIndex {
 
   void add(String id, String text) {
     final Set<String> tokens = _tokenize(text, _minLength);
-    if (tokens == null || tokens.isEmpty) return;
+    if (tokens == null || tokens.isEmpty) {
+      if (_textHashes.containsKey(id)) {
+        remove(id);
+      }
+      return;
+    }
+    final String textHash = '${text.hashCode}/${tokens.length}';
+    if (_textHashes.containsKey(id) && _textHashes[id] != textHash) {
+      remove(id);
+    }
     for (String token in tokens) {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
@@ -552,9 +567,11 @@ class TokenIndex {
     // Document size is a highly scaled-down proxy of the length.
     final docSize = 1 + math.log(1 + tokens.length) / 100;
     _docSizes[id] = docSize;
+    _textHashes[id] = textHash;
   }
 
   void remove(String id) {
+    _textHashes.remove(id);
     _docSizes.remove(id);
     final List<String> removeKeys = [];
     _inverseIds.forEach((String key, Set<String> set) {
