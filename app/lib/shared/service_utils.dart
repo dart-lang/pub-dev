@@ -15,6 +15,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'configuration.dart';
 import 'scheduler_stats.dart';
 import 'task_client.dart';
+import 'utils.dart' show trackEventLoopLatency;
 import 'versions.dart';
 
 class FrontendEntryMessage {
@@ -178,6 +179,11 @@ Future startIsolates({
       }
     }
   });
+}
+
+void setupServiceIsolate() {
+  useLoggingPackageAdaptor();
+  trackEventLoopLatency();
 }
 
 Future initFlutterSdk(Logger logger) async {

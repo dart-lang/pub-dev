@@ -36,7 +36,7 @@ Future main() async {
 }
 
 void _main(FrontendEntryMessage message) {
-  useLoggingPackageAdaptor();
+  setupServiceIsolate();
 
   final statsConsumer = new ReceivePort();
   registerSchedulerStatsStream(statsConsumer as Stream<Map>);
