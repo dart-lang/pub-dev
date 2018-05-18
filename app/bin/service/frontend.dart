@@ -42,7 +42,7 @@ Future main() async {
 }
 
 void _main(FrontendEntryMessage message) {
-  useLoggingPackageAdaptor();
+  setupServiceIsolate();
   message.protocolSendPort
       .send(new FrontendProtocolMessage(statsConsumerPort: null));
 

@@ -9,6 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'scheduler_stats.dart';
 import 'urls.dart';
+import 'utils.dart' show eventLoopLatencyTracker;
 import 'versions.dart';
 
 const String default404NotFound = '404 Not Found';
@@ -68,6 +69,11 @@ shelf.Response debugResponse([Map data]) {
     'vm': {
       'currentRss': ProcessInfo.currentRss,
       'maxRss': ProcessInfo.maxRss,
+      'eventLoopLatencyMillis': {
+        'median': eventLoopLatencyTracker.median?.inMilliseconds,
+        'p90': eventLoopLatencyTracker.p90?.inMilliseconds,
+        'p99': eventLoopLatencyTracker.p99?.inMilliseconds,
+      },
     },
     'versions': {
       'runtime': runtimeVersion,

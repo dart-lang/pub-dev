@@ -366,3 +366,23 @@ String contentType(String name) {
   final ext = p.extension(name).replaceAll('.', '');
   return mime.defaultExtensionMap[ext] ?? 'application/octet-stream';
 }
+
+final eventLoopLatencyTracker = new LastNTracker<Duration>();
+
+void trackEventLoopLatency() {
+  final samplePeriod = const Duration(seconds: 3);
+  void measure() {
+    final sw = new Stopwatch()..start();
+    new Timer(samplePeriod, () {
+      sw.stop();
+      final diff = sw.elapsed - samplePeriod;
+      final latency = diff.isNegative ? Duration.zero : diff;
+      eventLoopLatencyTracker.add(latency);
+      measure();
+    });
+  }
+
+  Zone.root.run(() {
+    measure();
+  });
+}

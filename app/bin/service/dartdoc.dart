@@ -40,7 +40,7 @@ Future main() async {
 }
 
 void _frontendMain(FrontendEntryMessage message) {
-  useLoggingPackageAdaptor();
+  setupServiceIsolate();
 
   final statsConsumer = new ReceivePort();
   registerSchedulerStatsStream(statsConsumer as Stream<Map>);
@@ -55,7 +55,7 @@ void _frontendMain(FrontendEntryMessage message) {
 }
 
 void _workerMain(WorkerEntryMessage message) {
-  useLoggingPackageAdaptor();
+  setupServiceIsolate();
 
   final ReceivePort taskReceivePort = new ReceivePort();
   message.protocolSendPort
