@@ -351,16 +351,21 @@ class ParsedQuery {
   /// Match authors and uploaders.
   final List<String> emails;
 
+  /// Enable experimental API search.
+  final bool isApiEnabled;
+
   ParsedQuery._(
     this.text,
     this.packagePrefix,
     this.refDependencies,
     this.allDependencies,
     this.emails,
+    this.isApiEnabled,
   );
 
   factory ParsedQuery._parse(String q) {
     String queryText = q ?? '';
+    queryText = ' $queryText ';
     String packagePrefix;
     final Match pkgMatch = _packageRegexp.firstMatch(queryText);
     if (pkgMatch != null) {
@@ -381,6 +386,11 @@ class ParsedQuery {
     final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
     final List<String> emails = extractRegExp(_emailRegexp);
 
+    final bool isApiEnabled = queryText.contains(' !!api ');
+    if (isApiEnabled) {
+      queryText = queryText.replaceFirst(' !!api ', ' ');
+    }
+
     queryText = queryText.replaceAll(_whitespacesRegExp, ' ').trim();
     if (queryText.isEmpty) {
       queryText = null;
@@ -392,6 +402,7 @@ class ParsedQuery {
       dependencies,
       allDependencies,
       emails,
+      isApiEnabled,
     );
   }
 

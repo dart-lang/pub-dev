@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
@@ -24,7 +23,6 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
-  final bool enableApiIndex;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final Map<String, String> _normalizedPackageText = <String, String>{};
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
@@ -32,12 +30,12 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
   final TokenIndex _apiDocIndex = new TokenIndex(minLength: 3);
   final StringInternPool _internPool = new StringInternPool();
+  final bool _apiSearchEnabled;
   DateTime _lastUpdated;
   bool _isReady = false;
 
-  SimplePackageIndex({bool enableApiIndex})
-      : this.enableApiIndex =
-            enableApiIndex ?? Platform.environment['SEARCH_API_INDEX'] == '1';
+  SimplePackageIndex({bool apiSearchEnabled: false})
+      : _apiSearchEnabled = apiSearchEnabled;
 
   @override
   bool get isReady => _isReady;
@@ -74,17 +72,20 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future addPackage(PackageDocument document) async {
     final PackageDocument doc = document.intern(_internPool.intern);
-    await removePackage(doc.package);
-    if (document.isDiscontinued == true) return; // isDiscontinued may be null
+
+    // isDiscontinued may be null
+    if (document.isDiscontinued == true) {
+      await removePackage(doc.package);
+      return;
+    }
+
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
-    if (enableApiIndex) {
-      for (ApiDocPage page in doc.apiDocPages ?? const []) {
-        _apiDocIndex.add(
-            _apiDocPageId(doc.package, page), page.symbols?.join(' '));
-      }
+    for (ApiDocPage page in doc.apiDocPages ?? const []) {
+      _apiDocIndex.add(
+          _apiDocPageId(doc.package, page), page.symbols?.join(' '));
     }
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
@@ -179,7 +180,8 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // do text matching
-    final Score textScore = _searchText(packages, query.parsedQuery.text);
+    final Score textScore = _searchText(packages, query.parsedQuery.text,
+        _apiSearchEnabled || query.parsedQuery.isApiEnabled);
 
     // filter packages that doesn't match text query
     if (textScore != null) {
@@ -299,7 +301,7 @@ class SimplePackageIndex implements PackageIndex {
     return new Score(values);
   }
 
-  Score _searchText(Set<String> packages, String text) {
+  Score _searchText(Set<String> packages, String text, bool isExperimental) {
     if (text != null && text.isNotEmpty) {
       final List<String> words = splitForIndexing(text).toList();
       final int wordCount = words.length;
@@ -307,7 +309,8 @@ class SimplePackageIndex implements PackageIndex {
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
-        final apiDocTokens = _apiDocIndex.lookupTokens(word);
+        final apiDocTokens =
+            isExperimental ? _apiDocIndex.lookupTokens(word) : new TokenMatch();
         final maxTokenLength = [
           nameTokens.maxLength,
           descrTokens.maxLength,
@@ -326,15 +329,20 @@ class SimplePackageIndex implements PackageIndex {
         final readme = new Score(_readmeIndex.scoreDocs(readmeTokens,
             weight: 0.90, wordCount: wordCount));
 
-        final apiPages = new Score(_apiDocIndex.scoreDocs(apiDocTokens,
-            weight: 0.80, wordCount: wordCount));
-        final apiPackages = <String, double>{};
-        for (String key in apiPages.getKeys()) {
-          final pkg = _apiDocPkg(key);
-          final value = apiPages[key];
-          apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
+        Score apiScore;
+        if (isExperimental) {
+          final apiPages = new Score(_apiDocIndex.scoreDocs(apiDocTokens,
+              weight: 0.80, wordCount: wordCount));
+          final apiPackages = <String, double>{};
+          for (String key in apiPages.getKeys()) {
+            final pkg = _apiDocPkg(key);
+            final value = apiPages[key];
+            apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
+          }
+          apiScore = new Score(apiPackages);
+        } else {
+          apiScore = new Score({});
         }
-        final apiScore = new Score(apiPackages);
 
         return Score.max([name, descr, readme, apiScore]).removeLowValues(
             fraction: 0.01, minValue: 0.001);
@@ -528,6 +536,7 @@ class TokenMatch {
 }
 
 class TokenIndex {
+  final Map<String, String> _textHashes = <String, String>{};
   final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
   final Map<String, double> _docSizes = <String, double>{};
   final int _minLength;
@@ -541,7 +550,16 @@ class TokenIndex {
 
   void add(String id, String text) {
     final Set<String> tokens = _tokenize(text, _minLength);
-    if (tokens == null || tokens.isEmpty) return;
+    if (tokens == null || tokens.isEmpty) {
+      if (_textHashes.containsKey(id)) {
+        remove(id);
+      }
+      return;
+    }
+    final String textHash = '${text.hashCode}/${tokens.length}';
+    if (_textHashes.containsKey(id) && _textHashes[id] != textHash) {
+      remove(id);
+    }
     for (String token in tokens) {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
@@ -549,9 +567,11 @@ class TokenIndex {
     // Document size is a highly scaled-down proxy of the length.
     final docSize = 1 + math.log(1 + tokens.length) / 100;
     _docSizes[id] = docSize;
+    _textHashes[id] = textHash;
   }
 
   void remove(String id) {
+    _textHashes.remove(id);
     _docSizes.remove(id);
     final List<String> removeKeys = [];
     _inverseIds.forEach((String key, Set<String> set) {
