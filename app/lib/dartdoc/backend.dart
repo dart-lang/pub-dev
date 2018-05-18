@@ -166,8 +166,9 @@ class DartdocBackend {
   }
 
   /// Removes all files related to a package.
-  Future removeAll(String package) async {
-    await _deleteAllWithPrefix('$package/');
+  Future removeAll(String package, {String version}) async {
+    final prefix = version == null ? '$package/' : '$package/$version/';
+    await _deleteAllWithPrefix(prefix);
   }
 
   /// Removes incomplete uploads and old outputs from the bucket.
