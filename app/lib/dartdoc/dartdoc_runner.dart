@@ -12,6 +12,8 @@ import 'package:pana/src/utils.dart' show runProc;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../analyzer/backend.dart';
+import '../job/backend.dart';
 import '../job/job.dart';
 import '../shared/configuration.dart' show envConfig;
 import '../shared/urls.dart';
@@ -117,6 +119,21 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
+
+    // Trigger analyzer job to pick up the new dartdoc results.
+    final pkgStatus = await analysisBackend.getPackageStatus(
+        job.packageName, job.packageVersion);
+    if (pkgStatus.exists &&
+        !pkgStatus.isDiscontinued &&
+        !pkgStatus.isObsolete) {
+      await jobBackend.createOrUpdate(
+          JobService.analyzer,
+          job.packageName,
+          job.packageVersion,
+          job.isLatestStable,
+          job.packageVersionUpdated,
+          true);
+    }
 
     return hasContent ? JobStatus.success : JobStatus.failed;
   }
