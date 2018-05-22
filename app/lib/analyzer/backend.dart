@@ -213,6 +213,12 @@ class AnalysisBackend {
     if (!pkgStatus.exists) {
       return new TaskTargetStatus.skip('PackageVersion does not exists.');
     }
+    if (pkgStatus.isDiscontinued) {
+      return new TaskTargetStatus.skip('Package is discontinued.');
+    }
+    if (pkgStatus.isObsolete) {
+      return new TaskTargetStatus.skip('Package is older than two years old.');
+    }
 
     // Does package have any analysis?
     final Key packageKey = db.emptyKey.append(PackageAnalysis, id: packageName);
@@ -247,11 +253,14 @@ class AnalysisBackend {
     // Is current analysis version obsolete?
     if (isNewer(
         semanticRuntimeVersion, versionAnalysis.semanticRuntimeVersion)) {
-      // existing analysis version is newer, current analyzer is obsolete?
-      // TODO: turn off task polling on this instance
-      _logger.warning(
-          'Newer analysis version detected, current instance is obsolete.');
-      return new TaskTargetStatus.skip('Newer analysis instance detected.');
+      // check if there is any analysis with this runtime version
+      final query = db.query(Analysis, ancestorKey: versionKey);
+      query.filter('runtimeVersion =', runtimeVersion);
+      if (await query.run().isEmpty) {
+        return new TaskTargetStatus.ok();
+      } else {
+        return new TaskTargetStatus.skip('Newer analysis instance detected.');
+      }
     }
 
     if (versionAnalysis.panaVersion != panaVersion ||
@@ -259,13 +268,6 @@ class AnalysisBackend {
       _logger.warning('Versions should be matching: '
           '${versionAnalysis.panaVersion} - $panaVersion and '
           '${versionAnalysis.flutterVersion} - $flutterVersion');
-    }
-
-    if (pkgStatus.isDiscontinued) {
-      return new TaskTargetStatus.skip('Package is discontinued.');
-    }
-    if (pkgStatus.isObsolete) {
-      return new TaskTargetStatus.skip('Package is older than two years old.');
     }
 
     // Is it due to re-analyze?
