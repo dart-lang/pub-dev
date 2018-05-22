@@ -62,28 +62,13 @@ void _workerMain(WorkerEntryMessage message) {
   withAppEngineServices(() async {
     _registerServices();
     final jobProcessor = new AnalyzerJobProcessor();
-
-    Future<bool> shouldUpdate(
-        String package, String version, DateTime updated) async {
-      final status =
-          await analysisBackend.checkTargetStatus(package, version, updated);
-      return !status.shouldSkip;
-    }
-
-    final jobMaintenance =
-        new JobMaintenance(db.dbService, JobService.analyzer, shouldUpdate);
+    final jobMaintenance = new JobMaintenance(db.dbService, jobProcessor);
 
     new Timer.periodic(const Duration(minutes: 15), (_) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
     });
 
-    await Future.wait([
-      jobMaintenance.syncNotifications(taskReceivePort),
-      jobMaintenance.syncDatastoreHead(),
-      jobMaintenance.syncDatastoreHistory(),
-      jobMaintenance.updateStates(),
-      jobProcessor.run(),
-    ]);
+    await jobMaintenance.run(taskReceivePort);
   });
 }
 

@@ -65,31 +65,15 @@ void _workerMain(WorkerEntryMessage message) {
   withAppEngineServices(() async {
     await _registerServices();
 
-    Future<bool> shouldUpdate(
-        String package, String version, DateTime updated) async {
-      final status = await dartdocBackend.checkTargetStatus(
-          package, version, updated, true);
-      return !status.shouldSkip;
-    }
-
     final jobProcessor =
         new DartdocJobProcessor(lockDuration: const Duration(minutes: 30));
-
-    final jobMaintenance =
-        new JobMaintenance(dbService, JobService.dartdoc, shouldUpdate);
+    final jobMaintenance = new JobMaintenance(dbService, jobProcessor);
 
     new Timer.periodic(const Duration(minutes: 15), (_) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
     });
 
-    await Future.wait([
-      jobMaintenance.syncNotifications(taskReceivePort),
-      jobMaintenance.syncDatastoreHead(),
-      jobMaintenance.syncDatastoreHistory(),
-      jobMaintenance.updateStates(),
-      jobProcessor.run(),
-      jobProcessor.run(), // a second processing, to better saturate the CPU
-    ]);
+    await jobMaintenance.run(taskReceivePort, concurrency: 2);
   });
 }
 

@@ -25,6 +25,14 @@ class AnalyzerJobProcessor extends JobProcessor {
       : super(service: JobService.analyzer, lockDuration: lockDuration);
 
   @override
+  Future<bool> shouldProcess(
+      String package, String version, DateTime updated) async {
+    final status =
+        await analysisBackend.checkTargetStatus(package, version, updated);
+    return !status.shouldSkip;
+  }
+
+  @override
   Future<JobStatus> process(Job job) async {
     final packageStatus = await analysisBackend.getPackageStatus(
         job.packageName, job.packageVersion);

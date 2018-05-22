@@ -35,6 +35,14 @@ class DartdocJobProcessor extends JobProcessor {
       : super(service: JobService.dartdoc, lockDuration: lockDuration);
 
   @override
+  Future<bool> shouldProcess(
+      String package, String version, DateTime updated) async {
+    final status =
+        await dartdocBackend.checkTargetStatus(package, version, updated, true);
+    return !status.shouldSkip;
+  }
+
+  @override
   Future<JobStatus> process(Job job) async {
     final tempDir =
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
