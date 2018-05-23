@@ -4,6 +4,8 @@
 
 import 'package:pana/pana.dart';
 
+import 'utils.dart' show changePanaSummary;
+
 abstract class KnownPlatforms {
   static const String flutter = PlatformNames.flutter;
   static const String web = PlatformNames.web;
@@ -19,7 +21,7 @@ DartPlatform _webOnly() => new DartPlatform.fromComponents(
       reason: _whitelistedOverride,
     );
 
-final packagePlatformOverrides = <String, DartPlatform>{
+final _packagePlatformOverrides = <String, DartPlatform>{
   // categorized as "flutter, web, other", override to "web"
   'browser': _webOnly(),
   // categorized as "flutter, other", override to "web"
@@ -37,4 +39,11 @@ List<String> indexDartPlatform(DartPlatform platform) {
     final PlatformUse use = platform.uses[p];
     return use == PlatformUse.allowed || use == PlatformUse.used;
   }).toList();
+}
+
+Summary applyPlatformOverride(Summary summary) {
+  return changePanaSummary(
+    summary,
+    platform: _packagePlatformOverrides[summary.packageName],
+  );
 }
