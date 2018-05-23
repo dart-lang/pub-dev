@@ -25,8 +25,8 @@ AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) =>
         flutterVersion: json['flutterVersion'] as String,
         analysisStatus: json['analysisStatus'] == null
             ? null
-            : AnalysisStatus.values.singleWhere((x) =>
-                x.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
+            : AnalysisStatus.values.singleWhere((e) =>
+                e.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
         analysisContent: json['analysisContent'] as Map<String, dynamic>,
         maintenanceScore: (json['maintenanceScore'] as num)?.toDouble());
 
@@ -61,8 +61,8 @@ AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
     new AnalysisExtract(
         analysisStatus: json['analysisStatus'] == null
             ? null
-            : AnalysisStatus.values.singleWhere((x) =>
-                x.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
+            : AnalysisStatus.values.singleWhere((e) =>
+                e.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
         health: (json['health'] as num)?.toDouble(),
         maintenance: (json['maintenance'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),

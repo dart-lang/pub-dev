@@ -15,10 +15,9 @@ part of 'backend.dart';
 SearchSnapshot _$SearchSnapshotFromJson(Map<String, dynamic> json) =>
     new SearchSnapshot()
       ..updated = DateTime.parse(json['updated'] as String)
-      ..documents = new Map<String, PackageDocument>.fromIterables(
-          (json['documents'] as Map<String, dynamic>).keys,
-          (json['documents'] as Map).values.map(
-              (e) => new PackageDocument.fromJson(e as Map<String, dynamic>)));
+      ..documents = (json['documents'] as Map<String, dynamic>).map((k, e) =>
+          new MapEntry(
+              k, new PackageDocument.fromJson(e as Map<String, dynamic>)));
 
 abstract class _$SearchSnapshotSerializerMixin {
   DateTime get updated;
