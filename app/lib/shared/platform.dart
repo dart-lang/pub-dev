@@ -19,7 +19,7 @@ DartPlatform _webOnly() => new DartPlatform.fromComponents(
       reason: _whitelistedOverride,
     );
 
-final packagePlatformOverrides = <String, DartPlatform>{
+final _packagePlatformOverrides = <String, DartPlatform>{
   // categorized as "flutter, web, other", override to "web"
   'browser': _webOnly(),
   // categorized as "flutter, other", override to "web"
@@ -37,4 +37,21 @@ List<String> indexDartPlatform(DartPlatform platform) {
     final PlatformUse use = platform.uses[p];
     return use == PlatformUse.allowed || use == PlatformUse.used;
   }).toList();
+}
+
+Summary applyPlatformOverride(Summary summary) {
+  final platform = _packagePlatformOverrides[summary.packageName];
+  if (platform == null) return summary;
+  return new Summary(
+      summary.runtimeInfo,
+      summary.packageName,
+      summary.packageVersion,
+      summary.pubspec,
+      summary.pkgResolution,
+      summary.dartFiles,
+      platform,
+      summary.licenses,
+      summary.fitness,
+      summary.maintenance,
+      summary.suggestions);
 }
