@@ -174,13 +174,8 @@ class AnalysisView {
       if (data != null &&
           data.analysisStatus != AnalysisStatus.aborted &&
           data.analysisContent != null) {
-        Map jsonSource = data.analysisContent;
-        if (packagePlatformOverrides.containsKey(data.packageName)) {
-          jsonSource = new Map.from(data.analysisContent);
-          jsonSource['platform'] =
-              packagePlatformOverrides[data.packageName].toJson();
-        }
-        summary = new Summary.fromJson(jsonSource);
+        summary =
+            applyPlatformOverride(new Summary.fromJson(data.analysisContent));
       }
     } catch (e, st) {
       // don't block on faulty serialization

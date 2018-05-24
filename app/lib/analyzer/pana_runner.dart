@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 import '../job/job.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
+import '../shared/platform.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -114,8 +115,9 @@ class AnalyzerJobProcessor extends JobProcessor {
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
+      summary = applyPlatformOverride(summary);
       final bool lastRunWithErrors =
-          summary?.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
+          summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
       if (!lastRunWithErrors) {
         analysis.analysisStatus = AnalysisStatus.success;
         status = JobStatus.success;
