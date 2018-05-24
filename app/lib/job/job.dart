@@ -32,6 +32,8 @@ abstract class JobProcessor {
 
   Future<JobStatus> process(Job job);
 
+  Future<bool> shouldProcess(String package, String version, DateTime updated);
+
   /// Never completes.
   Future run() async {
     int sleepSeconds = 0;
@@ -73,9 +75,21 @@ abstract class JobProcessor {
 
 class JobMaintenance {
   final db.DatastoreDB _db;
-  final JobService _service;
-  final ShouldProcess _shouldProcess;
-  JobMaintenance(this._db, this._service, this._shouldProcess);
+  final JobProcessor _processor;
+  JobMaintenance(this._db, this._processor);
+
+  Future run(Stream taskStream, {int concurrency: 1}) {
+    final futures = <Future>[
+      syncNotifications(taskStream),
+      syncDatastoreHead(),
+      syncDatastoreHistory(),
+      updateStates(),
+    ];
+    for (int i = 0; i < concurrency; i++) {
+      futures.add(_processor.run());
+    }
+    return Future.wait(futures);
+  }
 
   /// Completes when the taskStream closes.
   Future syncNotifications(Stream taskStream) async {
@@ -97,8 +111,8 @@ class JobMaintenance {
     if (p == null || pv == null) return;
 
     final isLatestStable = p.latestVersion == task.version;
-    await jobBackend.createOrUpdate(
-        _service, task.package, task.version, isLatestStable, pv.created, true);
+    await jobBackend.createOrUpdate(_processor.service, task.package,
+        task.version, isLatestStable, pv.created, true);
   }
 
   /// Never completes.
@@ -130,9 +144,9 @@ class JobMaintenance {
         final bool isLatestStable = latestVersions[pv.package] == pv.version;
         if (isLatestStable && skipLatest) return;
         final shouldProcess =
-            await _shouldProcess(pv.package, pv.version, pv.created);
-        await jobBackend.createOrUpdate(_service, pv.package, pv.version,
-            isLatestStable, pv.created, shouldProcess);
+            await _processor.shouldProcess(pv.package, pv.version, pv.created);
+        await jobBackend.createOrUpdate(_processor.service, pv.package,
+            pv.version, isLatestStable, pv.created, shouldProcess);
       } catch (e, st) {
         _logger.warning(
             'History sync failed for ${pv.package} ${pv.version}', e, st);
@@ -165,14 +179,15 @@ class JobMaintenance {
     for (;;) {
       await new Future.delayed(new Duration(minutes: 1 + _random.nextInt(10)));
       try {
-        await jobBackend.unlockStaleProcessing(_service);
+        await jobBackend.unlockStaleProcessing(_processor.service);
       } catch (e, st) {
         _logger.warning('Error unlocking stale jobs.', e, st);
       }
 
       await new Future.delayed(new Duration(minutes: 1 + _random.nextInt(10)));
       try {
-        await jobBackend.checkIdle(_service, _shouldProcess);
+        await jobBackend.checkIdle(
+            _processor.service, _processor.shouldProcess);
       } catch (e, st) {
         _logger.warning('Error updating idle jobs.', e, st);
       }
