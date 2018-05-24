@@ -65,7 +65,6 @@ class AnalysisBackend {
     final Key versionKey =
         packageKey.append(PackageVersionAnalysis, id: version);
 
-    bool lookupMatchingPanaVersion = false;
     if (analysis == null) {
       final list = await db.lookup([versionKey]);
       final PackageVersionAnalysis pva = list[0];
@@ -74,12 +73,17 @@ class AnalysisBackend {
             'PackageVersionAnalysis lookup failed: no entry for $package $version.');
         return null;
       }
-      analysis = pva.latestAnalysis;
-      lookupMatchingPanaVersion =
-          panaVersion != null && pva.panaVersion != panaVersion;
+      if (panaVersion == null) {
+        analysis = pva.latestAnalysis;
+      } else {
+        final constraint = new VersionConstraint.parse('^${pva.panaVersion}');
+        if (constraint.allows(new Version.parse(panaVersion))) {
+          analysis = pva.latestAnalysis;
+        }
+      }
     }
 
-    if (lookupMatchingPanaVersion) {
+    if (analysis == null) {
       final Query query = db.query(Analysis, ancestorKey: versionKey)
         ..filter('panaVersion =', panaVersion);
       final List<Analysis> list = await query.run().toList();
@@ -91,6 +95,10 @@ class AnalysisBackend {
         _logger.info(
             "Analysis lookup failed for $package $version (panaVersion=$panaVersion)");
       }
+    }
+
+    if (analysis == null) {
+      return null;
     }
 
     // analysis was set
