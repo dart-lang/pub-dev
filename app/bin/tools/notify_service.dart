@@ -13,6 +13,7 @@ void _printHelp() {
   print('Notifies the auxilliary services about a new package or version.');
   print('Syntax:');
   print('  dart bin/tools/notify_service.dart analyzer [package] [version]');
+  print('  dart bin/tools/notify_service.dart dartdoc [package] [version]');
   print('  dart bin/tools/notify_service.dart search [package]');
 }
 

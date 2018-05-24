@@ -19,6 +19,7 @@ import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
+import 'package:pub_dartlang_org/shared/task_client.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
@@ -45,6 +46,7 @@ void _frontendMain(FrontendEntryMessage message) {
 
   final statsConsumer = new ReceivePort();
   registerSchedulerStatsStream(statsConsumer as Stream<Map>);
+  registerTaskSendPort(message.taskSendPort);
   message.protocolSendPort.send(new FrontendProtocolMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));

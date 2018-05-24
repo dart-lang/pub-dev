@@ -14,17 +14,18 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'configuration.dart';
 import 'scheduler_stats.dart';
-import 'task_client.dart';
 import 'utils.dart' show trackEventLoopLatency;
 import 'versions.dart';
 
 class FrontendEntryMessage {
   final int frontendIndex;
   final SendPort protocolSendPort;
+  final SendPort taskSendPort;
 
   FrontendEntryMessage({
     @required this.frontendIndex,
     @required this.protocolSendPort,
+    @required this.taskSendPort,
   });
 }
 
@@ -64,6 +65,8 @@ Future startIsolates({
   int frontendStarted = 0;
   int workerStarted = 0;
   final statConsumerPorts = <SendPort>[];
+  final taskConsumerPorts = <SendPort>[];
+  int nextTaskConsumerIndex = 0;
 
   Future startFrontendIsolate() async {
     frontendStarted++;
@@ -71,6 +74,7 @@ Future startIsolates({
     logger.info('About to start frontend isolate #$frontendIndex...');
     final ReceivePort errorReceivePort = new ReceivePort();
     final ReceivePort protocolReceivePort = new ReceivePort();
+    final ReceivePort taskReceivePort = new ReceivePort();
     await Isolate.spawn(
       _wrapper,
       [
@@ -78,6 +82,7 @@ Future startIsolates({
         new FrontendEntryMessage(
           frontendIndex: frontendIndex,
           protocolSendPort: protocolReceivePort.sendPort,
+          taskSendPort: taskReceivePort.sendPort,
         ),
       ],
       onError: errorReceivePort.sendPort,
@@ -92,12 +97,14 @@ Future startIsolates({
     logger.info('Frontend isolate #$frontendIndex started.');
 
     StreamSubscription errorSubscription;
+    StreamSubscription taskSubscription;
 
     Future close() async {
       if (protocolMessage.statsConsumerPort != null) {
         statConsumerPorts.remove(protocolMessage.statsConsumerPort);
       }
       await errorSubscription?.cancel();
+      await taskSubscription?.cancel();
       errorReceivePort.close();
       protocolReceivePort.close();
     }
@@ -108,6 +115,17 @@ Future startIsolates({
       // restart isolate after a brief pause
       await new Future.delayed(new Duration(seconds: 5));
       await startFrontendIsolate();
+    });
+
+    taskSubscription = taskReceivePort.listen((task) {
+      if (taskConsumerPorts.isEmpty) {
+        logger.warning('Unable to delegate task: $task');
+        return;
+      }
+      nextTaskConsumerIndex =
+          (nextTaskConsumerIndex + 1) % taskConsumerPorts.length;
+      print('next $nextTaskConsumerIndex');
+      taskConsumerPorts[nextTaskConsumerIndex].send(task);
     });
   }
 
@@ -134,7 +152,7 @@ Future startIsolates({
     );
     final WorkerProtocolMessage protocolMessage =
         (await protocolReceivePort.take(1).toList()).single;
-    registerTaskSendPort(protocolMessage.taskSendPort);
+    taskConsumerPorts.add(protocolMessage.taskSendPort);
     final statsSubscription =
         statsReceivePort?.cast<Map>()?.listen((Map stats) {
       updateLatestStats(stats);
@@ -148,7 +166,7 @@ Future startIsolates({
 
     Future close() async {
       await statsSubscription?.cancel();
-      unregisterTaskSendPort(protocolMessage.taskSendPort);
+      taskConsumerPorts.remove(protocolMessage.taskSendPort);
       await errorSubscription?.cancel();
       errorReceivePort.close();
       protocolReceivePort.close();
