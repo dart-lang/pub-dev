@@ -59,6 +59,8 @@ class DartdocMemcache {
     return Future.wait([
       _entry.invalidate(_entryKey(package, version, true)),
       _entry.invalidate(_entryKey(package, version, false)),
+      _entry.invalidate(_entryKey(package, 'latest', true)),
+      _entry.invalidate(_entryKey(package, 'latest', false)),
     ]);
   }
 

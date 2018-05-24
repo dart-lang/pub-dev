@@ -90,10 +90,15 @@ void main() {
       );
     });
 
+    scopedTest('trailing slash redirect', () async {
+      expectRedirectResponse(
+          await issueGet('/documentation/foo'), '/documentation/foo/latest/');
+    });
+
     scopedTest('/documentation/no_pkg redirect', () async {
       registerDartdocBackend(new DartdocBackendMock());
-      expectRedirectResponse(
-          await issueGet('/documentation/no_pkg'), '/packages?q=no_pkg');
+      expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
+          '/packages/no_pkg/versions');
     });
   });
 }
@@ -116,13 +121,21 @@ class DartdocBackendMock implements DartdocBackend {
   }
 
   @override
-  Future<DartdocEntry> getLatestEntry(
-      String package, String version, bool serving) async {
+  Future<DartdocEntry> getServingEntry(String package, String version) async {
     return entries?.lastWhere(
       (entry) =>
           entry.packageName == package &&
           entry.packageVersion == version &&
-          (!serving || entry.isServing),
+          entry.isServing,
+      orElse: () => null,
+    );
+  }
+
+  @override
+  Future<DartdocEntry> getLatestEntry(String package, String version) async {
+    return entries?.lastWhere(
+      (entry) =>
+          entry.packageName == package && entry.packageVersion == version,
       orElse: () => null,
     );
   }
@@ -131,6 +144,15 @@ class DartdocBackendMock implements DartdocBackend {
   Future<String> getLatestVersion(String package) async {
     if (latestVersions == null) return null;
     return latestVersions[package];
+  }
+
+  @override
+  Future<List<String>> getLatestVersions(String package,
+      {int limit: 10}) async {
+    if (latestVersions == null) return [];
+    final v = latestVersions[package];
+    if (v == null) return [];
+    return [v];
   }
 
   @override
