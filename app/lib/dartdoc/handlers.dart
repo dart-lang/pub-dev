@@ -60,18 +60,17 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
   }
-  final effectiveVersion = await _effectiveVersion(docFilePath);
-  if (effectiveVersion == null) {
-    return redirectToSearch(docFilePath.package);
+  if (docFilePath.package == null || docFilePath.version == null) {
+    return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
   }
   if (docFilePath.path == null) {
     return redirectResponse('${request.requestedUri}/');
   }
   final String requestMethod = request.method?.toUpperCase();
-  final entry = await dartdocBackend.getLatestEntry(
-      docFilePath.package, effectiveVersion, true);
+  final entry = await dartdocBackend.getServingEntry(
+      docFilePath.package, docFilePath.version);
   if (entry == null) {
-    return notFoundHandler(request);
+    return redirectResponse(pkgVersionsUrl(docFilePath.package));
   }
   if (requestMethod == 'HEAD') {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
@@ -109,14 +108,6 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
     return new shelf.Response(HttpStatus.OK, body: stream, headers: headers);
   }
   return notFoundHandler(request);
-}
-
-FutureOr<String> _effectiveVersion(DocFilePath docFilePath) {
-  if (docFilePath.version == 'latest') {
-    return dartdocBackend.getLatestVersion(docFilePath.package);
-  } else {
-    return docFilePath.version;
-  }
 }
 
 class DocFilePath {

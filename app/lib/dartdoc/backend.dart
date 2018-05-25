@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../frontend/models.dart' show Package;
+import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
 import '../shared/task_scheduler.dart' show TaskTargetStatus;
@@ -46,6 +46,20 @@ class DartdocBackend {
     final list = await _db.lookup([_db.emptyKey.append(Package, id: package)]);
     final Package p = list.single;
     return p?.latestVersion;
+  }
+
+  Future<List<String>> getLatestVersions(String package,
+      {int limit: 10}) async {
+    final query = _db.query(PackageVersion,
+        ancestorKey: _db.emptyKey.append(Package, id: package))
+      ..order('-created')
+      ..limit(limit);
+    final versions = <String>[];
+    await for (PackageVersion pv in query.run()) {
+      if (pv.semanticVersion.isPreRelease) continue;
+      versions.add(pv.version);
+    }
+    return versions;
   }
 
   /// Uploads a directory to the storage bucket.
@@ -104,7 +118,7 @@ class DartdocBackend {
 
   Future<TaskTargetStatus> checkTargetStatus(String package, String version,
       DateTime updated, bool retryFailed) async {
-    final entry = await getLatestEntry(package, version, false);
+    final entry = await getLatestEntry(package, version);
     if (entry == null) {
       return new TaskTargetStatus.ok();
     }
@@ -115,26 +129,60 @@ class DartdocBackend {
   }
 
   /// Return the latest entry that should be used to serve the content.
-  Future<DartdocEntry> getLatestEntry(
-      String package, String version, bool serving) async {
+  Future<DartdocEntry> getServingEntry(String package, String version) async {
     final cachedContent =
-        await dartdocMemcache?.getEntryBytes(package, version, serving);
+        await dartdocMemcache?.getEntryBytes(package, version, true);
     if (cachedContent != null) {
       return new DartdocEntry.fromBytes(cachedContent);
     }
+
+    Future<DartdocEntry> loadVersion(String v) async {
+      final List<DartdocEntry> completedList =
+          await _listEntries(storage_path.entryPrefix(package, v));
+      if (completedList.isEmpty) return null;
+      final hasServing = completedList.any((entry) => entry.isServing);
+      // don't remove non-serving entries if they are the only ones left
+      if (hasServing) {
+        completedList.removeWhere((entry) => !entry.isServing);
+      }
+      completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
+      return completedList.first;
+    }
+
+    DartdocEntry entry;
+    if (version != 'latest') {
+      entry = await loadVersion(version);
+    } else {
+      final latestVersion = await dartdocBackend.getLatestVersion(package);
+      if (latestVersion == null) {
+        return null;
+      }
+      entry = await loadVersion(latestVersion);
+
+      if (entry == null) {
+        final versions = await dartdocBackend.getLatestVersions(package);
+        versions.remove(latestVersion);
+        for (String v in versions.take(2)) {
+          entry = await loadVersion(v);
+          if (entry != null) break;
+        }
+      }
+    }
+
+    if (entry != null) {
+      await dartdocMemcache?.setEntryBytes(
+          package, version, true, entry.asBytes());
+    }
+    return entry;
+  }
+
+  /// Return the latest entry.
+  Future<DartdocEntry> getLatestEntry(String package, String version) async {
     final List<DartdocEntry> completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
-    final hasServing = completedList.any((entry) => entry.isServing);
-    // don't remove non-serving entries if they are the only ones left
-    if (serving && hasServing) {
-      completedList.removeWhere((entry) => !entry.isServing);
-    }
     if (completedList.isEmpty) return null;
     completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-    final entry = completedList.first;
-    await dartdocMemcache?.setEntryBytes(
-        package, version, serving, entry.asBytes());
-    return entry;
+    return completedList.first;
   }
 
   /// Returns the file's header from the storage bucket
