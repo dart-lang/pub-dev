@@ -129,7 +129,8 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore = summary.maintenance == null
           ? 0.0
-          : applyPenalties(1.0, summary.suggestions?.map((s) => s.penalty));
+          : applyPenalties(
+              1.0, summary.maintenance.suggestions?.map((s) => s.penalty));
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
