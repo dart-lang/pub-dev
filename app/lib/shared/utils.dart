@@ -16,7 +16,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:mime/src/default_extension_map.dart' as mime;
-import 'package:pana/models.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
@@ -386,27 +385,4 @@ void trackEventLoopLatency() {
   Zone.root.run(() {
     measure();
   });
-}
-
-// TODO: remove this after pana supports
-Summary changePanaSummary(
-  Summary summary, {
-  Fitness fitness,
-  DartPlatform platform,
-  Maintenance maintenance,
-  List<Suggestion> suggestions,
-}) {
-  return new Summary(
-    summary.runtimeInfo,
-    summary.packageName,
-    summary.packageVersion,
-    summary.pubspec,
-    summary.pkgResolution,
-    summary.dartFiles,
-    platform ?? summary.platform,
-    summary.licenses,
-    fitness ?? summary.fitness,
-    maintenance ?? summary.maintenance,
-    suggestions ?? summary.suggestions,
-  );
 }

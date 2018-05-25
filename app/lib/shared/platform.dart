@@ -4,8 +4,6 @@
 
 import 'package:pana/pana.dart';
 
-import 'utils.dart' show changePanaSummary;
-
 abstract class KnownPlatforms {
   static const String flutter = PlatformNames.flutter;
   static const String web = PlatformNames.web;
@@ -42,8 +40,6 @@ List<String> indexDartPlatform(DartPlatform platform) {
 }
 
 Summary applyPlatformOverride(Summary summary) {
-  return changePanaSummary(
-    summary,
-    platform: _packagePlatformOverrides[summary.packageName],
-  );
+  return summary.change(
+      platform: _packagePlatformOverrides[summary.packageName]);
 }
