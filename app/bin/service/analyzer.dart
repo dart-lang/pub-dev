@@ -13,6 +13,8 @@ import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
@@ -77,6 +79,8 @@ void _workerMain(WorkerEntryMessage message) {
 void _registerServices() {
   registerAnalysisBackend(new AnalysisBackend(db.dbService));
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
+  registerDartdocMemcache(new DartdocMemcache(memcacheService));
+  registerDartdocClient(new DartdocClient());
   registerHistoryBackend(new HistoryBackend(db.dbService));
   registerJobBackend(new JobBackend(db.dbService));
 }

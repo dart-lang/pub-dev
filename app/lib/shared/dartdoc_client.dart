@@ -40,7 +40,7 @@ class DartdocClient {
     final resultFutures = <Future<DartdocEntry>>[];
     final pool = new Pool(4); // concurrent requests
     for (String version in versions) {
-      final future = pool.withResource(() => _getEntry(package, version));
+      final future = pool.withResource(() => getEntry(package, version));
       resultFutures.add(future);
     }
     return await Future.wait(resultFutures);
@@ -77,7 +77,7 @@ class DartdocClient {
     return null;
   }
 
-  Future<DartdocEntry> _getEntry(String package, String version) async {
+  Future<DartdocEntry> getEntry(String package, String version) async {
     final cachedContent =
         await dartdocMemcache?.getEntryBytes(package, version, true);
     if (cachedContent != null) {

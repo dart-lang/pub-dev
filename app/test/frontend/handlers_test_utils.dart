@@ -307,6 +307,11 @@ class AnalyzerClientMock implements AnalyzerClient {
 
 class DartdocClientMock implements DartdocClient {
   @override
+  Future<DartdocEntry> getEntry(String package, String version) async {
+    return null;
+  }
+
+  @override
   Future<List<DartdocEntry>> getEntries(
       String package, List<String> versions) async {
     return versions.map((s) => null).toList();

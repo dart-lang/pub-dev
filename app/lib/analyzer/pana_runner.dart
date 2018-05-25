@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 import '../job/job.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
+import '../shared/dartdoc_client.dart';
 import '../shared/platform.dart';
 
 import 'backend.dart';
@@ -116,6 +117,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
       summary = applyPlatformOverride(summary);
+      summary = await _expandSummary(summary, packageStatus.age);
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
       if (!lastRunWithErrors) {
@@ -127,7 +129,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore = summary.maintenance == null
           ? 0.0
-          : getMaintenanceScore(summary.maintenance, age: packageStatus.age);
+          : applyPenalties(1.0, summary.suggestions?.map((s) => s.penalty));
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
@@ -139,5 +141,34 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     return status;
+  }
+
+  Future<Summary> _expandSummary(Summary summary, Duration age) async {
+    if (summary.maintenance != null) {
+      final suggestions = new List.from(summary.suggestions ?? <Suggestion>[]);
+
+      // age suggestion
+      final ageSuggestion = getAgeSuggestion(age);
+      if (ageSuggestion != null) {
+        suggestions.add(ageSuggestion);
+      }
+
+      // dartdoc status
+      final dartdocEntry = await dartdocClient.getEntry(
+          summary.packageName, summary.packageVersion.toString());
+      bool dartdocSuccessful;
+      if (dartdocEntry != null) {
+        dartdocSuccessful = dartdocEntry.hasContent;
+        if (!dartdocSuccessful) {
+          suggestions.add(getDartdocRunFailedSuggestion());
+        }
+      }
+
+      suggestions.sort();
+      final maintenance = summary.maintenance.change(
+          dartdocSuccessful: dartdocSuccessful, suggestions: suggestions);
+      summary = summary.change(maintenance: maintenance);
+    }
+    return summary;
   }
 }
