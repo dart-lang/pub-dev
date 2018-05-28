@@ -15,6 +15,7 @@ import 'package:uuid/uuid.dart';
 import '../analyzer/backend.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
+import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart' show envConfig;
 import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
@@ -142,6 +143,9 @@ class DartdocJobProcessor extends JobProcessor {
           job.packageVersionUpdated,
           true);
     }
+
+    analyzerClient.triggerAnalysis(
+        job.packageName, job.packageVersion, new Set());
 
     return hasContent ? JobStatus.success : JobStatus.failed;
   }
