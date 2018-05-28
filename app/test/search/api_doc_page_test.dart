@@ -57,7 +57,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.986, 0.001), // finds package name
+            'score': closeTo(0.993, 0.001), // finds package name
           },
           {
             'package': 'other_with_api',
@@ -77,7 +77,7 @@ void main() {
         'packages': [
           {
             'package': 'other_with_api',
-            'score': closeTo(0.772, 0.001), // find serveWebPages
+            'score': closeTo(0.787, 0.001), // find serveWebPages
           },
           // should not contain `other_without_api`
         ],
@@ -94,7 +94,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.614, 0.001), // find WebPageGenerator
+            'score': closeTo(0.481, 0.001), // find WebPageGenerator
           },
           // should not contain `other_without_api`
         ],
@@ -110,11 +110,11 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.731, 0.001), // find WebPageGenerator
+            'score': closeTo(0.572, 0.001), // find WebPageGenerator
           },
           {
             'package': 'other_with_api',
-            'score': closeTo(0.617, 0.001), // find serveWebPages
+            'score': closeTo(0.147, 0.001), // find serveWebPages
           },
           // should not contain `other_without_api`
         ],

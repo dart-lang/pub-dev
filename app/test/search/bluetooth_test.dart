@@ -39,7 +39,7 @@ void main() {
         'packages': [
           {
             'package': 'flutter_blue',
-            'score': closeTo(0.916, 0.001),
+            'score': closeTo(0.935, 0.001),
           },
         ],
       });
