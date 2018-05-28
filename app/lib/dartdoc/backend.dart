@@ -51,15 +51,17 @@ class DartdocBackend {
   Future<List<String>> getLatestVersions(String package,
       {int limit: 10}) async {
     final query = _db.query(PackageVersion,
-        ancestorKey: _db.emptyKey.append(Package, id: package))
-      ..order('-created')
-      ..limit(limit);
-    final versions = <String>[];
-    await for (PackageVersion pv in query.run()) {
-      if (pv.semanticVersion.isPreRelease) continue;
-      versions.add(pv.version);
-    }
-    return versions;
+        ancestorKey: _db.emptyKey.append(Package, id: package));
+    final versions = (await query.run().toList()).cast<PackageVersion>();
+    versions.sort((a, b) {
+      final isAPreRelease = a.semanticVersion.isPreRelease;
+      final isBPreRelease = b.semanticVersion.isPreRelease;
+      if (isAPreRelease != isBPreRelease) {
+        return isAPreRelease ? 1 : -1;
+      }
+      return -a.created.compareTo(b.created);
+    });
+    return versions.map((pv) => pv.version).take(limit).toList();
   }
 
   /// Uploads a directory to the storage bucket.
