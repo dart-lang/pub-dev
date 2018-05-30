@@ -98,7 +98,7 @@ packages:
       name: built_value
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.4.5"
+    version: "5.5.0"
   charcode:
     dependency: transitive
     description:
@@ -148,6 +148,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.14.4"
+  dart2_constant:
+    dependency: transitive
+    description:
+      name: dart2_constant
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1+dart2"
   dart_style:
     dependency: transitive
     description:
@@ -357,7 +364,7 @@ packages:
       name: node_preamble
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.1"
+    version: "1.4.2"
   package_config:
     dependency: transitive
     description:
@@ -371,7 +378,7 @@ packages:
       name: package_resolver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   pana:
     dependency: "direct main"
     description:
@@ -420,7 +427,7 @@ packages:
       name: pub_server
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.3"
+    version: "0.1.4"
   quiver:
     dependency: transitive
     description:
