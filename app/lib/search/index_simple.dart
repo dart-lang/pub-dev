@@ -211,7 +211,7 @@ class SimplePackageIndex implements PackageIndex {
           final matchedPackage = query.parsedQuery.text;
           final double maxValue = overallScore.getMaxValue();
           overallScore = overallScore.map(
-              (key, value) => key == matchedPackage ? maxValue : value * 0.999);
+              (key, value) => key == matchedPackage ? maxValue : value * 0.99);
         }
         results = _rankWithValues(overallScore.getValues());
         break;
@@ -311,16 +311,6 @@ class SimplePackageIndex implements PackageIndex {
         final readmeTokens = _readmeIndex.lookupTokens(word);
         final apiDocTokens =
             isExperimental ? _apiDocIndex.lookupTokens(word) : new TokenMatch();
-        final maxTokenLength = [
-          nameTokens.maxLength,
-          descrTokens.maxLength,
-          readmeTokens.maxLength,
-          apiDocTokens.maxLength
-        ].fold(0, math.max);
-        nameTokens.removeShortTokens(maxTokenLength);
-        descrTokens.removeShortTokens(maxTokenLength);
-        readmeTokens.removeShortTokens(maxTokenLength);
-        apiDocTokens.removeShortTokens(maxTokenLength);
 
         final name = new Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
@@ -506,38 +496,24 @@ class Score {
 class TokenMatch {
   final Map<String, double> _tokenWeights = <String, double>{};
   double _sumWeight;
-  int _maxLength;
 
   double operator [](String token) => _tokenWeights[token];
 
   void operator []=(String token, double weight) {
     _tokenWeights[token] = weight;
     _sumWeight = null;
-    _maxLength = null;
   }
 
   Iterable<String> get tokens => _tokenWeights.keys;
 
-  int get maxLength => _maxLength ??=
-      _tokenWeights.keys.fold(0, (a, b) => math.max(a, b.length));
-
   double get sumWeight =>
       _sumWeight ??= _tokenWeights.values.fold(0.0, (a, b) => a + b);
-
-  void removeShortTokens(int minLength) {
-    for (String token in _tokenWeights.keys.toList()) {
-      if (token.length < minLength) {
-        _tokenWeights.remove(token);
-      }
-    }
-    _sumWeight = null;
-    _maxLength = null;
-  }
 }
 
 class TokenIndex {
   final Map<String, String> _textHashes = <String, String>{};
   final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
+  final Map<String, Set<String>> _inverseNgrams = <String, Set<String>>{};
   final Map<String, double> _docSizes = <String, double>{};
   final int _minLength;
 
@@ -549,7 +525,7 @@ class TokenIndex {
   int get documentCount => _docSizes.length;
 
   void add(String id, String text) {
-    final Set<String> tokens = _tokenize(text, _minLength);
+    final Set<String> tokens = _tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       if (_textHashes.containsKey(id)) {
         remove(id);
@@ -563,6 +539,7 @@ class TokenIndex {
     for (String token in tokens) {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
+      _inverseNgrams.putIfAbsent(token, () => _ngrams(token, _minLength));
     }
     // Document size is a highly scaled-down proxy of the length.
     final docSize = 1 + math.log(1 + tokens.length) / 100;
@@ -579,25 +556,55 @@ class TokenIndex {
       if (set.isEmpty) removeKeys.add(key);
     });
     removeKeys.forEach(_inverseIds.remove);
+    removeKeys.forEach(_inverseNgrams.remove);
   }
 
   /// Match the text against the corpus and return the tokens that have match.
   TokenMatch lookupTokens(String text) {
     final TokenMatch tokenMatch = new TokenMatch();
-    final Set<String> tokens = _tokenize(text, _minLength);
+    final Set<String> tokens = _tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       return tokenMatch;
     }
 
     // Check which tokens have documents, and assign their weight.
     for (String token in tokens) {
-      final int foundCount = _inverseIds[token]?.length ?? 0;
-      if (foundCount == 0) continue;
-      // Inverse document frequency score inspired by ElasticSearch's ranking.
-      final double idf = 1.0 + math.log(documentCount / (foundCount + 1));
-      tokenMatch[token] = idf * token.length;
+      final tokenNgrams = _ngrams(token, _minLength);
+      for (String candidate in _inverseIds.keys) {
+        double candidateWeight = 0.0;
+        if (token == candidate) {
+          candidateWeight = 1.0;
+        } else {
+          final candidateNgrams = _inverseNgrams[candidate];
+          candidateWeight = _ngramSimilarity(tokenNgrams, candidateNgrams);
+        }
+        if (candidateWeight > 0.3) {
+          final int foundCount = _inverseIds[candidate]?.length ?? 0;
+          if (foundCount <= 0) continue;
+          final double idf = 1.0 + math.log(documentCount / foundCount);
+          final double score = idf * candidateWeight;
+          final double old = tokenMatch[candidate];
+          if (old == null || old < score) {
+            tokenMatch[candidate] = score;
+          }
+        }
+      }
     }
     return tokenMatch;
+  }
+
+  // Weighted Jaccard-similarity metric of sets of strings.
+  double _ngramSimilarity(Set<String> a, Set<String> b) {
+    final intersection = a.intersection(b);
+    final superset = new Set<String>.from(a)..addAll(b);
+    if (intersection.isEmpty) return 0.0;
+
+    int sumFn(int sum, String str) =>
+        sum + math.min(100, str.length * str.length);
+
+    final intersectionWeight = intersection.fold(0, sumFn);
+    final supersetWeight = superset.fold(0, sumFn);
+    return intersectionWeight / supersetWeight;
   }
 
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
@@ -631,26 +638,17 @@ class TokenIndex {
   /// Search the index for [text], with a (term-match / document coverage percent)
   /// scoring. Longer tokens weight more in the relevance score.
   Map<String, double> search(String text) {
-    final TokenMatch tokenMatch = lookupTokens(text);
-    tokenMatch.removeShortTokens(tokenMatch.maxLength - 1);
-    return scoreDocs(tokenMatch);
+    return scoreDocs(lookupTokens(text));
   }
 }
 
 const int _minNgram = 1;
-const int _maxNgram = 4;
+const int _maxNgram = 6;
 const int _maxWordLength = 80;
 
-Set<String> _tokenize(String originalText, int minLength) {
+Set<String> _tokenize(String originalText) {
   if (originalText == null || originalText.isEmpty) return null;
   final Set<String> tokens = new Set();
-
-  void addAllPrefixes(String phrase) {
-    for (int i = _maxNgram + 1; i < phrase.length; i++) {
-      tokens.add(phrase.substring(0, i));
-    }
-    tokens.add(phrase);
-  }
 
   for (String word in splitForIndexing(originalText)) {
     if (word.length > _maxWordLength) word = word.substring(0, _maxWordLength);
@@ -659,33 +657,38 @@ Set<String> _tokenize(String originalText, int minLength) {
     if (normalizedWord.isEmpty) continue;
 
     tokens.add(normalizedWord);
-    for (int ngramLength = math.max(_minNgram, minLength);
-        ngramLength <= _maxNgram;
-        ngramLength++) {
-      if (normalizedWord.length > ngramLength) {
-        for (int i = 0; i <= normalizedWord.length - ngramLength; i++) {
-          tokens.add(normalizedWord.substring(i, i + ngramLength));
-        }
-      }
-    }
-    if (word.length <= _maxNgram) continue; // ngrams covered everything
 
-    // add all prefixes for better relevancy on longer phrases
-    addAllPrefixes(normalizedWord);
-
-    // scan for CamelCase phrases and index Case
+    // Scan for CamelCase phrases and extract Camel and Case separately.
+    final changeIndex = <int>[0];
     bool prevLower = _isLower(word[0]);
     for (int i = 1; i < word.length; i++) {
       final bool lower = _isLower(word[i]);
       if (!lower && prevLower) {
-        final String part = word.substring(i);
-        final String normalizedPart = normalizeBeforeIndexing(part);
-        addAllPrefixes(normalizedPart);
+        changeIndex.add(i);
       }
       prevLower = lower;
+    }
+    changeIndex.add(word.length);
+    for (int i = 1; i < changeIndex.length; i++) {
+      tokens.add(normalizeBeforeIndexing(
+          word.substring(changeIndex[i - 1], changeIndex[i])));
     }
   }
   return tokens;
 }
 
 bool _isLower(String c) => c.toLowerCase() == c;
+
+Set<String> _ngrams(String text, int minLength) {
+  final ngrams = new Set<String>();
+  for (int ngramLength = math.max(_minNgram, minLength);
+      ngramLength <= _maxNgram;
+      ngramLength++) {
+    if (text.length > ngramLength) {
+      for (int i = 0; i <= text.length - ngramLength; i++) {
+        ngrams.add(text.substring(i, i + ngramLength));
+      }
+    }
+  }
+  return ngrams;
+}

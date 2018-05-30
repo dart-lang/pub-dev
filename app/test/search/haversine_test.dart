@@ -376,7 +376,7 @@ MIT'''),
       await index.merge();
     });
 
-    test('hoversine', () async {
+    test('haversine', () async {
       final PackageSearchResult result = await index.search(
           new SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
@@ -386,17 +386,40 @@ MIT'''),
           {
             // should be the top
             'package': 'haversine',
-            'score': closeTo(0.968, 0.001),
+            'score': closeTo(0.99, 0.01),
           },
           {
             // should be present
             'package': 'great_circle_distance',
-            'score': closeTo(0.843, 0.001),
+            'score': closeTo(0.86, 0.01),
           },
           {
             // should be present
             'package': 'latlong',
-            'score': closeTo(0.841, 0.001),
+            'score': closeTo(0.36, 0.01),
+          },
+        ]
+      });
+    });
+
+    test('type: hoversine', () async {
+      final PackageSearchResult result = await index.search(
+          new SearchQuery.parse(query: 'hoversine', order: SearchOrder.text));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 3,
+        'packages': [
+          {
+            'package': 'haversine',
+            'score': closeTo(0.99, 0.01),
+          },
+          {
+            'package': 'great_circle_distance',
+            'score': closeTo(0.86, 0.01),
+          },
+          {
+            'package': 'latlong',
+            'score': closeTo(0.86, 0.01),
           },
         ]
       });

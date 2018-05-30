@@ -18,8 +18,7 @@ void main() {
 
       expect(index.search('xml'), {
         // no match for http
-        // the letter 'm' matches from http_magic
-        'uri://http_magic': closeTo(0.97, 0.01),
+        // no match for http_magic
       });
     });
 
@@ -28,8 +27,8 @@ void main() {
         ..add('uri://http', 'http')
         ..add('uri://http_magic', 'http_magic');
       expect(index.search('http'), {
-        'uri://http': closeTo(0.98, 0.01),
-        'uri://http_magic': closeTo(0.97, 0.01),
+        'uri://http': closeTo(0.993, 0.001),
+        'uri://http_magic': closeTo(0.989, 0.001),
       });
     });
 
@@ -40,14 +39,13 @@ void main() {
         ..add('queue_lower', queueText.toLowerCase())
         ..add('unmodifiable', 'CustomUnmodifiableMapBase');
       expect(index.search('queue'), {
-        'queue': closeTo(0.96, 0.01),
-        'queue_lower': closeTo(0.51, 0.01),
+        'queue': closeTo(0.98, 0.01),
       });
       expect(index.search('unmodifiab'), {
-        'unmodifiable': closeTo(0.95, 0.01),
+        'unmodifiable': closeTo(0.98, 0.01),
       });
       expect(index.search('unmodifiable'), {
-        'unmodifiable': closeTo(0.95, 0.01),
+        'unmodifiable': closeTo(0.98, 0.01),
       });
     });
 
@@ -58,11 +56,11 @@ void main() {
         ..add('uri://teamspeak', 'teamspeak');
 
       expect(index.search('riak'), {
-        'uri://riak_client': closeTo(0.97, 0.01),
+        'uri://riak_client': closeTo(0.99, 0.01),
       });
 
       expect(index.search('riak client'), {
-        'uri://riak_client': closeTo(0.97, 0.01),
+        'uri://riak_client': closeTo(0.99, 0.01),
       });
     });
 
@@ -70,11 +68,11 @@ void main() {
       final TokenIndex index = new TokenIndex();
       expect(index.tokenCount, 0);
       index.add('url1', 'text');
-      expect(index.tokenCount, 9);
+      expect(index.tokenCount, 1);
       index.add('url2', 'another');
-      expect(index.tokenCount, 32);
+      expect(index.tokenCount, 2);
       index.remove('url2');
-      expect(index.tokenCount, 9);
+      expect(index.tokenCount, 1);
     });
   });
 
@@ -195,7 +193,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'async',
-            'score': closeTo(0.91, 0.01),
+            'score': closeTo(0.92, 0.01),
           },
         ]
       });
@@ -210,7 +208,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {
             'package': 'http',
-            'score': closeTo(0.82, 0.01),
+            'score': closeTo(0.83, 0.01),
           },
         ]
       });
@@ -238,8 +236,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.85, 0.01)},
-          {'package': 'http', 'score': closeTo(0.76, 0.01)},
+          {'package': 'async', 'score': closeTo(0.86, 0.01)},
+          {'package': 'http', 'score': closeTo(0.78, 0.01)},
         ]
       });
     });
@@ -261,8 +259,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 2,
         'packages': [
-          {'package': 'async', 'score': closeTo(0.85, 0.01)},
-          {'package': 'http', 'score': closeTo(0.76, 0.01)},
+          {'package': 'async', 'score': closeTo(0.86, 0.01)},
+          {'package': 'http', 'score': closeTo(0.78, 0.01)},
         ],
       });
     });
@@ -289,21 +287,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 0,
         'packages': [],
-      });
-    });
-
-    test('order by text: double-letter tt', () async {
-      final PackageSearchResult result = await index
-          .search(new SearchQuery.parse(query: 'tt', order: SearchOrder.text));
-      expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
-        'totalCount': 1,
-        'packages': [
-          {
-            'package': 'http',
-            'score': closeTo(0.98, 0.01),
-          },
-        ],
       });
     });
 
@@ -451,7 +434,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.816, 0.001)},
+          {'package': 'http', 'score': closeTo(0.831, 0.001)},
         ],
       });
     });
@@ -488,7 +471,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.91, 0.01)},
+          {'package': 'http', 'score': closeTo(0.93, 0.01)},
         ],
       });
 
@@ -498,9 +481,9 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 3,
         'packages': [
-          {'package': 'chrome_net', 'score': closeTo(0.91, 0.01)},
-          {'package': 'async', 'score': closeTo(0.90, 0.01)},
-          {'package': 'http', 'score': closeTo(0.85, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.93, 0.01)},
+          {'package': 'async', 'score': closeTo(0.93, 0.01)},
+          {'package': 'http', 'score': closeTo(0.65, 0.01)},
         ],
       });
 
@@ -512,7 +495,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.814, 0.001)},
+          {'package': 'http', 'score': closeTo(0.623, 0.001)},
         ],
       });
     });
