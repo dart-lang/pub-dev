@@ -23,10 +23,8 @@ AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) =>
         runtimeVersion: json['runtimeVersion'] as String,
         panaVersion: json['panaVersion'] as String,
         flutterVersion: json['flutterVersion'] as String,
-        analysisStatus: json['analysisStatus'] == null
-            ? null
-            : AnalysisStatus.values.singleWhere((e) =>
-                e.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
+        analysisStatus: $enumDecodeNullable('AnalysisStatus',
+            AnalysisStatus.values, json['analysisStatus'] as String),
         analysisContent: json['analysisContent'] as Map<String, dynamic>,
         maintenanceScore: (json['maintenanceScore'] as num)?.toDouble());
 
@@ -49,9 +47,7 @@ abstract class _$AnalysisDataSerializerMixin {
         'runtimeVersion': runtimeVersion,
         'panaVersion': panaVersion,
         'flutterVersion': flutterVersion,
-        'analysisStatus': analysisStatus == null
-            ? null
-            : analysisStatus.toString().split('.')[1],
+        'analysisStatus': analysisStatus?.toString()?.split('.')?.last,
         'maintenanceScore': maintenanceScore,
         'analysisContent': analysisContent
       };
@@ -59,10 +55,8 @@ abstract class _$AnalysisDataSerializerMixin {
 
 AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
     new AnalysisExtract(
-        analysisStatus: json['analysisStatus'] == null
-            ? null
-            : AnalysisStatus.values.singleWhere((e) =>
-                e.toString() == 'AnalysisStatus.${json['analysisStatus']}'),
+        analysisStatus: $enumDecodeNullable('AnalysisStatus',
+            AnalysisStatus.values, json['analysisStatus'] as String),
         health: (json['health'] as num)?.toDouble(),
         maintenance: (json['maintenance'] as num)?.toDouble(),
         popularity: (json['popularity'] as num)?.toDouble(),
@@ -80,9 +74,7 @@ abstract class _$AnalysisExtractSerializerMixin {
   List<String> get platforms;
   DateTime get timestamp;
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'analysisStatus': analysisStatus == null
-            ? null
-            : analysisStatus.toString().split('.')[1],
+        'analysisStatus': analysisStatus?.toString()?.split('.')?.last,
         'health': health,
         'maintenance': maintenance,
         'popularity': popularity,
