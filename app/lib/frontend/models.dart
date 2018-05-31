@@ -57,11 +57,12 @@ class Package extends db.ExpandoModel {
 
   // Convenience Fields:
 
-  String get latestVersion => latestVersionKey.id;
+  String get latestVersion => latestVersionKey.id as String;
 
-  Version get latestSemanticVersion => new Version.parse(latestVersionKey.id);
+  Version get latestSemanticVersion =>
+      new Version.parse(latestVersionKey.id as String);
 
-  String get latestDevVersion => latestDevVersionKey?.id;
+  String get latestDevVersion => latestDevVersionKey?.id as String;
 
   Version get latestDevSemanticVersion =>
       latestDevVersionKey == null ? null : new Version.parse(latestDevVersion);
@@ -117,7 +118,7 @@ class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)
   String version; // Same as id
 
-  String get package => packageKey.id;
+  String get package => packageKey.id as String;
 
   @db.ModelKeyProperty(required: true, propertyName: 'package')
   db.Key packageKey;

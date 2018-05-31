@@ -101,7 +101,7 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
           ? null
           : new Map.fromIterable(
               dependencies.keys,
-              key: (key) => internFn(key),
+              key: (key) => internFn(key as String),
               value: (key) => internFn(dependencies[key]),
             ),
       emails: emails?.map(internFn)?.toList(),

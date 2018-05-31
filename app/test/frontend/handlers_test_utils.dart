@@ -83,7 +83,8 @@ class BackendMock implements Backend {
   @override
   Future<List<Package>> newestPackages({int offset, int limit}) async {
     if (newestPackagesFun == null) throw 'no newestPackagesFun';
-    return newestPackagesFun(offset: offset, limit: limit);
+    return (await newestPackagesFun(offset: offset, limit: limit))
+        as List<Package>;
   }
 
   @override
@@ -96,28 +97,31 @@ class BackendMock implements Backend {
   Future<List<PackageVersion>> latestPackageVersions(
       {int offset, int limit, bool devVersions: false}) async {
     if (latestPackageVersionsFun == null) throw 'no latestPackageVersionsFun';
-    return latestPackageVersionsFun(offset: offset, limit: limit);
+    return (await latestPackageVersionsFun(offset: offset, limit: limit))
+        as List<PackageVersion>;
   }
 
   @override
   Future<List<Package>> latestPackages(
       {int offset, int limit, String detectedType}) async {
     if (latestPackagesFun == null) throw 'no latestPackagesFun';
-    return latestPackagesFun(
-        offset: offset, limit: limit, detectedType: detectedType);
+    return (await latestPackagesFun(
+        offset: offset,
+        limit: limit,
+        detectedType: detectedType)) as List<Package>;
   }
 
   @override
   Future<List<PackageVersion>> lookupLatestVersions(List<Package> packages,
       {bool devVersions: false}) async {
     if (lookupLatestVersionsFun == null) throw 'no lookupLatestVersionsFun';
-    return lookupLatestVersionsFun(packages);
+    return (await lookupLatestVersionsFun(packages)) as List<PackageVersion>;
   }
 
   @override
   Future<Package> lookupPackage(String packageName) async {
     if (lookupPackageFun == null) throw 'no lookupPackageFun';
-    return lookupPackageFun(packageName);
+    return (await lookupPackageFun(packageName)) as Package;
   }
 
   @override
@@ -129,19 +133,19 @@ class BackendMock implements Backend {
   Future<PackageVersion> lookupPackageVersion(
       String package, String version) async {
     if (lookupPackageVersionFun == null) throw 'no lookupPackageVersionFun';
-    return lookupPackageVersionFun(package, version);
+    return (await lookupPackageVersionFun(package, version)) as PackageVersion;
   }
 
   @override
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
     if (versionsOfPackageFun == null) throw 'no versionsOfPackageFun';
-    return versionsOfPackageFun(packageName);
+    return (await versionsOfPackageFun(packageName)) as List<PackageVersion>;
   }
 
   @override
   Future<Uri> downloadUrl(String package, String version) async {
     if (downloadUrlFun == null) throw 'no downloadUrlFun';
-    return downloadUrlFun(package, version);
+    return (await downloadUrlFun(package, version)) as Uri;
   }
 }
 
@@ -248,7 +252,7 @@ class SearchClientMock implements SearchClient {
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
     if (searchFun == null) throw 'no searchFun';
-    return searchFun(query);
+    return (await searchFun(query)) as PackageSearchResult;
   }
 
   @override
@@ -265,7 +269,7 @@ class SearchServiceMock implements SearchService {
 
   @override
   Future<SearchResultPage> search(SearchQuery query) async {
-    return searchFun(query);
+    return (await searchFun(query)) as SearchResultPage;
   }
 
   @override

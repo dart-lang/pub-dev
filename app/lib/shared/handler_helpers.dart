@@ -74,14 +74,14 @@ Request ID: ${context.traceId}
 
 shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    return handler(_sanitizeRequestedUri(request));
+    return await handler(_sanitizeRequestedUri(request));
   };
 }
 
 shelf.Handler _userAuthParsingWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     await registerLoggedInUserIfPossible(request);
-    return handler(request);
+    return await handler(request);
   };
 }
 
@@ -92,7 +92,7 @@ shelf.Handler _redirectToHttpsWrapper(shelf.Handler handler) {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return new shelf.Response.seeOther(secureUri);
     } else {
-      return handler(request);
+      return await handler(request);
     }
   };
 }

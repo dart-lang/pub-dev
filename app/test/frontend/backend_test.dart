@@ -296,9 +296,10 @@ void main() {
     }
 
     group('GCloudRepository.addUploader', () {
-      negativeUploaderTests((repo) => repo.addUploader);
+      negativeUploaderTests((repo) => repo.addUploader as Function);
 
-      Future testAlreadyExists(user, uploaderEmails, newUploader) async {
+      Future testAlreadyExists(
+          String user, List<String> uploaderEmails, String newUploader) async {
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
@@ -339,7 +340,8 @@ void main() {
             'foo@b.com', ['bar@b.com', 'foo@b.com'], 'foo@B.com'));
       });
 
-      Future testSuccessful(user, uploaderEmails, newUploader) async {
+      Future testSuccessful(
+          String user, List<String> uploaderEmails, String newUploader) async {
         final historyBackendMock = new HistoryBackendMock();
         registerHistoryBackend(historyBackendMock);
         final completion = new TestDelayCompletion();
@@ -382,7 +384,7 @@ void main() {
     });
 
     group('GCloudRepository.removeUploader', () {
-      negativeUploaderTests((repo) => repo.removeUploader);
+      negativeUploaderTests((repo) => repo.removeUploader as Function);
 
       scopedTest('cannot remove last uploader', () async {
         final transactionMock = new TransactionMock(
@@ -712,7 +714,7 @@ void main() {
                   expect(keys.last, testPackage.key);
                   return [null, null];
                 },
-                queueMutationFun: ({inserts, deletes}) {
+                queueMutationFun: ({List<PackageVersion> inserts, deletes}) {
                   if (queueMutationCallNr == 0) {
                     validateSuccessfullUpdate(inserts);
                   } else {
@@ -886,7 +888,7 @@ void main() {
                   expect(keys.last, testPackage.key);
                   return [null, null];
                 }),
-                queueMutationFun: ({inserts, deletes}) {
+                queueMutationFun: ({List<PackageVersion> inserts, deletes}) {
                   if (queueMutationCallNr == 0) {
                     validateSuccessfullUpdate(inserts);
                   } else {

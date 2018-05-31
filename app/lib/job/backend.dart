@@ -32,7 +32,7 @@ void registerJobBackend(JobBackend backend) =>
     ss.register(#_job_backend, backend);
 
 /// The active job backend.
-JobBackend get jobBackend => ss.lookup(#_job_backend);
+JobBackend get jobBackend => ss.lookup(#_job_backend) as JobBackend;
 
 class JobBackend {
   final db.DatastoreDB _db;
@@ -146,12 +146,12 @@ class JobBackend {
       final now = new DateTime.now().toUtc();
       selected
         ..state = JobState.processing
-        ..processingKey = _uuid.v4()
+        ..processingKey = _uuid.v4().toString()
         ..lockedUntil = now.add(lockDuration ?? _defaultLockDuration);
       tx.queueMutations(inserts: [selected]);
       await tx.commit();
       return selected;
-    });
+    }) as Future<Job>;
   }
 
   Future unlockStaleProcessing(JobService service) async {

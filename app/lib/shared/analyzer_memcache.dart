@@ -17,7 +17,8 @@ void registerAnalyzerMemcache(AnalyzerMemcache value) =>
     ss.register(#_analyzerMemcache, value);
 
 /// The active analyzer memcache.
-AnalyzerMemcache get analyzerMemcache => ss.lookup(#_analyzerMemcache);
+AnalyzerMemcache get analyzerMemcache =>
+    ss.lookup(#_analyzerMemcache) as AnalyzerMemcache;
 
 class AnalyzerMemcache {
   final SimpleMemcache _data;

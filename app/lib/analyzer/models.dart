@@ -18,12 +18,12 @@ import 'model_properties.dart';
 /// Analyzed package report.
 @db.Kind(name: 'PackageAnalysis', idType: db.IdType.String)
 class PackageAnalysis extends db.ExpandoModel {
-  String get packageName => id;
+  String get packageName => id as String;
 
   @db.ModelKeyProperty(required: true)
   db.Key latestVersionKey;
 
-  String get latestVersion => latestVersionKey.id;
+  String get latestVersion => latestVersionKey.id as String;
   Version get latestSemanticVersion => new Version.parse(latestVersion);
 
   PackageAnalysis();
@@ -48,15 +48,15 @@ class PackageAnalysis extends db.ExpandoModel {
 @db.Kind(name: 'PackageVersionAnalysis', idType: db.IdType.String)
 class PackageVersionAnalysis extends db.ExpandoModel {
   db.Key get packageKey => parentKey;
-  String get packageName => packageKey.id;
-  String get packageVersion => id;
+  String get packageName => packageKey.id as String;
+  String get packageVersion => id as String;
 
   Version get semanticPackageVersion => new Version.parse(packageVersion);
 
   @db.ModelKeyProperty(required: true)
   db.Key latestAnalysisKey;
 
-  int get latestAnalysis => latestAnalysisKey.id;
+  int get latestAnalysis => latestAnalysisKey.id as int;
 
   /// The timestamp of the analysis (either the linked one, or an identical,
   /// but not stored one).
@@ -121,7 +121,7 @@ class Analysis extends db.ExpandoModel {
   @db.StringProperty(required: true)
   String packageVersion;
 
-  int get analysis => id;
+  int get analysis => id as int;
   db.Key get packageVersionKey => parentKey;
 
   Version get semanticPackageVersion => new Version.parse(packageVersion);
@@ -170,12 +170,13 @@ class Analysis extends db.ExpandoModel {
     flutterVersion = versions.flutterVersion;
   }
 
-  Map get analysisJson {
+  Map<String, dynamic> get analysisJson {
     if (analysisJsonGz == null) return null;
-    return json.decode(utf8.decode(_gzipCodec.decode(analysisJsonGz)));
+    return json.decode(utf8.decode(_gzipCodec.decode(analysisJsonGz)))
+        as Map<String, dynamic>;
   }
 
-  set analysisJson(Map map) {
+  set analysisJson(Map<String, dynamic> map) {
     if (map == null) {
       analysisJsonGz = null;
       analysisHash = null;

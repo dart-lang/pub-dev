@@ -144,7 +144,7 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
       }
     }
 
-    return new FeedEntry(id, title, version.created, authors, content,
+    return new FeedEntry(id as String, title, version.created, authors, content,
         alternateUrl, alternateTitle);
   }).toList();
 

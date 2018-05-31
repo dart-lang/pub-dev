@@ -223,8 +223,8 @@ void main() {
       // stored analysis of http
       final String content =
           await new File('$goldenDir/analysis_tab_http.json').readAsString();
-      final view =
-          new AnalysisView(new AnalysisData.fromJson(json.decode(content)));
+      final view = new AnalysisView(new AnalysisData.fromJson(
+          json.decode(content) as Map<String, dynamic>));
       final extract = new AnalysisExtract(
           health: view.health, maintenance: 0.9, popularity: 0.23);
       final String html = templates.renderAnalysisTab(

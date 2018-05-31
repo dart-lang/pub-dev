@@ -28,7 +28,7 @@ Future main(List<String> args) async {
         defaultsTo: '365', help: 'The maximum age of the package in days.')
     ..addOption('output', help: 'The report output file (or stdout otherwise)');
   final ArgResults argv = parser.parse(args);
-  final int maxAgeDays = int.parse(argv['max-age']);
+  final int maxAgeDays = int.parse(argv['max-age'] as String);
 
   final pool = new Pool(20);
 
@@ -56,7 +56,7 @@ Future main(List<String> args) async {
 
   final String json = new JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
-    final File outputFile = new File(argv['output']);
+    final File outputFile = new File(argv['output'] as String);
     print('Writing report to ${outputFile.path}');
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(json + '\n');

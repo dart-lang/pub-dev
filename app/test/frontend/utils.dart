@@ -36,7 +36,7 @@ final Pubspec testPubspec = new Pubspec.fromYaml(TestPackagePubspec);
 Package _createPackage() => new Package()
   ..parentKey = testPackageKey.parent
   ..id = testPackageKey.id
-  ..name = testPackageKey.id
+  ..name = testPackageKey.id as String
   ..created = new DateTime.utc(2014)
   ..updated = new DateTime.utc(2015)
   ..uploaderEmails = ['hans@juergen.com']
@@ -51,7 +51,7 @@ final Package discontinuedPackage = _createPackage()..isDiscontinued = true;
 final PackageVersion testPackageVersion = new PackageVersion()
   ..parentKey = testPackageVersionKey.parent
   ..id = testPackageVersionKey.id
-  ..version = testPackageVersionKey.id
+  ..version = testPackageVersionKey.id as String
   ..packageKey = testPackageKey
   ..created = new DateTime.utc(2014)
   ..libraries = ['foolib.dart']
@@ -76,7 +76,7 @@ flutter:
 
 final PackageVersion devPackageVersion = clonePackageVersion(testPackageVersion)
   ..id = devPackageVersionKey.id
-  ..version = devPackageVersionKey.id;
+  ..version = devPackageVersionKey.id as String;
 
 PackageVersion clonePackageVersion(PackageVersion original) =>
     new PackageVersion()

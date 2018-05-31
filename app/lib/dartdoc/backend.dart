@@ -33,7 +33,8 @@ void registerDartdocBackend(DartdocBackend backend) =>
     ss.register(#_dartdocBackend, backend);
 
 /// The active dartdoc backend.
-DartdocBackend get dartdocBackend => ss.lookup(#_dartdocBackend);
+DartdocBackend get dartdocBackend =>
+    ss.lookup(#_dartdocBackend) as DartdocBackend;
 
 class DartdocBackend {
   DatastoreDB _db;

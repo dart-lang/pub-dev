@@ -27,7 +27,7 @@ void registerDartdocClient(DartdocClient client) =>
     ss.register(#_dartdocClient, client);
 
 /// The active dartdoc client.
-DartdocClient get dartdocClient => ss.lookup(#_dartdocClient);
+DartdocClient get dartdocClient => ss.lookup(#_dartdocClient) as DartdocClient;
 
 /// Client methods that access the dartdoc service.
 class DartdocClient {

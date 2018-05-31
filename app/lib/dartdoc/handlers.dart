@@ -18,14 +18,14 @@ import 'backend.dart';
 /// Handlers for the dartdoc service.
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
-  final handler = {
+  final shelf.Handler handler = {
     '/': _indexHandler,
     apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
   }[path];
 
   if (handler != null) {
-    return handler(request);
+    return await handler(request);
   } else if (path.startsWith('/documentation')) {
     return _documentationHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {

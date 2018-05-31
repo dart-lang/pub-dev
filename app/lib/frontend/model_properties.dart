@@ -15,12 +15,12 @@ class Pubspec {
 
   Pubspec(this.jsonString);
 
-  Pubspec.fromJson(Map jsonMap)
+  Pubspec.fromJson(Map<String, dynamic> jsonMap)
       : jsonString = json.encode(jsonMap),
         _json = jsonMap;
 
   factory Pubspec.fromYaml(String yamlString) =>
-      new Pubspec.fromJson(loadYaml(yamlString));
+      new Pubspec.fromJson(loadYaml(yamlString) as Map<String, dynamic>);
 
   Map get asJson {
     _load();
@@ -91,7 +91,7 @@ class Pubspec {
   Map<String, dynamic> get executables {
     _load();
     final map = _json['executables'];
-    return map is Map ? map : null;
+    return map is Map<String, dynamic> ? map : null;
   }
 
   String get sdkConstraint {
@@ -134,7 +134,7 @@ class Pubspec {
   void _load() {
     if (_json == null) {
       if (jsonString != null) {
-        _json = loadYaml(jsonString);
+        _json = loadYaml(jsonString) as Map<String, dynamic>;
       } else {
         _json = const {};
       }
@@ -144,13 +144,13 @@ class Pubspec {
   List<String> _asListOfString(obj) {
     if (obj == null) return null;
     if (obj is! List) throw 'Expected List<String> value in pubspec.yaml.';
-    return obj.map(_asString).toList();
+    return (obj as List).map(_asString).toList();
   }
 
   String _asString(obj) {
     if (obj == null) return null;
     if (obj is! String) throw 'Expected a String value in pubspec.yaml.';
-    return obj;
+    return obj as String;
   }
 }
 

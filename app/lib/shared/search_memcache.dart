@@ -19,7 +19,8 @@ void registerSearchMemcache(SearchMemcache value) =>
     ss.register(#_searchMemcache, value);
 
 /// The active search memcache.
-SearchMemcache get searchMemcache => ss.lookup(#_searchMemcache);
+SearchMemcache get searchMemcache =>
+    ss.lookup(#_searchMemcache) as SearchMemcache;
 
 class SearchMemcache {
   final SimpleMemcache _pkgSearch;
@@ -36,7 +37,8 @@ class SearchMemcache {
     final content = await _pkgSearch.getText(url);
     if (content == null) return null;
     try {
-      return new PackageSearchResult.fromJson(json.decode(content));
+      return new PackageSearchResult.fromJson(
+          json.decode(content) as Map<String, dynamic>);
     } catch (e, st) {
       _logger.warning('Unable to deserialize PackageSearchResult.', e, st);
     }

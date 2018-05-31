@@ -19,7 +19,8 @@ void registerHistoryBackend(HistoryBackend backend) =>
     ss.register(#_historyBackend, backend);
 
 /// The active history backend.
-HistoryBackend get historyBackend => ss.lookup(#_historyBackend);
+HistoryBackend get historyBackend =>
+    ss.lookup(#_historyBackend) as HistoryBackend;
 
 class HistoryBackend {
   final DatastoreDB _db;
@@ -54,6 +55,6 @@ class HistoryBackend {
     if (packageVersion != null) {
       query.filter('packageVersion =', packageVersion);
     }
-    return query.run();
+    return query.run().cast<History>();
   }
 }

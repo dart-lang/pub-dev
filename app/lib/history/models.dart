@@ -101,7 +101,8 @@ class History extends db.ExpandoModel implements HistoryData {
   @db.StringProperty()
   String eventJson;
 
-  Map<String, dynamic> get eventData => json.decode(eventJson);
+  Map<String, dynamic> get eventData =>
+      json.decode(eventJson) as Map<String, dynamic>;
   set eventData(Map<String, dynamic> value) {
     eventJson = json.encode(value);
   }

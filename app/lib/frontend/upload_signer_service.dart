@@ -15,7 +15,8 @@ import 'package:http/http.dart' as http;
 import 'package:pub_server/repository.dart';
 
 /// The registered [UploadSignerService] object.
-UploadSignerService get uploadSigner => ss.lookup(#_url_signer);
+UploadSignerService get uploadSigner =>
+    ss.lookup(#_url_signer) as UploadSignerService;
 
 /// Register a new [UploadSignerService] object into the current service
 /// scope.

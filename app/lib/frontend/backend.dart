@@ -31,20 +31,21 @@ final Logger _logger = new Logger('pub.cloud_repository');
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
 
 /// The active logged-in user. This is used for doing authentication checks.
-String get _loggedInUser => ss.lookup(#_logged_in_user);
+String get _loggedInUser => ss.lookup(#_logged_in_user) as String;
 
 /// Sets the active tarball storage
 void registerTarballStorage(TarballStorage ts) =>
     ss.register(#_tarball_storage, ts);
 
 /// The active tarball storage.
-TarballStorage get tarballStorage => ss.lookup(#_tarball_storage);
+TarballStorage get tarballStorage =>
+    ss.lookup(#_tarball_storage) as TarballStorage;
 
 /// Sets the backend service.
 void registerBackend(Backend backend) => ss.register(#_backend, backend);
 
 /// The active backend service.
-Backend get backend => ss.lookup(#_backend);
+Backend get backend => ss.lookup(#_backend) as Backend;
 
 /// A callback to be invoked after an upload of a new [PackageVersion].
 typedef Future FinishedUploadCallback(models.PackageVersion pv);
@@ -68,7 +69,7 @@ class Backend {
       ..order('-created')
       ..offset(offset)
       ..limit(limit);
-    return query.run().toList();
+    return query.run().cast<models.Package>().toList();
   }
 
   /// Retrieves packages ordered by their latest version date.
@@ -77,7 +78,7 @@ class Backend {
       ..order('-updated')
       ..offset(offset)
       ..limit(limit);
-    return query.run().toList();
+    return query.run().cast<models.Package>().toList();
   }
 
   /// Retrieves the names of all packages, ordered by name.
@@ -95,8 +96,9 @@ class Backend {
 
     return query
         .run()
+        .cast<models.Package>()
         .where((p) => !isExcluded(p))
-        .map((p) => (p as models.Package).name);
+        .map((p) => p.name);
   }
 
   /// Retrieves package versions ordered by their latest version date.
@@ -109,14 +111,16 @@ class Backend {
   /// Looks up a package by name.
   Future<models.Package> lookupPackage(String packageName) async {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
-    return (await db.lookup([packageKey])).first;
+    return (await db.lookup([packageKey])).first as models.Package;
   }
 
   /// Looks up a package by name.
-  Future<List<models.Package>> lookupPackages(Iterable<String> packageNames) {
-    return db.lookup(packageNames
-        .map((p) => db.emptyKey.append(models.Package, id: p))
-        .toList());
+  Future<List<models.Package>> lookupPackages(
+      Iterable<String> packageNames) async {
+    return (await db.lookup(packageNames
+            .map((p) => db.emptyKey.append(models.Package, id: p))
+            .toList()))
+        .cast();
   }
 
   /// Looks up a specific package version.
@@ -126,27 +130,29 @@ class Backend {
     final packageVersionKey = db.emptyKey
         .append(models.Package, id: package)
         .append(models.PackageVersion, id: version);
-    return (await db.lookup([packageVersionKey])).first;
+    return (await db.lookup([packageVersionKey])).first
+        as models.PackageVersion;
   }
 
   /// Looks up the latest versions of a list of packages.
   Future<List<models.PackageVersion>> lookupLatestVersions(
       List<models.Package> packages,
-      {bool devVersions: false}) {
+      {bool devVersions: false}) async {
     final keys = packages.map((models.Package p) {
       if (devVersions) {
         return p.latestDevVersionKey ?? p.latestVersionKey;
       }
       return p.latestVersionKey;
     }).toList();
-    return db.lookup(keys);
+    return (await db.lookup(keys)).cast();
   }
 
   /// Looks up all versions of a package.
-  Future<List<models.PackageVersion>> versionsOfPackage(String packageName) {
+  Future<List<models.PackageVersion>> versionsOfPackage(
+      String packageName) async {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
     final query = db.query(models.PackageVersion, ancestorKey: packageKey);
-    return query.run().toList();
+    return (await query.run().toList()).cast();
   }
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
@@ -173,10 +179,10 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Stream<PackageVersion> versions(String package) {
-    StreamController controller;
+    StreamController<PackageVersion> controller;
     StreamSubscription subscription;
 
-    controller = new StreamController(
+    controller = new StreamController<PackageVersion>(
         onListen: () {
           final packageKey = db.emptyKey.append(models.Package, id: package);
           final query =
@@ -533,7 +539,7 @@ Future<T> _withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
   if (_loggedInUser == null) {
     throw new UnauthorizedAccessException('No active user.');
   }
-  return func(_loggedInUser);
+  return await func(_loggedInUser);
 }
 
 /// Reads a tarball from a byte stream.

@@ -1,7 +1,8 @@
 analyzer:
   language:
     enablePreviewDart2: true
-  strong-mode: true
+  strong-mode:
+    implicit-casts: false
   errors:
     dead_code: error
     override_on_non_overriding_method: error

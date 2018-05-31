@@ -33,8 +33,8 @@ Future main(List<String> arguments) async {
   }
 
   final String package = argv.rest.single;
-  final discontinued = argv['discontinued'];
-  final doNotAdvertise = argv['do-not-advertise'];
+  final String discontinued = argv['discontinued'];
+  final String doNotAdvertise = argv['do-not-advertise'];
   final isRead = discontinued == null && doNotAdvertise == null;
 
   await withProdServices(() async {

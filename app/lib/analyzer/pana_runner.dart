@@ -146,7 +146,7 @@ class AnalyzerJobProcessor extends JobProcessor {
 
   Future<Summary> _expandSummary(Summary summary, Duration age) async {
     if (summary.maintenance != null) {
-      final suggestions = new List.from(summary.suggestions ?? <Suggestion>[]);
+      final suggestions = new List<Suggestion>.from(summary.suggestions ?? []);
 
       // age suggestion
       final ageSuggestion = getAgeSuggestion(age);

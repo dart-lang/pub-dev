@@ -2,7 +2,8 @@
 analyzer:
   language:
     enablePreviewDart2: true
-  strong-mode: true
+  strong-mode:
+    implicit-casts: false
 
 # http://dart-lang.github.io/linter/lints/options/options.html
 linter:

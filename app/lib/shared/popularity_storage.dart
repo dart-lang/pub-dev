@@ -21,7 +21,8 @@ void registerPopularityStorage(PopularityStorage storage) =>
     ss.register(#_popularityStorage, storage);
 
 /// The active popularity storage
-PopularityStorage get popularityStorage => ss.lookup(#_popularityStorage);
+PopularityStorage get popularityStorage =>
+    ss.lookup(#_popularityStorage) as PopularityStorage;
 
 class PopularityStorage {
   final Storage storage;
@@ -51,7 +52,7 @@ class PopularityStorage {
     _logger.info(
         'Loading popularity data ($reason): ${bucketUri(bucket, _latestPath)}');
     try {
-      final Map latest = await bucket
+      final Map<String, dynamic> latest = await bucket
           .read(_latestPath)
           .transform(_gzip.decoder)
           .transform(utf8.decoder)
@@ -67,7 +68,7 @@ class PopularityStorage {
     }
   }
 
-  void _updateLatest(Map raw) {
+  void _updateLatest(Map<String, dynamic> raw) {
     final popularity = new PackagePopularity.fromJson(raw);
     final List<_Entry> entries = <_Entry>[];
     popularity.items.forEach((package, totals) {

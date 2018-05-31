@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:gcloud/datastore.dart' as datastore;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -23,7 +24,8 @@ void registerAnalysisBackend(AnalysisBackend backend) =>
     ss.register(#_analysisBackend, backend);
 
 /// The active backend service.
-AnalysisBackend get analysisBackend => ss.lookup(#_analysisBackend);
+AnalysisBackend get analysisBackend =>
+    ss.lookup(#_analysisBackend) as AnalysisBackend;
 
 final Logger _logger = new Logger('pub.analyzer.backend');
 
@@ -136,7 +138,7 @@ class AnalysisBackend {
     // update package and version too
     return db.withTransaction((Transaction tx) async {
       final incompleteRawKey = tx.db.modelDB.toDatastoreKey(analysis.key);
-      final completeRawKey =
+      final datastore.Key completeRawKey =
           (await tx.db.datastore.allocateIds([incompleteRawKey])).single;
       analysis.id = tx.db.modelDB.fromDatastoreKey(completeRawKey).id;
       final Key packageKey =
@@ -204,7 +206,7 @@ class AnalysisBackend {
             analysis.packageVersion, analysis.panaVersion);
       }
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
-    });
+    }) as Future<BackendAnalysisStatus>;
   }
 
   /// Returns the task target status based on:

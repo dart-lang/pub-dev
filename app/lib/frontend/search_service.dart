@@ -16,7 +16,7 @@ import '../shared/search_service.dart';
 import 'models.dart';
 
 /// The [SearchService] registered in the current service scope.
-SearchService get searchService => ss.lookup(#_search);
+SearchService get searchService => ss.lookup(#_search) as SearchService;
 
 /// Register a new [SearchService] in the current service scope.
 void registerSearchService(SearchService s) => ss.register(#_search, s);

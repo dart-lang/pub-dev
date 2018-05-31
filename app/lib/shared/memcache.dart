@@ -38,7 +38,8 @@ class SimpleMemcache {
 
   Future<String> getText(String key) async {
     try {
-      return await _memcache.get(_key(key)).timeout(_memcacheRequestTimeout);
+      return (await _memcache.get(_key(key)).timeout(_memcacheRequestTimeout))
+          as String;
     } catch (e, st) {
       _logger.severe('Error accessing memcache:', e, st);
     }
@@ -58,9 +59,9 @@ class SimpleMemcache {
 
   Future<List<int>> getBytes(String key) async {
     try {
-      return await _memcache
+      return (await _memcache
           .get(_key(key), asBinary: true)
-          .timeout(_memcacheRequestTimeout);
+          .timeout(_memcacheRequestTimeout)) as List<int>;
     } catch (e, st) {
       _logger.severe('Error accessing memcache:', e, st);
     }

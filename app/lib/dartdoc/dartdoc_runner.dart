@@ -209,7 +209,7 @@ class DartdocJobProcessor extends JobProcessor {
   Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,
       bool depsResolved, bool hasContent) async {
     final entry = new DartdocEntry(
-        uuid: _uuid.v4(),
+        uuid: _uuid.v4().toString(),
         packageName: job.packageName,
         packageVersion: job.packageVersion,
         usesFlutter: usesFlutter,
