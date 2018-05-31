@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
 import 'urls.dart';
 import 'utils.dart' show eventLoopLatencyTracker;
@@ -87,6 +88,13 @@ shelf.Response debugResponse([Map data]) {
   };
   if (data != null) {
     map.addAll(data);
+  }
+  if (popularityStorage != null) {
+    map['popularity'] = {
+      'fetched': popularityStorage.lastFetched?.toIso8601String(),
+      'count': popularityStorage.count,
+      'dateRange': popularityStorage.dateRange,
+    };
   }
   return jsonResponse(map, indent: true);
 }
