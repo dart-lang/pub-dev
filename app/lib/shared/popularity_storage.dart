@@ -27,10 +27,16 @@ class PopularityStorage {
   final Storage storage;
   final Bucket bucket;
   final _values = <String, double>{};
+  DateTime _lastFetched;
+  String _dateRange;
 
   String get _latestPath => PackagePopularity.popularityFileName;
 
   PopularityStorage(this.storage, this.bucket);
+
+  DateTime get lastFetched => _lastFetched;
+  String get dateRange => _dateRange;
+  int get count => _values.length;
 
   double lookup(String package) => _values[package];
 
@@ -52,6 +58,7 @@ class PopularityStorage {
           .transform(json.decoder)
           .single;
       _updateLatest(latest);
+      _lastFetched = new DateTime.now().toUtc();
     } catch (e, st) {
       _logger.severe(
           'Unable to load popularity data: ${bucketUri(bucket, _latestPath)}',
@@ -70,6 +77,8 @@ class PopularityStorage {
     for (int i = 0; i < entries.length; i++) {
       _values[entries[i].package] = i / entries.length;
     }
+    _dateRange = '${popularity.dateFirst?.toIso8601String()} - '
+        '${popularity.dateLast?.toIso8601String()}';
     _logger.info('Popularity updated for ${popularity.items.length} packages.');
   }
 }
