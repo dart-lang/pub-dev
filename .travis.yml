@@ -6,19 +6,19 @@ jobs:
     - stage: smoke_test
       script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="app"
-      dart: 2.0.0-dev.58.0
+      dart: 2.0.0-dev.59.0
     - stage: unit_test
       script: ./tool/travis.sh test
       env: PKG="app"
-      dart: 2.0.0-dev.58.0
+      dart: 2.0.0-dev.59.0
     - stage: smoke_test
       script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="pkg/_popularity"
-      dart: 2.0.0-dev.58.0
+      dart: 2.0.0-dev.59.0
     - stage: unit_test
       script: ./tool/travis.sh test
       env: PKG="pkg/_popularity"
-      dart: 2.0.0-dev.58.0
+      dart: 2.0.0-dev.59.0
 
 stages:
   - smoke_test
