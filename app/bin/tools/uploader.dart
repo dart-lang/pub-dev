@@ -120,7 +120,7 @@ Future removeUploader(String packageName, String uploader) async {
   });
 }
 
-Future _clearCache(package) async {
+Future _clearCache(String package) async {
   final cache = new AppEnginePackageMemcache(memcacheService);
   await cache.invalidateUIPackagePage(package);
   await cache.invalidatePackageData(package);

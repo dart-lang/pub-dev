@@ -12,7 +12,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 
 /// Register a new [OAuth2Service] object.
-OAuth2Service get oauth2Service => ss.lookup(#_oauth2_service);
+OAuth2Service get oauth2Service => ss.lookup(#_oauth2_service) as OAuth2Service;
 
 /// Look up the current registered [OAuth2Service].
 void registerOAuth2Service(OAuth2Service service) =>

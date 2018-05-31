@@ -16,7 +16,8 @@ import 'scoring.dart';
 import 'text_utils.dart';
 
 /// The [PackageIndex] registered in the current service scope.
-PackageIndex get packageIndex => ss.lookup(#packageIndexService);
+PackageIndex get packageIndex =>
+    ss.lookup(#packageIndexService) as PackageIndex;
 
 /// Register a new [PackageIndex] in the current service scope.
 void registerPackageIndex(PackageIndex index) =>
@@ -438,7 +439,7 @@ class Score {
     return new Score(new Map.fromIterable(
       keys,
       value: (key) =>
-          scores.fold(1.0, (double value, Score s) => s[key] * value),
+          scores.fold(1.0, (double value, Score s) => s[key as String] * value),
     ));
   }
 
@@ -628,7 +629,7 @@ class TokenIndex {
     for (String id in docScores.keys.toList()) {
       double docSize = _docSizes[id];
       if (wordCount > 1) {
-        docSize = math.pow(docSize, wordSizeExponent);
+        docSize = math.pow(docSize, wordSizeExponent).toDouble();
       }
       docScores[id] = weight * docScores[id] / queryWeight / docSize;
     }

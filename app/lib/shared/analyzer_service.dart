@@ -95,7 +95,8 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
     @required this.maintenanceScore,
   });
 
-  factory AnalysisData.fromJson(Map json) => _$AnalysisDataFromJson(json);
+  factory AnalysisData.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisDataFromJson(json);
 }
 
 @JsonSerializable()

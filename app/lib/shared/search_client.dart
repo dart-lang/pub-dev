@@ -19,7 +19,7 @@ void registerSearchClient(SearchClient client) =>
     ss.register(#_searchClient, client);
 
 /// The active search client.
-SearchClient get searchClient => ss.lookup(#_searchClient);
+SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 
 /// Client methods that access the search service and the internals of the
 /// indexed data.
@@ -47,8 +47,8 @@ class SearchClient {
       throw new Exception(
           'Service returned status code ${response.statusCode}');
     }
-    final PackageSearchResult result =
-        new PackageSearchResult.fromJson(json.decode(response.body));
+    final PackageSearchResult result = new PackageSearchResult.fromJson(
+        json.decode(response.body) as Map<String, dynamic>);
     if (!result.isLegit) {
       // Search request before the service initialization completed.
       return null;

@@ -59,7 +59,10 @@ Future<List<String>> listTarball(String path) async {
     throw 'Failed to list tarball contents.';
   }
 
-  return result.stdout.split('\n').where((part) => part != '').toList();
+  return (result.stdout as String)
+      .split('\n')
+      .where((part) => part != '')
+      .toList();
 }
 
 Future<String> readTarballFile(String path, String name) async {
@@ -70,7 +73,7 @@ Future<String> readTarballFile(String path, String name) async {
   );
   if (result.exitCode != 0) throw 'Failed to read tarball contents.';
 
-  return result.stdout;
+  return result.stdout as String;
 }
 
 String canonicalizeVersion(String version) {
@@ -272,7 +275,7 @@ class LastNTracker<T extends Comparable<T>> {
   T get p99 => _getP(0.99);
 
   Map<T, int> toCounts() {
-    return _lastItems.fold(<T, int>{}, (Map m, T item) {
+    return _lastItems.fold<Map<T, int>>({}, (Map<T, int> m, T item) {
       m[item] = (m[item] ?? 0) + 1;
       return m;
     });

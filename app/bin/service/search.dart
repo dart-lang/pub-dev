@@ -78,7 +78,7 @@ void _main(FrontendEntryMessage message) {
     final scheduler = new TaskScheduler(
       batchIndexUpdater,
       [
-        new ManualTriggerTaskSource(taskReceivePort),
+        new ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
         new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
         new DatastoreHeadTaskSource(
           db.dbService,

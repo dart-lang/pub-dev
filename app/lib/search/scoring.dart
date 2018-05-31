@@ -95,7 +95,8 @@ double calculateBezierScore(num normValue, num normAvg) {
   final avgY = 0.75;
   final t = solveCubicSpecial(-3 * normAvg, 3 * normAvg, -1 * normValue);
 
-  final t2 = math.pow(t, 3) - (3 * avgY * math.pow(t, 2)) + (3 * t * avgY);
+  final double t2 =
+      math.pow(t, 3) - (3 * avgY * math.pow(t, 2)) + (3 * t * avgY);
 
   if (t2 <= epsilon) {
     return 0.0;
@@ -117,13 +118,13 @@ double solveCubicSpecial(num b, num c, num d) {
   final p = (3 * c - b * b) / 3;
   final q = (2 * b * b * b - 9 * b * c + 27 * d) / 27;
 
-  num root;
+  double root;
 
   assert(p.abs() >= epsilon);
 
   if (q.abs() < epsilon) {
     assert(p >= 0);
-    root = 0;
+    root = 0.0;
   } else {
     final D = q * q / 4 + p * p * p / 27;
     assert(D.abs() >= epsilon);
@@ -199,7 +200,7 @@ List<num> solveCubic(num a, num b, num c, num d) {
   return roots;
 }
 
-num cubeRoot(num x) {
+double cubeRoot(num x) {
   final y = math.pow(x.abs(), 1 / 3);
-  return x < 0 ? -y : y;
+  return x < 0 ? -y.toDouble() : y.toDouble();
 }

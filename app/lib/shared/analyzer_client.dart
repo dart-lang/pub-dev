@@ -28,7 +28,8 @@ void registerAnalyzerClient(AnalyzerClient client) =>
     ss.register(#_analyzerClient, client);
 
 /// The active analyzer client.
-AnalyzerClient get analyzerClient => ss.lookup(#_analyzerClient);
+AnalyzerClient get analyzerClient =>
+    ss.lookup(#_analyzerClient) as AnalyzerClient;
 
 final Logger _logger = new Logger('pub.analyzer_client');
 
@@ -82,7 +83,8 @@ class AnalyzerClient {
         await analyzerMemcache?.getExtract(key.package, key.version);
     if (cachedExtract != null) {
       try {
-        final cached = new AnalysisExtract.fromJson(json.decode(cachedExtract));
+        final cached = new AnalysisExtract.fromJson(
+            json.decode(cachedExtract) as Map<String, dynamic>);
         // return the cached version only if status is populated (ignoring the
         // cache values from the previous version).
         // TODO: remove this check in the next release
@@ -124,7 +126,8 @@ class AnalyzerClient {
         key.package, key.version, panaVersion);
     if (cachedContent != null) {
       try {
-        return new AnalysisData.fromJson(json.decode(cachedContent));
+        return new AnalysisData.fromJson(
+            json.decode(cachedContent) as Map<String, dynamic>);
       } catch (e, st) {
         _logger.severe('Unable to parse analysis data for $key', e, st);
       }
@@ -135,8 +138,8 @@ class AnalyzerClient {
       final http.Response rs = await getUrlWithRetry(_client, uri);
       if (rs.statusCode == 200) {
         final String content = rs.body;
-        final AnalysisData data =
-            new AnalysisData.fromJson(json.decode(content));
+        final AnalysisData data = new AnalysisData.fromJson(
+            json.decode(content) as Map<String, dynamic>);
         await analyzerMemcache?.setContent(
             key.package, key.version, panaVersion, content);
         return data;

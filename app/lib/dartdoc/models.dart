@@ -54,11 +54,12 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   factory DartdocEntry.fromJson(Map<String, dynamic> json) =>
       _$DartdocEntryFromJson(json);
 
-  factory DartdocEntry.fromBytes(List<int> bytes) =>
-      new DartdocEntry.fromJson(json.decode(utf8.decode(bytes)));
+  factory DartdocEntry.fromBytes(List<int> bytes) => new DartdocEntry.fromJson(
+      json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
 
   static Future<DartdocEntry> fromStream(Stream<List<int>> stream) async {
-    final bytes = await stream.fold([], (sum, list) => sum..addAll(list));
+    final bytes =
+        await stream.fold<List<int>>([], (sum, list) => sum..addAll(list));
     return new DartdocEntry.fromBytes(bytes);
   }
 
@@ -166,8 +167,8 @@ class FileInfo extends Object with _$FileInfoSerializerMixin {
   factory FileInfo.fromJson(Map<String, dynamic> json) =>
       _$FileInfoFromJson(json);
 
-  factory FileInfo.fromBytes(List<int> bytes) =>
-      new FileInfo.fromJson(json.decode(utf8.decode(bytes)));
+  factory FileInfo.fromBytes(List<int> bytes) => new FileInfo.fromJson(
+      json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
 
   List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
 }

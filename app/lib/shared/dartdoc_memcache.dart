@@ -17,7 +17,8 @@ void registerDartdocMemcache(DartdocMemcache value) =>
     ss.register(#_dartdocMemcache, value);
 
 /// The active dartdoc memcache.
-DartdocMemcache get dartdocMemcache => ss.lookup(#_dartdocMemcache);
+DartdocMemcache get dartdocMemcache =>
+    ss.lookup(#_dartdocMemcache) as DartdocMemcache;
 
 class DartdocMemcache {
   final SimpleMemcache _entry;

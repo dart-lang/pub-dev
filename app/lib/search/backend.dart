@@ -34,14 +34,15 @@ void registerSearchBackend(SearchBackend backend) =>
     ss.register(#_searchBackend, backend);
 
 /// The active backend service.
-SearchBackend get searchBackend => ss.lookup(#_searchBackend);
+SearchBackend get searchBackend => ss.lookup(#_searchBackend) as SearchBackend;
 
 /// Sets the snapshot storage
 void registerSnapshotStorage(SnapshotStorage storage) =>
     ss.register(#_snapshotStorage, storage);
 
 /// The active snapshot storage
-SnapshotStorage get snapshotStorage => ss.lookup(#_snapshotStorage);
+SnapshotStorage get snapshotStorage =>
+    ss.lookup(#_snapshotStorage) as SnapshotStorage;
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
@@ -142,7 +143,7 @@ class SearchBackend {
       final pathMap = <String, String>{};
       final symbolMap = <String, Set<String>>{};
       for (Map map in list) {
-        final name = map['name'];
+        final String name = map['name'];
         final type = map['type'];
         if (isCommonApiSymbol(name) && type != 'library') {
           continue;
@@ -155,9 +156,9 @@ class SearchBackend {
         final String key = qualifiedName.split('.').take(parentLevel).join('.');
 
         if (key == qualifiedName) {
-          pathMap[key] = map['href'];
+          pathMap[key] = map['href'] as String;
         }
-        symbolMap.putIfAbsent(key, () => new Set()).add(map['name']);
+        symbolMap.putIfAbsent(key, () => new Set()).add(name);
       }
 
       final results = pathMap.keys.map((key) {
@@ -183,7 +184,7 @@ class SnapshotStorage {
 
   Future<SearchSnapshot> fetch() async {
     try {
-      final Map map = await bucket
+      final Map<String, dynamic> map = await bucket
           .read(_latestPath)
           .transform(_gzip.decoder)
           .transform(utf8.decoder)
@@ -219,7 +220,8 @@ class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
   factory SearchSnapshot() =>
       new SearchSnapshot._(new DateTime.now().toUtc(), {});
 
-  factory SearchSnapshot.fromJson(Map json) => _$SearchSnapshotFromJson(json);
+  factory SearchSnapshot.fromJson(Map<String, dynamic> json) =>
+      _$SearchSnapshotFromJson(json);
 
   void add(PackageDocument doc) {
     updated = new DateTime.now().toUtc();

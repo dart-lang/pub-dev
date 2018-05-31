@@ -42,7 +42,7 @@ class DatastoreDBMock extends gdb.DatastoreDB {
   @override
   Future<List<gdb.Model>> lookup(List<gdb.Key> keys) async {
     if (lookupFun == null) throw 'no lookupFun';
-    return lookupFun(keys);
+    return (await lookupFun(keys)) as List<gdb.Model>;
   }
 
   @override
@@ -87,7 +87,7 @@ class TransactionMock implements gdb.Transaction {
   @override
   Future<List<gdb.Model>> lookup(List<gdb.Key> keys) async {
     if (lookupFun == null) throw 'no lookupFun';
-    return lookupFun(keys);
+    return (await lookupFun(keys)) as List<gdb.Model>;
   }
 
   @override
@@ -133,7 +133,7 @@ class QueryMock implements gdb.Query {
   @override
   void filter(String filterString, Object comparisonObject) {
     _filters.add(filterString);
-    _filterComparisonObjects.add(comparisonObject);
+    _filterComparisonObjects.add(comparisonObject as String);
   }
 
   @override
@@ -205,19 +205,19 @@ class TarballStorageMock implements TarballStorage {
   @override
   Stream<List<int>> download(String package, String version) {
     if (downloadFun == null) throw 'no downloadFun';
-    return downloadFun(package, version);
+    return downloadFun(package, version) as Stream<List<int>>;
   }
 
   @override
   Future<Uri> downloadUrl(String package, String version) async {
     if (downloadUrlFun == null) throw 'no downloadUrlFun';
-    return downloadUrlFun(package, version);
+    return (await downloadUrlFun(package, version)) as Uri;
   }
 
   @override
   Stream<List<int>> readTempObject(String guid) {
     if (readTempObjectFun == null) throw 'no readTempObjectFun';
-    return readTempObjectFun(guid);
+    return readTempObjectFun(guid) as Stream<List<int>>;
   }
 
   @override
@@ -229,11 +229,12 @@ class TarballStorageMock implements TarballStorage {
   @override
   String tempObjectName(String guid) {
     if (tmpObjectNameFun == null) throw 'no tmpObjectNameFun';
-    return tmpObjectNameFun(guid);
+    return tmpObjectNameFun(guid) as String;
   }
 
   @override
-  Future upload(String package, String version, Stream<List<int>> tarball) {
+  Future upload(
+      String package, String version, Stream<List<int>> tarball) async {
     if (uploadFun == null) throw 'no uploadFun';
     return uploadFun(package, version, tarball);
   }
@@ -260,8 +261,9 @@ class UploadSignerServiceMock implements UploadSignerService {
       Duration lifetime, String successRedirectUrl,
       {String predefinedAcl: 'project-private',
       int maxUploadSize: UploadSignerService.maxUploadSize}) async {
-    return buildUploadFun(bucket, object, lifetime, successRedirectUrl,
-        predefinedAcl: predefinedAcl, maxUploadSize: maxUploadSize);
+    return (await buildUploadFun(bucket, object, lifetime, successRedirectUrl,
+        predefinedAcl: predefinedAcl,
+        maxUploadSize: maxUploadSize)) as AsyncUploadInfo;
   }
 
   @override
@@ -364,7 +366,7 @@ Future withTestPackage(Future func(List<int> tarball),
     final Process p =
         await Process.start('tar', args, workingDirectory: '$tmp');
     p.stderr.drain();
-    final bytes = await p.stdout.fold([], (b, d) => b..addAll(d));
+    final bytes = await p.stdout.fold<List<int>>([], (b, d) => b..addAll(d));
     final exitCode = await p.exitCode;
     if (exitCode != 0) throw 'Failed to make tarball of test package.';
     return func(bytes);

@@ -33,7 +33,8 @@ const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.attribute);
 void registerTemplateService(TemplateService service) =>
     ss.register(#_templates, service);
 
-TemplateService get templateService => ss.lookup(#_templates);
+TemplateService get templateService =>
+    ss.lookup(#_templates) as TemplateService;
 
 /// Used for rendering HTML pages for pub.dartlang.org.
 class TemplateService {

@@ -31,7 +31,7 @@ abstract class TaskSource {
 /// Tasks coming from through the isolate's receivePort, originating from a
 /// HTTP handler that received a ping after a new upload.
 class ManualTriggerTaskSource implements TaskSource {
-  final Stream _taskReceivePort;
+  final Stream<Task> _taskReceivePort;
   ManualTriggerTaskSource(this._taskReceivePort);
 
   @override

@@ -92,7 +92,7 @@ Future main(List<String> args) async {
   };
   final String json = new JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
-    final File outputFile = new File(argv['output']);
+    final File outputFile = new File(argv['output'] as String);
     print('Writing report to ${outputFile.path}');
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(json + '\n');
@@ -104,7 +104,7 @@ Future main(List<String> args) async {
 Map<String, int> _sortDomains(Map<String, int> counts) {
   final List<String> domains = counts.keys.toList();
   domains.sort((a, b) => -counts[a].compareTo(counts[b]));
-  final result = {};
+  final result = <String, int>{};
   for (String domain in domains) {
     result[domain] = counts[domain];
   }

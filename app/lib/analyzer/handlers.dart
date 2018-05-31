@@ -15,14 +15,14 @@ import 'backend.dart';
 /// Handlers for the analyzer service.
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
-  final handler = {
+  final shelf.Handler handler = {
     apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
 
   if (handler != null) {
-    return handler(request);
+    return await handler(request);
   } else if (path.startsWith('/packages/')) {
     return _packageHandler(request);
   } else {

@@ -61,8 +61,8 @@ shelf.Response rejectRobotsHandler(shelf.Request request) =>
     new shelf.Response.ok('User-agent: *\nDisallow: /\n');
 
 /// Combines a response for /debug requests
-shelf.Response debugResponse([Map data]) {
-  final map = {
+shelf.Response debugResponse([Map<String, dynamic> data]) {
+  final map = <String, dynamic>{
     'env': {
       'GAE_VERSION': Platform.environment['GAE_VERSION'],
       'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],

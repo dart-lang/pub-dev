@@ -71,7 +71,7 @@ Future<shelf.Response> appHandler(
   final handler = _handlers[path];
 
   if (handler != null) {
-    return handler(request);
+    return await handler(request);
   } else if (path == '/api/packages') {
     // NOTE: This is special-cased, since it is not an API used by pub but
     // rather by the editor.
@@ -80,9 +80,9 @@ Future<shelf.Response> appHandler(
     return _apiDocumentationHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
-    return shelfPubApi(request);
+    return await shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
-    return _packageHandler(request);
+    return await _packageHandler(request);
   } else if (path.startsWith('/doc')) {
     return _docHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
@@ -711,7 +711,8 @@ Future<shelf.Response> _apiSearchHandler(shelf.Request request) async {
     'packages': packages,
   };
   if (hasNextPage) {
-    final newParams = new Map.from(request.requestedUri.queryParameters);
+    final newParams =
+        new Map<String, dynamic>.from(request.requestedUri.queryParameters);
     final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
     newParams['page'] = nextPageIndex.toString();
     final nextPageUrl =

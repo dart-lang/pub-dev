@@ -29,7 +29,7 @@ class _NotificationData {
   _NotificationData(this.package, this.version);
 
   factory _NotificationData.fromMap(Map<String, dynamic> map) =>
-      new _NotificationData(map['package'], map['version']);
+      new _NotificationData(map['package'] as String, map['version'] as String);
 
   bool get isValid => package != null;
 
@@ -92,7 +92,8 @@ Future<shelf.Response> notificationHandler(shelf.Request request) async {
   final String requestMethod = request.method?.toUpperCase();
   if (requestMethod == 'POST' && await _validateNotificationSecret(request)) {
     try {
-      final map = json.decode(await request.readAsString());
+      final Map<String, dynamic> map =
+          json.decode(await request.readAsString());
       final data = new _NotificationData.fromMap(map);
       if (data.isValid) {
         _logger.info('Received notification: $data');
