@@ -834,7 +834,7 @@ void main() {
               'Exception: Package name may only contain '
               'letters, numbers, and underscores.');
 
-          expect(await fn('ok_name'), 'no lookupFun');
+          expect(await fn('ok_name'), 'Exception: no lookupFun');
         });
 
         scopedTest('upload-too-big', () async {
