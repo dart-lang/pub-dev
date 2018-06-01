@@ -704,6 +704,13 @@ Future<models.PackageVersion> _parseAndValidateUpload(
   }
   urls.syntaxCheckHomepageUrl(pubspec.homepage);
 
+  if (pubspec.author != null &&
+      pubspec.authors != null &&
+      pubspec.authors.isNotEmpty) {
+    throw new Exception(
+        'Do not specify both `author` and `authors` in `pubspec.yaml`.');
+  }
+
   String exampleFilename;
   for (String candidate in exampleFileCandidates(pubspec.name)) {
     exampleFilename = searchForFile(candidate);
