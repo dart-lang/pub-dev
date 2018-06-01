@@ -50,7 +50,7 @@ Future main(List<String> arguments) async {
         await removePackageVersion(package, version);
       }
     } else {
-      throw 'unexpected command $command';
+      throw new Exception('unexpected command $command');
     }
   });
 

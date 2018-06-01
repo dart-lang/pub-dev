@@ -70,7 +70,8 @@ Future<String> obtainServiceAccountEmail() async {
 Future withProdServices(Future fun()) {
   return withAppEngineServices(() {
     if (!envConfig.hasGcloudKey) {
-      throw 'Missing GCLOUD_* environments for package:appengine';
+      throw new Exception(
+          'Missing GCLOUD_* environments for package:appengine');
     }
     registerUploadSigner(
         new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));

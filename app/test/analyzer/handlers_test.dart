@@ -132,7 +132,7 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  DatastoreDB get db => throw 'No DB access.';
+  DatastoreDB get db => throw new Exception('No DB access.');
 
   @override
   Future<AnalysisData> getAnalysis(String package,
@@ -169,17 +169,17 @@ class MockAnalysisBackend implements AnalysisBackend {
   @override
   Future<TaskTargetStatus> checkTargetStatus(
       String packageName, String packageVersion, DateTime updated) {
-    throw 'Not implemented yet.';
+    throw new UnimplementedError();
   }
 
   @override
   Future deleteObsoleteAnalysis(String package, String version) {
-    throw 'Not implemented yet.';
+    throw new UnimplementedError();
   }
 
   @override
   Future<PackageStatus> getPackageStatus(String package, String version) {
-    throw 'Not implemented yet.';
+    throw new UnimplementedError();
   }
 }
 

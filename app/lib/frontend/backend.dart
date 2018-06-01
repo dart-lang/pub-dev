@@ -685,7 +685,7 @@ Future<models.PackageVersion> _parseAndValidateUpload(
       .toList();
 
   if (!files.contains('pubspec.yaml')) {
-    throw 'Invalid upload: no pubspec.yaml file';
+    throw new Exception('Invalid upload: no pubspec.yaml file');
   }
 
   final pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
@@ -695,7 +695,7 @@ Future<models.PackageVersion> _parseAndValidateUpload(
       pubspec.version == null ||
       pubspec.name.trim().isEmpty ||
       pubspec.version.trim().isEmpty) {
-    throw 'Invalid `pubspec.yaml` file';
+    throw new Exception('Invalid `pubspec.yaml` file');
   }
 
   validatePackageName(pubspec.name);

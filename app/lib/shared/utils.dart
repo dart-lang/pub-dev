@@ -56,7 +56,7 @@ Future<List<String>> listTarball(String path) async {
         'with exit code: ${result.exitCode}\n'
         'stdout: ${result.stdout}\n'
         'stderr: ${result.stderr}');
-    throw 'Failed to list tarball contents.';
+    throw new Exception('Failed to list tarball contents.');
   }
 
   return (result.stdout as String)
@@ -71,7 +71,9 @@ Future<String> readTarballFile(String path, String name) async {
     ['-O', '-xzf', path, name],
     stdoutEncoding: new Utf8Codec(allowMalformed: true),
   );
-  if (result.exitCode != 0) throw 'Failed to read tarball contents.';
+  if (result.exitCode != 0) {
+    throw new Exception('Failed to read tarball contents.');
+  }
 
   return result.stdout as String;
 }

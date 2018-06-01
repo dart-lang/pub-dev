@@ -143,13 +143,17 @@ class Pubspec {
 
   List<String> _asListOfString(obj) {
     if (obj == null) return null;
-    if (obj is! List) throw 'Expected List<String> value in pubspec.yaml.';
+    if (obj is! List) {
+      throw new Exception('Expected List<String> value in pubspec.yaml.');
+    }
     return (obj as List).map(_asString).toList();
   }
 
   String _asString(obj) {
     if (obj == null) return null;
-    if (obj is! String) throw 'Expected a String value in pubspec.yaml.';
+    if (obj is! String) {
+      throw new Exception('Expected a String value in pubspec.yaml.');
+    }
     return obj as String;
   }
 }
