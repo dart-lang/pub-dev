@@ -6,7 +6,8 @@ runtime: custom
 env: flex
 service: analyzer
 env_variables:
-  # Needs to be in sync with app/script/setup-flutter.sh and with lib/shared/configuration.dart
+  # Needs to be in sync with app/script/setup-flutter.sh and with app/lib/shared/configuration.dart
+  FLUTTER_ROOT: '/flutter'
   FLUTTER_SDK: '/flutter'
 
 resources:
