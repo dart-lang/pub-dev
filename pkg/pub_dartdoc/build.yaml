@@ -1,0 +1,17 @@
+# Read about `build.yaml` at https://pub.dartlang.org/packages/build_config
+# To update generated code, run `pub run build_runner build`
+targets:
+  pub_dartdoc:
+    sources:
+      - 'lib/model.dart'
+    builders:
+      json_serializable:
+        options:
+          header: |+
+           // Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+           // for details. All rights reserved. Use of this source code is governed by a
+           // BSD-style license that can be found in the LICENSE file.
+
+           // GENERATED CODE - DO NOT MODIFY BY HAND
+
+           // ignore_for_file: prefer_final_locals
