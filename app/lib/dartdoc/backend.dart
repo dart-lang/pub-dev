@@ -77,23 +77,24 @@ class DartdocBackend {
         .where((fse) => fse is File)
         .map((fse) => fse as File);
 
+    int count = 0;
     Future upload(File file) async {
       final relativePath = p.relative(file.path, from: dir.path);
       final objectName = entry.objectName(relativePath);
       final isShared = storage_path.isSharedAsset(relativePath);
       if (isShared) {
         final info = await getFileInfo(entry, relativePath);
-        if (info != null) {
-          _logger.fine('$objectName has been already uploaded.');
-          return;
-        }
+        if (info != null) return;
       }
-      _logger.fine('Uploading to $objectName...');
       try {
         final sink =
             _storage.write(objectName, contentType: contentType(objectName));
         await sink.addStream(file.openRead());
         await sink.close();
+        count++;
+        if (count % 100 == 0) {
+          _logger.info('Upload completed: $objectName (item #$count)');
+        }
       } catch (e, st) {
         _logger.severe('Upload to $objectName failed with $e', st);
         rethrow;
