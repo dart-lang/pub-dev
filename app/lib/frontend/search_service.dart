@@ -27,17 +27,16 @@ class SearchService {
   /// max [numResults].
   Future<SearchResultPage> search(SearchQuery query) async {
     final result = await searchClient.search(query);
-    final List<String> packages =
-        result.packages.map((ps) => ps.package).toList();
-    return _loadResultForPackages(query, result.totalCount, packages);
+    return _loadResultForPackages(query, result.totalCount, result.packages);
   }
 
   Future close() async {}
 }
 
 Future<SearchResultPage> _loadResultForPackages(
-    SearchQuery query, int totalCount, List<String> packages) async {
-  final List<Key> packageKeys = packages
+    SearchQuery query, int totalCount, List<PackageScore> packageScores) async {
+  final List<Key> packageKeys = packageScores
+      .map((ps) => ps.package)
       .map((package) => dbService.emptyKey.append(Package, id: package))
       .toList();
   final List<Package> packageEntries = await dbService.lookup(packageKeys);
@@ -64,6 +63,7 @@ Future<SearchResultPage> _loadResultForPackages(
               package: packageEntries[i],
               version: versions[i],
               analysis: analysisExtracts[i],
+              apiPages: packageScores[i].apiPages,
             ));
     return new SearchResultPage(query, totalCount, resultPackages);
   } else {

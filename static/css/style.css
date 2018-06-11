@@ -458,13 +458,17 @@ pre > code {
   margin: 0;
 }
 
-.list-item > .metadata{
+.list-item > .metadata {
   font-size: 12px;
-  margin: 4px 0 0;
+  margin: 4px 0;
 }
 
 .list-item.-simple > .metadata > .package-tag:first-of-type{
   margin-left: 0;
+}
+
+.list-item > .api_pages {
+  font-size: 12px;
 }
 
 .score-box {

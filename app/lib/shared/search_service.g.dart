@@ -121,12 +121,18 @@ abstract class _$PackageSearchResultSerializerMixin {
 PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) {
   return new PackageScore(
       package: json['package'] as String,
-      score: (json['score'] as num)?.toDouble());
+      score: (json['score'] as num)?.toDouble(),
+      apiPages: (json['apiPages'] as List)
+          ?.map((e) => e == null
+              ? null
+              : new ApiPageRef.fromJson(e as Map<String, dynamic>))
+          ?.toList());
 }
 
 abstract class _$PackageScoreSerializerMixin {
   String get package;
   double get score;
+  List<ApiPageRef> get apiPages;
   Map<String, dynamic> toJson() {
     var val = <String, dynamic>{
       'package': package,
@@ -139,6 +145,19 @@ abstract class _$PackageScoreSerializerMixin {
     }
 
     writeNotNull('score', score);
+    writeNotNull('apiPages', apiPages);
     return val;
   }
+}
+
+ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) {
+  return new ApiPageRef(
+      title: json['title'] as String, path: json['path'] as String);
+}
+
+abstract class _$ApiPageRefSerializerMixin {
+  String get title;
+  String get path;
+  Map<String, dynamic> toJson() =>
+      <String, dynamic>{'title': title, 'path': path};
 }

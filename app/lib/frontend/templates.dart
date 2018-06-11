@@ -130,6 +130,17 @@ class TemplateService {
             package: view.name),
         'score_box_html': _renderScoreBox(view.analysisStatus, overallScore,
             isNewPackage: view.isNewPackage, package: view.name),
+        'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
+        'api_pages': view.apiPages
+            ?.map((page) => {
+                  'title': page.title ?? page.path,
+                  'href': urls.pkgDocUrl(
+                    view.name,
+                    isLatest: true,
+                    relativePath: page.path,
+                  )
+                })
+            ?.toList(),
       });
     }
 

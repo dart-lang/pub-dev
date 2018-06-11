@@ -342,6 +342,10 @@ void main() {
             package: testPackage,
             version: testPackageVersion,
             analysis: new AnalysisExtract(),
+            apiPages: [
+              new ApiPageRef(path: 'some/some-library.html'),
+              new ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
+            ],
           ),
           new PackageView.fromModel(
             package: testPackage,

@@ -34,6 +34,16 @@
         • Updated: <span>{{last_uploaded}}</span>
         {{& tags_html}}
       </p>
+      {{#has_api_pages}}
+      <div class="api_pages">
+        API results:
+        <ul>
+        {{#api_pages}}
+          <li><a href="{{& href}}">{{title}}</a></li>
+        {{/api_pages}}
+        </ul>
+      </div>
+      {{/has_api_pages}}
     </li>
   {{/packages}}
 </ul>

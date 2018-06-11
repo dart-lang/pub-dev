@@ -11,6 +11,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/analyzer_service.dart' show AnalysisExtract, AnalysisStatus;
 import '../shared/model_properties.dart';
+import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
@@ -227,6 +228,7 @@ class PackageView {
   final double overallScore;
   final List<String> platforms;
   final bool isNewPackage;
+  final List<ApiPageRef> apiPages;
 
   PackageView({
     this.name,
@@ -239,12 +241,14 @@ class PackageView {
     this.overallScore,
     this.platforms,
     this.isNewPackage,
+    this.apiPages,
   });
 
   factory PackageView.fromModel({
     Package package,
     PackageVersion version,
     AnalysisExtract analysis,
+    List<ApiPageRef> apiPages,
   }) {
     final String devVersion =
         package != null && package.latestVersion != package.latestDevVersion
@@ -261,6 +265,7 @@ class PackageView {
       overallScore: analysis?.overallScore,
       platforms: analysis?.platforms,
       isNewPackage: package?.isNewPackage(),
+      apiPages: apiPages,
     );
   }
 }

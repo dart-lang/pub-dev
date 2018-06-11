@@ -62,6 +62,9 @@ void main() {
           {
             'package': 'other_with_api',
             'score': closeTo(0.794, 0.001), // finds foo method
+            'apiPages': [
+              {'title': null, 'path': 'main.html'},
+            ],
           },
           // should not contain `other_without_api`
         ],
@@ -78,6 +81,9 @@ void main() {
           {
             'package': 'other_with_api',
             'score': closeTo(0.787, 0.001), // find serveWebPages
+            'apiPages': [
+              {'title': null, 'path': 'serve.html'},
+            ],
           },
           // should not contain `other_without_api`
         ],
@@ -95,6 +101,9 @@ void main() {
           {
             'package': 'foo',
             'score': closeTo(0.481, 0.001), // find WebPageGenerator
+            'apiPages': [
+              {'title': null, 'path': 'generator.html'},
+            ],
           },
           // should not contain `other_without_api`
         ],
@@ -111,10 +120,16 @@ void main() {
           {
             'package': 'foo',
             'score': closeTo(0.572, 0.001), // find WebPageGenerator
+            'apiPages': [
+              {'title': null, 'path': 'generator.html'},
+            ],
           },
           {
             'package': 'other_with_api',
             'score': closeTo(0.147, 0.001), // find serveWebPages
+            'apiPages': [
+              {'title': null, 'path': 'serve.html'},
+            ],
           },
           // should not contain `other_without_api`
         ],
