@@ -12,21 +12,22 @@ part of 'analyzer_service.dart';
 // Generator: JsonSerializableGenerator
 // **************************************************************************
 
-AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) =>
-    new AnalysisData(
-        packageName: json['packageName'] as String,
-        packageVersion: json['packageVersion'] as String,
-        analysis: json['analysis'] as int,
-        timestamp: json['timestamp'] == null
-            ? null
-            : DateTime.parse(json['timestamp'] as String),
-        runtimeVersion: json['runtimeVersion'] as String,
-        panaVersion: json['panaVersion'] as String,
-        flutterVersion: json['flutterVersion'] as String,
-        analysisStatus: $enumDecodeNullable('AnalysisStatus',
-            AnalysisStatus.values, json['analysisStatus'] as String),
-        analysisContent: json['analysisContent'] as Map<String, dynamic>,
-        maintenanceScore: (json['maintenanceScore'] as num)?.toDouble());
+AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) {
+  return new AnalysisData(
+      packageName: json['packageName'] as String,
+      packageVersion: json['packageVersion'] as String,
+      analysis: json['analysis'] as int,
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String),
+      runtimeVersion: json['runtimeVersion'] as String,
+      panaVersion: json['panaVersion'] as String,
+      flutterVersion: json['flutterVersion'] as String,
+      analysisStatus: $enumDecodeNullable('AnalysisStatus',
+          AnalysisStatus.values, json['analysisStatus'] as String),
+      analysisContent: json['analysisContent'] as Map<String, dynamic>,
+      maintenanceScore: (json['maintenanceScore'] as num)?.toDouble());
+}
 
 abstract class _$AnalysisDataSerializerMixin {
   String get packageName;
@@ -53,18 +54,18 @@ abstract class _$AnalysisDataSerializerMixin {
       };
 }
 
-AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) =>
-    new AnalysisExtract(
-        analysisStatus: $enumDecodeNullable('AnalysisStatus',
-            AnalysisStatus.values, json['analysisStatus'] as String),
-        health: (json['health'] as num)?.toDouble(),
-        maintenance: (json['maintenance'] as num)?.toDouble(),
-        popularity: (json['popularity'] as num)?.toDouble(),
-        platforms:
-            (json['platforms'] as List)?.map((e) => e as String)?.toList(),
-        timestamp: json['timestamp'] == null
-            ? null
-            : DateTime.parse(json['timestamp'] as String));
+AnalysisExtract _$AnalysisExtractFromJson(Map<String, dynamic> json) {
+  return new AnalysisExtract(
+      analysisStatus: $enumDecodeNullable('AnalysisStatus',
+          AnalysisStatus.values, json['analysisStatus'] as String),
+      health: (json['health'] as num)?.toDouble(),
+      maintenance: (json['maintenance'] as num)?.toDouble(),
+      popularity: (json['popularity'] as num)?.toDouble(),
+      platforms: (json['platforms'] as List)?.map((e) => e as String)?.toList(),
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String));
+}
 
 abstract class _$AnalysisExtractSerializerMixin {
   AnalysisStatus get analysisStatus;
