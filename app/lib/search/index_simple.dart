@@ -181,12 +181,12 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // do text matching
-    final Score textScore = _searchText(packages, query.parsedQuery.text,
+    final textResults = _searchText(packages, query.parsedQuery.text,
         _apiSearchEnabled || query.parsedQuery.isApiEnabled);
 
     // filter packages that doesn't match text query
-    if (textScore != null) {
-      final keys = textScore.getKeys();
+    if (textResults != null) {
+      final keys = textResults.pkgScore.getKeys();
       packages.removeWhere((x) => !keys.contains(x));
     }
 
@@ -196,8 +196,8 @@ class SimplePackageIndex implements PackageIndex {
         final List<Score> scores = [
           _getOverallScore(packages),
         ];
-        if (query.order == null && textScore != null) {
-          scores.add(textScore);
+        if (query.order == null && textResults != null) {
+          scores.add(textResults.pkgScore);
         }
         if (query.order == null && platformSpecificity != null) {
           scores.add(new Score(platformSpecificity));
@@ -217,7 +217,7 @@ class SimplePackageIndex implements PackageIndex {
         results = _rankWithValues(overallScore.getValues());
         break;
       case SearchOrder.text:
-        results = _rankWithValues(textScore.getValues());
+        results = _rankWithValues(textResults.pkgScore.getValues());
         break;
       case SearchOrder.created:
         results = _rankWithComparator(packages, _compareCreated);
@@ -247,6 +247,18 @@ class SimplePackageIndex implements PackageIndex {
     }
     if (query.limit != null && results.length > query.limit) {
       results = results.sublist(0, query.limit);
+    }
+
+    if (textResults != null &&
+        textResults.topApiPages != null &&
+        textResults.topApiPages.isNotEmpty) {
+      results = results.map((ps) {
+        final apiPages = textResults.topApiPages[ps.package]
+            // TODO: extract title for the page
+            ?.map((String page) => new ApiPageRef(path: page))
+            ?.toList();
+        return ps.change(apiPages: apiPages);
+      }).toList();
     }
 
     return new PackageSearchResult(
@@ -302,11 +314,14 @@ class SimplePackageIndex implements PackageIndex {
     return new Score(values);
   }
 
-  Score _searchText(Set<String> packages, String text, bool isExperimental) {
+  _TextResults _searchText(
+      Set<String> packages, String text, bool isExperimental) {
     if (text != null && text.isNotEmpty) {
       final List<String> words = splitForIndexing(text).toList();
       final int wordCount = words.length;
-      final List<Score> wordScores = words.map((String word) {
+      final pkgScores = <Score>[];
+      final apiPagesScores = <Score>[];
+      for (String word in words) {
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
@@ -324,6 +339,8 @@ class SimplePackageIndex implements PackageIndex {
         if (isExperimental) {
           final apiPages = new Score(_apiDocIndex.scoreDocs(apiDocTokens,
               weight: 0.80, wordCount: wordCount));
+          apiPagesScores.add(apiPages);
+
           final apiPackages = <String, double>{};
           for (String key in apiPages.getKeys()) {
             final pkg = _apiDocPkg(key);
@@ -335,10 +352,10 @@ class SimplePackageIndex implements PackageIndex {
           apiScore = new Score({});
         }
 
-        return Score.max([name, descr, readme, apiScore]).removeLowValues(
-            fraction: 0.01, minValue: 0.001);
-      }).toList();
-      Score score = Score.multiply(wordScores);
+        pkgScores.add(Score.max([name, descr, readme, apiScore]));
+      }
+      Score score = Score.multiply(pkgScores);
+
       // Ideally this projection should happen earlier (in both lookupTokens and
       // scoreDocs), but for the sake of simplicity it is done here.
       score = score.project(packages);
@@ -359,7 +376,22 @@ class SimplePackageIndex implements PackageIndex {
         score = new Score(matched);
       }
 
-      return score;
+      score = score.removeLowValues(fraction: 0.01, minValue: 0.001);
+
+      final apiDocScore = Score.multiply(apiPagesScores);
+      final apiDocKeys = apiDocScore.getKeys().toList()
+        ..sort((a, b) => -apiDocScore[a].compareTo(apiDocScore[b]));
+      final topApiPages = <String, List<String>>{};
+      for (String key in apiDocKeys) {
+        final pkg = _apiDocPkg(key);
+        final pages = topApiPages.putIfAbsent(pkg, () => []);
+        if (pages.length < 3) {
+          final page = _apiDocPath(key);
+          pages.add(page);
+        }
+      }
+
+      return new _TextResults(score, topApiPages);
     }
     return null;
   }
@@ -409,6 +441,17 @@ class SimplePackageIndex implements PackageIndex {
   String _apiDocPkg(String id) {
     return id.split(':').first;
   }
+
+  String _apiDocPath(String id) {
+    return id.split(':').last;
+  }
+}
+
+class _TextResults {
+  final Score pkgScore;
+  final Map<String, List<String>> topApiPages;
+
+  _TextResults(this.pkgScore, this.topApiPages);
 }
 
 class Score {

@@ -441,11 +441,37 @@ class PackageScore extends Object with _$PackageScoreSerializerMixin {
   @JsonKey(includeIfNull: false)
   final double score;
 
+  @JsonKey(includeIfNull: false)
+  final List<ApiPageRef> apiPages;
+
   PackageScore({
     this.package,
     this.score,
+    this.apiPages,
   });
 
   factory PackageScore.fromJson(Map<String, dynamic> json) =>
       _$PackageScoreFromJson(json);
+
+  PackageScore change({
+    double score,
+    List<ApiPageRef> apiPages,
+  }) {
+    return new PackageScore(
+      package: package,
+      score: score ?? this.score,
+      apiPages: apiPages ?? this.apiPages,
+    );
+  }
+}
+
+@JsonSerializable()
+class ApiPageRef extends Object with _$ApiPageRefSerializerMixin {
+  final String title;
+  final String path;
+
+  ApiPageRef({this.title, this.path});
+
+  factory ApiPageRef.fromJson(Map<String, dynamic> json) =>
+      _$ApiPageRefFromJson(json);
 }
