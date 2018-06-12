@@ -56,6 +56,7 @@ void _setEventForAnchorScroll() {
         target.hash.isNotEmpty) {
       final Element elem = document.querySelector(target.hash);
       if (elem != null) {
+        window.history.pushState({}, document.title, target.hash);
         e.preventDefault();
         _scrollTo(elem);
       }
