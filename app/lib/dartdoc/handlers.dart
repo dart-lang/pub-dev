@@ -14,6 +14,21 @@ import '../shared/urls.dart';
 import '../shared/utils.dart' show contentType, redirectDartdocPages;
 
 import 'backend.dart';
+import 'models.dart';
+
+final _allTracker = new ArchiveTracker();
+final _visitorTracker = new ArchiveTracker();
+final _obsoleteTracker = new ArchiveTracker();
+
+void _track(DartdocEntry entry, String path) {
+  _allTracker.track(entry);
+  if (path != 'status.json' && path != 'log.txt' && path != 'package.tar.gz') {
+    _visitorTracker.track(entry);
+    if (entry.isObsolete ?? false) {
+      _obsoleteTracker.track(entry);
+    }
+  }
+}
 
 /// Handlers for the dartdoc service.
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
@@ -38,7 +53,13 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 }
 
 /// Handler /debug requests
-shelf.Response _debugHandler(shelf.Request request) => debugResponse();
+shelf.Response _debugHandler(shelf.Request request) => debugResponse({
+      'archiveTracker': {
+        'all': _allTracker.samples,
+        'visitor': _visitorTracker.samples,
+        'obsolete': _obsoleteTracker.samples,
+      },
+    });
 
 /// Handles / requests
 Future<shelf.Response> _indexHandler(shelf.Request request) async {
@@ -76,6 +97,7 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
       return notFoundHandler(request);
     }
+    _track(entry, docFilePath.path);
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
     if (info == null) {
       return notFoundHandler(request);
@@ -87,6 +109,7 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
       return redirectResponse(pkgVersionsUrl(docFilePath.package));
     }
+    _track(entry, docFilePath.path);
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
     if (info == null) {
       return notFoundHandler(request);

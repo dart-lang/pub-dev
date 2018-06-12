@@ -28,8 +28,10 @@ final Logger _logger = new Logger('pub.dartdoc.runner');
 final Uuid _uuid = new Uuid();
 
 const statusFilePath = 'status.json';
+const _archiveFilePath = 'package.tar.gz';
 const _buildLogFilePath = 'log.txt';
 const _dartdocTimeout = const Duration(minutes: 10);
+final Duration _twoYears = const Duration(days: 2 * 365);
 
 class DartdocJobProcessor extends JobProcessor {
   DartdocJobProcessor({Duration lockDuration})
@@ -208,19 +210,39 @@ class DartdocJobProcessor extends JobProcessor {
 
   Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,
       bool depsResolved, bool hasContent) async {
+    int archiveSize;
+    int totalSize;
+    if (hasContent) {
+      final archiveFile = new File(p.join(outputDir, _archiveFilePath));
+      archiveSize = await archiveFile.length();
+      totalSize = await new Directory(outputDir)
+          .list(recursive: true)
+          .where((fse) => fse is File)
+          .cast<File>()
+          .asyncMap((file) => file.length())
+          .fold(0, (a, b) => a + b);
+      totalSize -= archiveSize;
+    }
+    final now = new DateTime.now();
+    final isObsolete = job.isLatestStable == false &&
+        job.packageVersionUpdated.difference(now).abs() > _twoYears;
     final entry = new DartdocEntry(
-        uuid: _uuid.v4().toString(),
-        packageName: job.packageName,
-        packageVersion: job.packageVersion,
-        usesFlutter: usesFlutter,
-        runtimeVersion: versions.runtimeVersion,
-        sdkVersion: versions.sdkVersion,
-        dartdocVersion: versions.dartdocVersion,
-        flutterVersion: versions.flutterVersion,
-        customizationVersion: versions.customizationVersion,
-        timestamp: new DateTime.now().toUtc(),
-        depsResolved: depsResolved,
-        hasContent: hasContent);
+      uuid: _uuid.v4().toString(),
+      packageName: job.packageName,
+      packageVersion: job.packageVersion,
+      isObsolete: isObsolete,
+      usesFlutter: usesFlutter,
+      runtimeVersion: versions.runtimeVersion,
+      sdkVersion: versions.sdkVersion,
+      dartdocVersion: versions.dartdocVersion,
+      flutterVersion: versions.flutterVersion,
+      customizationVersion: versions.customizationVersion,
+      timestamp: new DateTime.now().toUtc(),
+      depsResolved: depsResolved,
+      hasContent: hasContent,
+      archiveSize: archiveSize,
+      totalSize: totalSize,
+    );
 
     // write entry into local file
     await new File(p.join(outputDir, statusFilePath))
@@ -242,14 +264,13 @@ class DartdocJobProcessor extends JobProcessor {
   Future _tar(String tmpDir, String tarDir, String outputDir,
       StringBuffer logFileOutput) async {
     logFileOutput.write('Running tar:\n');
-    final archive = 'package.tar.gz';
-    final File tmpTar = new File(p.join(tmpDir, archive));
+    final File tmpTar = new File(p.join(tmpDir, _archiveFilePath));
     final pr = await runProc(
       'tar',
       ['-czf', tmpTar.path, '.'],
       workingDirectory: tarDir,
     );
-    await tmpTar.rename(p.join(outputDir, archive));
+    await tmpTar.rename(p.join(outputDir, _archiveFilePath));
     _appendLog(logFileOutput, pr);
   }
 }

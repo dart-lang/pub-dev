@@ -24,6 +24,7 @@ void main() {
       uuid: '12345678-abcdef10',
       packageName: 'pkg_foo',
       packageVersion: '1.2.3',
+      isObsolete: false,
       usesFlutter: false,
       runtimeVersion: '2018.3.8',
       sdkVersion: '2.0.0-dev.32.0',
@@ -33,6 +34,8 @@ void main() {
       timestamp: new DateTime(2018, 03, 08),
       depsResolved: true,
       hasContent: true,
+      archiveSize: 10000,
+      totalSize: 60000,
     );
     expect(entry.inProgressPrefix, 'pkg_foo/1.2.3/in-progress');
     expect(entry.inProgressObjectName,

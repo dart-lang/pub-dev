@@ -17,6 +17,7 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
       uuid: json['uuid'] as String,
       packageName: json['packageName'] as String,
       packageVersion: json['packageVersion'] as String,
+      isObsolete: json['isObsolete'] as bool,
       usesFlutter: json['usesFlutter'] as bool,
       runtimeVersion: json['runtimeVersion'] as String,
       sdkVersion: json['sdkVersion'] as String,
@@ -27,13 +28,16 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
           ? null
           : DateTime.parse(json['timestamp'] as String),
       depsResolved: json['depsResolved'] as bool,
-      hasContent: json['hasContent'] as bool);
+      hasContent: json['hasContent'] as bool,
+      archiveSize: json['archiveSize'] as int,
+      totalSize: json['totalSize'] as int);
 }
 
 abstract class _$DartdocEntrySerializerMixin {
   String get uuid;
   String get packageName;
   String get packageVersion;
+  bool get isObsolete;
   bool get usesFlutter;
   String get runtimeVersion;
   String get sdkVersion;
@@ -43,10 +47,13 @@ abstract class _$DartdocEntrySerializerMixin {
   DateTime get timestamp;
   bool get depsResolved;
   bool get hasContent;
+  int get archiveSize;
+  int get totalSize;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'uuid': uuid,
         'packageName': packageName,
         'packageVersion': packageVersion,
+        'isObsolete': isObsolete,
         'usesFlutter': usesFlutter,
         'runtimeVersion': runtimeVersion,
         'sdkVersion': sdkVersion,
@@ -55,7 +62,9 @@ abstract class _$DartdocEntrySerializerMixin {
         'customizationVersion': customizationVersion,
         'timestamp': timestamp?.toIso8601String(),
         'depsResolved': depsResolved,
-        'hasContent': hasContent
+        'hasContent': hasContent,
+        'archiveSize': archiveSize,
+        'totalSize': totalSize
       };
 }
 

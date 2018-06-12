@@ -26,6 +26,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final String uuid;
   final String packageName;
   final String packageVersion;
+  final bool isObsolete;
   final bool usesFlutter;
   final String runtimeVersion;
   final String sdkVersion;
@@ -35,11 +36,14 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final DateTime timestamp;
   final bool depsResolved;
   final bool hasContent;
+  final int archiveSize;
+  final int totalSize;
 
   DartdocEntry({
     @required this.uuid,
     @required this.packageName,
     @required this.packageVersion,
+    @required this.isObsolete,
     @required this.usesFlutter,
     @required this.runtimeVersion,
     @required this.sdkVersion,
@@ -49,6 +53,8 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     @required this.timestamp,
     @required this.depsResolved,
     @required this.hasContent,
+    @required this.archiveSize,
+    @required this.totalSize,
   });
 
   factory DartdocEntry.fromJson(Map<String, dynamic> json) =>
