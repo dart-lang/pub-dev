@@ -12,37 +12,37 @@ part of 'search_service.dart';
 // Generator: JsonSerializableGenerator
 // **************************************************************************
 
-PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
-    new PackageDocument(
-        package: json['package'] as String,
-        version: json['version'] as String,
-        devVersion: json['devVersion'] as String,
-        description: json['description'] as String,
-        created: json['created'] == null
-            ? null
-            : DateTime.parse(json['created'] as String),
-        updated: json['updated'] == null
-            ? null
-            : DateTime.parse(json['updated'] as String),
-        readme: json['readme'] as String,
-        isDiscontinued: json['isDiscontinued'] as bool,
-        doNotAdvertise: json['doNotAdvertise'] as bool,
-        platforms:
-            (json['platforms'] as List)?.map((e) => e as String)?.toList(),
-        health: (json['health'] as num)?.toDouble(),
-        popularity: (json['popularity'] as num)?.toDouble(),
-        maintenance: (json['maintenance'] as num)?.toDouble(),
-        dependencies: (json['dependencies'] as Map<String, dynamic>)
-            ?.map((k, e) => new MapEntry(k, e as String)),
-        emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
-        apiDocPages: (json['apiDocPages'] as List)
-            ?.map((e) => e == null
-                ? null
-                : new ApiDocPage.fromJson(e as Map<String, dynamic>))
-            ?.toList(),
-        timestamp: json['timestamp'] == null
-            ? null
-            : DateTime.parse(json['timestamp'] as String));
+PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
+  return new PackageDocument(
+      package: json['package'] as String,
+      version: json['version'] as String,
+      devVersion: json['devVersion'] as String,
+      description: json['description'] as String,
+      created: json['created'] == null
+          ? null
+          : DateTime.parse(json['created'] as String),
+      updated: json['updated'] == null
+          ? null
+          : DateTime.parse(json['updated'] as String),
+      readme: json['readme'] as String,
+      isDiscontinued: json['isDiscontinued'] as bool,
+      doNotAdvertise: json['doNotAdvertise'] as bool,
+      platforms: (json['platforms'] as List)?.map((e) => e as String)?.toList(),
+      health: (json['health'] as num)?.toDouble(),
+      popularity: (json['popularity'] as num)?.toDouble(),
+      maintenance: (json['maintenance'] as num)?.toDouble(),
+      dependencies: (json['dependencies'] as Map<String, dynamic>)
+          ?.map((k, e) => new MapEntry(k, e as String)),
+      emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
+      apiDocPages: (json['apiDocPages'] as List)
+          ?.map((e) => e == null
+              ? null
+              : new ApiDocPage.fromJson(e as Map<String, dynamic>))
+          ?.toList(),
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String));
+}
 
 abstract class _$PackageDocumentSerializerMixin {
   String get package;
@@ -83,9 +83,11 @@ abstract class _$PackageDocumentSerializerMixin {
       };
 }
 
-ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) => new ApiDocPage(
-    relativePath: json['relativePath'] as String,
-    symbols: (json['symbols'] as List)?.map((e) => e as String)?.toList());
+ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) {
+  return new ApiDocPage(
+      relativePath: json['relativePath'] as String,
+      symbols: (json['symbols'] as List)?.map((e) => e as String)?.toList());
+}
 
 abstract class _$ApiDocPageSerializerMixin {
   String get relativePath;
@@ -94,15 +96,16 @@ abstract class _$ApiDocPageSerializerMixin {
       <String, dynamic>{'relativePath': relativePath, 'symbols': symbols};
 }
 
-PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
-    new PackageSearchResult(
-        indexUpdated: json['indexUpdated'] as String,
-        totalCount: json['totalCount'] as int,
-        packages: (json['packages'] as List)
-            ?.map((e) => e == null
-                ? null
-                : new PackageScore.fromJson(e as Map<String, dynamic>))
-            ?.toList());
+PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) {
+  return new PackageSearchResult(
+      indexUpdated: json['indexUpdated'] as String,
+      totalCount: json['totalCount'] as int,
+      packages: (json['packages'] as List)
+          ?.map((e) => e == null
+              ? null
+              : new PackageScore.fromJson(e as Map<String, dynamic>))
+          ?.toList());
+}
 
 abstract class _$PackageSearchResultSerializerMixin {
   String get indexUpdated;
@@ -115,10 +118,11 @@ abstract class _$PackageSearchResultSerializerMixin {
       };
 }
 
-PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) =>
-    new PackageScore(
-        package: json['package'] as String,
-        score: (json['score'] as num)?.toDouble());
+PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) {
+  return new PackageScore(
+      package: json['package'] as String,
+      score: (json['score'] as num)?.toDouble());
+}
 
 abstract class _$PackageScoreSerializerMixin {
   String get package;

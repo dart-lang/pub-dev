@@ -12,22 +12,23 @@ part of 'models.dart';
 // Generator: JsonSerializableGenerator
 // **************************************************************************
 
-DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) =>
-    new DartdocEntry(
-        uuid: json['uuid'] as String,
-        packageName: json['packageName'] as String,
-        packageVersion: json['packageVersion'] as String,
-        usesFlutter: json['usesFlutter'] as bool,
-        runtimeVersion: json['runtimeVersion'] as String,
-        sdkVersion: json['sdkVersion'] as String,
-        dartdocVersion: json['dartdocVersion'] as String,
-        flutterVersion: json['flutterVersion'] as String,
-        customizationVersion: json['customizationVersion'] as String,
-        timestamp: json['timestamp'] == null
-            ? null
-            : DateTime.parse(json['timestamp'] as String),
-        depsResolved: json['depsResolved'] as bool,
-        hasContent: json['hasContent'] as bool);
+DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
+  return new DartdocEntry(
+      uuid: json['uuid'] as String,
+      packageName: json['packageName'] as String,
+      packageVersion: json['packageVersion'] as String,
+      usesFlutter: json['usesFlutter'] as bool,
+      runtimeVersion: json['runtimeVersion'] as String,
+      sdkVersion: json['sdkVersion'] as String,
+      dartdocVersion: json['dartdocVersion'] as String,
+      flutterVersion: json['flutterVersion'] as String,
+      customizationVersion: json['customizationVersion'] as String,
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String),
+      depsResolved: json['depsResolved'] as bool,
+      hasContent: json['hasContent'] as bool);
+}
 
 abstract class _$DartdocEntrySerializerMixin {
   String get uuid;
@@ -58,11 +59,13 @@ abstract class _$DartdocEntrySerializerMixin {
       };
 }
 
-FileInfo _$FileInfoFromJson(Map<String, dynamic> json) => new FileInfo(
-    lastModified: json['lastModified'] == null
-        ? null
-        : DateTime.parse(json['lastModified'] as String),
-    etag: json['etag'] as String);
+FileInfo _$FileInfoFromJson(Map<String, dynamic> json) {
+  return new FileInfo(
+      lastModified: json['lastModified'] == null
+          ? null
+          : DateTime.parse(json['lastModified'] as String),
+      etag: json['etag'] as String);
+}
 
 abstract class _$FileInfoSerializerMixin {
   DateTime get lastModified;

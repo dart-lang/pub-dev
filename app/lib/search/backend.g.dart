@@ -12,12 +12,13 @@ part of 'backend.dart';
 // Generator: JsonSerializableGenerator
 // **************************************************************************
 
-SearchSnapshot _$SearchSnapshotFromJson(Map<String, dynamic> json) =>
-    new SearchSnapshot()
-      ..updated = DateTime.parse(json['updated'] as String)
-      ..documents = (json['documents'] as Map<String, dynamic>).map((k, e) =>
-          new MapEntry(
-              k, new PackageDocument.fromJson(e as Map<String, dynamic>)));
+SearchSnapshot _$SearchSnapshotFromJson(Map<String, dynamic> json) {
+  return new SearchSnapshot()
+    ..updated = DateTime.parse(json['updated'] as String)
+    ..documents = (json['documents'] as Map<String, dynamic>).map((k, e) =>
+        new MapEntry(
+            k, new PackageDocument.fromJson(e as Map<String, dynamic>)));
+}
 
 abstract class _$SearchSnapshotSerializerMixin {
   DateTime get updated;
