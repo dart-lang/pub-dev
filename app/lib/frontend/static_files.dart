@@ -8,8 +8,10 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 
+const String _defaultStaticPath = '/static';
+
 /// Stores binary data for /static
-final StaticsCache staticsCache = new StaticsCache('/static');
+final StaticsCache staticsCache = new StaticsCache();
 
 final Set<String> staticRootFiles = new Set<String>.from([
   '/favicon.ico',
@@ -27,25 +29,27 @@ String _resolveStaticDirPath() {
 }
 
 class StaticsCache {
-  final String staticPath;
+  final String staticPath = _defaultStaticPath;
   final Map<String, StaticFile> _staticFiles = <String, StaticFile>{};
 
-  StaticsCache(this.staticPath) {
+  StaticsCache() {
     final staticDirPath = _resolveStaticDirPath();
     final staticsDirectory = new Directory(staticDirPath).absolute;
-    final files = staticsDirectory
+    staticsDirectory
         .listSync(recursive: true)
         .where((fse) => fse is File)
-        .map((file) => file.absolute as File);
-
-    final staticFiles = files
+        .map((file) => file.absolute as File)
         .map((File file) => _loadFile(staticsDirectory.path, file))
-        .toList();
+        .forEach(_addFile);
+  }
 
-    for (StaticFile file in staticFiles) {
-      final requestPath = '$staticPath/${file.relativePath}';
-      _staticFiles[requestPath] = file;
-    }
+  StaticsCache.fromFiles(List<StaticFile> files) {
+    files.forEach(_addFile);
+  }
+
+  void _addFile(StaticFile file) {
+    final requestPath = '$staticPath/${file.relativePath}';
+    _staticFiles[requestPath] = file;
   }
 
   StaticFile _loadFile(String rootPath, File file) {
