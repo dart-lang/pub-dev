@@ -13,6 +13,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 
 import 'utils.dart';
@@ -23,7 +24,18 @@ final _regenerateGoldens = false;
 
 void main() {
   group('templates', () {
-    final templates = new TemplateService(templateDirectory: 'views');
+    final templates = new TemplateService(
+        templateDirectory: 'views',
+        staticUrls: new StaticUrls(
+          cache: new StaticsCache.fromFiles(
+            mockStaticFiles
+                .map(
+                  (path) => new StaticFile(path, 'text/mock', [],
+                      new DateTime.now(), 'mocked_hash_${path.hashCode.abs()}'),
+                )
+                .toList(),
+          ),
+        ));
 
     void expectGoldenFile(String content, String fileName,
         {bool isFragment: false}) {
