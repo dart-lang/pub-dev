@@ -54,7 +54,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
     _logger.warning(
-        'Search handler exceeded ${_slowSearchThreshold.inMilliseconds}ms: '
+        'Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds}ms: '
         '${query.toServiceQueryParameters()}');
   }
   return jsonResponse(result.toJson(), indent: indent);
