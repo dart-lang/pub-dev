@@ -110,18 +110,18 @@ class StaticUrls {
       'style_css': _getCacheableStaticUrl('/css/style.css'),
     };
   }
-}
 
-/// Returns the URL of a static resource
-String _getCacheableStaticUrl(String relativePath) {
-  if (!relativePath.startsWith('/')) {
-    relativePath = '/$relativePath';
-  }
-  final String requestPath = '${staticUrls.staticPath}$relativePath';
-  final file = staticsCache.getFile(requestPath);
-  if (file == null) {
-    throw new Exception('Static resource not found: $relativePath');
-  } else {
-    return '$requestPath?hash=${file.etag}';
+  /// Returns the URL of a static resource
+  String _getCacheableStaticUrl(String relativePath) {
+    if (!relativePath.startsWith('/')) {
+      relativePath = '/$relativePath';
+    }
+    final String requestPath = '$staticPath$relativePath';
+    final file = staticsCache.getFile(requestPath);
+    if (file == null) {
+      throw new Exception('Static resource not found: $relativePath');
+    } else {
+      return '$requestPath?hash=${file.etag}';
+    }
   }
 }
