@@ -78,9 +78,10 @@ class StaticFile {
   );
 }
 
-final staticUrls = new StaticUrls(staticsCache.staticPath);
+final staticUrls = new StaticUrls();
 
 class StaticUrls {
+  final StaticsCache _cache;
   final String staticPath;
   final String smallDartFavicon;
   final String dartLogoSvg;
@@ -90,7 +91,12 @@ class StaticUrls {
   Map _versionsTableIcons;
   Map _assets;
 
-  StaticUrls(this.staticPath)
+  factory StaticUrls({StaticsCache cache}) {
+    cache ??= staticsCache;
+    return new StaticUrls._(cache, cache.staticPath);
+  }
+
+  StaticUrls._(this._cache, this.staticPath)
       : smallDartFavicon = '$staticPath/favicon.ico',
         dartLogoSvg = '$staticPath/img/dart-logo.svg',
         flutterLogo32x32 = '$staticPath/img/flutter-logo-32x32.png',
@@ -117,7 +123,7 @@ class StaticUrls {
       relativePath = '/$relativePath';
     }
     final String requestPath = '$staticPath$relativePath';
-    final file = staticsCache.getFile(requestPath);
+    final file = _cache.getFile(requestPath);
     if (file == null) {
       throw new Exception('Static resource not found: $relativePath');
     } else {
