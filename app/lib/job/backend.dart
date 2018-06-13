@@ -183,7 +183,7 @@ class JobBackend {
       try {
         await _unlock(job);
       } catch (e, st) {
-        _logger.warning('Unlock of $job failed.', e, st);
+        _logger.info('Unlock of $job failed.', e, st);
       }
     }
   }
@@ -235,7 +235,7 @@ class JobBackend {
           await _extend(job);
         }
       } catch (e, st) {
-        _logger.warning('Idle check of $job failed.', e, st);
+        _logger.info('Idle check of $job failed.', e, st);
       }
     }
   }

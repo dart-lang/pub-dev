@@ -124,7 +124,7 @@ class JobMaintenance {
       try {
         await _updateFromTask(task);
       } catch (e, st) {
-        _logger.warning('Head sync failed for $task', e, st);
+        _logger.info('Head sync failed for $task', e, st);
       }
     }
   }
@@ -148,7 +148,7 @@ class JobMaintenance {
         await jobBackend.createOrUpdate(_processor.service, pv.package,
             pv.version, isLatestStable, pv.created, shouldProcess);
       } catch (e, st) {
-        _logger.warning(
+        _logger.info(
             'History sync failed for ${pv.package} ${pv.version}', e, st);
       }
     }
