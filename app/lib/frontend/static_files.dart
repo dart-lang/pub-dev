@@ -93,7 +93,7 @@ class StaticUrls {
   final String documentationIcon;
   final String downloadIcon;
   Map _versionsTableIcons;
-  Map _assets;
+  Map<String, String> _assets;
 
   factory StaticUrls({StaticsCache cache}) {
     cache ??= staticsCache;
@@ -114,7 +114,7 @@ class StaticUrls {
     };
   }
 
-  Map get assets {
+  Map<String, String> get assets {
     return _assets ??= {
       'script_dart_js': _getCacheableStaticUrl('/js/script.dart.js'),
       'style_css': _getCacheableStaticUrl('/css/style.css'),
