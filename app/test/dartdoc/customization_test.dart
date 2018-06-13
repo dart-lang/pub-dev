@@ -8,6 +8,7 @@ import 'package:html/parser.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/dartdoc/customization.dart';
+import 'package:pub_dartlang_org/frontend/static_files.dart';
 
 const String goldenDir = 'test/dartdoc/golden';
 
@@ -17,7 +18,12 @@ void main() {
   void expectGoldenFile(String content, String fileName) {
     // Making sure it is valid HTML
     final htmlParser = new HtmlParser(content, strict: true);
-    htmlParser.parse();
+    final doc = htmlParser.parse();
+
+    // Matching logo URLs with static files settings.
+    // If this fails, update the hard-coded customization URL to match it.
+    final logoElem = doc.documentElement.getElementsByTagName('img').first;
+    expect(logoElem.attributes['src'].endsWith(staticUrls.dartLogoSvg), isTrue);
 
     if (_regenerateGoldens) {
       new File('$goldenDir/$fileName').writeAsStringSync(content);

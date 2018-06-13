@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
-import '../frontend/static_files.dart';
 import '../shared/urls.dart';
 
 class DartdocCustomizer {
@@ -76,7 +75,7 @@ class DartdocCustomizer {
     final logoLink = new Element.tag('a');
     logoLink.attributes['href'] = '$siteRoot/';
     final imgRef = new Element.tag('img');
-    imgRef.attributes['src'] = '$siteRoot${staticUrls.dartLogoSvg}';
+    imgRef.attributes['src'] = '$siteRoot/static/img/dart-logo.svg';
     imgRef.attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);
