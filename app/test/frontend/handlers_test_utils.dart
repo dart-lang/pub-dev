@@ -15,6 +15,7 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
+import 'package:pub_dartlang_org/frontend/static_files.dart' as sf;
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -170,6 +171,9 @@ class TemplateMock implements TemplateService {
 
   @override
   String get templateDirectory => null;
+
+  @override
+  sf.StaticUrls get staticUrls => sf.staticUrls;
 
   @override
   String renderAuthorizedPage() {

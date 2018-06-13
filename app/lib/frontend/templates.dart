@@ -21,7 +21,7 @@ import '../shared/utils.dart';
 
 import 'model_properties.dart' show Author;
 import 'models.dart';
-import 'static_files.dart';
+import 'static_files.dart' as sf;
 import 'template_consts.dart';
 
 String _escapeAngleBrackets(String msg) =>
@@ -46,7 +46,12 @@ class TemplateService {
   /// A cache which keeps all used mustach templates parsed in memory.
   final Map<String, mustache.Template> _CachedMustacheTemplates = {};
 
-  TemplateService({this.templateDirectory: '/project/app/views'});
+  final sf.StaticUrls staticUrls;
+
+  TemplateService({
+    this.templateDirectory: '/project/app/views',
+    sf.StaticUrls staticUrls,
+  }) : staticUrls = staticUrls ?? sf.staticUrls;
 
   /// Renders the `views/pkg/versions/index` template.
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
@@ -404,8 +409,8 @@ class TemplateService {
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(package.name,
             selectedVersion.pubspec.sdkConstraint, extract, analysis),
-        'schema_org_pkgmeta_json':
-            json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
+        'schema_org_pkgmeta_json': json.encode(
+            _schemaOrgPkgMeta(staticUrls, package, selectedVersion, analysis)),
       },
       'version_table_rows': versionTableRows,
       'show_versions_link': totalNumberOfVersions > versions.length,
@@ -981,7 +986,8 @@ const _schemaOrgSearchAction = const {
   },
 };
 
-Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
+Map _schemaOrgPkgMeta(sf.StaticUrls staticUrls, Package p, PackageVersion pv,
+    AnalysisView analysis) {
   final Map map = {
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
