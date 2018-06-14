@@ -641,10 +641,13 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
   final versionsData = [];
 
   for (int i = 0; i < versions.length; i++) {
-    final hasDocumentation =
-        dartdocEntries[i] != null && dartdocEntries[i].hasContent;
+    final entry = dartdocEntries[i];
+    final hasDocumentation = entry != null && entry.hasContent;
+    final status =
+        entry == null ? 'awaiting' : (entry.hasContent ? 'success' : 'failed');
     versionsData.add({
       'version': versions[i].version,
+      'status': status,
       'hasDocumentation': hasDocumentation,
     });
   }
