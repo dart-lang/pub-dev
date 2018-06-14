@@ -24,6 +24,7 @@ void main() {
       uuid: '12345678-abcdef10',
       packageName: 'pkg_foo',
       packageVersion: '1.2.3',
+      isLatest: true,
       isObsolete: false,
       usesFlutter: false,
       runtimeVersion: '2018.3.8',

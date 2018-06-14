@@ -42,6 +42,9 @@ String pkgDocUrl(
   } else if (!omitTrailingSlash) {
     url = '$url/';
   }
+  if (url.endsWith('/index.html')) {
+    url = url.substring(0, url.length - 'index.html'.length);
+  }
   if (omitTrailingSlash && url.endsWith('/')) {
     url = url.substring(0, url.length - 1);
   }

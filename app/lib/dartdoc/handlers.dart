@@ -93,6 +93,10 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
   if (entry == null) {
     return redirectResponse(pkgVersionsUrl(docFilePath.package));
   }
+  if (entry.isLatest == true && docFilePath.version != 'latest') {
+    return redirectResponse(pkgDocUrl(docFilePath.package,
+        isLatest: true, relativePath: docFilePath.path));
+  }
   if (requestMethod == 'HEAD') {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
       return notFoundHandler(request);

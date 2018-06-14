@@ -26,6 +26,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
   final String uuid;
   final String packageName;
   final String packageVersion;
+  final bool isLatest;
   final bool isObsolete;
   final bool usesFlutter;
   final String runtimeVersion;
@@ -43,6 +44,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
     @required this.uuid,
     @required this.packageName,
     @required this.packageVersion,
+    @required this.isLatest,
     @required this.isObsolete,
     @required this.usesFlutter,
     @required this.runtimeVersion,
