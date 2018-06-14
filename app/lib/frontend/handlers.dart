@@ -225,6 +225,7 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
       updatedSince: twoYearsAgo, excludeDiscontinued: true);
   await for (var package in stream) {
     items.add(urls.pkgPageUrl(package, includeHost: true));
+    items.add(urls.pkgDocUrl(package, isLatest: true, includeHost: true));
   }
 
   items.sort();
