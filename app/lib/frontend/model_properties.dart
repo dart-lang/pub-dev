@@ -9,6 +9,15 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:yaml/yaml.dart';
 
+Map<String, dynamic> _loadYaml(String yamlString) {
+  final Map map = loadYaml(yamlString);
+  // TODO: remove this part after yaml returns a proper map
+  if (map is YamlMap) {
+    return json.decode(json.encode(map)) as Map<String, dynamic>;
+  }
+  return map as Map<String, dynamic>;
+}
+
 class Pubspec {
   final String jsonString;
   Map _json;
@@ -20,7 +29,7 @@ class Pubspec {
         _json = jsonMap;
 
   factory Pubspec.fromYaml(String yamlString) =>
-      new Pubspec.fromJson(loadYaml(yamlString) as Map<String, dynamic>);
+      new Pubspec.fromJson(_loadYaml(yamlString));
 
   Map get asJson {
     _load();
@@ -134,7 +143,7 @@ class Pubspec {
   void _load() {
     if (_json == null) {
       if (jsonString != null) {
-        _json = loadYaml(jsonString) as Map<String, dynamic>;
+        _json = _loadYaml(jsonString);
       } else {
         _json = const {};
       }
