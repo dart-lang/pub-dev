@@ -645,9 +645,9 @@ class TokenIndex {
     int sumFn(int sum, String str) =>
         sum + math.min(100, str.length * str.length);
 
-    final intersectionWeight = intersection.fold(0, sumFn);
+    final intersectionWeight = intersection.fold<int>(0, sumFn);
     final supersetWeight =
-        a.fold(0, sumFn) + b.fold(0, sumFn) - intersectionWeight;
+        a.fold<int>(0, sumFn) + b.fold<int>(0, sumFn) - intersectionWeight;
     return intersectionWeight / supersetWeight;
   }
 
