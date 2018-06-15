@@ -10,6 +10,11 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
+const mockStaticFiles = const <String>[
+  'js/script.dart.js',
+  'css/style.css',
+];
+
 class TestDelayCompletion {
   final int count;
   final Function _complete = expectAsync0(() {});

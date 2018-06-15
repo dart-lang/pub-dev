@@ -8,8 +8,10 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:mime/mime.dart' as mime;
 import 'package:path/path.dart' as path;
 
+const String _defaultStaticPath = '/static';
+
 /// Stores binary data for /static
-final StaticsCache staticsCache = new StaticsCache('/static');
+final StaticsCache staticsCache = new StaticsCache();
 
 final Set<String> staticRootFiles = new Set<String>.from([
   '/favicon.ico',
@@ -26,26 +28,29 @@ String _resolveStaticDirPath() {
   throw new Exception('Unknown script: ${Platform.script}');
 }
 
+/// Stores static files in memory for fast http serving.
 class StaticsCache {
-  final String staticPath;
+  final String staticPath = _defaultStaticPath;
   final Map<String, StaticFile> _staticFiles = <String, StaticFile>{};
 
-  StaticsCache(this.staticPath) {
+  StaticsCache() {
     final staticDirPath = _resolveStaticDirPath();
     final staticsDirectory = new Directory(staticDirPath).absolute;
-    final files = staticsDirectory
+    staticsDirectory
         .listSync(recursive: true)
         .where((fse) => fse is File)
-        .map((file) => file.absolute as File);
-
-    final staticFiles = files
+        .map((file) => file.absolute as File)
         .map((File file) => _loadFile(staticsDirectory.path, file))
-        .toList();
+        .forEach(_addFile);
+  }
 
-    for (StaticFile file in staticFiles) {
-      final requestPath = '$staticPath/${file.relativePath}';
-      _staticFiles[requestPath] = file;
-    }
+  StaticsCache.fromFiles(List<StaticFile> files) {
+    files.forEach(_addFile);
+  }
+
+  void _addFile(StaticFile file) {
+    final requestPath = '$staticPath/${file.relativePath}';
+    _staticFiles[requestPath] = file;
   }
 
   StaticFile _loadFile(String rootPath, File file) {
@@ -78,9 +83,10 @@ class StaticFile {
   );
 }
 
-final staticUrls = new StaticUrls(staticsCache.staticPath);
+final staticUrls = new StaticUrls();
 
 class StaticUrls {
+  final StaticsCache _cache;
   final String staticPath;
   final String smallDartFavicon;
   final String dartLogoSvg;
@@ -88,9 +94,14 @@ class StaticUrls {
   final String documentationIcon;
   final String downloadIcon;
   Map _versionsTableIcons;
-  Map _assets;
+  Map<String, String> _assets;
 
-  StaticUrls(this.staticPath)
+  factory StaticUrls({StaticsCache cache}) {
+    cache ??= staticsCache;
+    return new StaticUrls._(cache, cache.staticPath);
+  }
+
+  StaticUrls._(this._cache, this.staticPath)
       : smallDartFavicon = '$staticPath/favicon.ico',
         dartLogoSvg = '$staticPath/img/dart-logo.svg',
         flutterLogo32x32 = '$staticPath/img/flutter-logo-32x32.png',
@@ -104,24 +115,24 @@ class StaticUrls {
     };
   }
 
-  Map get assets {
+  Map<String, String> get assets {
     return _assets ??= {
       'script_dart_js': _getCacheableStaticUrl('/js/script.dart.js'),
       'style_css': _getCacheableStaticUrl('/css/style.css'),
     };
   }
-}
 
-/// Returns the URL of a static resource
-String _getCacheableStaticUrl(String relativePath) {
-  if (!relativePath.startsWith('/')) {
-    relativePath = '/$relativePath';
-  }
-  final String requestPath = '${staticUrls.staticPath}$relativePath';
-  final file = staticsCache.getFile(requestPath);
-  if (file == null) {
-    throw new Exception('Static resource not found: $relativePath');
-  } else {
-    return '$requestPath?hash=${file.etag}';
+  /// Returns the URL of a static resource
+  String _getCacheableStaticUrl(String relativePath) {
+    if (!relativePath.startsWith('/')) {
+      relativePath = '/$relativePath';
+    }
+    final String requestPath = '$staticPath$relativePath';
+    final file = _cache.getFile(requestPath);
+    if (file == null) {
+      throw new Exception('Static resource not found: $relativePath');
+    } else {
+      return '$requestPath?hash=${file.etag}';
+    }
   }
 }
