@@ -107,7 +107,7 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
     return true;
   }
 
-  final ifNoneMatch = request.headers[HttpHeaders.IF_NONE_MATCH];
+  final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
   if (ifNoneMatch != null && ifNoneMatch == etag) {
     return true;
   }

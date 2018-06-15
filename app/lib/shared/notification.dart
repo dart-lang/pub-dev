@@ -65,7 +65,7 @@ Future<bool> _validateNotificationSecret(shelf.Request request) async {
 
 Future<Map<String, String>> _prepareNotificationHeaders() async => {
       'x-notification-secret': await _getNotificationSecret(),
-      HttpHeaders.CONTENT_TYPE: 'application/json',
+      HttpHeaders.contentTypeHeader: 'application/json',
     };
 
 Future notifyService(http.Client client, String servicePrefix, String package,
