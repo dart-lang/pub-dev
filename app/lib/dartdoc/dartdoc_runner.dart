@@ -230,6 +230,7 @@ class DartdocJobProcessor extends JobProcessor {
       uuid: _uuid.v4().toString(),
       packageName: job.packageName,
       packageVersion: job.packageVersion,
+      isLatest: job.isLatestStable,
       isObsolete: isObsolete,
       usesFlutter: usesFlutter,
       runtimeVersion: versions.runtimeVersion,

@@ -17,6 +17,7 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
       uuid: json['uuid'] as String,
       packageName: json['packageName'] as String,
       packageVersion: json['packageVersion'] as String,
+      isLatest: json['isLatest'] as bool,
       isObsolete: json['isObsolete'] as bool,
       usesFlutter: json['usesFlutter'] as bool,
       runtimeVersion: json['runtimeVersion'] as String,
@@ -37,6 +38,7 @@ abstract class _$DartdocEntrySerializerMixin {
   String get uuid;
   String get packageName;
   String get packageVersion;
+  bool get isLatest;
   bool get isObsolete;
   bool get usesFlutter;
   String get runtimeVersion;
@@ -53,6 +55,7 @@ abstract class _$DartdocEntrySerializerMixin {
         'uuid': uuid,
         'packageName': packageName,
         'packageVersion': packageVersion,
+        'isLatest': isLatest,
         'isObsolete': isObsolete,
         'usesFlutter': usesFlutter,
         'runtimeVersion': runtimeVersion,
