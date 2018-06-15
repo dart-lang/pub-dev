@@ -9,7 +9,7 @@
 part of 'models.dart';
 
 // **************************************************************************
-// Generator: JsonSerializableGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
 DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {

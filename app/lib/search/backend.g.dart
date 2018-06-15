@@ -9,7 +9,7 @@
 part of 'backend.dart';
 
 // **************************************************************************
-// Generator: JsonSerializableGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
 SearchSnapshot _$SearchSnapshotFromJson(Map<String, dynamic> json) {

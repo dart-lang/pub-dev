@@ -9,7 +9,7 @@
 part of 'analyzer_service.dart';
 
 // **************************************************************************
-// Generator: JsonSerializableGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
 AnalysisData _$AnalysisDataFromJson(Map<String, dynamic> json) {
