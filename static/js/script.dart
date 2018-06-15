@@ -313,6 +313,7 @@ void _updateDartdocStatus() {
       for (Map versionMap in versionsList) {
         final String version = versionMap['version'];
         final bool hasDocumentation = versionMap['hasDocumentation'];
+        final String status = versionMap['status'];
         for (Element table in tables) {
           table
               .querySelectorAll('tr')
@@ -320,9 +321,13 @@ void _updateDartdocStatus() {
               .forEach(
             (row) {
               final docCol = row.querySelector('.documentation');
-              final AnchorElement docLink = docCol.querySelector('a');
               if (docCol == null) return;
-              if (hasDocumentation) {
+              final AnchorElement docLink = docCol.querySelector('a');
+              if (docLink == null) return;
+              if (status == 'awaiting') {
+                docCol.dataset[_hasDocumentationAttr] = '...';
+                docLink.text = 'awaiting';
+              } else if (hasDocumentation) {
                 docCol.dataset[_hasDocumentationAttr] = '1';
               } else {
                 docCol.dataset[_hasDocumentationAttr] = '0';
