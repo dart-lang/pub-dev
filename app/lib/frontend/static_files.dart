@@ -28,6 +28,7 @@ String _resolveStaticDirPath() {
   throw new Exception('Unknown script: ${Platform.script}');
 }
 
+/// Stores static files in memory for fast http serving.
 class StaticsCache {
   final String staticPath = _defaultStaticPath;
   final Map<String, StaticFile> _staticFiles = <String, StaticFile>{};
