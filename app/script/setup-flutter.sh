@@ -22,9 +22,14 @@ then
   exit 1
 fi
 
-git clone -b v0.5.4 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
+if [[ -z "$1" ]];
+then
+  echo "Version argument is missing."
+  exit 1
+fi
 
-# Keep in-sync with app/lib/shared/versions.dart
+git clone -b $1 --single-branch https://github.com/flutter/flutter.git $FLUTTER_SDK
+
 cd $FLUTTER_SDK
 
 # Downloads the Dart SDK and disables analytics tracking – which we always want.
