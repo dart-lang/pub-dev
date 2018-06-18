@@ -53,9 +53,6 @@ class BackendMock implements Backend {
   final Function versionsOfPackageFun;
   final Function downloadUrlFun;
 
-  @override
-  final FinishedUploadCallback finishCallback;
-
   BackendMock({
     this.newestPackagesFun,
     this.latestPackageVersionsFun,
@@ -65,7 +62,6 @@ class BackendMock implements Backend {
     this.lookupPackageVersionFun,
     this.versionsOfPackageFun,
     this.downloadUrlFun,
-    this.finishCallback,
   });
 
   @override
