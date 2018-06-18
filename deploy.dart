@@ -11,7 +11,7 @@ HttpClient httpClient = new HttpClient();
 void die(String msg) {
   print('$msg:');
   print('deploy.dart ( app | analyzer | dartdoc | search | all ) '
-      '[ --delete-old ] [ --migrate ]');
+      '[ --delete-old ] [ --migrate ] [ --stop-first ]');
   exit(1);
 }
 
@@ -48,6 +48,8 @@ Future main(List<String> args) async {
 
   final bool deleteOld = args.contains('--delete-old');
   final bool migrateTraffic = args.contains('--migrate');
+  final bool stopFirst = args.contains('--stop-first') &&
+      Platform.environment['GCLOUD_PROJECT'] == 'dartlang-pub-dev';
 
   if (deleteOld && !migrateTraffic) {
     die('Cannot delete the old version without migrating traffic');
@@ -64,7 +66,8 @@ Future main(List<String> args) async {
 
   for (String service in services) {
     print('\nDeploying $service...\n');
-    await new _ServiceDeployer(service, newVersion, deleteOld, migrateTraffic)
+    await new _ServiceDeployer(
+            service, newVersion, deleteOld, migrateTraffic, stopFirst)
         .deploy();
   }
 
@@ -77,10 +80,11 @@ class _ServiceDeployer {
   final String newVersion;
   final bool deleteOld;
   final bool migrateTraffic;
+  final bool stopFirst;
   String _oldVersion;
 
-  _ServiceDeployer(
-      this.service, this.newVersion, this.deleteOld, this.migrateTraffic)
+  _ServiceDeployer(this.service, this.newVersion, this.deleteOld,
+      this.migrateTraffic, this.stopFirst)
       : project = Platform.environment['GCLOUD_PROJECT'] {
     if (project == null) {
       throw new StateError('GCLOUD_PROJECT must be set!');
@@ -89,6 +93,9 @@ class _ServiceDeployer {
 
   Future deploy() async {
     await _detectOldVersion();
+    if (stopFirst) {
+      await _stopOldVersion();
+    }
     await _gcloudDeploy();
     await _checkHealth();
     if (migrateTraffic) {
@@ -112,6 +119,14 @@ class _ServiceDeployer {
     } else {
       print('Old $service version: $_oldVersion');
     }
+  }
+
+  Future _stopOldVersion() async {
+    if (_oldVersion == null) return;
+    print('Stopping old version of $service: $_oldVersion');
+    await _runGCloudApp(
+        ['versions', 'stop', '--service', service, _oldVersion, '-q'],
+        'Couldn\'t stop old version of $service.');
   }
 
   Future _gcloudDeploy() async {
