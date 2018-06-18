@@ -152,6 +152,10 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
       // Old entry does not exists, new entry wins.
       return false;
     }
+    if (oldEntry.runtimeVersion != runtimeVersion) {
+      // Different versions - not considered as a regression.
+      return false;
+    }
     if (!oldEntry.hasContent) {
       // The old entry had no content, the new should be better.
       return false;
