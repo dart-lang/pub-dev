@@ -9,7 +9,7 @@
 part of 'search_service.dart';
 
 // **************************************************************************
-// Generator: JsonSerializableGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
 PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {

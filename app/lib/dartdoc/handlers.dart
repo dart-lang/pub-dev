@@ -123,16 +123,17 @@ Future<shelf.Response> _documentationHandler(shelf.Request request) async {
     }
     final stream = dartdocBackend.readContent(entry, docFilePath.path);
     final headers = {
-      HttpHeaders.CONTENT_TYPE: contentType(docFilePath.path),
-      HttpHeaders.CACHE_CONTROL: 'max-age: ${staticShortCache.inSeconds}',
+      HttpHeaders.contentTypeHeader: contentType(docFilePath.path),
+      HttpHeaders.cacheControlHeader: 'max-age: ${staticShortCache.inSeconds}',
     };
     if (info.lastModified != null) {
-      headers[HttpHeaders.LAST_MODIFIED] = formatHttpDate(info.lastModified);
+      headers[HttpHeaders.lastModifiedHeader] =
+          formatHttpDate(info.lastModified);
     }
     if (info.etag != null) {
-      headers[HttpHeaders.ETAG] = info.etag;
+      headers[HttpHeaders.etagHeader] = info.etag;
     }
-    return new shelf.Response(HttpStatus.OK, body: stream, headers: headers);
+    return new shelf.Response(HttpStatus.ok, body: stream, headers: headers);
   }
   return notFoundHandler(request);
 }

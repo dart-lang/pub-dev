@@ -277,11 +277,11 @@ Future<shelf.Response> _staticsHandler(shelf.Request request,
     return new shelf.Response.ok(
       staticFile.bytes,
       headers: {
-        HttpHeaders.CONTENT_TYPE: staticFile.contentType,
-        HttpHeaders.CONTENT_LENGTH: staticFile.bytes.length.toString(),
-        HttpHeaders.LAST_MODIFIED: formatHttpDate(staticFile.lastModified),
-        HttpHeaders.ETAG: staticFile.etag,
-        HttpHeaders.CACHE_CONTROL: 'max-age: ${cacheAge.inSeconds}',
+        HttpHeaders.contentTypeHeader: staticFile.contentType,
+        HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),
+        HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
+        HttpHeaders.etagHeader: staticFile.etag,
+        HttpHeaders.cacheControlHeader: 'max-age: ${cacheAge.inSeconds}',
       },
     );
   }
