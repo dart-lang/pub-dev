@@ -33,6 +33,9 @@ const _buildLogFilePath = 'log.txt';
 const _dartdocTimeout = const Duration(minutes: 10);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
+final _pkgPubDartdocDir =
+    Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
+
 class DartdocJobProcessor extends JobProcessor {
   DartdocJobProcessor({Duration lockDuration})
       : super(service: JobService.dartdoc, lockDuration: lockDuration);
@@ -179,16 +182,33 @@ class DartdocJobProcessor extends JobProcessor {
     final canonicalUrl = pkgDocUrl(job.packageName,
         version: canonicalVersion, includeHost: true, omitTrailingSlash: true);
 
-    Future<DartdocResult> runDartdoc(bool validateLinks) {
-      return toolEnv.dartdoc(
+    Future<DartdocResult> runDartdoc(bool validateLinks) async {
+      final args = [
+        '--input',
         pkgPath,
+        '--output',
         outputDir,
-        canonicalPrefix: canonicalUrl,
-        hostedUrl: siteRoot,
+        '--hosted-url',
+        siteRoot,
+        '--rel-canonical-prefix',
+        canonicalUrl,
+        '--link-to-remote',
+      ];
+      if (!validateLinks) {
+        args.add('--no-validate-links');
+      }
+      final pr = await runProc(
+        'dart',
+        ['bin/pub_dartdoc.dart']..addAll(args),
+        workingDirectory: _pkgPubDartdocDir,
         timeout: _dartdocTimeout,
-        validateLinks: validateLinks,
-        linkToRemote: true,
       );
+      final hasIndexHtml =
+          await new File(p.join(outputDir, 'index.html')).exists();
+      final hasIndexJson =
+          await new File(p.join(outputDir, 'index.json')).exists();
+      return new DartdocResult(
+          pr, pr.exitCode == 15, hasIndexHtml, hasIndexJson);
     }
 
     DartdocResult r = await runDartdoc(true);
