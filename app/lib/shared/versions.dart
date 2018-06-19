@@ -33,7 +33,11 @@ final Version semanticCustomizationVersion =
     new Version.parse(customizationVersion);
 
 // Version that control the dartdoc serving.
-final dartdocServingRuntime = new Version.parse('2018.6.15');
+// Pin this to a specific version when there is a coordinated upgrade of the
+// generated documentation template or style. The new version can generate the
+// docs without any traffic sent to it, while the old won't accidentally serve
+// them.
+final dartdocServingRuntime = new Version.parse(runtimeVersion);
 
 // Version that marks the default runtime version for analyzer entries created
 // before the runtime version was tracked.
