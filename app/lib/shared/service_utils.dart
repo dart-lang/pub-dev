@@ -214,14 +214,19 @@ Future initFlutterSdk(Logger logger) async {
     // FLUTTER_SDK directory exists).
     if (FileSystemEntity.isFileSync('/project/app/script/setup-flutter.sh')) {
       logger.warning('Setting up flutter checkout. This may take some time.');
-      final ProcessResult result =
-          await Process.run('/project/app/script/setup-flutter.sh', []);
+      final ProcessResult result = await Process
+          .run('/project/app/script/setup-flutter.sh', ['v$flutterVersion']);
       if (result.exitCode != 0) {
         logger.shout(
             'Failed to checkout flutter (exited with ${result.exitCode})\n'
             'stdout: ${result.stdout}\nstderr: ${result.stderr}');
       } else {
         logger.info('Flutter checkout completed.');
+      }
+      final flutterBin = new File('${envConfig.flutterSdkDir}/bin/flutter');
+      if (!(await flutterBin.exists())) {
+        throw new Exception(
+            'Flutter binary is missing after running setup-flutter.sh');
       }
     }
   }
