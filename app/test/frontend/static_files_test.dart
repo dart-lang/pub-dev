@@ -19,7 +19,7 @@ void main() {
     Future checkAsset(String url, String path) async {
       final rs = await http.get(url);
       expect(rs.statusCode, 200);
-      final staticContent = staticsCache.getFile(path);
+      final staticContent = staticFileCache.getFile(path);
       expect(staticContent.bytes.length, rs.bodyBytes.length);
       final staticHash = crypto.sha256.convert(staticContent.bytes).toString();
       final dartdocHash = crypto.sha256.convert(rs.bodyBytes).toString();
@@ -42,7 +42,7 @@ void main() {
   group('mocked static files', () {
     test('exists', () {
       for (String path in mockStaticFiles) {
-        final file = staticsCache.getFile('/static/$path');
+        final file = staticFileCache.getFile('/static/$path');
         expect(file, isNotNull);
         expect(file.bytes.length, greaterThan(1000));
         expect(file.etag.contains('mocked_hash'), isFalse);

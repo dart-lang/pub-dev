@@ -87,11 +87,8 @@ Future<shelf.Response> appHandler(
     return _docHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
-  } else if (path.startsWith(staticUrls.staticPath)) {
+  } else if (staticFileCache.hasFile(request.requestedUri.path)) {
     return _staticsHandler(request);
-  } else if (staticRootFiles.contains(path)) {
-    return _staticsHandler(request,
-        pathOverride: '${staticUrls.staticPath}$path');
   } else {
     return _formattedNotFoundHandler(request);
   }
@@ -260,12 +257,10 @@ Future<shelf.Response> _packagesHandler(shelf.Request request) async {
   }
 }
 
-Future<shelf.Response> _staticsHandler(shelf.Request request,
-    {String pathOverride}) async {
+Future<shelf.Response> _staticsHandler(shelf.Request request) async {
   // Simplifies all of '.', '..', '//'!
-  final String normalized =
-      path.normalize(pathOverride ?? request.requestedUri.path);
-  final StaticFile staticFile = staticsCache.getFile(normalized);
+  final String normalized = path.normalize(request.requestedUri.path);
+  final StaticFile staticFile = staticFileCache.getFile(normalized);
   if (staticFile != null) {
     if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
       return new shelf.Response.notModified();

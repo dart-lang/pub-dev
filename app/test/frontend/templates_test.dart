@@ -24,18 +24,21 @@ final _regenerateGoldens = false;
 
 void main() {
   group('templates', () {
-    final templates = new TemplateService(
-        templateDirectory: 'views',
-        staticUrls: new StaticUrls(
-          cache: new StaticsCache.fromFiles(
-            mockStaticFiles
-                .map(
-                  (path) => new StaticFile(path, 'text/mock', [],
-                      new DateTime.now(), 'mocked_hash_${path.hashCode.abs()}'),
-                )
-                .toList(),
-          ),
-        ));
+    setUpAll(() {
+      final cache = new StaticFileCache();
+      for (String path in mockStaticFiles) {
+        final file = new StaticFile(
+            '${staticUrls.staticPath}/$path',
+            'text/mock',
+            [],
+            new DateTime.now(),
+            'mocked_hash_${path.hashCode.abs()}');
+        cache.addFile(file);
+      }
+      registerStaticFileCache(cache);
+    });
+
+    final templates = new TemplateService(templateDirectory: 'views');
 
     void expectGoldenFile(String content, String fileName,
         {bool isFragment: false}) {
