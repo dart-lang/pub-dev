@@ -234,6 +234,12 @@ void _wrapper(List fnAndMessage) {
 }
 
 Future initDartdoc(Logger logger) async {
+  await initGlobalDartdoc(logger);
+  await initPkgDartdoc(logger);
+}
+
+Future initGlobalDartdoc(Logger logger) async {
+  logger.info('Initializing global dartdoc');
   Future<bool> checkVersion() async {
     final pr = await Process.run('pub', ['global', 'list']);
     if (pr.exitCode == 0) {
@@ -267,6 +273,19 @@ Future initDartdoc(Logger logger) async {
   final matches = await checkVersion();
   if (!matches) {
     final message = 'Failed to setup dartdoc.';
+    logger.shout(message);
+    throw new Exception(message);
+  }
+}
+
+Future initPkgDartdoc(Logger logger) async {
+  logger.info('Initializing pkg/pub_dartdoc');
+  final dir = Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
+  final pr = await Process
+      .run('pub', ['get'], workingDirectory: dir)
+      .timeout(const Duration(minutes: 1));
+  if (pr.exitCode != 0) {
+    final message = 'Failed to initialize pkg/pub_dartdoc';
     logger.shout(message);
     throw new Exception(message);
   }
