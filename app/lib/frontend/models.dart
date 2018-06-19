@@ -260,7 +260,7 @@ class PackageView {
       devVersion: devVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
-      authors: version?.pubspec?.getAllAuthors(),
+      authors: version?.pubspec?.authors,
       analysisStatus: analysis?.analysisStatus,
       overallScore: analysis?.overallScore,
       platforms: analysis?.platforms,

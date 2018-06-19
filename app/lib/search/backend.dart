@@ -127,7 +127,7 @@ class SearchBackend {
   List<String> _buildEmails(Package p, PackageVersion pv) {
     final Set<String> emails = new Set<String>();
     emails.addAll(p.uploaderEmails);
-    for (String value in pv.pubspec.getAllAuthors()) {
+    for (String value in pv.pubspec.authors) {
       final Author author = new Author.parse(value);
       if (author.email == null) continue;
       emails.add(author.email);

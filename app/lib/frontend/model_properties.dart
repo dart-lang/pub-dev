@@ -7,6 +7,7 @@ library pub_dartlang_org.model_properties;
 import 'dart:convert';
 
 import 'package:gcloud/db.dart';
+import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
 import 'package:yaml/yaml.dart';
 
 Map<String, dynamic> _loadYaml(String yamlString) {
@@ -19,82 +20,43 @@ Map<String, dynamic> _loadYaml(String yamlString) {
 }
 
 class Pubspec {
+  final pubspek.Pubspec _inner;
   final String jsonString;
   Map _json;
 
-  Pubspec(this.jsonString);
+  Pubspec._(this._inner, this.jsonString);
 
-  Pubspec.fromJson(Map<String, dynamic> jsonMap)
-      : jsonString = json.encode(jsonMap),
-        _json = jsonMap;
+  factory Pubspec(String jsonString) =>
+      new Pubspec._(new pubspek.Pubspec.parse(jsonString), jsonString);
 
-  factory Pubspec.fromYaml(String yamlString) =>
-      new Pubspec.fromJson(_loadYaml(yamlString));
+  factory Pubspec.fromYaml(String yamlString) => new Pubspec._(
+      new pubspek.Pubspec.parse(yamlString),
+      json.encode(_loadYaml(yamlString)));
 
   Map get asJson {
     _load();
     return _json;
   }
 
-  String get name {
-    _load();
-    return _asString(_json['name']);
-  }
+  String get name => _inner.name;
 
-  String get version {
-    _load();
-    return _asString(_json['version']);
-  }
+  String get version => _inner.version.toString();
 
-  String get author {
-    _load();
-    return _asString(_json['author']);
-  }
+  List<String> get authors => _inner.authors ?? const [];
 
-  List<String> get authors {
-    _load();
-    return _asListOfString(_json['authors']);
-  }
+  Iterable<String> get dependencies => _inner.dependencies.keys;
 
-  List<String> getAllAuthors() {
-    final authorsList = authors;
-    if (authorsList != null) return authorsList;
-    final singleAuthor = author;
-    if (singleAuthor != null) return [singleAuthor];
-    return const [];
-  }
+  Iterable<String> get devDependencies => _inner.devDependencies.keys;
 
-  Iterable<String> get dependencies {
-    _load();
-    final deps = _json['dependencies'];
-    if (deps is Map) {
-      return deps.keys.map((key) => key as String);
-    }
-    return const <String>[];
-  }
+  String get documentation => _inner.documentation;
 
-  Iterable<String> get devDependencies {
-    _load();
-    final deps = _json['dev_dependencies'];
-    if (deps is Map) {
-      return deps.keys.map((key) => key as String);
-    }
-    return const <String>[];
-  }
+  String get homepage => _inner.homepage;
 
-  String get documentation {
-    _load();
-    return _asString(_json['documentation']);
-  }
+  String get description => _inner.description;
 
-  String get homepage {
+  bool get hasBothAuthorAndAuthors {
     _load();
-    return _asString(_json['homepage']);
-  }
-
-  String get description {
-    _load();
-    return _asString(_json['description']);
+    return _json['author'] != null && _json['authors'] != null;
   }
 
   Map<String, dynamic> get executables {
@@ -148,14 +110,6 @@ class Pubspec {
         _json = const {};
       }
     }
-  }
-
-  List<String> _asListOfString(obj) {
-    if (obj == null) return null;
-    if (obj is! List) {
-      throw new Exception('Expected List<String> value in pubspec.yaml.');
-    }
-    return (obj as List).map(_asString).toList();
   }
 
   String _asString(obj) {
