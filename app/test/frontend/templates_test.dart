@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:html/parser.dart';
+import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
@@ -263,7 +264,7 @@ void main() {
             platformsReason: 'All libraries agree.',
             health: 0.95,
             suggestions: [
-              new Suggestion.error(
+              new Suggestion.error(SuggestionCode.dartfmtAborted,
                   'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
             ],
             directDependencies: [
