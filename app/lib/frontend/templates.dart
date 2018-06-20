@@ -383,8 +383,7 @@ class TemplateService {
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
-        'authors_html':
-            _getAuthorsHtml(selectedVersion.pubspec.getAllAuthors()),
+        'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
         'homepage_label': isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage',
         'homepage': selectedVersion.homepage,
         'documentation': documentationUrl,
