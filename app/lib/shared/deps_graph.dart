@@ -75,7 +75,9 @@ class PackageDependencyBuilder {
     final sw = new Stopwatch()..start();
     final builder = new PackageDependencyBuilder._(db);
     await builder.scanExistingPackageGraph();
-    _logger.warning('Scanned initial dependency graph in ${sw.elapsed}.');
+    if (sw.elapsed.inMinutes >= 1) {
+      _logger.warning('Scanned initial dependency graph in ${sw.elapsed}.');
+    }
     builder.monitorInBackground();
     return builder;
   }

@@ -55,12 +55,12 @@ class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
   final UIPackageCache uiPackageCache;
-  final FinishedUploadCallback finishCallback;
 
   Backend(DatastoreDB db, TarballStorage storage,
-      {UIPackageCache cache, this.finishCallback})
+      {UIPackageCache cache, FinishedUploadCallback finishCallback})
       : db = db,
-        repository = new GCloudPackageRepository(db, storage, cache: cache),
+        repository = new GCloudPackageRepository(db, storage,
+            cache: cache, finishCallback: finishCallback),
         uiPackageCache = cache;
 
   /// Retrieves packages ordered by their created date.

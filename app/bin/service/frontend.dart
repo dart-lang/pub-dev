@@ -98,7 +98,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       PackageDependencyBuilder.loadInitialGraphFromDb(db.dbService);
 
   Future uploadFinished(PackageVersion pv) async {
-    historyBackend.store(new History.package(
+    await historyBackend.store(new History.package(
       packageName: pv.package,
       packageVersion: pv.version,
       timestamp: pv.created,
@@ -106,29 +106,30 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       event: new PackageVersionUploaded(uploaderEmail: pv.uploaderEmail),
     ));
 
-    final depsGraphBuilder = await depsGraphBuilderFuture;
+    // Future is not awaited: upload should not be blocked on the package graph initialization.
+    depsGraphBuilderFuture.then((depsGraphBuilder) async {
+      // Even though the deps graph builder would pick up the new [pv] eventually,
+      // we'll add it explicitly here right after the upload to ensure the graph
+      // is up-to-date.
+      depsGraphBuilder.addPackageVersion(pv);
 
-    // Even though the deps graph builder would pick up the new [pv] eventually,
-    // we'll add it explicitly here right after the upload to ensure the graph
-    // is up-to-date.
-    depsGraphBuilder.addPackageVersion(pv);
+      // Notify analyzer services about a new version, and *DO NOT* do the
+      // same with search service.  The later will get notified after analyzer
+      // ran the first analysis on the new version.
+      //
+      // Note: We provide the analyzer service with a list of packages which need
+      // re-analysis.
+      final Set<String> dependentPackages =
+          depsGraphBuilder.affectedPackages(pv.package);
 
-    // Notify analyzer services about a new version, and *DO NOT* do the
-    // same with search service.  The later will get notified after analyzer
-    // ran the first analysis on the new version.
-    //
-    // Note: We provide the analyzer service with a list of packages which need
-    // re-analysis.
-    final Set<String> dependentPackages =
-        depsGraphBuilder.affectedPackages(pv.package);
+      _logger.info(
+          'Found ${dependentPackages.length} dependent packages for ${pv.package}.');
 
-    _logger.info(
-        'Found ${dependentPackages.length} dependent packages for ${pv.package}.');
-
-    // Since there can be many [dependentPackages], we'll not wait for the
-    // notification to be done.
-    analyzerClient.triggerAnalysis(pv.package, pv.version, dependentPackages);
-    dartdocClient.triggerDartdoc(pv.package, pv.version, dependentPackages);
+      await analyzerClient.triggerAnalysis(
+          pv.package, pv.version, dependentPackages);
+      await dartdocClient.triggerDartdoc(
+          pv.package, pv.version, dependentPackages);
+    });
   }
 
   final cache = new AppEnginePackageMemcache(memcacheService);
