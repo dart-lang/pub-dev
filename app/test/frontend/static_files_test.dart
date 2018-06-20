@@ -14,7 +14,9 @@ import 'package:pub_dartlang_org/frontend/static_files.dart';
 
 import 'utils.dart';
 
-void main() {
+Future main() async {
+  await updateLocalBuiltFiles();
+
   group('dartdoc assets', () {
     Future checkAsset(String url, String path) async {
       final rs = await http.get(url);

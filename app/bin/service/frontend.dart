@@ -33,6 +33,7 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub');
@@ -41,11 +42,12 @@ Future main() async {
   await startIsolates(logger: _logger, frontendEntryPoint: _main);
 }
 
-void _main(FrontendEntryMessage message) {
+Future _main(FrontendEntryMessage message) async {
   setupServiceIsolate();
   message.protocolSendPort
       .send(new FrontendProtocolMessage(statsConsumerPort: null));
 
+  await updateLocalBuiltFiles();
   withAppEngineServices(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
     final shelf.Handler frontendHandler =
