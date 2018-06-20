@@ -76,7 +76,7 @@ void _workerMain(WorkerEntryMessage message) {
       message.statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
     });
 
-    await jobMaintenance.run(taskReceivePort, concurrency: 2);
+    await jobMaintenance.run(taskReceivePort);
   });
 }
 

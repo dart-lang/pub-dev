@@ -78,16 +78,14 @@ class JobMaintenance {
   final JobProcessor _processor;
   JobMaintenance(this._db, this._processor);
 
-  Future run(Stream taskStream, {int concurrency: 1}) {
+  Future run(Stream taskStream) {
     final futures = <Future>[
       syncNotifications(taskStream),
       syncDatastoreHead(),
       syncDatastoreHistory(),
       updateStates(),
+      _processor.run(),
     ];
-    for (int i = 0; i < concurrency; i++) {
-      futures.add(_processor.run());
-    }
     return Future.wait(futures);
   }
 
