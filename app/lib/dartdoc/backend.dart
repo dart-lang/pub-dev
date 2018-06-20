@@ -328,8 +328,9 @@ class DartdocBackend {
 class ArchiveTracker {
   final _pvMap = <String, _TrackedEntry>{};
   final _sampleLines = <String>[];
+  final bool trackRequests;
 
-  ArchiveTracker() {
+  ArchiveTracker({this.trackRequests: false}) {
     new Timer.periodic(const Duration(minutes: 10), (_) => _cleanup());
     new Timer.periodic(const Duration(minutes: 45), (_) => _logSample());
   }
@@ -342,6 +343,9 @@ class ArchiveTracker {
     tracked.archiveSize = entry.archiveSize ?? 0;
     tracked.totalSize = entry.totalSize ?? 0;
     tracked.lastAccess = new DateTime.now().toUtc();
+    if (trackRequests) {
+      tracked.requestCount++;
+    }
   }
 
   void _cleanup() {
@@ -368,14 +372,17 @@ class ArchiveTracker {
     if (_sampleLines.length > 48) {
       _sampleLines.removeAt(0);
     }
+    final requestCount =
+        _pvMap.values.fold(0, (sum, tracked) => sum + tracked.requestCount);
     _sampleLines.add(
-        '${now.toIso8601String()} count: $count, total: $totalMB MB, archive: $archiveMB MB');
+        '${now.toIso8601String()} count: $count, total: $totalMB MB, archive: $archiveMB MB, requests: $requestCount');
   }
 }
 
 class _TrackedEntry {
   int totalSize;
   int archiveSize;
+  int requestCount = 0;
   DateTime lastAccess;
 }
 

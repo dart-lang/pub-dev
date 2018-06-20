@@ -18,11 +18,14 @@ import 'models.dart';
 
 final _allTracker = new ArchiveTracker();
 final _visitorTracker = new ArchiveTracker();
-final _obsoleteTracker = new ArchiveTracker();
+final _obsoleteTracker = new ArchiveTracker(trackRequests: true);
 
 void _track(DartdocEntry entry, String path) {
   _allTracker.track(entry);
-  if (path != 'status.json' && path != 'log.txt' && path != 'package.tar.gz') {
+  if (path != 'status.json' &&
+      path != 'log.txt' &&
+      path != 'package.tar.gz' &&
+      path != 'pub-data.json') {
     _visitorTracker.track(entry);
     if (entry.isObsolete ?? false) {
       _obsoleteTracker.track(entry);
