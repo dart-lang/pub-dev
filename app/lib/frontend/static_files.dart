@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:mime/mime.dart' as mime;
+import 'package:pana/src/utils.dart' show runProc;
 import 'package:path/path.dart' as path;
 
 const String _defaultStaticPath = '/static';
@@ -137,6 +139,35 @@ class StaticUrls {
       throw new Exception('Static resource not found: $relativePath');
     } else {
       return '$requestPath?hash=${file.etag}';
+    }
+  }
+}
+
+Future updateLocalBuiltFiles() async {
+  final staticDir = new Directory(_resolveStaticDirPath());
+  final scriptDart = new File(path.join(staticDir.path, 'js', 'script.dart'));
+  final scriptJs = new File(path.join(staticDir.path, 'js', 'script.dart.js'));
+  if (!scriptJs.existsSync() ||
+      (scriptJs.lastModifiedSync().isBefore(scriptDart.lastModifiedSync()))) {
+    final pr = await runProc(
+      'dart2js',
+      [
+        '--dump-info',
+        '--minify',
+        '--trust-primitives',
+        '--trust-type-annotations',
+        scriptDart.path,
+        '-o',
+        scriptJs.path,
+      ],
+      workingDirectory: staticDir.path,
+      timeout: const Duration(minutes: 1),
+    );
+    if (pr.exitCode != 0) {
+      final message = 'Unable to compile script.dart\n\n'
+          'STDOUT:\n${pr.stdout}\n\n'
+          'STDERR:\n${pr.stderr}';
+      throw new Exception(message);
     }
   }
 }
