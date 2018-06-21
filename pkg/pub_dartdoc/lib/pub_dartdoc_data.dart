@@ -5,7 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-part 'model.g.dart';
+part 'pub_dartdoc_data.g.dart';
 
 @JsonSerializable()
 class PubDartdocData extends Object with _$PubDartdocDataSerializerMixin {

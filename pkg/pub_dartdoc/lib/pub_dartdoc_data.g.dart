@@ -6,10 +6,10 @@
 
 // ignore_for_file: prefer_final_locals
 
-part of 'model.dart';
+part of 'pub_dartdoc_data.dart';
 
 // **************************************************************************
-// Generator: JsonSerializableGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
 PubDartdocData _$PubDartdocDataFromJson(Map<String, dynamic> json) {

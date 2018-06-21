@@ -1,10 +1,10 @@
 {
   "apiElements": [
     {
-      "name": "model",
+      "name": "pub_dartdoc_data",
       "kind": "library",
-      "source": "lib/model.dart",
-      "href": "model/model-library.html"
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/pub_dartdoc_data-library.html"
     },
     {
       "name": "pub_data_generator",
@@ -13,95 +13,95 @@
       "href": "pub_data_generator/pub_data_generator-library.html"
     },
     {
-      "name": "model.ApiElement",
+      "name": "pub_dartdoc_data.ApiElement",
       "kind": "class",
-      "parent": "model",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement-class.html"
+      "parent": "pub_dartdoc_data",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement-class.html"
     },
     {
-      "name": "model.PubDartdocData",
+      "name": "pub_dartdoc_data.PubDartdocData",
       "kind": "class",
-      "parent": "model",
-      "source": "lib/model.dart",
-      "href": "model/PubDartdocData-class.html"
+      "parent": "pub_dartdoc_data",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/PubDartdocData-class.html"
     },
     {
-      "name": "model.ApiElement.documentation",
+      "name": "pub_dartdoc_data.ApiElement.documentation",
       "kind": "property",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/documentation.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/documentation.html"
     },
     {
-      "name": "model.ApiElement.fromJson",
+      "name": "pub_dartdoc_data.ApiElement.fromJson",
       "kind": "constructor",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/ApiElement.fromJson.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/ApiElement.fromJson.html"
     },
     {
-      "name": "model.ApiElement.href",
+      "name": "pub_dartdoc_data.ApiElement.href",
       "kind": "property",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/href.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/href.html"
     },
     {
-      "name": "model.ApiElement.kind",
+      "name": "pub_dartdoc_data.ApiElement.kind",
       "kind": "property",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/kind.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/kind.html"
     },
     {
-      "name": "model.ApiElement.name",
+      "name": "pub_dartdoc_data.ApiElement.name",
       "kind": "property",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/name.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/name.html"
     },
     {
-      "name": "model.ApiElement.parent",
+      "name": "pub_dartdoc_data.ApiElement.parent",
       "kind": "property",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/parent.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/parent.html"
     },
     {
-      "name": "model.ApiElement.source",
+      "name": "pub_dartdoc_data.ApiElement.source",
       "kind": "property",
-      "parent": "model.ApiElement",
-      "source": "lib/model.dart",
-      "href": "model/ApiElement/source.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/ApiElement/source.html"
     },
     {
-      "name": "model.ApiElement.toJson",
+      "name": "pub_dartdoc_data.ApiElement.toJson",
       "kind": "method",
-      "parent": "model.ApiElement",
-      "source": "lib/model.g.dart",
-      "href": "model/ApiElement/toJson.html"
+      "parent": "pub_dartdoc_data.ApiElement",
+      "source": "lib/pub_dartdoc_data.g.dart",
+      "href": "pub_dartdoc_data/ApiElement/toJson.html"
     },
     {
-      "name": "model.PubDartdocData.apiElements",
+      "name": "pub_dartdoc_data.PubDartdocData.apiElements",
       "kind": "property",
-      "parent": "model.PubDartdocData",
-      "source": "lib/model.dart",
-      "href": "model/PubDartdocData/apiElements.html"
+      "parent": "pub_dartdoc_data.PubDartdocData",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/PubDartdocData/apiElements.html"
     },
     {
-      "name": "model.PubDartdocData.fromJson",
+      "name": "pub_dartdoc_data.PubDartdocData.fromJson",
       "kind": "constructor",
-      "parent": "model.PubDartdocData",
-      "source": "lib/model.dart",
-      "href": "model/PubDartdocData/PubDartdocData.fromJson.html"
+      "parent": "pub_dartdoc_data.PubDartdocData",
+      "source": "lib/pub_dartdoc_data.dart",
+      "href": "pub_dartdoc_data/PubDartdocData/PubDartdocData.fromJson.html"
     },
     {
-      "name": "model.PubDartdocData.toJson",
+      "name": "pub_dartdoc_data.PubDartdocData.toJson",
       "kind": "method",
-      "parent": "model.PubDartdocData",
-      "source": "lib/model.g.dart",
-      "href": "model/PubDartdocData/toJson.html"
+      "parent": "pub_dartdoc_data.PubDartdocData",
+      "source": "lib/pub_dartdoc_data.g.dart",
+      "href": "pub_dartdoc_data/PubDartdocData/toJson.html"
     },
     {
       "name": "pub_data_generator.PubDataGenerator",

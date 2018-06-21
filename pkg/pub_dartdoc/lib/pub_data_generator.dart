@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:dartdoc/dartdoc.dart';
 import 'package:path/path.dart' as p;
 
-import 'model.dart';
+import 'pub_dartdoc_data.dart';
 
 const fileName = 'pub-data.json';
 
