@@ -10,6 +10,7 @@ import 'package:appengine/appengine.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pana/pana.dart' show runProc;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'configuration.dart';
@@ -190,7 +191,12 @@ Future startIsolates({
     }
     if (workerEntryPoint != null) {
       if (workerSetup != null) {
-        await workerSetup();
+        try {
+          await workerSetup();
+        } catch (e, st) {
+          logger.severe('Failed to setup worker.', e, st);
+          rethrow;
+        }
       }
       for (int i = 0; i < envConfig.workerCount; i++) {
         await startWorkerIsolate();
@@ -213,21 +219,23 @@ Future initFlutterSdk(Logger logger) async {
     // running the setup script multiple times should be safe (no-op if
     // FLUTTER_SDK directory exists).
     if (FileSystemEntity.isFileSync('/project/app/script/setup-flutter.sh')) {
-      logger.warning('Setting up flutter checkout. This may take some time.');
-      final ProcessResult result = await Process
-          .run('/project/app/script/setup-flutter.sh', ['v$flutterVersion']);
+      final sw = new Stopwatch()..start();
+      logger.info('Setting up flutter checkout. This may take some time.');
+      final ProcessResult result = await runProc(
+          '/project/app/script/setup-flutter.sh', ['v$flutterVersion'],
+          timeout: const Duration(minutes: 5));
       if (result.exitCode != 0) {
-        logger.shout(
+        throw new Exception(
             'Failed to checkout flutter (exited with ${result.exitCode})\n'
             'stdout: ${result.stdout}\nstderr: ${result.stderr}');
-      } else {
-        logger.info('Flutter checkout completed.');
       }
       final flutterBin = new File('${envConfig.flutterSdkDir}/bin/flutter');
       if (!(await flutterBin.exists())) {
         throw new Exception(
             'Flutter binary is missing after running setup-flutter.sh');
       }
+      sw.stop();
+      logger.info('Flutter checkout completed in ${sw.elapsed}.');
     }
   }
 }
