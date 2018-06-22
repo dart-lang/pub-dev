@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:pana/models.dart' show SuggestionCode;
+
 import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
 
 import '../shared/urls.dart' as urls;
@@ -149,3 +151,14 @@ final String defaultPageDescriptionEscaped = htmlEscape.convert(
 
 String flutterSpecificPackagesHtml =
     '<a href="/packages?q=dependency%3Aflutter">Flutter-specific packages...</a>';
+
+final _suggestionHelpMessages = <String, String>{
+  SuggestionCode.analysisOptionsRenameRequired: 'Read more about the setup of '
+      '<a href="https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file">'
+      '<code>analysis-options.yaml</code></a>.',
+};
+
+String getSuggestionHelpMessage(String code) {
+  if (code == null) return null;
+  return _suggestionHelpMessages[code];
+}

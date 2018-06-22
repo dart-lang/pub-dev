@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
+import 'package:pana/models.dart' show SuggestionLevel;
 
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
@@ -222,8 +223,10 @@ class TemplateService {
 
     final List suggestions = analysis.suggestions?.map((suggestion) {
       return {
-        'title': markdownToHtml(suggestion.title, null),
-        'description': markdownToHtml(suggestion.description, null),
+        'icon_class': _suggestionIconClass(suggestion.level),
+        'title_html': markdownToHtml(suggestion.title, null),
+        'description_html': markdownToHtml(suggestion.description, null),
+        'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
       };
     })?.toList();
 
@@ -1032,4 +1035,16 @@ String _renderPlainText(String text) =>
 String _attr(String value) {
   if (value == null) return null;
   return _attrEscaper.convert(value);
+}
+
+String _suggestionIconClass(String level) {
+  if (level == null) return 'suggestion-icon-info';
+  switch (level) {
+    case SuggestionLevel.error:
+      return 'suggestion-icon-danger';
+    case SuggestionLevel.warning:
+      return 'suggestion-icon-warning';
+    default:
+      return 'suggestion-icon-info';
+  }
 }

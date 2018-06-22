@@ -91,14 +91,18 @@ Learn more about <a href="/help#scoring">scoring</a>.
 
 {{#hasSuggestions}}
 <h4>Suggestions</h4>
-<ul>
-  {{#suggestions}}
-    <li>
-      <div>{{& title}}</div>
-      <blockquote>{{& description}}</blockquote>
-    </li>
-  {{/suggestions}}
-</ul>
+{{#suggestions}}
+<div class="suggestion-row">
+  <div class="suggestion-title">
+    <span class="{{icon_class}}"></span>
+    {{& title_html}}
+  </div>
+  <div class="suggestion-description">
+    {{& description_html}}
+    {{& suggestion_help_html}}
+  </div>
+</div>
+{{/suggestions}}
 {{/hasSuggestions}}
 
 {{#has_dependency}}
