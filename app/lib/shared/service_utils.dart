@@ -239,51 +239,6 @@ void _wrapper(List fnAndMessage) {
 }
 
 Future initDartdoc(Logger logger) async {
-  await initGlobalDartdoc(logger);
-  await initPkgDartdoc(logger);
-}
-
-Future initGlobalDartdoc(Logger logger) async {
-  logger.info('Initializing global dartdoc');
-  Future<bool> checkVersion() async {
-    final pr = await Process.run('pub', ['global', 'list']);
-    if (pr.exitCode == 0) {
-      final lines = pr.stdout
-          .toString()
-          .split('\n')
-          .where((line) => line.startsWith('dartdoc '))
-          .toList();
-      if (lines.isEmpty) {
-        return false;
-      }
-      final version = lines.single.split(' ').last;
-      return version == dartdocVersion;
-    } else {
-      return false;
-    }
-  }
-
-  final exists = await checkVersion();
-  if (exists) return;
-
-  final pr = await Process
-      .run('pub', ['global', 'activate', 'dartdoc', dartdocVersion]);
-  if (pr.exitCode != 0) {
-    final message = 'Failed to activate dartdoc (exited with ${pr.exitCode})\n'
-        'stdout: ${pr.stdout}\nstderr: ${pr.stderr}';
-    logger.shout(message);
-    throw new Exception(message);
-  }
-
-  final matches = await checkVersion();
-  if (!matches) {
-    final message = 'Failed to setup dartdoc.';
-    logger.shout(message);
-    throw new Exception(message);
-  }
-}
-
-Future initPkgDartdoc(Logger logger) async {
   logger.info('Initializing pkg/pub_dartdoc');
   final dir = Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
   final pr = await Process
