@@ -78,27 +78,14 @@ class JobMaintenance {
   final JobProcessor _processor;
   JobMaintenance(this._db, this._processor);
 
-  Future run(Stream taskStream) {
+  Future run() {
     final futures = <Future>[
-      syncNotifications(taskStream),
       syncDatastoreHead(),
       syncDatastoreHistory(),
       updateStates(),
       _processor.run(),
     ];
     return Future.wait(futures);
-  }
-
-  /// Completes when the taskStream closes.
-  Future syncNotifications(Stream taskStream) async {
-    await for (Task task in taskStream) {
-      try {
-        await jobBackend.trigger(
-            _processor.service, task.package, task.version);
-      } catch (e, st) {
-        _logger.warning('Notification processing failed for $task', e, st);
-      }
-    }
   }
 
   /// Never completes.
