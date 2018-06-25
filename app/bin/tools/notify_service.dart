@@ -4,7 +4,10 @@
 
 import 'dart:async';
 
+import 'package:gcloud/db.dart';
+
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
@@ -25,6 +28,7 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
+    registerJobBackend(new JobBackend(dbService));
     registerAnalyzerClient(new AnalyzerClient());
     registerDartdocClient(new DartdocClient());
     registerSearchClient(new SearchClient());

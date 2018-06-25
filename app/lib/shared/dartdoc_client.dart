@@ -12,10 +12,10 @@ import 'package:pool/pool.dart';
 
 import '../dartdoc/dartdoc_runner.dart' show statusFilePath;
 import '../dartdoc/models.dart' show DartdocEntry;
+import '../job/backend.dart';
 
 import 'configuration.dart';
 import 'dartdoc_memcache.dart';
-import 'notification.dart' show notifyService;
 import 'utils.dart' show getUrlWithRetry;
 
 export '../dartdoc/models.dart' show DartdocEntry;
@@ -48,10 +48,13 @@ class DartdocClient {
 
   Future triggerDartdoc(
       String package, String version, Set<String> dependentPackages) async {
-    await notifyService(_client, _dartdocServiceHttpHostPort, package, version);
-
+    if (jobBackend == null) {
+      _logger.warning('Job backend is not initialized!');
+      return;
+    }
+    await jobBackend.trigger(JobService.dartdoc, package, version);
     for (final String package in dependentPackages) {
-      await notifyService(_client, _dartdocServiceHttpHostPort, package, null);
+      await jobBackend.trigger(JobService.dartdoc, package);
     }
   }
 
