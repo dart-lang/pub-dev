@@ -107,20 +107,6 @@ void main() {
             });
       });
     });
-
-    group('trigger analysis', () {
-      scopedTest('/packages/pkg', () async {
-        await expectNotFoundResponse(await issuePost('/packages/pkg'));
-      });
-
-      scopedTest('/api/notification', () async {
-        // TODO: mock notification secret and re-enable testing task receive
-        await expectJsonResponse(
-            await issuePost('/api/notification',
-                body: {'package': 'foo', 'version': '1.0.0'}),
-            body: {'success': false});
-      });
-    });
   });
 }
 

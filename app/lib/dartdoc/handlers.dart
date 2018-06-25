@@ -9,7 +9,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
-import '../shared/notification.dart';
 import '../shared/urls.dart';
 import '../shared/utils.dart' show contentType, redirectDartdocPages;
 
@@ -38,7 +37,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final shelf.Handler handler = {
     '/': _indexHandler,
-    apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
   }[path];
 

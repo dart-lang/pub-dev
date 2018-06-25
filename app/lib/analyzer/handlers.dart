@@ -8,7 +8,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/analyzer_service.dart';
 import '../shared/handlers.dart';
-import '../shared/notification.dart';
 
 import 'backend.dart';
 
@@ -16,7 +15,6 @@ import 'backend.dart';
 Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final shelf.Handler handler = {
-    apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
