@@ -78,16 +78,16 @@ class DartdocClient {
   }
 
   Future<DartdocEntry> getEntry(String package, String version) async {
-    final cachedContent =
-        await dartdocMemcache?.getEntryBytes(package, version, true);
-    if (cachedContent != null) {
-      return new DartdocEntry.fromBytes(cachedContent);
+    final cachedEntry = await dartdocMemcache?.getEntry(package, version);
+    if (cachedEntry != null) {
+      return cachedEntry;
     }
     final content = await getContentBytes(package, version, statusFilePath);
-    if (content != null) {
-      await dartdocMemcache?.setEntryBytes(package, version, true, content);
-      return new DartdocEntry.fromBytes(content);
+    if (content == null) {
+      return null;
     }
-    return null;
+    final entry = new DartdocEntry.fromBytes(content);
+    await dartdocMemcache?.setEntry(entry);
+    return entry;
   }
 }

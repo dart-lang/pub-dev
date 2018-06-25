@@ -134,10 +134,9 @@ class DartdocBackend {
 
   /// Return the latest entry that should be used to serve the content.
   Future<DartdocEntry> getServingEntry(String package, String version) async {
-    final cachedContent =
-        await dartdocMemcache?.getEntryBytes(package, version, true);
-    if (cachedContent != null) {
-      return new DartdocEntry.fromBytes(cachedContent);
+    final cachedEntry = await dartdocMemcache?.getEntry(package, version);
+    if (cachedEntry != null) {
+      return cachedEntry;
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
@@ -173,10 +172,7 @@ class DartdocBackend {
       }
     }
 
-    if (entry != null) {
-      await dartdocMemcache?.setEntryBytes(
-          package, version, true, entry.asBytes());
-    }
+    await dartdocMemcache?.setEntry(entry);
     return entry;
   }
 
