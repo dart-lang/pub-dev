@@ -34,7 +34,7 @@ void main() {
   }
 
   group('pana 0.10.2', () {
-    final customization = new DartdocCustomizer('pana', '0.10.2+0');
+    final customization = new DartdocCustomizer('pana', '0.10.2+0', false);
 
     void expectMatch(String name) {
       test(name, () {

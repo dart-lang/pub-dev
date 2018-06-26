@@ -100,7 +100,8 @@ class DartdocJobProcessor extends JobProcessor {
       }
 
       if (hasContent) {
-        await new DartdocCustomizer(job.packageName, job.packageVersion)
+        await new DartdocCustomizer(
+                job.packageName, job.packageVersion, job.isLatestStable)
             .customizeDir(outputDir);
 
         await _tar(tempDirPath, tarDir, outputDir, logFileOutput);

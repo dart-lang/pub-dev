@@ -13,8 +13,9 @@ import '../shared/urls.dart';
 class DartdocCustomizer {
   final String packageName;
   final String packageVersion;
+  final bool isLatestStable;
 
-  DartdocCustomizer(this.packageName, this.packageVersion);
+  DartdocCustomizer(this.packageName, this.packageVersion, this.isLatestStable);
 
   Future<bool> customizeDir(String path) async {
     bool changed = false;
@@ -47,6 +48,14 @@ class DartdocCustomizer {
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
+      // Set "documentation" link to the canonical doc root.
+      final docRoot = isLatestStable
+          ? pkgDocUrl(packageName, isLatest: true)
+          : pkgDocUrl(packageName, version: packageVersion);
+      breadcrumbs
+          .querySelectorAll('a')
+          .where((e) => e.attributes['href'] == 'index.html')
+          .forEach((e) => e.attributes['href'] = docRoot);
     }
     return doc.outerHtml;
   }
