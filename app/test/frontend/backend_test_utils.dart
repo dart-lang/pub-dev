@@ -46,7 +46,7 @@ class DatastoreDBMock extends gdb.DatastoreDB {
     if (lookupFun == null) {
       throw new Exception('no lookupFun');
     }
-    return (await lookupFun(keys)) as List<gdb.Model>;
+    return ((await lookupFun(keys)) as List).cast<gdb.Model>();
   }
 
   @override
@@ -99,7 +99,7 @@ class TransactionMock implements gdb.Transaction {
     if (lookupFun == null) {
       throw new Exception('no lookupFun');
     }
-    return (await lookupFun(keys)) as List<gdb.Model>;
+    return ((await lookupFun(keys)) as List).cast<gdb.Model>();
   }
 
   @override

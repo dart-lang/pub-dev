@@ -666,7 +666,7 @@ void main() {
 
         scopedTest('upload-too-big', () async {
           final oneKB = new List.filled(1024, 42);
-          final bigTarball = [];
+          final bigTarball = <List<int>>[];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
           }
@@ -714,13 +714,14 @@ void main() {
                   expect(keys.last, testPackage.key);
                   return [null, null];
                 },
-                queueMutationFun: ({List<PackageVersion> inserts, deletes}) {
+                queueMutationFun: ({List<Model> inserts, deletes}) {
                   if (queueMutationCallNr == 0) {
                     validateSuccessfullUpdate(inserts);
                   } else {
                     expect(queueMutationCallNr, 1);
                     expect(inserts, [testPackageVersion]);
-                    validateSuccessfullSortOrderUpdate(inserts.first);
+                    validateSuccessfullSortOrderUpdate(
+                        inserts.first as PackageVersion);
                   }
                   queueMutationCallNr++;
                 },
@@ -888,13 +889,14 @@ void main() {
                   expect(keys.last, testPackage.key);
                   return [null, null];
                 }),
-                queueMutationFun: ({List<PackageVersion> inserts, deletes}) {
+                queueMutationFun: ({List<Model> inserts, deletes}) {
                   if (queueMutationCallNr == 0) {
                     validateSuccessfullUpdate(inserts);
                   } else {
                     expect(queueMutationCallNr, 1);
                     expect(inserts, [testPackageVersion]);
-                    validateSuccessfullSortOrderUpdate(inserts.first);
+                    validateSuccessfullSortOrderUpdate(
+                        inserts.first as PackageVersion);
                   }
                   queueMutationCallNr++;
                   completion.complete();
