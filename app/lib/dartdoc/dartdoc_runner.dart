@@ -211,7 +211,11 @@ class DartdocJobProcessor extends JobProcessor {
           pr, pr.exitCode == 15, hasIndexHtml, hasIndexJson);
     }
 
+    final sw = new Stopwatch()..start();
     DartdocResult r = await runDartdoc(true);
+    sw.stop();
+    _logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
+        'completed in ${sw.elapsed}.');
     if (r.wasTimeout) {
       r = await runDartdoc(false);
     }
