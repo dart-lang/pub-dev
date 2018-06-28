@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -46,6 +47,14 @@ void main() {
         flutterSetupContent,
         contains('git clone -b \$1 --single-branch '
             'https://github.com/flutter/flutter.git \$FLUTTER_SDK'));
+  });
+
+  test('dartdoc version should match pkg/pub_dartdoc', () async {
+    final yamlContent =
+        await new File('../pkg/pub_dartdoc/pubspec.yaml').readAsString();
+    final pubspec = new Pubspec.parse(yamlContent);
+    final dependency = pubspec.dependencies['dartdoc'] as HostedDependency;
+    expect(dependency.version.toString(), dartdocVersion);
   });
 
   group('dartdoc serving', () {
