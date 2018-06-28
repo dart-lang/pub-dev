@@ -76,10 +76,6 @@ class JobBackend {
             // already scheduled for processing
             return;
           }
-          if (current.errorCount > 0) {
-            // prevent untimely re-try of a failed job
-            return;
-          }
         }
         if (isNewer(
             versions.semanticRuntimeVersion, current.semanticRuntimeVersion)) {
