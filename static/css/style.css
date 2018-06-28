@@ -1006,24 +1006,32 @@ pre > code {
   Analysis tab
 ******************************************************/
 
+.score-bar {
+  background: #f0f0f0;
+}
+
+.score-bar > .score-progress {
+  font-weight: bold;
+  text-align: right;
+  display: inline-block;
+}
+
+.score-bar > .score-progress > .score-content {
+  padding: 0px 8px;
+}
+
 #scores-table {
   margin-bottom: 1em;
 }
 
 #scores-table .score-name {
   min-width: 100px;
-  padding-right: 24px;
+  padding-right: 16px;
+  text-align: right;
 }
 
 #scores-table .score-value {
-  min-width: 60px;
-  text-align: right;
-  padding-right: 18px;
-}
-
-#scores-table .score-range {
-  color: #666;
-  font-size: 10pt;
+  width: 100%;
 }
 
 .tooltip-base {
