@@ -81,7 +81,6 @@ class AnalyzerJobProcessor extends JobProcessor {
         final toolEnv = await ToolEnvironment.create(
           flutterSdkDir: envConfig.flutterSdkDir,
           pubCacheDir: pubCacheDir,
-          useGlobalDartdoc: true,
         );
         final PackageAnalyzer analyzer = new PackageAnalyzer(toolEnv);
         return await analyzer.inspectPackage(
