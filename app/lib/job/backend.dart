@@ -10,6 +10,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
+import '../frontend/models.dart';
+
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
 
@@ -46,6 +48,30 @@ class JobBackend {
           version,
         ],
       ).toString();
+
+  Future trigger(JobService service, String package, [String version]) async {
+    final pKey = _db.emptyKey.append(Package, id: package);
+    final pList = await _db.lookup([pKey]);
+    final Package p = pList[0];
+    if (p == null) {
+      _logger.info("Couldn't trigger $service job: $package not found.");
+      return;
+    }
+
+    version ??= p.latestVersion;
+    final pvKey = pKey.append(PackageVersion, id: version);
+    final list = await _db.lookup([pvKey]);
+    final PackageVersion pv = list[0];
+    if (pv == null) {
+      _logger
+          .info("Couldn't trigger $service job: $package $version not found.");
+      return;
+    }
+
+    final isLatestStable = p.latestVersion == version;
+    await createOrUpdate(
+        service, package, version, isLatestStable, pv.created, true);
+  }
 
   Future createOrUpdate(
     JobService service,

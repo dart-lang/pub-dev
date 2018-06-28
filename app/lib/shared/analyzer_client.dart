@@ -10,11 +10,12 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 
+import '../job/backend.dart';
+
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
 import 'configuration.dart';
 import 'memcache.dart' show analyzerDataLocalExpiration;
-import 'notification.dart' show notifyService;
 import 'platform.dart';
 import 'popularity_storage.dart';
 import 'utils.dart';
@@ -152,11 +153,13 @@ class AnalyzerClient {
 
   Future triggerAnalysis(
       String package, String version, Set<String> dependentPackages) async {
-    await notifyService(
-        _client, _analyzerServiceHttpHostPort, package, version);
-
+    if (jobBackend == null) {
+      _logger.warning('Job backend is not initialized!');
+      return;
+    }
+    await jobBackend.trigger(JobService.analyzer, package, version);
     for (final String package in dependentPackages) {
-      await notifyService(_client, _analyzerServiceHttpHostPort, package, null);
+      await jobBackend.trigger(JobService.analyzer, package);
     }
   }
 

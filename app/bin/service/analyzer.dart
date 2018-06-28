@@ -18,7 +18,6 @@ import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/task_client.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
@@ -45,7 +44,6 @@ void _frontendMain(FrontendEntryMessage message) {
 
   final statsConsumer = new ReceivePort();
   registerSchedulerStatsStream(statsConsumer as Stream<Map>);
-  registerTaskSendPort(message.taskSendPort);
   message.protocolSendPort.send(new FrontendProtocolMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));
@@ -59,9 +57,7 @@ void _frontendMain(FrontendEntryMessage message) {
 void _workerMain(WorkerEntryMessage message) {
   setupServiceIsolate();
 
-  final ReceivePort taskReceivePort = new ReceivePort();
-  message.protocolSendPort
-      .send(new WorkerProtocolMessage(taskSendPort: taskReceivePort.sendPort));
+  message.protocolSendPort.send(new WorkerProtocolMessage());
 
   withAppEngineServices(() async {
     _registerServices();
@@ -72,7 +68,7 @@ void _workerMain(WorkerEntryMessage message) {
       message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
     });
 
-    await jobMaintenance.run(taskReceivePort);
+    await jobMaintenance.run();
   });
 }
 

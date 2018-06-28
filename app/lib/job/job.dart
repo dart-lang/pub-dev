@@ -78,39 +78,14 @@ class JobMaintenance {
   final JobProcessor _processor;
   JobMaintenance(this._db, this._processor);
 
-  Future run(Stream taskStream) {
+  Future run() {
     final futures = <Future>[
-      syncNotifications(taskStream),
       syncDatastoreHead(),
       syncDatastoreHistory(),
       updateStates(),
       _processor.run(),
     ];
     return Future.wait(futures);
-  }
-
-  /// Completes when the taskStream closes.
-  Future syncNotifications(Stream taskStream) async {
-    await for (Task task in taskStream) {
-      try {
-        await _updateFromTask(task);
-      } catch (e, st) {
-        _logger.warning('Notification processing failed for $task', e, st);
-      }
-    }
-  }
-
-  Future _updateFromTask(Task task) async {
-    final pKey = _db.emptyKey.append(Package, id: task.package);
-    final pvKey = pKey.append(PackageVersion, id: task.version);
-    final list = await _db.lookup([pKey, pvKey]);
-    final Package p = list[0];
-    final PackageVersion pv = list[1];
-    if (p == null || pv == null) return;
-
-    final isLatestStable = p.latestVersion == task.version;
-    await jobBackend.createOrUpdate(_processor.service, task.package,
-        task.version, isLatestStable, pv.created, true);
   }
 
   /// Never completes.
@@ -120,7 +95,8 @@ class JobMaintenance {
     final stream = source.startStreaming();
     await for (Task task in stream) {
       try {
-        await _updateFromTask(task);
+        await jobBackend.trigger(
+            _processor.service, task.package, task.version);
       } catch (e, st) {
         _logger.info('Head sync failed for $task', e, st);
       }

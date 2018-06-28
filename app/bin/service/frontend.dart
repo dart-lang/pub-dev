@@ -15,6 +15,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
+import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -78,6 +79,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerScopeExitCallback(searchClient.close);
 
   registerHistoryBackend(new HistoryBackend(db.dbService));
+  registerJobBackend(new JobBackend(db.dbService));
 
   new NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
 
