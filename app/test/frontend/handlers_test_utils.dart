@@ -81,8 +81,8 @@ class BackendMock implements Backend {
     if (newestPackagesFun == null) {
       throw new Exception('no newestPackagesFun');
     }
-    return (await newestPackagesFun(offset: offset, limit: limit))
-        as List<Package>;
+    return ((await newestPackagesFun(offset: offset, limit: limit)) as List)
+        .cast<Package>();
   }
 
   @override
@@ -97,8 +97,9 @@ class BackendMock implements Backend {
     if (latestPackageVersionsFun == null) {
       throw new Exception('no latestPackageVersionsFun');
     }
-    return (await latestPackageVersionsFun(offset: offset, limit: limit))
-        as List<PackageVersion>;
+    return ((await latestPackageVersionsFun(offset: offset, limit: limit))
+            as List)
+        .cast<PackageVersion>();
   }
 
   @override
@@ -107,10 +108,9 @@ class BackendMock implements Backend {
     if (latestPackagesFun == null) {
       throw new Exception('no latestPackagesFun');
     }
-    return (await latestPackagesFun(
-        offset: offset,
-        limit: limit,
-        detectedType: detectedType)) as List<Package>;
+    return ((await latestPackagesFun(
+            offset: offset, limit: limit, detectedType: detectedType)) as List)
+        .cast<Package>();
   }
 
   @override
@@ -119,7 +119,8 @@ class BackendMock implements Backend {
     if (lookupLatestVersionsFun == null) {
       throw new Exception('no lookupLatestVersionsFun');
     }
-    return (await lookupLatestVersionsFun(packages)) as List<PackageVersion>;
+    return ((await lookupLatestVersionsFun(packages)) as List)
+        .cast<PackageVersion>();
   }
 
   @override
@@ -149,7 +150,8 @@ class BackendMock implements Backend {
     if (versionsOfPackageFun == null) {
       throw new Exception('no versionsOfPackageFun');
     }
-    return (await versionsOfPackageFun(packageName)) as List<PackageVersion>;
+    return ((await versionsOfPackageFun(packageName)) as List)
+        .cast<PackageVersion>();
   }
 
   @override

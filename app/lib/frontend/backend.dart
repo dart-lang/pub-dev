@@ -188,7 +188,7 @@ class GCloudPackageRepository extends PackageRepository {
           final query =
               db.query(models.PackageVersion, ancestorKey: packageKey);
           subscription =
-              (query.run() as Stream<models.PackageVersion>).listen((model) {
+              (query.run().cast<models.PackageVersion>()).listen((model) {
             final packageVersion = new PackageVersion(
                 package, model.version, model.pubspec.jsonString);
             controller.add(packageVersion);
