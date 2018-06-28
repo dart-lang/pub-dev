@@ -33,21 +33,27 @@ class ScoreCard extends db.ExpandoModel {
   @db.DateTimeProperty(required: true)
   DateTime packageVersionCreated;
 
+  /// Whether the package has its discontinued flag set.
   @db.BoolProperty()
   bool isDiscontinued;
 
+  /// The platform tags (flutter, web, other) set by `pana` analysis.
   @CompatibleStringListProperty()
   List<String> panaPlatformTags;
 
+  /// Score for documentation coverage (0.0 - 1.0).
   @db.DoubleProperty()
   double documentationScore;
 
+  /// Score for code health (0.0 - 1.0).
   @db.DoubleProperty()
   double healthScore;
 
+  /// Score for package maintenance (0.0 - 1.0).
   @db.DoubleProperty()
   double maintenanceScore;
 
+  /// Score for package popularity (0.0 - 1.0).
   @db.DoubleProperty()
   double popularityScore;
 
