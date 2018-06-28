@@ -11,6 +11,7 @@ analyzer:
     unused_local_variable: error
 linter:
   rules:
+    - annotate_overrides
     - avoid_empty_else
     - avoid_init_to_null
     - avoid_return_types_on_setters

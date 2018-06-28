@@ -5,10 +5,11 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-part 'model.g.dart';
+part 'pub_dartdoc_data.g.dart';
 
 @JsonSerializable()
 class PubDartdocData extends Object with _$PubDartdocDataSerializerMixin {
+  @override
   final List<ApiElement> apiElements;
 
   PubDartdocData({
@@ -21,19 +22,25 @@ class PubDartdocData extends Object with _$PubDartdocDataSerializerMixin {
 
 @JsonSerializable()
 class ApiElement extends Object with _$ApiElementSerializerMixin {
+  @override
   final String name;
 
+  @override
   final String kind;
 
   @JsonKey(includeIfNull: false)
+  @override
   final String parent;
 
+  @override
   final String source;
 
   @JsonKey(includeIfNull: false)
+  @override
   final String href;
 
   @JsonKey(includeIfNull: false)
+  @override
   final String documentation;
 
   ApiElement({

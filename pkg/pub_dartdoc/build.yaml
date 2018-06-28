@@ -3,7 +3,7 @@
 targets:
   pub_dartdoc:
     sources:
-      - 'lib/model.dart'
+      - 'lib/pub_dartdoc_data.dart'
     builders:
       json_serializable:
         options:
