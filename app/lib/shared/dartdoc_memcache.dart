@@ -8,7 +8,9 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 
+import 'dartdoc_client.dart' show DartdocEntry;
 import 'memcache.dart';
+import 'versions.dart' as versions;
 
 final Logger _logger = new Logger('pub.dartdoc_memcache');
 
@@ -38,14 +40,18 @@ class DartdocMemcache {
           dartdocFileInfoExpiration,
         );
 
-  Future<List<int>> getEntryBytes(
-      String package, String version, bool serving) {
-    return _entry.getBytes(_entryKey(package, version, serving));
+  Future<DartdocEntry> getEntry(String package, String version) async {
+    final bytes = await _entry.getBytes(_entryKey(package, version));
+    if (bytes == null) return null;
+    return new DartdocEntry.fromBytes(bytes);
   }
 
-  Future setEntryBytes(
-      String package, String version, bool serving, List<int> bytes) {
-    return _entry.setBytes(_entryKey(package, version, serving), bytes);
+  Future setEntry(DartdocEntry entry) async {
+    if (entry == null) return;
+    if (entry.runtimeVersion != versions.runtimeVersion) return;
+    final key = _entryKey(entry.packageName, entry.packageVersion);
+    final bytes = entry.asBytes();
+    await _entry.setBytes(key, bytes);
   }
 
   Future<List<int>> getFileInfoBytes(String objectName) {
@@ -58,15 +64,13 @@ class DartdocMemcache {
 
   Future invalidate(String package, String version) {
     return Future.wait([
-      _entry.invalidate(_entryKey(package, version, true)),
-      _entry.invalidate(_entryKey(package, version, false)),
-      _entry.invalidate(_entryKey(package, 'latest', true)),
-      _entry.invalidate(_entryKey(package, 'latest', false)),
+      _entry.invalidate(_entryKey(package, version)),
+      _entry.invalidate(_entryKey(package, 'latest')),
     ]);
   }
 
-  String _entryKey(String package, String version, bool serving) =>
-      '/$package/$version/$serving';
+  String _entryKey(String package, String version) =>
+      '/$package/$version/${versions.runtimeVersion}';
 
   String _fileInfoKey(String objectName) => objectName;
 }
