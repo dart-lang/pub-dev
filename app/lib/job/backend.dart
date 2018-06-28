@@ -54,7 +54,7 @@ class JobBackend {
     final pList = await _db.lookup([pKey]);
     final Package p = pList[0];
     if (p == null) {
-      _logger.info('Couldn\'t trigger $service job: $package not found.');
+      _logger.info("Couldn't trigger $service job: $package not found.");
       return;
     }
 
@@ -64,7 +64,7 @@ class JobBackend {
     final PackageVersion pv = list[0];
     if (pv == null) {
       _logger
-          .info('Couldn\'t trigger $service job: $package $version not found.');
+          .info("Couldn't trigger $service job: $package $version not found.");
       return;
     }
 
