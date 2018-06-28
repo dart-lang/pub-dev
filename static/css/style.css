@@ -1074,6 +1074,53 @@ pre > code {
   visibility: visible;
 }
 
+.suggestion-row {
+  padding: 2px;
+}
+
+.suggestion-row:hover {
+  background-color: #f8f8f8;
+}
+
+.suggestion-title {
+  font-weight: bold;
+}
+
+.suggestion-icon-info,
+.suggestion-icon-warning,
+.suggestion-icon-danger {
+  float: left;
+  margin: 2px 20px 0px 0px;
+}
+
+.suggestion-icon-info {
+  display: inline-block;
+  width: 0px;
+  height: 0px;
+  border: 10px solid lightblue;
+  border-radius: 10px;
+}
+
+.suggestion-icon-warning {
+  display: inline-block;
+  width: 0px;
+  height: 0px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid orange;
+}
+
+.suggestion-icon-danger {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: red;
+}
+
+.suggestion-description {
+  margin-left: 40px;
+}
+
 /******************************************************
   searchbar
 ******************************************************/
