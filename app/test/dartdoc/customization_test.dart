@@ -16,33 +16,43 @@ final _regenerateGoldens = false;
 
 void main() {
   void expectGoldenFile(String content, String fileName) {
-    // Making sure it is valid HTML
-    final htmlParser = new HtmlParser(content, strict: true);
-    final doc = htmlParser.parse();
+    if (fileName.endsWith('.html')) {
+      // Making sure it is valid HTML
+      final htmlParser = new HtmlParser(content, strict: true);
+      final doc = htmlParser.parse();
 
-    // Matching logo URLs with static files settings.
-    // If this fails, update the hard-coded customization URL to match it.
-    final logoElem = doc.documentElement.getElementsByTagName('img').first;
-    expect(logoElem.attributes['src'].endsWith(staticUrls.dartLogoSvg), isTrue);
-
+      // Matching logo URLs with static files settings.
+      // If this fails, update the hard-coded customization URL to match it.
+      final logoElem = doc.documentElement.getElementsByTagName('img').first;
+      expect(
+          logoElem.attributes['src'].endsWith(staticUrls.dartLogoSvg), isTrue);
+    }
     if (_regenerateGoldens) {
       new File('$goldenDir/$fileName').writeAsStringSync(content);
-      fail('Set `_regenerateGoldens` to `false` to run tests.');
     }
+
     final golden = new File('$goldenDir/$fileName').readAsStringSync();
     expect(content.split('\n'), golden.split('\n'));
   }
 
   group('pana 0.10.2', () {
-    final customization = new DartdocCustomizer('pana', '0.10.2+0');
+    final prevCustomizer = new DartdocCustomizer('pana', '0.10.2+0', false);
+    final latestCustomizer = new DartdocCustomizer('pana', '0.10.2+0', true);
 
     void expectMatch(String name) {
       test(name, () {
         final inputName = 'pana_0.10.2_$name.html';
         final outputName = 'pana_0.10.2_$name.out.html';
+        final diffName = 'pana_0.10.2_$name.latest.diff';
         final html = new File('$goldenDir/$inputName').readAsStringSync();
-        final result = customization.customizeHtml(html) ?? html;
-        expectGoldenFile(result, outputName);
+        final prevResult = prevCustomizer.customizeHtml(html) ?? html;
+        final latestResult = latestCustomizer.customizeHtml(html) ?? html;
+        expectGoldenFile(prevResult, outputName);
+        expectGoldenFile(_miniDiff(prevResult, latestResult), diffName);
+
+        if (_regenerateGoldens) {
+          fail('Set `_regenerateGoldens` to `false` to run tests.');
+        }
       });
     }
 
@@ -52,4 +62,59 @@ void main() {
     expectMatch('license_file_name_field');
     expectMatch('pretty_json');
   });
+}
+
+String _miniDiff(String text1, String text2) {
+  final lines1 = text1.split('\n');
+  final lines2 = text2.split('\n');
+
+  final report = <String>[];
+
+  while (lines1.isNotEmpty || lines2.isNotEmpty) {
+    if (lines2.isEmpty) {
+      for (String line in lines1) {
+        report.add('- $line');
+      }
+      break;
+    }
+    if (lines1.isEmpty) {
+      for (String line in lines2) {
+        report.add('+ $line');
+      }
+      break;
+    }
+    if (lines1.last == lines2.last) {
+      lines1.removeLast();
+      lines2.removeLast();
+      continue;
+    }
+    if (lines1.first == lines2.first) {
+      lines1.removeAt(0);
+      lines2.removeAt(0);
+      continue;
+    }
+    final index1in2 = lines2.indexOf(lines1.first);
+    final index2in1 = lines1.indexOf(lines2.first);
+    if (index1in2 == -1) {
+      final line = lines1.removeAt(0);
+      report.add('- $line');
+      continue;
+    }
+    if (index2in1 == -1) {
+      final line = lines2.removeAt(0);
+      report.add('+ $line');
+      continue;
+    }
+    if (index1in2 > index2in1) {
+      final line = lines1.removeAt(0);
+      report.add('- $line');
+      continue;
+    } else {
+      final line = lines2.removeAt(0);
+      report.add('+ $line');
+      continue;
+    }
+  }
+
+  return report.map((s) => '$s\n').join();
 }
