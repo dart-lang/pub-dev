@@ -32,7 +32,10 @@ void main() {
     }
 
     final golden = new File('$goldenDir/$fileName').readAsStringSync();
-    expect(content.split('\n'), golden.split('\n'));
+    // Not sure why, but the dart 2 preview tests produce an additional newline
+    // in the output.
+    expect(content.split('\n').where((s) => s.isNotEmpty),
+        golden.split('\n').where((s) => s.isNotEmpty));
   }
 
   group('pana 0.10.2', () {
