@@ -57,9 +57,6 @@ class ScoreCard extends db.ExpandoModel {
   @db.DoubleProperty()
   double popularityScore;
 
-  @db.DoubleProperty()
-  double overallScore;
-
   ScoreCard();
 
   ScoreCard.init({
@@ -71,14 +68,13 @@ class ScoreCard extends db.ExpandoModel {
     id = _id(packageName, packageVersion);
   }
 
-  void updateOverallScore() {
-    // TODO: use documentationScore too
-    overallScore = calculateOverallScore(
-      health: healthScore ?? 0.0,
-      maintenance: maintenanceScore ?? 0.0,
-      popularity: popularityScore ?? 0.0,
-    );
-  }
+  double get overallScore =>
+      // TODO: use documentationScore too
+      calculateOverallScore(
+        health: healthScore ?? 0.0,
+        maintenance: maintenanceScore ?? 0.0,
+        popularity: popularityScore ?? 0.0,
+      );
 }
 
 /// Detail of a specific report for a given PackageVersion.
