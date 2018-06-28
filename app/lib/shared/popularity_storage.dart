@@ -43,7 +43,7 @@ class PopularityStorage {
 
   Future init() async {
     await fetch('init');
-    new Timer.periodic(const Duration(days: 1), (_) {
+    new Timer.periodic(const Duration(hours: 4), (_) {
       fetch('refetch');
     });
   }
