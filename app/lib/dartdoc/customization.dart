@@ -108,8 +108,8 @@ class DartdocCustomizer {
   }
 
   void _addPubPackageLink(Element breadcrumbs) {
-    final pubPackageLink =
-        pkgPageUrl(packageName, version: packageVersion, includeHost: true);
+    final pubPackageLink = pkgPageUrl(packageName,
+        version: isLatestStable ? null : packageVersion, includeHost: true);
     final pubPackageText = '$packageName package';
     if (breadcrumbs.children.length == 1) {
       // we are on the index page
