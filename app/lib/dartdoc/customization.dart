@@ -50,6 +50,7 @@ class DartdocCustomizer {
     _addAlternateUrl(doc.head, canonical);
     _addAnalyticsTracker(doc.head);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
+    final breadcrumbsDepth = breadcrumbs?.children?.length ?? 0;
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
@@ -62,7 +63,7 @@ class DartdocCustomizer {
           .where((e) => e.attributes['href'] == 'index.html')
           .forEach((e) => e.attributes['href'] = docRoot);
     }
-    if (!isLatestStable) {
+    if (!isLatestStable || breadcrumbsDepth > 3) {
       _addMetaNoIndex(doc.head);
     }
     return doc.outerHtml;
