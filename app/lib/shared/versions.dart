@@ -18,7 +18,7 @@ final Version semanticSdkVersion = new Version.parse(sdkVersion);
 final String panaVersion = '0.11.4';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
-final String flutterVersion = '0.5.4';
+final String flutterVersion = '0.5.5';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 // keep in-sync with SDK version in .mono_repo.yml and Dockerfile
