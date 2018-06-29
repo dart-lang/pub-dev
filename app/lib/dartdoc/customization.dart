@@ -62,6 +62,9 @@ class DartdocCustomizer {
           .where((e) => e.attributes['href'] == 'index.html')
           .forEach((e) => e.attributes['href'] = docRoot);
     }
+    if (!isLatestStable) {
+      _addMetaNoIndex(doc.head);
+    }
     return doc.outerHtml;
   }
 
@@ -88,6 +91,15 @@ class DartdocCustomizer {
 
     head.insertBefore(link, canonical);
     head.insertBefore(new Text('\n  '), canonical);
+  }
+
+  void _addMetaNoIndex(Element head) {
+    final meta = new Element.tag('meta');
+    meta.attributes['name'] = 'robots';
+    meta.attributes['content'] = 'noindex';
+
+    head.insertBefore(meta, head.firstChild);
+    head.insertBefore(new Text('\n  '), head.firstChild);
   }
 
   void _addAnalyticsTracker(Element head) {
