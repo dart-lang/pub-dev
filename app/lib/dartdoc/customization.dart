@@ -42,7 +42,11 @@ class DartdocCustomizer {
 
   String customizeHtml(String html) {
     final doc = html_parser.parse(html);
-    _stripCanonicalUrl(doc);
+    final canonical = doc.head.getElementsByTagName('link').firstWhere(
+          (elem) => elem.attributes['rel'] == 'canonical',
+          orElse: () => null,
+        );
+    _stripCanonicalUrl(canonical);
     _addAnalyticsTracker(doc.head);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
     if (breadcrumbs != null) {
@@ -60,19 +64,13 @@ class DartdocCustomizer {
     return doc.outerHtml;
   }
 
-  void _stripCanonicalUrl(Document doc) {
-    doc.head
-        .getElementsByTagName('link')
-        .where((elem) => elem.attributes['rel'] == 'canonical')
-        .forEach(
-      (elem) {
-        final href = elem.attributes['href'];
-        if (href != null && href.endsWith('/index.html')) {
-          elem.attributes['href'] =
-              href.substring(0, href.length - 'index.html'.length);
-        }
-      },
-    );
+  void _stripCanonicalUrl(Element elem) {
+    if (elem == null) return;
+    final href = elem.attributes['href'];
+    if (href != null && href.endsWith('/index.html')) {
+      elem.attributes['href'] =
+          href.substring(0, href.length - 'index.html'.length);
+    }
   }
 
   void _addAnalyticsTracker(Element head) {
