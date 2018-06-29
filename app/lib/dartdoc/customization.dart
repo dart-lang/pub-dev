@@ -47,6 +47,7 @@ class DartdocCustomizer {
           orElse: () => null,
         );
     _stripCanonicalUrl(canonical);
+    _addAlternateUrl(doc.head, canonical);
     _addAnalyticsTracker(doc.head);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
     if (breadcrumbs != null) {
@@ -71,6 +72,22 @@ class DartdocCustomizer {
       elem.attributes['href'] =
           href.substring(0, href.length - 'index.html'.length);
     }
+  }
+
+  void _addAlternateUrl(Element head, Element canonical) {
+    if (isLatestStable) return;
+
+    final link = new Element.tag('link');
+    link.attributes['rel'] = 'alternate';
+    link.attributes['href'] = pkgDocUrl(packageName, isLatest: true);
+
+    if (canonical == null) {
+      head.append(link);
+      return;
+    }
+
+    head.insertBefore(link, canonical);
+    head.insertBefore(new Text('\n  '), canonical);
   }
 
   void _addAnalyticsTracker(Element head) {
