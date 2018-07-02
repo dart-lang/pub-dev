@@ -1006,27 +1006,58 @@ pre > code {
   Analysis tab
 ******************************************************/
 
-.score-bar {
+.score-percent-row {
+  margin: 0px 24px;
+  height: 28px;
+  position: relative;
+}
+
+.score-percent {
+  background: black;
+  color: white;
+  display: inline-block;
+  padding: 2px 4px;
+  margin-left: -12px;
+  position: absolute;
+  top: -4px;
+  font-size: 10pt;
+}
+
+.score-percent::after {
+  content: " ";
+  position: absolute;
+  top: 100%;
+  left: 12px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+}
+
+.score-progress-row {
+  padding: 3px 0px;
+  margin: 0px 24px;
+}
+
+.score-progress-frame {
   background: #f0f0f0;
 }
 
-.score-bar > .score-progress {
-  font-weight: bold;
-  text-align: right;
-  display: inline-block;
-}
-
-.score-bar > .score-progress > .score-content {
-  padding: 0px 8px;
+.score-progress-frame > .score-progress {
+  height: 4px;
 }
 
 #scores-table {
   margin-bottom: 1em;
 }
 
+#scores-table tr {
+  vertical-align: baseline;
+}
+
 #scores-table .score-name {
   min-width: 100px;
-  padding-right: 16px;
+  padding-right: 4px;
   text-align: right;
 }
 
