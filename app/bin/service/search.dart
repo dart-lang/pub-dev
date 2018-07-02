@@ -39,7 +39,7 @@ void _main(FrontendEntryMessage message) {
   setupServiceIsolate();
 
   final statsConsumer = new ReceivePort();
-  registerSchedulerStatsStream(statsConsumer as Stream<Map>);
+  registerSchedulerStatsStream(statsConsumer.cast<Map>());
   message.protocolSendPort.send(new FrontendProtocolMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));

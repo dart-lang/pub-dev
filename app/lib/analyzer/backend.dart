@@ -88,7 +88,7 @@ class AnalysisBackend {
     if (analysis == null) {
       final Query query = db.query(Analysis, ancestorKey: versionKey)
         ..filter('panaVersion =', panaVersion);
-      final List<Analysis> list = await query.run().toList();
+      final List<Analysis> list = await query.run().cast<Analysis>().toList();
       if (list.isNotEmpty) {
         list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
         final Analysis entry = list[0];
@@ -133,10 +133,10 @@ class AnalysisBackend {
   /// [PackageAnalysis] and [PackageVersionAnalysis] records.
   ///
   /// Returns the backend status of the [Analysis].
-  Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) {
+  Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) async {
     final pvText = '${analysis.packageName} ${analysis.packageVersion}';
     // update package and version too
-    return db.withTransaction((Transaction tx) async {
+    final result = await db.withTransaction((Transaction tx) async {
       final incompleteRawKey = tx.db.modelDB.toDatastoreKey(analysis.key);
       final datastore.Key completeRawKey =
           (await tx.db.datastore.allocateIds([incompleteRawKey])).single;
@@ -206,7 +206,8 @@ class AnalysisBackend {
             analysis.packageVersion, analysis.panaVersion);
       }
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
-    }) as Future<BackendAnalysisStatus>;
+    });
+    return result as BackendAnalysisStatus;
   }
 
   /// Returns the task target status based on:
@@ -314,7 +315,7 @@ class AnalysisBackend {
     final Query scanQuery = db.query(Analysis, ancestorKey: pvaKey);
     final List<Key> obsoleteKeys = <Key>[];
 
-    final List<Analysis> existingAnalysis = await scanQuery.run().toList();
+    final existingAnalysis = await scanQuery.run().cast<Analysis>().toList();
     existingAnalysis.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     final Map<String, Analysis> panaVersion2LatestAnalysis = {};

@@ -53,7 +53,7 @@ class DartdocBackend {
       {int limit: 10}) async {
     final query = _db.query(PackageVersion,
         ancestorKey: _db.emptyKey.append(Package, id: package));
-    final versions = (await query.run().toList()).cast<PackageVersion>();
+    final versions = await query.run().cast<PackageVersion>().toList();
     versions.sort((a, b) {
       final isAPreRelease = a.semanticVersion.isPreRelease;
       final isBPreRelease = b.semanticVersion.isPreRelease;
@@ -252,6 +252,7 @@ class DartdocBackend {
     if (completedList.isNotEmpty) {
       final versions = completedList
           .map((entry) => entry.runtimeVersion)
+          .where((s) => s != null) // protect against old entries without it
           .toSet()
           .map((String version) => new Version.parse(version))
           .toList();

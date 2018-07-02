@@ -59,14 +59,14 @@ class SearchBackend {
     final List<Key> packageKeys = packageNames
         .map((String name) => _db.emptyKey.append(Package, id: name))
         .toList();
-    final List<Package> packages = await _db.lookup(packageKeys);
+    final packages = (await _db.lookup(packageKeys)).cast<Package>();
 
     // Load only for the existing packages.
     final List<Key> versionKeys = packages
         .where((p) => p != null)
         .map((p) => p.latestVersionKey)
         .toList();
-    final List<PackageVersion> versionList = await _db.lookup(versionKeys);
+    final versionList = (await _db.lookup(versionKeys)).cast<PackageVersion>();
     final Map<String, PackageVersion> versions = new Map.fromIterable(
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
@@ -134,7 +134,7 @@ class SearchBackend {
 
   List<String> _buildEmails(Package p, PackageVersion pv) {
     final Set<String> emails = new Set<String>();
-    emails.addAll(p.uploaderEmails);
+    emails.addAll(p.uploaderEmails.cast<String>());
     for (String value in pv.pubspec.authors) {
       final Author author = new Author.parse(value);
       if (author.email == null) continue;

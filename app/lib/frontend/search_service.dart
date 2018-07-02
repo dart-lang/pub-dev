@@ -39,7 +39,7 @@ Future<SearchResultPage> _loadResultForPackages(
       .map((ps) => ps.package)
       .map((package) => dbService.emptyKey.append(Package, id: package))
       .toList();
-  final List<Package> packageEntries = await dbService.lookup(packageKeys);
+  final packageEntries = (await dbService.lookup(packageKeys)).cast<Package>();
   packageEntries.removeWhere((p) => p == null);
 
   final List<Key> versionKeys =
@@ -49,13 +49,13 @@ Future<SearchResultPage> _loadResultForPackages(
     final Future<List<AnalysisExtract>> analysisExtractsFuture =
         analyzerClient.getAnalysisExtracts(packageEntries
             .map((p) => new AnalysisKey(p.name, p.latestVersion)));
-    final Future<List<PackageVersion>> allVersionsFuture =
-        dbService.lookup(versionKeys);
+    final Future<List> allVersionsFuture = dbService.lookup(versionKeys);
 
     final List batchResults =
         await Future.wait([analysisExtractsFuture, allVersionsFuture]);
     final List<AnalysisExtract> analysisExtracts = await batchResults[0];
-    final List<PackageVersion> versions = await batchResults[1];
+    final List<PackageVersion> versions =
+        (await batchResults[1]).cast<PackageVersion>();
 
     final List<PackageView> resultPackages = new List.generate(
         versions.length,

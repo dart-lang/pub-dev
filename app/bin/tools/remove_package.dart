@@ -67,7 +67,7 @@ Future listPackage(String packageName) async {
 
   final versionsQuery =
       dbService.query(PackageVersion, ancestorKey: packageKey);
-  final List<PackageVersion> versions = await versionsQuery.run().toList();
+  final versions = await versionsQuery.run().cast<PackageVersion>().toList();
 
   print('Package "$packageName" has the following versions:');
   for (var version in versions) {
@@ -101,7 +101,7 @@ Future removePackage(String packageName) async {
     }
 
     final versionsQuery = T.query(PackageVersion, packageKey);
-    final List<PackageVersion> versions = await versionsQuery.run().toList();
+    final versions = await versionsQuery.run().cast<PackageVersion>().toList();
     final List<Version> versionNames =
         versions.map((v) => v.semanticVersion).toList();
     deletes.addAll(versions.map((v) => v.key));
@@ -113,7 +113,7 @@ Future removePackage(String packageName) async {
       print('Analysis for $packageName does not exist?');
     }
     final pvaQuery = T.query(PackageVersionAnalysis, packageAnalysisKey);
-    final List<PackageVersionAnalysis> pvas = await pvaQuery.run().toList();
+    final pvas = await pvaQuery.run().cast<PackageVersionAnalysis>().toList();
 
     deletes.add(packageAnalysisKey);
     deletes.addAll(pvas.map((v) => v.key));
@@ -121,7 +121,7 @@ Future removePackage(String packageName) async {
     for (final pva in pvas) {
       final analysisQuery = T.query(Analysis,
           packageAnalysisKey.append(PackageVersionAnalysis, id: pva.id));
-      final List<Analysis> as = await analysisQuery.run().toList();
+      final as = await analysisQuery.run().cast<Analysis>().toList();
       deletes.addAll(as.map((a) => a.key));
     }
 
@@ -157,7 +157,7 @@ Future removePackageVersion(String packageName, String version) async {
     }
 
     final versionsQuery = T.query(PackageVersion, packageKey);
-    final List<PackageVersion> versions = await versionsQuery.run().toList();
+    final versions = await versionsQuery.run().cast<PackageVersion>().toList();
     final versionNames = versions.map((v) => '${v.semanticVersion}').toList();
     if (!versionNames.contains(version)) {
       print('Package $packageName does not have a version $version.');
