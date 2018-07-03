@@ -116,8 +116,9 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
 class ApiDocPage extends Object with _$ApiDocPageSerializerMixin {
   final String relativePath;
   final List<String> symbols;
+  final List<String> textBlocks;
 
-  ApiDocPage({this.relativePath, this.symbols});
+  ApiDocPage({this.relativePath, this.symbols, this.textBlocks});
 
   factory ApiDocPage.fromJson(Map<String, dynamic> json) =>
       _$ApiDocPageFromJson(json);
@@ -126,6 +127,7 @@ class ApiDocPage extends Object with _$ApiDocPageSerializerMixin {
     return new ApiDocPage(
       relativePath: internFn(relativePath),
       symbols: symbols?.map(internFn)?.toList(),
+      textBlocks: textBlocks,
     );
   }
 }

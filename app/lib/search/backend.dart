@@ -14,6 +14,7 @@ import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 
+import '../dartdoc/pub_dartdoc_data.dart';
 import '../frontend/model_properties.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
@@ -70,15 +71,15 @@ class SearchBackend {
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
 
-    final indexJsonFutures = Future.wait(packages.map((p) =>
-        dartdocClient.getContentBytes(p.name, 'latest', 'index.json',
+    final pubDataFutures = Future.wait(packages.map((p) =>
+        dartdocClient.getContentBytes(p.name, 'latest', 'pub-data.json',
             timeout: const Duration(seconds: 10))));
 
     final List<AnalysisView> analysisViews =
         await analyzerClient.getAnalysisViews(packages.map((p) =>
             p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
 
-    final indexJsonContents = await indexJsonFutures;
+    final pubDataContents = await pubDataFutures;
 
     final List<PackageDocument> results = new List(packages.length);
     for (int i = 0; i < packages.length; i++) {
@@ -90,8 +91,8 @@ class SearchBackend {
       final analysisView = analysisViews[i];
       final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
 
-      final List<int> indexJsonContent = indexJsonContents[i];
-      final apiDocPages = _apiDocPagesFromIndexJson(indexJsonContent);
+      final List<int> pubDataContent = pubDataContents[i];
+      final apiDocPages = _apiDocPagesFromPubData(pubDataContent);
 
       results[i] = new PackageDocument(
         package: pv.package,
@@ -135,41 +136,60 @@ class SearchBackend {
     return emails.toList()..sort();
   }
 
-  List<ApiDocPage> _apiDocPagesFromIndexJson(List<int> bytes) {
+  List<ApiDocPage> _apiDocPagesFromPubData(List<int> bytes) {
     if (bytes == null) return null;
     try {
-      final list = json.decode(utf8.decode(bytes));
+      final decodedMap = json.decode(utf8.decode(bytes)) as Map;
+      final pubData = new PubDartdocData.fromJson(decodedMap.cast());
+
+      final nameToKindMap = <String, String>{};
+      pubData.apiElements.forEach((e) {
+        nameToKindMap[e.name] = e.kind;
+      });
 
       final pathMap = <String, String>{};
       final symbolMap = <String, Set<String>>{};
-      for (Map map in list) {
-        final String name = map['name'];
-        final type = map['type'];
-        if (isCommonApiSymbol(name) && type != 'library') {
-          continue;
-        }
+      final docMap = <String, List<String>>{};
 
-        final String qualifiedName = map['qualifiedName'];
-        final enclosedBy = map['enclosedBy'];
-        final enclosedByType = enclosedBy is Map ? enclosedBy['type'] : null;
-        final parentLevel = enclosedByType == 'class' ? 2 : 1;
-        final String key = qualifiedName.split('.').take(parentLevel).join('.');
+      bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
-        if (key == qualifiedName) {
-          pathMap[key] = map['href'] as String;
+      void update(String key, String name, String documentation) {
+        final set = symbolMap.putIfAbsent(key, () => new Set<String>());
+        set.addAll(name.split('.'));
+
+        documentation = documentation?.trim();
+        if (documentation != null && documentation.isNotEmpty) {
+          final list = docMap.putIfAbsent(key, () => []);
+          list.add(compactReadme(documentation));
         }
-        symbolMap.putIfAbsent(key, () => new Set()).add(name);
       }
+
+      pubData.apiElements.forEach((apiElement) {
+        if (isTopLevel(apiElement.kind)) {
+          pathMap[apiElement.name] = apiElement.href;
+          update(apiElement.name, apiElement.name, apiElement.documentation);
+        }
+
+        if (!isTopLevel(apiElement.kind) &&
+            apiElement.parent != null &&
+            isTopLevel(nameToKindMap[apiElement.parent])) {
+          update(apiElement.parent, apiElement.name, apiElement.documentation);
+        }
+      });
 
       final results = pathMap.keys.map((key) {
         final path = pathMap[key];
         final symbols = symbolMap[key].toList()..sort();
-        return new ApiDocPage(relativePath: path, symbols: symbols);
+        return new ApiDocPage(
+          relativePath: path,
+          symbols: symbols,
+          textBlocks: docMap[key],
+        );
       }).toList();
       results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
       return results;
     } catch (e, st) {
-      _logger.warning('Parsing dartdoc index.json failed.', e, st);
+      _logger.warning('Parsing pub-data.json failed.', e, st);
     }
     return null;
   }

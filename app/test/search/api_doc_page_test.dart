@@ -27,6 +27,9 @@ void main() {
               'generateWebPage',
               'WebPageGenerator',
             ],
+            textBlocks: [
+              'Some fancy goal is described here.',
+            ],
           ),
         ],
       ));
@@ -100,7 +103,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.481, 0.001), // find WebPageGenerator
+            'score': closeTo(0.478, 0.001), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],
@@ -119,7 +122,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.572, 0.001), // find WebPageGenerator
+            'score': closeTo(0.570, 0.001), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],
@@ -132,6 +135,24 @@ void main() {
             ],
           },
           // should not contain `other_without_api`
+        ],
+      });
+    });
+
+    test('text block', () async {
+      final PackageSearchResult result = await index.search(
+          new SearchQuery.parse(query: 'goal fancy', order: SearchOrder.text));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {
+            'package': 'foo',
+            'score': closeTo(0.624, 0.001),
+            'apiPages': [
+              {'title': null, 'path': 'generator.html'},
+            ],
+          },
         ],
       });
     });

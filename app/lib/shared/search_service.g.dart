@@ -86,14 +86,20 @@ abstract class _$PackageDocumentSerializerMixin {
 ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) {
   return new ApiDocPage(
       relativePath: json['relativePath'] as String,
-      symbols: (json['symbols'] as List)?.map((e) => e as String)?.toList());
+      symbols: (json['symbols'] as List)?.map((e) => e as String)?.toList(),
+      textBlocks:
+          (json['textBlocks'] as List)?.map((e) => e as String)?.toList());
 }
 
 abstract class _$ApiDocPageSerializerMixin {
   String get relativePath;
   List<String> get symbols;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'relativePath': relativePath, 'symbols': symbols};
+  List<String> get textBlocks;
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'relativePath': relativePath,
+        'symbols': symbols,
+        'textBlocks': textBlocks
+      };
 }
 
 PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) {

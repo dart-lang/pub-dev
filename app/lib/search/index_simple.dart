@@ -85,8 +85,11 @@ class SimplePackageIndex implements PackageIndex {
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
-      _apiDocIndex.add(
-          _apiDocPageId(doc.package, page), page.symbols?.join(' '));
+      final text = [page.symbols, page.textBlocks]
+          .where((list) => list != null && list.isNotEmpty)
+          .expand((list) => list)
+          .join(' ');
+      _apiDocIndex.add(_apiDocPageId(doc.package, page), text);
     }
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
