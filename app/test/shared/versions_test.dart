@@ -20,7 +20,7 @@ void main() {
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 1048523838);
+    expect(hash, 836425494);
   });
 
   test('sdk version should match travis and dockerfile', () async {
