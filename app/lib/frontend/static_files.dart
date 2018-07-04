@@ -161,7 +161,7 @@ Future updateLocalBuiltFiles() async {
         scriptJs.path,
       ],
       workingDirectory: staticDir.path,
-      timeout: const Duration(minutes: 1),
+      timeout: const Duration(minutes: 2),
     );
     if (pr.exitCode != 0) {
       final message = 'Unable to compile script.dart\n\n'

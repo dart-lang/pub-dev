@@ -924,6 +924,6 @@ void main() {
           });
         });
       });
-    });
+    }, timeout: new Timeout.factor(2));
   });
 }
