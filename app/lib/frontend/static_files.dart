@@ -155,7 +155,7 @@ Future updateLocalBuiltFiles() async {
         '--dump-info',
         '--minify',
         '--trust-primitives',
-        '--trust-type-annotations',
+        '--omit-implicit-checks',
         scriptDart.path,
         '-o',
         scriptJs.path,
@@ -165,6 +165,7 @@ Future updateLocalBuiltFiles() async {
     );
     if (pr.exitCode != 0) {
       final message = 'Unable to compile script.dart\n\n'
+          'exitCode: ${pr.exitCode}\n'
           'STDOUT:\n${pr.stdout}\n\n'
           'STDERR:\n${pr.stderr}';
       throw new Exception(message);

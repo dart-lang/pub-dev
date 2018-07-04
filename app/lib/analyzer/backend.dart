@@ -157,7 +157,7 @@ class AnalysisBackend {
           version.analysisHash != null &&
           analysis.analysisHash == version.analysisHash;
 
-      final List<Model> inserts = [];
+      final inserts = <Model>[];
       if (package == null) {
         package = new PackageAnalysis.fromAnalysis(analysis);
         inserts.add(package);
@@ -313,12 +313,12 @@ class AnalysisBackend {
     final DateTime threshold =
         new DateTime.now().toUtc().subtract(_obsoleteThreshold);
     final Query scanQuery = db.query(Analysis, ancestorKey: pvaKey);
-    final List<Key> obsoleteKeys = <Key>[];
+    final obsoleteKeys = <Key>[];
 
     final existingAnalysis = await scanQuery.run().cast<Analysis>().toList();
     existingAnalysis.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    final Map<String, Analysis> panaVersion2LatestAnalysis = {};
+    final panaVersion2LatestAnalysis = <String, Analysis>{};
     for (Analysis analysis in existingAnalysis) {
       if (analysis.analysis == pva.latestAnalysis) {
         // Don't remove the current Analysis instance.
