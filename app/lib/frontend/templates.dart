@@ -473,7 +473,7 @@ class TemplateService {
     executables?.sort();
     final hasExecutables = executables != null && executables.isNotEmpty;
 
-    final exampleVersionConstraint = '"^${selectedVersion.version}"';
+    final exampleVersionConstraint = '^${selectedVersion.version}';
 
     final bool usePubGet = !isFlutterPackage ||
         platforms == null ||
