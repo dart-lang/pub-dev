@@ -858,23 +858,28 @@ pre > code {
     list-style: none
 }
 
-.package-tabs > .tab{
-    display: inline-block;
-    margin-right: 35px;
-    padding: 10px 2px;
-    border-bottom: 4px solid;
-    border-bottom-color: transparent;
-    cursor: pointer;
-    vertical-align: bottom;
+.package-tabs > .tab {
+  color: #666666;
+  display: inline-block;
+  margin-right: 35px;
+  padding: 10px 2px;
+  border-bottom: 4px solid;
+  border-bottom-color: transparent;
+  cursor: pointer;
+  vertical-align: bottom;
+}
+
+.package-tabs > .tab:hover {
+  border-bottom-color: #dddddd;
 }
 
 .package-tabs > .tab:last-child{
     margin-right: 0;
 }
 
-.package-tabs > .tab.-active{
-    color: #0175C2;
-    border-bottom-color: #0175C2;
+.package-tabs > .tab.-active {
+  color: black;
+  border-bottom-color: black;
 }
 
 .package-tabs > .tab > .score-box{
