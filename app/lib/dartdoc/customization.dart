@@ -42,9 +42,15 @@ class DartdocCustomizer {
 
   String customizeHtml(String html) {
     final doc = html_parser.parse(html);
-    _stripCanonicalUrl(doc);
+    final canonical = doc.head.getElementsByTagName('link').firstWhere(
+          (elem) => elem.attributes['rel'] == 'canonical',
+          orElse: () => null,
+        );
+    _stripCanonicalUrl(canonical);
+    _addAlternateUrl(doc.head, canonical);
     _addAnalyticsTracker(doc.head);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
+    final breadcrumbsDepth = breadcrumbs?.children?.length ?? 0;
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
@@ -57,22 +63,44 @@ class DartdocCustomizer {
           .where((e) => e.attributes['href'] == 'index.html')
           .forEach((e) => e.attributes['href'] = docRoot);
     }
+    if (!isLatestStable || breadcrumbsDepth > 3) {
+      _addMetaNoIndex(doc.head);
+    }
     return doc.outerHtml;
   }
 
-  void _stripCanonicalUrl(Document doc) {
-    doc.head
-        .getElementsByTagName('link')
-        .where((elem) => elem.attributes['rel'] == 'canonical')
-        .forEach(
-      (elem) {
-        final href = elem.attributes['href'];
-        if (href != null && href.endsWith('/index.html')) {
-          elem.attributes['href'] =
-              href.substring(0, href.length - 'index.html'.length);
-        }
-      },
-    );
+  void _stripCanonicalUrl(Element elem) {
+    if (elem == null) return;
+    final href = elem.attributes['href'];
+    if (href != null && href.endsWith('/index.html')) {
+      elem.attributes['href'] =
+          href.substring(0, href.length - 'index.html'.length);
+    }
+  }
+
+  void _addAlternateUrl(Element head, Element canonical) {
+    if (isLatestStable) return;
+
+    final link = new Element.tag('link');
+    link.attributes['rel'] = 'alternate';
+    link.attributes['href'] = pkgDocUrl(packageName, isLatest: true);
+
+    if (canonical == null) {
+      head.append(link);
+      return;
+    }
+
+    head.insertBefore(link, canonical);
+    head.insertBefore(new Text('\n  '), canonical);
+  }
+
+  void _addMetaNoIndex(Element head) {
+    final meta = new Element.tag('meta');
+    meta.attributes['name'] = 'robots';
+    meta.attributes['content'] = 'noindex';
+
+    head.insertBefore(meta, head.firstChild);
+    head.insertBefore(new Text('\n  '), head.firstChild);
   }
 
   void _addAnalyticsTracker(Element head) {
@@ -108,8 +136,8 @@ class DartdocCustomizer {
   }
 
   void _addPubPackageLink(Element breadcrumbs) {
-    final pubPackageLink =
-        pkgPageUrl(packageName, version: packageVersion, includeHost: true);
+    final pubPackageLink = pkgPageUrl(packageName,
+        version: isLatestStable ? null : packageVersion, includeHost: true);
     final pubPackageText = '$packageName package';
     if (breadcrumbs.children.length == 1) {
       // we are on the index page
