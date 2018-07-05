@@ -100,6 +100,22 @@ void main() {
       expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
           '/packages/no_pkg/versions');
     });
+
+    test('dartdocs.org redirect', () async {
+      expectRedirectResponse(
+        await dartdocServiceHandler(new shelf.Request('GET',
+            Uri.parse('https://dartdocs.org/documentation/pkg/latest/'))),
+        'https://pub.dartlang.org/documentation/pkg/latest/',
+      );
+    });
+
+    test('www.dartdocs.org redirect', () async {
+      expectRedirectResponse(
+        await dartdocServiceHandler(new shelf.Request('GET',
+            Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/'))),
+        'https://pub.dartlang.org/documentation/pkg/latest/',
+      );
+    });
   });
 }
 
