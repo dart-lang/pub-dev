@@ -859,14 +859,14 @@ pre > code {
 }
 
 .package-tabs > .tab {
-    color: #666666;
-    display: inline-block;
-    margin-right: 35px;
-    padding: 10px 2px;
-    border-bottom: 4px solid;
-    border-bottom-color: transparent;
-    cursor: pointer;
-    vertical-align: bottom;
+  color: #666666;
+  display: inline-block;
+  margin-right: 35px;
+  padding: 10px 2px;
+  border-bottom: 4px solid;
+  border-bottom-color: transparent;
+  cursor: pointer;
+  vertical-align: bottom;
 }
 
 .package-tabs > .tab:hover {
@@ -878,8 +878,8 @@ pre > code {
 }
 
 .package-tabs > .tab.-active {
-    color: black;
-    border-bottom-color: black;
+  color: black;
+  border-bottom-color: black;
 }
 
 .package-tabs > .tab > .score-box{
