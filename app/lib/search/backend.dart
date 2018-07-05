@@ -92,7 +92,14 @@ class SearchBackend {
       final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
 
       final List<int> pubDataContent = pubDataContents[i];
-      final apiDocPages = _apiDocPagesFromPubData(pubDataContent);
+      List<ApiDocPage> apiDocPages;
+      if (pubDataContent != null) {
+        try {
+          apiDocPages = _apiDocPagesFromPubData(pubDataContent);
+        } catch (e, st) {
+          _logger.severe('Parsing pub-data.json failed.', e, st);
+        }
+      }
 
       results[i] = new PackageDocument(
         package: pv.package,
@@ -137,61 +144,55 @@ class SearchBackend {
   }
 
   List<ApiDocPage> _apiDocPagesFromPubData(List<int> bytes) {
-    if (bytes == null) return null;
-    try {
-      final decodedMap = json.decode(utf8.decode(bytes)) as Map;
-      final pubData = new PubDartdocData.fromJson(decodedMap.cast());
+    final decodedMap = json.decode(utf8.decode(bytes)) as Map;
+    final pubData = new PubDartdocData.fromJson(decodedMap.cast());
 
-      final nameToKindMap = <String, String>{};
-      pubData.apiElements.forEach((e) {
-        nameToKindMap[e.name] = e.kind;
-      });
+    final nameToKindMap = <String, String>{};
+    pubData.apiElements.forEach((e) {
+      nameToKindMap[e.name] = e.kind;
+    });
 
-      final pathMap = <String, String>{};
-      final symbolMap = <String, Set<String>>{};
-      final docMap = <String, List<String>>{};
+    final pathMap = <String, String>{};
+    final symbolMap = <String, Set<String>>{};
+    final docMap = <String, List<String>>{};
 
-      bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
+    bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
-      void update(String key, String name, String documentation) {
-        final set = symbolMap.putIfAbsent(key, () => new Set<String>());
-        set.addAll(name.split('.'));
+    void update(String key, String name, String documentation) {
+      final set = symbolMap.putIfAbsent(key, () => new Set<String>());
+      set.addAll(name.split('.'));
 
-        documentation = documentation?.trim();
-        if (documentation != null && documentation.isNotEmpty) {
-          final list = docMap.putIfAbsent(key, () => []);
-          list.add(compactReadme(documentation));
-        }
+      documentation = documentation?.trim();
+      if (documentation != null && documentation.isNotEmpty) {
+        final list = docMap.putIfAbsent(key, () => []);
+        list.add(compactReadme(documentation));
+      }
+    }
+
+    pubData.apiElements.forEach((apiElement) {
+      if (isTopLevel(apiElement.kind)) {
+        pathMap[apiElement.name] = apiElement.href;
+        update(apiElement.name, apiElement.name, apiElement.documentation);
       }
 
-      pubData.apiElements.forEach((apiElement) {
-        if (isTopLevel(apiElement.kind)) {
-          pathMap[apiElement.name] = apiElement.href;
-          update(apiElement.name, apiElement.name, apiElement.documentation);
-        }
+      if (!isTopLevel(apiElement.kind) &&
+          apiElement.parent != null &&
+          isTopLevel(nameToKindMap[apiElement.parent])) {
+        update(apiElement.parent, apiElement.name, apiElement.documentation);
+      }
+    });
 
-        if (!isTopLevel(apiElement.kind) &&
-            apiElement.parent != null &&
-            isTopLevel(nameToKindMap[apiElement.parent])) {
-          update(apiElement.parent, apiElement.name, apiElement.documentation);
-        }
-      });
-
-      final results = pathMap.keys.map((key) {
-        final path = pathMap[key];
-        final symbols = symbolMap[key].toList()..sort();
-        return new ApiDocPage(
-          relativePath: path,
-          symbols: symbols,
-          textBlocks: docMap[key],
-        );
-      }).toList();
-      results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
-      return results;
-    } catch (e, st) {
-      _logger.warning('Parsing pub-data.json failed.', e, st);
-    }
-    return null;
+    final results = pathMap.keys.map((key) {
+      final path = pathMap[key];
+      final symbols = symbolMap[key].toList()..sort();
+      return new ApiDocPage(
+        relativePath: path,
+        symbols: symbols,
+        textBlocks: docMap[key],
+      );
+    }).toList();
+    results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
+    return results;
   }
 }
 
