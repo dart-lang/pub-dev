@@ -148,7 +148,7 @@ class JobBackend {
       ..filter('state =', JobState.available)
       ..order('priority')
       ..limit(100);
-    final List<Job> list = await query.run().toList();
+    final list = await query.run().cast<Job>().toList();
 
     bool isApplicable(Job job) {
       if (job == null) return false;
@@ -161,7 +161,7 @@ class JobBackend {
     if (list.isEmpty) return null;
 
     final selectedId = list[_random.nextInt(list.length)].id;
-    return _db.withTransaction((tx) async {
+    final result = await _db.withTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
       final Job selected = items.single;
       if (!isApplicable(selected)) return null;
@@ -173,7 +173,8 @@ class JobBackend {
       tx.queueMutations(inserts: [selected]);
       await tx.commit();
       return selected;
-    }) as Future<Job>;
+    });
+    return result as Job;
   }
 
   Future unlockStaleProcessing(JobService service) async {
@@ -201,7 +202,7 @@ class JobBackend {
       ..filter('service =', service)
       ..filter('state =', JobState.processing)
       ..filter('lockedUntil <', new DateTime.now().toUtc());
-    await for (Job job in query.run()) {
+    await for (Job job in query.run().cast<Job>()) {
       try {
         await _unlock(job);
       } catch (e, st) {
@@ -246,7 +247,7 @@ class JobBackend {
       ..filter('service =', service)
       ..filter('state =', JobState.idle)
       ..filter('lockedUntil <', new DateTime.now().toUtc());
-    await for (Job job in query.run()) {
+    await for (Job job in query.run().cast<Job>()) {
       if (job.runtimeVersion != versions.runtimeVersion) continue;
       try {
         final process = await shouldProcess(
@@ -291,7 +292,7 @@ class JobBackend {
     final _AllStats stats = new _AllStats();
 
     final query = _db.query(Job)..filter('service =', service);
-    await for (Job job in query.run()) {
+    await for (Job job in query.run().cast<Job>()) {
       stats.add(job);
     }
 

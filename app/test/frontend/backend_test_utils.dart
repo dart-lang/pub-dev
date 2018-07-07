@@ -225,7 +225,7 @@ class TarballStorageMock implements TarballStorage {
     if (downloadFun == null) {
       throw new Exception('no downloadFun');
     }
-    return downloadFun(package, version) as Stream<List<int>>;
+    return (downloadFun(package, version) as Stream).cast<List<int>>();
   }
 
   @override
@@ -241,7 +241,7 @@ class TarballStorageMock implements TarballStorage {
     if (readTempObjectFun == null) {
       throw new Exception('no readTempObjectFun');
     }
-    return readTempObjectFun(guid) as Stream<List<int>>;
+    return (readTempObjectFun(guid) as Stream).cast<List<int>>();
   }
 
   @override

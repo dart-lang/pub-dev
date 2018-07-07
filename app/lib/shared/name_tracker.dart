@@ -76,7 +76,7 @@ class NameTrackerUpdater {
     if (_lastTs != null) {
       query.filter('created >', _lastTs);
     }
-    await for (Package p in query.run()) {
+    await for (Package p in query.run().cast<Package>()) {
       nameTracker.add(p.name);
       _lastTs = p.created;
     }

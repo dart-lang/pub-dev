@@ -7,17 +7,16 @@
 part of package_popularity;
 
 // **************************************************************************
-// Generator: JsonSerializableGenerator
+// JsonSerializableGenerator
 // **************************************************************************
 
-PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) =>
-    new PackagePopularity(
-        DateTime.parse(json['date_first'] as String),
-        DateTime.parse(json['date_last'] as String),
-        new Map<String, VoteTotals>.fromIterables(
-            (json['items'] as Map<String, dynamic>).keys,
-            (json['items'] as Map).values.map(
-                (e) => new VoteTotals.fromJson(e as Map<String, dynamic>))));
+PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) {
+  return new PackagePopularity(
+      DateTime.parse(json['date_first'] as String),
+      DateTime.parse(json['date_last'] as String),
+      (json['items'] as Map<String, dynamic>).map((k, e) =>
+          new MapEntry(k, new VoteTotals.fromJson(e as Map<String, dynamic>))));
+}
 
 abstract class _$PackagePopularitySerializerMixin {
   DateTime get dateFirst;
@@ -30,9 +29,11 @@ abstract class _$PackagePopularitySerializerMixin {
       };
 }
 
-VoteTotals _$VoteTotalsFromJson(Map<String, dynamic> json) => new VoteTotals(
-    new VoteData.fromJson(json['flutter'] as Map<String, dynamic>),
-    new VoteData.fromJson(json['notFlutter'] as Map<String, dynamic>));
+VoteTotals _$VoteTotalsFromJson(Map<String, dynamic> json) {
+  return new VoteTotals(
+      new VoteData.fromJson(json['flutter'] as Map<String, dynamic>),
+      new VoteData.fromJson(json['notFlutter'] as Map<String, dynamic>));
+}
 
 abstract class _$VoteTotalsSerializerMixin {
   VoteData get flutter;
@@ -41,10 +42,10 @@ abstract class _$VoteTotalsSerializerMixin {
       <String, dynamic>{'flutter': flutter, 'notFlutter': notFlutter};
 }
 
-VoteData _$VoteDataFromJson(Map<String, dynamic> json) => new VoteData(
-    json['votes_direct'] as int,
-    json['votes_dev'] as int,
-    json['votes_total'] as int);
+VoteData _$VoteDataFromJson(Map<String, dynamic> json) {
+  return new VoteData(json['votes_direct'] as int, json['votes_dev'] as int,
+      json['votes_total'] as int);
+}
 
 abstract class _$VoteDataSerializerMixin {
   int get direct;

@@ -393,8 +393,11 @@ class GCloudPackageRepository extends PackageRepository {
     try {
       _logger.info('Trying to update the `sort_order` field.');
       await db.withTransaction((Transaction T) async {
-        final List<models.PackageVersion> versions =
-            await T.query(models.PackageVersion, packageKey).run().toList();
+        final versions = await T
+            .query(models.PackageVersion, packageKey)
+            .run()
+            .cast<models.PackageVersion>()
+            .toList();
         versions.sort((versionA, versionB) {
           return versionA.semanticVersion.compareTo(versionB.semanticVersion);
         });

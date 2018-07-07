@@ -345,12 +345,12 @@ packages:
     source: hosted
     version: "0.1.1"
   quiver:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.27.0"
+    version: "0.29.0+1"
   quiver_hashcode:
     dependency: transitive
     description:
@@ -513,4 +513,4 @@ packages:
     source: hosted
     version: "2.1.14"
 sdks:
-  dart: ">=2.0.0-dev.62.0 <=2.0.0-dev.63.0"
+  dart: ">=2.0.0-dev.62.0 <=2.0.0-dev.66.0"

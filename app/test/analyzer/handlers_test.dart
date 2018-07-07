@@ -111,10 +111,10 @@ void main() {
 }
 
 class MockAnalysisBackend implements AnalysisBackend {
-  final Map<String, AnalysisData> _map = {};
+  final _map = <String, AnalysisData>{};
 
   MockAnalysisBackend() {
-    storeAnalysis(testAnalysis);
+    _storeAnalysisSync(testAnalysis);
   }
 
   @override
@@ -131,8 +131,7 @@ class MockAnalysisBackend implements AnalysisBackend {
         orElse: () => null);
   }
 
-  @override
-  Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) async {
+  BackendAnalysisStatus _storeAnalysisSync(Analysis analysis) {
     final String key = [
       analysis.packageName,
       analysis.packageVersion,
@@ -150,6 +149,11 @@ class MockAnalysisBackend implements AnalysisBackend {
         maintenanceScore: analysis.maintenanceScore,
         analysisContent: analysis.analysisJson);
     return new BackendAnalysisStatus(false, false, false);
+  }
+
+  @override
+  Future<BackendAnalysisStatus> storeAnalysis(Analysis analysis) async {
+    return _storeAnalysisSync(analysis);
   }
 
   @override
@@ -179,4 +183,4 @@ final Analysis testAnalysis = new Analysis()
   ..flutterVersion = '0.0.11'
   ..timestamp = new DateTime(2017, 06, 26, 12, 48, 00)
   ..maintenanceScore = 0.86
-  ..analysisJson = {'content': 'from-pana'};
+  ..analysisJson = <String, dynamic>{'content': 'from-pana'};

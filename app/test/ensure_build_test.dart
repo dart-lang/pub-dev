@@ -34,8 +34,8 @@ void main() {
     // 2 - run build - should be no output, since nothing should change
     final result = _runProc(
         _pub, ['run', 'build_runner', 'build', '--delete-conflicting-outputs']);
-    expect(
-        result, contains(new RegExp(r'Succeeded after \S+ with \d+ outputs')));
+    expect(result,
+        contains(new RegExp(r'Succeeded after( \S+){1,2} with \d+ outputs')));
 
     // 3 - get a list of modified `.g.dart` files - should still be empty
     expect(_changedGeneratedFiles(), isEmpty);
@@ -47,8 +47,7 @@ final _whitespace = new RegExp(r'\s');
 Set<String> _changedGeneratedFiles() {
   final output = _runProc('git', ['status', '--porcelain']);
 
-  return LineSplitter
-      .split(output)
+  return LineSplitter.split(output)
       .map((line) => line.split(_whitespace).last)
       .where((path) => path.endsWith('.dart'))
       .toSet();
