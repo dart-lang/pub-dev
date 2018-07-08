@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Represents an RGBA color code.
 class Color {
   static const black = const Color(0, 0, 0);
   static const blue = const Color(0, 0, 255);
@@ -44,6 +45,7 @@ class Color {
       : 'rgba($r, $g, $b, ${a.toStringAsFixed(4)})';
 }
 
+/// Represents the selection of colors that will be used to draw a specific shape.
 class Brush {
   final Color background;
   final Color color;
@@ -67,15 +69,26 @@ class Brush {
   }
 }
 
+/// A semi-transparent black for using as a non-intrusive shadow.
 final _blackShadow = Color.black.change(a: 0.5);
+
+/// Color to use when the analysis/score is missing (skipped or not done yet).
 final _scoreBoxMissing = new Color(204, 204, 204);
+
+/// Color to use when the analysis result was top of the range (70+).
 final _scoreBoxSolid = new Color(1, 117, 194);
+
+/// Color to use when the analysis result was in the middle of the range (40-70)
 final _scoreBoxGood = new Color(0, 196, 179);
+
+/// Color to use when the analysis result was in the lower range (0-40)
 final _scoreBoxRotten = new Color(187, 36, 0);
 
+/// The default set of colors to use.
 final _defaultBrush = new Brush(
     background: _scoreBoxMissing, color: Color.white, shadow: _blackShadow);
 
+/// Get the [Brush] that will be used to render the overall score progress bar.
 Brush overallScoreBrush(double score) {
   if (score == null) {
     return _defaultBrush;
@@ -89,6 +102,8 @@ Brush overallScoreBrush(double score) {
   return _defaultBrush.change(background: _scoreBoxSolid);
 }
 
+/// Get the [Brush] that will be used to render the generic score progress bars
+/// (e.g. popularity or health score).
 Brush genericScoreBrush(double score) {
   if (score == null) {
     return _defaultBrush;
