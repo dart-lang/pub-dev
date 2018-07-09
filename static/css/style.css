@@ -1013,14 +1013,16 @@ pre > code {
 }
 
 .score-percent {
-  background: black;
-  color: white;
+  background: #dddddd;
+  color: black;
   display: inline-block;
   padding: 2px 4px;
   margin-left: -12px;
   position: absolute;
   top: -4px;
   font-size: 10pt;
+  min-width: 24px;
+  text-align: center;
 }
 
 .score-percent::after {
@@ -1031,7 +1033,7 @@ pre > code {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: black transparent transparent transparent;
+  border-color: #dddddd transparent transparent transparent;
 }
 
 .score-progress-row {
