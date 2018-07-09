@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
@@ -232,7 +233,17 @@ class AnalysisView {
     return list;
   }
 
-  double get health => _summary?.fitness?.healthScore ?? 0.0;
+  double get health {
+    final oldFitnessScore = _summary?.fitness?.healthScore ?? 0.0;
+    if (_summary?.maintenance == null) {
+      return oldFitnessScore;
+    }
+    final newFitnessScore = 1.0 *
+        math.pow(0.8, _summary.maintenance.errorCount ?? 0) *
+        math.pow(0.95, _summary.maintenance.warningCount ?? 0) *
+        math.pow(0.999, _summary.maintenance.hintCount ?? 0);
+    return math.min(oldFitnessScore, newFitnessScore);
+  }
 
   List<Suggestion> get suggestions {
     final list = <Suggestion>[];
