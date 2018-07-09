@@ -230,6 +230,8 @@ class TemplateService {
         'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
       };
     })?.toList();
+    final hasIssues =
+        analysis.suggestions?.any((s) => s.isError || s.isWarning) ?? false;
 
     List<Map> prepareDependencies(List<PkgDependency> list) {
       if (list == null || list.isEmpty) return const [];
@@ -265,6 +267,7 @@ class TemplateService {
           '<i>unsure</i>',
       'platforms_reason_html': markdownToHtml(analysis.platformsReason, null),
       'hasSuggestions': suggestions != null && suggestions.isNotEmpty,
+      'suggestions_label': hasIssues ? 'Issues and suggestions' : 'Suggestions',
       'suggestions': suggestions,
       'has_dependency': hasDependency,
       'dependencies': {
