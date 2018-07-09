@@ -20,6 +20,7 @@ import '../shared/search_service.dart' show SearchQuery, serializeSearchOrder;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
+import 'color.dart';
 import 'model_properties.dart' show Author;
 import 'models.dart';
 import 'static_files.dart';
@@ -276,10 +277,7 @@ class TemplateService {
         'has_dev': devDeps.isNotEmpty,
         'dev': devDeps,
       },
-      'health': _formatScore(extract?.health),
-      'maintenance': _formatScore(extract?.maintenance),
-      'popularity': _formatScore(extract?.popularity),
-      'score_box_html': _renderScoreBox(analysisStatus, extract?.overallScore),
+      'score_bars': _renderScoreBars(extract),
     };
 
     return _renderTemplate('pkg/analysis_tab', data);
@@ -418,6 +416,34 @@ class TemplateService {
       'icons': staticUrls.versionsTableIcons,
     };
     return values;
+  }
+
+  Map<String, dynamic> _renderScoreBars(AnalysisExtract extract) {
+    String renderScoreBar(double score, Brush brush) {
+      return _renderTemplate('pkg/score_bar', {
+        'percent': _formatScore(score ?? 0.0),
+        'score': _formatScore(score),
+        'background': brush.background.toString(),
+        'color': brush.color.toString(),
+        'shadow': brush.shadow.toString(),
+      });
+    }
+
+    final analysisSkipped = _isAnalysisSkipped(extract?.analysisStatus);
+    final healthScore = extract?.health;
+    final maintenanceScore = extract?.maintenance;
+    final popularityScore = extract?.popularity;
+    final overallScore = analysisSkipped ? null : extract?.overallScore ?? 0.0;
+    return {
+      'health_html':
+          renderScoreBar(healthScore, genericScoreBrush(healthScore)),
+      'maintenance_html':
+          renderScoreBar(maintenanceScore, genericScoreBrush(maintenanceScore)),
+      'popularity_html':
+          renderScoreBar(popularityScore, genericScoreBrush(popularityScore)),
+      'overall_html':
+          renderScoreBar(overallScore, overallScoreBrush(overallScore)),
+    };
   }
 
   String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
@@ -835,10 +861,12 @@ String _getAuthorsHtml(List<String> authors) {
   }).join('<br/>');
 }
 
+bool _isAnalysisSkipped(AnalysisStatus status) =>
+    status == AnalysisStatus.outdated || status == AnalysisStatus.discontinued;
+
 String _renderScoreBox(AnalysisStatus status, double overallScore,
     {bool isNewPackage, String package}) {
-  final skippedAnalysis = status == AnalysisStatus.outdated ||
-      status == AnalysisStatus.discontinued;
+  final skippedAnalysis = _isAnalysisSkipped(status);
   final score = skippedAnalysis ? null : overallScore;
   final String formattedScore = _formatScore(score);
   final String scoreClass = _classifyScore(score);

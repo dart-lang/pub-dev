@@ -1,7 +1,62 @@
 {{! Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
-<h2>Analysis</h2>
+<table id='scores-table'>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base hoverable">
+        <span class="tooltip-dotted">Popularity:</span>
+        <div class="tooltip-content">
+          Describes how popular the package is relative to other packages.
+          <a href="/help#popularity">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value">
+      {{& score_bars.popularity_html}}
+    </td>
+  </tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base hoverable">
+        <span class="tooltip-dotted">Health:</span>
+        <div class="tooltip-content">
+          Code health derived from static analysis.
+          <a href="/help#health">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value">{{& score_bars.health_html}}</td>
+  </tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base hoverable">
+        <span class="tooltip-dotted">Maintenance:</span>
+        <div class="tooltip-content">
+          Reflects how tidy and up-to-date the package is.
+          <a href="/help#maintenance">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td class="score-value">{{& score_bars.maintenance_html}}</td>
+  </tr>
+  <tr>
+    <td class="score-name">
+      <div class="tooltip-base hoverable">
+        <span class="tooltip-dotted"><b>Overall:</b></span>
+        <div class="tooltip-content">
+          Weighted score of the above.
+          <a href="/help#overall-score">[more]</a>
+        </div>
+      </div>
+    </td>
+    <td>{{& score_bars.overall_html }}</td>
+  </tr>
+</table>
+
+<div style="text-align: right; font-size: 10pt;">Learn more about <a href="/help#scoring">scoring</a>.</div>
+
+<hr />
 
 {{#show_discontinued}}
 <p>This package is not analyzed, because it is discontinued.</p>
@@ -23,66 +78,6 @@
   <li>pana: {{pana_version}}</li>
 {{#flutter_version}}<li>Flutter: {{flutter_version}}</li>{{/flutter_version}}
 </ul>
-
-<hr />
-
-<h4>Scores</h4>
-
-<table id='scores-table'>
-  <tr>
-    <td class="score-name">
-      <div class="tooltip-base hoverable">
-        <span class="tooltip-dotted">Popularity:</span>
-        <div class="tooltip-content">
-          Describes how popular the package is relative to other packages.
-          <a href="/help#popularity">[more]</a>
-        </div>
-      </div>
-    </td>
-    <td class="score-value">{{popularity}}</td>
-    <td class="score-range">/ 100</td>
-  </tr>
-  <tr>
-    <td class="score-name">
-      <div class="tooltip-base hoverable">
-        <span class="tooltip-dotted">Health:</span>
-        <div class="tooltip-content">
-          Code health derived from static analysis.
-          <a href="/help#health">[more]</a>
-        </div>
-      </div>
-    </td>
-    <td class="score-value">{{health}}</td>
-    <td class="score-range">/ 100</td>
-  </tr>
-  <tr>
-    <td class="score-name">
-      <div class="tooltip-base hoverable">
-        <span class="tooltip-dotted">Maintenance:</span>
-        <div class="tooltip-content">
-          Reflects how tidy and up-to-date the package is.
-          <a href="/help#maintenance">[more]</a>
-        </div>
-      </div>
-    </td>
-    <td class="score-value">{{maintenance}}</td>
-    <td class="score-range">/ 100</td>
-  </tr>
-  <tr>
-    <td class="score-name">
-      <div class="tooltip-base hoverable">
-        <span class="tooltip-dotted"><b>Overall score:</b></span>
-        <div class="tooltip-content">
-          Weighted score of the above.
-          <a href="/help#overall-score">[more]</a>
-        </div>
-      </div>
-    </td>
-    <td>{{& score_box_html }}</td>
-  </tr>
-</table>
-
-Learn more about <a href="/help#scoring">scoring</a>.
 
 <h4>Platforms</h4>
 
