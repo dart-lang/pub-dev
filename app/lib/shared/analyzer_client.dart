@@ -234,6 +234,11 @@ class AnalysisView {
   }
 
   double get health {
+    if (suggestions.any((s) =>
+        s.code == SuggestionCode.dartfmtAborted ||
+        s.code == SuggestionCode.dartanalyzerAborted)) {
+      return 0.0;
+    }
     final oldFitnessScore = _summary?.fitness?.healthScore ?? 0.0;
     if (_summary?.maintenance == null) {
       return oldFitnessScore;
