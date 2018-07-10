@@ -239,9 +239,9 @@ class AnalysisView {
       return oldFitnessScore;
     }
     final newFitnessScore = 1.0 *
-        math.pow(0.8, _summary.maintenance.errorCount ?? 0) *
+        math.pow(0.75, _summary.maintenance.errorCount ?? 0) *
         math.pow(0.95, _summary.maintenance.warningCount ?? 0) *
-        math.pow(0.999, _summary.maintenance.hintCount ?? 0);
+        math.pow(0.995, _summary.maintenance.hintCount ?? 0);
     return math.min(oldFitnessScore, newFitnessScore);
   }
 
