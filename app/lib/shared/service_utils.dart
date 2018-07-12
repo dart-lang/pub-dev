@@ -224,10 +224,11 @@ void _wrapper(List fnAndMessage) {
 Future initDartdoc(Logger logger) async {
   logger.info('Initializing pkg/pub_dartdoc');
   final dir = Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
-  final pr = await Process.run('pub', ['get'], workingDirectory: dir)
-      .timeout(const Duration(minutes: 1));
+  final pr = await runProc('pub', ['get'],
+      workingDirectory: dir, timeout: const Duration(minutes: 2));
   if (pr.exitCode != 0) {
-    final message = 'Failed to initialize pkg/pub_dartdoc';
+    final message = 'Failed to initialize pkg/pub_dartdoc: exit code: '
+        '${pr.exitCode}\n\nSTDOUT:\n${pr.stdout}\n\nSTDERR:\n${pr.stderr}';
     logger.shout(message);
     throw new Exception(message);
   }
