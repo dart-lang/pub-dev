@@ -372,13 +372,15 @@ SearchQuery _parseSearchQuery(shelf.Request request, String platform) {
   final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
       ? null
       : parseSearchOrder(sortParam);
-
+  final isApiEnabled = request.requestedUri.queryParameters['api'] != '0';
   return new SearchQuery.parse(
-      query: queryText,
-      platform: platform,
-      order: sortOrder,
-      offset: offset,
-      limit: PackageLinks.resultsPerPage);
+    query: queryText,
+    platform: platform,
+    order: sortOrder,
+    offset: offset,
+    limit: PackageLinks.resultsPerPage,
+    apiEnabled: isApiEnabled,
+  );
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers

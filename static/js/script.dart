@@ -20,6 +20,7 @@ void main() {
   _setEventForSearchInput();
   _fixIssueLinks();
   _setEventForSortControl();
+  _setEventForCheckboxChanges();
   _updateDartdocStatus();
 }
 
@@ -253,6 +254,22 @@ void _setEventForSortControl() {
     formElement.submit();
   });
   sortControl.append(select);
+}
+
+void _setEventForCheckboxChanges() {
+  final hiddenApiField =
+      document.getElementById('search-api-field') as InputElement;
+  final visibleApiCheckbox =
+      document.getElementById('search-api-checkbox') as CheckboxInputElement;
+  if (hiddenApiField == null || visibleApiCheckbox == null) {
+    return;
+  }
+  final formElement = hiddenApiField.form;
+  visibleApiCheckbox.onChange.listen((_) {
+    hiddenApiField.disabled = visibleApiCheckbox.checked;
+    // TODO: instead of submitting, compose the URL here (also removing the single `?`)
+    formElement.submit();
+  });
 }
 
 void _fixIssueLinks() {
