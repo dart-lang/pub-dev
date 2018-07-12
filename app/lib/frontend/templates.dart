@@ -723,6 +723,7 @@ class TemplateService {
       'search_query_placeholder': 'Search ${platformDict.name} packages',
       'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
+      'api_search_enabled': searchQuery?.isApiEnabled ?? true,
       'landing_blurb_html': platformDict.landingBlurb,
       // This is not escaped as it is already escaped by the caller.
       'content_html': contentHtml,

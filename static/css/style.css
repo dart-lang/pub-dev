@@ -1209,4 +1209,21 @@ pre > code {
           transform: scale(1.02)
 }
 
+.search-bar-details {
+  position: relative;
+  max-width: 550px;
+}
+
+.search-bar-options {
+  font-size: 14px;
+}
+
+@media (min-width: 600px) {
+  .search-bar-options {
+    position: absolute;
+    top: 16px;
+    right: 0px;
+  }
+}
+
 /*# sourceMappingURL=style.css.map */

@@ -207,6 +207,7 @@ class SearchQuery {
   final int offset;
   final int limit;
   final bool isAd;
+  final bool isApiEnabled;
 
   SearchQuery._({
     this.query,
@@ -215,6 +216,7 @@ class SearchQuery {
     this.offset,
     this.limit,
     this.isAd,
+    this.isApiEnabled,
   })  : parsedQuery = new ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform;
 
@@ -225,6 +227,7 @@ class SearchQuery {
     int offset: 0,
     int limit: 10,
     bool isAd,
+    bool apiEnabled,
   }) {
     final String q =
         query != null && query.trim().isNotEmpty ? query.trim() : null;
@@ -235,6 +238,7 @@ class SearchQuery {
       offset: offset,
       limit: limit,
       isAd: isAd ?? false,
+      isApiEnabled: apiEnabled ?? true,
     );
   }
 
@@ -252,6 +256,7 @@ class SearchQuery {
     limit = max(_minSearchLimit, limit);
 
     final isAd = (uri.queryParameters['ad'] ?? '0') == '1';
+    final apiEnabled = uri.queryParameters['api'] != '0';
 
     return new SearchQuery.parse(
       query: q,
@@ -260,6 +265,7 @@ class SearchQuery {
       offset: offset,
       limit: limit,
       isAd: isAd,
+      apiEnabled: apiEnabled,
     );
   }
 
@@ -270,6 +276,7 @@ class SearchQuery {
     int offset,
     int limit,
     bool isAd,
+    bool apiEnabled,
   }) {
     return new SearchQuery._(
       query: query ?? this.query,
@@ -278,6 +285,7 @@ class SearchQuery {
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
       isAd: isAd ?? this.isAd,
+      isApiEnabled: apiEnabled ?? this.isApiEnabled,
     );
   }
 
@@ -289,13 +297,9 @@ class SearchQuery {
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
       'ad': isAd ? '1' : null,
+      'api': isApiEnabled ? null : '0',
     };
-
-    for (var key in map.keys.toList()) {
-      if (map[key] == null) {
-        map.remove(key);
-      }
-    }
+    map.removeWhere((k, v) => v == null);
     return map;
   }
 
@@ -328,6 +332,9 @@ class SearchQuery {
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
+    }
+    if (!isApiEnabled) {
+      params['api'] = '0';
     }
     if (page != null) {
       params['page'] = page.toString();

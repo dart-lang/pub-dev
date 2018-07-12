@@ -67,12 +67,18 @@
         <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus>
         <button class="icon"></button>
         
+        <input id="search-api-field" type="hidden" name="api" value="0" disabled="disabled" />
       </form>
-      <div class="list-filters">
+      <div class="search-bar-details">
+        <div class="list-filters">
     <a class="filter " href="/flutter/packages">Flutter</a>
     <a class="filter " href="/web/packages">Web</a>
     <a class="filter -active" href="/packages">All</a>
 </div>
+        <div class="search-bar-options">
+            <input id="search-api-checkbox" type="checkbox" name="api" checked="checked" /> Include API results
+        </div>
+      </div>
     </main>
   </div>
 

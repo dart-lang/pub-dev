@@ -184,8 +184,11 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // do text matching
-    final textResults = _searchText(packages, query.parsedQuery.text,
-        _apiSearchEnabled || query.parsedQuery.isApiEnabled);
+    final isApiEnabled = query.isApiEnabled ||
+        _apiSearchEnabled ||
+        query.parsedQuery.isApiEnabled;
+    final textResults =
+        _searchText(packages, query.parsedQuery.text, isApiEnabled);
 
     // filter packages that doesn't match text query
     if (textResults != null) {
