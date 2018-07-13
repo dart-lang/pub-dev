@@ -38,7 +38,7 @@ Future main() async {
   );
 }
 
-void _frontendMain(FrontendEntryMessage message) {
+Future _frontendMain(FrontendEntryMessage message) async {
   setupServiceIsolate();
 
   final statsConsumer = new ReceivePort();
@@ -47,18 +47,18 @@ void _frontendMain(FrontendEntryMessage message) {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     _registerServices();
     await runHandler(logger, analyzerServiceHandler);
   });
 }
 
-void _workerMain(WorkerEntryMessage message) {
+Future _workerMain(WorkerEntryMessage message) async {
   setupServiceIsolate();
 
   message.protocolSendPort.send(new WorkerProtocolMessage());
 
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     _registerServices();
     final jobProcessor = new AnalyzerJobProcessor();
     final jobMaintenance = new JobMaintenance(db.dbService, jobProcessor);

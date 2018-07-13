@@ -41,7 +41,7 @@ Future main() async {
   );
 }
 
-void _frontendMain(FrontendEntryMessage message) {
+Future _frontendMain(FrontendEntryMessage message) async {
   setupServiceIsolate();
 
   final statsConsumer = new ReceivePort();
@@ -50,18 +50,18 @@ void _frontendMain(FrontendEntryMessage message) {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     await _registerServices();
     await runHandler(logger, dartdocServiceHandler);
   });
 }
 
-void _workerMain(WorkerEntryMessage message) {
+Future _workerMain(WorkerEntryMessage message) async {
   setupServiceIsolate();
 
   message.protocolSendPort.send(new WorkerProtocolMessage());
 
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     await _registerServices();
 
     final jobProcessor =
