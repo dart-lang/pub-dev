@@ -620,6 +620,10 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
     return jsonResponse({}, status: 404);
   }
   final String package = parts[2];
+  if (redirectDartdocPages.containsKey(package)) {
+    return jsonResponse({}, status: 404);
+  }
+
   final versions = await backend.versionsOfPackage(package);
   if (versions.isEmpty) {
     return jsonResponse({}, status: 404);
