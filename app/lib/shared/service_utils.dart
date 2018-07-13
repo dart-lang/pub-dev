@@ -52,9 +52,9 @@ class WorkerProtocolMessage {}
 
 Future startIsolates({
   @required Logger logger,
-  void frontendEntryPoint(FrontendEntryMessage message),
+  Future frontendEntryPoint(FrontendEntryMessage message),
   Future workerSetup(),
-  void workerEntryPoint(WorkerEntryMessage message),
+  Future workerEntryPoint(WorkerEntryMessage message),
 }) async {
   useLoggingPackageAdaptor();
   int frontendStarted = 0;
@@ -216,9 +216,17 @@ Future initFlutterSdk(Logger logger) async {
 }
 
 void _wrapper(List fnAndMessage) {
-  final fn = fnAndMessage[0];
+  final Function fn = fnAndMessage[0];
   final message = fnAndMessage[1];
-  Chain.capture(() => fn(message));
+  final logger = new Logger('isolate.wrapper');
+  Chain.capture(() async {
+    try {
+      return await fn(message);
+    } catch (e, st) {
+      logger.severe('Uncaught exception in isolate.', e, st);
+      rethrow;
+    }
+  });
 }
 
 Future initDartdoc(Logger logger) async {

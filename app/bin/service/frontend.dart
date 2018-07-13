@@ -49,7 +49,7 @@ Future _main(FrontendEntryMessage message) async {
       .send(new FrontendProtocolMessage(statsConsumerPort: null));
 
   await updateLocalBuiltFiles();
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
     final shelf.Handler frontendHandler =
         (shelf.Request request) => appHandler(request, apiHandler);

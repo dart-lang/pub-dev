@@ -35,7 +35,7 @@ Future main() async {
   await startIsolates(logger: _logger, frontendEntryPoint: _main);
 }
 
-void _main(FrontendEntryMessage message) {
+Future _main(FrontendEntryMessage message) async {
   setupServiceIsolate();
 
   final statsConsumer = new ReceivePort();
@@ -44,7 +44,7 @@ void _main(FrontendEntryMessage message) {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  withAppEngineServices(() async {
+  await withAppEngineServices(() async {
     final Bucket popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
