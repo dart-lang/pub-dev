@@ -107,7 +107,7 @@ class StaticUrls {
   Map<String, String> _assets;
 
   StaticUrls()
-      : smallDartFavicon = '$_defaultStaticPath/favicon.ico',
+      : smallDartFavicon = '/favicon.ico',
         dartLogoSvg = '$_defaultStaticPath/img/dart-logo.svg',
         flutterLogo32x32 = '$_defaultStaticPath/img/flutter-logo-32x32.png',
         documentationIcon =
