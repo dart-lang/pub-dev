@@ -6,10 +6,14 @@ library pub_dartlang_org.oauth2_service;
 
 import 'dart:async';
 
+import 'package:logging/logging.dart';
+
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
+
+final _logger = new Logger('frontend.oauth2');
 
 /// Register a new [OAuth2Service] object.
 OAuth2Service get oauth2Service => ss.lookup(#_oauth2_service) as OAuth2Service;
@@ -36,9 +40,14 @@ class OAuth2Service {
     try {
       final api = new oauth2_v2.Oauth2Api(authClient);
       info = await api.userinfo.get();
+      return info.email;
+    } on AccessDeniedException catch (e, st) {
+      _logger.log(Level.INFO, 'Access denied for OAuth2 bearer token.', e, st);
+    } catch (e, st) {
+      _logger.warning('OAth2 bearer token lookup failed.', e, st);
     } finally {
       authClient.close();
     }
-    return info.email;
+    return null;
   }
 }
