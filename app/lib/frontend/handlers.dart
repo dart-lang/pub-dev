@@ -35,6 +35,8 @@ final _pubHeaderLogger = new Logger('pub.header_logger');
 
 // Non-revealing metrics to monitor the search service behavior from outside.
 final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
+final _packagePreRenderLatencyTracker = new LastNTracker<Duration>();
+final _packageDoneLatencyTracker = new LastNTracker<Duration>();
 final _packageOverallLatencyTracker = new LastNTracker<Duration>();
 final _searchOverallLatencyTracker = new LastNTracker<Duration>();
 
@@ -124,6 +126,8 @@ shelf.Response _debugHandler(shelf.Request request) {
   return debugResponse({
     'package': {
       'analysis_latency': toShortStat(_packageAnalysisLatencyTracker),
+      'pre_render_latency': toShortStat(_packagePreRenderLatencyTracker),
+      'done_latency': toShortStat(_packageDoneLatencyTracker),
       'overall_latency': toShortStat(_packageOverallLatencyTracker),
     },
     'search': {
@@ -350,18 +354,21 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
   final searchQuery = _parseSearchQuery(request, platform);
+  final sw = new Stopwatch()..start();
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
 
   final links = new PackageLinks(searchQuery.offset, totalCount,
       searchQuery: searchQuery);
-  return htmlResponse(templateService.renderPkgIndexPage(
+  final result = htmlResponse(templateService.renderPkgIndexPage(
     searchResult.packages,
     links,
     platform,
     searchQuery: searchQuery,
     totalCount: totalCount,
   ));
+  _searchOverallLatencyTracker.add(sw.elapsed);
+  return result;
 }
 
 SearchQuery _parseSearchQuery(shelf.Request request, String platform) {
@@ -510,6 +517,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         await Future.wait(first10Versions.map((PackageVersion version) {
       return backend.downloadUrl(packageName, version.version);
     }).toList());
+    _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
 
     cachedPage = templateService.renderPkgShowPage(
         package,
@@ -522,6 +530,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         versions.length,
         analysisExtract,
         analysisView);
+    _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
     if (isProd && backend.uiPackageCache != null) {
       await backend.uiPackageCache
