@@ -99,6 +99,7 @@ Future startIsolates({
     }
 
     errorSubscription = errorReceivePort.listen((e) async {
+      print('ERROR from frontend isolate #$frontendIndex: $e');
       logger.severe('ERROR from frontend isolate #$frontendIndex', e);
       await close();
       // restart isolate after a brief pause
@@ -150,6 +151,7 @@ Future startIsolates({
     }
 
     errorSubscription = errorReceivePort.listen((e) async {
+      print('ERROR from worker isolate #$workerIndex: $e');
       logger.severe('ERROR from worker isolate #$workerIndex', e);
       await close();
       // restart isolate after a brief pause
@@ -158,26 +160,26 @@ Future startIsolates({
     });
   }
 
-  await withAppEngineServices(() async {
-    if (frontendEntryPoint != null) {
-      for (int i = 0; i < envConfig.frontendCount; i++) {
-        await startFrontendIsolate();
-      }
-    }
-    if (workerEntryPoint != null) {
-      if (workerSetup != null) {
-        try {
-          await workerSetup();
-        } catch (e, st) {
-          logger.severe('Failed to setup worker.', e, st);
-          rethrow;
+  try {
+    await withAppEngineServices(() async {
+      if (frontendEntryPoint != null) {
+        for (int i = 0; i < envConfig.frontendCount; i++) {
+          await startFrontendIsolate();
         }
       }
-      for (int i = 0; i < envConfig.workerCount; i++) {
-        await startWorkerIsolate();
+      if (workerEntryPoint != null) {
+        if (workerSetup != null) {
+          await workerSetup();
+        }
+        for (int i = 0; i < envConfig.workerCount; i++) {
+          await startWorkerIsolate();
+        }
       }
-    }
-  });
+    });
+  } catch (e, st) {
+    logger.shout('Failed to start server.', e, st);
+    rethrow;
+  }
 }
 
 void setupServiceIsolate() {
