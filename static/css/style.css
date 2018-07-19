@@ -427,6 +427,13 @@ pre > code {
   font-weight: 400;
 }
 
+.site-footer > .link > .inline-icon {
+  display: inline-block;
+  max-height: 16px;
+  position: relative;
+  top: 3px;
+}
+
 /******************************************************
   package list
 ******************************************************/
