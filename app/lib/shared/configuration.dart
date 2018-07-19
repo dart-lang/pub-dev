@@ -91,6 +91,7 @@ class EnvConfig {
   final String gaeService;
   final String gcloudKey;
   final String gcloudProject;
+  final String toolEnvDartSdkDir;
   final String flutterSdkDir;
   final int frontendCount;
   final int workerCount;
@@ -99,6 +100,7 @@ class EnvConfig {
     this.gaeService,
     this.gcloudProject,
     this.gcloudKey,
+    this.toolEnvDartSdkDir,
     this.flutterSdkDir,
     this.frontendCount,
     this.workerCount,
@@ -117,6 +119,7 @@ class EnvConfig {
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
+      Platform.environment['TOOL_ENV_DART_SDK'],
       Platform.environment['FLUTTER_SDK'],
       frontendCount,
       workerCount,

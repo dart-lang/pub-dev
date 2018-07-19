@@ -63,8 +63,9 @@ class DartdocJobProcessor extends JobProcessor {
     await new Directory(outputDir).create(recursive: true);
 
     final toolEnv = await ToolEnvironment.create(
-      pubCacheDir: pubCacheDir,
+      dartSdkDir: envConfig.toolEnvDartSdkDir,
       flutterSdkDir: envConfig.flutterSdkDir,
+      pubCacheDir: pubCacheDir,
     );
 
     final latestVersion =

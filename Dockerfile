@@ -32,6 +32,11 @@ RUN pub get --offline --no-precompile
 ENV GAE_MEMCACHE_HOST 35.190.255.1
 ENV GAE_MEMCACHE_PORT 11211
 
+RUN cd / && \
+    curl -sS https://storage.googleapis.com/dart-archive/channels/dev/release/2.0.0-dev.69.0/sdk/dartsdk-linux-x64-release.zip >/dartsdk.zip && \
+    unzip -q /dartsdk.zip && \
+    rm -f /dartsdk.zip
+
 # Clear out any arguments the base images might have set and ensure we start
 # memcached and wait for it to come up before running the Dart app.
 CMD []
