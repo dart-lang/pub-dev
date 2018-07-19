@@ -346,7 +346,7 @@ class AnalysisBackend {
 
     if (obsoleteKeys.isNotEmpty) {
       _logger.info('Deleting Analysis entries for $package $version: '
-          '${obsoleteKeys.map((k)=> k.id).join(',')}');
+          '${obsoleteKeys.map((k) => k.id).join(',')}');
       await db.commit(deletes: obsoleteKeys);
     }
   }
