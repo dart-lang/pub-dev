@@ -1,5 +1,5 @@
 # Keep version in-sync with .travis.yml, .mono_repo.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.0.0-dev.66.0
+FROM google/dart-runtime-base:2.0.0-dev.69.0
 
 # `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
 #   We want to make sure SDK upgrades are explicit.
@@ -31,8 +31,6 @@ RUN pub get --offline --no-precompile
 # Temporarily hard-code GAE memcache address (b/79106376).
 ENV GAE_MEMCACHE_HOST 35.190.255.1
 ENV GAE_MEMCACHE_PORT 11211
-
-ENV DART_VM_OPTIONS --no-preview-dart-2
 
 # Clear out any arguments the base images might have set and ensure we start
 # memcached and wait for it to come up before running the Dart app.
