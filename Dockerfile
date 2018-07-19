@@ -32,8 +32,6 @@ RUN pub get --offline --no-precompile
 ENV GAE_MEMCACHE_HOST 35.190.255.1
 ENV GAE_MEMCACHE_PORT 11211
 
-ENV DART_VM_OPTIONS --no-preview-dart-2
-
 # Clear out any arguments the base images might have set and ensure we start
 # memcached and wait for it to come up before running the Dart app.
 CMD []
