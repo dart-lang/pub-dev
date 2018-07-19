@@ -691,8 +691,10 @@ void main() {
           registerLoggedInUser('hans@juergen.com');
           final Future result = repo.finishAsyncUpload(redirectUri);
           await result.catchError(expectAsync2((error, _) {
-            expect(error, contains('Exceeded ${UploadSignerService
-                        .maxUploadSize} upload size'));
+            expect(
+                error,
+                contains(
+                    'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
         }, timeout: new Timeout.factor(2));
 
@@ -860,8 +862,10 @@ void main() {
           final Future result =
               repo.upload(new Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
-            expect(error, contains('Exceeded ${UploadSignerService
-                        .maxUploadSize} upload size'));
+            expect(
+                error,
+                contains(
+                    'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
         }, timeout: new Timeout.factor(2));
 
