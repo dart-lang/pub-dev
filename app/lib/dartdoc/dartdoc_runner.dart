@@ -259,7 +259,7 @@ class DartdocJobProcessor extends JobProcessor {
       isObsolete: isObsolete,
       usesFlutter: usesFlutter,
       runtimeVersion: versions.runtimeVersion,
-      sdkVersion: versions.sdkVersion,
+      sdkVersion: versions.toolEnvSdkVersion,
       dartdocVersion: versions.dartdocVersion,
       flutterVersion: versions.flutterVersion,
       customizationVersion: versions.customizationVersion,
