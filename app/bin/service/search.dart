@@ -89,6 +89,6 @@ Future _main(FrontendEntryMessage message) async {
       ],
     );
     scheduler.run();
-    await runHandler(_logger, searchServiceHandler, shared: true);
+    await runHandler(_logger, searchServiceHandler);
   });
 }
