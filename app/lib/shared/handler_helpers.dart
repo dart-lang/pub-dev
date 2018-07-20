@@ -20,7 +20,7 @@ import 'markdown.dart';
 import 'utils.dart' show fileAnIssueContent;
 
 Future runHandler(Logger logger, shelf.Handler handler,
-    {bool sanitize: false, bool shared: false}) {
+    {bool sanitize: false}) {
   registerTemplateService(new TemplateService(templateDirectory: templatePath));
 
   handler = _userAuthParsingWrapper(handler);
@@ -30,7 +30,7 @@ Future runHandler(Logger logger, shelf.Handler handler,
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   return runAppEngine((HttpRequest request) => _handleRequest(request, handler),
-      shared: shared ?? false);
+      shared: true);
 }
 
 Future _handleRequest(HttpRequest request, shelf.Handler handler) =>
