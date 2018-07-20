@@ -14,23 +14,30 @@ void main() {
   test('do not forget to update runtimeVersion when any version changes', () {
     final hash = [
       runtimeVersion,
-      sdkVersion,
+      runtimeSdkVersion,
+      toolEnvSdkVersion,
       flutterVersion,
       panaVersion,
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 812421699);
+    expect(hash, 783366632);
   });
 
-  test('sdk version should match travis and dockerfile', () async {
+  test('runtime sdk version should match travis and dockerfile', () async {
     final String docker = await new File('../Dockerfile').readAsString();
-    expect(docker.contains('\nFROM google/dart-runtime-base:$sdkVersion\n'),
+    expect(
+        docker.contains('\nFROM google/dart-runtime-base:$runtimeSdkVersion\n'),
         isTrue);
     final String rootTravis = await new File('.mono_repo.yml').readAsString();
-    expect(rootTravis.contains('\n  - $sdkVersion\n'), isTrue);
+    expect(rootTravis.contains('\n  - $runtimeSdkVersion\n'), isTrue);
     final String appTravis = await new File('.mono_repo.yml').readAsString();
-    expect(appTravis.contains('\n  - $sdkVersion\n'), isTrue);
+    expect(appTravis.contains('\n  - $runtimeSdkVersion\n'), isTrue);
+  });
+
+  test('tool-env sdk version should match dockerfile', () async {
+    final String docker = await new File('../Dockerfile').readAsString();
+    expect(docker.contains('release/2.0.0-dev.69.0/sdk'), isTrue);
   });
 
   test('analyzer version should match resolved pana version', () async {

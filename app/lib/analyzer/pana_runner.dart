@@ -79,6 +79,7 @@ class AnalyzerJobProcessor extends JobProcessor {
         final pubCacheDir = p.join(tempDirPath, 'pub-cache');
         await new Directory(pubCacheDir).create();
         final toolEnv = await ToolEnvironment.create(
+          dartSdkDir: envConfig.toolEnvDartSdkDir,
           flutterSdkDir: envConfig.flutterSdkDir,
           pubCacheDir: pubCacheDir,
         );

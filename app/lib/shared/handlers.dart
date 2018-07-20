@@ -78,7 +78,8 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
     },
     'versions': {
       'runtime': runtimeVersion,
-      'sdk': sdkVersion,
+      'runtime-sdk': runtimeSdkVersion,
+      'tool-env-sdk': toolEnvSdkVersion,
       'pana': panaVersion,
       'flutter': flutterVersion,
       'dartdoc': dartdocVersion,

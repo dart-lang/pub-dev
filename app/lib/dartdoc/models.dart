@@ -117,7 +117,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
       if (hasContent &&
           !usesFlutter &&
           flutterVersion != versions.flutterVersion &&
-          sdkVersion == versions.sdkVersion &&
+          sdkVersion == versions.toolEnvSdkVersion &&
           dartdocVersion == versions.dartdocVersion &&
           customizationVersion == versions.customizationVersion) {
         return new TaskTargetStatus.skip(

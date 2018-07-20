@@ -15,12 +15,15 @@ class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
   static final String popularityFileName = 'v$version/popularity.json.gz';
 
   @JsonKey(name: 'date_first', nullable: false)
+  @override
   final DateTime dateFirst;
 
   @JsonKey(name: 'date_last', nullable: false)
+  @override
   final DateTime dateLast;
 
   @JsonKey(nullable: false)
+  @override
   final Map<String, VoteTotals> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
@@ -34,16 +37,22 @@ class VoteTotals extends Object
     with _$VoteTotalsSerializerMixin
     implements VoteData {
   @JsonKey(nullable: false)
+  @override
   final VoteData flutter;
   @JsonKey(nullable: false)
+  @override
   final VoteData notFlutter;
 
+  @override
   int get direct => flutter.direct + notFlutter.direct;
 
+  @override
   int get dev => flutter.dev + notFlutter.dev;
 
+  @override
   int get total => flutter.total + notFlutter.total;
 
+  @override
   int get score => VoteData._score(this);
 
   VoteTotals(this.flutter, this.notFlutter);
@@ -55,12 +64,15 @@ class VoteTotals extends Object
 @JsonSerializable()
 class VoteData extends Object with _$VoteDataSerializerMixin {
   @JsonKey(name: 'votes_direct', nullable: false)
+  @override
   final int direct;
 
   @JsonKey(name: 'votes_dev', nullable: false)
+  @override
   final int dev;
 
   @JsonKey(name: 'votes_total', nullable: false)
+  @override
   final int total;
 
   int get score => _score(this);

@@ -29,8 +29,7 @@ void main() {
       (<String, List<Package>>{
         'one package': [testPackage],
         'empty': [],
-      })
-          .forEach((String testName, List<Package> expectedPackages) {
+      }).forEach((String testName, List<Package> expectedPackages) {
         test(testName, () async {
           final completion = new TestDelayCompletion();
           Stream<Package> queryRunFun(
@@ -135,8 +134,7 @@ void main() {
       (<String, List<Package>>{
         'exists': [testPackage],
         'does not exist': [null],
-      })
-          .forEach((String testName, List<Package> expectedPackages) {
+      }).forEach((String testName, List<Package> expectedPackages) {
         test(testName, () async {
           List<Package> lookupFun(List<Key> keys) {
             expect(keys, hasLength(1));
@@ -158,8 +156,7 @@ void main() {
       (<String, List<PackageVersion>>{
         'exists': [testPackageVersion],
         'does not exist': [null],
-      })
-          .forEach((String testName, List<PackageVersion> expectedVersions) {
+      }).forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
           List<PackageVersion> lookupFun(List<Key> keys) {
             expect(keys, hasLength(1));
@@ -181,8 +178,7 @@ void main() {
       (<String, List<PackageVersion>>{
         'one version': [testPackageVersion],
         'empty': [null],
-      })
-          .forEach((String testName, List<PackageVersion> expectedVersions) {
+      }).forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
           List<PackageVersion> lookupFun(List<Key> keys) {
             expect(keys, hasLength(1));
@@ -204,8 +200,7 @@ void main() {
       (<String, List<PackageVersion>>{
         'one version': [testPackageVersion],
         'empty': [null],
-      })
-          .forEach((String testName, List<PackageVersion> expectedVersions) {
+      }).forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
           final completion = new TestDelayCompletion();
           Stream<PackageVersion> queryRunFun(
