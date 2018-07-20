@@ -47,7 +47,8 @@ final _whitespace = new RegExp(r'\s');
 Set<String> _changedGeneratedFiles() {
   final output = _runProc('git', ['status', '--porcelain']);
 
-  return LineSplitter.split(output)
+  return LineSplitter
+      .split(output)
       .map((line) => line.split(_whitespace).last)
       .where((path) => path.endsWith('.dart'))
       .toSet();
