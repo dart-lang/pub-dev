@@ -143,7 +143,7 @@ void _changeTabOnUrlHash() {
 }
 
 void _changeTab(String name) {
-  if (tabRoot.querySelector('[data-name=' + name + ']') != null) {
+  if (tabRoot.querySelector('[data-name="$name"]') != null) {
     // toggle tab highlights
     tabRoot.children.forEach((node) {
       if (node.dataset['name'] != name) {
