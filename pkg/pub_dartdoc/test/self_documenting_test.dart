@@ -90,6 +90,7 @@ main() {
         'static-assets/favicon.png',
         'static-assets/github.css',
         'static-assets/highlight.pack.js',
+        'static-assets/play_button.svg',
         'static-assets/readme.md',
         'static-assets/script.js',
         'static-assets/sdk_footer_text.html',
