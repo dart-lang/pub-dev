@@ -220,11 +220,15 @@ void _setEventForHashChange() {
 
 Future _scrollTo(Element elem) async {
   final int stepCount = 30;
-  final int offsetTop = elem.offsetTop - 24;
-  final int scrollY = window.scrollY;
-  final int diff = offsetTop - scrollY;
   for (int i = 0; i < stepCount; i++) {
     await window.animationFrame;
+    final int offsetTop = elem.offsetTop - 12;
+    final int scrollY = window.scrollY;
+    final int diff = offsetTop - scrollY;
+    // Stop early if the browser already jumped to it.
+    if (i == 0 && diff <= 12) {
+      break;
+    }
     window.scrollTo(window.scrollX, scrollY + diff * (i + 1) ~/ stepCount);
   }
 }
