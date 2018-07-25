@@ -142,6 +142,18 @@ void _changeTabOnUrlHash() {
   }
 }
 
+String _getTabName(Element elem) {
+  final isTabContainer =
+      elem.classes.contains('tab') || elem.classes.contains('content');
+  if (isTabContainer && elem.dataset['name'] != null) {
+    return elem.dataset['name'];
+  }
+  if (elem.parent == null) {
+    return null;
+  }
+  return _getTabName(elem.parent);
+}
+
 void _changeTab(String name) {
   final tabOrContentElem =
       tabRoot.querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
@@ -165,19 +177,45 @@ void _changeTab(String name) {
   }
 }
 
+void _scrollToHash() {
+  final String hash = window.location.hash ?? '';
+  if (hash.isNotEmpty) {
+    final id = hash.startsWith('#') ? hash.substring(1) : hash;
+    final list =
+        document.querySelectorAll('[id="${Uri.encodeQueryComponent(id)}"]');
+    if (list.isEmpty) {
+      return;
+    }
+    // if there is an element on the current tab, scroll to it
+    final firstVisible =
+        list.firstWhere((e) => e.offsetHeight > 0, orElse: () => null);
+    if (firstVisible != null) {
+      _scrollTo(firstVisible);
+      return;
+    }
+    // switch to the first tab that has the element
+    for (Element elem in list) {
+      final tabName = _getTabName(elem);
+      if (tabName != null) {
+        _changeTab(tabName);
+        _scrollTo(elem);
+        return;
+      }
+    }
+    // fallback, should not happen
+    _scrollTo(list.first);
+  }
+}
+
 void _setEventForHashChange() {
   window.onHashChange.listen((_) {
     _changeTabOnUrlHash();
     _fixIssueLinks();
+    _scrollToHash();
   });
   _changeTabOnUrlHash();
-  final String hash = window.location.hash;
-  if (hash.isNotEmpty) {
-    Element elem = document.querySelector(hash);
-    if (elem != null) {
-      _scrollTo(elem);
-    }
-  }
+  _fixIssueLinks();
+  _scrollToHash();
 }
 
 Future _scrollTo(Element elem) async {
