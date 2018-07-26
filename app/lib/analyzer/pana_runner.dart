@@ -23,6 +23,8 @@ import 'models.dart';
 final Logger _logger = new Logger('pub.analyzer.pana');
 
 class AnalyzerJobProcessor extends JobProcessor {
+  final _urlChecker = new UrlChecker();
+
   AnalyzerJobProcessor({Duration lockDuration})
       : super(service: JobService.analyzer, lockDuration: lockDuration);
 
@@ -83,7 +85,8 @@ class AnalyzerJobProcessor extends JobProcessor {
           flutterSdkDir: envConfig.flutterSdkDir,
           pubCacheDir: pubCacheDir,
         );
-        final PackageAnalyzer analyzer = new PackageAnalyzer(toolEnv);
+        final PackageAnalyzer analyzer =
+            new PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
         return await analyzer.inspectPackage(
           job.packageName,
           version: job.packageVersion,
