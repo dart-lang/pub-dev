@@ -430,6 +430,29 @@ void main() {
         }));
       });
 
+      scopedTest('cannot remove self', () async {
+        final transactionMock = new TransactionMock(
+            lookupFun: expectAsync1((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            rollbackFun: expectAsync0(() {}));
+        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = new TarballStorageMock();
+        final repo = new GCloudPackageRepository(db, tarballStorage);
+
+        final pkg = testPackage.name;
+        testPackage.uploaderEmails = ['foo1@bar.com', 'foo2@bar.com'];
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        await repo
+            .removeUploader(pkg, 'foo1@bar.com')
+            .catchError(expectAsync2((e, _) {
+          expect('$e',
+              'Exception: Self-removal is not allowed. Use another account to remove this e-mail address.');
+        }));
+      });
+
       scopedTest('successful', () async {
         final historyBackendMock = new HistoryBackendMock();
         registerHistoryBackend(historyBackendMock);

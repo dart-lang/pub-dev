@@ -515,6 +515,15 @@ class GCloudPackageRepository extends PackageRepository {
           throw new LastUploaderRemoveException();
         }
 
+        // At the moment we don't validate whether the other e-mail addresses
+        // are able to authenticate. To prevent accidentally losing the control
+        // of a package, we don't allow self-removal.
+        if (userEmail == uploaderEmail) {
+          await T.rollback();
+          throw new Exception('Self-removal is not allowed. '
+              'Use another account to remove this e-mail address.');
+        }
+
         T.queueMutations(inserts: [package]);
         await T.commit();
         if (cache != null) {
