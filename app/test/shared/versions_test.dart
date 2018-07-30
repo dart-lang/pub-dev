@@ -21,7 +21,7 @@ void main() {
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 267915453);
+    expect(hash, 442845360);
   });
 
   test('runtime sdk version should match travis and dockerfile', () async {
@@ -37,7 +37,7 @@ void main() {
 
   test('tool-env sdk version should match dockerfile', () async {
     final String docker = await new File('../Dockerfile').readAsString();
-    expect(docker.contains('release/2.0.0-dev.69.0/sdk'), isTrue);
+    expect(docker.contains('release/$toolEnvSdkVersion/sdk'), isTrue);
   });
 
   test('analyzer version should match resolved pana version', () async {
