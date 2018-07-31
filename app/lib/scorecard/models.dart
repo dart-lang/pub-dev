@@ -23,6 +23,11 @@ db.Key _pvKey(String packageName, String packageVersion) {
 
 final _gzipCodec = new GZipCodec();
 
+abstract class PackageFlags {
+  static const String doNotAdvertise = 'do-not-adverise';
+  static const String isDiscontinued = 'discontinued';
+}
+
 /// Summary of various reports for a given PackageVersion.
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
 class ScoreCard extends db.ExpandoModel {
@@ -41,18 +46,6 @@ class ScoreCard extends db.ExpandoModel {
   @db.DateTimeProperty(required: true)
   DateTime packageVersionCreated;
 
-  /// Whether the package has its discontinued flag set.
-  @db.BoolProperty()
-  bool isDiscontinued;
-
-  /// The platform tags (flutter, web, other) set by `pana` analysis.
-  @CompatibleStringListProperty()
-  List<String> panaPlatformTags;
-
-  /// Score for documentation coverage (0.0 - 1.0).
-  @db.DoubleProperty()
-  double documentationScore;
-
   /// Score for code health (0.0 - 1.0).
   @db.DoubleProperty()
   double healthScore;
@@ -64,6 +57,14 @@ class ScoreCard extends db.ExpandoModel {
   /// Score for package popularity (0.0 - 1.0).
   @db.DoubleProperty()
   double popularityScore;
+
+  /// The platform tags (flutter, web, other).
+  @CompatibleStringListProperty()
+  List<String> platformTags;
+
+  /// The flags for the package, version or analysis.
+  @CompatibleStringListProperty()
+  List<String> flags;
 
   ScoreCard();
 
@@ -85,6 +86,25 @@ class ScoreCard extends db.ExpandoModel {
         maintenance: maintenanceScore ?? 0.0,
         popularity: popularityScore ?? 0.0,
       );
+
+  bool get isNew => new DateTime.now().difference(packageCreated).inDays <= 30;
+
+  bool get isDiscontinued =>
+      flags != null && flags.contains(PackageFlags.isDiscontinued);
+
+  bool get doNotAdvertise =>
+      flags != null && flags.contains(PackageFlags.doNotAdvertise);
+
+  void addFlag(String flag) {
+    flags ??= <String>[];
+    if (!flags.contains(flag)) {
+      flags.add(flag);
+    }
+  }
+
+  void removeFlag(String flag) {
+    flags?.remove(flag);
+  }
 }
 
 /// Detail of a specific report for a given PackageVersion.
