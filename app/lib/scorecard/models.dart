@@ -11,10 +11,15 @@ import 'package:meta/meta.dart';
 import 'package:pub_dartlang_org/search/scoring.dart'
     show calculateOverallScore;
 
+import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/model_properties.dart';
+import '../shared/versions.dart' as versions;
 
-String _id(String packageName, String packageVersion) =>
-    '$packageName/$packageVersion';
+db.Key _pvKey(String packageName, String packageVersion) {
+  return db.dbService.emptyKey
+      .append(Package, id: packageName)
+      .append(PackageVersion, id: packageVersion);
+}
 
 final _gzipCodec = new GZipCodec();
 
@@ -26,6 +31,9 @@ class ScoreCard extends db.ExpandoModel {
 
   @db.StringProperty(required: true)
   String packageVersion;
+
+  @db.StringProperty(required: true)
+  String runtimeVersion;
 
   @db.DateTimeProperty(required: true)
   DateTime packageCreated;
@@ -65,7 +73,9 @@ class ScoreCard extends db.ExpandoModel {
     @required this.packageCreated,
     @required this.packageVersionCreated,
   }) {
-    id = _id(packageName, packageVersion);
+    parentKey = _pvKey(packageName, packageVersion);
+    runtimeVersion = versions.runtimeVersion;
+    id = runtimeVersion;
   }
 
   double get overallScore =>
@@ -87,6 +97,9 @@ class ScoreCardReport extends db.ExpandoModel {
   String packageVersion;
 
   @db.StringProperty(required: true)
+  String runtimeVersion;
+
+  @db.StringProperty(required: true)
   String reportType;
 
   @db.BlobProperty()
@@ -99,8 +112,9 @@ class ScoreCardReport extends db.ExpandoModel {
     @required this.packageVersion,
     @required this.reportType,
   }) {
-    parentKey = db.dbService.emptyKey
-        .append(ScoreCard, id: _id(packageName, packageVersion));
+    runtimeVersion = versions.runtimeVersion;
+    parentKey = _pvKey(packageName, packageVersion)
+        .append(ScoreCard, id: runtimeVersion);
     id = reportType;
   }
 
