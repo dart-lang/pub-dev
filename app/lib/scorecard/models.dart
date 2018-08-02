@@ -102,25 +102,22 @@ class ScoreCard extends db.ExpandoModel {
     updated = new DateTime.now().toUtc();
   }
 
-  double get overallScore =>
-      // TODO: use documentationScore too
-      calculateOverallScore(
-        health: healthScore ?? 0.0,
-        maintenance: maintenanceScore ?? 0.0,
-        popularity: popularityScore ?? 0.0,
+  ScoreCardData toData() => new ScoreCardData(
+        packageName: packageName,
+        packageVersion: packageVersion,
+        runtimeVersion: runtimeVersion,
+        updated: updated,
+        packageCreated: packageCreated,
+        packageVersionCreated: packageVersionCreated,
+        healthScore: healthScore,
+        maintenanceScore: maintenanceScore,
+        popularityScore: popularityScore,
+        platformTags: platformTags,
+        flags: flags,
+        reportTypes: reportTypes,
       );
 
-  bool get isNew => new DateTime.now().difference(packageCreated).inDays <= 30;
-
-  bool get isDiscontinued =>
-      flags != null && flags.contains(PackageFlags.isDiscontinued);
-
-  bool get doNotAdvertise =>
-      flags != null && flags.contains(PackageFlags.doNotAdvertise);
-
   Version get semanticRuntimeVersion => new Version.parse(runtimeVersion);
-
-  bool get isCurrentRuntimeVersion => runtimeVersion == versions.runtimeVersion;
 
   void addFlag(String flag) {
     flags ??= <String>[];
@@ -213,6 +210,82 @@ class ScoreCardReport extends db.ExpandoModel {
     }
     throw new Exception('Unknown report type: $reportType');
   }
+}
+
+@JsonSerializable()
+class ScoreCardData extends Object with _$ScoreCardDataSerializerMixin {
+  @override
+  final String packageName;
+  @override
+  final String packageVersion;
+  @override
+  final String runtimeVersion;
+  @override
+  final DateTime updated;
+  @override
+  final DateTime packageCreated;
+  @override
+  final DateTime packageVersionCreated;
+
+  /// Score for code health (0.0 - 1.0).
+  @override
+  final double healthScore;
+
+  /// Score for package maintenance (0.0 - 1.0).
+  @override
+  final double maintenanceScore;
+
+  /// Score for package popularity (0.0 - 1.0).
+  @override
+  final double popularityScore;
+
+  /// The platform tags (flutter, web, other).
+  @override
+  final List<String> platformTags;
+
+  /// The flags for the package, version or analysis.
+  @override
+  final List<String> flags;
+
+  /// The report types that are already done for the ScoreCard.
+  @override
+  final List<String> reportTypes;
+
+  ScoreCardData({
+    @required this.packageName,
+    @required this.packageVersion,
+    @required this.runtimeVersion,
+    @required this.updated,
+    @required this.packageCreated,
+    @required this.packageVersionCreated,
+    @required this.healthScore,
+    @required this.maintenanceScore,
+    @required this.popularityScore,
+    @required this.platformTags,
+    @required this.flags,
+    @required this.reportTypes,
+  });
+
+  factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
+      _$ScoreCardDataFromJson(json);
+
+  double get overallScore =>
+      // TODO: use documentationScore too
+      calculateOverallScore(
+        health: healthScore ?? 0.0,
+        maintenance: maintenanceScore ?? 0.0,
+        popularity: popularityScore ?? 0.0,
+      );
+
+  bool get isNew => new DateTime.now().difference(packageCreated).inDays <= 30;
+
+  bool get isDiscontinued =>
+      flags != null && flags.contains(PackageFlags.isDiscontinued);
+
+  bool get doNotAdvertise =>
+      flags != null && flags.contains(PackageFlags.doNotAdvertise);
+
+  bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 }
 
 abstract class ReportData {

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/popularity_storage.dart';
@@ -15,6 +16,7 @@ import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
 import 'models.dart';
+import 'scorecard_memcache.dart';
 
 export 'models.dart';
 
@@ -32,12 +34,28 @@ class ScoreCardBackend {
   final db.DatastoreDB _db;
   ScoreCardBackend(this._db);
 
-  Future<ScoreCard> latestScoreCard(
-      String packageName, String packageVersion) async {
+  Future<ScoreCardData> getScoreCardData(
+    String packageName,
+    String packageVersion, {
+    @required bool onlyCurrent,
+  }) async {
+    final cached = await scoreCardMemcache.getScoreCardData(
+        packageName, packageVersion, versions.runtimeVersion,
+        onlyCurrent: onlyCurrent);
+    if (cached != null) {
+      return cached;
+    }
+
     final key = scoreCardKey(packageName, packageVersion);
     final currentList = await _db.lookup([key]);
     if (currentList.first != null) {
-      return currentList.first as ScoreCard;
+      final data = (currentList.first as ScoreCard).toData();
+      await scoreCardMemcache.setScoreCardData(data);
+      return data;
+    }
+
+    if (onlyCurrent) {
+      return null;
     }
 
     final query = _db.query(ScoreCard, ancestorKey: key.parent)
@@ -54,7 +72,9 @@ class ScoreCardBackend {
     }
     all.sort((a, b) =>
         isNewer(a.semanticRuntimeVersion, b.semanticRuntimeVersion) ? -1 : 1);
-    return all.last;
+    final data = all.last.toData();
+    await scoreCardMemcache.setScoreCardData(data);
+    return data;
   }
 
   Future updateReport(
@@ -152,5 +172,8 @@ class ScoreCardBackend {
       tx.queueMutations(inserts: [scoreCard]);
       await tx.commit();
     });
+
+    scoreCardMemcache.invalidate(
+        packageName, packageVersion, versions.runtimeVersion);
   }
 }

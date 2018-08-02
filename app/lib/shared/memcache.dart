@@ -16,6 +16,7 @@ const Duration analyzerDataExpiration = const Duration(minutes: 60);
 const Duration analyzerDataLocalExpiration = const Duration(minutes: 15);
 const Duration dartdocEntryExpiration = const Duration(hours: 24);
 const Duration dartdocFileInfoExpiration = const Duration(minutes: 60);
+const Duration scoreCardDataExpiration = const Duration(minutes: 60);
 const Duration searchServiceResultExpiration = const Duration(minutes: 10);
 const Duration _memcacheRequestTimeout = const Duration(seconds: 5);
 
@@ -26,6 +27,7 @@ const String analyzerDataPrefix = 'v2_dart_analyzer_api_';
 const String analyzerExtractPrefix = 'v2_dart_analyzer_extract_';
 const String dartdocEntryPrefix = 'dartdoc_entry_';
 const String dartdocFileInfoPrefix = 'dartdoc_fileinfo_';
+const String scoreCardDataPrefix = 'scorecard_';
 const String searchServiceResultPrefix = 'search_service_result_';
 
 class SimpleMemcache {
