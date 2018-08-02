@@ -21,7 +21,13 @@ void main() {
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 1051343778);
+    expect(hash, 425687417);
+  });
+
+  test('runtime version should be (somewhat) lexicographically ordered', () {
+    expect(runtimeVersion.length, greaterThanOrEqualTo(10));
+    expect(new RegExp(r'\d{4}\.\d{2}\.\d{2}.*').matchAsPrefix(runtimeVersion),
+        isNotNull);
   });
 
   test('runtime sdk version should match travis and dockerfile', () async {
