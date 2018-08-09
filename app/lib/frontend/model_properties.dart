@@ -11,6 +11,8 @@ import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
+final _dart2OrLater = new VersionConstraint.parse('>=2.0.0');
+
 Map<String, dynamic> _loadYaml(String yamlString) {
   final Map map = loadYaml(yamlString);
   // TODO: remove this part after yaml returns a proper map
@@ -74,6 +76,11 @@ class Pubspec {
   }
 
   VersionConstraint get sdkVersionConstraint => _inner.environment['sdk'];
+
+  bool get supportsOnlyLegacySdk {
+    return sdkVersionConstraint != null &&
+        !sdkVersionConstraint.allowsAny(_dart2OrLater);
+  }
 
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
