@@ -75,8 +75,9 @@ class Pubspec {
     return _asString(environment['sdk']);
   }
 
+  VersionConstraint get sdkVersionConstraint => _inner.environment['sdk'];
+
   bool get supportsOnlyLegacySdk {
-    final sdkVersionConstraint = _inner.environment['sdk'];
     return sdkVersionConstraint != null &&
         !sdkVersionConstraint.allowsAny(_dart2OrLater);
   }
