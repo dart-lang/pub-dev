@@ -29,6 +29,8 @@ class AnalysisStatusProperty extends StringProperty {
           return 'discontinued';
         case AnalysisStatus.outdated:
           return 'outdated';
+        case AnalysisStatus.legacy:
+          return 'legacy';
         default:
           throw new Exception('Unable to encode AnalysisStatus: $value');
       }
@@ -51,6 +53,8 @@ class AnalysisStatusProperty extends StringProperty {
           return AnalysisStatus.discontinued;
         case 'outdated':
           return AnalysisStatus.outdated;
+        case 'legacy':
+          return AnalysisStatus.legacy;
         default:
           throw new Exception('Unable to decode AnalysisStatus: $value');
       }
