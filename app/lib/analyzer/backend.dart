@@ -35,6 +35,8 @@ const Duration reanalyzeThreshold = const Duration(days: 30);
 const Duration _regressionThreshold = const Duration(days: 45);
 const Duration _obsoleteThreshold = const Duration(days: 180);
 
+final _dart2OrLater = new VersionConstraint.parse('>=2.0.0');
+
 /// Datastore-related access methods for the analyzer service
 class AnalysisBackend {
   final DatastoreDB db;
@@ -366,6 +368,9 @@ class AnalysisBackend {
     final now = new DateTime.now().toUtc();
     final age = now.difference(publishDate).abs();
     final isObsolete = age > twoYears && !isLatestStable;
+    final sdkVersionConstraint = pv.pubspec.sdkVersionConstraint;
+    final isLegacy = sdkVersionConstraint != null &&
+        !sdkVersionConstraint.allowsAny(_dart2OrLater);
     return new PackageStatus(
       exists: true,
       publishDate: publishDate,
@@ -373,6 +378,7 @@ class AnalysisBackend {
       isLatestStable: isLatestStable,
       isDiscontinued: p.isDiscontinued ?? false,
       isObsolete: isObsolete,
+      isLegacy: isLegacy,
     );
   }
 }
@@ -384,6 +390,7 @@ class PackageStatus {
   final bool isLatestStable;
   final bool isDiscontinued;
   final bool isObsolete;
+  final bool isLegacy;
 
   PackageStatus({
     this.exists,
@@ -392,6 +399,7 @@ class PackageStatus {
     this.isLatestStable: false,
     this.isDiscontinued: false,
     this.isObsolete: false,
+    this.isLegacy: false,
   });
 }
 

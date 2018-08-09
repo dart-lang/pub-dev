@@ -79,7 +79,7 @@
   <div class="metadata">
     Published <span>Jan 1, 2014</span>
     <!-- &bull; Downloads: X -->
-    <div class="tags">    <span class="package-tag missing" title="Package version too old, check latest stable.">[outdated]</span>
+    <div class="tags">    <a class="package-tag unidentified" href="#-analysis-tab-" title="Check the analysis tab for further details.">[unidentified]</a>
 </div>
   </div>
 </div>
@@ -93,7 +93,7 @@
       <li class="tab " data-name="-installing-tab-">Installing</li>
       <li class="tab" data-name="-versions-tab-">Versions</li>
       <li class="tab" data-name="-analysis-tab-">
-        <div class="score-box"><span class="number -missing" title="No analysis for this version.">--</span></div>
+        <div class="score-box"><span class="number -rotten" title="Analysis and more details.">25</span></div>
       </li>
     </ul>
       <section class="content -active js-content markdown-body" data-name="-readme-tab-">
@@ -189,12 +189,12 @@ import 'package:foobar_pkg/foolib.dart';
     <td class="score-value">
       
 <div class="score-percent-row">
-    <div class="score-percent" style="left: 0%;">--</div>
+    <div class="score-percent" style="left: 50%;">50</div>
 </div>
 
 <div class="score-progress-row">
     <div class="score-progress-frame">
-        <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+        <div class="score-progress" style="width: 50%; background: rgb(152, 160, 168);"></div>
     </div>
 </div>
 
@@ -256,12 +256,12 @@ import 'package:foobar_pkg/foolib.dart';
     </td>
     <td>
 <div class="score-percent-row">
-    <div class="score-percent" style="left: 0%;">--</div>
+    <div class="score-percent" style="left: 25%;">25</div>
 </div>
 
 <div class="score-progress-row">
     <div class="score-progress-frame">
-        <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+        <div class="score-progress" style="width: 25%; background: rgb(187, 36, 0);"></div>
     </div>
 </div>
 </td>
@@ -273,10 +273,23 @@ import 'package:foobar_pkg/foolib.dart';
 <hr />
 
 <p>
-  This package version is not analyzed, because it is more than two years old.
-  Check the <a href="/packages/foobar_pkg#-analysis-tab-">latest stable version</a> for its analysis.
+  The package version is not analyzed, because it does not support Dart 2.
+  Until this is resolved, the package will receive a health and maintenance score of 0.
 </p>
 
+<h4>Issues and suggestions</h4>
+<div class="suggestion-row">
+  <div class="suggestion-title">
+    <span class="suggestion-icon-danger"></span>
+    <p>Support Dart 2 in <code>pubspec.yaml</code>.</p>
+
+  </div>
+  <div class="suggestion-description">
+    <p>The SDK constraint in <code>pubspec.yaml</code> doesn't allow the Dart 2.0.0 release. For information about upgrading it to be Dart 2 compatible, please see <a href="https://www.dartlang.org/dart-2#migration">https://www.dartlang.org/dart-2#migration</a>.</p>
+
+    
+  </div>
+</div>
 
 
     </section>

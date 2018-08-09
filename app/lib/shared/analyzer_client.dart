@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../job/backend.dart';
 
@@ -234,6 +235,9 @@ class AnalysisView {
   }
 
   double get health {
+    if (_data.analysisStatus == AnalysisStatus.legacy) {
+      return 0.0;
+    }
     if (suggestions.any((s) =>
         s.code == SuggestionCode.dartfmtAborted ||
         s.code == SuggestionCode.dartanalyzerAborted)) {
@@ -262,4 +266,26 @@ class AnalysisView {
   }
 
   double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
+}
+
+Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
+  return new Summary(
+      new PanaRuntimeInfo(),
+      packageName,
+      new Version.parse(packageVersion),
+      null,
+      null,
+      null,
+      null,
+      null,
+      new Fitness(1.0, 1.0),
+      null, <Suggestion>[
+    new Suggestion.error(
+      'pubspec.sdk.legacy',
+      'Support Dart 2 in `pubspec.yaml`.',
+      'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
+          'For information about upgrading it to be Dart 2 compatible, please see '
+          '[https://www.dartlang.org/dart-2#migration](https://www.dartlang.org/dart-2#migration).',
+    ),
+  ]);
 }

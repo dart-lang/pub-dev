@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 Map<String, dynamic> _loadYaml(String yamlString) {
@@ -71,6 +72,8 @@ class Pubspec {
     if (environment == null || environment is! Map) return null;
     return _asString(environment['sdk']);
   }
+
+  VersionConstraint get sdkVersionConstraint => _inner.environment['sdk'];
 
   /// Whether the pubspec file contains a flutter.plugin entry.
   bool get hasFlutterPlugin {
