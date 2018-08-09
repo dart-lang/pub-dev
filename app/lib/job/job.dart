@@ -68,7 +68,7 @@ abstract class JobProcessor {
   }
 
   void reportIssueWithLatest(Job job, String message) {
-    _logger.severe(
+    _logger.info(
         '$_serviceAsString failed for latest version of ${job.packageName} (${job.packageVersion}): $message');
   }
 }
