@@ -190,4 +190,9 @@ class DartdocBackendMock implements DartdocBackend {
   Future uploadDir(DartdocEntry entry, String dirPath) {
     throw new UnimplementedError();
   }
+
+  @override
+  Future<bool> isLegacy(String package, String version) {
+    throw new UnimplementedError();
+  }
 }

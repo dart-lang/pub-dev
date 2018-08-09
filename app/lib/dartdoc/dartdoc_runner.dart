@@ -71,6 +71,7 @@ class DartdocJobProcessor extends JobProcessor {
     final latestVersion =
         await dartdocBackend.getLatestVersion(job.packageName);
     final bool isLatestStable = latestVersion == job.packageVersion;
+    bool depsResolved = false;
     bool hasContent = false;
 
     try {
@@ -90,10 +91,16 @@ class DartdocJobProcessor extends JobProcessor {
           'usesFlutter: $usesFlutter\n'
           'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
 
-      // resolve dependencies
-      final bool depsResolved = await _resolveDependencies(
-          toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+      final isLegacy =
+          await dartdocBackend.isLegacy(job.packageName, job.packageVersion);
 
+      // Resolve dependencies only for non-legacy package versions.
+      if (!isLegacy) {
+        depsResolved = await _resolveDependencies(
+            toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+      }
+
+      // Generate docs only for packages that have healthy dependencies.
       if (depsResolved) {
         hasContent = await _generateDocs(
             toolEnv, job, pkgPath, outputDir, logFileOutput);
