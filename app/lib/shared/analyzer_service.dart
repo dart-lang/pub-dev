@@ -48,6 +48,9 @@ enum AnalysisStatus {
   /// newer stable release.
   outdated,
 
+  /// Analysis was not started, because package doesn't support current Dart SDK.
+  legacy,
+
   /// Analysis was completed without issues.
   success,
 }
@@ -62,6 +65,7 @@ int analysisStatusLevel(AnalysisStatus status) {
       return 1;
     case AnalysisStatus.discontinued:
     case AnalysisStatus.outdated:
+    case AnalysisStatus.legacy:
     case AnalysisStatus.success:
       return 2;
   }

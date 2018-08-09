@@ -230,6 +230,37 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_discontinued.html');
     });
 
+    test('package show page with legacy version', () {
+      final summary = createPanaSummaryForLegacy(
+          testPackageVersion.package, testPackageVersion.version);
+      final content = json.decode(json.encode(summary)) as Map<String, dynamic>;
+      final analysisView = new AnalysisView(new AnalysisData(
+          packageName: testPackageVersion.package,
+          packageVersion: testPackageVersion.version,
+          analysis: 1,
+          timestamp: new DateTime(2018, 08, 09),
+          runtimeVersion: '2018.08.09',
+          panaVersion: '0.10.9',
+          flutterVersion: null,
+          analysisStatus: AnalysisStatus.legacy,
+          analysisContent: content,
+          maintenanceScore: 0.0));
+      final String html = templates.renderPkgShowPage(
+          testPackage,
+          true /* isVersionPage */,
+          [testPackageVersion],
+          [Uri.parse('http://dart-example.com/')],
+          testPackageVersion,
+          testPackageVersion,
+          testPackageVersion,
+          1,
+          new AnalysisExtract(
+              analysisStatus: AnalysisStatus.legacy, popularity: 0.5),
+          analysisView);
+
+      expectGoldenFile(html, 'pkg_show_page_legacy.html');
+    });
+
     test('no content for analysis tab', () async {
       // no content
       expect(templates.renderAnalysisTab('pkg_foo', null, null, null), isNull);

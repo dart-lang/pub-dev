@@ -217,6 +217,9 @@ class TemplateService {
       case AnalysisStatus.outdated:
         statusText = 'skipped (outdated)';
         break;
+      case AnalysisStatus.legacy:
+        statusText = 'skipped (legacy)';
+        break;
       case AnalysisStatus.success:
         statusText = 'completed';
         break;
@@ -251,8 +254,10 @@ class TemplateService {
       'package': package,
       'show_discontinued': analysisStatus == AnalysisStatus.discontinued,
       'show_outdated': analysisStatus == AnalysisStatus.outdated,
+      'show_legacy': analysisStatus == AnalysisStatus.legacy,
       'show_analysis': analysisStatus != AnalysisStatus.outdated &&
-          analysisStatus != AnalysisStatus.discontinued,
+          analysisStatus != AnalysisStatus.discontinued &&
+          analysisStatus != AnalysisStatus.legacy,
       'analysis_tab_url': urls.analysisTabUrl(package),
       'date_completed': analysis.timestamp == null
           ? null

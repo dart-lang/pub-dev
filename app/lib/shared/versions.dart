@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'utils.dart' show isNewer;
 
 // update this whenever one of the other versions change
-final String runtimeVersion = '2018.08.02';
+final String runtimeVersion = '2018.08.09';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile

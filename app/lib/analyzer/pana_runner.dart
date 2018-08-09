@@ -12,6 +12,7 @@ import 'package:pana/src/version.dart';
 import 'package:path/path.dart' as p;
 
 import '../job/job.dart';
+import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
@@ -70,6 +71,16 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.outdated;
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
+      return JobStatus.skipped;
+    }
+
+    if (packageStatus.isLegacy) {
+      _logger.info('Package is on legacy SDK: $job.');
+      analysis.analysisStatus = AnalysisStatus.legacy;
+      analysis.analysisJson =
+          createPanaSummaryForLegacy(job.packageName, job.packageVersion)
+              .toJson();
+      analysis.maintenanceScore = 0.0;
       return JobStatus.skipped;
     }
 
