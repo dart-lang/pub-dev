@@ -18,6 +18,7 @@ import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/dartdoc_memcache.dart';
 import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart' show contentType;
+import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
@@ -147,13 +148,15 @@ class DartdocBackend {
       final List<DartdocEntry> completedList =
           await _listEntries(storage_path.entryPrefix(package, v));
       if (completedList.isEmpty) return null;
-      final hasServing = completedList.any((entry) => entry.isServing);
-      // don't remove non-serving entries if they are the only ones left
+      final hasServing =
+          completedList.any((entry) => entry.isServing && entry.hasContent);
+      // don't remove non-serving entries if they are the only ones with content
       if (hasServing) {
         completedList.removeWhere((entry) => !entry.isServing);
       }
       completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
-      return completedList.first;
+      return completedList.firstWhere((entry) => entry.hasContent,
+          orElse: () => completedList.first);
     }
 
     DartdocEntry entry;
@@ -258,19 +261,38 @@ class DartdocBackend {
           .toList();
       versions.sort();
 
-      void keepOneRuntimeVersion() {
+      completedList.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      // Keep the latest one with content.
+      if (completedList.isNotEmpty) {
+        final index = completedList.lastIndexWhere((entry) => entry.hasContent);
+        final entry = completedList[index];
+        if (index >= 0) {
+          completedList.removeAt(index);
+        }
+        versions.remove(new Version.parse(entry.runtimeVersion));
+      }
+
+      // Keep the latest from the current runtime version.
+      if (versions.contains(shared_versions.semanticRuntimeVersion)) {
+        final index = completedList.lastIndexWhere(
+            (entry) => entry.runtimeVersion == shared_versions.runtimeVersion);
+        if (index >= 0) {
+          completedList.removeAt(index);
+        }
+        versions.remove(shared_versions.semanticRuntimeVersion);
+      }
+
+      // Keep the otherwise latest version (may be an ongoing release).
+      if (versions.isNotEmpty) {
         if (versions.isEmpty) return;
         final version = versions.removeLast();
         final index = completedList.lastIndexWhere(
             (entry) => entry.runtimeVersion == version.toString());
-        if (index < 0) return;
-        completedList.removeAt(index);
+        if (index >= 0) {
+          completedList.removeAt(index);
+        }
       }
-
-      completedList.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-      keepOneRuntimeVersion(); // keeps current serving version
-      keepOneRuntimeVersion(); // keeps previous serving version
     }
 
     // delete everything else
