@@ -81,6 +81,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           createPanaSummaryForLegacy(job.packageName, job.packageVersion)
               .toJson();
       analysis.maintenanceScore = 0.0;
+      await analysisBackend.storeAnalysis(analysis);
       return JobStatus.skipped;
     }
 
