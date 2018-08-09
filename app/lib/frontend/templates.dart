@@ -907,7 +907,7 @@ String _formatScore(double value) {
 
 String _classifyScore(double value) {
   if (value == null) return 'missing';
-  if (value <= 0.4) return 'rotten';
+  if (value <= 0.5) return 'rotten';
   if (value <= 0.7) return 'good';
   return 'solid';
 }
