@@ -281,11 +281,11 @@ class DartdocBackend {
       // Keep the latest one with content.
       if (completedList.isNotEmpty) {
         final index = completedList.lastIndexWhere((entry) => entry.hasContent);
-        final entry = completedList[index];
         if (index >= 0) {
+          final entry = completedList[index];
           completedList.removeAt(index);
+          versions.remove(new Version.parse(entry.runtimeVersion));
         }
-        versions.remove(new Version.parse(entry.runtimeVersion));
       }
 
       // Keep the latest from the current runtime version.
@@ -294,8 +294,8 @@ class DartdocBackend {
             (entry) => entry.runtimeVersion == shared_versions.runtimeVersion);
         if (index >= 0) {
           completedList.removeAt(index);
+          versions.remove(shared_versions.semanticRuntimeVersion);
         }
-        versions.remove(shared_versions.semanticRuntimeVersion);
       }
 
       // Keep the otherwise latest version (may be an ongoing release).
