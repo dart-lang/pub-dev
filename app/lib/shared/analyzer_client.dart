@@ -235,6 +235,9 @@ class AnalysisView {
   }
 
   double get health {
+    if (_data == null || _summary == null) {
+      return 0.0;
+    }
     if (_data.analysisStatus == AnalysisStatus.legacy) {
       return 0.0;
     }
