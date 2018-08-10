@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 
+import 'versions.dart';
+
 const Duration indexUiPageExpiration = const Duration(minutes: 10);
 const Duration packageJsonExpiration = const Duration(minutes: 10);
 const Duration packageUiPageExpiration = const Duration(minutes: 10);
@@ -34,7 +36,7 @@ class SimpleMemcache {
 
   SimpleMemcache(this._logger, this._memcache, this._prefix, this._expiration);
 
-  String _key(String key) => '$_prefix$key';
+  String _key(String key) => '$runtimeVersion/$_prefix$key';
 
   Future<String> getText(String key) async {
     try {
