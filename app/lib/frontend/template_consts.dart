@@ -14,6 +14,7 @@ import '../shared/urls.dart' as urls;
 class PlatformDict {
   final String name;
   final String topPlatformPackages;
+  final String morePlatformPackagesLabel;
   final String landingPageTitle;
   final String landingBlurb;
   final String landingUrl;
@@ -23,6 +24,7 @@ class PlatformDict {
   PlatformDict({
     @required this.name,
     @required this.topPlatformPackages,
+    @required this.morePlatformPackagesLabel,
     @required this.landingPageTitle,
     @required this.landingBlurb,
     @required this.landingUrl,
@@ -35,6 +37,7 @@ class PlatformDict {
     return new PlatformDict(
       name: formattedPlatform,
       topPlatformPackages: 'Top $formattedPlatform packages',
+      morePlatformPackagesLabel: 'More $formattedPlatform packages...',
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
@@ -68,6 +71,7 @@ final _dictionaries = <String, PlatformDict>{
     tagTitle: 'Compatible with other platforms (terminal, server, etc.).',
     listingUrl: null, // no listing for platform tag
     topPlatformPackages: null, // no landing page
+    morePlatformPackagesLabel: null, // no search filter for it
     landingUrl: null,
     landingPageTitle: null,
     landingBlurb: null,

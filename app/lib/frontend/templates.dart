@@ -647,9 +647,8 @@ class TemplateService {
   ) {
     final platformDict = getPlatformDict(platform);
     final packagesUrl = urls.searchUrl(platform: platform);
-    final morePackages = 'More ${platformDict.name} packages...';
     final links = <String>[
-      '<a href="$packagesUrl">${_htmlEscaper.convert(morePackages)}</a>'
+      '<a href="$packagesUrl">${_htmlEscaper.convert(platformDict.morePlatformPackagesLabel)}</a>'
     ];
     if (platform == KnownPlatforms.flutter) {
       links.add(flutterOnlyPackagesHtml);
