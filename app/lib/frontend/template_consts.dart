@@ -45,8 +45,9 @@ class PlatformDict {
   }) {
     final formattedPlatform = _formattedPlatformName(platform);
     final hasOnly = onlyPlatformPackagesUrl != null;
+    final hasCompatible = hasOnly || platform == KnownPlatforms.web;
     final platformCompatible =
-        hasOnly ? '$formattedPlatform-compatible' : formattedPlatform;
+        hasCompatible ? '$formattedPlatform-compatible' : formattedPlatform;
     final platformOnly =
         hasOnly ? '$formattedPlatform-only' : formattedPlatform;
     return new PlatformDict(
