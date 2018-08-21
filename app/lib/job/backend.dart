@@ -322,6 +322,7 @@ class _Stat {
   final bool _collectFailed;
   final _failedPackages = new Set<String>();
   int _totalCount = 0;
+  int _ownedCount = 0;
   int _availableCount = 0;
 
   _Stat({bool collectFailed: false}) : _collectFailed = collectFailed;
@@ -331,6 +332,11 @@ class _Stat {
 
   void add(Job job) {
     _totalCount++;
+    if (job.runtimeVersion == versions.runtimeVersion) {
+      _ownedCount++;
+    } else {
+      return;
+    }
     if (job.state == JobState.available) {
       _availableCount++;
     }
@@ -348,6 +354,8 @@ class _Stat {
 
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
+      'total': _totalCount,
+      'owned': _ownedCount,
       'state': _stateMap,
       'status': _statusMap,
     };
