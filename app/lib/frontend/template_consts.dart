@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionCode;
 
 import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
@@ -12,7 +13,7 @@ import '../shared/urls.dart' as urls;
 
 class PlatformDict {
   final String name;
-  final String pageTitle;
+  final String topPlatformPackages;
   final String landingPageTitle;
   final String landingBlurb;
   final String landingUrl;
@@ -20,18 +21,20 @@ class PlatformDict {
   final String tagTitle;
 
   PlatformDict({
-    this.name,
-    String pageTitle,
-    this.landingPageTitle,
-    this.landingBlurb,
-    this.landingUrl,
-    this.listingUrl,
-    this.tagTitle,
-  }) : this.pageTitle = pageTitle ?? 'Top $name packages';
+    @required this.name,
+    @required this.topPlatformPackages,
+    @required this.landingPageTitle,
+    @required this.landingBlurb,
+    @required this.landingUrl,
+    @required this.listingUrl,
+    @required this.tagTitle,
+  });
 
   factory PlatformDict.forPlatform(String platform, {String tagTitle}) {
+    final formattedPlatform = _formattedPlatformName(platform);
     return new PlatformDict(
-      name: _formattedPlatformName(platform),
+      name: formattedPlatform,
+      topPlatformPackages: 'Top $formattedPlatform packages',
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
@@ -63,6 +66,11 @@ final _dictionaries = <String, PlatformDict>{
   KnownPlatforms.other: new PlatformDict(
     name: KnownPlatforms.other,
     tagTitle: 'Compatible with other platforms (terminal, server, etc.).',
+    listingUrl: null, // no listing for platform tag
+    topPlatformPackages: null, // no landing page
+    landingUrl: null,
+    landingPageTitle: null,
+    landingBlurb: null,
   ),
 };
 

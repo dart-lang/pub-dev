@@ -159,7 +159,7 @@ class TemplateService {
       'ranking_tooltip_html': sortDict.tooltip,
       'is_search': isSearch,
       'unsupported_qualifier': unsupportedQualifier,
-      'title': platformDict.pageTitle,
+      'title': platformDict.topPlatformPackages,
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
       'pagination': renderPagination(links),
@@ -168,7 +168,7 @@ class TemplateService {
     };
     final content = _renderTemplate('pkg/index', values);
 
-    String pageTitle = platformDict.pageTitle;
+    String pageTitle = platformDict.topPlatformPackages;
     if (isSearch) {
       pageTitle = 'Search results for ${searchQuery.query}.';
     } else {
@@ -656,7 +656,7 @@ class TemplateService {
     }
     final values = {
       'more_links_html': links.join(' '),
-      'top_header': platformDict.pageTitle,
+      'top_header': platformDict.topPlatformPackages,
       'ranking_tooltip_html': getSortDict('top').tooltip,
       'top_html': topHtml,
     };
