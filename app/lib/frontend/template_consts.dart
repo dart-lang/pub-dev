@@ -17,6 +17,7 @@ class PlatformDict {
   final String morePlatformPackagesLabel;
   final String onlyPlatformPackagesLabel;
   final String onlyPlatformPackagesUrl;
+  final String searchPlatformPackagesLabel;
   final String landingPageTitle;
   final String landingBlurb;
   final String landingUrl;
@@ -29,6 +30,7 @@ class PlatformDict {
     @required this.morePlatformPackagesLabel,
     @required this.onlyPlatformPackagesLabel,
     @required this.onlyPlatformPackagesUrl,
+    @required this.searchPlatformPackagesLabel,
     @required this.landingPageTitle,
     @required this.landingBlurb,
     @required this.landingUrl,
@@ -53,6 +55,7 @@ class PlatformDict {
       morePlatformPackagesLabel: 'More $platformCompatible packages...',
       onlyPlatformPackagesLabel: hasOnly ? '$platformOnly packages...' : null,
       onlyPlatformPackagesUrl: onlyPlatformPackagesUrl,
+      searchPlatformPackagesLabel: 'Search $platformCompatible packages',
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
@@ -90,6 +93,7 @@ final _dictionaries = <String, PlatformDict>{
     morePlatformPackagesLabel: null, // no search filter for it
     onlyPlatformPackagesLabel: null, // no search filter for it
     onlyPlatformPackagesUrl: null, // no search filter for it
+    searchPlatformPackagesLabel: null, // no search filter for it
     landingUrl: null,
     landingPageTitle: null,
     landingBlurb: null,

@@ -725,7 +725,7 @@ class TemplateService {
       'title': htmlEscape.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
-      'search_query_placeholder': 'Search ${platformDict.name} packages',
+      'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
       'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
       'api_search_enabled': searchQuery?.isApiEnabled ?? true,
