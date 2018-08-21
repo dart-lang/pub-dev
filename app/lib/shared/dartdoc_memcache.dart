@@ -69,8 +69,7 @@ class DartdocMemcache {
     ]);
   }
 
-  String _entryKey(String package, String version) =>
-      '/$package/$version/${versions.runtimeVersion}';
+  String _entryKey(String package, String version) => '/$package/$version';
 
   String _fileInfoKey(String objectName) => objectName;
 }
