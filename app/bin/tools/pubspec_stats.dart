@@ -23,8 +23,8 @@ Future main(List<String> args) async {
         print('$index - ${pv.package} ${pv.version}');
       }
       pv.pubspec.asJson.keys.forEach((key) {
-        final k = key.toString();
-        counts[k] = (counts[k] ?? 0) + 1;
+        final keyAsString = key.toString();
+        counts[keyAsString] = (counts[keyAsString] ?? 0) + 1;
       });
     }
 
