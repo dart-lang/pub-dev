@@ -149,8 +149,8 @@ final String defaultPageDescriptionEscaped = htmlEscape.convert(
     'Pub is the package manager for the Dart programming language, containing reusable '
     'libraries & packages for Flutter, AngularDart, and general Dart programs.');
 
-String flutterSpecificPackagesHtml =
-    '<a href="/packages?q=dependency%3Aflutter">Flutter-specific packages...</a>';
+String flutterOnlyPackagesHtml =
+    '<a href="/packages?q=dependency%3Aflutter">Flutter-only packages...</a>';
 
 final _suggestionHelpMessages = <String, String>{
   SuggestionCode.analysisOptionsRenameRequired: 'Read more about the setup of '

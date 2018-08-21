@@ -652,7 +652,7 @@ class TemplateService {
       '<a href="$packagesUrl">${_htmlEscaper.convert(morePackages)}</a>'
     ];
     if (platform == KnownPlatforms.flutter) {
-      links.add(flutterSpecificPackagesHtml);
+      links.add(flutterOnlyPackagesHtml);
     }
     final values = {
       'more_links_html': links.join(' '),
