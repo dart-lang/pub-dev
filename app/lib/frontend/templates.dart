@@ -650,8 +650,9 @@ class TemplateService {
     final links = <String>[
       '<a href="$packagesUrl">${_htmlEscaper.convert(platformDict.morePlatformPackagesLabel)}</a>'
     ];
-    if (platform == KnownPlatforms.flutter) {
-      links.add(flutterOnlyPackagesHtml);
+    if (platformDict.onlyPlatformPackagesUrl != null) {
+      links.add('<a href="${platformDict.onlyPlatformPackagesUrl}">'
+          '${_htmlEscaper.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
     }
     final values = {
       'more_links_html': links.join(' '),

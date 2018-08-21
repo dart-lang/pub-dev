@@ -15,6 +15,8 @@ class PlatformDict {
   final String name;
   final String topPlatformPackages;
   final String morePlatformPackagesLabel;
+  final String onlyPlatformPackagesLabel;
+  final String onlyPlatformPackagesUrl;
   final String landingPageTitle;
   final String landingBlurb;
   final String landingUrl;
@@ -25,6 +27,8 @@ class PlatformDict {
     @required this.name,
     @required this.topPlatformPackages,
     @required this.morePlatformPackagesLabel,
+    @required this.onlyPlatformPackagesLabel,
+    @required this.onlyPlatformPackagesUrl,
     @required this.landingPageTitle,
     @required this.landingBlurb,
     @required this.landingUrl,
@@ -32,12 +36,23 @@ class PlatformDict {
     @required this.tagTitle,
   });
 
-  factory PlatformDict.forPlatform(String platform, {String tagTitle}) {
+  factory PlatformDict.forPlatform(
+    String platform, {
+    String tagTitle,
+    String onlyPlatformPackagesUrl,
+  }) {
     final formattedPlatform = _formattedPlatformName(platform);
+    final hasOnly = onlyPlatformPackagesUrl != null;
+    final platformCompatible =
+        hasOnly ? '$formattedPlatform-compatible' : formattedPlatform;
+    final platformOnly =
+        hasOnly ? '$formattedPlatform-only' : formattedPlatform;
     return new PlatformDict(
       name: formattedPlatform,
-      topPlatformPackages: 'Top $formattedPlatform packages',
-      morePlatformPackagesLabel: 'More $formattedPlatform packages...',
+      topPlatformPackages: 'Top $platformCompatible packages',
+      morePlatformPackagesLabel: 'More $platformCompatible packages...',
+      onlyPlatformPackagesLabel: hasOnly ? '$platformOnly packages...' : null,
+      onlyPlatformPackagesUrl: onlyPlatformPackagesUrl,
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
@@ -61,6 +76,7 @@ final _dictionaries = <String, PlatformDict>{
   KnownPlatforms.flutter: new PlatformDict.forPlatform(
     KnownPlatforms.flutter,
     tagTitle: 'Compatible with the Flutter platform.',
+    onlyPlatformPackagesUrl: '/packages?q=dependency%3Aflutter',
   ),
   KnownPlatforms.web: new PlatformDict.forPlatform(
     KnownPlatforms.web,
@@ -72,6 +88,8 @@ final _dictionaries = <String, PlatformDict>{
     listingUrl: null, // no listing for platform tag
     topPlatformPackages: null, // no landing page
     morePlatformPackagesLabel: null, // no search filter for it
+    onlyPlatformPackagesLabel: null, // no search filter for it
+    onlyPlatformPackagesUrl: null, // no search filter for it
     landingUrl: null,
     landingPageTitle: null,
     landingBlurb: null,
@@ -160,9 +178,6 @@ SortDict getSortDict(String sort) {
 final String defaultPageDescriptionEscaped = htmlEscape.convert(
     'Pub is the package manager for the Dart programming language, containing reusable '
     'libraries & packages for Flutter, AngularDart, and general Dart programs.');
-
-String flutterOnlyPackagesHtml =
-    '<a href="/packages?q=dependency%3Aflutter">Flutter-only packages...</a>';
 
 final _suggestionHelpMessages = <String, String>{
   SuggestionCode.analysisOptionsRenameRequired: 'Read more about the setup of '
