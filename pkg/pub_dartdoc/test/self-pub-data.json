@@ -79,7 +79,7 @@
       "name": "pub_dartdoc_data.ApiElement.toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.g.dart",
+      "source": "lib/pub_dartdoc_data.dart",
       "href": "pub_dartdoc_data/ApiElement/toJson.html"
     },
     {
@@ -100,7 +100,7 @@
       "name": "pub_dartdoc_data.PubDartdocData.toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.PubDartdocData",
-      "source": "lib/pub_dartdoc_data.g.dart",
+      "source": "lib/pub_dartdoc_data.dart",
       "href": "pub_dartdoc_data/PubDartdocData/toJson.html"
     },
     {
