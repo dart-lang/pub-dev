@@ -159,7 +159,7 @@ class TemplateService {
       'ranking_tooltip_html': sortDict.tooltip,
       'is_search': isSearch,
       'unsupported_qualifier': unsupportedQualifier,
-      'title': platformDict.pageTitle,
+      'title': platformDict.topPlatformPackages,
       'packages': packagesJson,
       'has_packages': packages.isNotEmpty,
       'pagination': renderPagination(links),
@@ -168,7 +168,7 @@ class TemplateService {
     };
     final content = _renderTemplate('pkg/index', values);
 
-    String pageTitle = platformDict.pageTitle;
+    String pageTitle = platformDict.topPlatformPackages;
     if (isSearch) {
       pageTitle = 'Search results for ${searchQuery.query}.';
     } else {
@@ -647,16 +647,16 @@ class TemplateService {
   ) {
     final platformDict = getPlatformDict(platform);
     final packagesUrl = urls.searchUrl(platform: platform);
-    final morePackages = 'More ${platformDict.name} packages...';
     final links = <String>[
-      '<a href="$packagesUrl">${_htmlEscaper.convert(morePackages)}</a>'
+      '<a href="$packagesUrl">${_htmlEscaper.convert(platformDict.morePlatformPackagesLabel)}</a>'
     ];
-    if (platform == KnownPlatforms.flutter) {
-      links.add(flutterSpecificPackagesHtml);
+    if (platformDict.onlyPlatformPackagesUrl != null) {
+      links.add('<a href="${platformDict.onlyPlatformPackagesUrl}">'
+          '${_htmlEscaper.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
     }
     final values = {
       'more_links_html': links.join(' '),
-      'top_header': platformDict.pageTitle,
+      'top_header': platformDict.topPlatformPackages,
       'ranking_tooltip_html': getSortDict('top').tooltip,
       'top_html': topHtml,
     };
@@ -725,7 +725,7 @@ class TemplateService {
       'title': htmlEscape.convert(title),
       'search_platform': platform,
       'search_query': escapedSearchQuery,
-      'search_query_placeholder': 'Search ${platformDict.name} packages',
+      'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
       'search_sort_param': searchSort,
       'platform_tabs_html': platformTabs,
       'api_search_enabled': searchQuery?.isApiEnabled ?? true,

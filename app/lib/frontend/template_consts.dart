@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionCode;
 
 import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
@@ -12,7 +13,11 @@ import '../shared/urls.dart' as urls;
 
 class PlatformDict {
   final String name;
-  final String pageTitle;
+  final String topPlatformPackages;
+  final String morePlatformPackagesLabel;
+  final String onlyPlatformPackagesLabel;
+  final String onlyPlatformPackagesUrl;
+  final String searchPlatformPackagesLabel;
   final String landingPageTitle;
   final String landingBlurb;
   final String landingUrl;
@@ -20,18 +25,38 @@ class PlatformDict {
   final String tagTitle;
 
   PlatformDict({
-    this.name,
-    String pageTitle,
-    this.landingPageTitle,
-    this.landingBlurb,
-    this.landingUrl,
-    this.listingUrl,
-    this.tagTitle,
-  }) : this.pageTitle = pageTitle ?? 'Top $name packages';
+    @required this.name,
+    @required this.topPlatformPackages,
+    @required this.morePlatformPackagesLabel,
+    @required this.onlyPlatformPackagesLabel,
+    @required this.onlyPlatformPackagesUrl,
+    @required this.searchPlatformPackagesLabel,
+    @required this.landingPageTitle,
+    @required this.landingBlurb,
+    @required this.landingUrl,
+    @required this.listingUrl,
+    @required this.tagTitle,
+  });
 
-  factory PlatformDict.forPlatform(String platform, {String tagTitle}) {
+  factory PlatformDict.forPlatform(
+    String platform, {
+    String tagTitle,
+    String onlyPlatformPackagesUrl,
+  }) {
+    final formattedPlatform = _formattedPlatformName(platform);
+    final hasOnly = onlyPlatformPackagesUrl != null;
+    final hasCompatible = hasOnly || platform == KnownPlatforms.web;
+    final platformCompatible =
+        hasCompatible ? '$formattedPlatform-compatible' : formattedPlatform;
+    final platformOnly =
+        hasOnly ? '$formattedPlatform-only' : formattedPlatform;
     return new PlatformDict(
-      name: _formattedPlatformName(platform),
+      name: formattedPlatform,
+      topPlatformPackages: 'Top $platformCompatible packages',
+      morePlatformPackagesLabel: 'More $platformCompatible packages...',
+      onlyPlatformPackagesLabel: hasOnly ? '$platformOnly packages...' : null,
+      onlyPlatformPackagesUrl: onlyPlatformPackagesUrl,
+      searchPlatformPackagesLabel: 'Search $platformCompatible packages',
       landingPageTitle: _landingPageTitle(platform),
       landingBlurb: _landingBlurb(platform),
       landingUrl: platform == null ? '/' : '/$platform',
@@ -55,6 +80,7 @@ final _dictionaries = <String, PlatformDict>{
   KnownPlatforms.flutter: new PlatformDict.forPlatform(
     KnownPlatforms.flutter,
     tagTitle: 'Compatible with the Flutter platform.',
+    onlyPlatformPackagesUrl: '/packages?q=dependency%3Aflutter',
   ),
   KnownPlatforms.web: new PlatformDict.forPlatform(
     KnownPlatforms.web,
@@ -63,6 +89,15 @@ final _dictionaries = <String, PlatformDict>{
   KnownPlatforms.other: new PlatformDict(
     name: KnownPlatforms.other,
     tagTitle: 'Compatible with other platforms (terminal, server, etc.).',
+    listingUrl: null, // no listing for platform tag
+    topPlatformPackages: null, // no landing page
+    morePlatformPackagesLabel: null, // no search filter for it
+    onlyPlatformPackagesLabel: null, // no search filter for it
+    onlyPlatformPackagesUrl: null, // no search filter for it
+    searchPlatformPackagesLabel: null, // no search filter for it
+    landingUrl: null,
+    landingPageTitle: null,
+    landingBlurb: null,
   ),
 };
 
@@ -148,9 +183,6 @@ SortDict getSortDict(String sort) {
 final String defaultPageDescriptionEscaped = htmlEscape.convert(
     'Pub is the package manager for the Dart programming language, containing reusable '
     'libraries & packages for Flutter, AngularDart, and general Dart programs.');
-
-String flutterSpecificPackagesHtml =
-    '<a href="/packages?q=dependency%3Aflutter">Flutter-specific packages...</a>';
 
 final _suggestionHelpMessages = <String, String>{
   SuggestionCode.analysisOptionsRenameRequired: 'Read more about the setup of '
