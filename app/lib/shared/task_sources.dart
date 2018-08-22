@@ -53,13 +53,13 @@ class DatastoreHeadTaskSource implements TaskSource {
         final DateTime now = new DateTime.now().toUtc();
         switch (_model) {
           case TaskSourceModel.package:
-            yield* _poll(Package, 'updated', _packageToTask);
+            yield* _poll<Package>('updated', _packageToTask);
             break;
           case TaskSourceModel.version:
-            yield* _poll(PackageVersion, 'created', _versionToTask);
+            yield* _poll<PackageVersion>('created', _versionToTask);
             break;
           case TaskSourceModel.analysis:
-            yield* _poll(Analysis, 'timestamp', _analysisToTask);
+            yield* _poll<Analysis>('timestamp', _analysisToTask);
             break;
         }
         _lastTs = now.subtract(_window);
@@ -75,14 +75,14 @@ class DatastoreHeadTaskSource implements TaskSource {
   Future dbScanComplete(int count) async {}
 
   Stream<Task> _poll<M extends Model>(
-      Type type, String field, Task modelToTask(M model)) async* {
-    final Query q = _db.query(type);
+      String field, Task modelToTask(M model)) async* {
+    final Query q = _db.query<M>();
     if (_lastTs != null) {
       q.filter('$field >=', _lastTs);
     }
     int count = 0;
     Timer timer;
-    await for (M model in q.run().cast<M>()) {
+    await for (M model in q.run()) {
       timer?.cancel();
       timer = new Timer(const Duration(minutes: 5), () {
         _logger.warning(
@@ -124,8 +124,8 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
     for (;;) {
       try {
         // Check and schedule the latest stable version of each package.
-        final Query packageQuery = _db.query(Package)..order('-updated');
-        await for (Package p in packageQuery.run().cast<Package>()) {
+        final Query packageQuery = _db.query<Package>()..order('-updated');
+        await for (Package p in packageQuery.run()) {
           if (await requiresUpdate(p.name, p.latestVersion,
               retryFailed: true)) {
             yield new Task(p.name, p.latestVersion, p.updated);
@@ -139,9 +139,9 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
 
         // After we are done with the most important versions, let's check all
         // of the older versions too.
-        final Query versionQuery = _db.query(PackageVersion)..order('-created');
-        await for (PackageVersion pv
-            in versionQuery.run().cast<PackageVersion>()) {
+        final Query versionQuery = _db.query<PackageVersion>()
+          ..order('-created');
+        await for (PackageVersion pv in versionQuery.run()) {
           if (await requiresUpdate(pv.package, pv.version)) {
             yield new Task(pv.package, pv.version, pv.created);
           }

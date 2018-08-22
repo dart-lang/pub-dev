@@ -106,7 +106,7 @@ class JobMaintenance {
   /// Reads the current package versions and syncs them with job entries.
   Future syncDatastoreHistory() async {
     final latestVersions = new Map<String, String>();
-    await for (Package p in _db.query(Package).run().cast<Package>()) {
+    await for (Package p in _db.query<Package>().run()) {
       latestVersions[p.name] = p.latestVersion;
     }
 
@@ -141,8 +141,7 @@ class JobMaintenance {
     await pool.close();
 
     pool = new Pool(4);
-    final stream =
-        randomizeStream(_db.query(PackageVersion).run().cast<PackageVersion>());
+    final stream = randomizeStream(_db.query<PackageVersion>().run());
     await for (PackageVersion pv in stream) {
       pool.withResource(() => updateJob(pv, true));
     }

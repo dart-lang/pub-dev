@@ -8,8 +8,7 @@ import 'package:meta/meta.dart';
 part 'pub_dartdoc_data.g.dart';
 
 @JsonSerializable()
-class PubDartdocData extends Object with _$PubDartdocDataSerializerMixin {
-  @override
+class PubDartdocData {
   final List<ApiElement> apiElements;
 
   PubDartdocData({
@@ -18,29 +17,25 @@ class PubDartdocData extends Object with _$PubDartdocDataSerializerMixin {
 
   factory PubDartdocData.fromJson(Map<String, dynamic> json) =>
       _$PubDartdocDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PubDartdocDataToJson(this);
 }
 
 @JsonSerializable()
-class ApiElement extends Object with _$ApiElementSerializerMixin {
-  @override
+class ApiElement {
   final String name;
 
-  @override
   final String kind;
 
   @JsonKey(includeIfNull: false)
-  @override
   final String parent;
 
-  @override
   final String source;
 
   @JsonKey(includeIfNull: false)
-  @override
   final String href;
 
   @JsonKey(includeIfNull: false)
-  @override
   final String documentation;
 
   ApiElement({
@@ -54,4 +49,6 @@ class ApiElement extends Object with _$ApiElementSerializerMixin {
 
   factory ApiElement.fromJson(Map<String, dynamic> json) =>
       _$ApiElementFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApiElementToJson(this);
 }

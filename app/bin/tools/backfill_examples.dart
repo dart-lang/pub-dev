@@ -25,7 +25,7 @@ Future main(List<String> args) async {
   int updated = 0;
   _httpClient = new http.Client();
   await withProdServices(() async {
-    final query = dbService.query(PackageVersion)..order('-created');
+    final query = dbService.query<PackageVersion>()..order('-created');
     if (pkg != null) {
       query.filter(
           "package =", new ds.Key([new ds.KeyElement('Package', pkg)]));

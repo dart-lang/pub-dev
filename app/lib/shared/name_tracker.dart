@@ -72,11 +72,11 @@ class NameTrackerUpdater {
   }
 
   Future _scan() async {
-    final query = _db.query(Package)..order('created');
+    final query = _db.query<Package>()..order('created');
     if (_lastTs != null) {
       query.filter('created >', _lastTs);
     }
-    await for (Package p in query.run().cast<Package>()) {
+    await for (Package p in query.run()) {
       nameTracker.add(p.name);
       _lastTs = p.created;
     }

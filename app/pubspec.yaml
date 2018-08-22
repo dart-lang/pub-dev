@@ -2,21 +2,21 @@ name: pub_dartlang_org
 author: Dart Team <misc@dartlang.org>
 description: The pub.dartlang.org website.
 environment:
-  sdk: ">=1.25.0-dev.9.0 <2.0.0"
+  sdk: ">=2.0.0 <2.2.0"
 dependencies:
   _popularity:
     path: ../pkg/_popularity
-  appengine: '^0.4.4+2'
+  appengine: '^0.5.0'
   args: '>=0.13.7 <2.0.0'
   crypto: '^2.0.2'
-  gcloud: '>=0.5.0 <0.6.0'
+  gcloud: '^0.6.0'
   googleapis: '>=0.31.0 <0.52.0'
   googleapis_auth: ^0.2.4
   html: '>=0.12.0 <0.14.0'
   http: '>=0.11.0 <0.12.0'
   http_parser: '>=3.1.1 <4.0.0'
   intl: '>=0.13.0 <0.16.0'
-  json_annotation: '^0.2.0'
+  json_annotation: '^1.1.0'
   logging: '>=0.9.3 <1.0.0'
   markdown: '>=2.0.0 <2.1.0'
   memcache: '^0.3.0'
@@ -34,13 +34,13 @@ dependencies:
   yaml: '^2.1.12'
   # pana version to be pinned
   # keep in-sync with app/lib/shared/versions.dart
-  pana: '0.11.8'
+  pana: '0.11.9'
   # 3rd-party packages with pinned versions
-  archive: '2.0.0'
-  uuid: '1.0.0'
+  archive: '2.0.3'
+  uuid: '1.0.3'
 
 dev_dependencies:
-  build_runner: '^0.9.1'
-  json_serializable: '^0.5.0'
-  source_gen: '^0.8.0'
+  build_runner: '^0.10.0'
+  json_serializable: '^1.1.0'
+  source_gen: '^0.9.0'
   test: ^1.2.0

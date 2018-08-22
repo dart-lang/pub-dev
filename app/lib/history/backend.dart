@@ -45,7 +45,7 @@ class HistoryBackend {
     String packageVersion,
     int limit,
   }) {
-    final query = _db.query(History)
+    final query = _db.query<History>()
       ..filter('scope =', scope)
       ..filter('packageName =', packageName)
       ..order('-timestamp');
@@ -55,6 +55,6 @@ class HistoryBackend {
     if (packageVersion != null) {
       query.filter('packageVersion =', packageVersion);
     }
-    return query.run().cast<History>();
+    return query.run();
   }
 }

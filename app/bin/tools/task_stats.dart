@@ -43,7 +43,8 @@ Future main(List<String> args) async {
     final statFutures = <Future<_Stat>>[];
     final updatedAfter =
         new DateTime.now().subtract(new Duration(days: maxAgeDays));
-    final query = dbService.query(Package)..filter('updated >=', updatedAfter);
+    final query = dbService.query<Package>()
+      ..filter('updated >=', updatedAfter);
     await for (Package p in query.run()) {
       statFutures
           .add(pool.withResource(() => _getStat(p.name, p.latestVersion)));

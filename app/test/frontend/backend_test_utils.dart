@@ -18,12 +18,12 @@ import 'package:pub_dartlang_org/history/backend.dart';
 
 import 'utils.dart';
 
-class DatastoreDBMock extends gdb.DatastoreDB {
+class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   final Function commitFun;
   final Function lookupFun;
   final Function queryFun;
   final TransactionMock transactionMock;
-  final QueryMock queryMock;
+  final QueryMock<T> queryMock;
 
   DatastoreDBMock(
       {this.commitFun,
@@ -42,22 +42,22 @@ class DatastoreDBMock extends gdb.DatastoreDB {
   }
 
   @override
-  Future<List<gdb.Model>> lookup(List<gdb.Key> keys) async {
+  Future<List<T>> lookup<T extends gdb.Model>(List<gdb.Key> keys) async {
     if (lookupFun == null) {
       throw new Exception('no lookupFun');
     }
-    return ((await lookupFun(keys)) as List).cast<gdb.Model>();
+    return ((await lookupFun(keys)) as List).cast<T>();
   }
 
   @override
-  gdb.Query query(Type kind, {gdb.Partition partition, gdb.Key ancestorKey}) {
+  gdb.Query<T> query<T extends gdb.Model>(
+      {gdb.Partition partition, gdb.Key ancestorKey}) {
     if (queryMock == null) {
       throw new Exception('no queryMock');
     }
-    queryMock._kind = kind;
     queryMock._partition = partition;
     queryMock._ancestorKey = ancestorKey;
-    return queryMock;
+    return queryMock as QueryMock<T>;
   }
 
   @override
@@ -95,22 +95,22 @@ class TransactionMock implements gdb.Transaction {
   }
 
   @override
-  Future<List<gdb.Model>> lookup(List<gdb.Key> keys) async {
+  Future<List<T>> lookup<T extends gdb.Model>(List<gdb.Key> keys) async {
     if (lookupFun == null) {
       throw new Exception('no lookupFun');
     }
-    return ((await lookupFun(keys)) as List).cast<gdb.Model>();
+    return ((await lookupFun(keys)) as List).cast<T>();
   }
 
   @override
-  gdb.Query query(Type kind, gdb.Key ancestorKey, {gdb.Partition partition}) {
+  gdb.Query<T> query<T extends gdb.Model>(gdb.Key ancestorKey,
+      {gdb.Partition partition}) {
     if (queryMock == null) {
       throw new Exception('no queryMock');
     }
-    queryMock._kind = kind;
     queryMock._partition = partition;
     queryMock._ancestorKey = ancestorKey;
-    return queryMock;
+    return queryMock as QueryMock<T>;
   }
 
   @override
@@ -130,14 +130,13 @@ class TransactionMock implements gdb.Transaction {
   }
 }
 
-class QueryMock implements gdb.Query {
-  final QueryMockHandler runFun;
+class QueryMock<T extends gdb.Model> implements gdb.Query<T> {
+  final QueryMockHandler<T> runFun;
 
   QueryMock(this.runFun);
 
   // These will will be set by the query() methods on `Transaction` or
   // `DatastoreDB`.
-  Type _kind;
   gdb.Partition _partition;
   gdb.Key _ancestorKey;
 
@@ -168,9 +167,8 @@ class QueryMock implements gdb.Query {
   void order(String orderString) => _orders.add(orderString);
 
   @override
-  Stream<gdb.Model> run() {
+  Stream<T> run() {
     return runFun(
-        kind: _kind,
         partition: _partition,
         ancestorKey: _ancestorKey,
         filters: _filters,
@@ -181,9 +179,8 @@ class QueryMock implements gdb.Query {
   }
 }
 
-typedef Stream<gdb.Model> QueryMockHandler(
-    {Type kind,
-    gdb.Partition partition,
+typedef Stream<T> QueryMockHandler<T extends gdb.Model>(
+    {gdb.Partition partition,
     gdb.Key ancestorKey,
     List<String> filters,
     List filterComparisonObjects,

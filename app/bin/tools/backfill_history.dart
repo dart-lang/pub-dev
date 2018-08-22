@@ -27,7 +27,7 @@ Future main(List<String> args) async {
     if (package != null) {
       await _backfillPackage(package);
     } else {
-      await for (Package p in dbService.query(Package).run()) {
+      await for (Package p in dbService.query<Package>().run()) {
         await _backfillPackage(p.name);
       }
     }
@@ -37,7 +37,7 @@ Future main(List<String> args) async {
 Future _backfillPackage(String package) async {
   print('Backfill history in: $package');
   final packageKey = dbService.emptyKey.append(Package, id: package);
-  final query = dbService.query(PackageVersion, ancestorKey: packageKey);
+  final query = dbService.query<PackageVersion>(ancestorKey: packageKey);
   await for (PackageVersion pv in query.run()) {
     bool hasUploaded = false;
     await for (History history in historyBackend.getAll(

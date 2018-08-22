@@ -14,7 +14,7 @@ Future main(List<String> args) async {
   final names = <String>[];
 
   await withProdServices(() async {
-    await for (Package p in dbService.query(Package).run()) {
+    await for (Package p in dbService.query<Package>().run()) {
       names.add(p.name);
       if (names.length % 100 == 0) {
         print('Scanned: ${names.length} packages [current: ${p.name}].');

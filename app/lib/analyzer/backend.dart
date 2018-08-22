@@ -86,9 +86,9 @@ class AnalysisBackend {
     }
 
     if (analysis == null) {
-      final Query query = db.query(Analysis, ancestorKey: versionKey)
+      final Query query = db.query<Analysis>(ancestorKey: versionKey)
         ..filter('panaVersion =', panaVersion);
-      final List<Analysis> list = await query.run().cast<Analysis>().toList();
+      final List<Analysis> list = await query.run().toList();
       if (list.isNotEmpty) {
         list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
         final Analysis entry = list[0];
@@ -265,8 +265,9 @@ class AnalysisBackend {
     if (isNewer(
         semanticRuntimeVersion, versionAnalysis.semanticRuntimeVersion)) {
       // check if there is any analysis with this runtime version
-      final query = db.query(Analysis, ancestorKey: versionKey);
-      query.filter('runtimeVersion =', runtimeVersion);
+      final query = db.query<Analysis>(ancestorKey: versionKey)
+        ..filter('runtimeVersion =', runtimeVersion)
+        ..limit(1);
       if (await query.run().isEmpty) {
         return new TaskTargetStatus.ok();
       } else {
@@ -312,10 +313,10 @@ class AnalysisBackend {
 
     final DateTime threshold =
         new DateTime.now().toUtc().subtract(_obsoleteThreshold);
-    final Query scanQuery = db.query(Analysis, ancestorKey: pvaKey);
+    final scanQuery = db.query<Analysis>(ancestorKey: pvaKey);
     final obsoleteKeys = <Key>[];
 
-    final existingAnalysis = await scanQuery.run().cast<Analysis>().toList();
+    final existingAnalysis = await scanQuery.run().toList();
     existingAnalysis.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     final panaVersion2LatestAnalysis = <String, Analysis>{};
@@ -346,7 +347,7 @@ class AnalysisBackend {
 
     if (obsoleteKeys.isNotEmpty) {
       _logger.info('Deleting Analysis entries for $package $version: '
-          '${obsoleteKeys.map((k)=> k.id).join(',')}');
+          '${obsoleteKeys.map((k) => k.id).join(',')}');
       await db.commit(deletes: obsoleteKeys);
     }
   }

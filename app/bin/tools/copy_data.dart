@@ -55,7 +55,7 @@ Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
   }
 
   // Write [Package]s.
-  await for (final Package p in from.query(Package).run()) {
+  await for (final Package p in from.query<Package>().run()) {
     print('Enquqing package ${p.name}');
     entities.add(p);
     await flush();
@@ -63,7 +63,7 @@ Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
   await flush(force: true);
 
   // Write [PackageVersion]s.
-  await for (final PackageVersion pv in from.query(PackageVersion).run()) {
+  await for (final PackageVersion pv in from.query<PackageVersion>().run()) {
     print('Enquqing package ${pv.key.parent.id} version ${pv.key.id}');
     entities.add(pv);
     await flush();
@@ -71,7 +71,7 @@ Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
   await flush(force: true);
 
   // Write [PrivateKey]s.
-  await for (final PrivateKey pk in from.query(PrivateKey).run()) {
+  await for (final PrivateKey pk in from.query<PrivateKey>().run()) {
     if (pk.key.id == 'singleton') {
       print('Enqueueing key ${pk.key.id}');
       entities.add(pk);

@@ -143,12 +143,12 @@ class JobBackend {
   }
 
   Future<Job> lockAvailable(JobService service, {Duration lockDuration}) async {
-    final query = _db.query(Job)
+    final query = _db.query<Job>()
       ..filter('service =', service)
       ..filter('state =', JobState.available)
       ..order('priority')
       ..limit(100);
-    final list = await query.run().cast<Job>().toList();
+    final list = await query.run().toList();
 
     bool isApplicable(Job job) {
       if (job == null) return false;
@@ -198,11 +198,11 @@ class JobBackend {
       });
     }
 
-    final query = _db.query(Job)
+    final query = _db.query<Job>()
       ..filter('service =', service)
       ..filter('state =', JobState.processing)
       ..filter('lockedUntil <', new DateTime.now().toUtc());
-    await for (Job job in query.run().cast<Job>()) {
+    await for (Job job in query.run()) {
       try {
         await _unlock(job);
       } catch (e, st) {
@@ -243,11 +243,11 @@ class JobBackend {
       });
     }
 
-    final query = _db.query(Job)
+    final query = _db.query<Job>()
       ..filter('service =', service)
       ..filter('state =', JobState.idle)
       ..filter('lockedUntil <', new DateTime.now().toUtc());
-    await for (Job job in query.run().cast<Job>()) {
+    await for (Job job in query.run()) {
       if (job.runtimeVersion != versions.runtimeVersion) continue;
       try {
         final process = await shouldProcess(
@@ -291,8 +291,8 @@ class JobBackend {
   Future<Map> stats(JobService service) async {
     final _AllStats stats = new _AllStats();
 
-    final query = _db.query(Job)..filter('service =', service);
-    await for (Job job in query.run().cast<Job>()) {
+    final query = _db.query<Job>()..filter('service =', service);
+    await for (Job job in query.run()) {
       stats.add(job);
     }
 
