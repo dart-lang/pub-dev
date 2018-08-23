@@ -53,7 +53,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final PackageSearchResult result = await packageIndex.search(query);
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
-    _logger.warning(
+    _logger.info(
         'Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds}ms: '
         '${query.toServiceQueryParameters()}');
   }
