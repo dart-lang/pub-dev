@@ -28,6 +28,7 @@ Future runHandler(Logger logger, shelf.Handler handler,
     handler = _sanitizeRequestWrapper(handler);
   }
   handler = _redirectToHttpsWrapper(handler);
+  handler = _redirectToPubSiteWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   return runAppEngine((HttpRequest request) => _handleRequest(request, handler),
       shared: true);
@@ -82,6 +83,20 @@ shelf.Handler _userAuthParsingWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     await registerLoggedInUserIfPossible(request);
     return await handler(request);
+  };
+}
+
+shelf.Handler _redirectToPubSiteWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
+    final host = request.requestedUri.host;
+    final shouldRedirect =
+        (host == 'www.dartdocs.org') || (host == 'dartdocs.org');
+    if (context.isProductionEnvironment && shouldRedirect) {
+      return redirectResponse(
+          request.requestedUri.replace(host: 'pub.dartlang.org').toString());
+    } else {
+      return await handler(request);
+    }
   };
 }
 
