@@ -89,8 +89,8 @@ class PackageDependencyBuilder {
       try {
         // We scan from oldest to newest and therefore keep [_lastTs] always
         // increasing.
-        final query = dbService.query(PackageVersion)..order('created');
-        await for (PackageVersion pv in query.run().cast<PackageVersion>()) {
+        final query = dbService.query<PackageVersion>()..order('created');
+        await for (PackageVersion pv in query.run()) {
           addPackageVersion(pv);
           _lastTs = pv.created;
         }
@@ -108,10 +108,10 @@ class PackageDependencyBuilder {
     _logger.info('Monitoring new package uploads.');
     for (;;) {
       try {
-        final query = dbService.query(PackageVersion)
+        final query = dbService.query<PackageVersion>()
           ..filter('created >', _lastTs)
           ..order('created');
-        await for (PackageVersion pv in query.run().cast<PackageVersion>()) {
+        await for (PackageVersion pv in query.run()) {
           addPackageVersion(pv);
           _lastTs = pv.created;
         }

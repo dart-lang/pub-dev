@@ -22,7 +22,7 @@ part 'models.g.dart';
 final Duration _entryUpdateThreshold = const Duration(days: 90);
 
 @JsonSerializable()
-class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
+class DartdocEntry {
   final String uuid;
   final String packageName;
   final String packageVersion;
@@ -70,6 +70,8 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
         await stream.fold<List<int>>([], (sum, list) => sum..addAll(list));
     return new DartdocEntry.fromBytes(bytes);
   }
+
+  Map<String, dynamic> toJson() => _$DartdocEntryToJson(this);
 
   bool get isServing => versions.shouldServeDartdoc(runtimeVersion);
 
@@ -170,7 +172,7 @@ class DartdocEntry extends Object with _$DartdocEntrySerializerMixin {
 }
 
 @JsonSerializable()
-class FileInfo extends Object with _$FileInfoSerializerMixin {
+class FileInfo {
   final DateTime lastModified;
   final String etag;
 
@@ -183,4 +185,6 @@ class FileInfo extends Object with _$FileInfoSerializerMixin {
       json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
 
   List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
+
+  Map<String, dynamic> toJson() => _$FileInfoToJson(this);
 }

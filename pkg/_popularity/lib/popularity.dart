@@ -9,38 +9,33 @@ import 'package:json_annotation/json_annotation.dart';
 part 'popularity.g.dart';
 
 @JsonSerializable()
-class PackagePopularity extends Object with _$PackagePopularitySerializerMixin {
+class PackagePopularity {
   static const int version = 3;
 
   static final String popularityFileName = 'v$version/popularity.json.gz';
 
   @JsonKey(name: 'date_first', nullable: false)
-  @override
   final DateTime dateFirst;
 
   @JsonKey(name: 'date_last', nullable: false)
-  @override
   final DateTime dateLast;
 
   @JsonKey(nullable: false)
-  @override
   final Map<String, VoteTotals> items;
 
   PackagePopularity(this.dateFirst, this.dateLast, this.items);
 
   factory PackagePopularity.fromJson(Map<String, dynamic> json) =>
       _$PackagePopularityFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackagePopularityToJson(this);
 }
 
 @JsonSerializable()
-class VoteTotals extends Object
-    with _$VoteTotalsSerializerMixin
-    implements VoteData {
+class VoteTotals implements VoteData {
   @JsonKey(nullable: false)
-  @override
   final VoteData flutter;
   @JsonKey(nullable: false)
-  @override
   final VoteData notFlutter;
 
   @override
@@ -59,20 +54,19 @@ class VoteTotals extends Object
 
   factory VoteTotals.fromJson(Map<String, dynamic> json) =>
       _$VoteTotalsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VoteTotalsToJson(this);
 }
 
 @JsonSerializable()
-class VoteData extends Object with _$VoteDataSerializerMixin {
+class VoteData {
   @JsonKey(name: 'votes_direct', nullable: false)
-  @override
   final int direct;
 
   @JsonKey(name: 'votes_dev', nullable: false)
-  @override
   final int dev;
 
   @JsonKey(name: 'votes_total', nullable: false)
-  @override
   final int total;
 
   int get score => _score(this);
@@ -84,6 +78,8 @@ class VoteData extends Object with _$VoteDataSerializerMixin {
 
   factory VoteData.fromJson(Map<String, dynamic> json) =>
       _$VoteDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VoteDataToJson(this);
 
   static int _score(VoteData data) => data.direct * 10 + data.dev;
 }

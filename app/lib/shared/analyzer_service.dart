@@ -74,7 +74,7 @@ int analysisStatusLevel(AnalysisStatus status) {
 
 /// The data which is served thought the HTTP interface of the analyzer service.
 @JsonSerializable()
-class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
+class AnalysisData {
   final String packageName;
   final String packageVersion;
   final int analysis;
@@ -101,10 +101,12 @@ class AnalysisData extends Object with _$AnalysisDataSerializerMixin {
 
   factory AnalysisData.fromJson(Map<String, dynamic> json) =>
       _$AnalysisDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AnalysisDataToJson(this);
 }
 
 @JsonSerializable()
-class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
+class AnalysisExtract {
   final AnalysisStatus analysisStatus;
 
   final double health;
@@ -126,6 +128,8 @@ class AnalysisExtract extends Object with _$AnalysisExtractSerializerMixin {
 
   factory AnalysisExtract.fromJson(Map<String, dynamic> json) =>
       _$AnalysisExtractFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AnalysisExtractToJson(this);
 
   double get overallScore => calculateOverallScore(
         health: health ?? 0.0,

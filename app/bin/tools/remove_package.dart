@@ -66,8 +66,8 @@ Future listPackage(String packageName) async {
   }
 
   final versionsQuery =
-      dbService.query(PackageVersion, ancestorKey: packageKey);
-  final versions = await versionsQuery.run().cast<PackageVersion>().toList();
+      dbService.query<PackageVersion>(ancestorKey: packageKey);
+  final versions = await versionsQuery.run().toList();
 
   print('Package "$packageName" has the following versions:');
   for (var version in versions) {
@@ -100,8 +100,8 @@ Future removePackage(String packageName) async {
       deletes.add(packageKey);
     }
 
-    final versionsQuery = T.query(PackageVersion, packageKey);
-    final versions = await versionsQuery.run().cast<PackageVersion>().toList();
+    final versionsQuery = T.query<PackageVersion>(packageKey);
+    final versions = await versionsQuery.run().toList();
     final List<Version> versionNames =
         versions.map((v) => v.semanticVersion).toList();
     deletes.addAll(versions.map((v) => v.key));
@@ -112,16 +112,16 @@ Future removePackage(String packageName) async {
     if (packageAnalysis == null) {
       print('Analysis for $packageName does not exist?');
     }
-    final pvaQuery = T.query(PackageVersionAnalysis, packageAnalysisKey);
-    final pvas = await pvaQuery.run().cast<PackageVersionAnalysis>().toList();
+    final pvaQuery = T.query<PackageVersionAnalysis>(packageAnalysisKey);
+    final pvas = await pvaQuery.run().toList();
 
     deletes.add(packageAnalysisKey);
     deletes.addAll(pvas.map((v) => v.key));
 
     for (final pva in pvas) {
-      final analysisQuery = T.query(Analysis,
+      final analysisQuery = T.query<Analysis>(
           packageAnalysisKey.append(PackageVersionAnalysis, id: pva.id));
-      final as = await analysisQuery.run().cast<Analysis>().toList();
+      final as = await analysisQuery.run().toList();
       deletes.addAll(as.map((a) => a.key));
     }
 
@@ -139,10 +139,10 @@ Future removePackage(String packageName) async {
   await dartdocBackend.removeAll(packageName);
 
   await _deleteWithQuery(
-      dbService.query(Job)..filter('packageName =', packageName));
+      dbService.query<Job>()..filter('packageName =', packageName));
 
   await _deleteWithQuery(
-      dbService.query(History)..filter('packageName =', packageName));
+      dbService.query<History>()..filter('packageName =', packageName));
 
   print('Package "$packageName" got successfully removed.');
   print('WARNING: Please remember to clear the AppEngine memcache!');
@@ -156,8 +156,8 @@ Future removePackageVersion(String packageName, String version) async {
       throw new Exception("Package $packageName does not exist.");
     }
 
-    final versionsQuery = T.query(PackageVersion, packageKey);
-    final versions = await versionsQuery.run().cast<PackageVersion>().toList();
+    final versionsQuery = T.query<PackageVersion>(packageKey);
+    final versions = await versionsQuery.run().toList();
     final versionNames = versions.map((v) => '${v.semanticVersion}').toList();
     if (!versionNames.contains(version)) {
       print('Package $packageName does not have a version $version.');
@@ -181,12 +181,12 @@ Future removePackageVersion(String packageName, String version) async {
   await dartdocBackend.removeAll(packageName, version: version);
 
   await _deleteWithQuery(
-    dbService.query(Job)..filter('packageName =', packageName),
+    dbService.query<Job>()..filter('packageName =', packageName),
     where: (Job job) => job.packageVersion == version,
   );
 
   await _deleteWithQuery(
-    dbService.query(History)..filter('packageName =', packageName),
+    dbService.query<History>()..filter('packageName =', packageName),
     where: (History history) => history.packageVersion == version,
   );
 

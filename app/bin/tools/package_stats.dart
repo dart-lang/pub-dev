@@ -34,7 +34,7 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
-    await for (Package p in dbService.query(Package).run()) {
+    await for (Package p in dbService.query<Package>().run()) {
       totalCount++;
       if (totalCount % 25 == 0) {
         print('Reading package #$totalCount: ${p.name}');

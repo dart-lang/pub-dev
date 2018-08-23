@@ -50,8 +50,8 @@ Future main(List<String> args) async {
   await withProdServices(() async {
     registerJobBackend(new JobBackend(dbService));
 
-    final query = dbService.query(Job);
-    await for (Job job in query.run().cast<Job>()) {
+    final query = dbService.query<Job>();
+    await for (Job job in query.run()) {
       if (reset || job.runtimeVersion != runtimeVersion) {
         futures.add(pool.withResource(() => update(job.key)));
       }

@@ -1,6 +1,4 @@
 analyzer:
-  language:
-    enablePreviewDart2: true
   strong-mode:
     implicit-casts: false
   errors:

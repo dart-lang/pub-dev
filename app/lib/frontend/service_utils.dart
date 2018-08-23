@@ -28,7 +28,7 @@ void initOAuth2Service() {
   // access token (which the pub client sends).
   final client = new http.Client();
   registerOAuth2Service(new OAuth2Service(client));
-  registerScopeExitCallback(client.close);
+  registerScopeExitCallback(() async => client.close());
 }
 
 void initSearchService() {

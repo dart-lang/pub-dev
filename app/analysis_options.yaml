@@ -1,7 +1,5 @@
 # https://www.dartlang.org/guides/language/analysis-options
 analyzer:
-  language:
-    enablePreviewDart2: true
   strong-mode:
     implicit-casts: false
 
@@ -43,7 +41,8 @@ linter:
     - package_prefixed_library_names
 #    - parameter_assignments
     - prefer_final_fields
-    - prefer_final_locals
+# TODO: enable after generated code passes
+#    - prefer_final_locals
     - prefer_is_not_empty
     - prefer_typing_uninitialized_variables
 #    - public_member_api_docs

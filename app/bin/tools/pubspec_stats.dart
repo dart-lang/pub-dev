@@ -16,8 +16,8 @@ Future main(List<String> args) async {
     final counts = <String, int>{};
 
     int index = 0;
-    final query = dbService.query(PackageVersion);
-    await for (PackageVersion pv in query.run().cast()) {
+    final query = dbService.query<PackageVersion>();
+    await for (PackageVersion pv in query.run()) {
       index++;
       if (index % 100 == 0) {
         print('$index - ${pv.package} ${pv.version}');

@@ -29,12 +29,12 @@ void main() {
       (<String, List<Package>>{
         'one package': [testPackage],
         'empty': [],
-      }).forEach((String testName, List<Package> expectedPackages) {
+      })
+          .forEach((String testName, List<Package> expectedPackages) {
         test(testName, () async {
           final completion = new TestDelayCompletion();
           Stream<Package> queryRunFun(
-              {kind,
-              partition,
+              {partition,
               ancestorKey,
               filters,
               filterComparisonObjects,
@@ -42,7 +42,6 @@ void main() {
               limit,
               orders}) {
             completion.complete();
-            expect(kind, Package);
             expect(offset, 4);
             expect(limit, 9);
             expect(orders, ['-updated']);
@@ -62,8 +61,7 @@ void main() {
       test('one package', () async {
         final completion = new TestDelayCompletion();
         Stream<Package> queryRunFun(
-            {kind,
-            partition,
+            {partition,
             ancestorKey,
             filters,
             filterComparisonObjects,
@@ -71,7 +69,6 @@ void main() {
             limit,
             orders}) {
           completion.complete();
-          expect(kind, Package);
           expect(offset, 4);
           expect(limit, 9);
           expect(orders, ['-updated']);
@@ -97,9 +94,8 @@ void main() {
 
       test('empty', () async {
         final completion = new TestDelayCompletion();
-        Stream<Model> queryRunFun(
-            {kind,
-            partition,
+        Stream<Package> queryRunFun(
+            {partition,
             ancestorKey,
             filters,
             filterComparisonObjects,
@@ -107,11 +103,10 @@ void main() {
             limit,
             orders}) {
           completion.complete();
-          expect(kind, Package);
           expect(offset, 4);
           expect(limit, 9);
           expect(orders, ['-updated']);
-          return new Stream.fromIterable(<Model>[]);
+          return new Stream.fromIterable(<Package>[]);
         }
 
         List lookupFun(keys) {
@@ -134,7 +129,8 @@ void main() {
       (<String, List<Package>>{
         'exists': [testPackage],
         'does not exist': [null],
-      }).forEach((String testName, List<Package> expectedPackages) {
+      })
+          .forEach((String testName, List<Package> expectedPackages) {
         test(testName, () async {
           List<Package> lookupFun(List<Key> keys) {
             expect(keys, hasLength(1));
@@ -156,7 +152,8 @@ void main() {
       (<String, List<PackageVersion>>{
         'exists': [testPackageVersion],
         'does not exist': [null],
-      }).forEach((String testName, List<PackageVersion> expectedVersions) {
+      })
+          .forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
           List<PackageVersion> lookupFun(List<Key> keys) {
             expect(keys, hasLength(1));
@@ -178,7 +175,8 @@ void main() {
       (<String, List<PackageVersion>>{
         'one version': [testPackageVersion],
         'empty': [null],
-      }).forEach((String testName, List<PackageVersion> expectedVersions) {
+      })
+          .forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
           List<PackageVersion> lookupFun(List<Key> keys) {
             expect(keys, hasLength(1));
@@ -200,12 +198,12 @@ void main() {
       (<String, List<PackageVersion>>{
         'one version': [testPackageVersion],
         'empty': [null],
-      }).forEach((String testName, List<PackageVersion> expectedVersions) {
+      })
+          .forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
           final completion = new TestDelayCompletion();
           Stream<PackageVersion> queryRunFun(
-              {kind,
-              partition,
+              {partition,
               ancestorKey,
               filters,
               filterComparisonObjects,
@@ -213,7 +211,6 @@ void main() {
               limit,
               orders}) {
             completion.complete();
-            expect(kind, PackageVersion);
             expect(ancestorKey, testPackage.key);
             return new Stream.fromIterable(expectedVersions);
           }
@@ -541,9 +538,8 @@ void main() {
     group('GCloudRepository.versions', () {
       test('not found', () async {
         final completion = new TestDelayCompletion();
-        Stream<Model> queryRunFun(
-            {kind,
-            partition,
+        Stream<PackageVersion> queryRunFun(
+            {partition,
             ancestorKey,
             filters,
             filterComparisonObjects,
@@ -551,9 +547,8 @@ void main() {
             limit,
             orders}) {
           completion.complete();
-          expect(kind, PackageVersion);
           expect(ancestorKey, testPackageKey);
-          return new Stream.fromIterable(<Model>[]);
+          return new Stream.fromIterable(<PackageVersion>[]);
         }
 
         final queryMock = new QueryMock(queryRunFun);
@@ -567,8 +562,7 @@ void main() {
       test('found', () async {
         final completion = new TestDelayCompletion();
         Stream<PackageVersion> queryRunFun(
-            {kind,
-            partition,
+            {partition,
             ancestorKey,
             filters,
             filterComparisonObjects,
@@ -576,7 +570,6 @@ void main() {
             limit,
             orders}) {
           completion.complete();
-          expect(kind, PackageVersion);
           expect(ancestorKey, testPackageKey);
           return new Stream.fromIterable([testPackageVersion]);
         }
@@ -626,8 +619,7 @@ void main() {
       }
 
       Stream<PackageVersion> sortOrderUpdateQueryMock(
-          {Type kind,
-          Partition partition,
+          {Partition partition,
           Key ancestorKey,
           List<String> filters,
           List filterComparisonObjects,
@@ -638,7 +630,6 @@ void main() {
         expect(filters, []);
         expect(offset, isNull);
         expect(limit, isNull);
-        expect(kind, PackageVersion);
         expect(ancestorKey, testPackage.key);
         testPackageVersion.sortOrder = 50;
         return new Stream.fromIterable([testPackageVersion]);
@@ -709,8 +700,10 @@ void main() {
           registerLoggedInUser('hans@juergen.com');
           final Future result = repo.finishAsyncUpload(redirectUri);
           await result.catchError(expectAsync2((error, _) {
-            expect(error, contains('Exceeded ${UploadSignerService
-                        .maxUploadSize} upload size'));
+            expect(
+                error,
+                contains(
+                    'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
         }, timeout: new Timeout.factor(2));
 
@@ -878,8 +871,10 @@ void main() {
           final Future result =
               repo.upload(new Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
-            expect(error, contains('Exceeded ${UploadSignerService
-                        .maxUploadSize} upload size'));
+            expect(
+                error,
+                contains(
+                    'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
         }, timeout: new Timeout.factor(2));
 

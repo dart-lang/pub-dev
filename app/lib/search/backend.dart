@@ -229,7 +229,7 @@ class SnapshotStorage {
 }
 
 @JsonSerializable()
-class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
+class SearchSnapshot {
   @JsonKey(nullable: false)
   DateTime updated;
 
@@ -252,4 +252,6 @@ class SearchSnapshot extends Object with _$SearchSnapshotSerializerMixin {
   void addAll(Iterable<PackageDocument> docs) {
     docs.forEach(add);
   }
+
+  Map<String, dynamic> toJson() => _$SearchSnapshotToJson(this);
 }

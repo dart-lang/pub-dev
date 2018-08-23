@@ -139,12 +139,9 @@ final _eventDeserializers = <String, HistoryEventFromJson>{
 };
 
 @JsonSerializable()
-class PackageVersionUploaded extends Object
-    with _$PackageVersionUploadedSerializerMixin
-    implements HistoryEvent {
+class PackageVersionUploaded implements HistoryEvent {
   static const _type = 'package-version-uploaded';
 
-  @override
   final String uploaderEmail;
 
   PackageVersionUploaded({@required this.uploaderEmail});
@@ -156,24 +153,22 @@ class PackageVersionUploaded extends Object
   String formatMarkdown(HistoryData data) {
     return 'Version ${data.packageVersion} was uploaded by `$uploaderEmail`.';
   }
+
+  @override
+  Map<String, dynamic> toJson() => _$PackageVersionUploadedToJson(this);
 }
 
 @JsonSerializable()
-class UploaderChanged extends Object
-    with _$UploaderChangedSerializerMixin
-    implements HistoryEvent {
+class UploaderChanged implements HistoryEvent {
   static const _type = 'uploader-changed';
 
   @JsonKey(includeIfNull: false)
-  @override
   final String currentUserEmail;
 
   @JsonKey(includeIfNull: false)
-  @override
   final List<String> addedUploaderEmails;
 
   @JsonKey(includeIfNull: false)
-  @override
   final List<String> removedUploaderEmails;
 
   UploaderChanged({
@@ -201,18 +196,17 @@ class UploaderChanged extends Object
         : 'A site administrator';
     return '$actor has changed uploaders: ${changes.join(' and ')}.';
   }
+
+  @override
+  Map<String, dynamic> toJson() => _$UploaderChangedToJson(this);
 }
 
 @JsonSerializable()
-class AnalysisCompleted extends Object
-    with _$AnalysisCompletedSerializerMixin
-    implements HistoryEvent {
+class AnalysisCompleted implements HistoryEvent {
   static const _type = 'analysis-completed';
 
-  @override
   final bool hasErrors;
 
-  @override
   final bool hasPlatforms;
 
   AnalysisCompleted({this.hasErrors, this.hasPlatforms});
@@ -230,4 +224,7 @@ class AnalysisCompleted extends Object
       return 'Analysis of `package:${data.packageName}` completed, but no platform has been identified.';
     }
   }
+
+  @override
+  Map<String, dynamic> toJson() => _$AnalysisCompletedToJson(this);
 }

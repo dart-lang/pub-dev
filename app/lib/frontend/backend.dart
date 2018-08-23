@@ -65,26 +65,26 @@ class Backend {
 
   /// Retrieves packages ordered by their created date.
   Future<List<models.Package>> newestPackages({int offset, int limit}) {
-    final query = db.query(models.Package)
+    final query = db.query<models.Package>()
       ..order('-created')
       ..offset(offset)
       ..limit(limit);
-    return query.run().cast<models.Package>().toList();
+    return query.run().toList();
   }
 
   /// Retrieves packages ordered by their latest version date.
   Future<List<models.Package>> latestPackages({int offset, int limit}) {
-    final query = db.query(models.Package)
+    final query = db.query<models.Package>()
       ..order('-updated')
       ..offset(offset)
       ..limit(limit);
-    return query.run().cast<models.Package>().toList();
+    return query.run().toList();
   }
 
   /// Retrieves the names of all packages, ordered by name.
   Stream<String> allPackageNames(
       {DateTime updatedSince, bool excludeDiscontinued: false}) {
-    final query = db.query(models.Package);
+    final query = db.query<models.Package>();
 
     if (updatedSince != null) {
       query.filter('updated >', updatedSince);
@@ -94,11 +94,7 @@ class Backend {
         // isDiscontinued may be null
         excludeDiscontinued && p.isDiscontinued == true;
 
-    return query
-        .run()
-        .cast<models.Package>()
-        .where((p) => !isExcluded(p))
-        .map((p) => p.name);
+    return query.run().where((p) => !isExcluded(p)).map((p) => p.name);
   }
 
   /// Retrieves package versions ordered by their latest version date.
@@ -151,8 +147,8 @@ class Backend {
   Future<List<models.PackageVersion>> versionsOfPackage(
       String packageName) async {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
-    final query = db.query(models.PackageVersion, ancestorKey: packageKey);
-    return (await query.run().toList()).cast();
+    final query = db.query<models.PackageVersion>(ancestorKey: packageKey);
+    return await query.run().toList();
   }
 
   /// Get a [Uri] which can be used to download a tarball of the pub package.
@@ -186,9 +182,8 @@ class GCloudPackageRepository extends PackageRepository {
         onListen: () {
           final packageKey = db.emptyKey.append(models.Package, id: package);
           final query =
-              db.query(models.PackageVersion, ancestorKey: packageKey);
-          subscription =
-              (query.run().cast<models.PackageVersion>()).listen((model) {
+              db.query<models.PackageVersion>(ancestorKey: packageKey);
+          subscription = query.run().listen((model) {
             final packageVersion = new PackageVersion(
                 package, model.version, model.pubspec.jsonString);
             controller.add(packageVersion);
@@ -393,11 +388,8 @@ class GCloudPackageRepository extends PackageRepository {
     try {
       _logger.info('Trying to update the `sort_order` field.');
       await db.withTransaction((Transaction T) async {
-        final versions = await T
-            .query(models.PackageVersion, packageKey)
-            .run()
-            .cast<models.PackageVersion>()
-            .toList();
+        final versions =
+            await T.query<models.PackageVersion>(packageKey).run().toList();
         versions.sort((versionA, versionB) {
           return versionA.semanticVersion.compareTo(versionB.semanticVersion);
         });

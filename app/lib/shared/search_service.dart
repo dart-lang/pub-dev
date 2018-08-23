@@ -34,7 +34,7 @@ abstract class PackageIndex {
 /// the [readme] and [popularity] fields, which are excluded when returning the
 /// results.
 @JsonSerializable()
-class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
+class PackageDocument {
   final String package;
   final String version;
   final String devVersion;
@@ -109,11 +109,13 @@ class PackageDocument extends Object with _$PackageDocumentSerializerMixin {
       timestamp: timestamp,
     );
   }
+
+  Map<String, dynamic> toJson() => _$PackageDocumentToJson(this);
 }
 
 /// A reference to an API doc page
 @JsonSerializable()
-class ApiDocPage extends Object with _$ApiDocPageSerializerMixin {
+class ApiDocPage {
   final String relativePath;
   final List<String> symbols;
   final List<String> textBlocks;
@@ -130,6 +132,8 @@ class ApiDocPage extends Object with _$ApiDocPageSerializerMixin {
       textBlocks: textBlocks,
     );
   }
+
+  Map<String, dynamic> toJson() => _$ApiDocPageToJson(this);
 }
 
 /// How search results should be ordered.
@@ -420,8 +424,7 @@ class ParsedQuery {
 }
 
 @JsonSerializable()
-class PackageSearchResult extends Object
-    with _$PackageSearchResultSerializerMixin {
+class PackageSearchResult {
   /// The last update of the search index.
   final String indexUpdated;
   final int totalCount;
@@ -441,10 +444,12 @@ class PackageSearchResult extends Object
 
   /// Whether the search service has already updated its index after a startup.
   bool get isLegit => indexUpdated != null;
+
+  Map<String, dynamic> toJson() => _$PackageSearchResultToJson(this);
 }
 
 @JsonSerializable()
-class PackageScore extends Object with _$PackageScoreSerializerMixin {
+class PackageScore {
   final String package;
 
   @JsonKey(includeIfNull: false)
@@ -472,10 +477,12 @@ class PackageScore extends Object with _$PackageScoreSerializerMixin {
       apiPages: apiPages ?? this.apiPages,
     );
   }
+
+  Map<String, dynamic> toJson() => _$PackageScoreToJson(this);
 }
 
 @JsonSerializable()
-class ApiPageRef extends Object with _$ApiPageRefSerializerMixin {
+class ApiPageRef {
   final String title;
   final String path;
 
@@ -483,4 +490,6 @@ class ApiPageRef extends Object with _$ApiPageRefSerializerMixin {
 
   factory ApiPageRef.fromJson(Map<String, dynamic> json) =>
       _$ApiPageRefFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ApiPageRefToJson(this);
 }

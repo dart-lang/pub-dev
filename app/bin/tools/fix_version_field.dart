@@ -13,7 +13,7 @@ Future main(List<String> args) async {
   int okCount = 0;
   int updatedCount = 0;
   await withProdServices(() async {
-    await for (PackageVersion pv in dbService.query(PackageVersion).run()) {
+    await for (PackageVersion pv in dbService.query<PackageVersion>().run()) {
       if (pv.version == pv.key.id) {
         okCount++;
         if (okCount % 500 == 0) {

@@ -53,7 +53,7 @@ Future main(List<String> args) async {
     final topThreshold =
         top == 0 ? 0.0 : 1.0 - (top + 1) * (1.0 / popularityStorage.count);
 
-    await for (Package p in dbService.query(Package).run()) {
+    await for (Package p in dbService.query<Package>().run()) {
       totalCount++;
       if (totalCount % 25 == 0) {
         stderr.writeln('Reading package #$totalCount: ${p.name}');

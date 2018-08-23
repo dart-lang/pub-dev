@@ -146,7 +146,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     uploadSigner = new ServiceAccountBasedUploadSigner(credentials);
   } else {
     final authClient = await auth.clientViaMetadataServer();
-    registerScopeExitCallback(authClient.close);
+    registerScopeExitCallback(() async => authClient.close());
     final email = await obtainServiceAccountEmail();
     uploadSigner =
         new IamBasedUploadSigner(configuration.projectId, email, authClient);

@@ -37,8 +37,8 @@ Future main(List<String> args) async {
       new Pubspec.parse(pv.pubspec.jsonString);
     } else {
       final query = package == null
-          ? dbService.query(PackageVersion)
-          : dbService.query(PackageVersion,
+          ? dbService.query<PackageVersion>()
+          : dbService.query<PackageVersion>(
               ancestorKey:
                   dbService.emptyKey.append(PackageVersion, id: package));
       await for (PackageVersion pv in query.run()) {
