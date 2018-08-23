@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers_redirects.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -18,6 +19,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
+import '../dartdoc/handlers_test.dart' show DartdocBackendMock;
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
 
@@ -438,6 +440,56 @@ void main() {
 (\\s*)
 </feed>
 ''');
+      });
+    });
+
+    group('/documentation', () {
+      test('/documentation/flutter redirect', () async {
+        expectRedirectResponse(
+          await issueGet('/documentation/flutter'),
+          'https://docs.flutter.io/',
+        );
+      });
+
+      test('/documentation/flutter/version redirect', () async {
+        expectRedirectResponse(
+          await issueGet('/documentation/flutter/version'),
+          'https://docs.flutter.io/',
+        );
+      });
+
+      test('/documentation/foo/bar redirect', () async {
+        expectRedirectResponse(
+          await issueGet('/documentation/foor/bar'),
+          'https://pub.dartlang.org/documentation/foor/bar/',
+        );
+      });
+
+      scopedTest('trailing slash redirect', () async {
+        expectRedirectResponse(
+            await issueGet('/documentation/foo'), '/documentation/foo/latest/');
+      });
+
+      scopedTest('/documentation/no_pkg redirect', () async {
+        registerDartdocBackend(new DartdocBackendMock());
+        expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
+            '/packages/no_pkg/versions');
+      });
+
+      test('dartdocs.org redirect', () async {
+        expectRedirectResponse(
+          await issueGetUri(
+              Uri.parse('https://dartdocs.org/documentation/pkg/latest/')),
+          'https://pub.dartlang.org/documentation/pkg/latest/',
+        );
+      });
+
+      test('www.dartdocs.org redirect', () async {
+        expectRedirectResponse(
+          await issueGetUri(
+              Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/')),
+          'https://pub.dartlang.org/documentation/pkg/latest/',
+        );
       });
     });
 

@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../dartdoc/handlers.dart' show documentationHandler;
 import '../history/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
@@ -59,6 +60,12 @@ Future<shelf.Response> appHandler(
 
   _logPubHeaders(request);
 
+  final host = request.requestedUri.host;
+  if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
+    return redirectResponse(
+        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
+  }
+
   if (path.startsWith('/experimental')) {
     var newPath = path.substring('/experimental'.length);
     if (newPath.isEmpty) newPath = '/';
@@ -85,6 +92,9 @@ Future<shelf.Response> appHandler(
     return await shelfPubApi(request);
   } else if (path.startsWith('/packages/')) {
     return await _packageHandler(request);
+  } else if (path.startsWith('/documentation')) {
+    return documentationHandler(
+        request.context['_originalRequest'] as shelf.Request ?? request);
   } else if (path.startsWith('/doc')) {
     return _docHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {

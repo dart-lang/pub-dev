@@ -114,7 +114,7 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
     // (The pub client will not remove it and instead directly try to request
     //  "GET //api/..." :-/ )
     final changedUri = uri.replace(path: normalizedResource);
-    return new shelf.Request(
+    final sanitized = new shelf.Request(
       request.method,
       changedUri,
       protocolVersion: request.protocolVersion,
@@ -123,5 +123,10 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
       encoding: request.encoding,
       context: request.context,
     );
+    if (!sanitized.context.containsKey('_originalRequest')) {
+      return sanitized.change(context: {'_originalRequest': request});
+    } else {
+      return sanitized;
+    }
   }
 }

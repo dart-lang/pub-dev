@@ -31,7 +31,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   if (handler != null) {
     return await handler(request);
   } else if (path.startsWith('/documentation')) {
-    return _documentationHandler(request);
+    return documentationHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
   } else if (path == '/robots.txt') {
@@ -56,7 +56,7 @@ Future<shelf.Response> _robotsTxtHandler(shelf.Request request) async {
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
-Future<shelf.Response> _documentationHandler(shelf.Request request) async {
+Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final docFilePath = parseRequestUri(request.requestedUri);
   if (docFilePath == null) {
     return _indexHandler(request);
