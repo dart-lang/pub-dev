@@ -22,12 +22,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
     '/debug': _debugHandler,
   }[path];
 
-  final host = request.requestedUri.host;
-  if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
-    return redirectResponse(
-        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
-  }
-
   if (handler != null) {
     return await handler(request);
   } else if (path.startsWith('/documentation')) {
