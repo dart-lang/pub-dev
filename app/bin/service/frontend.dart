@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
@@ -68,6 +69,10 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   final AnalyzerClient analyzerClient = new AnalyzerClient();
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
+
+  final Bucket dartdocBucket = await getOrCreateBucket(
+      storageService, activeConfiguration.dartdocStorageBucketName);
+  registerDartdocBackend(new DartdocBackend(db.dbService, dartdocBucket));
 
   registerDartdocMemcache(new DartdocMemcache(memcacheService));
   final dartdocClient = new DartdocClient();

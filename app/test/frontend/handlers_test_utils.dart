@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.handlers_test;
+library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
 
@@ -22,9 +22,13 @@ import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
-Future<shelf.Response> issueGet(String path) async {
+Future<shelf.Response> issueGet(String path) {
   final uri = '$siteRoot$path';
-  final request = new shelf.Request('GET', Uri.parse(uri));
+  return issueGetUri(Uri.parse(uri));
+}
+
+Future<shelf.Response> issueGetUri(Uri uri) async {
+  final request = new shelf.Request('GET', uri);
   return appHandler(request, null);
 }
 
