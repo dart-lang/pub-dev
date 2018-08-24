@@ -1,10 +1,6 @@
 dispatch:
   - url: "*.dartdocs.org/*"
-    service: dartdoc
-  - url: "pub.dartlang.org/documentation"
-    service: dartdoc
-  - url: "pub.dartlang.org/documentation/*"
-    service: dartdoc
+    service: default
   - url: "dartdocs.org/*"
-    service: dartdoc
+    service: default
 
