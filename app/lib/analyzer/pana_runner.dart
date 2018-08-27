@@ -17,6 +17,7 @@ import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/platform.dart';
+import '../shared/utils.dart' show internalPackageNames;
 
 import 'backend.dart';
 import 'models.dart';
@@ -99,9 +100,11 @@ class AnalyzerJobProcessor extends JobProcessor {
         );
         final PackageAnalyzer analyzer =
             new PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
+        final isInternal = internalPackageNames.contains(job.packageName);
         return await analyzer.inspectPackage(
           job.packageName,
           version: job.packageVersion,
+          options: new InspectOptions(isInternal: isInternal),
           logger: new Logger.detached(
               'pana/${job.packageName}/${job.packageVersion}'),
         );
