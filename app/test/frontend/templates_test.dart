@@ -113,21 +113,23 @@ void main() {
             ..timestamp = new DateTime(2018, 02, 05)
             ..directDependencies = [
               new PkgDependency(
-                  'quiver',
-                  'direct',
-                  'normal',
-                  new VersionConstraint.parse('^1.0.0'),
-                  new Version.parse('1.0.0'),
-                  null,
-                  null),
+                package: 'quiver',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: new VersionConstraint.parse('^1.0.0'),
+                resolved: new Version.parse('1.0.0'),
+                available: null,
+                errors: null,
+              ),
               new PkgDependency(
-                  'http',
-                  'direct',
-                  'normal',
-                  new VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                  new Version.parse('1.2.0'),
-                  new Version.parse('1.3.0'),
-                  null)
+                package: 'http',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                resolved: new Version.parse('1.2.0'),
+                available: new Version.parse('1.3.0'),
+                errors: null,
+              )
             ]
             ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
       expectGoldenFile(html, 'pkg_show_page.html');
@@ -149,21 +151,23 @@ void main() {
             ..timestamp = new DateTime(2018, 02, 05)
             ..directDependencies = [
               new PkgDependency(
-                  'quiver',
-                  'direct',
-                  'normal',
-                  new VersionConstraint.parse('^1.0.0'),
-                  new Version.parse('1.0.0'),
-                  null,
-                  null),
+                package: 'quiver',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: new VersionConstraint.parse('^1.0.0'),
+                resolved: new Version.parse('1.0.0'),
+                available: null,
+                errors: null,
+              ),
               new PkgDependency(
-                  'http',
-                  'direct',
-                  'normal',
-                  new VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                  new Version.parse('1.2.0'),
-                  new Version.parse('1.3.0'),
-                  null)
+                package: 'http',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                resolved: new Version.parse('1.2.0'),
+                available: new Version.parse('1.3.0'),
+                errors: null,
+              )
             ]
             ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
       expectGoldenFile(html, 'pkg_show_version_page.html');
@@ -300,24 +304,24 @@ void main() {
             ],
             directDependencies: [
               new PkgDependency(
-                'http',
-                'direct',
-                'normal',
-                new VersionConstraint.parse('^1.0.0'),
-                new Version.parse('1.0.0'),
-                new Version.parse('1.1.0'),
-                null,
+                package: 'http',
+                dependencyType: 'direct',
+                constraintType: 'normal',
+                constraint: new VersionConstraint.parse('^1.0.0'),
+                resolved: new Version.parse('1.0.0'),
+                available: new Version.parse('1.1.0'),
+                errors: null,
               ),
             ],
             transitiveDependencies: [
               new PkgDependency(
-                'async',
-                'transitive',
-                'normal',
-                new VersionConstraint.parse('>=0.3.0 <1.0.0'),
-                new Version.parse('0.5.1'),
-                new Version.parse('1.0.2'),
-                null,
+                package: 'async',
+                dependencyType: 'transitive',
+                constraintType: 'normal',
+                constraint: new VersionConstraint.parse('>=0.3.0 <1.0.0'),
+                resolved: new Version.parse('0.5.1'),
+                available: new Version.parse('1.0.2'),
+                errors: null,
               ),
             ],
           ));

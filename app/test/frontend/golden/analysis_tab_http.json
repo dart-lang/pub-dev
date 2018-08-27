@@ -1,42 +1,41 @@
 {
   "packageName": "http",
-  "packageVersion": "0.11.3+12",
-  "analysis": 5185033425911808,
-  "timestamp": "2018-05-09T13:39:27.018407Z",
-  "runtimeVersion": "2018.5.9",
-  "panaVersion": "0.11.0",
-  "flutterVersion": "0.3.5",
+  "packageVersion": "0.11.3+17",
+  "analysis": 5638587542405120,
+  "timestamp": "2018-08-27T08:36:21.193535Z",
+  "runtimeVersion": "2018.08.24",
+  "panaVersion": "0.11.9",
+  "flutterVersion": "0.6.2",
   "analysisStatus": "success",
-  "maintenanceScore": 0.7399800000000001,
+  "maintenanceScore": 0.9947000000000001,
   "analysisContent": {
     "runtimeInfo": {
-      "panaVersion": "0.11.0",
-      "sdkVersion": "2.0.0-dev.52.0",
+      "panaVersion": "0.11.9",
+      "sdkVersion": "2.0.0",
       "flutterVersions": {
         "channel": "unknown",
         "repositoryUrl": "unknown source",
-        "frameworkRevision": "7ffcd3d22d7bc1222d53d6d3bb83f59891aac2c2",
-        "frameworkCommitDate": "2018-04-24 14:03:41 -0700",
-        "engineRevision": "ec611470b571c35156723a163fdcacd1f58b1809",
-        "dartSdkVersion": "2.0.0-dev.48.0.flutter-fe606f890b"
+        "frameworkRevision": "392a178169a9e620a5ae8e55c40d4276cddd3b36",
+        "frameworkCommitDate": "2018-08-21 10:45:37 -0700",
+        "engineRevision": "4b271b2e0265428fc144c5ce6c1234680631d83e",
+        "dartSdkVersion": "2.1.0-dev.1.0.flutter-69fce633b7"
       }
     },
     "packageName": "http",
-    "packageVersion": "0.11.3+12",
+    "packageVersion": "0.11.3+17",
     "pubspec": {
-      "version": "0.11.3+12",
+      "version": "0.11.3+17",
       "name": "http",
       "dependencies": {
-        "stack_trace": ">=0.9.1 <2.0.0",
         "http_parser": ">=0.0.1 <4.0.0",
-        "async": "^1.10.0",
+        "async": ">=1.10.0 <3.0.0",
         "path": ">=0.9.0 <2.0.0",
         "collection": "^1.5.0"
       },
       "author": "Dart Team <misc@dartlang.org>",
       "description": "A composable, Future-based API for making HTTP requests.",
       "environment": {
-        "sdk": ">=1.23.0-dev.0.0 <2.0.0"
+        "sdk": ">=2.0.0-dev.61.0 <3.0.0"
       },
       "homepage": "https://github.com/dart-lang/http",
       "dev_dependencies": {
@@ -68,30 +67,13 @@
       "strongModeEnabled": true,
       "isExperimentalVersion": true,
       "isPreReleaseVersion": false,
-      "dartdocSuccessful": false,
+      "dartdocSuccessful": true,
       "errorCount": 0,
       "warningCount": 0,
-      "hintCount": 37,
+      "hintCount": 2,
       "suggestions": [
         {
-          "level": "error",
-          "title": "Running `dartdoc` failed.",
-          "description": "Make sure `dartdoc` runs without any issues.",
-          "penalty": {
-            "amount": 0,
-            "fraction": 1000
-          }
-        },
-        {
-          "level": "hint",
-          "title": "Fix analysis and formatting issues.",
-          "description": "Analysis or formatting checks reported 37 hints.\n\nRun `dartfmt` to format `lib/browser_client.dart`.\n\nStrong-mode analysis of `lib/http.dart` gave the following hint:\n\nline: 88 col: 29  \n'UTF8' is deprecated and shouldn't be used.\n\nSimilar analysis of the following files failed:\n\n- `lib/src/base_client.dart` (hint)\n- `lib/src/base_request.dart` (hint)\n- `lib/src/base_response.dart` (hint)\n- `lib/src/byte_stream.dart` (hint)\n- `lib/src/client.dart` (hint)\n- `lib/src/io_client.dart` (hint)\n- `lib/src/mock_client.dart` (hint)\n- `lib/src/multipart_file.dart` (hint)\n- `lib/src/multipart_request.dart` (hint)\n- `lib/src/request.dart` (hint)\n- `lib/src/response.dart` (hint)\n- `lib/src/streamed_request.dart` (hint)\n- `lib/src/streamed_response.dart` (hint)\n- `lib/src/utils.dart` (hint)\n",
-          "penalty": {
-            "amount": 37,
-            "fraction": 0
-          }
-        },
-        {
+          "code": "pubspec.description.tooShort",
           "level": "hint",
           "title": "The description is too short.",
           "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
@@ -101,15 +83,17 @@
           }
         },
         {
+          "code": "packageVersion.preV1",
           "level": "hint",
           "title": "Package is pre-v1 release.",
-          "description": "While there is nothing inherently wrong with versions of `0.*.*`, it usually means that the author is still experimenting with the general direction API.",
+          "description": "While there is nothing inherently wrong with versions of `0.*.*`, it usually means that the author is still experimenting with the general direction of the API.",
           "penalty": {
             "amount": 10,
             "fraction": 0
           }
         },
         {
+          "code": "example.missing",
           "level": "hint",
           "title": "Maintain an example.",
           "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
@@ -119,15 +103,48 @@
           }
         },
         {
+          "code": "dartanalyzer.warning",
+          "level": "hint",
+          "title": "Fix `lib/src/base_client.dart`.",
+          "description": "Analysis of `lib/src/base_client.dart` reported 2 hints:\n\nline 163 col 44: 'typed' is deprecated and shouldn't be used.\n\nline 165 col 44: 'typed' is deprecated and shouldn't be used.",
+          "file": "lib/src/base_client.dart",
+          "penalty": {
+            "amount": 2,
+            "fraction": 0
+          }
+        },
+        {
+          "code": "dartfmt.warning",
+          "level": "hint",
+          "title": "Format `lib/browser_client.dart`.",
+          "description": "Run `dartfmt` to format `lib/browser_client.dart`.",
+          "file": "lib/browser_client.dart",
+          "penalty": {
+            "amount": 1,
+            "fraction": 0
+          }
+        },
+        {
+          "code": "analysisOptions.renameRequired",
           "level": "hint",
           "title": "Use `analysis_options.yaml`.",
           "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
+        },
+        {
+          "code": "bulk",
+          "level": "hint",
+          "title": "Fix additional 15 files with analysis or formatting issues.",
+          "description": "Additional issues in the following files:\n\n- `lib/http.dart` (Run `dartfmt` to format `lib/http.dart`.)\n- `lib/src/base_request.dart` (Run `dartfmt` to format `lib/src/base_request.dart`.)\n- `lib/src/base_response.dart` (Run `dartfmt` to format `lib/src/base_response.dart`.)\n- `lib/src/boundary_characters.dart` (Run `dartfmt` to format `lib/src/boundary_characters.dart`.)\n- `lib/src/byte_stream.dart` (Run `dartfmt` to format `lib/src/byte_stream.dart`.)\n- `lib/src/client.dart` (Run `dartfmt` to format `lib/src/client.dart`.)\n- `lib/src/io_client.dart` (Run `dartfmt` to format `lib/src/io_client.dart`.)\n- `lib/src/mock_client.dart` (Run `dartfmt` to format `lib/src/mock_client.dart`.)\n- `lib/src/multipart_file.dart` (Run `dartfmt` to format `lib/src/multipart_file.dart`.)\n- `lib/src/multipart_request.dart` (Run `dartfmt` to format `lib/src/multipart_request.dart`.)\n- `lib/src/request.dart` (Run `dartfmt` to format `lib/src/request.dart`.)\n- `lib/src/response.dart` (Run `dartfmt` to format `lib/src/response.dart`.)\n- `lib/src/streamed_request.dart` (Run `dartfmt` to format `lib/src/streamed_request.dart`.)\n- `lib/src/streamed_response.dart` (Run `dartfmt` to format `lib/src/streamed_response.dart`.)\n- `lib/src/utils.dart` (Run `dartfmt` to format `lib/src/utils.dart`.)\n",
+          "penalty": {
+            "amount": 15,
+            "fraction": 0
+          }
         }
       ]
     },
     "fitness": {
       "magnitude": 1271.0,
-      "shortcoming": 37.0
+      "shortcoming": 19.0
     },
     "pkgResolution": {
       "dependencies": [
@@ -135,61 +152,59 @@
           "package": "async",
           "dependencyType": "direct",
           "constraintType": "normal",
-          "constraint": "^1.10.0",
-          "resolved": "1.13.3",
-          "available": "2.0.7"
+          "constraint": ">=1.10.0 <3.0.0",
+          "resolved": "2.0.8"
         },
         {
           "package": "charcode",
           "dependencyType": "transitive",
           "constraintType": "inherited",
-          "resolved": "1.1.1"
+          "resolved": "1.1.2"
         },
         {
           "package": "collection",
           "dependencyType": "direct",
           "constraintType": "normal",
           "constraint": "^1.5.0",
-          "resolved": "1.14.9"
+          "resolved": "1.14.11"
         },
         {
           "package": "http_parser",
           "dependencyType": "direct",
           "constraintType": "normal",
           "constraint": ">=0.0.1 <4.0.0",
-          "resolved": "3.1.2"
+          "resolved": "3.1.3"
+        },
+        {
+          "package": "meta",
+          "dependencyType": "transitive",
+          "constraintType": "inherited",
+          "resolved": "1.1.6"
         },
         {
           "package": "path",
           "dependencyType": "direct",
           "constraintType": "normal",
           "constraint": ">=0.9.0 <2.0.0",
-          "resolved": "1.5.1"
+          "resolved": "1.6.2"
         },
         {
           "package": "source_span",
           "dependencyType": "transitive",
           "constraintType": "inherited",
-          "resolved": "1.4.0"
-        },
-        {
-          "package": "stack_trace",
-          "dependencyType": "direct",
-          "constraintType": "normal",
-          "constraint": ">=0.9.1 <2.0.0",
-          "resolved": "1.9.2"
+          "resolved": "1.4.1"
         },
         {
           "package": "string_scanner",
           "dependencyType": "transitive",
           "constraintType": "inherited",
-          "resolved": "1.0.2"
+          "resolved": "1.0.4"
         },
         {
           "package": "typed_data",
           "dependencyType": "transitive",
           "constraintType": "inherited",
-          "resolved": "1.1.5"
+          "resolved": "1.1.6"
         },
         {
           "package": "unittest",
@@ -202,7 +217,7 @@
     "dartFiles": {
       "lib/browser_client.dart": {
         "uri": "package:http/browser_client.dart",
-        "size": 3688,
+        "size": 3638,
         "isFormatted": false,
         "codeProblems": [],
         "directLibs": [
@@ -213,8 +228,7 @@
           "package:http/src/base_request.dart",
           "package:http/src/byte_stream.dart",
           "package:http/src/exception.dart",
-          "package:http/src/streamed_response.dart",
-          "package:stack_trace/stack_trace.dart"
+          "package:http/src/streamed_response.dart"
         ],
         "platform": {
           "components": [
@@ -227,7 +241,7 @@
           }
         },
         "fitness": {
-          "magnitude": 83.0,
+          "magnitude": 81.0,
           "shortcoming": 1.0
         }
       },
@@ -235,35 +249,7 @@
         "uri": "package:http/http.dart",
         "size": 7234,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/http.dart",
-            "line": 64,
-            "col": 29,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/http.dart",
-            "line": 88,
-            "col": 29,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/http.dart",
-            "line": 112,
-            "col": 29,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "directLibs": [
           "dart:async",
           "dart:convert",
@@ -292,7 +278,7 @@
         },
         "fitness": {
           "magnitude": 139.0,
-          "shortcoming": 4.0
+          "shortcoming": 1.0
         }
       },
       "lib/src/base_client.dart": {
@@ -344,71 +330,34 @@
           "shortcoming": 1.0
         }
       },
+      "lib/src/boundary_characters.dart": {
+        "uri": "package:http/src/boundary_characters.dart",
+        "size": 953,
+        "isFormatted": false,
+        "codeProblems": [],
+        "fitness": {
+          "magnitude": 13.0,
+          "shortcoming": 1.0
+        }
+      },
       "lib/src/byte_stream.dart": {
         "uri": "package:http/src/byte_stream.dart",
         "size": 1391,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/byte_stream.dart",
-            "line": 31,
-            "col": 51,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/byte_stream.dart",
-            "line": 34,
-            "col": 52,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
           "magnitude": 25.0,
-          "shortcoming": 3.0
+          "shortcoming": 1.0
         }
       },
       "lib/src/client.dart": {
         "uri": "package:http/src/client.dart",
         "size": 6152,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/client.dart",
-            "line": 59,
-            "col": 31,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/client.dart",
-            "line": 80,
-            "col": 31,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/client.dart",
-            "line": 101,
-            "col": 31,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
           "magnitude": 101.0,
-          "shortcoming": 4.0
+          "shortcoming": 1.0
         }
       },
       "lib/src/exception.dart": {
@@ -445,134 +394,40 @@
         "uri": "package:http/src/multipart_file.dart",
         "size": 4431,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/multipart_file.dart",
-            "line": 73,
-            "col": 74,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
           "magnitude": 79.0,
-          "shortcoming": 2.0
+          "shortcoming": 1.0
         }
       },
       "lib/src/multipart_request.dart": {
         "uri": "package:http/src/multipart_request.dart",
-        "size": 6665,
+        "size": 5905,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/multipart_request.dart",
-            "line": 63,
-            "col": 11,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/multipart_request.dart",
-            "line": 64,
-            "col": 11,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/multipart_request.dart",
-            "line": 69,
-            "col": 11,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/multipart_request.dart",
-            "line": 92,
-            "col": 22,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/multipart_request.dart",
-            "line": 95,
-            "col": 48,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
-          "magnitude": 127.0,
-          "shortcoming": 6.0
+          "magnitude": 116.0,
+          "shortcoming": 1.0
         }
       },
       "lib/src/request.dart": {
         "uri": "package:http/src/request.dart",
         "size": 5952,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/request.dart",
-            "line": 39,
-            "col": 42,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/request.dart",
-            "line": 133,
-            "col": 26,
-            "description": "'UTF8' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
           "magnitude": 109.0,
-          "shortcoming": 3.0
+          "shortcoming": 1.0
         }
       },
       "lib/src/response.dart": {
         "uri": "package:http/src/response.dart",
         "size": 3431,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/response.dart",
-            "line": 24,
-            "col": 8,
-            "description": "'LATIN1' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/response.dart",
-            "line": 83,
-            "col": 18,
-            "description": "'LATIN1' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
           "magnitude": 62.0,
-          "shortcoming": 3.0
+          "shortcoming": 1.0
         }
       },
       "lib/src/streamed_request.dart": {
@@ -599,20 +454,10 @@
         "uri": "package:http/src/utils.dart",
         "size": 4843,
         "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/utils.dart",
-            "line": 43,
-            "col": 66,
-            "description": "'LATIN1' is deprecated and shouldn't be used."
-          }
-        ],
+        "codeProblems": [],
         "fitness": {
           "magnitude": 96.0,
-          "shortcoming": 2.0
+          "shortcoming": 1.0
         }
       },
       "lib/testing.dart": {

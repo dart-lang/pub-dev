@@ -35,12 +35,12 @@
     </td>
     <td class="score-value">
 <div class="score-percent-row">
-    <div class="score-percent" style="left: 83%;">83</div>
+    <div class="score-percent" style="left: 0%;">0</div>
 </div>
 
 <div class="score-progress-row">
     <div class="score-progress-frame">
-        <div class="score-progress" style="width: 83%; background: rgb(178, 181, 184);"></div>
+        <div class="score-progress" style="width: 0%; background: rgb(112, 128, 144);"></div>
     </div>
 </div>
 </td>
@@ -79,12 +79,12 @@
     </td>
     <td>
 <div class="score-percent-row">
-    <div class="score-percent" style="left: 54%;">54</div>
+    <div class="score-percent" style="left: 30%;">30</div>
 </div>
 
 <div class="score-progress-row">
     <div class="score-progress-frame">
-        <div class="score-progress" style="width: 54%; background: rgb(0, 196, 179);"></div>
+        <div class="score-progress" style="width: 30%; background: rgb(187, 36, 0);"></div>
     </div>
 </div>
 </td>
@@ -96,13 +96,13 @@
 <hr />
 
 <p>
-  We analyzed this package on May 9, 2018, and provided a score, details, and suggestions below.
+  We analyzed this package on Aug 27, 2018, and provided a score, details, and suggestions below.
   Analysis was completed with status <i>completed</i> using:
 </p>
 
 <ul>
-  <li>Dart: 2.0.0-dev.52.0</li>
-  <li>pana: 0.11.0</li>
+  <li>Dart: 2.0.0</li>
+  <li>pana: 0.11.9</li>
 
 </ul>
 
@@ -112,36 +112,7 @@
 <blockquote><p>No platform restriction found in primary library <code>package:http/http.dart</code>.</p>
 </blockquote>
 
-<h4>Issues and suggestions</h4>
-<div class="suggestion-row">
-  <div class="suggestion-title">
-    <span class="suggestion-icon-danger"></span>
-    <p>Running <code>dartdoc</code> failed.</p>
-
-  </div>
-  <div class="suggestion-description">
-    <p>Make sure <code>dartdoc</code> runs without any issues.</p>
-
-    
-  </div>
-</div>
-<div class="suggestion-row">
-  <div class="suggestion-title">
-    <span class="suggestion-icon-info"></span>
-    <p>Fix analysis and formatting issues.</p>
-
-  </div>
-  <div class="suggestion-description">
-    <p>Analysis or formatting checks reported 37 hints.</p>
-<p>Run <code>dartfmt</code> to format <code>lib/browser_client.dart</code>.</p>
-<p>Strong-mode analysis of <code>lib/http.dart</code> gave the following hint:</p>
-<p>line: 88 col: 29<br />
-'UTF8' is deprecated and shouldn't be used.</p>
-<p>Similar analysis of the following files failed:</p><ul><li><code>lib/src/base_client.dart</code> (hint)</li><li><code>lib/src/base_request.dart</code> (hint)</li><li><code>lib/src/base_response.dart</code> (hint)</li><li><code>lib/src/byte_stream.dart</code> (hint)</li><li><code>lib/src/client.dart</code> (hint)</li><li><code>lib/src/io_client.dart</code> (hint)</li><li><code>lib/src/mock_client.dart</code> (hint)</li><li><code>lib/src/multipart_file.dart</code> (hint)</li><li><code>lib/src/multipart_request.dart</code> (hint)</li><li><code>lib/src/request.dart</code> (hint)</li><li><code>lib/src/response.dart</code> (hint)</li><li><code>lib/src/streamed_request.dart</code> (hint)</li><li><code>lib/src/streamed_response.dart</code> (hint)</li><li><code>lib/src/utils.dart</code> (hint)</li></ul>
-
-    
-  </div>
-</div>
+<h4>Suggestions</h4>
 <div class="suggestion-row">
   <div class="suggestion-title">
     <span class="suggestion-icon-info"></span>
@@ -161,7 +132,7 @@
 
   </div>
   <div class="suggestion-description">
-    <p>While there is nothing inherently wrong with versions of <code>0.*.*</code>, it usually means that the author is still experimenting with the general direction API.</p>
+    <p>While there is nothing inherently wrong with versions of <code>0.*.*</code>, it usually means that the author is still experimenting with the general direction of the API.</p>
 
     
   </div>
@@ -181,11 +152,49 @@
 <div class="suggestion-row">
   <div class="suggestion-title">
     <span class="suggestion-icon-info"></span>
+    <p>Fix <code>lib/src/base_client.dart</code>.</p>
+
+  </div>
+  <div class="suggestion-description">
+    <p>Analysis of <code>lib/src/base_client.dart</code> reported 2 hints:</p>
+<p>line 163 col 44: 'typed' is deprecated and shouldn't be used.</p>
+<p>line 165 col 44: 'typed' is deprecated and shouldn't be used.</p>
+
+    
+  </div>
+</div>
+<div class="suggestion-row">
+  <div class="suggestion-title">
+    <span class="suggestion-icon-info"></span>
+    <p>Format <code>lib/browser_client.dart</code>.</p>
+
+  </div>
+  <div class="suggestion-description">
+    <p>Run <code>dartfmt</code> to format <code>lib/browser_client.dart</code>.</p>
+
+    
+  </div>
+</div>
+<div class="suggestion-row">
+  <div class="suggestion-title">
+    <span class="suggestion-icon-info"></span>
     <p>Use <code>analysis_options.yaml</code>.</p>
 
   </div>
   <div class="suggestion-description">
     <p>Rename old <code>.analysis_options</code> file to <code>analysis_options.yaml</code>.</p>
+
+    Read more about the setup of <a href="https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file"><code>analysis-options.yaml</code></a>.
+  </div>
+</div>
+<div class="suggestion-row">
+  <div class="suggestion-title">
+    <span class="suggestion-icon-info"></span>
+    <p>Fix additional 15 files with analysis or formatting issues.</p>
+
+  </div>
+  <div class="suggestion-description">
+    <p>Additional issues in the following files:</p><ul><li><code>lib/http.dart</code> (Run <code>dartfmt</code> to format <code>lib/http.dart</code>.)</li><li><code>lib/src/base_request.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/base_request.dart</code>.)</li><li><code>lib/src/base_response.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/base_response.dart</code>.)</li><li><code>lib/src/boundary_characters.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/boundary_characters.dart</code>.)</li><li><code>lib/src/byte_stream.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/byte_stream.dart</code>.)</li><li><code>lib/src/client.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/client.dart</code>.)</li><li><code>lib/src/io_client.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/io_client.dart</code>.)</li><li><code>lib/src/mock_client.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/mock_client.dart</code>.)</li><li><code>lib/src/multipart_file.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/multipart_file.dart</code>.)</li><li><code>lib/src/multipart_request.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/multipart_request.dart</code>.)</li><li><code>lib/src/request.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/request.dart</code>.)</li><li><code>lib/src/response.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/response.dart</code>.)</li><li><code>lib/src/streamed_request.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/streamed_request.dart</code>.)</li><li><code>lib/src/streamed_response.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/streamed_response.dart</code>.)</li><li><code>lib/src/utils.dart</code> (Run <code>dartfmt</code> to format <code>lib/src/utils.dart</code>.)</li></ul>
 
     
   </div>
@@ -211,32 +220,26 @@
   </tr>
   <tr>
     <td><a href="/packages/async">async</a></td>
-    <td>^1.10.0</td>
-    <td>1.13.3</td>
-    <td>2.0.7</td>
+    <td>&gt;=1.10.0 &lt;3.0.0</td>
+    <td>2.0.8</td>
+    <td></td>
   </tr>
   <tr>
     <td><a href="/packages/collection">collection</a></td>
     <td>^1.5.0</td>
-    <td>1.14.9</td>
+    <td>1.14.11</td>
     <td></td>
   </tr>
   <tr>
     <td><a href="/packages/http_parser">http_parser</a></td>
     <td>&gt;=0.0.1 &lt;4.0.0</td>
-    <td>3.1.2</td>
+    <td>3.1.3</td>
     <td></td>
   </tr>
   <tr>
     <td><a href="/packages/path">path</a></td>
     <td>&gt;=0.9.0 &lt;2.0.0</td>
-    <td>1.5.1</td>
-    <td></td>
-  </tr>
-  <tr>
-    <td><a href="/packages/stack_trace">stack_trace</a></td>
-    <td>&gt;=0.9.1 &lt;2.0.0</td>
-    <td>1.9.2</td>
+    <td>1.6.2</td>
     <td></td>
   </tr>
 
@@ -246,25 +249,31 @@
   <tr>
     <td><a href="/packages/charcode">charcode</a></td>
     <td></td>
-    <td>1.1.1</td>
+    <td>1.1.2</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="/packages/meta">meta</a></td>
+    <td></td>
+    <td>1.1.6</td>
     <td></td>
   </tr>
   <tr>
     <td><a href="/packages/source_span">source_span</a></td>
     <td></td>
-    <td>1.4.0</td>
+    <td>1.4.1</td>
     <td></td>
   </tr>
   <tr>
     <td><a href="/packages/string_scanner">string_scanner</a></td>
     <td></td>
-    <td>1.0.2</td>
+    <td>1.0.4</td>
     <td></td>
   </tr>
   <tr>
     <td><a href="/packages/typed_data">typed_data</a></td>
     <td></td>
-    <td>1.1.5</td>
+    <td>1.1.6</td>
     <td></td>
   </tr>
 
