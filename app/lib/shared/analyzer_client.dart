@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
@@ -241,20 +240,7 @@ class AnalysisView {
     if (_data.analysisStatus == AnalysisStatus.legacy) {
       return 0.0;
     }
-    if (suggestions.any((s) =>
-        s.code == SuggestionCode.dartfmtAborted ||
-        s.code == SuggestionCode.dartanalyzerAborted)) {
-      return 0.0;
-    }
-    final oldFitnessScore = _summary?.fitness?.healthScore ?? 0.0;
-    if (_summary?.maintenance == null) {
-      return oldFitnessScore;
-    }
-    final newFitnessScore = 1.0 *
-        math.pow(0.75, _summary.maintenance.errorCount ?? 0) *
-        math.pow(0.95, _summary.maintenance.warningCount ?? 0) *
-        math.pow(0.995, _summary.maintenance.hintCount ?? 0);
-    return math.min(oldFitnessScore, newFitnessScore);
+    return _summary?.health?.healthScore ?? 0.0;
   }
 
   List<Suggestion> get suggestions {
@@ -273,22 +259,23 @@ class AnalysisView {
 
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
   return new Summary(
-      new PanaRuntimeInfo(),
-      packageName,
-      new Version.parse(packageVersion),
-      null,
-      null,
-      null,
-      null,
-      null,
-      new Fitness(1.0, 1.0),
-      null, <Suggestion>[
-    new Suggestion.error(
-      'pubspec.sdk.legacy',
-      'Support Dart 2 in `pubspec.yaml`.',
-      'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
-          'For information about upgrading it to be Dart 2 compatible, please see '
-          '[https://www.dartlang.org/dart-2#migration](https://www.dartlang.org/dart-2#migration).',
-    ),
-  ]);
+      runtimeInfo: new PanaRuntimeInfo(),
+      packageName: packageName,
+      packageVersion: new Version.parse(packageVersion),
+      pubspec: null,
+      pkgResolution: null,
+      dartFiles: null,
+      platform: null,
+      licenses: null,
+      health: null,
+      maintenance: null,
+      suggestions: <Suggestion>[
+        new Suggestion.error(
+          'pubspec.sdk.legacy',
+          'Support Dart 2 in `pubspec.yaml`.',
+          'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
+              'For information about upgrading it to be Dart 2 compatible, please see '
+              '[https://www.dartlang.org/dart-2#migration](https://www.dartlang.org/dart-2#migration).',
+        ),
+      ]);
 }
