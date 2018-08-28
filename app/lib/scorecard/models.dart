@@ -213,42 +213,30 @@ class ScoreCardReport extends db.ExpandoModel {
 }
 
 @JsonSerializable()
-class ScoreCardData extends Object with _$ScoreCardDataSerializerMixin {
-  @override
+class ScoreCardData {
   final String packageName;
-  @override
   final String packageVersion;
-  @override
   final String runtimeVersion;
-  @override
   final DateTime updated;
-  @override
   final DateTime packageCreated;
-  @override
   final DateTime packageVersionCreated;
 
   /// Score for code health (0.0 - 1.0).
-  @override
   final double healthScore;
 
   /// Score for package maintenance (0.0 - 1.0).
-  @override
   final double maintenanceScore;
 
   /// Score for package popularity (0.0 - 1.0).
-  @override
   final double popularityScore;
 
   /// The platform tags (flutter, web, other).
-  @override
   final List<String> platformTags;
 
   /// The flags for the package, version or analysis.
-  @override
   final List<String> flags;
 
   /// The report types that are already done for the ScoreCard.
-  @override
   final List<String> reportTypes;
 
   ScoreCardData({
@@ -286,6 +274,8 @@ class ScoreCardData extends Object with _$ScoreCardDataSerializerMixin {
       flags != null && flags.contains(PackageFlags.doNotAdvertise);
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
+
+  Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
 }
 
 abstract class ReportData {
@@ -295,33 +285,25 @@ abstract class ReportData {
 }
 
 @JsonSerializable()
-class PanaReport extends Object
-    with _$PanaReportSerializerMixin
-    implements ReportData {
+class PanaReport implements ReportData {
   @override
   String get reportType => ReportType.pana;
 
   @override
   final String reportStatus;
 
-  @override
   final double healthScore;
 
-  @override
   final double maintenanceScore;
 
   /// The platform tags (flutter, web, other).
   @CompatibleStringListProperty()
-  @override
   List<String> platformTags;
 
-  @override
   final String platformReason;
 
-  @override
   final List<PkgDependency> pkgDependencies;
 
-  @override
   final List<Suggestion> suggestions;
 
   PanaReport({
@@ -336,22 +318,21 @@ class PanaReport extends Object
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
       _$PanaReportFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$PanaReportToJson(this);
 }
 
 @JsonSerializable()
-class DartdocReport extends Object
-    with _$DartdocReportSerializerMixin
-    implements ReportData {
+class DartdocReport implements ReportData {
   @override
   String get reportType => ReportType.dartdoc;
 
   @override
   final String reportStatus;
 
-  @override
   final double coverageScore;
 
-  @override
   final List<Suggestion> suggestions;
 
   DartdocReport({
@@ -362,4 +343,7 @@ class DartdocReport extends Object
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>
       _$DartdocReportFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$DartdocReportToJson(this);
 }

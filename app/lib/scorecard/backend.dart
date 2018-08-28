@@ -58,11 +58,10 @@ class ScoreCardBackend {
       return null;
     }
 
-    final query = _db.query(ScoreCard, ancestorKey: key.parent)
+    final query = _db.query<ScoreCard>(ancestorKey: key.parent)
       ..filter('<', versions.runtimeVersion);
     final all = await query
         .run()
-        .cast<ScoreCard>()
         .where((sc) =>
             // sanity check to not rely entirely on the lexicographical order
             isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))

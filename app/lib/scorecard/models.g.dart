@@ -1,10 +1,4 @@
-// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // GENERATED CODE - DO NOT MODIFY BY HAND
-
-// ignore_for_file: prefer_final_locals
 
 part of 'models.dart';
 
@@ -13,7 +7,7 @@ part of 'models.dart';
 // **************************************************************************
 
 ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
-  return new ScoreCardData(
+  return ScoreCardData(
       packageName: json['packageName'] as String,
       packageVersion: json['packageVersion'] as String,
       runtimeVersion: json['runtimeVersion'] as String,
@@ -36,37 +30,25 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
           (json['reportTypes'] as List)?.map((e) => e as String)?.toList());
 }
 
-abstract class _$ScoreCardDataSerializerMixin {
-  String get packageName;
-  String get packageVersion;
-  String get runtimeVersion;
-  DateTime get updated;
-  DateTime get packageCreated;
-  DateTime get packageVersionCreated;
-  double get healthScore;
-  double get maintenanceScore;
-  double get popularityScore;
-  List<String> get platformTags;
-  List<String> get flags;
-  List<String> get reportTypes;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'packageName': packageName,
-        'packageVersion': packageVersion,
-        'runtimeVersion': runtimeVersion,
-        'updated': updated?.toIso8601String(),
-        'packageCreated': packageCreated?.toIso8601String(),
-        'packageVersionCreated': packageVersionCreated?.toIso8601String(),
-        'healthScore': healthScore,
-        'maintenanceScore': maintenanceScore,
-        'popularityScore': popularityScore,
-        'platformTags': platformTags,
-        'flags': flags,
-        'reportTypes': reportTypes
-      };
-}
+Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
+    <String, dynamic>{
+      'packageName': instance.packageName,
+      'packageVersion': instance.packageVersion,
+      'runtimeVersion': instance.runtimeVersion,
+      'updated': instance.updated?.toIso8601String(),
+      'packageCreated': instance.packageCreated?.toIso8601String(),
+      'packageVersionCreated':
+          instance.packageVersionCreated?.toIso8601String(),
+      'healthScore': instance.healthScore,
+      'maintenanceScore': instance.maintenanceScore,
+      'popularityScore': instance.popularityScore,
+      'platformTags': instance.platformTags,
+      'flags': instance.flags,
+      'reportTypes': instance.reportTypes
+    };
 
 PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
-  return new PanaReport(
+  return PanaReport(
       reportStatus: json['reportStatus'] as String,
       healthScore: (json['healthScore'] as num)?.toDouble(),
       maintenanceScore: (json['maintenanceScore'] as num)?.toDouble(),
@@ -76,52 +58,38 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
       pkgDependencies: (json['pkgDependencies'] as List)
           ?.map((e) => e == null
               ? null
-              : new PkgDependency.fromJson(e as Map<String, dynamic>))
+              : PkgDependency.fromJson(e as Map<String, dynamic>))
           ?.toList(),
       suggestions: (json['suggestions'] as List)
-          ?.map((e) => e == null
-              ? null
-              : new Suggestion.fromJson(e as Map<String, dynamic>))
+          ?.map((e) =>
+              e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
           ?.toList());
 }
 
-abstract class _$PanaReportSerializerMixin {
-  String get reportStatus;
-  double get healthScore;
-  double get maintenanceScore;
-  List<String> get platformTags;
-  String get platformReason;
-  List<PkgDependency> get pkgDependencies;
-  List<Suggestion> get suggestions;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'reportStatus': reportStatus,
-        'healthScore': healthScore,
-        'maintenanceScore': maintenanceScore,
-        'platformTags': platformTags,
-        'platformReason': platformReason,
-        'pkgDependencies': pkgDependencies,
-        'suggestions': suggestions
-      };
-}
+Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
+    <String, dynamic>{
+      'reportStatus': instance.reportStatus,
+      'healthScore': instance.healthScore,
+      'maintenanceScore': instance.maintenanceScore,
+      'platformTags': instance.platformTags,
+      'platformReason': instance.platformReason,
+      'pkgDependencies': instance.pkgDependencies,
+      'suggestions': instance.suggestions
+    };
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
-  return new DartdocReport(
+  return DartdocReport(
       reportStatus: json['reportStatus'] as String,
       coverageScore: (json['coverageScore'] as num)?.toDouble(),
       suggestions: (json['suggestions'] as List)
-          ?.map((e) => e == null
-              ? null
-              : new Suggestion.fromJson(e as Map<String, dynamic>))
+          ?.map((e) =>
+              e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
           ?.toList());
 }
 
-abstract class _$DartdocReportSerializerMixin {
-  String get reportStatus;
-  double get coverageScore;
-  List<Suggestion> get suggestions;
-  Map<String, dynamic> toJson() => <String, dynamic>{
-        'reportStatus': reportStatus,
-        'coverageScore': coverageScore,
-        'suggestions': suggestions
-      };
-}
+Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) =>
+    <String, dynamic>{
+      'reportStatus': instance.reportStatus,
+      'coverageScore': instance.coverageScore,
+      'suggestions': instance.suggestions
+    };
