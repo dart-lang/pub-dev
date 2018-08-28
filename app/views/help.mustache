@@ -48,18 +48,20 @@
 
   <h3 id="health">Health</h3>
   <p>
-    The code health score is based on static analysis of the package with
+    The health score is based on static analysis of the package with
     <code>dartanalyzer</code>.
   </p>
   <p><i>How can you improve your health score?</i></p>
-  <p>Use strong-mode checks and linter rules, and make sure you fix all warnings
-  and errors before publishing. Here's an example of
-  <a href="https://www.dartlang.org/guides/language/analysis-options">specifying
-  checks and rules</a> using <code>analysis_options.yaml</code>:</p>
+  <p>
+    Run <code>dartanalyzer</code> (or <code>flutter analyze</code> in case of Flutter),
+    and fix the items it returns (especially errors and warnings, hints barely
+    decrease the health score).
+  </p>
+  <p>
+      Use <a href="https://www.dartlang.org/guides/language/analysis-options"><code>analysis_options.yaml</code></a>
+      to specify further linter rules, and make sure you fix all warnings and errors before publishing.
+      Here's an example <code>analysis_options.yaml</code>:</p>
   <pre><code class="language-yaml"># https://www.dartlang.org/guides/language/analysis-options
-analyzer:
-  strong-mode: true
-
 # Source of linter options:
 # http://dart-lang.github.io/linter/lints/options/options.html
 linter:
@@ -71,11 +73,6 @@ linter:
     - unrelated_type_equality_checks
     - valid_regexps
   </code></pre>
-  <p>
-    Run <code>dartanalyzer</code> (or <code>flutter analyze</code> in case of Flutter),
-    and fix the items it returns (especially errors and warnings, hints barely
-    decrease the health score).
-  </p>
 
   <h3 id="maintenance">Maintenance</h3>
 
@@ -92,8 +89,7 @@ linter:
     information on how to provide these files, see the
     <a href="https://www.dartlang.org/tools/pub/package-layout">pub package layout
     conventions</a>.</li>
-    <li><code>analysis_options.yaml</code>: Best if this file is present, with
-    strong mode enabled. For more information, see
+    <li><code>analysis_options.yaml</code>: Best if this file is present. For more information, see
     <a href="https://www.dartlang.org/guides/language/analysis-options">Customize
     Static Analysis</a>.</li>
   </ul>
