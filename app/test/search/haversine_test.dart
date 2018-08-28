@@ -396,7 +396,7 @@ MIT'''),
           {
             // should be present
             'package': 'latlong',
-            'score': closeTo(0.36, 0.01),
+            'score': closeTo(0.47, 0.01),
           },
         ]
       });
