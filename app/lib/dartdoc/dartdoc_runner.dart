@@ -102,8 +102,8 @@ class DartdocJobProcessor extends JobProcessor {
 
       // Generate docs only for packages that have healthy dependencies.
       if (depsResolved) {
-        hasContent = await _generateDocs(
-            toolEnv, job, pkgPath, outputDir, logFileOutput);
+        hasContent =
+            await _generateDocs(job, pkgPath, outputDir, logFileOutput);
       }
 
       if (hasContent) {
@@ -179,7 +179,6 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future<bool> _generateDocs(
-    ToolEnvironment toolEnv,
     Job job,
     String pkgPath,
     String outputDir,
