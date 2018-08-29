@@ -124,6 +124,12 @@ class BatchIndexUpdater implements TaskRunner {
           .toList();
       _snapshot.addAll(docs);
       await packageIndex.addPackages(docs);
+      final removedPackages = tasks.map((t) => t.package).toSet()
+        ..removeAll(docs.map((pd) => pd.package));
+      for (String package in removedPackages) {
+        _snapshot.remove(package);
+        await packageIndex.removePackage(package);
+      }
       final bool doMerge =
           _firstScanCount != null && _taskCount >= _firstScanCount;
       if (doMerge) {
