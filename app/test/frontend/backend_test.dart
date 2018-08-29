@@ -287,7 +287,7 @@ void main() {
         final pkg = testPackage.name;
         registerLoggedInUser(testPackage.uploaderEmails.first);
         await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
-          expect('$e', equals('Exception: Package "null" does not exist'));
+          expect('$e', equals('Package "null" does not exist'));
         }));
       });
     }
@@ -423,7 +423,7 @@ void main() {
         await repo
             .removeUploader(pkg, 'foo2@bar.com')
             .catchError(expectAsync2((e, _) {
-          expect('$e', 'Exception: The uploader to remove does not exist.');
+          expect('$e', 'The uploader to remove does not exist.');
         }));
       });
 
@@ -446,7 +446,7 @@ void main() {
             .removeUploader(pkg, 'foo1@bar.com')
             .catchError(expectAsync2((e, _) {
           expect('$e',
-              'Exception: Self-removal is not allowed. Use another account to remove this e-mail address.');
+              'Self-removal is not allowed. Use another account to remove this e-mail address.');
         }));
       });
 
