@@ -319,9 +319,10 @@ class GCloudPackageRepository extends PackageRepository {
       // If the version already exists, we fail.
       if (version != null) {
         await T.rollback();
-        _logger.warning('Version ${version.version} of package '
+        _logger.info('Version ${version.version} of package '
             '${version.package} already exists, rolling transaction back.');
-        throw new Exception('Version ${version.version} of package '
+        throw new GenericProcessingException(
+            'Version ${version.version} of package '
             '${version.package} already exists.');
       }
 
@@ -331,7 +332,7 @@ class GCloudPackageRepository extends PackageRepository {
       // Check if the uploader of the new version is allowed to upload to
       // the package.
       if (!package.hasUploader(newVersion.uploaderEmail)) {
-        _logger.warning('User ${newVersion.uploaderEmail} is not an uploader '
+        _logger.info('User ${newVersion.uploaderEmail} is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
         throw new UnauthorizedAccessException(
@@ -435,7 +436,8 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if package doesn't exist.
         if (package == null) {
           await T.rollback();
-          throw new Exception('Package "$package" does not exist');
+          throw new GenericProcessingException(
+              'Package "$package" does not exist');
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
@@ -481,7 +483,8 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if package doesn't exist.
         if (package == null) {
           await T.rollback();
-          throw new Exception('Package "$package" does not exist');
+          throw new GenericProcessingException(
+              'Package "$package" does not exist');
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
@@ -494,7 +497,8 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if the uploader we want to remove does not exist.
         if (!package.hasUploader(uploaderEmail)) {
           await T.rollback();
-          throw new Exception('The uploader to remove does not exist.');
+          throw new GenericProcessingException(
+              'The uploader to remove does not exist.');
         }
 
         // Remove the uploader from the list.
@@ -512,7 +516,7 @@ class GCloudPackageRepository extends PackageRepository {
         // of a package, we don't allow self-removal.
         if (userEmail == uploaderEmail) {
           await T.rollback();
-          throw new Exception('Self-removal is not allowed. '
+          throw new GenericProcessingException('Self-removal is not allowed. '
               'Use another account to remove this e-mail address.');
         }
 
@@ -689,7 +693,8 @@ Future<models.PackageVersion> _parseAndValidateUpload(
       .toList();
 
   if (!files.contains('pubspec.yaml')) {
-    throw new Exception('Invalid upload: no pubspec.yaml file');
+    throw new GenericProcessingException(
+        'Invalid upload: no pubspec.yaml file');
   }
 
   final pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
@@ -699,17 +704,18 @@ Future<models.PackageVersion> _parseAndValidateUpload(
       pubspec.version == null ||
       pubspec.name.trim().isEmpty ||
       pubspec.version.trim().isEmpty) {
-    throw new Exception('Invalid `pubspec.yaml` file');
+    throw new GenericProcessingException('Invalid `pubspec.yaml` file');
   }
 
   validatePackageName(pubspec.name);
   if (!nameTracker.accept(pubspec.name)) {
-    throw new Exception('Package name is too similar to another package.');
+    throw new GenericProcessingException(
+        'Package name is too similar to another package.');
   }
   urls.syntaxCheckHomepageUrl(pubspec.homepage);
 
   if (pubspec.hasBothAuthorAndAuthors) {
-    throw new Exception(
+    throw new GenericProcessingException(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
   }
 

@@ -217,7 +217,7 @@ packages:
       name: googleapis_beta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.46.1"
+    version: "0.47.0"
   graphs:
     dependency: transitive
     description:
@@ -308,7 +308,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.1"
   kernel:
     dependency: transitive
     description:
@@ -343,7 +343,7 @@ packages:
       name: memcache
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0+1"
+    version: "0.3.0+2"
   meta:
     dependency: "direct main"
     description:
@@ -441,7 +441,7 @@ packages:
       name: pub_server
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.4+2"
+    version: "0.1.5"
   pubspec_parse:
     dependency: "direct main"
     description:
