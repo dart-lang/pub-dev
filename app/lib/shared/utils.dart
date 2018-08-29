@@ -166,6 +166,13 @@ const List<String> _reservedWords = const <String>[
   'with'
 ];
 
+/// 'internal' packages are developed by the Dart team, and they are allowed to
+/// point their URLs to *.dartlang.org (others would get a penalty for it).
+const internalPackageNames = const <String>[
+  'angular',
+  'angular_components',
+];
+
 final Set<String> knownMixedCasePackages = _knownMixedCasePackages.toSet();
 final Set<String> _blockedLowerCasePackages = _knownMixedCasePackages
     .map((s) => s.toLowerCase())
