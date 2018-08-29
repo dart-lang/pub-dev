@@ -558,6 +558,8 @@ class TokenMatch {
 
   double get sumWeight =>
       _sumWeight ??= _tokenWeights.values.fold(0.0, (a, b) => a + b);
+
+  Map<String, double> get tokenWeights => new Map.unmodifiable(_tokenWeights);
 }
 
 class TokenIndex {
@@ -631,8 +633,7 @@ class TokenIndex {
         if (candidateWeight > 0.3) {
           final int foundCount = _inverseIds[candidate]?.length ?? 0;
           if (foundCount <= 0) continue;
-          final double idf = 1.0 + math.log(documentCount / foundCount);
-          final double score = idf * candidateWeight;
+          final double score = candidateWeight;
           final double old = tokenMatch[candidate];
           if (old == null || old < score) {
             tokenMatch[candidate] = score;

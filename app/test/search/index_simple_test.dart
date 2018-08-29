@@ -76,6 +76,33 @@ void main() {
     });
   });
 
+  group('TokenMatch', () {
+    test('longer words', () {
+      final index = new TokenIndex(minLength: 2);
+      final names = [
+        'location',
+        'geolocator',
+        'firestore_helpers',
+        'geolocation',
+        'location_context',
+        'amap_location',
+        'flutter_location_picker',
+        'flutter_amap_location',
+        'location_picker',
+        'background_location_updates',
+      ];
+      for (String name in names) {
+        index.add(name, name);
+      }
+      final match = index.lookupTokens('location');
+      // location should be the top value, everything else should be lower
+      expect(match.tokenWeights, {
+        'location': 1.0,
+        'geolocation': closeTo(0.578, 0.001),
+      });
+    });
+  });
+
   group('Score', () {
     Score score;
     setUp(() {
