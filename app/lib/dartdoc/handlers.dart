@@ -9,8 +9,9 @@ import 'package:http_parser/http_parser.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
+import '../shared/packages_overrides.dart';
 import '../shared/urls.dart';
-import '../shared/utils.dart' show contentType, redirectDartdocPages;
+import '../shared/utils.dart' show contentType;
 
 import 'backend.dart';
 

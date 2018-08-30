@@ -18,6 +18,7 @@ import '../history/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/handlers.dart';
+import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';

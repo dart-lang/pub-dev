@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 
+import 'packages_overrides.dart';
 import 'utils.dart';
 
 final Logger _logger = new Logger('pub.scheduler');

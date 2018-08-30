@@ -16,8 +16,8 @@ import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
 import '../shared/analyzer_service.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
+import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
-import '../shared/utils.dart' show internalPackageNames;
 
 import 'backend.dart';
 import 'models.dart';
