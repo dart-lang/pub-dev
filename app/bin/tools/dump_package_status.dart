@@ -108,7 +108,6 @@ Future main(List<String> arguments) async {
   final String json = new JsonEncoder.withIndent('  ').convert(report);
   if (args['output'] != null) {
     final File outputFile = new File(args['output'] as String);
-    stderr.writeln('Writing report to ${outputFile.path}');
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(json + '\n');
   } else {
