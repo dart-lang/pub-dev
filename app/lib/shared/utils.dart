@@ -20,6 +20,8 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
+import 'packages_overrides.dart';
+
 export 'package:pana/src/maintenance.dart' show exampleFileCandidates;
 
 final Duration twoYears = const Duration(days: 2 * 365);
@@ -166,45 +168,6 @@ const List<String> _reservedWords = const <String>[
   'with'
 ];
 
-/// 'internal' packages are developed by the Dart team, and they are allowed to
-/// point their URLs to *.dartlang.org (others would get a penalty for it).
-const internalPackageNames = const <String>[
-  'angular',
-  'angular_components',
-];
-
-final Set<String> knownMixedCasePackages = _knownMixedCasePackages.toSet();
-final Set<String> _blockedLowerCasePackages = _knownMixedCasePackages
-    .map((s) => s.toLowerCase())
-    .toSet()
-      ..removeAll(_knownGoodLowerCasePackages);
-
-const _knownMixedCasePackages = const [
-  'Autolinker',
-  'Babylon',
-  'DartDemoCLI',
-  'FileTeCouch',
-  'Flutter_Nectar',
-  'Google_Search_v2',
-  'LoadingBox',
-  'PolymerIntro',
-  'Pong',
-  'RAL',
-  'Transmission_RPC',
-  'ViAuthClient',
-];
-const _knownGoodLowerCasePackages = const [
-  'babylon',
-];
-
-const redirectPackagePages = const <String, String>{
-  'flutter': 'https://pub.dartlang.org/flutter',
-};
-
-const redirectDartdocPages = const <String, String>{
-  'flutter': 'https://docs.flutter.io/',
-};
-
 /// Sanity checks if the user would upload a package with a modified pub client
 /// that skips these verifications.
 /// TODO: share code to use the same validations as in
@@ -225,13 +188,13 @@ void validatePackageName(String name) {
   if (!isLower && !matchesMixedCase) {
     throw new Exception('Package name must be lowercase.');
   }
-  if (isLower && _blockedLowerCasePackages.contains(name)) {
+  if (isLower && blockedLowerCasePackages.contains(name)) {
     throw new Exception(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
   if (!isLower &&
       matchesMixedCase &&
-      !_blockedLowerCasePackages.contains(name.toLowerCase())) {
+      !blockedLowerCasePackages.contains(name.toLowerCase())) {
     throw new Exception(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
