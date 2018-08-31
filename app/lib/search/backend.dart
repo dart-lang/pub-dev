@@ -253,5 +253,10 @@ class SearchSnapshot {
     docs.forEach(add);
   }
 
+  void remove(String packageName) {
+    updated = new DateTime.now().toUtc();
+    documents.remove(packageName);
+  }
+
   Map<String, dynamic> toJson() => _$SearchSnapshotToJson(this);
 }
