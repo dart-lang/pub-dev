@@ -198,7 +198,7 @@ class AnalysisView {
   bool get hasAnalysisData => _data != null;
   bool get hasPanaSummary => _summary != null;
 
-  DateTime get timestamp => _data.timestamp;
+  DateTime get timestamp => _data?.timestamp;
   AnalysisStatus get analysisStatus => _data?.analysisStatus;
 
   String get dartSdkVersion => _summary?.runtimeInfo?.sdkVersion;

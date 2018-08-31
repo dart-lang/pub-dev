@@ -30,6 +30,7 @@ class PopularityStorage {
   final _values = <String, double>{};
   DateTime _lastFetched;
   String _dateRange;
+  Timer _timer;
 
   String get _latestPath => PackagePopularity.popularityFileName;
 
@@ -43,9 +44,14 @@ class PopularityStorage {
 
   Future init() async {
     await fetch('init');
-    new Timer.periodic(const Duration(hours: 4), (_) {
+    _timer = new Timer.periodic(const Duration(hours: 4), (_) {
       fetch('refetch');
     });
+  }
+
+  Future close() async {
+    _timer?.cancel();
+    _timer = null;
   }
 
   Future fetch(String reason) async {
