@@ -13,10 +13,10 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../dartdoc/backend.dart';
 import '../dartdoc/handlers.dart' show documentationHandler;
 import '../history/backend.dart';
 import '../shared/analyzer_client.dart';
-import '../shared/dartdoc_client.dart';
 import '../shared/handlers.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
@@ -658,8 +658,8 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
     }
   }
 
-  final dartdocEntries = await dartdocClient.getEntries(
-      package, versions.map((pv) => pv.version).toList());
+  final dartdocEntries = await Future.wait(versions
+      .map((pv) => dartdocBackend.getServingEntry(package, pv.version)));
   final versionsData = [];
 
   for (int i = 0; i < versions.length; i++) {
