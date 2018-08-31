@@ -85,6 +85,9 @@ class DartdocJobProcessor extends JobProcessor {
       final logFileOutput = new StringBuffer();
       logFileOutput.write('Dartdoc generation for $job\n\n'
           'runtime: ${versions.runtimeVersion}\n'
+          'toolEnv Dart SDK: ${versions.toolEnvSdkVersion}\n'
+          'runtime Dart SDK: ${versions.runtimeSdkVersion}\n'
+          'pana: ${versions.panaVersion}\n'
           'dartdoc: ${versions.dartdocVersion}\n'
           'flutter: ${versions.flutterVersion}\n'
           'customization: ${versions.customizationVersion}\n'
