@@ -31,12 +31,8 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
   final TokenIndex _apiDocIndex = new TokenIndex(minLength: 3);
   final StringInternPool _internPool = new StringInternPool();
-  final bool _apiSearchEnabled;
   DateTime _lastUpdated;
   bool _isReady = false;
-
-  SimplePackageIndex({bool apiSearchEnabled: false})
-      : _apiSearchEnabled = apiSearchEnabled;
 
   @override
   bool get isReady => _isReady;
@@ -184,9 +180,7 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // do text matching
-    final isApiEnabled = query.isApiEnabled ||
-        _apiSearchEnabled ||
-        query.parsedQuery.isApiEnabled;
+    final isApiEnabled = query.isApiEnabled || query.parsedQuery.isApiEnabled;
     final textResults =
         _searchText(packages, query.parsedQuery.text, isApiEnabled);
 
