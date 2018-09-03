@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 import 'package:pana/src/maintenance.dart';
-import 'package:pana/src/version.dart';
+import 'package:pana/src/version.dart' as pana_version;
 import 'package:path/path.dart' as p;
 
 import '../job/job.dart';
@@ -110,7 +110,7 @@ class AnalyzerJobProcessor extends JobProcessor {
         );
       } catch (e, st) {
         _logger.severe(
-            'Failed (v$panaPkgVersion) - ${job.packageVersion}/${job.packageVersion}',
+            'Failed (v${pana_version.packageVersion}) - ${job.packageVersion}/${job.packageVersion}',
             e,
             st);
       } finally {
