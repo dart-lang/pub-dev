@@ -248,9 +248,13 @@ class AnalysisView {
     if (_summary?.suggestions != null) {
       list.addAll(_summary.suggestions);
     }
+    if (_summary?.health?.suggestions != null) {
+      list.addAll(_summary.health.suggestions);
+    }
     if (_summary?.maintenance?.suggestions != null) {
       list.addAll(_summary.maintenance.suggestions);
     }
+    list.sort();
     return list;
   }
 
