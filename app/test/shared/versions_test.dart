@@ -21,7 +21,7 @@ void main() {
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 410479230);
+    expect(hash, 1071378414);
   });
 
   test('runtime version should be (somewhat) lexicographically ordered', () {
