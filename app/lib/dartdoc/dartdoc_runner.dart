@@ -172,10 +172,15 @@ class DartdocJobProcessor extends JobProcessor {
     final pr = await toolEnv.runUpgrade(pkgPath, usesFlutter);
     _appendLog(logFileOutput, pr);
     if (pr.exitCode != 0) {
-      _logger.warning('Error while running pub upgrade for $job.\n'
-          'exitCode: ${pr.exitCode}\n'
-          'stdout: ${pr.stdout}\n'
-          'stderr: ${pr.stderr}\n');
+      final message = pr.stderr.toString() ?? '';
+      final isUserProblem = message.contains('version solving failed') ||
+          message.contains('Git error.');
+      if (!isUserProblem) {
+        _logger.warning('Error while running pub upgrade for $job.\n'
+            'exitCode: ${pr.exitCode}\n'
+            'stdout: ${pr.stdout}\n'
+            'stderr: ${pr.stderr}\n');
+      }
       return false;
     }
     return true;
