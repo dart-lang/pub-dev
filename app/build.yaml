@@ -5,6 +5,7 @@ targets:
     sources:
       - 'lib/history/models.dart'
       - 'lib/dartdoc/models.dart'
+      - 'lib/scorecard/models.dart'
       - 'lib/shared/*.dart'
       - 'lib/search/backend*.dart'
     builders:
