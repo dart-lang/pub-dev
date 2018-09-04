@@ -69,9 +69,13 @@ class ScoreCardBackend {
     if (all.isEmpty) {
       return null;
     }
-    all.sort((a, b) =>
-        isNewer(a.semanticRuntimeVersion, b.semanticRuntimeVersion) ? -1 : 1);
-    final data = all.last.toData();
+    final latest = all.fold<ScoreCard>(
+        all.first,
+        (latest, current) => isNewer(
+                latest.semanticRuntimeVersion, current.semanticRuntimeVersion)
+            ? current
+            : latest);
+    final data = latest.toData();
     await scoreCardMemcache.setScoreCardData(data);
     return data;
   }
