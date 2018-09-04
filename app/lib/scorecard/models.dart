@@ -43,6 +43,9 @@ abstract class ReportStatus {
 }
 
 /// Summary of various reports for a given PackageVersion.
+///
+/// The details are pulled in from various data sources, and the entry is
+/// recalculated from scratch each time any of the sources change.
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
 class ScoreCard extends db.ExpandoModel {
   @db.StringProperty(required: true)
@@ -80,6 +83,7 @@ class ScoreCard extends db.ExpandoModel {
   List<String> platformTags;
 
   /// The flags for the package, version or analysis.
+  /// Example values: entries from [PackageFlags].
   @CompatibleStringListProperty()
   List<String> flags;
 
@@ -300,6 +304,7 @@ class PanaReport implements ReportData {
   @CompatibleStringListProperty()
   List<String> platformTags;
 
+  /// The reason pana decided on the [platformTags].
   final String platformReason;
 
   final List<PkgDependency> pkgDependencies;

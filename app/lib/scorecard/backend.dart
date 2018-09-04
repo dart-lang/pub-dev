@@ -30,10 +30,15 @@ void registerScoreCardBackend(ScoreCardBackend backend) =>
 ScoreCardBackend get scoreCardBackend =>
     ss.lookup(#_scorecard_backend) as ScoreCardBackend;
 
+/// Handles the data store and lookup for ScoreCard.
 class ScoreCardBackend {
   final db.DatastoreDB _db;
   ScoreCardBackend(this._db);
 
+  /// Returns the [ScoreCardData] for the given package and version.
+  ///
+  /// When [onlyCurrent] is false, it will try to load earlier versions of the
+  /// data.
   Future<ScoreCardData> getScoreCardData(
     String packageName,
     String packageVersion, {
@@ -80,6 +85,9 @@ class ScoreCardBackend {
     return data;
   }
 
+  /// Creates or updates a [ScoreCardReport] entry with the report's [data].
+  /// The [data] will be converted to json and stored as a byte in the report
+  /// entry.
   Future updateReport(
       String packageName, String packageVersion, ReportData data) async {
     final key = scoreCardKey(packageName, packageVersion)
@@ -109,6 +117,7 @@ class ScoreCardBackend {
     });
   }
 
+  /// Load and deserialize the reports for the given package and version.
   Future<Map<String, ReportData>> loadReports(
       String packageName, String packageVersion,
       {List<String> reportTypes}) async {
@@ -128,6 +137,8 @@ class ScoreCardBackend {
     return result;
   }
 
+  /// Updates the [ScoreCard] entry, reading both the package and version data,
+  /// alongside the data from reports, and compiles a new summary of them.
   Future updateScoreCard(String packageName, String packageVersion) async {
     final key = scoreCardKey(packageName, packageVersion);
     final pAndPv = await _db.lookup([key.parent, key.parent.parent]);
