@@ -96,6 +96,9 @@ PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) {
   return PackageScore(
       package: json['package'] as String,
       score: (json['score'] as num)?.toDouble(),
+      url: json['url'] as String,
+      version: json['version'] as String,
+      description: json['description'] as String,
       apiPages: (json['apiPages'] as List)
           ?.map((e) =>
               e == null ? null : ApiPageRef.fromJson(e as Map<String, dynamic>))
@@ -114,14 +117,32 @@ Map<String, dynamic> _$PackageScoreToJson(PackageScore instance) {
   }
 
   writeNotNull('score', instance.score);
+  writeNotNull('url', instance.url);
+  writeNotNull('version', instance.version);
+  writeNotNull('description', instance.description);
   writeNotNull('apiPages', instance.apiPages);
   return val;
 }
 
 ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) {
   return ApiPageRef(
-      title: json['title'] as String, path: json['path'] as String);
+      title: json['title'] as String,
+      path: json['path'] as String,
+      url: json['url'] as String);
 }
 
-Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) =>
-    <String, dynamic>{'title': instance.title, 'path': instance.path};
+Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
+  var val = <String, dynamic>{
+    'title': instance.title,
+    'path': instance.path,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('url', instance.url);
+  return val;
+}

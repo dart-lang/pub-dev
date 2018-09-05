@@ -456,11 +456,23 @@ class PackageScore {
   final double score;
 
   @JsonKey(includeIfNull: false)
+  final String url;
+
+  @JsonKey(includeIfNull: false)
+  final String version;
+
+  @JsonKey(includeIfNull: false)
+  final String description;
+
+  @JsonKey(includeIfNull: false)
   final List<ApiPageRef> apiPages;
 
   PackageScore({
     this.package,
     this.score,
+    this.url,
+    this.version,
+    this.description,
     this.apiPages,
   });
 
@@ -469,14 +481,22 @@ class PackageScore {
 
   PackageScore change({
     double score,
+    String url,
+    String version,
+    String description,
     List<ApiPageRef> apiPages,
   }) {
     return new PackageScore(
       package: package,
       score: score ?? this.score,
+      url: url ?? this.url,
+      version: version ?? this.version,
+      description: description ?? this.description,
       apiPages: apiPages ?? this.apiPages,
     );
   }
+
+  bool get isExternal => url != null && version != null && description != null;
 
   Map<String, dynamic> toJson() => _$PackageScoreToJson(this);
 }
@@ -486,10 +506,21 @@ class ApiPageRef {
   final String title;
   final String path;
 
-  ApiPageRef({this.title, this.path});
+  @JsonKey(includeIfNull: false)
+  final String url;
+
+  ApiPageRef({this.title, this.path, this.url});
 
   factory ApiPageRef.fromJson(Map<String, dynamic> json) =>
       _$ApiPageRefFromJson(json);
+
+  ApiPageRef change({String title, String url}) {
+    return new ApiPageRef(
+      title: title ?? this.title,
+      path: path,
+      url: url ?? this.url,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$ApiPageRefToJson(this);
 }
