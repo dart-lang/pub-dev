@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -23,6 +24,8 @@ import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
+import 'package:pub_dartlang_org/shared/versions.dart';
+import 'package:pub_dartlang_org/shared/urls.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -56,6 +59,9 @@ Future _main(FrontendEntryMessage message) async {
     registerAnalyzerClient(analyzerClient);
     registerScopeExitCallback(analyzerClient.close);
 
+    final Bucket dartdocBucket = await getOrCreateBucket(
+        storageService, activeConfiguration.dartdocStorageBucketName);
+    registerDartdocBackend(new DartdocBackend(db.dbService, dartdocBucket));
     registerDartdocMemcache(new DartdocMemcache(memcacheService));
     final DartdocClient dartdocClient = new DartdocClient();
     registerDartdocClient(dartdocClient);
@@ -69,8 +75,14 @@ Future _main(FrontendEntryMessage message) async {
         new SnapshotStorage(storageService, snapshotBucket));
 
     final ReceivePort taskReceivePort = new ReceivePort();
+    registerDartSdkIndex(new SimplePackageIndex.sdk(
+        urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
     registerPackageIndex(new SimplePackageIndex());
     registerTaskSendPort(taskReceivePort.sendPort);
+
+    // don't block on SDK index updates, as it may take several minutes before
+    // the dartdoc service produces the required output.
+    _updateDartSdkIndex();
 
     final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
     await batchIndexUpdater.initSnapshot();
@@ -91,4 +103,27 @@ Future _main(FrontendEntryMessage message) async {
     scheduler.run();
     await runHandler(_logger, searchServiceHandler);
   });
+}
+
+Future _updateDartSdkIndex() async {
+  for (int i = 0;; i++) {
+    try {
+      _logger.info('Trying to load SDK index.');
+      final data = await dartdocBackend.getDartSdkDartdocData();
+      if (data != null) {
+        final docs =
+            splitLibraries(data).map((lib) => createSdkDocument(lib)).toList();
+        await dartSdkIndex.addPackages(docs);
+        await dartSdkIndex.merge();
+        _logger.info('Dart SDK index loaded successfully.');
+        return;
+      }
+    } catch (e, st) {
+      _logger.warning('Error loading Dart SDK index.', e, st);
+    }
+    if (i % 10 == 0) {
+      _logger.warning('Unable to load Dart SDK index. Cycle: $i');
+    }
+    await new Future.delayed(const Duration(minutes: 1));
+  }
 }

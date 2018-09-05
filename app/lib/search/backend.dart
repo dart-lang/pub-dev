@@ -22,6 +22,7 @@ import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/utils.dart';
+import '../shared/versions.dart' as versions;
 
 import 'text_utils.dart';
 
@@ -95,7 +96,7 @@ class SearchBackend {
       List<ApiDocPage> apiDocPages;
       if (pubDataContent != null) {
         try {
-          apiDocPages = _apiDocPagesFromPubData(pubDataContent);
+          apiDocPages = _apiDocPagesFromPubDataBytes(pubDataContent);
         } catch (e, st) {
           _logger.severe('Parsing pub-data.json failed.', e, st);
         }
@@ -143,57 +144,94 @@ class SearchBackend {
     return emails.toList()..sort();
   }
 
-  List<ApiDocPage> _apiDocPagesFromPubData(List<int> bytes) {
+  List<ApiDocPage> _apiDocPagesFromPubDataBytes(List<int> bytes) {
     final decodedMap = json.decode(utf8.decode(bytes)) as Map;
     final pubData = new PubDartdocData.fromJson(decodedMap.cast());
+    return apiDocPagesFromPubData(pubData);
+  }
+}
 
-    final nameToKindMap = <String, String>{};
-    pubData.apiElements.forEach((e) {
-      nameToKindMap[e.name] = e.kind;
-    });
+/// Creates the index-related API data structure from the extracted dartdoc data.
+List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
+  final nameToKindMap = <String, String>{};
+  pubData.apiElements.forEach((e) {
+    nameToKindMap[e.name] = e.kind;
+  });
 
-    final pathMap = <String, String>{};
-    final symbolMap = <String, Set<String>>{};
-    final docMap = <String, List<String>>{};
+  final pathMap = <String, String>{};
+  final symbolMap = <String, Set<String>>{};
+  final docMap = <String, List<String>>{};
 
-    bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
+  bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
-    void update(String key, String name, String documentation) {
-      final set = symbolMap.putIfAbsent(key, () => new Set<String>());
-      set.addAll(name.split('.'));
+  void update(String key, String name, String documentation) {
+    final set = symbolMap.putIfAbsent(key, () => new Set<String>());
+    set.addAll(name.split('.'));
 
-      documentation = documentation?.trim();
-      if (documentation != null && documentation.isNotEmpty) {
-        final list = docMap.putIfAbsent(key, () => []);
-        list.add(compactReadme(documentation));
-      }
+    documentation = documentation?.trim();
+    if (documentation != null && documentation.isNotEmpty) {
+      final list = docMap.putIfAbsent(key, () => []);
+      list.add(compactReadme(documentation));
+    }
+  }
+
+  pubData.apiElements.forEach((apiElement) {
+    if (isTopLevel(apiElement.kind)) {
+      pathMap[apiElement.name] = apiElement.href;
+      update(apiElement.name, apiElement.name, apiElement.documentation);
     }
 
-    pubData.apiElements.forEach((apiElement) {
-      if (isTopLevel(apiElement.kind)) {
-        pathMap[apiElement.name] = apiElement.href;
-        update(apiElement.name, apiElement.name, apiElement.documentation);
-      }
+    if (!isTopLevel(apiElement.kind) &&
+        apiElement.parent != null &&
+        isTopLevel(nameToKindMap[apiElement.parent])) {
+      update(apiElement.parent, apiElement.name, apiElement.documentation);
+    }
+  });
 
-      if (!isTopLevel(apiElement.kind) &&
-          apiElement.parent != null &&
-          isTopLevel(nameToKindMap[apiElement.parent])) {
-        update(apiElement.parent, apiElement.name, apiElement.documentation);
-      }
-    });
+  final results = pathMap.keys.map((key) {
+    final path = pathMap[key];
+    final symbols = symbolMap[key].toList()..sort();
+    return new ApiDocPage(
+      relativePath: path,
+      symbols: symbols,
+      textBlocks: docMap[key],
+    );
+  }).toList();
+  results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
+  return results;
+}
 
-    final results = pathMap.keys.map((key) {
-      final path = pathMap[key];
-      final symbols = symbolMap[key].toList()..sort();
-      return new ApiDocPage(
-        relativePath: path,
-        symbols: symbols,
-        textBlocks: docMap[key],
-      );
-    }).toList();
-    results.sort((a, b) => a.relativePath.compareTo(b.relativePath));
-    return results;
-  }
+/// Splits the flat SDK data into per-library data (in the same data format).
+List<PubDartdocData> splitLibraries(PubDartdocData data) {
+  final librariesMap = <String, List<ApiElement>>{};
+  final rootMap = <String, String>{};
+  data.apiElements?.forEach((elem) {
+    String library;
+    if (elem.parent == null) {
+      library = elem.name;
+    } else {
+      library = rootMap[elem.parent] ?? elem.parent;
+      rootMap[elem.name] = library;
+    }
+    librariesMap.putIfAbsent(library, () => <ApiElement>[]).add(elem);
+  });
+  return librariesMap.values
+      .map((list) => new PubDartdocData(apiElements: list))
+      .toList();
+}
+
+/// Creates the index-related data structure for an SDK library.
+PackageDocument createSdkDocument(PubDartdocData lib) {
+  final apiDocPages = apiDocPagesFromPubData(lib);
+  final package = lib.apiElements.first.name;
+  final documentation = lib.apiElements.first.documentation ?? '';
+  final description = documentation.split('\n\n').first.trim();
+  return new PackageDocument(
+    package: package,
+    version: versions.toolEnvSdkVersion,
+    description: description,
+    apiDocPages: apiDocPages,
+  );
 }
 
 class SnapshotStorage {

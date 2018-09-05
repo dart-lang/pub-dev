@@ -47,6 +47,7 @@ void main() {
       Future setUpInServiceScope() async {
         registerSearchBackend(new MockSearchBackend());
         registerPackageIndex(new SimplePackageIndex());
+        registerDartSdkIndex(new SimplePackageIndex());
         await packageIndex
             .addPackages(await searchBackend.loadDocuments(['pkg_foo']));
         await packageIndex.merge();

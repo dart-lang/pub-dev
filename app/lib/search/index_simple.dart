@@ -5,8 +5,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pana/pana.dart' show DependencyTypes;
+import 'package:path/path.dart' as p;
 
 import '../shared/search_service.dart';
 import '../shared/utils.dart' show StringInternPool;
@@ -14,6 +16,13 @@ import '../shared/utils.dart' show StringInternPool;
 import 'platform_specificity.dart';
 import 'scoring.dart';
 import 'text_utils.dart';
+
+/// The [PackageIndex] for Dart SDK API.
+PackageIndex get dartSdkIndex => ss.lookup(#_dartSdkIndex) as PackageIndex;
+
+/// Register a new [PackageIndex] for Dart SDK API.
+void registerDartSdkIndex(PackageIndex index) =>
+    ss.register(#_dartSdkIndex, index);
 
 /// The [PackageIndex] registered in the current service scope.
 PackageIndex get packageIndex =>
@@ -24,6 +33,8 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
+  final bool _isSdkIndex;
+  final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final Map<String, String> _normalizedPackageText = <String, String>{};
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
@@ -33,6 +44,14 @@ class SimplePackageIndex implements PackageIndex {
   final StringInternPool _internPool = new StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
+
+  SimplePackageIndex()
+      : _isSdkIndex = false,
+        _urlPrefix = null;
+
+  SimplePackageIndex.sdk({@required String urlPrefix})
+      : _isSdkIndex = true,
+        _urlPrefix = urlPrefix;
 
   @override
   bool get isReady => _isReady;
@@ -261,9 +280,33 @@ class SimplePackageIndex implements PackageIndex {
       }).toList();
     }
 
+    if (_isSdkIndex) {
+      results = results.map((ps) {
+        String url = _urlPrefix;
+        final doc = _packages[ps.package];
+        String description = doc.description ?? ps.package;
+        if (doc.apiDocPages != null && doc.apiDocPages.isNotEmpty) {
+          final libPage = doc.apiDocPages.firstWhere(
+            (dp) => dp.relativePath.endsWith('-library.html'),
+            orElse: () => doc.apiDocPages.first,
+          );
+          url = p.join(_urlPrefix, libPage.relativePath);
+        }
+        final apiPages = ps.apiPages
+            ?.map((ref) => ref.change(url: p.join(_urlPrefix, ref.path)))
+            ?.toList();
+        return ps.change(
+          url: url,
+          version: doc.version,
+          description: description,
+          apiPages: apiPages,
+        );
+      }).toList();
+    }
+
     return new PackageSearchResult(
       totalCount: totalCount,
-      indexUpdated: _lastUpdated.toIso8601String(),
+      indexUpdated: _lastUpdated?.toIso8601String(),
       packages: results,
     );
   }
@@ -435,15 +478,15 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   String _apiDocPageId(String package, ApiDocPage page) {
-    return '$package:${page.relativePath}';
+    return '$package::${page.relativePath}';
   }
 
   String _apiDocPkg(String id) {
-    return id.split(':').first;
+    return id.split('::').first;
   }
 
   String _apiDocPath(String id) {
-    return id.split(':').last;
+    return id.split('::').last;
   }
 }
 
