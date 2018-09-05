@@ -69,4 +69,15 @@ void main() {
       expect(() => syntaxCheckHomepageUrl('http://.../x/'), throwsException);
     });
   });
+
+  group('SDK urls', () {
+    test('dev', () {
+      expect(dartSdkMainUrl('2.1.0-dev.3.1'),
+          'https://api.dartlang.org/dev/2.1.0-dev.3.1/');
+    });
+
+    test('stable', () {
+      expect(dartSdkMainUrl('2.0.0'), 'https://api.dartlang.org/stable/2.0.0/');
+    });
+  });
 }
