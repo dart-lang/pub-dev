@@ -510,7 +510,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'packages': [
           {'package': 'chrome_net', 'score': closeTo(0.93, 0.01)},
           {'package': 'async', 'score': closeTo(0.93, 0.01)},
-          {'package': 'http', 'score': closeTo(0.65, 0.01)},
+          {'package': 'http', 'score': closeTo(0.87, 0.01)},
         ],
       });
 
@@ -522,7 +522,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'indexUpdated': isNotNull,
         'totalCount': 1,
         'packages': [
-          {'package': 'http', 'score': closeTo(0.623, 0.001)},
+          {'package': 'http', 'score': closeTo(0.829, 0.001)},
         ],
       });
     });
