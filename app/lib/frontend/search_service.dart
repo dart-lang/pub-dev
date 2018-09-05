@@ -36,12 +36,14 @@ class SearchService {
 Future<SearchResultPage> _loadResultForPackages(
     SearchQuery query, int totalCount, List<PackageScore> packageScores) async {
   final List<Key> packageKeys = packageScores
+      .where((ps) => !ps.isExternal)
       .map((ps) => ps.package)
       .map((package) => dbService.emptyKey.append(Package, id: package))
       .toList();
   final packageEntries = (await dbService.lookup(packageKeys)).cast<Package>();
   packageEntries.removeWhere((p) => p == null);
 
+  final pubPackages = <String, PackageView>{};
   final List<Key> versionKeys =
       packageEntries.map((p) => p.latestVersionKey).toList();
   if (versionKeys.isNotEmpty) {
@@ -57,18 +59,37 @@ Future<SearchResultPage> _loadResultForPackages(
     final List<PackageVersion> versions =
         (await batchResults[1]).cast<PackageVersion>();
 
-    final List<PackageView> resultPackages = new List.generate(
-        versions.length,
-        (i) => new PackageView.fromModel(
-              package: packageEntries[i],
-              version: versions[i],
-              analysis: analysisExtracts[i],
-              apiPages: packageScores[i].apiPages,
-            ));
-    return new SearchResultPage(query, totalCount, resultPackages);
-  } else {
-    return new SearchResultPage.empty(query);
+    for (int i = 0; i < versions.length; i++) {
+      final pv = new PackageView.fromModel(
+        package: packageEntries[i],
+        version: versions[i],
+        analysis: analysisExtracts[i],
+        apiPages: packageScores[i].apiPages,
+      );
+      pubPackages[pv.name] = pv;
+    }
   }
+
+  final resultPackages = packageScores
+      .map((ps) {
+        if (pubPackages.containsKey(ps.package)) {
+          return pubPackages[ps.package];
+        }
+        if (ps.isExternal) {
+          return new PackageView(
+            isExternal: true,
+            url: ps.url,
+            version: ps.version,
+            name: ps.package,
+            ellipsizedDescription: ps.description,
+            apiPages: ps.apiPages,
+          );
+        }
+        return null;
+      })
+      .where((pv) => pv != null)
+      .toList();
+  return new SearchResultPage(query, totalCount, resultPackages);
 }
 
 /// The results of a search via the Custom Search API.

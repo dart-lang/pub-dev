@@ -119,9 +119,16 @@ class TemplateService {
     for (int i = 0; i < packages.length; i++) {
       final view = packages[i];
       final overallScore = view.overallScore;
+      String externalType;
+      if (view.isExternal && view.url.startsWith('https://api.dartlang.org/')) {
+        externalType = 'Dart core library';
+      }
       packagesJson.add({
-        'url': urls.pkgPageUrl(view.name),
+        'url': view.url ?? urls.pkgPageUrl(view.name),
         'name': view.name,
+        'is_external': view.isExternal,
+        'external_type': externalType,
+        'show_metadata': !view.isExternal,
         'version': view.version,
         'show_dev_version': view.devVersion != null,
         'dev_version': view.devVersion,
@@ -136,11 +143,9 @@ class TemplateService {
         'api_pages': view.apiPages
             ?.map((page) => {
                   'title': page.title ?? page.path,
-                  'href': urls.pkgDocUrl(
-                    view.name,
-                    isLatest: true,
-                    relativePath: page.path,
-                  )
+                  'href': page.url ??
+                      urls.pkgDocUrl(view.name,
+                          isLatest: true, relativePath: page.path),
                 })
             ?.toList(),
       });

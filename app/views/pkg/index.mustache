@@ -25,15 +25,20 @@
 <ul class="package-list">
   {{#packages}}
     <li class="list-item -full">
-      {{& score_box_html }}
+      {{#show_metadata}}{{& score_box_html }}{{/show_metadata}}
       <h3 class="title"><a href="{{& url}}">{{name}}</a></h3>
       <p class="description">{{desc}}</p>
+      {{#is_external}}
+        <p class="metadata">v {{version}} • {{external_type}}</p>
+      {{/is_external}}
+      {{#show_metadata}}
       <p class="metadata">
         v <a href="{{& url}}">{{version}}</a>
         {{#show_dev_version}} / <a href="{{& dev_version_url}}">{{dev_version}}</a>{{/show_dev_version}}
         • Updated: <span>{{last_uploaded}}</span>
         {{& tags_html}}
       </p>
+      {{/show_metadata}}
       {{#has_api_pages}}
       <div class="api_pages">
         API results:
