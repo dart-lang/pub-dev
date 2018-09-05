@@ -18,6 +18,7 @@ import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/configuration.dart' show envConfig;
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
@@ -41,6 +42,56 @@ final _pkgPubDartdocDir =
 class DartdocJobProcessor extends JobProcessor {
   DartdocJobProcessor({Duration lockDuration})
       : super(service: JobService.dartdoc, lockDuration: lockDuration);
+
+  /// Uses the tool environment's SDK (the one that is used for analysis too) to
+  /// generate dartdoc documentation and extracted data file for SDK API indexing.
+  /// Only the extracted data file will be used and uploaded.
+  Future generateDocsForSdk() async {
+    if (await dartdocBackend.hasValidDartSdkDartdocData()) return;
+    final tempDir =
+        await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
+    try {
+      final tempDirPath = tempDir.resolveSymbolicLinksSync();
+      final outputDir = tempDirPath;
+      final args = [
+        '--sdk-docs',
+        '--output',
+        outputDir,
+        '--hosted-url',
+        siteRoot,
+        '--link-to-remote',
+        '--no-validate-links',
+      ];
+      if (envConfig.toolEnvDartSdkDir != null) {
+        args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
+      }
+      final pr = await runProc(
+        'dart',
+        ['bin/pub_dartdoc.dart']..addAll(args),
+        workingDirectory: _pkgPubDartdocDir,
+        timeout: _dartdocTimeout * 2,
+      );
+
+      final pubDataFile = new File(p.join(outputDir, 'pub-data.json'));
+      final hasPubData = await pubDataFile.exists();
+      final isOk = pr.exitCode == 0 && hasPubData;
+      if (!isOk) {
+        _logger.warning(
+            'Error while generating SDK docs.\n\n${pr.stdout}\n\n${pr.stderr}');
+        return;
+      }
+
+      // prevent close races updating the same content in close succession
+      if (await dartdocBackend.hasValidDartSdkDartdocData()) return;
+
+      // upload only the pub dartdoc data file
+      await dartdocBackend.uploadDartSdkDartdocData(pubDataFile);
+    } catch (e, st) {
+      _logger.warning('Error while generating SDK docs.', e, st);
+    } finally {
+      await tempDir.delete(recursive: true);
+    }
+  }
 
   @override
   Future<bool> shouldProcess(

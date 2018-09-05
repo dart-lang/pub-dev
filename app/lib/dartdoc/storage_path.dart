@@ -9,6 +9,7 @@ const _generatedStaticAssetPaths = const <String>['static-assets'];
 // Storage contains package data in a form of /package/version/...
 // This path contains '-' and is an invalid package name, safe of conflicts.
 const _storageSharedAssetPrefix = 'shared-assets';
+const _sdkAssetPrefix = 'sdk-assets';
 
 /// Whether the generated file can be moved to the shared assets.
 bool isSharedAsset(String relativePath) {
@@ -48,4 +49,14 @@ String contentPrefix(String packageName, String packageVersion, String uuid) =>
 String contentObjectName(String packageName, String packageVersion, String uuid,
     String relativePath) {
   return p.join(contentPrefix(packageName, packageVersion, uuid), relativePath);
+}
+
+/// ObjectName of an SDK asset.
+String sdkObjectName(String relativePath) {
+  return p.join(_sdkAssetPrefix, relativePath);
+}
+
+/// The ObjectName for the Dart SDK's extracted dartdoc content.
+String dartSdkDartdocDataName(String runtimeVersion) {
+  return sdkObjectName('dart/pub-dartdoc-data/$runtimeVersion.json.gz');
 }

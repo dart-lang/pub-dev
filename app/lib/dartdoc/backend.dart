@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:gcloud/db.dart';
@@ -21,9 +22,11 @@ import '../shared/utils.dart' show contentType;
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
+import 'pub_dartdoc_data.dart';
 import 'storage_path.dart' as storage_path;
 
 final Logger _logger = new Logger('pub.dartdoc.backend');
+final _gzip = new GZipCodec();
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
 final int _concurrentUploads = 8;
@@ -42,6 +45,60 @@ class DartdocBackend {
   Bucket _storage;
 
   DartdocBackend(this._db, this._storage);
+
+  /// Whether the storage bucket has a useable extracted data file.
+  /// Only the existence of the file is checked.
+  // TODO: decide whether we should re-generate the file after a certain age
+  Future<bool> hasValidDartSdkDartdocData() async {
+    final objectName =
+        storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
+    try {
+      final info = await _storage.info(objectName);
+      return info != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Upload the generated dartdoc data file for the Dart SDK to the storage bucket.
+  Future uploadDartSdkDartdocData(File file) async {
+    final objectName =
+        storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
+    try {
+      final contentBytes = await file.readAsBytes();
+      await _storage.writeBytes(objectName, _gzip.encode(contentBytes));
+    } catch (e, st) {
+      _logger.warning(
+          'Unable to upload SDK pub dartdoc data file: $objectName', e, st);
+    }
+  }
+
+  /// Read the generated dartdoc data file for the Dart SDK.
+  Future<PubDartdocData> getDartSdkDartdocData() async {
+    final objectName =
+        storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
+    Future<PubDartdocData> load() async {
+      final Map<String, dynamic> map = await _storage
+          .read(objectName)
+          .transform(_gzip.decoder)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
+          .single;
+      return new PubDartdocData.fromJson(map);
+    }
+
+    for (int i = 0; i < 3; i++) {
+      try {
+        return await load();
+      } catch (e, st) {
+        final message =
+            'Unable to read SDK pub dartdoc data file (attempt #${i + 1}): $objectName ';
+        _logger.info(message, e, st);
+      }
+    }
+
+    return null;
+  }
 
   /// Returns the latest stable version of a package.
   Future<String> getLatestVersion(String package) async {
