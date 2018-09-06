@@ -539,19 +539,19 @@ class Score {
 
 class TokenMatch {
   final Map<String, double> _tokenWeights = <String, double>{};
-  double _sumWeight;
+  double _maxWeight;
 
   double operator [](String token) => _tokenWeights[token];
 
   void operator []=(String token, double weight) {
     _tokenWeights[token] = weight;
-    _sumWeight = null;
+    _maxWeight = null;
   }
 
   Iterable<String> get tokens => _tokenWeights.keys;
 
-  double get sumWeight =>
-      _sumWeight ??= _tokenWeights.values.fold(0.0, (a, b) => a + b);
+  double get maxWeight =>
+      _maxWeight ??= _tokenWeights.values.fold(0.0, math.max);
 
   Map<String, double> get tokenWeights => new Map.unmodifiable(_tokenWeights);
 }
@@ -655,12 +655,12 @@ class TokenIndex {
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
       {double weight: 1.0, int wordCount: 1}) {
     // Summarize the scores for the documents.
-    final queryWeight = tokenMatch.sumWeight;
+    final queryWeight = tokenMatch.maxWeight;
     final Map<String, double> docScores = <String, double>{};
     for (String token in tokenMatch.tokens) {
       for (String id in _inverseIds[token]) {
         final double prevValue = docScores[id] ?? 0.0;
-        docScores[id] = prevValue + tokenMatch[token];
+        docScores[id] = math.max(prevValue, tokenMatch[token]);
       }
     }
 
