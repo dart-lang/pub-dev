@@ -13,6 +13,9 @@ const _maxCount = 100;
 
 ToolEnvRef _current;
 
+/// Tracks the temporary directory of the downloaded package cache with the
+/// [ToolEnvironment] (that was initialized with that directory), along with its
+/// use stats.
 class ToolEnvRef {
   final Directory _pubCacheDir;
   final ToolEnvironment toolEnv;
@@ -34,6 +37,9 @@ class ToolEnvRef {
   }
 }
 
+/// Gets a currently available [ToolEnvRef] if it is used less than the
+/// configured threshold (_maxCount, currently 100). If it it has already
+/// reached the amount, a new cache dir and environment will be created.
 Future<ToolEnvRef> createToolEnvRef() async {
   if (_current != null && _current._started < _maxCount) {
     _current._aquire();
