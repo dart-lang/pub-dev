@@ -39,14 +39,14 @@ void main() {
   }
 
   group('pana 0.10.2', () {
-    final prevCustomizer = new DartdocCustomizer('pana', '0.10.2+0', false);
-    final latestCustomizer = new DartdocCustomizer('pana', '0.10.2+0', true);
+    final prevCustomizer = new DartdocCustomizer('pana', '0.12.2', false);
+    final latestCustomizer = new DartdocCustomizer('pana', '0.12.2', true);
 
     void expectMatch(String name) {
       test(name, () {
-        final inputName = 'pana_0.10.2_$name.html';
-        final outputName = 'pana_0.10.2_$name.out.html';
-        final diffName = 'pana_0.10.2_$name.latest.diff';
+        final inputName = 'pana_0.12.2_$name.html';
+        final outputName = 'pana_0.12.2_$name.out.html';
+        final diffName = 'pana_0.12.2_$name.latest.diff';
         final html = new File('$goldenDir/$inputName').readAsStringSync();
         final prevResult = prevCustomizer.customizeHtml(html) ?? html;
         final latestResult = latestCustomizer.customizeHtml(html) ?? html;
