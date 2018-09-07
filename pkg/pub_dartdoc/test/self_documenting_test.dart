@@ -42,6 +42,7 @@ main() {
           .toList();
       files.sort();
       expect(files, [
+        '__404error.html',
         'index.html',
         'index.json',
         'pub-data.json',
