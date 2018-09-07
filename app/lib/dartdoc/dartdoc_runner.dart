@@ -60,7 +60,7 @@ class DartdocJobProcessor extends JobProcessor {
     // directories need to be created
     await new Directory(outputDir).create(recursive: true);
 
-    final toolEnvRef = await createToolEnvRef();
+    final toolEnvRef = await getOrCreateToolEnvRef();
 
     final latestVersion =
         await dartdocBackend.getLatestVersion(job.packageName);

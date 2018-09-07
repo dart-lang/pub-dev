@@ -87,7 +87,7 @@ class AnalyzerJobProcessor extends JobProcessor {
 
     Future<Summary> analyze() async {
       Directory tempDir;
-      final toolEnvRef = await createToolEnvRef();
+      final toolEnvRef = await getOrCreateToolEnvRef();
       try {
         tempDir = await Directory.systemTemp.createTemp('pana');
         final PackageAnalyzer analyzer =
