@@ -1,21 +1,13 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta name="robots" content="noindex">
-  <script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-26406144-13"></script>
-  <script>
-
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-26406144-13');
-  </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="generator" content="made with love by dartdoc 0.20.1">
+  <meta name="generator" content="made with love by dartdoc 0.20.4">
   <meta name="description" content="pana API docs, for the Dart programming language.">
   <title>pana - Dart API docs</title>
-  <link rel="alternate" href="/documentation/pana/latest/">
-  <link rel="canonical" href="https://pub.dartlang.org/documentation/pana/0.10.2/">
+  <link rel="canonical" href="https://pub.dartlang.org/documentation/pana/0.12.2/index.html">
 
   <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
   <link rel="stylesheet" href="static-assets/github.css">
@@ -29,14 +21,12 @@
 <div id="overlay-under-drawer"></div>
 
 <header id="title">
-  <a href="https://pub.dartlang.org/"><img src="https://pub.dartlang.org/static/img/dart-logo.svg" style="height: 30px; margin-right: 1em;"></a>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
-    <li><a href="https://pub.dartlang.org/packages/pana/versions/0.10.2+0">pana package</a></li>
-    <li class="self-crumb">documentation</li>
+    <li><a href="https://github.com/dart-lang/pana">pana package</a></li>
   </ol>
   <div class="self-name">pana</div>
   <form class="search navbar-right" role="search">
-    <input type="text" id="search-box" autocomplete="off" disabled="" class="form-control typeahead" placeholder="Loading search...">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
 </header>
 
@@ -46,6 +36,7 @@
     <h5><span class="package-name">pana</span> <span class="package-kind">package</span></h5>
     <ol>
           <li class="section-title">Libraries</li>
+          <li><a href="models/models-library.html">models</a></li>
           <li><a href="pana/pana-library.html">pana</a></li>
     </ol>
   </div>
@@ -55,22 +46,26 @@
         <p><a href="https://travis-ci.org/dart-lang/pana"><img alt="Build Status" src="https://travis-ci.org/dart-lang/pana.svg?branch=master"></a></p>
 <p>A library for analyzing Dart packages.</p><ul><li>Validates the code using <a href="https://www.dartlang.org/tools/analyzer">Dart Analyzer</a>.</li><li>Checks code formatting.</li><li>Checks for outdated dependencies.</li><li>Infers supported platforms: Flutter, web, and/or server.</li></ul>
 <p>Used by the <a href="https://pub.dartlang.org/">Dart Package site</a>.</p>
-<h2>Use as an executable</h2>
-<h3>Installation</h3>
+<h2 id="use-as-an-executable">Use as an executable</h2>
+<h3 id="installation">Installation</h3>
 <pre class="language-console"><code class="language-console">&gt; pub global activate pana
 </code></pre>
-<h3>Usage</h3>
+<h3 id="usage">Usage</h3>
 <p>You can specify either a package (+ version) or a local directory to analyze:</p>
-<pre class="language-dart"><code>Usage: pana [&lt;options&gt;] &lt;package&gt; [&lt;version&gt;]
-       pana [&lt;options&gt;] --source path &lt;directory&gt;
+<pre class="language-dart"><code>Usage: pana [&lt;options&gt;] &lt;published package name&gt; [&lt;version&gt;]
+       pana [&lt;options&gt;] --source path &lt;local directory&gt;
 
 Options:
+      --flutter-sdk     The directory of the Flutter SDK.
   -j, --json            Output log items as JSON.
-  -s, --source          The source used to find the package.
+  -s, --source          The source where the package is located (hosted on https://pub.dartlang.org, or local directory path).
                         [hosted (default), path]
   
       --hosted-url      The server that hosts &lt;package&gt;.
                         (defaults to "https://pub.dartlang.org")
+  
+      --verbosity       Configure the details in the output.
+                        [compact, normal (default), verbose]
   
       --[no-]warning    Shows the warning message before potentially destructive operation.
                         (defaults to on)
@@ -80,7 +75,12 @@ Options:
         <section class="summary">
             <h2>Libraries</h2>
           <dl>
-            <dt id="pana">
+            <dt id="models">
+              <span class="name"><a href="models/models-library.html">models</a></span>
+            </dt>
+            <dd>
+              
+            </dd>            <dt id="pana">
               <span class="name"><a href="pana/pana-library.html">pana</a></span>
             </dt>
             <dd>
@@ -94,7 +94,7 @@ Options:
 
 <footer>
   <span class="no-break">
-    pana 0.10.2
+    pana 0.12.2
   </span>
 
 </footer>
@@ -106,7 +106,6 @@ Options:
 <script src="static-assets/script.js"></script>
 
 
+</body>
 
-
-
-</body></html>
+</html>
