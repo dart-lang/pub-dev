@@ -16,7 +16,7 @@ import '../analyzer/backend.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
 import '../shared/analyzer_client.dart';
-import '../shared/configuration.dart' show envConfig;
+import '../shared/tool_env.dart';
 import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
 
@@ -54,19 +54,13 @@ class DartdocJobProcessor extends JobProcessor {
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
     final tempDirPath = tempDir.resolveSymbolicLinksSync();
     final pkgPath = p.join(tempDirPath, 'pkg');
-    final pubCacheDir = p.join(tempDirPath, 'pub-cache');
     final tarDir = p.join(tempDirPath, 'output');
     final outputDir = p.join(tarDir, job.packageName, job.packageVersion);
 
     // directories need to be created
-    await new Directory(pubCacheDir).create(recursive: true);
     await new Directory(outputDir).create(recursive: true);
 
-    final toolEnv = await ToolEnvironment.create(
-      dartSdkDir: envConfig.toolEnvDartSdkDir,
-      flutterSdkDir: envConfig.flutterSdkDir,
-      pubCacheDir: pubCacheDir,
-    );
+    final toolEnvRef = await createToolEnvRef();
 
     final latestVersion =
         await dartdocBackend.getLatestVersion(job.packageName);
@@ -80,7 +74,7 @@ class DartdocJobProcessor extends JobProcessor {
         return JobStatus.failed;
       }
       await pkgDir.rename(pkgPath);
-      final usesFlutter = await toolEnv.detectFlutterUse(pkgPath);
+      final usesFlutter = await toolEnvRef.toolEnv.detectFlutterUse(pkgPath);
 
       final logFileOutput = new StringBuffer();
       logFileOutput.write('Dartdoc generation for $job\n\n'
@@ -100,7 +94,7 @@ class DartdocJobProcessor extends JobProcessor {
       // Resolve dependencies only for non-legacy package versions.
       if (!isLegacy) {
         depsResolved = await _resolveDependencies(
-            toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+            toolEnvRef.toolEnv, job, pkgPath, usesFlutter, logFileOutput);
       }
 
       // Generate docs only for packages that have healthy dependencies.
@@ -141,6 +135,7 @@ class DartdocJobProcessor extends JobProcessor {
       rethrow;
     } finally {
       await tempDir.delete(recursive: true);
+      await toolEnvRef.release();
     }
 
     await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);

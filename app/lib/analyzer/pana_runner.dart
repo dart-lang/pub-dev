@@ -9,15 +9,14 @@ import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 import 'package:pana/src/maintenance.dart';
 import 'package:pana/src/version.dart' as pana_version;
-import 'package:path/path.dart' as p;
 
 import '../job/job.dart';
 import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
 import '../shared/analyzer_service.dart';
-import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
+import '../shared/tool_env.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -88,18 +87,11 @@ class AnalyzerJobProcessor extends JobProcessor {
 
     Future<Summary> analyze() async {
       Directory tempDir;
+      final toolEnvRef = await createToolEnvRef();
       try {
         tempDir = await Directory.systemTemp.createTemp('pana');
-        final tempDirPath = await tempDir.resolveSymbolicLinks();
-        final pubCacheDir = p.join(tempDirPath, 'pub-cache');
-        await new Directory(pubCacheDir).create();
-        final toolEnv = await ToolEnvironment.create(
-          dartSdkDir: envConfig.toolEnvDartSdkDir,
-          flutterSdkDir: envConfig.flutterSdkDir,
-          pubCacheDir: pubCacheDir,
-        );
         final PackageAnalyzer analyzer =
-            new PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
+            new PackageAnalyzer(toolEnvRef.toolEnv, urlChecker: _urlChecker);
         final isInternal = internalPackageNames.contains(job.packageName);
         return await analyzer.inspectPackage(
           job.packageName,
@@ -117,6 +109,7 @@ class AnalyzerJobProcessor extends JobProcessor {
         if (tempDir != null) {
           await tempDir.delete(recursive: true);
         }
+        await toolEnvRef.release();
       }
       return null;
     }
