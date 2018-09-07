@@ -31,8 +31,12 @@ class ToolEnvRef {
 
   Future release() async {
     _active--;
-    if (_started >= _maxCount && _active == 0) {
-      await _pubCacheDir.delete(recursive: true);
+    if (_active == 0) {
+      // Delete directory if the instance is no longer active or it reached the
+      // maximum threshold.
+      if (_started >= _maxCount || _current != this) {
+        await _pubCacheDir.delete(recursive: true);
+      }
     }
   }
 }
