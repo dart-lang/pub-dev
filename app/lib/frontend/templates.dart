@@ -786,6 +786,12 @@ class TemplateService {
         'text': '[outdated]',
         'title': 'Package version too old, check latest stable.',
       });
+    } else if (status == AnalysisStatus.legacy) {
+      tags.add({
+        'status': 'legacy',
+        'text': 'Dart 2 incompatible',
+        'title': 'Package does not support Dart 2.',
+      });
     } else {
       tags.add({
         'status': 'unidentified',
