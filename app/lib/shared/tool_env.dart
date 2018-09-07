@@ -12,6 +12,7 @@ import 'configuration.dart';
 const _maxCount = 100;
 
 ToolEnvRef _current;
+Completer _ongoing;
 
 /// Tracks the temporary directory of the downloaded package cache with the
 /// [ToolEnvironment] (that was initialized with that directory), along with its
@@ -49,6 +50,14 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
     _current._aquire();
     return _current;
   }
+  if (_ongoing == null) {
+    _ongoing = new Completer();
+  } else {
+    // There may be a race condition, it is simpler to just call the method
+    // again after the calculation is done.
+    await _ongoing.future;
+    return await getOrCreateToolEnvRef();
+  }
   final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
   final resolvedDirName = await cacheDir.resolveSymbolicLinks();
   final toolEnv = await ToolEnvironment.create(
@@ -58,5 +67,7 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
   );
   _current = new ToolEnvRef(cacheDir, toolEnv);
   _current._aquire();
+  _ongoing.complete();
+  _ongoing = null;
   return _current;
 }
