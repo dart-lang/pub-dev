@@ -516,6 +516,10 @@ pre > code {
   background: #ccc;
 }
 
+.score-box > .number.-small {
+  font-size: 12px;
+}
+
 .score-box > .new {
   position: absolute;
   top: -30%;
