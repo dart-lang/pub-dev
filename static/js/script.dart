@@ -18,6 +18,7 @@ void main() {
   _setEventForMobileNav();
   _setEventForHashChange();
   _setEventForSearchInput();
+  _guardReportIssue();
   _fixIssueLinks();
   _setEventForSortControl();
   _setEventForCheckboxChanges();
@@ -314,6 +315,18 @@ void _setEventForCheckboxChanges() {
     // TODO: instead of submitting, compose the URL here (also removing the single `?`)
     formElement.submit();
   });
+}
+
+void _guardReportIssue() {
+  for (AnchorElement bugLink in document.querySelectorAll('a.github_issue')) {
+    bugLink.onClick.listen((event) {
+      if (!window.confirm('This link is for reporting issues for the pub site. '
+          'If you would like to report a problem with a package, please visit '
+          'its homepage or contact its developers.')) {
+        event.preventDefault();
+      }
+    });
+  }
 }
 
 void _fixIssueLinks() {
