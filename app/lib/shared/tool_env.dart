@@ -9,6 +9,12 @@ import 'package:pana/pana.dart';
 
 import 'configuration.dart';
 
+/// Subsequent calls of the analyzer or dartdoc job can use the same [ToolEnvRef]
+/// instance [_maxCount] times.
+///
+/// Until the limit is reached, the [ToolEnvRef] will reuse the pub cache
+/// directory for its `pub upgrade` calls, but once it is reached, the cache
+/// will be deleted and a new [ToolEnvRef] with a new directory will be created.
 const _maxCount = 100;
 
 ToolEnvRef _current;
@@ -17,6 +23,10 @@ Completer _ongoing;
 /// Tracks the temporary directory of the downloaded package cache with the
 /// [ToolEnvironment] (that was initialized with that directory), along with its
 /// use stats.
+///
+/// The pub cache will be reused between `pub upgrade` calls, until the
+/// [_maxCount] threshold is reached. The directory will be deleted once all of
+/// the associated jobs complete.
 class ToolEnvRef {
   final Directory _pubCacheDir;
   final ToolEnvironment toolEnv;
@@ -43,7 +53,7 @@ class ToolEnvRef {
 }
 
 /// Gets a currently available [ToolEnvRef] if it is used less than the
-/// configured threshold (_maxCount, currently 100). If it it has already
+/// configured threshold ([_maxCount]). If it it has already
 /// reached the amount, a new cache dir and environment will be created.
 Future<ToolEnvRef> getOrCreateToolEnvRef() async {
   if (_current != null && _current._started < _maxCount) {
