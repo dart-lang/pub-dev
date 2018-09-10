@@ -15,6 +15,8 @@ import 'package:uuid/uuid.dart';
 import '../analyzer/backend.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
+import '../scorecard/backend.dart';
+import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart' show envConfig;
 import '../shared/urls.dart';
@@ -74,6 +76,8 @@ class DartdocJobProcessor extends JobProcessor {
     bool depsResolved = false;
     bool hasContent = false;
 
+    String reportStatus = ReportStatus.failed;
+    final suggestions = <Suggestion>[];
     try {
       final pkgDir = await downloadPackage(job.packageName, job.packageVersion);
       if (pkgDir == null) {
@@ -129,12 +133,14 @@ class DartdocJobProcessor extends JobProcessor {
         _logger.severe('Regression detected in $job, aborting upload.');
       } else {
         await dartdocBackend.uploadDir(entry, outputDir);
+        reportStatus = hasContent ? ReportStatus.success : ReportStatus.failed;
       }
 
       if (!hasContent && isLatestStable) {
         reportIssueWithLatest(job, 'No content.');
       }
     } catch (e, st) {
+      reportStatus = ReportStatus.aborted;
       if (isLatestStable) {
         reportIssueWithLatest(job, '$e\n$st');
       }
@@ -142,6 +148,20 @@ class DartdocJobProcessor extends JobProcessor {
     } finally {
       await tempDir.delete(recursive: true);
     }
+
+    if (!hasContent) {
+      suggestions.add(getDartdocRunFailedSuggestion());
+    }
+    // TODO: calculate coverage score
+    await scoreCardBackend.updateReport(
+        job.packageName,
+        job.packageVersion,
+        new DartdocReport(
+          reportStatus: reportStatus,
+          coverageScore: hasContent ? 1.0 : 0.0,
+          suggestions: suggestions.isEmpty ? null : suggestions,
+        ));
+    await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
 
     await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
 
