@@ -438,7 +438,8 @@ pre > code {
   package list
 ******************************************************/
 
-.package-list{
+.package-list {
+  clear: both;
   padding: 0;
   margin: 0;
   list-style: none;
