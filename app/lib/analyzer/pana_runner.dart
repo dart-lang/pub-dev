@@ -136,17 +136,28 @@ class AnalyzerJobProcessor extends JobProcessor {
     } else {
       summary = applyPlatformOverride(summary);
       summary = await _expandSummary(summary, packageStatus.age);
-      final bool lastRunWithErrors =
-          summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
+      final analyzeProcessFailed =
+          summary.health?.analyzeProcessFailed ?? false;
+      final lastRunWithErrors = analyzeProcessFailed ||
+          (summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false);
+      final bool isLegacy = lastRunWithErrors &&
+          (summary.suggestions
+                  ?.where((s) =>
+                      s.code ==
+                      SuggestionCode.pubspecDependenciesFailedToResolve)
+                  ?.isNotEmpty ??
+              false);
       if (!lastRunWithErrors) {
         analysis.analysisStatus = AnalysisStatus.success;
         status = JobStatus.success;
+      } else if (isLegacy) {
+        analysis.analysisStatus = AnalysisStatus.legacy;
       } else {
         analysis.analysisStatus = AnalysisStatus.failure;
       }
       analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore =
-          getMaintenanceScore(summary.maintenance) / 100.0;
+          isLegacy ? 0.0 : (getMaintenanceScore(summary.maintenance) / 100.0);
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
