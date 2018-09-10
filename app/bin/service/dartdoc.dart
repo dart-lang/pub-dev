@@ -14,6 +14,8 @@ import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
+import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
@@ -86,4 +88,6 @@ Future _registerServices() async {
   registerDartdocBackend(new DartdocBackend(dbService, storageBucket));
   registerHistoryBackend(new HistoryBackend(dbService));
   registerJobBackend(new JobBackend(dbService));
+  registerScoreCardMemcache(new ScoreCardMemcache(memcacheService));
+  registerScoreCardBackend(new ScoreCardBackend(dbService));
 }
