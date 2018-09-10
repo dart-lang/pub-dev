@@ -56,28 +56,34 @@ class ToolEnvRef {
 /// configured threshold ([_maxCount]). If it it has already
 /// reached the amount, a new cache dir and environment will be created.
 Future<ToolEnvRef> getOrCreateToolEnvRef() async {
-  if (_current != null && _current._started < _maxCount) {
-    _current._aquire();
-    return _current;
-  }
-  if (_ongoing == null) {
+  ToolEnvRef result;
+  while (result == null) {
+    if (_current != null && _current._started < _maxCount) {
+      result = _current;
+      result._aquire();
+      break;
+    }
+
+    if (_ongoing != null) {
+      await _ongoing.future;
+      continue;
+    }
+
     _ongoing = new Completer();
-  } else {
-    // There may be a race condition, it is simpler to just call the method
-    // again after the calculation is done.
-    await _ongoing.future;
-    return await getOrCreateToolEnvRef();
+
+    final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
+    final resolvedDirName = await cacheDir.resolveSymbolicLinks();
+    final toolEnv = await ToolEnvironment.create(
+      dartSdkDir: envConfig.toolEnvDartSdkDir,
+      flutterSdkDir: envConfig.flutterSdkDir,
+      pubCacheDir: resolvedDirName,
+    );
+    _current = new ToolEnvRef(cacheDir, toolEnv);
+    result = _current;
+    result._aquire();
+    _ongoing.complete();
+    _ongoing = null;
+    break;
   }
-  final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
-  final resolvedDirName = await cacheDir.resolveSymbolicLinks();
-  final toolEnv = await ToolEnvironment.create(
-    dartSdkDir: envConfig.toolEnvDartSdkDir,
-    flutterSdkDir: envConfig.flutterSdkDir,
-    pubCacheDir: resolvedDirName,
-  );
-  _current = new ToolEnvRef(cacheDir, toolEnv);
-  _current._aquire();
-  _ongoing.complete();
-  _ongoing = null;
-  return _current;
+  return result;
 }
