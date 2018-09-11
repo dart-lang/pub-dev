@@ -77,27 +77,13 @@ class DartdocBackend {
   Future<PubDartdocData> getDartSdkDartdocData() async {
     final objectName =
         storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
-    Future<PubDartdocData> load() async {
-      final Map<String, dynamic> map = await _storage
-          .read(objectName)
-          .transform(_gzip.decoder)
-          .transform(utf8.decoder)
-          .transform(json.decoder)
-          .single;
-      return new PubDartdocData.fromJson(map);
-    }
-
-    for (int i = 0; i < 3; i++) {
-      try {
-        return await load();
-      } catch (e, st) {
-        final message =
-            'Unable to read SDK pub dartdoc data file (attempt #${i + 1}): $objectName ';
-        _logger.info(message, e, st);
-      }
-    }
-
-    return null;
+    final Map<String, dynamic> map = await _storage
+        .read(objectName)
+        .transform(_gzip.decoder)
+        .transform(utf8.decoder)
+        .transform(json.decoder)
+        .single;
+    return new PubDartdocData.fromJson(map);
   }
 
   /// Returns the latest stable version of a package.
