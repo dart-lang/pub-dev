@@ -217,6 +217,8 @@ class PrivateKey extends db.Model {
 /// An extract of [Package] and [PackageVersion] and [AnalysisView], for
 /// display-only uses.
 class PackageView {
+  final bool isExternal;
+  final String url;
   final String name;
   final String version;
   // Not null only if there is a difference compared to the [version].
@@ -231,6 +233,8 @@ class PackageView {
   final List<ApiPageRef> apiPages;
 
   PackageView({
+    this.isExternal: false,
+    this.url,
     this.name,
     this.version,
     this.devVersion,

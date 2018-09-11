@@ -50,12 +50,35 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final bool indent = request.url.queryParameters['indent'] == 'true';
   final Stopwatch sw = new Stopwatch()..start();
   final SearchQuery query = new SearchQuery.fromServiceUrl(request.url);
-  final PackageSearchResult result = await packageIndex.search(query);
+  final PackageSearchResult pkgResult = await packageIndex.search(query);
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
     _logger.info(
         'Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds}ms: '
         '${query.toServiceQueryParameters()}');
+  }
+
+  PackageSearchResult result = pkgResult;
+  final includeSdkResults = query.offset == 0 &&
+      query.hasQuery &&
+      query.parsedQuery.text != null &&
+      query.parsedQuery.text.isNotEmpty;
+  if (includeSdkResults) {
+    final dartSdkResult =
+        await dartSdkIndex.search(query.change(order: SearchOrder.text));
+    final threshold =
+        pkgResult.packages.isEmpty ? 0.0 : pkgResult.packages.first.score / 2;
+    final selected = dartSdkResult.packages
+        .where((ps) => ps.score > threshold)
+        .take(3)
+        .toList();
+    if (selected.isNotEmpty) {
+      result = new PackageSearchResult(
+        indexUpdated: pkgResult.indexUpdated,
+        packages: selected..addAll(pkgResult.packages),
+        totalCount: pkgResult.totalCount,
+      );
+    }
   }
   return jsonResponse(result.toJson(), indent: indent);
 }

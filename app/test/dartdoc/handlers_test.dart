@@ -5,8 +5,10 @@
 library pub_dartlang_org.handlers_test;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:pub_dartlang_org/dartdoc/models.dart';
+import 'package:pub_dartlang_org/dartdoc/pub_dartdoc_data.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
@@ -193,6 +195,21 @@ class DartdocBackendMock implements DartdocBackend {
 
   @override
   Future<bool> isLegacy(String package, String version) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<bool> hasValidDartSdkDartdocData() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<PubDartdocData> getDartSdkDartdocData() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future uploadDartSdkDartdocData(File file) {
     throw new UnimplementedError();
   }
 }

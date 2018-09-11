@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 const pubHostedDomain = 'pub.dartlang.org';
 
 const siteRoot = 'https://$pubHostedDomain';
+const _apiDartlangOrg = 'https://api.dartlang.org/';
 
 String pkgPageUrl(String package,
     {String version, bool includeHost: false, String fragment}) {
@@ -107,4 +108,11 @@ void syntaxCheckHomepageUrl(String url) {
       _invalidHostNames.contains(uri.host)) {
     throw new Exception('Homepage URL has no valid host: $url');
   }
+}
+
+String dartSdkMainUrl(String version) {
+  final isDev = version.contains('dev');
+  final channel = isDev ? 'dev' : 'stable';
+  final url = p.join(_apiDartlangOrg, channel, version);
+  return '$url/';
 }

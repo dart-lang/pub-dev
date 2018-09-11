@@ -68,6 +68,8 @@ Future _workerMain(WorkerEntryMessage message) async {
 
     final jobProcessor =
         new DartdocJobProcessor(lockDuration: const Duration(minutes: 30));
+    await jobProcessor.generateDocsForSdk();
+
     final jobMaintenance = new JobMaintenance(dbService, jobProcessor);
 
     new Timer.periodic(const Duration(minutes: 15), (_) async {

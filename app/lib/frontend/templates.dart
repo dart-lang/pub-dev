@@ -119,9 +119,25 @@ class TemplateService {
     for (int i = 0; i < packages.length; i++) {
       final view = packages[i];
       final overallScore = view.overallScore;
+      String externalType;
+      bool isSdk = false;
+      if (view.isExternal && view.url.startsWith('https://api.dartlang.org/')) {
+        externalType = 'Dart core library';
+        isSdk = true;
+      }
+      String scoreBoxHtml;
+      if (isSdk) {
+        scoreBoxHtml = _renderSdkScoreBox();
+      } else if (!view.isExternal) {
+        scoreBoxHtml = _renderScoreBox(view.analysisStatus, overallScore,
+            isNewPackage: view.isNewPackage, package: view.name);
+      }
       packagesJson.add({
-        'url': urls.pkgPageUrl(view.name),
+        'url': view.url ?? urls.pkgPageUrl(view.name),
         'name': view.name,
+        'is_external': view.isExternal,
+        'external_type': externalType,
+        'show_metadata': !view.isExternal,
         'version': view.version,
         'show_dev_version': view.devVersion != null,
         'dev_version': view.devVersion,
@@ -130,17 +146,14 @@ class TemplateService {
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.analysisStatus, view.platforms,
             package: view.name),
-        'score_box_html': _renderScoreBox(view.analysisStatus, overallScore,
-            isNewPackage: view.isNewPackage, package: view.name),
+        'score_box_html': scoreBoxHtml,
         'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
         'api_pages': view.apiPages
             ?.map((page) => {
                   'title': page.title ?? page.path,
-                  'href': urls.pkgDocUrl(
-                    view.name,
-                    isLatest: true,
-                    relativePath: page.path,
-                  )
+                  'href': page.url ??
+                      urls.pkgDocUrl(view.name,
+                          isLatest: true, relativePath: page.path),
                 })
             ?.toList(),
       });
@@ -878,6 +891,10 @@ String _getAuthorsHtml(List<String> authors) {
 
 bool _isAnalysisSkipped(AnalysisStatus status) =>
     status == AnalysisStatus.outdated || status == AnalysisStatus.discontinued;
+
+String _renderSdkScoreBox() {
+  return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
+}
 
 String _renderScoreBox(AnalysisStatus status, double overallScore,
     {bool isNewPackage, String package}) {
