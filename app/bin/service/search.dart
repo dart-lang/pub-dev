@@ -122,7 +122,7 @@ Future _updateDartSdkIndex() async {
       _logger.warning('Error loading Dart SDK index.', e, st);
     }
     if (i % 10 == 0) {
-      _logger.warning('Unable to load Dart SDK index. Cycle: $i');
+      _logger.warning('Unable to load Dart SDK index. Attempt: $i');
     }
     await new Future.delayed(const Duration(minutes: 1));
   }

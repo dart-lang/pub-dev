@@ -46,7 +46,7 @@ class DartdocBackend {
 
   DartdocBackend(this._db, this._storage);
 
-  /// Whether the storage bucket has a useable extracted data file.
+  /// Whether the storage bucket has a usable extracted data file.
   /// Only the existence of the file is checked.
   // TODO: decide whether we should re-generate the file after a certain age
   Future<bool> hasValidDartSdkDartdocData() async {
