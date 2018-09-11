@@ -79,7 +79,8 @@ class DartdocJobProcessor extends JobProcessor {
       if (!isOk) {
         _logger.warning(
             'Error while generating SDK docs.\n\n${pr.stdout}\n\n${pr.stderr}');
-        return;
+        throw new Exception(
+            'Error while generating SDK docs (hasPubData: $hasPubData).');
       }
 
       // prevent close races updating the same content in close succession
