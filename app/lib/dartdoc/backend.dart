@@ -65,8 +65,8 @@ class DartdocBackend {
     final objectName =
         storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
     try {
-      final contentBytes = await file.readAsBytes();
-      await _storage.writeBytes(objectName, _gzip.encode(contentBytes));
+      final sink = _storage.write(objectName);
+      await file.openRead().transform(_gzip.encoder).pipe(sink);
     } catch (e, st) {
       _logger.warning(
           'Unable to upload SDK pub dartdoc data file: $objectName', e, st);
