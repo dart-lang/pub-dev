@@ -33,7 +33,8 @@ final Uuid _uuid = new Uuid();
 const statusFilePath = 'status.json';
 const _archiveFilePath = 'package.tar.gz';
 const _buildLogFilePath = 'log.txt';
-const _dartdocTimeout = const Duration(minutes: 10);
+const _packageTimeout = const Duration(minutes: 10);
+const _sdkTimeout = const Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
 final _pkgPubDartdocDir =
@@ -69,7 +70,7 @@ class DartdocJobProcessor extends JobProcessor {
         'dart',
         ['bin/pub_dartdoc.dart']..addAll(args),
         workingDirectory: _pkgPubDartdocDir,
-        timeout: _dartdocTimeout * 2,
+        timeout: _sdkTimeout,
       );
 
       final pubDataFile = new File(p.join(outputDir, 'pub-data.json'));
@@ -282,7 +283,7 @@ class DartdocJobProcessor extends JobProcessor {
         'dart',
         ['bin/pub_dartdoc.dart']..addAll(args),
         workingDirectory: _pkgPubDartdocDir,
-        timeout: _dartdocTimeout,
+        timeout: _packageTimeout,
       );
       final hasIndexHtml =
           await new File(p.join(outputDir, 'index.html')).exists();
