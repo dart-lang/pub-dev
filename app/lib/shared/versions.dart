@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'utils.dart' show isNewer;
 
 // update this whenever one of the other versions change
-final String runtimeVersion = '2018.09.07';
+final String runtimeVersion = '2018.09.11';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
@@ -18,7 +18,7 @@ final String toolEnvSdkVersion = '2.0.0';
 final String panaVersion = '0.12.2';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
-final String flutterVersion = '0.7.5';
+final String flutterVersion = '0.8.2';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 final String dartdocVersion = '0.20.4';
