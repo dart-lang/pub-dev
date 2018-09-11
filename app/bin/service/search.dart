@@ -80,9 +80,9 @@ Future _main(FrontendEntryMessage message) async {
     registerPackageIndex(new SimplePackageIndex());
     registerTaskSendPort(taskReceivePort.sendPort);
 
-    // don't block on SDK index updates, as it may take several minutes before
+    // Don't block on SDK index updates, as it may take several minutes before
     // the dartdoc service produces the required output.
-    _updateDartSdkIndex();
+    _updateDartSdkIndex().whenComplete(() {});
 
     final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
     await batchIndexUpdater.initSnapshot();
