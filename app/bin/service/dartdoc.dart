@@ -20,6 +20,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 
@@ -81,6 +82,12 @@ Future _workerMain(WorkerEntryMessage message) async {
 }
 
 Future _registerServices() async {
+  final Bucket popularityBucket =
+      storageService.bucket(activeConfiguration.popularityDumpBucketName);
+  registerPopularityStorage(
+      new PopularityStorage(storageService, popularityBucket));
+  await popularityStorage.init();
+
   registerDartdocMemcache(new DartdocMemcache(memcacheService));
 
   registerAnalysisBackend(new AnalysisBackend(dbService));

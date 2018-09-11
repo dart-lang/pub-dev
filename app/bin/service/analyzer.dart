@@ -7,15 +7,20 @@ import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
+import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
+import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 
@@ -48,7 +53,7 @@ Future _frontendMain(FrontendEntryMessage message) async {
   ));
 
   await withAppEngineServices(() async {
-    _registerServices();
+    await _registerServices();
     await runHandler(logger, analyzerServiceHandler);
   });
 }
@@ -59,7 +64,7 @@ Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(new WorkerProtocolMessage());
 
   await withAppEngineServices(() async {
-    _registerServices();
+    await _registerServices();
     final jobProcessor = new AnalyzerJobProcessor();
     final jobMaintenance = new JobMaintenance(db.dbService, jobProcessor);
 
@@ -71,11 +76,18 @@ Future _workerMain(WorkerEntryMessage message) async {
   });
 }
 
-void _registerServices() {
+Future _registerServices() async {
+  final Bucket popularityBucket =
+      storageService.bucket(activeConfiguration.popularityDumpBucketName);
+  registerPopularityStorage(
+      new PopularityStorage(storageService, popularityBucket));
+  await popularityStorage.init();
   registerAnalysisBackend(new AnalysisBackend(db.dbService));
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
   registerDartdocMemcache(new DartdocMemcache(memcacheService));
   registerDartdocClient(new DartdocClient());
   registerHistoryBackend(new HistoryBackend(db.dbService));
   registerJobBackend(new JobBackend(db.dbService));
+  registerScoreCardMemcache(new ScoreCardMemcache(memcacheService));
+  registerScoreCardBackend(new ScoreCardBackend(db.dbService));
 }

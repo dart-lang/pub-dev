@@ -80,16 +80,16 @@ class ScoreCard extends db.ExpandoModel {
 
   /// The platform tags (flutter, web, other).
   @CompatibleStringListProperty()
-  List<String> platformTags;
+  List<String> platformTags = <String>[];
 
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   @CompatibleStringListProperty()
-  List<String> flags;
+  List<String> flags = <String>[];
 
   /// The report types that are already done for the ScoreCard.
   @CompatibleStringListProperty()
-  List<String> reportTypes;
+  List<String> reportTypes = <String>[];
 
   ScoreCard();
 
@@ -141,7 +141,7 @@ class ScoreCard extends db.ExpandoModel {
     healthScore = (panaReport?.healthScore ?? 0.0) *
         (0.9 + ((dartdocReport?.coverageScore ?? 1.0) * 0.1));
     maintenanceScore = panaReport?.maintenanceScore ?? 0.0;
-    platformTags = panaReport?.platformTags;
+    platformTags = panaReport?.platformTags ?? <String>[];
     reportTypes = [
       panaReport == null ? null : ReportType.pana,
       dartdocReport == null ? null : ReportType.dartdoc,
