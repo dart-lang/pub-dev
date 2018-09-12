@@ -14,14 +14,13 @@ void main() {
   test('do not forget to update runtimeVersion when any version changes', () {
     final hash = [
       runtimeVersion,
-      runtimeSdkVersion,
       toolEnvSdkVersion,
       flutterVersion,
       panaVersion,
       dartdocVersion,
       customizationVersion,
     ].join('//').hashCode;
-    expect(hash, 672612609);
+    expect(hash, 916406136);
   });
 
   test('runtime version should be (somewhat) lexicographically ordered', () {
