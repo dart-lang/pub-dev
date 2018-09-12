@@ -7,6 +7,8 @@ import 'package:gcloud/db.dart' as db;
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/versions.dart' as versions;
 
+import 'models.dart';
+
 db.Key scoreCardKey(
   String packageName,
   String packageVersion, {
@@ -15,5 +17,6 @@ db.Key scoreCardKey(
   runtimeVersion ??= versions.runtimeVersion;
   return db.dbService.emptyKey
       .append(Package, id: packageName)
-      .append(PackageVersion, id: packageVersion);
+      .append(PackageVersion, id: packageVersion)
+      .append(ScoreCard, id: runtimeVersion);
 }

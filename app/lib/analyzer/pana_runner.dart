@@ -11,7 +11,10 @@ import 'package:pana/src/maintenance.dart';
 import 'package:pana/src/version.dart' as pana_version;
 
 import '../job/job.dart';
-import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
+import '../scorecard/backend.dart';
+import '../scorecard/models.dart';
+import '../shared/analyzer_client.dart'
+    show createPanaSummaryForLegacy, getAllSuggestions;
 import '../shared/analyzer_service.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/packages_overrides.dart';
@@ -62,6 +65,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.discontinued;
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
+      await _storeScoreCard(job, packageStatus, null);
       return JobStatus.skipped;
     }
 
@@ -71,17 +75,19 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.outdated;
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
+      await _storeScoreCard(job, packageStatus, null);
       return JobStatus.skipped;
     }
 
     if (packageStatus.isLegacy) {
       _logger.info('Package is on legacy SDK: $job.');
       analysis.analysisStatus = AnalysisStatus.legacy;
-      analysis.analysisJson =
-          createPanaSummaryForLegacy(job.packageName, job.packageVersion)
-              .toJson();
+      final summary =
+          createPanaSummaryForLegacy(job.packageName, job.packageVersion);
+      analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
+      await _storeScoreCard(job, packageStatus, summary);
       return JobStatus.skipped;
     }
 
@@ -124,10 +130,12 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     JobStatus status = JobStatus.failed;
+    Summary scoreCardSummary = summary;
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
       summary = applyPlatformOverride(summary);
+      scoreCardSummary = summary;
       summary = await _expandSummary(summary, packageStatus.age);
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
@@ -143,6 +151,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
+    await _storeScoreCard(job, packageStatus, scoreCardSummary);
 
     if (backendStatus.isLatestStable &&
         analysis.analysisStatus != AnalysisStatus.success &&
@@ -181,5 +190,24 @@ class AnalyzerJobProcessor extends JobProcessor {
       summary = summary.change(maintenance: maintenance);
     }
     return summary;
+  }
+
+  Future _storeScoreCard(Job job, PackageStatus status, Summary summary) async {
+    final reportStatus =
+        summary == null ? ReportStatus.aborted : ReportStatus.success;
+    await scoreCardBackend.updateReport(
+        job.packageName,
+        job.packageVersion,
+        new PanaReport(
+          reportStatus: reportStatus,
+          healthScore: summary?.health?.healthScore ?? 0.0,
+          maintenanceScore:
+              summary == null ? 0.0 : getMaintenanceScore(summary.maintenance),
+          platformTags: indexDartPlatform(summary?.platform),
+          platformReason: summary?.platform?.reason,
+          pkgDependencies: summary?.pkgResolution?.dependencies,
+          suggestions: getAllSuggestions(summary),
+        ));
+    await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
   }
 }

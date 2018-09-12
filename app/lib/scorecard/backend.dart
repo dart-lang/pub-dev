@@ -142,8 +142,8 @@ class ScoreCardBackend {
   Future updateScoreCard(String packageName, String packageVersion) async {
     final key = scoreCardKey(packageName, packageVersion);
     final pAndPv = await _db.lookup([key.parent, key.parent.parent]);
-    final package = pAndPv[0] as Package;
-    final version = pAndPv[1] as PackageVersion;
+    final version = pAndPv[0] as PackageVersion;
+    final package = pAndPv[1] as Package;
     if (package == null || version == null) {
       throw new Exception('Unable to lookup $packageName $packageVersion.');
     }
@@ -168,7 +168,7 @@ class ScoreCardBackend {
         scoreCard.updated = new DateTime.now().toUtc();
       }
 
-      scoreCard.flags = null;
+      scoreCard.flags.clear();
       if (package.isDiscontinued ?? false) {
         scoreCard.addFlag(PackageFlags.isDiscontinued);
       }
