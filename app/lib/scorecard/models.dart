@@ -88,6 +88,7 @@ class ScoreCard extends db.ExpandoModel {
   List<String> flags = <String>[];
 
   /// The report types that are already done for the ScoreCard.
+  /// Contains values from [ReportType].
   @CompatibleStringListProperty()
   List<String> reportTypes = <String>[];
 
