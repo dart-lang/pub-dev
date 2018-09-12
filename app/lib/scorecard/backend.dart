@@ -190,4 +190,39 @@ class ScoreCardBackend {
     scoreCardMemcache.invalidate(
         packageName, packageVersion, versions.runtimeVersion);
   }
+
+  /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
+  Future deleteOldEntries() async {
+    final deletes = <db.Key>[];
+
+    // deleting reports
+    final reportQuery = _db.query<ScoreCardReport>()
+      ..filter('< runtimeVersion', versions.gcBeforeRuntimeVersion);
+    await for (ScoreCardReport report in reportQuery.run()) {
+      deletes.add(report.key);
+      if (deletes.length == 20) {
+        await _db.commit(deletes: deletes);
+        deletes.clear();
+      }
+    }
+    if (deletes.isNotEmpty) {
+      await _db.commit(deletes: deletes);
+      deletes.clear();
+    }
+
+    // deleting scorecards
+    final cardQuery = _db.query<ScoreCard>()
+      ..filter('< runtimeVersion', versions.gcBeforeRuntimeVersion);
+    await for (ScoreCard report in cardQuery.run()) {
+      deletes.add(report.key);
+      if (deletes.length == 20) {
+        await _db.commit(deletes: deletes);
+        deletes.clear();
+      }
+    }
+    if (deletes.isNotEmpty) {
+      await _db.commit(deletes: deletes);
+      deletes.clear();
+    }
+  }
 }

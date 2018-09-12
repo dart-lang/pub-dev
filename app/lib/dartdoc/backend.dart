@@ -86,6 +86,23 @@ class DartdocBackend {
     return new PubDartdocData.fromJson(map);
   }
 
+  /// Deletes the old entries that predate [shared_versions.gcBeforeRuntimeVersion].
+  Future deleteOldSdkData() async {
+    final prefix = storage_path.dartSdkDartdocPrefix();
+    await for (BucketEntry entry in _storage.list(prefix: '$prefix/')) {
+      if (entry.isDirectory) {
+        continue;
+      }
+      final name = p.basename(entry.name);
+      final version = name.replaceAll('.json.gz', '');
+      if (version.length == 10 &&
+          version.compareTo('2018.00.00') > 0 &&
+          version.compareTo(shared_versions.gcBeforeRuntimeVersion) < 0) {
+        await _storage.delete(entry.name);
+      }
+    }
+  }
+
   /// Returns the latest stable version of a package.
   Future<String> getLatestVersion(String package) async {
     final list = await _db.lookup([_db.emptyKey.append(Package, id: package)]);

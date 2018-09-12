@@ -56,7 +56,13 @@ String sdkObjectName(String relativePath) {
   return p.join(_sdkAssetPrefix, relativePath);
 }
 
+/// The parent prefix for the Dart SDK's extracted dartdoc content.
+String dartSdkDartdocPrefix() {
+  return sdkObjectName('dart/pub-dartdoc-data');
+}
+
 /// The ObjectName for the Dart SDK's extracted dartdoc content.
 String dartSdkDartdocDataName(String runtimeVersion) {
-  return sdkObjectName('dart/pub-dartdoc-data/$runtimeVersion.json.gz');
+  final prefix = dartSdkDartdocPrefix();
+  return p.join(prefix, '$runtimeVersion.json.gz');
 }

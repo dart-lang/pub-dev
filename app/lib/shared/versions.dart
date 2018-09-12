@@ -10,6 +10,16 @@ import 'utils.dart' show isNewer;
 final String runtimeVersion = '2018.09.11';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
+/// The version which marks the earliest version of the data which we'd like to
+/// keep during various GC processes. Data prior to this version is subject to
+/// delete (unless there is another rule in place to keep it).
+///
+/// Make sure that at least two versions are kept here as the next candidates
+/// when the version switch happens:
+/// - 2018.09.11
+/// - 2018.09.03
+final String gcBeforeRuntimeVersion = '2018.08.27';
+
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.1.0-dev.2.0';
 final String toolEnvSdkVersion = '2.0.0';
