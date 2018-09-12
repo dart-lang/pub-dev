@@ -19,6 +19,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/model.dart';
+import 'package:pub_dartlang_org/scorecard/models.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -143,6 +144,12 @@ Future removePackage(String packageName) async {
 
   await _deleteWithQuery(
       dbService.query<History>()..filter('packageName =', packageName));
+
+  await _deleteWithQuery(
+      dbService.query<ScoreCardReport>()..filter('packageName =', packageName));
+
+  await _deleteWithQuery(
+      dbService.query<ScoreCard>()..filter('packageName =', packageName));
 
   print('Package "$packageName" got successfully removed.');
   print('WARNING: Please remember to clear the AppEngine memcache!');
