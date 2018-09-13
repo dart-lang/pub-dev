@@ -124,6 +124,7 @@ class StaticUrls {
   Map<String, String> get assets {
     return _assets ??= {
       'script_dart_js': _getCacheableStaticUrl('/js/script.dart.js'),
+      'github_markdown_css': _getCacheableStaticUrl('/css/github-markdown.css'),
       'style_css': _getCacheableStaticUrl('/css/style.css'),
     };
   }
