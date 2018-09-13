@@ -22,6 +22,8 @@ export 'models.dart';
 
 final _logger = new Logger('pub.scorecard.backend');
 
+final Duration _deleteThreshold = const Duration(days: 182);
+
 /// Sets the active scorecard backend.
 void registerScoreCardBackend(ScoreCardBackend backend) =>
     ss.register(#_scorecard_backend, backend);
@@ -194,11 +196,16 @@ class ScoreCardBackend {
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
   Future deleteOldEntries() async {
     final deletes = <db.Key>[];
+    final now = new DateTime.now();
 
     // deleting reports
     final reportQuery = _db.query<ScoreCardReport>()
       ..filter('< runtimeVersion', versions.gcBeforeRuntimeVersion);
     await for (ScoreCardReport report in reportQuery.run()) {
+      final age = now.difference(report.updated);
+      if (age <= _deleteThreshold) {
+        continue;
+      }
       deletes.add(report.key);
       if (deletes.length == 20) {
         await _db.commit(deletes: deletes);
@@ -214,6 +221,10 @@ class ScoreCardBackend {
     final cardQuery = _db.query<ScoreCard>()
       ..filter('< runtimeVersion', versions.gcBeforeRuntimeVersion);
     await for (ScoreCard report in cardQuery.run()) {
+      final age = now.difference(report.updated);
+      if (age <= _deleteThreshold) {
+        continue;
+      }
       deletes.add(report.key);
       if (deletes.length == 20) {
         await _db.commit(deletes: deletes);

@@ -29,6 +29,7 @@ final Logger _logger = new Logger('pub.dartdoc.backend');
 final _gzip = new GZipCodec();
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
+final Duration _sdkDeleteThreshold = const Duration(days: 182);
 final int _concurrentUploads = 8;
 final int _concurrentDeletes = 8;
 
@@ -99,7 +100,11 @@ class DartdocBackend {
           shared_versions.runtimeVersionPattern.hasMatch(version);
       if (matchesPattern &&
           version.compareTo(shared_versions.gcBeforeRuntimeVersion) < 0) {
-        await _storage.delete(entry.name);
+        final info = await _storage.info(entry.name);
+        final age = new DateTime.now().difference(info.updated);
+        if (age > _sdkDeleteThreshold) {
+          await _storage.delete(entry.name);
+        }
       }
     }
   }
