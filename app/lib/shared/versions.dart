@@ -6,6 +6,9 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'utils.dart' show isNewer;
 
+/// The pattern of [runtimeVersion].
+final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
+
 // update this whenever one of the other versions change
 final String runtimeVersion = '2018.09.11';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);

@@ -95,8 +95,9 @@ class DartdocBackend {
       }
       final name = p.basename(entry.name);
       final version = name.replaceAll('.json.gz', '');
-      if (version.length == 10 &&
-          version.compareTo('2018.00.00') > 0 &&
+      final matchesPattern = version.length == 10 &&
+          shared_versions.runtimeVersionPattern.hasMatch(version);
+      if (matchesPattern &&
           version.compareTo(shared_versions.gcBeforeRuntimeVersion) < 0) {
         await _storage.delete(entry.name);
       }
