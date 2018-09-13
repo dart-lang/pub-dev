@@ -36,10 +36,10 @@
         {{&content}}
       </section>
     {{/tabs}}
-    <section class="content {{#has_no_file_tab}}-active{{/has_no_file_tab}} js-content markdown-body" data-name="-installing-tab-">
+    <section class="content {{#has_no_file_tab}}-active{{/has_no_file_tab}} js-content" data-name="-installing-tab-">
 {{& install_tab_html}}
     </section>
-    <section class="content js-content markdown-body" data-name="-versions-tab-">
+    <section class="content js-content" data-name="-versions-tab-">
       <table class="version-table" data-package="{{package.name}}">
         <thead>
         <tr>
@@ -59,7 +59,7 @@
         </p>
       {{/show_versions_link}}
     </section>
-    <section class="content js-content markdown-body" data-name="-analysis-tab-">
+    <section class="content js-content" data-name="-analysis-tab-">
       {{^package.analysis_html}}
         <i>Awaiting analysis to complete.</i>
       {{/package.analysis_html}}

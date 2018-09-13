@@ -12,6 +12,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 
 const mockStaticFiles = const <String>[
   'js/script.dart.js',
+  'css/github-markdown.css',
   'css/style.css',
 ];
 
