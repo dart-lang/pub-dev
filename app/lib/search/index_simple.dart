@@ -614,7 +614,7 @@ class TokenIndex {
   int get documentCount => _docSizes.length;
 
   void add(String id, String text) {
-    final tokens = _tokenize(text);
+    final tokens = tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       if (_textHashes.containsKey(id)) {
         remove(id);
@@ -651,7 +651,7 @@ class TokenIndex {
   /// Match the text against the corpus and return the tokens that have match.
   TokenMatch lookupTokens(String text) {
     final TokenMatch tokenMatch = new TokenMatch();
-    final tokens = _tokenize(text);
+    final tokens = tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       return tokenMatch;
     }
@@ -733,44 +733,6 @@ class TokenIndex {
 
 const int _minNgram = 1;
 const int _maxNgram = 6;
-const int _maxWordLength = 80;
-
-Map<String, double> _tokenize(String originalText) {
-  if (originalText == null || originalText.isEmpty) return null;
-  final tokens = <String, double>{};
-
-  for (String word in splitForIndexing(originalText)) {
-    if (word.length > _maxWordLength) word = word.substring(0, _maxWordLength);
-
-    final String normalizedWord = normalizeBeforeIndexing(word);
-    if (normalizedWord.isEmpty) continue;
-
-    tokens[normalizedWord] = 1.0;
-
-    // Scan for CamelCase phrases and extract Camel and Case separately.
-    final changeIndex = <int>[0];
-    bool prevLower = _isLower(word[0]);
-    for (int i = 1; i < word.length; i++) {
-      final bool lower = _isLower(word[i]);
-      if (!lower && prevLower) {
-        changeIndex.add(i);
-      }
-      prevLower = lower;
-    }
-    changeIndex.add(word.length);
-    for (int i = 1; i < changeIndex.length; i++) {
-      final token = normalizeBeforeIndexing(
-          word.substring(changeIndex[i - 1], changeIndex[i]));
-      final double weight = token.length / word.length;
-      if ((tokens[token] ?? 0.0) < weight) {
-        tokens[token] = weight;
-      }
-    }
-  }
-  return tokens;
-}
-
-bool _isLower(String c) => c.toLowerCase() == c;
 
 Set<String> _ngrams(String text, int minLength) {
   final ngrams = new Set<String>();
