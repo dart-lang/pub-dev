@@ -60,11 +60,14 @@ Future<SearchResultPage> _loadResultForPackages(
         (await batchResults[1]).cast<PackageVersion>();
 
     for (int i = 0; i < versions.length; i++) {
+      final package = packageEntries[i];
+      final apiPages =
+          packageScores.firstWhere((ps) => ps.package == package.name).apiPages;
       final pv = new PackageView.fromModel(
-        package: packageEntries[i],
+        package: package,
         version: versions[i],
         analysis: analysisExtracts[i],
-        apiPages: packageScores[i].apiPages,
+        apiPages: apiPages,
       );
       pubPackages[pv.name] = pv;
     }
