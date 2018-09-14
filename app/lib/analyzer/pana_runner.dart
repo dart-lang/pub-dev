@@ -174,6 +174,14 @@ class AnalyzerJobProcessor extends JobProcessor {
     if (!isVersionFailed) {
       return false;
     }
+    // Version resolution failure does not automatically indicate that a package
+    // is not compatible with the latest Dart SDK. However, if the description has
+    // patterns like "requires SDK version 1.8.0" or "requires SDK version <0.9.0",
+    // then we can classify them as legacy packages. E.g. a typical pattern was:
+    //
+    // ERR: The current Dart SDK version is 2.0.0.
+    // Because [A] >=0.2.3 <0.4.0 depends on [B] >=0.2.1 which requires SDK version <2.0.0, [A] >=0.2.3 <0.4.0 is forbidden.
+    // So, because [C] depends on [A] ^0.2.3, version solving failed.
     return s.description.contains('requires SDK version 0.') ||
         s.description.contains('requires SDK version <0.') ||
         s.description.contains('requires SDK version 1.') ||
