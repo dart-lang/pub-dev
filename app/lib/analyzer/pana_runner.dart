@@ -137,16 +137,26 @@ class AnalyzerJobProcessor extends JobProcessor {
       summary = applyPlatformOverride(summary);
       scoreCardSummary = summary;
       summary = await _expandSummary(summary, packageStatus.age);
+      final isLegacy = summary.suggestions?.any((s) =>
+              s.isError &&
+              s.code == SuggestionCode.pubspecDependenciesFailedToResolve &&
+              s.description != null &&
+              s.description.contains('requires SDK version <2.0.0') &&
+              s.description.contains('version solving failed')) ??
+          false;
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
-      if (!lastRunWithErrors) {
+      if (isLegacy) {
+        analysis.analysisStatus = AnalysisStatus.legacy;
+        analysis.maintenanceScore = 0.0;
+      } else if (!lastRunWithErrors) {
         analysis.analysisStatus = AnalysisStatus.success;
         status = JobStatus.success;
       } else {
         analysis.analysisStatus = AnalysisStatus.failure;
       }
       analysis.analysisJson = summary.toJson();
-      analysis.maintenanceScore =
+      analysis.maintenanceScore ??=
           getMaintenanceScore(summary.maintenance) / 100.0;
     }
 
