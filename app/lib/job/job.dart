@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:gcloud/db.dart' as db;
+import 'package:gcloud/datastore.dart'
+    show TimeoutError, TransactionAbortedError;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
@@ -48,13 +50,16 @@ abstract class JobProcessor {
           _logger.info('$_serviceAsString job started: $jobDescription');
           sleepSeconds = 0;
 
-          JobStatus status;
+          JobStatus status = JobStatus.failed;
           try {
             status = await process(job);
-            status ??= JobStatus.success;
+            status = JobStatus.success;
             _logger.info('$_serviceAsString job completed: $jobDescription');
+          } on TransactionAbortedError catch (e, st) {
+            _logger.info('$_serviceAsString job error $jobDescription', e, st);
+          } on TimeoutError catch (e, st) {
+            _logger.info('$_serviceAsString job error $jobDescription', e, st);
           } catch (e, st) {
-            status = JobStatus.failed;
             _logger.severe(
                 '$_serviceAsString job error $jobDescription', e, st);
           }
