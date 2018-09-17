@@ -10,7 +10,7 @@ import 'utils.dart' show isNewer;
 final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
 
 // update this whenever one of the other versions change
-final String runtimeVersion = '2018.09.11';
+final String runtimeVersion = '2018.09.17';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
 /// The version which marks the earliest version of the data which we'd like to
@@ -19,6 +19,7 @@ final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens:
+/// - 2018.09.17
 /// - 2018.09.11
 /// - 2018.09.03
 final String gcBeforeRuntimeVersion = '2018.08.27';
@@ -28,10 +29,10 @@ final String runtimeSdkVersion = '2.1.0-dev.2.0';
 final String toolEnvSdkVersion = '2.0.0';
 
 // keep in-sync with app/pubspec.yaml
-final String panaVersion = '0.12.2';
+final String panaVersion = '0.12.3';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
-final String flutterVersion = '0.8.2';
+final String flutterVersion = '0.8.4';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 final String dartdocVersion = '0.20.4';
