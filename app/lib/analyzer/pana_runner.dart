@@ -135,8 +135,9 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.aborted;
     } else {
       summary = applyPlatformOverride(summary);
-      scoreCardSummary = summary;
-      summary = await _expandSummary(summary, packageStatus.age);
+      scoreCardSummary =
+          await _expandSummary(summary, packageStatus.age, false);
+      summary = await _expandSummary(summary, packageStatus.age, true);
       final isLegacy = summary.suggestions?.any(_isLegacy) ?? false;
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
@@ -189,7 +190,8 @@ class AnalyzerJobProcessor extends JobProcessor {
         s.description.contains('requires SDK version <2.0.0');
   }
 
-  Future<Summary> _expandSummary(Summary summary, Duration age) async {
+  Future<Summary> _expandSummary(
+      Summary summary, Duration age, bool fetchDartdocData) async {
     if (summary.maintenance != null) {
       final suggestions =
           new List<Suggestion>.from(summary.maintenance.suggestions ?? []);
@@ -200,14 +202,16 @@ class AnalyzerJobProcessor extends JobProcessor {
         suggestions.add(ageSuggestion);
       }
 
-      // dartdoc status
-      final dartdocEntry = await dartdocClient.getEntry(
-          summary.packageName, summary.packageVersion.toString());
       bool dartdocSuccessful;
-      if (dartdocEntry != null) {
-        dartdocSuccessful = dartdocEntry.hasContent;
-        if (!dartdocSuccessful) {
-          suggestions.add(getDartdocRunFailedSuggestion());
+      if (fetchDartdocData) {
+        // dartdoc status
+        final dartdocEntry = await dartdocClient.getEntry(
+            summary.packageName, summary.packageVersion.toString());
+        if (dartdocEntry != null) {
+          dartdocSuccessful = dartdocEntry.hasContent;
+          if (!dartdocSuccessful) {
+            suggestions.add(getDartdocRunFailedSuggestion());
+          }
         }
       }
 
