@@ -11,6 +11,14 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 
 void main() {
+  test('runtime pattern', () {
+    expect(runtimeVersionPattern.hasMatch(runtimeVersion), isTrue);
+    expect(runtimeVersionPattern.hasMatch('2018.09.13'), isTrue);
+    expect(runtimeVersionPattern.hasMatch('2018 09 13'), isFalse);
+    expect(runtimeVersionPattern.hasMatch('2018'), isFalse);
+    expect(runtimeVersionPattern.hasMatch('x.json'), isFalse);
+  });
+
   test('do not forget to update runtimeVersion when any version changes', () {
     final hash = [
       runtimeVersion,

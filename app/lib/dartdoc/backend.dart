@@ -29,6 +29,7 @@ final Logger _logger = new Logger('pub.dartdoc.backend');
 final _gzip = new GZipCodec();
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
+final Duration _sdkDeleteThreshold = const Duration(days: 182);
 final int _concurrentUploads = 8;
 final int _concurrentDeletes = 8;
 
@@ -84,6 +85,28 @@ class DartdocBackend {
         .transform(json.decoder)
         .single;
     return new PubDartdocData.fromJson(map);
+  }
+
+  /// Deletes the old entries that predate [shared_versions.gcBeforeRuntimeVersion].
+  Future deleteOldSdkData() async {
+    final prefix = storage_path.dartSdkDartdocPrefix();
+    await for (BucketEntry entry in _storage.list(prefix: '$prefix/')) {
+      if (entry.isDirectory) {
+        continue;
+      }
+      final name = p.basename(entry.name);
+      final version = name.replaceAll('.json.gz', '');
+      final matchesPattern = version.length == 10 &&
+          shared_versions.runtimeVersionPattern.hasMatch(version);
+      if (matchesPattern &&
+          version.compareTo(shared_versions.gcBeforeRuntimeVersion) < 0) {
+        final info = await _storage.info(entry.name);
+        final age = new DateTime.now().difference(info.updated);
+        if (age > _sdkDeleteThreshold) {
+          await _storage.delete(entry.name);
+        }
+      }
+    }
   }
 
   /// Returns the latest stable version of a package.

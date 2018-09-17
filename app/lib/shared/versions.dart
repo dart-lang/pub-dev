@@ -6,9 +6,22 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'utils.dart' show isNewer;
 
+/// The pattern of [runtimeVersion].
+final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
+
 // update this whenever one of the other versions change
 final String runtimeVersion = '2018.09.11';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
+
+/// The version which marks the earliest version of the data which we'd like to
+/// keep during various GC processes. Data prior to this version is subject to
+/// delete (unless there is another rule in place to keep it).
+///
+/// Make sure that at least two versions are kept here as the next candidates
+/// when the version switch happens:
+/// - 2018.09.11
+/// - 2018.09.03
+final String gcBeforeRuntimeVersion = '2018.08.27';
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.1.0-dev.2.0';

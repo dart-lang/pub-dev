@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:math' as math;
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
@@ -29,6 +30,7 @@ import 'package:pub_dartlang_org/analyzer/handlers.dart';
 import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
 
 final Logger logger = new Logger('pub.analyzer');
+final _random = new math.Random.secure();
 
 Future main() async {
   Future workerSetup() async {
@@ -70,6 +72,11 @@ Future _workerMain(WorkerEntryMessage message) async {
 
     new Timer.periodic(const Duration(minutes: 15), (_) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
+    });
+
+    // Run ScoreCard GC in the next 6 hours (randomized wait to reduce race).
+    new Timer(new Duration(minutes: _random.nextInt(360)), () {
+      scoreCardBackend.deleteOldEntries();
     });
 
     await jobMaintenance.run();

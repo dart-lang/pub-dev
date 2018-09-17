@@ -212,4 +212,9 @@ class DartdocBackendMock implements DartdocBackend {
   Future uploadDartSdkDartdocData(File file) {
     throw new UnimplementedError();
   }
+
+  @override
+  Future deleteOldSdkData() {
+    throw new UnimplementedError();
+  }
 }
