@@ -62,3 +62,42 @@ Iterable<String> splitForIndexing(String text) {
 
 List<String> extractExactPhrases(String text) =>
     _exactTermRegExp.allMatches(text).map((m) => m.group(1)).toList();
+
+const int _maxWordLength = 80;
+
+Map<String, double> tokenize(String originalText) {
+  if (originalText == null || originalText.isEmpty) return null;
+  final tokens = <String, double>{};
+
+  for (String word in splitForIndexing(originalText)) {
+    if (word.length > _maxWordLength) word = word.substring(0, _maxWordLength);
+
+    final String normalizedWord = normalizeBeforeIndexing(word);
+    if (normalizedWord.isEmpty) continue;
+
+    tokens[normalizedWord] = 1.0;
+
+    // Scan for CamelCase phrases and extract Camel and Case separately.
+    final changeIndex = <int>[0];
+    bool prevLower = _isLower(word[0]);
+    for (int i = 1; i < word.length; i++) {
+      final bool lower = _isLower(word[i]);
+      if (!lower && prevLower) {
+        changeIndex.add(i);
+      }
+      prevLower = lower;
+    }
+    changeIndex.add(word.length);
+    for (int i = 1; i < changeIndex.length; i++) {
+      final token = normalizeBeforeIndexing(
+          word.substring(changeIndex[i - 1], changeIndex[i]));
+      final double weight = token.length / word.length;
+      if ((tokens[token] ?? 0.0) < weight) {
+        tokens[token] = weight;
+      }
+    }
+  }
+  return tokens;
+}
+
+bool _isLower(String c) => c.toLowerCase() == c;

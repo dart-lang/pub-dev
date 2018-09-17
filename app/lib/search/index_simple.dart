@@ -622,7 +622,7 @@ class TokenIndex {
   int get documentCount => _docSizes.length;
 
   void add(String id, String text) {
-    final Set<String> tokens = _tokenize(text);
+    final tokens = tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       if (_textHashes.containsKey(id)) {
         remove(id);
@@ -633,7 +633,7 @@ class TokenIndex {
     if (_textHashes.containsKey(id) && _textHashes[id] != textHash) {
       remove(id);
     }
-    for (String token in tokens) {
+    for (String token in tokens.keys) {
       final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
       set.add(id);
       _inverseNgrams.putIfAbsent(token, () => _ngrams(token, _minLength));
@@ -659,13 +659,13 @@ class TokenIndex {
   /// Match the text against the corpus and return the tokens that have match.
   TokenMatch lookupTokens(String text) {
     final TokenMatch tokenMatch = new TokenMatch();
-    final Set<String> tokens = _tokenize(text);
+    final tokens = tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       return tokenMatch;
     }
 
     // Check which tokens have documents, and assign their weight.
-    for (String token in tokens) {
+    for (String token in tokens.keys) {
       final tokenNgrams = _ngrams(token, _minLength);
       for (String candidate in _inverseIds.keys) {
         double candidateWeight = 0.0;
@@ -675,6 +675,7 @@ class TokenIndex {
           final candidateNgrams = _inverseNgrams[candidate];
           candidateWeight = _ngramSimilarity(tokenNgrams, candidateNgrams);
         }
+        candidateWeight *= tokens[token];
         if (candidateWeight > 0.3) {
           final int foundCount = _inverseIds[candidate]?.length ?? 0;
           if (foundCount <= 0) continue;
@@ -740,40 +741,6 @@ class TokenIndex {
 
 const int _minNgram = 1;
 const int _maxNgram = 6;
-const int _maxWordLength = 80;
-
-Set<String> _tokenize(String originalText) {
-  if (originalText == null || originalText.isEmpty) return null;
-  final Set<String> tokens = new Set();
-
-  for (String word in splitForIndexing(originalText)) {
-    if (word.length > _maxWordLength) word = word.substring(0, _maxWordLength);
-
-    final String normalizedWord = normalizeBeforeIndexing(word);
-    if (normalizedWord.isEmpty) continue;
-
-    tokens.add(normalizedWord);
-
-    // Scan for CamelCase phrases and extract Camel and Case separately.
-    final changeIndex = <int>[0];
-    bool prevLower = _isLower(word[0]);
-    for (int i = 1; i < word.length; i++) {
-      final bool lower = _isLower(word[i]);
-      if (!lower && prevLower) {
-        changeIndex.add(i);
-      }
-      prevLower = lower;
-    }
-    changeIndex.add(word.length);
-    for (int i = 1; i < changeIndex.length; i++) {
-      tokens.add(normalizeBeforeIndexing(
-          word.substring(changeIndex[i - 1], changeIndex[i])));
-    }
-  }
-  return tokens;
-}
-
-bool _isLower(String c) => c.toLowerCase() == c;
 
 Set<String> _ngrams(String text, int minLength) {
   final ngrams = new Set<String>();

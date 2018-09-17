@@ -54,4 +54,38 @@ void main() {
           'some link with text');
     });
   });
+
+  group('tokenize', () {
+    test('simple text', () {
+      expect(tokenize('The quick brown fox jumps over the lazy dog.'), {
+        'the': 1.0,
+        'quick': 1.0,
+        'brown': 1.0,
+        'fox': 1.0,
+        'jumps': 1.0,
+        'over': 1.0,
+        'lazy': 1.0,
+        'dog': 1.0,
+      });
+    });
+
+    test('Cased words', () {
+      expect(tokenize('CamelCase snake_case firstLowerCase'), {
+        'camelcase': 1.0,
+        'camel': 0.5555555555555556,
+        'case': 1.0, // firstLowerCase should not set a lower value
+        'snake': 1.0,
+        'firstlowercase': 1.0,
+        'first': 0.35714285714285715,
+        'lower': 0.35714285714285715,
+      });
+
+      expect(tokenize('firstLowerCase'), {
+        'firstlowercase': 1.0,
+        'first': 0.35714285714285715,
+        'lower': 0.35714285714285715,
+        'case': 0.2857142857142857,
+      });
+    });
+  });
 }
