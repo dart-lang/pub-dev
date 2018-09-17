@@ -284,5 +284,11 @@ Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
               'For information about upgrading it to be Dart 2 compatible, please see '
               '[https://www.dartlang.org/dart-2#migration](https://www.dartlang.org/dart-2#migration).',
         ),
-      ]);
+      ],
+      stats: new Stats(
+        analyzeProcessElapsed: 0,
+        formatProcessElapsed: 0,
+        resolveProcessElapsed: 0,
+        totalElapsed: 0,
+      ));
 }
