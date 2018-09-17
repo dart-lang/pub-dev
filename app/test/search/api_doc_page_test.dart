@@ -64,7 +64,7 @@ void main() {
           },
           {
             'package': 'other_with_api',
-            'score': closeTo(0.794, 0.001), // finds foo method
+            'score': closeTo(0.943, 0.001), // finds foo method
             'apiPages': [
               {'title': null, 'path': 'main.html'},
             ],
@@ -83,7 +83,7 @@ void main() {
         'packages': [
           {
             'package': 'other_with_api',
-            'score': closeTo(0.787, 0.001), // find serveWebPages
+            'score': closeTo(0.935, 0.001), // find serveWebPages
             'apiPages': [
               {'title': null, 'path': 'serve.html'},
             ],
@@ -103,7 +103,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.624, 0.001), // find WebPageGenerator
+            'score': closeTo(0.885, 0.001), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],
@@ -122,14 +122,14 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.744, 0.001), // find WebPageGenerator
+            'score': closeTo(0.887, 0.001), // find WebPageGenerator
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],
           },
           {
             'package': 'other_with_api',
-            'score': closeTo(0.192, 0.001), // find serveWebPages
+            'score': closeTo(0.355, 0.001), // find serveWebPages
             'apiPages': [
               {'title': null, 'path': 'serve.html'},
             ],
@@ -148,7 +148,7 @@ void main() {
         'packages': [
           {
             'package': 'foo',
-            'score': closeTo(0.624, 0.001),
+            'score': closeTo(0.795, 0.001),
             'apiPages': [
               {'title': null, 'path': 'generator.html'},
             ],

@@ -40,7 +40,8 @@ class SimplePackageIndex implements PackageIndex {
   final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
   final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
   final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
-  final TokenIndex _apiDocIndex = new TokenIndex(minLength: 3);
+  final TokenIndex _apiSymbolIndex = new TokenIndex(minLength: 2);
+  final TokenIndex _apiDartdocIndex = new TokenIndex(minLength: 3);
   final StringInternPool _internPool = new StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
@@ -100,11 +101,13 @@ class SimplePackageIndex implements PackageIndex {
     _descrIndex.add(doc.package, doc.description);
     _readmeIndex.add(doc.package, doc.readme);
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
-      final text = [page.symbols, page.textBlocks]
-          .where((list) => list != null && list.isNotEmpty)
-          .expand((list) => list)
-          .join(' ');
-      _apiDocIndex.add(_apiDocPageId(doc.package, page), text);
+      final pageId = _apiDocPageId(doc.package, page);
+      if (page.symbols != null && page.symbols.isNotEmpty) {
+        _apiSymbolIndex.add(pageId, page.symbols.join(' '));
+      }
+      if (page.textBlocks != null && page.textBlocks.isNotEmpty) {
+        _apiDartdocIndex.add(pageId, page.textBlocks.join(' '));
+      }
     }
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
@@ -128,7 +131,9 @@ class SimplePackageIndex implements PackageIndex {
     _readmeIndex.remove(package);
     _normalizedPackageText.remove(package);
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
-      _apiDocIndex.remove(_apiDocPageId(package, page));
+      final pageId = _apiDocPageId(doc.package, page);
+      _apiSymbolIndex.remove(pageId);
+      _apiDartdocIndex.remove(pageId);
     }
   }
 
@@ -368,8 +373,6 @@ class SimplePackageIndex implements PackageIndex {
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
-        final apiDocTokens =
-            isExperimental ? _apiDocIndex.lookupTokens(word) : new TokenMatch();
 
         final name = new Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
@@ -380,8 +383,13 @@ class SimplePackageIndex implements PackageIndex {
 
         Score apiScore;
         if (isExperimental) {
-          final apiPages = new Score(_apiDocIndex.scoreDocs(apiDocTokens,
-              weight: 0.80, wordCount: wordCount));
+          final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
+          final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
+          final symbolPages = new Score(_apiSymbolIndex
+              .scoreDocs(apiSymbolTokens, weight: 0.95, wordCount: wordCount));
+          final dartdocPages = new Score(_apiDartdocIndex
+              .scoreDocs(apiDartdocTokens, weight: 0.90, wordCount: wordCount));
+          final apiPages = Score.max([symbolPages, dartdocPages]);
           apiPagesScores.add(apiPages);
 
           final apiPackages = <String, double>{};
