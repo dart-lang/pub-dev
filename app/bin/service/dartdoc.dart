@@ -80,8 +80,12 @@ Future _workerMain(WorkerEntryMessage message) async {
     });
 
     // Run GC in the next 6 hours (randomized wait to reduce race).
-    new Timer(new Duration(minutes: _random.nextInt(360)), () {
-      dartdocBackend.deleteOldSdkData();
+    new Timer(new Duration(minutes: _random.nextInt(360)), () async {
+      try {
+        await dartdocBackend.deleteOldSdkData();
+      } catch (e, st) {
+        logger.warning('Error while deleting old SDK data.', e, st);
+      }
     });
 
     await jobMaintenance.run();
