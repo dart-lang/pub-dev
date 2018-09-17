@@ -220,6 +220,10 @@ void _setEventForHashChange() {
 }
 
 Future _scrollTo(Element elem) async {
+  // Chrome could provide inconsistent position data just after the page has
+  // been loaded. The first animation frame makes sure that the rendering is
+  // stabilized and the position data is correct.
+  await window.animationFrame;
   final int stepCount = 30;
   for (int i = 0; i < stepCount; i++) {
     await window.animationFrame;
