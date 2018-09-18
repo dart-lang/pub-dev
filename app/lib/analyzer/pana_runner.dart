@@ -230,6 +230,8 @@ class AnalyzerJobProcessor extends JobProcessor {
         job.packageName,
         job.packageVersion,
         new PanaReport(
+          timestamp: new DateTime.now().toUtc(),
+          panaRuntimeInfo: summary?.runtimeInfo,
           reportStatus: reportStatus,
           healthScore: summary?.health?.healthScore ?? 0.0,
           maintenanceScore:
@@ -238,6 +240,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           platformReason: summary?.platform?.reason,
           pkgDependencies: summary?.pkgResolution?.dependencies,
           suggestions: getAllSuggestions(summary),
+          licenses: summary?.licenses,
         ));
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
   }

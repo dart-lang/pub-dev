@@ -8,7 +8,8 @@ import 'dart:io';
 import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:pana/models.dart' show Suggestion, PkgDependency;
+import 'package:pana/models.dart'
+    show LicenseFile, PanaRuntimeInfo, PkgDependency, Suggestion;
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/search/scoring.dart'
@@ -20,7 +21,13 @@ import '../shared/versions.dart' as versions;
 import 'helpers.dart';
 
 export 'package:pana/models.dart'
-    show Suggestion, SuggestionCode, SuggestionLevel;
+    show
+        LicenseFile,
+        PanaRuntimeInfo,
+        PkgDependency,
+        Suggestion,
+        SuggestionCode,
+        SuggestionLevel;
 
 part 'models.g.dart';
 
@@ -294,6 +301,10 @@ class PanaReport implements ReportData {
   @override
   String get reportType => ReportType.pana;
 
+  final DateTime timestamp;
+
+  final PanaRuntimeInfo panaRuntimeInfo;
+
   @override
   final String reportStatus;
 
@@ -312,13 +323,18 @@ class PanaReport implements ReportData {
 
   final List<Suggestion> suggestions;
 
+  List<LicenseFile> licenses;
+
   PanaReport({
+    @required this.timestamp,
+    @required this.panaRuntimeInfo,
     @required this.reportStatus,
     @required this.healthScore,
     @required this.maintenanceScore,
     @required this.platformTags,
     @required this.platformReason,
     @required this.pkgDependencies,
+    @required this.licenses,
     @required this.suggestions,
   });
 
