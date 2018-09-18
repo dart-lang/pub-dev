@@ -29,6 +29,9 @@ final _gzipCodec = new GZipCodec();
 abstract class PackageFlags {
   static const String doNotAdvertise = 'do-not-adverise';
   static const String isDiscontinued = 'discontinued';
+  static const String isLatestStable = 'latest-stable';
+  static const String isLegacy = 'legacy';
+  static const String isObsolete = 'obsolete';
 }
 
 abstract class ReportType {
