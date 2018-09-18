@@ -65,7 +65,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.discontinued;
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
-      await _storeScoreCard(job, packageStatus, null);
+      await _storeScoreCard(job, null);
       return JobStatus.skipped;
     }
 
@@ -75,7 +75,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisStatus = AnalysisStatus.outdated;
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
-      await _storeScoreCard(job, packageStatus, null);
+      await _storeScoreCard(job, null);
       return JobStatus.skipped;
     }
 
@@ -87,7 +87,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore = 0.0;
       await analysisBackend.storeAnalysis(analysis);
-      await _storeScoreCard(job, packageStatus, summary);
+      await _storeScoreCard(job, summary);
       return JobStatus.skipped;
     }
 
@@ -156,7 +156,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
-    await _storeScoreCard(job, packageStatus, scoreCardSummary);
+    await _storeScoreCard(job, scoreCardSummary);
 
     if (backendStatus.isLatestStable &&
         analysis.analysisStatus != AnalysisStatus.success &&
@@ -223,7 +223,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     return summary;
   }
 
-  Future _storeScoreCard(Job job, PackageStatus status, Summary summary) async {
+  Future _storeScoreCard(Job job, Summary summary) async {
     final reportStatus =
         summary == null ? ReportStatus.aborted : ReportStatus.success;
     await scoreCardBackend.updateReport(
