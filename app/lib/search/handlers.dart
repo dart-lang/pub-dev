@@ -59,15 +59,26 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   }
 
   PackageSearchResult result = pkgResult;
-  final includeSdkResults = query.offset == 0 &&
+  // No reason to display SDK packages if:
+  // - there is no text query
+  // - the query is about a filter (e.g. dependency or package-prefix)
+  final hasFreeTextComponent = query.offset == 0 &&
       query.hasQuery &&
       query.parsedQuery.text != null &&
       query.parsedQuery.text.isNotEmpty;
+  // No reason to display SDK packages if:
+  // - the order is based on analysis score (e.g. health)
+  // - the order is based on timestamp (e.g. created time)
+  final isNaturalOrder = query.order == null ||
+      query.order == SearchOrder.top ||
+      query.order == SearchOrder.text;
+  final includeSdkResults = hasFreeTextComponent && isNaturalOrder;
   if (includeSdkResults) {
     final dartSdkResult =
         await dartSdkIndex.search(query.change(order: SearchOrder.text));
-    final threshold =
-        pkgResult.packages.isEmpty ? 0.0 : pkgResult.packages.first.score / 2;
+    final threshold = pkgResult.packages.isEmpty
+        ? 0.0
+        : (pkgResult.packages.first.score ?? 0.0) / 2;
     final selected = dartSdkResult.packages
         .where((ps) => ps.score > threshold)
         .take(3)
