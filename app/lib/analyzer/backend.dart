@@ -359,23 +359,7 @@ class AnalysisBackend {
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
     final Package p = list[0];
     final PackageVersion pv = list[1];
-    if (p == null || pv == null) {
-      return new PackageStatus(exists: false);
-    }
-    final publishDate = pv.created;
-    final isLatestStable = p.latestVersion == version;
-    final now = new DateTime.now().toUtc();
-    final age = now.difference(publishDate).abs();
-    final isObsolete = age > twoYears && !isLatestStable;
-    return new PackageStatus(
-      exists: true,
-      publishDate: publishDate,
-      age: age,
-      isLatestStable: isLatestStable,
-      isDiscontinued: p.isDiscontinued ?? false,
-      isObsolete: isObsolete,
-      isLegacy: pv.pubspec.supportsOnlyLegacySdk,
-    );
+    return new PackageStatus.fromModels(p, pv);
   }
 }
 
@@ -397,6 +381,26 @@ class PackageStatus {
     this.isObsolete: false,
     this.isLegacy: false,
   });
+
+  factory PackageStatus.fromModels(Package p, PackageVersion pv) {
+    if (p == null || pv == null) {
+      return new PackageStatus(exists: false);
+    }
+    final publishDate = pv.created;
+    final isLatestStable = p.latestVersion == pv.version;
+    final now = new DateTime.now().toUtc();
+    final age = now.difference(publishDate).abs();
+    final isObsolete = age > twoYears && !isLatestStable;
+    return new PackageStatus(
+      exists: true,
+      publishDate: publishDate,
+      age: age,
+      isLatestStable: isLatestStable,
+      isDiscontinued: p.isDiscontinued ?? false,
+      isObsolete: isObsolete,
+      isLegacy: pv.pubspec.supportsOnlyLegacySdk,
+    );
+  }
 }
 
 class BackendAnalysisStatus {
