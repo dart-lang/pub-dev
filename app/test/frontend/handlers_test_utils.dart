@@ -16,6 +16,7 @@ import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/shared/analyzer_service.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
@@ -301,15 +302,11 @@ class AnalyzerClientMock implements AnalyzerClient {
   AnalysisExtract mockAnalysisExtract;
 
   @override
-  Future<AnalysisData> getAnalysisData(AnalysisKey key) async =>
-      mockAnalysisData;
-
-  @override
   Future close() async => null;
 
   @override
   Future<AnalysisView> getAnalysisView(AnalysisKey key) async =>
-      new AnalysisView(await getAnalysisData(key));
+      new AnalysisView(mockAnalysisData);
 
   @override
   Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) =>

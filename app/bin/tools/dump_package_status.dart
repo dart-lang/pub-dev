@@ -51,9 +51,8 @@ Future main(List<String> arguments) async {
         final PackageVersion pv = pvs[0];
         if (pv == null) return;
 
-        final analysisData = await analyzerClient
-            .getAnalysisData(new AnalysisKey(p.name, pv.version));
-        final analysisView = new AnalysisView(analysisData);
+        final analysisView = await analyzerClient
+            .getAnalysisView(new AnalysisKey(p.name, pv.version));
         final dependencies = new Set<String>();
 
         analysisView.directDependencies

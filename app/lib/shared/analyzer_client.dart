@@ -23,7 +23,7 @@ import 'utils.dart';
 import 'versions.dart';
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
-export 'analyzer_service.dart';
+export 'analyzer_service.dart' hide AnalysisData;
 
 /// Sets the analyzer client.
 void registerAnalyzerClient(AnalyzerClient client) =>
@@ -49,7 +49,7 @@ class AnalyzerClient {
   }
 
   Future<AnalysisView> getAnalysisView(AnalysisKey key) async {
-    return new AnalysisView(await getAnalysisData(key));
+    return new AnalysisView(await _getAnalysisData(key));
   }
 
   Future<List<AnalysisExtract>> getAnalysisExtracts(
@@ -122,7 +122,7 @@ class AnalyzerClient {
   }
 
   /// Gets the analysis data from the analyzer service via HTTP.
-  Future<AnalysisData> getAnalysisData(AnalysisKey key) async {
+  Future<AnalysisData> _getAnalysisData(AnalysisKey key) async {
     if (key == null) return null;
     final String cachedContent = await analyzerMemcache?.getContent(
         key.package, key.version, panaVersion);
