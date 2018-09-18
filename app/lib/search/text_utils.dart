@@ -70,7 +70,9 @@ Map<String, double> tokenize(String originalText) {
   final tokens = <String, double>{};
 
   for (String word in splitForIndexing(originalText)) {
-    if (word.length > _maxWordLength) word = word.substring(0, _maxWordLength);
+    if (word.length > _maxWordLength) {
+      continue;
+    }
 
     final String normalizedWord = normalizeBeforeIndexing(word);
     if (normalizedWord.isEmpty) continue;
