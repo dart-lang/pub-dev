@@ -13,11 +13,8 @@ import 'utils.dart';
 final Logger _logger = new Logger('pub.scheduler');
 
 /// Interface for task execution.
+// ignore: one_member_abstracts
 abstract class TaskRunner {
-  /// Whether the scheduler should skip the task, e.g. because it has been
-  /// completed recently.
-  Future<TaskTargetStatus> checkTargetStatus(Task task);
-
   /// Run the task.
   /// Returns whether a race was detected while the run completed.
   Future<bool> runTask(Task task);
@@ -54,15 +51,7 @@ class TaskScheduler {
     Future runTask(Task task) async {
       final Stopwatch sw = new Stopwatch()..start();
       try {
-        TaskTargetStatus status;
         if (redirectPackagePages.containsKey(task.package)) {
-          status = new TaskTargetStatus.skip('Package is redirected from pub.');
-        }
-        status ??= await taskRunner.checkTargetStatus(task);
-        if (status.shouldSkip) {
-          _logger.info('Skipping scheduled task: $task: ${status.reason}.');
-          _statusTracker.add('skip');
-          _allLatencyTracker.add(sw.elapsedMilliseconds);
           return;
         }
         final bool raceDetected = await taskRunner.runTask(task);
