@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:logging/logging.dart';
-import 'package:pool/pool.dart';
 
 import 'packages_overrides.dart';
 import 'utils.dart';
@@ -41,9 +41,12 @@ class TaskScheduler {
   final List<TaskSource> sources;
   final LastNTracker<String> _statusTracker = new LastNTracker();
   final LastNTracker<num> _latencyTracker = new LastNTracker();
-  int _pendingCount = 0;
+  List<Queue<Task>> _queues;
 
-  TaskScheduler(this.taskRunner, this.sources);
+  TaskScheduler(this.taskRunner, this.sources) {
+    _queues = new List<Queue<Task>>.generate(
+        sources.length, (i) => new Queue<Task>());
+  }
 
   Future run() async {
     Future runTask(Task task) async {
@@ -61,26 +64,46 @@ class TaskScheduler {
       _latencyTracker.add(sw.elapsedMilliseconds);
     }
 
-    final Pool pool = new Pool(1);
-    final futures = sources
-        .map((TaskSource ts) {
-          final stream = ts.startStreaming();
-          return stream.listen((task) {
-            _pendingCount++;
-            final f = pool.withResource(() => runTask(task));
-            f.whenComplete(() {
-              _pendingCount--;
-            });
-          });
-        })
-        .map((subscription) => subscription.asFuture())
-        .toList();
-    await Future.wait(futures);
+    int liveSubscriptions = sources.length;
+    for (int i = 0; i < sources.length; i++) {
+      sources[i].startStreaming().listen(
+        (task) {
+          _queues[i].add(task);
+        },
+        onDone: () {
+          liveSubscriptions--;
+        },
+      );
+    }
+
+    for (;;) {
+      final task = _pickFirstTask();
+
+      if (task == null) {
+        if (liveSubscriptions == 0) {
+          break;
+        } else {
+          await new Future.delayed(const Duration(seconds: 5));
+          continue;
+        }
+      }
+
+      await runTask(task);
+    }
+  }
+
+  Task _pickFirstTask() {
+    for (Queue<Task> queue in _queues) {
+      if (queue.isEmpty) continue;
+      return queue.removeFirst();
+    }
+    return null;
   }
 
   Map stats() {
+    final int pendingCount = _queues.fold<int>(0, (sum, q) => sum + q.length);
     final Map<String, dynamic> stats = <String, dynamic>{
-      'pending': _pendingCount,
+      'pending': pendingCount,
       'status': _statusTracker.toCounts(),
     };
     final double avgMillis = _latencyTracker.average;
@@ -88,7 +111,7 @@ class TaskScheduler {
       final double tph = 60 * 60 * 1000.0 / avgMillis;
       stats['taskPerHour'] = tph;
       final remaining =
-          new Duration(milliseconds: (_pendingCount * avgMillis).round());
+          new Duration(milliseconds: (pendingCount * avgMillis).round());
       stats['remaining'] = formatDuration(remaining);
     }
     return stats;
