@@ -16,8 +16,7 @@ final Logger _logger = new Logger('pub.scheduler');
 // ignore: one_member_abstracts
 abstract class TaskRunner {
   /// Run the task.
-  /// Returns whether a race was detected while the run completed.
-  Future<bool> runTask(Task task);
+  Future runTask(Task task);
 }
 
 // ignore: one_member_abstracts
@@ -54,8 +53,8 @@ class TaskScheduler {
         if (redirectPackagePages.containsKey(task.package)) {
           return;
         }
-        final bool raceDetected = await taskRunner.runTask(task);
-        _statusTracker.add(raceDetected ? 'race' : 'normal');
+        await taskRunner.runTask(task);
+        _statusTracker.add('normal');
       } catch (e, st) {
         _logger.severe('Error processing task: $task', e, st);
         _statusTracker.add('error');
