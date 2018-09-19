@@ -65,6 +65,10 @@ abstract class JobProcessor {
           }
           await jobBackend.complete(job, status);
         }
+      } on TransactionAbortedError catch (e, st) {
+        _logger.info('$_serviceAsString job error $jobDescription', e, st);
+      } on TimeoutError catch (e, st) {
+        _logger.info('$_serviceAsString job error $jobDescription', e, st);
       } catch (e, st) {
         _logger.severe('$_serviceAsString job error $jobDescription', e, st);
       }
