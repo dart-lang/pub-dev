@@ -39,13 +39,13 @@ void main() {
         ..add('queue_lower', queueText.toLowerCase())
         ..add('unmodifiable', 'CustomUnmodifiableMapBase');
       expect(index.search('queue'), {
-        'queue': closeTo(0.98, 0.01),
+        'queue': closeTo(0.29, 0.01),
       });
       expect(index.search('unmodifiab'), {
-        'unmodifiable': closeTo(0.98, 0.01),
+        'unmodifiable': closeTo(0.47, 0.01),
       });
       expect(index.search('unmodifiable'), {
-        'unmodifiable': closeTo(0.98, 0.01),
+        'unmodifiable': closeTo(0.47, 0.01),
       });
     });
 
