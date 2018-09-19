@@ -40,8 +40,7 @@ class TaskScheduler {
   final TaskRunner taskRunner;
   final List<TaskSource> sources;
   final LastNTracker<String> _statusTracker = new LastNTracker();
-  final LastNTracker<num> _allLatencyTracker = new LastNTracker();
-  final LastNTracker<num> _workLatencyTracker = new LastNTracker();
+  final LastNTracker<num> _latencyTracker = new LastNTracker();
   int _pendingCount = 0;
 
   TaskScheduler(this.taskRunner, this.sources);
@@ -59,8 +58,7 @@ class TaskScheduler {
         _logger.severe('Error processing task: $task', e, st);
         _statusTracker.add('error');
       }
-      _workLatencyTracker.add(sw.elapsedMilliseconds);
-      _allLatencyTracker.add(sw.elapsedMilliseconds);
+      _latencyTracker.add(sw.elapsedMilliseconds);
     }
 
     final Pool pool = new Pool(1);
@@ -85,13 +83,10 @@ class TaskScheduler {
       'pending': _pendingCount,
       'status': _statusTracker.toCounts(),
     };
-    final double avgWorkMillis = _workLatencyTracker.average;
-    if (avgWorkMillis > 0.0) {
-      final double tph = 60 * 60 * 1000.0 / avgWorkMillis;
-      stats['taskPerHour'] = tph;
-    }
-    final double avgMillis = _allLatencyTracker.average;
+    final double avgMillis = _latencyTracker.average;
     if (avgMillis > 0.0) {
+      final double tph = 60 * 60 * 1000.0 / avgMillis;
+      stats['taskPerHour'] = tph;
       final remaining =
           new Duration(milliseconds: (_pendingCount * avgMillis).round());
       stats['remaining'] = formatDuration(remaining);
