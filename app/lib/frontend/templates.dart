@@ -241,7 +241,8 @@ class TemplateService {
     final List suggestions = analysis.suggestions?.map((suggestion) {
       return {
         'icon_class': _suggestionIconClass(suggestion.level),
-        'title_html': markdownToHtml(suggestion.title, null),
+        'title_html':
+            _renderSuggestionTitle(suggestion.title, suggestion.score),
         'description_html': markdownToHtml(suggestion.description, null),
         'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
       };
@@ -1107,4 +1108,22 @@ String _suggestionIconClass(String level) {
     default:
       return 'suggestion-icon-info';
   }
+}
+
+String _renderSuggestionTitle(String title, double score) {
+  final formattedScore = _formatSuggestionScore(score);
+  if (formattedScore != null) {
+    title = '$title ($formattedScore)';
+  }
+  return markdownToHtml(title, null);
+}
+
+String _formatSuggestionScore(double score) {
+  if (score == null || score == 0.0) {
+    return null;
+  }
+  final intValue = score.round();
+  final isInt = intValue.toDouble() == score;
+  final formatted = isInt ? intValue.toString() : score.toStringAsFixed(2);
+  return '-$formatted points';
 }
