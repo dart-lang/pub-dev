@@ -49,6 +49,7 @@ class DartdocCustomizer {
     _stripCanonicalUrl(canonical);
     _addAlternateUrl(doc.head, canonical);
     _addAnalyticsTracker(doc.head);
+    _addGithubMarkdownStyle(doc.head, doc.body);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
     final breadcrumbsDepth = breadcrumbs?.children?.length ?? 0;
     if (breadcrumbs != null) {
@@ -101,6 +102,28 @@ class DartdocCustomizer {
 
     head.insertBefore(meta, head.firstChild);
     head.insertBefore(new Text('\n  '), head.firstChild);
+  }
+
+  void _addGithubMarkdownStyle(Element head, Element body) {
+    // adding markdown-body style
+    body.querySelectorAll('.markdown').forEach((elem) {
+      if (!elem.classes.contains('markdown-body')) {
+        elem.classes.add('markdown-body');
+      }
+    });
+
+    final hasMarkdownBodyClass = body.querySelector('.markdown-body') != null;
+    if (hasMarkdownBodyClass) {
+      // adding CSS link
+      final firstLink = head.children.firstWhere((elem) =>
+          elem.localName == 'link' && elem.attributes['rel'] == 'stylesheet');
+      final linkElement = new Element.tag('link')
+        ..attributes['rel'] = 'stylesheet'
+        ..attributes['type'] = 'text/css'
+        ..attributes['href'] = '$siteRoot/static/css/github-markdown.css';
+      head.insertBefore(linkElement, firstLink);
+      head.insertBefore(new Text('\n  '), firstLink);
+    }
   }
 
   void _addAnalyticsTracker(Element head) {
