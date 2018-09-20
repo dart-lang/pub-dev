@@ -1,45 +1,44 @@
 {
   "packageName": "http",
-  "packageVersion": "0.11.3+17",
-  "analysis": 5638587542405120,
-  "timestamp": "2018-08-27T08:36:21.193535Z",
-  "runtimeVersion": "2018.08.24",
-  "panaVersion": "0.11.9",
-  "flutterVersion": "0.6.2",
+  "packageVersion": "0.12.0",
+  "analysis": 5720891342192640,
+  "timestamp": "2018-09-18T17:58:10.063448Z",
+  "runtimeVersion": "2018.09.17",
+  "panaVersion": "0.12.3",
+  "flutterVersion": "0.8.4",
   "analysisStatus": "success",
-  "maintenanceScore": 0.9947000000000001,
+  "maintenanceScore": 0.7,
   "analysisContent": {
     "runtimeInfo": {
-      "panaVersion": "0.11.9",
+      "panaVersion": "0.12.3",
       "sdkVersion": "2.0.0",
       "flutterVersions": {
         "channel": "unknown",
         "repositoryUrl": "unknown source",
-        "frameworkRevision": "392a178169a9e620a5ae8e55c40d4276cddd3b36",
-        "frameworkCommitDate": "2018-08-21 10:45:37 -0700",
-        "engineRevision": "4b271b2e0265428fc144c5ce6c1234680631d83e",
-        "dartSdkVersion": "2.1.0-dev.1.0.flutter-69fce633b7"
+        "frameworkRevision": "7f7a731da095addd1ce684a6a2f4bc8651229769",
+        "frameworkCommitDate": "2018-09-14 13:11:32 -0400",
+        "engineRevision": "7a9b430d740b9a7ae4d9a6d44357d83561e1124d",
+        "dartSdkVersion": "2.1.0-dev.4.0.flutter-c28db2d6e1"
       }
     },
     "packageName": "http",
-    "packageVersion": "0.11.3+17",
+    "packageVersion": "0.12.0",
     "pubspec": {
-      "version": "0.11.3+17",
+      "version": "0.12.0",
       "name": "http",
       "dependencies": {
         "http_parser": ">=0.0.1 <4.0.0",
         "async": ">=1.10.0 <3.0.0",
-        "path": ">=0.9.0 <2.0.0",
-        "collection": "^1.5.0"
+        "path": ">=0.9.0 <2.0.0"
       },
       "author": "Dart Team <misc@dartlang.org>",
       "description": "A composable, Future-based API for making HTTP requests.",
+      "homepage": "https://github.com/dart-lang/http",
       "environment": {
         "sdk": ">=2.0.0-dev.61.0 <3.0.0"
       },
-      "homepage": "https://github.com/dart-lang/http",
       "dev_dependencies": {
-        "unittest": ">=0.9.0 <0.12.0"
+        "test": "^1.3.0"
       }
     },
     "platform": {
@@ -58,93 +57,41 @@
         "url": "https://github.com/dart-lang/http/blob/master/LICENSE"
       }
     ],
+    "health": {
+      "analyzeProcessFailed": false,
+      "formatProcessFailed": false,
+      "resolveProcessFailed": false,
+      "analyzerErrorCount": 0,
+      "analyzerWarningCount": 0,
+      "analyzerHintCount": 0,
+      "platformConflictCount": 0
+    },
     "maintenance": {
       "missingChangelog": false,
       "missingExample": true,
       "missingReadme": false,
-      "missingAnalysisOptions": false,
-      "oldAnalysisOptions": true,
+      "missingAnalysisOptions": true,
+      "oldAnalysisOptions": false,
       "strongModeEnabled": true,
-      "isExperimentalVersion": true,
+      "isExperimentalVersion": false,
       "isPreReleaseVersion": false,
       "dartdocSuccessful": true,
-      "errorCount": 0,
-      "warningCount": 0,
-      "hintCount": 2,
       "suggestions": [
         {
           "code": "pubspec.description.tooShort",
           "level": "hint",
           "title": "The description is too short.",
           "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
-          "penalty": {
-            "amount": 20,
-            "fraction": 0
-          }
-        },
-        {
-          "code": "packageVersion.preV1",
-          "level": "hint",
-          "title": "Package is pre-v1 release.",
-          "description": "While there is nothing inherently wrong with versions of `0.*.*`, it usually means that the author is still experimenting with the general direction of the API.",
-          "penalty": {
-            "amount": 10,
-            "fraction": 0
-          }
+          "score": 20.0
         },
         {
           "code": "example.missing",
           "level": "hint",
           "title": "Maintain an example.",
           "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
-          "penalty": {
-            "amount": 5,
-            "fraction": 0
-          }
-        },
-        {
-          "code": "dartanalyzer.warning",
-          "level": "hint",
-          "title": "Fix `lib/src/base_client.dart`.",
-          "description": "Analysis of `lib/src/base_client.dart` reported 2 hints:\n\nline 163 col 44: 'typed' is deprecated and shouldn't be used.\n\nline 165 col 44: 'typed' is deprecated and shouldn't be used.",
-          "file": "lib/src/base_client.dart",
-          "penalty": {
-            "amount": 2,
-            "fraction": 0
-          }
-        },
-        {
-          "code": "dartfmt.warning",
-          "level": "hint",
-          "title": "Format `lib/browser_client.dart`.",
-          "description": "Run `dartfmt` to format `lib/browser_client.dart`.",
-          "file": "lib/browser_client.dart",
-          "penalty": {
-            "amount": 1,
-            "fraction": 0
-          }
-        },
-        {
-          "code": "analysisOptions.renameRequired",
-          "level": "hint",
-          "title": "Use `analysis_options.yaml`.",
-          "description": "Rename old `.analysis_options` file to `analysis_options.yaml`."
-        },
-        {
-          "code": "bulk",
-          "level": "hint",
-          "title": "Fix additional 15 files with analysis or formatting issues.",
-          "description": "Additional issues in the following files:\n\n- `lib/http.dart` (Run `dartfmt` to format `lib/http.dart`.)\n- `lib/src/base_request.dart` (Run `dartfmt` to format `lib/src/base_request.dart`.)\n- `lib/src/base_response.dart` (Run `dartfmt` to format `lib/src/base_response.dart`.)\n- `lib/src/boundary_characters.dart` (Run `dartfmt` to format `lib/src/boundary_characters.dart`.)\n- `lib/src/byte_stream.dart` (Run `dartfmt` to format `lib/src/byte_stream.dart`.)\n- `lib/src/client.dart` (Run `dartfmt` to format `lib/src/client.dart`.)\n- `lib/src/io_client.dart` (Run `dartfmt` to format `lib/src/io_client.dart`.)\n- `lib/src/mock_client.dart` (Run `dartfmt` to format `lib/src/mock_client.dart`.)\n- `lib/src/multipart_file.dart` (Run `dartfmt` to format `lib/src/multipart_file.dart`.)\n- `lib/src/multipart_request.dart` (Run `dartfmt` to format `lib/src/multipart_request.dart`.)\n- `lib/src/request.dart` (Run `dartfmt` to format `lib/src/request.dart`.)\n- `lib/src/response.dart` (Run `dartfmt` to format `lib/src/response.dart`.)\n- `lib/src/streamed_request.dart` (Run `dartfmt` to format `lib/src/streamed_request.dart`.)\n- `lib/src/streamed_response.dart` (Run `dartfmt` to format `lib/src/streamed_response.dart`.)\n- `lib/src/utils.dart` (Run `dartfmt` to format `lib/src/utils.dart`.)\n",
-          "penalty": {
-            "amount": 15,
-            "fraction": 0
-          }
+          "score": 10.0
         }
       ]
-    },
-    "fitness": {
-      "magnitude": 1271.0,
-      "shortcoming": 19.0
     },
     "pkgResolution": {
       "dependencies": [
@@ -163,9 +110,8 @@
         },
         {
           "package": "collection",
-          "dependencyType": "direct",
-          "constraintType": "normal",
-          "constraint": "^1.5.0",
+          "dependencyType": "transitive",
+          "constraintType": "inherited",
           "resolved": "1.14.11"
         },
         {
@@ -201,34 +147,27 @@
           "resolved": "1.0.4"
         },
         {
+          "package": "test",
+          "dependencyType": "dev",
+          "constraintType": "normal",
+          "constraint": "^1.3.0"
+        },
+        {
           "package": "typed_data",
           "dependencyType": "transitive",
           "constraintType": "inherited",
           "resolved": "1.1.6"
-        },
-        {
-          "package": "unittest",
-          "dependencyType": "dev",
-          "constraintType": "normal",
-          "constraint": ">=0.9.0 <0.12.0"
         }
       ]
     },
     "dartFiles": {
       "lib/browser_client.dart": {
         "uri": "package:http/browser_client.dart",
-        "size": 3638,
-        "isFormatted": false,
+        "size": 270,
+        "isFormatted": true,
         "codeProblems": [],
         "directLibs": [
-          "dart:async",
-          "dart:html",
-          "dart:typed_data",
-          "package:http/src/base_client.dart",
-          "package:http/src/base_request.dart",
-          "package:http/src/byte_stream.dart",
-          "package:http/src/exception.dart",
-          "package:http/src/streamed_response.dart"
+          "package:http/src/browser_client.dart"
         ],
         "platform": {
           "components": [
@@ -239,16 +178,12 @@
             "web": "used",
             "other": "forbidden"
           }
-        },
-        "fitness": {
-          "magnitude": 81.0,
-          "shortcoming": 1.0
         }
       },
       "lib/http.dart": {
         "uri": "package:http/http.dart",
-        "size": 7234,
-        "isFormatted": false,
+        "size": 7239,
+        "isFormatted": true,
         "codeProblems": [],
         "directLibs": [
           "dart:async",
@@ -260,7 +195,6 @@
           "package:http/src/byte_stream.dart",
           "package:http/src/client.dart",
           "package:http/src/exception.dart",
-          "package:http/src/io_client.dart",
           "package:http/src/multipart_file.dart",
           "package:http/src/multipart_request.dart",
           "package:http/src/request.dart",
@@ -275,198 +209,15 @@
             "web": "allowed",
             "other": "allowed"
           }
-        },
-        "fitness": {
-          "magnitude": 139.0,
-          "shortcoming": 1.0
         }
       },
-      "lib/src/base_client.dart": {
-        "uri": "package:http/src/base_client.dart",
-        "size": 7821,
-        "isFormatted": false,
-        "codeProblems": [
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/base_client.dart",
-            "line": 163,
-            "col": 44,
-            "description": "'typed' is deprecated and shouldn't be used."
-          },
-          {
-            "severity": "INFO",
-            "errorType": "HINT",
-            "errorCode": "DEPRECATED_MEMBER_USE",
-            "file": "lib/src/base_client.dart",
-            "line": 165,
-            "col": 44,
-            "description": "'typed' is deprecated and shouldn't be used."
-          }
-        ],
-        "fitness": {
-          "magnitude": 136.0,
-          "shortcoming": 3.0
-        }
-      },
-      "lib/src/base_request.dart": {
-        "uri": "package:http/src/base_request.dart",
-        "size": 4739,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 93.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/base_response.dart": {
-        "uri": "package:http/src/base_response.dart",
-        "size": 1727,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 32.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/boundary_characters.dart": {
-        "uri": "package:http/src/boundary_characters.dart",
-        "size": 953,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 13.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/byte_stream.dart": {
-        "uri": "package:http/src/byte_stream.dart",
-        "size": 1391,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 25.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/client.dart": {
-        "uri": "package:http/src/client.dart",
-        "size": 6152,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 101.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/exception.dart": {
-        "uri": "package:http/src/exception.dart",
-        "size": 502,
-        "isFormatted": true,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 9.0,
-          "shortcoming": 0.0
-        }
-      },
-      "lib/src/io_client.dart": {
-        "uri": "package:http/src/io_client.dart",
-        "size": 2530,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 49.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/mock_client.dart": {
-        "uri": "package:http/src/mock_client.dart",
-        "size": 3320,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 59.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/multipart_file.dart": {
-        "uri": "package:http/src/multipart_file.dart",
-        "size": 4431,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 79.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/multipart_request.dart": {
-        "uri": "package:http/src/multipart_request.dart",
-        "size": 5905,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 116.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/request.dart": {
-        "uri": "package:http/src/request.dart",
-        "size": 5952,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 109.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/response.dart": {
-        "uri": "package:http/src/response.dart",
-        "size": 3431,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 62.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/streamed_request.dart": {
-        "uri": "package:http/src/streamed_request.dart",
-        "size": 1650,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 28.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/streamed_response.dart": {
-        "uri": "package:http/src/streamed_response.dart",
-        "size": 1326,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 25.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/src/utils.dart": {
-        "uri": "package:http/src/utils.dart",
-        "size": 4843,
-        "isFormatted": false,
-        "codeProblems": [],
-        "fitness": {
-          "magnitude": 96.0,
-          "shortcoming": 1.0
-        }
-      },
-      "lib/testing.dart": {
-        "uri": "package:http/testing.dart",
-        "size": 966,
+      "lib/io_client.dart": {
+        "uri": "package:http/io_client.dart",
+        "size": 260,
         "isFormatted": true,
         "codeProblems": [],
         "directLibs": [
-          "package:http/src/mock_client.dart"
+          "package:http/src/io_client.dart"
         ],
         "platform": {
           "components": [
@@ -477,12 +228,151 @@
             "web": "forbidden",
             "other": "used"
           }
-        },
-        "fitness": {
-          "magnitude": 19.0,
-          "shortcoming": 0.0
+        }
+      },
+      "lib/src/base_client.dart": {
+        "uri": "package:http/src/base_client.dart",
+        "size": 7797,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/base_request.dart": {
+        "uri": "package:http/src/base_request.dart",
+        "size": 4728,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/base_response.dart": {
+        "uri": "package:http/src/base_response.dart",
+        "size": 1715,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/boundary_characters.dart": {
+        "uri": "package:http/src/boundary_characters.dart",
+        "size": 1075,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/browser_client.dart": {
+        "uri": "package:http/src/browser_client.dart",
+        "size": 3592,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/byte_stream.dart": {
+        "uri": "package:http/src/byte_stream.dart",
+        "size": 1406,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/client.dart": {
+        "uri": "package:http/src/client.dart",
+        "size": 6320,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/client_stub.dart": {
+        "uri": "package:http/src/client_stub.dart",
+        "size": 422,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/exception.dart": {
+        "uri": "package:http/src/exception.dart",
+        "size": 502,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/io_client.dart": {
+        "uri": "package:http/src/io_client.dart",
+        "size": 2615,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/mock_client.dart": {
+        "uri": "package:http/src/mock_client.dart",
+        "size": 3411,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/multipart_file.dart": {
+        "uri": "package:http/src/multipart_file.dart",
+        "size": 4232,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/multipart_file_io.dart": {
+        "uri": "package:http/src/multipart_file_io.dart",
+        "size": 868,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/multipart_file_stub.dart": {
+        "uri": "package:http/src/multipart_file_stub.dart",
+        "size": 546,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/multipart_request.dart": {
+        "uri": "package:http/src/multipart_request.dart",
+        "size": 5984,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/request.dart": {
+        "uri": "package:http/src/request.dart",
+        "size": 5958,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/response.dart": {
+        "uri": "package:http/src/response.dart",
+        "size": 3402,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/streamed_request.dart": {
+        "uri": "package:http/src/streamed_request.dart",
+        "size": 1654,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/streamed_response.dart": {
+        "uri": "package:http/src/streamed_response.dart",
+        "size": 1313,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/src/utils.dart": {
+        "uri": "package:http/src/utils.dart",
+        "size": 4814,
+        "isFormatted": true,
+        "codeProblems": []
+      },
+      "lib/testing.dart": {
+        "uri": "package:http/testing.dart",
+        "size": 966,
+        "isFormatted": true,
+        "codeProblems": [],
+        "directLibs": [
+          "package:http/src/mock_client.dart"
+        ],
+        "platform": {
+          "components": [],
+          "uses": {
+            "flutter": "allowed",
+            "web": "allowed",
+            "other": "allowed"
+          }
         }
       }
+    },
+    "stats": {
+      "analyzeProcessElapsed": 8637,
+      "formatProcessElapsed": 807,
+      "resolveProcessElapsed": 4009,
+      "totalElapsed": 16876
     }
   }
 }
