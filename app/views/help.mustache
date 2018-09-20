@@ -29,6 +29,7 @@
       author or the uploader has the specified e-mail address.</li>
   </ul>
   <h2 id="scoring">Scoring</h2>
+  <p><i>NOTE: The Pub scoring model is still being fine-tuned, and is subject to change.</i></p>
   <p>
     For each package, this site displays an <b>overall score</b>, calculated
     from scores for the package's <a href="#popularity">popularity</a>,
@@ -49,7 +50,17 @@
   <h3 id="health">Health</h3>
   <p>
     The health score is based on static analysis of the package with
-    <code>dartanalyzer</code>.
+    <code>dartanalyzer</code>:
+  </p>
+  <ul>
+      <li>Each <i>error</i> reduces the health score by 25 percent <sup>(*)</sup>.</li>
+      <li>Each <i>warning</i> reduces the health score by 5 percent <sup>(*)</sup>.</li>
+      <li>Each <i>hint</i> reduces the health score by 0.5 percent <sup>(*)</sup>.</li>
+      <li>Each <i>platform conflict</i> reduces the health score by 25 points.</li>
+  </ul>
+  <p>
+      <sup>(*)</sup> Percents are applied with cumulative multiplication.
+      For example: 2 errors and 1 warning will get a score of 53, because: <code>(0.75^2 * 0.95 = 0.534375)</code>.
   </p>
   <p><i>How can you improve your health score?</i></p>
   <p>
