@@ -12,16 +12,16 @@ We collect the following scores prior to building the search index:
 The health score should reflect the general code health of the package,
 and it is calculated for each package version separately.
 
-Details can be found on the following page:
-https://pub.dartlang.org/help#health
+Details can be found in pana's [`Health.healthScore`](https://github.com/dart-lang/pana/blob/master/lib/src/health.dart)
+method.
 
 ### Maintenance score
 
 The maintenance score should reflect the effort and attention the authors
 put into the package.
 
-Details can be found on the following page:
-https://pub.dartlang.org/help#maintenance 
+Details can be found in pana's [maintenance](https://github.com/dart-lang/pana/blob/master/lib/src/maintenance.dart)
+library.
 
 ### Popularity score
 
