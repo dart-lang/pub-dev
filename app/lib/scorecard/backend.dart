@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
+import '../analyzer/backend.dart' show PackageStatus;
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/popularity_storage.dart';
 import '../shared/utils.dart';
@@ -150,6 +151,7 @@ class ScoreCardBackend {
       throw new Exception('Unable to lookup $packageName $packageVersion.');
     }
 
+    final status = new PackageStatus.fromModels(package, version);
     final reports = await loadReports(packageName, packageVersion);
 
     await _db.withTransaction((tx) async {
@@ -176,6 +178,15 @@ class ScoreCardBackend {
       }
       if (package.doNotAdvertise ?? false) {
         scoreCard.addFlag(PackageFlags.doNotAdvertise);
+      }
+      if (status.isLatestStable) {
+        scoreCard.addFlag(PackageFlags.isLatestStable);
+      }
+      if (status.isLegacy) {
+        scoreCard.addFlag(PackageFlags.isLegacy);
+      }
+      if (status.isObsolete) {
+        scoreCard.addFlag(PackageFlags.isObsolete);
       }
 
       scoreCard.popularityScore = popularityStorage.lookup(packageName) ?? 0.0;
