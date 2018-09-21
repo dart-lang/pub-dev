@@ -9,7 +9,13 @@ import 'utils.dart' show isNewer;
 /// The pattern of [runtimeVersion].
 final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
 
-// update this whenever one of the other versions change
+/// Represents a combined version of the overall toolchain and processing,
+/// allowing easy check for data compatibility, age comparison and also reflects
+/// whether an analysis needs to be re-done.
+///
+/// Increment the version when a change is significant enough to trigger
+/// reprocessing, including: version change in pana, dartdoc, or the SDKs,
+/// or when an feature or bugfix should be picked up by the analysis ASAP.
 final String runtimeVersion = '2018.09.17';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
