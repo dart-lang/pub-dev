@@ -40,7 +40,15 @@ String compactDescription(String text) => _compactText(text, maxLength: 500);
 
 String compactReadme(String text) {
   if (text == null || text.isEmpty) return '';
-  final html = markdownToHtml(text, null);
+  final html = markdownToHtml(text, null)
+      .replaceAll('</li>', '\n</li>')
+      .replaceAll('</p>', '\n</p>')
+      .replaceAll('</ul>', '\n</ul>')
+      .replaceAll('</ol>', '\n</ol>')
+      .replaceAll('</dl>', '\n</dl>')
+      .replaceAll('</dd>', '\n</dd>')
+      .replaceAll('</pre>', '\n</pre>')
+      .replaceAll('</blockquote>', '\n</blockquote>');
   final root = parseFragment(html);
   return _compactText(root.text, maxLength: 5000);
 }

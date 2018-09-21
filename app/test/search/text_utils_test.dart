@@ -7,6 +7,35 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/search/text_utils.dart';
 
 void main() {
+  group('text preparation', () {
+    test('readme text extraction', () {
+      final String input = '''Currently supports the following methods:
+
+- camelize
+- capitalize
+- escape
+- isLowerCase
+- isUpperCase
+- join
+- printable
+- reverse
+- startsWithLowerCase
+- startsWithUpperCase
+- toUnicode
+- underscore
+
+Other useful methods will be added soon...
+''';
+      final text = compactReadme(input);
+      expect(
+          text,
+          'Currently supports the following methods: camelize capitalize escape '
+          'isLowerCase isUpperCase join printable reverse startsWithLowerCase '
+          'startsWithUpperCase toUnicode underscore '
+          'Other useful methods will be added soon...');
+    });
+  });
+
   group('extact phrases', () {
     test('no phrase', () {
       expect(extractExactPhrases(''), isEmpty);
