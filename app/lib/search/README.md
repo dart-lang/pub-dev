@@ -12,27 +12,16 @@ We collect the following scores prior to building the search index:
 The health score should reflect the general code health of the package,
 and it is calculated for each package version separately.
 
-The health score is calculated from the `pana` analysis results, via
-`AnalysisView.health`. The score is normalized to the `[0.0 .. 1.0]`
-range using the package's `fitness` values from `pana`, which includes
-the *magnitude* of the package (approximates code size and complexity),
-and its *shortcomings* (a combination of single-line issues and errors
-which are measured in proportion to the *magnitude*). 
+Details can be found on the following page:
+https://pub.dartlang.org/help#health
 
 ### Maintenance score
 
 The maintenance score should reflect the effort and attention the authors
-put into the package, and it is calculated for the package using mostly the
-latest version. 
+put into the package.
 
-The maintenance score is calculated in `SearchBackend._calculateMaintenance`.
-The score is `1.0`, with the following penalties decreasing it (by multiplication):
-
-- If the latest version is older than two years, this score is `0.0`.
-- If the latest version is between one and two years old, the score is linear interpolation of the age (over the one year mark, decreasing to zero as it reaches two years old).
-- If there is no changelog or it is only a few words, the score gets large penalty (- 20%).
-- If there is no readme or it is only a few words, the score gets a medium penalty (- 5%).
-- If the latest version starts with `0.0.` or `0.`, the score gets a medium or small penalty (- 5%, -1%).
+Details can be found on the following page:
+https://pub.dartlang.org/help#maintenance 
 
 ### Popularity score
 
@@ -43,9 +32,9 @@ The popularity score is calculated in several steps:
 
 - The raw data is processed and exported to a bucket (`dartlang-pub--popularity`).
 - The individual package-level entries are summed with a weighting defined by `VoteData._score`.
-- These values are normalized to `[0.0 .. 1.0]` using Bezier-interpolation in
-  `PopularityStorage._updateLatest`. This step needs to know all of the scores
-  in one place to do that calculation.
+- These values are normalized to `[0.0 .. 1.0]` using the linear order of the
+  sorted values in `PopularityStorage._updateLatest`. This step needs to know
+  all of the scores in one place to do that calculation.
 
 ### Overall package score
 
@@ -59,7 +48,7 @@ Overall package score is calculated in the `calculateOverallScore` method as fol
 
 When a platform filter is specified, we both check whether the predicate
 matches the platforms of the package, and also calculate how closely it
-matches them (`SimplePackageIndex._scorePlatformMatch`).
+matches them (`platform_specificity.dart`).
 
 For example, if the platform filter is `flutter`, we'll have the following scores:
 
@@ -94,20 +83,20 @@ The indexing process prepares the package documents and parses the following fie
 - readme (first 5000 characters)
 
 When a text query is specified, we'll try to match the query against all of these
-separately, with the lower weights on description (0.75) and readme (0.50), and
+separately, with the lower weights on description (0.95) and readme (0.90), and
 the maximum of these will be accepted as the text score.
 
 Internal to each field, we tokenize both the original text and the query text,
 and accumulate a score based on the following calculation:
 
 - For each token, we'll have a token weight:
-  - `idf(token) = 1 + log(number of documents / matched documents + 1)`
-  - `weight = idf(token) * token.length`
-- We remove tokens from the query where their weight is less than 0.5 * the maximum value we have in the query.
-- We accumulate the individual token scores for each document.
+  - 1.0 if it is the original word
+  - less than 1.0 if it is a derived world (e.g. `CamelCase -> {'camelcase': 1.0, 'camel': 0.57, 'case': 0.43}`)
+- We remove tokens from the query where their weight is less than 0.3.
+- We accumulate the individual token scores for each document (by multiplying their stored weight with the query weight).
 - Final score is:
   - `query weight = the token weights in the query`
-  - `doc.size = the size of the document`, calculated as `sqrt(number of tokens)`.
+  - `doc.size = the size of the document`, calculated as `1 + math.log(1 + tokens.length) / 100`.
   - `score(doc) = (matched token weights) / (query weight * doc.size)`
 
 The query text could contain exact phrases (text between quotation marks:
