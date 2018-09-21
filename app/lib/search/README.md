@@ -91,12 +91,15 @@ and accumulate a score based on the following calculation:
 
 - For each token, we'll have a token weight:
   - 1.0 if it is the original word
-  - less than 1.0 if it is a derived world (e.g. `CamelCase -> {'camelcase': 1.0, 'camel': 0.57, 'case': 0.43}`)
+  - less than 1.0 if it is a derived world
+    (e.g. `CamelCase -> {'camelcase': 1.0, 'camel': 0.57, 'case': 0.43}`)
 - We remove tokens from the query where their weight is less than 0.3.
-- We accumulate the individual token scores for each document (by multiplying their stored weight with the query weight).
+- We accumulate the individual token scores for each document
+  (by multiplying their stored weight with the query weight).
 - Final score is:
   - `query weight = the token weights in the query`
-  - `doc.size = the size of the document`, calculated as `1 + math.log(1 + tokens.length) / 100`.
+  - `doc.size = the size of the document`,
+    calculated as `1 + math.log(1 + tokens.length) / 100`.
   - `score(doc) = (matched token weights) / (query weight * doc.size)`
 
 The query text could contain exact phrases (text between quotation marks:
