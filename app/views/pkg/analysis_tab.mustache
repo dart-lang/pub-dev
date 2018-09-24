@@ -91,22 +91,7 @@
 <blockquote>{{& platforms_reason_html}}</blockquote>
 {{/show_analysis}}
 
-{{#hasSuggestions}}
-<h4>{{suggestions_label}}</h4>
-{{#suggestions}}
-<div class="suggestion-row">
-  <div class="suggestion-title">
-    <span class="{{icon_class}}"></span>
-    {{& title_html}}
-  </div>
-  <div class="suggestion-description">
-    {{& description_html}}
-    {{& suggestion_help_html}}
-  </div>
-</div>
-{{/suggestions}}
-{{/hasSuggestions}}
-
+{{& suggestion_block_html}}
 {{#has_dependency}}
 <h4>Dependencies</h4>
 <div class="overflow-x">

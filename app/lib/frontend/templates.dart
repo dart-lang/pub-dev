@@ -238,18 +238,6 @@ class TemplateService {
         break;
     }
 
-    final List suggestions = analysis.suggestions?.map((suggestion) {
-      return {
-        'icon_class': _suggestionIconClass(suggestion.level),
-        'title_html':
-            _renderSuggestionTitle(suggestion.title, suggestion.score),
-        'description_html': markdownToHtml(suggestion.description, null),
-        'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
-      };
-    })?.toList();
-    final hasIssues =
-        analysis.suggestions?.any((s) => s.isError || s.isWarning) ?? false;
-
     List<Map> prepareDependencies(List<PkgDependency> list) {
       if (list == null || list.isEmpty) return const [];
       return list.map((pd) => {'row_html': _renderAnalysisDepRow(pd)}).toList();
@@ -285,9 +273,7 @@ class TemplateService {
               ?.join(', ') ??
           '<i>unsure</i>',
       'platforms_reason_html': markdownToHtml(analysis.platformsReason, null),
-      'hasSuggestions': suggestions != null && suggestions.isNotEmpty,
-      'suggestions_label': hasIssues ? 'Issues and suggestions' : 'Suggestions',
-      'suggestions': suggestions,
+      'suggestion_block_html': _renderSuggestionBlockHtml(analysis.suggestions),
       'has_dependency': hasDependency,
       'dependencies': {
         'has_sdk': hasSdkConstraint,
@@ -303,6 +289,31 @@ class TemplateService {
     };
 
     return _renderTemplate('pkg/analysis_tab', data);
+  }
+
+  String _renderSuggestionBlockHtml(List<Suggestion> suggestions) {
+    if (suggestions == null || suggestions.isEmpty) {
+      return null;
+    }
+
+    final hasIssues = suggestions.any((s) => s.isError || s.isWarning);
+    final label = hasIssues ? 'Issues and suggestions' : 'Suggestions';
+
+    final mappedValues = suggestions.map((suggestion) {
+      return {
+        'icon_class': _suggestionIconClass(suggestion.level),
+        'title_html':
+            _renderSuggestionTitle(suggestion.title, suggestion.score),
+        'description_html': markdownToHtml(suggestion.description, null),
+        'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
+      };
+    }).toList();
+
+    final data = <String, dynamic>{
+      'label': label,
+      'suggestions': mappedValues,
+    };
+    return _renderTemplate('pkg/analysis_suggestion_block', data);
   }
 
   Map<String, Object> _pkgShowPageValues(
