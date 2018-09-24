@@ -299,7 +299,7 @@ void main() {
             platforms: ['web'],
             platformsReason: 'All libraries agree.',
             health: 0.95,
-            suggestions: [
+            healthSuggestions: [
               new Suggestion.error(SuggestionCode.dartfmtAborted,
                   'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
             ],
@@ -651,6 +651,15 @@ class MockAnalysisView implements AnalysisView {
   List<Suggestion> suggestions;
 
   @override
+  List<Suggestion> panaSuggestions;
+
+  @override
+  List<Suggestion> healthSuggestions;
+
+  @override
+  List<Suggestion> maintenanceSuggestions;
+
+  @override
   double maintenanceScore;
 
   MockAnalysisView({
@@ -663,5 +672,8 @@ class MockAnalysisView implements AnalysisView {
     this.devDependencies,
     this.health,
     this.suggestions,
+    this.panaSuggestions,
+    this.healthSuggestions,
+    this.maintenanceSuggestions,
   });
 }

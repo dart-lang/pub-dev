@@ -273,7 +273,12 @@ class TemplateService {
               ?.join(', ') ??
           '<i>unsure</i>',
       'platforms_reason_html': markdownToHtml(analysis.platformsReason, null),
-      'suggestion_block_html': _renderSuggestionBlockHtml(analysis.suggestions),
+      'analysis_suggestions_html':
+          _renderSuggestionBlockHtml('Analysis', analysis.panaSuggestions),
+      'health_suggestions_html':
+          _renderSuggestionBlockHtml('Health', analysis.healthSuggestions),
+      'maintenance_suggestions_html': _renderSuggestionBlockHtml(
+          'Maintenance', analysis.maintenanceSuggestions),
       'has_dependency': hasDependency,
       'dependencies': {
         'has_sdk': hasSdkConstraint,
@@ -291,13 +296,15 @@ class TemplateService {
     return _renderTemplate('pkg/analysis_tab', data);
   }
 
-  String _renderSuggestionBlockHtml(List<Suggestion> suggestions) {
+  String _renderSuggestionBlockHtml(
+      String header, List<Suggestion> suggestions) {
     if (suggestions == null || suggestions.isEmpty) {
       return null;
     }
 
     final hasIssues = suggestions.any((s) => s.isError || s.isWarning);
-    final label = hasIssues ? 'Issues and suggestions' : 'Suggestions';
+    final label =
+        hasIssues ? '$header issues and suggestions' : '$header suggestions';
 
     final mappedValues = suggestions.map((suggestion) {
       return {

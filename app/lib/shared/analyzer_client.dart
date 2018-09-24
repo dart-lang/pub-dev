@@ -245,6 +245,11 @@ class AnalysisView {
 
   List<Suggestion> get suggestions => getAllSuggestions(_summary);
 
+  List<Suggestion> get panaSuggestions => _summary?.suggestions;
+  List<Suggestion> get healthSuggestions => _summary?.health?.suggestions;
+  List<Suggestion> get maintenanceSuggestions =>
+      _summary?.maintenance?.suggestions;
+
   double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
 }
 
