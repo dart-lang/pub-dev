@@ -43,6 +43,7 @@ main() {
       files.sort();
       expect(files, [
         '__404error.html',
+        'categories.json',
         'index.html',
         'index.json',
         'pub-data.json',

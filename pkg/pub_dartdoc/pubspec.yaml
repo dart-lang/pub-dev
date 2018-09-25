@@ -9,7 +9,7 @@ dependencies:
   meta: ^1.1.5
   path: ^1.6.0
   # dartdoc version to be pinned
-  dartdoc: 0.20.4
+  dartdoc: 0.21.1
 
 dev_dependencies:
   build_runner: '^0.10.0'
