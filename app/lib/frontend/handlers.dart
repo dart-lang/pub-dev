@@ -16,8 +16,10 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../dartdoc/backend.dart';
 import '../dartdoc/handlers.dart' show documentationHandler;
 import '../history/backend.dart';
+import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
+import '../shared/name_tracker.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/search_client.dart';
@@ -88,6 +90,8 @@ Future<shelf.Response> appHandler(
     return _apiPackagesHandler(request);
   } else if (path.startsWith('/api/documentation')) {
     return _apiDocumentationHandler(request);
+  } else if (path.startsWith('/api/status/packages')) {
+    return _apiStatusPackagesHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return await shelfPubApi(request);
@@ -678,6 +682,28 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
     'latestStableVersion': latestStableVersion,
     'versions': versionsData,
   });
+}
+
+/// Handles requests for
+/// - /api/status/packages
+/// - /api/status/packages/<package>
+Future<shelf.Response> _apiStatusPackagesHandler(shelf.Request request) async {
+  final requestedPath = request.requestedUri.path;
+  if (requestedPath == '/api/status/packages') {
+    final packageNames = await nameTracker.getPackageNames();
+    return jsonResponse({'packages': packageNames});
+  }
+  if (requestedPath.startsWith('/api/status/packages/')) {
+    final parts = requestedPath.split('/');
+    if (parts.length != 5) {
+      return jsonResponse({}, status: 404);
+    }
+    final packageName = parts[4];
+    final data = await scoreCardBackend.getScoreCardData(packageName, null,
+        onlyCurrent: false);
+    return jsonResponse({'scorecard': data.toJson()});
+  }
+  return jsonResponse({}, status: 404);
 }
 
 /// Handles requests for /api/history
