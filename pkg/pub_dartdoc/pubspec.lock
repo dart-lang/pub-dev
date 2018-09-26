@@ -140,7 +140,7 @@ packages:
       name: dartdoc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.20.4"
+    version: "0.21.1"
   fixnum:
     dependency: transitive
     description:
