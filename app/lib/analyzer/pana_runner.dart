@@ -168,6 +168,11 @@ class AnalyzerJobProcessor extends JobProcessor {
   }
 
   bool _isLegacy(Suggestion s) {
+    // Dart 2 SDK treats missing SDK constraints as <2.0.0.
+    if (s.code == SuggestionCode.pubspecSdkConstraintMissing) {
+      return true;
+    }
+
     final isVersionFailed = s.isError &&
         s.code == SuggestionCode.pubspecDependenciesFailedToResolve &&
         s.description != null &&
