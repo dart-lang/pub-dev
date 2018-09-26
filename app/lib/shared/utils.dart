@@ -361,3 +361,19 @@ void trackEventLoopLatency() {
     measure();
   });
 }
+
+/// Returns a subset of the list, bounded by [offset] and [limit].
+List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
+  if (list == null) return null;
+  if (offset != null && offset > 0) {
+    if (offset >= list.length) {
+      list = <T>[];
+    } else {
+      list = list.sublist(offset);
+    }
+  }
+  if (limit != null && list.length > limit && limit > 0) {
+    list = list.sublist(0, limit);
+  }
+  return list;
+}

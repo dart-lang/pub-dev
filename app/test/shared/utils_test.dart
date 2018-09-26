@@ -78,4 +78,28 @@ void main() {
       validatePackageName('my_package'); // does not throw
     });
   });
+
+  group('boundedList', () {
+    final numbers10 = new List.generate(10, (i) => i);
+
+    test('empty bounds', () {
+      expect(boundedList(numbers10), numbers10);
+    });
+
+    test('offset only', () {
+      expect(boundedList(numbers10, offset: 6), [6, 7, 8, 9]);
+      expect(boundedList(numbers10, offset: 16), []);
+    });
+
+    test('limit only', () {
+      expect(boundedList(numbers10, limit: 0), numbers10);
+      expect(boundedList(numbers10, limit: 3), [0, 1, 2]);
+      expect(boundedList(numbers10, limit: 13), numbers10);
+    });
+
+    test('offset and limit', () {
+      expect(boundedList(numbers10, offset: 1, limit: 3), [1, 2, 3]);
+      expect(boundedList(numbers10, offset: 9, limit: 10), [9]);
+    });
+  });
 }
