@@ -234,8 +234,9 @@ class AnalyzerJobProcessor extends JobProcessor {
           panaRuntimeInfo: summary?.runtimeInfo,
           reportStatus: reportStatus,
           healthScore: summary?.health?.healthScore ?? 0.0,
-          maintenanceScore:
-              summary == null ? 0.0 : getMaintenanceScore(summary.maintenance),
+          maintenanceScore: summary == null
+              ? 0.0
+              : (getMaintenanceScore(summary.maintenance) / 100.0),
           platformTags: indexDartPlatform(summary?.platform),
           platformReason: summary?.platform?.reason,
           pkgDependencies: summary?.pkgResolution?.dependencies,
