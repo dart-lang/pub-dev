@@ -608,11 +608,10 @@ class TokenMatch {
 }
 
 class TokenIndex {
-  final Map<String, String> _textHashes = <String, String>{};
-  final Map<String, Map<String, double>> _inverseIds =
-      <String, Map<String, double>>{};
-  final Map<String, Set<String>> _inverseNgrams = <String, Set<String>>{};
-  final Map<String, double> _docSizes = <String, double>{};
+  final _textHashes = <String, String>{};
+  final _inverseIds = <String, Map<String, double>>{};
+  final _inverseNgrams = <String, Set<String>>{};
+  final _docSizes = <String, double>{};
   final int _minLength;
 
   TokenIndex({int minLength: 0}) : _minLength = minLength;
@@ -637,7 +636,7 @@ class TokenIndex {
     for (String token in tokens.keys) {
       final Map<String, double> weights =
           _inverseIds.putIfAbsent(token, () => <String, double>{});
-      weights[id] = math.max((weights[id] ?? 0.0), tokens[token]);
+      weights[id] = math.max(weights[id] ?? 0.0, tokens[token]);
       _inverseNgrams.putIfAbsent(token, () => _ngrams(token, _minLength));
     }
     // Document size is a highly scaled-down proxy of the length.
