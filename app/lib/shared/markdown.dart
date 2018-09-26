@@ -99,7 +99,11 @@ class _UrlRewriter implements m.NodeVisitor {
     if (linkPath.startsWith('/')) {
       newUrl = Uri.parse(baseUrl).replace(path: linkPath).toString();
     } else {
-      newUrl = getRepositoryUrl(baseUrl, linkPath);
+      final repoUrl = getRepositoryUrl(baseUrl, linkPath);
+      if (repoUrl == null) {
+        return url;
+      }
+      newUrl = repoUrl;
     }
     if (linkFragment != null && linkFragment.isNotEmpty) {
       newUrl = '$newUrl#$linkFragment';
