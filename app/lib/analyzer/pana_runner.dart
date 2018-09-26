@@ -130,6 +130,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     JobStatus status = JobStatus.failed;
+    bool isLegacy = false;
     Summary scoreCardSummary = summary;
     if (summary == null) {
       analysis.analysisStatus = AnalysisStatus.aborted;
@@ -138,7 +139,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       scoreCardSummary =
           await _expandSummary(summary, packageStatus.age, false);
       summary = await _expandSummary(summary, packageStatus.age, true);
-      final isLegacy = summary.suggestions?.any(_isLegacy) ?? false;
+      isLegacy = summary.suggestions?.any(_isLegacy) ?? false;
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
       if (isLegacy) {
@@ -156,7 +157,8 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
-    await _storeScoreCard(job, scoreCardSummary);
+    final scoreCardFlags = isLegacy ? [PackageFlags.isLegacy] : null;
+    await _storeScoreCard(job, scoreCardSummary, flags: scoreCardFlags);
 
     if (backendStatus.isLatestStable &&
         analysis.analysisStatus != AnalysisStatus.success &&
@@ -223,7 +225,7 @@ class AnalyzerJobProcessor extends JobProcessor {
     return summary;
   }
 
-  Future _storeScoreCard(Job job, Summary summary) async {
+  Future _storeScoreCard(Job job, Summary summary, {List<String> flags}) async {
     final reportStatus =
         summary == null ? ReportStatus.aborted : ReportStatus.success;
     await scoreCardBackend.updateReport(
@@ -242,6 +244,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           pkgDependencies: summary?.pkgResolution?.dependencies,
           suggestions: getAllSuggestions(summary),
           licenses: summary?.licenses,
+          flags: flags,
         ));
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
   }
