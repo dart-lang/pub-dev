@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'popularity_storage.dart';
@@ -22,6 +23,8 @@ const staticShortCache = const Duration(minutes: 5);
 /// The age the browser should cache the static file if there is a hash provided
 /// and it matches the etag.
 const staticLongCache = const Duration(hours: 24);
+
+final _logger = new Logger('pub.shared.handler');
 
 shelf.Response redirectResponse(String url) => new shelf.Response.seeOther(url);
 
@@ -101,16 +104,21 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
 }
 
 bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
-  final ifModifiedSince = request.ifModifiedSince;
-  if (ifModifiedSince != null &&
-      lastModified != null &&
-      !lastModified.isAfter(ifModifiedSince)) {
-    return true;
-  }
+  try {
+    final ifModifiedSince = request.ifModifiedSince;
+    if (ifModifiedSince != null &&
+        lastModified != null &&
+        !lastModified.isAfter(ifModifiedSince)) {
+      return true;
+    }
 
-  final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
-  if (ifNoneMatch != null && ifNoneMatch == etag) {
-    return true;
+    final ifNoneMatch = request.headers[HttpHeaders.ifNoneMatchHeader];
+    if (ifNoneMatch != null && ifNoneMatch == etag) {
+      return true;
+    }
+  } catch (e, st) {
+    // TODO: remove after https://github.com/dart-lang/http_parser/issues/24 gets fixed
+    _logger.info('HTTP Header parsing issue detected.', e, st);
   }
 
   return false;
