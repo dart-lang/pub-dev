@@ -608,10 +608,10 @@ class TokenMatch {
 }
 
 class TokenIndex {
-  final Map<String, String> _textHashes = <String, String>{};
-  final Map<String, Set<String>> _inverseIds = <String, Set<String>>{};
-  final Map<String, Set<String>> _inverseNgrams = <String, Set<String>>{};
-  final Map<String, double> _docSizes = <String, double>{};
+  final _textHashes = <String, String>{};
+  final _inverseIds = <String, Map<String, double>>{};
+  final _inverseNgrams = <String, Set<String>>{};
+  final _docSizes = <String, double>{};
   final int _minLength;
 
   TokenIndex({int minLength: 0}) : _minLength = minLength;
@@ -634,8 +634,9 @@ class TokenIndex {
       remove(id);
     }
     for (String token in tokens.keys) {
-      final Set<String> set = _inverseIds.putIfAbsent(token, () => new Set());
-      set.add(id);
+      final Map<String, double> weights =
+          _inverseIds.putIfAbsent(token, () => <String, double>{});
+      weights[id] = math.max(weights[id] ?? 0.0, tokens[token]);
       _inverseNgrams.putIfAbsent(token, () => _ngrams(token, _minLength));
     }
     // Document size is a highly scaled-down proxy of the length.
@@ -648,9 +649,9 @@ class TokenIndex {
     _textHashes.remove(id);
     _docSizes.remove(id);
     final List<String> removeKeys = [];
-    _inverseIds.forEach((String key, Set<String> set) {
-      set.remove(id);
-      if (set.isEmpty) removeKeys.add(key);
+    _inverseIds.forEach((String key, Map<String, double> weights) {
+      weights.remove(id);
+      if (weights.isEmpty) removeKeys.add(key);
     });
     removeKeys.forEach(_inverseIds.remove);
     removeKeys.forEach(_inverseNgrams.remove);
@@ -710,9 +711,11 @@ class TokenIndex {
     final queryWeight = tokenMatch.maxWeight;
     final Map<String, double> docScores = <String, double>{};
     for (String token in tokenMatch.tokens) {
-      for (String id in _inverseIds[token]) {
+      final docWeights = _inverseIds[token];
+      for (String id in docWeights.keys) {
         final double prevValue = docScores[id] ?? 0.0;
-        docScores[id] = math.max(prevValue, tokenMatch[token]);
+        final double currentValue = tokenMatch[token] * docWeights[id];
+        docScores[id] = math.max(prevValue, currentValue);
       }
     }
 
