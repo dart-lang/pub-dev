@@ -75,22 +75,33 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
       suggestions: (json['suggestions'] as List)
           ?.map((e) =>
               e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
-          ?.toList());
+          ?.toList(),
+      flags: (json['flags'] as List)?.map((e) => e as String)?.toList());
 }
 
-Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
-    <String, dynamic>{
-      'timestamp': instance.timestamp?.toIso8601String(),
-      'panaRuntimeInfo': instance.panaRuntimeInfo,
-      'reportStatus': instance.reportStatus,
-      'healthScore': instance.healthScore,
-      'maintenanceScore': instance.maintenanceScore,
-      'platformTags': instance.platformTags,
-      'platformReason': instance.platformReason,
-      'pkgDependencies': instance.pkgDependencies,
-      'suggestions': instance.suggestions,
-      'licenses': instance.licenses
-    };
+Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
+  var val = <String, dynamic>{
+    'timestamp': instance.timestamp?.toIso8601String(),
+    'panaRuntimeInfo': instance.panaRuntimeInfo,
+    'reportStatus': instance.reportStatus,
+    'healthScore': instance.healthScore,
+    'maintenanceScore': instance.maintenanceScore,
+    'platformTags': instance.platformTags,
+    'platformReason': instance.platformReason,
+    'pkgDependencies': instance.pkgDependencies,
+    'suggestions': instance.suggestions,
+    'licenses': instance.licenses,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('flags', instance.flags);
+  return val;
+}
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
   return DartdocReport(

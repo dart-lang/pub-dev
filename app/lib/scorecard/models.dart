@@ -159,6 +159,7 @@ class ScoreCard extends db.ExpandoModel {
     ]
       ..removeWhere((type) => type == null)
       ..sort();
+    panaReport?.flags?.forEach(addFlag);
   }
 }
 
@@ -328,6 +329,11 @@ class PanaReport implements ReportData {
 
   List<LicenseFile> licenses;
 
+  /// The flags for the package, version or analysis.
+  /// Example values: entries from [PackageFlags].
+  @JsonKey(includeIfNull: false)
+  List<String> flags = <String>[];
+
   PanaReport({
     @required this.timestamp,
     @required this.panaRuntimeInfo,
@@ -339,6 +345,7 @@ class PanaReport implements ReportData {
     @required this.pkgDependencies,
     @required this.licenses,
     @required this.suggestions,
+    @required this.flags,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
