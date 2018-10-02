@@ -101,6 +101,11 @@ Future _main(FrontendEntryMessage message) async {
       ],
     );
     scheduler.run();
+
+    new Timer.periodic(const Duration(minutes: 5), (_) {
+      updateLatestStats(scheduler.stats());
+    });
+
     await runHandler(_logger, searchServiceHandler);
   });
 }
