@@ -72,9 +72,12 @@ class SearchBackend {
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
 
-    final pubDataFutures = Future.wait(packages.map((p) =>
-        dartdocClient.getContentBytes(p.name, 'latest', 'pub-data.json',
-            timeout: const Duration(seconds: 10))));
+    final pubDataFutures = Future.wait<String>(
+      packages.map(
+        (p) => dartdocClient.getTextContent(p.name, 'latest', 'pub-data.json',
+            timeout: const Duration(minutes: 1)),
+      ),
+    );
 
     final List<AnalysisView> analysisViews =
         await analyzerClient.getAnalysisViews(packages.map((p) =>
@@ -92,11 +95,11 @@ class SearchBackend {
       final analysisView = analysisViews[i];
       final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
 
-      final List<int> pubDataContent = pubDataContents[i];
+      final String pubDataContent = pubDataContents[i];
       List<ApiDocPage> apiDocPages;
       if (pubDataContent != null) {
         try {
-          apiDocPages = _apiDocPagesFromPubDataBytes(pubDataContent);
+          apiDocPages = _apiDocPagesFromPubDataText(pubDataContent);
         } catch (e, st) {
           _logger.severe('Parsing pub-data.json failed.', e, st);
         }
@@ -144,8 +147,8 @@ class SearchBackend {
     return emails.toList()..sort();
   }
 
-  List<ApiDocPage> _apiDocPagesFromPubDataBytes(List<int> bytes) {
-    final decodedMap = json.decode(utf8.decode(bytes)) as Map;
+  List<ApiDocPage> _apiDocPagesFromPubDataText(String text) {
+    final decodedMap = json.decode(text) as Map;
     final pubData = new PubDartdocData.fromJson(decodedMap.cast());
     return apiDocPagesFromPubData(pubData);
   }

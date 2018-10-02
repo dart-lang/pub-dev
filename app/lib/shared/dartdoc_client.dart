@@ -5,18 +5,14 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 
-import '../dartdoc/dartdoc_runner.dart' show statusFilePath;
+import '../dartdoc/backend.dart';
 import '../dartdoc/models.dart' show DartdocEntry;
 import '../job/backend.dart';
 
-import 'configuration.dart';
 import 'dartdoc_memcache.dart';
-import 'utils.dart' show getUrlWithRetry;
 
 export '../dartdoc/models.dart' show DartdocEntry;
 
@@ -31,10 +27,6 @@ DartdocClient get dartdocClient => ss.lookup(#_dartdocClient) as DartdocClient;
 
 /// Client methods that access the dartdoc service.
 class DartdocClient {
-  final http.Client _client = new http.Client();
-  String get _dartdocServiceHttpHostPort =>
-      activeConfiguration.dartdocServicePrefix;
-
   Future<List<DartdocEntry>> getEntries(
       String package, List<String> versions) async {
     final resultFutures = <Future<DartdocEntry>>[];
@@ -59,23 +51,25 @@ class DartdocClient {
   }
 
   Future close() async {
-    _client.close();
+    // no-op
   }
 
-  Future<List<int>> getContentBytes(
+  Future<String> getTextContent(
       String package, String version, String relativePath,
       {Duration timeout}) async {
-    final url = p.join(_dartdocServiceHttpHostPort, 'documentation', package,
-        version, relativePath);
     try {
-      final rs = await getUrlWithRetry(_client, url, timeout: timeout);
-      if (rs.statusCode != 200) {
+      final entry = await dartdocBackend
+          .getServingEntry(package, version)
+          .timeout(timeout);
+      if (entry == null || !entry.hasContent) {
         return null;
       }
-      return rs.bodyBytes;
-    } catch (e) {
-      _logger
-          .info('Error getting content for: $package $version $relativePath');
+      return await dartdocBackend
+          .getTextContent(entry, relativePath)
+          .timeout(timeout);
+    } catch (e, st) {
+      _logger.info(
+          'Unable to read content for $package $version $relativePath', e, st);
     }
     return null;
   }
@@ -85,11 +79,7 @@ class DartdocClient {
     if (cachedEntry != null) {
       return cachedEntry;
     }
-    final content = await getContentBytes(package, version, statusFilePath);
-    if (content == null) {
-      return null;
-    }
-    final entry = new DartdocEntry.fromBytes(content);
+    final entry = await dartdocBackend.getServingEntry(package, version);
     await dartdocMemcache?.setEntry(entry);
     return entry;
   }

@@ -301,6 +301,11 @@ class DartdocBackend {
     return _storage.read(objectName);
   }
 
+  Future<String> getTextContent(DartdocEntry entry, String relativePath) async {
+    final stream = readContent(entry, relativePath);
+    return (await stream.transform(utf8.decoder).toList()).join();
+  }
+
   /// Removes all files related to a package.
   Future removeAll(String package, {String version}) async {
     final prefix = version == null ? '$package/' : '$package/$version/';
