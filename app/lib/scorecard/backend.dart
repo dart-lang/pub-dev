@@ -66,12 +66,10 @@ class ScoreCardBackend {
       return null;
     }
 
-    final query = _db.query<ScoreCard>(ancestorKey: key.parent)
-      ..filter('<', versions.runtimeVersion);
+    final query = _db.query<ScoreCard>(ancestorKey: key.parent);
     final all = await query
         .run()
         .where((sc) =>
-            // sanity check to not rely entirely on the lexicographical order
             isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
         .toList();
     if (all.isEmpty) {
@@ -211,7 +209,7 @@ class ScoreCardBackend {
 
     // deleting reports
     final reportQuery = _db.query<ScoreCardReport>()
-      ..filter('< runtimeVersion', versions.gcBeforeRuntimeVersion);
+      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
     await for (ScoreCardReport report in reportQuery.run()) {
       final age = now.difference(report.updated);
       if (age <= _deleteThreshold) {
@@ -230,7 +228,7 @@ class ScoreCardBackend {
 
     // deleting scorecards
     final cardQuery = _db.query<ScoreCard>()
-      ..filter('< runtimeVersion', versions.gcBeforeRuntimeVersion);
+      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
     await for (ScoreCard report in cardQuery.run()) {
       final age = now.difference(report.updated);
       if (age <= _deleteThreshold) {
