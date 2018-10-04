@@ -139,8 +139,8 @@ class AnalyzerClient {
       return data;
     } catch (e, st) {
       _logger.shout('Analysis request failed: $key', e, st);
+      return null;
     }
-    return null;
   }
 
   Future triggerAnalysis(
