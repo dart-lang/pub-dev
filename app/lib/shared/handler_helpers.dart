@@ -12,6 +12,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../frontend/auth.dart';
 import '../frontend/service_utils.dart';
 import '../frontend/templates.dart';
 

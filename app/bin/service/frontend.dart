@@ -35,6 +35,7 @@ import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/oauth2_service.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';

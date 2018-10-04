@@ -12,6 +12,7 @@ import 'package:pub_server/repository.dart' as pub_server;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:pub_dartlang_org/frontend/auth.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';

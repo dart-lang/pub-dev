@@ -22,6 +22,14 @@ OAuth2Service get oauth2Service => ss.lookup(#_oauth2_service) as OAuth2Service;
 void registerOAuth2Service(OAuth2Service service) =>
     ss.register(#_oauth2_service, service);
 
+void initOAuth2Service() {
+  // The oauth2 service is used for getting an email address from an oauth2
+  // access token (which the pub client sends).
+  final client = new http.Client();
+  registerOAuth2Service(new OAuth2Service(client));
+  ss.registerScopeExitCallback(() async => client.close());
+}
+
 /// A service used for looking up email addresses using an OAuth2 access token.
 class OAuth2Service {
   final http.Client client;

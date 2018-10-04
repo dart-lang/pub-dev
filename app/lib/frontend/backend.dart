@@ -21,17 +21,12 @@ import '../shared/package_memcache.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
+import 'auth.dart';
 import 'model_properties.dart';
 import 'models.dart' as models;
 import 'upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
-
-/// Sets the active logged-in user.
-void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
-
-/// The active logged-in user. This is used for doing authentication checks.
-String get _loggedInUser => ss.lookup(#_logged_in_user) as String;
 
 /// Sets the active tarball storage
 void registerTarballStorage(TarballStorage ts) =>
@@ -544,10 +539,10 @@ class GCloudPackageRepository extends PackageRepository {
 /// If no user is currently logged in, this will throw an `UnauthorizedAccess`
 /// exception.
 Future<T> _withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
-  if (_loggedInUser == null) {
+  if (loggedInUser == null) {
     throw new UnauthorizedAccessException('No active user.');
   }
-  return await func(_loggedInUser);
+  return await func(loggedInUser);
 }
 
 /// Reads a tarball from a byte stream.
@@ -645,7 +640,7 @@ models.Package _newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
-    ..uploaderEmails = [_loggedInUser];
+    ..uploaderEmails = [loggedInUser];
 }
 
 /// Parses metadata from a tarball and & validates it.
