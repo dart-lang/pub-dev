@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
@@ -66,6 +67,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   await popularityStorage.init();
 
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
+  registerAnalysisBackend(new AnalysisBackend(db.dbService));
   final AnalyzerClient analyzerClient = new AnalyzerClient();
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);

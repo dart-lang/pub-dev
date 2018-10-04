@@ -6,20 +6,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../analyzer/backend.dart';
 import '../job/backend.dart';
 
 import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
-import 'configuration.dart';
 import 'memcache.dart' show analyzerDataLocalExpiration;
 import 'platform.dart';
 import 'popularity_storage.dart';
-import 'utils.dart';
 import 'versions.dart';
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
@@ -40,9 +38,6 @@ final Logger _logger = new Logger('pub.analyzer_client');
 class AnalyzerClient {
   final int _extractCacheSize = 10000;
   final Map<AnalysisKey, AnalysisExtract> _extractCache = {};
-  final http.Client _client = new http.Client();
-  String get _analyzerServiceHttpHostPort =>
-      activeConfiguration.analyzerServicePrefix;
 
   Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) {
     return Future.wait(keys.map(getAnalysisView));
@@ -134,22 +129,18 @@ class AnalyzerClient {
         _logger.severe('Unable to parse analysis data for $key', e, st);
       }
     }
-    final String uri =
-        '$_analyzerServiceHttpHostPort/packages/${key.package}/${key.version}?panaVersion=$panaVersion';
     try {
-      final http.Response rs = await getUrlWithRetry(_client, uri);
-      if (rs.statusCode == 200) {
-        final String content = rs.body;
-        final AnalysisData data = new AnalysisData.fromJson(
-            json.decode(content) as Map<String, dynamic>);
+      final data = await analysisBackend.getAnalysis(key.package,
+          version: key.version, panaVersion: panaVersion);
+      if (data != null) {
         await analyzerMemcache?.setContent(
-            key.package, key.version, panaVersion, content);
-        return data;
+            key.package, key.version, panaVersion, json.encode(data.toJson()));
       }
+      return data;
     } catch (e, st) {
-      _logger.shout('Analysis request failed on $uri', e, st);
+      _logger.shout('Analysis request failed: $key', e, st);
+      return null;
     }
-    return null;
   }
 
   Future triggerAnalysis(
@@ -165,7 +156,7 @@ class AnalyzerClient {
   }
 
   Future close() async {
-    _client.close();
+    // no-op
   }
 }
 
