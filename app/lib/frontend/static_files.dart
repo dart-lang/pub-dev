@@ -27,14 +27,18 @@ void registerStaticFileCache(StaticFileCache cache) {
   _cache = cache;
 }
 
-String _resolveStaticDirPath() {
+String _resolveRootPath() {
   if (Platform.script.path.contains('bin/server.dart')) {
-    return Platform.script.resolve('../../static').toFilePath();
+    return Platform.script.resolve('../..').toFilePath();
   }
   if (Platform.script.path.contains('app/test')) {
-    return path.join(Directory.current.path, '../static');
+    return path.join(Directory.current.path, '..');
   }
   throw new Exception('Unknown script: ${Platform.script}');
+}
+
+String _resolveStaticDirPath() {
+  return path.join(_resolveRootPath(), 'static');
 }
 
 /// Stores static files in memory for fast http serving.
@@ -123,6 +127,7 @@ class StaticUrls {
 
   Map<String, String> get assets {
     return _assets ??= {
+      'pub_admin_dart_js': _getCacheableStaticUrl('/js/pub_admin.dart.js'),
       'script_dart_js': _getCacheableStaticUrl('/js/script.dart.js'),
       'github_markdown_css': _getCacheableStaticUrl('/css/github-markdown.css'),
       'style_css': _getCacheableStaticUrl('/css/style.css'),
@@ -145,6 +150,11 @@ class StaticUrls {
 }
 
 Future updateLocalBuiltFiles() async {
+  await _updateAdminDartJs();
+  await _updateScriptDartJs();
+}
+
+Future _updateScriptDartJs() async {
   final staticDir = new Directory(_resolveStaticDirPath());
   final scriptDart = new File(path.join(staticDir.path, 'js', 'script.dart'));
   final scriptJs = new File(path.join(staticDir.path, 'js', 'script.dart.js'));
@@ -171,5 +181,48 @@ Future updateLocalBuiltFiles() async {
           'STDERR:\n${pr.stderr}';
       throw new Exception(message);
     }
+  }
+}
+
+Future _updateAdminDartJs() async {
+  final pubAdminDirPath = path.join(_resolveRootPath(), 'pkg', 'pub_admin');
+  final pubAdminBuildJs =
+      new File(path.join(pubAdminDirPath, 'build', 'pub_admin.dart.js'));
+  if (!pubAdminBuildJs.existsSync()) {
+    final pubGetResult = await runProc(
+      'pub',
+      ['get'],
+      workingDirectory: pubAdminDirPath,
+      timeout: const Duration(minutes: 2),
+    );
+    if (pubGetResult.exitCode != 0) {
+      final message = 'Unable to compile pub_admin\n\n'
+          'exitCode: ${pubGetResult.exitCode}\n'
+          'STDOUT:\n${pubGetResult.stdout}\n\n'
+          'STDERR:\n${pubGetResult.stderr}';
+      throw new Exception(message);
+    }
+    final pr = await runProc(
+      'pub',
+      ['run', 'webdev', 'build'],
+      workingDirectory: pubAdminDirPath,
+      timeout: const Duration(minutes: 5),
+    );
+    if (pr.exitCode != 0 || !pubAdminBuildJs.existsSync()) {
+      final message = 'Unable to compile pub_admin\n\n'
+          'exitCode: ${pr.exitCode}\n'
+          'STDOUT:\n${pr.stdout}\n\n'
+          'STDERR:\n${pr.stderr}';
+      throw new Exception(message);
+    }
+  }
+
+  final pubAdminJs =
+      new File(path.join(_resolveStaticDirPath(), 'js', 'pub_admin.dart.js'));
+  if (!pubAdminJs.existsSync() ||
+      pubAdminJs
+          .lastModifiedSync()
+          .isBefore(pubAdminBuildJs.lastModifiedSync())) {
+    await pubAdminBuildJs.copy(pubAdminJs.path);
   }
 }

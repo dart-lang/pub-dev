@@ -21,6 +21,14 @@ jobs:
       dart: 2.1.0-dev.5.0
     - stage: smoke_test
       script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/pub_admin"
+      dart: 2.1.0-dev.5.0
+    - stage: unit_test
+      script: ./tool/travis.sh webtest
+      env: PKG="pkg/pub_admin"
+      dart: 2.1.0-dev.5.0
+    - stage: smoke_test
+      script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="pkg/pub_dartdoc"
       dart: 2.1.0-dev.5.0
     - stage: unit_test

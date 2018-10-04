@@ -1,0 +1,53 @@
+analyzer:
+  exclude: [build/**]
+  errors:
+    uri_has_not_been_generated: ignore
+  # Angular plugin support is in beta. You're welcome to try it and report
+  # issues: https://github.com/dart-lang/angular_analyzer_plugin/issues
+  # plugins:
+    # - angular
+
+# Lint rules and documentation, see http://dart-lang.github.io/linter/lints
+linter:
+  rules:
+    - always_declare_return_types
+    - annotate_overrides
+    - avoid_empty_else
+    - avoid_init_to_null
+    - avoid_return_types_on_setters
+    - await_only_futures
+    - camel_case_types
+    - cancel_subscriptions
+    - close_sinks
+    - constant_identifier_names
+    - control_flow_in_finally
+    - directives_ordering
+    - empty_catches
+    - empty_constructor_bodies
+    - empty_statements
+    - hash_and_equals
+    - invariant_booleans
+    - iterable_contains_unrelated_type
+    - library_names
+    - library_prefixes
+    - list_remove_unrelated_type
+    - literal_only_boolean_expressions
+    - one_member_abstracts
+    - only_throw_errors
+    - overridden_fields
+    - package_names
+    - package_prefixed_library_names
+    - prefer_final_fields
+# TODO: enable after generated code passes
+#    - prefer_final_locals
+    - prefer_is_not_empty
+    - prefer_typing_uninitialized_variables
+    - slash_for_doc_comments
+    - super_goes_last
+    - test_types_in_equals
+    - throw_in_finally
+    - type_init_formals
+    - unnecessary_brace_in_string_interps
+    - unnecessary_getters_setters
+    - unrelated_type_equality_checks
+    - valid_regexps
