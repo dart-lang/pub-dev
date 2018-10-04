@@ -718,6 +718,9 @@ Future<shelf.Response> _apiPackageMetricsHandler(shelf.Request request) async {
   final packageName = parts[3];
   final data = await scoreCardBackend.getScoreCardData(packageName, null,
       onlyCurrent: false);
+  if (data == null) {
+    return jsonResponse({}, status: 404);
+  }
   return jsonResponse({'scorecard': data.toJson()});
 }
 
