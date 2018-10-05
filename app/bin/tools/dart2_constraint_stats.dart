@@ -45,6 +45,7 @@ Future main(List<String> args) async {
   int onlyDart2Count = 0;
   final packagesToNotify = <String>[];
   final authorsToNotify = new Set<String>();
+  final onlyDart2Packages = <String>[];
 
   await withProdServices(() async {
     final bucket =
@@ -100,6 +101,7 @@ Future main(List<String> args) async {
         allowsDart2Count++;
         if (!allowsDartDev && !allowsDart1) {
           onlyDart2Count++;
+          onlyDart2Packages.add(p.name);
         }
       }
       if (selectForNotification && allowsDartDev && !allowsDart2) {
@@ -125,6 +127,7 @@ Future main(List<String> args) async {
     },
     'packagesToNotify': packagesToNotify,
     'authorsToNotify': authorsToNotify.toList()..sort(),
+    'onlyDart2Packages': onlyDart2Packages,
   };
   final String json = new JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
