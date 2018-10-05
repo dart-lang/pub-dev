@@ -4,6 +4,8 @@
 
 import 'package:path/path.dart' as p;
 
+import 'packages_overrides.dart';
+
 const pubHostedDomain = 'pub.dartlang.org';
 
 const siteRoot = 'https://$pubHostedDomain';
@@ -115,4 +117,53 @@ String dartSdkMainUrl(String version) {
   final channel = isDev ? 'dev' : 'stable';
   final url = p.join(_apiDartlangOrg, channel, version);
   return '$url/';
+}
+
+String inferRepositoryUrl(String homepage) {
+  if (homepage == null) {
+    return null;
+  }
+  final uri = Uri.tryParse(homepage);
+  if (uri == null) {
+    return null;
+  }
+  if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return null;
+  }
+  if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
+    final segments = uri.pathSegments.take(2).toList();
+    if (segments.length != 2) {
+      return null;
+    }
+    return new Uri(scheme: uri.scheme, host: uri.host, pathSegments: segments)
+        .toString();
+  }
+  return null;
+}
+
+String inferIssueTrackerUrl(String homepage) {
+  if (homepage == null) {
+    return null;
+  }
+  final uri = Uri.tryParse(homepage);
+  if (uri == null) {
+    return null;
+  }
+  if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return null;
+  }
+  if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
+    final segments = uri.pathSegments.take(2).toList();
+    if (segments.length != 2) {
+      return null;
+    }
+    segments.add('issues');
+    final url = new Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      pathSegments: segments,
+    ).toString();
+    return overrideIssueTrackerUrl(url);
+  }
+  return null;
 }

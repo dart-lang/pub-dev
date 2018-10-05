@@ -336,26 +336,24 @@ class TemplateService {
       bool isFlutterPackage) {
     String readmeFilename;
     String renderedReadme;
+    final homepageUrl = selectedVersion.homepage;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
-      renderedReadme =
-          _renderFile(selectedVersion.readme, selectedVersion.homepage);
+      renderedReadme = _renderFile(selectedVersion.readme, homepageUrl);
     }
 
     String changelogFilename;
     String renderedChangelog;
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
-      renderedChangelog =
-          _renderFile(selectedVersion.changelog, selectedVersion.homepage);
+      renderedChangelog = _renderFile(selectedVersion.changelog, homepageUrl);
     }
 
     String exampleFilename;
     String renderedExample;
     if (selectedVersion.example != null) {
       exampleFilename = selectedVersion.example.filename;
-      renderedExample =
-          _renderFile(selectedVersion.example, selectedVersion.homepage);
+      renderedExample = _renderFile(selectedVersion.example, homepageUrl);
       if (renderedExample != null) {
         renderedExample = '<p style="font-family: monospace">'
             '<b>${_htmlEscaper.convert(exampleFilename)}</b>'
@@ -402,13 +400,16 @@ class TemplateService {
             documentationUrl.startsWith('http://pub.dartlang.org/'))) {
       documentationUrl = null;
     }
-    final isGitHubHomepage = selectedVersion.homepage != null &&
-        selectedVersion.homepage.startsWith('https://github.com/');
+    final isGitHubHomepage =
+        homepageUrl != null && homepageUrl.startsWith('https://github.com/');
     final dartdocsUrl = urls.pkgDocUrl(
       package.name,
       version: selectedVersion.version,
       isLatest: selectedVersion.version == package.latestVersion,
     );
+    final repositoryUrl = urls.inferRepositoryUrl(homepageUrl);
+    final issueTrackerUrl = urls.inferIssueTrackerUrl(homepageUrl);
+    final repositoryIsHomepage = repositoryUrl == homepageUrl;
 
     final links = <Map<String, dynamic>>[];
     void addLink(String href, String label) {
@@ -416,8 +417,13 @@ class TemplateService {
       links.add(<String, dynamic>{'href': href, 'label': label});
     }
 
-    addLink(selectedVersion.homepage,
-        isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage');
+    if (repositoryIsHomepage) {
+      addLink(repositoryUrl, 'Repository');
+    } else {
+      addLink(homepageUrl, isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage');
+      addLink(repositoryUrl, 'Repository');
+    }
+    addLink(issueTrackerUrl, 'Issue Tracker');
     addLink(documentationUrl, 'Documentation');
     addLink(dartdocsUrl, 'API Docs');
 
@@ -446,8 +452,7 @@ class TemplateService {
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
-        'license_html':
-            _renderLicenses(selectedVersion.homepage, analysis?.licenses),
+        'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
         'score_box_html': _renderScoreBox(analysisStatus, extract?.overallScore,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),

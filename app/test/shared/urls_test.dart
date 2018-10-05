@@ -80,4 +80,68 @@ void main() {
       expect(dartSdkMainUrl('2.0.0'), 'https://api.dartlang.org/stable/2.0.0/');
     });
   });
+
+  group('Infer repository URL', () {
+    test('empty or bad input', () {
+      expect(inferRepositoryUrl(null), isNull);
+      expect(inferRepositoryUrl(''), isNull);
+      expect(inferRepositoryUrl('abc 123'), isNull);
+      expect(inferRepositoryUrl('ftp://github.com/a/b/c'), isNull);
+    });
+
+    test('unknown domain', () {
+      expect(inferRepositoryUrl('https://example.com/'), isNull);
+      expect(inferRepositoryUrl('https://example.com/a'), isNull);
+      expect(inferRepositoryUrl('https://example.com/a/b'), isNull);
+    });
+
+    test('github', () {
+      final repo = 'https://github.com/user/repo';
+      expect(inferRepositoryUrl(repo), repo);
+      expect(inferRepositoryUrl('$repo/'), repo);
+      expect(inferRepositoryUrl('$repo/a'), repo);
+      expect(inferRepositoryUrl('$repo/a/b/c'), repo);
+    });
+
+    test('gitlab', () {
+      final repo = 'https://gitlab.com/user/repo';
+      expect(inferRepositoryUrl(repo), repo);
+      expect(inferRepositoryUrl('$repo/'), repo);
+      expect(inferRepositoryUrl('$repo/a'), repo);
+      expect(inferRepositoryUrl('$repo/a/b/c'), repo);
+    });
+  });
+
+  group('Infer issue tracker URL', () {
+    test('empty or bad input', () {
+      expect(inferIssueTrackerUrl(null), isNull);
+      expect(inferIssueTrackerUrl(''), isNull);
+      expect(inferIssueTrackerUrl('abc 123'), isNull);
+      expect(inferIssueTrackerUrl('ftp://github.com/a/b/c'), isNull);
+    });
+
+    test('unknown domain', () {
+      expect(inferIssueTrackerUrl('https://example.com/'), isNull);
+      expect(inferIssueTrackerUrl('https://example.com/a'), isNull);
+      expect(inferIssueTrackerUrl('https://example.com/a/b'), isNull);
+    });
+
+    test('github', () {
+      final repo = 'https://github.com/user/repo';
+      final tracker = '$repo/issues';
+      expect(inferIssueTrackerUrl(repo), tracker);
+      expect(inferIssueTrackerUrl('$repo/'), tracker);
+      expect(inferIssueTrackerUrl('$repo/a'), tracker);
+      expect(inferIssueTrackerUrl('$repo/a/b/c'), tracker);
+    });
+
+    test('gitlab', () {
+      final repo = 'https://gitlab.com/user/repo';
+      final tracker = '$repo/issues';
+      expect(inferIssueTrackerUrl(repo), tracker);
+      expect(inferIssueTrackerUrl('$repo/'), tracker);
+      expect(inferIssueTrackerUrl('$repo/a'), tracker);
+      expect(inferIssueTrackerUrl('$repo/a/b/c'), tracker);
+    });
+  });
 }

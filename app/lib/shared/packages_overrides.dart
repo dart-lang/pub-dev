@@ -40,3 +40,15 @@ const redirectPackagePages = const <String, String>{
 const redirectDartdocPages = const <String, String>{
   'flutter': 'https://docs.flutter.io/',
 };
+
+const _issueTrackerUrlOverrides = const <String, String>{
+  'https://github.com/flutter/plugins/issues':
+      'https://github.com/flutter/flutter/issues',
+};
+
+String overrideIssueTrackerUrl(String url) {
+  if (url == null) {
+    return null;
+  }
+  return _issueTrackerUrlOverrides[url] ?? url;
+}
