@@ -29,9 +29,11 @@ Future main(List<String> args) async {
   final ArgParser parser = new ArgParser()
     ..addOption('output', help: 'The report output file (or stdout otherwise)')
     ..addOption('top',
-        help: 'Select the top N popular package for notification');
+        help: 'Select the top N popular package for notification')
+    ..addOption('age', help: 'Maximum age of the latest update, in days.');
   final ArgResults argv = parser.parse(args);
   final top = int.tryParse(argv['top'] as String ?? '0') ?? 0;
+  final age = int.tryParse(argv['age'] as String ?? '0') ?? 0;
 
   int totalCount = 0;
   int noConstraint = 0;
@@ -53,6 +55,7 @@ Future main(List<String> args) async {
     final topThreshold =
         top == 0 ? 0.0 : 1.0 - (top + 1) * (1.0 / popularityStorage.count);
 
+    final now = new DateTime.now().toUtc();
     await for (Package p in dbService.query<Package>().run()) {
       totalCount++;
       if (totalCount % 25 == 0) {
@@ -63,6 +66,10 @@ Future main(List<String> args) async {
       if (versions.isEmpty) continue;
 
       final PackageVersion latest = versions.first;
+      if (age > 0 && now.difference(latest.created).inDays > age) {
+        continue;
+      }
+
       final Pubspec pubspec = latest.pubspec;
 
       if (pubspec.sdkConstraint == null) {
