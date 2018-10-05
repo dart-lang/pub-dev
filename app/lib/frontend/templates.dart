@@ -404,6 +404,22 @@ class TemplateService {
     }
     final isGitHubHomepage = selectedVersion.homepage != null &&
         selectedVersion.homepage.startsWith('https://github.com/');
+    final dartdocsUrl = urls.pkgDocUrl(
+      package.name,
+      version: selectedVersion.version,
+      isLatest: selectedVersion.version == package.latestVersion,
+    );
+
+    final links = <Map<String, dynamic>>[];
+    void addLink(String href, String label) {
+      if (href == null || href.isEmpty) return;
+      links.add(<String, dynamic>{'href': href, 'label': label});
+    }
+
+    addLink(selectedVersion.homepage,
+        isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage');
+    addLink(documentationUrl, 'Documentation');
+    addLink(dartdocsUrl, 'API Docs');
 
     final values = {
       'package': {
@@ -425,14 +441,7 @@ class TemplateService {
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
         'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
-        'homepage_label': isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage',
-        'homepage': selectedVersion.homepage,
-        'documentation': documentationUrl,
-        'dartdocs_url': urls.pkgDocUrl(
-          package.name,
-          version: selectedVersion.version,
-          isLatest: selectedVersion.version == package.latestVersion,
-        ),
+        'links': links,
         // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
         'uploaders_title': 'Uploader',
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
