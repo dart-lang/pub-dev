@@ -17,6 +17,7 @@ final NameTracker nameTracker = new NameTracker();
 class NameTracker {
   final Set<String> _names = new Set<String>();
   final Set<String> _reducedNames = new Set<String>();
+  final _firstScanCompleter = new Completer();
 
   void add(String name) {
     _names.add(name);
@@ -34,6 +35,13 @@ class NameTracker {
       name.replaceAll('_', '').toLowerCase();
 
   int get length => _names.length;
+
+  Future<List<String>> getPackageNames() async {
+    if (!_firstScanCompleter.isCompleted) {
+      await _firstScanCompleter.future;
+    }
+    return _names.toList()..sort();
+  }
 }
 
 class NameTrackerUpdater {
@@ -55,6 +63,7 @@ class NameTrackerUpdater {
       }
       break;
     }
+    nameTracker._firstScanCompleter.complete();
     _logger.info(
         'Scanned initial package names (${nameTracker.length}) in ${sw.elapsed}.');
 

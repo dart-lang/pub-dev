@@ -47,6 +47,15 @@ class ScoreCardBackend {
     String packageVersion, {
     @required bool onlyCurrent,
   }) async {
+    if (packageVersion == null || packageVersion == 'latest') {
+      final key = _db.emptyKey.append(Package, id: packageName);
+      final ps = await _db.lookup([key]);
+      final Package p = ps.single;
+      if (p == null) {
+        return null;
+      }
+      packageVersion = p.latestVersion;
+    }
     final cached = await scoreCardMemcache.getScoreCardData(
         packageName, packageVersion, versions.runtimeVersion,
         onlyCurrent: onlyCurrent);

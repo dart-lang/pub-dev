@@ -16,8 +16,10 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../dartdoc/backend.dart';
 import '../dartdoc/handlers.dart' show documentationHandler;
 import '../history/backend.dart';
+import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
+import '../shared/name_tracker.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/search_client.dart';
@@ -82,12 +84,17 @@ Future<shelf.Response> appHandler(
 
   if (handler != null) {
     return await handler(request);
+  } else if (path == '/api/packages' &&
+      request.requestedUri.queryParameters['compact'] == '1') {
+    return _apiPackagesCompactListHandler(request);
   } else if (path == '/api/packages') {
     // NOTE: This is special-cased, since it is not an API used by pub but
     // rather by the editor.
     return _apiPackagesHandler(request);
   } else if (path.startsWith('/api/documentation')) {
     return _apiDocumentationHandler(request);
+  } else if (_isHandlerForApiPackageMetrics(request.requestedUri)) {
+    return _apiPackageMetricsHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return await shelfPubApi(request);
@@ -678,6 +685,43 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
     'latestStableVersion': latestStableVersion,
     'versions': versionsData,
   });
+}
+
+/// Handles requests for
+/// - /api/packages?list=compact
+Future<shelf.Response> _apiPackagesCompactListHandler(
+    shelf.Request request) async {
+  final packageNames = await nameTracker.getPackageNames();
+  return jsonResponse({'packages': packageNames});
+}
+
+/// Whether [requestedUri] matches /api/packages/<package>/metrics
+bool _isHandlerForApiPackageMetrics(Uri requestedUri) {
+  final requestedPath = requestedUri.path;
+  final parts = requestedPath.split('/');
+  return parts.length == 5 &&
+      parts[0] == '' &&
+      parts[1] == 'api' &&
+      parts[2] == 'packages' &&
+      parts[3].isNotEmpty &&
+      parts[4] == 'metrics';
+}
+
+/// Handles requests for
+/// - /api/packages/<package>/metrics
+Future<shelf.Response> _apiPackageMetricsHandler(shelf.Request request) async {
+  final requestedPath = request.requestedUri.path;
+  final parts = requestedPath.split('/');
+  if (parts.length != 5) {
+    return jsonResponse({}, status: 404);
+  }
+  final packageName = parts[3];
+  final data = await scoreCardBackend.getScoreCardData(packageName, null,
+      onlyCurrent: false);
+  if (data == null) {
+    return jsonResponse({}, status: 404);
+  }
+  return jsonResponse({'scorecard': data.toJson()});
 }
 
 /// Handles requests for /api/history
