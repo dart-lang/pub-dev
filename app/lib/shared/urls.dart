@@ -131,6 +131,9 @@ String inferRepositoryUrl(String homepage) {
   if (uri.scheme != 'http' && uri.scheme != 'https') {
     return null;
   }
+  if (uri.hasPort) {
+    return null;
+  }
   if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
     final segments = uri.pathSegments.take(2).toList();
     if (segments.length != 2) {
@@ -152,6 +155,9 @@ String inferIssueTrackerUrl(String homepage) {
     return null;
   }
   if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return null;
+  }
+  if (uri.hasPort) {
     return null;
   }
   if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
