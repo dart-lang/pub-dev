@@ -118,6 +118,7 @@ void main() {
       expect(inferIssueTrackerUrl(''), isNull);
       expect(inferIssueTrackerUrl('abc 123'), isNull);
       expect(inferIssueTrackerUrl('ftp://github.com/a/b/c'), isNull);
+      expect(inferIssueTrackerUrl('package:foo/foo.dart'), isNull);
     });
 
     test('unknown domain', () {
