@@ -119,6 +119,7 @@ String dartSdkMainUrl(String version) {
   return '$url/';
 }
 
+/// Parses GitHub and GitLab urls, and returns the root of the repository.
 String inferRepositoryUrl(String homepage) {
   if (homepage == null) {
     return null;
@@ -141,6 +142,7 @@ String inferRepositoryUrl(String homepage) {
   return null;
 }
 
+/// Parses GitHub and GitLab urls, and returns the issue tracker of the repository.
 String inferIssueTrackerUrl(String homepage) {
   if (homepage == null) {
     return null;
@@ -164,6 +166,20 @@ String inferIssueTrackerUrl(String homepage) {
       pathSegments: segments,
     ).toString();
     return overrideIssueTrackerUrl(url);
+  }
+  return null;
+}
+
+/// Infer the hosting/service provider for a given URL.
+String inferServiceProviderName(String url) {
+  if (url == null) {
+    return null;
+  }
+  if (url.startsWith('https://github.com/')) {
+    return 'GitHub';
+  }
+  if (url.startsWith('https://gitlab.com/')) {
+    return 'GitLab';
   }
   return null;
 }

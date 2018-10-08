@@ -400,8 +400,6 @@ class TemplateService {
             documentationUrl.startsWith('http://pub.dartlang.org/'))) {
       documentationUrl = null;
     }
-    final isGitHubHomepage =
-        homepageUrl != null && homepageUrl.startsWith('https://github.com/');
     final dartdocsUrl = urls.pkgDocUrl(
       package.name,
       version: selectedVersion.version,
@@ -411,16 +409,28 @@ class TemplateService {
     final issueTrackerUrl = urls.inferIssueTrackerUrl(homepageUrl);
 
     final links = <Map<String, dynamic>>[];
-    void addLink(String href, String label) {
-      if (href == null || href.isEmpty) return;
+    void addLink(
+      String href,
+      String label, {
+      bool detectServiceProvider: false,
+    }) {
+      if (href == null || href.isEmpty) {
+        return;
+      }
+      if (detectServiceProvider) {
+        final providerName = urls.inferServiceProviderName(href);
+        if (providerName != null) {
+          label += ' ($providerName)';
+        }
+      }
       links.add(<String, dynamic>{'href': href, 'label': label});
     }
 
     if (repositoryUrl != homepageUrl) {
-      addLink(homepageUrl, isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage');
+      addLink(homepageUrl, 'Homepage');
     }
-    addLink(repositoryUrl, 'Repository');
-    addLink(issueTrackerUrl, 'Issue Tracker');
+    addLink(repositoryUrl, 'Repository', detectServiceProvider: true);
+    addLink(issueTrackerUrl, 'Issue Tracker', detectServiceProvider: true);
     addLink(documentationUrl, 'Documentation');
     addLink(dartdocsUrl, 'API Docs');
 
