@@ -229,14 +229,16 @@ class SimplePackageIndex implements PackageIndex {
         Score overallScore = Score.multiply(scores);
         // If there is an exact match for a package name (in the filtered result
         // set), promote that package to the top position.
+        final queryText = query?.parsedQuery?.text;
+        final matchingPackage = queryText == null ? null : _packages[queryText];
         if (query.order == null &&
-            query.hasQuery &&
-            query?.parsedQuery?.text != null &&
-            overallScore.containsKey(query.parsedQuery.text)) {
-          final matchedPackage = query.parsedQuery.text;
+            matchingPackage != null &&
+            overallScore.containsKey(queryText) &&
+            matchingPackage.maintenance != null &&
+            matchingPackage.maintenance > 0.0) {
           final double maxValue = overallScore.getMaxValue();
-          overallScore = overallScore.map(
-              (key, value) => key == matchedPackage ? maxValue : value * 0.99);
+          overallScore = overallScore
+              .map((key, value) => key == queryText ? maxValue : value * 0.99);
         }
         results = _rankWithValues(overallScore.getValues());
         break;
