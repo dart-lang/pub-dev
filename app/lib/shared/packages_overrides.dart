@@ -41,6 +41,7 @@ const redirectDartdocPages = const <String, String>{
   'flutter': 'https://docs.flutter.io/',
 };
 
+// TODO: remove this after all of the flutter plugins have a proper issue tracker entry in their pubspec.yaml
 const _issueTrackerUrlOverrides = const <String, String>{
   'https://github.com/flutter/plugins/issues':
       'https://github.com/flutter/flutter/issues',
