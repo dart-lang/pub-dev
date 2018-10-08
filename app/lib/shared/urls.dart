@@ -167,7 +167,7 @@ String inferIssueTrackerUrl(String homepage) {
     }
     segments.add('issues');
     final url = new Uri(
-      scheme: uri.scheme,
+      scheme: 'https',
       host: uri.host,
       pathSegments: segments,
     ).toString();
