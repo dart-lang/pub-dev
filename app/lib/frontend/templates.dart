@@ -409,7 +409,6 @@ class TemplateService {
     );
     final repositoryUrl = urls.inferRepositoryUrl(homepageUrl);
     final issueTrackerUrl = urls.inferIssueTrackerUrl(homepageUrl);
-    final repositoryIsHomepage = repositoryUrl == homepageUrl;
 
     final links = <Map<String, dynamic>>[];
     void addLink(String href, String label) {
@@ -417,12 +416,10 @@ class TemplateService {
       links.add(<String, dynamic>{'href': href, 'label': label});
     }
 
-    if (repositoryIsHomepage) {
-      addLink(repositoryUrl, 'Repository');
-    } else {
+    if (repositoryUrl != homepageUrl) {
       addLink(homepageUrl, isGitHubHomepage ? 'Homepage (GitHub)' : 'Homepage');
-      addLink(repositoryUrl, 'Repository');
     }
+    addLink(repositoryUrl, 'Repository');
     addLink(issueTrackerUrl, 'Issue Tracker');
     addLink(documentationUrl, 'Documentation');
     addLink(dartdocsUrl, 'API Docs');
