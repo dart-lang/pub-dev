@@ -10,7 +10,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
 final Logger _logger = new Logger('pub.name_tracker');
-const Duration _pollingInterval = const Duration(seconds: 10);
+const Duration _pollingInterval = const Duration(minutes: 1);
 
 final NameTracker nameTracker = new NameTracker();
 
