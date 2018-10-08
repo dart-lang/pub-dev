@@ -22,6 +22,7 @@ abstract class TaskRunner {
 // ignore: one_member_abstracts
 abstract class TaskSource {
   /// Returns a stream of currently available tasks at the time of the call.
+  /// Some task sources (e.g. Datastore-polling sources) may never close.
   Stream<Task> startStreaming();
 }
 
@@ -35,7 +36,13 @@ class ManualTriggerTaskSource implements TaskSource {
   Stream<Task> startStreaming() => _taskReceivePort;
 }
 
-/// Schedules and executes package analysis.
+/// Schedules and executes tasks.
+///
+/// The execution of the tasks are prioritized in the order of the task sources:
+/// the ones from a lower-index source will be selected earlier than the ones
+/// from a high-index source.
+///
+/// Some task sources (e.g. Datastore-polling sources) may never close.
 class TaskScheduler {
   final TaskRunner taskRunner;
   final List<TaskSource> sources;
