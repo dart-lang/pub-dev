@@ -60,7 +60,7 @@ class TransitiveDependencyGraph {
 }
 
 class PackageDependencyBuilder {
-  static const Duration pollingInterval = const Duration(seconds: 10);
+  static const Duration pollingInterval = const Duration(minutes: 1);
   static const String devPrefix = 'dev/';
 
   final DatastoreDB db;
