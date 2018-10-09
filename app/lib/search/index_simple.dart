@@ -11,7 +11,7 @@ import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
 import '../shared/search_service.dart';
-import '../shared/utils.dart' show StringInternPool;
+import '../shared/utils.dart' show boundedList, StringInternPool;
 
 import 'platform_specificity.dart';
 import 'scoring.dart';
@@ -264,16 +264,7 @@ class SimplePackageIndex implements PackageIndex {
 
     // bound by offset and limit
     final int totalCount = results.length;
-    if (query.offset != null && query.offset > 0) {
-      if (query.offset >= results.length) {
-        results = <PackageScore>[];
-      } else {
-        results = results.sublist(query.offset);
-      }
-    }
-    if (query.limit != null && results.length > query.limit) {
-      results = results.sublist(0, query.limit);
-    }
+    results = boundedList(results, offset: query.offset, limit: query.limit);
 
     if (textResults != null &&
         textResults.topApiPages != null &&
