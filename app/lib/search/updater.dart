@@ -77,11 +77,7 @@ class BatchIndexUpdater implements TaskRunner {
   }
 
   @override
-  Future<TaskTargetStatus> checkTargetStatus(Task task) async =>
-      new TaskTargetStatus.ok();
-
-  @override
-  Future<bool> runTask(Task task) async {
+  Future runTask(Task task) async {
     while (_ongoingBatchUpdate != null) {
       await _ongoingBatchUpdate;
     }
@@ -93,8 +89,6 @@ class BatchIndexUpdater implements TaskRunner {
     } else {
       await _updateBatch();
     }
-    // no race here
-    return false;
   }
 
   Future _updateBatch() async {

@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:logging/logging.dart';
-import 'package:pool/pool.dart';
 
 import 'packages_overrides.dart';
 import 'utils.dart';
@@ -13,19 +13,16 @@ import 'utils.dart';
 final Logger _logger = new Logger('pub.scheduler');
 
 /// Interface for task execution.
+// ignore: one_member_abstracts
 abstract class TaskRunner {
-  /// Whether the scheduler should skip the task, e.g. because it has been
-  /// completed recently.
-  Future<TaskTargetStatus> checkTargetStatus(Task task);
-
   /// Run the task.
-  /// Returns whether a race was detected while the run completed.
-  Future<bool> runTask(Task task);
+  Future runTask(Task task);
 }
 
 // ignore: one_member_abstracts
 abstract class TaskSource {
   /// Returns a stream of currently available tasks at the time of the call.
+  /// Some task sources (e.g. Datastore-polling sources) may never close.
   Stream<Task> startStreaming();
 }
 
@@ -39,73 +36,85 @@ class ManualTriggerTaskSource implements TaskSource {
   Stream<Task> startStreaming() => _taskReceivePort;
 }
 
-/// Schedules and executes package analysis.
+/// Schedules and executes tasks.
+///
+/// The execution of the tasks are prioritized in the order of the task sources:
+/// the ones from a lower-index source will be selected earlier than the ones
+/// from a high-index source.
+///
+/// Some task sources (e.g. Datastore-polling sources) may never close.
 class TaskScheduler {
   final TaskRunner taskRunner;
   final List<TaskSource> sources;
   final LastNTracker<String> _statusTracker = new LastNTracker();
-  final LastNTracker<num> _allLatencyTracker = new LastNTracker();
-  final LastNTracker<num> _workLatencyTracker = new LastNTracker();
-  int _pendingCount = 0;
+  final LastNTracker<num> _latencyTracker = new LastNTracker();
+  List<Queue<Task>> _queues;
 
-  TaskScheduler(this.taskRunner, this.sources);
+  TaskScheduler(this.taskRunner, this.sources) {
+    _queues = new List<Queue<Task>>.generate(
+        sources.length, (i) => new Queue<Task>());
+  }
 
   Future run() async {
     Future runTask(Task task) async {
       final Stopwatch sw = new Stopwatch()..start();
       try {
-        TaskTargetStatus status;
         if (redirectPackagePages.containsKey(task.package)) {
-          status = new TaskTargetStatus.skip('Package is redirected from pub.');
-        }
-        status ??= await taskRunner.checkTargetStatus(task);
-        if (status.shouldSkip) {
-          _logger.info('Skipping scheduled task: $task: ${status.reason}.');
-          _statusTracker.add('skip');
-          _allLatencyTracker.add(sw.elapsedMilliseconds);
           return;
         }
-        final bool raceDetected = await taskRunner.runTask(task);
-        _statusTracker.add(raceDetected ? 'race' : 'normal');
+        await taskRunner.runTask(task);
+        _statusTracker.add('normal');
       } catch (e, st) {
         _logger.severe('Error processing task: $task', e, st);
         _statusTracker.add('error');
       }
-      _workLatencyTracker.add(sw.elapsedMilliseconds);
-      _allLatencyTracker.add(sw.elapsedMilliseconds);
+      _latencyTracker.add(sw.elapsedMilliseconds);
     }
 
-    final Pool pool = new Pool(1);
-    final futures = sources
-        .map((TaskSource ts) {
-          final stream = ts.startStreaming();
-          return stream.listen((task) {
-            _pendingCount++;
-            final f = pool.withResource(() => runTask(task));
-            f.whenComplete(() {
-              _pendingCount--;
-            });
-          });
-        })
-        .map((subscription) => subscription.asFuture())
-        .toList();
-    await Future.wait(futures);
+    int liveSubscriptions = sources.length;
+    for (int i = 0; i < sources.length; i++) {
+      sources[i].startStreaming().listen(
+        (task) {
+          _queues[i].add(task);
+        },
+        onDone: () {
+          liveSubscriptions--;
+        },
+      );
+    }
+
+    while (liveSubscriptions > 0) {
+      final task = _pickFirstTask();
+
+      if (task == null) {
+        await new Future.delayed(const Duration(seconds: 5));
+        continue;
+      }
+
+      await runTask(task);
+    }
+  }
+
+  Task _pickFirstTask() {
+    for (Queue<Task> queue in _queues) {
+      if (queue.isEmpty) continue;
+      return queue.removeFirst();
+    }
+    return null;
   }
 
   Map stats() {
+    final int pendingCount = _queues.fold<int>(0, (sum, q) => sum + q.length);
     final Map<String, dynamic> stats = <String, dynamic>{
-      'pending': _pendingCount,
+      'pending': pendingCount,
       'status': _statusTracker.toCounts(),
     };
-    final double avgWorkMillis = _workLatencyTracker.average;
-    if (avgWorkMillis > 0.0) {
-      final double tph = 60 * 60 * 1000.0 / avgWorkMillis;
-      stats['taskPerHour'] = tph;
-    }
-    final double avgMillis = _allLatencyTracker.average;
+    final double avgMillis = _latencyTracker.average;
     if (avgMillis > 0.0) {
+      final double tph = 60 * 60 * 1000.0 / avgMillis;
+      stats['taskPerHour'] = tph;
       final remaining =
-          new Duration(milliseconds: (_pendingCount * avgMillis).round());
+          new Duration(milliseconds: (pendingCount * avgMillis).round());
       stats['remaining'] = formatDuration(remaining);
     }
     return stats;
@@ -116,11 +125,10 @@ class TaskScheduler {
 class Task {
   final String package;
   final String version;
-  final DateTime updated;
 
-  Task(this.package, this.version, this.updated);
+  Task(this.package, this.version);
 
-  Task.now(this.package, this.version) : updated = new DateTime.now().toUtc();
+  Task.now(this.package, this.version);
 
   @override
   String toString() => '$package $version';
@@ -131,11 +139,10 @@ class Task {
       other is Task &&
           runtimeType == other.runtimeType &&
           package == other.package &&
-          version == other.version &&
-          updated == other.updated;
+          version == other.version;
 
   @override
-  int get hashCode => package.hashCode ^ version.hashCode ^ updated.hashCode;
+  int get hashCode => package.hashCode ^ version.hashCode;
 }
 
 class TaskTargetStatus {
