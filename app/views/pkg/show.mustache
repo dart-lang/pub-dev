@@ -72,9 +72,9 @@
     {{#package.description}}
       <p>{{package.description}}</p>
       <p>
-          {{#package.homepage}}<a class="link" href="{{& package.homepage}}">{{package.homepage_label}}</a><br/>{{/package.homepage}}
-          {{#package.documentation}}<a class="link" href="{{& package.documentation}}">Documentation</a><br/>{{/package.documentation}}
-          <a class="link" href="{{& package.dartdocs_url}}">API Docs</a>
+      {{#package.links}}
+          <a class="link" href="{{& href}}">{{label}}</a><br/>
+      {{/package.links}}
       </p>
     {{/package.description}}
 

@@ -4,6 +4,8 @@
 
 import 'package:path/path.dart' as p;
 
+import 'packages_overrides.dart';
+
 const pubHostedDomain = 'pub.dartlang.org';
 
 const siteRoot = 'https://$pubHostedDomain';
@@ -115,4 +117,75 @@ String dartSdkMainUrl(String version) {
   final channel = isDev ? 'dev' : 'stable';
   final url = p.join(_apiDartlangOrg, channel, version);
   return '$url/';
+}
+
+/// Parses GitHub and GitLab urls, and returns the root of the repository.
+String inferRepositoryUrl(String homepage) {
+  if (homepage == null) {
+    return null;
+  }
+  final uri = Uri.tryParse(homepage);
+  if (uri == null) {
+    return null;
+  }
+  if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return null;
+  }
+  if (uri.hasPort) {
+    return null;
+  }
+  if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
+    final segments = uri.pathSegments.take(2).toList();
+    if (segments.length != 2) {
+      return null;
+    }
+    return new Uri(scheme: uri.scheme, host: uri.host, pathSegments: segments)
+        .toString();
+  }
+  return null;
+}
+
+/// Parses GitHub and GitLab urls, and returns the issue tracker of the repository.
+String inferIssueTrackerUrl(String homepage) {
+  if (homepage == null) {
+    return null;
+  }
+  final uri = Uri.tryParse(homepage);
+  if (uri == null) {
+    return null;
+  }
+  if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return null;
+  }
+  if (uri.hasPort) {
+    return null;
+  }
+  if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
+    final segments = uri.pathSegments.take(2).toList();
+    if (segments.length != 2) {
+      return null;
+    }
+    segments.add('issues');
+    final url = new Uri(
+      scheme: 'https',
+      host: uri.host,
+      pathSegments: segments,
+    ).toString();
+    return overrideIssueTrackerUrl(url);
+  }
+  return null;
+}
+
+/// Infer the hosting/service provider for a given URL.
+String inferServiceProviderName(String url) {
+  if (url == null) {
+    return null;
+  }
+  if (url.startsWith('https://github.com/')) {
+    return 'GitHub';
+  }
+  if (url.startsWith('https://gitlab.com/')) {
+    return 'GitLab';
+  }
+  return null;
 }
