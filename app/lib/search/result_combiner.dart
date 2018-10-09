@@ -26,8 +26,10 @@ class SearchResultCombiner {
       return primaryIndex.search(query);
     }
 
-    final primaryResult =
-        await primaryIndex.search(query.change(offset: 0, limit: 0));
+    // Setting the query to request an unbounded result set. The original offset
+    // and limit will be applied after the result sets are merged.
+    final primaryQuery = query.change(offset: 0, limit: 0);
+    final primaryResult = await primaryIndex.search(primaryQuery);
     final threshold = primaryResult.packages.isEmpty
         ? 0.0
         : (primaryResult.packages.first.score ?? 0.0) / 2;
