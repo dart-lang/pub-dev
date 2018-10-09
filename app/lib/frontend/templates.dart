@@ -405,10 +405,7 @@ class TemplateService {
       version: selectedVersion.version,
       isLatest: selectedVersion.version == package.latestVersion,
     );
-    final packageLinks = new urls.PackageLinks.infer(
-      homepageUrl: homepageUrl,
-      documentationUrl: documentationUrl,
-    );
+    final packageLinks = selectedVersion.packageLinks;
 
     final links = <Map<String, dynamic>>[];
     void addLink(

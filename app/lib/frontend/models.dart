@@ -12,6 +12,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../shared/analyzer_service.dart' show AnalysisExtract, AnalysisStatus;
 import '../shared/model_properties.dart';
 import '../shared/search_service.dart' show ApiPageRef;
+import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
@@ -206,6 +207,13 @@ class PackageVersion extends db.ExpandoModel {
   String get homepage {
     return pubspec.homepage;
   }
+
+  PackageLinks get packageLinks {
+    return new PackageLinks.infer(
+      homepageUrl: pubspec.homepage,
+      documentationUrl: pubspec.documentation,
+    );
+  }
 }
 
 @db.Kind(name: 'PrivateKey', idType: db.IdType.String)
@@ -285,4 +293,41 @@ void sortPackageVersionsDesc(List<PackageVersion> versions,
   versions.sort((PackageVersion a, PackageVersion b) =>
       compareSemanticVersionsDesc(
           a.semanticVersion, b.semanticVersion, decreasing, pubSorting));
+}
+
+/// The URLs provided by the package's pubspec or inferred from the homepage.
+class PackageLinks {
+  final String homepageUrl;
+  final String documentationUrl;
+  final String repositoryUrl;
+  final String issueTrackerUrl;
+  final String reportIssuesUrl;
+
+  PackageLinks({
+    this.homepageUrl,
+    this.documentationUrl,
+    this.repositoryUrl,
+    this.issueTrackerUrl,
+    this.reportIssuesUrl,
+  });
+
+  factory PackageLinks.infer({
+    String homepageUrl,
+    String documentationUrl,
+    String repositoryUrl,
+    String issueTrackerUrl,
+    String reportIssuesUrl,
+  }) {
+    repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
+    issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
+    reportIssuesUrl ??=
+        urls.inferIssueTrackerUrl(issueTrackerUrl, reportNewIssue: true);
+    return new PackageLinks(
+      homepageUrl: homepageUrl,
+      documentationUrl: documentationUrl,
+      repositoryUrl: repositoryUrl,
+      issueTrackerUrl: issueTrackerUrl,
+      reportIssuesUrl: reportIssuesUrl,
+    );
+  }
 }
