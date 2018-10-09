@@ -120,11 +120,11 @@ String dartSdkMainUrl(String version) {
 }
 
 /// Parses GitHub and GitLab urls, and returns the root of the repository.
-String inferRepositoryUrl(String homepage) {
-  if (homepage == null) {
+String inferRepositoryUrl(String baseUrl) {
+  if (baseUrl == null) {
     return null;
   }
-  final uri = Uri.tryParse(homepage);
+  final uri = Uri.tryParse(baseUrl);
   if (uri == null) {
     return null;
   }
@@ -146,11 +146,11 @@ String inferRepositoryUrl(String homepage) {
 }
 
 /// Parses GitHub and GitLab urls, and returns the issue tracker of the repository.
-String inferIssueTrackerUrl(String homepage) {
-  if (homepage == null) {
+String inferIssueTrackerUrl(String baseUrl, {bool reportNewIssue: false}) {
+  if (baseUrl == null) {
     return null;
   }
-  final uri = Uri.tryParse(homepage);
+  final uri = Uri.tryParse(baseUrl);
   if (uri == null) {
     return null;
   }
@@ -166,6 +166,9 @@ String inferIssueTrackerUrl(String homepage) {
       return null;
     }
     segments.add('issues');
+    if (reportNewIssue) {
+      segments.add('new');
+    }
     final url = new Uri(
       scheme: 'https',
       host: uri.host,
@@ -188,4 +191,41 @@ String inferServiceProviderName(String url) {
     return 'GitLab';
   }
   return null;
+}
+
+/// The URLs provided by the package's pubspec or inferred from the homepage.
+class PackageLinks {
+  final String homepageUrl;
+  final String documentationUrl;
+  final String repositoryUrl;
+  final String issueTrackerUrl;
+  final String reportIssuesUrl;
+
+  PackageLinks({
+    this.homepageUrl,
+    this.documentationUrl,
+    this.repositoryUrl,
+    this.issueTrackerUrl,
+    this.reportIssuesUrl,
+  });
+
+  factory PackageLinks.infer({
+    String homepageUrl,
+    String documentationUrl,
+    String repositoryUrl,
+    String issueTrackerUrl,
+    String reportIssuesUrl,
+  }) {
+    repositoryUrl ??= inferRepositoryUrl(homepageUrl);
+    issueTrackerUrl ??= inferIssueTrackerUrl(repositoryUrl);
+    reportIssuesUrl ??=
+        inferIssueTrackerUrl(issueTrackerUrl, reportNewIssue: true);
+    return new PackageLinks(
+      homepageUrl: homepageUrl,
+      documentationUrl: documentationUrl,
+      repositoryUrl: repositoryUrl,
+      issueTrackerUrl: issueTrackerUrl,
+      reportIssuesUrl: reportIssuesUrl,
+    );
+  }
 }

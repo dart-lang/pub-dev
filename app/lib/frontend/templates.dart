@@ -405,8 +405,10 @@ class TemplateService {
       version: selectedVersion.version,
       isLatest: selectedVersion.version == package.latestVersion,
     );
-    final repositoryUrl = urls.inferRepositoryUrl(homepageUrl);
-    final issueTrackerUrl = urls.inferIssueTrackerUrl(homepageUrl);
+    final packageLinks = new urls.PackageLinks.infer(
+      homepageUrl: homepageUrl,
+      documentationUrl: documentationUrl,
+    );
 
     final links = <Map<String, dynamic>>[];
     void addLink(
@@ -426,12 +428,15 @@ class TemplateService {
       links.add(<String, dynamic>{'href': href, 'label': label});
     }
 
-    if (repositoryUrl != homepageUrl) {
+    if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
       addLink(homepageUrl, 'Homepage');
     }
-    addLink(repositoryUrl, 'Repository', detectServiceProvider: true);
-    addLink(issueTrackerUrl, 'Issue Tracker', detectServiceProvider: true);
-    addLink(documentationUrl, 'Documentation');
+    addLink(packageLinks.repositoryUrl, 'Repository',
+        detectServiceProvider: true);
+    addLink(packageLinks.issueTrackerUrl, 'Issue Tracker');
+    addLink(packageLinks.reportIssuesUrl, 'Report an issue',
+        detectServiceProvider: true);
+    addLink(packageLinks.documentationUrl, 'Documentation');
     addLink(dartdocsUrl, 'API Docs');
 
     final values = {
