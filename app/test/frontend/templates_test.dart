@@ -381,7 +381,7 @@ void main() {
           version: flutterPackageVersion,
           analysis: new AnalysisExtract(platforms: ['flutter']),
         ),
-      ], new PackageLinks.empty(), null);
+      ], new PageLinks.empty(), null);
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
@@ -405,7 +405,7 @@ void main() {
             analysis: new AnalysisExtract(platforms: ['flutter']),
           ),
         ],
-        new PackageLinks(0, 50, searchQuery: searchQuery),
+        new PageLinks(0, 50, searchQuery: searchQuery),
         null,
         searchQuery: searchQuery,
         totalCount: 2,
@@ -417,7 +417,7 @@ void main() {
       final searchQuery = new SearchQuery.parse(query: 'email:user@domain.com');
       final String html = templates.renderPkgIndexPage(
         [],
-        new PackageLinks.empty(),
+        new PageLinks.empty(),
         null,
         searchQuery: searchQuery,
         totalCount: 0,
@@ -429,7 +429,7 @@ void main() {
       final searchQuery = new SearchQuery.parse(query: 'foo:bar');
       final String html = templates.renderPkgIndexPage(
         [],
-        new PackageLinks.empty(),
+        new PageLinks.empty(),
         null,
         searchQuery: searchQuery,
         totalCount: 0,
@@ -472,22 +472,22 @@ void main() {
     });
 
     test('pagination: single page', () {
-      final String html = templates.renderPagination(new PackageLinks.empty());
+      final String html = templates.renderPagination(new PageLinks.empty());
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
-      final String html = templates.renderPagination(new PackageLinks(90, 299));
+      final String html = templates.renderPagination(new PageLinks(90, 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
-      final String html = templates.renderPagination(new PackageLinks(0, 600));
+      final String html = templates.renderPagination(new PageLinks(0, 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
-      final String html = templates.renderPagination(new PackageLinks(90, 91));
+      final String html = templates.renderPagination(new PageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 
@@ -508,75 +508,75 @@ void main() {
 
   group('PageLinks', () {
     test('empty', () {
-      final links = new PackageLinks.empty();
+      final links = new PageLinks.empty();
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('one', () {
-      final links = new PackageLinks(0, 1);
+      final links = new PageLinks(0, 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('PackageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = new PackageLinks(0, PackageLinks.resultsPerPage - 1);
+    test('PageLinks.RESULTS_PER_PAGE - 1', () {
+      final links = new PageLinks(0, PageLinks.resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('PackageLinks.RESULTS_PER_PAGE', () {
-      final links = new PackageLinks(0, PackageLinks.resultsPerPage);
+    test('PageLinks.RESULTS_PER_PAGE', () {
+      final links = new PageLinks(0, PageLinks.resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('PackageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = new PackageLinks(0, PackageLinks.resultsPerPage + 1);
+    test('PageLinks.RESULTS_PER_PAGE + 1', () {
+      final links = new PageLinks(0, PageLinks.resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    final int page2Offset = PackageLinks.resultsPerPage;
+    final int page2Offset = PageLinks.resultsPerPage;
 
     test('page=2 + one item', () {
-      final links = new PackageLinks(page2Offset, page2Offset + 1);
+      final links = new PageLinks(page2Offset, page2Offset + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    test('page=2 + PackageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = new PackageLinks(
-          page2Offset, page2Offset + PackageLinks.resultsPerPage - 1);
+    test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
+      final links = new PageLinks(
+          page2Offset, page2Offset + PageLinks.resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    test('page=2 + PackageLinks.RESULTS_PER_PAGE', () {
-      final links = new PackageLinks(
-          page2Offset, page2Offset + PackageLinks.resultsPerPage);
+    test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
+      final links =
+          new PageLinks(page2Offset, page2Offset + PageLinks.resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    test('page=2 + PackageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = new PackageLinks(
-          page2Offset, page2Offset + PackageLinks.resultsPerPage + 1);
+    test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
+      final links = new PageLinks(
+          page2Offset, page2Offset + PageLinks.resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);
     });
 
     test('deep in the middle', () {
-      final links = new PackageLinks(200, 600);
+      final links = new PageLinks(200, 600);
       expect(links.currentPage, 21);
       expect(links.leftmostPage, 16);
       expect(links.rightmostPage, 26);
@@ -584,17 +584,17 @@ void main() {
   });
 
   group('URLs', () {
-    test('PackageLinks defaults', () {
+    test('PageLinks defaults', () {
       final query = new SearchQuery.parse(query: 'web framework');
-      final PackageLinks links = new PackageLinks(0, 100, searchQuery: query);
+      final PageLinks links = new PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/packages?q=web+framework&page=1');
       expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
-    test('PackageLinks with platform', () {
+    test('PageLinks with platform', () {
       final query =
           new SearchQuery.parse(query: 'some framework', platform: 'flutter');
-      final PackageLinks links = new PackageLinks(0, 100, searchQuery: query);
+      final PageLinks links = new PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/flutter/packages?q=some+framework&page=1');
       expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
     });

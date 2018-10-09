@@ -985,18 +985,21 @@ String _classifyScore(double value) {
   return 'solid';
 }
 
-abstract class PageLinks {
+class PageLinks {
   static const int resultsPerPage = 10;
   static const int maxPages = 10;
 
   final int offset;
   final int count;
+  final SearchQuery _searchQuery;
 
-  PageLinks(this.offset, this.count);
+  PageLinks(this.offset, this.count, {SearchQuery searchQuery})
+      : _searchQuery = searchQuery;
 
   PageLinks.empty()
       : offset = 1,
-        count = 1;
+        count = 1,
+        _searchQuery = null;
 
   int get leftmostPage => max(currentPage - maxPages ~/ 2, 1);
 
@@ -1045,23 +1048,6 @@ abstract class PageLinks {
     return results;
   }
 
-  String formatHref(int page);
-}
-
-class PackageLinks extends PageLinks {
-  static const int resultsPerPage = 10;
-  static const int maxPages = 15;
-  final SearchQuery _searchQuery;
-
-  PackageLinks(int offset, int count, {SearchQuery searchQuery})
-      : _searchQuery = searchQuery,
-        super(offset, count);
-
-  PackageLinks.empty()
-      : _searchQuery = null,
-        super.empty();
-
-  @override
   String formatHref(int page) {
     if (_searchQuery == null) {
       return urls.searchUrl(page: page);
