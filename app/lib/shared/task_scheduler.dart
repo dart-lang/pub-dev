@@ -83,16 +83,12 @@ class TaskScheduler {
       );
     }
 
-    for (;;) {
+    while (liveSubscriptions > 0) {
       final task = _pickFirstTask();
 
       if (task == null) {
-        if (liveSubscriptions == 0) {
-          break;
-        } else {
-          await new Future.delayed(const Duration(seconds: 5));
-          continue;
-        }
+        await new Future.delayed(const Duration(seconds: 5));
+        continue;
       }
 
       await runTask(task);
