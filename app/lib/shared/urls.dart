@@ -218,7 +218,8 @@ class PackageLinks {
   }) {
     repositoryUrl ??= inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= inferIssueTrackerUrl(repositoryUrl);
-    reportIssuesUrl ??= inferIssueTrackerUrl(issueTrackerUrl, reportNewIssue: true);
+    reportIssuesUrl ??=
+        inferIssueTrackerUrl(issueTrackerUrl, reportNewIssue: true);
     return new PackageLinks(
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
