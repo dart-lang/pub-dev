@@ -217,4 +217,9 @@ class DartdocBackendMock implements DartdocBackend {
   Future deleteOldSdkData() {
     throw new UnimplementedError();
   }
+
+  @override
+  Future<String> getTextContent(DartdocEntry entry, String relativePath) {
+    throw new UnimplementedError();
+  }
 }
