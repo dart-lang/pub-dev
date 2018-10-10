@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart';
+import '../scorecard/backend.dart';
 import '../shared/analyzer_memcache.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/task_scheduler.dart' show TaskTargetStatus;
@@ -220,7 +221,7 @@ class AnalysisBackend {
       return new TaskTargetStatus.skip('Insufficient package or version.');
     }
     final pkgStatus =
-        await analysisBackend.getPackageStatus(packageName, packageVersion);
+        await scoreCardBackend.getPackageStatus(packageName, packageVersion);
     if (!pkgStatus.exists) {
       return new TaskTargetStatus.skip('PackageVersion does not exists.');
     }
@@ -350,16 +351,6 @@ class AnalysisBackend {
           '${obsoleteKeys.map((k) => k.id).join(',')}');
       await db.commit(deletes: obsoleteKeys);
     }
-  }
-
-  /// Returns the status of a package and version.
-  Future<PackageStatus> getPackageStatus(String package, String version) async {
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final List list = await db
-        .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
-    final Package p = list[0];
-    final PackageVersion pv = list[1];
-    return new PackageStatus.fromModels(p, pv);
   }
 }
 

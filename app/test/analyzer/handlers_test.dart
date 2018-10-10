@@ -166,11 +166,6 @@ class MockAnalysisBackend implements AnalysisBackend {
   Future deleteObsoleteAnalysis(String package, String version) {
     throw new UnimplementedError();
   }
-
-  @override
-  Future<PackageStatus> getPackageStatus(String package, String version) {
-    throw new UnimplementedError();
-  }
 }
 
 final Analysis testAnalysis = new Analysis()

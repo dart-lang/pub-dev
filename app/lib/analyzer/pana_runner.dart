@@ -43,7 +43,7 @@ class AnalyzerJobProcessor extends JobProcessor {
 
   @override
   Future<JobStatus> process(Job job) async {
-    final packageStatus = await analysisBackend.getPackageStatus(
+    final packageStatus = await scoreCardBackend.getPackageStatus(
         job.packageName, job.packageVersion);
     if (!packageStatus.exists) {
       _logger.info('Package does not exist: $job.');

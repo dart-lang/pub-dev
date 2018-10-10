@@ -257,4 +257,14 @@ class ScoreCardBackend {
       deletes.clear();
     }
   }
+
+  /// Returns the status of a package and version.
+  Future<PackageStatus> getPackageStatus(String package, String version) async {
+    final packageKey = _db.emptyKey.append(Package, id: package);
+    final List list = await _db
+        .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
+    final Package p = list[0];
+    final PackageVersion pv = list[1];
+    return new PackageStatus.fromModels(p, pv);
+  }
 }
