@@ -11,10 +11,8 @@ import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../frontend/models.dart';
-import '../scorecard/backend.dart';
 import '../shared/analyzer_memcache.dart';
 import '../shared/analyzer_service.dart';
-import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart';
 import '../shared/versions.dart';
 
@@ -208,41 +206,6 @@ class AnalysisBackend {
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
     });
     return result as BackendAnalysisStatus;
-  }
-
-  /// Returns the task target status based on:
-  /// - whether [packageName] with [packageVersion] exists, and
-  /// - it has no recent [Analysis] with the current [panaVersion] or [flutterVersion], or
-  /// - it has no newer [Analysis] than [panaVersion] or [flutterVersion].
-  Future<TaskTargetStatus> checkTargetStatus(
-      String packageName, String packageVersion, DateTime updated) async {
-    if (packageName == null || packageVersion == null) {
-      return new TaskTargetStatus.skip('Insufficient package or version.');
-    }
-    final pkgStatus =
-        await scoreCardBackend.getPackageStatus(packageName, packageVersion);
-    if (!pkgStatus.exists) {
-      return new TaskTargetStatus.skip('PackageVersion does not exists.');
-    }
-    if (pkgStatus.isDiscontinued) {
-      return new TaskTargetStatus.skip('Package is discontinued.');
-    }
-    if (pkgStatus.isObsolete) {
-      return new TaskTargetStatus.skip('Package is older than two years old.');
-    }
-
-    final hasReport = await scoreCardBackend.hasReport(
-      packageName,
-      packageVersion,
-      ReportType.pana,
-      updatedAfter: updated,
-    );
-    if (hasReport) {
-      return new TaskTargetStatus.skip(
-          'PackageVersion has up-to-date analysis.');
-    }
-
-    return new TaskTargetStatus.ok();
   }
 
   /// Deletes the obsolete [Analysis] instances from Datastore. An instance is

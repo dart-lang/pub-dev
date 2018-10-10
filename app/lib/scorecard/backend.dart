@@ -268,8 +268,7 @@ class ScoreCardBackend {
     return new PackageStatus.fromModels(p, pv);
   }
 
-  /// Whether the specified version has an up-to-date report of [reportType].
-  Future<bool> hasReport(
+  Future<bool> shouldUpdateReport(
     String packageName,
     String packageVersion,
     String reportType, {
@@ -277,25 +276,28 @@ class ScoreCardBackend {
     Duration failureThreshold: const Duration(days: 1),
     DateTime updatedAfter,
   }) async {
-    if (packageName == null || packageVersion == null || reportType == null) {
+    if (packageName == null || packageVersion == null) {
       return false;
     }
+    final pkgStatus = await getPackageStatus(packageName, packageVersion);
+    if (!pkgStatus.exists || pkgStatus.isDiscontinued || pkgStatus.isObsolete) {
+      return false;
+    }
+
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: reportType);
     final list = await _db.lookup([key]);
     final ScoreCardReport report = list.single;
     if (report == null) {
-      return false;
+      return true;
     }
-    if (updatedAfter != null && updatedAfter.isBefore(report.updated)) {
-      return false;
+
+    if (updatedAfter != null && updatedAfter.isAfter(report.updated)) {
+      return true;
     }
     final age = new DateTime.now().toUtc().difference(report.updated);
     final isSuccess = report.reportStatus == ReportStatus.success;
     final ageThreshold = isSuccess ? successThreshold : failureThreshold;
-    if (age > ageThreshold) {
-      return false;
-    }
-    return true;
+    return age > ageThreshold;
   }
 }
