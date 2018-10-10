@@ -153,7 +153,7 @@ class AnalyzerJobProcessor extends JobProcessor {
       }
       analysis.analysisJson = summary.toJson();
       analysis.maintenanceScore ??=
-          getMaintenanceScore(summary.maintenance) / 100.0;
+          calculateMaintenanceScore(summary.maintenance);
     }
 
     final backendStatus = await analysisBackend.storeAnalysis(analysis);
@@ -243,7 +243,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           healthScore: summary?.health?.healthScore ?? 0.0,
           maintenanceScore: summary == null
               ? 0.0
-              : (getMaintenanceScore(summary.maintenance) / 100.0),
+              : calculateMaintenanceScore(summary.maintenance),
           platformTags: indexDartPlatform(summary?.platform),
           platformReason: summary?.platform?.reason,
           pkgDependencies: summary?.pkgResolution?.dependencies,
