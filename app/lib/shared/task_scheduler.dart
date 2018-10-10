@@ -144,16 +144,3 @@ class Task {
   @override
   int get hashCode => package.hashCode ^ version.hashCode;
 }
-
-class TaskTargetStatus {
-  final bool shouldSkip;
-  final String reason;
-
-  TaskTargetStatus(this.shouldSkip, this.reason);
-
-  TaskTargetStatus.ok()
-      : shouldSkip = false,
-        reason = null;
-
-  TaskTargetStatus.skip(this.reason) : shouldSkip = true;
-}
