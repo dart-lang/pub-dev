@@ -97,11 +97,16 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   @override
-  Future<bool> shouldProcess(
-      String package, String version, DateTime updated) async {
-    final status =
-        await dartdocBackend.checkTargetStatus(package, version, updated, true);
-    return !status.shouldSkip;
+  Future<bool> shouldProcess(String package, String version, DateTime updated) {
+    return scoreCardBackend.shouldUpdateReport(
+      package,
+      version,
+      ReportType.dartdoc,
+      updatedAfter: updated,
+      includeDiscontinued: true,
+      includeObsolete: true,
+      successThreshold: const Duration(days: 90),
+    );
   }
 
   @override

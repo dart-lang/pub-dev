@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/dartdoc/pub_dartdoc_data.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
@@ -126,12 +125,6 @@ class DartdocBackendMock implements DartdocBackend {
   final Map<String, String> latestVersions;
 
   DartdocBackendMock({this.entries, this.latestVersions});
-
-  @override
-  Future<TaskTargetStatus> checkTargetStatus(
-      String package, String version, DateTime updated, bool retryFailed) {
-    throw new UnimplementedError();
-  }
 
   @override
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) {

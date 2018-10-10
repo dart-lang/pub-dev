@@ -9,17 +9,12 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pub_semver/pub_semver.dart';
 
-import '../shared/task_scheduler.dart' show TaskTargetStatus;
-import '../shared/utils.dart' show isNewer;
 import '../shared/versions.dart' as versions;
 
 import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
-
-final Duration _entryUpdateThreshold = const Duration(days: 90);
 
 @JsonSerializable()
 class DartdocEntry {
@@ -106,48 +101,6 @@ class DartdocEntry {
   }
 
   List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
-
-  TaskTargetStatus checkTargetStatus({bool retryFailed = false}) {
-    final age = new DateTime.now().difference(timestamp).abs();
-    if (age > _entryUpdateThreshold) {
-      return new TaskTargetStatus.ok();
-    }
-
-    final semanticRuntimeVersion =
-        new Version.parse(runtimeVersion ?? versions.dartdocRuntimeEpoch);
-    if (isNewer(semanticRuntimeVersion, versions.semanticRuntimeVersion)) {
-      if (hasContent &&
-          !usesFlutter &&
-          flutterVersion != versions.flutterVersion &&
-          sdkVersion == versions.toolEnvSdkVersion &&
-          dartdocVersion == versions.dartdocVersion &&
-          customizationVersion == versions.customizationVersion) {
-        return new TaskTargetStatus.skip(
-            'Only Flutter version changed and package does not depend on it.');
-      } else {
-        // our runtime version is newer -> regenerate
-        return new TaskTargetStatus.ok();
-      }
-    }
-
-    if (hasContent) {
-      return new TaskTargetStatus.skip(
-          'Entry has content, its age (${age.inDays} days) is less than the '
-          'threshold (${_entryUpdateThreshold.inDays} days).');
-    }
-
-    if (!retryFailed) {
-      return new TaskTargetStatus.skip(
-          'Previous run failed, and retry was not requested.');
-    }
-
-    if (age.inDays == 0) {
-      return new TaskTargetStatus.skip(
-          'Previous run failed, and less than a day passed.');
-    } else {
-      return new TaskTargetStatus.ok();
-    }
-  }
 
   bool isRegression(DartdocEntry oldEntry) {
     if (oldEntry == null) {

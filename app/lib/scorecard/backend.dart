@@ -272,15 +272,23 @@ class ScoreCardBackend {
     String packageName,
     String packageVersion,
     String reportType, {
-    Duration successThreshold: const Duration(days: 30),
-    Duration failureThreshold: const Duration(days: 1),
+    bool includeDiscontinued = false,
+    bool includeObsolete = false,
+    Duration successThreshold = const Duration(days: 30),
+    Duration failureThreshold = const Duration(days: 1),
     DateTime updatedAfter,
   }) async {
     if (packageName == null || packageVersion == null) {
       return false;
     }
     final pkgStatus = await getPackageStatus(packageName, packageVersion);
-    if (!pkgStatus.exists || pkgStatus.isDiscontinued || pkgStatus.isObsolete) {
+    if (!pkgStatus.exists) {
+      return false;
+    }
+    if (!includeDiscontinued && pkgStatus.isDiscontinued) {
+      return false;
+    }
+    if (!includeObsolete && pkgStatus.isObsolete) {
       return false;
     }
 

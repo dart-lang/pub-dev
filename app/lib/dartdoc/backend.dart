@@ -17,7 +17,6 @@ import 'package:pub_semver/pub_semver.dart';
 import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
-import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart' show contentType;
 import '../shared/versions.dart' as shared_versions;
 
@@ -189,18 +188,6 @@ class DartdocBackend {
     await _storage.delete(entry.inProgressObjectName);
 
     await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
-  }
-
-  Future<TaskTargetStatus> checkTargetStatus(String package, String version,
-      DateTime updated, bool retryFailed) async {
-    final entry = await getLatestEntry(package, version);
-    if (entry == null) {
-      return new TaskTargetStatus.ok();
-    }
-    if (updated != null && updated.isAfter(entry.timestamp)) {
-      return new TaskTargetStatus.ok();
-    }
-    return entry.checkTargetStatus(retryFailed: retryFailed);
   }
 
   Future<bool> isLegacy(String package, String version) async {
