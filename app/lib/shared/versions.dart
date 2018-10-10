@@ -42,7 +42,7 @@ final Version semanticPanaVersion = new Version.parse(panaVersion);
 final String flutterVersion = '0.9.5';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
-final String dartdocVersion = '0.21.1';
+final String dartdocVersion = '0.23.1';
 final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
 /// The version of our customization going into the output of the dartdoc static
