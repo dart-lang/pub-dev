@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:logging/logging.dart';
 
@@ -46,13 +45,14 @@ class ManualTriggerTaskSource implements TaskSource {
 class TaskScheduler {
   final TaskRunner taskRunner;
   final List<TaskSource> sources;
+  final bool randomize;
   final LastNTracker<String> _statusTracker = new LastNTracker();
   final LastNTracker<num> _latencyTracker = new LastNTracker();
-  List<Queue<Task>> _queues;
+  List<List<Task>> _queues;
+  bool _needsShuffle = false;
 
-  TaskScheduler(this.taskRunner, this.sources) {
-    _queues = new List<Queue<Task>>.generate(
-        sources.length, (i) => new Queue<Task>());
+  TaskScheduler(this.taskRunner, this.sources, {this.randomize: false}) {
+    _queues = new List<List<Task>>.generate(sources.length, (i) => <Task>[]);
   }
 
   Future run() async {
@@ -76,6 +76,9 @@ class TaskScheduler {
       sources[i].startStreaming().listen(
         (task) {
           _queues[i].add(task);
+          if (randomize) {
+            _needsShuffle = true;
+          }
         },
         onDone: () {
           liveSubscriptions--;
@@ -84,6 +87,7 @@ class TaskScheduler {
     }
 
     while (liveSubscriptions > 0) {
+      _shuffleQueues();
       final task = _pickFirstTask();
 
       if (task == null) {
@@ -95,10 +99,19 @@ class TaskScheduler {
     }
   }
 
+  void _shuffleQueues() {
+    if (_needsShuffle) {
+      for (List<Task> queue in _queues) {
+        queue.shuffle();
+      }
+    }
+    _needsShuffle = false;
+  }
+
   Task _pickFirstTask() {
-    for (Queue<Task> queue in _queues) {
+    for (List<Task> queue in _queues) {
       if (queue.isEmpty) continue;
-      return queue.removeFirst();
+      return queue.removeLast();
     }
     return null;
   }
