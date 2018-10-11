@@ -234,30 +234,12 @@ class AnalysisView {
     return _summary?.health?.healthScore ?? 0.0;
   }
 
-  List<Suggestion> get suggestions => getAllSuggestions(_summary);
-
   List<Suggestion> get panaSuggestions => _summary?.suggestions;
   List<Suggestion> get healthSuggestions => _summary?.health?.suggestions;
   List<Suggestion> get maintenanceSuggestions =>
       _summary?.maintenance?.suggestions;
 
   double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
-}
-
-List<Suggestion> getAllSuggestions(Summary summary) {
-  if (summary == null) return null;
-  final list = <Suggestion>[];
-  if (summary.suggestions != null) {
-    list.addAll(summary.suggestions);
-  }
-  if (summary.health?.suggestions != null) {
-    list.addAll(summary.health.suggestions);
-  }
-  if (summary.maintenance?.suggestions != null) {
-    list.addAll(summary.maintenance.suggestions);
-  }
-  list.sort();
-  return list;
 }
 
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
