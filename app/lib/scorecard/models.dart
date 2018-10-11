@@ -325,7 +325,17 @@ class PanaReport implements ReportData {
 
   final List<PkgDependency> pkgDependencies;
 
-  final List<Suggestion> suggestions;
+  /// Suggestions related to the pana processing and overall package status.
+  @JsonKey(includeIfNull: false)
+  final List<Suggestion> panaSuggestions;
+
+  /// Suggestions related to the package health score.
+  @JsonKey(includeIfNull: false)
+  final List<Suggestion> healthSuggestions;
+
+  /// Suggestions related to the package maintenance score.
+  @JsonKey(includeIfNull: false)
+  final List<Suggestion> maintenanceSuggestions;
 
   List<LicenseFile> licenses;
 
@@ -344,7 +354,9 @@ class PanaReport implements ReportData {
     @required this.platformReason,
     @required this.pkgDependencies,
     @required this.licenses,
-    @required this.suggestions,
+    @required this.panaSuggestions,
+    @required this.healthSuggestions,
+    @required this.maintenanceSuggestions,
     @required this.flags,
   });
 
