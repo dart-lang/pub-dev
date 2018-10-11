@@ -125,10 +125,11 @@ class TaskScheduler {
 class Task {
   final String package;
   final String version;
+  final DateTime updated;
 
-  Task(this.package, this.version);
+  Task(this.package, this.version, this.updated);
 
-  Task.now(this.package, this.version);
+  Task.now(this.package, this.version) : updated = new DateTime.now();
 
   @override
   String toString() => '$package $version';

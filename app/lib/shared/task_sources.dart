@@ -99,11 +99,13 @@ class DatastoreHeadTaskSource implements TaskSource {
   }
 
   Task _packageToTask(Package p) =>
-      new Task(p.name, p.latestVersion ?? p.latestDevVersion);
+      new Task(p.name, p.latestVersion ?? p.latestDevVersion, p.updated);
 
-  Task _versionToTask(PackageVersion pv) => new Task(pv.package, pv.version);
+  Task _versionToTask(PackageVersion pv) =>
+      new Task(pv.package, pv.version, pv.created);
 
-  Task _analysisToTask(Analysis a) => new Task(a.packageName, a.packageVersion);
+  Task _analysisToTask(Analysis a) =>
+      new Task(a.packageName, a.packageVersion, a.timestamp);
 }
 
 /// Creates a task when the most recent output requires an update (e.g. too old).
@@ -126,12 +128,12 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
         await for (Package p in packageQuery.run()) {
           if (await requiresUpdate(p.name, p.latestVersion,
               retryFailed: true)) {
-            yield new Task(p.name, p.latestVersion);
+            yield new Task(p.name, p.latestVersion, p.updated);
           }
 
           if (p.latestVersion != p.latestDevVersion &&
               await requiresUpdate(p.name, p.latestDevVersion)) {
-            yield new Task(p.name, p.latestDevVersion);
+            yield new Task(p.name, p.latestDevVersion, p.updated);
           }
         }
 
@@ -141,7 +143,7 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
           ..order('-created');
         await for (PackageVersion pv in versionQuery.run()) {
           if (await requiresUpdate(pv.package, pv.version)) {
-            yield new Task(pv.package, pv.version);
+            yield new Task(pv.package, pv.version, pv.created);
           }
         }
       } catch (e, st) {
