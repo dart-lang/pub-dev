@@ -132,17 +132,6 @@ class Task {
 
   @override
   String toString() => '$package $version';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Task &&
-          runtimeType == other.runtimeType &&
-          package == other.package &&
-          version == other.version;
-
-  @override
-  int get hashCode => package.hashCode ^ version.hashCode;
 }
 
 class TaskTargetStatus {
