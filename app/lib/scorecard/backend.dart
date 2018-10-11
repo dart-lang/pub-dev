@@ -195,6 +195,9 @@ class ScoreCardBackend {
       if (status.isObsolete) {
         scoreCard.addFlag(PackageFlags.isObsolete);
       }
+      if (version.pubspec.usesFlutter) {
+        scoreCard.addFlag(PackageFlags.usesFlutter);
+      }
 
       scoreCard.popularityScore = popularityStorage.lookup(packageName) ?? 0.0;
 
