@@ -43,10 +43,12 @@ class SearchResultCombiner {
     ].expand((list) => list).toList();
 
     final matchedPackage = query.parsedQuery.text;
+    final matchedPackageIsFirst = primaryResult.packages.isNotEmpty &&
+        primaryResult.packages.first.package == matchedPackage;
     allPackages.sort((a, b) {
       // matching package name should be the first
-      if (a.package == matchedPackage) return -1;
-      if (b.package == matchedPackage) return 1;
+      if (matchedPackageIsFirst && a.package == matchedPackage) return -1;
+      if (matchedPackageIsFirst && b.package == matchedPackage) return 1;
 
       // otherwise sort on score
       return -a.score.compareTo(b.score);
