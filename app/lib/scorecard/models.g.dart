@@ -72,7 +72,15 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
               ? null
               : LicenseFile.fromJson(e as Map<String, dynamic>))
           ?.toList(),
-      suggestions: (json['suggestions'] as List)
+      panaSuggestions: (json['panaSuggestions'] as List)
+          ?.map((e) =>
+              e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
+          ?.toList(),
+      healthSuggestions: (json['healthSuggestions'] as List)
+          ?.map((e) =>
+              e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
+          ?.toList(),
+      maintenanceSuggestions: (json['maintenanceSuggestions'] as List)
           ?.map((e) =>
               e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
           ?.toList(),
@@ -89,8 +97,6 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     'platformTags': instance.platformTags,
     'platformReason': instance.platformReason,
     'pkgDependencies': instance.pkgDependencies,
-    'suggestions': instance.suggestions,
-    'licenses': instance.licenses,
   };
 
   void writeNotNull(String key, dynamic value) {
@@ -99,6 +105,10 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     }
   }
 
+  writeNotNull('panaSuggestions', instance.panaSuggestions);
+  writeNotNull('healthSuggestions', instance.healthSuggestions);
+  writeNotNull('maintenanceSuggestions', instance.maintenanceSuggestions);
+  val['licenses'] = instance.licenses;
   writeNotNull('flags', instance.flags);
   return val;
 }

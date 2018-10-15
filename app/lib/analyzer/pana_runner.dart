@@ -13,8 +13,7 @@ import 'package:pana/src/version.dart' as pana_version;
 import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
-import '../shared/analyzer_client.dart'
-    show createPanaSummaryForLegacy, getAllSuggestions;
+import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
 import '../shared/analyzer_service.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/packages_overrides.dart';
@@ -252,7 +251,9 @@ class AnalyzerJobProcessor extends JobProcessor {
           platformTags: indexDartPlatform(summary?.platform),
           platformReason: summary?.platform?.reason,
           pkgDependencies: summary?.pkgResolution?.dependencies,
-          suggestions: getAllSuggestions(summary),
+          panaSuggestions: summary?.suggestions,
+          healthSuggestions: summary?.health?.suggestions,
+          maintenanceSuggestions: summary?.maintenance?.suggestions,
           licenses: summary?.licenses,
           flags: flags,
         ));

@@ -648,9 +648,6 @@ class MockAnalysisView implements AnalysisView {
   String platformsReason;
 
   @override
-  List<Suggestion> suggestions;
-
-  @override
   List<Suggestion> panaSuggestions;
 
   @override
@@ -671,7 +668,6 @@ class MockAnalysisView implements AnalysisView {
     this.transitiveDependencies,
     this.devDependencies,
     this.health,
-    this.suggestions,
     this.panaSuggestions,
     this.healthSuggestions,
     this.maintenanceSuggestions,
