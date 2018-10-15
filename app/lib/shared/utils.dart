@@ -391,7 +391,10 @@ Future<R> retryAsync<R>(
       return await body();
     } catch (e, st) {
       if (i < maxRetry) {
-        _logger.info('Async operation failed (attempt: ${i + 1}).', e, st);
+        _logger.info(
+            'Async operation failed (attempt: ${i + 1} of ${maxRetry + 1}).',
+            e,
+            st);
         await new Future.delayed(sleep);
         continue;
       }
