@@ -139,7 +139,12 @@ class AnalyzerJobProcessor extends JobProcessor {
       scoreCardSummary =
           await _expandSummary(summary, packageStatus.age, false);
       summary = await _expandSummary(summary, packageStatus.age, true);
-      isLegacy = summary.suggestions?.any(_isLegacy) ?? false;
+      if (summary.suggestions?.any(_isLegacy) ?? false) {
+        isLegacy = true;
+      }
+      if (summary.maintenance?.suggestions?.any(_isLegacy) ?? false) {
+        isLegacy = true;
+      }
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
       if (isLegacy) {
