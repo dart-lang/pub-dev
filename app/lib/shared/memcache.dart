@@ -58,8 +58,8 @@ class SimpleMemcache {
   Future setText(String key, String content) async {
     if (content == null) return;
     if (content.length >= _contentLimit) {
-      _logger.info(
-          "Content too large for memcache entry for $key (${content.length}).");
+      _logger.info("Content too large for memcache entry for $key "
+          "(length: ${content.length}, limit: $_contentLimit).");
       return;
     }
     try {
@@ -86,8 +86,8 @@ class SimpleMemcache {
   Future setBytes(String key, List<int> content) async {
     if (content == null) return;
     if (content.length >= _contentLimit) {
-      _logger.info(
-          "Content too large for memcache entry for $key (${content.length}).");
+      _logger.info("Content too large for memcache entry for $key "
+          "(length: ${content.length}, limit: $_contentLimit).");
       return;
     }
     try {
