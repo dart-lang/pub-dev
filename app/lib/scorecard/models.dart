@@ -39,6 +39,7 @@ abstract class PackageFlags {
   static const String isLatestStable = 'latest-stable';
   static const String isLegacy = 'legacy';
   static const String isObsolete = 'obsolete';
+  static const String usesFlutter = 'uses-flutter';
 }
 
 abstract class ReportType {
@@ -290,6 +291,9 @@ class ScoreCardData {
       flags != null && flags.contains(PackageFlags.doNotAdvertise);
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
+
+  bool get usesFlutter =>
+      flags != null && flags.contains(PackageFlags.usesFlutter);
 
   Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
 }
