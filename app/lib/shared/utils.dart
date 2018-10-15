@@ -380,21 +380,19 @@ List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
 }
 
 /// Executes [body] and returns with the same result.
-/// When it throws an exception, it will be re-run until [maxRetry] is reached.
+/// When it throws an exception, it will be re-run until [maxAttempt] is reached.
 Future<R> retryAsync<R>(
   Future<R> body(), {
-  int maxRetry: 3,
+  int maxAttempt: 3,
   Duration sleep: const Duration(seconds: 1),
 }) async {
-  for (int i = 0; i <= maxRetry; i++) {
+  for (int i = 1; i <= maxAttempt; i++) {
     try {
       return await body();
     } catch (e, st) {
-      if (i < maxRetry) {
+      if (i < maxAttempt) {
         _logger.info(
-            'Async operation failed (attempt: ${i + 1} of ${maxRetry + 1}).',
-            e,
-            st);
+            'Async operation failed (attempt: $i of $maxAttempt).', e, st);
         await new Future.delayed(sleep);
         continue;
       }
