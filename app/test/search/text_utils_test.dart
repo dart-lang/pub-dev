@@ -85,6 +85,13 @@ Other useful methods will be added soon...
   });
 
   group('tokenize', () {
+    test('dart:async', () {
+      expect(tokenize('dart:async'), {
+        'dart': 1.0,
+        'async': 1.0,
+      });
+    });
+
     test('simple text', () {
       expect(tokenize('The quick brown fox jumps over the lazy dog.'), {
         'the': 1.0,
