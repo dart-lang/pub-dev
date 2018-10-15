@@ -30,6 +30,10 @@ const String dartdocFileInfoPrefix = 'dartdoc_fileinfo_';
 const String scoreCardDataPrefix = 'scorecard_';
 const String searchServiceResultPrefix = 'search_service_result_';
 
+// Appengine's memcache has a content limit of 1MB (1024 * 124).
+// Keeping it under that limit in order to offset char coding or other payloads.
+const _contentLimit = 1000 * 1000;
+
 class SimpleMemcache {
   final Logger _logger;
   final Memcache _memcache;
@@ -52,6 +56,12 @@ class SimpleMemcache {
   }
 
   Future setText(String key, String content) async {
+    if (content == null) return;
+    if (content.length >= _contentLimit) {
+      _logger.info("Content too large for memcache entry for $key "
+          "(length: ${content.length}, limit: $_contentLimit).");
+      return;
+    }
     try {
       await _memcache
           .set(_key(key), content, expiration: _expiration)
@@ -74,6 +84,12 @@ class SimpleMemcache {
   }
 
   Future setBytes(String key, List<int> content) async {
+    if (content == null) return;
+    if (content.length >= _contentLimit) {
+      _logger.info("Content too large for memcache entry for $key "
+          "(length: ${content.length}, limit: $_contentLimit).");
+      return;
+    }
     try {
       await _memcache
           .set(_key(key), content, expiration: _expiration)
