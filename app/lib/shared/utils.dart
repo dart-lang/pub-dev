@@ -386,7 +386,7 @@ Future<R> retryAsync<R>(
   int maxAttempt: 3,
   Duration sleep: const Duration(seconds: 1),
 }) async {
-  for (int i = 1; i <= maxAttempt; i++) {
+  for (int i = 1;; i++) {
     try {
       return await body();
     } catch (e, st) {
@@ -399,6 +399,4 @@ Future<R> retryAsync<R>(
       rethrow;
     }
   }
-  // should not reach
-  throw new Exception('Max retry reached.');
 }
