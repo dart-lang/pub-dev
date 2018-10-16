@@ -144,8 +144,14 @@ class TemplateService {
         'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.analysisStatus, view.platforms,
-            isAwaiting: view.isAwaiting, package: view.name),
+        'tags_html': _renderTags(
+          view.platforms,
+          isAwaiting: view.isAwaiting,
+          isDiscontinued: view.isDiscontinued,
+          isLegacy: view.isLegacy,
+          isObsolete: view.isObsolete,
+          package: view.name,
+        ),
         'score_box_html': scoreBoxHtml,
         'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
         'api_pages': view.apiPages
@@ -455,9 +461,11 @@ class TemplateService {
           'dev_name': latestDevVersion.version,
         },
         'tags_html': _renderTags(
-          analysisStatus,
           analysis?.platforms,
           isAwaiting: analysisStatus == null,
+          isDiscontinued: analysisStatus == AnalysisStatus.discontinued,
+          isLegacy: analysisStatus == AnalysisStatus.legacy,
+          isObsolete: analysisStatus == AnalysisStatus.outdated,
         ),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
@@ -739,8 +747,14 @@ class TemplateService {
           'name': package.name,
           'package_url': urls.pkgPageUrl(package.name),
           'ellipsized_description': package.ellipsizedDescription,
-          'tags_html': _renderTags(package.analysisStatus, package.platforms,
-              isAwaiting: package.isAwaiting, package: package.name),
+          'tags_html': _renderTags(
+            package.platforms,
+            isAwaiting: package.isAwaiting,
+            isDiscontinued: package.isDiscontinued,
+            isLegacy: package.isLegacy,
+            isObsolete: package.isObsolete,
+            package: package.name,
+          ),
         };
       }).toList(),
     };
@@ -819,9 +833,11 @@ class TemplateService {
 
   /// Renders the tags using the pkg/tags template.
   String _renderTags(
-    AnalysisStatus status,
     List<String> platforms, {
     @required bool isAwaiting,
+    @required bool isDiscontinued,
+    @required bool isLegacy,
+    @required bool isObsolete,
     String package,
   }) {
     final List<Map> tags = <Map>[];
@@ -831,19 +847,19 @@ class TemplateService {
         'text': '[awaiting]',
         'title': 'Analysis should be ready soon.',
       });
-    } else if (status == AnalysisStatus.discontinued) {
+    } else if (isDiscontinued) {
       tags.add({
         'status': 'discontinued',
         'text': '[discontinued]',
         'title': 'Package was discontinued.',
       });
-    } else if (status == AnalysisStatus.outdated) {
+    } else if (isObsolete) {
       tags.add({
         'status': 'missing',
         'text': '[outdated]',
         'title': 'Package version too old, check latest stable.',
       });
-    } else if (status == AnalysisStatus.legacy) {
+    } else if (isLegacy) {
       tags.add({
         'status': 'legacy',
         'text': 'Dart 2 incompatible',
