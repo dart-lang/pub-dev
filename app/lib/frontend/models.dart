@@ -272,6 +272,8 @@ class PackageView {
       apiPages: apiPages,
     );
   }
+
+  bool get isAwaiting => analysisStatus == null;
 }
 
 /// Sorts [versions] according to the semantic versioning specification.

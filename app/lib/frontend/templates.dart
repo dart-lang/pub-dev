@@ -145,7 +145,7 @@ class TemplateService {
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
         'tags_html': _renderTags(view.analysisStatus, view.platforms,
-            package: view.name),
+            isAwaiting: view.isAwaiting, package: view.name),
         'score_box_html': scoreBoxHtml,
         'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
         'api_pages': view.apiPages
@@ -454,7 +454,11 @@ class TemplateService {
               urls.pkgPageUrl(package.name, version: latestDevVersion.version),
           'dev_name': latestDevVersion.version,
         },
-        'tags_html': _renderTags(analysisStatus, analysis?.platforms),
+        'tags_html': _renderTags(
+          analysisStatus,
+          analysis?.platforms,
+          isAwaiting: analysisStatus == null,
+        ),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -736,7 +740,7 @@ class TemplateService {
           'package_url': urls.pkgPageUrl(package.name),
           'ellipsized_description': package.ellipsizedDescription,
           'tags_html': _renderTags(package.analysisStatus, package.platforms,
-              package: package.name),
+              isAwaiting: package.isAwaiting, package: package.name),
         };
       }).toList(),
     };
@@ -814,19 +818,14 @@ class TemplateService {
   }
 
   /// Renders the tags using the pkg/tags template.
-  String _renderTags(AnalysisStatus status, List<String> platforms,
-      {String package}) {
+  String _renderTags(
+    AnalysisStatus status,
+    List<String> platforms, {
+    @required bool isAwaiting,
+    String package,
+  }) {
     final List<Map> tags = <Map>[];
-    if (platforms != null && platforms.isNotEmpty) {
-      tags.addAll(platforms.map((platform) {
-        final platformDict = getPlatformDict(platform, nullIfMissing: true);
-        return {
-          'text': platformDict?.name ?? platform,
-          'href': platformDict?.listingUrl,
-          'title': platformDict?.tagTitle,
-        };
-      }));
-    } else if (status == null) {
+    if (isAwaiting) {
       tags.add({
         'status': 'missing',
         'text': '[awaiting]',
@@ -850,6 +849,15 @@ class TemplateService {
         'text': 'Dart 2 incompatible',
         'title': 'Package does not support Dart 2.',
       });
+    } else if (platforms != null && platforms.isNotEmpty) {
+      tags.addAll(platforms.map((platform) {
+        final platformDict = getPlatformDict(platform, nullIfMissing: true);
+        return {
+          'text': platformDict?.name ?? platform,
+          'href': platformDict?.listingUrl,
+          'title': platformDict?.tagTitle,
+        };
+      }));
     } else {
       tags.add({
         'status': 'unidentified',
