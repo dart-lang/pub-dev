@@ -129,8 +129,10 @@ class TemplateService {
       if (isSdk) {
         scoreBoxHtml = _renderSdkScoreBox();
       } else if (!view.isExternal) {
-        scoreBoxHtml = _renderScoreBox(view.analysisStatus, overallScore,
-            isNewPackage: view.isNewPackage, package: view.name);
+        scoreBoxHtml = _renderScoreBox(overallScore,
+            isSkipped: _isAnalysisSkipped(view.analysisStatus),
+            isNewPackage: view.isNewPackage,
+            package: view.name);
       }
       packagesJson.add({
         'url': view.url ?? urls.pkgPageUrl(view.name),
@@ -465,7 +467,8 @@ class TemplateService {
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
         'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
-        'score_box_html': _renderScoreBox(analysisStatus, extract?.overallScore,
+        'score_box_html': _renderScoreBox(extract?.overallScore,
+            isSkipped: _isAnalysisSkipped(analysisStatus),
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(package.name,
@@ -941,14 +944,17 @@ String _renderSdkScoreBox() {
   return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
 }
 
-String _renderScoreBox(AnalysisStatus status, double overallScore,
-    {bool isNewPackage, String package}) {
-  final skippedAnalysis = _isAnalysisSkipped(status);
-  final score = skippedAnalysis ? null : overallScore;
+String _renderScoreBox(
+  double overallScore, {
+  @required bool isSkipped,
+  bool isNewPackage,
+  String package,
+}) {
+  final score = isSkipped ? null : overallScore;
   final String formattedScore = _formatScore(score);
   final String scoreClass = _classifyScore(score);
   String title;
-  if (skippedAnalysis) {
+  if (isSkipped) {
     title = 'No analysis for this version.';
   } else {
     title = overallScore == null
