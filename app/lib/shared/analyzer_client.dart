@@ -82,12 +82,7 @@ class AnalyzerClient {
       try {
         final cached = new AnalysisExtract.fromJson(
             json.decode(cachedExtract) as Map<String, dynamic>);
-        // return the cached version only if status is populated (ignoring the
-        // cache values from the previous version).
-        // TODO: remove this check in the next release
-        if (cached != null && cached.analysisStatus != null) {
-          return cached;
-        }
+        return cached;
       } catch (e, st) {
         _logger.severe('Unable to parse analysis extract for $key', e, st);
       }
