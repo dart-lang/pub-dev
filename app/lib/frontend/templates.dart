@@ -150,7 +150,7 @@ class TemplateService {
           isDiscontinued: view.isDiscontinued,
           isLegacy: view.isLegacy,
           isObsolete: view.isObsolete,
-          package: view.name,
+          packageName: view.name,
         ),
         'score_box_html': scoreBoxHtml,
         'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
@@ -753,7 +753,7 @@ class TemplateService {
             isDiscontinued: package.isDiscontinued,
             isLegacy: package.isLegacy,
             isObsolete: package.isObsolete,
-            package: package.name,
+            packageName: package.name,
           ),
         };
       }).toList(),
@@ -838,7 +838,7 @@ class TemplateService {
     @required bool isDiscontinued,
     @required bool isLegacy,
     @required bool isObsolete,
-    String package,
+    String packageName,
   }) {
     final List<Map> tags = <Map>[];
     if (isAwaiting) {
@@ -879,7 +879,7 @@ class TemplateService {
         'status': 'unidentified',
         'text': '[unidentified]',
         'title': 'Check the analysis tab for further details.',
-        'href': urls.analysisTabUrl(package),
+        'href': urls.analysisTabUrl(packageName),
       });
     }
     return _renderTemplate('pkg/tags', {'tags': tags});
