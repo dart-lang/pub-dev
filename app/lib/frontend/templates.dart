@@ -215,6 +215,10 @@ class TemplateService {
       AnalysisExtract extract, AnalysisView analysis) {
     if (analysis == null || !analysis.hasAnalysisData) return null;
     final analysisStatus = extract?.analysisStatus ?? analysis.analysisStatus;
+    final isDiscontinued = analysisStatus == AnalysisStatus.discontinued;
+    final isLegacy = analysisStatus == AnalysisStatus.legacy;
+    final isObsolete = analysisStatus == AnalysisStatus.outdated;
+    final showAnalysis = !isObsolete && !isDiscontinued && !isLegacy;
 
     String statusText;
     switch (analysisStatus) {
@@ -224,17 +228,10 @@ class TemplateService {
       case AnalysisStatus.failure:
         statusText = 'tool failures';
         break;
-      case AnalysisStatus.discontinued:
-        statusText = 'skipped (discontinued)';
-        break;
-      case AnalysisStatus.outdated:
-        statusText = 'skipped (outdated)';
-        break;
-      case AnalysisStatus.legacy:
-        statusText = 'skipped (legacy)';
-        break;
       case AnalysisStatus.success:
         statusText = 'completed';
+        break;
+      default:
         break;
     }
 
@@ -254,12 +251,10 @@ class TemplateService {
 
     final Map<String, dynamic> data = {
       'package': package,
-      'show_discontinued': analysisStatus == AnalysisStatus.discontinued,
-      'show_outdated': analysisStatus == AnalysisStatus.outdated,
-      'show_legacy': analysisStatus == AnalysisStatus.legacy,
-      'show_analysis': analysisStatus != AnalysisStatus.outdated &&
-          analysisStatus != AnalysisStatus.discontinued &&
-          analysisStatus != AnalysisStatus.legacy,
+      'show_discontinued': isDiscontinued,
+      'show_outdated': isObsolete,
+      'show_legacy': isLegacy,
+      'show_analysis': showAnalysis,
       'analysis_tab_url': urls.analysisTabUrl(package),
       'date_completed': analysis.timestamp == null
           ? null
