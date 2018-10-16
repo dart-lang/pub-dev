@@ -286,7 +286,9 @@ class GCloudPackageRepository extends PackageRepository {
 
       return withTempDirectory((Directory dir) async {
         final filename = '${dir.absolute.path}/tarball.tar.gz';
-        await _saveTarballToFS(storage.readTempObject(guid), filename);
+        // TODO: check why this is flaky https://github.com/dart-lang/pub-dartlang-dart/issues/1680
+        await retryAsync(
+            () => _saveTarballToFS(storage.readTempObject(guid), filename));
         return _performTarballUpload(userEmail, filename, (package, version) {
           return storage.uploadViaTempObject(guid, package, version);
         }).whenComplete(() async {
