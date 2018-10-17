@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -46,10 +47,20 @@ void main() {
         {bool isFragment: false}) {
       // Making sure it is valid HTML
       final htmlParser = new HtmlParser(content, strict: true);
+
+      List<Element> links;
       if (isFragment) {
-        htmlParser.parseFragment();
+        final root = htmlParser.parseFragment();
+        links = root.querySelectorAll('a');
       } else {
-        htmlParser.parse();
+        final root = htmlParser.parse();
+        links = root.querySelectorAll('a');
+      }
+
+      for (Element elem in links) {
+        if (elem.attributes['target'] == '_blank') {
+          expect(elem.attributes['rel'], contains('noopener'));
+        }
       }
 
       if (_regenerateGoldens) {
