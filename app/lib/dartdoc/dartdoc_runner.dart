@@ -34,6 +34,7 @@ const statusFilePath = 'status.json';
 const _archiveFilePath = 'package.tar.gz';
 const _buildLogFilePath = 'log.txt';
 const _packageTimeout = const Duration(minutes: 10);
+const _pubDataFileName = 'pub-data.json';
 const _sdkTimeout = const Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
@@ -73,7 +74,7 @@ class DartdocJobProcessor extends JobProcessor {
         timeout: _sdkTimeout,
       );
 
-      final pubDataFile = new File(p.join(outputDir, 'pub-data.json'));
+      final pubDataFile = new File(p.join(outputDir, _pubDataFileName));
       final hasPubData = await pubDataFile.exists();
       final isOk = pr.exitCode == 0 && hasPubData;
       if (!isOk) {
