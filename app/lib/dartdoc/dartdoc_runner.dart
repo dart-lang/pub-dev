@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' as convert;
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -26,6 +27,7 @@ import '../shared/versions.dart' as versions;
 import 'backend.dart';
 import 'customization.dart';
 import 'models.dart';
+import 'pub_dartdoc_data.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
 final Uuid _uuid = new Uuid();
@@ -200,8 +202,38 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     double coverageScore = 0.0;
-    if (hasContent) {
-      // TODO: calculate coverage score and add health suggestions
+    final dartdocData = await _loadPubDartdocData(outputDir);
+    if (hasContent && dartdocData != null) {
+      final total = dartdocData.apiElements.length;
+      final documented = dartdocData.apiElements
+          .where((elem) =>
+              elem.documentation != null &&
+              elem.documentation.isNotEmpty &&
+              elem.documentation.trim().length >= 5)
+          .length;
+      if (total == documented) {
+        // this also handles total == 0
+        coverageScore = 1.0;
+      } else {
+        coverageScore = documented / total;
+      }
+
+      if (coverageScore < 1.0) {
+        final level = coverageScore < 0.2
+            ? SuggestionLevel.warning
+            : SuggestionLevel.hint;
+        final undocumented = total - documented;
+        healthSuggestions.add(
+          new Suggestion(
+              'dartdoc.coverage', // TODO: extract as const in pana
+              level,
+              'Document public APIs',
+              '$undocumented out of $total API elements (library, class, field '
+              'or method) have no adequate dartdoc content. Good documentation '
+              'improves code readability and discoverability through search.',
+              score: (1.0 - coverageScore) * 10.0),
+        );
+      }
     } else {
       maintenanceSuggestions.add(getDartdocRunFailedSuggestion());
     }
@@ -387,5 +419,20 @@ class DartdocJobProcessor extends JobProcessor {
     );
     await tmpTar.rename(p.join(outputDir, _archiveFilePath));
     _appendLog(logFileOutput, pr);
+  }
+
+  Future<PubDartdocData> _loadPubDartdocData(String outputDir) async {
+    final file = new File(p.join(outputDir, _pubDataFileName));
+    if (!file.existsSync()) {
+      return null;
+    }
+    try {
+      final content = await file.readAsString();
+      return new PubDartdocData.fromJson(
+          convert.json.decode(content) as Map<String, dynamic>);
+    } catch (e, st) {
+      _logger.warning('Unable to parse $_pubDataFileName.', e, st);
+      return null;
+    }
   }
 }
