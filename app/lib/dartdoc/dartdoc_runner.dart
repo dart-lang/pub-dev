@@ -124,7 +124,8 @@ class DartdocJobProcessor extends JobProcessor {
     bool hasContent = false;
 
     String reportStatus = ReportStatus.failed;
-    final suggestions = <Suggestion>[];
+    final healthSuggestions = <Suggestion>[];
+    final maintenanceSuggestions = <Suggestion>[];
     try {
       final pkgDir = await downloadPackage(job.packageName, job.packageVersion);
       if (pkgDir == null) {
@@ -197,17 +198,22 @@ class DartdocJobProcessor extends JobProcessor {
       await toolEnvRef.release();
     }
 
-    if (!hasContent) {
-      suggestions.add(getDartdocRunFailedSuggestion());
+    double coverageScore = 0.0;
+    if (hasContent) {
+      // TODO: calculate coverage score and add health suggestions
+    } else {
+      maintenanceSuggestions.add(getDartdocRunFailedSuggestion());
     }
-    // TODO: calculate coverage score
     await scoreCardBackend.updateReport(
         job.packageName,
         job.packageVersion,
         new DartdocReport(
           reportStatus: reportStatus,
-          coverageScore: hasContent ? 1.0 : 0.0,
-          suggestions: suggestions.isEmpty ? null : suggestions,
+          coverageScore: coverageScore,
+          healthSuggestions:
+              healthSuggestions.isEmpty ? null : healthSuggestions,
+          maintenanceSuggestions:
+              maintenanceSuggestions.isEmpty ? null : maintenanceSuggestions,
         ));
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
 

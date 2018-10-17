@@ -117,15 +117,29 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
   return DartdocReport(
       reportStatus: json['reportStatus'] as String,
       coverageScore: (json['coverageScore'] as num)?.toDouble(),
-      suggestions: (json['suggestions'] as List)
+      healthSuggestions: (json['healthSuggestions'] as List)
+          ?.map((e) =>
+              e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
+          ?.toList(),
+      maintenanceSuggestions: (json['maintenanceSuggestions'] as List)
           ?.map((e) =>
               e == null ? null : Suggestion.fromJson(e as Map<String, dynamic>))
           ?.toList());
 }
 
-Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) =>
-    <String, dynamic>{
-      'reportStatus': instance.reportStatus,
-      'coverageScore': instance.coverageScore,
-      'suggestions': instance.suggestions
-    };
+Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) {
+  var val = <String, dynamic>{
+    'reportStatus': instance.reportStatus,
+    'coverageScore': instance.coverageScore,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('healthSuggestions', instance.healthSuggestions);
+  writeNotNull('maintenanceSuggestions', instance.maintenanceSuggestions);
+  return val;
+}

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:gcloud/db.dart' as db;
 import 'package:json_annotation/json_annotation.dart';
@@ -150,9 +151,14 @@ class ScoreCard extends db.ExpandoModel {
     PanaReport panaReport,
     DartdocReport dartdocReport,
   }) {
-    healthScore = (panaReport?.healthScore ?? 0.0) *
-        (0.9 + ((dartdocReport?.coverageScore ?? 1.0) * 0.1));
-    maintenanceScore = panaReport?.maintenanceScore ?? 0.0;
+    healthScore = _applySuggestions(
+      panaReport?.healthScore ?? 0.0,
+      dartdocReport?.healthSuggestions,
+    );
+    maintenanceScore = _applySuggestions(
+      panaReport?.maintenanceScore ?? 0.0,
+      dartdocReport?.maintenanceSuggestions,
+    );
     platformTags = panaReport?.platformTags ?? <String>[];
     reportTypes = [
       panaReport == null ? null : ReportType.pana,
@@ -161,6 +167,15 @@ class ScoreCard extends db.ExpandoModel {
       ..removeWhere((type) => type == null)
       ..sort();
     panaReport?.flags?.forEach(addFlag);
+  }
+
+  double _applySuggestions(double score, List<Suggestion> suggestions) {
+    suggestions?.forEach((s) {
+      if (s.score != null) {
+        score -= s.score / 100.0;
+      }
+    });
+    return math.max(score, 0.0);
   }
 }
 
@@ -381,12 +396,19 @@ class DartdocReport implements ReportData {
 
   final double coverageScore;
 
-  final List<Suggestion> suggestions;
+  /// Suggestions related to the package health score.
+  @JsonKey(includeIfNull: false)
+  final List<Suggestion> healthSuggestions;
+
+  /// Suggestions related to the package maintenance score.
+  @JsonKey(includeIfNull: false)
+  final List<Suggestion> maintenanceSuggestions;
 
   DartdocReport({
     @required this.reportStatus,
     @required this.coverageScore,
-    @required this.suggestions,
+    @required this.healthSuggestions,
+    @required this.maintenanceSuggestions,
   });
 
   factory DartdocReport.fromJson(Map<String, dynamic> json) =>
