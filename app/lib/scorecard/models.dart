@@ -274,13 +274,13 @@ class ScoreCardData {
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
       _$ScoreCardDataFromJson(json);
 
-  double get overallScore =>
-      // TODO: use documentationScore too
-      calculateOverallScore(
-        health: healthScore ?? 0.0,
-        maintenance: maintenanceScore ?? 0.0,
-        popularity: popularityScore ?? 0.0,
-      );
+  double get overallScore {
+    return calculateOverallScore(
+      health: healthScore ?? 0.0,
+      maintenance: maintenanceScore ?? 0.0,
+      popularity: popularityScore ?? 0.0,
+    );
+  }
 
   bool get isNew => new DateTime.now().difference(packageCreated).inDays <= 30;
 
@@ -295,7 +295,11 @@ class ScoreCardData {
   bool get usesFlutter =>
       flags != null && flags.contains(PackageFlags.usesFlutter);
 
-  Map<String, dynamic> toJson() => _$ScoreCardDataToJson(this);
+  Map<String, dynamic> toJson() {
+    final map = _$ScoreCardDataToJson(this);
+    map['overallScore'] = overallScore;
+    return map;
+  }
 }
 
 abstract class ReportData {
