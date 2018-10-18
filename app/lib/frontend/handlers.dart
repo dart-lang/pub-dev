@@ -69,12 +69,6 @@ Future<shelf.Response> appHandler(
         request.requestedUri.replace(host: 'pub.dartlang.org').toString());
   }
 
-  if (path.startsWith('/experimental')) {
-    var newPath = path.substring('/experimental'.length);
-    if (newPath.isEmpty) newPath = '/';
-    return redirectResponse(
-        request.requestedUri.replace(path: newPath).toString());
-  }
   if (path == '/search') {
     return redirectResponse(
         request.requestedUri.replace(path: urls.searchUrl()).toString());
