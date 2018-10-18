@@ -214,7 +214,7 @@ class PrivateKey extends db.Model {
   String value;
 }
 
-/// An extract of [Package] and [PackageVersion] and [AnalysisView], for
+/// An extract of [Package] and [PackageVersion] and [AnalysisExtract], for
 /// display-only uses.
 class PackageView {
   final bool isExternal;
@@ -233,7 +233,7 @@ class PackageView {
   final List<ApiPageRef> apiPages;
 
   PackageView({
-    this.isExternal: false,
+    this.isExternal = false,
     this.url,
     this.name,
     this.version,
@@ -281,7 +281,7 @@ class PackageView {
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 void sortPackageVersionsDesc(List<PackageVersion> versions,
-    {bool decreasing: true, bool pubSorting: true}) {
+    {bool decreasing = true, bool pubSorting = true}) {
   versions.sort((PackageVersion a, PackageVersion b) =>
       compareSemanticVersionsDesc(
           a.semanticVersion, b.semanticVersion, decreasing, pubSorting));

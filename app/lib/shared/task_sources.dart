@@ -33,7 +33,7 @@ class DatastoreHeadTaskSource implements TaskSource {
     this._model, {
 
     /// Whether to scan the entire datastore in the first run or skip old ones.
-    bool skipHistory: false,
+    bool skipHistory = false,
 
     /// Tolerance window for eventually consistency in Datastore.
     Duration window,
@@ -113,7 +113,7 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
   DatastoreHistoryTaskSource(this._db);
 
   Future<bool> requiresUpdate(String packageName, String packageVersion,
-      {bool retryFailed: false});
+      {bool retryFailed = false});
 
   @override
   Stream<Task> startStreaming() => randomizeStream(_startStreaming());

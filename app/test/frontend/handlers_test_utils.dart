@@ -33,14 +33,14 @@ Future<shelf.Response> issueGetUri(Uri uri) async {
   return appHandler(request, null);
 }
 
-Future expectHtmlResponse(shelf.Response response, {int status: 200}) async {
+Future expectHtmlResponse(shelf.Response response, {int status = 200}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
   expect(await response.readAsString(), TemplateMock._response);
 }
 
 Future expectAtomXmlResponse(shelf.Response response,
-    {int status: 200, String regexp}) async {
+    {int status = 200, String regexp}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'],
       'application/atom+xml; charset="utf-8"');
@@ -92,13 +92,13 @@ class BackendMock implements Backend {
 
   @override
   Stream<String> allPackageNames(
-      {DateTime updatedSince, bool excludeDiscontinued: false}) {
+      {DateTime updatedSince, bool excludeDiscontinued = false}) {
     throw new UnsupportedError('sorry!');
   }
 
   @override
   Future<List<PackageVersion>> latestPackageVersions(
-      {int offset, int limit, bool devVersions: false}) async {
+      {int offset, int limit, bool devVersions = false}) async {
     if (latestPackageVersionsFun == null) {
       throw new Exception('no latestPackageVersionsFun');
     }
@@ -120,7 +120,7 @@ class BackendMock implements Backend {
 
   @override
   Future<List<PackageVersion>> lookupLatestVersions(List<Package> packages,
-      {bool devVersions: false}) async {
+      {bool devVersions = false}) async {
     if (lookupLatestVersionsFun == null) {
       throw new Exception('no lookupLatestVersionsFun');
     }
@@ -210,8 +210,8 @@ class TemplateMock implements TemplateService {
     String canonicalUrl,
     String platform,
     SearchQuery searchQuery,
-    bool includeSurvey: true,
-    bool noIndex: false,
+    bool includeSurvey = true,
+    bool noIndex = false,
   }) =>
       _response;
 
@@ -258,7 +258,7 @@ class TemplateMock implements TemplateService {
   String renderPlatformTabs({
     String platform,
     SearchQuery searchQuery,
-    bool isLanding: false,
+    bool isLanding = false,
   }) {
     return _response;
   }

@@ -81,7 +81,7 @@ class Job extends ExpandoModel {
 }
 
 class JobServiceProperty extends StringProperty {
-  const JobServiceProperty({String propertyName, bool required: false})
+  const JobServiceProperty({String propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
@@ -90,7 +90,7 @@ class JobServiceProperty extends StringProperty {
       (value == null || value is JobService);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
+  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
     if (value == null) return null;
     if (value is JobService) {
       return jobServiceAsString(value);
@@ -108,7 +108,7 @@ class JobServiceProperty extends StringProperty {
 }
 
 class JobStateProperty extends StringProperty {
-  const JobStateProperty({String propertyName, bool required: false})
+  const JobStateProperty({String propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
@@ -116,7 +116,7 @@ class JobStateProperty extends StringProperty {
       (!this.required || value != null) && (value == null || value is JobState);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
+  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
     if (value == null) return null;
     if (value is JobState) {
       return jobStateAsString(value);
@@ -133,7 +133,7 @@ class JobStateProperty extends StringProperty {
 }
 
 class JobStatusProperty extends StringProperty {
-  const JobStatusProperty({String propertyName, bool required: false})
+  const JobStatusProperty({String propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
@@ -142,7 +142,7 @@ class JobStatusProperty extends StringProperty {
       (value == null || value is JobStatus);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
+  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
     if (value == null) return null;
     if (value is JobStatus) {
       return jobStatusAsString(value);

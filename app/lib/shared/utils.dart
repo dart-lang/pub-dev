@@ -15,6 +15,7 @@ import 'package:gcloud/storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+// ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
@@ -41,7 +42,7 @@ final Logger _logger = new Logger('pub.utils');
 final DateFormat shortDateFormat = new DateFormat.yMMMd();
 
 Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
-    {String prefix: 'dart-tempdir'}) {
+    {String prefix = 'dart-tempdir'}) {
   return Directory.systemTemp.createTemp(prefix).then((Directory dir) {
     return func(dir).whenComplete(() {
       return dir.delete(recursive: true);
@@ -129,7 +130,7 @@ int compareSemanticVersionsDesc(
 /// will rank pre-release versions lower than stable versions (e.g. it will
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
-bool isNewer(semver.Version a, semver.Version b, {bool pubSorted: true}) =>
+bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
     compareSemanticVersionsDesc(a, b, false, pubSorted) < 0;
 
 final RegExp _identifierExpr = new RegExp(r'^[a-zA-Z0-9_]+$');
@@ -212,8 +213,8 @@ List<List<T>> _sliceList<T>(List<T> list, int limit) {
 /// [maxPositionDiff] of its original position.
 Stream<T> randomizeStream<T>(
   Stream<T> stream, {
-  Duration duration: const Duration(minutes: 1),
-  int maxPositionDiff: 1000,
+  Duration duration = const Duration(minutes: 1),
+  int maxPositionDiff = 1000,
   Random random,
 }) {
   random ??= new Random.secure();
@@ -235,7 +236,7 @@ class LastNTracker<T extends Comparable<T>> {
   final Queue<T> _lastItems = new Queue();
   final int _n;
 
-  LastNTracker({int lastN: 1000}) : _n = lastN;
+  LastNTracker({int lastN = 1000}) : _n = lastN;
 
   void add(T d) {
     _lastItems.addLast(d);
@@ -287,7 +288,7 @@ String formatDuration(Duration d) {
 }
 
 Future<http.Response> getUrlWithRetry(http.Client client, String url,
-    {int retryCount: 1, Duration timeout}) async {
+    {int retryCount = 1, Duration timeout}) async {
   http.Response result;
   Map<String, String> headers;
   if (context?.traceId != null) {
@@ -320,7 +321,7 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
-    "gs://${bucket.bucketName}/$path";
+    'gs://${bucket.bucketName}/$path';
 
 /// To avoid having the same String values many times in memory we intern them.
 /// https://en.wikipedia.org/wiki/String_interning
@@ -383,8 +384,8 @@ List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
 /// When it throws an exception, it will be re-run until [maxAttempt] is reached.
 Future<R> retryAsync<R>(
   Future<R> body(), {
-  int maxAttempt: 3,
-  Duration sleep: const Duration(seconds: 1),
+  int maxAttempt = 3,
+  Duration sleep = const Duration(seconds: 1),
 }) async {
   for (int i = 1;; i++) {
     try {

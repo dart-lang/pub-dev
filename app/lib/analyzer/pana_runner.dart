@@ -7,7 +7,9 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
+// ignore: implementation_imports
 import 'package:pana/src/maintenance.dart';
+// ignore: implementation_imports
 import 'package:pana/src/version.dart' as pana_version;
 
 import '../job/job.dart';

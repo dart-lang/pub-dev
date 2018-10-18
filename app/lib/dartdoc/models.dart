@@ -107,7 +107,7 @@ class DartdocEntry {
 
   List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
 
-  TaskTargetStatus checkTargetStatus({bool retryFailed: false}) {
+  TaskTargetStatus checkTargetStatus({bool retryFailed = false}) {
     final age = new DateTime.now().difference(timestamp).abs();
     if (age > _entryUpdateThreshold) {
       return new TaskTargetStatus.ok();

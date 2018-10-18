@@ -194,7 +194,8 @@ Future<shelf.Response> _indexHandler(
   return htmlResponse(pageContent);
 }
 
-Future<List<PackageView>> _topPackages({String platform, int count: 15}) async {
+Future<List<PackageView>> _topPackages(
+    {String platform, int count = 15}) async {
   // TODO: store top packages in memcache
   final result = await searchService.search(new SearchQuery.parse(
     platform: platform,
@@ -211,14 +212,14 @@ Future<shelf.Response> _helpPageHandler(shelf.Request request) async {
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> _atomFeedHandler(shelf.Request request) async {
-  final int PageSize = 10;
+  final int pageSize = 10;
 
   // The python version had paging support, but there was no point to it, since
   // the "next page" link was never returned to the caller.
   final int page = 1;
 
   final versions = await backend.latestPackageVersions(
-      offset: PageSize * (page - 1), limit: PageSize);
+      offset: pageSize * (page - 1), limit: pageSize);
   final feed = feedFromPackageVersions(request.requestedUri, versions);
   return atomXmlResponse(feed.toXmlDocument());
 }
@@ -302,10 +303,10 @@ Future<shelf.Response> _staticsHandler(shelf.Request request) async {
 /// Handles requests for /packages - JSON
 Future<shelf.Response> _packagesHandlerJson(
     shelf.Request request, int page, bool dotJsonResponse) async {
-  final PageSize = 50;
+  final pageSize = 50;
 
-  final offset = PageSize * (page - 1);
-  final limit = PageSize + 1;
+  final offset = pageSize * (page - 1);
+  final limit = pageSize + 1;
 
   final packages = await backend.latestPackages(offset: offset, limit: limit);
   final bool lastPage = packages.length < limit;
@@ -324,7 +325,7 @@ Future<shelf.Response> _packagesHandlerJson(
   }
 
   final json = {
-    'packages': packages.take(PageSize).map(toUrl).toList(),
+    'packages': packages.take(pageSize).map(toUrl).toList(),
     'next': nextPageUrl != null ? '$nextPageUrl' : null,
 
     // NOTE: We're not returning the following entry:
@@ -556,17 +557,17 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 
 /// Handles request for /api/packages?page=<num>
 Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
-  final int PageSize = 100;
+  final int pageSize = 100;
 
   final int page = _pageFromUrl(request.url);
 
   final packages = await backend.latestPackages(
-      offset: PageSize * (page - 1), limit: PageSize + 1);
+      offset: pageSize * (page - 1), limit: pageSize + 1);
 
   // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
   // know it was the last page.
   // But we only use `PageSize` packages to display in the result.
-  final List<Package> pagePackages = packages.take(PageSize).toList();
+  final List<Package> pagePackages = packages.take(pageSize).toList();
   final List<PackageVersion> pageVersions =
       await backend.lookupLatestVersions(pagePackages);
 

@@ -288,8 +288,8 @@ class UploadSignerServiceMock implements UploadSignerService {
   @override
   Future<AsyncUploadInfo> buildUpload(String bucket, String object,
       Duration lifetime, String successRedirectUrl,
-      {String predefinedAcl: 'project-private',
-      int maxUploadSize: UploadSignerService.maxUploadSize}) async {
+      {String predefinedAcl = 'project-private',
+      int maxUploadSize = UploadSignerService.maxUploadSize}) async {
     return (await buildUploadFun(bucket, object, lifetime, successRedirectUrl,
         predefinedAcl: predefinedAcl,
         maxUploadSize: maxUploadSize)) as AsyncUploadInfo;
@@ -326,12 +326,12 @@ class BucketMock implements Bucket {
   }
 
   @override
-  Future<Page<BucketEntry>> page({String prefix, int pageSize: 50}) {
+  Future<Page<BucketEntry>> page({String prefix, int pageSize = 50}) {
     throw new UnimplementedError();
   }
 
   @override
-  Stream<List<int>> read(String objectName, {int offset: 0, int length}) {
+  Stream<List<int>> read(String objectName, {int offset = 0, int length}) {
     throw new UnimplementedError();
   }
 
@@ -377,9 +377,9 @@ Future withTestPackage(Future func(List<int> tarball),
     final changelog = new File('$tmp/CHANGELOG.md');
     final pubspec = new File('$tmp/pubspec.yaml');
 
-    await readme.writeAsString(TestPackageReadme);
-    await changelog.writeAsString(TestPackageChangelog);
-    await pubspec.writeAsString(pubspecContent ?? TestPackagePubspec);
+    await readme.writeAsString(testPackageReadme);
+    await changelog.writeAsString(testPackageChangelog);
+    await pubspec.writeAsString(pubspecContent ?? testPackagePubspec);
 
     await new Directory('$tmp/lib').create();
     new File('$tmp/lib/test_library.dart')

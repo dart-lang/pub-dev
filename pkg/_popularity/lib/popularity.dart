@@ -55,6 +55,7 @@ class VoteTotals implements VoteData {
   factory VoteTotals.fromJson(Map<String, dynamic> json) =>
       _$VoteTotalsFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VoteTotalsToJson(this);
 }
 

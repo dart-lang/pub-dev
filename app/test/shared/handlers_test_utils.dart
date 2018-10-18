@@ -8,13 +8,13 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-Future expectJsonResponse(shelf.Response response, {status: 200, body}) async {
+Future expectJsonResponse(shelf.Response response, {status = 200, body}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'application/json; charset="utf-8"');
   expect(json.decode(await response.readAsString()), body);
 }
 
-Future expectYamlResponse(shelf.Response response, {status: 200, body}) async {
+Future expectYamlResponse(shelf.Response response, {status = 200, body}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/yaml; charset="utf-8"');
   expect(json.decode(await response.readAsString()), body);
@@ -26,6 +26,6 @@ Future expectRedirectResponse(shelf.Response response, String url) async {
   expect(await response.readAsString(), '');
 }
 
-Future expectNotFoundResponse(shelf.Response response, {status: 404}) async {
+Future expectNotFoundResponse(shelf.Response response, {status = 404}) async {
   expect(response.statusCode, status);
 }

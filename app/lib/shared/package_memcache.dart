@@ -31,7 +31,7 @@ abstract class UIPackageCache {
   Future invalidateUIPackagePage(String package);
 }
 
-/// Uses a [Memache] to set/get/invalidate metadata for packages.
+/// Uses [SimpleMemcache] to set/get/invalidate metadata for packages.
 class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   final SimpleMemcache _json;
   final SimpleMemcache _uiPage;
@@ -69,7 +69,7 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       Future.wait(_invalidatePackage(package, invalidateData: true));
 
   Iterable<Future> _invalidatePackage(String package,
-      {bool invalidateData: false}) sync* {
+      {bool invalidateData = false}) sync* {
     if (invalidateData) {
       yield _json.invalidate(package);
     }

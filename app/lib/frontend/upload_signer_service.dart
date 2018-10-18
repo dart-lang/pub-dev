@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
 import 'package:googleapis_auth/auth_io.dart' as auth;
+// ignore: implementation_imports
 import 'package:googleapis_auth/src/crypto/rsa_sign.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_server/repository.dart';
@@ -42,8 +43,8 @@ abstract class UploadSignerService {
 
   Future<AsyncUploadInfo> buildUpload(String bucket, String object,
       Duration lifetime, String successRedirectUrl,
-      {String predefinedAcl: 'project-private',
-      int maxUploadSize: maxUploadSize}) async {
+      {String predefinedAcl = 'project-private',
+      int maxUploadSize = maxUploadSize}) async {
     final now = new DateTime.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
 

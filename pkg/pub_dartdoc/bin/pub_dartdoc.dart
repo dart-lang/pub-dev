@@ -10,7 +10,7 @@ import 'package:dartdoc/src/logging.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   final optionSet = await DartdocOptionSet.fromOptionGenerators('pub_dartdoc', [
     createDartdocOptions,
     createLoggingOptions,

@@ -52,7 +52,7 @@ Future listUploaders(String packageName) async {
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .first;
     if (package == null) {
-      throw new Exception("Package $packageName does not exist.");
+      throw new Exception('Package $packageName does not exist.');
     }
     final uploaders = package.uploaderEmails;
     print('Current uploaders: $uploaders');
@@ -65,7 +65,7 @@ Future addUploader(String packageName, String uploader) async {
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .first;
     if (package == null) {
-      throw new Exception("Package $packageName does not exist.");
+      throw new Exception('Package $packageName does not exist.');
     }
     final uploaders = package.uploaderEmails;
     print('Current uploaders: $uploaders');
@@ -94,7 +94,7 @@ Future removeUploader(String packageName, String uploader) async {
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .first;
     if (package == null) {
-      throw new Exception("Package $packageName does not exist.");
+      throw new Exception('Package $packageName does not exist.');
     }
     final uploaders = package.uploaderEmails;
     print('Current uploaders: $uploaders');

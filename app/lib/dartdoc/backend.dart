@@ -117,7 +117,7 @@ class DartdocBackend {
   }
 
   Future<List<String>> getLatestVersions(String package,
-      {int limit: 10}) async {
+      {int limit = 10}) async {
     final query = _db.query<PackageVersion>(
         ancestorKey: _db.emptyKey.append(Package, id: package));
     final versions = await query.run().cast<PackageVersion>().toList();

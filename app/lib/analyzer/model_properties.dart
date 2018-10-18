@@ -7,7 +7,7 @@ import 'package:gcloud/db.dart';
 import '../shared/analyzer_service.dart' show AnalysisStatus;
 
 class AnalysisStatusProperty extends StringProperty {
-  const AnalysisStatusProperty({String propertyName, bool required: false})
+  const AnalysisStatusProperty({String propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: true);
 
   @override
@@ -16,7 +16,7 @@ class AnalysisStatusProperty extends StringProperty {
       (value == null || value is AnalysisStatus);
 
   @override
-  String encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
+  String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
     if (value is AnalysisStatus) {
       switch (value) {
         case AnalysisStatus.aborted:

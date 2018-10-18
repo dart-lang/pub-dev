@@ -46,9 +46,9 @@ class TemplateService {
   final String templateDirectory;
 
   /// A cache which keeps all used mustach templates parsed in memory.
-  final Map<String, mustache.Template> _CachedMustacheTemplates = {};
+  final Map<String, mustache.Template> _cachedMustacheTemplates = {};
 
-  TemplateService({this.templateDirectory: '/project/app/views'});
+  TemplateService({this.templateDirectory = '/project/app/views'});
 
   /// Renders the `views/pkg/versions/index` template.
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
@@ -369,10 +369,10 @@ class TemplateService {
       versionTableRows.add(_renderVersionTableRow(version, url));
     }
 
-    final bool should_show_dev =
+    final bool shouldShowDev =
         latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
-    final bool should_show =
-        selectedVersion != latestStableVersion || should_show_dev;
+    final bool shouldShow =
+        selectedVersion != latestStableVersion || shouldShowDev;
 
     final List<Map<String, String>> tabs = <Map<String, String>>[];
     void addFileTab(String id, String title, String content) {
@@ -414,7 +414,7 @@ class TemplateService {
     void addLink(
       String href,
       String label, {
-      bool detectServiceProvider: false,
+      bool detectServiceProvider = false,
     }) {
       if (href == null || href.isEmpty) {
         return;
@@ -446,8 +446,8 @@ class TemplateService {
           'version': selectedVersion.id,
         },
         'latest': {
-          'should_show': should_show,
-          'should_show_dev': should_show_dev,
+          'should_show': shouldShow,
+          'should_show_dev': shouldShowDev,
           'stable_url': urls.pkgPageUrl(package.name),
           'stable_name': latestStableVersion.version,
           'dev_url':
@@ -753,8 +753,8 @@ class TemplateService {
     String canonicalUrl,
     String platform,
     SearchQuery searchQuery,
-    bool includeSurvey: true,
-    bool noIndex: false,
+    bool includeSurvey = true,
+    bool noIndex = false,
   }) {
     final queryText = searchQuery?.query;
     final String escapedSearchQuery =
@@ -864,9 +864,9 @@ class TemplateService {
   /// Renders [template] with given [values].
   ///
   /// If [escapeValues] is `false`, values in `values` will not be escaped.
-  String _renderTemplate(String template, values, {bool escapeValues: true}) {
+  String _renderTemplate(String template, values, {bool escapeValues = true}) {
     final mustache.Template parsedTemplate =
-        _CachedMustacheTemplates.putIfAbsent(template, () {
+        _cachedMustacheTemplates.putIfAbsent(template, () {
       final file = new File('$templateDirectory/$template.mustache');
       return new mustache.Template(file.readAsStringSync(),
           htmlEscapeValues: escapeValues, lenient: true);
@@ -877,7 +877,7 @@ class TemplateService {
   String renderPlatformTabs({
     String platform,
     SearchQuery searchQuery,
-    bool isLanding: false,
+    bool isLanding = false,
   }) {
     final String currentPlatform = platform ?? searchQuery?.platform;
     Map platformTabData(String tabText, String tabPlatform) {

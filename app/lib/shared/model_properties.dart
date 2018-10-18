@@ -10,7 +10,7 @@ class CompatibleListProperty extends Property {
   final PrimitiveProperty subProperty;
 
   const CompatibleListProperty(this.subProperty,
-      {String propertyName, bool indexed: true})
+      {String propertyName, bool indexed = true})
       : super(propertyName: propertyName, required: true, indexed: indexed);
 
   @override
@@ -24,7 +24,7 @@ class CompatibleListProperty extends Property {
   }
 
   @override
-  Object encodeValue(ModelDB db, Object value, {bool forComparison: false}) {
+  Object encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
     if (forComparison) {
       return subProperty.encodeValue(db, value, forComparison: true);
     }
@@ -53,7 +53,7 @@ class CompatibleListProperty extends Property {
 /// Similar to [StringListProperty] but one which is fully compatible with
 /// python's 'db' implementation.
 class CompatibleStringListProperty extends CompatibleListProperty {
-  const CompatibleStringListProperty({String propertyName, bool indexed: true})
+  const CompatibleStringListProperty({String propertyName, bool indexed = true})
       : super(const StringProperty(required: true),
             propertyName: propertyName, indexed: indexed);
 }
