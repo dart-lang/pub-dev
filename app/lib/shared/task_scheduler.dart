@@ -51,7 +51,7 @@ class TaskScheduler {
   List<List<Task>> _queues;
   bool _needsShuffle = false;
 
-  TaskScheduler(this.taskRunner, this.sources, {this.randomize: false}) {
+  TaskScheduler(this.taskRunner, this.sources, {this.randomize = false}) {
     _queues = new List<List<Task>>.generate(sources.length, (i) => <Task>[]);
   }
 
