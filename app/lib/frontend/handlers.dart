@@ -333,7 +333,7 @@ Future<shelf.Response> _packagesHandlerJson(
     //   - 'pages'
   };
 
-  return jsonResponse(json);
+  return jsonResponse(json, pretty: isPrettyJson(request));
 }
 
 /// Handles /packages - package listing
@@ -449,7 +449,7 @@ Future<shelf.Response> _packageShowHandlerJson(
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
-  return jsonResponse(json);
+  return jsonResponse(json, pretty: isPrettyJson(request));
 }
 
 /// Handles requests for /packages/<package>/versions
@@ -632,23 +632,23 @@ Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
         '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
   }
 
-  return jsonResponse(json);
+  return jsonResponse(json, pretty: isPrettyJson(request));
 }
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
   final parts = path.split(request.requestedUri.path).skip(1).toList();
   if (parts.length != 3 || parts[2].isEmpty) {
-    return jsonResponse({}, status: 404);
+    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
   final String package = parts[2];
   if (redirectDartdocPages.containsKey(package)) {
-    return jsonResponse({}, status: 404);
+    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
 
   final versions = await backend.versionsOfPackage(package);
   if (versions.isEmpty) {
-    return jsonResponse({}, status: 404);
+    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
 
   versions.sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
@@ -679,7 +679,7 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
     'name': package,
     'latestStableVersion': latestStableVersion,
     'versions': versionsData,
-  });
+  }, pretty: isPrettyJson(request));
 }
 
 /// Handles requests for
@@ -687,7 +687,8 @@ Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
 Future<shelf.Response> _apiPackagesCompactListHandler(
     shelf.Request request) async {
   final packageNames = await nameTracker.getPackageNames();
-  return jsonResponse({'packages': packageNames});
+  return jsonResponse({'packages': packageNames},
+      pretty: isPrettyJson(request));
 }
 
 /// Whether [requestedUri] matches /api/packages/<package>/metrics
@@ -708,15 +709,16 @@ Future<shelf.Response> _apiPackageMetricsHandler(shelf.Request request) async {
   final requestedPath = request.requestedUri.path;
   final parts = requestedPath.split('/');
   if (parts.length != 5) {
-    return jsonResponse({}, status: 404);
+    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
   final packageName = parts[3];
   final data = await scoreCardBackend.getScoreCardData(packageName, null,
       onlyCurrent: false);
   if (data == null) {
-    return jsonResponse({}, status: 404);
+    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
-  return jsonResponse({'scorecard': data.toJson()});
+  return jsonResponse({'scorecard': data.toJson()},
+      pretty: isPrettyJson(request));
 }
 
 /// Handles requests for /api/history
@@ -744,7 +746,7 @@ Future<shelf.Response> _apiHistoryHandler(shelf.Request request) async {
               'markdown': h.formatMarkdown(),
             })
         .toList(),
-  }, indent: true);
+  }, pretty: true);
 }
 
 /// Handles requests for /flutter/plugins (redirects to /flutter/packages).
@@ -783,7 +785,7 @@ Future<shelf.Response> _apiSearchHandler(shelf.Request request) async {
         request.requestedUri.replace(queryParameters: newParams).toString();
     result['next'] = nextPageUrl;
   }
-  return jsonResponse(result);
+  return jsonResponse(result, pretty: isPrettyJson(request));
 }
 
 /// Extracts the 'page' query parameter from [url].

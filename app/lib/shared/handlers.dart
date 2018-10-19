@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'popularity_storage.dart';
@@ -25,6 +26,7 @@ const staticShortCache = const Duration(minutes: 5);
 const staticLongCache = const Duration(hours: 24);
 
 final _logger = new Logger('pub.shared.handler');
+final _prettyJson = new JsonEncoder.withIndent('  ');
 
 shelf.Response redirectResponse(String url) => new shelf.Response.seeOther(url);
 
@@ -39,9 +41,16 @@ shelf.Response atomXmlResponse(String content, {int status = 200}) =>
       headers: {'content-type': 'application/atom+xml; charset="utf-8"'},
     );
 
-shelf.Response jsonResponse(Map map, {int status = 200, bool indent = false}) {
-  final String body =
-      indent ? new JsonEncoder.withIndent('  ').convert(map) : json.encode(map);
+bool isPrettyJson(shelf.Request request) {
+  return request.url.queryParameters.containsKey('pretty');
+}
+
+shelf.Response jsonResponse(
+  Map map, {
+  @required bool pretty,
+  int status = 200,
+}) {
+  final String body = pretty ? _prettyJson.convert(map) : json.encode(map);
   return new shelf.Response(
     status,
     body: body,
@@ -100,7 +109,7 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
       'dateRange': popularityStorage.dateRange,
     };
   }
-  return jsonResponse(map, indent: true);
+  return jsonResponse(map, pretty: true);
 }
 
 bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {

@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../frontend/models.dart';
-import 'handlers.dart' show jsonResponse;
+import 'handlers.dart';
 import 'task_client.dart';
 
 final Logger _logger = new Logger('pub.notification');
@@ -98,14 +98,14 @@ Future<shelf.Response> notificationHandler(shelf.Request request) async {
       if (data.isValid) {
         _logger.info('Received notification: $data');
         triggerTask(data.package, data.version);
-        return jsonResponse({'success': true});
+        return jsonResponse({'success': true}, pretty: isPrettyJson(request));
       } else {
-        return jsonResponse({'success': false});
+        return jsonResponse({'success': false}, pretty: isPrettyJson(request));
       }
     } catch (e, st) {
       _logger.warning('Error processing notification', e, st);
-      return jsonResponse({'success': false});
+      return jsonResponse({'success': false}, pretty: isPrettyJson(request));
     }
   }
-  return jsonResponse({'success': false});
+  return jsonResponse({'success': false}, pretty: isPrettyJson(request));
 }

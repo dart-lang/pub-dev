@@ -48,7 +48,6 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
     return htmlResponse(searchIndexNotReadyText,
         status: searchIndexNotReadyCode);
   }
-  final bool indent = request.url.queryParameters['indent'] == 'true';
   final Stopwatch sw = new Stopwatch()..start();
   final SearchQuery query = new SearchQuery.fromServiceUrl(request.url);
   final combiner = new SearchResultCombiner(
@@ -61,5 +60,5 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
         '${query.toServiceQueryParameters()}');
   }
 
-  return jsonResponse(result.toJson(), indent: indent);
+  return jsonResponse(result.toJson(), pretty: isPrettyJson(request));
 }
