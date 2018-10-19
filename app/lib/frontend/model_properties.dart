@@ -132,7 +132,7 @@ class Pubspec {
 }
 
 class PubspecProperty extends StringProperty {
-  const PubspecProperty({String propertyName, bool required: false})
+  const PubspecProperty({String propertyName, bool required = false})
       : super(propertyName: propertyName, required: required, indexed: false);
 
   @override
@@ -140,7 +140,7 @@ class PubspecProperty extends StringProperty {
       (!required || value != null) && (value == null || value is Pubspec);
 
   @override
-  String encodeValue(ModelDB db, Object pubspec, {bool forComparison: false}) {
+  String encodeValue(ModelDB db, Object pubspec, {bool forComparison = false}) {
     if (pubspec is Pubspec) {
       return pubspec.jsonString;
     }

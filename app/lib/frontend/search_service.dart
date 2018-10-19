@@ -23,8 +23,6 @@ void registerSearchService(SearchService s) => ss.register(#_search, s);
 
 /// A wrapper around the Custom Search API, used for searching for pub packages.
 class SearchService {
-  /// Search for packes using [queryText], starting at offset [offset] returning
-  /// max [numResults].
   Future<SearchResultPage> search(SearchQuery query) async {
     final result = await searchClient.search(query);
     return _loadResultForPackages(query, result.totalCount, result.packages);

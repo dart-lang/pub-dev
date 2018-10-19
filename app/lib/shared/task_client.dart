@@ -4,7 +4,7 @@
 
 import 'dart:isolate';
 
-import 'task_scheduler.dart' show Task;
+import 'task_scheduler.dart' show Task, TaskScheduler;
 
 final _taskSendPorts = <SendPort>[];
 int _taskSendIndex = 0;
@@ -27,8 +27,8 @@ void unregisterTaskSendPort(SendPort taskSendPort) {
   _taskSendPorts.remove(taskSendPort);
 }
 
-/// Triggers task processing via sending tasks to the [Scheduler] in the other
-/// isolate.
+/// Triggers task processing via sending tasks to the [TaskScheduler] in the
+/// other isolate.
 void triggerTask(String package, String version) {
   _send(new Task.now(package, version));
 }

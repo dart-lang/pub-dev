@@ -228,8 +228,8 @@ class SearchQuery {
     String query,
     String platform,
     SearchOrder order,
-    int offset: 0,
-    int limit: 10,
+    int offset = 0,
+    int limit = 10,
     bool isAd,
     bool apiEnabled,
   }) {

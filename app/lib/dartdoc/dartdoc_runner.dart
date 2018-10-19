@@ -7,7 +7,9 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec;
+// ignore: implementation_imports
 import 'package:pana/src/download_utils.dart';
+// ignore: implementation_imports
 import 'package:pana/src/utils.dart' show runProc;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';

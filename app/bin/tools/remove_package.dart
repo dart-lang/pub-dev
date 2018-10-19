@@ -63,7 +63,7 @@ Future listPackage(String packageName) async {
   final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
   final Package package = (await dbService.lookup([packageKey])).first;
   if (package == null) {
-    throw new Exception("Package $packageName does not exist.");
+    throw new Exception('Package $packageName does not exist.');
   }
 
   final versionsQuery =
@@ -160,7 +160,7 @@ Future removePackageVersion(String packageName, String version) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final Package package = (await T.lookup([packageKey])).first;
     if (package == null) {
-      throw new Exception("Package $packageName does not exist.");
+      throw new Exception('Package $packageName does not exist.');
     }
 
     final versionsQuery = T.query<PackageVersion>(packageKey);
@@ -171,7 +171,7 @@ Future removePackageVersion(String packageName, String version) async {
     }
 
     if ('${package.latestSemanticVersion}' == version) {
-      throw new Exception("Cannot delete the latest version of $packageName.");
+      throw new Exception('Cannot delete the latest version of $packageName.');
     }
 
     final deletes = [packageKey.append(PackageVersion, id: version)];

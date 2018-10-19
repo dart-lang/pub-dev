@@ -10,13 +10,13 @@ import 'package:test/test.dart';
 
 void main() {
   test('popularity round trip', () {
-    var string = new File('test/popularity-sample.json').readAsStringSync();
-    var popularity = new PackagePopularity.fromJson(
+    final string = new File('test/popularity-sample.json').readAsStringSync();
+    final popularity = new PackagePopularity.fromJson(
         json.decode(string) as Map<String, dynamic>);
     expect(popularity.dateFirst.isUtc, isTrue);
     expect(popularity.dateFirst.isUtc, isTrue);
 
-    var encoder = const JsonEncoder.withIndent(' ');
+    final encoder = const JsonEncoder.withIndent(' ');
 
     expect(encoder.convert(popularity), string);
   });

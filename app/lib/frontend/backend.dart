@@ -83,7 +83,7 @@ class Backend {
 
   /// Retrieves the names of all packages, ordered by name.
   Stream<String> allPackageNames(
-      {DateTime updatedSince, bool excludeDiscontinued: false}) {
+      {DateTime updatedSince, bool excludeDiscontinued = false}) {
     final query = db.query<models.Package>();
 
     if (updatedSince != null) {
@@ -99,7 +99,7 @@ class Backend {
 
   /// Retrieves package versions ordered by their latest version date.
   Future<List<models.PackageVersion>> latestPackageVersions(
-      {int offset, int limit, bool devVersions: false}) async {
+      {int offset, int limit, bool devVersions = false}) async {
     final packages = await latestPackages(offset: offset, limit: limit);
     return lookupLatestVersions(packages, devVersions: devVersions);
   }
@@ -133,7 +133,7 @@ class Backend {
   /// Looks up the latest versions of a list of packages.
   Future<List<models.PackageVersion>> lookupLatestVersions(
       List<models.Package> packages,
-      {bool devVersions: false}) async {
+      {bool devVersions = false}) async {
     final keys = packages.map((models.Package p) {
       if (devVersions) {
         return p.latestDevVersionKey ?? p.latestVersionKey;

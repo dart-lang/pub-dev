@@ -604,10 +604,10 @@ void main() {
         expect(version.packageKey, testPackage.key);
         expect(version.created.compareTo(dateBeforeTest) >= 0, isTrue);
         expect(version.readmeFilename, 'README.md');
-        expect(version.readmeContent, TestPackageReadme);
+        expect(version.readmeContent, testPackageReadme);
         expect(version.changelogFilename, 'CHANGELOG.md');
-        expect(version.changelogContent, TestPackageChangelog);
-        expect(version.pubspec.asJson, loadYaml(TestPackagePubspec));
+        expect(version.changelogContent, testPackageChangelog);
+        expect(version.pubspec.asJson, loadYaml(testPackagePubspec));
         expect(version.libraries, ['test_library.dart']);
         expect(version.downloads, 0);
 
@@ -830,7 +830,7 @@ void main() {
           // Returns the error message as String or null if it succeeded.
           Future<String> fn(String name) async {
             final String pubspecContent =
-                TestPackagePubspec.replaceAll('foobar_pkg', name);
+                testPackagePubspec.replaceAll('foobar_pkg', name);
             try {
               await withTestPackage((List<int> tarball) async {
                 await repo.upload(new Stream.fromIterable([tarball]));

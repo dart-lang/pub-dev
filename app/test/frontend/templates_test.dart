@@ -44,7 +44,7 @@ void main() {
     final templates = new TemplateService(templateDirectory: 'views');
 
     void expectGoldenFile(String content, String fileName,
-        {bool isFragment: false}) {
+        {bool isFragment = false}) {
       // Making sure it is valid HTML
       final htmlParser = new HtmlParser(content, strict: true);
 

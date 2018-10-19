@@ -55,7 +55,7 @@ Future main(List<String> args) async {
     die('Cannot delete the old version without migrating traffic');
   }
 
-  String newVersion = new DateTime.now()
+  final newVersion = new DateTime.now()
       .toIso8601String()
       .replaceAll('-', '')
       .replaceAll(':', '')
@@ -111,10 +111,10 @@ class _ServiceDeployer {
         ['versions', 'list', '--service', service, '--format=value(id)'],
         'Couldn\'t detect old $service version.');
 
-    _oldVersion = pr.stdout.trim();
+    _oldVersion = (pr.stdout as String).trim();
     if (_oldVersion.contains('\n')) {
       print('[WARN] Multiple existing versions detected: '
-          '${_oldVersion}, none will be deleted.');
+          '$_oldVersion, none will be deleted.');
       _oldVersion = null;
     } else {
       print('Old $service version: $_oldVersion');
@@ -159,9 +159,9 @@ class _ServiceDeployer {
     for (int i = 5; i > 0; i--) {
       final res = await request();
       if (res.statusCode == 200) {
-        List<int> bytes =
+        final List<int> bytes =
             await res.fold([], (List<int> all, List<int> d) => all..addAll(d));
-        Map map = json.decode(utf8.decode(bytes));
+        final Map map = json.decode(utf8.decode(bytes));
         if (map != null && map.isNotEmpty) {
           print('$service health check OK.');
           return;

@@ -35,7 +35,7 @@ void _setEventsForTabs() {
           target.tagName.toLowerCase() != 'body') {
         target = target.parent;
       }
-      String targetName = target?.dataset['name'];
+      final String targetName = target?.dataset['name'];
       if (targetName != null) {
         window.location.hash = '#$targetName';
       }
@@ -247,7 +247,7 @@ void _setEventForSearchInput() {
     for (Element a in anchors) {
       final String oldHref = a.getAttribute('href');
       final Uri oldUri = Uri.parse(oldHref);
-      final Map params = new Map.from(oldUri.queryParameters);
+      final params = Map<String, String>.from(oldUri.queryParameters);
       params['q'] = newSearchQuery;
       final String newHref = oldUri.replace(queryParameters: params).toString();
       a.setAttribute('href', newHref);
@@ -347,7 +347,7 @@ void _fixIssueLinks() {
     var bugTitle = '<Summarize your issues here>';
     final bugTag = bugLink.dataset['bugTag'];
     if (bugTag != null) {
-      bugTitle = "[$bugTag] $bugTitle";
+      bugTitle = '[$bugTag] $bugTitle';
       if (bugTag == 'analysis') {
         issueLabels.add('Area: package analysis');
       }

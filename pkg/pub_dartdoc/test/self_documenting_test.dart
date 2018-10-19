@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 final _regenerateGoldens = false;
 
-main() {
+void main() {
   Directory tempDir;
 
   group('generate documentation on self', () {

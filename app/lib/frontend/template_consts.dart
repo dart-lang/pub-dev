@@ -66,7 +66,7 @@ class PlatformDict {
   }
 }
 
-PlatformDict getPlatformDict(String platform, {bool nullIfMissing: false}) {
+PlatformDict getPlatformDict(String platform, {bool nullIfMissing = false}) {
   final dict = _dictionaries[platform ?? 'default'];
   if (dict == null) {
     return nullIfMissing ? null : _dictionaries['default'];

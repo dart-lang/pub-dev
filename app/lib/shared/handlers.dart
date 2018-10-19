@@ -32,14 +32,14 @@ shelf.Response redirectToSearch(String query) {
   return redirectResponse(searchUrl(q: query));
 }
 
-shelf.Response atomXmlResponse(String content, {int status: 200}) =>
+shelf.Response atomXmlResponse(String content, {int status = 200}) =>
     new shelf.Response(
       status,
       body: content,
       headers: {'content-type': 'application/atom+xml; charset="utf-8"'},
     );
 
-shelf.Response jsonResponse(Map map, {int status: 200, bool indent: false}) {
+shelf.Response jsonResponse(Map map, {int status = 200, bool indent = false}) {
   final String body =
       indent ? new JsonEncoder.withIndent('  ').convert(map) : json.encode(map);
   return new shelf.Response(
@@ -50,14 +50,14 @@ shelf.Response jsonResponse(Map map, {int status: 200, bool indent: false}) {
 }
 
 shelf.Response htmlResponse(String content,
-    {int status: 200, Map<String, String> headers}) {
+    {int status = 200, Map<String, String> headers}) {
   headers ??= <String, String>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
   return new shelf.Response(status, body: content, headers: headers);
 }
 
 shelf.Response notFoundHandler(shelf.Request request,
-        {String body: default404NotFound}) =>
+        {String body = default404NotFound}) =>
     htmlResponse(body, status: 404);
 
 shelf.Response rejectRobotsHandler(shelf.Request request) =>

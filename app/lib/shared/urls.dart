@@ -12,7 +12,7 @@ const siteRoot = 'https://$pubHostedDomain';
 const _apiDartlangOrg = 'https://api.dartlang.org/';
 
 String pkgPageUrl(String package,
-    {String version, bool includeHost: false, String fragment}) {
+    {String version, bool includeHost = false, String fragment}) {
   String url = includeHost ? siteRoot : '';
   url += '/packages/$package';
   if (version != null) {
@@ -27,10 +27,10 @@ String pkgPageUrl(String package,
 String pkgDocUrl(
   String package, {
   String version,
-  bool includeHost: false,
+  bool includeHost = false,
   String relativePath,
-  bool omitTrailingSlash: false,
-  bool isLatest: false,
+  bool omitTrailingSlash = false,
+  bool isLatest = false,
 }) {
   String url = includeHost ? siteRoot : '';
   url += '/documentation/$package';
@@ -146,7 +146,7 @@ String inferRepositoryUrl(String baseUrl) {
 }
 
 /// Parses GitHub and GitLab urls, and returns the issue tracker of the repository.
-String inferIssueTrackerUrl(String baseUrl, {bool reportNewIssue: false}) {
+String inferIssueTrackerUrl(String baseUrl, {bool reportNewIssue = false}) {
   if (baseUrl == null) {
     return null;
   }

@@ -5,6 +5,7 @@
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 
+// ignore: implementation_imports
 import 'package:pana/src/download_utils.dart' show getRepositoryUrl;
 
 final Logger _logger = new Logger('pub.markdown');
@@ -54,7 +55,7 @@ class _UrlRewriter implements m.NodeVisitor {
     }
   }
 
-  String _rewriteUrl(String url, {bool raw: false}) {
+  String _rewriteUrl(String url, {bool raw = false}) {
     if (url == null || url.startsWith('#')) {
       return url;
     }

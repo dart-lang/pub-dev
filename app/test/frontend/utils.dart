@@ -21,7 +21,7 @@ class TestDelayCompletion {
   final Function _complete = expectAsync0(() {});
   int _got = 0;
 
-  TestDelayCompletion({this.count: 1});
+  TestDelayCompletion({this.count = 1});
 
   void complete() {
     _got++;
@@ -37,7 +37,7 @@ final Key testPackageVersionKey =
 final Key devPackageVersionKey =
     testPackageKey.append(PackageVersion, id: '0.2.0-dev');
 
-final Pubspec testPubspec = new Pubspec.fromYaml(TestPackagePubspec);
+final Pubspec testPubspec = new Pubspec.fromYaml(testPackagePubspec);
 
 Package _createPackage() => new Package()
   ..parentKey = testPackageKey.parent
@@ -63,17 +63,17 @@ final PackageVersion testPackageVersion = new PackageVersion()
   ..libraries = ['foolib.dart']
   ..pubspec = testPubspec
   ..readmeFilename = 'README.md'
-  ..readmeContent = TestPackageReadme
+  ..readmeContent = testPackageReadme
   ..changelogFilename = 'CHANGELOG.md'
-  ..changelogContent = TestPackageChangelog
+  ..changelogContent = testPackageChangelog
   ..exampleFilename = 'example/lib/main.dart'
-  ..exampleContent = TestPackageExample
+  ..exampleContent = testPackageExample
   ..sortOrder = -1;
 
 final PackageVersion flutterPackageVersion =
     clonePackageVersion(testPackageVersion)
       ..created = new DateTime.utc(2015)
-      ..pubspec = new Pubspec.fromYaml(TestPackagePubspec +
+      ..pubspec = new Pubspec.fromYaml(testPackagePubspec +
           '''
 flutter:
   plugin:
@@ -99,7 +99,7 @@ PackageVersion clonePackageVersion(PackageVersion original) =>
       ..changelogContent = original.changelogContent
       ..sortOrder = original.sortOrder;
 
-final String TestPackageReadme = '''
+final String testPackageReadme = '''
 Test Package
 ============
 
@@ -111,7 +111,7 @@ void main() {
 ```
 ''';
 
-final String TestPackageChangelog = '''
+final String testPackageChangelog = '''
 Changelog
 ============
 
@@ -119,13 +119,13 @@ Changelog
 
 ''';
 
-final String TestPackageExample = '''
+final String testPackageExample = '''
 main() {
   print('Hello world!');
 }
 ''';
 
-final String TestPackagePubspec = '''
+final String testPackagePubspec = '''
 name: foobar_pkg
 version: 0.1.1+5
 author: Hans Juergen <hans@juergen.com>

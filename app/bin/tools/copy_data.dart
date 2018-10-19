@@ -46,7 +46,7 @@ Future main(List<String> args) async {
 Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
   final List<db.Model> entities = [];
 
-  Future flush({bool force: false}) async {
+  Future flush({bool force = false}) async {
     if (force || entities.length >= 10) {
       print('Committing ${entities.length} entities.');
       await to.commit(inserts: entities);

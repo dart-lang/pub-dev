@@ -282,7 +282,7 @@ class SimplePackageIndex implements PackageIndex {
       results = results.map((ps) {
         String url = _urlPrefix;
         final doc = _packages[ps.package];
-        String description = doc.description ?? ps.package;
+        final description = doc.description ?? ps.package;
         if (doc.apiDocPages != null && doc.apiDocPages.isNotEmpty) {
           final libPage = doc.apiDocPages.firstWhere(
             (dp) => dp.relativePath.endsWith('-library.html'),
@@ -607,7 +607,7 @@ class TokenIndex {
   final _docSizes = <String, double>{};
   final int _minLength;
 
-  TokenIndex({int minLength: 0}) : _minLength = minLength;
+  TokenIndex({int minLength = 0}) : _minLength = minLength;
 
   /// The number of tokens stored in the index.
   int get tokenCount => _inverseIds.length;
@@ -690,7 +690,7 @@ class TokenIndex {
     if (intersection.isEmpty) return 0.0;
 
     int sumFn(int sum, String str) =>
-        sum + math.min(100, str.length * str.length);
+        sum + math.min<int>(100, str.length * str.length);
 
     final intersectionWeight = intersection.fold<int>(0, sumFn);
     final supersetWeight =
@@ -699,7 +699,7 @@ class TokenIndex {
   }
 
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
-      {double weight: 1.0, int wordCount: 1}) {
+      {double weight = 1.0, int wordCount = 1}) {
     // Summarize the scores for the documents.
     final queryWeight = tokenMatch.maxWeight;
     final Map<String, double> docScores = <String, double>{};

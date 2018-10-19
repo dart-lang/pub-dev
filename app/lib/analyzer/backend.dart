@@ -95,7 +95,7 @@ class AnalysisBackend {
         return _toData(entry);
       } else {
         _logger.info(
-            "Analysis lookup failed for $package $version (panaVersion=$panaVersion)");
+            'Analysis lookup failed for $package $version (panaVersion=$panaVersion)');
       }
     }
 
@@ -376,10 +376,10 @@ class PackageStatus {
     this.exists,
     this.publishDate,
     this.age,
-    this.isLatestStable: false,
-    this.isDiscontinued: false,
-    this.isObsolete: false,
-    this.isLegacy: false,
+    this.isLatestStable = false,
+    this.isDiscontinued = false,
+    this.isObsolete = false,
+    this.isLegacy = false,
   });
 
   factory PackageStatus.fromModels(Package p, PackageVersion pv) {

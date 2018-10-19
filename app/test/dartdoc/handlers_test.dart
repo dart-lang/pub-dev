@@ -166,7 +166,7 @@ class DartdocBackendMock implements DartdocBackend {
 
   @override
   Future<List<String>> getLatestVersions(String package,
-      {int limit: 10}) async {
+      {int limit = 10}) async {
     if (latestVersions == null) return <String>[];
     final v = latestVersions[package];
     if (v == null) return <String>[];

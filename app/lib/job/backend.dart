@@ -325,7 +325,7 @@ class _Stat {
   int _ownedCount = 0;
   int _availableCount = 0;
 
-  _Stat({bool collectFailed: false}) : _collectFailed = collectFailed;
+  _Stat({bool collectFailed = false}) : _collectFailed = collectFailed;
 
   int get totalCount => _totalCount;
   int get availableCount => _availableCount;

@@ -27,7 +27,7 @@ bool isCommonApiSymbol(String symbol) {
   return false;
 }
 
-String _compactText(String text, {int maxLength: -1}) {
+String _compactText(String text, {int maxLength = -1}) {
   if (text == null) return '';
   String t = text.replaceAll(_multiWhitespaceRegExp, ' ').trim();
   if (maxLength > 0 && t.length > maxLength) {

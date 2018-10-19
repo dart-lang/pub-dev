@@ -185,7 +185,7 @@ void main() {
       final normValue = i[0];
       final normAvg = i[1];
       final expectedResult = i[2];
-      test("$normValue, $normAvg", () {
+      test('$normValue, $normAvg', () {
         final result = calculateBezierScore(normValue, normAvg);
 
         expect(result, closeTo(expectedResult, 0.001));
@@ -202,7 +202,7 @@ void main() {
     });
   });
 
-  group("foo", () {
+  group('foo', () {
     test('4, -8, 7', () {
       final thing = solveCubic(1, 2, 3, 4);
       expect(thing.single, closeTo(-1.65, .01));

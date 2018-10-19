@@ -34,7 +34,7 @@ void tScopedTest(String name, Future func()) {
 }
 
 void main() {
-  final PageSize = 10;
+  final pageSize = 10;
   final topQueryLimit = 15;
 
   group('handlers', () {
@@ -88,7 +88,7 @@ void main() {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
             expect(query.offset, 0);
-            expect(query.limit, PageSize);
+            expect(query.limit, pageSize);
             expect(query.platform, isNull);
             expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
@@ -119,7 +119,7 @@ void main() {
           (SearchQuery query) {
             expect(query.query, 'foobar');
             expect(query.offset, 0);
-            expect(query.limit, PageSize);
+            expect(query.limit, pageSize);
             expect(query.platform, isNull);
             expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
@@ -149,7 +149,7 @@ void main() {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
             expect(query.offset, 10);
-            expect(query.limit, PageSize);
+            expect(query.limit, pageSize);
             expect(query.platform, isNull);
             expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
@@ -309,7 +309,7 @@ void main() {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
             expect(query.offset, 0);
-            expect(query.limit, PageSize);
+            expect(query.limit, pageSize);
             expect(query.platform, 'flutter');
             expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
@@ -339,7 +339,7 @@ void main() {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
             expect(query.offset, 10);
-            expect(query.limit, PageSize);
+            expect(query.limit, pageSize);
             expect(query.platform, 'flutter');
             expect(query.isAd, isFalse);
             return new SearchResultPage(query, 1, [
@@ -404,7 +404,7 @@ void main() {
         final backend =
             new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
           expect(offset, 0);
-          expect(limit, PageSize);
+          expect(limit, pageSize);
           return [testPackageVersion];
         });
         registerBackend(backend);
@@ -498,7 +498,7 @@ void main() {
         final backend =
             new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
           expect(offset, 0);
-          expect(limit, greaterThan(PageSize));
+          expect(limit, greaterThan(pageSize));
           return [testPackage];
         }, lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
@@ -507,8 +507,8 @@ void main() {
         });
         registerBackend(backend);
         await expectJsonResponse(await issueGet('/packages.json'), body: {
-          "packages": ["https://pub.dartlang.org/packages/foobar_pkg.json"],
-          "next": null
+          'packages': ['https://pub.dartlang.org/packages/foobar_pkg.json'],
+          'next': null
         });
       });
 
@@ -523,9 +523,9 @@ void main() {
         registerBackend(backend);
         await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
             body: {
-              "name": 'foobar_pkg',
-              "uploaders": ['hans@juergen.com'],
-              "versions": ['0.1.1+5'],
+              'name': 'foobar_pkg',
+              'uploaders': ['hans@juergen.com'],
+              'versions': ['0.1.1+5'],
             });
       });
     });
@@ -550,7 +550,7 @@ void main() {
               'name': 'foobar_pkg',
               'latest': {
                 'version': '0.1.1+5',
-                'pubspec': loadYaml(TestPackagePubspec),
+                'pubspec': loadYaml(testPackagePubspec),
                 'archive_url': 'https://pub.dartlang.org'
                     '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
                 'package_url': 'https://pub.dartlang.org'
