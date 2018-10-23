@@ -280,6 +280,11 @@ class PackageView {
       apiPages: apiPages,
     );
   }
+
+  bool get isAwaiting => analysisStatus == null;
+  bool get isDiscontinued => analysisStatus == AnalysisStatus.discontinued;
+  bool get isLegacy => analysisStatus == AnalysisStatus.legacy;
+  bool get isObsolete => analysisStatus == AnalysisStatus.outdated;
 }
 
 /// Sorts [versions] according to the semantic versioning specification.

@@ -146,8 +146,14 @@ class TemplateService {
         'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
         'last_uploaded': view.shortUpdated,
         'desc': view.ellipsizedDescription,
-        'tags_html': _renderTags(view.analysisStatus, view.platforms,
-            package: view.name),
+        'tags_html': _renderTags(
+          view.platforms,
+          isAwaiting: view.isAwaiting,
+          isDiscontinued: view.isDiscontinued,
+          isLegacy: view.isLegacy,
+          isObsolete: view.isObsolete,
+          packageName: view.name,
+        ),
         'score_box_html': scoreBoxHtml,
         'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
         'api_pages': view.apiPages
@@ -448,7 +454,13 @@ class TemplateService {
               urls.pkgPageUrl(package.name, version: latestDevVersion.version),
           'dev_name': latestDevVersion.version,
         },
-        'tags_html': _renderTags(analysisStatus, analysis?.platforms),
+        'tags_html': _renderTags(
+          analysis?.platforms,
+          isAwaiting: analysisStatus == null,
+          isDiscontinued: analysisStatus == AnalysisStatus.discontinued,
+          isLegacy: analysisStatus == AnalysisStatus.legacy,
+          isObsolete: analysisStatus == AnalysisStatus.outdated,
+        ),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
         'authors_title': 'Author',
@@ -730,8 +742,14 @@ class TemplateService {
           'name': package.name,
           'package_url': urls.pkgPageUrl(package.name),
           'ellipsized_description': package.ellipsizedDescription,
-          'tags_html': _renderTags(package.analysisStatus, package.platforms,
-              package: package.name),
+          'tags_html': _renderTags(
+            package.platforms,
+            isAwaiting: package.isAwaiting,
+            isDiscontinued: package.isDiscontinued,
+            isLegacy: package.isLegacy,
+            isObsolete: package.isObsolete,
+            packageName: package.name,
+          ),
         };
       }).toList(),
     };
@@ -809,10 +827,40 @@ class TemplateService {
   }
 
   /// Renders the tags using the pkg/tags template.
-  String _renderTags(AnalysisStatus status, List<String> platforms,
-      {String package}) {
+  String _renderTags(
+    List<String> platforms, {
+    @required bool isAwaiting,
+    @required bool isDiscontinued,
+    @required bool isLegacy,
+    @required bool isObsolete,
+    String packageName,
+  }) {
     final List<Map> tags = <Map>[];
-    if (platforms != null && platforms.isNotEmpty) {
+    if (isAwaiting) {
+      tags.add({
+        'status': 'missing',
+        'text': '[awaiting]',
+        'title': 'Analysis should be ready soon.',
+      });
+    } else if (isDiscontinued) {
+      tags.add({
+        'status': 'discontinued',
+        'text': '[discontinued]',
+        'title': 'Package was discontinued.',
+      });
+    } else if (isObsolete) {
+      tags.add({
+        'status': 'missing',
+        'text': '[outdated]',
+        'title': 'Package version too old, check latest stable.',
+      });
+    } else if (isLegacy) {
+      tags.add({
+        'status': 'legacy',
+        'text': 'Dart 2 incompatible',
+        'title': 'Package does not support Dart 2.',
+      });
+    } else if (platforms != null && platforms.isNotEmpty) {
       tags.addAll(platforms.map((platform) {
         final platformDict = getPlatformDict(platform, nullIfMissing: true);
         return {
@@ -821,36 +869,12 @@ class TemplateService {
           'title': platformDict?.tagTitle,
         };
       }));
-    } else if (status == null) {
-      tags.add({
-        'status': 'missing',
-        'text': '[awaiting]',
-        'title': 'Analysis should be ready soon.',
-      });
-    } else if (status == AnalysisStatus.discontinued) {
-      tags.add({
-        'status': 'discontinued',
-        'text': '[discontinued]',
-        'title': 'Package was discontinued.',
-      });
-    } else if (status == AnalysisStatus.outdated) {
-      tags.add({
-        'status': 'missing',
-        'text': '[outdated]',
-        'title': 'Package version too old, check latest stable.',
-      });
-    } else if (status == AnalysisStatus.legacy) {
-      tags.add({
-        'status': 'legacy',
-        'text': 'Dart 2 incompatible',
-        'title': 'Package does not support Dart 2.',
-      });
     } else {
       tags.add({
         'status': 'unidentified',
         'text': '[unidentified]',
         'title': 'Check the analysis tab for further details.',
-        'href': urls.analysisTabUrl(package),
+        'href': urls.analysisTabUrl(packageName),
       });
     }
     return _renderTemplate('pkg/tags', {'tags': tags});

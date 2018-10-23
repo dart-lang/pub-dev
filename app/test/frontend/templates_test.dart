@@ -76,7 +76,10 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['web']),
+          analysis: new AnalysisExtract(
+            analysisStatus: AnalysisStatus.success,
+            platforms: ['web'],
+          ),
         ),
       ]);
       final String html = templates.renderIndexPage(popularHtml, null);
@@ -88,7 +91,10 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter']),
+          analysis: new AnalysisExtract(
+            analysisStatus: AnalysisStatus.success,
+            platforms: ['flutter'],
+          ),
         ),
       ]);
       final String html =
@@ -101,7 +107,10 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['web']),
+          analysis: new AnalysisExtract(
+            analysisStatus: AnalysisStatus.success,
+            platforms: ['web'],
+          ),
         ),
       ]);
       final String html =
@@ -390,7 +399,10 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new AnalysisExtract(platforms: ['flutter']),
+          analysis: new AnalysisExtract(
+            analysisStatus: AnalysisStatus.success,
+            platforms: ['flutter'],
+          ),
         ),
       ], new PageLinks.empty(), null);
       expectGoldenFile(html, 'pkg_index_page.html');
@@ -413,7 +425,10 @@ void main() {
           new PackageView.fromModel(
             package: testPackage,
             version: flutterPackageVersion,
-            analysis: new AnalysisExtract(platforms: ['flutter']),
+            analysis: new AnalysisExtract(
+              analysisStatus: AnalysisStatus.success,
+              platforms: ['flutter'],
+            ),
           ),
         ],
         new PageLinks(0, 50, searchQuery: searchQuery),
@@ -476,6 +491,7 @@ void main() {
           version: '1.0.2',
           ellipsizedDescription:
               'Some popular package that is shown on the error page.',
+          analysisStatus: AnalysisStatus.success,
           platforms: KnownPlatforms.all,
         ),
       ]);
