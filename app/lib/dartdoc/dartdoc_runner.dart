@@ -312,10 +312,14 @@ class DartdocJobProcessor extends JobProcessor {
     _appendLog(logFileOutput, r.processResult);
 
     if (r.processResult.exitCode != 0) {
-      _logger.warning('Error while running dartdoc for $job.\n'
-          'exitCode: ${r.processResult.exitCode}\n'
+      final mergedOutput = 'exitCode: ${r.processResult.exitCode}\n'
           'stdout: ${r.processResult.stdout}\n'
-          'stderr: ${r.processResult.stderr}\n');
+          'stderr: ${r.processResult.stderr}\n';
+      if (_isKnownFailurePattern(mergedOutput)) {
+        _logger.info('Error while running dartdoc for $job (see log.txt).');
+      } else {
+        _logger.warning('Error while running dartdoc for $job.\n$mergedOutput');
+      }
     }
 
     return r.hasIndexHtml && r.hasIndexJson;
@@ -387,4 +391,14 @@ class DartdocJobProcessor extends JobProcessor {
     await tmpTar.rename(p.join(outputDir, _archiveFilePath));
     _appendLog(logFileOutput, pr);
   }
+}
+
+bool _isKnownFailurePattern(String output) {
+  if (output.contains('Unhandled exception:') &&
+      output.contains('encountered ') &&
+      output.contains(' analysis errors') &&
+      output.contains('Dartdoc.logAnalysisErrors')) {
+    return true;
+  }
+  return false;
 }
