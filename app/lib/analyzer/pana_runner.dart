@@ -34,16 +34,18 @@ class AnalyzerJobProcessor extends JobProcessor {
       : super(service: JobService.analyzer, lockDuration: lockDuration);
 
   @override
-  Future<bool> shouldProcess(
-      String package, String version, DateTime updated) async {
-    final status =
-        await analysisBackend.checkTargetStatus(package, version, updated);
-    return !status.shouldSkip;
+  Future<bool> shouldProcess(String package, String version, DateTime updated) {
+    return scoreCardBackend.shouldUpdateReport(
+      package,
+      version,
+      ReportType.pana,
+      updatedAfter: updated,
+    );
   }
 
   @override
   Future<JobStatus> process(Job job) async {
-    final packageStatus = await analysisBackend.getPackageStatus(
+    final packageStatus = await scoreCardBackend.getPackageStatus(
         job.packageName, job.packageVersion);
     if (!packageStatus.exists) {
       _logger.info('Package does not exist: $job.');

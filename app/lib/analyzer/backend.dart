@@ -13,7 +13,6 @@ import 'package:pub_semver/pub_semver.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_memcache.dart';
 import '../shared/analyzer_service.dart';
-import '../shared/task_scheduler.dart' show TaskTargetStatus;
 import '../shared/utils.dart';
 import '../shared/versions.dart';
 
@@ -31,7 +30,6 @@ final Logger _logger = new Logger('pub.analyzer.backend');
 
 const Duration _freshThreshold = const Duration(hours: 12);
 const Duration _identicalThreshold = const Duration(days: 7);
-const Duration reanalyzeThreshold = const Duration(days: 30);
 const Duration _regressionThreshold = const Duration(days: 45);
 const Duration _obsoleteThreshold = const Duration(days: 180);
 
@@ -210,96 +208,6 @@ class AnalysisBackend {
     return result as BackendAnalysisStatus;
   }
 
-  /// Returns the task target status based on:
-  /// - whether [packageName] with [packageVersion] exists, and
-  /// - it has no recent [Analysis] with the current [panaVersion] or [flutterVersion], or
-  /// - it has no newer [Analysis] than [panaVersion] or [flutterVersion].
-  Future<TaskTargetStatus> checkTargetStatus(
-      String packageName, String packageVersion, DateTime updated) async {
-    if (packageName == null || packageVersion == null) {
-      return new TaskTargetStatus.skip('Insufficient package or version.');
-    }
-    final pkgStatus =
-        await analysisBackend.getPackageStatus(packageName, packageVersion);
-    if (!pkgStatus.exists) {
-      return new TaskTargetStatus.skip('PackageVersion does not exists.');
-    }
-    if (pkgStatus.isDiscontinued) {
-      return new TaskTargetStatus.skip('Package is discontinued.');
-    }
-    if (pkgStatus.isObsolete) {
-      return new TaskTargetStatus.skip('Package is older than two years old.');
-    }
-
-    // Does package have any analysis?
-    final Key packageKey = db.emptyKey.append(PackageAnalysis, id: packageName);
-    final PackageAnalysis packageAnalysis =
-        (await db.lookup([packageKey])).single;
-    if (packageAnalysis == null) {
-      return new TaskTargetStatus.ok();
-    }
-
-    // Does package have newer version than latest analyzed version?
-    final semanticVersion = new Version.parse(packageVersion);
-    if (isNewer(packageAnalysis.latestSemanticVersion, semanticVersion)) {
-      return new TaskTargetStatus.ok();
-    }
-
-    // Does package have analysis for the current version?
-    final Key versionKey =
-        packageKey.append(PackageVersionAnalysis, id: packageVersion);
-    final PackageVersionAnalysis versionAnalysis =
-        (await db.lookup([versionKey])).single;
-    if (versionAnalysis == null) {
-      return new TaskTargetStatus.ok();
-    }
-
-    // Is current analysis version newer?
-    if (isNewer(
-        versionAnalysis.semanticRuntimeVersion, semanticRuntimeVersion)) {
-      // TODO: skip re-analysis of non-Flutter packages if only the flutterVersion changed
-      return new TaskTargetStatus.ok();
-    }
-
-    // Is current analysis version obsolete?
-    if (isNewer(
-        semanticRuntimeVersion, versionAnalysis.semanticRuntimeVersion)) {
-      // check if there is any analysis with this runtime version
-      final query = db.query<Analysis>(ancestorKey: versionKey)
-        ..filter('runtimeVersion =', runtimeVersion)
-        ..limit(1);
-      if (await query.run().isEmpty) {
-        return new TaskTargetStatus.ok();
-      } else {
-        return new TaskTargetStatus.skip('Newer analysis instance detected.');
-      }
-    }
-
-    if (versionAnalysis.panaVersion != panaVersion ||
-        versionAnalysis.flutterVersion != flutterVersion) {
-      _logger.warning('Versions should be matching: '
-          '${versionAnalysis.panaVersion} - $panaVersion and '
-          '${versionAnalysis.flutterVersion} - $flutterVersion');
-    }
-
-    // Is it due to re-analyze?
-    final DateTime now = new DateTime.now().toUtc();
-    final Duration analysisAge =
-        now.difference(versionAnalysis.analysisTimestamp);
-    if (analysisAge > reanalyzeThreshold) {
-      return new TaskTargetStatus.ok();
-    }
-
-    // Is it a newer analysis than the trigger timestamp?
-    if (versionAnalysis.analysisTimestamp.isAfter(updated) &&
-        versionAnalysis.analysisStatus == AnalysisStatus.success) {
-      return new TaskTargetStatus.skip(
-          'Previous analysis completed after task\'s trigger timestamp.');
-    }
-
-    return new TaskTargetStatus.ok();
-  }
-
   /// Deletes the obsolete [Analysis] instances from Datastore. An instance is
   /// obsolete, if:
   /// - it is **not** the latest for the pana version, or
@@ -350,16 +258,6 @@ class AnalysisBackend {
           '${obsoleteKeys.map((k) => k.id).join(',')}');
       await db.commit(deletes: obsoleteKeys);
     }
-  }
-
-  /// Returns the status of a package and version.
-  Future<PackageStatus> getPackageStatus(String package, String version) async {
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final List list = await db
-        .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
-    final Package p = list[0];
-    final PackageVersion pv = list[1];
-    return new PackageStatus.fromModels(p, pv);
   }
 }
 

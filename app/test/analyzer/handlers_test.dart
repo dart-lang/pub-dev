@@ -10,8 +10,6 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/shared/analyzer_service.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart'
-    show TaskTargetStatus;
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/analyzer/models.dart';
@@ -157,18 +155,7 @@ class MockAnalysisBackend implements AnalysisBackend {
   }
 
   @override
-  Future<TaskTargetStatus> checkTargetStatus(
-      String packageName, String packageVersion, DateTime updated) {
-    throw new UnimplementedError();
-  }
-
-  @override
   Future deleteObsoleteAnalysis(String package, String version) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<PackageStatus> getPackageStatus(String package, String version) {
     throw new UnimplementedError();
   }
 }

@@ -257,4 +257,55 @@ class ScoreCardBackend {
       deletes.clear();
     }
   }
+
+  /// Returns the status of a package and version.
+  Future<PackageStatus> getPackageStatus(String package, String version) async {
+    final packageKey = _db.emptyKey.append(Package, id: package);
+    final List list = await _db
+        .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
+    final Package p = list[0];
+    final PackageVersion pv = list[1];
+    return new PackageStatus.fromModels(p, pv);
+  }
+
+  Future<bool> shouldUpdateReport(
+    String packageName,
+    String packageVersion,
+    String reportType, {
+    bool includeDiscontinued = false,
+    bool includeObsolete = false,
+    Duration successThreshold = const Duration(days: 30),
+    Duration failureThreshold = const Duration(days: 1),
+    DateTime updatedAfter,
+  }) async {
+    if (packageName == null || packageVersion == null) {
+      return false;
+    }
+    final pkgStatus = await getPackageStatus(packageName, packageVersion);
+    if (!pkgStatus.exists) {
+      return false;
+    }
+    if (!includeDiscontinued && pkgStatus.isDiscontinued) {
+      return false;
+    }
+    if (!includeObsolete && pkgStatus.isObsolete) {
+      return false;
+    }
+
+    final key = scoreCardKey(packageName, packageVersion)
+        .append(ScoreCardReport, id: reportType);
+    final list = await _db.lookup([key]);
+    final ScoreCardReport report = list.single;
+    if (report == null) {
+      return true;
+    }
+
+    if (updatedAfter != null && updatedAfter.isAfter(report.updated)) {
+      return true;
+    }
+    final age = new DateTime.now().toUtc().difference(report.updated);
+    final isSuccess = report.reportStatus == ReportStatus.success;
+    final ageThreshold = isSuccess ? successThreshold : failureThreshold;
+    return age > ageThreshold;
+  }
 }

@@ -14,7 +14,6 @@ import 'package:pana/src/utils.dart' show runProc;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
-import '../analyzer/backend.dart';
 import '../job/backend.dart';
 import '../job/job.dart';
 import '../scorecard/backend.dart';
@@ -98,11 +97,16 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   @override
-  Future<bool> shouldProcess(
-      String package, String version, DateTime updated) async {
-    final status =
-        await dartdocBackend.checkTargetStatus(package, version, updated, true);
-    return !status.shouldSkip;
+  Future<bool> shouldProcess(String package, String version, DateTime updated) {
+    return scoreCardBackend.shouldUpdateReport(
+      package,
+      version,
+      ReportType.dartdoc,
+      updatedAfter: updated,
+      includeDiscontinued: true,
+      includeObsolete: true,
+      successThreshold: const Duration(days: 90),
+    );
   }
 
   @override
@@ -216,7 +220,7 @@ class DartdocJobProcessor extends JobProcessor {
     await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
 
     // Trigger analyzer job to pick up the new dartdoc results.
-    final pkgStatus = await analysisBackend.getPackageStatus(
+    final pkgStatus = await scoreCardBackend.getPackageStatus(
         job.packageName, job.packageVersion);
     if (pkgStatus.exists &&
         !pkgStatus.isDiscontinued &&

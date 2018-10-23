@@ -147,16 +147,3 @@ class Task {
   @override
   String toString() => '$package $version';
 }
-
-class TaskTargetStatus {
-  final bool shouldSkip;
-  final String reason;
-
-  TaskTargetStatus(this.shouldSkip, this.reason);
-
-  TaskTargetStatus.ok()
-      : shouldSkip = false,
-        reason = null;
-
-  TaskTargetStatus.skip(this.reason) : shouldSkip = true;
-}
