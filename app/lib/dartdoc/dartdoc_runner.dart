@@ -40,6 +40,10 @@ const _pubDataFileName = 'pub-data.json';
 const _sdkTimeout = const Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
+// We'll emit a suggestion and apply score penalty only if the coverage is below
+// this value.
+const _coverageEmitThreshold = 0.1;
+
 final _pkgPubDartdocDir =
     Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
 
@@ -218,7 +222,7 @@ class DartdocJobProcessor extends JobProcessor {
         coverageScore = documented / total;
       }
 
-      if (coverageScore < 1.0) {
+      if (coverageScore < _coverageEmitThreshold) {
         final level = coverageScore < 0.2
             ? SuggestionLevel.warning
             : SuggestionLevel.hint;
