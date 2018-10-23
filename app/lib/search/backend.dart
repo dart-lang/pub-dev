@@ -239,15 +239,28 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
 
 class SnapshotStorage {
   final String _latestPath = 'snapshot-latest.json.gz';
+  final String _currentPath = 'snapshot/${versions.runtimeVersion}.json.gz';
   final Storage storage;
   final Bucket bucket;
 
   SnapshotStorage(this.storage, this.bucket);
 
   Future<SearchSnapshot> fetch() async {
+    final current = await _fetch(_currentPath);
+    if (current != null) {
+      return current;
+    }
+    return await _fetch(_latestPath);
+  }
+
+  Future<SearchSnapshot> _fetch(String path) async {
     try {
+      final info = await bucket.info(path);
+      if (info == null) {
+        return null;
+      }
       final Map<String, dynamic> map = await bucket
-          .read(_latestPath)
+          .read(path)
           .transform(_gzip.decoder)
           .transform(utf8.decoder)
           .transform(json.decoder)
@@ -255,9 +268,7 @@ class SnapshotStorage {
       return new SearchSnapshot.fromJson(map);
     } catch (e, st) {
       _logger.shout(
-          'Unable to load search snapshot: ${bucketUri(bucket, _latestPath)}',
-          e,
-          st);
+          'Unable to load search snapshot: ${bucketUri(bucket, path)}', e, st);
     }
     return null;
   }
@@ -265,6 +276,7 @@ class SnapshotStorage {
   Future store(SearchSnapshot snapshot) async {
     final List<int> buffer =
         _gzip.encode(utf8.encode(json.encode(snapshot.toJson())));
+    await bucket.writeBytes(_currentPath, buffer);
     await bucket.writeBytes(_latestPath, buffer);
   }
 }
