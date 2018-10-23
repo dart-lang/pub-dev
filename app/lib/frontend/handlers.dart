@@ -371,8 +371,8 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
 
-  final links = new PackageLinks(searchQuery.offset, totalCount,
-      searchQuery: searchQuery);
+  final links =
+      new PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
   final result = htmlResponse(templateService.renderPkgIndexPage(
     searchResult.packages,
     links,
@@ -386,7 +386,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
 
 SearchQuery _parseSearchQuery(shelf.Request request, String platform) {
   final int page = _pageFromUrl(request.url);
-  final int offset = PackageLinks.resultsPerPage * (page - 1);
+  final int offset = PageLinks.resultsPerPage * (page - 1);
   final String queryText = request.requestedUri.queryParameters['q'] ?? '';
   final String sortParam = request.requestedUri.queryParameters['sort'];
   final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
@@ -398,7 +398,7 @@ SearchQuery _parseSearchQuery(shelf.Request request, String platform) {
     platform: platform,
     order: sortOrder,
     offset: offset,
-    limit: PackageLinks.resultsPerPage,
+    limit: PageLinks.resultsPerPage,
     apiEnabled: isApiEnabled,
   );
 }
