@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show DetailedApiRequestError;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -102,7 +104,7 @@ class DartdocBackend {
         final info = await _storage.info(entry.name);
         final age = new DateTime.now().difference(info.updated);
         if (age > _sdkDeleteThreshold) {
-          await _storage.delete(entry.name);
+          await _deleteFile(entry.name);
         }
       }
     }
@@ -185,7 +187,7 @@ class DartdocBackend {
 
     // there is a small chance that the process is interrupted before this gets
     // deleted, but the [removeObsolete] should be able to validate it.
-    await _storage.delete(entry.inProgressObjectName);
+    await _deleteFile(entry.inProgressObjectName);
 
     await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
   }
@@ -310,12 +312,12 @@ class DartdocBackend {
       if (completedList.any((e) => e.uuid == entry.uuid)) {
         // upload was interrupted between setting the final entry and removing
         // the in-progress indicator. Doing the later now.
-        await _storage.delete(entry.inProgressObjectName);
+        await _deleteFile(entry.inProgressObjectName);
       } else {
         final age = new DateTime.now().difference(entry.timestamp).abs();
         if (age > _contentDeleteThreshold) {
           await _deleteAll(entry);
-          await _storage.delete(entry.inProgressObjectName);
+          await _deleteFile(entry.inProgressObjectName);
         }
       }
     }
@@ -394,7 +396,7 @@ class DartdocBackend {
 
   Future _deleteAll(DartdocEntry entry) async {
     await _deleteAllWithPrefix(entry.contentPrefix);
-    await _storage.delete(entry.entryObjectName);
+    await _deleteFile(entry.entryObjectName);
   }
 
   Future _deleteAllWithPrefix(String prefix) async {
@@ -407,7 +409,7 @@ class DartdocBackend {
       for (var item in page.items) {
         count++;
         final pooledDelete =
-            deletePool.withResource(() => _storage.delete(item.name));
+            deletePool.withResource(() => _deleteFile(item.name));
         deleteFutures.add(pooledDelete);
       }
       await Future.wait(deleteFutures);
@@ -420,5 +422,15 @@ class DartdocBackend {
     await deletePool.close();
     sw.stop();
     _logger.info('$prefix: $count files deleted in ${sw.elapsed}.');
+  }
+
+  Future _deleteFile(String path) async {
+    try {
+      await _storage.delete(path);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status != 404) {
+        rethrow;
+      }
+    }
   }
 }
