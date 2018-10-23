@@ -57,7 +57,7 @@ Future<shelf.Response> _packageHandler(shelf.Request request) async {
     if (data == null) {
       return notFoundHandler(request);
     }
-    return jsonResponse(data.toJson());
+    return jsonResponse(data.toJson(), pretty: isPrettyJson(request));
   }
 
   return notFoundHandler(request);
