@@ -440,7 +440,7 @@ class DartdocBackend {
   Future _deleteFile(String path) async {
     try {
       await _storage.delete(path);
-    } on DetailedApiRequestError catch (e, _) {
+    } on DetailedApiRequestError catch (e) {
       if (e.status != 404) {
         rethrow;
       }
