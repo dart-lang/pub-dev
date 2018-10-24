@@ -23,6 +23,7 @@ Future runHandler(Logger logger, shelf.Handler handler,
     {bool sanitize = false}) {
   registerTemplateService(new TemplateService(templateDirectory: templatePath));
 
+  handler = _uriValidationRequestWrapper(handler);
   handler = _userAuthParsingWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
@@ -70,6 +71,27 @@ Request ID: ${context.traceId}
       logger.info('Request handler done.');
     }
   };
+}
+
+shelf.Handler _uriValidationRequestWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
+    if (_isValidUri(request)) {
+      return await handler(request);
+    } else {
+      return htmlResponse('URL is invalid', status: 400);
+    }
+  };
+}
+
+bool _isValidUri(shelf.Request request) {
+  final uri = request.requestedUri;
+  try {
+    // should be able to parse path segments
+    uri.pathSegments.forEach(Uri.decodeComponent);
+  } on ArgumentError catch (_) {
+    return false;
+  }
+  return true;
 }
 
 shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
