@@ -717,8 +717,16 @@ Future<shelf.Response> _apiPackageMetricsHandler(shelf.Request request) async {
   if (data == null) {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
-  return jsonResponse({'scorecard': data.toJson()},
-      pretty: isPrettyJson(request));
+  final result = {
+    'scorecard': data.toJson(),
+  };
+  if (request.requestedUri.queryParameters.containsKey('reports')) {
+    final reports =
+        await scoreCardBackend.loadReports(packageName, data.packageVersion);
+    result['reports'] =
+        reports.map((k, report) => new MapEntry(k, report.toJson()));
+  }
+  return jsonResponse(result, pretty: isPrettyJson(request));
 }
 
 /// Handles requests for /api/history
