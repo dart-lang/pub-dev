@@ -843,12 +843,12 @@ void main() {
           }
 
           expect(await fn('with'),
-              'Exception: Package name must not be a reserved word in Dart.');
+              'Package name must not be a reserved word in Dart.');
           expect(await fn('123test'),
-              'Exception: Package name must begin with a letter or underscore.');
+              'Package name must begin with a letter or underscore.');
           expect(
               await fn('With Space'),
-              'Exception: Package name may only contain '
+              'Package name may only contain '
               'letters, numbers, and underscores.');
 
           expect(await fn('ok_name'), 'Exception: no lookupFun');
