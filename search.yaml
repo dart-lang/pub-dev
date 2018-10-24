@@ -8,7 +8,7 @@ service: search
 
 resources:
   cpu: 1
-  memory_gb: 7
+  memory_gb: 6
 
 #manual_scaling:
 #  instances: 1
