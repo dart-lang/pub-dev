@@ -52,13 +52,12 @@ class BackupCommand extends Command {
         ? Directory.current
         : new Directory(argResults['backup-directory'] as String);
     await backupDir.create(recursive: true);
-    // current timestamp in YYYYMMDD-HHmmss
+    // current timestamp in YYYY-MM-DD-HH-mm-ss
     final ts = new DateTime.now()
         .toUtc()
         .toIso8601String()
-        .replaceAll('-', '')
         .replaceAll('T', '-')
-        .replaceAll(':', '')
+        .replaceAll(':', '-')
         .split('.')
         .first;
     // output files
