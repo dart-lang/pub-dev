@@ -265,6 +265,7 @@ class ArchiveLine {
   Map<String, dynamic> toJson() => _$ArchiveLineToJson(this);
 }
 
+// NOTE: Keep in sync with PackageVersion.
 @JsonSerializable()
 class PackageArchive {
   final String name;
@@ -295,6 +296,7 @@ class PackageArchive {
   Map<String, dynamic> toJson() => _$PackageArchiveToJson(this);
 }
 
+// NOTE: Keep in sync with PackageVersion.
 @JsonSerializable()
 class PackageVersionArchive {
   final String version;
