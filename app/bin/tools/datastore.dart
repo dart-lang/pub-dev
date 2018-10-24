@@ -133,7 +133,7 @@ class UpdateCommand extends Command {
   Future run() async {
     if (activeConfiguration.projectId != 'dartlang-pub-dev') {
       print('\nPROJECT_ID is not dartlang-pub-dev, exiting.\n');
-      exit(-1);
+      exit(1);
     }
 
     final backupDir = argResults['backup-directory'] == null
