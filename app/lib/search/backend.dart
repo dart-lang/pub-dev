@@ -238,19 +238,21 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
 }
 
 class SnapshotStorage {
-  final String _latestPath = 'snapshot-latest.json.gz';
-  final String _currentPath = 'snapshot/${versions.runtimeVersion}.json.gz';
+  static const String _prefix = 'snapshot/';
+  static const String _suffix = '.json.gz';
+  final String _currentPath = '$_prefix${versions.runtimeVersion}$_suffix';
   final Storage storage;
   final Bucket bucket;
 
   SnapshotStorage(this.storage, this.bucket);
 
   Future<SearchSnapshot> fetch() async {
-    final current = await _fetch(_currentPath);
-    if (current != null) {
-      return current;
+    final path = await _detectLatest();
+    if (path == null) {
+      _logger.shout('Unable to detect the latest search snapshot file.');
+      return null;
     }
-    return await _fetch(_latestPath);
+    return await _fetch(path);
   }
 
   Future<SearchSnapshot> _fetch(String path) async {
@@ -273,11 +275,29 @@ class SnapshotStorage {
     return null;
   }
 
+  Future<String> _detectLatest() async {
+    final targetLength = _prefix.length + _suffix.length + 10;
+    final list = await bucket
+        .list(prefix: _prefix)
+        .map((entry) => entry.name)
+        .where((name) => name.endsWith(_suffix) && name.length == targetLength)
+        .where((name) {
+          final match = versions.runtimeVersionPattern
+              .matchAsPrefix(name, _suffix.length);
+          return match != null;
+        })
+        .where((name) => name.compareTo(_currentPath) <= 0)
+        .toList();
+    if (list.isEmpty) {
+      return null;
+    }
+    return list.fold<String>(list.first, (a, b) => a.compareTo(b) < 0 ? b : a);
+  }
+
   Future store(SearchSnapshot snapshot) async {
     final List<int> buffer =
         _gzip.encode(utf8.encode(json.encode(snapshot.toJson())));
     await bucket.writeBytes(_currentPath, buffer);
-    await bucket.writeBytes(_latestPath, buffer);
   }
 }
 
