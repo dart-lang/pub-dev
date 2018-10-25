@@ -56,6 +56,8 @@ void main() {
 
     test('urls without valid scheme are not accepted', () {
       expect(() => syntaxCheckHomepageUrl('github.com/x/y'), throwsException);
+      expect(() => syntaxCheckHomepageUrl('httpx://github.com/x/y'),
+          throwsException);
       expect(() => syntaxCheckHomepageUrl('ftp://github.com/x/y'),
           throwsException);
     });
