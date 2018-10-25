@@ -19,6 +19,7 @@ import 'package:logging/logging.dart';
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
+import 'package:pub_server/repository.dart' show GenericProcessingException;
 import 'package:stream_transform/stream_transform.dart';
 
 import 'packages_overrides.dart';
@@ -175,28 +176,30 @@ const List<String> _reservedWords = const <String>[
 /// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
 void validatePackageName(String name) {
   if (!_identifierExpr.hasMatch(name)) {
-    throw new Exception(
+    throw new GenericProcessingException(
         'Package name may only contain letters, numbers, and underscores.');
   }
   if (!_startsWithLetterOrUnderscore.hasMatch(name)) {
-    throw new Exception('Package name must begin with a letter or underscore.');
+    throw new GenericProcessingException(
+        'Package name must begin with a letter or underscore.');
   }
   if (_reservedWords.contains(name.toLowerCase())) {
-    throw new Exception('Package name must not be a reserved word in Dart.');
+    throw new GenericProcessingException(
+        'Package name must not be a reserved word in Dart.');
   }
   final bool isLower = name == name.toLowerCase();
   final bool matchesMixedCase = knownMixedCasePackages.contains(name);
   if (!isLower && !matchesMixedCase) {
-    throw new Exception('Package name must be lowercase.');
+    throw new GenericProcessingException('Package name must be lowercase.');
   }
   if (isLower && blockedLowerCasePackages.contains(name)) {
-    throw new Exception(
+    throw new GenericProcessingException(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
   if (!isLower &&
       matchesMixedCase &&
       !blockedLowerCasePackages.contains(name.toLowerCase())) {
-    throw new Exception(
+    throw new GenericProcessingException(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:path/path.dart' as p;
+import 'package:pub_server/repository.dart' show GenericProcessingException;
 
 import 'packages_overrides.dart';
 
@@ -98,17 +99,18 @@ void syntaxCheckHomepageUrl(String url) {
   try {
     uri = Uri.parse(url);
   } catch (_) {
-    throw new Exception('Unable to parse homepage URL: $url');
+    throw new GenericProcessingException('Unable to parse homepage URL: $url');
   }
   if (!uri.hasScheme || !uri.scheme.startsWith('http')) {
-    throw new Exception(
+    throw new GenericProcessingException(
         'Use http:// or https:// URL schemes for homepage URL: $url');
   }
   if (uri.host == null ||
       uri.host.isEmpty ||
       !uri.host.contains('.') ||
       _invalidHostNames.contains(uri.host)) {
-    throw new Exception('Homepage URL has no valid host: $url');
+    throw new GenericProcessingException(
+        'Homepage URL has no valid host: $url');
   }
 }
 
