@@ -283,7 +283,7 @@ class SnapshotStorage {
         .where((name) => name.endsWith(_suffix) && name.length == targetLength)
         .where((name) {
           final match = versions.runtimeVersionPattern
-              .matchAsPrefix(name, _suffix.length);
+              .matchAsPrefix(name, _prefix.length);
           return match != null;
         })
         .where((name) => name.compareTo(_currentPath) <= 0)
