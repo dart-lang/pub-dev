@@ -104,7 +104,7 @@ void syntaxCheckHomepageUrl(String url) {
   final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
   if (!hasValidScheme) {
     throw new GenericProcessingException(
-        'Homepage URL has no valid scheme: $url');
+        'Use http:// or https:// URL schemes for homepage URL: $url');
   }
   if (uri.host == null ||
       uri.host.isEmpty ||
