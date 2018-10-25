@@ -24,13 +24,13 @@ part 'datastore.g.dart';
 /// Usage:
 /// - Create a backup and store it in the current directory:
 ///   dart bin/tools/datastore.dart backup
-/// - Update the datastore from the latest backup:
-///   dart bin/tools/datastore.dart update
+/// - Restore the datastore from the latest backup:
+///   dart bin/tools/datastore.dart restore
 Future main(List<String> arguments) async {
   final runner =
       new CommandRunner('datastore', 'Datastore backup and restore utility.')
         ..addCommand(new BackupCommand())
-        ..addCommand(new UpdateCommand());
+        ..addCommand(new RestoreCommand());
   await runner.run(arguments);
 }
 
@@ -116,15 +116,15 @@ class BackupCommand extends Command {
   }
 }
 
-/// 'Updates user-provided data from backup.'
-class UpdateCommand extends Command {
+/// 'Restores user-provided data from backup.'
+class RestoreCommand extends Command {
   @override
-  String get name => 'update';
+  String get name => 'restore';
 
   @override
-  String get description => 'Updates user-provided data from backup.';
+  String get description => 'Restores user-provided data from backup.';
 
-  UpdateCommand() {
+  RestoreCommand() {
     argParser.addOption('packages', help: 'The *-packages.jsonl backup file.');
   }
 
@@ -142,7 +142,7 @@ class UpdateCommand extends Command {
     }
 
     await withProdServices(() async {
-      print('Updating packages from: $packagesFile');
+      print('Restoring packages from: $packagesFile');
       final stream = packagesFile
           .openRead()
           .transform(convert.utf8.decoder)
@@ -227,7 +227,7 @@ class UpdateCommand extends Command {
         await pool.close();
       }
       print('$pkgCounter packages processed from ${packagesFile.path}');
-      print('Updated:\n'
+      print('Restored:\n'
           '  $pkgUpdateCount packages\n'
           '  $pkgVersionUpdateCount versions.');
     });
