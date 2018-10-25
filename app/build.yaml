@@ -3,6 +3,7 @@
 targets:
   pub_dartlang_org:
     sources:
+      - 'bin/tools/datastore.dart'
       - 'lib/history/models.dart'
       - 'lib/dartdoc/models.dart'
       - 'lib/scorecard/models.dart'

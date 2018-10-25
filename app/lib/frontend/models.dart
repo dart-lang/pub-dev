@@ -28,6 +28,8 @@ export 'model_properties.dart' show FileObject;
 // have db Models for users, but the lowlevel datastore API will store them
 // as expanded properties of type `Entity`.
 // We should move ExpandoModel -> Model once we have highlevel db.User objects.
+//
+// NOTE: Keep in sync with PackageArchive.
 @db.Kind(name: 'Package', idType: db.IdType.String)
 class Package extends db.ExpandoModel {
   @db.StringProperty()
@@ -115,6 +117,8 @@ class Package extends db.ExpandoModel {
 // have db Models for users, but the lowlevel datastore API will store them
 // as expanded properties of type `Entity`.
 // We should move ExpandoModel -> Model once we have highlevel db.User objects.
+//
+// NOTE: Keep in sync with PackageVersionArchive.
 @db.Kind(name: 'PackageVersion', idType: db.IdType.String)
 class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)
