@@ -101,7 +101,8 @@ void syntaxCheckHomepageUrl(String url) {
   } catch (_) {
     throw new GenericProcessingException('Unable to parse homepage URL: $url');
   }
-  if (!uri.hasScheme || !uri.scheme.startsWith('http')) {
+  final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
+  if (!hasValidScheme) {
     throw new GenericProcessingException(
         'Use http:// or https:// URL schemes for homepage URL: $url');
   }
