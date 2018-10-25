@@ -43,25 +43,25 @@ class BackupCommand extends Command {
   String get description => 'Backup user-provided data from Datastore.';
 
   BackupCommand() {
-    argParser.addOption('backup-directory', help: 'The backup directory.');
+    argParser.addOption('packages', help: 'The *-packages.jsonl backup file.');
   }
 
   @override
   Future run() async {
-    final backupDir = argResults['backup-directory'] == null
-        ? Directory.current
-        : new Directory(argResults['backup-directory'] as String);
-    await backupDir.create(recursive: true);
-    // current timestamp in YYYY-MM-DD-HH-mm-ss
-    final ts = new DateTime.now()
-        .toUtc()
-        .toIso8601String()
-        .replaceAll('T', '-')
-        .replaceAll(':', '-')
-        .split('.')
-        .first;
-    // output files
-    final packagesFile = new File('${backupDir.path}/$ts-packages.jsonl');
+    String packagesFileName = argResults['packages'];
+    if (packagesFileName == null) {
+      // current timestamp in YYYY-MM-DD-HH-mm-ss
+      final ts = new DateTime.now()
+          .toUtc()
+          .toIso8601String()
+          .replaceAll('T', '-')
+          .replaceAll(':', '-')
+          .split('.')
+          .first;
+      packagesFileName = '$ts-packages.jsonl';
+    }
+    final packagesFile = new File(packagesFileName);
+    await packagesFile.parent.create(recursive: true);
 
     await withProdServices(() async {
       print('Backup packages into ${packagesFile.path}...');
@@ -111,7 +111,7 @@ class BackupCommand extends Command {
         await packagesFile.writeAsString(line + '\n',
             mode: FileMode.writeOnlyAppend);
       }
-      print('$pkgCounter packages backed up in ${packagesFile.path}');
+      print('$pkgCounter packages backed up in $packagesFile');
     });
   }
 }
@@ -125,7 +125,7 @@ class UpdateCommand extends Command {
   String get description => 'Updates user-provided data from backup.';
 
   UpdateCommand() {
-    argParser.addOption('backup-directory', help: 'The backup directory.');
+    argParser.addOption('packages', help: 'The *-packages.jsonl backup file.');
   }
 
   @override
@@ -135,18 +135,14 @@ class UpdateCommand extends Command {
       exit(1);
     }
 
-    final backupDir = argResults['backup-directory'] == null
-        ? Directory.current
-        : new Directory(argResults['backup-directory'] as String);
-    // input files
-    final backupPrefix = await _detectLatest(backupDir);
-    print('\nFound backup prefix: $backupPrefix\n'
-        'Waiting for 5 seconds before proceeding.\n');
-    await new Future.delayed(const Duration(seconds: 5));
-    final packagesFile = new File('$backupPrefix-packages.jsonl');
+    final packagesFile = new File(argResults['packages'] as String);
+    if (!packagesFile.existsSync()) {
+      print('Packages file $packagesFile does not exists.');
+      exit(1);
+    }
 
     await withProdServices(() async {
-      print('Restoring packages from: $packagesFile');
+      print('Updating packages from: $packagesFile');
       final stream = packagesFile
           .openRead()
           .transform(convert.utf8.decoder)
@@ -235,17 +231,6 @@ class UpdateCommand extends Command {
           '  $pkgUpdateCount packages\n'
           '  $pkgVersionUpdateCount versions.');
     });
-  }
-
-  Future<String> _detectLatest(Directory backupDir) async {
-    final suffix = '-packages.jsonl';
-    final list = await backupDir
-        .list()
-        .where((fse) => fse is File && fse.path.endsWith(suffix))
-        .map((f) => f.path.substring(0, f.path.length - suffix.length))
-        .toList();
-    list.sort();
-    return list.last;
   }
 }
 
