@@ -269,6 +269,7 @@ class PackageStatus {
   final bool isDiscontinued;
   final bool isObsolete;
   final bool isLegacy;
+  final bool usesFlutter;
 
   PackageStatus({
     this.exists,
@@ -278,6 +279,7 @@ class PackageStatus {
     this.isDiscontinued = false,
     this.isObsolete = false,
     this.isLegacy = false,
+    this.usesFlutter = false,
   });
 
   factory PackageStatus.fromModels(Package p, PackageVersion pv) {
@@ -297,6 +299,7 @@ class PackageStatus {
       isDiscontinued: p.isDiscontinued ?? false,
       isObsolete: isObsolete,
       isLegacy: pv.pubspec.supportsOnlyLegacySdk,
+      usesFlutter: pv.pubspec.usesFlutter,
     );
   }
 }

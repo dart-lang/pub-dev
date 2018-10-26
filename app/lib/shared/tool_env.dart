@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:pana/pana.dart';
+import 'package:path/path.dart' as p;
 
 import 'configuration.dart';
 
@@ -30,10 +31,11 @@ Completer _ongoing;
 class ToolEnvRef {
   final Directory _pubCacheDir;
   final ToolEnvironment toolEnv;
+  final ToolEnvironment flutterEnv;
   int _started = 0;
   int _active = 0;
 
-  ToolEnvRef(this._pubCacheDir, this.toolEnv);
+  ToolEnvRef(this._pubCacheDir, this.toolEnv, this.flutterEnv);
 
   void _aquire() {
     _started++;
@@ -78,7 +80,15 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
       flutterSdkDir: envConfig.flutterSdkDir,
       pubCacheDir: resolvedDirName,
     );
-    _current = new ToolEnvRef(cacheDir, toolEnv);
+    ToolEnvironment flutterEnv = toolEnv;
+    if (envConfig.flutterSdkDir != null) {
+      flutterEnv = await ToolEnvironment.create(
+        dartSdkDir: p.join(envConfig.flutterSdkDir, 'bin', 'cache', 'dart-sdk'),
+        flutterSdkDir: envConfig.flutterSdkDir,
+        pubCacheDir: resolvedDirName,
+      );
+    }
+    _current = new ToolEnvRef(cacheDir, toolEnv, flutterEnv);
     result = _current;
     result._aquire();
     _ongoing.complete();
