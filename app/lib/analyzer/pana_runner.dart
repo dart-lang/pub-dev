@@ -99,8 +99,11 @@ class AnalyzerJobProcessor extends JobProcessor {
       final toolEnvRef = await getOrCreateToolEnvRef();
       try {
         tempDir = await Directory.systemTemp.createTemp('pana');
+        final toolEnv = packageStatus.usesFlutter
+            ? toolEnvRef.flutterEnv
+            : toolEnvRef.toolEnv;
         final PackageAnalyzer analyzer =
-            new PackageAnalyzer(toolEnvRef.toolEnv, urlChecker: _urlChecker);
+            new PackageAnalyzer(toolEnv, urlChecker: _urlChecker);
         final isInternal = internalPackageNames.contains(job.packageName);
         return await analyzer.inspectPackage(
           job.packageName,
