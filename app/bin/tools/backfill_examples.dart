@@ -70,6 +70,10 @@ Future _backfill(PackageVersion pv) async {
       utf8.decode(archiveFile.content as List<int>, allowMalformed: true);
   if (content.trim().isEmpty) return;
 
+  if (pv.exampleFilename == archiveFilename && pv.exampleContent == content) {
+    return;
+  }
+
   await dbService.withTransaction((Transaction t) async {
     final PackageVersion packageVersion = (await t.lookup([pv.key])).first;
     packageVersion.exampleFilename = archiveFilename;
