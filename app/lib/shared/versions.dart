@@ -43,6 +43,7 @@ final Version semanticPanaVersion = new Version.parse(panaVersion);
 final String flutterVersion = '0.10.1';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
+// keep in-sync with pkg/pub_dartdoc/pubspec.yaml
 final String dartdocVersion = '0.23.1';
 final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
