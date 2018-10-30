@@ -7,43 +7,6 @@ We collect the following scores prior to building the search index:
 - maintenance
 - popularity
 
-### Health score
-
-The health score should reflect the general code health of the package,
-and it is calculated for each package version separately.
-
-Details can be found in pana's [`Health.healthScore`](https://github.com/dart-lang/pana/blob/master/lib/src/health.dart)
-method.
-
-### Maintenance score
-
-The maintenance score should reflect the effort and attention the authors
-put into the package.
-
-Details can be found in pana's [maintenance](https://github.com/dart-lang/pana/blob/master/lib/src/maintenance.dart)
-library.
-
-### Popularity score
-
-The popularity score should reflect the package's use, and it is calculated
-using the download log entries for the past 30 days from the storage backend.
-
-The popularity score is calculated in several steps:
-
-- The raw data is processed and exported to a bucket (`dartlang-pub--popularity`).
-- The individual package-level entries are summed with a weighting defined by `VoteData._score`.
-- These values are normalized to `[0.0 .. 1.0]` using the linear order of the
-  sorted values in `PopularityStorage._updateLatest`. This step needs to know
-  all of the scores in one place to do that calculation.
-
-### Overall package score
-
-Overall package score is calculated in the `calculateOverallScore` method as follows:
-
-- `0.5` * `popularity` +
-- `0.3` * `health` +
-- `0.2` * `maintenance`
-
 ### Platform specificity score
 
 When a platform filter is specified, we both check whether the predicate
@@ -110,6 +73,25 @@ have those.
 The text match score will then be either used directly (`SearchOrder.text`) or it
 will be combined with other scores (see: combined ranking).
 
+### API/dartdoc match
+
+The `pkg/pub_dartdoc` package is an extended `dartdoc` tool that extracts additional
+information about the source code:
+- The public API symbols (libraries, methods, classes, fields) and their locations.
+- The documentation for such symbols.
+
+The symbols are grouped into libraries (top-level methods) and classes (and
+their fields and methods). Each group has a unique URL pointing to the generated
+documentation page.
+
+There is a sub-index for such pages and their documentation content. On text
+matching, the index will collect the pages independently from their packages,
+and they will be aggregated: 3 pages per package, keeping the maximum score
+for each package.
+
+These results will then be merged with the results of name, description and
+readme indexes.
+
 ### Combined ranking
 
 When combining multiple scores (e.g. overall \[+ text match score]),
@@ -136,6 +118,14 @@ For example, a result with the following scores is calculated the following way:
 | Package's overall | 0.906 | 0.9342 | 
 | Platform specificity | 0.9 | 0.9 |
 | Result |  | 0.588546 | 
+
+### SDK results
+
+The `dartdoc` service also provides the extracted data for the SDK, and these
+are grouped and stored by the top-level libraries (e.g. `dart:collection`).
+
+On text search operations both the package and the sdk index will get queried,
+and their results will be merged before displaying them to the users.
 
 ## Process for search tuning
 
