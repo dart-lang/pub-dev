@@ -73,6 +73,25 @@ have those.
 The text match score will then be either used directly (`SearchOrder.text`) or it
 will be combined with other scores (see: combined ranking).
 
+### API/dartdoc match
+
+The `pkg/pub_dartdoc` package is an extended `dartdoc` tool that extracts additional
+information about the source code:
+- The public API symbols (libraries, methods, classes, fields) and their locations.
+- The documentation for such symbols.
+
+The symbols are grouped into libraries (top-level methods) and classes (and
+their fields and methods). Each group has a unique URL pointing to the generated
+documentation page.
+
+There is a sub-index for such pages and their documentation content. On text
+matching, the index will collect the pages independently from their packages,
+and they will be aggregated: 3 pages per package, keeping the maximum score
+for each package.
+
+These results will then be merged with the results of name, description and
+readme indexes.
+
 ### Combined ranking
 
 When combining multiple scores (e.g. overall \[+ text match score]),
@@ -99,6 +118,14 @@ For example, a result with the following scores is calculated the following way:
 | Package's overall | 0.906 | 0.9342 | 
 | Platform specificity | 0.9 | 0.9 |
 | Result |  | 0.588546 | 
+
+### SDK results
+
+The `dartdoc` service also provides the extracted data for the SDK, and these
+are grouped and stored by the top-level libraries (e.g. `dart:collection`).
+
+On text search operations both the package and the sdk index will get queried,
+and their results will be merged before displaying them to the users.
 
 ## Process for search tuning
 
