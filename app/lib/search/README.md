@@ -7,43 +7,6 @@ We collect the following scores prior to building the search index:
 - maintenance
 - popularity
 
-### Health score
-
-The health score should reflect the general code health of the package,
-and it is calculated for each package version separately.
-
-Details can be found in pana's [`Health.healthScore`](https://github.com/dart-lang/pana/blob/master/lib/src/health.dart)
-method.
-
-### Maintenance score
-
-The maintenance score should reflect the effort and attention the authors
-put into the package.
-
-Details can be found in pana's [maintenance](https://github.com/dart-lang/pana/blob/master/lib/src/maintenance.dart)
-library.
-
-### Popularity score
-
-The popularity score should reflect the package's use, and it is calculated
-using the download log entries for the past 30 days from the storage backend.
-
-The popularity score is calculated in several steps:
-
-- The raw data is processed and exported to a bucket (`dartlang-pub--popularity`).
-- The individual package-level entries are summed with a weighting defined by `VoteData._score`.
-- These values are normalized to `[0.0 .. 1.0]` using the linear order of the
-  sorted values in `PopularityStorage._updateLatest`. This step needs to know
-  all of the scores in one place to do that calculation.
-
-### Overall package score
-
-Overall package score is calculated in the `calculateOverallScore` method as follows:
-
-- `0.5` * `popularity` +
-- `0.3` * `health` +
-- `0.2` * `maintenance`
-
 ### Platform specificity score
 
 When a platform filter is specified, we both check whether the predicate
