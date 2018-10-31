@@ -62,8 +62,8 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  final Bucket popularityBucket =
-      storageService.bucket(configuration.popularityDumpBucketName);
+  final popularityBucket = await getOrCreateBucket(
+      storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
       new PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
@@ -95,7 +95,8 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   new NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
 
-  final pkgBucket = storageService.bucket(configuration.packageBucketName);
+  final pkgBucket =
+      await getOrCreateBucket(storageService, configuration.packageBucketName);
   final tarballStorage = new TarballStorage(storageService, pkgBucket, null);
   registerTarballStorage(tarballStorage);
 
