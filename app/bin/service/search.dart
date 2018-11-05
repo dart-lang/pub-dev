@@ -49,7 +49,7 @@ Future _main(FrontendEntryMessage message) async {
   ));
 
   await withAppEngineServices(() async {
-    final Bucket popularityBucket = await getOrCreateBucket(
+    final popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
         new PopularityStorage(storageService, popularityBucket));

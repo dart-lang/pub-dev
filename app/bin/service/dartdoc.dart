@@ -94,8 +94,8 @@ Future _workerMain(WorkerEntryMessage message) async {
 }
 
 Future _registerServices() async {
-  final Bucket popularityBucket =
-      storageService.bucket(activeConfiguration.popularityDumpBucketName);
+  final popularityBucket = await getOrCreateBucket(
+      storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
       new PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
