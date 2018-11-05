@@ -99,7 +99,11 @@ class SearchBackend {
       List<ApiDocPage> apiDocPages;
       if (pubDataContent != null) {
         try {
-          apiDocPages = _apiDocPagesFromPubDataText(pubDataContent);
+          if (pubDataContent.isEmpty) {
+            _logger.info('Got empty pub-data.json for package ${p.name}.');
+          } else {
+            apiDocPages = _apiDocPagesFromPubDataText(pubDataContent);
+          }
         } catch (e, st) {
           _logger.severe('Parsing pub-data.json failed.', e, st);
         }
