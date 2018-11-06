@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
-    show DetailedApiRequestError;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -19,7 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
-import '../shared/utils.dart' show contentType, retryAsync;
+import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
@@ -27,7 +25,6 @@ import 'pub_dartdoc_data.dart';
 import 'storage_path.dart' as storage_path;
 
 final Logger _logger = new Logger('pub.dartdoc.backend');
-final _gzip = new GZipCodec();
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
 final Duration _sdkDeleteThreshold = const Duration(days: 182);
@@ -43,72 +40,32 @@ DartdocBackend get dartdocBackend =>
     ss.lookup(#_dartdocBackend) as DartdocBackend;
 
 class DartdocBackend {
-  DatastoreDB _db;
-  Bucket _storage;
+  final DatastoreDB _db;
+  final Bucket _storage;
+  final VersionedDataStorage _sdkStorage;
 
-  DartdocBackend(this._db, this._storage);
+  DartdocBackend(this._db, this._storage)
+      : _sdkStorage = new VersionedDataStorage(
+            _storage, '${storage_path.dartSdkDartdocPrefix()}/', '.json.gz');
 
   /// Whether the storage bucket has a usable extracted data file.
   /// Only the existence of the file is checked.
   // TODO: decide whether we should re-generate the file after a certain age
-  Future<bool> hasValidDartSdkDartdocData() async {
-    final objectName =
-        storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
-    try {
-      final info = await _storage.info(objectName);
-      return info != null;
-    } catch (_) {
-      return false;
-    }
-  }
+  Future<bool> hasValidDartSdkDartdocData() => _sdkStorage.hasCurrentData();
 
   /// Upload the generated dartdoc data file for the Dart SDK to the storage bucket.
-  Future uploadDartSdkDartdocData(File file) async {
-    final objectName =
-        storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
-    try {
-      await _uploadWithRetry(
-          objectName, () => file.openRead().transform(_gzip.encoder));
-    } catch (e, st) {
-      _logger.warning(
-          'Unable to upload SDK pub dartdoc data file: $objectName', e, st);
-    }
-  }
+  Future uploadDartSdkDartdocData(File file) =>
+      _sdkStorage.uploadDataFile(file);
 
   /// Read the generated dartdoc data file for the Dart SDK.
   Future<PubDartdocData> getDartSdkDartdocData() async {
-    final objectName =
-        storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
-    final Map<String, dynamic> map = await _storage
-        .read(objectName)
-        .transform(_gzip.decoder)
-        .transform(utf8.decoder)
-        .transform(json.decoder)
-        .single;
+    final map = await _sdkStorage.getContentAsJsonMap();
     return new PubDartdocData.fromJson(map);
   }
 
   /// Deletes the old entries that predate [shared_versions.gcBeforeRuntimeVersion].
-  Future deleteOldSdkData() async {
-    final prefix = storage_path.dartSdkDartdocPrefix();
-    await for (BucketEntry entry in _storage.list(prefix: '$prefix/')) {
-      if (entry.isDirectory) {
-        continue;
-      }
-      final name = p.basename(entry.name);
-      final version = name.replaceAll('.json.gz', '');
-      final matchesPattern = version.length == 10 &&
-          shared_versions.runtimeVersionPattern.hasMatch(version);
-      if (matchesPattern &&
-          version.compareTo(shared_versions.gcBeforeRuntimeVersion) < 0) {
-        final info = await _storage.info(entry.name);
-        final age = new DateTime.now().difference(info.updated);
-        if (age > _sdkDeleteThreshold) {
-          await _deleteFile(entry.name);
-        }
-      }
-    }
-  }
+  Future deleteOldSdkData() =>
+      _sdkStorage.deleteOldData(ageThreshold: _sdkDeleteThreshold);
 
   /// Returns the latest stable version of a package.
   Future<String> getLatestVersion(String package) async {
@@ -133,33 +90,11 @@ class DartdocBackend {
     return versions.map((pv) => pv.version).take(limit).toList();
   }
 
-  Future _uploadWithRetry(
-      String objectName, Stream<List<int>> openStream()) async {
-    await retryAsync(
-      () async {
-        final sink =
-            _storage.write(objectName, contentType: contentType(objectName));
-        await sink.addStream(openStream());
-        await sink.close();
-      },
-      description: 'Upload to $objectName',
-      shouldRetryOnError: (e) {
-        if (e is DetailedApiRequestError) {
-          return e.status == 502 || e.status == 503;
-        }
-        return false;
-      },
-      sleep: Duration(seconds: 10),
-    );
-  }
-
-  Future _uploadBytesWithRetry(String objectName, List<int> bytes) =>
-      _uploadWithRetry(objectName, () => new Stream.fromIterable([bytes]));
-
   /// Uploads a directory to the storage bucket.
   Future uploadDir(DartdocEntry entry, String dirPath) async {
     // upload is in progress
-    await _uploadBytesWithRetry(entry.inProgressObjectName, entry.asBytes());
+    await uploadBytesWithRetry(
+        _storage, entry.inProgressObjectName, entry.asBytes());
 
     // upload all files
     final dir = new Directory(dirPath);
@@ -177,7 +112,8 @@ class DartdocBackend {
         final info = await getFileInfo(entry, relativePath);
         if (info != null) return;
       }
-      await _uploadWithRetry(objectName, () => file.openRead());
+      await uploadWithRetry(
+          _storage, objectName, file.lengthSync(), () => file.openRead());
       count++;
       if (count % 100 == 0) {
         _logger.info('Upload completed: $objectName (item #$count)');
@@ -198,11 +134,12 @@ class DartdocBackend {
         '$count files uploaded in ${sw.elapsed}.');
 
     // upload was completed
-    await _uploadBytesWithRetry(entry.entryObjectName, entry.asBytes());
+    await uploadBytesWithRetry(
+        _storage, entry.entryObjectName, entry.asBytes());
 
     // there is a small chance that the process is interrupted before this gets
     // deleted, but the [removeObsolete] should be able to validate it.
-    await _deleteFile(entry.inProgressObjectName);
+    await deleteFromBucket(_storage, entry.inProgressObjectName);
 
     await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
   }
@@ -327,12 +264,12 @@ class DartdocBackend {
       if (completedList.any((e) => e.uuid == entry.uuid)) {
         // upload was interrupted between setting the final entry and removing
         // the in-progress indicator. Doing the later now.
-        await _deleteFile(entry.inProgressObjectName);
+        await deleteFromBucket(_storage, entry.inProgressObjectName);
       } else {
         final age = new DateTime.now().difference(entry.timestamp).abs();
         if (age > _contentDeleteThreshold) {
           await _deleteAll(entry);
-          await _deleteFile(entry.inProgressObjectName);
+          await deleteFromBucket(_storage, entry.inProgressObjectName);
         }
       }
     }
@@ -411,7 +348,7 @@ class DartdocBackend {
 
   Future _deleteAll(DartdocEntry entry) async {
     await _deleteAllWithPrefix(entry.contentPrefix);
-    await _deleteFile(entry.entryObjectName);
+    await deleteFromBucket(_storage, entry.entryObjectName);
   }
 
   Future _deleteAllWithPrefix(String prefix) async {
@@ -423,8 +360,8 @@ class DartdocBackend {
       final List<Future> deleteFutures = [];
       for (var item in page.items) {
         count++;
-        final pooledDelete =
-            deletePool.withResource(() => _deleteFile(item.name));
+        final pooledDelete = deletePool
+            .withResource(() => deleteFromBucket(_storage, item.name));
         deleteFutures.add(pooledDelete);
       }
       await Future.wait(deleteFutures);
@@ -437,15 +374,5 @@ class DartdocBackend {
     await deletePool.close();
     sw.stop();
     _logger.info('$prefix: $count files deleted in ${sw.elapsed}.');
-  }
-
-  Future _deleteFile(String path) async {
-    try {
-      await _storage.delete(path);
-    } on DetailedApiRequestError catch (e) {
-      if (e.status != 404) {
-        rethrow;
-      }
-    }
   }
 }
