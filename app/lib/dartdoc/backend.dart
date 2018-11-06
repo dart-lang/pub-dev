@@ -19,7 +19,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
-import '../shared/utils.dart' show contentType;
+import '../shared/utils.dart' show contentType, retryAsync;
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
@@ -133,32 +133,24 @@ class DartdocBackend {
     return versions.map((pv) => pv.version).take(limit).toList();
   }
 
-  bool _shouldRetryUploadError(e) {
-    if (e is DetailedApiRequestError) {
-      return e.status == 502 || e.status == 503;
-    }
-    return false;
-  }
-
   Future _uploadWithRetry(
       String objectName, Stream<List<int>> openStream()) async {
-    for (int attempt = 3; attempt > 0; attempt--) {
-      try {
+    await retryAsync(
+      () async {
         final sink =
             _storage.write(objectName, contentType: contentType(objectName));
         await sink.addStream(openStream());
         await sink.close();
-        return;
-      } catch (e, st) {
-        if (attempt > 1 && _shouldRetryUploadError(e)) {
-          _logger.info('Upload to $objectName failed with $e', st);
-          await Future.delayed(Duration(seconds: 10));
-        } else {
-          _logger.severe('Upload to $objectName failed with $e', st);
-          rethrow;
+      },
+      description: 'Upload to $objectName',
+      shouldRetryOnError: (e) {
+        if (e is DetailedApiRequestError) {
+          return e.status == 502 || e.status == 503;
         }
-      }
-    }
+        return false;
+      },
+      sleep: Duration(seconds: 10),
+    );
   }
 
   Future _uploadBytesWithRetry(String objectName, List<int> bytes) =>
