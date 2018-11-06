@@ -105,9 +105,20 @@ class VersionedDataStorage {
     }
   }
 
-  /// Gets the content of the data file decoded as JSON Map.
-  Future<Map<String, dynamic>> getContentAsJsonMap() async {
+  /// Upload the current data to the storage bucket.
+  Future uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();
+    final bytes = utf8.encode(json.encode(map));
+    try {
+      await uploadBytesWithRetry(_bucket, objectName, bytes);
+    } catch (e, st) {
+      _logger.warning('Unable to upload data file: $objectName', e, st);
+    }
+  }
+
+  /// Gets the content of the data file decoded as JSON Map.
+  Future<Map<String, dynamic>> getContentAsJsonMap([String version]) async {
+    final objectName = _objectName(version);
     final map = await _bucket
         .read(objectName)
         .transform(_gzip.decoder)
@@ -115,6 +126,29 @@ class VersionedDataStorage {
         .transform(json.decoder)
         .single;
     return map as Map<String, dynamic>;
+  }
+
+  /// Returns the latest version of the data file matching the current version
+  /// or created earlier.
+  Future<String> detectLatestVersion() async {
+    final currentPath = _objectName();
+    final targetLength = currentPath.length;
+    final list = await _bucket
+        .list(prefix: _prefix)
+        .map((entry) => entry.name)
+        .where((name) => name.length == targetLength)
+        .where((name) => name.endsWith(_extension))
+        .where((name) => name.compareTo(currentPath) <= 0)
+        .map((name) => name.substring(_prefix.length, _prefix.length + 10))
+        .where((version) => versions.runtimeVersionPattern.hasMatch(version))
+        .toList();
+    if (list.isEmpty) {
+      return null;
+    }
+    if (list.length == 1) {
+      return list.single;
+    }
+    return list.fold<String>(list.first, (a, b) => a.compareTo(b) < 0 ? b : a);
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
@@ -141,5 +175,10 @@ class VersionedDataStorage {
     }
   }
 
-  String _objectName() => '$_prefix${versions.runtimeVersion}$_extension';
+  String getBucketUri([String version]) =>
+      bucketUri(_bucket, _objectName(version));
+
+  String _objectName([String version]) {
+    return '$_prefix${version ?? versions.runtimeVersion}$_extension';
+  }
 }

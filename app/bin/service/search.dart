@@ -74,8 +74,7 @@ Future _main(FrontendEntryMessage message) async {
 
     final Bucket snapshotBucket = await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
-    registerSnapshotStorage(
-        new SnapshotStorage(storageService, snapshotBucket));
+    registerSnapshotStorage(new SnapshotStorage(snapshotBucket));
 
     final ReceivePort taskReceivePort = new ReceivePort();
     registerDartSdkIndex(new SimplePackageIndex.sdk(
