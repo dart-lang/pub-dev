@@ -21,7 +21,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
-import '../shared/utils.dart';
+import '../shared/storage.dart';
 import '../shared/versions.dart' as versions;
 
 import 'text_utils.dart';

@@ -10,7 +10,7 @@ import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
+import 'package:pub_dartlang_org/shared/storage.dart';
 
 import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';

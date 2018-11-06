@@ -11,7 +11,7 @@ import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:_popularity/popularity.dart';
 
-import '../shared/utils.dart';
+import '../shared/storage.dart';
 
 final Logger _logger = new Logger('pub.popularity');
 final GZipCodec _gzip = new GZipCodec();
