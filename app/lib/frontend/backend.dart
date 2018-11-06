@@ -16,13 +16,13 @@ import 'package:uuid/uuid.dart';
 
 import '../history/backend.dart';
 import '../history/models.dart';
-import '../shared/name_tracker.dart';
 import '../shared/package_memcache.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'model_properties.dart';
 import 'models.dart' as models;
+import 'name_tracker.dart';
 import 'upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
