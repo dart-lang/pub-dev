@@ -191,7 +191,7 @@ class DartdocBackendMock implements DartdocBackend {
   }
 
   @override
-  Future deleteOldSdkData() {
+  void scheduleOldDataGC() {
     throw new UnimplementedError();
   }
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
@@ -17,6 +18,7 @@ import 'versions.dart' as versions;
 
 final _gzip = new GZipCodec();
 final _logger = new Logger('shared.storage');
+final _random = new math.Random.secure();
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
@@ -152,7 +154,7 @@ class VersionedDataStorage {
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
-  Future deleteOldData({Duration ageThreshold}) async {
+  Future deleteOldData({Duration minAgeThreshold}) async {
     await for (BucketEntry entry in _bucket.list(prefix: _prefix)) {
       if (entry.isDirectory) {
         continue;
@@ -168,11 +170,24 @@ class VersionedDataStorage {
           version.compareTo(versions.gcBeforeRuntimeVersion) < 0) {
         final info = await _bucket.info(entry.name);
         final age = new DateTime.now().difference(info.updated);
-        if (ageThreshold == null || age > ageThreshold) {
+        if (minAgeThreshold == null || age > minAgeThreshold) {
           await deleteFromBucket(_bucket, entry.name);
         }
       }
     }
+  }
+
+  /// Schedules a GC of old data files to be run in the next 6 hours.
+  void scheduleOldDataGC({Duration minAgeThreshold}) {
+    // Run GC in the next 6 hours (randomized wait to reduce race).
+    new Timer(new Duration(minutes: _random.nextInt(360)), () async {
+      try {
+        await deleteOldData(
+            minAgeThreshold: minAgeThreshold ?? const Duration(days: 182));
+      } catch (e, st) {
+        _logger.warning('Error while deleting old data.', e, st);
+      }
+    });
   }
 
   String getBucketUri([String version]) =>

@@ -264,6 +264,10 @@ class SnapshotStorage {
   Future store(SearchSnapshot snapshot) async {
     await _snapshots.uploadDataAsJsonMap(snapshot.toJson());
   }
+
+  void scheduleOldDataGC() {
+    _snapshots.scheduleOldDataGC();
+  }
 }
 
 @JsonSerializable()

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:math' as math;
 
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
@@ -32,7 +31,6 @@ import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
 import 'package:pub_dartlang_org/dartdoc/handlers.dart';
 
 final Logger logger = new Logger('pub.dartdoc');
-final _random = new math.Random.secure();
 
 Future main() async {
   Future workerSetup() async {
@@ -81,15 +79,7 @@ Future _workerMain(WorkerEntryMessage message) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.dartdoc));
     });
 
-    // Run GC in the next 6 hours (randomized wait to reduce race).
-    new Timer(new Duration(minutes: _random.nextInt(360)), () async {
-      try {
-        await dartdocBackend.deleteOldSdkData();
-      } catch (e, st) {
-        logger.warning('Error while deleting old SDK data.', e, st);
-      }
-    });
-
+    dartdocBackend.scheduleOldDataGC();
     await jobMaintenance.run();
   });
 }

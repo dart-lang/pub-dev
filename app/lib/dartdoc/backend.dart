@@ -27,7 +27,6 @@ import 'storage_path.dart' as storage_path;
 final Logger _logger = new Logger('pub.dartdoc.backend');
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
-final Duration _sdkDeleteThreshold = const Duration(days: 182);
 final int _concurrentUploads = 8;
 final int _concurrentDeletes = 8;
 
@@ -63,9 +62,10 @@ class DartdocBackend {
     return new PubDartdocData.fromJson(map);
   }
 
-  /// Deletes the old entries that predate [shared_versions.gcBeforeRuntimeVersion].
-  Future deleteOldSdkData() =>
-      _sdkStorage.deleteOldData(ageThreshold: _sdkDeleteThreshold);
+  /// Schedules the delete of old data files.
+  void scheduleOldDataGC() {
+    _sdkStorage.scheduleOldDataGC();
+  }
 
   /// Returns the latest stable version of a package.
   Future<String> getLatestVersion(String package) async {
