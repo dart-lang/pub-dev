@@ -19,7 +19,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
-import '../shared/utils.dart' show contentType;
+import '../shared/utils.dart' show contentType, retryAsync;
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
@@ -67,8 +67,8 @@ class DartdocBackend {
     final objectName =
         storage_path.dartSdkDartdocDataName(shared_versions.runtimeVersion);
     try {
-      final sink = _storage.write(objectName);
-      await file.openRead().transform(_gzip.encoder).pipe(sink);
+      await _uploadWithRetry(
+          objectName, () => file.openRead().transform(_gzip.encoder));
     } catch (e, st) {
       _logger.warning(
           'Unable to upload SDK pub dartdoc data file: $objectName', e, st);
@@ -133,10 +133,33 @@ class DartdocBackend {
     return versions.map((pv) => pv.version).take(limit).toList();
   }
 
+  Future _uploadWithRetry(
+      String objectName, Stream<List<int>> openStream()) async {
+    await retryAsync(
+      () async {
+        final sink =
+            _storage.write(objectName, contentType: contentType(objectName));
+        await sink.addStream(openStream());
+        await sink.close();
+      },
+      description: 'Upload to $objectName',
+      shouldRetryOnError: (e) {
+        if (e is DetailedApiRequestError) {
+          return e.status == 502 || e.status == 503;
+        }
+        return false;
+      },
+      sleep: Duration(seconds: 10),
+    );
+  }
+
+  Future _uploadBytesWithRetry(String objectName, List<int> bytes) =>
+      _uploadWithRetry(objectName, () => new Stream.fromIterable([bytes]));
+
   /// Uploads a directory to the storage bucket.
   Future uploadDir(DartdocEntry entry, String dirPath) async {
     // upload is in progress
-    await _storage.writeBytes(entry.inProgressObjectName, entry.asBytes());
+    await _uploadBytesWithRetry(entry.inProgressObjectName, entry.asBytes());
 
     // upload all files
     final dir = new Directory(dirPath);
@@ -154,18 +177,10 @@ class DartdocBackend {
         final info = await getFileInfo(entry, relativePath);
         if (info != null) return;
       }
-      try {
-        final sink =
-            _storage.write(objectName, contentType: contentType(objectName));
-        await sink.addStream(file.openRead());
-        await sink.close();
-        count++;
-        if (count % 100 == 0) {
-          _logger.info('Upload completed: $objectName (item #$count)');
-        }
-      } catch (e, st) {
-        _logger.severe('Upload to $objectName failed with $e', st);
-        rethrow;
+      await _uploadWithRetry(objectName, () => file.openRead());
+      count++;
+      if (count % 100 == 0) {
+        _logger.info('Upload completed: $objectName (item #$count)');
       }
     }
 
@@ -183,7 +198,7 @@ class DartdocBackend {
         '$count files uploaded in ${sw.elapsed}.');
 
     // upload was completed
-    await _storage.writeBytes(entry.entryObjectName, entry.asBytes());
+    await _uploadBytesWithRetry(entry.entryObjectName, entry.asBytes());
 
     // there is a small chance that the process is interrupted before this gets
     // deleted, but the [removeObsolete] should be able to validate it.
