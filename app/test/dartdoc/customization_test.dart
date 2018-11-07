@@ -10,6 +10,8 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/dartdoc/customization.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 
+import '../shared/html_validation.dart';
+
 const String goldenDir = 'test/dartdoc/golden';
 
 final _regenerateGoldens = false;
@@ -20,6 +22,7 @@ void main() {
       // Making sure it is valid HTML
       final htmlParser = new HtmlParser(content, strict: true);
       final doc = htmlParser.parse();
+      validateHtml(doc);
 
       // Matching logo URLs with static files settings.
       // If this fails, update the hard-coded customization URL to match it.
