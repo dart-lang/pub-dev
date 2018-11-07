@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/frontend/models.dart';
+import 'models.dart';
 
 final Logger _logger = new Logger('pub.name_tracker');
 const Duration _pollingInterval = const Duration(minutes: 1);
