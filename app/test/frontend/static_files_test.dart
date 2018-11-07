@@ -46,7 +46,7 @@ Future main() async {
       for (String path in mockStaticFiles) {
         final file = staticFileCache.getFile('/static/$path');
         expect(file, isNotNull);
-        expect(file.bytes.length, greaterThan(1000));
+        expect(file.bytes.length, greaterThan(10));
         expect(file.etag.contains('mocked_hash'), isFalse);
       }
     });
