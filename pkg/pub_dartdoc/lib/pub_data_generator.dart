@@ -28,11 +28,15 @@ class PubDataGenerator implements Generator {
         .where((elem) => elem.isPublic)
         .where((elem) => p.isWithin(_inputDirectory, elem.sourceFileName))
         .where((elem) {
-      // remove inherited items from dart:* libraries
-      final inheritedFrom = elem.overriddenElement?.fullyQualifiedName;
-      final fromDartLibs =
-          inheritedFrom != null && inheritedFrom.startsWith('dart:');
-      return !fromDartLibs;
+      if (elem is Inheritable) {
+        // remove inherited items from dart:* libraries
+        final inheritedFrom = elem.overriddenElement?.fullyQualifiedName;
+        final fromDartLibs =
+            inheritedFrom != null && inheritedFrom.startsWith('dart:');
+        return !fromDartLibs;
+      } else {
+        return true;
+      }
     }).toList();
 
     final apiMap = <String, ApiElement>{};
@@ -76,6 +80,10 @@ class PubDataGenerator implements Generator {
 
   @override
   Set<String> get writtenFiles => _writtenFiles;
+
+  // Inherited member, should not show up in pub-data.json
+  @override
+  String toString() => null;
 }
 
 String _trimToNull(String text) {

@@ -106,7 +106,11 @@ void main() {
       () async {
         final goldenFile = new File('test/self-pub-data.json');
         final dataFile = new File('${tempDir.path}/pub-data.json');
-        final actualMap = json.decode(await dataFile.readAsString());
+        final fileContent = await dataFile.readAsString();
+        final actualMap = json.decode(fileContent);
+
+        // inherited toString() should not show up
+        expect(fileContent.contains('PubDataGenerator.toString'), isFalse);
 
         if (_regenerateGoldens) {
           final content = new JsonEncoder.withIndent('  ').convert(actualMap);
