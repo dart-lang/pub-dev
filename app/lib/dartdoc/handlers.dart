@@ -31,8 +31,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return await handler(request);
-  } else if (path.startsWith('/documentation')) {
-    return documentationHandler(request);
   } else {
     return notFoundHandler(request);
   }
