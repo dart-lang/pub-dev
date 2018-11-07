@@ -21,7 +21,12 @@ void main() {
   });
 
   test('conflicting package', () {
+    expect(nameTracker.accept('j_s_o_n'), isFalse);
     expect(nameTracker.accept('js_on'), isFalse);
     expect(nameTracker.accept('jso_n'), isFalse);
+    expect(nameTracker.accept('json_'), isFalse);
+    expect(nameTracker.accept('_json'), isFalse);
+    expect(nameTracker.accept('_json_'), isFalse);
+    expect(nameTracker.accept('_j_s_o_n_'), isFalse);
   });
 }
