@@ -9,25 +9,35 @@ import 'package:gcloud/db.dart';
 
 import 'models.dart';
 
-final Logger _logger = new Logger('pub.name_tracker');
-const Duration _pollingInterval = const Duration(minutes: 1);
+final _logger = new Logger('pub.name_tracker');
+const _pollingInterval = const Duration(minutes: 1);
 
-final NameTracker nameTracker = new NameTracker();
+final nameTracker = new NameTracker();
 
+/// Tracks names of packages that exists, to avoid risks of using similar names
+/// or typo-squatting.
+///
+/// It also provides a quick access to list all of the package names without
+/// iterating over Datastore entries.
+/// TODO: support remove and re-scan package names every day or so.
 class NameTracker {
   final Set<String> _names = new Set<String>();
   final Set<String> _reducedNames = new Set<String>();
   final _firstScanCompleter = new Completer();
 
+  /// Add a package name to the tracker.
   void add(String name) {
     _names.add(name);
     _reducedNames.add(_reduce(name));
   }
 
+  /// Whether the package was already added to the tracker.
   bool hasPackage(String name) => _names.contains(name);
 
+  /// Whether the [name] has a conflicting package that already exists.
   bool hasConflict(String name) => _reducedNames.contains(_reduce(name));
 
+  /// Whether to accept the upload attempt of a given package [name].
   bool accept(String name) => hasPackage(name) || !hasConflict(name);
 
   String _reduce(String name) =>
@@ -36,6 +46,9 @@ class NameTracker {
 
   int get length => _names.length;
 
+  /// Get the list of all the packages. If it is called before the first scan
+  /// was done, it will wait for it to complete. Afterwards it always returns
+  /// the currently cached list of names, without scanning the Datastore.
   Future<List<String>> getPackageNames() async {
     if (!_firstScanCompleter.isCompleted) {
       await _firstScanCompleter.future;
@@ -44,6 +57,7 @@ class NameTracker {
   }
 }
 
+/// Updates [nameTracker] by polling the Datastore periodically.
 class NameTrackerUpdater {
   final DatastoreDB _db;
   DateTime _lastTs;
