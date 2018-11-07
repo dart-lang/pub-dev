@@ -186,8 +186,13 @@ class SimplePackageIndex implements PackageIndex {
     if (query.parsedQuery.emails.isNotEmpty) {
       packages.removeWhere((package) {
         final doc = _packages[package];
+        if (doc?.emails == null) {
+          return true;
+        }
         for (String email in query.parsedQuery.emails) {
-          if (doc?.emails?.contains(email) ?? false) {
+          final isDomainMatch = email.startsWith('@') &&
+              doc.emails.where((e) => e.endsWith(email)).isNotEmpty;
+          if (isDomainMatch || doc.emails.contains(email)) {
             return false;
           }
         }
