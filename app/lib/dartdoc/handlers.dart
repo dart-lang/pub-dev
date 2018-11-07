@@ -21,6 +21,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final shelf.Handler handler = {
     '/': _indexHandler,
     '/debug': _debugHandler,
+    '/robots.txt': rejectRobotsHandler,
   }[path];
 
   final host = request.requestedUri.host;
@@ -33,10 +34,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
     return await handler(request);
   } else if (path.startsWith('/documentation')) {
     return documentationHandler(request);
-  } else if (path == '/robots.txt' && !isProductionHost(request)) {
-    return rejectRobotsHandler(request);
-  } else if (path == '/robots.txt') {
-    return _robotsTxtHandler(request);
   } else {
     return notFoundHandler(request);
   }
@@ -48,11 +45,6 @@ shelf.Response _debugHandler(shelf.Request request) => debugResponse();
 /// Handles / requests
 Future<shelf.Response> _indexHandler(shelf.Request request) async {
   return htmlResponse(_indexHtmlContent);
-}
-
-/// Handles /robots.txt requests
-Future<shelf.Response> _robotsTxtHandler(shelf.Request request) async {
-  return htmlResponse(_robotsTxtContent);
 }
 
 /// Handles requests for:
@@ -157,11 +149,6 @@ DocFilePath parseRequestUri(Uri uri) {
   }
   return new DocFilePath(package, version, path);
 }
-
-const _robotsTxtContent = '''
-User-agent: *
-Disallow:
-''';
 
 const _indexHtmlContent = '''
 <!DOCTYPE html>
