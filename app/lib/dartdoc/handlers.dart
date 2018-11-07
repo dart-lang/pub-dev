@@ -19,8 +19,8 @@ import 'backend.dart';
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final shelf.Handler handler = {
-    '/': _indexHandler,
     '/debug': _debugHandler,
+    '/robots.txt': rejectRobotsHandler,
   }[path];
 
   final host = request.requestedUri.host;
@@ -31,12 +31,6 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 
   if (handler != null) {
     return await handler(request);
-  } else if (path.startsWith('/documentation')) {
-    return documentationHandler(request);
-  } else if (path == '/robots.txt' && !isProductionHost(request)) {
-    return rejectRobotsHandler(request);
-  } else if (path == '/robots.txt') {
-    return _robotsTxtHandler(request);
   } else {
     return notFoundHandler(request);
   }
@@ -45,22 +39,12 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
 /// Handler /debug requests
 shelf.Response _debugHandler(shelf.Request request) => debugResponse();
 
-/// Handles / requests
-Future<shelf.Response> _indexHandler(shelf.Request request) async {
-  return htmlResponse(_indexHtmlContent);
-}
-
-/// Handles /robots.txt requests
-Future<shelf.Response> _robotsTxtHandler(shelf.Request request) async {
-  return htmlResponse(_robotsTxtContent);
-}
-
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final docFilePath = parseRequestUri(request.requestedUri);
   if (docFilePath == null) {
-    return _indexHandler(request);
+    return notFoundHandler(request);
   }
   if (redirectDartdocPages.containsKey(docFilePath.package)) {
     return redirectResponse(redirectDartdocPages[docFilePath.package]);
@@ -157,37 +141,3 @@ DocFilePath parseRequestUri(Uri uri) {
   }
   return new DocFilePath(package, version, path);
 }
-
-const _robotsTxtContent = '''
-User-agent: *
-Disallow:
-''';
-
-const _indexHtmlContent = '''
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Dart package API docs | Dartdocs</title>
-    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,700' rel='stylesheet' type='text/css'>
-  </head>
-
-  <body class="default hide_toc">
-    <header id="page-header">
-      <nav id="mainnav">
-        <a href="$siteRoot" class="brand" title="Dart">
-          <img src="https://dartlang.org/assets/logo-61576b6c2423c80422c986036ead4a7fc64c70edd7639c6171eba19e992c87d9.svg" alt="Dart" height="50px">
-        </a>
-      </nav>
-    </header>
-
-    <main id="page-content">
-      <h2>Dart package API docs</h2>
-      <p>
-        API documentation for a package published on the
-        <a href="$siteRoot">Pub package manager</a>, is
-        available via the <b>Documentation</b> link located on any individual
-        package page on Pub.</p>
-    </main>
-  </body>
-</html>
-''';

@@ -67,7 +67,7 @@ void main() {
   });
 
   group('dartdoc handlers', () {
-    Future<shelf.Response> issueGet(String uri) => dartdocServiceHandler(
+    Future<shelf.Response> issueGet(String uri) => documentationHandler(
         new shelf.Request('GET', Uri.parse('https://pub.dartlang.org$uri')));
 
     test('/documentation/flutter redirect', () async {
