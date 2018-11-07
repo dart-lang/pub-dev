@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -19,6 +18,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 
+import '../shared/html_validation.dart';
 import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
@@ -48,46 +48,12 @@ void main() {
       // Making sure it is valid HTML
       final htmlParser = new HtmlParser(content, strict: true);
 
-      List<Element> elements;
-      List<Element> links;
-      List<Element> scripts;
       if (isFragment) {
         final root = htmlParser.parseFragment();
-        elements = root.querySelectorAll('*');
-        links = root.querySelectorAll('a');
-        scripts = root.querySelectorAll('script');
+        validateHtml(root);
       } else {
         final root = htmlParser.parse();
-        elements = root.querySelectorAll('*');
-        links = root.querySelectorAll('a');
-        scripts = root.querySelectorAll('script');
-      }
-
-      // No inline JS attribute
-      for (Element elem in elements) {
-        expect(
-            elem.attributes.keys
-                .where((name) => name.toString().startsWith('on'))
-                .toList(),
-            []);
-      }
-
-      // All <a target="_blank"> links should have rel="noopener"
-      for (Element elem in links) {
-        if (elem.attributes['target'] == '_blank') {
-          expect(elem.attributes['rel'], contains('noopener'));
-        }
-      }
-
-      // No inline script tag.
-      for (Element elem in scripts) {
-        if (elem.attributes['type'] == 'application/ld+json') {
-          expect(elem.attributes.length, 1);
-          expect(json.decode(elem.text), isNotNull);
-        } else {
-          expect(elem.attributes['src'], isNotEmpty);
-          expect(elem.text.trim(), isEmpty);
-        }
+        validateHtml(root);
       }
 
       if (_regenerateGoldens) {
