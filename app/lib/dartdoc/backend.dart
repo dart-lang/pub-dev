@@ -45,7 +45,7 @@ class DartdocBackend {
 
   DartdocBackend(this._db, this._storage)
       : _sdkStorage = new VersionedDataStorage(
-            _storage, '${storage_path.dartSdkDartdocPrefix()}/', '.json.gz');
+            _storage, '${storage_path.dartSdkDartdocPrefix()}/');
 
   /// Whether the storage bucket has a usable extracted data file.
   /// Only the existence of the file is checked.

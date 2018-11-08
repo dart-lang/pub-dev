@@ -243,7 +243,7 @@ class SnapshotStorage {
   VersionedDataStorage _snapshots;
 
   SnapshotStorage(Bucket bucket)
-      : _snapshots = new VersionedDataStorage(bucket, 'snapshot/', '.json.gz');
+      : _snapshots = new VersionedDataStorage(bucket, 'snapshot/');
 
   Future<SearchSnapshot> fetch() async {
     final version = await _snapshots.detectLatestVersion();

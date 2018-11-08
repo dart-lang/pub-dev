@@ -74,15 +74,12 @@ Future uploadBytesWithRetry(
 class VersionedDataStorage {
   final Bucket _bucket;
   final String _prefix;
-  final String _extension;
+  final String _extension = '.json.gz';
 
-  VersionedDataStorage(Bucket bucket, String prefix, String extension)
+  VersionedDataStorage(Bucket bucket, String prefix)
       : _bucket = bucket,
-        _prefix = prefix,
-        _extension = extension {
+        _prefix = prefix {
     assert(prefix.endsWith('/'));
-    assert(extension.startsWith('.'));
-    assert(extension.endsWith('.gz'));
   }
 
   /// Whether the storage bucket has a data file for the current runtime version.
