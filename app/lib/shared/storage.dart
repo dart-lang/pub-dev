@@ -157,6 +157,10 @@ class VersionedDataStorage {
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
+  ///
+  /// When [minAgeThreshold] is specified, only older files will be deleted. The
+  /// process assumes that if an old runtimeVersion is still active, it will
+  /// update it periodically, and a cleanup should preserve such files.
   Future deleteOldData({Duration minAgeThreshold}) async {
     await for (BucketEntry entry in _bucket.list(prefix: _prefix)) {
       if (entry.isDirectory) {
