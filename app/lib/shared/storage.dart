@@ -80,6 +80,8 @@ class VersionedDataStorage {
       : _bucket = bucket,
         _prefix = prefix,
         _extension = extension {
+    assert(prefix.endsWith('/'));
+    assert(extension.startsWith('.'));
     assert(extension.endsWith('.gz'));
   }
 
