@@ -41,10 +41,10 @@ DartdocBackend get dartdocBackend =>
 class DartdocBackend {
   final DatastoreDB _db;
   final Bucket _storage;
-  final VersionedDataStorage _sdkStorage;
+  final VersionedJsonStorage _sdkStorage;
 
   DartdocBackend(this._db, this._storage)
-      : _sdkStorage = new VersionedDataStorage(
+      : _sdkStorage = new VersionedJsonStorage(
             _storage, '${storage_path.dartSdkDartdocPrefix()}/');
 
   /// Whether the storage bucket has a usable extracted data file.

@@ -68,15 +68,14 @@ Future uploadBytesWithRetry(
     uploadWithRetry(bucket, objectName, bytes.length,
         () => new Stream.fromIterable([bytes]));
 
-/// Utility class to access versioned data file that follows the pattern:
-/// "/path-prefix/runtime-version.ext". The extension must use .gz as the
-/// storage uses transparent gzip on the data stream.
-class VersionedDataStorage {
+/// Utility class to access versioned JSON data that follows the name pattern:
+/// "/path-prefix/runtime-version.json.gz".
+class VersionedJsonStorage {
   final Bucket _bucket;
   final String _prefix;
   final String _extension = '.json.gz';
 
-  VersionedDataStorage(Bucket bucket, String prefix)
+  VersionedJsonStorage(Bucket bucket, String prefix)
       : _bucket = bucket,
         _prefix = prefix {
     assert(prefix.endsWith('/'));

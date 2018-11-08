@@ -240,10 +240,10 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
 }
 
 class SnapshotStorage {
-  VersionedDataStorage _snapshots;
+  VersionedJsonStorage _snapshots;
 
   SnapshotStorage(Bucket bucket)
-      : _snapshots = new VersionedDataStorage(bucket, 'snapshot/');
+      : _snapshots = new VersionedJsonStorage(bucket, 'snapshot/');
 
   Future<SearchSnapshot> fetch() async {
     final version = await _snapshots.detectLatestVersion();
