@@ -99,19 +99,6 @@ class VersionedDataStorage {
     }
   }
 
-  /// Upload the current data file to the storage bucket.
-  Future uploadDataFile(File file) async {
-    final objectName = _objectName();
-    try {
-      // Prevents edge cases like double compression.
-      assert(!file.path.endsWith('.gz'));
-      await uploadWithRetry(_bucket, objectName, file.lengthSync(),
-          () => file.openRead().transform(_gzip.encoder));
-    } catch (e, st) {
-      _logger.warning('Unable to upload data file: $objectName', e, st);
-    }
-  }
-
   /// Upload the current data to the storage bucket.
   Future uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();

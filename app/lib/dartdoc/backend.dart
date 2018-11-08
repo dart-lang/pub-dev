@@ -53,8 +53,10 @@ class DartdocBackend {
   Future<bool> hasValidDartSdkDartdocData() => _sdkStorage.hasCurrentData();
 
   /// Upload the generated dartdoc data file for the Dart SDK to the storage bucket.
-  Future uploadDartSdkDartdocData(File file) =>
-      _sdkStorage.uploadDataFile(file);
+  Future uploadDartSdkDartdocData(File file) async {
+    final map = json.decode(await file.readAsString()) as Map<String, dynamic>;
+    await _sdkStorage.uploadDataAsJsonMap(map);
+  }
 
   /// Read the generated dartdoc data file for the Dart SDK.
   Future<PubDartdocData> getDartSdkDartdocData() async {
