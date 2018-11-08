@@ -89,8 +89,11 @@ class VersionedDataStorage {
     try {
       final info = await _bucket.info(_objectName());
       return info != null;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      if (e is DetailedApiRequestError && e.status == 404) {
+        return false;
+      }
+      rethrow;
     }
   }
 
