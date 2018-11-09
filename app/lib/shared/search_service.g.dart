@@ -106,7 +106,7 @@ PackageScore _$PackageScoreFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$PackageScoreToJson(PackageScore instance) {
-  var val = <String, dynamic>{
+  final val = <String, dynamic>{
     'package': instance.package,
   };
 
@@ -132,7 +132,7 @@ ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) {
-  var val = <String, dynamic>{
+  final val = <String, dynamic>{
     'title': instance.title,
     'path': instance.path,
   };
