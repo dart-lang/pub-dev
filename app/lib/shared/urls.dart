@@ -149,7 +149,7 @@ String inferRepositoryUrl(String baseUrl) {
 }
 
 /// Parses GitHub and GitLab urls, and returns the issue tracker of the repository.
-String inferIssueTrackerUrl(String baseUrl, {bool reportNewIssue = false}) {
+String inferIssueTrackerUrl(String baseUrl) {
   if (baseUrl == null) {
     return null;
   }
@@ -169,9 +169,6 @@ String inferIssueTrackerUrl(String baseUrl, {bool reportNewIssue = false}) {
       return null;
     }
     segments.add('issues');
-    if (reportNewIssue) {
-      segments.add('new');
-    }
     final url = new Uri(
       scheme: 'https',
       host: uri.host,

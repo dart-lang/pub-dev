@@ -433,9 +433,7 @@ class TemplateService {
     }
     addLink(packageLinks.repositoryUrl, 'Repository',
         detectServiceProvider: true);
-    addLink(packageLinks.issueTrackerUrl, 'Issue Tracker');
-    addLink(packageLinks.reportIssuesUrl, 'Report an issue',
-        detectServiceProvider: true);
+    addLink(packageLinks.issueTrackerUrl, 'View/report issues');
     addLink(packageLinks.documentationUrl, 'Documentation');
     addLink(dartdocsUrl, 'API Docs');
 
