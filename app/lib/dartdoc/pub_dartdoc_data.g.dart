@@ -28,7 +28,7 @@ ApiElement _$ApiElementFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$ApiElementToJson(ApiElement instance) {
-  var val = <String, dynamic>{
+  final val = <String, dynamic>{
     'name': instance.name,
     'kind': instance.kind,
   };

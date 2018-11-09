@@ -88,7 +88,7 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
-  var val = <String, dynamic>{
+  final val = <String, dynamic>{
     'timestamp': instance.timestamp?.toIso8601String(),
     'panaRuntimeInfo': instance.panaRuntimeInfo,
     'reportStatus': instance.reportStatus,
@@ -128,7 +128,7 @@ DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$DartdocReportToJson(DartdocReport instance) {
-  var val = <String, dynamic>{
+  final val = <String, dynamic>{
     'reportStatus': instance.reportStatus,
     'coverageScore': instance.coverageScore,
   };
