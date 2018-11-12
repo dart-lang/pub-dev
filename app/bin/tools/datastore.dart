@@ -198,6 +198,7 @@ class RestoreCommand extends Command {
               if (pv == null) {
                 pv = new PackageVersion()
                   ..parentKey = pkgKey
+                  ..packageKey = pkgKey
                   ..id = packageVersion
                   ..version = packageVersion
                   ..created = versionArchive.created
