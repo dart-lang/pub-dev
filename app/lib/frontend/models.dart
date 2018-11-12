@@ -310,14 +310,12 @@ class PackageLinks {
   final String documentationUrl;
   final String repositoryUrl;
   final String issueTrackerUrl;
-  final String reportIssuesUrl;
 
   PackageLinks({
     this.homepageUrl,
     this.documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
-    this.reportIssuesUrl,
   });
 
   factory PackageLinks.infer({
@@ -329,14 +327,11 @@ class PackageLinks {
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
-    reportIssuesUrl ??=
-        urls.inferIssueTrackerUrl(issueTrackerUrl, reportNewIssue: true);
     return new PackageLinks(
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,
       issueTrackerUrl: issueTrackerUrl,
-      reportIssuesUrl: reportIssuesUrl,
     );
   }
 }
