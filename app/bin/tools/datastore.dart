@@ -12,7 +12,6 @@ import 'package:args/command_runner.dart';
 import 'package:gcloud/db.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:pool/pool.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
@@ -187,45 +186,42 @@ class RestoreCommand extends Command {
           await tx.commit();
         });
 
-        final pool = new Pool(4);
-        final futures = <Future>[];
-        for (final versionArchive in archiveLine.versions) {
-          final packageVersion = versionArchive.version;
-          final versionKey = pkgKey.append(PackageVersion, id: packageVersion);
-          Future updateVersion() async {
-            await dbService.withTransaction((tx) async {
-              PackageVersion pv = (await tx.lookup([versionKey])).single;
-              if (pv == null) {
-                pv = new PackageVersion()
-                  ..parentKey = pkgKey
-                  ..packageKey = pkgKey
-                  ..id = packageVersion
-                  ..version = packageVersion
-                  ..created = versionArchive.created
-                  ..pubspec = new Pubspec(versionArchive.pubspecJson)
-                  ..readmeFilename = versionArchive.readmeFilename
-                  ..readmeContent = versionArchive.readmeContent
-                  ..changelogFilename = versionArchive.changelogFilename
-                  ..changelogContent = versionArchive.changelogContent
-                  ..exampleFilename = versionArchive.exampleFilename
-                  ..exampleContent = versionArchive.exampleContent
-                  ..libraries = versionArchive.libraries
-                  ..downloads = versionArchive.downloads
-                  ..sortOrder = versionArchive.sortOrder
-                  ..uploaderEmail = versionArchive.uploaderEmail;
-                pkgVersionUpdateCount++;
-                tx.queueMutations(inserts: [pv]);
-                await tx.commit();
-              } else {
-                await tx.rollback();
-              }
-            });
-          }
+        const batchSize = 20;
+        for (int s = 0; s < archiveLine.versions.length; s += batchSize) {
+          final batch = archiveLine.versions.skip(s).take(batchSize).toList();
+          final batchKeys = batch
+              .map((pv) => pkgKey.append(PackageVersion, id: pv.version))
+              .toList();
+          final existingPvs = await dbService.lookup(batchKeys);
+          if (existingPvs.every((m) => m != null)) continue;
 
-          pool.withResource(updateVersion);
+          final newPvs = <PackageVersion>[];
+          for (int i = 0; i < batch.length; i++) {
+            final versionArchive = batch[i];
+            final packageVersion = versionArchive.version;
+            if (existingPvs[i] == null) {
+              final pv = new PackageVersion()
+                ..parentKey = pkgKey
+                ..packageKey = pkgKey
+                ..id = packageVersion
+                ..version = packageVersion
+                ..created = versionArchive.created
+                ..pubspec = new Pubspec(versionArchive.pubspecJson)
+                ..readmeFilename = versionArchive.readmeFilename
+                ..readmeContent = versionArchive.readmeContent
+                ..changelogFilename = versionArchive.changelogFilename
+                ..changelogContent = versionArchive.changelogContent
+                ..exampleFilename = versionArchive.exampleFilename
+                ..exampleContent = versionArchive.exampleContent
+                ..libraries = versionArchive.libraries
+                ..downloads = versionArchive.downloads
+                ..sortOrder = versionArchive.sortOrder
+                ..uploaderEmail = versionArchive.uploaderEmail;
+              newPvs.add(pv);
+            }
+          }
+          await dbService.commit(inserts: newPvs);
         }
-        await Future.wait(futures);
-        await pool.close();
       }
       print('$pkgCounter packages processed from ${packagesFile.path}');
       print('Restored:\n'
