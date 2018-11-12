@@ -437,7 +437,7 @@ class TemplateService {
     addLink(packageLinks.reportIssuesUrl, 'Report an issue',
         detectServiceProvider: true);
     addLink(packageLinks.documentationUrl, 'Documentation');
-    addLink(dartdocsUrl, 'API Docs');
+    addLink(dartdocsUrl, 'API reference');
 
     final values = {
       'package': {
