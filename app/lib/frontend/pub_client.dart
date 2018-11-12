@@ -5,19 +5,19 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 /// Client interface for accessing some of pub's public APIs.
 class PubClient {
-  final Client _client;
+  final http.Client _httpClient;
   final String _siteRoot;
 
-  PubClient(this._client, {String siteRoot = 'https://pub.dartlang.org'})
+  PubClient(this._httpClient, {String siteRoot = 'https://pub.dartlang.org'})
       : _siteRoot = siteRoot;
 
   /// List the name of packages.
   Future<List<String>> listPackages() async {
-    final content = await _client.read('$_siteRoot/api/packages?compact=1');
+    final content = await _httpClient.read('$_siteRoot/api/packages?compact=1');
     final map = convert.json.decode(content) as Map<String, dynamic>;
     final packages = (map['packages'] as List).cast<String>();
     return packages;
@@ -25,7 +25,7 @@ class PubClient {
 
   /// Fetch the base package data (versions and uploaders).
   Future<PackageData> getPackageData(String package) async {
-    final content = await _client.read('$_siteRoot/packages/$package.json');
+    final content = await _httpClient.read('$_siteRoot/packages/$package.json');
     final map = convert.json.decode(content) as Map<String, dynamic>;
     final uploaders = (map['uploaders'] as List)?.cast<String>();
     final versions = (map['versions'] as List)?.cast<String>();
@@ -35,8 +35,8 @@ class PubClient {
   /// Fetch the package version data (created, pubspec).
   Future<PackageVersionData> getPackageVersionData(
       String package, String version) async {
-    final pageContent =
-        await _client.read('$_siteRoot/packages/$package/versions/$version');
+    final pageContent = await _httpClient
+        .read('$_siteRoot/packages/$package/versions/$version');
     final searchJson = pageContent
         .split('\n')
         .firstWhere((s) => s.contains('"@type":"SoftwareSourceCode"'));
@@ -50,7 +50,7 @@ class PubClient {
 
   Future<Map<String, dynamic>> _getPubspec(
       String package, String version) async {
-    final content = await _client
+    final content = await _httpClient
         .read('$_siteRoot/api/packages/$package/versions/$version');
     final map = convert.json.decode(content) as Map<String, dynamic>;
     return map['pubspec'] as Map<String, dynamic>;
@@ -60,7 +60,7 @@ class PubClient {
   ///
   /// (kept-it Future-based in case we may need to close streams).
   Future close() async {
-    _client.close();
+    _httpClient.close();
   }
 }
 
