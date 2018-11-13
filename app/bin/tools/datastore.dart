@@ -76,17 +76,7 @@ class BackupCommand extends Command {
             .toList();
 
         final archiveLine = new ArchiveLine(
-          package: new PackageArchive(
-            name: p.name,
-            created: p.created,
-            updated: p.updated,
-            downloads: p.downloads,
-            latestVersion: p.latestVersion,
-            latestDevVersion: p.latestDevVersion,
-            uploaderEmails: p.uploaderEmails,
-            isDiscontinued: p.isDiscontinued,
-            doNotAdvertise: p.doNotAdvertise,
-          ),
+          package: _createPackageArchive(p),
           versions: versions
               .map((pv) => new PackageVersionArchive(
                     version: pv.version,
@@ -113,6 +103,26 @@ class BackupCommand extends Command {
       print('$pkgCounter packages backed up in $packagesFile');
     });
   }
+}
+
+PackageArchive _createPackageArchive(Package p) {
+  return new PackageArchive(
+    name: p.name,
+    created: p.created,
+    updated: p.updated,
+    downloads: p.downloads,
+    latestVersion: p.latestVersion,
+    latestDevVersion: p.latestDevVersion,
+    uploaderEmails: p.uploaderEmails,
+    isDiscontinued: p.isDiscontinued,
+    doNotAdvertise: p.doNotAdvertise,
+  );
+}
+
+bool _shouldUpdate(Package p, PackageArchive archive) {
+  if (p == null) return true;
+  final pa = _createPackageArchive(p);
+  return convert.json.encode(pa) != convert.json.encode(archive);
 }
 
 /// 'Restores user-provided data from backup.'
@@ -167,61 +177,75 @@ class RestoreCommand extends Command {
           print('Processing #$pkgCounter [$packageName]...');
         }
 
-        await dbService.withTransaction((tx) async {
-          Package p = (await tx.lookup([pkgKey])).single;
-          p ??= new Package();
-          p
-            ..id = pkgArchive.name
-            ..name = pkgArchive.name
-            ..created = pkgArchive.created
-            ..updated = pkgArchive.updated
-            ..downloads = pkgArchive.downloads
-            ..latestVersionKey = latestVersionKey
-            ..latestDevVersionKey = latestDevVersionKey
-            ..uploaderEmails = pkgArchive.uploaderEmails
-            ..isDiscontinued = pkgArchive.isDiscontinued
-            ..doNotAdvertise = pkgArchive.doNotAdvertise;
-          pkgUpdateCount++;
-          tx.queueMutations(inserts: [p]);
-          await tx.commit();
-        });
-
-        const batchSize = 20;
-        for (int s = 0; s < archiveLine.versions.length; s += batchSize) {
-          final batch = archiveLine.versions.skip(s).take(batchSize).toList();
-          final batchKeys = batch
-              .map((pv) => pkgKey.append(PackageVersion, id: pv.version))
-              .toList();
-          final existingPvs = await dbService.lookup(batchKeys);
-          if (existingPvs.every((m) => m != null)) continue;
-
-          final newPvs = <PackageVersion>[];
-          for (int i = 0; i < batch.length; i++) {
-            final versionArchive = batch[i];
-            final packageVersion = versionArchive.version;
-            if (existingPvs[i] == null) {
-              final pv = new PackageVersion()
-                ..parentKey = pkgKey
-                ..packageKey = pkgKey
-                ..id = packageVersion
-                ..version = packageVersion
-                ..created = versionArchive.created
-                ..pubspec = new Pubspec(versionArchive.pubspecJson)
-                ..readmeFilename = versionArchive.readmeFilename
-                ..readmeContent = versionArchive.readmeContent
-                ..changelogFilename = versionArchive.changelogFilename
-                ..changelogContent = versionArchive.changelogContent
-                ..exampleFilename = versionArchive.exampleFilename
-                ..exampleContent = versionArchive.exampleContent
-                ..libraries = versionArchive.libraries
-                ..downloads = versionArchive.downloads
-                ..sortOrder = versionArchive.sortOrder
-                ..uploaderEmail = versionArchive.uploaderEmail;
-              newPvs.add(pv);
-            }
-          }
-          await dbService.commit(inserts: newPvs);
+        final Package p = (await dbService.lookup([pkgKey])).single;
+        if (_shouldUpdate(p, pkgArchive)) {
+          await dbService.withTransaction((tx) async {
+            Package p = (await tx.lookup([pkgKey])).single;
+            p ??= new Package();
+            p
+              ..id = pkgArchive.name
+              ..name = pkgArchive.name
+              ..created = pkgArchive.created
+              ..updated = pkgArchive.updated
+              ..downloads = pkgArchive.downloads
+              ..latestVersionKey = latestVersionKey
+              ..latestDevVersionKey = latestDevVersionKey
+              ..uploaderEmails = pkgArchive.uploaderEmails
+              ..isDiscontinued = pkgArchive.isDiscontinued
+              ..doNotAdvertise = pkgArchive.doNotAdvertise;
+            pkgUpdateCount++;
+            tx.queueMutations(inserts: [p]);
+            await tx.commit();
+          });
         }
+
+        Future update(int batchSize) async {
+          for (int s = 0; s < archiveLine.versions.length; s += batchSize) {
+            final batch = archiveLine.versions.skip(s).take(batchSize).toList();
+            final batchKeys = batch
+                .map((pv) => pkgKey.append(PackageVersion, id: pv.version))
+                .toList();
+            final existingPvs = await dbService.lookup(batchKeys);
+            if (existingPvs.every((m) => m != null)) continue;
+
+            final newPvs = <PackageVersion>[];
+            for (int i = 0; i < batch.length; i++) {
+              final versionArchive = batch[i];
+              final packageVersion = versionArchive.version;
+              if (existingPvs[i] == null) {
+                final pv = new PackageVersion()
+                  ..parentKey = pkgKey
+                  ..packageKey = pkgKey
+                  ..id = packageVersion
+                  ..version = packageVersion
+                  ..created = versionArchive.created
+                  ..pubspec = new Pubspec(versionArchive.pubspecJson)
+                  ..readmeFilename = versionArchive.readmeFilename
+                  ..readmeContent = versionArchive.readmeContent
+                  ..changelogFilename = versionArchive.changelogFilename
+                  ..changelogContent = versionArchive.changelogContent
+                  ..exampleFilename = versionArchive.exampleFilename
+                  ..exampleContent = versionArchive.exampleContent
+                  ..libraries = versionArchive.libraries
+                  ..downloads = versionArchive.downloads
+                  ..sortOrder = versionArchive.sortOrder
+                  ..uploaderEmail = versionArchive.uploaderEmail;
+                newPvs.add(pv);
+              }
+            }
+            await dbService.commit(inserts: newPvs);
+            pkgVersionUpdateCount += newPvs.length;
+          }
+        }
+
+        try {
+          await update(20);
+          continue;
+        } catch (e) {
+          print('Error while updating $packageName: $e');
+          print('Retrying...');
+        }
+        await update(1);
       }
       print('$pkgCounter packages processed from ${packagesFile.path}');
       print('Restored:\n'
