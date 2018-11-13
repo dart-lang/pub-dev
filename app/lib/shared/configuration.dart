@@ -51,7 +51,7 @@ class Configuration {
     return _credentials;
   }
 
-  bool get hasCredentials => envConfig.hasGcloudKey;
+  bool get hasCredentials => envConfig.hasCredentials;
 
   /// Create a configuration for production deployment.
   ///
@@ -126,7 +126,7 @@ class EnvConfig {
     );
   }
 
-  bool get hasGcloudKey => gcloudKey != null;
+  bool get hasCredentials => gcloudProject != null && gcloudKey != null;
 }
 
 /// Configuration from the environment variables.

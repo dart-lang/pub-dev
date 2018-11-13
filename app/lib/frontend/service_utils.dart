@@ -67,15 +67,21 @@ Future<String> obtainServiceAccountEmail() async {
   return response.body.trim();
 }
 
-Future withProdServices(Future fun()) {
+/// Helper for utilities in bin/tools to setup a minimal AppEngine environment,
+/// calling [fn] to run inside it. It registers only the most frequently used
+/// services (at the moment only `frontend/backend.dart`).
+///
+/// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
+/// environment variables.
+Future withProdServices(Future fn()) {
   return withAppEngineServices(() {
-    if (!envConfig.hasGcloudKey) {
+    if (!envConfig.hasCredentials) {
       throw new Exception(
           'Missing GCLOUD_* environments for package:appengine');
     }
     registerUploadSigner(
         new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
     initBackend();
-    return fun();
+    return fn();
   });
 }
