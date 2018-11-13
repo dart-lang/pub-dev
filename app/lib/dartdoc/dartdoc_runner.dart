@@ -458,7 +458,7 @@ bool _isKnownFailurePattern(String output) {
   return false;
 }
 
-String _mergeOutput(ProcessResult pr, {bool compressStdout: false}) {
+String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
   String stdout = pr.stdout.toString();
   if (compressStdout) {
     final list = stdout.split('\n');
