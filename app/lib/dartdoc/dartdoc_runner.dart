@@ -293,10 +293,8 @@ class DartdocJobProcessor extends JobProcessor {
       final isUserProblem = message.contains('version solving failed') ||
           message.contains('Git error.');
       if (!isUserProblem) {
-        _logger.warning('Error while running pub upgrade for $job.\n'
-            'exitCode: ${pr.exitCode}\n'
-            'stdout: ${pr.stdout}\n'
-            'stderr: ${pr.stderr}\n');
+        final output = _mergeOutput(pr, compressStdout: true);
+        _logger.warning('Error while running pub upgrade for $job.\n$output');
       }
       return false;
     }
@@ -353,19 +351,18 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     _appendLog(logFileOutput, r.processResult);
+    final hasContent = r.hasIndexHtml && r.hasIndexJson;
 
     if (r.processResult.exitCode != 0) {
-      final mergedOutput = 'exitCode: ${r.processResult.exitCode}\n'
-          'stdout: ${r.processResult.stdout}\n'
-          'stderr: ${r.processResult.stderr}\n';
-      if (_isKnownFailurePattern(mergedOutput)) {
+      if (hasContent || _isKnownFailurePattern(_mergeOutput(r.processResult))) {
         _logger.info('Error while running dartdoc for $job (see log.txt).');
       } else {
-        _logger.warning('Error while running dartdoc for $job.\n$mergedOutput');
+        final output = _mergeOutput(r.processResult, compressStdout: true);
+        _logger.warning('Error while running dartdoc for $job.\n$output');
       }
     }
 
-    return r.hasIndexHtml && r.hasIndexJson;
+    return hasContent;
   }
 
   Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,
@@ -459,4 +456,17 @@ bool _isKnownFailurePattern(String output) {
     return true;
   }
   return false;
+}
+
+String _mergeOutput(ProcessResult pr, {bool compressStdout: false}) {
+  String stdout = pr.stdout.toString();
+  if (compressStdout) {
+    final list = stdout.split('\n');
+    if (list.length > 50) {
+      stdout = list.take(20).join('\n') +
+          '\n[...]\n' +
+          list.skip(list.length - 20).join('\n');
+    }
+  }
+  return 'exitCode: ${pr.exitCode}\nstdout: $stdout\nstderr: ${pr.stderr}\n';
 }
