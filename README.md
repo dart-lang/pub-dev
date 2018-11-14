@@ -4,7 +4,7 @@
 
 The server for hosting pub packages on [pub.dartlang.org](https://pub.dartlang.org)
 is implemented using AppEngine Custom Runtimes with Flexible environment
-(see [package:appengine](https://github.com/dart-lang/appengine) for more information about
+(see [package:appengine](https://pub.dartlang.org/packages/appengine) for more information about
 Dart support for AppEngine).
 
 ## Local Development
