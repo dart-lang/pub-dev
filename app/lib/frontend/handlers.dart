@@ -14,7 +14,6 @@ import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../dartdoc/backend.dart';
-import '../dartdoc/handlers.dart' show documentationHandler;
 import '../history/backend.dart';
 import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
@@ -28,6 +27,7 @@ import '../shared/utils.dart';
 
 import 'atom_feed.dart';
 import 'backend.dart';
+import 'handlers_documentation.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
 import 'name_tracker.dart';
