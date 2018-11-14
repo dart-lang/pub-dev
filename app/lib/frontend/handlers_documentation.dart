@@ -112,7 +112,7 @@ DocFilePath parseRequestUri(Uri uri) {
   }
 
   final relativeSegments =
-  uri.pathSegments.skip(3).where((s) => s.isNotEmpty).toList();
+      uri.pathSegments.skip(3).where((s) => s.isNotEmpty).toList();
   String path = relativeSegments.join('/');
   if (path.isEmpty) {
     path = 'index.html';
