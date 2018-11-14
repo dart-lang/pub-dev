@@ -13,7 +13,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/dartdoc/handlers.dart';
+import 'package:pub_dartlang_org/frontend/handlers_documentation.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -100,22 +100,6 @@ void main() {
       registerDartdocBackend(new DartdocBackendMock());
       expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
           '/packages/no_pkg/versions');
-    });
-
-    test('dartdocs.org redirect', () async {
-      expectRedirectResponse(
-        await dartdocServiceHandler(new shelf.Request('GET',
-            Uri.parse('https://dartdocs.org/documentation/pkg/latest/'))),
-        'https://pub.dartlang.org/documentation/pkg/latest/',
-      );
-    });
-
-    test('www.dartdocs.org redirect', () async {
-      expectRedirectResponse(
-        await dartdocServiceHandler(new shelf.Request('GET',
-            Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/'))),
-        'https://pub.dartlang.org/documentation/pkg/latest/',
-      );
     });
   });
 }

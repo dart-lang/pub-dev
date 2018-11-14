@@ -19,10 +19,10 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
-import '../dartdoc/handlers_test.dart' show DartdocBackendMock;
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
 
+import 'handlers_documentation_test.dart' show DartdocBackendMock;
 import 'handlers_test_utils.dart';
 import 'utils.dart';
 
