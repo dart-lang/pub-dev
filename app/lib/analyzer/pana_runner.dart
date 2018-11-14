@@ -111,7 +111,7 @@ class AnalyzerJobProcessor extends JobProcessor {
         );
       } catch (e, st) {
         _logger.severe(
-            'Failed (v${pana_version.packageVersion}) - ${job.packageVersion}/${job.packageVersion}',
+            'Failed (v${pana_version.packageVersion}) - ${job.packageName}/${job.packageVersion}',
             e,
             st);
       } finally {
