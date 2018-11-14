@@ -80,6 +80,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   return notFoundHandler(request);
 }
 
+/// The parsed structure of the documentation URL.
+/// [package] is always set, [version] or [path] may be missing.
 class DocFilePath {
   final String package;
   final String version;
@@ -88,6 +90,8 @@ class DocFilePath {
   DocFilePath(this.package, this.version, this.path);
 }
 
+/// Parses the /documentation/<package>/<version>/<path with many levels> URL
+/// and returns the parsed structure.
 DocFilePath parseRequestUri(Uri uri) {
   final int segmentCount = uri.pathSegments.length;
   if (segmentCount < 2) return null;
