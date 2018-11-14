@@ -25,8 +25,8 @@ import '../shared/search_service.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
-import 'atom_feed.dart';
 import 'backend.dart';
+import 'handlers_atom_feed.dart';
 import 'handlers_documentation.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
@@ -121,7 +121,7 @@ const _handlers = const <String, shelf.Handler>{
   '/api/search': _apiSearchHandler,
   '/api/history': _apiHistoryHandler, // experimental, do not rely on it
   '/debug': _debugHandler,
-  '/feed.atom': _atomFeedHandler,
+  '/feed.atom': atomFeedHandler,
   '/sitemap.txt': _siteMapHandler,
   '/authorized': _authorizedHandler,
   '/packages.json': _packagesHandler,
@@ -208,20 +208,6 @@ Future<List<PackageView>> _topPackages(
 /// Handles requests for /help
 Future<shelf.Response> _helpPageHandler(shelf.Request request) async {
   return htmlResponse(templateService.renderHelpPage());
-}
-
-/// Handles requests for /feed.atom
-Future<shelf.Response> _atomFeedHandler(shelf.Request request) async {
-  final int pageSize = 10;
-
-  // The python version had paging support, but there was no point to it, since
-  // the "next page" link was never returned to the caller.
-  final int page = 1;
-
-  final versions = await backend.latestPackageVersions(
-      offset: pageSize * (page - 1), limit: pageSize);
-  final feed = feedFromPackageVersions(request.requestedUri, versions);
-  return atomXmlResponse(feed.toXmlDocument());
 }
 
 Future<shelf.Response> _siteMapHandler(shelf.Request request) async {

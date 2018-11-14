@@ -7,10 +7,28 @@ library pub_dartlang_org.atom_feed;
 import 'dart:convert';
 
 import 'package:markdown/markdown.dart' as md;
+import 'package:shelf/shelf.dart' as shelf;
 import 'package:uuid/uuid.dart';
 
+import '../shared/handlers.dart';
 import '../shared/urls.dart' show siteRoot;
+
+import 'backend.dart';
 import 'models.dart';
+
+/// Handles requests for /feed.atom
+Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
+  final int pageSize = 10;
+
+  // The python version had paging support, but there was no point to it, since
+  // the "next page" link was never returned to the caller.
+  final int page = 1;
+
+  final versions = await backend.latestPackageVersions(
+      offset: pageSize * (page - 1), limit: pageSize);
+  final feed = feedFromPackageVersions(request.requestedUri, versions);
+  return atomXmlResponse(feed.toXmlDocument());
+}
 
 class FeedEntry {
   final String id;
