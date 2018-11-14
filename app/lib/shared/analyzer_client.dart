@@ -47,11 +47,6 @@ class AnalyzerClient {
     return new AnalysisView(await _getAnalysisData(key));
   }
 
-  Future<List<AnalysisExtract>> getAnalysisExtracts(
-      Iterable<AnalysisKey> keys) {
-    return Future.wait(keys.map(getAnalysisExtract));
-  }
-
   Future<AnalysisExtract> getAnalysisExtract(AnalysisKey key) async {
     if (key == null) return null;
     final cached = _extractCache[key];

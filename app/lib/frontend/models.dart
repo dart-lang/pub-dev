@@ -9,7 +9,8 @@ import 'dart:math';
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
-import '../shared/analyzer_service.dart' show AnalysisExtract, AnalysisStatus;
+import '../scorecard/models.dart';
+import '../shared/analyzer_service.dart' show AnalysisExtract;
 import '../shared/model_properties.dart';
 import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/urls.dart' as urls;
@@ -228,7 +229,7 @@ class PrivateKey extends db.Model {
 
 /// An extract of [Package] and [PackageVersion] and [AnalysisExtract], for
 /// display-only uses.
-class PackageView {
+class PackageView extends Object with FlagMixin {
   final bool isExternal;
   final String url;
   final String name;
@@ -238,7 +239,9 @@ class PackageView {
   final String ellipsizedDescription;
   final String shortUpdated;
   final List<String> authors;
-  final AnalysisStatus analysisStatus;
+  @override
+  final List<String> flags;
+  final bool isAwaiting;
   final double overallScore;
   final List<String> platforms;
   final bool isNewPackage;
@@ -253,7 +256,8 @@ class PackageView {
     this.ellipsizedDescription,
     this.shortUpdated,
     this.authors,
-    this.analysisStatus,
+    this.flags,
+    this.isAwaiting = false,
     this.overallScore,
     this.platforms,
     this.isNewPackage,
@@ -263,13 +267,17 @@ class PackageView {
   factory PackageView.fromModel({
     Package package,
     PackageVersion version,
-    AnalysisExtract analysis,
+    ScoreCardData scoreCard,
     List<ApiPageRef> apiPages,
   }) {
     final String devVersion =
         package != null && package.latestVersion != package.latestDevVersion
             ? package.latestDevVersion
             : null;
+    final hasPanaReport = scoreCard?.reportTypes != null &&
+        scoreCard.reportTypes.contains(ReportType.pana);
+    final isAwaiting =
+        (scoreCard == null) || (!scoreCard.isSkipped && !hasPanaReport);
     return new PackageView(
       name: version?.package ?? package?.name,
       version: version?.version ?? package?.latestVersion,
@@ -277,18 +285,14 @@ class PackageView {
       ellipsizedDescription: version?.ellipsizedDescription,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
       authors: version?.pubspec?.authors,
-      analysisStatus: analysis?.analysisStatus,
-      overallScore: analysis?.overallScore,
-      platforms: analysis?.platforms,
+      flags: scoreCard?.flags,
+      isAwaiting: isAwaiting,
+      overallScore: scoreCard?.overallScore,
+      platforms: scoreCard?.platformTags,
       isNewPackage: package?.isNewPackage(),
       apiPages: apiPages,
     );
   }
-
-  bool get isAwaiting => analysisStatus == null;
-  bool get isDiscontinued => analysisStatus == AnalysisStatus.discontinued;
-  bool get isLegacy => analysisStatus == AnalysisStatus.legacy;
-  bool get isObsolete => analysisStatus == AnalysisStatus.outdated;
 }
 
 /// Sorts [versions] according to the semantic versioning specification.

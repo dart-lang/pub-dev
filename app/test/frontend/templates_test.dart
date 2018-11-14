@@ -10,6 +10,7 @@ import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_service.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
@@ -69,9 +70,9 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(
-            analysisStatus: AnalysisStatus.success,
-            platforms: ['web'],
+          scoreCard: new ScoreCardData(
+            platformTags: ['web'],
+            reportTypes: ['pana'],
           ),
         ),
       ]);
@@ -84,9 +85,9 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(
-            analysisStatus: AnalysisStatus.success,
-            platforms: ['flutter'],
+          scoreCard: new ScoreCardData(
+            platformTags: ['flutter'],
+            reportTypes: ['pana'],
           ),
         ),
       ]);
@@ -100,9 +101,9 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(
-            analysisStatus: AnalysisStatus.success,
-            platforms: ['web'],
+          scoreCard: new ScoreCardData(
+            platformTags: ['web'],
+            reportTypes: ['pana'],
           ),
         ),
       ]);
@@ -387,14 +388,14 @@ void main() {
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          analysis: new AnalysisExtract(),
+          scoreCard: new ScoreCardData(),
         ),
         new PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          analysis: new AnalysisExtract(
-            analysisStatus: AnalysisStatus.success,
-            platforms: ['flutter'],
+          scoreCard: new ScoreCardData(
+            platformTags: ['flutter'],
+            reportTypes: ['pana'],
           ),
         ),
       ], new PageLinks.empty(), null);
@@ -409,7 +410,7 @@ void main() {
           new PackageView.fromModel(
             package: testPackage,
             version: testPackageVersion,
-            analysis: new AnalysisExtract(),
+            scoreCard: new ScoreCardData(),
             apiPages: [
               new ApiPageRef(path: 'some/some-library.html'),
               new ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
@@ -418,9 +419,9 @@ void main() {
           new PackageView.fromModel(
             package: testPackage,
             version: flutterPackageVersion,
-            analysis: new AnalysisExtract(
-              analysisStatus: AnalysisStatus.success,
-              platforms: ['flutter'],
+            scoreCard: new ScoreCardData(
+              platformTags: ['flutter'],
+              reportTypes: ['pana'],
             ),
           ),
         ],
@@ -484,8 +485,8 @@ void main() {
           version: '1.0.2',
           ellipsizedDescription:
               'Some popular package that is shown on the error page.',
-          analysisStatus: AnalysisStatus.success,
           platforms: KnownPlatforms.all,
+          isAwaiting: false,
         ),
       ]);
       expectGoldenFile(html, 'error_page.html');

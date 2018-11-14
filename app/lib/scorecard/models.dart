@@ -244,8 +244,28 @@ class ScoreCardReport extends db.ExpandoModel {
   }
 }
 
+abstract class FlagMixin {
+  List<String> get flags;
+
+  bool get isDiscontinued =>
+      flags != null && flags.contains(PackageFlags.isDiscontinued);
+
+  bool get isLegacy => flags != null && flags.contains(PackageFlags.isLegacy);
+
+  bool get isObsolete =>
+      flags != null && flags.contains(PackageFlags.isObsolete);
+
+  bool get doNotAdvertise =>
+      flags != null && flags.contains(PackageFlags.doNotAdvertise);
+
+  bool get isSkipped => isDiscontinued || isLegacy || isObsolete;
+
+  bool get usesFlutter =>
+      flags != null && flags.contains(PackageFlags.usesFlutter);
+}
+
 @JsonSerializable()
-class ScoreCardData {
+class ScoreCardData extends Object with FlagMixin {
   final String packageName;
   final String packageVersion;
   final String runtimeVersion;
@@ -266,24 +286,25 @@ class ScoreCardData {
   final List<String> platformTags;
 
   /// The flags for the package, version or analysis.
+  @override
   final List<String> flags;
 
   /// The report types that are already done for the ScoreCard.
   final List<String> reportTypes;
 
   ScoreCardData({
-    @required this.packageName,
-    @required this.packageVersion,
-    @required this.runtimeVersion,
-    @required this.updated,
-    @required this.packageCreated,
-    @required this.packageVersionCreated,
-    @required this.healthScore,
-    @required this.maintenanceScore,
-    @required this.popularityScore,
-    @required this.platformTags,
-    @required this.flags,
-    @required this.reportTypes,
+    this.packageName,
+    this.packageVersion,
+    this.runtimeVersion,
+    this.updated,
+    this.packageCreated,
+    this.packageVersionCreated,
+    this.healthScore,
+    this.maintenanceScore,
+    this.popularityScore,
+    this.platformTags,
+    this.flags,
+    this.reportTypes,
   });
 
   factory ScoreCardData.fromJson(Map<String, dynamic> json) =>
@@ -299,16 +320,7 @@ class ScoreCardData {
 
   bool get isNew => new DateTime.now().difference(packageCreated).inDays <= 30;
 
-  bool get isDiscontinued =>
-      flags != null && flags.contains(PackageFlags.isDiscontinued);
-
-  bool get doNotAdvertise =>
-      flags != null && flags.contains(PackageFlags.doNotAdvertise);
-
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
-
-  bool get usesFlutter =>
-      flags != null && flags.contains(PackageFlags.usesFlutter);
 
   Map<String, dynamic> toJson() {
     final map = _$ScoreCardDataToJson(this);
