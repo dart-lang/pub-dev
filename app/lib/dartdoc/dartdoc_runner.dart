@@ -458,6 +458,9 @@ bool _isKnownFailurePattern(String output) {
   return false;
 }
 
+/// Merges the stdout and stderr of [ProcessResult] into a single String, which
+/// can be used in log messages. For long output, set [compressStdout] to true,
+/// keeping only the beginning and the end of stdout.
 String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
   String stdout = pr.stdout.toString();
   if (compressStdout) {
