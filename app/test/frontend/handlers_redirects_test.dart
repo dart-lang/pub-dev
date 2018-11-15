@@ -49,6 +49,11 @@ void main() {
       }
     });
 
+    tScopedTest('/flutter/plugins', () async {
+      expectRedirectResponse(
+          await issueGet('/flutter/plugins'), '/flutter/packages');
+    });
+
     tScopedTest('/search?q=foobar', () async {
       expectRedirectResponse(await issueGet('/search?q=foobar'),
           'https://pub.dartlang.org/packages?q=foobar');
@@ -57,6 +62,19 @@ void main() {
     tScopedTest('/search?q=foobar&page=2', () async {
       expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
           'https://pub.dartlang.org/packages?q=foobar&page=2');
+    });
+
+    tScopedTest('/server', () async {
+      expectRedirectResponse(await issueGet('/server'), '/');
+    });
+
+    tScopedTest('/server/packages with parameters', () async {
+      expectRedirectResponse(
+          await issueGet('/server/packages?sort=top'), '/packages?sort=top');
+    });
+
+    tScopedTest('/server/packages', () async {
+      expectRedirectResponse(await issueGet('/server/packages'), '/packages');
     });
   });
 }

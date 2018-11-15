@@ -103,9 +103,6 @@ const _handlers = const <String, shelf.Handler>{
   '/packages': _packagesHandlerHtml,
   '/flutter': _flutterLandingHandler,
   '/flutter/packages': _flutterPackagesHandlerHtml,
-  '/flutter/plugins': _redirectToFlutterPackages,
-  '/server': _serverLandingHandler,
-  '/server/packages': _serverPackagesHandlerHtml,
   '/web': _webLandingHandler,
   '/web/packages': _webPackagesHandlerHtml,
   '/api/search': _apiSearchHandler,
@@ -145,10 +142,6 @@ Future<shelf.Response> __indexHandler(shelf.Request request) =>
 /// Handles requests for /flutter
 Future<shelf.Response> _flutterLandingHandler(shelf.Request request) =>
     _indexHandler(request, KnownPlatforms.flutter);
-
-/// Handles requests for /server
-shelf.Response _serverLandingHandler(shelf.Request request) =>
-    redirectResponse('/');
 
 /// Handles requests for /web
 Future<shelf.Response> _webLandingHandler(shelf.Request request) =>
@@ -309,16 +302,6 @@ Future<shelf.Response> _packagesHandlerHtml(shelf.Request request) =>
 /// Handles /flutter/packages
 Future<shelf.Response> _flutterPackagesHandlerHtml(shelf.Request request) =>
     _packagesHandlerHtmlCore(request, KnownPlatforms.flutter);
-
-/// Handles /server/packages
-shelf.Response _serverPackagesHandlerHtml(shelf.Request request) {
-  final params = request.requestedUri.queryParameters;
-  final uri = new Uri(
-    path: '/packages',
-    queryParameters: params.isNotEmpty ? params : null,
-  );
-  return redirectResponse(uri.toString());
-}
 
 /// Handles /web/packages
 Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>
@@ -722,10 +705,6 @@ Future<shelf.Response> _apiHistoryHandler(shelf.Request request) async {
         .toList(),
   }, pretty: true);
 }
-
-/// Handles requests for /flutter/plugins (redirects to /flutter/packages).
-shelf.Response _redirectToFlutterPackages(shelf.Request request) =>
-    redirectResponse('/flutter/packages');
 
 Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
   final packages = await _topPackages();

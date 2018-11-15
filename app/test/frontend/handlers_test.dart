@@ -297,11 +297,6 @@ void main() {
         await expectHtmlResponse(await issueGet('/flutter'));
       });
 
-      tScopedTest('/flutter/plugins', () async {
-        expectRedirectResponse(
-            await issueGet('/flutter/plugins'), '/flutter/packages');
-      });
-
       tScopedTest('/flutter/packages', () async {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
@@ -360,19 +355,6 @@ void main() {
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
         await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
-      });
-
-      tScopedTest('/server', () async {
-        expectRedirectResponse(await issueGet('/server'), '/');
-      });
-
-      tScopedTest('/server/packages with parameters', () async {
-        expectRedirectResponse(
-            await issueGet('/server/packages?sort=top'), '/packages?sort=top');
-      });
-
-      tScopedTest('/server/packages', () async {
-        expectRedirectResponse(await issueGet('/server/packages'), '/packages');
       });
 
       tScopedTest('/authorized', () async {
