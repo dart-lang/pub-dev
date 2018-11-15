@@ -105,7 +105,7 @@ class JobMaintenance {
     await for (Task task in stream) {
       try {
         await jobBackend.trigger(
-            _processor.service, task.package, task.version);
+            _processor.service, task.package, task.version, task.updated);
       } catch (e, st) {
         _logger.info('Head sync failed for $task', e, st);
       }
