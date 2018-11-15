@@ -4,6 +4,41 @@
 
 library pub_dartlang_org.handlers_redirects;
 
+import 'package:shelf/shelf.dart' as shelf;
+
+import '../shared/handlers.dart';
+import '../shared/urls.dart' as urls;
+
+/// Checks [request] whether it can handle it via redirect.
+/// Returns null when there is no redirect.
+shelf.Response tryHandleRedirects(shelf.Request request) {
+  final host = request.requestedUri.host;
+  if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
+    return redirectResponse(
+        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
+  }
+
+  final path = request.requestedUri.path;
+  if (path == '/search') {
+    return redirectResponse(
+        request.requestedUri.replace(path: urls.searchUrl()).toString());
+  }
+  if (path.startsWith('/doc')) {
+    return _docRedirectHandler(request);
+  }
+  return null;
+}
+
+/// Handles requests for /doc
+shelf.Response _docRedirectHandler(shelf.Request request) {
+  final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
+  final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
+  if (dartlangDotOrgPath != null) {
+    return redirectResponse('$pubDocUrl$dartlangDotOrgPath');
+  }
+  return redirectResponse(pubDocUrl);
+}
+
 const Map<String, String> redirectPaths = const <String, String>{
   // /doc/ goes to "Getting started".
   '/doc': 'get-started.html',

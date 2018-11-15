@@ -63,16 +63,8 @@ Future<shelf.Response> appHandler(
 
   _logPubHeaders(request);
 
-  final host = request.requestedUri.host;
-  if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
-    return redirectResponse(
-        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
-  }
-
-  if (path == '/search') {
-    return redirectResponse(
-        request.requestedUri.replace(path: urls.searchUrl()).toString());
-  }
+  final redirected = tryHandleRedirects(request);
+  if (redirected != null) return redirected;
 
   final handler = _handlers[path];
 
@@ -97,8 +89,6 @@ Future<shelf.Response> appHandler(
   } else if (path.startsWith('/documentation')) {
     return documentationHandler(
         request.context['_originalRequest'] as shelf.Request ?? request);
-  } else if (path.startsWith('/doc')) {
-    return _docHandler(request);
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
   } else if (staticFileCache.hasFile(request.requestedUri.path)) {
@@ -236,16 +226,6 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
 /// Handles requests for /authorized
 shelf.Response _authorizedHandler(_) =>
     htmlResponse(templateService.renderAuthorizedPage());
-
-/// Handles requests for /doc
-shelf.Response _docHandler(shelf.Request request) {
-  final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
-  final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
-  if (dartlangDotOrgPath != null) {
-    return redirectResponse('$pubDocUrl$dartlangDotOrgPath');
-  }
-  return redirectResponse(pubDocUrl);
-}
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> _packagesHandler(shelf.Request request) async {
