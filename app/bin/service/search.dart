@@ -22,6 +22,7 @@ import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
+import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
@@ -73,8 +74,8 @@ Future _main(FrontendEntryMessage message) async {
 
     final Bucket snapshotBucket = await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
-    registerSnapshotStorage(
-        new SnapshotStorage(storageService, snapshotBucket));
+    registerSnapshotStorage(new SnapshotStorage(snapshotBucket));
+    snapshotStorage.scheduleOldDataGC();
 
     final ReceivePort taskReceivePort = new ReceivePort();
     registerDartSdkIndex(new SimplePackageIndex.sdk(

@@ -6,7 +6,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
@@ -21,7 +20,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
-import '../shared/utils.dart';
+import '../shared/storage.dart';
 import '../shared/versions.dart' as versions;
 
 import 'text_utils.dart';
@@ -29,7 +28,6 @@ import 'text_utils.dart';
 part 'backend.g.dart';
 
 final Logger _logger = new Logger('pub.search.backend');
-final GZipCodec _gzip = new GZipCodec();
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -242,66 +240,33 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
 }
 
 class SnapshotStorage {
-  static const String _prefix = 'snapshot/';
-  static const String _suffix = '.json.gz';
-  final String _currentPath = '$_prefix${versions.runtimeVersion}$_suffix';
-  final Storage storage;
-  final Bucket bucket;
+  VersionedJsonStorage _snapshots;
 
-  SnapshotStorage(this.storage, this.bucket);
+  SnapshotStorage(Bucket bucket)
+      : _snapshots = new VersionedJsonStorage(bucket, 'snapshot/');
 
   Future<SearchSnapshot> fetch() async {
-    final path = await _detectLatest();
-    if (path == null) {
+    final version = await _snapshots.detectLatestVersion();
+    if (version == null) {
       _logger.shout('Unable to detect the latest search snapshot file.');
       return null;
     }
-    return await _fetch(path);
-  }
-
-  Future<SearchSnapshot> _fetch(String path) async {
     try {
-      final info = await bucket.info(path);
-      if (info == null) {
-        return null;
-      }
-      final Map<String, dynamic> map = await bucket
-          .read(path)
-          .transform(_gzip.decoder)
-          .transform(utf8.decoder)
-          .transform(json.decoder)
-          .single;
+      final map = await _snapshots.getContentAsJsonMap(version);
       return new SearchSnapshot.fromJson(map);
     } catch (e, st) {
-      _logger.shout(
-          'Unable to load search snapshot: ${bucketUri(bucket, path)}', e, st);
+      final uri = _snapshots.getBucketUri(version);
+      _logger.shout('Unable to load search snapshot: $uri', e, st);
     }
     return null;
   }
 
-  Future<String> _detectLatest() async {
-    final targetLength = _prefix.length + _suffix.length + 10;
-    final list = await bucket
-        .list(prefix: _prefix)
-        .map((entry) => entry.name)
-        .where((name) => name.endsWith(_suffix) && name.length == targetLength)
-        .where((name) {
-          final match = versions.runtimeVersionPattern
-              .matchAsPrefix(name, _prefix.length);
-          return match != null;
-        })
-        .where((name) => name.compareTo(_currentPath) <= 0)
-        .toList();
-    if (list.isEmpty) {
-      return null;
-    }
-    return list.fold<String>(list.first, (a, b) => a.compareTo(b) < 0 ? b : a);
+  Future store(SearchSnapshot snapshot) async {
+    await _snapshots.uploadDataAsJsonMap(snapshot.toJson());
   }
 
-  Future store(SearchSnapshot snapshot) async {
-    final List<int> buffer =
-        _gzip.encode(utf8.encode(json.encode(snapshot.toJson())));
-    await bucket.writeBytes(_currentPath, buffer);
+  void scheduleOldDataGC() {
+    _snapshots.scheduleOldDataGC();
   }
 }
 

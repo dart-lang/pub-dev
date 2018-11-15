@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:appengine/appengine.dart';
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pana/pana.dart' show runProc;
@@ -242,11 +241,4 @@ Future initDartdoc(Logger logger) async {
     logger.shout(message);
     throw new Exception(message);
   }
-}
-
-Future<Bucket> getOrCreateBucket(Storage storage, String name) async {
-  if (!await storage.bucketExists(name)) {
-    await storage.createBucket(name);
-  }
-  return storage.bucket(name);
 }
