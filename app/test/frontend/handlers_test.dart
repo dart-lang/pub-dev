@@ -92,7 +92,7 @@ void main() {
               new PackageView.fromModel(
                   package: testPackage,
                   version: testPackageVersion,
-                  analysis: null)
+                  scoreCard: null)
             ]);
           },
         ));
@@ -123,7 +123,7 @@ void main() {
               new PackageView.fromModel(
                   package: testPackage,
                   version: testPackageVersion,
-                  analysis: null)
+                  scoreCard: null)
             ]);
           },
         ));
@@ -153,7 +153,7 @@ void main() {
               new PackageView.fromModel(
                   package: testPackage,
                   version: testPackageVersion,
-                  analysis: null)
+                  scoreCard: null)
             ]);
           },
         ));
@@ -308,7 +308,7 @@ void main() {
               new PackageView.fromModel(
                   package: testPackage,
                   version: testPackageVersion,
-                  analysis: null)
+                  scoreCard: null)
             ]);
           },
         ));
@@ -338,7 +338,7 @@ void main() {
               new PackageView.fromModel(
                   package: testPackage,
                   version: testPackageVersion,
-                  analysis: null)
+                  scoreCard: null)
             ]);
           },
         ));

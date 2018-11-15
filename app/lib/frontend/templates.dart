@@ -130,7 +130,7 @@ class TemplateService {
         scoreBoxHtml = _renderSdkScoreBox();
       } else if (!view.isExternal) {
         scoreBoxHtml = _renderScoreBox(overallScore,
-            isSkipped: _isAnalysisSkipped(view.analysisStatus),
+            isSkipped: view.isSkipped,
             isNewPackage: view.isNewPackage,
             package: view.name);
       }

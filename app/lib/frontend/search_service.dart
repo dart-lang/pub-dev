@@ -9,7 +9,8 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
-import '../shared/analyzer_client.dart';
+import '../scorecard/backend.dart';
+import '../scorecard/models.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 
@@ -46,14 +47,14 @@ Future<SearchResultPage> _loadResultForPackages(
       packageEntries.map((p) => p.latestVersionKey).toList();
   if (versionKeys.isNotEmpty) {
     // Analysis data fetched concurrently to reduce overall latency.
-    final Future<List<AnalysisExtract>> analysisExtractsFuture =
-        analyzerClient.getAnalysisExtracts(packageEntries
-            .map((p) => new AnalysisKey(p.name, p.latestVersion)));
+    final Future<List<ScoreCardData>> analysisExtractsFuture = Future.wait(
+        packageEntries.map((p) => scoreCardBackend
+            .getScoreCardData(p.name, p.latestVersion, onlyCurrent: false)));
     final Future<List> allVersionsFuture = dbService.lookup(versionKeys);
 
     final List batchResults =
         await Future.wait([analysisExtractsFuture, allVersionsFuture]);
-    final List<AnalysisExtract> analysisExtracts = await batchResults[0];
+    final List<ScoreCardData> scoreCards = await batchResults[0];
     final List<PackageVersion> versions =
         (await batchResults[1]).cast<PackageVersion>();
 
@@ -64,7 +65,7 @@ Future<SearchResultPage> _loadResultForPackages(
       final pv = new PackageView.fromModel(
         package: package,
         version: versions[i],
-        analysis: analysisExtracts[i],
+        scoreCard: scoreCards[i],
         apiPages: apiPages,
       );
       pubPackages[pv.name] = pv;

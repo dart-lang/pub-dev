@@ -317,11 +317,6 @@ class AnalyzerClientMock implements AnalyzerClient {
       mockAnalysisExtract;
 
   @override
-  Future<List<AnalysisExtract>> getAnalysisExtracts(
-          Iterable<AnalysisKey> keys) =>
-      Future.wait(keys.map(getAnalysisExtract));
-
-  @override
   Future triggerAnalysis(
       String package, String version, Set<String> dependentPackages) async {}
 }
