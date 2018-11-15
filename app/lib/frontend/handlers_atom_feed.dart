@@ -10,7 +10,6 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:uuid/uuid.dart';
 
-import '../shared/handlers.dart';
 import '../shared/urls.dart' show siteRoot;
 
 import 'backend.dart';
@@ -29,6 +28,13 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
   final feed = feedFromPackageVersions(request.requestedUri, versions);
   return atomXmlResponse(feed.toXmlDocument());
 }
+
+shelf.Response atomXmlResponse(String content, {int status = 200}) =>
+    new shelf.Response(
+      status,
+      body: content,
+      headers: {'content-type': 'application/atom+xml; charset="utf-8"'},
+    );
 
 class FeedEntry {
   final String id;

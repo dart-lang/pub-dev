@@ -34,13 +34,6 @@ shelf.Response redirectToSearch(String query) {
   return redirectResponse(searchUrl(q: query));
 }
 
-shelf.Response atomXmlResponse(String content, {int status = 200}) =>
-    new shelf.Response(
-      status,
-      body: content,
-      headers: {'content-type': 'application/atom+xml; charset="utf-8"'},
-    );
-
 bool isPrettyJson(shelf.Request request) {
   return request.url.queryParameters.containsKey('pretty');
 }
