@@ -9,9 +9,7 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/handlers_redirects.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
@@ -22,7 +20,6 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
 
-import 'handlers_documentation_test.dart' show DartdocBackendMock;
 import 'handlers_test_utils.dart';
 import 'utils.dart';
 
@@ -300,11 +297,6 @@ void main() {
         await expectHtmlResponse(await issueGet('/flutter'));
       });
 
-      tScopedTest('/flutter/plugins', () async {
-        expectRedirectResponse(
-            await issueGet('/flutter/plugins'), '/flutter/packages');
-      });
-
       tScopedTest('/flutter/packages', () async {
         registerSearchService(new SearchServiceMock(
           (SearchQuery query) {
@@ -365,89 +357,8 @@ void main() {
         await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
       });
 
-      tScopedTest('/server', () async {
-        expectRedirectResponse(await issueGet('/server'), '/');
-      });
-
-      tScopedTest('/server/packages with parameters', () async {
-        expectRedirectResponse(
-            await issueGet('/server/packages?sort=top'), '/packages?sort=top');
-      });
-
-      tScopedTest('/server/packages', () async {
-        expectRedirectResponse(await issueGet('/server/packages'), '/packages');
-      });
-
-      tScopedTest('/doc', () async {
-        for (var path in redirectPaths.keys) {
-          final redirectUrl =
-              'https://www.dartlang.org/tools/pub/${redirectPaths[path]}';
-          expectRedirectResponse(await issueGet(path), redirectUrl);
-        }
-      });
-
       tScopedTest('/authorized', () async {
         await expectHtmlResponse(await issueGet('/authorized'));
-      });
-
-      tScopedTest('/search?q=foobar', () async {
-        expectRedirectResponse(await issueGet('/search?q=foobar'),
-            'https://pub.dartlang.org/packages?q=foobar');
-      });
-
-      tScopedTest('/search?q=foobar&page=2', () async {
-        expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
-            'https://pub.dartlang.org/packages?q=foobar&page=2');
-      });
-    });
-
-    group('/documentation', () {
-      test('/documentation/flutter redirect', () async {
-        expectRedirectResponse(
-          await issueGet('/documentation/flutter'),
-          'https://docs.flutter.io/',
-        );
-      });
-
-      test('/documentation/flutter/version redirect', () async {
-        expectRedirectResponse(
-          await issueGet('/documentation/flutter/version'),
-          'https://docs.flutter.io/',
-        );
-      });
-
-      test('/documentation/foo/bar redirect', () async {
-        expectRedirectResponse(
-          await issueGet('/documentation/foor/bar'),
-          'https://pub.dartlang.org/documentation/foor/bar/',
-        );
-      });
-
-      scopedTest('trailing slash redirect', () async {
-        expectRedirectResponse(
-            await issueGet('/documentation/foo'), '/documentation/foo/latest/');
-      });
-
-      scopedTest('/documentation/no_pkg redirect', () async {
-        registerDartdocBackend(new DartdocBackendMock());
-        expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
-            '/packages/no_pkg/versions');
-      });
-
-      test('dartdocs.org redirect', () async {
-        expectRedirectResponse(
-          await issueGetUri(
-              Uri.parse('https://dartdocs.org/documentation/pkg/latest/')),
-          'https://pub.dartlang.org/documentation/pkg/latest/',
-        );
-      });
-
-      test('www.dartdocs.org redirect', () async {
-        expectRedirectResponse(
-          await issueGetUri(
-              Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/')),
-          'https://pub.dartlang.org/documentation/pkg/latest/',
-        );
       });
     });
 
