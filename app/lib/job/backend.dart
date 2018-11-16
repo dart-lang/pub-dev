@@ -49,7 +49,9 @@ class JobBackend {
         ],
       ).toString();
 
-  Future trigger(JobService service, String package, [String version]) async {
+  /// Triggers analysis/dartdoc for [package]/[version] if older than [updated].
+  Future trigger(JobService service, String package,
+      [String version, DateTime updated]) async {
     final pKey = _db.emptyKey.append(Package, id: package);
     final pList = await _db.lookup([pKey]);
     final Package p = pList[0];
@@ -69,8 +71,9 @@ class JobBackend {
     }
 
     final isLatestStable = p.latestVersion == version;
+    final shouldProcess = updated == null || updated.isAfter(pv.created);
     await createOrUpdate(
-        service, package, version, isLatestStable, pv.created, true);
+        service, package, version, isLatestStable, pv.created, shouldProcess);
   }
 
   Future createOrUpdate(
