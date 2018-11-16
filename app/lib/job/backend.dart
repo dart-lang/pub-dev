@@ -49,6 +49,7 @@ class JobBackend {
         ],
       ).toString();
 
+  /// Triggers analysis/dartdoc for [package]/[version] if older than [updated].
   Future trigger(JobService service, String package,
       [String version, DateTime updated]) async {
     final pKey = _db.emptyKey.append(Package, id: package);
