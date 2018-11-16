@@ -469,8 +469,9 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     final Stopwatch serviceSw = new Stopwatch()..start();
     final analysisKey =
         new AnalysisKey(selectedVersion.package, selectedVersion.version);
-    final AnalysisExtract analysisExtract =
-        await analyzerClient.getAnalysisExtract(analysisKey);
+    final card = await scoreCardBackend.getScoreCardData(
+        analysisKey.package, analysisKey.version,
+        onlyCurrent: true);
     final AnalysisView analysisView =
         await analyzerClient.getAnalysisView(analysisKey);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
@@ -490,7 +491,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         latestStable,
         latestDev,
         versions.length,
-        analysisExtract,
+        card,
         analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 

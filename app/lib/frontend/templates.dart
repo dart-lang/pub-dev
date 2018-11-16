@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:pana/models.dart' show SuggestionLevel;
 
+import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
@@ -220,13 +221,11 @@ class TemplateService {
 
   /// Renders the `views/pkg/analysis_tab.mustache` template.
   String renderAnalysisTab(String package, String sdkConstraint,
-      AnalysisExtract extract, AnalysisView analysis) {
-    if (analysis == null || !analysis.hasAnalysisData) return null;
-    final analysisStatus = extract?.analysisStatus ?? analysis.analysisStatus;
-    final isDiscontinued = analysisStatus == AnalysisStatus.discontinued;
-    final isLegacy = analysisStatus == AnalysisStatus.legacy;
-    final isObsolete = analysisStatus == AnalysisStatus.outdated;
-    final showAnalysis = !isObsolete && !isDiscontinued && !isLegacy;
+      ScoreCardData card, AnalysisView analysis) {
+    if (card == null || analysis == null || !analysis.hasAnalysisData) {
+      return null;
+    }
+    final analysisStatus = analysis.analysisStatus;
 
     String statusText;
     switch (analysisStatus) {
@@ -259,10 +258,10 @@ class TemplateService {
 
     final Map<String, dynamic> data = {
       'package': package,
-      'show_discontinued': isDiscontinued,
-      'show_outdated': isObsolete,
-      'show_legacy': isLegacy,
-      'show_analysis': showAnalysis,
+      'show_discontinued': card.isDiscontinued,
+      'show_outdated': card.isObsolete,
+      'show_legacy': card.isLegacy,
+      'show_analysis': !card.isSkipped,
       'analysis_tab_url': urls.analysisTabUrl(package),
       'date_completed': analysis.timestamp == null
           ? null
@@ -293,7 +292,7 @@ class TemplateService {
         'has_dev': devDeps.isNotEmpty,
         'dev': devDeps,
       },
-      'score_bars': _renderScoreBars(extract),
+      'score_bars': _renderScoreBars(card),
     };
 
     return _renderTemplate('pkg/analysis_tab', data);
@@ -334,7 +333,7 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
-      AnalysisExtract extract,
+      ScoreCardData card,
       AnalysisView analysis,
       bool isFlutterPackage) {
     String readmeFilename;
@@ -394,7 +393,7 @@ class TemplateService {
     if (tabs.isNotEmpty) {
       tabs.first['active'] = '-active';
     }
-    final analysisStatus = analysis?.analysisStatus ?? extract?.analysisStatus;
+    final analysisStatus = analysis?.analysisStatus;
     String documentationUrl = selectedVersion.documentation;
     if (documentationUrl != null &&
         (documentationUrl.startsWith('https://www.dartdocs.org/') ||
@@ -455,9 +454,9 @@ class TemplateService {
         'tags_html': _renderTags(
           analysis?.platforms,
           isAwaiting: analysisStatus == null,
-          isDiscontinued: analysisStatus == AnalysisStatus.discontinued,
-          isLegacy: analysisStatus == AnalysisStatus.legacy,
-          isObsolete: analysisStatus == AnalysisStatus.outdated,
+          isDiscontinued: card.isDiscontinued,
+          isLegacy: card.isLegacy,
+          isObsolete: card.isObsolete,
         ),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
@@ -469,12 +468,11 @@ class TemplateService {
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
         'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
-        'score_box_html': _renderScoreBox(extract?.overallScore,
-            isSkipped: _isAnalysisSkipped(analysisStatus),
-            isNewPackage: package.isNewPackage()),
+        'score_box_html': _renderScoreBox(card?.overallScore,
+            isSkipped: card.isSkipped, isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(package.name,
-            selectedVersion.pubspec.sdkConstraint, extract, analysis),
+            selectedVersion.pubspec.sdkConstraint, card, analysis),
         'schema_org_pkgmeta_json':
             json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
       },
@@ -489,7 +487,7 @@ class TemplateService {
     return values;
   }
 
-  Map<String, dynamic> _renderScoreBars(AnalysisExtract extract) {
+  Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
     String renderScoreBar(double score, Brush brush) {
       return _renderTemplate('pkg/score_bar', {
         'percent': _formatScore(score ?? 0.0),
@@ -500,11 +498,11 @@ class TemplateService {
       });
     }
 
-    final analysisSkipped = _isAnalysisSkipped(extract?.analysisStatus);
-    final healthScore = extract?.health;
-    final maintenanceScore = extract?.maintenance;
-    final popularityScore = extract?.popularity;
-    final overallScore = analysisSkipped ? null : extract?.overallScore ?? 0.0;
+    final isSkipped = card?.isSkipped ?? false;
+    final healthScore = isSkipped ? null : card?.healthScore;
+    final maintenanceScore = isSkipped ? null : card?.maintenanceScore;
+    final popularityScore = card?.popularityScore;
+    final overallScore = card?.overallScore ?? 0.0;
     return {
       'health_html':
           renderScoreBar(healthScore, genericScoreBrush(healthScore)),
@@ -616,12 +614,12 @@ class TemplateService {
       PackageVersion latestStableVersion,
       PackageVersion latestDevVersion,
       int totalNumberOfVersions,
-      AnalysisExtract extract,
+      ScoreCardData card,
       AnalysisView analysis) {
     assert(versions.length == versionDownloadUrls.length);
-    final int platformCount = extract?.platforms?.length ?? 0;
+    final int platformCount = card?.platformTags?.length ?? 0;
     final String singlePlatform =
-        platformCount == 1 ? extract.platforms.single : null;
+        platformCount == 1 ? card.platformTags.single : null;
     final bool hasPlatformSearch =
         singlePlatform != null && singlePlatform != KnownPlatforms.other;
     final bool hasOnlyFlutterPlatform =
@@ -638,7 +636,7 @@ class TemplateService {
       latestStableVersion,
       latestDevVersion,
       totalNumberOfVersions,
-      extract,
+      card,
       analysis,
       isFlutterPackage,
     );
@@ -951,9 +949,6 @@ String _getAuthorsHtml(List<String> authors) {
   }).join('<br/>');
 }
 
-bool _isAnalysisSkipped(AnalysisStatus status) =>
-    status == AnalysisStatus.outdated || status == AnalysisStatus.discontinued;
-
 String _renderSdkScoreBox() {
   return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
 }
@@ -964,16 +959,13 @@ String _renderScoreBox(
   bool isNewPackage,
   String package,
 }) {
-  final score = isSkipped ? null : overallScore;
-  final String formattedScore = _formatScore(score);
-  final String scoreClass = _classifyScore(score);
+  final String formattedScore = _formatScore(overallScore);
+  final String scoreClass = _classifyScore(overallScore);
   String title;
-  if (isSkipped) {
-    title = 'No analysis for this version.';
+  if (!isSkipped && overallScore == null) {
+    title = 'Awaiting analysis to complete.';
   } else {
-    title = overallScore == null
-        ? 'Awaiting analysis to complete.'
-        : 'Analysis and more details.';
+    title = 'Analysis and more details.';
   }
   final String escapedTitle = _attrEscaper.convert(title);
   final newIndicator = (isNewPackage ?? false)
