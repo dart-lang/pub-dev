@@ -59,7 +59,7 @@ abstract class ReportStatus {
 /// The details are pulled in from various data sources, and the entry is
 /// recalculated from scratch each time any of the sources change.
 @db.Kind(name: 'ScoreCard', idType: db.IdType.String)
-class ScoreCard extends db.ExpandoModel {
+class ScoreCard extends db.ExpandoModel with FlagMixin {
   @db.StringProperty(required: true)
   String packageName;
 
@@ -97,6 +97,7 @@ class ScoreCard extends db.ExpandoModel {
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   @CompatibleStringListProperty()
+  @override
   List<String> flags = <String>[];
 
   /// The report types that are already done for the ScoreCard.
@@ -167,6 +168,10 @@ class ScoreCard extends db.ExpandoModel {
       ..removeWhere((type) => type == null)
       ..sort();
     panaReport?.flags?.forEach(addFlag);
+    if (isSkipped) {
+      healthScore = 0.0;
+      maintenanceScore = 0.0;
+    }
   }
 
   double _applySuggestions(double score, List<Suggestion> suggestions) {
