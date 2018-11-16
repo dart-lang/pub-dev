@@ -186,7 +186,7 @@ class VersionedJsonStorage {
   String getBucketUri([String version = versions.runtimeVersion]) =>
       bucketUri(_bucket, _objectName(version));
 
-  String _objectName([String version]) {
+  String _objectName([String version = versions.runtimeVersion]) {
     assert(version != null);
     return '$_prefix$version$_extension';
   }
