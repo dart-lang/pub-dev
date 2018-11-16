@@ -11,7 +11,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/scorecard/models.dart';
-import 'package:pub_dartlang_org/shared/analyzer_service.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
@@ -124,7 +123,7 @@ void main() {
           1,
           new ScoreCardData(reportTypes: ['pana']),
           new MockAnalysisView()
-            ..analysisStatus = AnalysisStatus.success
+            ..panaReportStatus = ReportStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
             ..directDependencies = [
               new PkgDependency(
@@ -162,7 +161,7 @@ void main() {
           1,
           new ScoreCardData(reportTypes: ['pana']),
           new MockAnalysisView()
-            ..analysisStatus = AnalysisStatus.success
+            ..panaReportStatus = ReportStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
             ..directDependencies = [
               new PkgDependency(
@@ -205,7 +204,7 @@ void main() {
             platformTags: ['flutter'],
           ),
           new MockAnalysisView()
-            ..analysisStatus = AnalysisStatus.success
+            ..panaReportStatus = ReportStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
             ..platforms = ['flutter']);
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
@@ -223,7 +222,6 @@ void main() {
           1,
           new ScoreCardData(flags: [PackageFlags.isObsolete]),
           new MockAnalysisView(
-            analysisStatus: AnalysisStatus.outdated,
             timestamp: new DateTime(2018, 02, 05),
           ));
 
@@ -242,7 +240,6 @@ void main() {
           1,
           new ScoreCardData(flags: [PackageFlags.isDiscontinued]),
           new MockAnalysisView(
-            analysisStatus: AnalysisStatus.discontinued,
             timestamp: new DateTime(2018, 02, 05),
           ));
 
@@ -252,18 +249,11 @@ void main() {
     test('package show page with legacy version', () {
       final summary = createPanaSummaryForLegacy(
           testPackageVersion.package, testPackageVersion.version);
-      final content = json.decode(json.encode(summary)) as Map<String, dynamic>;
-      final analysisView = new AnalysisView(new AnalysisData(
-          packageName: testPackageVersion.package,
-          packageVersion: testPackageVersion.version,
-          analysis: 1,
-          timestamp: new DateTime(2018, 08, 09),
-          runtimeVersion: '2018.08.09',
-          panaVersion: '0.10.9',
-          flutterVersion: null,
-          analysisStatus: AnalysisStatus.legacy,
-          analysisContent: content,
-          maintenanceScore: 0.0));
+      final analysisView = new MockAnalysisView()
+        ..timestamp = new DateTime(2018, 08, 09)
+        ..panaVersion = '0.10.9'
+        ..panaSuggestions = summary?.suggestions
+        ..maintenanceSuggestions = summary.maintenance?.suggestions;
       final String html = templates.renderPkgShowPage(
           testPackage,
           true /* isVersionPage */,
@@ -291,12 +281,13 @@ void main() {
       // stored analysis of http
       final String content =
           await new File('$goldenDir/analysis_tab_http.json').readAsString();
-      final view = new AnalysisView(new AnalysisData.fromJson(
-          json.decode(content) as Map<String, dynamic>));
-      final card = new ScoreCardData(
-          healthScore: view.health,
-          maintenanceScore: 0.9,
-          popularityScore: 0.23);
+      final map = json.decode(content) as Map<String, dynamic>;
+      final card =
+          new ScoreCardData.fromJson(map['scorecard'] as Map<String, dynamic>);
+      final reports = map['reports'] as Map<String, dynamic>;
+      final panaReport =
+          new PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
+      final view = new AnalysisView(card: card, panaReport: panaReport);
       final String html = templates.renderAnalysisTab(
           'http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
@@ -312,7 +303,7 @@ void main() {
             popularityScore: 0.2323232,
           ),
           new MockAnalysisView(
-            analysisStatus: AnalysisStatus.failure,
+            panaReportStatus: ReportStatus.failed,
             timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
             platforms: ['web'],
             platformsReason: 'All libraries agree.',
@@ -352,18 +343,11 @@ void main() {
           'pkg_foo',
           null,
           new ScoreCardData(),
-          new AnalysisView(new AnalysisData(
-            analysis: 1,
-            packageName: 'foo',
-            packageVersion: '1.0.0',
-            runtimeVersion: '2018.3.8',
-            panaVersion: '0.8.0',
-            flutterVersion: '0.0.20',
-            analysisStatus: AnalysisStatus.aborted,
-            timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
-            maintenanceScore: null,
-            analysisContent: null,
-          )));
+          new MockAnalysisView()
+            ..panaVersion = '0.8.0'
+            ..flutterVersion = '0.0.20'
+            ..panaReportStatus = ReportStatus.aborted
+            ..timestamp = new DateTime(2017, 12, 18, 14, 26, 00));
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
     });
 
@@ -372,18 +356,10 @@ void main() {
           'pkg_foo',
           null,
           new ScoreCardData(flags: [PackageFlags.isObsolete]),
-          new AnalysisView(new AnalysisData(
-            analysis: 1,
-            packageName: 'foo',
-            packageVersion: '1.0.0',
-            runtimeVersion: '2018.3.8',
-            panaVersion: '0.8.0',
-            flutterVersion: '0.0.20',
-            analysisStatus: AnalysisStatus.outdated,
-            timestamp: new DateTime(2017, 12, 18, 14, 26, 00),
-            maintenanceScore: null,
-            analysisContent: null,
-          )));
+          new MockAnalysisView()
+            ..panaVersion = '0.8.0'
+            ..flutterVersion = '0.0.20'
+            ..timestamp = new DateTime(2017, 12, 18, 14, 26, 00));
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
@@ -634,7 +610,7 @@ class MockAnalysisView implements AnalysisView {
   bool hasPanaSummary = true;
 
   @override
-  AnalysisStatus analysisStatus;
+  String panaReportStatus;
 
   @override
   String dartSdkVersion = '2.0.0-dev.7.0';
@@ -685,7 +661,7 @@ class MockAnalysisView implements AnalysisView {
   double maintenanceScore;
 
   MockAnalysisView({
-    this.analysisStatus,
+    this.panaReportStatus,
     this.timestamp,
     this.platforms,
     this.platformsReason,

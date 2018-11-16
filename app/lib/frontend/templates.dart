@@ -225,17 +225,16 @@ class TemplateService {
     if (card == null || analysis == null || !analysis.hasAnalysisData) {
       return null;
     }
-    final analysisStatus = analysis.analysisStatus;
 
     String statusText;
-    switch (analysisStatus) {
-      case AnalysisStatus.aborted:
+    switch (analysis.panaReportStatus) {
+      case ReportStatus.aborted:
         statusText = 'aborted';
         break;
-      case AnalysisStatus.failure:
+      case ReportStatus.failed:
         statusText = 'tool failures';
         break;
-      case AnalysisStatus.success:
+      case ReportStatus.success:
         statusText = 'completed';
         break;
       default:
@@ -393,7 +392,9 @@ class TemplateService {
     if (tabs.isNotEmpty) {
       tabs.first['active'] = '-active';
     }
-    final analysisStatus = analysis?.analysisStatus;
+    final isAwaiting = card == null ||
+        analysis == null ||
+        (!card.isSkipped && !analysis.hasPanaSummary);
     String documentationUrl = selectedVersion.documentation;
     if (documentationUrl != null &&
         (documentationUrl.startsWith('https://www.dartdocs.org/') ||
@@ -453,10 +454,10 @@ class TemplateService {
         },
         'tags_html': _renderTags(
           analysis?.platforms,
-          isAwaiting: analysisStatus == null,
-          isDiscontinued: card.isDiscontinued,
-          isLegacy: card.isLegacy,
-          isObsolete: card.isObsolete,
+          isAwaiting: isAwaiting,
+          isDiscontinued: card?.isDiscontinued ?? false,
+          isLegacy: card?.isLegacy ?? false,
+          isObsolete: card?.isObsolete ?? false,
         ),
         'description': selectedVersion.pubspec.description,
         // TODO: make this 'Authors' if PackageVersion.authors is a list?!
@@ -469,7 +470,8 @@ class TemplateService {
         'short_created': selectedVersion.shortCreated,
         'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
         'score_box_html': _renderScoreBox(card?.overallScore,
-            isSkipped: card.isSkipped, isNewPackage: package.isNewPackage()),
+            isSkipped: card?.isSkipped ?? false,
+            isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
         'analysis_html': renderAnalysisTab(package.name,
             selectedVersion.pubspec.sdkConstraint, card, analysis),

@@ -17,6 +17,7 @@ import 'package:pool/pool.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -37,6 +38,7 @@ Future main(List<String> args) async {
   await withProdServices(() async {
     registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
     registerDartdocMemcache(new DartdocMemcache(memcacheService));
+    registerScoreCardBackend(new ScoreCardBackend(dbService));
     registerAnalyzerClient(new AnalyzerClient());
     registerDartdocClient(new DartdocClient());
 
@@ -69,10 +71,10 @@ Future main(List<String> args) async {
 }
 
 Future<String> _analyzerStatus(String package, String version) async {
-  final extract = await analyzerClient
-      .getAnalysisExtract(new AnalysisKey(package, version));
-  if (extract == null || extract.analysisStatus == null) return 'awaiting';
-  return extract.analysisStatus.toString().split('.').last;
+  final reports = await scoreCardBackend
+      .loadReports(package, version, reportTypes: [ReportType.pana]);
+  final panaReport = reports[ReportType.pana];
+  return panaReport?.reportStatus ?? 'awaiting';
 }
 
 Future<String> _dartdocStatus(String package, String version) async {

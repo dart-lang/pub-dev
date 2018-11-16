@@ -3,22 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../analyzer/backend.dart';
 import '../job/backend.dart';
+import '../scorecard/backend.dart';
+import '../scorecard/models.dart';
 
-import 'analyzer_memcache.dart';
 import 'analyzer_service.dart';
-import 'memcache.dart' show analyzerDataLocalExpiration;
-import 'platform.dart';
-import 'popularity_storage.dart';
-import 'versions.dart';
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 export 'analyzer_service.dart' hide AnalysisData;
@@ -36,101 +31,18 @@ final Logger _logger = new Logger('pub.analyzer_client');
 /// Client methods that access the analyzer service and the internals of the
 /// analysis data. This keeps the interface narrow over the raw analysis data.
 class AnalyzerClient {
-  final int _extractCacheSize = 10000;
-  final Map<AnalysisKey, AnalysisExtract> _extractCache = {};
-
   Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) {
     return Future.wait(keys.map(getAnalysisView));
   }
 
   Future<AnalysisView> getAnalysisView(AnalysisKey key) async {
-    return new AnalysisView(await _getAnalysisData(key));
-  }
-
-  Future<AnalysisExtract> getAnalysisExtract(AnalysisKey key) async {
-    if (key == null) return null;
-    final cached = _extractCache[key];
-    if (cached?.timestamp != null) {
-      final now = new DateTime.now().toUtc();
-      final diff = now.difference(cached.timestamp);
-      if (diff < analyzerDataLocalExpiration) {
-        return cached;
-      } else {
-        _extractCache.remove(key);
-      }
-    }
-    final extract = await _getAnalysisExtract(key);
-    if (extract != null) {
-      while (_extractCache.length >= _extractCacheSize) {
-        _extractCache.remove(_extractCache.keys.first);
-      }
-      _extractCache[key] = extract;
-    }
-    return extract;
-  }
-
-  Future<AnalysisExtract> _getAnalysisExtract(AnalysisKey key) async {
-    if (key == null) return null;
-    final String cachedExtract =
-        await analyzerMemcache?.getExtract(key.package, key.version);
-    if (cachedExtract != null) {
-      try {
-        final cached = new AnalysisExtract.fromJson(
-            json.decode(cachedExtract) as Map<String, dynamic>);
-        return cached;
-      } catch (e, st) {
-        _logger.severe('Unable to parse analysis extract for $key', e, st);
-      }
-    }
-    final view = await getAnalysisView(key);
-    AnalysisExtract extract;
-    if (!view.hasAnalysisData) {
-      return null;
-    } else if (!view.hasPanaSummary) {
-      extract = new AnalysisExtract(
-        analysisStatus: view.analysisStatus,
-        timestamp: new DateTime.now().toUtc(),
-      );
-    } else {
-      extract = new AnalysisExtract(
-        analysisStatus: view.analysisStatus,
-        popularity: popularityStorage?.lookup(key.package) ?? 0.0,
-        maintenance: view.maintenanceScore,
-        health: view.health,
-        platforms: view.platforms,
-        timestamp: new DateTime.now().toUtc(),
-      );
-    }
-    await analyzerMemcache?.setExtract(
-        key.package, key.version, json.encode(extract.toJson()));
-    return extract;
-  }
-
-  /// Gets the analysis data from the analyzer service via HTTP.
-  Future<AnalysisData> _getAnalysisData(AnalysisKey key) async {
-    if (key == null) return null;
-    final String cachedContent = await analyzerMemcache?.getContent(
-        key.package, key.version, panaVersion);
-    if (cachedContent != null) {
-      try {
-        return new AnalysisData.fromJson(
-            json.decode(cachedContent) as Map<String, dynamic>);
-      } catch (e, st) {
-        _logger.severe('Unable to parse analysis data for $key', e, st);
-      }
-    }
-    try {
-      final data = await analysisBackend.getAnalysis(key.package,
-          version: key.version, panaVersion: panaVersion);
-      if (data != null) {
-        await analyzerMemcache?.setContent(
-            key.package, key.version, panaVersion, json.encode(data.toJson()));
-      }
-      return data;
-    } catch (e, st) {
-      _logger.shout('Analysis request failed: $key', e, st);
-      return null;
-    }
+    final card = await scoreCardBackend
+        .getScoreCardData(key.package, key.version, onlyCurrent: true);
+    final reports =
+        await scoreCardBackend.loadReports(key.package, key.version);
+    final PanaReport panaReport = reports[ReportType.pana];
+    final DartdocReport dartdocReport = reports[ReportType.dartdoc];
+    return new AnalysisView._(card, panaReport, dartdocReport);
   }
 
   Future triggerAnalysis(
@@ -151,46 +63,41 @@ class AnalyzerClient {
 }
 
 class AnalysisView {
-  final AnalysisData _data;
-  final Summary _summary;
+  final ScoreCardData _card;
+  final PanaReport _pana;
+  final DartdocReport _dartdoc;
 
-  AnalysisView._(this._data, this._summary);
+  AnalysisView._(this._card, this._pana, this._dartdoc);
 
-  factory AnalysisView(AnalysisData data) {
-    Summary summary;
-    try {
-      if (data != null &&
-          data.analysisStatus != AnalysisStatus.aborted &&
-          data.analysisContent != null) {
-        summary =
-            applyPlatformOverride(new Summary.fromJson(data.analysisContent));
-      }
-    } catch (e, st) {
-      // don't block on faulty serialization
-      _logger.warning(
-          'Unable to read analysis content for package: '
-          '${data.packageName} ${data.packageVersion}',
-          e,
-          st);
+  factory AnalysisView({
+    ScoreCardData card,
+    PanaReport panaReport,
+    DartdocReport dartdocReport,
+  }) =>
+      new AnalysisView._(card, panaReport, dartdocReport);
+
+  bool get hasAnalysisData => _card != null;
+  bool get hasPanaSummary => _pana != null;
+
+  DateTime get timestamp => _pana?.timestamp;
+  String get panaReportStatus => _pana?.reportStatus;
+
+  String get dartSdkVersion => _pana?.panaRuntimeInfo?.sdkVersion;
+  String get panaVersion => _pana?.panaRuntimeInfo?.panaVersion;
+  String get flutterVersion {
+    if (_card == null || _pana == null || !_card.usesFlutter) {
+      return null;
     }
-    return new AnalysisView._(data, summary);
+    final map = _pana?.panaRuntimeInfo?.flutterVersions;
+    if (map == null) return null;
+    final version = map['frameworkVersion'];
+    return version as String;
   }
 
-  bool get hasAnalysisData => _data != null;
-  bool get hasPanaSummary => _summary != null;
+  List<String> get platforms => _card?.platformTags;
+  String get platformsReason => _pana?.platformReason;
 
-  DateTime get timestamp => _data?.timestamp;
-  AnalysisStatus get analysisStatus => _data?.analysisStatus;
-
-  String get dartSdkVersion => _summary?.runtimeInfo?.sdkVersion;
-  String get panaVersion => _data?.panaVersion;
-  String get flutterVersion =>
-      (_summary?.pubspec?.usesFlutter ?? false) ? _data.flutterVersion : null;
-
-  List<String> get platforms => indexDartPlatform(_summary?.platform);
-  String get platformsReason => _summary?.platform?.reason;
-
-  List<LicenseFile> get licenses => _summary?.licenses;
+  List<LicenseFile> get licenses => _pana?.licenses;
 
   List<PkgDependency> get directDependencies =>
       _getDependencies(DependencyTypes.direct);
@@ -201,35 +108,31 @@ class AnalysisView {
   List<PkgDependency> get devDependencies =>
       _getDependencies(DependencyTypes.dev);
 
-  List<PkgDependency> get allDependencies =>
-      _summary?.pkgResolution?.dependencies;
+  List<PkgDependency> get allDependencies => _pana?.pkgDependencies;
 
   List<PkgDependency> _getDependencies(String type) {
-    final List<PkgDependency> list = _summary?.pkgResolution?.dependencies
+    final List<PkgDependency> list = allDependencies
         ?.where((pd) => pd.dependencyType == type)
-        ?.where((pd) => pd.package != _summary.packageName)
+        ?.where((pd) => pd.package != _card.packageName)
         ?.toList();
     if (list == null || list.isEmpty) return const [];
     list.sort((a, b) => a.package.compareTo(b.package));
     return list;
   }
 
-  double get health {
-    if (_data == null || _summary == null) {
-      return 0.0;
-    }
-    if (_data.analysisStatus == AnalysisStatus.legacy) {
-      return 0.0;
-    }
-    return _summary?.health?.healthScore ?? 0.0;
-  }
+  double get health => _card?.healthScore ?? 0.0;
 
-  List<Suggestion> get panaSuggestions => _summary?.suggestions;
-  List<Suggestion> get healthSuggestions => _summary?.health?.suggestions;
-  List<Suggestion> get maintenanceSuggestions =>
-      _summary?.maintenance?.suggestions;
+  List<Suggestion> get panaSuggestions => _pana?.panaSuggestions;
+  List<Suggestion> get healthSuggestions =>
+      _concat([_pana?.healthSuggestions, _dartdoc?.healthSuggestions]);
+  List<Suggestion> get maintenanceSuggestions => _concat(
+      [_pana?.maintenanceSuggestions, _dartdoc?.maintenanceSuggestions]);
 
-  double get maintenanceScore => _data?.maintenanceScore ?? 0.0;
+  List<Suggestion> _concat(List<List<Suggestion>> list) =>
+      list.where((item) => item != null).expand((list) => list).toList()
+        ..sort();
+
+  double get maintenanceScore => _card?.maintenanceScore ?? 0.0;
 }
 
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
