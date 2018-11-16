@@ -13,6 +13,7 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
@@ -185,6 +186,7 @@ void main() {
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
         registerDartdocClient(new DartdocClientMock());
+        registerScoreCardBackend(new ScoreCardBackendMock());
         await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
       });
 
@@ -235,6 +237,7 @@ void main() {
         registerBackend(backend);
         registerAnalyzerClient(new AnalyzerClientMock());
         registerDartdocClient(new DartdocClientMock());
+        registerScoreCardBackend(new ScoreCardBackendMock());
         await expectHtmlResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.1+5'));
       });

@@ -122,7 +122,7 @@ void main() {
           testPackageVersion,
           devPackageVersion,
           1,
-          new AnalysisExtract(analysisStatus: AnalysisStatus.success),
+          new ScoreCardData(reportTypes: ['pana']),
           new MockAnalysisView()
             ..analysisStatus = AnalysisStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
@@ -160,7 +160,7 @@ void main() {
           testPackageVersion,
           devPackageVersion,
           1,
-          new AnalysisExtract(analysisStatus: AnalysisStatus.success),
+          new ScoreCardData(reportTypes: ['pana']),
           new MockAnalysisView()
             ..analysisStatus = AnalysisStatus.success
             ..timestamp = new DateTime(2018, 02, 05)
@@ -198,11 +198,11 @@ void main() {
           flutterPackageVersion,
           flutterPackageVersion,
           1,
-          new AnalysisExtract(
-            health: 0.99,
-            maintenance: 0.99,
-            popularity: 0.3,
-            platforms: ['flutter'],
+          new ScoreCardData(
+            healthScore: 0.99,
+            maintenanceScore: 0.99,
+            popularityScore: 0.3,
+            platformTags: ['flutter'],
           ),
           new MockAnalysisView()
             ..analysisStatus = AnalysisStatus.success
@@ -221,7 +221,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new AnalysisExtract(analysisStatus: AnalysisStatus.outdated),
+          new ScoreCardData(flags: [PackageFlags.isObsolete]),
           new MockAnalysisView(
             analysisStatus: AnalysisStatus.outdated,
             timestamp: new DateTime(2018, 02, 05),
@@ -240,7 +240,7 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new AnalysisExtract(analysisStatus: AnalysisStatus.discontinued),
+          new ScoreCardData(flags: [PackageFlags.isDiscontinued]),
           new MockAnalysisView(
             analysisStatus: AnalysisStatus.discontinued,
             timestamp: new DateTime(2018, 02, 05),
@@ -273,8 +273,10 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new AnalysisExtract(
-              analysisStatus: AnalysisStatus.legacy, popularity: 0.5),
+          new ScoreCardData(
+            popularityScore: 0.5,
+            flags: [PackageFlags.isLegacy],
+          ),
           analysisView);
 
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
@@ -291,10 +293,12 @@ void main() {
           await new File('$goldenDir/analysis_tab_http.json').readAsString();
       final view = new AnalysisView(new AnalysisData.fromJson(
           json.decode(content) as Map<String, dynamic>));
-      final extract = new AnalysisExtract(
-          health: view.health, maintenance: 0.9, popularity: 0.23);
+      final card = new ScoreCardData(
+          healthScore: view.health,
+          maintenanceScore: 0.9,
+          popularityScore: 0.23);
       final String html = templates.renderAnalysisTab(
-          'http', '>=1.23.0-dev.0.0 <2.0.0', extract, view);
+          'http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
@@ -302,10 +306,10 @@ void main() {
       final String html = templates.renderAnalysisTab(
           'pkg_foo',
           '>=1.25.0-dev.9.0 <2.0.0',
-          new AnalysisExtract(
-            health: 0.90234,
-            maintenance: 0.8932343,
-            popularity: 0.2323232,
+          new ScoreCardData(
+            healthScore: 0.90234,
+            maintenanceScore: 0.8932343,
+            popularityScore: 0.2323232,
           ),
           new MockAnalysisView(
             analysisStatus: AnalysisStatus.failure,
@@ -347,7 +351,7 @@ void main() {
       final String html = templates.renderAnalysisTab(
           'pkg_foo',
           null,
-          null,
+          new ScoreCardData(),
           new AnalysisView(new AnalysisData(
             analysis: 1,
             packageName: 'foo',
@@ -367,7 +371,7 @@ void main() {
       final String html = templates.renderAnalysisTab(
           'pkg_foo',
           null,
-          null,
+          new ScoreCardData(flags: [PackageFlags.isObsolete]),
           new AnalysisView(new AnalysisData(
             analysis: 1,
             packageName: 'foo',
