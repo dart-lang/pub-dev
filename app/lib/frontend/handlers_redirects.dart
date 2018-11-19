@@ -32,7 +32,7 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
   if (handler != null) {
     return handler(request);
   }
-  if (path.startsWith('/doc')) {
+  if (path == '/doc' || path.startsWith('/doc/')) {
     return _docRedirectHandler(request);
   }
   return null;
