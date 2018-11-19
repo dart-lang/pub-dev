@@ -301,23 +301,18 @@ class SearchServiceMock implements SearchService {
 }
 
 class AnalyzerClientMock implements AnalyzerClient {
-  AnalysisData mockAnalysisData;
-  AnalysisExtract mockAnalysisExtract;
+  AnalysisView mockAnalysisView;
 
   @override
   Future close() async => null;
 
   @override
   Future<AnalysisView> getAnalysisView(AnalysisKey key) async =>
-      new AnalysisView(mockAnalysisData);
+      mockAnalysisView;
 
   @override
   Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) =>
       Future.wait(keys.map(getAnalysisView));
-
-  @override
-  Future<AnalysisExtract> getAnalysisExtract(AnalysisKey key) async =>
-      mockAnalysisExtract;
 
   @override
   Future triggerAnalysis(

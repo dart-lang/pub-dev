@@ -1,100 +1,53 @@
 {
-  "packageName": "http",
-  "packageVersion": "0.12.0",
-  "analysis": 5720891342192640,
-  "timestamp": "2018-09-18T17:58:10.063448Z",
-  "runtimeVersion": "2018.09.17",
-  "panaVersion": "0.12.3",
-  "flutterVersion": "0.8.4",
-  "analysisStatus": "success",
-  "maintenanceScore": 0.7,
-  "analysisContent": {
-    "runtimeInfo": {
-      "panaVersion": "0.12.3",
-      "sdkVersion": "2.0.0",
-      "flutterVersions": {
-        "channel": "unknown",
-        "repositoryUrl": "unknown source",
-        "frameworkRevision": "7f7a731da095addd1ce684a6a2f4bc8651229769",
-        "frameworkCommitDate": "2018-09-14 13:11:32 -0400",
-        "engineRevision": "7a9b430d740b9a7ae4d9a6d44357d83561e1124d",
-        "dartSdkVersion": "2.1.0-dev.4.0.flutter-c28db2d6e1"
-      }
-    },
+  "scorecard": {
     "packageName": "http",
     "packageVersion": "0.12.0",
-    "pubspec": {
-      "version": "0.12.0",
-      "name": "http",
-      "dependencies": {
-        "http_parser": ">=0.0.1 <4.0.0",
-        "async": ">=1.10.0 <3.0.0",
-        "path": ">=0.9.0 <2.0.0"
-      },
-      "author": "Dart Team <misc@dartlang.org>",
-      "description": "A composable, Future-based API for making HTTP requests.",
-      "homepage": "https://github.com/dart-lang/http",
-      "environment": {
-        "sdk": ">=2.0.0-dev.61.0 <3.0.0"
-      },
-      "dev_dependencies": {
-        "test": "^1.3.0"
-      }
-    },
-    "platform": {
-      "components": [],
-      "uses": {
-        "flutter": "allowed",
-        "web": "allowed",
-        "other": "allowed"
-      },
-      "reason": "No platform restriction found in primary library `package:http/http.dart`."
-    },
-    "licenses": [
-      {
-        "path": "LICENSE",
-        "name": "BSD",
-        "url": "https://github.com/dart-lang/http/blob/master/LICENSE"
-      }
+    "runtimeVersion": "2018.11.16",
+    "updated": "2018-11-16T13:46:22.688970Z",
+    "packageCreated": "2012-11-30T20:40:39.499Z",
+    "packageVersionCreated": "2018-09-18T17:44:06.118054Z",
+    "healthScore": 1.0,
+    "maintenanceScore": 0.7,
+    "popularityScore": 0.9990946129470348,
+    "platformTags": [
+      "flutter",
+      "web",
+      "other"
     ],
-    "health": {
-      "analyzeProcessFailed": false,
-      "formatProcessFailed": false,
-      "resolveProcessFailed": false,
-      "analyzerErrorCount": 0,
-      "analyzerWarningCount": 0,
-      "analyzerHintCount": 0,
-      "platformConflictCount": 0
-    },
-    "maintenance": {
-      "missingChangelog": false,
-      "missingExample": true,
-      "missingReadme": false,
-      "missingAnalysisOptions": true,
-      "oldAnalysisOptions": false,
-      "strongModeEnabled": true,
-      "isExperimentalVersion": false,
-      "isPreReleaseVersion": false,
-      "dartdocSuccessful": true,
-      "suggestions": [
-        {
-          "code": "pubspec.description.tooShort",
-          "level": "hint",
-          "title": "The description is too short.",
-          "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
-          "score": 20.0
-        },
-        {
-          "code": "example.missing",
-          "level": "hint",
-          "title": "Maintain an example.",
-          "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
-          "score": 10.0
+    "flags": [
+      "latest-stable"
+    ],
+    "reportTypes": [
+      "pana"
+    ],
+    "overallScore": 0.9395473064735175
+  },
+  "reports": {
+    "pana": {
+      "timestamp": "2018-11-16T13:46:22.548220Z",
+      "panaRuntimeInfo": {
+        "panaVersion": "0.12.6",
+        "sdkVersion": "2.1.0",
+        "flutterVersions": {
+          "frameworkVersion": "0.11.3",
+          "channel": "unknown",
+          "repositoryUrl": "unknown source",
+          "frameworkRevision": "72bf075e8d6961d2ca6df462b2228954f8d0e73a",
+          "frameworkCommitDate": "2018-11-09 20:36:17 -0800",
+          "engineRevision": "5646e86a6f442dc6f4158ae7010ab13d72a0b356",
+          "dartSdkVersion": "2.1.0 (build 2.1.0-dev.9.3 9c07fb64c4)"
         }
-      ]
-    },
-    "pkgResolution": {
-      "dependencies": [
+      },
+      "reportStatus": "success",
+      "healthScore": 1.0,
+      "maintenanceScore": 0.7,
+      "platformTags": [
+        "flutter",
+        "web",
+        "other"
+      ],
+      "platformReason": "No platform restriction found in primary library `package:http/http.dart`.",
+      "pkgDependencies": [
         {
           "package": "async",
           "dependencyType": "direct",
@@ -158,221 +111,30 @@
           "constraintType": "inherited",
           "resolved": "1.1.6"
         }
+      ],
+      "maintenanceSuggestions": [
+        {
+          "code": "pubspec.description.tooShort",
+          "level": "hint",
+          "title": "The description is too short.",
+          "description": "Add more detail about the package, what it does and what is its target use case. Try to write at least 60 characters.",
+          "score": 20.0
+        },
+        {
+          "code": "example.missing",
+          "level": "hint",
+          "title": "Maintain an example.",
+          "description": "Create a short demo in the `example/` directory to show how to use this package. Common file name patterns include: `main.dart`, `example.dart` or you could also use `http.dart`.",
+          "score": 10.0
+        }
+      ],
+      "licenses": [
+        {
+          "path": "LICENSE",
+          "name": "BSD",
+          "url": "https://github.com/dart-lang/http/blob/master/LICENSE"
+        }
       ]
-    },
-    "dartFiles": {
-      "lib/browser_client.dart": {
-        "uri": "package:http/browser_client.dart",
-        "size": 270,
-        "isFormatted": true,
-        "codeProblems": [],
-        "directLibs": [
-          "package:http/src/browser_client.dart"
-        ],
-        "platform": {
-          "components": [
-            "html"
-          ],
-          "uses": {
-            "flutter": "forbidden",
-            "web": "used",
-            "other": "forbidden"
-          }
-        }
-      },
-      "lib/http.dart": {
-        "uri": "package:http/http.dart",
-        "size": 7239,
-        "isFormatted": true,
-        "codeProblems": [],
-        "directLibs": [
-          "dart:async",
-          "dart:convert",
-          "dart:typed_data",
-          "package:http/src/base_client.dart",
-          "package:http/src/base_request.dart",
-          "package:http/src/base_response.dart",
-          "package:http/src/byte_stream.dart",
-          "package:http/src/client.dart",
-          "package:http/src/exception.dart",
-          "package:http/src/multipart_file.dart",
-          "package:http/src/multipart_request.dart",
-          "package:http/src/request.dart",
-          "package:http/src/response.dart",
-          "package:http/src/streamed_request.dart",
-          "package:http/src/streamed_response.dart"
-        ],
-        "platform": {
-          "components": [],
-          "uses": {
-            "flutter": "allowed",
-            "web": "allowed",
-            "other": "allowed"
-          }
-        }
-      },
-      "lib/io_client.dart": {
-        "uri": "package:http/io_client.dart",
-        "size": 260,
-        "isFormatted": true,
-        "codeProblems": [],
-        "directLibs": [
-          "package:http/src/io_client.dart"
-        ],
-        "platform": {
-          "components": [
-            "io"
-          ],
-          "uses": {
-            "flutter": "allowed",
-            "web": "forbidden",
-            "other": "used"
-          }
-        }
-      },
-      "lib/src/base_client.dart": {
-        "uri": "package:http/src/base_client.dart",
-        "size": 7797,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/base_request.dart": {
-        "uri": "package:http/src/base_request.dart",
-        "size": 4728,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/base_response.dart": {
-        "uri": "package:http/src/base_response.dart",
-        "size": 1715,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/boundary_characters.dart": {
-        "uri": "package:http/src/boundary_characters.dart",
-        "size": 1075,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/browser_client.dart": {
-        "uri": "package:http/src/browser_client.dart",
-        "size": 3592,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/byte_stream.dart": {
-        "uri": "package:http/src/byte_stream.dart",
-        "size": 1406,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/client.dart": {
-        "uri": "package:http/src/client.dart",
-        "size": 6320,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/client_stub.dart": {
-        "uri": "package:http/src/client_stub.dart",
-        "size": 422,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/exception.dart": {
-        "uri": "package:http/src/exception.dart",
-        "size": 502,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/io_client.dart": {
-        "uri": "package:http/src/io_client.dart",
-        "size": 2615,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/mock_client.dart": {
-        "uri": "package:http/src/mock_client.dart",
-        "size": 3411,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/multipart_file.dart": {
-        "uri": "package:http/src/multipart_file.dart",
-        "size": 4232,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/multipart_file_io.dart": {
-        "uri": "package:http/src/multipart_file_io.dart",
-        "size": 868,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/multipart_file_stub.dart": {
-        "uri": "package:http/src/multipart_file_stub.dart",
-        "size": 546,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/multipart_request.dart": {
-        "uri": "package:http/src/multipart_request.dart",
-        "size": 5984,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/request.dart": {
-        "uri": "package:http/src/request.dart",
-        "size": 5958,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/response.dart": {
-        "uri": "package:http/src/response.dart",
-        "size": 3402,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/streamed_request.dart": {
-        "uri": "package:http/src/streamed_request.dart",
-        "size": 1654,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/streamed_response.dart": {
-        "uri": "package:http/src/streamed_response.dart",
-        "size": 1313,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/src/utils.dart": {
-        "uri": "package:http/src/utils.dart",
-        "size": 4814,
-        "isFormatted": true,
-        "codeProblems": []
-      },
-      "lib/testing.dart": {
-        "uri": "package:http/testing.dart",
-        "size": 966,
-        "isFormatted": true,
-        "codeProblems": [],
-        "directLibs": [
-          "package:http/src/mock_client.dart"
-        ],
-        "platform": {
-          "components": [],
-          "uses": {
-            "flutter": "allowed",
-            "web": "allowed",
-            "other": "allowed"
-          }
-        }
-      }
-    },
-    "stats": {
-      "analyzeProcessElapsed": 8637,
-      "formatProcessElapsed": 807,
-      "resolveProcessElapsed": 4009,
-      "totalElapsed": 16876
     }
   }
 }
