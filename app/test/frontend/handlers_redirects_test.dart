@@ -49,6 +49,12 @@ void main() {
       }
     });
 
+    // making sure /doc does not catches /documentation request
+    tScopedTest('/documentation', () async {
+      expectRedirectResponse(await issueGet('/documentation/pana/'),
+          '/documentation/pana/latest/');
+    });
+
     tScopedTest('/flutter/plugins', () async {
       expectRedirectResponse(
           await issueGet('/flutter/plugins'), '/flutter/packages');
