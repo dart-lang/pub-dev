@@ -25,6 +25,7 @@ final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens:
+/// - 2018.11.20
 /// - 2018.11.12
 /// - 2018.10.23
 /// - 2018.10.01
@@ -38,7 +39,7 @@ final String runtimeSdkVersion = '2.2.0-dev.0.0';
 final String toolEnvSdkVersion = '2.1.0';
 
 // keep in-sync with app/pubspec.yaml
-final String panaVersion = '0.12.6';
+final String panaVersion = '0.12.7';
 final Version semanticPanaVersion = new Version.parse(panaVersion);
 
 final String flutterVersion = '0.11.3';
