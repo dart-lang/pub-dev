@@ -92,6 +92,15 @@ class DartdocBackend {
     return versions.map((pv) => pv.version).take(limit).toList();
   }
 
+  /// Updates the [old] entry with the status fields from the [current] one.
+  Future updateOldEntry(DartdocEntry old, DartdocEntry current) async {
+    final newEntry = old.replace(
+      isLatest: current.isLatest,
+      isObsolete: current.isObsolete,
+    );
+    await _storage.writeBytes(newEntry.entryObjectName, newEntry.asBytes());
+  }
+
   /// Uploads a directory to the storage bucket.
   Future uploadDir(DartdocEntry entry, String dirPath) async {
     // upload is in progress

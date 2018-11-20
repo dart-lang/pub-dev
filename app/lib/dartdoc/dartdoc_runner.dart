@@ -192,6 +192,10 @@ class DartdocJobProcessor extends JobProcessor {
           job.packageName, job.packageVersion);
       if (entry.isRegression(oldEntry)) {
         _logger.severe('Regression detected in $job, aborting upload.');
+        if (oldEntry.isLatest != entry.isLatest ||
+            oldEntry.isObsolete != entry.isObsolete) {
+          await dartdocBackend.updateOldEntry(oldEntry, entry);
+        }
       } else {
         await dartdocBackend.uploadDir(entry, outputDir);
         reportStatus = hasContent ? ReportStatus.success : ReportStatus.failed;

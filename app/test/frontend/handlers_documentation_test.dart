@@ -199,4 +199,9 @@ class DartdocBackendMock implements DartdocBackend {
   Future<String> getTextContent(DartdocEntry entry, String relativePath) {
     throw new UnimplementedError();
   }
+
+  @override
+  Future updateOldEntry(DartdocEntry old, DartdocEntry current) {
+    throw new UnimplementedError();
+  }
 }

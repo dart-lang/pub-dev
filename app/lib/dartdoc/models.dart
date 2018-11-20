@@ -66,6 +66,29 @@ class DartdocEntry {
     return new DartdocEntry.fromBytes(bytes);
   }
 
+  /// Creates a new instance, copying fields that are not specified, overriding
+  /// the ones that are.
+  DartdocEntry replace({bool isLatest, bool isObsolete}) {
+    return new DartdocEntry(
+      uuid: uuid,
+      packageName: packageName,
+      packageVersion: packageVersion,
+      isLatest: isLatest ?? this.isLatest,
+      isObsolete: isObsolete ?? this.isObsolete,
+      usesFlutter: usesFlutter,
+      runtimeVersion: runtimeVersion,
+      sdkVersion: sdkVersion,
+      dartdocVersion: dartdocVersion,
+      flutterVersion: flutterVersion,
+      customizationVersion: customizationVersion,
+      timestamp: timestamp,
+      depsResolved: depsResolved,
+      hasContent: hasContent,
+      archiveSize: archiveSize,
+      totalSize: totalSize,
+    );
+  }
+
   Map<String, dynamic> toJson() => _$DartdocEntryToJson(this);
 
   bool get isServing => versions.shouldServeDartdoc(runtimeVersion);
