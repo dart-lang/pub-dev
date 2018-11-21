@@ -98,7 +98,7 @@ class VersionedJsonStorage {
   /// Upload the current data to the storage bucket.
   Future uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();
-    final bytes = utf8.encode(json.encode(map));
+    final bytes = _gzip.encode(utf8.encode(json.encode(map)));
     try {
       await uploadBytesWithRetry(_bucket, objectName, bytes);
     } catch (e, st) {
