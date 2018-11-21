@@ -15,6 +15,8 @@ import '../shared/packages_overrides.dart';
 import '../shared/urls.dart';
 import '../shared/utils.dart' show contentType;
 
+import 'templates.dart';
+
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
@@ -54,7 +56,16 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   }
   if (requestMethod == 'GET') {
     if (!entry.hasContent && docFilePath.path.endsWith('.html')) {
-      return redirectResponse(pkgVersionsUrl(docFilePath.package));
+      final logTxtUrl = pkgDocUrl(docFilePath.package,
+          version: docFilePath.version, relativePath: 'log.txt');
+      final versionsUrl = pkgVersionsUrl(docFilePath.package);
+      final content = templateService.renderErrorPage(
+          'Documentation missing',
+          'Pub site failed to generate dartdoc for this package.\n\n'
+          '- View [dartdoc log]($logTxtUrl)\n'
+          '- Check [other versions]($versionsUrl) of the same package.\n',
+          null);
+      return htmlResponse(content, status: 404);
     }
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);
     if (info == null) {
