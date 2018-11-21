@@ -471,7 +471,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         new AnalysisKey(selectedVersion.package, selectedVersion.version);
     final card = await scoreCardBackend.getScoreCardData(
         analysisKey.package, analysisKey.version,
-        onlyCurrent: true);
+        onlyCurrent: false);
     final AnalysisView analysisView =
         await analyzerClient.getAnalysisView(analysisKey);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
@@ -671,8 +671,11 @@ Future<shelf.Response> _apiPackageMetricsHandler(shelf.Request request) async {
     'scorecard': data.toJson(),
   };
   if (request.requestedUri.queryParameters.containsKey('reports')) {
-    final reports =
-        await scoreCardBackend.loadReports(packageName, data.packageVersion);
+    final reports = await scoreCardBackend.loadReports(
+      packageName,
+      data.packageVersion,
+      runtimeVersion: data.runtimeVersion,
+    );
     result['reports'] =
         reports.map((k, report) => new MapEntry(k, report.toJson()));
   }
