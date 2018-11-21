@@ -367,7 +367,7 @@ class ScoreCardBackendMock implements ScoreCardBackend {
   @override
   Future<Map<String, ReportData>> loadReports(
       String packageName, String packageVersion,
-      {List<String> reportTypes}) {
+      {List<String> reportTypes, String runtimeVersion}) {
     throw new UnimplementedError();
   }
 
