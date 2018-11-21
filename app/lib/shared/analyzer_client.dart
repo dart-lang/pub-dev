@@ -37,9 +37,12 @@ class AnalyzerClient {
 
   Future<AnalysisView> getAnalysisView(AnalysisKey key) async {
     final card = await scoreCardBackend
-        .getScoreCardData(key.package, key.version, onlyCurrent: true);
-    final reports =
-        await scoreCardBackend.loadReports(key.package, key.version);
+        .getScoreCardData(key.package, key.version, onlyCurrent: false);
+    final reports = await scoreCardBackend.loadReports(
+      key.package,
+      key.version,
+      runtimeVersion: card.runtimeVersion,
+    );
     final PanaReport panaReport = reports[ReportType.pana];
     final DartdocReport dartdocReport = reports[ReportType.dartdoc];
     return new AnalysisView._(card, panaReport, dartdocReport);

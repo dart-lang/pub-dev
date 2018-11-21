@@ -129,10 +129,14 @@ class ScoreCardBackend {
 
   /// Load and deserialize the reports for the given package and version.
   Future<Map<String, ReportData>> loadReports(
-      String packageName, String packageVersion,
-      {List<String> reportTypes}) async {
+    String packageName,
+    String packageVersion, {
+    List<String> reportTypes,
+    String runtimeVersion,
+  }) async {
     reportTypes ??= [ReportType.pana, ReportType.dartdoc];
-    final key = scoreCardKey(packageName, packageVersion);
+    final key = scoreCardKey(packageName, packageVersion,
+        runtimeVersion: runtimeVersion);
 
     final list = await _db.lookup(reportTypes
         .map((type) => key.append(ScoreCardReport, id: type))
