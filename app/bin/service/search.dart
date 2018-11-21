@@ -13,6 +13,8 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
+import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -69,6 +71,9 @@ Future _main(FrontendEntryMessage message) async {
     final DartdocClient dartdocClient = new DartdocClient();
     registerDartdocClient(dartdocClient);
     registerScopeExitCallback(dartdocClient.close);
+
+    registerScoreCardBackend(new ScoreCardBackend(db.dbService));
+    registerScoreCardMemcache(new ScoreCardMemcache(memcacheService));
 
     registerSearchBackend(new SearchBackend(db.dbService));
 
