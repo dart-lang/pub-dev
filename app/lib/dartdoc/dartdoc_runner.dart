@@ -135,6 +135,7 @@ class DartdocJobProcessor extends JobProcessor {
     final bool isLatestStable = latestVersion == job.packageVersion;
     bool depsResolved = false;
     bool hasContent = false;
+    PubDartdocData dartdocData;
 
     String reportStatus = ReportStatus.failed;
     final healthSuggestions = <Suggestion>[];
@@ -208,6 +209,8 @@ class DartdocJobProcessor extends JobProcessor {
       if (!hasContent && isLatestStable) {
         reportIssueWithLatest(job, 'No content.');
       }
+
+      dartdocData = await _loadPubDartdocData(outputDir);
     } catch (e, st) {
       reportStatus = ReportStatus.aborted;
       if (isLatestStable) {
@@ -220,7 +223,6 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     double coverageScore = 0.0;
-    final dartdocData = await _loadPubDartdocData(outputDir);
     if (hasContent && dartdocData != null) {
       final total = dartdocData.apiElements.length;
       final documented = dartdocData.apiElements
