@@ -6,15 +6,12 @@ library pub_dartlang_org.handlers;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:http_parser/http_parser.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../dartdoc/backend.dart';
-import '../history/backend.dart';
 import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
@@ -27,10 +24,10 @@ import '../shared/utils.dart';
 
 import 'backend.dart';
 import 'handlers_atom_feed.dart';
+import 'handlers_custom_api.dart';
 import 'handlers_documentation.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
-import 'name_tracker.dart';
 import 'search_service.dart';
 import 'static_files.dart';
 import 'templates.dart';
@@ -72,15 +69,15 @@ Future<shelf.Response> appHandler(
     return await handler(request);
   } else if (path == '/api/packages' &&
       request.requestedUri.queryParameters['compact'] == '1') {
-    return _apiPackagesCompactListHandler(request);
+    return apiPackagesCompactListHandler(request);
   } else if (path == '/api/packages') {
     // NOTE: This is special-cased, since it is not an API used by pub but
     // rather by the editor.
-    return _apiPackagesHandler(request);
+    return apiPackagesHandler(request);
   } else if (path.startsWith('/api/documentation')) {
-    return _apiDocumentationHandler(request);
-  } else if (_isHandlerForApiPackageMetrics(request.requestedUri)) {
-    return _apiPackageMetricsHandler(request);
+    return apiDocumentationHandler(request);
+  } else if (isHandlerForApiPackageMetrics(request.requestedUri)) {
+    return apiPackageMetricsHandler(request);
   } else if (path.startsWith('/api') ||
       path.startsWith('/packages') && path.endsWith('.tar.gz')) {
     return await shelfPubApi(request);
@@ -105,8 +102,8 @@ const _handlers = const <String, shelf.Handler>{
   '/flutter/packages': _flutterPackagesHandlerHtml,
   '/web': _webLandingHandler,
   '/web/packages': _webPackagesHandlerHtml,
-  '/api/search': _apiSearchHandler,
-  '/api/history': _apiHistoryHandler, // experimental, do not rely on it
+  '/api/search': apiSearchHandler,
+  '/api/history': apiHistoryHandler, // experimental, do not rely on it
   '/debug': _debugHandler,
   '/feed.atom': atomFeedHandler,
   '/sitemap.txt': _siteMapHandler,
@@ -222,7 +219,7 @@ shelf.Response _authorizedHandler(_) =>
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> _packagesHandler(shelf.Request request) async {
-  final int page = _pageFromUrl(request.url);
+  final int page = extractPageFromUrlParameters(request.url);
   final path = request.requestedUri.path;
   if (path.endsWith('.json')) {
     return _packagesHandlerJson(request, page, true);
@@ -315,7 +312,7 @@ Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>
 Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
-  final searchQuery = _parseSearchQuery(request, platform);
+  final searchQuery = _parseSearchQuery(request.requestedUri, platform);
   final sw = new Stopwatch()..start();
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
@@ -333,15 +330,15 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   return result;
 }
 
-SearchQuery _parseSearchQuery(shelf.Request request, String platform) {
-  final int page = _pageFromUrl(request.url);
+SearchQuery _parseSearchQuery(Uri url, String platform) {
+  final int page = extractPageFromUrlParameters(url);
   final int offset = PageLinks.resultsPerPage * (page - 1);
-  final String queryText = request.requestedUri.queryParameters['q'] ?? '';
-  final String sortParam = request.requestedUri.queryParameters['sort'];
+  final String queryText = url.queryParameters['q'] ?? '';
+  final String sortParam = url.queryParameters['sort'];
   final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
       ? null
       : parseSearchOrder(sortParam);
-  final isApiEnabled = request.requestedUri.queryParameters['api'] != '0';
+  final isApiEnabled = url.queryParameters['api'] != '0';
   return new SearchQuery.parse(
     query: queryText,
     platform: platform,
@@ -505,211 +502,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   return htmlResponse(cachedPage);
 }
 
-/// Handles request for /api/packages?page=<num>
-Future<shelf.Response> _apiPackagesHandler(shelf.Request request) async {
-  final int pageSize = 100;
-
-  final int page = _pageFromUrl(request.url);
-
-  final packages = await backend.latestPackages(
-      offset: pageSize * (page - 1), limit: pageSize + 1);
-
-  // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
-  // know it was the last page.
-  // But we only use `PageSize` packages to display in the result.
-  final List<Package> pagePackages = packages.take(pageSize).toList();
-  final List<PackageVersion> pageVersions =
-      await backend.lookupLatestVersions(pagePackages);
-
-  final lastPage = packages.length == pagePackages.length;
-
-  final packagesJson = [];
-
-  final uri = request.requestedUri;
-  for (var version in pageVersions) {
-    final versionString = Uri.encodeComponent(version.version);
-    final packageString = Uri.encodeComponent(version.package);
-
-    final apiArchiveUrl = uri
-        .resolve('/packages/$packageString/versions/$versionString.tar.gz')
-        .toString();
-    final apiPackageUrl =
-        uri.resolve('/api/packages/$packageString').toString();
-    final apiPackageVersionUrl = uri
-        .resolve('/api/packages/$packageString/versions/$versionString')
-        .toString();
-    final apiNewPackageVersionUrl =
-        uri.resolve('/api/packages/$packageString/new').toString();
-    final apiUploadersUrl =
-        uri.resolve('/api/packages/$packageString/uploaders').toString();
-    final versionUrl = uri
-        .resolve('/api/packages/$packageString/versions/{version}')
-        .toString();
-
-    packagesJson.add({
-      'name': version.package,
-      'latest': {
-        'version': version.version,
-        'pubspec': version.pubspec.asJson,
-
-        // TODO: We should get rid of these:
-        'archive_url': apiArchiveUrl,
-        'package_url': apiPackageUrl,
-        'url': apiPackageVersionUrl,
-
-        // NOTE: We do not add the following
-        //    - 'new_dartdoc_url'
-      },
-      // TODO: We should get rid of these:
-      'url': apiPackageUrl,
-      'version_url': versionUrl,
-      'new_version_url': apiNewPackageVersionUrl,
-      'uploaders_url': apiUploadersUrl,
-    });
-  }
-
-  final Map<String, dynamic> json = {
-    'next_url': null,
-    'packages': packagesJson,
-
-    // NOTE: We do not add the following:
-    //     - 'pages'
-    //     - 'prev_url'
-  };
-
-  if (!lastPage) {
-    json['next_url'] =
-        '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
-  }
-
-  return jsonResponse(json, pretty: isPrettyJson(request));
-}
-
-/// Handles requests for /api/documentation/<package>
-Future<shelf.Response> _apiDocumentationHandler(shelf.Request request) async {
-  final parts = path.split(request.requestedUri.path).skip(1).toList();
-  if (parts.length != 3 || parts[2].isEmpty) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-  final String package = parts[2];
-  if (redirectDartdocPages.containsKey(package)) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-
-  final versions = await backend.versionsOfPackage(package);
-  if (versions.isEmpty) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-
-  versions.sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
-  String latestStableVersion = versions.last.version;
-  for (int i = versions.length - 1; i >= 0; i--) {
-    if (!versions[i].semanticVersion.isPreRelease) {
-      latestStableVersion = versions[i].version;
-      break;
-    }
-  }
-
-  final dartdocEntries = await Future.wait(versions
-      .map((pv) => dartdocBackend.getServingEntry(package, pv.version)));
-  final versionsData = [];
-
-  for (int i = 0; i < versions.length; i++) {
-    final entry = dartdocEntries[i];
-    final hasDocumentation = entry != null && entry.hasContent;
-    final status =
-        entry == null ? 'awaiting' : (entry.hasContent ? 'success' : 'failed');
-    versionsData.add({
-      'version': versions[i].version,
-      'status': status,
-      'hasDocumentation': hasDocumentation,
-    });
-  }
-  return jsonResponse({
-    'name': package,
-    'latestStableVersion': latestStableVersion,
-    'versions': versionsData,
-  }, pretty: isPrettyJson(request));
-}
-
-/// Handles requests for
-/// - /api/packages?list=compact
-Future<shelf.Response> _apiPackagesCompactListHandler(
-    shelf.Request request) async {
-  final packageNames = await nameTracker.getPackageNames();
-  return jsonResponse({'packages': packageNames},
-      pretty: isPrettyJson(request));
-}
-
-/// Whether [requestedUri] matches /api/packages/<package>/metrics
-bool _isHandlerForApiPackageMetrics(Uri requestedUri) {
-  final requestedPath = requestedUri.path;
-  final parts = requestedPath.split('/');
-  return parts.length == 5 &&
-      parts[0] == '' &&
-      parts[1] == 'api' &&
-      parts[2] == 'packages' &&
-      parts[3].isNotEmpty &&
-      parts[4] == 'metrics';
-}
-
-/// Handles requests for
-/// - /api/packages/<package>/metrics
-Future<shelf.Response> _apiPackageMetricsHandler(shelf.Request request) async {
-  final requestedPath = request.requestedUri.path;
-  final parts = requestedPath.split('/');
-  if (parts.length != 5) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-  final packageName = parts[3];
-  final data = await scoreCardBackend.getScoreCardData(packageName, null,
-      onlyCurrent: false);
-  if (data == null) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-  final result = {
-    'scorecard': data.toJson(),
-  };
-  if (request.requestedUri.queryParameters.containsKey('reports')) {
-    final reports = await scoreCardBackend.loadReports(
-      packageName,
-      data.packageVersion,
-      runtimeVersion: data.runtimeVersion,
-    );
-    result['reports'] =
-        reports.map((k, report) => new MapEntry(k, report.toJson()));
-  }
-  return jsonResponse(result, pretty: isPrettyJson(request));
-}
-
-/// Handles requests for /api/history
-/// NOTE: Experimental, do not rely on it.
-Future<shelf.Response> _apiHistoryHandler(shelf.Request request) async {
-  final list = await historyBackend
-      .getAll(
-        scope: request.requestedUri.queryParameters['scope'],
-        packageName: request.requestedUri.queryParameters['package'],
-        packageVersion: request.requestedUri.queryParameters['version'],
-        limit: 25,
-      )
-      .toList();
-  return jsonResponse({
-    'results': list
-        .map((h) => {
-              'id': h.id,
-              'package': h.packageName,
-              'version': h.packageVersion,
-              'timestamp': h.timestamp.toIso8601String(),
-              'scope': h.scope,
-              'source': h.source,
-              'eventType': h.eventType,
-              'eventData': h.eventData,
-              'markdown': h.formatMarkdown(),
-            })
-        .toList(),
-  }, pretty: true);
-}
-
 Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
   final packages = await _topPackages();
   final message =
@@ -725,8 +517,9 @@ Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
 }
 
 /// Handles requests for /api/search
-Future<shelf.Response> _apiSearchHandler(shelf.Request request) async {
-  final searchQuery = _parseSearchQuery(request, null);
+/// TODO: move to handlers_custom_api.dart
+Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
+  final searchQuery = _parseSearchQuery(request.requestedUri, null);
   final sr = await searchClient.search(searchQuery);
   final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
@@ -743,18 +536,4 @@ Future<shelf.Response> _apiSearchHandler(shelf.Request request) async {
     result['next'] = nextPageUrl;
   }
   return jsonResponse(result, pretty: isPrettyJson(request));
-}
-
-/// Extracts the 'page' query parameter from [url].
-///
-/// Returns a valid positive integer.
-int _pageFromUrl(Uri url) {
-  final pageAsString = url.queryParameters['page'];
-  int pageAsInt = 1;
-  if (pageAsString != null) {
-    try {
-      pageAsInt = max(int.parse(pageAsString), 1);
-    } catch (_, __) {}
-  }
-  return pageAsInt;
 }

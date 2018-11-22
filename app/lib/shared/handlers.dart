@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -129,4 +130,18 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
 bool isProductionHost(shelf.Request request) {
   final String host = request.requestedUri.host;
   return host == pubHostedDomain;
+}
+
+/// Extracts the 'page' query parameter from [url].
+///
+/// Returns a valid positive integer.
+int extractPageFromUrlParameters(Uri url) {
+  final pageAsString = url.queryParameters['page'];
+  int pageAsInt = 1;
+  if (pageAsString != null) {
+    try {
+      pageAsInt = max(int.parse(pageAsString), 1);
+    } catch (_, __) {}
+  }
+  return pageAsInt;
 }
