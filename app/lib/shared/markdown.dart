@@ -4,9 +4,7 @@
 
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
-
-// ignore: implementation_imports
-import 'package:pana/src/download_utils.dart' show getRepositoryUrl;
+import 'package:pana/pana.dart' show getRepositoryUrl;
 
 final Logger _logger = new Logger('pub.markdown');
 
