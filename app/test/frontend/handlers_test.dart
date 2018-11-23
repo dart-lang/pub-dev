@@ -7,7 +7,6 @@ library pub_dartlang_org.handlers_test;
 import 'dart:async';
 
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -399,47 +398,6 @@ void main() {
               'uploaders': ['hans@juergen.com'],
               'versions': ['0.1.1+5'],
             });
-      });
-    });
-
-    group('editor api', () {
-      tScopedTest('/api/packages', () async {
-        final backend =
-            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
-          expect(offset, 0);
-          expect(limit, greaterThan(10));
-          return [testPackage];
-        }, lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectJsonResponse(await issueGet('/api/packages'), body: {
-          'next_url': null,
-          'packages': [
-            {
-              'name': 'foobar_pkg',
-              'latest': {
-                'version': '0.1.1+5',
-                'pubspec': loadYaml(testPackagePubspec),
-                'archive_url': 'https://pub.dartlang.org'
-                    '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
-                'package_url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg',
-                'url': 'https://pub.dartlang.org'
-                    '/api/packages/foobar_pkg/versions/0.1.1%2B5'
-              },
-              'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
-              'version_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/versions/%7Bversion%7D',
-              'new_version_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/new',
-              'uploaders_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/uploaders'
-            }
-          ]
-        });
       });
     });
   });
