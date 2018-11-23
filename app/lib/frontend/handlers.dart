@@ -17,7 +17,6 @@ import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
-import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
@@ -312,7 +311,7 @@ Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>
 Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
-  final searchQuery = _parseSearchQuery(request.requestedUri, platform);
+  final searchQuery = parseFrontendSearchQuery(request.requestedUri, platform);
   final sw = new Stopwatch()..start();
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
@@ -328,25 +327,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   ));
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;
-}
-
-SearchQuery _parseSearchQuery(Uri url, String platform) {
-  final int page = extractPageFromUrlParameters(url);
-  final int offset = PageLinks.resultsPerPage * (page - 1);
-  final String queryText = url.queryParameters['q'] ?? '';
-  final String sortParam = url.queryParameters['sort'];
-  final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
-      ? null
-      : parseSearchOrder(sortParam);
-  final isApiEnabled = url.queryParameters['api'] != '0';
-  return new SearchQuery.parse(
-    query: queryText,
-    platform: platform,
-    order: sortOrder,
-    offset: offset,
-    limit: PageLinks.resultsPerPage,
-    apiEnabled: isApiEnabled,
-  );
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
@@ -514,26 +494,4 @@ Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
     templateService.renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
-}
-
-/// Handles requests for /api/search
-/// TODO: move to handlers_custom_api.dart
-Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
-  final searchQuery = _parseSearchQuery(request.requestedUri, null);
-  final sr = await searchClient.search(searchQuery);
-  final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
-  final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
-  final result = <String, dynamic>{
-    'packages': packages,
-  };
-  if (hasNextPage) {
-    final newParams =
-        new Map<String, dynamic>.from(request.requestedUri.queryParameters);
-    final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
-    newParams['page'] = nextPageIndex.toString();
-    final nextPageUrl =
-        request.requestedUri.replace(queryParameters: newParams).toString();
-    result['next'] = nextPageUrl;
-  }
-  return jsonResponse(result, pretty: isPrettyJson(request));
 }

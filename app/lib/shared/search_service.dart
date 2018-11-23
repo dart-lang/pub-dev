@@ -15,6 +15,13 @@ const int _minSearchLimit = 10;
 const int searchIndexNotReadyCode = 600;
 const String searchIndexNotReadyText = 'Not ready yet.';
 
+/// The number of packages we are going to display on a search page.
+const int resultsPerPage = 10;
+
+/// The number of page links we display, e.g. on page 10, we display direct
+/// links from page 5 to page 15.
+const int maxPages = 10;
+
 /// Package search index and lookup.
 abstract class PackageIndex {
   bool get isReady;
@@ -523,4 +530,40 @@ class ApiPageRef {
   }
 
   Map<String, dynamic> toJson() => _$ApiPageRefToJson(this);
+}
+
+/// Extracts the 'page' query parameter from [url].
+///
+/// Returns a valid positive integer.
+int extractPageFromUrlParameters(Uri url) {
+  final pageAsString = url.queryParameters['page'];
+  int pageAsInt = 1;
+  if (pageAsString != null) {
+    try {
+      pageAsInt = max(int.parse(pageAsString), 1);
+    } catch (_, __) {}
+  }
+  return pageAsInt;
+}
+
+/// Parses the search query URL with the parameters we expose on the frontend.
+/// The parameters and the values may be different from the ones we use in the
+/// search service backend.
+SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
+  final int page = extractPageFromUrlParameters(url);
+  final int offset = resultsPerPage * (page - 1);
+  final String queryText = url.queryParameters['q'] ?? '';
+  final String sortParam = url.queryParameters['sort'];
+  final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
+      ? null
+      : parseSearchOrder(sortParam);
+  final isApiEnabled = url.queryParameters['api'] != '0';
+  return new SearchQuery.parse(
+    query: queryText,
+    platform: platform,
+    order: sortOrder,
+    offset: offset,
+    limit: resultsPerPage,
+    apiEnabled: isApiEnabled,
+  );
 }
