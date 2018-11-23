@@ -7,18 +7,19 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import '../analyzer/models.dart';
 import '../frontend/models.dart';
+import '../scorecard/models.dart';
 
 import 'task_scheduler.dart';
 import 'utils.dart';
+import 'versions.dart';
 
 final Logger _logger = new Logger('pub.shared.task_sources');
 
 const Duration _defaultWindow = const Duration(minutes: 5);
 const Duration _defaultSleep = const Duration(minutes: 1);
 
-enum TaskSourceModel { package, version, analysis }
+enum TaskSourceModel { package, version, scorecard }
 
 /// Creates tasks by polling the datastore for new versions.
 class DatastoreHeadTaskSource implements TaskSource {
@@ -58,8 +59,8 @@ class DatastoreHeadTaskSource implements TaskSource {
           case TaskSourceModel.version:
             yield* _poll<PackageVersion>('created', _versionToTask);
             break;
-          case TaskSourceModel.analysis:
-            yield* _poll<Analysis>('timestamp', _analysisToTask);
+          case TaskSourceModel.scorecard:
+            yield* _poll<ScoreCard>('timestamp', _scoreCardToTask);
             break;
         }
         _lastTs = now.subtract(_window);
@@ -69,8 +70,6 @@ class DatastoreHeadTaskSource implements TaskSource {
       await new Future.delayed(_sleep);
     }
   }
-
-  Future<bool> shouldYieldTask(Task task) async => true;
 
   Future dbScanComplete(int count) async {}
 
@@ -89,7 +88,7 @@ class DatastoreHeadTaskSource implements TaskSource {
             'More than 5 minutes elapsed between poll stream entries.');
       });
       final Task task = modelToTask(model);
-      if (await shouldYieldTask(task)) {
+      if (task != null) {
         count++;
         yield task;
       }
@@ -104,8 +103,13 @@ class DatastoreHeadTaskSource implements TaskSource {
   Task _versionToTask(PackageVersion pv) =>
       new Task(pv.package, pv.version, pv.created);
 
-  Task _analysisToTask(Analysis a) =>
-      new Task(a.packageName, a.packageVersion, a.timestamp);
+  Task _scoreCardToTask(ScoreCard s) {
+    if (s.runtimeVersion == runtimeVersion) {
+      return new Task(s.packageName, s.packageVersion, s.updated);
+    } else {
+      return null;
+    }
+  }
 }
 
 /// Creates a task when the most recent output requires an update (e.g. too old).

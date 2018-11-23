@@ -102,7 +102,7 @@ Future _main(FrontendEntryMessage message) async {
         new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
         new DatastoreHeadTaskSource(
           db.dbService,
-          TaskSourceModel.analysis,
+          TaskSourceModel.scorecard,
           sleep: const Duration(minutes: 10),
           skipHistory: true,
         ),
