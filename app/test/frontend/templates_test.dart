@@ -523,27 +523,27 @@ void main() {
     });
 
     test('PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = new PageLinks(0, PageLinks.resultsPerPage - 1);
+      final links = new PageLinks(0, resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE', () {
-      final links = new PageLinks(0, PageLinks.resultsPerPage);
+      final links = new PageLinks(0, resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = new PageLinks(0, PageLinks.resultsPerPage + 1);
+      final links = new PageLinks(0, resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    final int page2Offset = PageLinks.resultsPerPage;
+    final int page2Offset = resultsPerPage;
 
     test('page=2 + one item', () {
       final links = new PageLinks(page2Offset, page2Offset + 1);
@@ -553,24 +553,23 @@ void main() {
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = new PageLinks(
-          page2Offset, page2Offset + PageLinks.resultsPerPage - 1);
+      final links =
+          new PageLinks(page2Offset, page2Offset + resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
-      final links =
-          new PageLinks(page2Offset, page2Offset + PageLinks.resultsPerPage);
+      final links = new PageLinks(page2Offset, page2Offset + resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = new PageLinks(
-          page2Offset, page2Offset + PageLinks.resultsPerPage + 1);
+      final links =
+          new PageLinks(page2Offset, page2Offset + resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);

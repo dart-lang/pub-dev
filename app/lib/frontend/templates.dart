@@ -17,7 +17,7 @@ import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
-import '../shared/search_service.dart' show SearchQuery, serializeSearchOrder;
+import '../shared/search_service.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
@@ -1000,9 +1000,6 @@ String _classifyScore(double value) {
 }
 
 class PageLinks {
-  static const int resultsPerPage = 10;
-  static const int maxPages = 10;
-
   final int offset;
   final int count;
   final SearchQuery _searchQuery;

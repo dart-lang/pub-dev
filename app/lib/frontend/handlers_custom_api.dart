@@ -10,6 +10,8 @@ import '../history/backend.dart';
 import '../scorecard/backend.dart';
 import '../shared/handlers.dart';
 import '../shared/packages_overrides.dart';
+import '../shared/search_client.dart';
+import '../shared/search_service.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -218,4 +220,25 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
             })
         .toList(),
   }, pretty: true);
+}
+
+/// Handles requests for /api/search
+Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
+  final searchQuery = parseFrontendSearchQuery(request.requestedUri, null);
+  final sr = await searchClient.search(searchQuery);
+  final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
+  final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
+  final result = <String, dynamic>{
+    'packages': packages,
+  };
+  if (hasNextPage) {
+    final newParams =
+        new Map<String, dynamic>.from(request.requestedUri.queryParameters);
+    final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
+    newParams['page'] = nextPageIndex.toString();
+    final nextPageUrl =
+        request.requestedUri.replace(queryParameters: newParams).toString();
+    result['next'] = nextPageUrl;
+  }
+  return jsonResponse(result, pretty: isPrettyJson(request));
 }
