@@ -7,8 +7,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:mime/mime.dart' as mime;
-// ignore: implementation_imports
-import 'package:pana/src/utils.dart' show runProc;
+import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as path;
 
 const String _defaultStaticPath = '/static';
