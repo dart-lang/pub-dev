@@ -6,6 +6,29 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+HistoryUnion _$HistoryUnionFromJson(Map<String, dynamic> json) {
+  return HistoryUnion(
+      packageVersionUploaded: json['packageVersionUploaded'] == null
+          ? null
+          : PackageVersionUploaded.fromJson(
+              json['packageVersionUploaded'] as Map<String, dynamic>),
+      uploaderChanged: json['uploaderChanged'] == null
+          ? null
+          : UploaderChanged.fromJson(
+              json['uploaderChanged'] as Map<String, dynamic>),
+      analysisCompleted: json['analysisCompleted'] == null
+          ? null
+          : AnalysisCompleted.fromJson(
+              json['analysisCompleted'] as Map<String, dynamic>));
+}
+
+Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) =>
+    <String, dynamic>{
+      'packageVersionUploaded': instance.packageVersionUploaded,
+      'uploaderChanged': instance.uploaderChanged,
+      'analysisCompleted': instance.analysisCompleted
+    };
+
 PackageVersionUploaded _$PackageVersionUploadedFromJson(
     Map<String, dynamic> json) {
   return PackageVersionUploaded(uploaderEmail: json['uploaderEmail'] as String);

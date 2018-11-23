@@ -48,16 +48,20 @@ class History extends db.ExpandoModel implements HistoryData {
     DateTime timestamp,
     @required String source,
     @required HistoryEvent event,
-  }) =>
-      new History._(
-        packageName: packageName,
-        packageVersion: packageVersion,
-        timestamp: timestamp,
-        source: source,
-        scope: HistoryScope.package,
-        eventType: event.getType(),
-        eventData: event.toJson(),
-      );
+  }) {
+    final union = new HistoryUnion.ofEvent(event);
+    final map = union.toJson();
+    final type = map.keys.single;
+    return new History._(
+      packageName: packageName,
+      packageVersion: packageVersion,
+      timestamp: timestamp,
+      source: source,
+      scope: HistoryScope.package,
+      eventType: type,
+      eventData: map,
+    );
+  }
 
   factory History.version({
     @required String packageName,
@@ -65,16 +69,20 @@ class History extends db.ExpandoModel implements HistoryData {
     DateTime timestamp,
     @required String source,
     @required HistoryEvent event,
-  }) =>
-      new History._(
-        packageName: packageName,
-        packageVersion: packageVersion,
-        timestamp: timestamp,
-        source: source,
-        scope: HistoryScope.version,
-        eventType: event.getType(),
-        eventData: event.toJson(),
-      );
+  }) {
+    final union = new HistoryUnion.ofEvent(event);
+    final map = union.toJson();
+    final type = map.keys.single;
+    return new History._(
+      packageName: packageName,
+      packageVersion: packageVersion,
+      timestamp: timestamp,
+      source: source,
+      scope: HistoryScope.version,
+      eventType: type,
+      eventData: map,
+    );
+  }
 
   @db.StringProperty(required: true)
   String scope;
@@ -108,9 +116,7 @@ class History extends db.ExpandoModel implements HistoryData {
   }
 
   HistoryEvent get historyEvent {
-    final fromJson = _eventDeserializers[eventType];
-    if (fromJson == null) return null;
-    return fromJson(eventData);
+    return new HistoryUnion.fromJson(eventData).event;
   }
 
   String formatMarkdown() => historyEvent?.formatMarkdown(this);
@@ -122,46 +128,72 @@ abstract class HistoryData {
   DateTime get timestamp;
 }
 
+// ignore: one_member_abstracts
 abstract class HistoryEvent {
-  String getType();
-
-  Map<String, dynamic> toJson();
-
   String formatMarkdown(HistoryData data);
 }
 
-typedef HistoryEvent HistoryEventFromJson(Map<String, dynamic> json);
+@JsonSerializable()
+class HistoryUnion {
+  final PackageVersionUploaded packageVersionUploaded;
+  final UploaderChanged uploaderChanged;
+  final AnalysisCompleted analysisCompleted;
 
-final _eventDeserializers = <String, HistoryEventFromJson>{
-  PackageVersionUploaded._type: _$PackageVersionUploadedFromJson,
-  UploaderChanged._type: _$UploaderChangedFromJson,
-  AnalysisCompleted._type: _$AnalysisCompletedFromJson,
-};
+  HistoryUnion({
+    this.packageVersionUploaded,
+    this.uploaderChanged,
+    this.analysisCompleted,
+  }) {
+    assert(_items.where((x) => x != null).length == 1);
+  }
+
+  factory HistoryUnion.ofEvent(HistoryEvent event) {
+    if (event is PackageVersionUploaded) {
+      return new HistoryUnion(packageVersionUploaded: event);
+    } else if (event is UploaderChanged) {
+      return new HistoryUnion(uploaderChanged: event);
+    } else if (event is AnalysisCompleted) {
+      return new HistoryUnion(analysisCompleted: event);
+    } else {
+      throw new ArgumentError('Unknown type: ${event.runtimeType}');
+    }
+  }
+
+  factory HistoryUnion.fromJson(Map<String, dynamic> json) =>
+      _$HistoryUnionFromJson(json);
+
+  List<HistoryEvent> get _items {
+    return <HistoryEvent>[
+      packageVersionUploaded,
+      uploaderChanged,
+      analysisCompleted,
+    ];
+  }
+
+  HistoryEvent get event => _items.firstWhere((x) => x != null);
+
+  Map<String, dynamic> toJson() => _$HistoryUnionToJson(this);
+}
 
 @JsonSerializable()
 class PackageVersionUploaded implements HistoryEvent {
-  static const _type = 'package-version-uploaded';
-
   final String uploaderEmail;
 
   PackageVersionUploaded({@required this.uploaderEmail});
 
-  @override
-  String getType() => _type;
+  factory PackageVersionUploaded.fromJson(Map<String, dynamic> json) =>
+      _$PackageVersionUploadedFromJson(json);
 
   @override
   String formatMarkdown(HistoryData data) {
     return 'Version ${data.packageVersion} was uploaded by `$uploaderEmail`.';
   }
 
-  @override
   Map<String, dynamic> toJson() => _$PackageVersionUploadedToJson(this);
 }
 
 @JsonSerializable()
 class UploaderChanged implements HistoryEvent {
-  static const _type = 'uploader-changed';
-
   @JsonKey(includeIfNull: false)
   final String currentUserEmail;
 
@@ -177,8 +209,8 @@ class UploaderChanged implements HistoryEvent {
     this.removedUploaderEmails,
   });
 
-  @override
-  String getType() => _type;
+  factory UploaderChanged.fromJson(Map<String, dynamic> json) =>
+      _$UploaderChangedFromJson(json);
 
   @override
   String formatMarkdown(HistoryData data) {
@@ -197,22 +229,19 @@ class UploaderChanged implements HistoryEvent {
     return '$actor has changed uploaders: ${changes.join(' and ')}.';
   }
 
-  @override
   Map<String, dynamic> toJson() => _$UploaderChangedToJson(this);
 }
 
 @JsonSerializable()
 class AnalysisCompleted implements HistoryEvent {
-  static const _type = 'analysis-completed';
-
   final bool hasErrors;
 
   final bool hasPlatforms;
 
   AnalysisCompleted({this.hasErrors, this.hasPlatforms});
 
-  @override
-  String getType() => _type;
+  factory AnalysisCompleted.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisCompletedFromJson(json);
 
   @override
   String formatMarkdown(HistoryData data) {
@@ -225,6 +254,5 @@ class AnalysisCompleted implements HistoryEvent {
     }
   }
 
-  @override
   Map<String, dynamic> toJson() => _$AnalysisCompletedToJson(this);
 }
