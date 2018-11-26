@@ -169,6 +169,16 @@ const List<String> _reservedWords = const <String>[
   'with'
 ];
 
+final _reservedPackageNames = <String>[
+  'in_app_purchase',
+  'location_background',
+  'webview_flutter',
+].map(reducePackageName).toList();
+
+/// Whether the [name] is (very similar) to a reserved package name.
+bool matchesReservedPackageName(String name) =>
+    _reservedPackageNames.contains(reducePackageName(name));
+
 /// Sanity checks if the user would upload a package with a modified pub client
 /// that skips these verifications.
 /// TODO: share code to use the same validations as in
@@ -182,7 +192,7 @@ void validatePackageName(String name) {
     throw new GenericProcessingException(
         'Package name must begin with a letter or underscore.');
   }
-  if (_reservedWords.contains(name.toLowerCase())) {
+  if (_reservedWords.contains(reducePackageName(name))) {
     throw new GenericProcessingException(
         'Package name must not be a reserved word in Dart.');
   }
@@ -202,6 +212,11 @@ void validatePackageName(String name) {
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
 }
+
+/// Removes extra characters from the package name
+String reducePackageName(String name) =>
+    // we allow only `_` as part of the name.
+    name.replaceAll('_', '').toLowerCase();
 
 List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];

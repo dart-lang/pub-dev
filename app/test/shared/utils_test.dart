@@ -77,6 +77,11 @@ void main() {
     test('accept lower-case', () {
       validatePackageName('my_package'); // does not throw
     });
+
+    test('reject reserved words', () {
+      expect(() => validatePackageName('do'), throwsException);
+      expect(() => validatePackageName('d_o'), throwsException);
+    });
   });
 
   group('boundedList', () {
