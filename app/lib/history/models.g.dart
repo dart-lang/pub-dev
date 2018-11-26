@@ -31,9 +31,9 @@ Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
     }
   }
 
-  writeNotNull('packageUploaded', instance.packageUploaded);
-  writeNotNull('uploaderChanged', instance.uploaderChanged);
-  writeNotNull('analysisCompleted', instance.analysisCompleted);
+  writeNotNull('packageUploaded', instance.packageUploaded?.toJson());
+  writeNotNull('uploaderChanged', instance.uploaderChanged?.toJson());
+  writeNotNull('analysisCompleted', instance.analysisCompleted?.toJson());
   return val;
 }
 

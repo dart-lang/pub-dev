@@ -34,12 +34,13 @@ class History extends db.ExpandoModel implements HistoryData {
     this.timestamp,
     this.source,
     this.scope,
-    this.eventType,
-    Map<String, dynamic> eventData,
+    HistoryUnion union,
   }) {
     id = _uuid.v4();
     timestamp ??= new DateTime.now().toUtc();
-    this.eventData = eventData;
+    final map = union.toJson();
+    eventType = map.keys.single;
+    eventData = map.values.single as Map<String, dynamic>;
   }
 
   factory History.package({
@@ -49,17 +50,13 @@ class History extends db.ExpandoModel implements HistoryData {
     @required String source,
     @required HistoryEvent event,
   }) {
-    final union = new HistoryUnion.ofEvent(event);
-    final map = union.toJson();
-    final type = map.keys.single;
     return new History._(
       packageName: packageName,
       packageVersion: packageVersion,
       timestamp: timestamp,
       source: source,
       scope: HistoryScope.package,
-      eventType: type,
-      eventData: map,
+      union: new HistoryUnion.ofEvent(event),
     );
   }
 
@@ -70,17 +67,13 @@ class History extends db.ExpandoModel implements HistoryData {
     @required String source,
     @required HistoryEvent event,
   }) {
-    final union = new HistoryUnion.ofEvent(event);
-    final map = union.toJson();
-    final type = map.keys.single;
     return new History._(
       packageName: packageName,
       packageVersion: packageVersion,
       timestamp: timestamp,
       source: source,
       scope: HistoryScope.version,
-      eventType: type,
-      eventData: map,
+      union: new HistoryUnion.ofEvent(event),
     );
   }
 
@@ -115,9 +108,10 @@ class History extends db.ExpandoModel implements HistoryData {
     eventJson = json.encode(value);
   }
 
-  HistoryEvent get historyEvent {
-    return new HistoryUnion.fromJson(eventData).event;
-  }
+  HistoryUnion get historyUnion =>
+      new HistoryUnion.fromJson({eventType: eventData});
+
+  HistoryEvent get historyEvent => historyUnion.event;
 
   String formatMarkdown() => historyEvent?.formatMarkdown(this);
 }
@@ -133,15 +127,10 @@ abstract class HistoryEvent {
   String formatMarkdown(HistoryData data);
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 class HistoryUnion {
-  @JsonKey(includeIfNull: false)
   final PackageUploaded packageUploaded;
-
-  @JsonKey(includeIfNull: false)
   final UploaderChanged uploaderChanged;
-
-  @JsonKey(includeIfNull: false)
   final AnalysisCompleted analysisCompleted;
 
   HistoryUnion({
