@@ -182,7 +182,7 @@ void validatePackageName(String name) {
     throw new GenericProcessingException(
         'Package name must begin with a letter or underscore.');
   }
-  if (_reservedWords.contains(name.toLowerCase())) {
+  if (_reservedWords.contains(reducePackageName(name))) {
     throw new GenericProcessingException(
         'Package name must not be a reserved word in Dart.');
   }
