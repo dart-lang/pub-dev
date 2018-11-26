@@ -328,6 +328,15 @@ class GCloudPackageRepository extends PackageRepository {
             '${version.package} already exists.');
       }
 
+      // reserved package names for the Dart team
+      if (package == null &&
+          matchesReservedPackageName(newVersion.package) &&
+          !newVersion.uploaderEmail.endsWith('@google.com')) {
+        await T.rollback();
+        throw new GenericProcessingException(
+            'Package name ${newVersion.package} is reserved.');
+      }
+
       // If the package does not exist, then we create a new package.
       if (package == null) package = _newPackageFromVersion(db, newVersion);
 

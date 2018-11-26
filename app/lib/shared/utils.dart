@@ -169,6 +169,16 @@ const List<String> _reservedWords = const <String>[
   'with'
 ];
 
+final _reservedPackageNames = <String>[
+  'in_app_purchase',
+  'location_background',
+  'webview_flutter',
+].map(reducePackageName).toList();
+
+/// Whether the [name] is (very similar) to a reserved package name.
+bool matchesReservedPackageName(String name) =>
+    _reservedPackageNames.contains(reducePackageName(name));
+
 /// Sanity checks if the user would upload a package with a modified pub client
 /// that skips these verifications.
 /// TODO: share code to use the same validations as in
