@@ -22,12 +22,20 @@ HistoryUnion _$HistoryUnionFromJson(Map<String, dynamic> json) {
               json['analysisCompleted'] as Map<String, dynamic>));
 }
 
-Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) =>
-    <String, dynamic>{
-      'packageVersionUploaded': instance.packageVersionUploaded,
-      'uploaderChanged': instance.uploaderChanged,
-      'analysisCompleted': instance.analysisCompleted
-    };
+Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('packageVersionUploaded', instance.packageVersionUploaded);
+  writeNotNull('uploaderChanged', instance.uploaderChanged);
+  writeNotNull('analysisCompleted', instance.analysisCompleted);
+  return val;
+}
 
 PackageVersionUploaded _$PackageVersionUploadedFromJson(
     Map<String, dynamic> json) {

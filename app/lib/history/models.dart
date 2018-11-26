@@ -135,8 +135,13 @@ abstract class HistoryEvent {
 
 @JsonSerializable()
 class HistoryUnion {
+  @JsonKey(includeIfNull: false)
   final PackageVersionUploaded packageVersionUploaded;
+
+  @JsonKey(includeIfNull: false)
   final UploaderChanged uploaderChanged;
+
+  @JsonKey(includeIfNull: false)
   final AnalysisCompleted analysisCompleted;
 
   HistoryUnion({
