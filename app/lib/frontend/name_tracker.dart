@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
 
+import '../shared/utils.dart';
+
 import 'models.dart';
 
 final _logger = new Logger('pub.name_tracker');
@@ -28,21 +30,18 @@ class NameTracker {
   /// Add a package name to the tracker.
   void add(String name) {
     _names.add(name);
-    _reducedNames.add(_reduce(name));
+    _reducedNames.add(reducePackageName(name));
   }
 
   /// Whether the package was already added to the tracker.
   bool hasPackage(String name) => _names.contains(name);
 
   /// Whether the [name] has a conflicting package that already exists.
-  bool hasConflict(String name) => _reducedNames.contains(_reduce(name));
+  bool hasConflict(String name) =>
+      _reducedNames.contains(reducePackageName(name));
 
   /// Whether to accept the upload attempt of a given package [name].
   bool accept(String name) => hasPackage(name) || !hasConflict(name);
-
-  String _reduce(String name) =>
-      // we allow only `_` as part of the name.
-      name.replaceAll('_', '').toLowerCase();
 
   int get length => _names.length;
 

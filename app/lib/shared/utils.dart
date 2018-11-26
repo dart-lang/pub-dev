@@ -203,6 +203,11 @@ void validatePackageName(String name) {
   }
 }
 
+/// Removes extra characters from the package name
+String reducePackageName(String name) =>
+    // we allow only `_` as part of the name.
+    name.replaceAll('_', '').toLowerCase();
+
 List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
   final int maxPageIndex = (list.length - 1) ~/ limit;
