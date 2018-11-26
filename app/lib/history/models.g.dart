@@ -6,13 +6,42 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PackageVersionUploaded _$PackageVersionUploadedFromJson(
-    Map<String, dynamic> json) {
-  return PackageVersionUploaded(uploaderEmail: json['uploaderEmail'] as String);
+HistoryUnion _$HistoryUnionFromJson(Map<String, dynamic> json) {
+  return HistoryUnion(
+      packageUploaded: json['packageUploaded'] == null
+          ? null
+          : PackageUploaded.fromJson(
+              json['packageUploaded'] as Map<String, dynamic>),
+      uploaderChanged: json['uploaderChanged'] == null
+          ? null
+          : UploaderChanged.fromJson(
+              json['uploaderChanged'] as Map<String, dynamic>),
+      analysisCompleted: json['analysisCompleted'] == null
+          ? null
+          : AnalysisCompleted.fromJson(
+              json['analysisCompleted'] as Map<String, dynamic>));
 }
 
-Map<String, dynamic> _$PackageVersionUploadedToJson(
-        PackageVersionUploaded instance) =>
+Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('packageUploaded', instance.packageUploaded?.toJson());
+  writeNotNull('uploaderChanged', instance.uploaderChanged?.toJson());
+  writeNotNull('analysisCompleted', instance.analysisCompleted?.toJson());
+  return val;
+}
+
+PackageUploaded _$PackageUploadedFromJson(Map<String, dynamic> json) {
+  return PackageUploaded(uploaderEmail: json['uploaderEmail'] as String);
+}
+
+Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
     <String, dynamic>{'uploaderEmail': instance.uploaderEmail};
 
 UploaderChanged _$UploaderChangedFromJson(Map<String, dynamic> json) {
