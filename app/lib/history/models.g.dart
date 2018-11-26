@@ -8,10 +8,10 @@ part of 'models.dart';
 
 HistoryUnion _$HistoryUnionFromJson(Map<String, dynamic> json) {
   return HistoryUnion(
-      packageVersionUploaded: json['packageVersionUploaded'] == null
+      packageUploaded: json['packageUploaded'] == null
           ? null
-          : PackageVersionUploaded.fromJson(
-              json['packageVersionUploaded'] as Map<String, dynamic>),
+          : PackageUploaded.fromJson(
+              json['packageUploaded'] as Map<String, dynamic>),
       uploaderChanged: json['uploaderChanged'] == null
           ? null
           : UploaderChanged.fromJson(
@@ -31,19 +31,17 @@ Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
     }
   }
 
-  writeNotNull('packageVersionUploaded', instance.packageVersionUploaded);
+  writeNotNull('packageUploaded', instance.packageUploaded);
   writeNotNull('uploaderChanged', instance.uploaderChanged);
   writeNotNull('analysisCompleted', instance.analysisCompleted);
   return val;
 }
 
-PackageVersionUploaded _$PackageVersionUploadedFromJson(
-    Map<String, dynamic> json) {
-  return PackageVersionUploaded(uploaderEmail: json['uploaderEmail'] as String);
+PackageUploaded _$PackageUploadedFromJson(Map<String, dynamic> json) {
+  return PackageUploaded(uploaderEmail: json['uploaderEmail'] as String);
 }
 
-Map<String, dynamic> _$PackageVersionUploadedToJson(
-        PackageVersionUploaded instance) =>
+Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
     <String, dynamic>{'uploaderEmail': instance.uploaderEmail};
 
 UploaderChanged _$UploaderChangedFromJson(Map<String, dynamic> json) {

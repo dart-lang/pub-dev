@@ -44,7 +44,7 @@ Future _backfillPackage(String package) async {
         scope: HistoryScope.package,
         packageName: package,
         packageVersion: pv.version)) {
-      if (history.historyEvent is PackageVersionUploaded) {
+      if (history.historyEvent is PackageUploaded) {
         hasUploaded = true;
       }
     }
@@ -54,7 +54,7 @@ Future _backfillPackage(String package) async {
         packageVersion: pv.version,
         timestamp: pv.created,
         source: HistorySource.account,
-        event: new PackageVersionUploaded(uploaderEmail: pv.uploaderEmail),
+        event: new PackageUploaded(uploaderEmail: pv.uploaderEmail),
       );
       historyBackend.store(history);
     }

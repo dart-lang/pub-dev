@@ -121,7 +121,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       packageVersion: pv.version,
       timestamp: pv.created,
       source: HistorySource.account,
-      event: new PackageVersionUploaded(uploaderEmail: pv.uploaderEmail),
+      event: new PackageUploaded(uploaderEmail: pv.uploaderEmail),
     ));
 
     // Future is not awaited: upload should not be blocked on the package graph initialization.

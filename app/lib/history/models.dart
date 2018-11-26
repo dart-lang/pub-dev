@@ -136,7 +136,7 @@ abstract class HistoryEvent {
 @JsonSerializable()
 class HistoryUnion {
   @JsonKey(includeIfNull: false)
-  final PackageVersionUploaded packageVersionUploaded;
+  final PackageUploaded packageUploaded;
 
   @JsonKey(includeIfNull: false)
   final UploaderChanged uploaderChanged;
@@ -145,7 +145,7 @@ class HistoryUnion {
   final AnalysisCompleted analysisCompleted;
 
   HistoryUnion({
-    this.packageVersionUploaded,
+    this.packageUploaded,
     this.uploaderChanged,
     this.analysisCompleted,
   }) {
@@ -153,8 +153,8 @@ class HistoryUnion {
   }
 
   factory HistoryUnion.ofEvent(HistoryEvent event) {
-    if (event is PackageVersionUploaded) {
-      return new HistoryUnion(packageVersionUploaded: event);
+    if (event is PackageUploaded) {
+      return new HistoryUnion(packageUploaded: event);
     } else if (event is UploaderChanged) {
       return new HistoryUnion(uploaderChanged: event);
     } else if (event is AnalysisCompleted) {
@@ -169,7 +169,7 @@ class HistoryUnion {
 
   List<HistoryEvent> get _items {
     return <HistoryEvent>[
-      packageVersionUploaded,
+      packageUploaded,
       uploaderChanged,
       analysisCompleted,
     ];
@@ -181,20 +181,20 @@ class HistoryUnion {
 }
 
 @JsonSerializable()
-class PackageVersionUploaded implements HistoryEvent {
+class PackageUploaded implements HistoryEvent {
   final String uploaderEmail;
 
-  PackageVersionUploaded({@required this.uploaderEmail});
+  PackageUploaded({@required this.uploaderEmail});
 
-  factory PackageVersionUploaded.fromJson(Map<String, dynamic> json) =>
-      _$PackageVersionUploadedFromJson(json);
+  factory PackageUploaded.fromJson(Map<String, dynamic> json) =>
+      _$PackageUploadedFromJson(json);
 
   @override
   String formatMarkdown(HistoryData data) {
     return 'Version ${data.packageVersion} was uploaded by `$uploaderEmail`.';
   }
 
-  Map<String, dynamic> toJson() => _$PackageVersionUploadedToJson(this);
+  Map<String, dynamic> toJson() => _$PackageUploadedToJson(this);
 }
 
 @JsonSerializable()
