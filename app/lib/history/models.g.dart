@@ -38,21 +38,36 @@ Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
 }
 
 PackageUploaded _$PackageUploadedFromJson(Map<String, dynamic> json) {
-  return PackageUploaded(uploaderEmail: json['uploaderEmail'] as String);
+  return PackageUploaded(
+      packageName: json['packageName'] as String,
+      packageVersion: json['packageVersion'] as String,
+      uploaderEmail: json['uploaderEmail'] as String,
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String));
 }
 
 Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
-    <String, dynamic>{'uploaderEmail': instance.uploaderEmail};
+    <String, dynamic>{
+      'packageName': instance.packageName,
+      'packageVersion': instance.packageVersion,
+      'uploaderEmail': instance.uploaderEmail,
+      'timestamp': instance.timestamp?.toIso8601String()
+    };
 
 UploaderChanged _$UploaderChangedFromJson(Map<String, dynamic> json) {
   return UploaderChanged(
+      packageName: json['packageName'] as String,
       currentUserEmail: json['currentUserEmail'] as String,
       addedUploaderEmails: (json['addedUploaderEmails'] as List)
           ?.map((e) => e as String)
           ?.toList(),
       removedUploaderEmails: (json['removedUploaderEmails'] as List)
           ?.map((e) => e as String)
-          ?.toList());
+          ?.toList(),
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String));
 }
 
 Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
@@ -64,20 +79,30 @@ Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
     }
   }
 
+  writeNotNull('packageName', instance.packageName);
   writeNotNull('currentUserEmail', instance.currentUserEmail);
   writeNotNull('addedUploaderEmails', instance.addedUploaderEmails);
   writeNotNull('removedUploaderEmails', instance.removedUploaderEmails);
+  writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   return val;
 }
 
 AnalysisCompleted _$AnalysisCompletedFromJson(Map<String, dynamic> json) {
   return AnalysisCompleted(
+      packageName: json['packageName'] as String,
+      packageVersion: json['packageVersion'] as String,
       hasErrors: json['hasErrors'] as bool,
-      hasPlatforms: json['hasPlatforms'] as bool);
+      hasPlatforms: json['hasPlatforms'] as bool,
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String));
 }
 
 Map<String, dynamic> _$AnalysisCompletedToJson(AnalysisCompleted instance) =>
     <String, dynamic>{
+      'packageName': instance.packageName,
+      'packageVersion': instance.packageVersion,
       'hasErrors': instance.hasErrors,
-      'hasPlatforms': instance.hasPlatforms
+      'hasPlatforms': instance.hasPlatforms,
+      'timestamp': instance.timestamp?.toIso8601String()
     };

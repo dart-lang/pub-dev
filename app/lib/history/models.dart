@@ -25,7 +25,7 @@ abstract class HistoryScope {
 }
 
 @db.Kind(name: 'History', idType: db.IdType.String)
-class History extends db.ExpandoModel implements HistoryData {
+class History extends db.ExpandoModel {
   History();
 
   History._({
@@ -44,16 +44,13 @@ class History extends db.ExpandoModel implements HistoryData {
   }
 
   factory History.package({
-    @required String packageName,
-    String packageVersion,
-    DateTime timestamp,
     @required String source,
     @required HistoryEvent event,
   }) {
     return new History._(
-      packageName: packageName,
-      packageVersion: packageVersion,
-      timestamp: timestamp,
+      packageName: event.packageName,
+      packageVersion: event.packageVersion,
+      timestamp: event.timestamp,
       source: source,
       scope: HistoryScope.package,
       union: new HistoryUnion.ofEvent(event),
@@ -61,16 +58,13 @@ class History extends db.ExpandoModel implements HistoryData {
   }
 
   factory History.version({
-    @required String packageName,
-    @required String packageVersion,
-    DateTime timestamp,
     @required String source,
     @required HistoryEvent event,
   }) {
     return new History._(
-      packageName: packageName,
-      packageVersion: packageVersion,
-      timestamp: timestamp,
+      packageName: event.packageName,
+      packageVersion: event.packageVersion,
+      timestamp: event.timestamp,
       source: source,
       scope: HistoryScope.version,
       union: new HistoryUnion.ofEvent(event),
@@ -81,16 +75,13 @@ class History extends db.ExpandoModel implements HistoryData {
   String scope;
 
   @db.StringProperty(required: true)
-  @override
   String packageName;
 
   @db.StringProperty()
-  @override
   String packageVersion;
 
   /// The timestamp of the entry.
   @db.DateTimeProperty()
-  @override
   DateTime timestamp;
 
   @db.StringProperty(required: true)
@@ -113,18 +104,14 @@ class History extends db.ExpandoModel implements HistoryData {
 
   HistoryEvent get historyEvent => historyUnion.event;
 
-  String formatMarkdown() => historyEvent?.formatMarkdown(this);
+  String formatMarkdown() => historyEvent?.formatMarkdown();
 }
 
-abstract class HistoryData {
+abstract class HistoryEvent {
   String get packageName;
   String get packageVersion;
   DateTime get timestamp;
-}
-
-// ignore: one_member_abstracts
-abstract class HistoryEvent {
-  String formatMarkdown(HistoryData data);
+  String formatMarkdown();
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
@@ -171,43 +158,58 @@ class HistoryUnion {
 
 @JsonSerializable()
 class PackageUploaded implements HistoryEvent {
+  @override
+  final String packageName;
+  @override
+  final String packageVersion;
   final String uploaderEmail;
+  @override
+  final DateTime timestamp;
 
-  PackageUploaded({@required this.uploaderEmail});
+  PackageUploaded({
+    @required this.packageName,
+    @required this.packageVersion,
+    @required this.uploaderEmail,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
 
   factory PackageUploaded.fromJson(Map<String, dynamic> json) =>
       _$PackageUploadedFromJson(json);
 
   @override
-  String formatMarkdown(HistoryData data) {
-    return 'Version ${data.packageVersion} was uploaded by `$uploaderEmail`.';
+  String formatMarkdown() {
+    return 'Version $packageVersion was uploaded by `$uploaderEmail`.';
   }
 
   Map<String, dynamic> toJson() => _$PackageUploadedToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class UploaderChanged implements HistoryEvent {
-  @JsonKey(includeIfNull: false)
+  @override
+  final String packageName;
   final String currentUserEmail;
-
-  @JsonKey(includeIfNull: false)
   final List<String> addedUploaderEmails;
-
-  @JsonKey(includeIfNull: false)
   final List<String> removedUploaderEmails;
+  @override
+  final DateTime timestamp;
 
   UploaderChanged({
+    @required this.packageName,
     @required this.currentUserEmail,
     this.addedUploaderEmails,
     this.removedUploaderEmails,
-  });
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
+
+  @override
+  String get packageVersion => null;
 
   factory UploaderChanged.fromJson(Map<String, dynamic> json) =>
       _$UploaderChangedFromJson(json);
 
   @override
-  String formatMarkdown(HistoryData data) {
+  String formatMarkdown() {
     final changes = <String>[];
     if (addedUploaderEmails != null && addedUploaderEmails.isNotEmpty) {
       final emails = addedUploaderEmails.map((e) => '`$e`').join(', ');
@@ -228,23 +230,34 @@ class UploaderChanged implements HistoryEvent {
 
 @JsonSerializable()
 class AnalysisCompleted implements HistoryEvent {
+  @override
+  final String packageName;
+  @override
+  final String packageVersion;
   final bool hasErrors;
-
   final bool hasPlatforms;
+  @override
+  final DateTime timestamp;
 
-  AnalysisCompleted({this.hasErrors, this.hasPlatforms});
+  AnalysisCompleted({
+    @required this.packageName,
+    @required this.packageVersion,
+    @required this.hasErrors,
+    @required this.hasPlatforms,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
 
   factory AnalysisCompleted.fromJson(Map<String, dynamic> json) =>
       _$AnalysisCompletedFromJson(json);
 
   @override
-  String formatMarkdown(HistoryData data) {
+  String formatMarkdown() {
     if (hasErrors) {
-      return 'Analysis of `package:${data.packageName}` failed.';
+      return 'Analysis of `package:$packageName` failed.';
     } else if (hasPlatforms) {
-      return 'Analysis of `package:${data.packageName}` completed successful.';
+      return 'Analysis of `package:$packageName` completed successful.';
     } else {
-      return 'Analysis of `package:${data.packageName}` completed, but no platform has been identified.';
+      return 'Analysis of `package:$packageName` completed, but no platform has been identified.';
     }
   }
 

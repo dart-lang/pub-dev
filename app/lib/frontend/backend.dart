@@ -473,9 +473,9 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         await historyBackend.store(new History.package(
-          packageName: packageName,
           source: HistorySource.account,
           event: new UploaderChanged(
+            packageName: packageName,
             currentUserEmail: userEmail,
             addedUploaderEmails: [uploaderEmail],
           ),
@@ -538,9 +538,9 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         await historyBackend.store(new History.package(
-          packageName: packageName,
           source: HistorySource.account,
           event: new UploaderChanged(
+            packageName: packageName,
             currentUserEmail: userEmail,
             removedUploaderEmails: [uploaderEmail],
           ),

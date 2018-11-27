@@ -50,11 +50,13 @@ Future _backfillPackage(String package) async {
     }
     if (!hasUploaded) {
       final history = new History.package(
-        packageName: package,
-        packageVersion: pv.version,
-        timestamp: pv.created,
         source: HistorySource.account,
-        event: new PackageUploaded(uploaderEmail: pv.uploaderEmail),
+        event: new PackageUploaded(
+          packageName: package,
+          packageVersion: pv.version,
+          uploaderEmail: pv.uploaderEmail,
+          timestamp: pv.created,
+        ),
       );
       historyBackend.store(history);
     }
