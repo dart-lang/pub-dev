@@ -12,14 +12,9 @@ import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
-import '../shared/analyzer_service.dart';
-import '../shared/dartdoc_client.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/tool_env.dart';
-
-import 'backend.dart';
-import 'models.dart';
 
 final Logger _logger = new Logger('pub.analyzer.pana');
 
@@ -48,22 +43,8 @@ class AnalyzerJobProcessor extends JobProcessor {
       return JobStatus.skipped;
     }
 
-    try {
-      await analysisBackend.deleteObsoleteAnalysis(
-          job.packageName, job.packageVersion);
-    } catch (e) {
-      _logger.warning('Analysis GC failed: $job', e);
-    }
-
-    final DateTime timestamp = new DateTime.now().toUtc();
-    final Analysis analysis =
-        new Analysis.init(job.packageName, job.packageVersion, timestamp);
-
     if (packageStatus.isDiscontinued) {
       _logger.info('Package is discontinued: $job.');
-      analysis.analysisStatus = AnalysisStatus.discontinued;
-      analysis.maintenanceScore = 0.0;
-      await analysisBackend.storeAnalysis(analysis);
       await _storeScoreCard(job, null);
       return JobStatus.skipped;
     }
@@ -71,21 +52,14 @@ class AnalyzerJobProcessor extends JobProcessor {
     if (packageStatus.isObsolete) {
       _logger
           .info('Package is older than two years and has newer release: $job.');
-      analysis.analysisStatus = AnalysisStatus.outdated;
-      analysis.maintenanceScore = 0.0;
-      await analysisBackend.storeAnalysis(analysis);
       await _storeScoreCard(job, null);
       return JobStatus.skipped;
     }
 
     if (packageStatus.isLegacy) {
       _logger.info('Package is on legacy SDK: $job.');
-      analysis.analysisStatus = AnalysisStatus.legacy;
       final summary =
           createPanaSummaryForLegacy(job.packageName, job.packageVersion);
-      analysis.analysisJson = summary.toJson();
-      analysis.maintenanceScore = 0.0;
-      await analysisBackend.storeAnalysis(analysis);
       await _storeScoreCard(job, summary);
       return JobStatus.skipped;
     }
@@ -130,14 +104,10 @@ class AnalyzerJobProcessor extends JobProcessor {
 
     JobStatus status = JobStatus.failed;
     bool isLegacy = false;
-    Summary scoreCardSummary = summary;
-    if (summary == null) {
-      analysis.analysisStatus = AnalysisStatus.aborted;
-    } else {
+    if (summary != null) {
       summary = applyPlatformOverride(summary);
-      scoreCardSummary =
-          await _expandSummary(summary, packageStatus.age, false);
-      summary = await _expandSummary(summary, packageStatus.age, true);
+      // TODO: move this to scoreCardBackend.updateScoreCard()
+      summary = await _expandSummary(summary, packageStatus.age);
       if (summary.suggestions?.any(_isLegacy) ?? false) {
         isLegacy = true;
       }
@@ -146,28 +116,16 @@ class AnalyzerJobProcessor extends JobProcessor {
       }
       final bool lastRunWithErrors =
           summary.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
-      if (isLegacy) {
-        analysis.analysisStatus = AnalysisStatus.legacy;
-        analysis.maintenanceScore = 0.0;
-      } else if (!lastRunWithErrors) {
-        analysis.analysisStatus = AnalysisStatus.success;
+      if (!isLegacy && !lastRunWithErrors) {
         status = JobStatus.success;
-      } else {
-        analysis.analysisStatus = AnalysisStatus.failure;
       }
-      analysis.analysisJson = summary.toJson();
-      analysis.maintenanceScore ??=
-          calculateMaintenanceScore(summary.maintenance);
     }
 
-    final backendStatus = await analysisBackend.storeAnalysis(analysis);
     final scoreCardFlags = isLegacy ? [PackageFlags.isLegacy] : null;
-    await _storeScoreCard(job, scoreCardSummary, flags: scoreCardFlags);
+    await _storeScoreCard(job, summary, flags: scoreCardFlags);
 
-    if (backendStatus.isLatestStable &&
-        analysis.analysisStatus != AnalysisStatus.success &&
-        analysis.analysisStatus != AnalysisStatus.discontinued) {
-      reportIssueWithLatest(job, '${analysis.analysisStatus}');
+    if (packageStatus.isLatestStable && status != JobStatus.success) {
+      reportIssueWithLatest(job, '$status');
     }
 
     return status;
@@ -201,8 +159,7 @@ class AnalyzerJobProcessor extends JobProcessor {
         s.description.contains('requires SDK version <2.0.0');
   }
 
-  Future<Summary> _expandSummary(
-      Summary summary, Duration age, bool fetchDartdocData) async {
+  Future<Summary> _expandSummary(Summary summary, Duration age) async {
     if (summary.maintenance != null) {
       final suggestions =
           new List<Suggestion>.from(summary.maintenance.suggestions ?? []);
@@ -213,22 +170,8 @@ class AnalyzerJobProcessor extends JobProcessor {
         suggestions.add(ageSuggestion);
       }
 
-      bool dartdocSuccessful;
-      if (fetchDartdocData) {
-        // dartdoc status
-        final dartdocEntry = await dartdocClient.getEntry(
-            summary.packageName, summary.packageVersion.toString());
-        if (dartdocEntry != null) {
-          dartdocSuccessful = dartdocEntry.hasContent;
-          if (!dartdocSuccessful) {
-            suggestions.add(getDartdocRunFailedSuggestion());
-          }
-        }
-      }
-
       suggestions.sort();
-      final maintenance = summary.maintenance.change(
-          dartdocSuccessful: dartdocSuccessful, suggestions: suggestions);
+      final maintenance = summary.maintenance.change(suggestions: suggestions);
       summary = summary.change(maintenance: maintenance);
     }
     return summary;
