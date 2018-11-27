@@ -10,7 +10,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../shared/analyzer_memcache.dart';
 import '../shared/analyzer_service.dart';
 import '../shared/versions.dart';
 
@@ -197,9 +196,6 @@ class AnalysisBackend {
         inserts.add(analysis);
         tx.queueMutations(inserts: inserts);
         await tx.commit();
-
-        analyzerMemcache.invalidateContent(analysis.packageName,
-            analysis.packageVersion, analysis.panaVersion);
       }
       return new BackendAnalysisStatus(wasRace, isLatestStable, isNewVersion);
     });

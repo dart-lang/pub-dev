@@ -17,7 +17,6 @@ import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
-import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
@@ -90,7 +89,6 @@ Future _registerServices() async {
   registerPopularityStorage(
       new PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-  registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
   registerDartdocMemcache(new DartdocMemcache(memcacheService));
   final Bucket dartdocStorageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
