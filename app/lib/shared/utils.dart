@@ -170,6 +170,7 @@ const List<String> _reservedWords = const <String>[
 ];
 
 final _reservedPackageNames = <String>[
+  'google_maps_flutter',
   'in_app_purchase',
   'location_background',
   'webview_flutter',
