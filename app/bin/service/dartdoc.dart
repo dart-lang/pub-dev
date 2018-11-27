@@ -10,7 +10,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
@@ -94,7 +93,6 @@ Future _registerServices() async {
   registerDartdocMemcache(new DartdocMemcache(memcacheService));
 
   registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-  registerAnalysisBackend(new AnalysisBackend(dbService));
   registerAnalyzerClient(new AnalyzerClient());
   final Bucket storageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);

@@ -11,7 +11,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
@@ -59,7 +58,6 @@ Future _main(FrontendEntryMessage message) async {
     await popularityStorage.init();
 
     registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
-    registerAnalysisBackend(new AnalysisBackend(db.dbService));
     final AnalyzerClient analyzerClient = new AnalyzerClient();
     registerAnalyzerClient(analyzerClient);
     registerScopeExitCallback(analyzerClient.close);
