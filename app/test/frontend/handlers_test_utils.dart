@@ -7,7 +7,6 @@ library pub_dartlang_org.frontend.handlers_test;
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:pub_dartlang_org/analyzer/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
