@@ -62,4 +62,90 @@ void main() {
           'John Doe <john.doe@example.com>');
     });
   });
+
+  group('reflowByteText', () {
+    test('small text', () {
+      expect(reflowBodyText(''), '');
+      expect(reflowBodyText('a'), 'a');
+      expect(reflowBodyText('a b c'), 'a b c');
+      expect(reflowBodyText('a\nb\nc'), 'a\nb\nc');
+    });
+
+    test('empty lines', () {
+      expect(reflowBodyText('line 1\n\nline 2\n\n\nline 3'),
+          'line 1\n\nline 2\n\n\nline 3');
+    });
+
+    test('long line', () {
+      expect(
+          reflowBodyText(
+              'line 0\nabc def ghi jkl mno pqr stu vwx yz0 123 456 789 abc def ghi jkl '
+              'mno pqr stu vwx yz0 123 456 789 abc def ghi jkl mno pqr stu vwx '
+              'yz0 123 456 789 abc def ghi jkl mno pqr stu vwx yz0 123 456 789\nline 2'),
+          'line 0\n'
+          'abc def ghi jkl mno pqr stu vwx yz0 123 456 789 abc def ghi jkl mno pqr\n'
+          'stu vwx yz0 123 456 789 abc def ghi jkl mno pqr stu vwx yz0 123 456 789\n'
+          'abc def ghi jkl mno pqr stu vwx yz0 123 456 789\n'
+          'line 2');
+    });
+
+    test('long word', () {
+      expect(
+          reflowBodyText(
+              'sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb'),
+          'sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb');
+      expect(
+          reflowBodyText(
+              'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb'),
+          'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb');
+      expect(
+          reflowBodyText(
+              'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb abcdefg'),
+          'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb\n'
+          'abcdefg');
+    });
+  });
+
+  group('Package uploaded emails', () {
+    test('2 uploaders, 4 authors, 1 common, 1 without e-mail', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        uploaderEmail: 'uploader@example.com',
+        authorizedUploaders: [
+          new EmailAddress(null, 'joe@example.com'),
+          new EmailAddress(null, 'uploader@example.com')
+        ],
+        authors: [
+          new EmailAddress('Jane', 'jane@example.com'),
+          new EmailAddress(null, 'uploader@example.com'),
+          new EmailAddress(null, 'team@example.com'),
+          new EmailAddress('And many others', null),
+        ],
+      );
+      expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');
+      expect(message.recipients.map((e) => e.toString()).toList(), [
+        'joe@example.com',
+        'uploader@example.com',
+        'Jane <jane@example.com>',
+        'team@example.com',
+      ]);
+      expect(message.subject, 'Package upload on pub: pkg_foo 1.0.0');
+      expect(
+          message.bodyText,
+          'Dear package maintainer,\n'
+          '\n'
+          'uploader@example.com uploaded a new version of package pkg_foo: 1.0.0\n'
+          '\n'
+          'The listed authors are the following:\n'
+          '- Jane <jane@example.com>\n'
+          '- uploader@example.com\n'
+          '- team@example.com\n'
+          '- And many others\n'
+          '\n'
+          'If you think this is a mistake or fraud, contact us at pub@dartlang.org\n'
+          '\n'
+          'Pub Site Admin\n');
+    });
+  });
 }

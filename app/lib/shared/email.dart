@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
+final _defaultFrom = new EmailAddress('Pub Site Admin', 'pub@dartlang.org');
 
 /// Represents a parsed e-mail address.
 class EmailAddress {
@@ -51,4 +54,92 @@ class EmailAddress {
     if (name == null) return email;
     return '$name <$email>';
   }
+}
+
+/// Represents an email message the site will send.
+class EmailMessage {
+  final EmailAddress from;
+  final List<EmailAddress> recipients;
+  final String subject;
+  final String bodyText;
+
+  EmailMessage(this.from, this.recipients, this.subject, String bodyText)
+      : bodyText = reflowBodyText(bodyText);
+}
+
+/// Parses the body text and splits the [input] paragraphs to [lineLength]
+/// character long lines.
+String reflowBodyText(String input, {int lineLength = 72}) {
+  Iterable<String> reflowLine(String line) sync* {
+    if (line.isEmpty) {
+      yield line;
+      return;
+    }
+    while (line.length > lineLength) {
+      int firstSpace = line.lastIndexOf(' ', lineLength);
+      if (firstSpace < 20) {
+        firstSpace = line.indexOf(' ', lineLength);
+      }
+      if (firstSpace != -1) {
+        yield line.substring(0, firstSpace);
+        line = line.substring(firstSpace).trim();
+      } else {
+        yield line;
+        return;
+      }
+    }
+    if (line.isNotEmpty) {
+      yield line;
+    }
+  }
+
+  return input.split('\n').expand(reflowLine).join('\n');
+}
+
+/// Creates the [EmailMessage]s that we be sent on new package upload.
+EmailMessage createPackageUploadedEmail({
+  @required String packageName,
+  @required String packageVersion,
+  @required String uploaderEmail,
+  @required List<EmailAddress> authorizedUploaders,
+  @required List<EmailAddress> authors,
+}) {
+  final subject = 'Package upload on pub: $packageName $packageVersion';
+  final bodyText = new StringBuffer()
+    ..writeln('Dear package maintainer,')
+    ..writeln()
+    ..writeln(
+        '$uploaderEmail uploaded a new version of package $packageName: $packageVersion')
+    ..write('\n');
+
+  if (authors.isNotEmpty) {
+    bodyText.writeln('The listed authors are the following:');
+    authors.forEach((author) {
+      bodyText.writeln('- $author');
+    });
+    bodyText.writeln();
+  }
+
+  bodyText
+    ..writeln(
+        'If you think this is a mistake or fraud, contact us at ${_defaultFrom.email}')
+    ..writeln()
+    ..writeln('Pub Site Admin');
+
+  final addedEmails = new Set<String>();
+  final recipients = <EmailAddress>[];
+
+  void addRecipient(EmailAddress address) {
+    if (address.email == null || addedEmails.contains(address.email)) {
+      return;
+    }
+    addedEmails.add(address.email);
+    recipients.add(address);
+  }
+
+  authorizedUploaders.forEach(addRecipient);
+  authors.forEach(addRecipient);
+
+  return new EmailMessage(
+      _defaultFrom, recipients, subject, bodyText.toString());
 }
