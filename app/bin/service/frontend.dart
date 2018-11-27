@@ -117,11 +117,13 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   Future uploadFinished(PackageVersion pv) async {
     await historyBackend.store(new History.package(
-      packageName: pv.package,
-      packageVersion: pv.version,
-      timestamp: pv.created,
       source: HistorySource.account,
-      event: new PackageUploaded(uploaderEmail: pv.uploaderEmail),
+      event: new PackageUploaded(
+        packageName: pv.package,
+        packageVersion: pv.version,
+        uploaderEmail: pv.uploaderEmail,
+        timestamp: pv.created,
+      ),
     ));
 
     // Future is not awaited: upload should not be blocked on the package graph initialization.

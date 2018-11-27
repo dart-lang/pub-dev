@@ -78,9 +78,9 @@ Future addUploader(String packageName, String uploader) async {
     print('Uploader $uploader added to list of uploaders');
 
     historyBackend.store(new History.package(
-      packageName: packageName,
       source: HistorySource.account,
       event: new UploaderChanged(
+        packageName: packageName,
         currentUserEmail: null, // TODO: get system account's email
         addedUploaderEmails: [uploader],
       ),
@@ -110,9 +110,9 @@ Future removeUploader(String packageName, String uploader) async {
     print('Uploader $uploader removed from list of uploaders');
 
     historyBackend.store(new History.package(
-      packageName: packageName,
       source: HistorySource.account,
       event: new UploaderChanged(
+        packageName: packageName,
         currentUserEmail: null, // TODO: get system account's email
         removedUploaderEmails: [uploader],
       ),
