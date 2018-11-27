@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
-import '../analyzer/backend.dart' show PackageStatus;
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/popularity_storage.dart';
 import '../shared/utils.dart';
@@ -311,5 +310,48 @@ class ScoreCardBackend {
     final isSuccess = report.reportStatus == ReportStatus.success;
     final ageThreshold = isSuccess ? successThreshold : failureThreshold;
     return age > ageThreshold;
+  }
+}
+
+class PackageStatus {
+  final bool exists;
+  final DateTime publishDate;
+  final Duration age;
+  final bool isLatestStable;
+  final bool isDiscontinued;
+  final bool isObsolete;
+  final bool isLegacy;
+  final bool usesFlutter;
+
+  PackageStatus({
+    this.exists,
+    this.publishDate,
+    this.age,
+    this.isLatestStable = false,
+    this.isDiscontinued = false,
+    this.isObsolete = false,
+    this.isLegacy = false,
+    this.usesFlutter = false,
+  });
+
+  factory PackageStatus.fromModels(Package p, PackageVersion pv) {
+    if (p == null || pv == null) {
+      return new PackageStatus(exists: false);
+    }
+    final publishDate = pv.created;
+    final isLatestStable = p.latestVersion == pv.version;
+    final now = new DateTime.now().toUtc();
+    final age = now.difference(publishDate).abs();
+    final isObsolete = age > twoYears && !isLatestStable;
+    return new PackageStatus(
+      exists: true,
+      publishDate: publishDate,
+      age: age,
+      isLatestStable: isLatestStable,
+      isDiscontinued: p.isDiscontinued ?? false,
+      isObsolete: isObsolete,
+      isLegacy: pv.pubspec.supportsOnlyLegacySdk,
+      usesFlutter: pv.pubspec.usesFlutter,
+    );
   }
 }

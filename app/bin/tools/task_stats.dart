@@ -19,7 +19,6 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/analyzer_memcache.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 
@@ -36,7 +35,6 @@ Future main(List<String> args) async {
   final Map report = {};
 
   await withProdServices(() async {
-    registerAnalyzerMemcache(new AnalyzerMemcache(memcacheService));
     registerDartdocMemcache(new DartdocMemcache(memcacheService));
     registerScoreCardBackend(new ScoreCardBackend(dbService));
     registerAnalyzerClient(new AnalyzerClient());

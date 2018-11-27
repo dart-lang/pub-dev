@@ -15,7 +15,6 @@ import '../job/backend.dart';
 import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
-import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart' show envConfig;
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
@@ -282,9 +281,6 @@ class DartdocJobProcessor extends JobProcessor {
           job.packageVersionUpdated,
           true);
     }
-
-    analyzerClient.triggerAnalysis(
-        job.packageName, job.packageVersion, new Set());
 
     return hasContent ? JobStatus.success : JobStatus.failed;
   }
