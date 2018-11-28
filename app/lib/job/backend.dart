@@ -43,6 +43,7 @@ class JobBackend {
 
   String _id(JobService service, String package, String version) => new Uri(
         pathSegments: [
+          versions.runtimeVersion,
           service.toString().split('.').last,
           package,
           version,
@@ -93,8 +94,7 @@ class JobBackend {
       final current = list.single as Job;
       if (current != null) {
         final hasNotChanged = current.isLatestStable == isLatestStable &&
-            current.packageVersionUpdated == packageVersionUpdated &&
-            current.runtimeVersion == versions.runtimeVersion;
+            current.packageVersionUpdated == packageVersionUpdated;
         if (hasNotChanged) {
           if (!shouldProcess) {
             // no reason to re-schedule the job
@@ -106,16 +106,10 @@ class JobBackend {
             return;
           }
         }
-        if (isNewer(
-            versions.semanticRuntimeVersion, current.semanticRuntimeVersion)) {
-          // a new instance has already updated the Job with new runtimeVersion
-          return;
-        }
         _logger.info('Updating job: $id ($state, $lockedUntil)');
         current
           ..isLatestStable = isLatestStable
           ..packageVersionUpdated = packageVersionUpdated
-          ..runtimeVersion = versions.runtimeVersion
           ..state = state
           ..lockedUntil = lockedUntil
           ..processingKey = null // drops ongoing processing
@@ -147,6 +141,7 @@ class JobBackend {
 
   Future<Job> lockAvailable(JobService service, {Duration lockDuration}) async {
     final query = _db.query<Job>()
+      ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.available)
       ..order('priority')
@@ -202,6 +197,7 @@ class JobBackend {
     }
 
     final query = _db.query<Job>()
+      ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.processing)
       ..filter('lockedUntil <', new DateTime.now().toUtc());
@@ -247,6 +243,7 @@ class JobBackend {
     }
 
     final query = _db.query<Job>()
+      ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.idle)
       ..filter('lockedUntil <', new DateTime.now().toUtc());
@@ -294,7 +291,9 @@ class JobBackend {
   Future<Map> stats(JobService service) async {
     final _AllStats stats = new _AllStats();
 
-    final query = _db.query<Job>()..filter('service =', service);
+    final query = _db.query<Job>()
+      ..filter('runtimeVersion =', versions.runtimeVersion)
+      ..filter('service =', service);
     await for (Job job in query.run()) {
       stats.add(job);
     }
@@ -325,7 +324,6 @@ class _Stat {
   final bool _collectFailed;
   final _failedPackages = new Set<String>();
   int _totalCount = 0;
-  int _ownedCount = 0;
   int _availableCount = 0;
 
   _Stat({bool collectFailed = false}) : _collectFailed = collectFailed;
@@ -335,11 +333,6 @@ class _Stat {
 
   void add(Job job) {
     _totalCount++;
-    if (job.runtimeVersion == versions.runtimeVersion) {
-      _ownedCount++;
-    } else {
-      return;
-    }
     if (job.state == JobState.available) {
       _availableCount++;
     }
@@ -358,7 +351,6 @@ class _Stat {
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
       'total': _totalCount,
-      'owned': _ownedCount,
       'state': _stateMap,
       'status': _statusMap,
     };
