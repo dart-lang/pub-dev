@@ -78,6 +78,7 @@ Future _workerMain(WorkerEntryMessage message) async {
     });
 
     dartdocBackend.scheduleOldDataGC();
+    jobBackend.scheduleOldDataGC();
     await jobMaintenance.run();
   });
 }

@@ -79,6 +79,7 @@ Future _workerMain(WorkerEntryMessage message) async {
       scoreCardBackend.deleteOldEntries();
     });
 
+    jobBackend.scheduleOldDataGC();
     await jobMaintenance.run();
   });
 }
