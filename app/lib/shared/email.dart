@@ -112,14 +112,6 @@ EmailMessage createPackageUploadedEmail({
         '$uploaderEmail uploaded a new version of package $packageName: $packageVersion')
     ..write('\n');
 
-  if (authors.isNotEmpty) {
-    bodyText.writeln('The listed authors are the following:');
-    authors.forEach((author) {
-      bodyText.writeln('- $author');
-    });
-    bodyText.writeln();
-  }
-
   bodyText
     ..writeln(
         'If you think this is a mistake or fraud, contact us at ${_defaultFrom.email}')
