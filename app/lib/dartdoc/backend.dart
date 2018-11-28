@@ -178,29 +178,20 @@ class DartdocBackend {
     }
 
     Future<DartdocEntry> loadVersion(String v) async {
-      final List<DartdocEntry> completedList =
+      final List<DartdocEntry> entries =
           await _listEntries(storage_path.entryPrefix(package, v));
-      if (completedList.isEmpty) return null;
-      final hasServing =
-          completedList.any((entry) => entry.isServing && entry.hasContent);
-      // don't remove non-serving entries if they are the only ones with content
-      if (hasServing) {
-        completedList.removeWhere((entry) => !entry.isServing);
+      // utility to remove anything not matching pred, unless that is everything
+      void retainIfAny(bool pred(DartdocEntry entry)) {
+        if (entries.any(pred)) {
+          entries.retainWhere(pred);
+        }
       }
-      completedList.sort((a, b) {
-        // content goes first
-        if (a.hasContent && !b.hasContent) return -1;
-        if (!a.hasContent && b.hasContent) return 1;
-        // next release goes to the back of the list
-        final rva = a.runtimeVersion.compareTo(shared_versions.runtimeVersion);
-        final rvb = b.runtimeVersion.compareTo(shared_versions.runtimeVersion);
-        if (rva > 0 && rvb <= 0) return 1;
-        if (rva <= 0 && rvb > 1) return -1;
-        // otherwise compare by timestamp descending
-        return -a.timestamp.compareTo(b.timestamp);
-      });
-      return completedList.firstWhere((entry) => entry.hasContent,
-          orElse: () => completedList.first);
+
+      retainIfAny((e) => e.isServing && e.hasContent);
+      retainIfAny((e) => e.hasContent);
+      retainIfAny((e) => e.runtimeVersion == shared_versions.runtimeVersion);
+      entries.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
+      return entries.isEmpty ? null : entries.first;
     }
 
     DartdocEntry entry;
