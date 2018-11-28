@@ -138,7 +138,6 @@ EmailMessage createPackageUploadedEmail({
   }
 
   authorizedUploaders.forEach(addRecipient);
-  authors.forEach(addRecipient);
 
   return new EmailMessage(
       _defaultFrom, recipients, subject, bodyText.toString());

@@ -113,7 +113,7 @@ void main() {
         packageVersion: '1.0.0',
         uploaderEmail: 'uploader@example.com',
         authorizedUploaders: [
-          new EmailAddress(null, 'joe@example.com'),
+          new EmailAddress('Joe', 'joe@example.com'),
           new EmailAddress(null, 'uploader@example.com')
         ],
         authors: [
@@ -125,10 +125,8 @@ void main() {
       );
       expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');
       expect(message.recipients.map((e) => e.toString()).toList(), [
-        'joe@example.com',
+        'Joe <joe@example.com>',
         'uploader@example.com',
-        'Jane <jane@example.com>',
-        'team@example.com',
       ]);
       expect(message.subject, 'Package upload on pub: pkg_foo 1.0.0');
       expect(
