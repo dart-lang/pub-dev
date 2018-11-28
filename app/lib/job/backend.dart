@@ -21,6 +21,7 @@ export 'model.dart';
 
 const _defaultLockDuration = const Duration(hours: 1);
 const _extendDuration = const Duration(hours: 12);
+const _gcThreshold = const Duration(days: 90);
 
 final _logger = new Logger('pub.job.backend');
 final _random = new math.Random.secure();
@@ -315,6 +316,35 @@ class JobBackend {
         .toUtc()
         .add(duration ?? _extendDuration)
         .add(new Duration(hours: math.min(errorCount, 168 /* one week */)));
+  }
+
+  void scheduleOldDataGC() {
+    // Run GC in the next 6 hours (randomized wait to reduce race).
+    new Timer(new Duration(minutes: _random.nextInt(360)), () async {
+      try {
+        final now = new DateTime.now().toUtc();
+        final query = _db.query<Job>()
+          ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
+        final deleteKeys = <db.Key>[];
+        await for (Job job in query.run()) {
+          if (job.lockedUntil == null ||
+              now.difference(job.lockedUntil) > _gcThreshold) {
+            deleteKeys.add(job.key);
+            if (deleteKeys.length >= 20) {
+              _logger.info('Deleting ${deleteKeys.length} old Job entries.');
+              await _db.commit(deletes: deleteKeys);
+              deleteKeys.clear();
+            }
+          }
+        }
+        if (deleteKeys.isNotEmpty) {
+          _logger.info('Deleting ${deleteKeys.length} old Job entries.');
+          await _db.commit(deletes: deleteKeys);
+        }
+      } catch (e, st) {
+        _logger.warning('Error while deleting old data.', e, st);
+      }
+    });
   }
 }
 
