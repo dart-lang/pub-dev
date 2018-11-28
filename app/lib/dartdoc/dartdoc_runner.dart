@@ -162,24 +162,34 @@ class DartdocJobProcessor extends JobProcessor {
       if (!isLegacy) {
         depsResolved = await _resolveDependencies(
             toolEnvRef.toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+      } else {
+        logFileOutput.write(
+            'Package version does not allow current SDK, skipping pub upgrade.\n\n');
       }
 
       // Generate docs only for packages that have healthy dependencies.
       if (depsResolved) {
         hasContent =
             await _generateDocs(job, pkgPath, outputDir, logFileOutput);
+      } else {
+        logFileOutput
+            .write('Dependencies were not resolved, skipping dartdoc.\n\n');
       }
 
       if (hasContent) {
         await new DartdocCustomizer(
                 job.packageName, job.packageVersion, job.isLatestStable)
             .customizeDir(outputDir);
+        logFileOutput.write('Content customization completed.\n\n');
 
         await _tar(tempDirPath, tarDir, outputDir, logFileOutput);
+      } else {
+        logFileOutput.write('No content found!\n\n');
       }
 
       final entry = await _createEntry(
           job, outputDir, usesFlutter, depsResolved, hasContent);
+      logFileOutput.write('entry created: ${entry.uuid}\n\n');
 
       logFileOutput.write('completed: ${entry.timestamp.toIso8601String()}\n');
       await _writeLog(outputDir, logFileOutput);
