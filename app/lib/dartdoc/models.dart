@@ -16,23 +16,58 @@ import 'storage_path.dart' as storage_path;
 
 part 'models.g.dart';
 
+/// Describes the details of a dartdoc-generated content.
 @JsonSerializable()
 class DartdocEntry {
+  /// Unique identifier of the entry, generated via a random UUID.
   final String uuid;
+
+  /// The package name.
   final String packageName;
+
+  /// The package version.
   final String packageVersion;
+
+  /// Whether the [packageVersion] is the latest stable version of the package
+  /// (at the time of the entry being created, but may be updated later).
   final bool isLatest;
+
+  /// Whether the package version is too old. This is never set if the version
+  /// is the latest stable version of the package..
   final bool isObsolete;
+
+  /// Whether the package version uses Flutter.
   final bool usesFlutter;
+
+  /// The pub site runtime version of the runtime that generated the content.
   final String runtimeVersion;
+
+  /// The SDK version that was used to fetch dependencies.
   final String sdkVersion;
+
+  /// The version of `package:dartdoc` that generated the content.
   final String dartdocVersion;
+
+  /// The version of Flutter that was used to fetch dependencies.
   final String flutterVersion;
+
+  /// The version of pub site customization over the dartdoc-generated HTML.
+  /// See [versions.customizationVersion].
   final String customizationVersion;
+
+  /// When the content was generated.
   final DateTime timestamp;
+
+  /// Whether the dependencies were resolved successfully.
   final bool depsResolved;
+
+  /// Whether the dartdoc process produced valid content.
   final bool hasContent;
+
+  /// The size of the compressed archive file.
   final int archiveSize;
+
+  /// The size of all the individual files, uncompressed.
   final int totalSize;
 
   DartdocEntry({
@@ -91,6 +126,8 @@ class DartdocEntry {
 
   Map<String, dynamic> toJson() => _$DartdocEntryToJson(this);
 
+  /// Whether the version should be serving with (e.g. it is not a known
+  /// coordinated upgrade of the templates and styles).
   bool get isServing => versions.shouldServeDartdoc(runtimeVersion);
 
   /// The path of the status while the upload is in progress
