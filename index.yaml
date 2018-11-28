@@ -8,12 +8,14 @@ indexes:
 
 - kind: Job
   properties:
+  - name: runtimeVersion
   - name: service
   - name: state
   - name: priority
 
 - kind: Job
   properties:
+  - name: runtimeVersion
   - name: service
   - name: state
   - name: lockedUntil

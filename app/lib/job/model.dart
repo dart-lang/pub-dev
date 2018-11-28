@@ -13,6 +13,9 @@ enum JobStatus { none, success, skipped, failed, aborted }
 
 @Kind(name: 'Job', idType: IdType.String)
 class Job extends ExpandoModel {
+  @StringProperty()
+  String runtimeVersion;
+
   @JobServiceProperty()
   JobService service;
 
@@ -35,9 +38,6 @@ class Job extends ExpandoModel {
   DateTime lockedUntil;
 
   // fields for state = available
-
-  @StringProperty()
-  String runtimeVersion;
 
   @IntProperty()
   int priority;
