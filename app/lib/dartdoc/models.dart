@@ -19,13 +19,9 @@ part 'models.g.dart';
 /// Describes the details of a dartdoc-generated content.
 @JsonSerializable()
 class DartdocEntry {
-  /// Unique identifier of the entry, generated via a random UUID.
+  /// Random uuid for lookup in storage bucket, see [storage_path].
   final String uuid;
-
-  /// The package name.
   final String packageName;
-
-  /// The package version.
   final String packageVersion;
 
   /// Whether the [packageVersion] is the latest stable version of the package
