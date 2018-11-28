@@ -155,11 +155,11 @@ class DartdocJobProcessor extends JobProcessor {
           'usesFlutter: $usesFlutter\n'
           'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
 
-      final isLegacy =
-          await dartdocBackend.isLegacy(job.packageName, job.packageVersion);
+      final status = await scoreCardBackend.getPackageStatus(
+          job.packageName, job.packageVersion);
 
       // Resolve dependencies only for non-legacy package versions.
-      if (!isLegacy) {
+      if (!status.isLegacy) {
         depsResolved = await _resolveDependencies(
             toolEnvRef.toolEnv, job, pkgPath, usesFlutter, logFileOutput);
       } else {

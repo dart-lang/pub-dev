@@ -155,21 +155,6 @@ class DartdocBackend {
     await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
   }
 
-  Future<bool> isLegacy(String package, String version) async {
-    final list = await _db.lookup([
-      _db.emptyKey
-          .append(Package, id: package)
-          .append(PackageVersion, id: version)
-    ]);
-    final pv = list.single as PackageVersion;
-    if (pv == null) {
-      _logger.warning(
-          'Attempting to generate dartdoc for non-existing version: $package $version.');
-      return true;
-    }
-    return pv.pubspec.supportsOnlyLegacySdk;
-  }
-
   /// Return the latest entry that should be used to serve the content.
   Future<DartdocEntry> getServingEntry(String package, String version) async {
     final cachedEntry = await dartdocMemcache?.getEntry(package, version);

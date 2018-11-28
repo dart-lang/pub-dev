@@ -171,11 +171,6 @@ class DartdocBackendMock implements DartdocBackend {
   }
 
   @override
-  Future<bool> isLegacy(String package, String version) {
-    throw new UnimplementedError();
-  }
-
-  @override
   Future<bool> hasValidDartSdkDartdocData() {
     throw new UnimplementedError();
   }
