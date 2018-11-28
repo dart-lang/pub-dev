@@ -135,7 +135,8 @@ void main() {
           '\n'
           'uploader@example.com uploaded a new version of package pkg_foo: 1.0.0\n'
           '\n'
-          'If you think this is a mistake or fraud, contact us at pub@dartlang.org\n'
+          'If you think this is a mistake or fraud, file an issue on GitHub:\n'
+          'https://github.com/dart-lang/pub-dartlang-dart/issues\n'
           '\n'
           'Pub Site Admin\n');
     });

@@ -114,7 +114,8 @@ EmailMessage createPackageUploadedEmail({
 
   bodyText
     ..writeln(
-        'If you think this is a mistake or fraud, contact us at ${_defaultFrom.email}')
+        'If you think this is a mistake or fraud, file an issue on GitHub:')
+    ..writeln('https://github.com/dart-lang/pub-dartlang-dart/issues')
     ..writeln()
     ..writeln('Pub Site Admin');
 
