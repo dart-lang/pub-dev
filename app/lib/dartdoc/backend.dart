@@ -187,7 +187,18 @@ class DartdocBackend {
       if (hasServing) {
         completedList.removeWhere((entry) => !entry.isServing);
       }
-      completedList.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
+      completedList.sort((a, b) {
+        // content goes first
+        if (a.hasContent && !b.hasContent) return -1;
+        if (!a.hasContent && b.hasContent) return 1;
+        // next release goes to the back of the list
+        final rva = a.runtimeVersion.compareTo(shared_versions.runtimeVersion);
+        final rvb = b.runtimeVersion.compareTo(shared_versions.runtimeVersion);
+        if (rva > 0 && rvb <= 0) return 1;
+        if (rva <= 0 && rvb > 1) return -1;
+        // otherwise compare by timestamp descending
+        return -a.timestamp.compareTo(b.timestamp);
+      });
       return completedList.firstWhere((entry) => entry.hasContent,
           orElse: () => completedList.first);
     }
