@@ -9,6 +9,9 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
+/// The tool is intended to remove all of the obsolete *Analysis entities from
+/// Datastore. Run this after the actively running runtimeVersion is after
+/// 2018.11.22 and also remove this tool (along with model references).
 Future main(List<String> arguments) async {
   await withProdServices(() async {
     await _deleteWithQuery('Analysis', dbService.query<Analysis>());
