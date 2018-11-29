@@ -15,6 +15,7 @@ import 'package:pana/models.dart' show SuggestionLevel;
 
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/email.dart' show EmailAddress;
 import '../shared/markdown.dart';
 import '../shared/platform.dart';
 import '../shared/search_service.dart';
@@ -22,7 +23,6 @@ import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'color.dart';
-import 'model_properties.dart' show Author;
 import 'models.dart';
 import 'static_files.dart';
 import 'template_consts.dart';
@@ -932,8 +932,8 @@ class TemplateService {
 
 String _getAuthorsHtml(List<String> authors) {
   return (authors ?? const []).map((String value) {
-    final Author author = new Author.parse(value);
-    final escapedName = _htmlEscaper.convert(author.name);
+    final EmailAddress author = new EmailAddress.parse(value);
+    final escapedName = _htmlEscaper.convert(author.name ?? author.email);
     if (author.email != null) {
       final escapedEmail = _attrEscaper.convert(author.email);
       final emailSearchUrl = _attrEscaper.convert(

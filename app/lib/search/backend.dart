@@ -14,10 +14,10 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:json_annotation/json_annotation.dart';
 
 import '../dartdoc/pub_dartdoc_data.dart';
-import '../frontend/model_properties.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
+import '../shared/email.dart' show EmailAddress;
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/storage.dart';
@@ -142,7 +142,7 @@ class SearchBackend {
     final Set<String> emails = new Set<String>();
     emails.addAll(p.uploaderEmails.cast<String>());
     for (String value in pv.pubspec.authors) {
-      final Author author = new Author.parse(value);
+      final EmailAddress author = new EmailAddress.parse(value);
       if (author.email == null) continue;
       emails.add(author.email);
     }
