@@ -118,6 +118,7 @@ Pub Site Admin
   final addedEmails = new Set<String>();
   final recipients = <EmailAddress>[];
 
+  // TODO: remove after https://github.com/kaisellgren/mailer/issues/68 gets done
   void addRecipient(EmailAddress address) {
     if (address.email == null || addedEmails.contains(address.email)) {
       return;
