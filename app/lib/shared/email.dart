@@ -105,19 +105,15 @@ EmailMessage createPackageUploadedEmail({
   @required List<EmailAddress> authors,
 }) {
   final subject = 'Package upload on pub: $packageName $packageVersion';
-  final bodyText = new StringBuffer()
-    ..writeln('Dear package maintainer,')
-    ..writeln()
-    ..writeln(
-        '$uploaderEmail uploaded a new version of package $packageName: $packageVersion')
-    ..write('\n');
+  final bodyText = '''Dear package maintainer,
 
-  bodyText
-    ..writeln(
-        'If you think this is a mistake or fraud, file an issue on GitHub:')
-    ..writeln('https://github.com/dart-lang/pub-dartlang-dart/issues')
-    ..writeln()
-    ..writeln('Pub Site Admin');
+$uploaderEmail uploaded a new version of package $packageName: $packageVersion
+
+If you think this is a mistake or fraud, file an issue on GitHub:
+https://github.com/dart-lang/pub-dartlang-dart/issues
+
+Pub Site Admin
+''';
 
   final addedEmails = new Set<String>();
   final recipients = <EmailAddress>[];
