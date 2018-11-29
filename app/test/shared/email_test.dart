@@ -107,7 +107,7 @@ void main() {
   });
 
   group('Package uploaded emails', () {
-    test('2 uploaders, 4 authors, 1 common, 1 without e-mail', () {
+    test('2 uploaders', () {
       final message = createPackageUploadedEmail(
         packageName: 'pkg_foo',
         packageVersion: '1.0.0',
@@ -115,12 +115,6 @@ void main() {
         authorizedUploaders: [
           new EmailAddress('Joe', 'joe@example.com'),
           new EmailAddress(null, 'uploader@example.com')
-        ],
-        authors: [
-          new EmailAddress('Jane', 'jane@example.com'),
-          new EmailAddress(null, 'uploader@example.com'),
-          new EmailAddress(null, 'team@example.com'),
-          new EmailAddress('And many others', null),
         ],
       );
       expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');

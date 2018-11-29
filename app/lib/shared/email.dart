@@ -102,7 +102,6 @@ EmailMessage createPackageUploadedEmail({
   @required String packageVersion,
   @required String uploaderEmail,
   @required List<EmailAddress> authorizedUploaders,
-  @required List<EmailAddress> authors,
 }) {
   final subject = 'Package upload on pub: $packageName $packageVersion';
   final bodyText = '''Dear package maintainer,
@@ -115,20 +114,6 @@ https://github.com/dart-lang/pub-dartlang-dart/issues
 Pub Site Admin
 ''';
 
-  final addedEmails = new Set<String>();
-  final recipients = <EmailAddress>[];
-
-  // TODO: remove after https://github.com/kaisellgren/mailer/issues/68 gets done
-  void addRecipient(EmailAddress address) {
-    if (address.email == null || addedEmails.contains(address.email)) {
-      return;
-    }
-    addedEmails.add(address.email);
-    recipients.add(address);
-  }
-
-  authorizedUploaders.forEach(addRecipient);
-
   return new EmailMessage(
-      _defaultFrom, recipients, subject, bodyText.toString());
+      _defaultFrom, authorizedUploaders, subject, bodyText.toString());
 }
