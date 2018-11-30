@@ -608,8 +608,10 @@ class TokenMatch {
 class TokenIndex {
   final _textHashes = <String, String>{};
   final _inverseIds = <String, Map<String, double>>{};
+  /// Map from document id to set of ngrams in the document (id -> ngrams).
   final _inverseNgrams = <String, Set<String>>{};
   final _docSizes = <String, double>{};
+  /// Minimum length of ngrams in this index.
   final int _minLength;
 
   TokenIndex({int minLength = 0}) : _minLength = minLength;
