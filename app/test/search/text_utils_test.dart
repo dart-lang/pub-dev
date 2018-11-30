@@ -124,4 +124,62 @@ Other useful methods will be added soon...
       });
     });
   });
+
+  group('ngrams', () {
+    test('small input', () {
+      expect(ngrams('', 2, 2), new Set());
+      expect(ngrams('a', 2, 2), new Set());
+      expect(ngrams('ab', 2, 2), new Set());
+    });
+
+    test('2-grams', () {
+      expect(
+          ngrams('abcdef', 2, 2), new Set.from(['ab', 'bc', 'cd', 'de', 'ef']));
+    });
+
+    test('2-3-grams', () {
+      expect(
+          ngrams('abcdef', 2, 3),
+          new Set.from([
+            'ab',
+            'bc',
+            'cd',
+            'de',
+            'ef',
+            'abc',
+            'bcd',
+            'cde',
+            'def',
+          ]));
+    });
+  });
+
+  group('deriveLookupCandidates', () {
+    test('small tokens', () {
+      expect(deriveLookupCandidates(''), new Set());
+      expect(deriveLookupCandidates('a'), new Set());
+      expect(deriveLookupCandidates('ab'), new Set());
+      expect(deriveLookupCandidates('abc'), new Set());
+    });
+
+    test('delete characters', () {
+      expect(deriveLookupCandidates('abcd'),
+          new Set.from(['abc', 'abd', 'acd', 'bcd']));
+    });
+
+    test('prefix and postfix', () {
+      expect(
+          deriveLookupCandidates('abcdef'),
+          new Set.from([
+            'abcde', // f deleted
+            'abcdf', // e deleted
+            'abcef', // d deleted
+            'abdef', // c deleted
+            'acdef', // b deleted
+            'bcdef', // a deleted
+            'abcd', // prefix of the input
+            'cdef', // postfix of the input
+          ]));
+    });
+  });
 }

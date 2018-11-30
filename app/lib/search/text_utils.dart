@@ -111,3 +111,41 @@ Map<String, double> tokenize(String originalText) {
 }
 
 bool _isLower(String c) => c.toLowerCase() == c;
+
+/// Generates the N-grams of [input], which are continuous character strings of
+/// length between [minLength] and [maxLength] (both inclusive).
+/// Eg. abc -> ab, bc
+Set<String> ngrams(String input, int minLength, int maxLength) {
+  final ngrams = new Set<String>();
+  for (int length = minLength; length <= maxLength; length++) {
+    if (input.length > length) {
+      for (int i = 0; i <= input.length - length; i++) {
+        ngrams.add(input.substring(i, i + length));
+      }
+    }
+  }
+  return ngrams;
+}
+
+/// Generates lookup candidates that are, either:
+/// - derived by deleting one character from [input],
+/// - are the prefix part of [input] (min 4 characters)
+/// - are the suffix part of [input] (min 4 characters)
+Set<String> deriveLookupCandidates(String input) {
+  final set = new Set<String>();
+  if (input.length <= 3) {
+    return set;
+  }
+  for (int i = 0; i < input.length; i++) {
+    final prefix = i == 0 ? '' : input.substring(0, i);
+    final suffix = i == input.length - 1 ? '' : input.substring(i + 1);
+    if (prefix.length > 3) {
+      set.add(prefix);
+    }
+    if (suffix.length > 3) {
+      set.add(suffix);
+    }
+    set.add(prefix + suffix);
+  }
+  return set;
+}
