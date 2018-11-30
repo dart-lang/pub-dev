@@ -658,10 +658,7 @@ class TokenIndex {
   /// Match the text against the corpus and return the tokens that have match.
   TokenMatch lookupTokens(String text) {
     final TokenMatch tokenMatch = new TokenMatch();
-    final tokens = tokenize(text);
-    if (tokens == null || tokens.isEmpty) {
-      return tokenMatch;
-    }
+    final tokens = tokenize(text) ?? {};
 
     // Check which tokens have documents, and assign their weight.
     for (String token in tokens.keys) {
