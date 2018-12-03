@@ -10,9 +10,11 @@ import 'dart:io';
 import 'package:gcloud/db.dart' as gdb;
 import 'package:gcloud/storage.dart';
 import 'package:pub_dartlang_org/history/models.dart';
+import 'package:pub_dartlang_org/shared/email.dart';
 import 'package:pub_server/repository.dart' show AsyncUploadInfo;
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 
@@ -416,5 +418,15 @@ class HistoryBackendMock implements HistoryBackend {
   @override
   Future store(History history) async {
     storedHistories.add(history);
+  }
+}
+
+class EmailSenderMock implements EmailSender {
+  final sentMessages = <EmailMessage>[];
+
+  @override
+  Future sendMessage(EmailMessage message) async {
+    sentMessages.add(message);
+    return;
   }
 }

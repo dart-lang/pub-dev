@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
@@ -751,9 +752,15 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerLoggedInUser('hans@juergen.com');
+            final emailSenderMock = new EmailSenderMock();
+            registerEmailSender(emailSenderMock);
             final version = await repo.finishAsyncUpload(redirectUri);
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
+            expect(emailSenderMock.sentMessages, hasLength(1));
+            final email = emailSenderMock.sentMessages.single;
+            expect(email.subject, 'Package upload on pub: foobar_pkg 0.1.1+5');
+            expect(email.recipients.join(', '), 'hans@juergen.com');
           });
         });
       });
@@ -928,10 +935,16 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerLoggedInUser('hans@juergen.com');
+            final emailSenderMock = new EmailSenderMock();
+            registerEmailSender(emailSenderMock);
             final version =
                 await repo.upload(new Stream.fromIterable([tarball]));
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
+            expect(emailSenderMock.sentMessages, hasLength(1));
+            final email = emailSenderMock.sentMessages.single;
+            expect(email.subject, 'Package upload on pub: foobar_pkg 0.1.1+5');
+            expect(email.recipients.join(', '), 'hans@juergen.com');
           });
         });
       });

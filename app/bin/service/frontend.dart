@@ -34,6 +34,7 @@ import 'package:pub_dartlang_org/shared/storage.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
@@ -61,6 +62,8 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
+  registerEmailSender(new EmailSender(db.dbService));
+
   final popularityBucket = await getOrCreateBucket(
       storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
