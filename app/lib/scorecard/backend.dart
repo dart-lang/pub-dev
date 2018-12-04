@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
+import '../shared/packages_overrides.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
@@ -281,7 +282,9 @@ class ScoreCardBackend {
     Duration failureThreshold = const Duration(days: 1),
     DateTime updatedAfter,
   }) async {
-    if (packageName == null || packageVersion == null) {
+    if (packageName == null ||
+        packageVersion == null ||
+        isSoftRemoved(packageName)) {
       return false;
     }
     final pkgStatus = await getPackageStatus(packageName, packageVersion);
