@@ -4,6 +4,7 @@
 
 library pub_dartlang_org.atom_feed;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:markdown/markdown.dart' as md;
