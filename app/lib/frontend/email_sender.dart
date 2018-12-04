@@ -9,7 +9,7 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 import '../shared/email.dart';
-import 'models.dart' show PrivateKey;
+import 'models.dart' show Secret;
 
 final _logger = new Logger('pub.email');
 
@@ -52,16 +52,18 @@ class EmailSender {
   }
 
   Future _update() async {
+    // Caching the values for 10 minutes, updating them only if the previous
+    // access happened earlier.
     final now = new DateTime.now().toUtc();
     if (_lastUpdated != null && now.difference(_lastUpdated).inMinutes < 10) {
       return;
     }
     final list = await _db.lookup([
-      _db.emptyKey.append(PrivateKey, id: 'smtp.username'),
-      _db.emptyKey.append(PrivateKey, id: 'smtp.password'),
+      _db.emptyKey.append(Secret, id: 'smtp.username'),
+      _db.emptyKey.append(Secret, id: 'smtp.password'),
     ]);
-    final PrivateKey username = list[0];
-    final PrivateKey password = list[1];
+    final Secret username = list[0];
+    final Secret password = list[1];
     if (username == null ||
         username.value == null ||
         username.value.isEmpty ||

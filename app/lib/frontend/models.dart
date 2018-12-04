@@ -227,6 +227,14 @@ class PrivateKey extends db.Model {
   String value;
 }
 
+/// A secret value stored in Datastore, typically an access credential used by
+/// the application.
+@db.Kind(name: 'Secret', idType: db.IdType.String)
+class Secret extends db.Model {
+  @db.StringProperty(required: true)
+  String value;
+}
+
 /// An extract of [Package] and [PackageVersion] and [AnalysisExtract], for
 /// display-only uses.
 class PackageView extends Object with FlagMixin {
