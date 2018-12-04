@@ -24,7 +24,7 @@ Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
   final String package = parts[2];
-  if (redirectDartdocPages.containsKey(package)) {
+  if (isSoftRemoved(package)) {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
 

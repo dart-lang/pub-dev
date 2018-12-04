@@ -140,6 +140,10 @@ class BatchIndexUpdater implements TaskRunner {
     }
   }
 
+  Future _addDocs(Iterable<PackageDocument> docs) async {
+
+  }
+
   Future _updateSnapshotIfNeeded(List<PackageDocument> docs) async {
     final DateTime now = new DateTime.now();
     if (now.difference(_lastSnapshotWrite).inHours > 12) {

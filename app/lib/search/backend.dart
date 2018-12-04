@@ -18,6 +18,7 @@ import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/email.dart' show EmailAddress;
+import '../shared/packages_overrides.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/storage.dart';
@@ -253,7 +254,10 @@ class SnapshotStorage {
     }
     try {
       final map = await _snapshots.getContentAsJsonMap(version);
-      return new SearchSnapshot.fromJson(map);
+      final snapshot = new SearchSnapshot.fromJson(map);
+      snapshot.documents
+          .removeWhere((packageName, doc) => isSoftRemoved(packageName));
+      return snapshot;
     } catch (e, st) {
       final uri = _snapshots.getBucketUri(version);
       _logger.shout('Unable to load search snapshot: $uri', e, st);
