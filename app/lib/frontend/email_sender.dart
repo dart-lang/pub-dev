@@ -31,13 +31,14 @@ class EmailSender {
   /// Errors are only logged, they do not block the processing.
   Future sendMessage(EmailMessage message) async {
     await _update();
-    final logText = '(${message.subject}) '
+    final debugHeader = '(${message.subject}) '
         'from ${message.from} '
         'to ${message.recipients.join(', ')}';
     if (_server == null) {
-      _logger.info('Not sending e-mail (SMTP not configured): $logText.');
+      _logger.info('Not sending e-mail (SMTP not configured): '
+          '$debugHeader\n${message.bodyText}.');
     } else {
-      _logger.info('Sending e-mail: $logText...');
+      _logger.info('Sending e-mail: $debugHeader...');
       try {
         final result = await send(_toMessage(message), _server);
         for (var sendReport in result) {
@@ -46,7 +47,7 @@ class EmailSender {
           });
         }
       } catch (e, st) {
-        _logger.severe('Sending e-mail failed: $logText.', e, st);
+        _logger.severe('Sending e-mail failed: $debugHeader.', e, st);
       }
     }
   }
