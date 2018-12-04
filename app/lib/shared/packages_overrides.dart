@@ -53,3 +53,8 @@ String overrideIssueTrackerUrl(String url) {
   }
   return _issueTrackerUrlOverrides[url] ?? url;
 }
+
+/// A package is soft-removed when we keep it in the archives and index, but we
+/// won't serve the package or the documentation page, or any data about it.
+bool isSoftRemoved(String packageName) =>
+    redirectPackagePages.containsKey(packageName);

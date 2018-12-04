@@ -24,7 +24,7 @@ Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
   final String package = parts[2];
-  if (redirectDartdocPages.containsKey(package)) {
+  if (isSoftRemoved(package)) {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
 
@@ -69,6 +69,7 @@ Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
 Future<shelf.Response> apiPackagesCompactListHandler(
     shelf.Request request) async {
   final packageNames = await nameTracker.getPackageNames();
+  packageNames.removeWhere(isSoftRemoved);
   return jsonResponse({'packages': packageNames},
       pretty: isPrettyJson(request));
 }
@@ -86,6 +87,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   // know it was the last page.
   // But we only use `PageSize` packages to display in the result.
   final List<Package> pagePackages = packages.take(pageSize).toList();
+  pagePackages.removeWhere((p) => isSoftRemoved(p.name));
   final List<PackageVersion> pageVersions =
       await backend.lookupLatestVersions(pagePackages);
 

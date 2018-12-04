@@ -203,6 +203,7 @@ Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
   final stream = backend.allPackageNames(
       updatedSince: twoYearsAgo, excludeDiscontinued: true);
   await for (var package in stream) {
+    if (isSoftRemoved(package)) continue;
     items.add(urls.pkgPageUrl(package, includeHost: true));
     items.add(urls.pkgDocUrl(package, isLatest: true, includeHost: true));
   }
@@ -264,6 +265,7 @@ Future<shelf.Response> _packagesHandlerJson(
   final limit = pageSize + 1;
 
   final packages = await backend.latestPackages(offset: offset, limit: limit);
+  packages.removeWhere((p) => isSoftRemoved(p.name));
   final bool lastPage = packages.length < limit;
 
   Uri nextPageUrl;

@@ -59,7 +59,7 @@ class TaskScheduler {
     Future runTask(Task task) async {
       final Stopwatch sw = new Stopwatch()..start();
       try {
-        if (redirectPackagePages.containsKey(task.package)) {
+        if (isSoftRemoved(task.package)) {
           return;
         }
         await taskRunner.runTask(task);
