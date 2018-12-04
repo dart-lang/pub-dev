@@ -8,7 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
-import '../shared/notification.dart';
 import '../shared/search_service.dart';
 
 import 'index_simple.dart';
@@ -21,7 +20,6 @@ final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final shelf.Handler handler = {
-    apiNotificationEndpoint: notificationHandler,
     '/debug': _debugHandler,
     '/search': _searchHandler,
     '/robots.txt': rejectRobotsHandler,

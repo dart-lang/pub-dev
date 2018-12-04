@@ -33,16 +33,6 @@ void main() {
       });
     });
 
-    group('trigger analysis', () {
-      scopedTest('/api/notification', () async {
-        // TODO: mock notification secret and re-enable testing task receive
-        await expectJsonResponse(
-            await issuePost('/api/notification',
-                body: {'package': 'foo', 'version': '1.0.0'}),
-            body: {'success': false});
-      });
-    });
-
     group('search', () {
       Future setUpInServiceScope() async {
         registerSearchBackend(new MockSearchBackend());

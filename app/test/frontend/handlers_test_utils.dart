@@ -279,7 +279,7 @@ class SearchClientMock implements SearchClient {
   }
 
   @override
-  Future triggerReindex(String package) async {}
+  Future triggerReindex(String package, String version) async {}
 
   @override
   Future close() async {}

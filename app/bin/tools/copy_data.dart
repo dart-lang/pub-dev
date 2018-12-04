@@ -69,16 +69,6 @@ Future migrate(db.DatastoreDB from, db.DatastoreDB to) async {
     await flush();
   }
   await flush(force: true);
-
-  // Write [PrivateKey]s.
-  await for (final PrivateKey pk in from.query<PrivateKey>().run()) {
-    if (pk.key.id == 'singleton') {
-      print('Enqueueing key ${pk.key.id}');
-      entities.add(pk);
-      await flush();
-    }
-  }
-  await flush(force: true);
 }
 
 auth.ServiceAccountCredentials readKey(String path) {
