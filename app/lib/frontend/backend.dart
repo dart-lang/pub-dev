@@ -16,10 +16,12 @@ import 'package:uuid/uuid.dart';
 
 import '../history/backend.dart';
 import '../history/models.dart';
+import '../shared/email.dart';
 import '../shared/package_memcache.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
+import 'email_sender.dart';
 import 'model_properties.dart';
 import 'models.dart' as models;
 import 'name_tracker.dart';
@@ -309,6 +311,8 @@ class GCloudPackageRepository extends PackageRepository {
     final models.PackageVersion newVersion =
         await _parseAndValidateUpload(db, filename, userEmail);
 
+    models.Package package;
+
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
     final PackageVersion pv = await db.withTransaction((Transaction T) async {
@@ -316,7 +320,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
       final models.PackageVersion version = tuple[0];
-      models.Package package = tuple[1];
+      package = tuple[1] as models.Package;
 
       // If the version already exists, we fail.
       if (version != null) {
@@ -389,6 +393,18 @@ class GCloudPackageRepository extends PackageRepository {
         rethrow;
       }
     });
+
+    // Notify uploaders via e-mail that a new version has been published.
+    await emailSender.sendMessage(
+      createPackageUploadedEmail(
+        packageName: newVersion.package,
+        packageVersion: newVersion.version,
+        uploaderEmail: newVersion.uploaderEmail,
+        authorizedUploaders: package.uploaderEmails
+            .map((email) => new EmailAddress(null, email))
+            .toList(),
+      ),
+    );
 
     if (finishCallback != null) {
       await finishCallback(newVersion);

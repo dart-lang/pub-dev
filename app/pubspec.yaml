@@ -37,6 +37,7 @@ dependencies:
   pana: '0.12.7'
   # 3rd-party packages with pinned versions
   archive: '2.0.3'
+  mailer: '2.1.1'
   uuid: '1.0.3'
 
 dev_dependencies:

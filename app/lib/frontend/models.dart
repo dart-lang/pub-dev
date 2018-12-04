@@ -227,6 +227,26 @@ class PrivateKey extends db.Model {
   String value;
 }
 
+/// A secret value stored in Datastore, typically an access credential used by
+/// the application.
+@db.Kind(name: 'Secret', idType: db.IdType.String)
+class Secret extends db.Model {
+  @db.StringProperty(required: true)
+  String value;
+}
+
+/// Identifiers of the [Secret] keys.
+abstract class SecretKey {
+  static const String smtpUsername = 'smtp.username';
+  static const String smtpPassword = 'smtp.password';
+
+  /// List of all keys.
+  static const values = const [
+    smtpUsername,
+    smtpPassword,
+  ];
+}
+
 /// An extract of [Package] and [PackageVersion] and [AnalysisExtract], for
 /// display-only uses.
 class PackageView extends Object with FlagMixin {
