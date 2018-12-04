@@ -9,7 +9,7 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 import '../shared/email.dart';
-import 'models.dart' show Secret;
+import 'models.dart' show Secret, SecretKey;
 
 final _logger = new Logger('pub.email');
 
@@ -59,8 +59,8 @@ class EmailSender {
       return;
     }
     final list = await _db.lookup([
-      _db.emptyKey.append(Secret, id: 'smtp.username'),
-      _db.emptyKey.append(Secret, id: 'smtp.password'),
+      _db.emptyKey.append(Secret, id: SecretKey.smtpUsername),
+      _db.emptyKey.append(Secret, id: SecretKey.smtpPassword),
     ]);
     final Secret username = list[0];
     final Secret password = list[1];
