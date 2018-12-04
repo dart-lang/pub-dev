@@ -221,12 +221,6 @@ class PackageVersion extends db.ExpandoModel {
   }
 }
 
-@db.Kind(name: 'PrivateKey', idType: db.IdType.String)
-class PrivateKey extends db.Model {
-  @db.StringProperty(required: true)
-  String value;
-}
-
 /// A secret value stored in Datastore, typically an access credential used by
 /// the application.
 @db.Kind(name: 'Secret', idType: db.IdType.String)

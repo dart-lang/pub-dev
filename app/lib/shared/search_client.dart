@@ -8,8 +8,9 @@ import 'dart:convert';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 
+import '../scorecard/backend.dart';
+
 import 'configuration.dart';
-import 'notification.dart';
 import 'search_memcache.dart';
 import 'search_service.dart';
 import 'utils.dart';
@@ -58,16 +59,10 @@ class SearchClient {
   }
 
   /// Search service maintains a separate index in each of the running instances.
-  /// At the moment we cannot guarantee that each of them will receive the
-  /// notification.
-  Future triggerReindex(String package) {
-    // We have a good chance that Appengine's round-robin will send the requests
-    // to separate service instances.
-    final List<Future> requests = new List.generate(
-        10,
-        (_) => notifyService(_httpClient,
-            activeConfiguration.searchServicePrefix, package, null));
-    return Future.wait(requests);
+  /// This method will update the [ScoreCard] entry of the package, and it will
+  /// be picked up by each search index individually, within a few minutes.
+  Future triggerReindex(String package, String version) async {
+    await scoreCardBackend.updateScoreCard(package, version);
   }
 
   Future close() async {
