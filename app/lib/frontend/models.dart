@@ -235,10 +235,12 @@ class Secret extends db.Model {
   String value;
 }
 
+/// Identifiers of the [Secret] keys.
 abstract class SecretKey {
   static const String smtpUsername = 'smtp.username';
   static const String smtpPassword = 'smtp.password';
 
+  /// List of all keys.
   static const values = const [
     smtpUsername,
     smtpPassword,
