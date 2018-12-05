@@ -40,13 +40,11 @@ class HistoryBackend {
   }
 
   Stream<History> getAll({
-    @required String scope,
     @required String packageName,
     String packageVersion,
     int limit,
   }) {
     final query = _db.query<History>()
-      ..filter('scope =', scope)
       ..filter('packageName =', packageName)
       ..order('-timestamp');
     if (limit != null && limit > 0) {

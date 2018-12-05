@@ -77,7 +77,7 @@ Future addUploader(String packageName, String uploader) async {
     await T.commit();
     print('Uploader $uploader added to list of uploaders');
 
-    historyBackend.store(new History.package(
+    historyBackend.store(new History.entry(
       source: HistorySource.account,
       event: new UploaderChanged(
         packageName: packageName,
@@ -109,7 +109,7 @@ Future removeUploader(String packageName, String uploader) async {
     await T.commit();
     print('Uploader $uploader removed from list of uploaders');
 
-    historyBackend.store(new History.package(
+    historyBackend.store(new History.entry(
       source: HistorySource.account,
       event: new UploaderChanged(
         packageName: packageName,

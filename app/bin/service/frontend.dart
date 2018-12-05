@@ -115,7 +115,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       PackageDependencyBuilder.loadInitialGraphFromDb(db.dbService);
 
   Future uploadFinished(PackageVersion pv) async {
-    await historyBackend.store(new History.package(
+    await historyBackend.store(new History.entry(
       source: HistorySource.account,
       event: new PackageUploaded(
         packageName: pv.package,
