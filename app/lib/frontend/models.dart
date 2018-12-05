@@ -4,6 +4,7 @@
 
 library pub_dartlang_org.appengine_repository.models;
 
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
@@ -237,6 +238,39 @@ abstract class SecretKey {
     smtpUsername,
     smtpPassword,
   ];
+}
+
+/// A random ID, typically sent via e-mail, to verify and confirm an action.
+///
+/// [action] identifies the trigger and scope of the verification. It ensures
+/// that the given verification instance can't be reused for different purpose
+/// (e.g. filling the [parameters] for one goal and then trigger an action in
+/// another part of the application for another goal).
+@db.Kind(name: 'Verification', idType: db.IdType.String)
+class Verification extends db.Model {
+  @db.DateTimeProperty()
+  DateTime created;
+
+  @db.DateTimeProperty()
+  DateTime expires;
+
+  @db.StringProperty(required: true)
+  String action;
+
+  @db.StringProperty()
+  String parametersJson;
+
+  @db.DateTimeProperty()
+  DateTime confirmed;
+
+  Map<String, dynamic> get parameters {
+    if (parametersJson == null) return null;
+    return json.decode(parametersJson) as Map<String, dynamic>;
+  }
+
+  set parameters(Map<String, dynamic> value) {
+    parametersJson = value == null ? null : json.encode(value);
+  }
 }
 
 /// An extract of [Package] and [PackageVersion], for

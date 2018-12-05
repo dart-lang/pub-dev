@@ -28,6 +28,7 @@ import 'name_tracker.dart';
 import 'upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
+final _uuid = new Uuid();
 
 /// Sets the active logged-in user.
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
@@ -159,12 +160,53 @@ class Backend {
     assert(repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
   }
+
+  /// Stores a verification entry in the Datastore and returns its id that can
+  /// be used in client-communication, e.g. sending via e-mail.
+  Future<String> createVerification(
+      String action, Map<String, dynamic> parameters,
+      {Duration expires = const Duration(days: 1)}) async {
+    final id = _uuid.v4().toString();
+    final now = new DateTime.now().toUtc();
+    await db.commit(inserts: [
+      new models.Verification()
+        ..parentKey = db.emptyKey
+        ..id = id
+        ..created = now
+        ..expires = now.add(expires)
+        ..action = action
+        ..parameters = parameters
+    ]);
+    return id;
+  }
+
+  /// Updates the verification entry (identified by [action] and [id]), and
+  /// return it parameters (or null if it has been expired).
+  Future<Map<String, dynamic>> confirmVerification(
+      String action, String id) async {
+    return await db.withTransaction((tx) async {
+      final models.Verification v =
+          (await tx.lookup([db.emptyKey.append(models.Verification, id: id)]))
+              .single;
+      final now = new DateTime.now().toUtc();
+      if (v == null ||
+          v.confirmed != null ||
+          v.expires.isBefore(now) ||
+          v.action != action) {
+        await tx.rollback();
+        return null;
+      }
+      v.confirmed = now;
+      tx.queueMutations(inserts: [v]);
+      await tx.commit();
+      return v.parameters;
+    }) as Map<String, dynamic>;
+  }
 }
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
 class GCloudPackageRepository extends PackageRepository {
-  final Uuid uuid = new Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
   final UIPackageCache cache;
@@ -265,7 +307,7 @@ class GCloudPackageRepository extends PackageRepository {
     return _withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
-      final String guid = uuid.v4();
+      final String guid = _uuid.v4();
       final String object = storage.tempObjectName(guid);
       final String bucket = storage.bucket.bucketName;
       final Duration lifetime = const Duration(minutes: 10);

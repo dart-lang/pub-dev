@@ -168,6 +168,18 @@ class BackendMock implements Backend {
     }
     return (await downloadUrlFun(package, version)) as Uri;
   }
+
+  @override
+  Future<Map<String, dynamic>> confirmVerification(String action, String id) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<String> createVerification(
+      String action, Map<String, dynamic> parameters,
+      {Duration expires = const Duration(days: 1)}) {
+    throw new UnimplementedError();
+  }
 }
 
 class TemplateMock implements TemplateService {
