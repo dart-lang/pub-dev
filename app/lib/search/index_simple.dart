@@ -503,6 +503,7 @@ class _TextResults {
   _TextResults(this.pkgScore, this.topApiPages);
 }
 
+/// Represents an evaluated score as an {id: score} map.
 class Score {
   final Map<String, double> _values;
 
@@ -547,6 +548,9 @@ class Score {
     return new Score(result);
   }
 
+  /// Remove insignificant values below a certain threshold:
+  /// - [fraction] of the maximum value
+  /// - [minValue] as an absolute minimum filter
   Score removeLowValues({double fraction, double minValue}) {
     assert(minValue != null || fraction != null);
     double threshold = minValue;
@@ -567,6 +571,7 @@ class Score {
     return new Score(result);
   }
 
+  /// Keeps the scores only for values in [keys].
   Score project(Iterable<String> keys) {
     final result = <String, double>{};
     for (String key in keys) {
@@ -577,6 +582,7 @@ class Score {
     return new Score(result);
   }
 
+  /// Transfer the score values with [f].
   Score map(double f(String key, double value)) {
     final result = <String, double>{};
     for (String key in _values.keys) {
@@ -586,6 +592,7 @@ class Score {
   }
 }
 
+/// The weighted tokens used for the final search.
 class TokenMatch {
   final Map<String, double> _tokenWeights = <String, double>{};
   double _maxWeight;
@@ -605,10 +612,18 @@ class TokenMatch {
   Map<String, double> get tokenWeights => new Map.unmodifiable(_tokenWeights);
 }
 
+/// Stores a token -> documentId inverted index with weights.
 class TokenIndex {
+  /// {id: hash} map to detect if a document update or removal is a no-op.
   final _textHashes = <String, String>{};
+
+  /// Maps token Strings to a weighted map of document ids.
   final _inverseIds = <String, Map<String, double>>{};
-  final _inverseNgrams = <String, Set<String>>{};
+
+  /// Maps lookup candidates to their original token form.
+  final _lookupCandidates = <String, Set<String>>{};
+
+  /// {id: size} map to store a value representative to the document length
   final _docSizes = <String, double>{};
   final int _minLength;
 
@@ -634,8 +649,15 @@ class TokenIndex {
     for (String token in tokens.keys) {
       final Map<String, double> weights =
           _inverseIds.putIfAbsent(token, () => <String, double>{});
+      // on the first insert of an entry, we populate the similarity candidates
+      if (weights.isEmpty) {
+        for (String reduced in deriveLookupCandidates(token)) {
+          _lookupCandidates
+              .putIfAbsent(reduced, () => new Set<String>())
+              .add(token);
+        }
+      }
       weights[id] = math.max(weights[id] ?? 0.0, tokens[token]);
-      _inverseNgrams.putIfAbsent(token, () => _ngrams(token, _minLength));
     }
     // Document size is a highly scaled-down proxy of the length.
     final docSize = 1 + math.log(1 + tokens.length) / 100;
@@ -646,13 +668,21 @@ class TokenIndex {
   void remove(String id) {
     _textHashes.remove(id);
     _docSizes.remove(id);
-    final List<String> removeKeys = [];
+    final List<String> removeTokens = [];
     _inverseIds.forEach((String key, Map<String, double> weights) {
       weights.remove(id);
-      if (weights.isEmpty) removeKeys.add(key);
+      if (weights.isEmpty) removeTokens.add(key);
     });
-    removeKeys.forEach(_inverseIds.remove);
-    removeKeys.forEach(_inverseNgrams.remove);
+    removeTokens.forEach(_inverseIds.remove);
+    removeTokens.forEach((token) {
+      for (String reduced in deriveLookupCandidates(token)) {
+        final set = _lookupCandidates[reduced];
+        set.remove(token);
+        if (set.isEmpty) {
+          _lookupCandidates.remove(reduced);
+        }
+      }
+    });
   }
 
   /// Match the text against the corpus and return the tokens that have match.
@@ -662,13 +692,21 @@ class TokenIndex {
 
     // Check which tokens have documents, and assign their weight.
     for (String token in tokens.keys) {
-      final tokenNgrams = _ngrams(token, _minLength);
-      for (String candidate in _inverseIds.keys) {
+      final candidates = new Set<String>();
+      candidates.add(token);
+      for (String reduced in deriveLookupCandidates(token)) {
+        final set = _lookupCandidates[reduced];
+        if (set != null) {
+          candidates.addAll(set);
+        }
+      }
+      final tokenNgrams = ngrams(token, _minLength, 6);
+      for (String candidate in candidates) {
         double candidateWeight = 0.0;
         if (token == candidate) {
           candidateWeight = 1.0;
         } else {
-          final candidateNgrams = _inverseNgrams[candidate];
+          final candidateNgrams = ngrams(candidate, _minLength, 6);
           candidateWeight = _ngramSimilarity(tokenNgrams, candidateNgrams);
         }
         candidateWeight *= tokens[token];
@@ -700,6 +738,8 @@ class TokenIndex {
     return intersectionWeight / supersetWeight;
   }
 
+  /// Returns an {id: score} map of the documents stored in the [TokenIndex].
+  /// The tokens in [tokenMatch] will be used to calculate a weighted sum of scores.
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
       {double weight = 1.0, int wordCount = 1}) {
     // Summarize the scores for the documents.
@@ -735,21 +775,4 @@ class TokenIndex {
   Map<String, double> search(String text) {
     return scoreDocs(lookupTokens(text));
   }
-}
-
-const int _minNgram = 1;
-const int _maxNgram = 6;
-
-Set<String> _ngrams(String text, int minLength) {
-  final ngrams = new Set<String>();
-  for (int ngramLength = math.max(_minNgram, minLength);
-      ngramLength <= _maxNgram;
-      ngramLength++) {
-    if (text.length > ngramLength) {
-      for (int i = 0; i <= text.length - ngramLength; i++) {
-        ngrams.add(text.substring(i, i + ngramLength));
-      }
-    }
-  }
-  return ngrams;
 }
