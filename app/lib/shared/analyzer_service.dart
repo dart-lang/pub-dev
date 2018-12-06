@@ -4,12 +4,7 @@
 
 // ignore_for_file: annotate_overrides
 
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:pub_dartlang_org/search/scoring.dart'
-    show calculateOverallScore;
-
-part 'analyzer_service.g.dart';
 
 class AnalysisKey {
   final String package;
@@ -72,8 +67,6 @@ int analysisStatusLevel(AnalysisStatus status) {
   return -1;
 }
 
-/// The data which is served thought the HTTP interface of the analyzer service.
-@JsonSerializable()
 class AnalysisData {
   final String packageName;
   final String packageVersion;
@@ -98,42 +91,4 @@ class AnalysisData {
     @required this.analysisContent,
     @required this.maintenanceScore,
   });
-
-  factory AnalysisData.fromJson(Map<String, dynamic> json) =>
-      _$AnalysisDataFromJson(json);
-
-  Map<String, dynamic> toJson() => _$AnalysisDataToJson(this);
-}
-
-@JsonSerializable()
-class AnalysisExtract {
-  final AnalysisStatus analysisStatus;
-
-  final double health;
-  final double maintenance;
-  final double popularity;
-
-  final List<String> platforms;
-
-  final DateTime timestamp;
-
-  AnalysisExtract({
-    this.analysisStatus,
-    this.health,
-    this.maintenance,
-    this.popularity,
-    this.platforms,
-    this.timestamp,
-  });
-
-  factory AnalysisExtract.fromJson(Map<String, dynamic> json) =>
-      _$AnalysisExtractFromJson(json);
-
-  Map<String, dynamic> toJson() => _$AnalysisExtractToJson(this);
-
-  double get overallScore => calculateOverallScore(
-        health: health ?? 0.0,
-        maintenance: maintenance ?? 0.0,
-        popularity: popularity ?? 0.0,
-      );
 }

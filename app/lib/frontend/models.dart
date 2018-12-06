@@ -10,7 +10,6 @@ import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../scorecard/models.dart';
-import '../shared/analyzer_service.dart' show AnalysisExtract;
 import '../shared/model_properties.dart';
 import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/urls.dart' as urls;
@@ -241,7 +240,7 @@ abstract class SecretKey {
   ];
 }
 
-/// An extract of [Package] and [PackageVersion] and [AnalysisExtract], for
+/// An extract of [Package] and [PackageVersion], for
 /// display-only uses.
 class PackageView extends Object with FlagMixin {
   final bool isExternal;
