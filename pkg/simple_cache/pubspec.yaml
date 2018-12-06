@@ -1,0 +1,19 @@
+name: simple_cache
+description: A simple cache abstraction wrapping in-memory, redis, memcached.
+publish_to: None # TODO: consider splitting this package into:
+                 # simple_cache             // Cache wrapper
+                 # simple_cache_provider    // CacheProvider interface + Inmemory
+                 # simple_cache_redis       // CacheProvider implementation for redis
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:
+  logging: '^0.11.3'
+  identity_codec:
+    path: ../identity_codec
+  retry:
+    path: ../retry
+  dartis: 0.3.0
+
+dev_dependencies:
+  test: ^1.5.1
