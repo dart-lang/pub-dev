@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: annotate_overrides
-
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
-import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 
 import '../dartdoc/pub_dartdoc_data.dart';
 import '../frontend/models.dart';
@@ -23,7 +21,6 @@ import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart' as versions;
-
 import 'text_utils.dart';
 
 part 'backend.g.dart';
