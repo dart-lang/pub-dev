@@ -285,21 +285,6 @@ class DartdocJobProcessor extends JobProcessor {
 
     await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
 
-    // Trigger analyzer job to pick up the new dartdoc results.
-    final pkgStatus = await scoreCardBackend.getPackageStatus(
-        job.packageName, job.packageVersion);
-    if (pkgStatus.exists &&
-        !pkgStatus.isDiscontinued &&
-        !pkgStatus.isObsolete) {
-      await jobBackend.createOrUpdate(
-          JobService.analyzer,
-          job.packageName,
-          job.packageVersion,
-          job.isLatestStable,
-          job.packageVersionUpdated,
-          true);
-    }
-
     if (abortLog != null) {
       return JobStatus.aborted;
     } else {
