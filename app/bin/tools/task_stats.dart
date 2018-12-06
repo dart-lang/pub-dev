@@ -10,7 +10,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
@@ -35,7 +34,7 @@ Future main(List<String> args) async {
   final Map report = {};
 
   await withProdServices(() async {
-    registerDartdocMemcache(new DartdocMemcache(memcacheService));
+    registerDartdocMemcache(new DartdocMemcache());
     registerScoreCardBackend(new ScoreCardBackend(dbService));
     registerAnalyzerClient(new AnalyzerClient());
     registerDartdocClient(new DartdocClient());

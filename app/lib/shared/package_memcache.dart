@@ -7,11 +7,10 @@ library pub_dartlang_org.package_memcache;
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:memcache/memcache.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 
-import 'memcache.dart';
 import 'platform.dart' show KnownPlatforms;
+import 'redis_cache.dart';
 
 final Logger _logger = new Logger('pub.package_memcache');
 
@@ -37,13 +36,22 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   final SimpleMemcache _uiPage;
   final SimpleMemcache _uiIndexPage;
 
-  AppEnginePackageMemcache(Memcache memcache)
+  AppEnginePackageMemcache()
       : _json = new SimpleMemcache(
-            _logger, memcache, packageJsonPrefix, packageJsonExpiration),
+          'AppEnginePackageMemcache/json/',
+          _logger,
+          Duration(minutes: 10),
+        ),
         _uiPage = new SimpleMemcache(
-            _logger, memcache, packageUiPagePrefix, packageUiPageExpiration),
-        _uiIndexPage =
-            new SimpleMemcache(_logger, memcache, '', indexUiPageExpiration);
+          'AppEnginePackageMemcache/ui/',
+          _logger,
+          Duration(minutes: 10),
+        ),
+        _uiIndexPage = new SimpleMemcache(
+          'AppEnginePackageMemcache/index/',
+          _logger,
+          Duration(minutes: 10),
+        );
 
   @override
   Future<List<int>> getPackageData(String package) => _json.getBytes(package);
@@ -89,7 +97,7 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
       _uiIndexPage.setText(_indexPageKey(platform), content);
 
   String _indexPageKey(String platform) {
-    return '$indexUiPageKey/$platform';
+    return '$platform';
   }
 
   String _pvKey(String package, String version) {

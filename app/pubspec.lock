@@ -169,6 +169,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.2"
+  dartis:
+    dependency: transitive
+    description:
+      path: "."
+      ref: error-handling
+      resolved-ref: "512cdc8c45f648be1ba329a1b8f0b4645c964a0b"
+      url: "https://github.com/jonasfj/dartis"
+    source: git
+    version: "0.2.0"
   fixnum:
     dependency: transitive
     description:
@@ -267,6 +276,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.8+1"
+  identity_codec:
+    dependency: transitive
+    description:
+      path: "../pkg/identity_codec"
+      relative: true
+    source: path
+    version: "1.0.0"
   intl:
     dependency: "direct main"
     description:
@@ -470,6 +486,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  retry:
+    dependency: transitive
+    description:
+      path: "../pkg/retry"
+      relative: true
+    source: path
+    version: "0.0.0"
   shelf:
     dependency: "direct main"
     description:
@@ -498,6 +521,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.2+4"
+  simple_cache:
+    dependency: "direct main"
+    description:
+      path: "../pkg/simple_cache"
+      relative: true
+    source: path
+    version: "0.0.0"
   source_gen:
     dependency: "direct dev"
     description:

@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
@@ -28,6 +27,7 @@ import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
+import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -49,7 +49,7 @@ Future _main(FrontendEntryMessage message) async {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  await withAppEngineServices(() async {
+  await withAppEngineAndCache(() async {
     final popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
@@ -63,13 +63,13 @@ Future _main(FrontendEntryMessage message) async {
     final Bucket dartdocBucket = await getOrCreateBucket(
         storageService, activeConfiguration.dartdocStorageBucketName);
     registerDartdocBackend(new DartdocBackend(db.dbService, dartdocBucket));
-    registerDartdocMemcache(new DartdocMemcache(memcacheService));
+    registerDartdocMemcache(new DartdocMemcache());
     final DartdocClient dartdocClient = new DartdocClient();
     registerDartdocClient(dartdocClient);
     registerScopeExitCallback(dartdocClient.close);
 
     registerScoreCardBackend(new ScoreCardBackend(db.dbService));
-    registerScoreCardMemcache(new ScoreCardMemcache(memcacheService));
+    registerScoreCardMemcache(new ScoreCardMemcache());
 
     registerSearchBackend(new SearchBackend(db.dbService));
 

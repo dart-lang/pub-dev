@@ -30,13 +30,13 @@ const String searchServiceResultPrefix = 'search_service_result_';
 // Keeping it under that limit in order to offset char coding or other payloads.
 const _contentLimit = 1000 * 1000;
 
-class SimpleMemcache {
+class SimpleMemcache2 {
   final Logger _logger;
   final Memcache _memcache;
   final String _prefix;
   final Duration _expiration;
 
-  SimpleMemcache(this._logger, this._memcache, this._prefix, this._expiration);
+  SimpleMemcache2(this._logger, this._memcache, this._prefix, this._expiration);
 
   String _key(String key) => '$runtimeVersion/$_prefix$key';
 

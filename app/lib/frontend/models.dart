@@ -231,11 +231,13 @@ class Secret extends db.Model {
 abstract class SecretKey {
   static const String smtpUsername = 'smtp.username';
   static const String smtpPassword = 'smtp.password';
+  static const String redisConnectionString = 'redis.connectionString';
 
   /// List of all keys.
   static const values = const [
     smtpUsername,
     smtpPassword,
+    redisConnectionString,
   ];
 }
 

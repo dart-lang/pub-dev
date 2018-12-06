@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -115,7 +114,7 @@ Future removeUploader(String packageName, String uploader) async {
 }
 
 Future _clearCache(String package) async {
-  final cache = new AppEnginePackageMemcache(memcacheService);
+  final cache = new AppEnginePackageMemcache();
   await cache.invalidateUIPackagePage(package);
   await cache.invalidatePackageData(package);
 }

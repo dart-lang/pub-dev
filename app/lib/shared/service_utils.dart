@@ -13,6 +13,7 @@ import 'package:pana/pana.dart' show runProc;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'configuration.dart';
+import 'redis_cache.dart';
 import 'scheduler_stats.dart';
 import 'utils.dart' show trackEventLoopLatency;
 import 'versions.dart';
@@ -160,7 +161,7 @@ Future startIsolates({
   }
 
   try {
-    await withAppEngineServices(() async {
+    await withAppEngineAndCache(() async {
       if (frontendEntryPoint != null) {
         for (int i = 0; i < envConfig.frontendCount; i++) {
           await startFrontendIsolate();
