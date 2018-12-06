@@ -14,7 +14,6 @@ import '../shared/model_properties.dart';
 import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-
 import 'model_properties.dart';
 
 export 'model_properties.dart' show FileObject;
@@ -247,6 +246,7 @@ class PackageView extends Object with FlagMixin {
   final String url;
   final String name;
   final String version;
+
   // Not null only if there is a difference compared to the [version].
   final String devVersion;
   final String ellipsizedDescription;
