@@ -135,6 +135,12 @@ find . -iname '*png*' | xargs -n 1 -P 8 png-press.sh'
 
 ## Deploying a new version to production
 
+### Prerequisites
+
+To run `pub-dartlang-dart` in production both a redis server and an SMTP server
+is required. These can be configured with `app/bin/tools/set_secret.dart` see
+`doc/secrets.md` for details.
+
 ### Shortcut
 
 Run `dart deploy.dart all --delete-old`

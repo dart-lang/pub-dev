@@ -14,3 +14,4 @@ bin/tools/set_secret.dart [key] [value]
 Currently used keys are listed in `SecretKey.values`. For example:
 - SMTP account username: `smtp.username`
 - SMTP account password: `smtp.password`
+- Redis connection string: `redis.connectionString`
