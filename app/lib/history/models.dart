@@ -19,11 +19,6 @@ abstract class HistorySource {
   static const String dartdoc = 'dartdoc';
 }
 
-abstract class HistoryScope {
-  static const String package = 'package';
-  static const String version = 'version';
-}
-
 @db.Kind(name: 'History', idType: db.IdType.String)
 class History extends db.ExpandoModel {
   History();
@@ -33,7 +28,6 @@ class History extends db.ExpandoModel {
     this.packageVersion,
     this.timestamp,
     this.source,
-    this.scope,
     HistoryUnion union,
   }) {
     id = _uuid.v4();
@@ -43,36 +37,18 @@ class History extends db.ExpandoModel {
     eventData = map.values.single as Map<String, dynamic>;
   }
 
-  factory History.package({
+  factory History.entry({
     @required String source,
     @required HistoryEvent event,
   }) {
     return new History._(
       packageName: event.packageName,
-      packageVersion: event.packageVersion,
+      packageVersion: event.packageVersion ?? '*',
       timestamp: event.timestamp,
       source: source,
-      scope: HistoryScope.package,
       union: new HistoryUnion.ofEvent(event),
     );
   }
-
-  factory History.version({
-    @required String source,
-    @required HistoryEvent event,
-  }) {
-    return new History._(
-      packageName: event.packageName,
-      packageVersion: event.packageVersion,
-      timestamp: event.timestamp,
-      source: source,
-      scope: HistoryScope.version,
-      union: new HistoryUnion.ofEvent(event),
-    );
-  }
-
-  @db.StringProperty(required: true)
-  String scope;
 
   @db.StringProperty(required: true)
   String packageName;

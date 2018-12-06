@@ -202,7 +202,6 @@ Future<shelf.Response> apiPackageMetricsHandler(shelf.Request request) async {
 Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
   final list = await historyBackend
       .getAll(
-        scope: request.requestedUri.queryParameters['scope'],
         packageName: request.requestedUri.queryParameters['package'],
         packageVersion: request.requestedUri.queryParameters['version'],
         limit: 25,
@@ -215,7 +214,6 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
               'package': h.packageName,
               'version': h.packageVersion,
               'timestamp': h.timestamp.toIso8601String(),
-              'scope': h.scope,
               'source': h.source,
               'eventType': h.eventType,
               'eventData': h.eventData,

@@ -22,7 +22,6 @@ indexes:
 
 #- kind: History
 #  properties:
-#  - name: scope
 #  - name: packageName
 #  - name: packageVersion
 #  - name: timestamp
@@ -30,7 +29,6 @@ indexes:
 #
 #- kind: History
 #  properties:
-#  - name: scope
 #  - name: packageName
 #  - name: timestamp
 #    direction: desc

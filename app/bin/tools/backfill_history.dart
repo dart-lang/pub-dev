@@ -41,15 +41,13 @@ Future _backfillPackage(String package) async {
   await for (PackageVersion pv in query.run()) {
     bool hasUploaded = false;
     await for (History history in historyBackend.getAll(
-        scope: HistoryScope.package,
-        packageName: package,
-        packageVersion: pv.version)) {
+        packageName: package, packageVersion: pv.version)) {
       if (history.historyEvent is PackageUploaded) {
         hasUploaded = true;
       }
     }
     if (!hasUploaded) {
-      final history = new History.package(
+      final history = new History.entry(
         source: HistorySource.account,
         event: new PackageUploaded(
           packageName: package,
