@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show DetailedApiRequestError;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -338,7 +340,11 @@ class DartdocBackend {
       try {
         list.add(await DartdocEntry.fromStream(_storage.read(entry.name)));
       } catch (e, st) {
-        _logger.warning('Unable to read entry: ${entry.name}.', st);
+        if (e is DetailedApiRequestError && e.status == 404) {
+          // ignore exception: entry was removed by another cleanup process during the listing
+        } else {
+          _logger.warning('Unable to read entry: ${entry.name}.', e, st);
+        }
       }
     }
     return list;
