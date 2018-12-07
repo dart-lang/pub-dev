@@ -281,8 +281,13 @@ class UrlSecret extends db.Model {
         sha256.convert(utf8.encode('$action/$parametersJson')).toString();
   }
 
-  bool isActive() =>
-      confirmed == null && expires.isAfter(new DateTime.now().toUtc());
+  bool isActive() {
+    final now = new DateTime.now().toUtc();
+    if (confirmed != null && now.difference(confirmed).inMinutes < 10) {
+      return true;
+    }
+    return expires.isAfter(now);
+  }
 }
 
 /// An extract of [Package] and [PackageVersion], for
