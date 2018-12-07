@@ -133,6 +133,7 @@ class DartdocJobProcessor extends JobProcessor {
     PubDartdocData dartdocData;
 
     String reportStatus = ReportStatus.failed;
+    String abortLog;
     final healthSuggestions = <Suggestion>[];
     final maintenanceSuggestions = <Suggestion>[];
     try {
@@ -221,7 +222,7 @@ class DartdocJobProcessor extends JobProcessor {
       if (isLatestStable) {
         reportIssueWithLatest(job, '$e\n$st');
       }
-      rethrow;
+      abortLog = 'Dartdoc generation aborted: $e\n\n```\n$st\n```\n';
     } finally {
       await tempDir.delete(recursive: true);
       await toolEnvRef.release();
@@ -259,6 +260,13 @@ class DartdocJobProcessor extends JobProcessor {
               score: (1.0 - coverageScore) * 10.0),
         );
       }
+    } else if (abortLog != null) {
+      maintenanceSuggestions.add(Suggestion.error(
+        SuggestionCode.dartdocAborted,
+        'Running `dartdoc` failed.',
+        abortLog,
+        score: 10.0,
+      ));
     } else {
       maintenanceSuggestions.add(getDartdocRunFailedSuggestion());
     }
@@ -292,7 +300,11 @@ class DartdocJobProcessor extends JobProcessor {
           true);
     }
 
-    return hasContent ? JobStatus.success : JobStatus.failed;
+    if (abortLog != null) {
+      return JobStatus.aborted;
+    } else {
+      return hasContent ? JobStatus.success : JobStatus.failed;
+    }
   }
 
   Future<bool> _resolveDependencies(ToolEnvironment toolEnv, Job job,
