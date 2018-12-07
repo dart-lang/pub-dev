@@ -166,9 +166,9 @@ class Backend {
   ///
   /// Duplicate detection relies on the serialized JSON form of [parameters],
   /// and it is expected that callers will order the keys consistently.
-  /// When a duplicate is detected, the return value becomes `null`.
-  Future<String> createUrlNonce(
-      String action, Map<String, dynamic> parameters,
+  ///
+  /// When multiple duplicate is detected, the return value becomes `null`.
+  Future<String> createUrlNonce(String action, Map<String, dynamic> parameters,
       {Duration expires = const Duration(days: 1)}) async {
     final id = _uuid.v4().toString();
     final now = new DateTime.now().toUtc();
@@ -183,13 +183,14 @@ class Backend {
 
     final query = db.query<models.UrlNonce>()
       ..filter('dedupHash =', verification.dedupHash);
-    await for (var v in query.run()) {
-      if (!v.isActive()) continue;
-      // TODO: match parameters too for 100% certainty
-      // The chance of mis-classification is low, but we should eventually address it.
-      if (v.action == action) {
-        return null;
-      }
+    // TODO: match parameters too for 100% certainty
+    // The chance of mis-classification is low, but we should eventually address it.
+    final count = await query
+        .run()
+        .where((n) => n.isActive() && n.action == action)
+        .length;
+    if (count > 5) {
+      return null;
     }
 
     await db.commit(inserts: [verification]);
@@ -198,8 +199,7 @@ class Backend {
 
   /// Updates the [models.UrlNonce] entry (identified by [action] and [id]), and
   /// return it parameters (or null if it has been expired).
-  Future<Map<String, dynamic>> confirmUrlNonce(
-      String action, String id) async {
+  Future<Map<String, dynamic>> confirmUrlNonce(String action, String id) async {
     return await db.withTransaction((tx) async {
       final models.UrlNonce v =
           (await tx.lookup([db.emptyKey.append(models.UrlNonce, id: id)]))
