@@ -118,11 +118,11 @@ Pub Site Admin
 }
 
 /// Creates the [EmailMessage] that will be sent to the new uploader for verification.
-EmailMessage createUploaderVerificationEmail({
+EmailMessage createUploaderConfirmationEmail({
   @required String packageName,
   @required String activeAccountEmail,
   @required String addedUploaderEmail,
-  @required String verificationUrl,
+  @required String confirmationUrl,
 }) {
   final subject = 'Pub invitation to collaborate: $packageName';
   final bodyText = '''Dear package maintainer,
@@ -131,7 +131,7 @@ $activeAccountEmail invited you to collaborate on $packageName and added you as 
 https://pub.dartlang.org/packages/$packageName
 
 If you want to accept the invitation, click on the following URL:
-$verificationUrl
+$confirmationUrl
 
 If you think this is a mistake or fraud, file an issue on GitHub:
 https://github.com/dart-lang/pub-dartlang-dart/issues

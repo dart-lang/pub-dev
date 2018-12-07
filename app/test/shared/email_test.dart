@@ -137,12 +137,12 @@ void main() {
   });
 
   group('Uploaders', () {
-    test('uploader verification', () {
-      final message = createUploaderVerificationEmail(
+    test('uploader confirmation', () {
+      final message = createUploaderConfirmationEmail(
         packageName: 'pkg_foo',
         activeAccountEmail: 'active@example.com',
         addedUploaderEmail: 'uploader@example.com',
-        verificationUrl:
+        confirmationUrl:
             'https://pub.dartlang.org/verification/add-uploader/abcdef1234567890',
       );
       expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');
