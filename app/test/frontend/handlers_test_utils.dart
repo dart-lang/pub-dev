@@ -170,12 +170,12 @@ class BackendMock implements Backend {
   }
 
   @override
-  Future<Map<String, dynamic>> confirmVerification(String action, String id) {
+  Future<Map<String, dynamic>> confirmUrlNonce(String action, String id) {
     throw new UnimplementedError();
   }
 
   @override
-  Future<String> createVerification(
+  Future<String> createUrlNonce(
       String action, Map<String, dynamic> parameters,
       {Duration expires = const Duration(days: 1)}) {
     throw new UnimplementedError();

@@ -161,18 +161,18 @@ class Backend {
     return repository.downloadUrl(package, version);
   }
 
-  /// Stores a [UrlSecret] entry in the Datastore and returns its id that can
-  /// be used in client-communication, e.g. sending via e-mail.
+  /// Stores a [models.UrlNonce] entry in the Datastore and returns its id that
+  /// can be used in client-communication, e.g. sending via e-mail.
   ///
   /// Duplicate detection relies on the serialized JSON form of [parameters],
   /// and it is expected that callers will order the keys consistently.
   /// When a duplicate is detected, the return value becomes `null`.
-  Future<String> createUrlSecret(
+  Future<String> createUrlNonce(
       String action, Map<String, dynamic> parameters,
       {Duration expires = const Duration(days: 1)}) async {
     final id = _uuid.v4().toString();
     final now = new DateTime.now().toUtc();
-    final verification = new models.UrlSecret()
+    final verification = new models.UrlNonce()
       ..parentKey = db.emptyKey
       ..id = id
       ..created = now
@@ -181,7 +181,7 @@ class Backend {
       ..parameters = parameters
       ..updateHash();
 
-    final query = db.query<models.UrlSecret>()
+    final query = db.query<models.UrlNonce>()
       ..filter('dedupHash =', verification.dedupHash);
     await for (var v in query.run()) {
       if (!v.isActive()) continue;
@@ -196,13 +196,13 @@ class Backend {
     return id;
   }
 
-  /// Updates the [UrlSecret] entry (identified by [action] and [id]), and
+  /// Updates the [models.UrlNonce] entry (identified by [action] and [id]), and
   /// return it parameters (or null if it has been expired).
-  Future<Map<String, dynamic>> confirmUrlSecret(
+  Future<Map<String, dynamic>> confirmUrlNonce(
       String action, String id) async {
     return await db.withTransaction((tx) async {
-      final models.UrlSecret v =
-          (await tx.lookup([db.emptyKey.append(models.UrlSecret, id: id)]))
+      final models.UrlNonce v =
+          (await tx.lookup([db.emptyKey.append(models.UrlNonce, id: id)]))
               .single;
       final now = new DateTime.now().toUtc();
       if (v == null || !v.isActive() || v.action != action) {

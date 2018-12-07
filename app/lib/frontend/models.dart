@@ -248,8 +248,8 @@ abstract class SecretKey {
 /// that the given verification instance can't be reused for different purpose
 /// (e.g. filling the [parameters] for one goal and then trigger an action in
 /// another part of the application for another goal).
-@db.Kind(name: 'UrlSecret', idType: db.IdType.String)
-class UrlSecret extends db.Model {
+@db.Kind(name: 'UrlNonce', idType: db.IdType.String)
+class UrlNonce extends db.Model {
   @db.DateTimeProperty()
   DateTime created;
 

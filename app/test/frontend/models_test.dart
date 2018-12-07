@@ -156,15 +156,15 @@ version: 1.0.9
 
     group('UrlSecret', () {
       test('hash', () {
-        final v1 = new UrlSecret()
+        final v1 = new UrlNonce()
           ..action = 'a'
           ..parameters = {'x': 1, 'y': 2}
           ..updateHash();
-        final v2 = new UrlSecret()
+        final v2 = new UrlNonce()
           ..action = 'a'
           ..parameters = {'x': 1, 'y': 3}
           ..updateHash();
-        final v3 = new UrlSecret()
+        final v3 = new UrlNonce()
           ..action = 'a'
           ..parameters = {'x': 1, 'y': 2}
           ..updateHash();
