@@ -163,20 +163,36 @@ class Backend {
 
   /// Stores a verification entry in the Datastore and returns its id that can
   /// be used in client-communication, e.g. sending via e-mail.
+  ///
+  /// Duplicate detection relies on the serialized JSON form of [parameters],
+  /// and it is expected that callers will order the keys consistently.
+  /// When a duplicate is detected, the return value becomes `null`.
   Future<String> createVerification(
       String action, Map<String, dynamic> parameters,
       {Duration expires = const Duration(days: 1)}) async {
     final id = _uuid.v4().toString();
     final now = new DateTime.now().toUtc();
-    await db.commit(inserts: [
-      new models.Verification()
-        ..parentKey = db.emptyKey
-        ..id = id
-        ..created = now
-        ..expires = now.add(expires)
-        ..action = action
-        ..parameters = parameters
-    ]);
+    final verification = new models.Verification()
+      ..parentKey = db.emptyKey
+      ..id = id
+      ..created = now
+      ..expires = now.add(expires)
+      ..action = action
+      ..parameters = parameters
+      ..updateHash();
+
+    final query = db.query<models.Verification>()
+      ..filter('dedupHash =', verification.dedupHash);
+    await for (var v in query.run()) {
+      if (!v.isActive()) continue;
+      // TODO: match parameters too for 100% certainty
+      // The chance of mis-classification is low, but we should eventually address it.
+      if (v.action == action) {
+        return null;
+      }
+    }
+
+    await db.commit(inserts: [verification]);
     return id;
   }
 
@@ -189,10 +205,7 @@ class Backend {
           (await tx.lookup([db.emptyKey.append(models.Verification, id: id)]))
               .single;
       final now = new DateTime.now().toUtc();
-      if (v == null ||
-          v.confirmed != null ||
-          v.expires.isBefore(now) ||
-          v.action != action) {
+      if (v == null || !v.isActive() || v.action != action) {
         await tx.rollback();
         return null;
       }

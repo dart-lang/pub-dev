@@ -153,5 +153,24 @@ version: 1.0.9
         expect(p.dependsOnFlutterSdk, isFalse);
       });
     });
+
+    group('Verification', () {
+      test('hash', () {
+        final v1 = new Verification()
+          ..action = 'a'
+          ..parameters = {'x': 1, 'y': 2}
+          ..updateHash();
+        final v2 = new Verification()
+          ..action = 'a'
+          ..parameters = {'x': 1, 'y': 3}
+          ..updateHash();
+        final v3 = new Verification()
+          ..action = 'a'
+          ..parameters = {'x': 1, 'y': 2}
+          ..updateHash();
+        expect(v1.dedupHash, equals(v3.dedupHash));
+        expect(v1.dedupHash, isNot(equals(v2.dedupHash)));
+      });
+    });
   });
 }

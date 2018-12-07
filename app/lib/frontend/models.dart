@@ -7,6 +7,7 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:crypto/crypto.dart' show sha256;
 import 'package:gcloud/db.dart' as db;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -260,6 +261,9 @@ class Verification extends db.Model {
   @db.StringProperty()
   String parametersJson;
 
+  @db.StringProperty()
+  String dedupHash;
+
   @db.DateTimeProperty()
   DateTime confirmed;
 
@@ -271,6 +275,14 @@ class Verification extends db.Model {
   set parameters(Map<String, dynamic> value) {
     parametersJson = value == null ? null : json.encode(value);
   }
+
+  void updateHash() {
+    dedupHash =
+        sha256.convert(utf8.encode('$action/$parametersJson')).toString();
+  }
+
+  bool isActive() =>
+      confirmed == null && expires.isAfter(new DateTime.now().toUtc());
 }
 
 /// An extract of [Package] and [PackageVersion], for
