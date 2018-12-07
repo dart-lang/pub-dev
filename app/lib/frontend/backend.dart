@@ -161,18 +161,18 @@ class Backend {
     return repository.downloadUrl(package, version);
   }
 
-  /// Stores a verification entry in the Datastore and returns its id that can
+  /// Stores a [UrlSecret] entry in the Datastore and returns its id that can
   /// be used in client-communication, e.g. sending via e-mail.
   ///
   /// Duplicate detection relies on the serialized JSON form of [parameters],
   /// and it is expected that callers will order the keys consistently.
   /// When a duplicate is detected, the return value becomes `null`.
-  Future<String> createVerification(
+  Future<String> createUrlSecret(
       String action, Map<String, dynamic> parameters,
       {Duration expires = const Duration(days: 1)}) async {
     final id = _uuid.v4().toString();
     final now = new DateTime.now().toUtc();
-    final verification = new models.Verification()
+    final verification = new models.UrlSecret()
       ..parentKey = db.emptyKey
       ..id = id
       ..created = now
@@ -181,7 +181,7 @@ class Backend {
       ..parameters = parameters
       ..updateHash();
 
-    final query = db.query<models.Verification>()
+    final query = db.query<models.UrlSecret>()
       ..filter('dedupHash =', verification.dedupHash);
     await for (var v in query.run()) {
       if (!v.isActive()) continue;
@@ -196,13 +196,13 @@ class Backend {
     return id;
   }
 
-  /// Updates the verification entry (identified by [action] and [id]), and
+  /// Updates the [UrlSecret] entry (identified by [action] and [id]), and
   /// return it parameters (or null if it has been expired).
-  Future<Map<String, dynamic>> confirmVerification(
+  Future<Map<String, dynamic>> confirmUrlSecret(
       String action, String id) async {
     return await db.withTransaction((tx) async {
-      final models.Verification v =
-          (await tx.lookup([db.emptyKey.append(models.Verification, id: id)]))
+      final models.UrlSecret v =
+          (await tx.lookup([db.emptyKey.append(models.UrlSecret, id: id)]))
               .single;
       final now = new DateTime.now().toUtc();
       if (v == null || !v.isActive() || v.action != action) {

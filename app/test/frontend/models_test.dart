@@ -154,17 +154,17 @@ version: 1.0.9
       });
     });
 
-    group('Verification', () {
+    group('UrlSecret', () {
       test('hash', () {
-        final v1 = new Verification()
+        final v1 = new UrlSecret()
           ..action = 'a'
           ..parameters = {'x': 1, 'y': 2}
           ..updateHash();
-        final v2 = new Verification()
+        final v2 = new UrlSecret()
           ..action = 'a'
           ..parameters = {'x': 1, 'y': 3}
           ..updateHash();
-        final v3 = new Verification()
+        final v3 = new UrlSecret()
           ..action = 'a'
           ..parameters = {'x': 1, 'y': 2}
           ..updateHash();
