@@ -172,7 +172,7 @@ class Backend {
       {Duration expires = const Duration(days: 1)}) async {
     final id = _uuid.v4().toString();
     final now = new DateTime.now().toUtc();
-    final verification = new models.UrlNonce()
+    final urlNonce = new models.UrlNonce()
       ..parentKey = db.emptyKey
       ..id = id
       ..created = now
@@ -182,7 +182,7 @@ class Backend {
       ..updateHash();
 
     final query = db.query<models.UrlNonce>()
-      ..filter('dedupHash =', verification.dedupHash);
+      ..filter('dedupHash =', urlNonce.dedupHash);
     // TODO: match parameters too for 100% certainty
     // The chance of mis-classification is low, but we should eventually address it.
     final count = await query
@@ -193,7 +193,7 @@ class Backend {
       return null;
     }
 
-    await db.commit(inserts: [verification]);
+    await db.commit(inserts: [urlNonce]);
     return id;
   }
 

@@ -282,12 +282,13 @@ class UrlNonce extends db.Model {
         sha256.convert(utf8.encode('$action/$parametersJson')).toString();
   }
 
+  /// Whether the entry is still waiting and it is still valid for confirmation.
   bool isActive() {
     final now = new DateTime.now().toUtc();
     if (confirmed != null && now.difference(confirmed).inMinutes < 10) {
       return true;
     }
-    return expires.isAfter(now);
+    return confirmed == null && expires.isAfter(now);
   }
 }
 
