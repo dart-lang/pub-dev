@@ -241,7 +241,8 @@ abstract class SecretKey {
   ];
 }
 
-/// A random ID, typically sent via e-mail, to verify and confirm an action.
+/// Secret random UUID, typically embedded in a URL and sent via e-mail, to
+/// verify and confirm an action.
 ///
 /// [action] identifies the trigger and scope of the verification. It ensures
 /// that the given verification instance can't be reused for different purpose
