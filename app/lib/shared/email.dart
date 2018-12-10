@@ -96,7 +96,7 @@ String reflowBodyText(String input, {int lineLength = 72}) {
   return input.split('\n').expand(reflowLine).join('\n');
 }
 
-/// Creates the [EmailMessage]s that we be sent on new package upload.
+/// Creates the [EmailMessage] that we be sent on new package upload.
 EmailMessage createPackageUploadedEmail({
   @required String packageName,
   @required String packageVersion,
@@ -114,6 +114,31 @@ https://github.com/dart-lang/pub-dartlang-dart/issues
 Pub Site Admin
 ''';
 
-  return new EmailMessage(
-      _defaultFrom, authorizedUploaders, subject, bodyText.toString());
+  return new EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
+}
+
+/// Creates the [EmailMessage] that will be sent to the new uploader for confirmation.
+EmailMessage createUploaderConfirmationEmail({
+  @required String packageName,
+  @required String activeAccountEmail,
+  @required String addedUploaderEmail,
+  @required String confirmationUrl,
+}) {
+  final subject = 'Pub invitation to collaborate: $packageName';
+  final bodyText = '''Dear package maintainer,
+
+$activeAccountEmail invited you to collaborate on $packageName and added you as uploader. You can see the package on the following URL:
+https://pub.dartlang.org/packages/$packageName
+
+If you want to accept the invitation, click on the following URL:
+$confirmationUrl
+
+If you think this is a mistake or fraud, file an issue on GitHub:
+https://github.com/dart-lang/pub-dartlang-dart/issues
+
+Pub Site Admin
+''';
+
+  return new EmailMessage(_defaultFrom,
+      [new EmailAddress(null, addedUploaderEmail)], subject, bodyText);
 }
