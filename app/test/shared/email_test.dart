@@ -143,7 +143,7 @@ void main() {
         activeAccountEmail: 'active@example.com',
         addedUploaderEmail: 'uploader@example.com',
         confirmationUrl:
-            'https://pub.dartlang.org/verification/add-uploader/abcdef1234567890',
+            'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890',
       );
       expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');
       expect(message.recipients.map((e) => e.toString()).toList(),
@@ -158,7 +158,7 @@ void main() {
           'https://pub.dartlang.org/packages/pkg_foo\n'
           '\n'
           'If you want to accept the invitation, click on the following URL:\n'
-          'https://pub.dartlang.org/verification/add-uploader/abcdef1234567890\n'
+          'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890\n'
           '\n'
           'If you think this is a mistake or fraud, file an issue on GitHub:\n'
           'https://github.com/dart-lang/pub-dartlang-dart/issues\n'

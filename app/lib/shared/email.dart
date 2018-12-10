@@ -117,7 +117,7 @@ Pub Site Admin
   return new EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
 }
 
-/// Creates the [EmailMessage] that will be sent to the new uploader for verification.
+/// Creates the [EmailMessage] that will be sent to the new uploader for confirmation.
 EmailMessage createUploaderConfirmationEmail({
   @required String packageName,
   @required String activeAccountEmail,
