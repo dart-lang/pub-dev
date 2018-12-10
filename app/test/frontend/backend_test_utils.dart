@@ -410,7 +410,7 @@ class HistoryBackendMock implements HistoryBackend {
   final storedHistories = <History>[];
 
   @override
-  bool get isEnabled => false;
+  bool get isEnabled => true;
 
   @override
   Stream<History> getAll(

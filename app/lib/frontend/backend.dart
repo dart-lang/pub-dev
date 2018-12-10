@@ -366,6 +366,7 @@ class GCloudPackageRepository extends PackageRepository {
         // Apply update: Push to cloud storage
         await tarballUpload(package.name, newVersion.version);
 
+        final inserts = <Model>[package, newVersion];
         if (historyBackend.isEnabled) {
           final history = new History.entry(new PackageUploaded(
             packageName: newVersion.package,
@@ -373,12 +374,12 @@ class GCloudPackageRepository extends PackageRepository {
             uploaderEmail: newVersion.uploaderEmail,
             timestamp: newVersion.created,
           ));
-          T.queueMutations(inserts: [history]);
+          inserts.add(history);
         }
 
         // Apply update: Update datastore.
         _logger.info('Trying to commit datastore changes.');
-        T.queueMutations(inserts: [package, newVersion]);
+        T.queueMutations(inserts: inserts);
         await T.commit();
 
         _logger.info('Upload successful.');
@@ -490,18 +491,20 @@ class GCloudPackageRepository extends PackageRepository {
           throw new UploaderAlreadyExistsException();
         }
 
+        // Add [uploaderEmail] to uploaders and commit.
+        package.uploaderEmails.add(uploaderEmail);
+
+        final inserts = <Model>[package];
         if (historyBackend.isEnabled) {
           final history = new History.entry(new UploaderChanged(
             packageName: packageName,
             currentUserEmail: userEmail,
             addedUploaderEmails: [uploaderEmail],
           ));
-          T.queueMutations(inserts: [history]);
+          inserts.add(history);
         }
 
-        // Add [uploaderEmail] to uploaders and commit.
-        package.uploaderEmails.add(uploaderEmail);
-        T.queueMutations(inserts: [package]);
+        T.queueMutations(inserts: inserts);
         await T.commit();
         if (cache != null) {
           await cache.invalidateUIPackagePage(package.name);
@@ -557,16 +560,17 @@ class GCloudPackageRepository extends PackageRepository {
               'Use another account to remove this e-mail address.');
         }
 
+        final inserts = <Model>[package];
         if (historyBackend.isEnabled) {
           final history = new History.entry(new UploaderChanged(
             packageName: packageName,
             currentUserEmail: userEmail,
             removedUploaderEmails: [uploaderEmail],
           ));
-          T.queueMutations(inserts: [history]);
+          inserts.add(history);
         }
 
-        T.queueMutations(inserts: [package]);
+        T.queueMutations(inserts: inserts);
         await T.commit();
         if (cache != null) {
           await cache.invalidateUIPackagePage(package.name);
