@@ -22,13 +22,17 @@ void registerHistoryBackend(HistoryBackend backend) =>
 HistoryBackend get historyBackend =>
     ss.lookup(#_historyBackend) as HistoryBackend;
 
+/// Stores and queries [History] entries.
 class HistoryBackend {
   final DatastoreDB _db;
   final bool _enabled = Platform.environment['HISTORY_ENABLED'] == '1';
   HistoryBackend(this._db);
 
+  /// Whether the storing of the entries is enabled.
   bool get isEnabled => _enabled;
 
+  /// Store a history [event]. When storing is not enabled, this will only log
+  /// the method call, and not store the entry in Datastore.
   Future storeEvent(HistoryEvent event) async {
     final history = new History.entry(event);
     if (!_enabled) {
