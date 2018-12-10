@@ -4,6 +4,8 @@
 
 import 'package:meta/meta.dart';
 
+import 'urls.dart';
+
 final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
 final _defaultFrom = new EmailAddress('Pub Site Admin', 'pub@dartlang.org');
 
@@ -103,10 +105,13 @@ EmailMessage createPackageUploadedEmail({
   @required String uploaderEmail,
   @required List<EmailAddress> authorizedUploaders,
 }) {
+  final url =
+      pkgPageUrl(packageName, version: packageVersion, includeHost: true);
   final subject = 'Package upload on pub: $packageName $packageVersion';
   final bodyText = '''Dear package maintainer,
 
-$uploaderEmail uploaded a new version of package $packageName: $packageVersion
+$uploaderEmail uploaded a new version of package $packageName:
+$url
 
 If you think this is a mistake or fraud, file an issue on GitHub:
 https://github.com/dart-lang/pub-dartlang-dart/issues
