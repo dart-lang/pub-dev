@@ -77,13 +77,10 @@ Future addUploader(String packageName, String uploader) async {
     await T.commit();
     print('Uploader $uploader added to list of uploaders');
 
-    historyBackend.store(new History.entry(
-      source: HistorySource.account,
-      event: new UploaderChanged(
-        packageName: packageName,
-        currentUserEmail: null, // TODO: get system account's email
-        addedUploaderEmails: [uploader],
-      ),
+    historyBackend.storeEvent(new UploaderChanged(
+      packageName: packageName,
+      currentUserEmail: null, // TODO: get system account's email
+      addedUploaderEmails: [uploader],
     ));
   });
 }
@@ -109,13 +106,10 @@ Future removeUploader(String packageName, String uploader) async {
     await T.commit();
     print('Uploader $uploader removed from list of uploaders');
 
-    historyBackend.store(new History.entry(
-      source: HistorySource.account,
-      event: new UploaderChanged(
-        packageName: packageName,
-        currentUserEmail: null, // TODO: get system account's email
-        removedUploaderEmails: [uploader],
-      ),
+    historyBackend.storeEvent(new UploaderChanged(
+      packageName: packageName,
+      currentUserEmail: null, // TODO: get system account's email
+      removedUploaderEmails: [uploader],
     ));
   });
 }

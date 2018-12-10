@@ -488,13 +488,10 @@ class GCloudPackageRepository extends PackageRepository {
           await cache.invalidateUIPackagePage(package.name);
         }
 
-        await historyBackend.store(new History.entry(
-          source: HistorySource.account,
-          event: new UploaderChanged(
-            packageName: packageName,
-            currentUserEmail: userEmail,
-            addedUploaderEmails: [uploaderEmail],
-          ),
+        await historyBackend.storeEvent(new UploaderChanged(
+          packageName: packageName,
+          currentUserEmail: userEmail,
+          addedUploaderEmails: [uploaderEmail],
         ));
       });
     });
@@ -553,13 +550,10 @@ class GCloudPackageRepository extends PackageRepository {
           await cache.invalidateUIPackagePage(package.name);
         }
 
-        await historyBackend.store(new History.entry(
-          source: HistorySource.account,
-          event: new UploaderChanged(
-            packageName: packageName,
-            currentUserEmail: userEmail,
-            removedUploaderEmails: [uploaderEmail],
-          ),
+        await historyBackend.storeEvent(new UploaderChanged(
+          packageName: packageName,
+          currentUserEmail: userEmail,
+          removedUploaderEmails: [uploaderEmail],
         ));
       });
     });

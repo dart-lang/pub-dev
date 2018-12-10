@@ -416,8 +416,8 @@ class HistoryBackendMock implements HistoryBackend {
   }
 
   @override
-  Future store(History history) async {
-    storedHistories.add(history);
+  Future storeEvent(HistoryEvent event) async {
+    storedHistories.add(new History.entry(event));
   }
 }
 

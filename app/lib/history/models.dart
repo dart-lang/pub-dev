@@ -37,15 +37,12 @@ class History extends db.ExpandoModel {
     eventData = map.values.single as Map<String, dynamic>;
   }
 
-  factory History.entry({
-    @required String source,
-    @required HistoryEvent event,
-  }) {
+  factory History.entry(HistoryEvent event) {
     return new History._(
       packageName: event.packageName,
       packageVersion: event.packageVersion ?? '*',
       timestamp: event.timestamp,
-      source: source,
+      source: event.source,
       union: new HistoryUnion.ofEvent(event),
     );
   }
@@ -84,6 +81,7 @@ class History extends db.ExpandoModel {
 }
 
 abstract class HistoryEvent {
+  String get source;
   String get packageName;
   String get packageVersion;
   DateTime get timestamp;
@@ -153,6 +151,9 @@ class PackageUploaded implements HistoryEvent {
       _$PackageUploadedFromJson(json);
 
   @override
+  String get source => HistorySource.account;
+
+  @override
   String formatMarkdown() {
     return 'Version $packageVersion was uploaded by `$uploaderEmail`.';
   }
@@ -183,6 +184,9 @@ class UploaderChanged implements HistoryEvent {
 
   factory UploaderChanged.fromJson(Map<String, dynamic> json) =>
       _$UploaderChangedFromJson(json);
+
+  @override
+  String get source => HistorySource.account;
 
   @override
   String formatMarkdown() {
@@ -225,6 +229,9 @@ class AnalysisCompleted implements HistoryEvent {
 
   factory AnalysisCompleted.fromJson(Map<String, dynamic> json) =>
       _$AnalysisCompletedFromJson(json);
+
+  @override
+  String get source => HistorySource.analyzer;
 
   @override
   String formatMarkdown() {

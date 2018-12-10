@@ -27,7 +27,8 @@ class HistoryBackend {
   final bool _enabled = Platform.environment['HISTORY_ENABLED'] == '1';
   HistoryBackend(this._db);
 
-  Future store(History history) async {
+  Future storeEvent(HistoryEvent event) async {
+    final history = new History.entry(event);
     if (!_enabled) {
       _logger.info('History is not enabled, store aborted: '
           '${history.packageName} ${history.packageVersion} ${history.eventType}');

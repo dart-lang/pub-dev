@@ -47,16 +47,12 @@ Future _backfillPackage(String package) async {
       }
     }
     if (!hasUploaded) {
-      final history = new History.entry(
-        source: HistorySource.account,
-        event: new PackageUploaded(
-          packageName: package,
-          packageVersion: pv.version,
-          uploaderEmail: pv.uploaderEmail,
-          timestamp: pv.created,
-        ),
-      );
-      historyBackend.store(history);
+      historyBackend.storeEvent(new PackageUploaded(
+        packageName: package,
+        packageVersion: pv.version,
+        uploaderEmail: pv.uploaderEmail,
+        timestamp: pv.created,
+      ));
     }
   }
 }
