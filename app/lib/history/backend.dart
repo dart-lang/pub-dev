@@ -27,6 +27,8 @@ class HistoryBackend {
   final bool _enabled = Platform.environment['HISTORY_ENABLED'] == '1';
   HistoryBackend(this._db);
 
+  bool get isEnabled => _enabled;
+
   Future storeEvent(HistoryEvent event) async {
     final history = new History.entry(event);
     if (!_enabled) {

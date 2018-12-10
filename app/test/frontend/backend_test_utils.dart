@@ -410,6 +410,9 @@ class HistoryBackendMock implements HistoryBackend {
   final storedHistories = <History>[];
 
   @override
+  bool get isEnabled => false;
+
+  @override
   Stream<History> getAll(
       {String scope, String packageName, String packageVersion, int limit}) {
     throw new UnimplementedError();

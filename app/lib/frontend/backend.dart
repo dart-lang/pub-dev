@@ -366,6 +366,16 @@ class GCloudPackageRepository extends PackageRepository {
         // Apply update: Push to cloud storage
         await tarballUpload(package.name, newVersion.version);
 
+        if (historyBackend.isEnabled) {
+          final history = new History.entry(new PackageUploaded(
+            packageName: newVersion.package,
+            packageVersion: newVersion.version,
+            uploaderEmail: newVersion.uploaderEmail,
+            timestamp: newVersion.created,
+          ));
+          T.queueMutations(inserts: [history]);
+        }
+
         // Apply update: Update datastore.
         _logger.info('Trying to commit datastore changes.');
         T.queueMutations(inserts: [package, newVersion]);
