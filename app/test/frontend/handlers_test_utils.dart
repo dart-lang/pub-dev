@@ -168,6 +168,31 @@ class BackendMock implements Backend {
     }
     return (await downloadUrlFun(package, version)) as Uri;
   }
+
+  @override
+  Future<PackageInvite> confirmPackageInvite({
+    String packageName,
+    String type,
+    String recipientEmail,
+    String urlNonce,
+  }) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<String> updatePackageInvite({
+    String packageName,
+    String type,
+    String recipientEmail,
+    String fromEmail,
+  }) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future deleteObsoleteInvites() {
+    throw new UnimplementedError();
+  }
 }
 
 class TemplateMock implements TemplateService {
