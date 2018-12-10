@@ -127,7 +127,8 @@ void main() {
           message.bodyText,
           'Dear package maintainer,\n'
           '\n'
-          'uploader@example.com uploaded a new version of package pkg_foo: 1.0.0\n'
+          'uploader@example.com uploaded a new version of package pkg_foo:\n'
+          'https://pub.dartlang.org/packages/pkg_foo/versions/1.0.0\n'
           '\n'
           'If you think this is a mistake or fraud, file an issue on GitHub:\n'
           'https://github.com/dart-lang/pub-dartlang-dart/issues\n'
