@@ -490,6 +490,15 @@ class GCloudPackageRepository extends PackageRepository {
           throw new UploaderAlreadyExistsException();
         }
 
+        if (historyBackend.isEnabled) {
+          final history = new History.entry(new UploaderChanged(
+            packageName: packageName,
+            currentUserEmail: userEmail,
+            addedUploaderEmails: [uploaderEmail],
+          ));
+          T.queueMutations(inserts: [history]);
+        }
+
         // Add [uploaderEmail] to uploaders and commit.
         package.uploaderEmails.add(uploaderEmail);
         T.queueMutations(inserts: [package]);
@@ -497,12 +506,6 @@ class GCloudPackageRepository extends PackageRepository {
         if (cache != null) {
           await cache.invalidateUIPackagePage(package.name);
         }
-
-        await historyBackend.storeEvent(new UploaderChanged(
-          packageName: packageName,
-          currentUserEmail: userEmail,
-          addedUploaderEmails: [uploaderEmail],
-        ));
       });
     });
   }
@@ -554,17 +557,20 @@ class GCloudPackageRepository extends PackageRepository {
               'Use another account to remove this e-mail address.');
         }
 
+        if (historyBackend.isEnabled) {
+          final history = new History.entry(new UploaderChanged(
+            packageName: packageName,
+            currentUserEmail: userEmail,
+            removedUploaderEmails: [uploaderEmail],
+          ));
+          T.queueMutations(inserts: [history]);
+        }
+
         T.queueMutations(inserts: [package]);
         await T.commit();
         if (cache != null) {
           await cache.invalidateUIPackagePage(package.name);
         }
-
-        await historyBackend.storeEvent(new UploaderChanged(
-          packageName: packageName,
-          currentUserEmail: userEmail,
-          removedUploaderEmails: [uploaderEmail],
-        ));
       });
     });
   }
