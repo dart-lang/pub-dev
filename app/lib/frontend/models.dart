@@ -239,6 +239,54 @@ abstract class SecretKey {
   ];
 }
 
+/// An active invitation sent to a recipient.
+/// The parent entity is a [Package] the id is the concatenation of '[type]/[recipientEmail]'.
+///
+/// The invitation secret ([urlNonce]) is sent via e-mail to the recipient and
+/// they need to open a URL to accept the invitation.
+@db.Kind(name: 'PackageInvite', idType: db.IdType.String)
+class PackageInvite extends db.Model {
+  @db.StringProperty()
+  String type;
+
+  @db.StringProperty()
+  String recipientEmail;
+
+  @db.StringProperty()
+  String urlNonce;
+
+  @db.StringProperty()
+  String fromEmail;
+
+  @db.DateTimeProperty()
+  DateTime created;
+
+  @db.DateTimeProperty()
+  DateTime expires;
+
+  @db.DateTimeProperty()
+  DateTime lastNotified;
+
+  @db.IntProperty()
+  int notificationCount;
+
+  @db.DateTimeProperty()
+  DateTime confirmed;
+
+  /// Create a composite id.
+  static String createId(String type, String recipientEmail) =>
+      '$type/$recipientEmail';
+
+  bool isExpired() => new DateTime.now().toUtc().isAfter(expires);
+
+  /// Whether a new notification should be sent.
+  bool shouldNotify() => DateTime.now().toUtc().isAfter(nextNotification);
+
+  /// The timestamp when the next notification could be sent out.
+  DateTime get nextNotification =>
+      created.add(Duration(minutes: 1 << notificationCount));
+}
+
 /// An extract of [Package] and [PackageVersion], for
 /// display-only uses.
 class PackageView extends Object with FlagMixin {

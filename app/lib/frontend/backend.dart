@@ -6,11 +6,13 @@ library pub_dartlang_org.backend;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,6 +30,7 @@ import 'name_tracker.dart';
 import 'upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
+final _random = new Random.secure();
 
 /// Sets the active logged-in user.
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
@@ -159,6 +162,128 @@ class Backend {
     assert(repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
   }
+
+  /// Stores a [models.PackageInvite] entry in the Datastore and returns its
+  /// current status. When set, the status.urlNonce can be used in
+  /// client-communication, e.g. sending via e-mail.
+  Future<InviteStatus> updatePackageInvite({
+    @required String packageName,
+    @required String type,
+    @required String recipientEmail,
+    @required String fromEmail,
+  }) async {
+    final now = new DateTime.now().toUtc();
+    final inviteId = models.PackageInvite.createId(type, recipientEmail);
+    final pkgKey = db.emptyKey.append(models.Package, id: packageName);
+    final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
+    return await db.withTransaction((tx) async {
+      final list = await tx.lookup([inviteKey]);
+      models.PackageInvite invite = list.single;
+
+      // Existing and active invite with throttled notification.
+      if (invite != null && !invite.isExpired() && !invite.shouldNotify()) {
+        await tx.rollback();
+        return new InviteStatus(nextNotification: invite.nextNotification);
+      }
+
+      // Existing and active invite with notification enabled.
+      if (invite != null && !invite.isExpired()) {
+        invite.lastNotified = now;
+        invite.notificationCount++;
+        tx.queueMutations(inserts: [invite]);
+        await tx.commit();
+        return new InviteStatus(urlNonce: invite.urlNonce);
+      }
+
+      // Reset old or create new invite.
+      invite ??= models.PackageInvite()
+        ..parentKey = pkgKey
+        ..id = inviteId
+        ..type = type
+        ..recipientEmail = recipientEmail;
+      final urlNonce =
+          new List.generate(25, (i) => _random.nextInt(36).toRadixString(36))
+              .join();
+      invite
+        ..urlNonce = urlNonce
+        ..fromEmail = fromEmail
+        ..created = now
+        ..expires = now.add(Duration(days: 1))
+        ..notificationCount = 1
+        ..lastNotified = now;
+      tx.queueMutations(inserts: [invite]);
+      await tx.commit();
+      return new InviteStatus(urlNonce: invite.urlNonce);
+    }) as InviteStatus;
+  }
+
+  /// Confirm the invite and return the Datastore entry object if successful,
+  /// otherwise returns null.
+  Future<models.PackageInvite> confirmPackageInvite({
+    @required String packageName,
+    @required String type,
+    @required String recipientEmail,
+    @required String urlNonce,
+  }) async {
+    final inviteId = models.PackageInvite.createId(type, recipientEmail);
+    final pkgKey = db.emptyKey.append(models.Package, id: packageName);
+    final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
+    return await db.withTransaction((tx) async {
+      final list = await tx.lookup([inviteKey]);
+      models.PackageInvite invite = list.single;
+
+      // Invite entry does not exists.
+      if (invite == null) {
+        await tx.rollback();
+        return null;
+      }
+
+      // Invite entry has expired.
+      if (invite.isExpired()) {
+        tx.queueMutations(deletes: [inviteKey]);
+        await tx.commit();
+        return null;
+      }
+
+      // urlNonce check: whether the invite has been updated.
+      if (invite.urlNonce != urlNonce) {
+        await tx.rollback();
+        return null;
+      }
+
+      // Invite already confirmed.
+      if (invite.confirmed != null) {
+        await tx.rollback();
+        return invite;
+      }
+
+      // Confirming invite.
+      invite.confirmed = new DateTime.now().toUtc();
+      tx.queueMutations(inserts: [invite]);
+      await tx.commit();
+      return invite;
+    }) as models.PackageInvite;
+  }
+
+  /// Removes obsolete (== expired more than a day ago) invites from Datastore.
+  Future deleteObsoleteInvites() async {
+    final query = db.query<models.PackageInvite>()
+      ..filter('expires <', DateTime.now().subtract(Duration(days: 1)));
+    await for (var invite in query.run()) {
+      db.commit(deletes: [invite.key]);
+    }
+  }
+}
+
+/// The status of an invite after being created or updated.
+class InviteStatus {
+  final String urlNonce;
+  final DateTime nextNotification;
+
+  InviteStatus({this.urlNonce, this.nextNotification});
+
+  bool get isActive => urlNonce != null;
+  bool get isDelayed => nextNotification != null;
 }
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
