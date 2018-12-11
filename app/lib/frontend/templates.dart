@@ -673,6 +673,16 @@ class TemplateService {
     );
   }
 
+  /// Renders the `views/uploader_confirmed.mustache` template.
+  String renderUploaderConfirmedPage(String package, String uploaderEmail) {
+    final String content = _renderTemplate('uploader_confirmed', {
+      'package': package,
+      'uploader_email': uploaderEmail,
+    });
+    return renderLayoutPage(PageType.package, content,
+        title: 'Uploader confirmed', includeSurvey: false);
+  }
+
   /// Renders the `views/authorized.mustache` template.
   String renderAuthorizedPage() {
     final String content = _renderTemplate('authorized', {});

@@ -238,6 +238,12 @@ class Backend {
         return null;
       }
 
+      // Consistency check
+      if (invite.recipientEmail != recipientEmail) {
+        await tx.rollback();
+        return null;
+      }
+
       // Invite entry has expired.
       if (invite.isExpired()) {
         tx.queueMutations(deletes: [inviteKey]);
@@ -591,51 +597,101 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
-    return _withAuthenticatedUser((String userEmail) {
-      return db.withTransaction((Transaction T) async {
-        final packageKey = db.emptyKey.append(models.Package, id: packageName);
-        final models.Package package = (await T.lookup([packageKey])).first;
+    await _withAuthenticatedUser((String userEmail) async {
+      final packageKey = db.emptyKey.append(models.Package, id: packageName);
+      final models.Package package = (await db.lookup([packageKey])).first;
 
-        // Fail if package doesn't exist.
-        if (package == null) {
-          await T.rollback();
-          throw new GenericProcessingException(
-              'Package "$package" does not exist');
-        }
+      _validateNewUploader(userEmail, package, uploaderEmail);
 
-        // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.hasUploader(userEmail)) {
-          await T.rollback();
-          throw new UnauthorizedAccessException(
-              'Calling user does not have permission to change uploaders.');
-        }
+      final status = await backend.updatePackageInvite(
+        packageName: packageName,
+        type: models.PackageInviteType.newUploader,
+        recipientEmail: uploaderEmail,
+        fromEmail: userEmail,
+      );
 
-        // Fail if the uploader we want to add already exists.
-        if (package.hasUploader(uploaderEmail)) {
-          await T.rollback();
-          throw new UploaderAlreadyExistsException();
-        }
+      if (status.isDelayed) {
+        throw new GenericProcessingException(
+            'Previous invite is still active, next notification can be sent '
+            'on ${status.nextNotification.toIso8601String()}.');
+      }
 
-        // Add [uploaderEmail] to uploaders and commit.
-        package.uploaderEmails.add(uploaderEmail);
+      final confirmationUrl = urls.pkgInviteUrl(
+        type: models.PackageInviteType.newUploader,
+        package: packageName,
+        email: uploaderEmail,
+        urlNonce: status.urlNonce,
+      );
+      final message = createUploaderConfirmationEmail(
+        packageName: packageName,
+        activeAccountEmail: userEmail,
+        addedUploaderEmail: uploaderEmail,
+        confirmationUrl: confirmationUrl,
+      );
+      await emailSender.sendMessage(message);
 
-        final inserts = <Model>[package];
-        if (historyBackend.isEnabled) {
-          final history = new History.entry(new UploaderChanged(
-            packageName: packageName,
-            currentUserEmail: userEmail,
-            addedUploaderEmails: [uploaderEmail],
-          ));
-          inserts.add(history);
-        }
-
-        T.queueMutations(inserts: inserts);
-        await T.commit();
-        if (cache != null) {
-          await cache.invalidateUIPackagePage(package.name);
-        }
-      });
+      throw new GenericProcessingException(
+          'We have sent an invitation to $uploaderEmail, '
+          'they will be added as uploader after they confirm it.');
     });
+  }
+
+  Future confirmUploader(
+      String userEmail, String packageName, String uploaderEmail) async {
+    return db.withTransaction((Transaction T) async {
+      final packageKey = db.emptyKey.append(models.Package, id: packageName);
+      final models.Package package = (await T.lookup([packageKey])).first;
+
+      try {
+        _validateNewUploader(userEmail, package, uploaderEmail,
+            idempotent: true);
+      } catch (_) {
+        await T.rollback();
+        rethrow;
+      }
+
+      // Add [uploaderEmail] to uploaders and commit.
+      package.uploaderEmails.add(uploaderEmail);
+
+      final inserts = <Model>[package];
+      if (historyBackend.isEnabled) {
+        final history = new History.entry(new UploaderChanged(
+          packageName: packageName,
+          currentUserEmail: userEmail,
+          addedUploaderEmails: [uploaderEmail],
+        ));
+        inserts.add(history);
+      }
+
+      T.queueMutations(inserts: inserts);
+      await T.commit();
+      if (cache != null) {
+        await cache.invalidateUIPackagePage(package.name);
+      }
+    });
+  }
+
+  void _validateNewUploader(
+    String userEmail,
+    models.Package package,
+    String uploaderEmail, {
+    bool idempotent = false,
+  }) {
+    // Fail if package doesn't exist.
+    if (package == null) {
+      throw new GenericProcessingException('Package "$package" does not exist');
+    }
+
+    // Fail if calling user doesn't have permission to change uploaders.
+    if (!package.hasUploader(userEmail)) {
+      throw new UnauthorizedAccessException(
+          'Calling user does not have permission to change uploaders.');
+    }
+
+    // Fail if the uploader we want to add already exists.
+    if (!idempotent && package.hasUploader(uploaderEmail)) {
+      throw new UploaderAlreadyExistsException();
+    }
   }
 
   @override

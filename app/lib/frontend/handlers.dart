@@ -66,6 +66,8 @@ Future<shelf.Response> appHandler(
 
   if (handler != null) {
     return await handler(request);
+  } else if (path.startsWith('/admin/confirm/')) {
+    return await _adminConfirmHandler(request);
   } else if (path == '/api/packages' &&
       request.requestedUri.queryParameters['compact'] == '1') {
     return apiPackagesCompactListHandler(request);
@@ -495,4 +497,39 @@ Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
     templateService.renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
+}
+
+/// Handles requests for /admin/confirm
+Future<shelf.Response> _adminConfirmHandler(shelf.Request request) async {
+  final segments = request.requestedUri.pathSegments;
+  if (segments.length <= 2) {
+    return _formattedNotFoundHandler(request);
+  }
+  final type = segments[2];
+  if (type == PackageInviteType.newUploader) {
+    if (segments.length != 6) {
+      return _formattedNotFoundHandler(request);
+    }
+    final packageName = segments[3];
+    final recipientEmail = segments[4];
+    final urlNonce = segments[5];
+    if (packageName.isEmpty || urlNonce.isEmpty) {
+      return _formattedNotFoundHandler(request);
+    }
+    final invite = await backend.confirmPackageInvite(
+      packageName: packageName,
+      type: type,
+      recipientEmail: recipientEmail,
+      urlNonce: urlNonce,
+    );
+    if (invite == null) {
+      return _formattedNotFoundHandler(request);
+    }
+    await backend.repository.confirmUploader(
+        invite.fromEmail, invite.packageName, invite.recipientEmail);
+    return htmlResponse(templateService.renderUploaderConfirmedPage(
+        invite.packageName, invite.recipientEmail));
+  } else {
+    return _formattedNotFoundHandler(request);
+  }
 }

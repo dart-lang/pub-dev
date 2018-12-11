@@ -147,4 +147,17 @@ void main() {
       expect(inferIssueTrackerUrl('$repo/a/b/c'), tracker);
     });
   });
+
+  group('Invite urls', () {
+    test('new uploader invite', () {
+      expect(
+          pkgInviteUrl(
+            type: 'new-uploader',
+            package: 'pkg_foo',
+            email: 'uploader@example.com',
+            urlNonce: 'abcdefghijklmnop1234567890',
+          ),
+          'https://pub.dartlang.org/admin/confirm/new-uploader/pkg_foo/uploader@example.com/abcdefghijklmnop1234567890');
+    });
+  });
 }

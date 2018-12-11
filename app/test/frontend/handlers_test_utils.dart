@@ -207,6 +207,11 @@ class TemplateMock implements TemplateService {
   }
 
   @override
+  String renderUploaderConfirmedPage(String package, String uploaderEmail) {
+    return _response;
+  }
+
+  @override
   String renderErrorPage(
       String title, String message, List<PackageView> packages) {
     return _response;

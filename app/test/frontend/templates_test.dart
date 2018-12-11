@@ -457,6 +457,12 @@ void main() {
       expectGoldenFile(html, 'authorized_page.html');
     });
 
+    test('uploader confirmed page', () {
+      final String html = templates.renderUploaderConfirmedPage(
+          'pkg_foo', 'uploader@example.com');
+      expectGoldenFile(html, 'uploader_confirmed_page.html');
+    });
+
     test('error page', () {
       final String html =
           templates.renderErrorPage('error_title', 'error_message', [

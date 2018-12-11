@@ -273,6 +273,8 @@ class PackageInvite extends db.Model {
   @db.DateTimeProperty()
   DateTime confirmed;
 
+  String get packageName => parentKey.id as String;
+
   /// Create a composite id.
   static String createId(String type, String recipientEmail) =>
       '$type/$recipientEmail';
@@ -285,6 +287,10 @@ class PackageInvite extends db.Model {
   /// The timestamp when the next notification could be sent out.
   DateTime get nextNotification =>
       created.add(Duration(minutes: 1 << notificationCount));
+}
+
+abstract class PackageInviteType {
+  static const newUploader = 'new-uploader';
 }
 
 /// An extract of [Package] and [PackageVersion], for
