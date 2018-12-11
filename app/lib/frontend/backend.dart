@@ -164,11 +164,9 @@ class Backend {
   }
 
   /// Stores a [models.PackageInvite] entry in the Datastore and returns its
-  /// urlNonce can be used in client-communication, e.g. sending via e-mail.
-  ///
-  /// Returns null if invite has been updated recently and at the moment no
-  /// e-mail should be sent.
-  Future<String> updatePackageInvite({
+  /// current status. When set, the status.urlNonce can be used in
+  /// client-communication, e.g. sending via e-mail.
+  Future<InviteStatus> updatePackageInvite({
     @required String packageName,
     @required String type,
     @required String recipientEmail,
@@ -185,7 +183,7 @@ class Backend {
       // Existing and active invite with throttled notification.
       if (invite != null && !invite.isExpired() && !invite.shouldNotify()) {
         await tx.rollback();
-        return null;
+        return new InviteStatus(delayDuration: invite.delayDuration);
       }
 
       // Existing and active invite with notification enabled.
@@ -194,7 +192,7 @@ class Backend {
         invite.notificationCount++;
         tx.queueMutations(inserts: [invite]);
         await tx.commit();
-        return invite.urlNonce;
+        return new InviteStatus(urlNonce: invite.urlNonce);
       }
 
       // Reset old or create new invite.
@@ -215,8 +213,8 @@ class Backend {
         ..lastNotified = now;
       tx.queueMutations(inserts: [invite]);
       await tx.commit();
-      return invite.urlNonce;
-    }) as String;
+      return new InviteStatus(urlNonce: invite.urlNonce);
+    }) as InviteStatus;
   }
 
   /// Confirm the invite and return the Datastore entry object if successful,
@@ -270,11 +268,22 @@ class Backend {
   /// Removes obsolete (== expired more than a day ago) invites from Datastore.
   Future deleteObsoleteInvites() async {
     final query = db.query<models.PackageInvite>()
-        ..filter('expires <', DateTime.now().subtract(Duration(days: 1)));
+      ..filter('expires <', DateTime.now().subtract(Duration(days: 1)));
     await for (var invite in query.run()) {
       db.commit(deletes: [invite.key]);
     }
   }
+}
+
+/// The status of an invite after being created or updated.
+class InviteStatus {
+  final String urlNonce;
+  final Duration delayDuration;
+
+  InviteStatus({this.urlNonce, this.delayDuration});
+
+  bool get isActive => urlNonce != null;
+  bool get isDelayed => delayDuration != null;
 }
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore

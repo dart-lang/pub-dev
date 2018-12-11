@@ -180,7 +180,7 @@ class BackendMock implements Backend {
   }
 
   @override
-  Future<String> updatePackageInvite({
+  Future<InviteStatus> updatePackageInvite({
     String packageName,
     String type,
     String recipientEmail,
