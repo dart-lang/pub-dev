@@ -280,19 +280,11 @@ class PackageInvite extends db.Model {
   bool isExpired() => new DateTime.now().toUtc().isAfter(expires);
 
   /// Whether a new notification should be sent.
-  bool shouldNotify() => delayDuration == Duration.zero;
+  bool shouldNotify() => DateTime.now().toUtc().isAfter(nextNotification);
 
-  /// The amount of time that needs to be waited before sending the next notification.
-  Duration get delayDuration {
-    final now = DateTime.now().toUtc();
-    final delay = Duration(minutes: 1 << notificationCount);
-    final nextNotification = created.add(delay);
-    if (now.isAfter(nextNotification)) {
-      return Duration.zero;
-    } else {
-      return nextNotification.difference(now);
-    }
-  }
+  /// The timestamp when the next notification could be sent out.
+  DateTime get nextNotification =>
+      created.add(Duration(minutes: 1 << notificationCount));
 }
 
 /// An extract of [Package] and [PackageVersion], for

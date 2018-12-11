@@ -183,7 +183,7 @@ class Backend {
       // Existing and active invite with throttled notification.
       if (invite != null && !invite.isExpired() && !invite.shouldNotify()) {
         await tx.rollback();
-        return new InviteStatus(delayDuration: invite.delayDuration);
+        return new InviteStatus(nextNotification: invite.nextNotification);
       }
 
       // Existing and active invite with notification enabled.
@@ -278,12 +278,12 @@ class Backend {
 /// The status of an invite after being created or updated.
 class InviteStatus {
   final String urlNonce;
-  final Duration delayDuration;
+  final DateTime nextNotification;
 
-  InviteStatus({this.urlNonce, this.delayDuration});
+  InviteStatus({this.urlNonce, this.nextNotification});
 
   bool get isActive => urlNonce != null;
-  bool get isDelayed => delayDuration != null;
+  bool get isDelayed => nextNotification != null;
 }
 
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
