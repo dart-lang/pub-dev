@@ -17,6 +17,7 @@ import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 
 import '../shared/utils.dart';
 
@@ -340,8 +341,7 @@ void main() {
 
       Future testSuccessful(
           String user, List<String> uploaderEmails, String newUploader) async {
-        final historyBackendMock = new HistoryBackendMock();
-        registerHistoryBackend(historyBackendMock);
+        registerHistoryBackend(new HistoryBackendMock());
         final completion = new TestDelayCompletion();
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
@@ -350,11 +350,12 @@ void main() {
               return [testPackage];
             }),
             queueMutationFun: ({inserts, deletes}) {
-              expect(inserts, hasLength(1));
+              expect(inserts, hasLength(2));
               for (final email in uploaderEmails) {
                 expect(inserts.first.uploaderEmails, contains(email));
               }
               expect(inserts.first.uploaderEmails, contains(newUploader));
+              expect(inserts[1] is History, isTrue);
               completion.complete();
             },
             commitFun: expectAsync0(() {}));
@@ -366,7 +367,6 @@ void main() {
         testPackage.uploaderEmails = uploaderEmails;
         registerLoggedInUser(user);
         await repo.addUploader(pkg, newUploader);
-        expect(historyBackendMock.storedHistories, hasLength(1));
       }
 
       test('successful', () async {
@@ -452,8 +452,7 @@ void main() {
       });
 
       scopedTest('successful', () async {
-        final historyBackendMock = new HistoryBackendMock();
-        registerHistoryBackend(historyBackendMock);
+        registerHistoryBackend(new HistoryBackendMock());
         final completion = new TestDelayCompletion();
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
@@ -462,8 +461,9 @@ void main() {
               return [testPackage];
             }),
             queueMutationFun: ({inserts, deletes}) {
-              expect(inserts, hasLength(1));
+              expect(inserts, hasLength(2));
               expect(inserts.first.uploaderEmails.contains('b@x.com'), isFalse);
+              expect(inserts[1] is History, isTrue);
               completion.complete();
             },
             commitFun: expectAsync0(() {}));
@@ -475,7 +475,6 @@ void main() {
         testPackage.uploaderEmails = ['a@x.com', 'b@x.com'];
         registerLoggedInUser(testPackage.uploaderEmails.first);
         await repo.removeUploader(pkg, 'b@x.com');
-        expect(historyBackendMock.storedHistories, hasLength(1));
       });
     });
 
@@ -590,9 +589,10 @@ void main() {
       final dateBeforeTest = new DateTime.now().toUtc();
 
       void validateSuccessfullUpdate(List<Model> inserts) {
-        expect(inserts, hasLength(2));
+        expect(inserts, hasLength(3));
         final Package package = inserts[0];
         final PackageVersion version = inserts[1];
+        final History history = inserts[2];
 
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);
@@ -613,6 +613,14 @@ void main() {
         expect(version.downloads, 0);
 
         expect(version.sortOrder, 1);
+
+        expect(history.packageName, testPackage.name);
+        expect(history.packageVersion, testPackageVersion.version);
+        expect(history.source, HistorySource.account);
+        expect(history.eventType, 'packageUploaded');
+        expect(history.historyEvent is PackageUploaded, isTrue);
+        expect((history.historyEvent as PackageUploaded).uploaderEmail,
+            'hans@juergen.com');
       }
 
       void validateSuccessfullSortOrderUpdate(PackageVersion model) {
@@ -699,6 +707,8 @@ void main() {
           final db = new DatastoreDBMock(transactionMock: transactionMock);
           final repo = new GCloudPackageRepository(db, tarballStorage);
           registerLoggedInUser('hans@juergen.com');
+          final historyBackendMock = new HistoryBackendMock();
+          registerHistoryBackend(historyBackendMock);
           final Future result = repo.finishAsyncUpload(redirectUri);
           await result.catchError(expectAsync2((error, _) {
             expect(
@@ -706,6 +716,7 @@ void main() {
                 contains(
                     'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
+          expect(historyBackendMock.storedHistories, hasLength(0));
         }, timeout: new Timeout.factor(2));
 
         scopedTest('successful', () async {
@@ -754,6 +765,7 @@ void main() {
             registerLoggedInUser('hans@juergen.com');
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
+            registerHistoryBackend(new HistoryBackendMock());
             final version = await repo.finishAsyncUpload(redirectUri);
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
@@ -873,6 +885,8 @@ void main() {
           final db = new DatastoreDBMock(transactionMock: transactionMock);
           final repo = new GCloudPackageRepository(db, tarballStorage);
           registerLoggedInUser('hans@juergen.com');
+          final historyBackendMock = new HistoryBackendMock();
+          registerHistoryBackend(historyBackendMock);
           final Future result =
               repo.upload(new Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
@@ -881,6 +895,7 @@ void main() {
                 contains(
                     'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
+          expect(historyBackendMock.storedHistories, hasLength(0));
         }, timeout: new Timeout.factor(2));
 
         scopedTest('successful', () async {
@@ -935,6 +950,7 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerLoggedInUser('hans@juergen.com');
+            registerHistoryBackend(new HistoryBackendMock());
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
             final version =
