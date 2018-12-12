@@ -21,21 +21,13 @@ class PubDartdocData {
   Map<String, dynamic> toJson() => _$PubDartdocDataToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class ApiElement {
   final String name;
-
   final String kind;
-
-  @JsonKey(includeIfNull: false)
   final String parent;
-
   final String source;
-
-  @JsonKey(includeIfNull: false)
   final String href;
-
-  @JsonKey(includeIfNull: false)
   final String documentation;
 
   ApiElement({

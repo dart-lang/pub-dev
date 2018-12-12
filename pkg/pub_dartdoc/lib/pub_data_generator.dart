@@ -41,14 +41,19 @@ class PubDataGenerator implements Generator {
 
     final apiMap = <String, ApiElement>{};
     void addElement(ModelElement elem) {
+      final isReferenced = elem.kind == 'library' || elem.kind == 'class';
       apiMap.putIfAbsent(
           elem.fullyQualifiedName,
           () => new ApiElement(
                 name: elem.fullyQualifiedName,
                 kind: elem.kind,
                 parent: elem.enclosingElement?.fullyQualifiedName,
-                source: p.relative(elem.sourceFileName, from: _inputDirectory),
-                href: _trimToNull(elem.href),
+                // TODO: decide if keeping the source reference is worth it
+                // We could probably store it more efficiently by not repeating
+                // the filename every time.
+                // source: p.relative(elem.sourceFileName, from: _inputDirectory),
+                source: null,
+                href: isReferenced ? _trimToNull(elem.href) : null,
                 documentation: _trimToNull(elem.documentation),
               ));
       if (elem.enclosingElement is ModelElement) {
