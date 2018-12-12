@@ -3,143 +3,108 @@
     {
       "name": "pub_dartdoc_data",
       "kind": "library",
-      "source": "lib/pub_dartdoc_data.dart",
       "href": "pub_dartdoc_data/pub_dartdoc_data-library.html"
     },
     {
       "name": "pub_data_generator",
       "kind": "library",
-      "source": "lib/pub_data_generator.dart",
       "href": "pub_data_generator/pub_data_generator-library.html"
     },
     {
       "name": "pub_dartdoc_data.ApiElement",
       "kind": "class",
       "parent": "pub_dartdoc_data",
-      "source": "lib/pub_dartdoc_data.dart",
       "href": "pub_dartdoc_data/ApiElement-class.html"
     },
     {
       "name": "pub_dartdoc_data.PubDartdocData",
       "kind": "class",
       "parent": "pub_dartdoc_data",
-      "source": "lib/pub_dartdoc_data.dart",
       "href": "pub_dartdoc_data/PubDartdocData-class.html"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.documentation",
       "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/documentation.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.fromJson",
       "kind": "constructor",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/ApiElement.fromJson.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.href",
       "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/href.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.kind",
       "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/kind.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.name",
       "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/name.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.parent",
       "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/parent.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.source",
       "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/source.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.ApiElement.toJson",
       "kind": "method",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/ApiElement/toJson.html"
+      "parent": "pub_dartdoc_data.ApiElement"
     },
     {
       "name": "pub_dartdoc_data.PubDartdocData.apiElements",
       "kind": "property",
-      "parent": "pub_dartdoc_data.PubDartdocData",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/PubDartdocData/apiElements.html"
+      "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
       "name": "pub_dartdoc_data.PubDartdocData.fromJson",
       "kind": "constructor",
-      "parent": "pub_dartdoc_data.PubDartdocData",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/PubDartdocData/PubDartdocData.fromJson.html"
+      "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
       "name": "pub_dartdoc_data.PubDartdocData.toJson",
       "kind": "method",
-      "parent": "pub_dartdoc_data.PubDartdocData",
-      "source": "lib/pub_dartdoc_data.dart",
-      "href": "pub_dartdoc_data/PubDartdocData/toJson.html"
+      "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
       "name": "pub_data_generator.PubDataGenerator",
       "kind": "class",
       "parent": "pub_data_generator",
-      "source": "lib/pub_data_generator.dart",
       "href": "pub_data_generator/PubDataGenerator-class.html",
       "documentation": "Generates `pub-data.json` in the output directory, containing the extracted\n[PubDartdocData] instance."
     },
     {
       "name": "pub_data_generator.fileName",
       "kind": "top-level constant",
-      "parent": "pub_data_generator",
-      "source": "lib/pub_data_generator.dart",
-      "href": "pub_data_generator/fileName-constant.html"
+      "parent": "pub_data_generator"
     },
     {
       "name": "pub_data_generator.PubDataGenerator.generate",
       "kind": "method",
       "parent": "pub_data_generator.PubDataGenerator",
-      "source": "lib/pub_data_generator.dart",
-      "href": "pub_data_generator/PubDataGenerator/generate.html",
       "documentation": "Generate the documentation for the given package in the specified\ndirectory. Completes the returned future when done."
     },
     {
       "name": "pub_data_generator.PubDataGenerator.onFileCreated",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
-      "source": "lib/pub_data_generator.dart",
-      "href": "pub_data_generator/PubDataGenerator/onFileCreated.html",
       "documentation": "Fires when a file is created."
     },
     {
       "name": "pub_data_generator.PubDataGenerator.writtenFiles",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
-      "source": "lib/pub_data_generator.dart",
-      "href": "pub_data_generator/PubDataGenerator/writtenFiles.html",
       "documentation": "Fetches all filenames written by this generator."
     }
   ]

@@ -28,10 +28,7 @@ ApiElement _$ApiElementFromJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _$ApiElementToJson(ApiElement instance) {
-  final val = <String, dynamic>{
-    'name': instance.name,
-    'kind': instance.kind,
-  };
+  final val = <String, dynamic>{};
 
   void writeNotNull(String key, dynamic value) {
     if (value != null) {
@@ -39,8 +36,10 @@ Map<String, dynamic> _$ApiElementToJson(ApiElement instance) {
     }
   }
 
+  writeNotNull('name', instance.name);
+  writeNotNull('kind', instance.kind);
   writeNotNull('parent', instance.parent);
-  val['source'] = instance.source;
+  writeNotNull('source', instance.source);
   writeNotNull('href', instance.href);
   writeNotNull('documentation', instance.documentation);
   return val;
