@@ -251,7 +251,7 @@ class DartdocJobProcessor extends JobProcessor {
         final undocumented = total - documented;
         healthSuggestions.add(
           new Suggestion(
-              'dartdoc.coverage', // TODO: extract as const in pana
+              SuggestionCode.dartdocCoverage,
               level,
               'Document public APIs',
               '$undocumented out of $total API elements (library, class, field '
