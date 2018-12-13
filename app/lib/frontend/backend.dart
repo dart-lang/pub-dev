@@ -211,7 +211,18 @@ class Backend {
         ..expires = now.add(Duration(days: 1))
         ..notificationCount = 1
         ..lastNotified = now;
-      tx.queueMutations(inserts: [invite]);
+
+      final inserts = <Model>[invite];
+      if (historyBackend.isEnabled) {
+        final history = new History.entry(new UploaderInvited(
+          packageName: packageName,
+          currentUserEmail: fromEmail,
+          uploaderUserEmail: recipientEmail,
+        ));
+        inserts.add(history);
+      }
+
+      tx.queueMutations(inserts: inserts);
       await tx.commit();
       return new InviteStatus(urlNonce: invite.urlNonce);
     }) as InviteStatus;

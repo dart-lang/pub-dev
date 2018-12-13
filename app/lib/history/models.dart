@@ -92,11 +92,13 @@ abstract class HistoryEvent {
 class HistoryUnion {
   final PackageUploaded packageUploaded;
   final UploaderChanged uploaderChanged;
+  final UploaderInvited uploaderInvited;
   final AnalysisCompleted analysisCompleted;
 
   HistoryUnion({
     this.packageUploaded,
     this.uploaderChanged,
+    this.uploaderInvited,
     this.analysisCompleted,
   }) {
     assert(_items.where((x) => x != null).length == 1);
@@ -107,6 +109,8 @@ class HistoryUnion {
       return new HistoryUnion(packageUploaded: event);
     } else if (event is UploaderChanged) {
       return new HistoryUnion(uploaderChanged: event);
+    } else if (event is UploaderInvited) {
+      return new HistoryUnion(uploaderInvited: event);
     } else if (event is AnalysisCompleted) {
       return new HistoryUnion(analysisCompleted: event);
     } else {
@@ -121,6 +125,7 @@ class HistoryUnion {
     return <HistoryEvent>[
       packageUploaded,
       uploaderChanged,
+      uploaderInvited,
       analysisCompleted,
     ];
   }
@@ -206,6 +211,39 @@ class UploaderChanged implements HistoryEvent {
   }
 
   Map<String, dynamic> toJson() => _$UploaderChangedToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
+class UploaderInvited implements HistoryEvent {
+  @override
+  final String packageName;
+  final String currentUserEmail;
+  final String uploaderUserEmail;
+  @override
+  final DateTime timestamp;
+
+  UploaderInvited({
+    @required this.packageName,
+    @required this.currentUserEmail,
+    @required this.uploaderUserEmail,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
+
+  factory UploaderInvited.fromJson(Map<String, dynamic> json) =>
+      _$UploaderInvitedFromJson(json);
+
+  @override
+  String get packageVersion => null;
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    return '`$currentUserEmail` invited `$uploaderUserEmail` to be an uploader.';
+  }
+
+  Map<String, dynamic> toJson() => _$UploaderInvitedToJson(this);
 }
 
 @JsonSerializable()
