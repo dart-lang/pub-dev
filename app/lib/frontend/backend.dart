@@ -643,20 +643,20 @@ class GCloudPackageRepository extends PackageRepository {
 
   Future confirmUploader(
       String userEmail, String packageName, String uploaderEmail) async {
-    return db.withTransaction((Transaction T) async {
+    return db.withTransaction((Transaction tx) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
-      final models.Package package = (await T.lookup([packageKey])).first;
+      final models.Package package = (await tx.lookup([packageKey])).first;
 
       try {
         _validateActiveUser(userEmail, package);
       } catch (_) {
-        await T.rollback();
+        await tx.rollback();
         rethrow;
       }
 
       if (package.hasUploader(uploaderEmail)) {
         // The requested uploaderEmail is already part of the uploaders.
-        await T.rollback();
+        await tx.rollback();
         return;
       }
 
@@ -673,8 +673,8 @@ class GCloudPackageRepository extends PackageRepository {
         inserts.add(history);
       }
 
-      T.queueMutations(inserts: inserts);
-      await T.commit();
+      tx.queueMutations(inserts: inserts);
+      await tx.commit();
       if (cache != null) {
         await cache.invalidateUIPackagePage(package.name);
       }
