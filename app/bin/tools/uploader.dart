@@ -12,6 +12,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
+import 'package:pub_dartlang_org/shared/email.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 
 Future main(List<String> arguments) async {
@@ -42,7 +43,6 @@ Future main(List<String> arguments) async {
     }
   });
 
-  // TODO(kustermann): Remove this after Issue 61 is fixed.
   exit(0);
 }
 
@@ -79,7 +79,7 @@ Future addUploader(String packageName, String uploader) async {
 
     historyBackend.storeEvent(new UploaderChanged(
       packageName: packageName,
-      currentUserEmail: null, // TODO: get system account's email
+      currentUserEmail: pubDartlangOrgEmail,
       addedUploaderEmails: [uploader],
     ));
   });
@@ -108,7 +108,7 @@ Future removeUploader(String packageName, String uploader) async {
 
     historyBackend.storeEvent(new UploaderChanged(
       packageName: packageName,
-      currentUserEmail: null, // TODO: get system account's email
+      currentUserEmail: pubDartlangOrgEmail,
       removedUploaderEmails: [uploader],
     ));
   });

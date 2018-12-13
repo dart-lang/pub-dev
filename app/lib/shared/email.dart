@@ -6,8 +6,9 @@ import 'package:meta/meta.dart';
 
 import 'urls.dart';
 
+const pubDartlangOrgEmail = 'pub@dartlang.org';
 final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
-final _defaultFrom = new EmailAddress('Pub Site Admin', 'pub@dartlang.org');
+final _defaultFrom = new EmailAddress('Pub Site Admin', pubDartlangOrgEmail);
 
 /// Represents a parsed e-mail address.
 class EmailAddress {

@@ -171,8 +171,6 @@ enum SearchOrder {
 SearchOrder parseSearchOrder(String value, {SearchOrder defaultsTo}) {
   if (value != null) {
     switch (value) {
-      // TODO: remove 'overall' after the prod services were migrated to the latest
-      case 'overall':
       case 'top':
         return SearchOrder.top;
       case 'text':
