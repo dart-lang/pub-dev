@@ -15,7 +15,15 @@ import 'configuration.dart';
 /// Until the limit is reached, the [ToolEnvRef] will reuse the pub cache
 /// directory for its `pub upgrade` calls, but once it is reached, the cache
 /// will be deleted and a new [ToolEnvRef] with a new directory will be created.
-const _maxCount = 100;
+const _maxCount = 50;
+
+/// Subsequent calls of the analyzer or dartdoc job can use the same [ToolEnvRef]
+/// instance up until its size reaches [_maxSize].
+///
+/// Until the limit is reached, the [ToolEnvRef] will reuse the pub cache
+/// directory for its `pub upgrade` calls, but once it is reached, the cache
+/// will be deleted and a new [ToolEnvRef] with a new directory will be created.
+const _maxSize = 500 * 1024 * 1024; // 500 MB
 
 ToolEnvRef _current;
 Completer _ongoing;
@@ -32,8 +40,11 @@ class ToolEnvRef {
   final ToolEnvironment toolEnv;
   int _started = 0;
   int _active = 0;
+  bool _isAboveSizeLimit = false;
 
   ToolEnvRef(this._pubCacheDir, this.toolEnv);
+
+  bool get _isAvailable => _started < _maxCount && !_isAboveSizeLimit;
 
   void _aquire() {
     _started++;
@@ -41,6 +52,7 @@ class ToolEnvRef {
   }
 
   Future release() async {
+    await _checkSizeLimit();
     _active--;
     if (_active == 0) {
       // Delete directory if the instance is no longer active or it reached the
@@ -50,6 +62,17 @@ class ToolEnvRef {
       }
     }
   }
+
+  Future _checkSizeLimit() async {
+    if (_isAboveSizeLimit) return;
+    int size = 0;
+    await for (var fse in _pubCacheDir.list(recursive: true)) {
+      if (fse is File) {
+        size += await fse.length();
+      }
+    }
+    _isAboveSizeLimit = size > _maxSize;
+  }
 }
 
 /// Gets a currently available [ToolEnvRef] if it is used less than the
@@ -58,7 +81,7 @@ class ToolEnvRef {
 Future<ToolEnvRef> getOrCreateToolEnvRef() async {
   ToolEnvRef result;
   while (result == null) {
-    if (_current != null && _current._started < _maxCount) {
+    if (_current != null && _current._isAvailable) {
       result = _current;
       result._aquire();
       break;
