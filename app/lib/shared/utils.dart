@@ -170,10 +170,12 @@ const List<String> _reservedWords = const <String>[
 ];
 
 final _reservedPackageNames = <String>[
+  'core',
   'google_maps_flutter',
   'hummingbird',
   'in_app_purchase',
   'location_background',
+  'math',
   'webview_flutter',
 ].map(reducePackageName).toList();
 
