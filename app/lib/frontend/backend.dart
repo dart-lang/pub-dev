@@ -601,7 +601,12 @@ class GCloudPackageRepository extends PackageRepository {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final models.Package package = (await db.lookup([packageKey])).first;
 
-      _validateNewUploader(userEmail, package, uploaderEmail);
+      _validateActiveUser(userEmail, package);
+
+      if (package.hasUploader(uploaderEmail)) {
+        // The requested uploaderEmail is already part of the uploaders.
+        return;
+      }
 
       final status = await backend.updatePackageInvite(
         packageName: packageName,
@@ -643,11 +648,16 @@ class GCloudPackageRepository extends PackageRepository {
       final models.Package package = (await T.lookup([packageKey])).first;
 
       try {
-        _validateNewUploader(userEmail, package, uploaderEmail,
-            idempotent: true);
+        _validateActiveUser(userEmail, package);
       } catch (_) {
         await T.rollback();
         rethrow;
+      }
+
+      if (package.hasUploader(uploaderEmail)) {
+        // The requested uploaderEmail is already part of the uploaders.
+        await T.rollback();
+        return;
       }
 
       // Add [uploaderEmail] to uploaders and commit.
@@ -671,12 +681,7 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  void _validateNewUploader(
-    String userEmail,
-    models.Package package,
-    String uploaderEmail, {
-    bool idempotent = false,
-  }) {
+  void _validateActiveUser(String userEmail, models.Package package) {
     // Fail if package doesn't exist.
     if (package == null) {
       throw new GenericProcessingException('Package "$package" does not exist');
@@ -686,11 +691,6 @@ class GCloudPackageRepository extends PackageRepository {
     if (!package.hasUploader(userEmail)) {
       throw new UnauthorizedAccessException(
           'Calling user does not have permission to change uploaders.');
-    }
-
-    // Fail if the uploader we want to add already exists.
-    if (!idempotent && package.hasUploader(uploaderEmail)) {
-      throw new UploaderAlreadyExistsException();
     }
   }
 
