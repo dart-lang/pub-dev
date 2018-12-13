@@ -1,32 +1,22 @@
-# Created with https://github.com/dart-lang/mono_repo
+# Created with package:mono_repo v1.2.1
 language: dart
+
+# Custom configuration
+services:
+  - "redis-server"
 
 jobs:
   include:
     - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: app - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
       script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="app"
-      dart: 2.1.0-dev.9.4
+      dart: "2.1.0-dev.9.4"
     - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: app - TASKS: pub run test --run-skipped"
       script: ./tool/travis.sh test
       env: PKG="app"
-      dart: 2.1.0-dev.9.4
-    - stage: smoke_test
-      script: ./tool/travis.sh dartfmt dartanalyzer
-      env: PKG="pkg/_popularity"
-      dart: 2.1.0-dev.9.4
-    - stage: unit_test
-      script: ./tool/travis.sh test
-      env: PKG="pkg/_popularity"
-      dart: 2.1.0-dev.9.4
-    - stage: smoke_test
-      script: ./tool/travis.sh dartfmt dartanalyzer
-      env: PKG="pkg/pub_dartdoc"
-      dart: 2.1.0-dev.9.4
-    - stage: unit_test
-      script: ./tool/travis.sh test
-      env: PKG="pkg/pub_dartdoc"
-      dart: 2.1.0-dev.9.4
+      dart: "2.1.0-dev.9.4"
 
 stages:
   - smoke_test
@@ -34,8 +24,9 @@ stages:
 
 # Only building master means that we don't run two builds for each pull request.
 branches:
-  only: [master]
+  only:
+    - master
 
 cache:
   directories:
-    - $HOME/.pub-cache
+    - "$HOME/.pub-cache"
