@@ -154,6 +154,7 @@ const List<String> _reservedWords = const <String>[
   'if',
   'in',
   'is',
+  'mixin',
   'new',
   'null',
   'return',
@@ -176,6 +177,7 @@ final _reservedPackageNames = <String>[
   'in_app_purchase',
   'location_background',
   'math',
+  'versions',
   'webview_flutter',
 ].map(reducePackageName).toList();
 
