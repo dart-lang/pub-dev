@@ -59,6 +59,7 @@ class BackendMock implements Backend {
   final Function lookupPackageVersionFun;
   final Function versionsOfPackageFun;
   final Function downloadUrlFun;
+  final Function updatePackageInviteFn;
 
   BackendMock({
     this.newestPackagesFun,
@@ -69,6 +70,7 @@ class BackendMock implements Backend {
     this.lookupPackageVersionFun,
     this.versionsOfPackageFun,
     this.downloadUrlFun,
+    this.updatePackageInviteFn,
   });
 
   @override
@@ -185,8 +187,16 @@ class BackendMock implements Backend {
     String type,
     String recipientEmail,
     String fromEmail,
-  }) {
-    throw new UnimplementedError();
+  }) async {
+    if (updatePackageInviteFn == null) {
+      throw new Exception('no downloadUrlFun');
+    }
+    return (await updatePackageInviteFn(
+      packageName: packageName,
+      type: type,
+      recipientEmail: recipientEmail,
+      fromEmail: fromEmail,
+    )) as InviteStatus;
   }
 
   @override

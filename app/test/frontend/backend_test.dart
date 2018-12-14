@@ -22,6 +22,7 @@ import 'package:pub_dartlang_org/history/models.dart';
 import '../shared/utils.dart';
 
 import 'backend_test_utils.dart';
+import 'handlers_test_utils.dart';
 import 'utils.dart';
 
 // TODO: Add missing tests when a query returns more than one result.
@@ -243,81 +244,75 @@ void main() {
   });
 
   group('backend.repository', () {
-    void negativeUploaderTests(Function getMethod(repo)) {
+    group('GCloudRepository.addUploader', () {
       scopedTest('not logged in', () async {
         final db = new DatastoreDBMock();
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
+        await repo.addUploader(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
           expect(e is pub_server.UnauthorizedAccessException, isTrue);
         }));
       });
 
       scopedTest('not authorized', () async {
-        final transactionMock = new TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [testPackage];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final lookupFn = (keys) async {
+          expect(keys, hasLength(1));
+          expect(keys.first, testPackage.key);
+          return [testPackage];
+        };
+        final db = new DatastoreDBMock(
+          lookupFun: lookupFn,
+        );
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerLoggedInUser('foo@bar.com');
-        await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
-          expect(e is pub_server.UnauthorizedAccessException, isTrue);
+        final Future f = repo.addUploader(pkg, 'a@b.com');
+        await f.catchError(expectAsync2((e, _) {
+          expect(e.toString(),
+              'UnauthorizedAccess: Calling user does not have permission to change uploaders.');
         }));
       });
 
       scopedTest('package does not exist', () async {
-        final transactionMock = new TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [null];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final lookupFn = (keys) async {
+          expect(keys, hasLength(1));
+          expect(keys.first, testPackage.key);
+          return [null];
+        };
+        final db = new DatastoreDBMock(
+          lookupFun: lookupFn,
+        );
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerLoggedInUser(testPackage.uploaderEmails.first);
-        await getMethod(repo)(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
-          expect('$e', equals('Package "null" does not exist'));
+        final f = repo.addUploader(pkg, 'a@b.com');
+        await f.catchError(expectAsync2((e, _) {
+          expect(e.toString(), 'Package "null" does not exist');
         }));
       });
-    }
-
-    group('GCloudRepository.addUploader', () {
-      negativeUploaderTests((repo) => repo.addUploader as Function);
 
       Future testAlreadyExists(
           String user, List<String> uploaderEmails, String newUploader) async {
-        final transactionMock = new TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [testPackage];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final db = new DatastoreDBMock(
+          lookupFun: expectAsync1((keys) async {
+            expect(keys, hasLength(1));
+            expect(keys.first, testPackage.key);
+            return [testPackage];
+          }),
+        );
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerLoggedInUser(user);
         testPackage.uploaderEmails = uploaderEmails;
-        await repo
-            .addUploader(pkg, newUploader)
-            .catchError(expectAsync2((e, _) {
-          expect(e is pub_server.UploaderAlreadyExistsException, isTrue);
-        }));
+        await repo.addUploader(pkg, newUploader);
       }
 
       test('already exists', () async {
@@ -342,31 +337,32 @@ void main() {
       Future testSuccessful(
           String user, List<String> uploaderEmails, String newUploader) async {
         registerHistoryBackend(new HistoryBackendMock());
-        final completion = new TestDelayCompletion();
-        final transactionMock = new TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [testPackage];
-            }),
-            queueMutationFun: ({inserts, deletes}) {
-              expect(inserts, hasLength(2));
-              for (final email in uploaderEmails) {
-                expect(inserts.first.uploaderEmails, contains(email));
-              }
-              expect(inserts.first.uploaderEmails, contains(newUploader));
-              expect(inserts[1] is History, isTrue);
-              completion.complete();
-            },
-            commitFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final db = new DatastoreDBMock(
+          lookupFun: expectAsync1((keys) {
+            expect(keys, hasLength(1));
+            expect(keys.first, testPackage.key);
+            return [testPackage];
+          }),
+        );
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
+
+        registerBackend(BackendMock(updatePackageInviteFn: (
+            {packageName, type, recipientEmail, fromEmail}) async {
+          return new InviteStatus(urlNonce: 'abc1234');
+        }));
+        registerEmailSender(new EmailSenderMock());
 
         final pkg = testPackage.name;
         testPackage.uploaderEmails = uploaderEmails;
         registerLoggedInUser(user);
-        await repo.addUploader(pkg, newUploader);
+        final f = repo.addUploader(pkg, newUploader);
+        await f.catchError(expectAsync2((e, _) {
+          expect(
+              e.toString(),
+              'We have sent an invitation to $newUploader, '
+              'they will be added as uploader after they confirm it.');
+        }));
       }
 
       test('successful', () async {
@@ -382,7 +378,57 @@ void main() {
     });
 
     group('GCloudRepository.removeUploader', () {
-      negativeUploaderTests((repo) => repo.removeUploader as Function);
+      scopedTest('not logged in', () async {
+        final db = new DatastoreDBMock();
+        final tarballStorage = new TarballStorageMock();
+        final repo = new GCloudPackageRepository(db, tarballStorage);
+
+        final pkg = testPackage.name;
+        final f = repo.removeUploader(pkg, 'a@b.com');
+        await f.catchError(expectAsync2((e, _) {
+          expect(e is pub_server.UnauthorizedAccessException, isTrue);
+        }));
+      });
+
+      scopedTest('not authorized', () async {
+        final transactionMock = new TransactionMock(
+            lookupFun: expectAsync1((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [testPackage];
+            }),
+            rollbackFun: expectAsync0(() {}));
+        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = new TarballStorageMock();
+        final repo = new GCloudPackageRepository(db, tarballStorage);
+
+        final pkg = testPackage.name;
+        registerLoggedInUser('foo@bar.com');
+        final f = repo.removeUploader(pkg, 'a@b.com');
+        await f.catchError(expectAsync2((e, _) {
+          expect(e is pub_server.UnauthorizedAccessException, isTrue);
+        }));
+      });
+
+      scopedTest('package does not exist', () async {
+        final transactionMock = new TransactionMock(
+            lookupFun: expectAsync1((keys) {
+              expect(keys, hasLength(1));
+              expect(keys.first, testPackage.key);
+              return [null];
+            }),
+            rollbackFun: expectAsync0(() {}));
+        final db = new DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = new TarballStorageMock();
+        final repo = new GCloudPackageRepository(db, tarballStorage);
+
+        final pkg = testPackage.name;
+        registerLoggedInUser(testPackage.uploaderEmails.first);
+        final f = repo.removeUploader(pkg, 'a@b.com');
+        await f.catchError(expectAsync2((e, _) {
+          expect('$e', equals('Package "null" does not exist'));
+        }));
+      });
 
       scopedTest('cannot remove last uploader', () async {
         final transactionMock = new TransactionMock(
