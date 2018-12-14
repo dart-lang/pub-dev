@@ -16,6 +16,10 @@ HistoryUnion _$HistoryUnionFromJson(Map<String, dynamic> json) {
           ? null
           : UploaderChanged.fromJson(
               json['uploaderChanged'] as Map<String, dynamic>),
+      uploaderInvited: json['uploaderInvited'] == null
+          ? null
+          : UploaderInvited.fromJson(
+              json['uploaderInvited'] as Map<String, dynamic>),
       analysisCompleted: json['analysisCompleted'] == null
           ? null
           : AnalysisCompleted.fromJson(
@@ -33,6 +37,7 @@ Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
 
   writeNotNull('packageUploaded', instance.packageUploaded?.toJson());
   writeNotNull('uploaderChanged', instance.uploaderChanged?.toJson());
+  writeNotNull('uploaderInvited', instance.uploaderInvited?.toJson());
   writeNotNull('analysisCompleted', instance.analysisCompleted?.toJson());
   return val;
 }
@@ -83,6 +88,32 @@ Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
   writeNotNull('currentUserEmail', instance.currentUserEmail);
   writeNotNull('addedUploaderEmails', instance.addedUploaderEmails);
   writeNotNull('removedUploaderEmails', instance.removedUploaderEmails);
+  writeNotNull('timestamp', instance.timestamp?.toIso8601String());
+  return val;
+}
+
+UploaderInvited _$UploaderInvitedFromJson(Map<String, dynamic> json) {
+  return UploaderInvited(
+      packageName: json['packageName'] as String,
+      currentUserEmail: json['currentUserEmail'] as String,
+      uploaderUserEmail: json['uploaderUserEmail'] as String,
+      timestamp: json['timestamp'] == null
+          ? null
+          : DateTime.parse(json['timestamp'] as String));
+}
+
+Map<String, dynamic> _$UploaderInvitedToJson(UploaderInvited instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('packageName', instance.packageName);
+  writeNotNull('currentUserEmail', instance.currentUserEmail);
+  writeNotNull('uploaderUserEmail', instance.uploaderUserEmail);
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   return val;
 }

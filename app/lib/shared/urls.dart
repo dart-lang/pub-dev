@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_server/repository.dart' show GenericProcessingException;
 
@@ -79,6 +80,19 @@ String searchUrl({String platform, String q, int page}) {
   return new Uri(
     path: packagesPath,
     queryParameters: params.isEmpty ? null : params,
+  ).toString();
+}
+
+String pkgInviteUrl({
+  @required String type,
+  @required String package,
+  @required String email,
+  @required String urlNonce,
+}) {
+  return new Uri(
+    scheme: 'https',
+    host: pubHostedDomain,
+    path: p.join('/admin/confirm', type, package, email, urlNonce),
   ).toString();
 }
 
