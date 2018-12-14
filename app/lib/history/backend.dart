@@ -25,7 +25,7 @@ HistoryBackend get historyBackend =>
 /// Stores and queries [History] entries.
 class HistoryBackend {
   final DatastoreDB _db;
-  final bool _enabled = Platform.environment['HISTORY_ENABLED'] == '1';
+  final bool _enabled = Platform.environment['HISTORY_ENABLED'] != '0';
   HistoryBackend(this._db);
 
   /// Whether the storing of the entries is enabled.
