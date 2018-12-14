@@ -436,7 +436,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         (v) => v.version == versionName,
         orElse: () => null,
       );
-      // TODO: cache error?
       if (selectedVersion == null) {
         return redirectResponse(urls.versionsTabUrl(packageName));
       }
