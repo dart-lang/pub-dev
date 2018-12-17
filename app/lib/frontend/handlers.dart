@@ -499,6 +499,17 @@ Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
   );
 }
 
+Future<shelf.Response> _formattedInviteExpiredHandler(shelf.Request request,
+    [String message = '']) async {
+  return htmlResponse(
+    templateService.renderErrorPage(
+        'Invite expired',
+        'The URL you have clicked expired or became invalid.\n\n$message\n',
+        null),
+    status: 404,
+  );
+}
+
 /// Handles requests for /admin/confirm
 Future<shelf.Response> _adminConfirmHandler(shelf.Request request) async {
   final segments = request.requestedUri.pathSegments;
@@ -523,13 +534,17 @@ Future<shelf.Response> _adminConfirmHandler(shelf.Request request) async {
       urlNonce: urlNonce,
     );
     if (invite == null) {
-      return _formattedNotFoundHandler(request);
+      return _formattedInviteExpiredHandler(request);
     }
-    await backend.repository.confirmUploader(
-        invite.fromEmail, invite.packageName, invite.recipientEmail);
+    try {
+      await backend.repository.confirmUploader(
+          invite.fromEmail, invite.packageName, invite.recipientEmail);
+    } catch (e) {
+      _formattedInviteExpiredHandler(request, 'Error message:\n\n```\n$e\n```');
+    }
     return htmlResponse(templateService.renderUploaderConfirmedPage(
         invite.packageName, invite.recipientEmail));
   } else {
-    return _formattedNotFoundHandler(request);
+    return _formattedInviteExpiredHandler(request);
   }
 }
