@@ -6,10 +6,9 @@ import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:memcache/memcache.dart';
 
 import 'dartdoc_client.dart' show DartdocEntry;
-import 'memcache.dart';
+import 'redis_cache.dart';
 import 'versions.dart' as versions;
 
 final Logger _logger = new Logger('pub.dartdoc_memcache');
@@ -26,18 +25,16 @@ class DartdocMemcache {
   final SimpleMemcache _entry;
   final SimpleMemcache _fileInfo;
 
-  DartdocMemcache(Memcache memcache)
+  DartdocMemcache()
       : _entry = new SimpleMemcache(
+          'DartdocMemcache/entry/',
           _logger,
-          memcache,
-          dartdocEntryPrefix,
-          dartdocEntryExpiration,
+          Duration(hours: 24),
         ),
         _fileInfo = new SimpleMemcache(
+          'DartdocMemcache/fileInfo/',
           _logger,
-          memcache,
-          dartdocFileInfoPrefix,
-          dartdocFileInfoExpiration,
+          Duration(minutes: 60),
         );
 
   Future<DartdocEntry> getEntry(String package, String version) async {

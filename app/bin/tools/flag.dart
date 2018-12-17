@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
@@ -97,7 +96,7 @@ Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
 }
 
 Future _clearCaches(String packageName) async {
-  final pkgCache = new AppEnginePackageMemcache(memcacheService);
+  final pkgCache = new AppEnginePackageMemcache();
   await pkgCache.invalidateUIPackagePage(packageName);
   await pkgCache.invalidatePackageData(packageName);
 }

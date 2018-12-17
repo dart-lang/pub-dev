@@ -7,7 +7,6 @@ library pub_dartlang_org.server_common;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart' as http;
@@ -15,6 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/configuration.dart';
 import '../shared/package_memcache.dart';
+import '../shared/redis_cache.dart';
 
 import 'backend.dart';
 import 'oauth2_service.dart';
@@ -74,7 +74,7 @@ Future<String> obtainServiceAccountEmail() async {
 /// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
 /// environment variables.
 Future withProdServices(Future fn()) {
-  return withAppEngineServices(() {
+  return withAppEngineAndCache(() {
     if (!envConfig.hasCredentials) {
       throw new Exception(
           'Missing GCLOUD_* environments for package:appengine');

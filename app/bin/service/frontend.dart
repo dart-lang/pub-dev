@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
@@ -30,6 +29,7 @@ import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_memcache.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
+import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -52,7 +52,7 @@ Future _main(FrontendEntryMessage message) async {
       .send(new FrontendProtocolMessage(statsConsumerPort: null));
 
   await updateLocalBuiltFiles();
-  await withAppEngineServices(() async {
+  await withAppEngineAndCache(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
     final shelf.Handler frontendHandler =
         (shelf.Request request) => appHandler(request, apiHandler);
@@ -77,7 +77,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       storageService, activeConfiguration.dartdocStorageBucketName);
   registerDartdocBackend(new DartdocBackend(db.dbService, dartdocBucket));
 
-  registerDartdocMemcache(new DartdocMemcache(memcacheService));
+  registerDartdocMemcache(new DartdocMemcache());
   final dartdocClient = new DartdocClient();
   registerDartdocClient(dartdocClient);
   registerScopeExitCallback(dartdocClient.close);
@@ -89,7 +89,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerHistoryBackend(new HistoryBackend(db.dbService));
   registerJobBackend(new JobBackend(db.dbService));
 
-  registerScoreCardMemcache(new ScoreCardMemcache(memcacheService));
+  registerScoreCardMemcache(new ScoreCardMemcache());
   registerScoreCardBackend(new ScoreCardBackend(db.dbService));
 
   new NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
@@ -140,9 +140,9 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     });
   }
 
-  final cache = new AppEnginePackageMemcache(memcacheService);
+  final cache = new AppEnginePackageMemcache();
   initBackend(cache: cache, finishCallback: uploadFinished);
-  registerSearchMemcache(new SearchMemcache(memcacheService));
+  registerSearchMemcache(new SearchMemcache());
 
   UploadSignerService uploadSigner;
   if (configuration.hasCredentials) {

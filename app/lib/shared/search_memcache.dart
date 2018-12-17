@@ -7,9 +7,8 @@ import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:memcache/memcache.dart';
 
-import 'memcache.dart';
+import 'redis_cache.dart';
 import 'search_service.dart';
 
 final Logger _logger = new Logger('pub.search_memcache');
@@ -25,12 +24,11 @@ SearchMemcache get searchMemcache =>
 class SearchMemcache {
   final SimpleMemcache _pkgSearch;
 
-  SearchMemcache(Memcache memcache)
+  SearchMemcache()
       : _pkgSearch = new SimpleMemcache(
+          'SearchMemcache/',
           _logger,
-          memcache,
-          searchServiceResultPrefix,
-          searchServiceResultExpiration,
+          Duration(minutes: 10),
         );
 
   Future<PackageSearchResult> getPackageSearchResult(String url) async {

@@ -7,10 +7,9 @@ import 'dart:convert' as convert;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:memcache/memcache.dart';
 import 'package:meta/meta.dart';
 
-import '../shared/memcache.dart';
+import '../shared/redis_cache.dart';
 
 import 'models.dart';
 
@@ -27,12 +26,11 @@ ScoreCardMemcache get scoreCardMemcache =>
 class ScoreCardMemcache {
   final SimpleMemcache _data;
 
-  ScoreCardMemcache(Memcache memcache)
+  ScoreCardMemcache()
       : _data = new SimpleMemcache(
+          'ScoreCardMemcache/',
           _logger,
-          memcache,
-          scoreCardDataPrefix,
-          scoreCardDataExpiration,
+          Duration(minutes: 60),
         );
 
   Future<ScoreCardData> getScoreCardData(

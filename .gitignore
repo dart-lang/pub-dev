@@ -17,5 +17,5 @@ packages
 # Or local files with secrets
 key.json
 
-# Just for pkg/popularity
-pkg/_popularity/pubspec.lock
+# Ignore pubspec.locks for packages
+pkg/*/pubspec.lock

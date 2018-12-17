@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
@@ -23,6 +22,7 @@ import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
+import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
@@ -53,7 +53,7 @@ Future _frontendMain(FrontendEntryMessage message) async {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  await withAppEngineServices(() async {
+  await withAppEngineAndCache(() async {
     await _registerServices();
     await runHandler(logger, dartdocServiceHandler);
   });
@@ -64,7 +64,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   message.protocolSendPort.send(new WorkerProtocolMessage());
 
-  await withAppEngineServices(() async {
+  await withAppEngineAndCache(() async {
     await _registerServices();
 
     final jobProcessor =
@@ -90,7 +90,7 @@ Future _registerServices() async {
       new PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
 
-  registerDartdocMemcache(new DartdocMemcache(memcacheService));
+  registerDartdocMemcache(new DartdocMemcache());
 
   registerAnalyzerClient(new AnalyzerClient());
   final Bucket storageBucket = await getOrCreateBucket(
@@ -98,6 +98,6 @@ Future _registerServices() async {
   registerDartdocBackend(new DartdocBackend(dbService, storageBucket));
   registerHistoryBackend(new HistoryBackend(dbService));
   registerJobBackend(new JobBackend(dbService));
-  registerScoreCardMemcache(new ScoreCardMemcache(memcacheService));
+  registerScoreCardMemcache(new ScoreCardMemcache());
   registerScoreCardBackend(new ScoreCardBackend(dbService));
 }

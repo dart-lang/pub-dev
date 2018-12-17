@@ -1,0 +1,10 @@
+name: identity_codec
+description: The identity codec passes input to output.
+version: 1.0.0
+publish_to: None # don't publish yet
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dev_dependencies:
+  test: ^1.5.1

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with https://github.com/dart-lang/mono_repo
+# Created with package:mono_repo v1.2.1
 
 if [ -z "$PKG" ]; then
   echo -e '\033[31mPKG environment variable must be set!\033[0m'
@@ -32,7 +32,7 @@ while (( "$#" )); do
   test) echo
     echo -e '\033[1mTASK: test\033[22m'
     echo -e 'pub run test --run-skipped'
-    pub run test --run-skipped -j 1 || EXIT_CODE=$?
+    pub run test --run-skipped || EXIT_CODE=$?
     ;;
   *) echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"
     EXIT_CODE=1
