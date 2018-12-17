@@ -7,6 +7,25 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/shared/email.dart';
 
 void main() {
+  group('isValidEmail', () {
+    test('accepted e-mail', () {
+      expect(isValidEmail('a@b.c'), true);
+      expect(isValidEmail('john.doe@example.com'), true);
+    });
+
+    test('rejected e-mail', () {
+      expect(isValidEmail('@'), false);
+      expect(isValidEmail('@.'), false);
+      expect(isValidEmail('@..'), false);
+      expect(isValidEmail('.'), false);
+      expect(isValidEmail('..'), false);
+      expect(isValidEmail('a'), false);
+      expect(isValidEmail('a@'), false);
+      expect(isValidEmail('@example.com'), false);
+      expect(isValidEmail('john.doe at example.com'), false);
+    });
+  });
+
   group('EmailAddress.parse', () {
     void validateParse(String input, String name, String email) {
       final parsed = new EmailAddress.parse(input);

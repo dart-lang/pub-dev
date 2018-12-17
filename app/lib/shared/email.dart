@@ -29,12 +29,10 @@ class EmailAddress {
     } else if (value.contains('@')) {
       final List<String> parts = value.split(' ');
       for (int i = 0; i < parts.length; i++) {
-        if (parts[i].contains('@') &&
-            parts[i].contains('.') &&
-            parts[i].length > 4) {
+        if (isValidEmail(parts[i])) {
           email = parts[i];
           parts.removeAt(i);
-          name = parts.join(' ');
+          name = parts.join(' ').trim();
           break;
         }
       }
@@ -42,7 +40,7 @@ class EmailAddress {
     if (name != null && name.isEmpty) {
       name = null;
     }
-    if (email != null && email.isEmpty) {
+    if (!isValidEmail(email)) {
       email = null;
     }
     return new EmailAddress(name, email);
@@ -57,6 +55,20 @@ class EmailAddress {
     if (name == null) return email;
     return '$name <$email>';
   }
+}
+
+/// Minimal accepted format for an email.
+bool isValidEmail(String email) {
+  if (email == null) return false;
+  if (email.length < 5) return false;
+  if (!email.contains('@')) return false;
+  final atParts = email.split('@');
+  if (atParts.length != 2) return false;
+  if (atParts.any((s) => s.trim().isEmpty)) return false;
+  if (!atParts[1].contains('.')) return false;
+  final dotParts = atParts[1].split('.');
+  if (dotParts.any((s) => s.trim().isEmpty)) return false;
+  return true;
 }
 
 /// Represents an email message the site will send.
