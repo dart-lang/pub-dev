@@ -15,6 +15,7 @@ import '../job/backend.dart';
 import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
+import '../search/text_utils.dart' show isSelfDocumenting;
 import '../shared/configuration.dart' show envConfig;
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
@@ -231,12 +232,26 @@ class DartdocJobProcessor extends JobProcessor {
     double coverageScore = 0.0;
     if (hasContent && dartdocData != null) {
       final total = dartdocData.apiElements.length;
-      final documented = dartdocData.apiElements
-          .where((elem) =>
-              elem.documentation != null &&
-              elem.documentation.isNotEmpty &&
-              elem.documentation.trim().length >= 5)
-          .length;
+
+      bool isDocumented(ApiElement elem) {
+        // Normal documentation.
+        if (elem.documentation != null &&
+            elem.documentation.isNotEmpty &&
+            elem.documentation.trim().length >= 5) {
+          return true;
+        }
+
+        // Whether the symbol name is descriptive enough to substitute documentation.
+        final symbol = elem.name.split('.').last;
+        if (isSelfDocumenting(symbol)) {
+          return true;
+        }
+
+        // Otherwise: no documentation.
+        return false;
+      }
+
+      final documented = dartdocData.apiElements.where(isDocumented).length;
       if (total == documented) {
         // this also handles total == 0
         coverageScore = 1.0;

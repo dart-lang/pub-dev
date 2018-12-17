@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:english_words/english_words.dart' as english_words;
 import 'package:html/parser.dart';
 
 import '../shared/markdown.dart';
@@ -87,20 +88,8 @@ Map<String, double> tokenize(String originalText) {
 
     tokens[normalizedWord] = 1.0;
 
-    // Scan for CamelCase phrases and extract Camel and Case separately.
-    final changeIndex = <int>[0];
-    bool prevLower = _isLower(word[0]);
-    for (int i = 1; i < word.length; i++) {
-      final bool lower = _isLower(word[i]);
-      if (!lower && prevLower) {
-        changeIndex.add(i);
-      }
-      prevLower = lower;
-    }
-    changeIndex.add(word.length);
-    for (int i = 1; i < changeIndex.length; i++) {
-      final token = normalizeBeforeIndexing(
-          word.substring(changeIndex[i - 1], changeIndex[i]));
+    for (String extracted in extractCamelCase(word)) {
+      final token = normalizeBeforeIndexing(extracted);
       final double weight = token.length / word.length;
       if ((tokens[token] ?? 0.0) < weight) {
         tokens[token] = weight;
@@ -110,7 +99,42 @@ Map<String, double> tokenize(String originalText) {
   return tokens;
 }
 
+// Scan for CamelCase phrases and extract Camel and Case separately.
+Iterable<String> extractCamelCase(String word) sync* {
+  final changeIndex = <int>[0];
+  bool prevLower = _isLower(word[0]);
+  for (int i = 1; i < word.length; i++) {
+    final bool lower = _isLower(word[i]);
+    if (!lower && prevLower) {
+      changeIndex.add(i);
+    }
+    prevLower = lower;
+  }
+  changeIndex.add(word.length);
+  for (int i = 1; i < changeIndex.length; i++) {
+    final token = word.substring(changeIndex[i - 1], changeIndex[i]);
+    yield token;
+  }
+}
+
 bool _isLower(String c) => c.toLowerCase() == c;
+
+/// Returns whether an API symbol can be considered as self-documenting.
+///
+/// When an API symbol uses common english words for most of its parts, we
+/// assume that it is descriptive enough for most use-case.
+bool isSelfDocumenting(String symbol) {
+  final words = extractCamelCase(symbol).map((s) => s.toLowerCase()).toSet();
+  final englishLength = words
+      .where(
+        (word) =>
+            english_words.all.contains(word) ||
+            english_words.all.contains(word.toLowerCase()),
+      )
+      .map((word) => word.length)
+      .fold<int>(0, (a, b) => a + b);
+  return englishLength > 10 || englishLength > (symbol.length * 0.5).floor();
+}
 
 /// Generates the N-grams of [input], which are continuous character strings of
 /// length between [minLength] and [maxLength] (both inclusive).

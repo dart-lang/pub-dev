@@ -105,7 +105,25 @@ Other useful methods will be added soon...
       });
     });
 
-    test('Cased words', () {
+    test('CamelCase extraction', () {
+      expect(extractCamelCase('CamelCaseWord').toList(),
+          ['Camel', 'Case', 'Word']);
+      expect(extractCamelCase('firstLowerCase').toList(),
+          ['first', 'Lower', 'Case']);
+      expect(extractCamelCase('snake_case_word').toList(), ['snake_case_word']);
+    });
+
+    test('isSelfDocumenting positive examples', () {
+      expect(isSelfDocumenting('todayBorderColor'), true);
+      expect(isSelfDocumenting('weekendTextStyle'), true);
+    });
+
+    test('isSelfDocumenting negative examples', () {
+      expect(isSelfDocumenting('abcdef'), false);
+      expect(isSelfDocumenting('AbcDef'), false);
+    });
+
+    test('Cased tokens', () {
       expect(tokenize('CamelCase snake_case firstLowerCase'), {
         'camelcase': 1.0,
         'camel': 0.5555555555555556,
