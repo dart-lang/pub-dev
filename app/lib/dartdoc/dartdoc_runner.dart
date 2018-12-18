@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
+import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec;
@@ -228,6 +229,7 @@ class DartdocJobProcessor extends JobProcessor {
       await toolEnvRef.release();
     }
 
+    double coverage = 0.0;
     double coverageScore = 0.0;
     if (hasContent && dartdocData != null) {
       final total = dartdocData.apiElements.length;
@@ -239,15 +241,24 @@ class DartdocJobProcessor extends JobProcessor {
           .length;
       if (total == documented) {
         // this also handles total == 0
-        coverageScore = 1.0;
+        coverage = 1.0;
       } else {
-        coverageScore = documented / total;
+        coverage = documented / total;
       }
 
-      if (coverageScore < _coverageEmitThreshold) {
-        final level = coverageScore < 0.2
-            ? SuggestionLevel.warning
-            : SuggestionLevel.hint;
+      // 0.01 coverage -> 0.03 score -> 9.7 penalty
+      // 0.02 coverage -> 0.06 score -> 9.4 penalty
+      // 0.03 coverage -> 0.09 score -> 9.1 penalty
+      // 0.05 coverage -> 0.14 score -> 8.6 penalty
+      // 0.10 coverage -> 0.27 score -> 7.3 penalty
+      // 0.20 coverage -> 0.49 score -> 5.1 penalty
+      // 0.30 coverage -> 0.66 score -> 3.4 penalty
+      // 0.50 coverage -> 0.88 score -> 1.2 penalty
+      // 0.75 coverage -> 0.98 score -> 0.2 penalty
+      coverageScore = 1.0 - pow(1.0 - coverage, 3);
+      if (coverage < _coverageEmitThreshold) {
+        final level =
+            coverage < 0.2 ? SuggestionLevel.warning : SuggestionLevel.hint;
         final undocumented = total - documented;
         healthSuggestions.add(
           new Suggestion(
@@ -275,6 +286,7 @@ class DartdocJobProcessor extends JobProcessor {
         job.packageVersion,
         new DartdocReport(
           reportStatus: reportStatus,
+          coverage: coverage,
           coverageScore: coverageScore,
           healthSuggestions:
               healthSuggestions.isEmpty ? null : healthSuggestions,

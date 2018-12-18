@@ -415,6 +415,8 @@ class DartdocReport implements ReportData {
   @override
   final String reportStatus;
 
+  /// The percent of API symbols with documentation.
+  final double coverage;
   final double coverageScore;
 
   /// Suggestions related to the package health score.
@@ -427,6 +429,7 @@ class DartdocReport implements ReportData {
 
   DartdocReport({
     @required this.reportStatus,
+    @required this.coverage,
     @required this.coverageScore,
     @required this.healthSuggestions,
     @required this.maintenanceSuggestions,
