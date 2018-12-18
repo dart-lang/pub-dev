@@ -13,6 +13,9 @@ final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
 final RegExp _exactTermRegExp = new RegExp(r'"([^"]+)"');
 
+final _allEnglishWords =
+    new Set<String>.from(english_words.all.map((w) => w.toLowerCase()));
+
 final _commonApiSymbols = new Set.from([
   'toString',
   'noSuchMethod',
@@ -124,13 +127,9 @@ bool _isLower(String c) => c.toLowerCase() == c;
 /// When an API symbol uses common english words for most of its parts, we
 /// assume that it is descriptive enough for most use-case.
 bool isSelfDocumenting(String symbol) {
-  final words = extractCamelCase(symbol).map((s) => s.toLowerCase()).toSet();
-  final englishLength = words
-      .where(
-        (word) =>
-            english_words.all.contains(word) ||
-            english_words.all.contains(word.toLowerCase()),
-      )
+  final englishLength = extractCamelCase(symbol)
+      .toSet()
+      .where((word) => _allEnglishWords.contains(word.toLowerCase()))
       .map((word) => word.length)
       .fold<int>(0, (a, b) => a + b);
   return englishLength > 10 || englishLength > (symbol.length * 0.5).floor();
