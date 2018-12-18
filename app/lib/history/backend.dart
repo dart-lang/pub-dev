@@ -48,17 +48,15 @@ class HistoryBackend {
 
   Stream<History> getAll({
     @required String packageName,
-    String packageVersion,
+    @required String packageVersion,
     int limit,
   }) {
     final query = _db.query<History>()
       ..filter('packageName =', packageName)
+      ..filter('packageVersion =', packageVersion)
       ..order('-timestamp');
     if (limit != null && limit > 0) {
       query.limit(limit);
-    }
-    if (packageVersion != null) {
-      query.filter('packageVersion =', packageVersion);
     }
     return query.run();
   }
