@@ -114,13 +114,24 @@ Other useful methods will be added soon...
     });
 
     test('isSelfDocumenting positive examples', () {
+      expect(isSelfDocumenting('childAspectRatio'), true);
+      expect(isSelfDocumenting('coverageScore'), true);
+      expect(isSelfDocumenting('dartdocCoverage'), true);
+      expect(isSelfDocumenting('defaultTodayTextStyle'), true);
+      expect(isSelfDocumenting('iconColor'), true);
+      expect(isSelfDocumenting('maintenanceSuggestions'), true);
       expect(isSelfDocumenting('todayBorderColor'), true);
+      expect(isSelfDocumenting('updateReport'), true);
       expect(isSelfDocumenting('weekendTextStyle'), true);
     });
 
     test('isSelfDocumenting negative examples', () {
       expect(isSelfDocumenting('abcdef'), false);
       expect(isSelfDocumenting('AbcDef'), false);
+      expect(isSelfDocumenting('deriveLookupCandidates'), false);
+      expect(isSelfDocumenting('isSelfDocumenting'), false);
+      expect(isSelfDocumenting('latestSemanticVersion'), false);
+      expect(isSelfDocumenting('readmeFilename'), false);
     });
 
     test('Cased tokens', () {
