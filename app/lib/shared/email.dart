@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'urls.dart';
 
 const pubDartlangOrgEmail = 'pub@dartlang.org';
+final _emailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
 final _defaultFrom = new EmailAddress('Pub Site Admin', pubDartlangOrgEmail);
 
@@ -29,12 +30,10 @@ class EmailAddress {
     } else if (value.contains('@')) {
       final List<String> parts = value.split(' ');
       for (int i = 0; i < parts.length; i++) {
-        if (parts[i].contains('@') &&
-            parts[i].contains('.') &&
-            parts[i].length > 4) {
+        if (isValidEmail(parts[i])) {
           email = parts[i];
           parts.removeAt(i);
-          name = parts.join(' ');
+          name = parts.join(' ').trim();
           break;
         }
       }
@@ -42,7 +41,7 @@ class EmailAddress {
     if (name != null && name.isEmpty) {
       name = null;
     }
-    if (email != null && email.isEmpty) {
+    if (!isValidEmail(email)) {
       email = null;
     }
     return new EmailAddress(name, email);
@@ -57,6 +56,17 @@ class EmailAddress {
     if (name == null) return email;
     return '$name <$email>';
   }
+}
+
+/// Minimal accepted format for an email.
+///
+/// This function only disallows the most obvious non-email strings.
+/// It still allows strings that aren't legal email  addresses.
+bool isValidEmail(String email) {
+  if (email == null) return false;
+  if (email.length < 5) return false;
+  if (email.contains('..')) return false;
+  return _emailRegExp.hasMatch(email);
 }
 
 /// Represents an email message the site will send.

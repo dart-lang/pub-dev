@@ -614,6 +614,11 @@ class GCloudPackageRepository extends PackageRepository {
 
       _validateActiveUser(userEmail, package);
 
+      if (!isValidEmail(uploaderEmail)) {
+        throw new GenericProcessingException(
+            'Not a valid e-mail: `$uploaderEmail`.');
+      }
+
       if (package.hasUploader(uploaderEmail)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
