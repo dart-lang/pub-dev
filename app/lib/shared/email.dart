@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'urls.dart';
 
 const pubDartlangOrgEmail = 'pub@dartlang.org';
+final _emailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
 final _defaultFrom = new EmailAddress('Pub Site Admin', pubDartlangOrgEmail);
 
@@ -64,14 +65,8 @@ class EmailAddress {
 bool isValidEmail(String email) {
   if (email == null) return false;
   if (email.length < 5) return false;
-  if (!email.contains('@')) return false;
-  final atParts = email.split('@');
-  if (atParts.length != 2) return false;
-  if (atParts.any((s) => s.trim().isEmpty)) return false;
-  if (!atParts[1].contains('.')) return false;
-  final dotParts = atParts[1].split('.');
-  if (dotParts.any((s) => s.trim().isEmpty)) return false;
-  return true;
+  if (email.contains('..')) return false;
+  return _emailRegExp.hasMatch(email);
 }
 
 /// Represents an email message the site will send.

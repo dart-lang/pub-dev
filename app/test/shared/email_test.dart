@@ -20,9 +20,14 @@ void main() {
       expect(isValidEmail('.'), false);
       expect(isValidEmail('..'), false);
       expect(isValidEmail('a'), false);
+      expect(isValidEmail('a @b.com'), false);
+      expect(isValidEmail('a@ b.com'), false);
+      expect(isValidEmail('a@b .com'), false);
+      expect(isValidEmail('a@b. com'), false);
       expect(isValidEmail('a@'), false);
       expect(isValidEmail('@example.com'), false);
       expect(isValidEmail('john.doe at example.com'), false);
+      expect(isValidEmail('john.doe[at]example.com'), false);
     });
   });
 
