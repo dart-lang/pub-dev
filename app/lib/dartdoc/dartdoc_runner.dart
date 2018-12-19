@@ -37,10 +37,6 @@ const _pubDataFileName = 'pub-data.json';
 const _sdkTimeout = const Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
-// We'll emit a suggestion and apply score penalty only if the coverage is below
-// this value.
-const _coverageEmitThreshold = 0.1;
-
 final _pkgPubDartdocDir =
     Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
 
@@ -256,7 +252,12 @@ class DartdocJobProcessor extends JobProcessor {
       // 0.50 coverage -> 0.88 score -> 1.2 penalty
       // 0.75 coverage -> 0.98 score -> 0.2 penalty
       coverageScore = 1.0 - pow(1.0 - coverage, 3);
-      if (coverage < _coverageEmitThreshold) {
+
+      // Reducing coverage penalty in order to ease-in the introduction of it.
+      final fullCoveragePenalty = (1.0 - coverageScore) * 10.0;
+      final reducedCoveragePenalty = fullCoveragePenalty - 9.0;
+
+      if (reducedCoveragePenalty > 0) {
         final level =
             coverage < 0.2 ? SuggestionLevel.warning : SuggestionLevel.hint;
         final undocumented = total - documented;
@@ -268,7 +269,7 @@ class DartdocJobProcessor extends JobProcessor {
               '$undocumented out of $total API elements (library, class, field '
               'or method) have no adequate dartdoc content. Good documentation '
               'improves code readability and discoverability through search.',
-              score: (1.0 - coverageScore) * 10.0),
+              score: reducedCoveragePenalty),
         );
       }
     } else if (abortLog != null) {
