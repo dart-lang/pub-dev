@@ -58,6 +58,9 @@ class EmailAddress {
 }
 
 /// Minimal accepted format for an email.
+///
+/// This function only disallows the most obvious non-email strings.
+/// It still allows strings that aren't legal email  addresses.
 bool isValidEmail(String email) {
   if (email == null) return false;
   if (email.length < 5) return false;
