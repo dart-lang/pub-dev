@@ -23,15 +23,16 @@ class PubDartdocData {
 
 @JsonSerializable(includeIfNull: false)
 class ApiElement {
-  final String name;
+  final String symbol;
   final String kind;
   final String parent;
   final String source;
   final String href;
   final String documentation;
+  String _qualifiedName;
 
   ApiElement({
-    @required this.name,
+    @required this.symbol,
     @required this.kind,
     @required this.parent,
     @required this.source,
@@ -39,8 +40,15 @@ class ApiElement {
     @required this.documentation,
   });
 
-  factory ApiElement.fromJson(Map<String, dynamic> json) =>
-      _$ApiElementFromJson(json);
+  factory ApiElement.fromJson(Map<String, dynamic> json) {
+    if (json.containsKey('name')) {
+      json['symbol'] = (json['name'] as String).split('.').last;
+    }
+    return _$ApiElementFromJson(json);
+  }
 
   Map<String, dynamic> toJson() => _$ApiElementToJson(this);
+
+  String get qualifiedName =>
+      _qualifiedName ??= parent == null ? symbol : '$parent.$symbol';
 }

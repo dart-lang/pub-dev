@@ -158,7 +158,7 @@ class SearchBackend {
 List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   final nameToKindMap = <String, String>{};
   pubData.apiElements.forEach((e) {
-    nameToKindMap[e.name] = e.kind;
+    nameToKindMap[e.qualifiedName] = e.kind;
   });
 
   final pathMap = <String, String>{};
@@ -167,9 +167,9 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 
   bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
-  void update(String key, String name, String documentation) {
+  void update(String key, String symbol, String documentation) {
     final set = symbolMap.putIfAbsent(key, () => new Set<String>());
-    set.addAll(name.split('.'));
+    set.add(symbol);
 
     documentation = documentation?.trim();
     if (documentation != null && documentation.isNotEmpty) {
@@ -180,14 +180,15 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 
   pubData.apiElements.forEach((apiElement) {
     if (isTopLevel(apiElement.kind)) {
-      pathMap[apiElement.name] = apiElement.href;
-      update(apiElement.name, apiElement.name, apiElement.documentation);
+      pathMap[apiElement.qualifiedName] = apiElement.href;
+      update(apiElement.qualifiedName, apiElement.symbol,
+          apiElement.documentation);
     }
 
     if (!isTopLevel(apiElement.kind) &&
         apiElement.parent != null &&
         isTopLevel(nameToKindMap[apiElement.parent])) {
-      update(apiElement.parent, apiElement.name, apiElement.documentation);
+      update(apiElement.parent, apiElement.symbol, apiElement.documentation);
     }
   });
 
@@ -211,10 +212,10 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
   data.apiElements?.forEach((elem) {
     String library;
     if (elem.parent == null) {
-      library = elem.name;
+      library = elem.symbol;
     } else {
       library = rootMap[elem.parent] ?? elem.parent;
-      rootMap[elem.name] = library;
+      rootMap[elem.qualifiedName] = library;
     }
     librariesMap.putIfAbsent(library, () => <ApiElement>[]).add(elem);
   });
@@ -226,7 +227,7 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
 /// Creates the index-related data structure for an SDK library.
 PackageDocument createSdkDocument(PubDartdocData lib) {
   final apiDocPages = apiDocPagesFromPubData(lib);
-  final package = lib.apiElements.first.name;
+  final package = lib.apiElements.first.symbol;
   final documentation = lib.apiElements.first.documentation ?? '';
   final description = documentation.split('\n\n').first.trim();
   return new PackageDocument(

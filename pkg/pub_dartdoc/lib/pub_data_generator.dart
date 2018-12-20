@@ -42,12 +42,15 @@ class PubDataGenerator implements Generator {
     final apiMap = <String, ApiElement>{};
     void addElement(ModelElement elem) {
       final isReferenced = elem.kind == 'library' || elem.kind == 'class';
+      final fqnParts = elem.fullyQualifiedName.split('.');
+      final symbol = fqnParts.removeLast();
+      final parent = fqnParts.isEmpty ? null : fqnParts.join('.');
       apiMap.putIfAbsent(
           elem.fullyQualifiedName,
           () => new ApiElement(
-                name: elem.fullyQualifiedName,
+                symbol: symbol,
                 kind: elem.kind,
-                parent: elem.enclosingElement?.fullyQualifiedName,
+                parent: parent,
                 // TODO: decide if keeping the source reference is worth it
                 // We could probably store it more efficiently by not repeating
                 // the filename every time.
@@ -68,7 +71,7 @@ class PubDataGenerator implements Generator {
       if (a.parent == null && b.parent != null) return -1;
       if (a.parent != null && b.parent == null) return 1;
       if (a.parent != b.parent) return a.parent.compareTo(b.parent);
-      return a.name.compareTo(b.name);
+      return a.symbol.compareTo(b.symbol);
     });
 
     final extract = new PubDartdocData(apiElements: apiElements);

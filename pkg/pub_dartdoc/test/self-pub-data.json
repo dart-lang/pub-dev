@@ -1,108 +1,113 @@
 {
   "apiElements": [
     {
-      "name": "pub_dartdoc_data",
+      "symbol": "pub_dartdoc_data",
       "kind": "library",
       "href": "pub_dartdoc_data/pub_dartdoc_data-library.html"
     },
     {
-      "name": "pub_data_generator",
+      "symbol": "pub_data_generator",
       "kind": "library",
       "href": "pub_data_generator/pub_data_generator-library.html"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement",
+      "symbol": "ApiElement",
       "kind": "class",
       "parent": "pub_dartdoc_data",
       "href": "pub_dartdoc_data/ApiElement-class.html"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData",
+      "symbol": "PubDartdocData",
       "kind": "class",
       "parent": "pub_dartdoc_data",
       "href": "pub_dartdoc_data/PubDartdocData-class.html"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.documentation",
+      "symbol": "documentation",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.fromJson",
+      "symbol": "fromJson",
       "kind": "constructor",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.href",
+      "symbol": "href",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.kind",
+      "symbol": "kind",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.name",
+      "symbol": "parent",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.parent",
+      "symbol": "qualifiedName",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.source",
+      "symbol": "source",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.toJson",
+      "symbol": "symbol",
+      "kind": "property",
+      "parent": "pub_dartdoc_data.ApiElement"
+    },
+    {
+      "symbol": "toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData.apiElements",
+      "symbol": "apiElements",
       "kind": "property",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData.fromJson",
+      "symbol": "fromJson",
       "kind": "constructor",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData.toJson",
+      "symbol": "toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "name": "pub_data_generator.PubDataGenerator",
+      "symbol": "PubDataGenerator",
       "kind": "class",
       "parent": "pub_data_generator",
       "href": "pub_data_generator/PubDataGenerator-class.html",
       "documentation": "Generates `pub-data.json` in the output directory, containing the extracted\n[PubDartdocData] instance."
     },
     {
-      "name": "pub_data_generator.fileName",
+      "symbol": "fileName",
       "kind": "top-level constant",
       "parent": "pub_data_generator"
     },
     {
-      "name": "pub_data_generator.PubDataGenerator.generate",
+      "symbol": "generate",
       "kind": "method",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Generate the documentation for the given package in the specified\ndirectory. Completes the returned future when done."
     },
     {
-      "name": "pub_data_generator.PubDataGenerator.onFileCreated",
+      "symbol": "onFileCreated",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Fires when a file is created."
     },
     {
-      "name": "pub_data_generator.PubDataGenerator.writtenFiles",
+      "symbol": "writtenFiles",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Fetches all filenames written by this generator."
