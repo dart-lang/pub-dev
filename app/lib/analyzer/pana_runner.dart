@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
@@ -65,10 +64,8 @@ class AnalyzerJobProcessor extends JobProcessor {
     }
 
     Future<Summary> analyze() async {
-      Directory tempDir;
       final toolEnvRef = await getOrCreateToolEnvRef();
       try {
-        tempDir = await Directory.systemTemp.createTemp('pana');
         final PackageAnalyzer analyzer =
             new PackageAnalyzer(toolEnvRef.toolEnv, urlChecker: _urlChecker);
         final isInternal = internalPackageNames.contains(job.packageName);
@@ -85,9 +82,6 @@ class AnalyzerJobProcessor extends JobProcessor {
             e,
             st);
       } finally {
-        if (tempDir != null) {
-          await tempDir.delete(recursive: true);
-        }
         await toolEnvRef.release();
       }
       return null;
