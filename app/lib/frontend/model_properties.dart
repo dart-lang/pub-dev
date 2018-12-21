@@ -55,6 +55,10 @@ class Pubspec {
 
   String get homepage => _inner.homepage;
 
+  String get repository => _inner.repository?.toString();
+
+  String get issueTracker => _inner.issueTracker?.toString();
+
   String get description => _inner.description;
 
   bool get hasBothAuthorAndAuthors {
