@@ -215,6 +215,8 @@ class PackageVersion extends db.ExpandoModel {
     return new PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
+      repositoryUrl: pubspec.repository,
+      issueTrackerUrl: pubspec.issueTracker,
     );
   }
 }
@@ -396,7 +398,6 @@ class PackageLinks {
     String documentationUrl,
     String repositoryUrl,
     String issueTrackerUrl,
-    String reportIssuesUrl,
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
