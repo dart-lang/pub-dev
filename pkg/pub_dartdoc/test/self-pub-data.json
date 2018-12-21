@@ -1,113 +1,114 @@
 {
   "apiElements": [
     {
-      "symbol": "pub_dartdoc_data",
+      "name": "pub_dartdoc_data",
       "kind": "library",
       "href": "pub_dartdoc_data/pub_dartdoc_data-library.html"
     },
     {
-      "symbol": "pub_data_generator",
+      "name": "pub_data_generator",
       "kind": "library",
       "href": "pub_data_generator/pub_data_generator-library.html"
     },
     {
-      "symbol": "ApiElement",
+      "name": "ApiElement",
       "kind": "class",
       "parent": "pub_dartdoc_data",
       "href": "pub_dartdoc_data/ApiElement-class.html"
     },
     {
-      "symbol": "PubDartdocData",
+      "name": "PubDartdocData",
       "kind": "class",
       "parent": "pub_dartdoc_data",
       "href": "pub_dartdoc_data/PubDartdocData-class.html"
     },
     {
-      "symbol": "documentation",
+      "name": "documentation",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "fromJson",
+      "name": "fromJson",
       "kind": "constructor",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "href",
+      "name": "href",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "kind",
+      "name": "kind",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "parent",
+      "name": "name",
+      "kind": "property",
+      "parent": "pub_dartdoc_data.ApiElement",
+      "documentation": "The last part of the [qualifiedName]. Previous data entries may contain\nthe fully qualified value, but it will be transformed during `fromJson`."
+    },
+    {
+      "name": "parent",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "qualifiedName",
+      "name": "qualifiedName",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "source",
+      "name": "source",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "symbol",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "symbol": "toJson",
+      "name": "toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "symbol": "apiElements",
+      "name": "apiElements",
       "kind": "property",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "symbol": "fromJson",
+      "name": "fromJson",
       "kind": "constructor",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "symbol": "toJson",
+      "name": "toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "symbol": "PubDataGenerator",
+      "name": "PubDataGenerator",
       "kind": "class",
       "parent": "pub_data_generator",
       "href": "pub_data_generator/PubDataGenerator-class.html",
       "documentation": "Generates `pub-data.json` in the output directory, containing the extracted\n[PubDartdocData] instance."
     },
     {
-      "symbol": "fileName",
+      "name": "fileName",
       "kind": "top-level constant",
       "parent": "pub_data_generator"
     },
     {
-      "symbol": "generate",
+      "name": "generate",
       "kind": "method",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Generate the documentation for the given package in the specified\ndirectory. Completes the returned future when done."
     },
     {
-      "symbol": "onFileCreated",
+      "name": "onFileCreated",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Fires when a file is created."
     },
     {
-      "symbol": "writtenFiles",
+      "name": "writtenFiles",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Fetches all filenames written by this generator."

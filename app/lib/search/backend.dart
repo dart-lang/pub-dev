@@ -181,14 +181,14 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   pubData.apiElements.forEach((apiElement) {
     if (isTopLevel(apiElement.kind)) {
       pathMap[apiElement.qualifiedName] = apiElement.href;
-      update(apiElement.qualifiedName, apiElement.symbol,
-          apiElement.documentation);
+      update(
+          apiElement.qualifiedName, apiElement.name, apiElement.documentation);
     }
 
     if (!isTopLevel(apiElement.kind) &&
         apiElement.parent != null &&
         isTopLevel(nameToKindMap[apiElement.parent])) {
-      update(apiElement.parent, apiElement.symbol, apiElement.documentation);
+      update(apiElement.parent, apiElement.name, apiElement.documentation);
     }
   });
 
@@ -212,7 +212,7 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
   data.apiElements?.forEach((elem) {
     String library;
     if (elem.parent == null) {
-      library = elem.symbol;
+      library = elem.name;
     } else {
       library = rootMap[elem.parent] ?? elem.parent;
       rootMap[elem.qualifiedName] = library;
@@ -227,7 +227,7 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
 /// Creates the index-related data structure for an SDK library.
 PackageDocument createSdkDocument(PubDartdocData lib) {
   final apiDocPages = apiDocPagesFromPubData(lib);
-  final package = lib.apiElements.first.symbol;
+  final package = lib.apiElements.first.name;
   final documentation = lib.apiElements.first.documentation ?? '';
   final description = documentation.split('\n\n').first.trim();
   return new PackageDocument(
