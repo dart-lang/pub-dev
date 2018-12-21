@@ -29,7 +29,6 @@ class ApiElement {
   final String source;
   final String href;
   final String documentation;
-  String _qualifiedName;
 
   ApiElement({
     @required this.symbol,
@@ -49,6 +48,5 @@ class ApiElement {
 
   Map<String, dynamic> toJson() => _$ApiElementToJson(this);
 
-  String get qualifiedName =>
-      _qualifiedName ??= parent == null ? symbol : '$parent.$symbol';
+  String get qualifiedName => parent == null ? symbol : '$parent.$symbol';
 }
