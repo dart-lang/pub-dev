@@ -158,7 +158,7 @@ class SearchBackend {
 List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   final nameToKindMap = <String, String>{};
   pubData.apiElements.forEach((e) {
-    nameToKindMap[e.name] = e.kind;
+    nameToKindMap[e.qualifiedName] = e.kind;
   });
 
   final pathMap = <String, String>{};
@@ -167,9 +167,9 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 
   bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
-  void update(String key, String name, String documentation) {
+  void update(String key, String symbol, String documentation) {
     final set = symbolMap.putIfAbsent(key, () => new Set<String>());
-    set.addAll(name.split('.'));
+    set.add(symbol);
 
     documentation = documentation?.trim();
     if (documentation != null && documentation.isNotEmpty) {
@@ -180,8 +180,9 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
 
   pubData.apiElements.forEach((apiElement) {
     if (isTopLevel(apiElement.kind)) {
-      pathMap[apiElement.name] = apiElement.href;
-      update(apiElement.name, apiElement.name, apiElement.documentation);
+      pathMap[apiElement.qualifiedName] = apiElement.href;
+      update(
+          apiElement.qualifiedName, apiElement.name, apiElement.documentation);
     }
 
     if (!isTopLevel(apiElement.kind) &&
@@ -214,7 +215,7 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
       library = elem.name;
     } else {
       library = rootMap[elem.parent] ?? elem.parent;
-      rootMap[elem.name] = library;
+      rootMap[elem.qualifiedName] = library;
     }
     librariesMap.putIfAbsent(library, () => <ApiElement>[]).add(elem);
   });

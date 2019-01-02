@@ -11,98 +11,104 @@
       "href": "pub_data_generator/pub_data_generator-library.html"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement",
+      "name": "ApiElement",
       "kind": "class",
       "parent": "pub_dartdoc_data",
       "href": "pub_dartdoc_data/ApiElement-class.html"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData",
+      "name": "PubDartdocData",
       "kind": "class",
       "parent": "pub_dartdoc_data",
       "href": "pub_dartdoc_data/PubDartdocData-class.html"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.documentation",
+      "name": "documentation",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.fromJson",
+      "name": "fromJson",
       "kind": "constructor",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.href",
+      "name": "href",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.kind",
+      "name": "kind",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.name",
+      "name": "name",
+      "kind": "property",
+      "parent": "pub_dartdoc_data.ApiElement",
+      "documentation": "The last part of the [qualifiedName]. Previous data entries may contain\nthe fully qualified value, but it will be transformed during `fromJson`."
+    },
+    {
+      "name": "parent",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.parent",
+      "name": "qualifiedName",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.source",
+      "name": "source",
       "kind": "property",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.ApiElement.toJson",
+      "name": "toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.ApiElement"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData.apiElements",
+      "name": "apiElements",
       "kind": "property",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData.fromJson",
+      "name": "fromJson",
       "kind": "constructor",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "name": "pub_dartdoc_data.PubDartdocData.toJson",
+      "name": "toJson",
       "kind": "method",
       "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
-      "name": "pub_data_generator.PubDataGenerator",
+      "name": "PubDataGenerator",
       "kind": "class",
       "parent": "pub_data_generator",
       "href": "pub_data_generator/PubDataGenerator-class.html",
       "documentation": "Generates `pub-data.json` in the output directory, containing the extracted\n[PubDartdocData] instance."
     },
     {
-      "name": "pub_data_generator.fileName",
+      "name": "fileName",
       "kind": "top-level constant",
       "parent": "pub_data_generator"
     },
     {
-      "name": "pub_data_generator.PubDataGenerator.generate",
+      "name": "generate",
       "kind": "method",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Generate the documentation for the given package in the specified\ndirectory. Completes the returned future when done."
     },
     {
-      "name": "pub_data_generator.PubDataGenerator.onFileCreated",
+      "name": "onFileCreated",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Fires when a file is created."
     },
     {
-      "name": "pub_data_generator.PubDataGenerator.writtenFiles",
+      "name": "writtenFiles",
       "kind": "property",
       "parent": "pub_data_generator.PubDataGenerator",
       "documentation": "Fetches all filenames written by this generator."
