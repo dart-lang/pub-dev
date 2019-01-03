@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'dart:math';
 
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' hide Pubspec;
@@ -22,6 +21,7 @@ import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
+import 'coverage.dart';
 import 'customization.dart';
 import 'models.dart';
 import 'pub_dartdoc_data.dart';
@@ -225,51 +225,23 @@ class DartdocJobProcessor extends JobProcessor {
       await toolEnvRef.release();
     }
 
-    double coverage = 0.0;
-    double coverageScore = 0.0;
+    final coverage = calculateCoverage(dartdocData);
+
     if (hasContent && dartdocData != null) {
-      final total = dartdocData.apiElements.length;
-      final documented = dartdocData.apiElements
-          .where((elem) =>
-              elem.documentation != null &&
-              elem.documentation.isNotEmpty &&
-              elem.documentation.trim().length >= 5)
-          .length;
-      if (total == documented) {
-        // this also handles total == 0
-        coverage = 1.0;
-      } else {
-        coverage = documented / total;
-      }
-
-      // 0.01 coverage -> 0.03 score -> 9.7 penalty
-      // 0.02 coverage -> 0.06 score -> 9.4 penalty
-      // 0.03 coverage -> 0.09 score -> 9.1 penalty
-      // 0.05 coverage -> 0.14 score -> 8.6 penalty
-      // 0.10 coverage -> 0.27 score -> 7.3 penalty
-      // 0.20 coverage -> 0.49 score -> 5.1 penalty
-      // 0.30 coverage -> 0.66 score -> 3.4 penalty
-      // 0.50 coverage -> 0.88 score -> 1.2 penalty
-      // 0.75 coverage -> 0.98 score -> 0.2 penalty
-      coverageScore = 1.0 - pow(1.0 - coverage, 3);
-
-      // Reducing coverage penalty in order to ease-in the introduction of it.
-      final fullCoveragePenalty = (1.0 - coverageScore) * 10.0;
-      final reducedCoveragePenalty = fullCoveragePenalty - 9.0;
-
-      if (reducedCoveragePenalty > 0) {
-        final level =
-            coverage < 0.2 ? SuggestionLevel.warning : SuggestionLevel.hint;
-        final undocumented = total - documented;
+      if (coverage.penalty > 0) {
+        final level = coverage.percent < 0.2
+            ? SuggestionLevel.warning
+            : SuggestionLevel.hint;
+        final undocumented = coverage.total - coverage.documented;
         healthSuggestions.add(
           new Suggestion(
               SuggestionCode.dartdocCoverage,
               level,
-              'Document public APIs',
-              '$undocumented out of $total API elements (library, class, field '
+              'Document public APIs.',
+              '$undocumented out of ${coverage.total} API elements (library, class, field '
               'or method) have no adequate dartdoc content. Good documentation '
               'improves code readability and discoverability through search.',
-              score: reducedCoveragePenalty),
+              score: coverage.penalty),
         );
       }
     } else if (abortLog != null) {
@@ -287,8 +259,8 @@ class DartdocJobProcessor extends JobProcessor {
         job.packageVersion,
         new DartdocReport(
           reportStatus: reportStatus,
-          coverage: coverage,
-          coverageScore: coverageScore,
+          coverage: coverage.percent,
+          coverageScore: coverage.score,
           healthSuggestions:
               healthSuggestions.isEmpty ? null : healthSuggestions,
           maintenanceSuggestions:
