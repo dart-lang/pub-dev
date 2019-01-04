@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/templates.dart';
 
 import '../shared/utils.dart';
 
@@ -18,7 +17,6 @@ import 'utils.dart';
 
 void tScopedTest(String name, Future func()) {
   scopedTest(name, () {
-    registerTemplateService(new TemplateMock());
     return func();
   });
 }

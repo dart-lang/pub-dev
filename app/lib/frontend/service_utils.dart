@@ -5,7 +5,6 @@
 library pub_dartlang_org.server_common;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
@@ -20,8 +19,6 @@ import 'backend.dart';
 import 'oauth2_service.dart';
 import 'search_service.dart';
 import 'upload_signer_service.dart';
-
-final String templatePath = Platform.script.resolve('../views').toFilePath();
 
 void initOAuth2Service() {
   // The oauth2 service is used for getting an email address from an oauth2

@@ -11,7 +11,6 @@ import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/templates.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
@@ -21,7 +20,6 @@ import 'utils.dart';
 
 void tScopedTest(String name, Future func()) {
   scopedTest(name, () {
-    registerTemplateService(new TemplateMock());
     return func();
   });
 }

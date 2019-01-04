@@ -21,8 +21,6 @@ import 'utils.dart' show fileAnIssueContent;
 
 Future runHandler(Logger logger, shelf.Handler handler,
     {bool sanitize = false}) {
-  registerTemplateService(new TemplateService(templateDirectory: templatePath));
-
   handler = _uriValidationRequestWrapper(handler);
   handler = _userAuthParsingWrapper(handler);
   if (sanitize) {

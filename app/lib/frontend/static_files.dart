@@ -27,14 +27,19 @@ void registerStaticFileCache(StaticFileCache cache) {
   _cache = cache;
 }
 
-String _resolveStaticDirPath() {
+/// Returns the path of the `app/` directory.
+String resolveAppDir() {
   if (Platform.script.path.contains('bin/server.dart')) {
-    return Platform.script.resolve('../../static').toFilePath();
+    return Platform.script.resolve('../').toFilePath();
   }
   if (Platform.script.path.contains('app/test')) {
-    return path.join(Directory.current.path, '../static');
+    return Directory.current.path;
   }
   throw new Exception('Unknown script: ${Platform.script}');
+}
+
+String _resolveStaticDirPath() {
+  return path.join(resolveAppDir(), '../static');
 }
 
 /// Stores static files in memory for fast http serving.

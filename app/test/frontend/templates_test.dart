@@ -41,8 +41,6 @@ void main() {
       registerStaticFileCache(cache);
     });
 
-    final templates = new TemplateService(templateDirectory: 'views');
-
     void expectGoldenFile(String content, String fileName,
         {bool isFragment = false}) {
       // Making sure it is valid HTML
@@ -65,7 +63,7 @@ void main() {
     }
 
     test('index page', () {
-      final popularHtml = templates.renderMiniList([
+      final popularHtml = templateService.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -75,12 +73,12 @@ void main() {
           ),
         ),
       ]);
-      final String html = templates.renderIndexPage(popularHtml, null);
+      final String html = templateService.renderIndexPage(popularHtml, null);
       expectGoldenFile(html, 'index_page.html');
     });
 
     test('landing page flutter', () {
-      final popularHtml = templates.renderMiniList([
+      final popularHtml = templateService.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -91,12 +89,12 @@ void main() {
         ),
       ]);
       final String html =
-          templates.renderIndexPage(popularHtml, KnownPlatforms.flutter);
+          templateService.renderIndexPage(popularHtml, KnownPlatforms.flutter);
       expectGoldenFile(html, 'flutter_landing_page.html');
     });
 
     test('landing page web', () {
-      final popularHtml = templates.renderMiniList([
+      final popularHtml = templateService.renderMiniList([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -107,12 +105,12 @@ void main() {
         ),
       ]);
       final String html =
-          templates.renderIndexPage(popularHtml, KnownPlatforms.web);
+          templateService.renderIndexPage(popularHtml, KnownPlatforms.web);
       expectGoldenFile(html, 'web_landing_page.html');
     });
 
     test('package show page', () {
-      final String html = templates.renderPkgShowPage(
+      final String html = templateService.renderPkgShowPage(
           testPackage,
           false,
           [testPackageVersion],
@@ -150,7 +148,7 @@ void main() {
     });
 
     test('package show page - with version', () {
-      final String html = templates.renderPkgShowPage(
+      final String html = templateService.renderPkgShowPage(
           testPackage,
           true,
           [testPackageVersion],
@@ -188,7 +186,7 @@ void main() {
     });
 
     test('package show page with flutter_plugin', () {
-      final String html = templates.renderPkgShowPage(
+      final String html = templateService.renderPkgShowPage(
           testPackage,
           false,
           [flutterPackageVersion],
@@ -211,7 +209,7 @@ void main() {
     });
 
     test('package show page with outdated version', () {
-      final String html = templates.renderPkgShowPage(
+      final String html = templateService.renderPkgShowPage(
           testPackage,
           true /* isVersionPage */,
           [testPackageVersion],
@@ -229,7 +227,7 @@ void main() {
     });
 
     test('package show page with discontinued version', () {
-      final String html = templates.renderPkgShowPage(
+      final String html = templateService.renderPkgShowPage(
           discontinuedPackage,
           false,
           [testPackageVersion],
@@ -254,7 +252,7 @@ void main() {
         ..panaVersion = '0.10.9'
         ..panaSuggestions = summary?.suggestions
         ..maintenanceSuggestions = summary.maintenance?.suggestions;
-      final String html = templates.renderPkgShowPage(
+      final String html = templateService.renderPkgShowPage(
           testPackage,
           true /* isVersionPage */,
           [testPackageVersion],
@@ -274,7 +272,8 @@ void main() {
 
     test('no content for analysis tab', () async {
       // no content
-      expect(templates.renderAnalysisTab('pkg_foo', null, null, null), isNull);
+      expect(templateService.renderAnalysisTab('pkg_foo', null, null, null),
+          isNull);
     });
 
     test('analysis tab: http', () async {
@@ -288,13 +287,13 @@ void main() {
       final panaReport =
           new PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
       final view = new AnalysisView(card: card, panaReport: panaReport);
-      final String html = templates.renderAnalysisTab(
+      final String html = templateService.renderAnalysisTab(
           'http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
     test('mock analysis tab', () async {
-      final String html = templates.renderAnalysisTab(
+      final String html = templateService.renderAnalysisTab(
           'pkg_foo',
           '>=1.25.0-dev.9.0 <2.0.0',
           new ScoreCardData(
@@ -339,7 +338,7 @@ void main() {
     });
 
     test('aborted analysis tab', () async {
-      final String html = templates.renderAnalysisTab(
+      final String html = templateService.renderAnalysisTab(
           'pkg_foo',
           null,
           new ScoreCardData(),
@@ -352,7 +351,7 @@ void main() {
     });
 
     test('outdated analysis tab', () async {
-      final String html = templates.renderAnalysisTab(
+      final String html = templateService.renderAnalysisTab(
           'pkg_foo',
           null,
           new ScoreCardData(flags: [PackageFlags.isObsolete]),
@@ -364,7 +363,7 @@ void main() {
     });
 
     test('package index page', () {
-      final String html = templates.renderPkgIndexPage([
+      final String html = templateService.renderPkgIndexPage([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -385,7 +384,7 @@ void main() {
     test('package index page with search', () {
       final searchQuery =
           new SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
-      final String html = templates.renderPkgIndexPage(
+      final String html = templateService.renderPkgIndexPage(
         [
           new PackageView.fromModel(
             package: testPackage,
@@ -415,7 +414,7 @@ void main() {
 
     test('search with supported qualifier', () {
       final searchQuery = new SearchQuery.parse(query: 'email:user@domain.com');
-      final String html = templates.renderPkgIndexPage(
+      final String html = templateService.renderPkgIndexPage(
         [],
         new PageLinks.empty(),
         null,
@@ -427,7 +426,7 @@ void main() {
 
     test('search with unsupported qualifier', () {
       final searchQuery = new SearchQuery.parse(query: 'foo:bar');
-      final String html = templates.renderPkgIndexPage(
+      final String html = templateService.renderPkgIndexPage(
         [],
         new PageLinks.empty(),
         null,
@@ -438,7 +437,7 @@ void main() {
     });
 
     test('package versions page', () {
-      final String html = templates.renderPkgVersionsPage(
+      final String html = templateService.renderPkgVersionsPage(
         'foobar',
         [
           testPackageVersion,
@@ -453,19 +452,19 @@ void main() {
     });
 
     test('authorized page', () {
-      final String html = templates.renderAuthorizedPage();
+      final String html = templateService.renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
     });
 
     test('uploader confirmed page', () {
-      final String html = templates.renderUploaderConfirmedPage(
+      final String html = templateService.renderUploaderConfirmedPage(
           'pkg_foo', 'uploader@example.com');
       expectGoldenFile(html, 'uploader_confirmed_page.html');
     });
 
     test('error page', () {
       final String html =
-          templates.renderErrorPage('error_title', 'error_message', [
+          templateService.renderErrorPage('error_title', 'error_message', [
         new PackageView(
           name: 'popular_pkg',
           version: '1.0.2',
@@ -479,32 +478,36 @@ void main() {
     });
 
     test('pagination: single page', () {
-      final String html = templates.renderPagination(new PageLinks.empty());
+      final String html =
+          templateService.renderPagination(new PageLinks.empty());
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
-      final String html = templates.renderPagination(new PageLinks(90, 299));
+      final String html =
+          templateService.renderPagination(new PageLinks(90, 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
-      final String html = templates.renderPagination(new PageLinks(0, 600));
+      final String html =
+          templateService.renderPagination(new PageLinks(0, 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
-      final String html = templates.renderPagination(new PageLinks(90, 91));
+      final String html =
+          templateService.renderPagination(new PageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 
     test('platform tabs: list', () {
-      final String html = templates.renderPlatformTabs(platform: 'web');
+      final String html = templateService.renderPlatformTabs(platform: 'web');
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
     test('platform tabs: search', () {
-      final String html = templates.renderPlatformTabs(
+      final String html = templateService.renderPlatformTabs(
           searchQuery: new SearchQuery.parse(
         query: 'foo',
         platform: 'web',
