@@ -5,11 +5,8 @@
 library pub_dartlang_org.handlers;
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:http_parser/http_parser.dart';
 import 'package:logging/logging.dart';
-import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../scorecard/backend.dart';
@@ -22,9 +19,12 @@ import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 import 'backend.dart';
+import 'handlers_admin.dart';
 import 'handlers_atom_feed.dart';
 import 'handlers_custom_api.dart';
 import 'handlers_documentation.dart';
+import 'handlers_landing.dart';
+import 'handlers_misc.dart';
 import 'handlers_redirects.dart';
 import 'models.dart';
 import 'search_service.dart';
@@ -67,7 +67,7 @@ Future<shelf.Response> appHandler(
   if (handler != null) {
     return await handler(request);
   } else if (path.startsWith('/admin/confirm/')) {
-    return await _adminConfirmHandler(request);
+    return await adminConfirmHandler(request);
   } else if (path == '/api/packages' &&
       request.requestedUri.queryParameters['compact'] == '1') {
     return apiPackagesCompactListHandler(request);
@@ -90,27 +90,27 @@ Future<shelf.Response> appHandler(
   } else if (path == '/robots.txt' && !isProductionHost(request)) {
     return rejectRobotsHandler(request);
   } else if (staticFileCache.hasFile(request.requestedUri.path)) {
-    return _staticsHandler(request);
+    return staticsHandler(request);
   } else {
     return _formattedNotFoundHandler(request);
   }
 }
 
 const _handlers = const <String, shelf.Handler>{
-  '/': __indexHandler,
+  '/': indexLandingHandler,
   '/packages': _packagesHandlerHtml,
-  '/flutter': _flutterLandingHandler,
+  '/flutter': flutterLandingHandler,
   '/flutter/packages': _flutterPackagesHandlerHtml,
-  '/web': _webLandingHandler,
+  '/web': webLandingHandler,
   '/web/packages': _webPackagesHandlerHtml,
   '/api/search': apiSearchHandler,
   '/api/history': apiHistoryHandler, // experimental, do not rely on it
   '/debug': _debugHandler,
   '/feed.atom': atomFeedHandler,
-  '/sitemap.txt': _siteMapHandler,
-  '/authorized': _authorizedHandler,
+  '/sitemap.txt': siteMapTxtHandler,
+  '/authorized': authorizedHandler,
   '/packages.json': _packagesHandler,
-  '/help': _helpPageHandler,
+  '/help': helpPageHandler,
 };
 
 /// Handles requests for /debug
@@ -133,92 +133,6 @@ shelf.Response _debugHandler(shelf.Request request) {
   });
 }
 
-/// Handles requests for /
-Future<shelf.Response> __indexHandler(shelf.Request request) =>
-    _indexHandler(request, null);
-
-/// Handles requests for /flutter
-Future<shelf.Response> _flutterLandingHandler(shelf.Request request) =>
-    _indexHandler(request, KnownPlatforms.flutter);
-
-/// Handles requests for /web
-Future<shelf.Response> _webLandingHandler(shelf.Request request) =>
-    _indexHandler(request, KnownPlatforms.web);
-
-/// Handles requests for:
-/// - /
-/// - /flutter
-/// - /server
-/// - /web
-Future<shelf.Response> _indexHandler(
-    shelf.Request request, String platform) async {
-  final String queryText = request.requestedUri.queryParameters['q']?.trim();
-  if (queryText != null) {
-    final String path = request.requestedUri.path;
-    final String separator = path.endsWith('/') ? '' : '/';
-    final String newPath = '$path${separator}packages';
-    return redirectResponse(
-        request.requestedUri.replace(path: newPath).toString());
-  }
-  final isProd = isProductionHost(request);
-  String pageContent =
-      isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
-  if (pageContent == null) {
-    final packages = await _topPackages(platform: platform);
-    final minilist = templateService.renderMiniList(packages);
-
-    pageContent = templateService.renderIndexPage(minilist, platform);
-    if (isProd) {
-      await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
-    }
-  }
-  return htmlResponse(pageContent);
-}
-
-Future<List<PackageView>> _topPackages(
-    {String platform, int count = 15}) async {
-  // TODO: store top packages in memcache
-  final result = await searchService.search(new SearchQuery.parse(
-    platform: platform,
-    limit: count,
-    isAd: true,
-  ));
-  return result.packages.take(count).toList();
-}
-
-/// Handles requests for /help
-Future<shelf.Response> _helpPageHandler(shelf.Request request) async {
-  return htmlResponse(templateService.renderHelpPage());
-}
-
-Future<shelf.Response> _siteMapHandler(shelf.Request request) async {
-  // Google wants the return page to have < 50,000 entries and be less than
-  // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
-  // As of 2018-01-01, the return page is ~3,000 entries and ~140KB
-  // By restricting to packages that have been updated in the last two years,
-  // the count is closer to ~1,500
-
-  final twoYearsAgo = new DateTime.now().subtract(twoYears);
-  final items = new List.from(const ['', 'help', 'web', 'flutter']
-      .map((url) => '${urls.siteRoot}/$url'));
-
-  final stream = backend.allPackageNames(
-      updatedSince: twoYearsAgo, excludeDiscontinued: true);
-  await for (var package in stream) {
-    if (isSoftRemoved(package)) continue;
-    items.add(urls.pkgPageUrl(package, includeHost: true));
-    items.add(urls.pkgDocUrl(package, isLatest: true, includeHost: true));
-  }
-
-  items.sort();
-
-  return new shelf.Response.ok(items.join('\n'));
-}
-
-/// Handles requests for /authorized
-shelf.Response _authorizedHandler(_) =>
-    htmlResponse(templateService.renderAuthorizedPage());
-
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> _packagesHandler(shelf.Request request) async {
   final int page = extractPageFromUrlParameters(request.url);
@@ -230,32 +144,6 @@ Future<shelf.Response> _packagesHandler(shelf.Request request) async {
   } else {
     return _packagesHandlerHtml(request);
   }
-}
-
-Future<shelf.Response> _staticsHandler(shelf.Request request) async {
-  // Simplifies all of '.', '..', '//'!
-  final String normalized = path.normalize(request.requestedUri.path);
-  final StaticFile staticFile = staticFileCache.getFile(normalized);
-  if (staticFile != null) {
-    if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
-      return new shelf.Response.notModified();
-    }
-    final String hash = request.requestedUri.queryParameters['hash'];
-    final Duration cacheAge = hash != null && hash == staticFile.etag
-        ? staticLongCache
-        : staticShortCache;
-    return new shelf.Response.ok(
-      staticFile.bytes,
-      headers: {
-        HttpHeaders.contentTypeHeader: staticFile.contentType,
-        HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),
-        HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
-        HttpHeaders.etagHeader: staticFile.etag,
-        HttpHeaders.cacheControlHeader: 'max-age: ${cacheAge.inSeconds}',
-      },
-    );
-  }
-  return _formattedNotFoundHandler(request);
 }
 
 /// Handles requests for /packages - JSON
@@ -486,7 +374,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
 }
 
 Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
-  final packages = await _topPackages();
+  final packages = await topFeaturedPackages();
   final message =
       'You\'ve stumbled onto a page (`${request.requestedUri.path}`) that doesn\'t exist. '
       'Luckily you have several options:\n\n'
@@ -497,54 +385,4 @@ Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
     templateService.renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
-}
-
-Future<shelf.Response> _formattedInviteExpiredHandler(shelf.Request request,
-    [String message = '']) async {
-  return htmlResponse(
-    templateService.renderErrorPage(
-        'Invite expired',
-        'The URL you have clicked expired or became invalid.\n\n$message\n',
-        null),
-    status: 404,
-  );
-}
-
-/// Handles requests for /admin/confirm
-Future<shelf.Response> _adminConfirmHandler(shelf.Request request) async {
-  final segments = request.requestedUri.pathSegments;
-  if (segments.length <= 2) {
-    return _formattedNotFoundHandler(request);
-  }
-  final type = segments[2];
-  if (type == PackageInviteType.newUploader) {
-    if (segments.length != 6) {
-      return _formattedNotFoundHandler(request);
-    }
-    final packageName = segments[3];
-    final recipientEmail = segments[4];
-    final urlNonce = segments[5];
-    if (packageName.isEmpty || urlNonce.isEmpty) {
-      return _formattedNotFoundHandler(request);
-    }
-    final invite = await backend.confirmPackageInvite(
-      packageName: packageName,
-      type: type,
-      recipientEmail: recipientEmail,
-      urlNonce: urlNonce,
-    );
-    if (invite == null) {
-      return _formattedInviteExpiredHandler(request);
-    }
-    try {
-      await backend.repository.confirmUploader(
-          invite.fromEmail, invite.packageName, invite.recipientEmail);
-    } catch (e) {
-      _formattedInviteExpiredHandler(request, 'Error message:\n\n```\n$e\n```');
-    }
-    return htmlResponse(templateService.renderUploaderConfirmedPage(
-        invite.packageName, invite.recipientEmail));
-  } else {
-    return _formattedInviteExpiredHandler(request);
-  }
 }
