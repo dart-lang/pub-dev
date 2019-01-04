@@ -456,6 +456,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.1"
+  pub_dartdoc_data:
+    dependency: "direct main"
+    description:
+      path: "../pkg/pub_dartdoc_data"
+      relative: true
+    source: path
+    version: "0.0.0"
   pub_semver:
     dependency: "direct main"
     description:

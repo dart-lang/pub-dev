@@ -11,6 +11,8 @@ import 'package:pana/pana.dart' hide Pubspec;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+
 import '../job/backend.dart';
 import '../job/job.dart';
 import '../scorecard/backend.dart';
@@ -24,7 +26,6 @@ import 'backend.dart';
 import 'coverage.dart';
 import 'customization.dart';
 import 'models.dart';
-import 'pub_dartdoc_data.dart';
 
 final Logger _logger = new Logger('pub.dartdoc.runner');
 final Uuid _uuid = new Uuid();

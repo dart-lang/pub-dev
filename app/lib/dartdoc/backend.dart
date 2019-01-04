@@ -16,6 +16,8 @@ import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+
 import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
@@ -23,7 +25,6 @@ import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;
 
 import 'models.dart';
-import 'pub_dartdoc_data.dart';
 import 'storage_path.dart' as storage_path;
 
 final Logger _logger = new Logger('pub.dartdoc.backend');

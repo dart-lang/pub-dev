@@ -11,7 +11,8 @@ import 'package:gcloud/storage.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 
-import '../dartdoc/pub_dartdoc_data.dart';
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
+
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';

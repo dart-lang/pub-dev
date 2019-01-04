@@ -7,14 +7,15 @@ library pub_dartlang_org.handlers_test;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:pub_dartlang_org/dartdoc/models.dart';
-import 'package:pub_dartlang_org/dartdoc/pub_dartdoc_data.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
+import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/handlers_documentation.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
+
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';
