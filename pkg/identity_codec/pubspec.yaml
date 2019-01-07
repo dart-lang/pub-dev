@@ -1,7 +1,7 @@
 name: identity_codec
 description: The identity codec passes input to output.
 version: 1.0.0
-publish_to: None # don't publish yet
+publish_to: none # don't publish yet
 
 environment:
   sdk: '>=2.0.0 <3.0.0'
