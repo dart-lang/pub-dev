@@ -1,87 +1,9 @@
 {
   "apiElements": [
     {
-      "name": "pub_dartdoc_data",
-      "kind": "library",
-      "href": "pub_dartdoc_data/pub_dartdoc_data-library.html"
-    },
-    {
       "name": "pub_data_generator",
       "kind": "library",
       "href": "pub_data_generator/pub_data_generator-library.html"
-    },
-    {
-      "name": "ApiElement",
-      "kind": "class",
-      "parent": "pub_dartdoc_data",
-      "href": "pub_dartdoc_data/ApiElement-class.html"
-    },
-    {
-      "name": "PubDartdocData",
-      "kind": "class",
-      "parent": "pub_dartdoc_data",
-      "href": "pub_dartdoc_data/PubDartdocData-class.html"
-    },
-    {
-      "name": "documentation",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "fromJson",
-      "kind": "constructor",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "href",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "kind",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "name",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement",
-      "documentation": "The last part of the [qualifiedName]. Previous data entries may contain\nthe fully qualified value, but it will be transformed during `fromJson`."
-    },
-    {
-      "name": "parent",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "qualifiedName",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "source",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "toJson",
-      "kind": "method",
-      "parent": "pub_dartdoc_data.ApiElement"
-    },
-    {
-      "name": "apiElements",
-      "kind": "property",
-      "parent": "pub_dartdoc_data.PubDartdocData"
-    },
-    {
-      "name": "fromJson",
-      "kind": "constructor",
-      "parent": "pub_dartdoc_data.PubDartdocData"
-    },
-    {
-      "name": "toJson",
-      "kind": "method",
-      "parent": "pub_dartdoc_data.PubDartdocData"
     },
     {
       "name": "PubDataGenerator",
@@ -94,6 +16,11 @@
       "name": "fileName",
       "kind": "top-level constant",
       "parent": "pub_data_generator"
+    },
+    {
+      "name": "PubDataGenerator",
+      "kind": "constructor",
+      "parent": "pub_data_generator.PubDataGenerator"
     },
     {
       "name": "generate",
