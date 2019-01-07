@@ -8,10 +8,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:pana/models.dart' show SuggestionLevel;
+import 'package:path/path.dart' as path;
 
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
@@ -33,24 +33,42 @@ String _escapeAngleBrackets(String msg) =>
 const HtmlEscape _htmlEscaper = const HtmlEscape();
 const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.attribute);
 
-void registerTemplateService(TemplateService service) =>
-    ss.register(#_templates, service);
+final templateCache = new TemplateCache();
 
-TemplateService get templateService =>
-    ss.lookup(#_templates) as TemplateService;
-
-/// Used for rendering HTML pages for pub.dartlang.org.
-class TemplateService {
+/// Loads, parses, caches and renders mustache templates.
+class TemplateCache {
   /// The path to the directory which contains mustache templates.
   ///
   /// The path should not contain a trailing slash (e.g. "/tmp/views").
-  final String templateDirectory;
+  final String _templateDirectory;
 
   /// A cache which keeps all used mustach templates parsed in memory.
   final Map<String, mustache.Template> _cachedMustacheTemplates = {};
 
-  TemplateService({this.templateDirectory = '/project/app/views'});
+  TemplateCache({String templateDirectory})
+      : _templateDirectory =
+            templateDirectory ?? path.join(resolveAppDir(), 'views');
 
+  /// Renders [template] with given [values].
+  ///
+  /// If [escapeValues] is `false`, values in `values` will not be escaped.
+  String renderTemplate(String template, values, {bool escapeValues = true}) {
+    final mustache.Template parsedTemplate =
+        _cachedMustacheTemplates.putIfAbsent(template, () {
+      final file = new File('$_templateDirectory/$template.mustache');
+      return new mustache.Template(file.readAsStringSync(),
+          htmlEscapeValues: escapeValues, lenient: true);
+    });
+    return parsedTemplate.renderString(values);
+  }
+}
+
+/// [TemplateService] singleton instance.
+/// TODO: remove after https://github.com/dart-lang/pub-dartlang-dart/issues/1907 gets fixed
+final templateService = new TemplateService();
+
+/// Used for rendering HTML pages for pub.dartlang.org.
+class TemplateService {
   /// Renders the `views/pkg/versions/index` template.
   String renderPkgVersionsPage(String package, List<PackageVersion> versions,
       List<Uri> versionDownloadUrls) {
@@ -78,7 +96,7 @@ class TemplateService {
           'on ${latestDevVersion.shortCreated}.</p>');
     }
     if (stableVersionRows.isNotEmpty) {
-      htmlBlocks.add(_renderTemplate('pkg/versions/index', {
+      htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
         'id': 'stable',
         'kind': 'Stable',
         'package': {'name': package},
@@ -86,7 +104,7 @@ class TemplateService {
       }));
     }
     if (devVersionRows.isNotEmpty) {
-      htmlBlocks.add(_renderTemplate('pkg/versions/index', {
+      htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
         'id': 'dev',
         'kind': 'Dev',
         'package': {'name': package},
@@ -109,7 +127,8 @@ class TemplateService {
       'download_url': _attr(downloadUrl),
       'icons': staticUrls.versionsTableIcons,
     };
-    return _renderTemplate('pkg/versions/version_row', versionData);
+    return templateCache.renderTemplate(
+        'pkg/versions/version_row', versionData);
   }
 
   /// Renders the `views/pkg/index.mustache` template.
@@ -188,7 +207,7 @@ class TemplateService {
       'search_query': searchQuery?.query,
       'total_count': totalCount,
     };
-    final content = _renderTemplate('pkg/index', values);
+    final content = templateCache.renderTemplate('pkg/index', values);
 
     String pageTitle = platformDict.topPlatformPackages;
     if (isSearch) {
@@ -209,7 +228,7 @@ class TemplateService {
   }
 
   String _renderAnalysisDepRow(PkgDependency pd) {
-    return _renderTemplate('pkg/analysis_dep_row', {
+    return templateCache.renderTemplate('pkg/analysis_dep_row', {
       'is_hosted': pd.isHosted,
       'package': pd.package,
       'package_url': urls.pkgPageUrl(pd.package),
@@ -294,7 +313,7 @@ class TemplateService {
       'score_bars': _renderScoreBars(card),
     };
 
-    return _renderTemplate('pkg/analysis_tab', data);
+    return templateCache.renderTemplate('pkg/analysis_tab', data);
   }
 
   String _renderSuggestionBlockHtml(
@@ -321,7 +340,7 @@ class TemplateService {
       'label': label,
       'suggestions': mappedValues,
     };
-    return _renderTemplate('pkg/analysis_suggestion_block', data);
+    return templateCache.renderTemplate('pkg/analysis_suggestion_block', data);
   }
 
   Map<String, Object> _pkgShowPageValues(
@@ -491,7 +510,7 @@ class TemplateService {
 
   Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
     String renderScoreBar(double score, Brush brush) {
-      return _renderTemplate('pkg/score_bar', {
+      return templateCache.renderTemplate('pkg/score_bar', {
         'percent': _formatScore(score ?? 0.0),
         'score': _formatScore(score),
         'background': brush.background.toString(),
@@ -591,7 +610,7 @@ class TemplateService {
       editorSupportedToolHtml = '<code>pub get</code>';
     }
 
-    return _renderTemplate('pkg/install_tab', {
+    return templateCache.renderTemplate('pkg/install_tab', {
       'use_as_an_executable': hasExecutables,
       'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
       'package': package.name,
@@ -646,7 +665,7 @@ class TemplateService {
         urls.searchUrl(q: 'dependency:${package.name}');
     values['install_tab_html'] = _renderInstallTab(
         package, selectedVersion, isFlutterPackage, analysis?.platforms);
-    final content = _renderTemplate('pkg/show', values);
+    final content = templateCache.renderTemplate('pkg/show', values);
     final packageAndVersion = isVersionPage
         ? '${selectedVersion.package} ${selectedVersion.version}'
         : selectedVersion.package;
@@ -675,7 +694,7 @@ class TemplateService {
 
   /// Renders the `views/uploader_confirmed.mustache` template.
   String renderUploaderConfirmedPage(String package, String uploaderEmail) {
-    final String content = _renderTemplate('uploader_confirmed', {
+    final String content = templateCache.renderTemplate('uploader_confirmed', {
       'package': package,
       'uploader_email': uploaderEmail,
     });
@@ -685,7 +704,7 @@ class TemplateService {
 
   /// Renders the `views/authorized.mustache` template.
   String renderAuthorizedPage() {
-    final String content = _renderTemplate('authorized', {});
+    final String content = templateCache.renderTemplate('authorized', {});
     return renderLayoutPage(PageType.package, content,
         title: 'Pub Authorized Successfully', includeSurvey: false);
   }
@@ -701,14 +720,14 @@ class TemplateService {
       'has_top_packages': hasTopPackages,
       'top_packages_html': topPackagesHtml,
     };
-    final String content = _renderTemplate('error', values);
+    final String content = templateCache.renderTemplate('error', values);
     return renderLayoutPage(PageType.package, content,
         title: title, includeSurvey: false);
   }
 
   /// Renders the `views/help.mustache` template.
   String renderHelpPage() {
-    final String content = _renderTemplate('help', {});
+    final String content = templateCache.renderTemplate('help', {});
     return renderLayoutPage(PageType.package, content,
         title: 'Help | Dart Packages');
   }
@@ -733,7 +752,7 @@ class TemplateService {
       'ranking_tooltip_html': getSortDict('top').tooltip,
       'top_html': topHtml,
     };
-    final String content = _renderTemplate('index', values);
+    final String content = templateCache.renderTemplate('index', values);
     return renderLayoutPage(
       PageType.landing,
       content,
@@ -761,7 +780,7 @@ class TemplateService {
         };
       }).toList(),
     };
-    return _renderTemplate('mini_list', values);
+    return templateCache.renderTemplate('mini_list', values);
   }
 
   /// Renders the `views/layout.mustache` template.
@@ -823,7 +842,7 @@ class TemplateService {
       'schema_org_searchaction_json':
           isRoot ? json.encode(_schemaOrgSearchAction) : null,
     };
-    return _renderTemplate('layout', values, escapeValues: false);
+    return templateCache.renderTemplate('layout', values, escapeValues: false);
   }
 
   /// Renders the `views/pagination.mustache` template.
@@ -831,7 +850,8 @@ class TemplateService {
     final values = {
       'page_links': pageLinks.hrefPatterns(),
     };
-    return _renderTemplate('pagination', values, escapeValues: false);
+    return templateCache.renderTemplate('pagination', values,
+        escapeValues: false);
   }
 
   /// Renders the tags using the pkg/tags template.
@@ -885,20 +905,7 @@ class TemplateService {
         'href': urls.analysisTabUrl(packageName),
       });
     }
-    return _renderTemplate('pkg/tags', {'tags': tags});
-  }
-
-  /// Renders [template] with given [values].
-  ///
-  /// If [escapeValues] is `false`, values in `values` will not be escaped.
-  String _renderTemplate(String template, values, {bool escapeValues = true}) {
-    final mustache.Template parsedTemplate =
-        _cachedMustacheTemplates.putIfAbsent(template, () {
-      final file = new File('$templateDirectory/$template.mustache');
-      return new mustache.Template(file.readAsStringSync(),
-          htmlEscapeValues: escapeValues, lenient: true);
-    });
-    return parsedTemplate.renderString(values);
+    return templateCache.renderTemplate('pkg/tags', {'tags': tags});
   }
 
   String renderPlatformTabs({
@@ -936,7 +943,7 @@ class TemplateService {
         platformTabData('All', null),
       ]
     };
-    return _renderTemplate('platform_tabs', values);
+    return templateCache.renderTemplate('platform_tabs', values);
   }
 }
 

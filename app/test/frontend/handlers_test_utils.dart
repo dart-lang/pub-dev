@@ -6,7 +6,6 @@ library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
@@ -15,7 +14,6 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
-import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_service.dart';
@@ -38,7 +36,9 @@ Future<shelf.Response> issueGetUri(Uri uri) async {
 Future expectHtmlResponse(shelf.Response response, {int status = 200}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
-  expect(await response.readAsString(), TemplateMock._response);
+  final content = await response.readAsString();
+  expect(content, contains('<!DOCTYPE html>'));
+  expect(content, contains('</html>'));
 }
 
 Future expectAtomXmlResponse(shelf.Response response,
@@ -202,107 +202,6 @@ class BackendMock implements Backend {
   @override
   Future deleteObsoleteInvites() {
     throw new UnimplementedError();
-  }
-}
-
-class TemplateMock implements TemplateService {
-  static final String _response = 'foobar';
-
-  @override
-  String get templateDirectory => null;
-
-  @override
-  String renderAuthorizedPage() {
-    return _response;
-  }
-
-  @override
-  String renderUploaderConfirmedPage(String package, String uploaderEmail) {
-    return _response;
-  }
-
-  @override
-  String renderErrorPage(
-      String title, String message, List<PackageView> packages) {
-    return _response;
-  }
-
-  @override
-  String renderHelpPage() {
-    return _response;
-  }
-
-  @override
-  String renderIndexPage(String topHtml, String platform) {
-    return _response;
-  }
-
-  @override
-  String renderMiniList(List<PackageView> packages) {
-    return _response;
-  }
-
-  @override
-  String renderLayoutPage(
-    PageType type,
-    String contentHtml, {
-    @required String title,
-    String pageDescription,
-    String faviconUrl,
-    String canonicalUrl,
-    String platform,
-    SearchQuery searchQuery,
-    bool includeSurvey = true,
-    bool noIndex = false,
-  }) =>
-      _response;
-
-  @override
-  String renderPagination(PageLinks pageLinks) {
-    return _response;
-  }
-
-  @override
-  String renderPkgIndexPage(
-      List<PackageView> packages, PageLinks links, String currentPlatform,
-      {SearchQuery searchQuery, int totalCount}) {
-    return _response;
-  }
-
-  @override
-  String renderPkgShowPage(
-      Package package,
-      bool isVersionPage,
-      List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls,
-      PackageVersion selectedVersion,
-      PackageVersion latestStableVersion,
-      PackageVersion latestDevVersion,
-      int totalNumberOfVersions,
-      ScoreCardData card,
-      AnalysisView analysis) {
-    return _response;
-  }
-
-  @override
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
-    return _response;
-  }
-
-  @override
-  String renderAnalysisTab(
-      String package, String sdkConstraint, extract, analysis) {
-    return _response;
-  }
-
-  @override
-  String renderPlatformTabs({
-    String platform,
-    SearchQuery searchQuery,
-    bool isLanding = false,
-  }) {
-    return _response;
   }
 }
 

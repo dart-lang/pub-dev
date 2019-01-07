@@ -11,7 +11,6 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
-import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -25,7 +24,6 @@ import 'utils.dart';
 
 void tScopedTest(String name, Future func()) {
   scopedTest(name, () {
-    registerTemplateService(new TemplateMock());
     return func();
   });
 }
