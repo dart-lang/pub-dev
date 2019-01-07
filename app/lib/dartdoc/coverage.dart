@@ -6,7 +6,7 @@ import 'dart:math';
 
 import 'package:meta/meta.dart';
 
-import 'pub_dartdoc_data.dart';
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 /// The documentation coverage numbers and the derived scores.
 class Coverage {
