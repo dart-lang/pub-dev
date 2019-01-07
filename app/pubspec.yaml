@@ -2,7 +2,7 @@ name: pub_dartlang_org
 author: Dart Team <misc@dartlang.org>
 description: The pub.dartlang.org website.
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: ">=2.1.0-dev.9.4 <3.0.0"
 dependencies:
   _popularity:
     path: ../pkg/_popularity
