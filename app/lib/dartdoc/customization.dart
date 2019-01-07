@@ -143,11 +143,12 @@ class DartdocCustomizer {
 
   void _addPubSiteLogo(Element breadcrumbs) {
     final parent = breadcrumbs.parent;
-    final logoLink = new Element.tag('a');
-    logoLink.attributes['href'] = '$siteRoot/';
-    final imgRef = new Element.tag('img');
-    imgRef.attributes['src'] = '$siteRoot/static/img/dart-logo.svg';
-    imgRef.attributes['style'] = 'height: 30px; margin-right: 1em;';
+    final logoLink = new Element.tag('a')
+      ..className = 'hidden-xs'
+      ..attributes['href'] = '$siteRoot/';
+    final imgRef = new Element.tag('img')
+      ..attributes['src'] = '$siteRoot/static/img/dart-logo.svg'
+      ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);
     parent.insertBefore(new Text('\n  '), breadcrumbs);
