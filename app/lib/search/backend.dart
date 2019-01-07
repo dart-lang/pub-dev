@@ -55,11 +55,12 @@ class SearchBackend {
   /// Packages are omitted when:
   ///  * latest version is missing,
   ///  * analysis is missing,
+  ///  * the package is not dart 2.0 compatible.
   Future<List<PackageDocument>> loadDocuments(List<String> packageNames) async {
     final List<Key> packageKeys = packageNames
         .map((String name) => _db.emptyKey.append(Package, id: name))
         .toList();
-    final packages = (await _db.lookup(packageKeys)).cast<Package>();
+    var packages = (await _db.lookup(packageKeys)).cast<Package>();
 
     // Load only for the existing packages.
     final List<Key> versionKeys = packages
@@ -70,6 +71,12 @@ class SearchBackend {
     final Map<String, PackageVersion> versions = new Map.fromIterable(
         versionList.where((pv) => pv != null),
         key: (pv) => (pv as PackageVersion).package);
+    // Remove legacy packages from search
+    packages = packages
+        .where((p) =>
+            versions.containsKey(p.name) &&
+            !versions[p].pubspec.supportsOnlyLegacySdk)
+        .toList();
 
     final pubDataFutures = Future.wait<String>(
       packages.map(
