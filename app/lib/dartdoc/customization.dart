@@ -50,19 +50,20 @@ class DartdocCustomizer {
     _addAlternateUrl(doc.head, canonical);
     _addAnalyticsTracker(doc.head);
     _addGithubMarkdownStyle(doc.head, doc.body);
+    final docRoot = isLatestStable
+        ? pkgDocUrl(packageName, isLatest: true)
+        : pkgDocUrl(packageName, version: packageVersion);
     final breadcrumbs = doc.body.querySelector('.breadcrumbs');
     final breadcrumbsDepth = breadcrumbs?.children?.length ?? 0;
     if (breadcrumbs != null) {
       _addPubSiteLogo(breadcrumbs);
       _addPubPackageLink(breadcrumbs);
-      // Set "documentation" link to the canonical doc root.
-      final docRoot = isLatestStable
-          ? pkgDocUrl(packageName, isLatest: true)
-          : pkgDocUrl(packageName, version: packageVersion);
-      breadcrumbs
-          .querySelectorAll('a')
-          .where((e) => e.attributes['href'] == 'index.html')
-          .forEach((e) => e.attributes['href'] = docRoot);
+      _updateIndexLinkToCanonicalRoot(breadcrumbs, docRoot);
+    }
+    final sidebarBreadcrumbs = doc.body.querySelector('.sidebar .breadcrumbs');
+    if (sidebarBreadcrumbs != null) {
+      _addPubPackageLink(sidebarBreadcrumbs, level: 2);
+      _updateIndexLinkToCanonicalRoot(sidebarBreadcrumbs, docRoot);
     }
     if (!isLatestStable || breadcrumbsDepth > 3) {
       _addMetaNoIndex(doc.head);
@@ -154,7 +155,7 @@ class DartdocCustomizer {
     parent.insertBefore(new Text('\n  '), breadcrumbs);
   }
 
-  void _addPubPackageLink(Element breadcrumbs) {
+  void _addPubPackageLink(Element breadcrumbs, {int level = 1}) {
     final pubPackageLink = pkgPageUrl(packageName,
         version: isLatestStable ? null : packageVersion, includeHost: true);
     final pubPackageText = '$packageName package';
@@ -169,7 +170,7 @@ class DartdocCustomizer {
         ..text = 'documentation';
       breadcrumbs.append(new Text('  '));
       breadcrumbs.append(docitem);
-      breadcrumbs.append(new Text('\n  '));
+      breadcrumbs.append(new Text('\n' + '  ' * level));
     } else if (breadcrumbs.children.isNotEmpty) {
       // we are inside
       final firstLink = breadcrumbs.querySelector('a');
@@ -182,7 +183,15 @@ class DartdocCustomizer {
       lead.append(leadLink);
 
       breadcrumbs.insertBefore(lead, breadcrumbs.firstChild);
-      breadcrumbs.insertBefore(new Text('\n    '), breadcrumbs.firstChild);
+      breadcrumbs.insertBefore(
+          new Text('\n  ' + '  ' * level), breadcrumbs.firstChild);
     }
+  }
+
+  void _updateIndexLinkToCanonicalRoot(Element breadcrumbs, String docRoot) {
+    breadcrumbs
+        .querySelectorAll('a')
+        .where((e) => e.attributes['href'] == 'index.html')
+        .forEach((e) => e.attributes['href'] = docRoot);
   }
 }
