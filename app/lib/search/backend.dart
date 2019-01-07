@@ -51,8 +51,10 @@ class SearchBackend {
 
   /// Loads the list of packages, their latest stable versions and returns a
   /// matching list of [PackageDocument] objects for search.
-  /// When a package, its latest version or its analysis is missing, the method
-  /// returns with null at the given index.
+  ///
+  /// Packages are omitted when:
+  ///  * latest version is missing,
+  ///  * analysis is missing,
   Future<List<PackageDocument>> loadDocuments(List<String> packageNames) async {
     final List<Key> packageKeys = packageNames
         .map((String name) => _db.emptyKey.append(Package, id: name))
@@ -82,7 +84,7 @@ class SearchBackend {
 
     final pubDataContents = await pubDataFutures;
 
-    final List<PackageDocument> results = new List(packages.length);
+    final List<PackageDocument> results = [];
     for (int i = 0; i < packages.length; i++) {
       final Package p = packages[i];
       if (p == null) continue;
@@ -106,7 +108,7 @@ class SearchBackend {
         }
       }
 
-      results[i] = new PackageDocument(
+      results.add(new PackageDocument(
         package: pv.package,
         version: p.latestVersion,
         devVersion: p.latestDevVersion,
@@ -124,7 +126,7 @@ class SearchBackend {
         emails: _buildEmails(p, pv),
         apiDocPages: apiDocPages,
         timestamp: new DateTime.now().toUtc(),
-      );
+      ));
     }
     return results;
   }

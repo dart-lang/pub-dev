@@ -112,10 +112,8 @@ class BatchIndexUpdater implements TaskRunner {
       _taskCount += tasks.length;
       _logger.info('Updating index with ${tasks.length} packages '
           '[example: ${tasks.first.package}]');
-      final List<PackageDocument> docs = (await searchBackend
-              .loadDocuments(tasks.map((t) => t.package).toList()))
-          .where((doc) => doc != null)
-          .toList();
+      final packageNames = tasks.map((t) => t.package).toList();
+      final docs = await searchBackend.loadDocuments(packageNames);
       _snapshot.addAll(docs);
       await packageIndex.addPackages(docs);
       final removedPackages = tasks.map((t) => t.package).toSet()
