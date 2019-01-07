@@ -110,3 +110,15 @@ class SearchResultPage {
   factory SearchResultPage.empty(SearchQuery query) =>
       new SearchResultPage(query, 0, []);
 }
+
+/// Returns the top packages for displaying them on a landing page.
+Future<List<PackageView>> topFeaturedPackages(
+    {String platform, int count = 15}) async {
+  // TODO: store top packages in memcache
+  final result = await searchService.search(new SearchQuery.parse(
+    platform: platform,
+    limit: count,
+    isAd: true,
+  ));
+  return result.packages.take(count).toList();
+}
