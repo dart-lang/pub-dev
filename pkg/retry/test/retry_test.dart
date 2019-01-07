@@ -20,7 +20,7 @@ void main() {
           12800,
           25600,
         ];
-        var r = RetryOptions();
+        final r = RetryOptions();
         for (int i = 0; i < ivt.length; i++) {
           final d = r.delay(i).inMilliseconds;
           expect(d, inInclusiveRange(ivt[i] * 0.74, ivt[i] * 1.26));

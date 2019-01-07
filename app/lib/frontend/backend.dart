@@ -22,7 +22,6 @@ import '../shared/email.dart';
 import '../shared/package_memcache.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-
 import 'email_sender.dart';
 import 'model_properties.dart';
 import 'models.dart' as models;
@@ -240,8 +239,8 @@ class Backend {
     final pkgKey = db.emptyKey.append(models.Package, id: packageName);
     final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
     return await db.withTransaction((tx) async {
-      final list = await tx.lookup([inviteKey]);
-      models.PackageInvite invite = list.single;
+      final list = await tx.lookup<models.PackageInvite>([inviteKey]);
+      final invite = list.single;
 
       // Invite entry does not exists.
       if (invite == null) {
@@ -300,6 +299,7 @@ class InviteStatus {
   InviteStatus({this.urlNonce, this.nextNotification});
 
   bool get isActive => urlNonce != null;
+
   bool get isDelayed => nextNotification != null;
 }
 

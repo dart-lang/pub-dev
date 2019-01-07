@@ -35,7 +35,7 @@ class CompatibleListProperty extends Property {
     //    - `[a]` as `[a]` (as opposed to `a`)
     if (value == null) return [];
     final List list = value;
-    if (list.length == 0) return [];
+    if (list.isEmpty) return [];
     if (list.length == 1) return [subProperty.encodeValue(db, list[0])];
     return list.map((value) => subProperty.encodeValue(db, value)).toList();
   }
