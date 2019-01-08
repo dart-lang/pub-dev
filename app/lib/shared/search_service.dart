@@ -74,19 +74,19 @@ class PackageDocument {
     this.description,
     this.created,
     this.updated,
-    this.readme,
-    this.isDiscontinued,
-    this.doNotAdvertise,
-    this.supportsOnlyLegacySdk,
-    this.platforms,
-    this.health,
-    this.popularity,
-    this.maintenance,
-    this.dependencies,
-    this.emails,
-    this.apiDocPages,
-    this.timestamp,
-  });
+    this.readme = '',
+    this.isDiscontinued = false,
+    this.doNotAdvertise = false,
+    this.supportsOnlyLegacySdk = false,
+    this.platforms = const [],
+    this.health = 0,
+    this.popularity = 0,
+    this.maintenance = 0,
+    this.dependencies = const {},
+    this.emails = const [],
+    this.apiDocPages = const [],
+    DateTime timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
