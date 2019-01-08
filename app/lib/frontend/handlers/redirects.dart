@@ -6,8 +6,8 @@ library pub_dartlang_org.handlers_redirects;
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../shared/handlers.dart';
-import '../shared/urls.dart' as urls;
+import '../../shared/handlers.dart';
+import '../../shared/urls.dart' as urls;
 
 typedef shelf.Response SyncHandler(shelf.Request request);
 

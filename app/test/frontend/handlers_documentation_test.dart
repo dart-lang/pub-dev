@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/models.dart';
-import 'package:pub_dartlang_org/frontend/handlers_documentation.dart';
+import 'package:pub_dartlang_org/frontend/handlers/documentation.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';

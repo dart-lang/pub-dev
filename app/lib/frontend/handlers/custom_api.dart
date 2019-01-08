@@ -6,17 +6,17 @@ import 'dart:async';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../dartdoc/backend.dart';
-import '../history/backend.dart';
-import '../scorecard/backend.dart';
-import '../shared/handlers.dart';
-import '../shared/packages_overrides.dart';
-import '../shared/search_client.dart';
-import '../shared/search_service.dart';
+import '../../dartdoc/backend.dart';
+import '../../history/backend.dart';
+import '../../scorecard/backend.dart';
+import '../../shared/handlers.dart';
+import '../../shared/packages_overrides.dart';
+import '../../shared/search_client.dart';
+import '../../shared/search_service.dart';
 
-import 'backend.dart';
-import 'models.dart';
-import 'name_tracker.dart';
+import '../backend.dart';
+import '../models.dart';
+import '../name_tracker.dart';
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
