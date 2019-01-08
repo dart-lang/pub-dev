@@ -672,13 +672,6 @@ class TemplateService {
         title: title, includeSurvey: false);
   }
 
-  /// Renders the `views/help.mustache` template.
-  String renderHelpPage() {
-    final String content = templateCache.renderTemplate('help', {});
-    return renderLayoutPage(PageType.package, content,
-        title: 'Help | Dart Packages');
-  }
-
   /// Renders the `views/index.mustache` template.
   String renderIndexPage(
     String topHtml,
