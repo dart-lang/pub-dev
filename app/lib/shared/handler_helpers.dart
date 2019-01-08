@@ -13,7 +13,7 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../frontend/service_utils.dart';
-import '../frontend/templates.dart';
+import '../frontend/templates/layout.dart';
 
 import 'handlers.dart';
 import 'markdown.dart';
@@ -61,7 +61,7 @@ Request ID: ${context.traceId}
 ````
       ''';
 
-      final content = templateService.renderLayoutPage(
+      final content = renderLayoutPage(
           PageType.package, markdownToHtml(markdownText, null),
           title: title);
       return htmlResponse(content, status: 500, headers: debugHeaders);
