@@ -13,7 +13,6 @@ import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/handlers.dart';
 import '../shared/packages_overrides.dart';
-import '../shared/platform.dart';
 import '../shared/search_service.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
@@ -24,6 +23,7 @@ import 'handlers/atom_feed.dart';
 import 'handlers/custom_api.dart';
 import 'handlers/documentation.dart';
 import 'handlers/landing.dart';
+import 'handlers/listing.dart';
 import 'handlers/misc.dart';
 import 'handlers/redirects.dart';
 import 'models.dart';
@@ -38,7 +38,6 @@ final _packageAnalysisLatencyTracker = new DurationTracker();
 final _packagePreRenderLatencyTracker = new DurationTracker();
 final _packageDoneLatencyTracker = new DurationTracker();
 final _packageOverallLatencyTracker = new DurationTracker();
-final _searchOverallLatencyTracker = new DurationTracker();
 
 void _logPubHeaders(shelf.Request request) {
   request.headers.forEach((String key, String value) {
@@ -98,18 +97,18 @@ Future<shelf.Response> appHandler(
 
 const _handlers = const <String, shelf.Handler>{
   '/': indexLandingHandler,
-  '/packages': _packagesHandlerHtml,
+  '/packages': packagesHandlerHtml,
   '/flutter': flutterLandingHandler,
-  '/flutter/packages': _flutterPackagesHandlerHtml,
+  '/flutter/packages': flutterPackagesHandlerHtml,
   '/web': webLandingHandler,
-  '/web/packages': _webPackagesHandlerHtml,
+  '/web/packages': webPackagesHandlerHtml,
   '/api/search': apiSearchHandler,
   '/api/history': apiHistoryHandler, // experimental, do not rely on it
   '/debug': _debugHandler,
   '/feed.atom': atomFeedHandler,
   '/sitemap.txt': siteMapTxtHandler,
   '/authorized': authorizedHandler,
-  '/packages.json': _packagesHandler,
+  '/packages.json': packagesHandler,
   '/help': helpPageHandler,
 };
 
@@ -122,98 +121,8 @@ shelf.Response _debugHandler(shelf.Request request) {
       'done_latency': _packageDoneLatencyTracker.toShortStat(),
       'overall_latency': _packageOverallLatencyTracker.toShortStat(),
     },
-    'search': {
-      'overall_latency': _searchOverallLatencyTracker.toShortStat(),
-    },
+    'search': searchDebugStats(),
   });
-}
-
-/// Handles requests for /packages - multiplexes to JSON/HTML handler.
-Future<shelf.Response> _packagesHandler(shelf.Request request) async {
-  final int page = extractPageFromUrlParameters(request.url);
-  final path = request.requestedUri.path;
-  if (path.endsWith('.json')) {
-    return _packagesHandlerJson(request, page, true);
-  } else if (request.url.queryParameters['format'] == 'json') {
-    return _packagesHandlerJson(request, page, false);
-  } else {
-    return _packagesHandlerHtml(request);
-  }
-}
-
-/// Handles requests for /packages - JSON
-Future<shelf.Response> _packagesHandlerJson(
-    shelf.Request request, int page, bool dotJsonResponse) async {
-  final pageSize = 50;
-
-  final offset = pageSize * (page - 1);
-  final limit = pageSize + 1;
-
-  final packages = await backend.latestPackages(offset: offset, limit: limit);
-  packages.removeWhere((p) => isSoftRemoved(p.name));
-  final bool lastPage = packages.length < limit;
-
-  Uri nextPageUrl;
-  if (!lastPage) {
-    nextPageUrl =
-        request.requestedUri.resolve('/packages.json?page=${page + 1}');
-  }
-
-  String toUrl(Package package) {
-    final postfix = dotJsonResponse ? '.json' : '';
-    return request.requestedUri
-        .resolve('/packages/${Uri.encodeComponent(package.name)}$postfix')
-        .toString();
-  }
-
-  final json = {
-    'packages': packages.take(pageSize).map(toUrl).toList(),
-    'next': nextPageUrl != null ? '$nextPageUrl' : null,
-
-    // NOTE: We're not returning the following entry:
-    //   - 'prev'
-    //   - 'pages'
-  };
-
-  return jsonResponse(json, pretty: isPrettyJson(request));
-}
-
-/// Handles /packages - package listing
-Future<shelf.Response> _packagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtmlCore(request, null);
-
-/// Handles /flutter/packages
-Future<shelf.Response> _flutterPackagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtmlCore(request, KnownPlatforms.flutter);
-
-/// Handles /web/packages
-Future<shelf.Response> _webPackagesHandlerHtml(shelf.Request request) =>
-    _packagesHandlerHtmlCore(request, KnownPlatforms.web);
-
-/// Handles:
-/// - /packages - package listing
-/// - /flutter/packages
-/// - /server/packages
-/// - /web/packages
-Future<shelf.Response> _packagesHandlerHtmlCore(
-    shelf.Request request, String platform) async {
-  // TODO: use search memcache for all results here or remove search memcache
-  final searchQuery = parseFrontendSearchQuery(request.requestedUri, platform);
-  final sw = new Stopwatch()..start();
-  final searchResult = await searchService.search(searchQuery);
-  final int totalCount = searchResult.totalCount;
-
-  final links =
-      new PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
-  final result = htmlResponse(templateService.renderPkgIndexPage(
-    searchResult.packages,
-    links,
-    platform,
-    searchQuery: searchQuery,
-    totalCount: totalCount,
-  ));
-  _searchOverallLatencyTracker.add(sw.elapsed);
-  return result;
 }
 
 /// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
