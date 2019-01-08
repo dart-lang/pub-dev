@@ -17,6 +17,66 @@ jobs:
       script: ./tool/travis.sh test
       env: PKG="app"
       dart: "2.1.0-dev.9.4"
+    - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/_popularity - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/_popularity"
+      dart: "2.1.0-dev.9.4"
+    - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/_popularity - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/_popularity"
+      dart: "2.1.0-dev.9.4"
+    - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/identity_codec - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/identity_codec"
+      dart: "2.1.0-dev.9.4"
+    - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/identity_codec - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/identity_codec"
+      dart: "2.1.0-dev.9.4"
+    - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/pub_dartdoc - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/pub_dartdoc"
+      dart: "2.1.0-dev.9.4"
+    - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/pub_dartdoc - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/pub_dartdoc"
+      dart: "2.1.0-dev.9.4"
+    - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/pub_dartdoc_data - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/pub_dartdoc_data"
+      dart: "2.1.0-dev.9.4"
+    - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/pub_dartdoc_data - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/pub_dartdoc_data"
+      dart: "2.1.0-dev.9.4"
+    - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/retry - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/retry"
+      dart: "2.1.0-dev.9.4"
+    - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/retry - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/retry"
+      dart: "2.1.0-dev.9.4"
+    - stage: smoke_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/simple_cache - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/simple_cache"
+      dart: "2.1.0-dev.9.4"
+    - stage: unit_test
+      name: "SDK: 2.1.0-dev.9.4 - DIR: pkg/simple_cache - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/simple_cache"
+      dart: "2.1.0-dev.9.4"
 
 stages:
   - smoke_test
