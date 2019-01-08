@@ -91,7 +91,7 @@ Future<shelf.Response> appHandler(
   } else if (staticFileCache.hasFile(request.requestedUri.path)) {
     return staticsHandler(request);
   } else {
-    return _formattedNotFoundHandler(request);
+    return formattedNotFoundHandler(request);
   }
 }
 
@@ -153,14 +153,14 @@ FutureOr<shelf.Response> _packageHandler(shelf.Request request) {
       return _packageVersionsHandler(request, package);
     }
   }
-  return _formattedNotFoundHandler(request);
+  return formattedNotFoundHandler(request);
 }
 
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> _packageShowHandlerJson(
     shelf.Request request, String packageName) async {
   final Package package = await backend.lookupPackage(packageName);
-  if (package == null) return _formattedNotFoundHandler(request);
+  if (package == null) return formattedNotFoundHandler(request);
 
   final versions = await backend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
@@ -275,18 +275,4 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   }
 
   return htmlResponse(cachedPage);
-}
-
-Future<shelf.Response> _formattedNotFoundHandler(shelf.Request request) async {
-  final packages = await topFeaturedPackages();
-  final message =
-      'You\'ve stumbled onto a page (`${request.requestedUri.path}`) that doesn\'t exist. '
-      'Luckily you have several options:\n\n'
-      '- Use the search box above, which will list packages that match your query.\n'
-      '- Visit the [packages](/packages) page and start browsing.\n'
-      '- Pick one of the top packages, listed below.\n';
-  return htmlResponse(
-    templateService.renderErrorPage(default404NotFound, message, packages),
-    status: 404,
-  );
 }
