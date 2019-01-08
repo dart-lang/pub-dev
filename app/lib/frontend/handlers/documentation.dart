@@ -15,7 +15,7 @@ import '../../shared/packages_overrides.dart';
 import '../../shared/urls.dart';
 import '../../shared/utils.dart' show contentType;
 
-import '../templates.dart';
+import '../templates/misc.dart';
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>
@@ -59,7 +59,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       final logTxtUrl = pkgDocUrl(docFilePath.package,
           version: docFilePath.version, relativePath: 'log.txt');
       final versionsUrl = pkgVersionsUrl(docFilePath.package);
-      final content = templateService.renderErrorPage(
+      final content = renderErrorPage(
           'Documentation missing',
           'Pub site failed to generate dartdoc for this package.\n\n'
           '- View [dartdoc log]($logTxtUrl)\n'
