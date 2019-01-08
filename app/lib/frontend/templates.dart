@@ -5,13 +5,10 @@
 library pub_dartlang_org.templates;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:meta/meta.dart';
-import 'package:mustache/mustache.dart' as mustache;
 import 'package:pana/models.dart' show SuggestionLevel;
-import 'package:path/path.dart' as path;
 
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
@@ -26,42 +23,9 @@ import 'color.dart';
 import 'models.dart';
 import 'static_files.dart';
 import 'template_consts.dart';
-
-String _escapeAngleBrackets(String msg) =>
-    const HtmlEscape(HtmlEscapeMode.element).convert(msg);
-
-const HtmlEscape _htmlEscaper = const HtmlEscape();
-const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.attribute);
-
-final templateCache = new TemplateCache();
-
-/// Loads, parses, caches and renders mustache templates.
-class TemplateCache {
-  /// The path to the directory which contains mustache templates.
-  ///
-  /// The path should not contain a trailing slash (e.g. "/tmp/views").
-  final String _templateDirectory;
-
-  /// A cache which keeps all used mustach templates parsed in memory.
-  final Map<String, mustache.Template> _cachedMustacheTemplates = {};
-
-  TemplateCache({String templateDirectory})
-      : _templateDirectory =
-            templateDirectory ?? path.join(resolveAppDir(), 'views');
-
-  /// Renders [template] with given [values].
-  ///
-  /// If [escapeValues] is `false`, values in `values` will not be escaped.
-  String renderTemplate(String template, values, {bool escapeValues = true}) {
-    final mustache.Template parsedTemplate =
-        _cachedMustacheTemplates.putIfAbsent(template, () {
-      final file = new File('$_templateDirectory/$template.mustache');
-      return new mustache.Template(file.readAsStringSync(),
-          htmlEscapeValues: escapeValues, lenient: true);
-    });
-    return parsedTemplate.renderString(values);
-  }
-}
+import 'templates/_cache.dart';
+import 'templates/_utils.dart';
+import 'templates/layout.dart';
 
 /// [TemplateService] singleton instance.
 /// TODO: remove after https://github.com/dart-lang/pub-dartlang-dart/issues/1907 gets fixed
@@ -359,24 +323,24 @@ class TemplateService {
     final homepageUrl = selectedVersion.homepage;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
-      renderedReadme = _renderFile(selectedVersion.readme, homepageUrl);
+      renderedReadme = renderFile(selectedVersion.readme, homepageUrl);
     }
 
     String changelogFilename;
     String renderedChangelog;
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
-      renderedChangelog = _renderFile(selectedVersion.changelog, homepageUrl);
+      renderedChangelog = renderFile(selectedVersion.changelog, homepageUrl);
     }
 
     String exampleFilename;
     String renderedExample;
     if (selectedVersion.example != null) {
       exampleFilename = selectedVersion.example.filename;
-      renderedExample = _renderFile(selectedVersion.example, homepageUrl);
+      renderedExample = renderFile(selectedVersion.example, homepageUrl);
       if (renderedExample != null) {
         renderedExample = '<p style="font-family: monospace">'
-            '<b>${_htmlEscaper.convert(exampleFilename)}</b>'
+            '<b>${htmlEscape.convert(exampleFilename)}</b>'
             '</p>\n'
             '$renderedExample';
       }
@@ -539,15 +503,15 @@ class TemplateService {
   String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
     if (licenses == null || licenses.isEmpty) return null;
     return licenses.map((license) {
-      final String escapedName = _htmlEscaper.convert(license.shortFormatted);
+      final String escapedName = htmlEscape.convert(license.shortFormatted);
       String html = escapedName;
 
       if (license.url != null && license.path != null) {
-        final String escapedLink = _attrEscaper.convert(license.url);
-        final String escapedPath = _htmlEscaper.convert(license.path);
+        final String escapedLink = htmlAttrEscape.convert(license.url);
+        final String escapedPath = htmlEscape.convert(license.path);
         html += ' (<a href="$escapedLink">$escapedPath</a>)';
       } else if (license.path != null) {
-        final String escapedPath = _htmlEscaper.convert(license.path);
+        final String escapedPath = htmlEscape.convert(license.path);
         html += ' ($escapedPath)';
       }
       return html;
@@ -740,11 +704,11 @@ class TemplateService {
     final platformDict = getPlatformDict(platform);
     final packagesUrl = urls.searchUrl(platform: platform);
     final links = <String>[
-      '<a href="$packagesUrl">${_htmlEscaper.convert(platformDict.morePlatformPackagesLabel)}</a>'
+      '<a href="$packagesUrl">${htmlEscape.convert(platformDict.morePlatformPackagesLabel)}</a>'
     ];
     if (platformDict.onlyPlatformPackagesUrl != null) {
       links.add('<a href="${platformDict.onlyPlatformPackagesUrl}">'
-          '${_htmlEscaper.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
+          '${htmlEscape.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
     }
     final values = {
       'more_links_html': links.join(' '),
@@ -781,68 +745,6 @@ class TemplateService {
       }).toList(),
     };
     return templateCache.renderTemplate('mini_list', values);
-  }
-
-  /// Renders the `views/layout.mustache` template.
-  String renderLayoutPage(
-    PageType type,
-    String contentHtml, {
-    @required String title,
-    String pageDescription,
-    String faviconUrl,
-    String canonicalUrl,
-    String platform,
-    SearchQuery searchQuery,
-    bool includeSurvey = true,
-    bool noIndex = false,
-  }) {
-    final queryText = searchQuery?.query;
-    final String escapedSearchQuery =
-        queryText == null ? null : htmlEscape.convert(queryText);
-    String platformTabs;
-    if (type == PageType.landing) {
-      platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
-    } else if (type == PageType.listing) {
-      platformTabs =
-          renderPlatformTabs(platform: platform, searchQuery: searchQuery);
-    }
-    final searchSort = searchQuery?.order == null
-        ? null
-        : serializeSearchOrder(searchQuery.order);
-    final platformDict = getPlatformDict(platform);
-    final isRoot = type == PageType.landing && platform == null;
-    final values = {
-      'no_index': noIndex,
-      'static_assets_dir': staticUrls.staticPath,
-      'static_assets': staticUrls.assets,
-      'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
-      'canonicalUrl': canonicalUrl,
-      'pageDescription': pageDescription == null
-          ? defaultPageDescriptionEscaped
-          : htmlEscape.convert(pageDescription),
-      'title': htmlEscape.convert(title),
-      'search_platform': platform,
-      'search_query': escapedSearchQuery,
-      'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
-      'search_sort_param': searchSort,
-      'platform_tabs_html': platformTabs,
-      'api_search_enabled': searchQuery?.isApiEnabled ?? true,
-      'landing_blurb_html': platformDict.landingBlurb,
-      // This is not escaped as it is already escaped by the caller.
-      'content_html': contentHtml,
-      'include_survey': includeSurvey,
-      'include_highlight': type == PageType.package,
-      'landing_banner': type == PageType.landing,
-      'landing_banner_image':
-          platform == 'flutter' ? 'flutter-packages.png' : 'dart-packages.png',
-      'landing_banner_alt':
-          platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
-      'listing_banner': type == PageType.listing,
-      'package_banner': type == PageType.package,
-      'schema_org_searchaction_json':
-          isRoot ? json.encode(_schemaOrgSearchAction) : null,
-    };
-    return templateCache.renderTemplate('layout', values, escapeValues: false);
   }
 
   /// Renders the `views/pagination.mustache` template.
@@ -907,53 +809,15 @@ class TemplateService {
     }
     return templateCache.renderTemplate('pkg/tags', {'tags': tags});
   }
-
-  String renderPlatformTabs({
-    String platform,
-    SearchQuery searchQuery,
-    bool isLanding = false,
-  }) {
-    final String currentPlatform = platform ?? searchQuery?.platform;
-    Map platformTabData(String tabText, String tabPlatform) {
-      String url;
-      if (searchQuery != null) {
-        final newQuery = searchQuery.change(
-            platform: tabPlatform == null ? '' : tabPlatform);
-        url = newQuery.toSearchLink();
-      } else {
-        final List<String> pathParts = [''];
-        if (tabPlatform != null) pathParts.add(tabPlatform);
-        if (!isLanding) pathParts.add('packages');
-        url = pathParts.join('/');
-        if (url.isEmpty) {
-          url = '/';
-        }
-      }
-      return {
-        'text': tabText,
-        'href': _attrEscaper.convert(url),
-        'active': tabPlatform == currentPlatform
-      };
-    }
-
-    final values = {
-      'tabs': [
-        platformTabData('Flutter', KnownPlatforms.flutter),
-        platformTabData('Web', KnownPlatforms.web),
-        platformTabData('All', null),
-      ]
-    };
-    return templateCache.renderTemplate('platform_tabs', values);
-  }
 }
 
 String _getAuthorsHtml(List<String> authors) {
   return (authors ?? const []).map((String value) {
     final EmailAddress author = new EmailAddress.parse(value);
-    final escapedName = _htmlEscaper.convert(author.name ?? author.email);
+    final escapedName = htmlEscape.convert(author.name ?? author.email);
     if (author.email != null) {
-      final escapedEmail = _attrEscaper.convert(author.email);
-      final emailSearchUrl = _attrEscaper.convert(
+      final escapedEmail = htmlAttrEscape.convert(author.email);
+      final emailSearchUrl = htmlAttrEscape.convert(
           new SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
       return '<span class="author">'
           '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
@@ -986,7 +850,7 @@ String _renderScoreBox(
   } else {
     title = 'Analysis and more details.';
   }
-  final String escapedTitle = _attrEscaper.convert(title);
+  final String escapedTitle = htmlAttrEscape.convert(title);
   final newIndicator = (isNewPackage ?? false)
       ? '<span class="new" title="Created in the last 30 days">new</span>'
       : '';
@@ -1046,7 +910,7 @@ class PageLinks {
     results.add({
       'disabled': !hasPrevious,
       'render_link': hasPrevious,
-      'href': _attrEscaper.convert(formatHref(currentPage - 1)),
+      'href': htmlAttrEscape.convert(formatHref(currentPage - 1)),
       'text': '&laquo;',
     });
 
@@ -1055,7 +919,7 @@ class PageLinks {
       results.add({
         'active': isCurrent,
         'render_link': !isCurrent,
-        'href': _attrEscaper.convert(formatHref(page)),
+        'href': htmlAttrEscape.convert(formatHref(page)),
         'text': '$page',
         'rel_prev': currentPage == page + 1,
         'rel_next': currentPage == page - 1,
@@ -1066,7 +930,7 @@ class PageLinks {
     results.add({
       'disabled': !hasNext,
       'render_link': hasNext,
-      'href': _attrEscaper.convert(formatHref(currentPage + 1)),
+      'href': htmlAttrEscape.convert(formatHref(currentPage + 1)),
       'text': '&raquo;',
     });
 
@@ -1084,23 +948,6 @@ class PageLinks {
     }
   }
 }
-
-enum PageType {
-  landing,
-  listing,
-  package,
-}
-
-const _schemaOrgSearchAction = const {
-  '@context': 'http://schema.org',
-  '@type': 'WebSite',
-  'url': '${urls.siteRoot}/',
-  'potentialAction': const {
-    '@type': 'SearchAction',
-    'target': '${urls.siteRoot}/packages?q={search_term_string}',
-    'query-input': 'required name=search_term_string',
-  },
-};
 
 Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   final Map map = {
@@ -1126,34 +973,9 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   return map;
 }
 
-String _renderFile(FileObject file, String baseUrl) {
-  final filename = file.filename;
-  final content = file.text;
-  if (content != null) {
-    if (_isMarkdownFile(filename)) {
-      return markdownToHtml(content, baseUrl);
-    } else if (_isDartFile(filename)) {
-      return _renderDartCode(content);
-    } else {
-      return _renderPlainText(content);
-    }
-  }
-  return null;
-}
-
-bool _isMarkdownFile(String filename) => filename.toLowerCase().endsWith('.md');
-
-bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
-
-String _renderDartCode(String text) =>
-    markdownToHtml('````dart\n${text.trim()}\n````\n', null);
-
-String _renderPlainText(String text) =>
-    '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';
-
 String _attr(String value) {
   if (value == null) return null;
-  return _attrEscaper.convert(value);
+  return htmlAttrEscape.convert(value);
 }
 
 String _suggestionIconClass(String level) {

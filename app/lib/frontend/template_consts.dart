@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionCode;
 
@@ -179,10 +177,6 @@ SortDict getSortDict(String sort) {
     tooltip: 'Packages are sort by $sort.',
   );
 }
-
-final String defaultPageDescriptionEscaped = htmlEscape.convert(
-    'Pub is the package manager for the Dart programming language, containing reusable '
-    'libraries & packages for Flutter, AngularDart, and general Dart programs.');
 
 final _suggestionHelpMessages = <String, String>{
   SuggestionCode.analysisOptionsRenameRequired: 'Read more about the setup of '

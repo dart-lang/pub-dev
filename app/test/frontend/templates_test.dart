@@ -17,6 +17,7 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/frontend/templates/layout.dart';
 
 import '../shared/html_validation.dart';
 import 'utils.dart';
@@ -502,12 +503,12 @@ void main() {
     });
 
     test('platform tabs: list', () {
-      final String html = templateService.renderPlatformTabs(platform: 'web');
+      final String html = renderPlatformTabs(platform: 'web');
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
     test('platform tabs: search', () {
-      final String html = templateService.renderPlatformTabs(
+      final String html = renderPlatformTabs(
           searchQuery: new SearchQuery.parse(
         query: 'foo',
         platform: 'web',
