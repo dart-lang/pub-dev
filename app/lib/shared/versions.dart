@@ -16,7 +16,7 @@ final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
 /// Increment the version when a change is significant enough to trigger
 /// reprocessing, including: version change in pana, dartdoc, or the SDKs,
 /// or when an feature or bugfix should be picked up by the analysis ASAP.
-const String runtimeVersion = '2018.12.28';
+const String runtimeVersion = '2019.01.07';
 final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 
 /// The version which marks the earliest version of the data which we'd like to
@@ -25,7 +25,7 @@ final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens:
-/// - 2018.12.28
+/// - 2019.01.07
 /// - 2018.12.05
 /// - 2018.11.22
 /// - 2018.11.12
@@ -47,7 +47,7 @@ final String flutterVersion = '1.1.4';
 final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
-final String dartdocVersion = '0.26.1';
+final String dartdocVersion = '0.27.0';
 final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
 /// The version of our customization going into the output of the dartdoc static
