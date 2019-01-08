@@ -11,10 +11,10 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:uuid/uuid.dart';
 
-import '../shared/urls.dart' show siteRoot;
+import '../../shared/urls.dart' show siteRoot;
 
-import 'backend.dart';
-import 'models.dart';
+import '../backend.dart';
+import '../models.dart';
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {

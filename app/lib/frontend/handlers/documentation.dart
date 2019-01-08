@@ -8,14 +8,14 @@ import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../dartdoc/backend.dart';
+import '../../dartdoc/backend.dart';
 
-import '../shared/handlers.dart';
-import '../shared/packages_overrides.dart';
-import '../shared/urls.dart';
-import '../shared/utils.dart' show contentType;
+import '../../shared/handlers.dart';
+import '../../shared/packages_overrides.dart';
+import '../../shared/urls.dart';
+import '../../shared/utils.dart' show contentType;
 
-import 'templates.dart';
+import '../templates.dart';
 
 /// Handles requests for:
 ///   - /documentation/<package>/<version>

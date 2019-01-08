@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../shared/handlers.dart';
-import '../shared/platform.dart';
+import '../../shared/handlers.dart';
+import '../../shared/platform.dart';
 
-import 'backend.dart';
-import 'search_service.dart';
-import 'templates.dart';
+import '../backend.dart';
+import '../search_service.dart';
+import '../templates.dart';
 
 /// Handles requests for /
 Future<shelf.Response> indexLandingHandler(shelf.Request request) =>

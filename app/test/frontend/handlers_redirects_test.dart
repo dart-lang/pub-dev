@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/frontend/handlers_redirects.dart';
+import 'package:pub_dartlang_org/frontend/handlers/redirects.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';

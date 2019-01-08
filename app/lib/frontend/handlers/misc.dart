@@ -9,14 +9,14 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../shared/handlers.dart';
-import '../shared/packages_overrides.dart';
-import '../shared/urls.dart' as urls;
-import '../shared/utils.dart';
+import '../../shared/handlers.dart';
+import '../../shared/packages_overrides.dart';
+import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart';
 
-import 'backend.dart';
-import 'static_files.dart';
-import 'templates.dart';
+import '../backend.dart';
+import '../static_files.dart';
+import '../templates.dart';
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
