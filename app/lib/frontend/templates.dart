@@ -5,13 +5,10 @@
 library pub_dartlang_org.templates;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:meta/meta.dart';
-import 'package:mustache/mustache.dart' as mustache;
 import 'package:pana/models.dart' show SuggestionLevel;
-import 'package:path/path.dart' as path;
 
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
@@ -26,42 +23,13 @@ import 'color.dart';
 import 'models.dart';
 import 'static_files.dart';
 import 'template_consts.dart';
+import 'templates/_cache.dart';
 
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.element).convert(msg);
 
 const HtmlEscape _htmlEscaper = const HtmlEscape();
 const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.attribute);
-
-final templateCache = new TemplateCache();
-
-/// Loads, parses, caches and renders mustache templates.
-class TemplateCache {
-  /// The path to the directory which contains mustache templates.
-  ///
-  /// The path should not contain a trailing slash (e.g. "/tmp/views").
-  final String _templateDirectory;
-
-  /// A cache which keeps all used mustach templates parsed in memory.
-  final Map<String, mustache.Template> _cachedMustacheTemplates = {};
-
-  TemplateCache({String templateDirectory})
-      : _templateDirectory =
-            templateDirectory ?? path.join(resolveAppDir(), 'views');
-
-  /// Renders [template] with given [values].
-  ///
-  /// If [escapeValues] is `false`, values in `values` will not be escaped.
-  String renderTemplate(String template, values, {bool escapeValues = true}) {
-    final mustache.Template parsedTemplate =
-        _cachedMustacheTemplates.putIfAbsent(template, () {
-      final file = new File('$_templateDirectory/$template.mustache');
-      return new mustache.Template(file.readAsStringSync(),
-          htmlEscapeValues: escapeValues, lenient: true);
-    });
-    return parsedTemplate.renderString(values);
-  }
-}
 
 /// [TemplateService] singleton instance.
 /// TODO: remove after https://github.com/dart-lang/pub-dartlang-dart/issues/1907 gets fixed
