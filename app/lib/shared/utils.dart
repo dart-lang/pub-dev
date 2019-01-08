@@ -293,6 +293,14 @@ class LastNTracker<T extends Comparable<T>> {
   }
 }
 
+class DurationTracker extends LastNTracker<Duration> {
+  Map toShortStat() => {
+        'median': median?.inMilliseconds,
+        'p90': p90?.inMilliseconds,
+        'p99': p99?.inMilliseconds,
+      };
+}
+
 String formatDuration(Duration d) {
   final List<String> parts = [];
   int minutes = d.inMinutes;

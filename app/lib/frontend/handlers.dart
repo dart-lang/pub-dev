@@ -34,11 +34,11 @@ import 'templates.dart';
 final _pubHeaderLogger = new Logger('pub.header_logger');
 
 // Non-revealing metrics to monitor the search service behavior from outside.
-final _packageAnalysisLatencyTracker = new LastNTracker<Duration>();
-final _packagePreRenderLatencyTracker = new LastNTracker<Duration>();
-final _packageDoneLatencyTracker = new LastNTracker<Duration>();
-final _packageOverallLatencyTracker = new LastNTracker<Duration>();
-final _searchOverallLatencyTracker = new LastNTracker<Duration>();
+final _packageAnalysisLatencyTracker = new DurationTracker();
+final _packagePreRenderLatencyTracker = new DurationTracker();
+final _packageDoneLatencyTracker = new DurationTracker();
+final _packageOverallLatencyTracker = new DurationTracker();
+final _searchOverallLatencyTracker = new DurationTracker();
 
 void _logPubHeaders(shelf.Request request) {
   request.headers.forEach((String key, String value) {
@@ -115,20 +115,15 @@ const _handlers = const <String, shelf.Handler>{
 
 /// Handles requests for /debug
 shelf.Response _debugHandler(shelf.Request request) {
-  Map toShortStat(LastNTracker<Duration> tracker) => {
-        'median': tracker.median?.inMilliseconds,
-        'p90': tracker.p90?.inMilliseconds,
-        'p99': tracker.p99?.inMilliseconds,
-      };
   return debugResponse({
     'package': {
-      'analysis_latency': toShortStat(_packageAnalysisLatencyTracker),
-      'pre_render_latency': toShortStat(_packagePreRenderLatencyTracker),
-      'done_latency': toShortStat(_packageDoneLatencyTracker),
-      'overall_latency': toShortStat(_packageOverallLatencyTracker),
+      'analysis_latency': _packageAnalysisLatencyTracker.toShortStat(),
+      'pre_render_latency': _packagePreRenderLatencyTracker.toShortStat(),
+      'done_latency': _packageDoneLatencyTracker.toShortStat(),
+      'overall_latency': _packageOverallLatencyTracker.toShortStat(),
     },
     'search': {
-      'overall_latency': toShortStat(_searchOverallLatencyTracker),
+      'overall_latency': _searchOverallLatencyTracker.toShortStat(),
     },
   });
 }
