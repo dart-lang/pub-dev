@@ -50,6 +50,9 @@ class PackageDocument {
   final bool isDiscontinued;
   final bool doNotAdvertise;
 
+  /// True, if this package only supports 1.x (ie. package is 2.0 incompatible)
+  final bool supportsOnlyLegacySdk;
+
   final List<String> platforms;
 
   final double health;
@@ -74,6 +77,7 @@ class PackageDocument {
     this.readme,
     this.isDiscontinued,
     this.doNotAdvertise,
+    this.supportsOnlyLegacySdk,
     this.platforms,
     this.health,
     this.popularity,
@@ -98,6 +102,7 @@ class PackageDocument {
       readme: readme,
       isDiscontinued: isDiscontinued,
       doNotAdvertise: doNotAdvertise,
+      supportsOnlyLegacySdk: supportsOnlyLegacySdk,
       platforms: platforms?.map(internFn)?.toList(),
       health: health,
       popularity: popularity,
