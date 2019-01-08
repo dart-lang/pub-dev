@@ -17,6 +17,7 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
+import 'package:pub_dartlang_org/frontend/templates/admin.dart';
 import 'package:pub_dartlang_org/frontend/templates/layout.dart';
 
 import '../shared/html_validation.dart';
@@ -453,13 +454,13 @@ void main() {
     });
 
     test('authorized page', () {
-      final String html = templateService.renderAuthorizedPage();
+      final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
     });
 
     test('uploader confirmed page', () {
-      final String html = templateService.renderUploaderConfirmedPage(
-          'pkg_foo', 'uploader@example.com');
+      final String html =
+          renderUploaderConfirmedPage('pkg_foo', 'uploader@example.com');
       expectGoldenFile(html, 'uploader_confirmed_page.html');
     });
 
