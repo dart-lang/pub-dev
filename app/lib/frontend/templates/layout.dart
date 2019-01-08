@@ -14,8 +14,7 @@ import '../static_files.dart';
 import '../template_consts.dart';
 
 import '_cache.dart';
-
-const HtmlEscape _htmlAttrEscape = const HtmlEscape(HtmlEscapeMode.attribute);
+import '_utils.dart';
 
 enum PageType {
   landing,
@@ -108,7 +107,7 @@ String renderPlatformTabs({
     }
     return {
       'text': tabText,
-      'href': _htmlAttrEscape.convert(url),
+      'href': htmlAttrEscape.convert(url),
       'active': tabPlatform == currentPlatform
     };
   }

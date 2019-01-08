@@ -24,13 +24,8 @@ import 'models.dart';
 import 'static_files.dart';
 import 'template_consts.dart';
 import 'templates/_cache.dart';
+import 'templates/_utils.dart';
 import 'templates/layout.dart';
-
-String _escapeAngleBrackets(String msg) =>
-    const HtmlEscape(HtmlEscapeMode.element).convert(msg);
-
-const HtmlEscape _htmlEscaper = const HtmlEscape();
-const HtmlEscape _attrEscaper = const HtmlEscape(HtmlEscapeMode.attribute);
 
 /// [TemplateService] singleton instance.
 /// TODO: remove after https://github.com/dart-lang/pub-dartlang-dart/issues/1907 gets fixed
@@ -328,24 +323,24 @@ class TemplateService {
     final homepageUrl = selectedVersion.homepage;
     if (selectedVersion.readme != null) {
       readmeFilename = selectedVersion.readme.filename;
-      renderedReadme = _renderFile(selectedVersion.readme, homepageUrl);
+      renderedReadme = renderFile(selectedVersion.readme, homepageUrl);
     }
 
     String changelogFilename;
     String renderedChangelog;
     if (selectedVersion.changelog != null) {
       changelogFilename = selectedVersion.changelog.filename;
-      renderedChangelog = _renderFile(selectedVersion.changelog, homepageUrl);
+      renderedChangelog = renderFile(selectedVersion.changelog, homepageUrl);
     }
 
     String exampleFilename;
     String renderedExample;
     if (selectedVersion.example != null) {
       exampleFilename = selectedVersion.example.filename;
-      renderedExample = _renderFile(selectedVersion.example, homepageUrl);
+      renderedExample = renderFile(selectedVersion.example, homepageUrl);
       if (renderedExample != null) {
         renderedExample = '<p style="font-family: monospace">'
-            '<b>${_htmlEscaper.convert(exampleFilename)}</b>'
+            '<b>${htmlEscape.convert(exampleFilename)}</b>'
             '</p>\n'
             '$renderedExample';
       }
@@ -508,15 +503,15 @@ class TemplateService {
   String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
     if (licenses == null || licenses.isEmpty) return null;
     return licenses.map((license) {
-      final String escapedName = _htmlEscaper.convert(license.shortFormatted);
+      final String escapedName = htmlEscape.convert(license.shortFormatted);
       String html = escapedName;
 
       if (license.url != null && license.path != null) {
-        final String escapedLink = _attrEscaper.convert(license.url);
-        final String escapedPath = _htmlEscaper.convert(license.path);
+        final String escapedLink = htmlAttrEscape.convert(license.url);
+        final String escapedPath = htmlEscape.convert(license.path);
         html += ' (<a href="$escapedLink">$escapedPath</a>)';
       } else if (license.path != null) {
-        final String escapedPath = _htmlEscaper.convert(license.path);
+        final String escapedPath = htmlEscape.convert(license.path);
         html += ' ($escapedPath)';
       }
       return html;
@@ -709,11 +704,11 @@ class TemplateService {
     final platformDict = getPlatformDict(platform);
     final packagesUrl = urls.searchUrl(platform: platform);
     final links = <String>[
-      '<a href="$packagesUrl">${_htmlEscaper.convert(platformDict.morePlatformPackagesLabel)}</a>'
+      '<a href="$packagesUrl">${htmlEscape.convert(platformDict.morePlatformPackagesLabel)}</a>'
     ];
     if (platformDict.onlyPlatformPackagesUrl != null) {
       links.add('<a href="${platformDict.onlyPlatformPackagesUrl}">'
-          '${_htmlEscaper.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
+          '${htmlEscape.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
     }
     final values = {
       'more_links_html': links.join(' '),
@@ -819,10 +814,10 @@ class TemplateService {
 String _getAuthorsHtml(List<String> authors) {
   return (authors ?? const []).map((String value) {
     final EmailAddress author = new EmailAddress.parse(value);
-    final escapedName = _htmlEscaper.convert(author.name ?? author.email);
+    final escapedName = htmlEscape.convert(author.name ?? author.email);
     if (author.email != null) {
-      final escapedEmail = _attrEscaper.convert(author.email);
-      final emailSearchUrl = _attrEscaper.convert(
+      final escapedEmail = htmlAttrEscape.convert(author.email);
+      final emailSearchUrl = htmlAttrEscape.convert(
           new SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
       return '<span class="author">'
           '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
@@ -855,7 +850,7 @@ String _renderScoreBox(
   } else {
     title = 'Analysis and more details.';
   }
-  final String escapedTitle = _attrEscaper.convert(title);
+  final String escapedTitle = htmlAttrEscape.convert(title);
   final newIndicator = (isNewPackage ?? false)
       ? '<span class="new" title="Created in the last 30 days">new</span>'
       : '';
@@ -915,7 +910,7 @@ class PageLinks {
     results.add({
       'disabled': !hasPrevious,
       'render_link': hasPrevious,
-      'href': _attrEscaper.convert(formatHref(currentPage - 1)),
+      'href': htmlAttrEscape.convert(formatHref(currentPage - 1)),
       'text': '&laquo;',
     });
 
@@ -924,7 +919,7 @@ class PageLinks {
       results.add({
         'active': isCurrent,
         'render_link': !isCurrent,
-        'href': _attrEscaper.convert(formatHref(page)),
+        'href': htmlAttrEscape.convert(formatHref(page)),
         'text': '$page',
         'rel_prev': currentPage == page + 1,
         'rel_next': currentPage == page - 1,
@@ -935,7 +930,7 @@ class PageLinks {
     results.add({
       'disabled': !hasNext,
       'render_link': hasNext,
-      'href': _attrEscaper.convert(formatHref(currentPage + 1)),
+      'href': htmlAttrEscape.convert(formatHref(currentPage + 1)),
       'text': '&raquo;',
     });
 
@@ -978,34 +973,9 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   return map;
 }
 
-String _renderFile(FileObject file, String baseUrl) {
-  final filename = file.filename;
-  final content = file.text;
-  if (content != null) {
-    if (_isMarkdownFile(filename)) {
-      return markdownToHtml(content, baseUrl);
-    } else if (_isDartFile(filename)) {
-      return _renderDartCode(content);
-    } else {
-      return _renderPlainText(content);
-    }
-  }
-  return null;
-}
-
-bool _isMarkdownFile(String filename) => filename.toLowerCase().endsWith('.md');
-
-bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
-
-String _renderDartCode(String text) =>
-    markdownToHtml('````dart\n${text.trim()}\n````\n', null);
-
-String _renderPlainText(String text) =>
-    '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';
-
 String _attr(String value) {
   if (value == null) return null;
-  return _attrEscaper.convert(value);
+  return htmlAttrEscape.convert(value);
 }
 
 String _suggestionIconClass(String level) {
