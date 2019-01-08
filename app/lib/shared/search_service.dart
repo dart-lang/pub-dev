@@ -574,5 +574,6 @@ SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
     offset: offset,
     limit: resultsPerPage,
     apiEnabled: isApiEnabled,
+    includeLegacy: url.queryParameters['legacy'] == '1',
   );
 }

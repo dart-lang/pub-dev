@@ -65,6 +65,7 @@ String renderLayoutPage(
     'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
     'search_sort_param': searchSort,
     'platform_tabs_html': platformTabs,
+    'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     'api_search_enabled': searchQuery?.isApiEnabled ?? true,
     'landing_blurb_html': platformDict.landingBlurb,
     // This is not escaped as it is already escaped by the caller.
