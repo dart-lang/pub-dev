@@ -9,7 +9,10 @@ import 'urls.dart';
 const pubDartlangOrgEmail = 'pub@dartlang.org';
 final _emailRegExp = RegExp(r'^\S+@\S+\.\S+$');
 final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
-final _defaultFrom = new EmailAddress('Pub Site Admin', pubDartlangOrgEmail);
+final _defaultFrom = new EmailAddress(
+  'Dart package site admin',
+  pubDartlangOrgEmail,
+);
 
 /// Represents a parsed e-mail address.
 class EmailAddress {
@@ -118,16 +121,18 @@ EmailMessage createPackageUploadedEmail({
 }) {
   final url =
       pkgPageUrl(packageName, version: packageVersion, includeHost: true);
-  final subject = 'Package upload on pub: $packageName $packageVersion';
-  final bodyText = '''Dear package maintainer,
+  final subject = 'Package uploaded: $packageName $packageVersion';
+  final bodyText = '''Dear package maintainer,  
 
-$uploaderEmail uploaded a new version of package $packageName:
-$url
+$uploaderEmail has published a new version ($packageVersion) of the $packageName package to the Dart package site (pub.dartlang.org).
 
-If you think this is a mistake or fraud, file an issue on GitHub:
-https://github.com/dart-lang/pub-dartlang-dart/issues
+For details, go to $url.
 
-Pub Site Admin
+If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dartlang-dart/issues.
+
+Thanks for your contributions to the Dart community!
+
+With appreciation, the Dart package site admin
 ''';
 
   return new EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
@@ -140,21 +145,23 @@ EmailMessage createUploaderConfirmationEmail({
   @required String addedUploaderEmail,
   @required String confirmationUrl,
 }) {
-  final subject = 'Pub invitation to collaborate: $packageName';
+  final subject = 'Uploader invitation for package: $packageName';
   final bodyText = '''Dear package maintainer,
 
-$activeAccountEmail invited you to collaborate on $packageName and added you as uploader. You can see the package on the following URL:
-https://pub.dartlang.org/packages/$packageName
+$activeAccountEmail has invited you to become an uploader of the $packageName package. If you accept this invitation, you’ll be able to upload new versions of the package to the Dart package site (pub.dartlang.org), and you’ll be listed as an uploader at https://pub.dartlang.org/packages/$packageName.
 
-If you want to accept the invitation, click on the following URL:
+To accept this invitation, visit the following URL:
 $confirmationUrl
 
-If you think this is a mistake or fraud, file an issue on GitHub:
-https://github.com/dart-lang/pub-dartlang-dart/issues
 
-Pub Site Admin
+If you don’t want to be an uploader, simply ignore this email.
+
+If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dartlang-dart/issues.
+
+Thanks for your contributions to the Dart community!
+
+With appreciation, the Dart package site admin
 ''';
-
   return new EmailMessage(_defaultFrom,
       [new EmailAddress(null, addedUploaderEmail)], subject, bodyText);
 }

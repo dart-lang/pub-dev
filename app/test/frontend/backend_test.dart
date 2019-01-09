@@ -817,7 +817,8 @@ void main() {
             expect(version.versionString, testPackageVersion.version);
             expect(emailSenderMock.sentMessages, hasLength(1));
             final email = emailSenderMock.sentMessages.single;
-            expect(email.subject, 'Package upload on pub: foobar_pkg 0.1.1+5');
+            expect(email.subject, contains('foobar_pkg'));
+            expect(email.subject, contains('0.1.1+5'));
             expect(email.recipients.join(', '), 'hans@juergen.com');
           });
         });
@@ -1005,7 +1006,8 @@ void main() {
             expect(version.versionString, testPackageVersion.version);
             expect(emailSenderMock.sentMessages, hasLength(1));
             final email = emailSenderMock.sentMessages.single;
-            expect(email.subject, 'Package upload on pub: foobar_pkg 0.1.1+5');
+            expect(email.subject, contains('foobar_pkg'));
+            expect(email.subject, contains('0.1.1+5'));
             expect(email.recipients.join(', '), 'hans@juergen.com');
           });
         });
