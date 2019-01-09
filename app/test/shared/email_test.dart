@@ -141,23 +141,18 @@ void main() {
           new EmailAddress(null, 'uploader@example.com')
         ],
       );
-      expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');
+      expect(message.from.toString(), contains('<pub@dartlang.org>'));
       expect(message.recipients.map((e) => e.toString()).toList(), [
         'Joe <joe@example.com>',
         'uploader@example.com',
       ]);
-      expect(message.subject, 'Package upload on pub: pkg_foo 1.0.0');
-      expect(
-          message.bodyText,
-          'Dear package maintainer,\n'
-          '\n'
-          'uploader@example.com uploaded a new version of package pkg_foo:\n'
-          'https://pub.dartlang.org/packages/pkg_foo/versions/1.0.0\n'
-          '\n'
-          'If you think this is a mistake or fraud, file an issue on GitHub:\n'
-          'https://github.com/dart-lang/pub-dartlang-dart/issues\n'
-          '\n'
-          'Pub Site Admin\n');
+      expect(message.subject, contains('pkg_foo'));
+      expect(message.subject, contains('1.0.0'));
+      expect(message.bodyText, contains('pkg_foo'));
+      expect(message.bodyText, contains('1.0.0'));
+      expect(message.bodyText, contains('uploader@example.com'));
+      expect(message.bodyText,
+          contains('https://pub.dartlang.org/packages/pkg_foo/versions/1.0.0'));
     });
   });
 
@@ -170,25 +165,18 @@ void main() {
         confirmationUrl:
             'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890',
       );
-      expect(message.from.toString(), 'Pub Site Admin <pub@dartlang.org>');
+      expect(message.from.toString(), contains('<pub@dartlang.org>'));
       expect(message.recipients.map((e) => e.toString()).toList(),
           ['uploader@example.com']);
-      expect(message.subject, 'Pub invitation to collaborate: pkg_foo');
+      expect(message.subject, contains('pkg_foo'));
+      expect(message.bodyText, contains('active@example.com'));
+      expect(message.bodyText, contains('pkg_foo'));
+      expect(message.bodyText,
+          contains('https://pub.dartlang.org/packages/pkg_foo'));
       expect(
           message.bodyText,
-          'Dear package maintainer,\n'
-          '\n'
-          'active@example.com invited you to collaborate on pkg_foo and added you\n'
-          'as uploader. You can see the package on the following URL:\n'
-          'https://pub.dartlang.org/packages/pkg_foo\n'
-          '\n'
-          'If you want to accept the invitation, click on the following URL:\n'
-          'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890\n'
-          '\n'
-          'If you think this is a mistake or fraud, file an issue on GitHub:\n'
-          'https://github.com/dart-lang/pub-dartlang-dart/issues\n'
-          '\n'
-          'Pub Site Admin\n');
+          contains(
+              'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890'));
     });
   });
 }
