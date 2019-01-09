@@ -5,8 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:identity_codec/identity_codec.dart';
+import 'package:convert/convert.dart' show IdentityCodec;
 import 'package:logging/logging.dart';
+
 import 'cache_provider.dart';
 import 'src/providers/inmemory.dart';
 import 'src/providers/redis.dart';
