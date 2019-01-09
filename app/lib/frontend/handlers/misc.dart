@@ -15,6 +15,7 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 import '../backend.dart';
+import '../search_service.dart';
 import '../static_files.dart';
 import '../templates.dart';
 
@@ -73,4 +74,18 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
     );
   }
   return notFoundHandler(request);
+}
+
+Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
+  final packages = await topFeaturedPackages();
+  final message =
+      'You\'ve stumbled onto a page (`${request.requestedUri.path}`) that doesn\'t exist. '
+      'Luckily you have several options:\n\n'
+      '- Use the search box above, which will list packages that match your query.\n'
+      '- Visit the [packages](/packages) page and start browsing.\n'
+      '- Pick one of the top packages, listed below.\n';
+  return htmlResponse(
+    templateService.renderErrorPage(default404NotFound, message, packages),
+    status: 404,
+  );
 }
