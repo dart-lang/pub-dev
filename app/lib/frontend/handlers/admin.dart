@@ -12,11 +12,11 @@ import '../../shared/handlers.dart';
 
 import '../backend.dart';
 import '../models.dart';
-import '../templates.dart';
+import '../templates/admin.dart';
+import '../templates/misc.dart';
 
 /// Handles requests for /authorized
-shelf.Response authorizedHandler(_) =>
-    htmlResponse(templateService.renderAuthorizedPage());
+shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
 /// Handles requests for /admin/confirm
 Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
@@ -50,8 +50,8 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
     } catch (e) {
       _formattedInviteExpiredHandler(request, 'Error message:\n\n```\n$e\n```');
     }
-    return htmlResponse(templateService.renderUploaderConfirmedPage(
-        invite.packageName, invite.recipientEmail));
+    return htmlResponse(
+        renderUploaderConfirmedPage(invite.packageName, invite.recipientEmail));
   } else {
     return _formattedInviteExpiredHandler(request);
   }
@@ -60,7 +60,7 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
 Future<shelf.Response> _formattedInviteExpiredHandler(shelf.Request request,
     [String message = '']) async {
   return htmlResponse(
-    templateService.renderErrorPage(
+    renderErrorPage(
         'Invite expired',
         'The URL you have clicked expired or became invalid.\n\n$message\n',
         null),

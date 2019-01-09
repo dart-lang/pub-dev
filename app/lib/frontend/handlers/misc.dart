@@ -17,11 +17,11 @@ import '../../shared/utils.dart';
 import '../backend.dart';
 import '../search_service.dart';
 import '../static_files.dart';
-import '../templates.dart';
+import '../templates/misc.dart';
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
-  return htmlResponse(templateService.renderHelpPage());
+  return htmlResponse(renderHelpPage());
 }
 
 /// Handles requests for /sitemap.txt
@@ -85,7 +85,7 @@ Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
       '- Visit the [packages](/packages) page and start browsing.\n'
       '- Pick one of the top packages, listed below.\n';
   return htmlResponse(
-    templateService.renderErrorPage(default404NotFound, message, packages),
+    renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
 }
