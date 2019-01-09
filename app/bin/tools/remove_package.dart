@@ -180,7 +180,8 @@ Future removePackageVersion(String packageName, String version) async {
     print('Committing changes to DB ...');
     await T.commit();
 
-    final storage = backend.repository.storage;
+    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
+    final storage = new TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await storage.remove(packageName, version);
   });
