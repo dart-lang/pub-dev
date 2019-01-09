@@ -117,6 +117,7 @@ class SearchBackend {
         readme: compactReadme(pv.readmeContent),
         isDiscontinued: p.isDiscontinued ?? false,
         doNotAdvertise: p.doNotAdvertise ?? false,
+        supportsOnlyLegacySdk: pv.pubspec.supportsOnlyLegacySdk,
         health: analysisView.health,
         popularity: popularity,
         maintenance: analysisView.maintenanceScore,

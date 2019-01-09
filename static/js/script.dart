@@ -310,15 +310,27 @@ void _setEventForCheckboxChanges() {
       document.getElementById('search-api-field') as InputElement;
   final visibleApiCheckbox =
       document.getElementById('search-api-checkbox') as CheckboxInputElement;
-  if (hiddenApiField == null || visibleApiCheckbox == null) {
-    return;
+  if (hiddenApiField != null && visibleApiCheckbox != null) {
+    final formElement = hiddenApiField.form;
+    visibleApiCheckbox.onChange.listen((_) {
+      hiddenApiField.disabled = visibleApiCheckbox.checked;
+      // TODO: instead of submitting, compose the URL here (also removing the single `?`)
+      formElement.submit();
+    });
   }
-  final formElement = hiddenApiField.form;
-  visibleApiCheckbox.onChange.listen((_) {
-    hiddenApiField.disabled = visibleApiCheckbox.checked;
-    // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-    formElement.submit();
-  });
+
+  final hiddenLegacyField =
+      document.getElementById('search-legacy-field') as InputElement;
+  final visibleLegacyCheckbox =
+      document.getElementById('search-legacy-checkbox') as CheckboxInputElement;
+  if (hiddenLegacyField != null && visibleLegacyCheckbox != null) {
+    final formElement = hiddenLegacyField.form;
+    visibleLegacyCheckbox.onChange.listen((_) {
+      hiddenLegacyField.disabled = !visibleLegacyCheckbox.checked;
+      // TODO: instead of submitting, compose the URL here (also removing the single `?`)
+      formElement.submit();
+    });
+  }
 }
 
 void _guardReportIssue() {

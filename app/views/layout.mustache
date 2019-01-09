@@ -87,12 +87,16 @@
         <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus{{#search_query}} value="{{search_query}}"{{/search_query}}>
         <button class="icon"></button>
         {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
+        <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
         <input id="search-api-field" type="hidden" name="api" value="0"{{#api_search_enabled}} disabled="disabled"{{/api_search_enabled}} />
       </form>
       <div class="search-bar-details">
         {{& platform_tabs_html }}
         <div class="search-bar-options">
-            <input id="search-api-checkbox" type="checkbox" name="api"{{#api_search_enabled}} checked="checked"{{/api_search_enabled}} /> Include API results
+            <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
+            <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+            <input id="search-api-checkbox" type="checkbox" name="api"{{#api_search_enabled}} checked="checked"{{/api_search_enabled}} />
+            <label for="search-api-checkbox"> Include API results</label>
         </div>
       </div>
     </main>

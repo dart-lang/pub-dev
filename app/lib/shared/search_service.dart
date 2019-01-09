@@ -50,6 +50,9 @@ class PackageDocument {
   final bool isDiscontinued;
   final bool doNotAdvertise;
 
+  /// True, if this package only supports 1.x (ie. package is 2.0 incompatible)
+  final bool supportsOnlyLegacySdk;
+
   final List<String> platforms;
 
   final double health;
@@ -71,18 +74,19 @@ class PackageDocument {
     this.description,
     this.created,
     this.updated,
-    this.readme,
-    this.isDiscontinued,
-    this.doNotAdvertise,
-    this.platforms,
-    this.health,
-    this.popularity,
-    this.maintenance,
-    this.dependencies,
-    this.emails,
-    this.apiDocPages,
-    this.timestamp,
-  });
+    this.readme = '',
+    this.isDiscontinued = false,
+    this.doNotAdvertise = false,
+    this.supportsOnlyLegacySdk = false,
+    this.platforms = const [],
+    this.health = 0,
+    this.popularity = 0,
+    this.maintenance = 0,
+    this.dependencies = const {},
+    this.emails = const [],
+    this.apiDocPages = const [],
+    DateTime timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
@@ -98,6 +102,7 @@ class PackageDocument {
       readme: readme,
       isDiscontinued: isDiscontinued,
       doNotAdvertise: doNotAdvertise,
+      supportsOnlyLegacySdk: supportsOnlyLegacySdk,
       platforms: platforms?.map(internFn)?.toList(),
       health: health,
       popularity: popularity,
@@ -216,6 +221,9 @@ class SearchQuery {
   final bool isAd;
   final bool isApiEnabled;
 
+  /// True, if packages which only support dart 1.x should be included.
+  final bool includeLegacy;
+
   SearchQuery._({
     this.query,
     String platform,
@@ -224,6 +232,7 @@ class SearchQuery {
     this.limit,
     this.isAd,
     this.isApiEnabled,
+    this.includeLegacy,
   })  : parsedQuery = new ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform;
 
@@ -233,8 +242,9 @@ class SearchQuery {
     SearchOrder order,
     int offset = 0,
     int limit = 10,
-    bool isAd,
-    bool apiEnabled,
+    bool isAd = false,
+    bool apiEnabled = true,
+    bool includeLegacy = false,
   }) {
     final String q =
         query != null && query.trim().isNotEmpty ? query.trim() : null;
@@ -244,8 +254,9 @@ class SearchQuery {
       order: order,
       offset: offset,
       limit: limit,
-      isAd: isAd ?? false,
-      isApiEnabled: apiEnabled ?? true,
+      isAd: isAd,
+      isApiEnabled: apiEnabled,
+      includeLegacy: includeLegacy,
     );
   }
 
@@ -257,22 +268,18 @@ class SearchQuery {
     final SearchOrder order =
         orderValue == null ? null : parseSearchOrder(orderValue);
 
-    int offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
-    int limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
-    offset = max(0, offset);
-    limit = max(_minSearchLimit, limit);
-
-    final isAd = (uri.queryParameters['ad'] ?? '0') == '1';
-    final apiEnabled = uri.queryParameters['api'] != '0';
+    final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
+    final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
 
     return new SearchQuery.parse(
       query: q,
       platform: platform,
       order: order,
-      offset: offset,
-      limit: limit,
-      isAd: isAd,
-      apiEnabled: apiEnabled,
+      offset: max(0, offset),
+      limit: max(_minSearchLimit, limit),
+      isAd: uri.queryParameters['ad'] == '1',
+      apiEnabled: uri.queryParameters['api'] != '0',
+      includeLegacy: uri.queryParameters['legacy'] == '1',
     );
   }
 
@@ -284,6 +291,7 @@ class SearchQuery {
     int limit,
     bool isAd,
     bool apiEnabled,
+    bool includeLegacy,
   }) {
     return new SearchQuery._(
       query: query ?? this.query,
@@ -293,6 +301,7 @@ class SearchQuery {
       limit: limit ?? this.limit,
       isAd: isAd ?? this.isAd,
       isApiEnabled: apiEnabled ?? this.isApiEnabled,
+      includeLegacy: includeLegacy ?? this.includeLegacy,
     );
   }
 
@@ -305,6 +314,7 @@ class SearchQuery {
       'order': serializeSearchOrder(order),
       'ad': isAd ? '1' : null,
       'api': isApiEnabled ? null : '0',
+      'legacy': includeLegacy ? '1' : null,
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -342,6 +352,9 @@ class SearchQuery {
     }
     if (!isApiEnabled) {
       params['api'] = '0';
+    }
+    if (includeLegacy) {
+      params['legacy'] = '1';
     }
     if (page != null) {
       params['page'] = page.toString();
@@ -561,5 +574,6 @@ SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
     offset: offset,
     limit: resultsPerPage,
     apiEnabled: isApiEnabled,
+    includeLegacy: url.queryParameters['legacy'] == '1',
   );
 }

@@ -1194,7 +1194,7 @@ pre > code {
           align-items: center;
   border-radius: 3px;
   background: #f5f5f5;
-  max-width: 550px;
+  max-width: 650px;
   background: #fff
 }
 
@@ -1224,7 +1224,7 @@ pre > code {
 
 .search-bar-details {
   position: relative;
-  max-width: 550px;
+  max-width: 650px;
 }
 
 .search-bar-options {

@@ -208,6 +208,13 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // Remove legacy packages, if not included in the query.
+    if (!query.includeLegacy) {
+      packages.removeWhere((p) {
+        return (_packages[p]?.supportsOnlyLegacySdk ?? false);
+      });
+    }
+
     // do text matching
     final isApiEnabled = query.isApiEnabled || query.parsedQuery.isApiEnabled;
     final textResults =

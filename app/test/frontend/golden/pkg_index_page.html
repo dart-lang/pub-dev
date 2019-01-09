@@ -63,6 +63,7 @@
         <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus>
         <button class="icon"></button>
         
+        <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled" />
         <input id="search-api-field" type="hidden" name="api" value="0" disabled="disabled" />
       </form>
       <div class="search-bar-details">
@@ -72,7 +73,10 @@
     <a class="filter -active" href="/packages">All</a>
 </div>
         <div class="search-bar-options">
-            <input id="search-api-checkbox" type="checkbox" name="api" checked="checked" /> Include API results
+            <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1"  />
+            <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+            <input id="search-api-checkbox" type="checkbox" name="api" checked="checked" />
+            <label for="search-api-checkbox"> Include API results</label>
         </div>
       </div>
     </main>
