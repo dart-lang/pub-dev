@@ -85,7 +85,7 @@ Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
       '- Visit the [packages](/packages) page and start browsing.\n'
       '- Pick one of the top packages, listed below.\n';
   return htmlResponse(
-    templateService.renderErrorPage(default404NotFound, message, packages),
+    renderErrorPage(default404NotFound, message, packages),
     status: 404,
   );
 }
