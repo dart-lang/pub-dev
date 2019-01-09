@@ -8,9 +8,8 @@ environment:
   sdk: '>=2.0.0 <3.0.0'
 
 dependencies:
+  convert: ^2.1.1
   logging: '^0.11.3'
-  identity_codec:
-    path: ../identity_codec
   retry:
     path: ../retry
   dartis: 0.3.0

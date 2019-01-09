@@ -4,10 +4,12 @@
 
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:convert/convert.dart' show IdentityCodec;
+import 'package:test/test.dart';
+
 import 'package:simple_cache/simple_cache.dart';
 import 'package:simple_cache/cache_provider.dart';
-import 'package:identity_codec/identity_codec.dart';
-import 'package:test/test.dart';
 
 /// Simple class to wrap a `CacheProvider<T>` + `Codec<String, T>` to get a
 /// `CacheProvider<String>`.

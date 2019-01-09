@@ -140,7 +140,7 @@ packages:
       name: convert
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.2"
+    version: "2.1.1"
   crypto:
     dependency: "direct main"
     description:
@@ -274,13 +274,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.9.8+1"
-  identity_codec:
-    dependency: transitive
-    description:
-      path: "../pkg/identity_codec"
-      relative: true
-    source: path
-    version: "1.0.0"
   intl:
     dependency: "direct main"
     description:
