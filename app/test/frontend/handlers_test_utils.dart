@@ -9,14 +9,10 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
-import 'package:pub_dartlang_org/shared/analyzer_service.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
@@ -234,50 +230,4 @@ class SearchServiceMock implements SearchService {
 
   @override
   Future close() async => null;
-}
-
-class AnalyzerClientMock implements AnalyzerClient {
-  AnalysisView mockAnalysisView;
-
-  @override
-  Future close() async => null;
-
-  @override
-  Future<AnalysisView> getAnalysisView(AnalysisKey key) async =>
-      mockAnalysisView;
-
-  @override
-  Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) =>
-      Future.wait(keys.map(getAnalysisView));
-
-  @override
-  Future triggerAnalysis(
-      String package, String version, Set<String> dependentPackages) async {}
-}
-
-class DartdocClientMock implements DartdocClient {
-  @override
-  Future<DartdocEntry> getEntry(String package, String version) async {
-    return null;
-  }
-
-  @override
-  Future<List<DartdocEntry>> getEntries(
-      String package, List<String> versions) async {
-    return versions.map((s) => null).toList();
-  }
-
-  @override
-  Future triggerDartdoc(
-      String package, String version, Set<String> dependentPackages) async {}
-
-  @override
-  Future close() async {}
-
-  @override
-  Future<String> getTextContent(
-      String package, String version, String relativePath,
-      {Duration timeout}) async {
-    return null;
-  }
 }
