@@ -10,11 +10,11 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 
-import '../shared/utils.dart';
+import '../../shared/utils.dart';
+import '../mocks.dart';
+import '../utils.dart';
 
-import 'handlers_test_utils.dart';
-import 'mocks.dart';
-import 'utils.dart';
+import '_utils.dart';
 
 void tScopedTest(String name, Future func()) {
   scopedTest(name, () {

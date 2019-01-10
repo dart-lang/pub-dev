@@ -17,8 +17,8 @@ import 'package:pub_dartlang_org/shared/urls.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
-import '../shared/handlers_test_utils.dart';
-import '../shared/utils.dart';
+import '../../shared/handlers_test_utils.dart';
+import '../../shared/utils.dart';
 
 void main() {
   group('path parsing', () {
