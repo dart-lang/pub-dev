@@ -33,9 +33,6 @@ void tScopedTest(String name, Future func()) {
 Future main() async {
   await updateLocalBuiltFiles();
 
-  final pageSize = 10;
-  final topQueryLimit = 15;
-
   group('handlers', () {
     group('not found', () {
       tScopedTest('/xxx', () async {
@@ -366,41 +363,5 @@ Future main() async {
       });
     });
 
-    group('old api', () {
-      scopedTest('/packages.json', () async {
-        final backend =
-            new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
-          expect(offset, 0);
-          expect(limit, greaterThan(pageSize));
-          return [testPackage];
-        }, lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectJsonResponse(await issueGet('/packages.json'), body: {
-          'packages': ['https://pub.dartlang.org/packages/foobar_pkg.json'],
-          'next': null
-        });
-      });
-
-      tScopedTest('/packages/foobar_pkg.json', () async {
-        final backend = new BackendMock(lookupPackageFun: (String package) {
-          expect(package, 'foobar_pkg');
-          return testPackage;
-        }, versionsOfPackageFun: (String package) {
-          expect(package, 'foobar_pkg');
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
-            body: {
-              'name': 'foobar_pkg',
-              'uploaders': ['hans@juergen.com'],
-              'versions': ['0.1.1+5'],
-            });
-      });
-    });
   });
 }

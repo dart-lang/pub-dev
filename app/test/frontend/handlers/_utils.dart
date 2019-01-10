@@ -12,6 +12,9 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
+const pageSize = 10;
+const topQueryLimit = 15;
+
 Future<shelf.Response> issueGet(String path) {
   final uri = '$siteRoot$path';
   return issueGetUri(Uri.parse(uri));
