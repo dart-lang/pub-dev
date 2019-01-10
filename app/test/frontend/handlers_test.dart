@@ -80,97 +80,6 @@ Future main() async {
         await expectHtmlResponse(await issueGet('/'));
       });
 
-      tScopedTest('/packages', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 0);
-            expect(query.limit, pageSize);
-            expect(query.platform, isNull);
-            expect(query.isAd, isFalse);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  scoreCard: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages'));
-      });
-
-      tScopedTest('/packages?q=foobar', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.query, 'foobar');
-            expect(query.offset, 0);
-            expect(query.limit, pageSize);
-            expect(query.platform, isNull);
-            expect(query.isAd, isFalse);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  scoreCard: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages?q=foobar'));
-      });
-
-      tScopedTest('/packages?page=2', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 10);
-            expect(query.limit, pageSize);
-            expect(query.platform, isNull);
-            expect(query.isAd, isFalse);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  scoreCard: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/packages?page=2'));
-      });
-
       tScopedTest('/packages/foobar_pkg - found', () async {
         final backend = new BackendMock(lookupPackageFun: (String packageName) {
           expect(packageName, 'foobar_pkg');
@@ -298,70 +207,9 @@ Future main() async {
         await expectHtmlResponse(await issueGet('/flutter'));
       });
 
-      tScopedTest('/flutter/packages', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 0);
-            expect(query.limit, pageSize);
-            expect(query.platform, 'flutter');
-            expect(query.isAd, isFalse);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  scoreCard: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/flutter/packages'));
-      });
-
-      tScopedTest('/flutter/packages&page=2', () async {
-        registerSearchService(new SearchServiceMock(
-          (SearchQuery query) {
-            expect(query.offset, 10);
-            expect(query.limit, pageSize);
-            expect(query.platform, 'flutter');
-            expect(query.isAd, isFalse);
-            return new SearchResultPage(query, 1, [
-              new PackageView.fromModel(
-                  package: testPackage,
-                  version: testPackageVersion,
-                  scoreCard: null)
-            ]);
-          },
-        ));
-        final backend = new BackendMock(
-          lookupPackageFun: (packageName) {
-            return packageName == testPackage.name ? testPackage : null;
-          },
-          lookupLatestVersionsFun: (List<Package> packages) {
-            expect(packages.length, 1);
-            expect(packages.first, testPackage);
-            return [testPackageVersion];
-          },
-        );
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-        await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
-      });
-
       tScopedTest('/authorized', () async {
         await expectHtmlResponse(await issueGet('/authorized'));
       });
     });
-
   });
 }
