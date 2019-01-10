@@ -14,8 +14,6 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_service.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -281,53 +279,5 @@ class DartdocClientMock implements DartdocClient {
       String package, String version, String relativePath,
       {Duration timeout}) async {
     return null;
-  }
-}
-
-class ScoreCardBackendMock implements ScoreCardBackend {
-  @override
-  Future<ScoreCardData> getScoreCardData(
-      String packageName, String packageVersion,
-      {bool onlyCurrent}) {
-    return null;
-  }
-
-  @override
-  Future<PackageStatus> getPackageStatus(String package, String version) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future deleteOldEntries() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<Map<String, ReportData>> loadReports(
-      String packageName, String packageVersion,
-      {List<String> reportTypes, String runtimeVersion}) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<bool> shouldUpdateReport(
-      String packageName, String packageVersion, String reportType,
-      {bool includeDiscontinued = false,
-      bool includeObsolete = false,
-      Duration successThreshold = const Duration(days: 30),
-      Duration failureThreshold = const Duration(days: 1),
-      DateTime updatedAfter}) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future updateReport(
-      String packageName, String packageVersion, ReportData data) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future updateScoreCard(String packageName, String packageVersion) {
-    throw new UnimplementedError();
   }
 }
