@@ -22,7 +22,7 @@ import 'package:pub_dartlang_org/history/models.dart';
 import '../shared/utils.dart';
 
 import 'backend_test_utils.dart';
-import 'handlers_test_utils.dart';
+import 'mocks.dart';
 import 'utils.dart';
 
 // TODO: Add missing tests when a query returns more than one result.

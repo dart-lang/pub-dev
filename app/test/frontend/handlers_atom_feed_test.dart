@@ -13,6 +13,7 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import '../shared/utils.dart';
 
 import 'handlers_test_utils.dart';
+import 'mocks.dart';
 import 'utils.dart';
 
 void tScopedTest(String name, Future func()) {
