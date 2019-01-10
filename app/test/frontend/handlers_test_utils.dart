@@ -12,9 +12,6 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/search_service.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
-import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 Future<shelf.Response> issueGet(String path) {
@@ -197,37 +194,4 @@ class BackendMock implements Backend {
   Future deleteObsoleteInvites() {
     throw new UnimplementedError();
   }
-}
-
-class SearchClientMock implements SearchClient {
-  final Function searchFun;
-  SearchClientMock({this.searchFun});
-
-  @override
-  Future<PackageSearchResult> search(SearchQuery query) async {
-    if (searchFun == null) {
-      throw new Exception('no searchFun');
-    }
-    return (await searchFun(query)) as PackageSearchResult;
-  }
-
-  @override
-  Future triggerReindex(String package, String version) async {}
-
-  @override
-  Future close() async {}
-}
-
-class SearchServiceMock implements SearchService {
-  final Function searchFun;
-
-  SearchServiceMock(this.searchFun);
-
-  @override
-  Future<SearchResultPage> search(SearchQuery query) async {
-    return (await searchFun(query)) as SearchResultPage;
-  }
-
-  @override
-  Future close() async => null;
 }
