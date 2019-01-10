@@ -13,18 +13,11 @@ import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
-import '../shared/handlers_test_utils.dart';
-import '../shared/utils.dart';
+import '../../shared/handlers_test_utils.dart';
+import '../mocks.dart';
+import '../utils.dart';
 
-import 'handlers/_utils.dart';
-import 'mocks.dart';
-import 'utils.dart';
-
-void tScopedTest(String name, Future func()) {
-  scopedTest(name, () {
-    return func();
-  });
-}
+import '_utils.dart';
 
 Future main() async {
   await updateLocalBuiltFiles();
