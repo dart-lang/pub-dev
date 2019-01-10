@@ -2,25 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.handlers_test;
-
-import 'dart:async';
-
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 
-import '../../shared/utils.dart';
 import '../mocks.dart';
 import '../utils.dart';
 
 import '_utils.dart';
-
-void tScopedTest(String name, Future func()) {
-  scopedTest(name, () {
-    return func();
-  });
-}
 
 void main() {
   final pageSize = 10;

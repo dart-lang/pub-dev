@@ -12,8 +12,16 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
+import '../../shared/utils.dart';
+
 const pageSize = 10;
 const topQueryLimit = 15;
+
+void tScopedTest(String name, Future func()) {
+  scopedTest(name, () {
+    return func();
+  });
+}
 
 Future<shelf.Response> issueGet(String path) {
   final uri = '$siteRoot$path';
