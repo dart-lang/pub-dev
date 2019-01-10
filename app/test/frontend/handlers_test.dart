@@ -54,32 +54,6 @@ Future main() async {
     });
 
     group('ui', () {
-      tScopedTest('/', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.order, isNull);
-          expect(query.offset, 0);
-          expect(query.limit, topQueryLimit);
-          expect(query.platform, isNull);
-          expect(query.query, isNull);
-          expect(query.isAd, isTrue);
-          return new SearchResultPage(
-            query,
-            1,
-            [new PackageView.fromModel(version: testPackageVersion)],
-          );
-        }));
-        final backend =
-            new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
-          expect(offset, isNull);
-          expect(limit, equals(5));
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-
-        await expectHtmlResponse(await issueGet('/'));
-      });
-
       tScopedTest('/packages/foobar_pkg - found', () async {
         final backend = new BackendMock(lookupPackageFun: (String packageName) {
           expect(packageName, 'foobar_pkg');
@@ -179,32 +153,6 @@ Future main() async {
           await issueGet('/packages/flutter/versions/0.20'),
           'https://pub.dartlang.org/flutter',
         );
-      });
-
-      tScopedTest('/flutter', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
-          expect(query.order, isNull);
-          expect(query.offset, 0);
-          expect(query.limit, topQueryLimit);
-          expect(query.platform, 'flutter');
-          expect(query.query, isNull);
-          expect(query.isAd, isTrue);
-          return new SearchResultPage(
-            query,
-            1,
-            [new PackageView.fromModel(version: testPackageVersion)],
-          );
-        }));
-        final backend =
-            new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
-          expect(offset, isNull);
-          expect(limit, equals(5));
-          return [testPackageVersion];
-        });
-        registerBackend(backend);
-        registerAnalyzerClient(new AnalyzerClientMock());
-
-        await expectHtmlResponse(await issueGet('/flutter'));
       });
 
       tScopedTest('/authorized', () async {
