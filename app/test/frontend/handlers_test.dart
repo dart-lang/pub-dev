@@ -141,20 +141,6 @@ Future main() async {
             '/packages/foobar_pkg#-versions-tab-');
       });
 
-      tScopedTest('/packages/flutter - redirect', () async {
-        expectRedirectResponse(
-          await issueGet('/packages/flutter'),
-          'https://pub.dartlang.org/flutter',
-        );
-      });
-
-      tScopedTest('/packages/flutter/versions/* - redirect', () async {
-        expectRedirectResponse(
-          await issueGet('/packages/flutter/versions/0.20'),
-          'https://pub.dartlang.org/flutter',
-        );
-      });
-
       tScopedTest('/authorized', () async {
         await expectHtmlResponse(await issueGet('/authorized'));
       });

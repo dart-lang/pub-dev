@@ -69,5 +69,19 @@ void main() {
     tScopedTest('/server/packages', () async {
       expectRedirectResponse(await issueGet('/server/packages'), '/packages');
     });
+
+    tScopedTest('/packages/flutter - redirect', () async {
+      expectRedirectResponse(
+        await issueGet('/packages/flutter'),
+        'https://pub.dartlang.org/flutter',
+      );
+    });
+
+    tScopedTest('/packages/flutter/versions/* - redirect', () async {
+      expectRedirectResponse(
+        await issueGet('/packages/flutter/versions/0.20'),
+        'https://pub.dartlang.org/flutter',
+      );
+    });
   });
 }
