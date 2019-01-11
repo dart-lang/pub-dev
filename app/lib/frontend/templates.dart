@@ -7,7 +7,6 @@ library pub_dartlang_org.templates;
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionLevel;
 
 import '../scorecard/models.dart';
@@ -114,7 +113,7 @@ class TemplateService {
       if (isSdk) {
         scoreBoxHtml = _renderSdkScoreBox();
       } else if (!view.isExternal) {
-        scoreBoxHtml = _renderScoreBox(overallScore,
+        scoreBoxHtml = renderScoreBox(overallScore,
             isSkipped: view.isSkipped,
             isNewPackage: view.isNewPackage,
             package: view.name);
@@ -453,7 +452,7 @@ class TemplateService {
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
         'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
-        'score_box_html': _renderScoreBox(card?.overallScore,
+        'score_box_html': renderScoreBox(card?.overallScore,
             isSkipped: card?.isSkipped ?? false,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
@@ -476,8 +475,8 @@ class TemplateService {
   Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
     String renderScoreBar(double score, Brush brush) {
       return templateCache.renderTemplate('pkg/score_bar', {
-        'percent': _formatScore(score ?? 0.0),
-        'score': _formatScore(score),
+        'percent': formatScore(score ?? 0.0),
+        'score': formatScore(score),
         'background': brush.background.toString(),
         'color': brush.color.toString(),
         'shadow': brush.shadow.toString(),
@@ -690,50 +689,6 @@ String _getAuthorsHtml(List<String> authors) {
 
 String _renderSdkScoreBox() {
   return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
-}
-
-String _renderScoreBox(
-  double overallScore, {
-  @required bool isSkipped,
-  bool isNewPackage,
-  String package,
-}) {
-  final String formattedScore = _formatScore(overallScore);
-  final String scoreClass = _classifyScore(overallScore);
-  String title;
-  if (!isSkipped && overallScore == null) {
-    title = 'Awaiting analysis to complete.';
-  } else {
-    title = 'Analysis and more details.';
-  }
-  final String escapedTitle = htmlAttrEscape.convert(title);
-  final newIndicator = (isNewPackage ?? false)
-      ? '<span class="new" title="Created in the last 30 days">new</span>'
-      : '';
-  final String boxHtml = '<div class="score-box">'
-      '$newIndicator'
-      '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
-      // TODO: decide on label - {{! <span class="text">?????</span> }}
-      '</div>';
-  if (package != null) {
-    return '<a href="${urls.analysisTabUrl(package)}">$boxHtml</a>';
-  } else {
-    return boxHtml;
-  }
-}
-
-String _formatScore(double value) {
-  if (value == null) return '--';
-  if (value <= 0.0) return '0';
-  if (value >= 1.0) return '100';
-  return (value * 100.0).round().toString();
-}
-
-String _classifyScore(double value) {
-  if (value == null) return 'missing';
-  if (value <= 0.5) return 'rotten';
-  if (value <= 0.7) return 'good';
-  return 'solid';
 }
 
 class PageLinks {
