@@ -15,7 +15,9 @@ import 'layout.dart';
 
 /// Renders the `views/help.mustache` template.
 String renderHelpPage() {
-  final String content = templateCache.renderTemplate('help', {});
+  final String content = templateCache.renderTemplate('help', {
+    'pana_maintenance_url': urls.panaMaintenanceUrl(),
+  });
   return renderLayoutPage(PageType.package, content,
       title: 'Help | Dart Packages');
 }

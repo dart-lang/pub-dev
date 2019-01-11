@@ -113,9 +113,11 @@ linter:
     at least one new version every year to keep your maintenance score up.
   </p>
   <p>
-    You can find the overall score either near the top of the package's page or to
-    the right of your package in any listing on this site. To get suggestions before
-    publishing, run <a href="https://pub.dartlang.org/packages/pana">pana</a> manually.
+    Pub site uses <a href="https://pub.dartlang.org/packages/pana">pana</a>
+    to create maintenance suggestions. To get suggestions before publishing,
+    run <code>pana</code> locally (using <code>--source path</code>), or
+    validate your package against the
+    <a href="{{& pana_maintenance_url}}">list of checks</a> manually.
   </p>
 
   <h3 id="overall-score">Overall score</h3>
@@ -127,6 +129,10 @@ linter:
       <li>30% code health,</li>
       <li>20% maintenance.</li>
   </ul>
+  <p>
+    You can find the overall score either near the top of the package's page or to
+    the right of your package in any listing on this site.
+  </p>
 
 
   <h2 id="ranking">Ranking</h2>
