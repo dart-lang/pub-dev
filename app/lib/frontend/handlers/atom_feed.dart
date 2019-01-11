@@ -34,7 +34,10 @@ shelf.Response atomXmlResponse(String content, {int status = 200}) =>
     new shelf.Response(
       status,
       body: content,
-      headers: {'content-type': 'application/atom+xml; charset="utf-8"'},
+      headers: {
+        'content-type': 'application/atom+xml; charset="utf-8"',
+        'x-content-type-options': 'nosniff',
+      },
     );
 
 class FeedEntry {

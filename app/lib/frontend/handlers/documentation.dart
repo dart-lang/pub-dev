@@ -86,6 +86,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     if (info.etag != null) {
       headers[HttpHeaders.etagHeader] = info.etag;
     }
+    headers['x-content-type-options'] = 'nosniff';
     return new shelf.Response(HttpStatus.ok, body: stream, headers: headers);
   }
   return notFoundHandler(request);
