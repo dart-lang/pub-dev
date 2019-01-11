@@ -15,7 +15,7 @@ import '../../shared/utils.dart' show DurationTracker;
 import '../backend.dart';
 import '../models.dart';
 import '../search_service.dart';
-import '../templates.dart';
+import '../templates/listing.dart';
 
 final _searchOverallLatencyTracker = new DurationTracker();
 
@@ -52,7 +52,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
 
   final links =
       new PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
-  final result = htmlResponse(templateService.renderPkgIndexPage(
+  final result = htmlResponse(renderPkgIndexPage(
     searchResult.packages,
     links,
     platform,

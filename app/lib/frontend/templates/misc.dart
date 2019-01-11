@@ -113,6 +113,12 @@ String renderTags(
   return templateCache.renderTemplate('pkg/tags', {'tags': tags});
 }
 
+/// Renders the simplified version of the circle with 'sdk' text content instead
+/// of the score.
+String renderSdkScoreBox() {
+  return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
+}
+
 /// Renders the circle with the overall score.
 String renderScoreBox(
   double overallScore, {
