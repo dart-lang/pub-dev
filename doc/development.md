@@ -3,7 +3,7 @@
 The app uses `json_serializable` to generate `toJson` and `fromJson` for several
 classes. The associated files all have an associated `.g.dart` file. If you
 change any of the associated classes, you can regenerate the code by running
-`./tool/build.dart` from the `app` directory.
+`pub run build_runner build` from the given package's directory.
 
 ## Local Development
 
