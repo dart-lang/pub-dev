@@ -18,6 +18,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/templates/admin.dart';
+import 'package:pub_dartlang_org/frontend/templates/landing.dart';
 import 'package:pub_dartlang_org/frontend/templates/layout.dart';
 import 'package:pub_dartlang_org/frontend/templates/misc.dart';
 
@@ -76,7 +77,7 @@ void main() {
           ),
         ),
       ]);
-      final String html = templateService.renderIndexPage(popularHtml, null);
+      final String html = renderIndexPage(popularHtml, null);
       expectGoldenFile(html, 'index_page.html');
     });
 
@@ -91,8 +92,7 @@ void main() {
           ),
         ),
       ]);
-      final String html =
-          templateService.renderIndexPage(popularHtml, KnownPlatforms.flutter);
+      final String html = renderIndexPage(popularHtml, KnownPlatforms.flutter);
       expectGoldenFile(html, 'flutter_landing_page.html');
     });
 
@@ -107,8 +107,7 @@ void main() {
           ),
         ),
       ]);
-      final String html =
-          templateService.renderIndexPage(popularHtml, KnownPlatforms.web);
+      final String html = renderIndexPage(popularHtml, KnownPlatforms.web);
       expectGoldenFile(html, 'web_landing_page.html');
     });
 
