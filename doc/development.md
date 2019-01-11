@@ -5,6 +5,28 @@ classes. The associated files all have an associated `.g.dart` file. If you
 change any of the associated classes, you can regenerate the code by running
 `pub run build_runner build` from the given package's directory.
 
+## Working with `mono_repo`
+
+The app uses [`mono_repo`](https://pub.dartlang.org/packages/mono_repo) to organize
+multiple packages inside the repository. To use `mono_repo`, first activate it:
+
+````bash
+pub global activate mono_repo
+````
+
+`mono_repo` has two kinds of configuration files:
+- `mono_repo.yaml` (in the root directory)
+- `mono_pkg.yaml` (in each package directory)
+
+### Creating a new package (or vendoring existing packages)
+
+1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
+
+2. Run `pub global run mono_repo travis --recursive` from the root.
+
+3. Revert change in `tool/travis.sh`: always use `pub get` instead of `pub upgrade`.
+
+
 ## Local Development
 
 ### Compile script.dart to script.dart.js
