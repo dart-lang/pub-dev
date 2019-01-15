@@ -15,6 +15,11 @@ void main() {
     test('do not render inline html', () {
       expect(markdownToHtml('<a></a>', null), '<p>&lt;a>&lt;/a></p>\n');
     });
+
+    test('render link ids', () {
+      expect(markdownToHtml('# ABC def', null),
+          '<h1 class="hash-header" id="abc-def">ABC def <a class="hash-link" href="#abc-def">#</a></h1>\n');
+    });
   });
 
   group('Valid custom base URL', () {

@@ -25,12 +25,42 @@ String markdownToHtml(String text, String baseUrl) {
   final lines = text.replaceAll('\r\n', '\n').split('\n');
   final nodes = document.parseLines(lines);
 
-  final visitor = new _UrlRewriter(sanitizedBaseUrl);
+  final urlRewriter = _UrlRewriter(sanitizedBaseUrl);
+  final hashLink = _HashLink();
   for (final node in nodes) {
-    node.accept(visitor);
+    node.accept(urlRewriter);
+    node.accept(hashLink);
   }
 
   return m.renderToHtml(nodes) + '\n';
+}
+
+final _headers = Set.from(<String>['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
+/// Adds an extra <a href="#hash">#</a> element to all h1,h2,h3..h6 elements.
+class _HashLink implements m.NodeVisitor {
+  @override
+  void visitText(m.Text text) {}
+
+  @override
+  bool visitElementBefore(m.Element element) => true;
+
+  @override
+  void visitElementAfter(m.Element element) {
+    final isHeaderWithHash = _headers.contains(element.tag) &&
+        element.generatedId != null &&
+        element.children.length == 1;
+
+    if (isHeaderWithHash) {
+      element.attributes['class'] = 'hash-header';
+      element.children.addAll([
+        m.Text(' '),
+        m.Element('a', [m.Text('#')])
+          ..attributes['href'] = '#${element.generatedId}'
+          ..attributes['class'] = 'hash-link',
+      ]);
+    }
+  }
 }
 
 class _UrlRewriter implements m.NodeVisitor {
