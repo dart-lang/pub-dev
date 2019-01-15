@@ -29,11 +29,11 @@ class Pubspec {
 
   Pubspec._(this._inner, this.jsonString);
 
-  factory Pubspec(String jsonString) =>
-      new Pubspec._(new pubspek.Pubspec.parse(jsonString), jsonString);
+  factory Pubspec(String jsonString) => new Pubspec._(
+      new pubspek.Pubspec.parse(jsonString, lenient: true), jsonString);
 
   factory Pubspec.fromYaml(String yamlString) => new Pubspec._(
-      new pubspek.Pubspec.parse(yamlString),
+      new pubspek.Pubspec.parse(yamlString, lenient: true),
       json.encode(_loadYaml(yamlString)));
 
   Map get asJson {
