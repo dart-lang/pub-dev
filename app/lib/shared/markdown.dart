@@ -35,6 +35,8 @@ String markdownToHtml(String text, String baseUrl) {
   return m.renderToHtml(nodes) + '\n';
 }
 
+final _headers = Set.from(<String>['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+
 /// Adds an extra <a href="#hash">#</a> element to all h1,h2,h3..h6 elements.
 class _HashLink implements m.NodeVisitor {
   @override
@@ -45,19 +47,19 @@ class _HashLink implements m.NodeVisitor {
 
   @override
   void visitElementAfter(m.Element element) {
-    if (!element.tag.startsWith('h') ||
-        element.tag.length != 2 ||
-        element.generatedId == null ||
-        element.children.length != 1) {
-      return;
+    final isHeaderWithHash = _headers.contains(element.tag) &&
+        element.generatedId != null &&
+        element.children.length == 1;
+
+    if (isHeaderWithHash) {
+      element.attributes['class'] = 'hash-header';
+      element.children.addAll([
+        m.Text(' '),
+        m.Element('a', [m.Text('#')])
+          ..attributes['href'] = '#${element.generatedId}'
+          ..attributes['class'] = 'hash-link',
+      ]);
     }
-    element.attributes['class'] = 'hash-header';
-    element.children.addAll([
-      m.Text(' '),
-      m.Element('a', [m.Text('#')])
-        ..attributes['href'] = '#${element.generatedId}'
-        ..attributes['class'] = 'hash-link',
-    ]);
   }
 }
 
