@@ -21,7 +21,6 @@ dependencies:
   json_annotation: '^2.0.0'
   logging: '>=0.9.3 <1.0.0'
   markdown: '>=2.0.0 <2.1.0'
-  memcache: '^0.3.0'
   meta: ^1.1.2
   mime: '>=0.9.3 <0.10.0'
   mustache: ^1.0.0
