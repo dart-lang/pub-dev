@@ -30,8 +30,9 @@ Future main(List<String> args) async {
 
   await withProdServices(() async {
     await dbService.withTransaction((Transaction t) async {
-      final Secret secret =
-          (await t.lookup([dbService.emptyKey.append(Secret, id: id)])).single;
+      final secret =
+          (await t.lookup([dbService.emptyKey.append(Secret, id: id)])).single
+              as Secret;
       if (secret == null) {
         t.queueMutations(inserts: [
           new Secret()

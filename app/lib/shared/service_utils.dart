@@ -80,8 +80,8 @@ Future startIsolates({
       onExit: errorReceivePort.sendPort,
       errorsAreFatal: true,
     );
-    final FrontendProtocolMessage protocolMessage =
-        (await protocolReceivePort.take(1).toList()).single;
+    final protocolMessage = (await protocolReceivePort.take(1).toList()).single
+        as FrontendProtocolMessage;
     if (protocolMessage.statsConsumerPort != null) {
       statConsumerPorts.add(protocolMessage.statsConsumerPort);
     }
@@ -218,7 +218,7 @@ Future initFlutterSdk(Logger logger) async {
 }
 
 void _wrapper(List fnAndMessage) {
-  final Function fn = fnAndMessage[0];
+  final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
   final logger = new Logger('isolate.wrapper');
   Chain.capture(() async {

@@ -95,8 +95,8 @@ double calculateBezierScore(num normValue, num normAvg) {
   final avgY = 0.75;
   final t = solveCubicSpecial(-3 * normAvg, 3 * normAvg, -1 * normValue);
 
-  final double t2 =
-      math.pow(t, 3) - (3 * avgY * math.pow(t, 2)) + (3 * t * avgY);
+  final t2 = (math.pow(t, 3) - (3 * avgY * math.pow(t, 2)) + (3 * t * avgY))
+      .toDouble();
 
   if (t2 <= epsilon) {
     return 0.0;

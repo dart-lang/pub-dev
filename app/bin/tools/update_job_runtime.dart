@@ -20,9 +20,9 @@ Future main(List<String> args) async {
     ..addFlag('reset',
         defaultsTo: false, help: 'Trigger re-processing of the jobs.');
   final argResults = parser.parse(args);
-  final String runtimeVersion = argResults['runtime-version'];
+  final runtimeVersion = argResults['runtime-version'] as String;
   final int concurrency = int.parse(argResults['concurrency'] as String);
-  final bool reset = argResults['reset'];
+  final reset = argResults['reset'] as bool;
 
   if (runtimeVersion == null || runtimeVersion.isEmpty) {
     throw new Exception('--runtime-version must be set');

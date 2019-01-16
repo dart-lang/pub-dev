@@ -29,7 +29,7 @@ void _setEventsForTabs() {
   if (tabRoot != null && tabContents.isNotEmpty) {
     tabRoot.onClick.listen((e) {
       // locate the <li> tag
-      Element target = e.target;
+      Element target = e.target as Element;
       while (target != null &&
           target.tagName.toLowerCase() != 'li' &&
           target.tagName.toLowerCase() != 'body') {
@@ -46,7 +46,7 @@ void _setEventsForTabs() {
 void _setEventForAnchorScroll() {
   document.body.onClick.listen((e) {
     // locate the <a> tag
-    Element target = e.target;
+    Element target = e.target as Element;
     while (target != null &&
         target.tagName.toLowerCase() != 'a' &&
         target.tagName.toLowerCase() != 'body') {
@@ -239,7 +239,7 @@ Future _scrollTo(Element elem) async {
 }
 
 void _setEventForSearchInput() {
-  final InputElement q = document.querySelector('input[name="q"]');
+  final q = document.querySelector('input[name="q"]') as InputElement;
   if (q == null) return null;
   final List<Element> anchors = document.querySelectorAll('.list-filters > a');
   q.onChange.listen((_) {
@@ -257,7 +257,7 @@ void _setEventForSearchInput() {
 
 void _setEventForSortControl() {
   final Element sortControl = document.getElementById('sort-control');
-  final InputElement queryText = document.querySelector('input[name="q"]');
+  final queryText = document.querySelector('input[name="q"]') as InputElement;
   if (sortControl == null || queryText == null) return;
   final formElement = queryText.form;
 
@@ -283,7 +283,8 @@ void _setEventForSortControl() {
 
   select.onChange.listen((_) {
     final String value = select.selectedOptions.first.value;
-    InputElement sortInput = document.querySelector('input[name="sort"]');
+    InputElement sortInput =
+        document.querySelector('input[name="sort"]') as InputElement;
     if (sortInput == null) {
       sortInput = new InputElement(type: 'hidden')..name = 'sort';
       queryText.parent.append(sortInput);
@@ -398,12 +399,12 @@ void _updateDartdocStatus() {
     try {
       final content =
           await HttpRequest.getString('/api/documentation/$package');
-      final Map map = json.decode(content);
-      final List versionsList = map['versions'];
-      for (Map versionMap in versionsList) {
-        final String version = versionMap['version'];
-        final bool hasDocumentation = versionMap['hasDocumentation'];
-        final String status = versionMap['status'];
+      final map = json.decode(content) as Map;
+      final versionsList = map['versions'] as List;
+      for (Map versionMap in versionsList.cast<Map>()) {
+        final version = versionMap['version'] as String;
+        final hasDocumentation = versionMap['hasDocumentation'] as bool;
+        final status = versionMap['status'] as String;
         for (Element table in tables) {
           table
               .querySelectorAll('tr')
@@ -412,7 +413,7 @@ void _updateDartdocStatus() {
             (row) {
               final docCol = row.querySelector('.documentation');
               if (docCol == null) return;
-              final AnchorElement docLink = docCol.querySelector('a');
+              final docLink = docCol.querySelector('a') as AnchorElement;
               if (docLink == null) return;
               if (status == 'awaiting') {
                 docCol.dataset[_hasDocumentationAttr] = '...';
@@ -433,7 +434,7 @@ void _updateDartdocStatus() {
       for (Element table in tables) {
         table.querySelectorAll('td.documentation').forEach((docCol) {
           if (docCol.dataset[_hasDocumentationAttr] == '-') {
-            final AnchorElement docLink = docCol.querySelector('a');
+            final docLink = docCol.querySelector('a') as AnchorElement;
             if (docLink != null) {
               docLink.remove();
             }

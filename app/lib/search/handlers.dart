@@ -19,7 +19,7 @@ final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 /// Handlers for the search service.
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
-  final shelf.Handler handler = {
+  final handler = <String, shelf.Handler>{
     '/debug': _debugHandler,
     '/search': _searchHandler,
     '/robots.txt': rejectRobotsHandler,

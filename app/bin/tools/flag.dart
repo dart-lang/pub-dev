@@ -33,8 +33,8 @@ Future main(List<String> arguments) async {
   }
 
   final String package = argv.rest.single;
-  final String discontinued = argv['discontinued'];
-  final String doNotAdvertise = argv['do-not-advertise'];
+  final discontinued = argv['discontinued'] as String;
+  final doNotAdvertise = argv['do-not-advertise'] as String;
   final isRead = discontinued == null && doNotAdvertise == null;
 
   await withProdServices(() async {
@@ -54,9 +54,9 @@ Future main(List<String> arguments) async {
 }
 
 Future _read(String packageName) async {
-  final Package p = (await dbService
+  final p = (await dbService
           .lookup([dbService.emptyKey.append(Package, id: packageName)]))
-      .single;
+      .single as Package;
   if (p == null) {
     throw new Exception('Package $packageName does not exist.');
   }
@@ -74,9 +74,9 @@ Future _read(String packageName) async {
 Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
   registerJobBackend(new JobBackend(dbService));
   return dbService.withTransaction((Transaction tx) async {
-    final Package p =
+    final p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .single;
+            .single as Package;
     if (p == null) {
       throw new Exception('Package $packageName does not exist.');
     }

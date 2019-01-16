@@ -56,7 +56,7 @@ class JobBackend {
       [String version, DateTime updated]) async {
     final pKey = _db.emptyKey.append(Package, id: package);
     final pList = await _db.lookup([pKey]);
-    final Package p = pList[0];
+    final p = pList[0] as Package;
     if (p == null) {
       _logger.info("Couldn't trigger $service job: $package not found.");
       return;
@@ -65,7 +65,7 @@ class JobBackend {
     version ??= p.latestVersion;
     final pvKey = pKey.append(PackageVersion, id: version);
     final list = await _db.lookup([pvKey]);
-    final PackageVersion pv = list[0];
+    final pv = list[0] as PackageVersion;
     if (pv == null) {
       _logger
           .info("Couldn't trigger $service job: $package $version not found.");
@@ -162,7 +162,7 @@ class JobBackend {
     final selectedId = list[_random.nextInt(list.length)].id;
     final result = await _db.withTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
-      final Job selected = items.single;
+      final selected = items.single as Job;
       if (!isApplicable(selected)) return null;
       final now = new DateTime.now().toUtc();
       selected
@@ -180,7 +180,7 @@ class JobBackend {
     Future _unlock(Job job) {
       return _db.withTransaction((tx) async {
         final list = await tx.lookup([job.key]);
-        final Job current = list.single;
+        final current = list.single as Job;
         if (current.state == JobState.processing &&
             current.lockedUntil == job.lockedUntil) {
           final errorCount = current.errorCount + 1;
@@ -215,7 +215,7 @@ class JobBackend {
     Future _schedule(Job job) async {
       return _db.withTransaction((tx) async {
         final list = await tx.lookup([job.key]);
-        final Job current = list.single;
+        final current = list.single as Job;
         if (current.state == JobState.idle &&
             current.lockedUntil == job.lockedUntil) {
           current
@@ -231,7 +231,7 @@ class JobBackend {
     Future _extend(Job job) async {
       return _db.withTransaction((tx) async {
         final list = await tx.lookup([job.key]);
-        final Job current = list.single;
+        final current = list.single as Job;
         if (current.state == JobState.idle &&
             current.lockedUntil == job.lockedUntil) {
           current
@@ -267,7 +267,7 @@ class JobBackend {
   Future complete(Job job, JobStatus status, {Duration extendDuration}) async {
     return _db.withTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
-      final Job selected = items.single;
+      final selected = items.single as Job;
       if (selected != null && selected.processingKey == job.processingKey) {
         _logger.info('Updating $job with $status');
         final isError =

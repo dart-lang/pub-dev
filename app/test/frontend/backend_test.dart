@@ -636,9 +636,9 @@ void main() {
 
       void validateSuccessfullUpdate(List<Model> inserts) {
         expect(inserts, hasLength(3));
-        final Package package = inserts[0];
-        final PackageVersion version = inserts[1];
-        final History history = inserts[2];
+        final package = inserts[0] as Package;
+        final version = inserts[1] as PackageVersion;
+        final history = inserts[2] as History;
 
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);

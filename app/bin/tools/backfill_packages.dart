@@ -28,7 +28,7 @@ Future main(List<String> args) async {
 
 Future _updateDevVersionKey(Key packageKey) async {
   await dbService.withTransaction((Transaction t) async {
-    final Package package = (await t.lookup([packageKey])).first;
+    final package = (await t.lookup([packageKey])).first as Package;
     final versions = await t.query<PackageVersion>(packageKey).run().toList();
     for (PackageVersion pv in versions) {
       package.updateVersion(pv);

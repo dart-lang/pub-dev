@@ -75,7 +75,7 @@ class DartdocBackend {
   /// Returns the latest stable version of a package.
   Future<String> getLatestVersion(String package) async {
     final list = await _db.lookup([_db.emptyKey.append(Package, id: package)]);
-    final Package p = list.single;
+    final p = list.single as Package;
     return p?.latestVersion;
   }
 

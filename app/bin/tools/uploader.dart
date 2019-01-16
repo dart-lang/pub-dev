@@ -47,9 +47,9 @@ Future main(List<String> arguments) async {
 
 Future listUploaders(String packageName) async {
   return dbService.withTransaction((Transaction T) async {
-    final Package package =
+    final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .first;
+            .first as Package;
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }
@@ -60,9 +60,9 @@ Future listUploaders(String packageName) async {
 
 Future addUploader(String packageName, String uploader) async {
   return dbService.withTransaction((Transaction T) async {
-    final Package package =
+    final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .first;
+            .first as Package;
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }
@@ -86,9 +86,9 @@ Future addUploader(String packageName, String uploader) async {
 
 Future removeUploader(String packageName, String uploader) async {
   return dbService.withTransaction((Transaction T) async {
-    final Package package =
+    final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
-            .first;
+            .first as Package;
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }

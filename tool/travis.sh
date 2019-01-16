@@ -12,7 +12,7 @@ if [ "$#" == "0" ]; then
 fi
 
 pushd $PKG
-pub get || exit $?
+pub upgrade || exit $?
 
 EXIT_CODE=0
 

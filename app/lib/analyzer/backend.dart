@@ -50,7 +50,7 @@ class AnalysisBackend {
 
     if (version == null) {
       final list = await db.lookup([packageKey]);
-      final PackageAnalysis pa = list[0];
+      final pa = list[0] as PackageAnalysis;
       if (pa == null) {
         _logger.info('PackageAnalysis lookup failed: no entry for $package.');
         return null;
@@ -64,7 +64,7 @@ class AnalysisBackend {
 
     if (analysis == null) {
       final list = await db.lookup([versionKey]);
-      final PackageVersionAnalysis pva = list[0];
+      final pva = list[0] as PackageVersionAnalysis;
       if (pva == null) {
         _logger.info(
             'PackageVersionAnalysis lookup failed: no entry for $package $version.');
@@ -83,7 +83,7 @@ class AnalysisBackend {
     if (analysis == null) {
       final Query query = db.query<Analysis>(ancestorKey: versionKey)
         ..filter('panaVersion =', panaVersion);
-      final List<Analysis> list = await query.run().toList();
+      final list = await query.run().cast<Analysis>().toList();
       if (list.isNotEmpty) {
         list.sort((a, b) => -a.timestamp.compareTo(b.timestamp));
         final Analysis entry = list[0];
@@ -101,7 +101,7 @@ class AnalysisBackend {
     // analysis was set
     final Key analysisKey = versionKey.append(Analysis, id: analysis);
     final List list = await db.lookup([analysisKey]);
-    final Analysis entry = list[0];
+    final entry = list[0] as Analysis;
     if (entry == null) {
       _logger.info(
           "Analysis lookup failed for $package $version (id=${analysis ?? ''}).");
@@ -141,8 +141,8 @@ class AnalysisBackend {
       final Key packageVersionKey = packageKey.append(PackageVersionAnalysis,
           id: analysis.packageVersion);
       final List parents = await tx.lookup([packageKey, packageVersionKey]);
-      PackageAnalysis package = parents[0];
-      PackageVersionAnalysis version = parents[1];
+      PackageAnalysis package = parents[0] as PackageAnalysis;
+      PackageVersionAnalysis version = parents[1] as PackageVersionAnalysis;
       final isNewVersion = version == null;
       final isRegression = version != null &&
           version.runtimeVersion == runtimeVersion &&
@@ -210,7 +210,7 @@ class AnalysisBackend {
     final pvaKey = db.emptyKey
         .append(PackageAnalysis, id: package)
         .append(PackageVersionAnalysis, id: version);
-    final PackageVersionAnalysis pva = (await db.lookup([pvaKey])).single;
+    final pva = (await db.lookup([pvaKey])).single as PackageVersionAnalysis;
     if (pva == null) return;
 
     final DateTime threshold =

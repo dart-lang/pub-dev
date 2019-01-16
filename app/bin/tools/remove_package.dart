@@ -61,7 +61,7 @@ Future main(List<String> arguments) async {
 
 Future listPackage(String packageName) async {
   final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
-  final Package package = (await dbService.lookup([packageKey])).first;
+  final package = (await dbService.lookup([packageKey])).first as Package;
   if (package == null) {
     throw new Exception('Package $packageName does not exist.');
   }
@@ -94,7 +94,7 @@ Future removePackage(String packageName) async {
   await dbService.withTransaction((Transaction T) async {
     final deletes = <Key>[];
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
-    final Package package = (await T.lookup([packageKey])).first;
+    final package = (await T.lookup([packageKey])).first as Package;
     if (package == null) {
       print('Package $packageName does not exists.');
     } else {
@@ -158,7 +158,7 @@ Future removePackage(String packageName) async {
 Future removePackageVersion(String packageName, String version) async {
   await dbService.withTransaction((Transaction T) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
-    final Package package = (await T.lookup([packageKey])).first;
+    final package = (await T.lookup([packageKey])).first as Package;
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }

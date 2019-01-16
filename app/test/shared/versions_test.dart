@@ -58,7 +58,7 @@ void main() {
 
   test('analyzer version should match resolved pana version', () async {
     final String lockContent = await new File('pubspec.lock').readAsString();
-    final Map lock = loadYaml(lockContent);
+    final lock = loadYaml(lockContent) as Map;
     expect(lock['packages']['pana']['version'], panaVersion);
   });
 

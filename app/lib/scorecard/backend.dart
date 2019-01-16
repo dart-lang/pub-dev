@@ -50,7 +50,7 @@ class ScoreCardBackend {
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
       final ps = await _db.lookup([key]);
-      final Package p = ps.single;
+      final p = ps.single as Package;
       if (p == null) {
         return null;
       }
@@ -267,8 +267,8 @@ class ScoreCardBackend {
     final packageKey = _db.emptyKey.append(Package, id: package);
     final List list = await _db
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
-    final Package p = list[0];
-    final PackageVersion pv = list[1];
+    final p = list[0] as Package;
+    final pv = list[1] as PackageVersion;
     return new PackageStatus.fromModels(p, pv);
   }
 
@@ -301,7 +301,7 @@ class ScoreCardBackend {
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: reportType);
     final list = await _db.lookup([key]);
-    final ScoreCardReport report = list.single;
+    final report = list.single as ScoreCardReport;
     if (report == null) {
       return true;
     }
