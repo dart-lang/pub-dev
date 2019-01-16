@@ -1,17 +1,9 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.frontend.handlers_test;
-
-import 'dart:async';
-
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:test/test.dart';
-
 import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
@@ -21,34 +13,6 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
-import 'package:pub_dartlang_org/shared/urls.dart';
-
-Future<shelf.Response> issueGet(String path) {
-  final uri = '$siteRoot$path';
-  return issueGetUri(Uri.parse(uri));
-}
-
-Future<shelf.Response> issueGetUri(Uri uri) async {
-  final request = new shelf.Request('GET', uri);
-  return appHandler(request, null);
-}
-
-Future expectHtmlResponse(shelf.Response response, {int status = 200}) async {
-  expect(response.statusCode, status);
-  expect(response.headers['content-type'], 'text/html; charset="utf-8"');
-  final content = await response.readAsString();
-  expect(content, contains('<!DOCTYPE html>'));
-  expect(content, contains('</html>'));
-}
-
-Future expectAtomXmlResponse(shelf.Response response,
-    {int status = 200, String regexp}) async {
-  expect(response.statusCode, status);
-  expect(response.headers['content-type'],
-      'application/atom+xml; charset="utf-8"');
-  final text = await response.readAsString();
-  expect(new RegExp(regexp).hasMatch(text), isTrue);
-}
 
 class BackendMock implements Backend {
   final Function newestPackagesFun;
@@ -205,37 +169,52 @@ class BackendMock implements Backend {
   }
 }
 
-class SearchClientMock implements SearchClient {
-  final Function searchFun;
-  SearchClientMock({this.searchFun});
-
+class ScoreCardBackendMock implements ScoreCardBackend {
   @override
-  Future<PackageSearchResult> search(SearchQuery query) async {
-    if (searchFun == null) {
-      throw new Exception('no searchFun');
-    }
-    return (await searchFun(query)) as PackageSearchResult;
+  Future<ScoreCardData> getScoreCardData(
+      String packageName, String packageVersion,
+      {bool onlyCurrent}) {
+    return null;
   }
 
   @override
-  Future triggerReindex(String package, String version) async {}
-
-  @override
-  Future close() async {}
-}
-
-class SearchServiceMock implements SearchService {
-  final Function searchFun;
-
-  SearchServiceMock(this.searchFun);
-
-  @override
-  Future<SearchResultPage> search(SearchQuery query) async {
-    return (await searchFun(query)) as SearchResultPage;
+  Future<PackageStatus> getPackageStatus(String package, String version) {
+    throw new UnimplementedError();
   }
 
   @override
-  Future close() async => null;
+  Future deleteOldEntries() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, ReportData>> loadReports(
+      String packageName, String packageVersion,
+      {List<String> reportTypes, String runtimeVersion}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<bool> shouldUpdateReport(
+      String packageName, String packageVersion, String reportType,
+      {bool includeDiscontinued = false,
+      bool includeObsolete = false,
+      Duration successThreshold = const Duration(days: 30),
+      Duration failureThreshold = const Duration(days: 1),
+      DateTime updatedAfter}) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future updateReport(
+      String packageName, String packageVersion, ReportData data) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future updateScoreCard(String packageName, String packageVersion) {
+    throw new UnimplementedError();
+  }
 }
 
 class AnalyzerClientMock implements AnalyzerClient {
@@ -284,50 +263,35 @@ class DartdocClientMock implements DartdocClient {
   }
 }
 
-class ScoreCardBackendMock implements ScoreCardBackend {
+class SearchClientMock implements SearchClient {
+  final Function searchFun;
+  SearchClientMock({this.searchFun});
+
   @override
-  Future<ScoreCardData> getScoreCardData(
-      String packageName, String packageVersion,
-      {bool onlyCurrent}) {
-    return null;
+  Future<PackageSearchResult> search(SearchQuery query) async {
+    if (searchFun == null) {
+      throw new Exception('no searchFun');
+    }
+    return (await searchFun(query)) as PackageSearchResult;
   }
 
   @override
-  Future<PackageStatus> getPackageStatus(String package, String version) {
-    throw new UnimplementedError();
+  Future triggerReindex(String package, String version) async {}
+
+  @override
+  Future close() async {}
+}
+
+class SearchServiceMock implements SearchService {
+  final Function searchFun;
+
+  SearchServiceMock(this.searchFun);
+
+  @override
+  Future<SearchResultPage> search(SearchQuery query) async {
+    return (await searchFun(query)) as SearchResultPage;
   }
 
   @override
-  Future deleteOldEntries() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<Map<String, ReportData>> loadReports(
-      String packageName, String packageVersion,
-      {List<String> reportTypes, String runtimeVersion}) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<bool> shouldUpdateReport(
-      String packageName, String packageVersion, String reportType,
-      {bool includeDiscontinued = false,
-      bool includeObsolete = false,
-      Duration successThreshold = const Duration(days: 30),
-      Duration failureThreshold = const Duration(days: 1),
-      DateTime updatedAfter}) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future updateReport(
-      String packageName, String packageVersion, ReportData data) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future updateScoreCard(String packageName, String packageVersion) {
-    throw new UnimplementedError();
-  }
+  Future close() async => null;
 }

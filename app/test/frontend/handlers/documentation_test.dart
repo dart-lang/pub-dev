@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.handlers_test;
-
 import 'dart:async';
 import 'dart:io';
 
@@ -17,8 +15,8 @@ import 'package:pub_dartlang_org/shared/urls.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
-import '../shared/handlers_test_utils.dart';
-import '../shared/utils.dart';
+import '../../shared/handlers_test_utils.dart';
+import '../../shared/utils.dart';
 
 void main() {
   group('path parsing', () {
