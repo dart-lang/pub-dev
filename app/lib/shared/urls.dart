@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:pub_server/repository.dart' show GenericProcessingException;
 
 import 'packages_overrides.dart';
+import 'versions.dart';
 
 const pubHostedDomain = 'pub.dartlang.org';
 
@@ -205,4 +206,9 @@ String inferServiceProviderName(String url) {
     return 'GitLab';
   }
   return null;
+}
+
+/// Returns the versioned documentation URL for pana's maintenance suggestions.
+String panaMaintenanceUrl() {
+  return 'https://pub.dartlang.org/documentation/pana/$panaVersion/#maintenance-score';
 }
