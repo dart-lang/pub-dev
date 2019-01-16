@@ -11,7 +11,7 @@ import '../../shared/platform.dart';
 
 import '../backend.dart';
 import '../search_service.dart';
-import '../templates.dart';
+import '../templates/landing.dart';
 import '../templates/misc.dart';
 
 /// Handles requests for /
@@ -47,7 +47,7 @@ Future<shelf.Response> _indexHandler(
     final packages = await topFeaturedPackages(platform: platform);
     final minilist = renderMiniList(packages);
 
-    pageContent = templateService.renderIndexPage(minilist, platform);
+    pageContent = renderIndexPage(minilist, platform);
     if (isProd) {
       await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
     }

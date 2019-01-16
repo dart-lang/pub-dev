@@ -5,9 +5,7 @@
 library pub_dartlang_org.templates;
 
 import 'dart:convert';
-import 'dart:math';
 
-import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionLevel;
 
 import '../scorecard/models.dart';
@@ -94,102 +92,6 @@ class TemplateService {
     };
     return templateCache.renderTemplate(
         'pkg/versions/version_row', versionData);
-  }
-
-  /// Renders the `views/pkg/index.mustache` template.
-  String renderPkgIndexPage(
-      List<PackageView> packages, PageLinks links, String currentPlatform,
-      {SearchQuery searchQuery, int totalCount}) {
-    final packagesJson = [];
-    for (int i = 0; i < packages.length; i++) {
-      final view = packages[i];
-      final overallScore = view.overallScore;
-      String externalType;
-      bool isSdk = false;
-      if (view.isExternal && view.url.startsWith('https://api.dartlang.org/')) {
-        externalType = 'Dart core library';
-        isSdk = true;
-      }
-      String scoreBoxHtml;
-      if (isSdk) {
-        scoreBoxHtml = _renderSdkScoreBox();
-      } else if (!view.isExternal) {
-        scoreBoxHtml = _renderScoreBox(overallScore,
-            isSkipped: view.isSkipped,
-            isNewPackage: view.isNewPackage,
-            package: view.name);
-      }
-      packagesJson.add({
-        'url': view.url ?? urls.pkgPageUrl(view.name),
-        'name': view.name,
-        'is_external': view.isExternal,
-        'external_type': externalType,
-        'show_metadata': !view.isExternal,
-        'version': view.version,
-        'show_dev_version': view.devVersion != null,
-        'dev_version': view.devVersion,
-        'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
-        'last_uploaded': view.shortUpdated,
-        'desc': view.ellipsizedDescription,
-        'tags_html': renderTags(
-          view.platforms,
-          isAwaiting: view.isAwaiting,
-          isDiscontinued: view.isDiscontinued,
-          isLegacy: view.isLegacy,
-          isObsolete: view.isObsolete,
-          packageName: view.name,
-        ),
-        'score_box_html': scoreBoxHtml,
-        'has_api_pages': view.apiPages != null && view.apiPages.isNotEmpty,
-        'api_pages': view.apiPages
-            ?.map((page) => {
-                  'title': page.title ?? page.path,
-                  'href': page.url ??
-                      urls.pkgDocUrl(view.name,
-                          isLatest: true, relativePath: page.path),
-                })
-            ?.toList(),
-      });
-    }
-
-    final PlatformDict platformDict = getPlatformDict(currentPlatform);
-    final isSearch = searchQuery != null && searchQuery.hasQuery;
-    final unsupportedQualifier =
-        isSearch && (searchQuery.parsedQuery.text?.contains(':') ?? false);
-    final String sortValue = serializeSearchOrder(searchQuery?.order) ??
-        (isSearch ? 'search_relevance' : 'listing_relevance');
-    final SortDict sortDict = getSortDict(sortValue);
-    final values = {
-      'sort_value': sortValue,
-      'sort_name': sortDict.label,
-      'ranking_tooltip_html': sortDict.tooltip,
-      'is_search': isSearch,
-      'unsupported_qualifier': unsupportedQualifier,
-      'title': platformDict.topPlatformPackages,
-      'packages': packagesJson,
-      'has_packages': packages.isNotEmpty,
-      'pagination': renderPagination(links),
-      'search_query': searchQuery?.query,
-      'total_count': totalCount,
-    };
-    final content = templateCache.renderTemplate('pkg/index', values);
-
-    String pageTitle = platformDict.topPlatformPackages;
-    if (isSearch) {
-      pageTitle = 'Search results for ${searchQuery.query}.';
-    } else {
-      if (links.rightmostPage > 1) {
-        pageTitle = 'Page ${links.currentPage} | $pageTitle';
-      }
-    }
-    return renderLayoutPage(
-      PageType.listing,
-      content,
-      title: pageTitle,
-      platform: currentPlatform,
-      searchQuery: searchQuery,
-      noIndex: true,
-    );
   }
 
   String _renderAnalysisDepRow(PkgDependency pd) {
@@ -453,7 +355,7 @@ class TemplateService {
         'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
         'short_created': selectedVersion.shortCreated,
         'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
-        'score_box_html': _renderScoreBox(card?.overallScore,
+        'score_box_html': renderScoreBox(card?.overallScore,
             isSkipped: card?.isSkipped ?? false,
             isNewPackage: package.isNewPackage()),
         'dependencies_html': _renderDependencyList(analysis),
@@ -476,8 +378,8 @@ class TemplateService {
   Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
     String renderScoreBar(double score, Brush brush) {
       return templateCache.renderTemplate('pkg/score_bar', {
-        'percent': _formatScore(score ?? 0.0),
-        'score': _formatScore(score),
+        'percent': formatScore(score ?? 0.0),
+        'score': formatScore(score),
         'background': brush.background.toString(),
         'color': brush.color.toString(),
         'shadow': brush.shadow.toString(),
@@ -656,44 +558,6 @@ class TemplateService {
       noIndex: package.isDiscontinued == true, // isDiscontinued may be null
     );
   }
-
-  /// Renders the `views/index.mustache` template.
-  String renderIndexPage(
-    String topHtml,
-    String platform,
-  ) {
-    final platformDict = getPlatformDict(platform);
-    final packagesUrl = urls.searchUrl(platform: platform);
-    final links = <String>[
-      '<a href="$packagesUrl">${htmlEscape.convert(platformDict.morePlatformPackagesLabel)}</a>'
-    ];
-    if (platformDict.onlyPlatformPackagesUrl != null) {
-      links.add('<a href="${platformDict.onlyPlatformPackagesUrl}">'
-          '${htmlEscape.convert(platformDict.onlyPlatformPackagesLabel)}</a>');
-    }
-    final values = {
-      'more_links_html': links.join(' '),
-      'top_header': platformDict.topPlatformPackages,
-      'ranking_tooltip_html': getSortDict('top').tooltip,
-      'top_html': topHtml,
-    };
-    final String content = templateCache.renderTemplate('index', values);
-    return renderLayoutPage(
-      PageType.landing,
-      content,
-      title: platformDict.landingPageTitle,
-      platform: platform,
-    );
-  }
-
-  /// Renders the `views/pagination.mustache` template.
-  String renderPagination(PageLinks pageLinks) {
-    final values = {
-      'page_links': pageLinks.hrefPatterns(),
-    };
-    return templateCache.renderTemplate('pagination', values,
-        escapeValues: false);
-  }
 }
 
 String _getAuthorsHtml(List<String> authors) {
@@ -715,123 +579,6 @@ String _getAuthorsHtml(List<String> authors) {
       return '<span class="author">$escapedName</span>';
     }
   }).join('<br/>');
-}
-
-String _renderSdkScoreBox() {
-  return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
-}
-
-String _renderScoreBox(
-  double overallScore, {
-  @required bool isSkipped,
-  bool isNewPackage,
-  String package,
-}) {
-  final String formattedScore = _formatScore(overallScore);
-  final String scoreClass = _classifyScore(overallScore);
-  String title;
-  if (!isSkipped && overallScore == null) {
-    title = 'Awaiting analysis to complete.';
-  } else {
-    title = 'Analysis and more details.';
-  }
-  final String escapedTitle = htmlAttrEscape.convert(title);
-  final newIndicator = (isNewPackage ?? false)
-      ? '<span class="new" title="Created in the last 30 days">new</span>'
-      : '';
-  final String boxHtml = '<div class="score-box">'
-      '$newIndicator'
-      '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
-      // TODO: decide on label - {{! <span class="text">?????</span> }}
-      '</div>';
-  if (package != null) {
-    return '<a href="${urls.analysisTabUrl(package)}">$boxHtml</a>';
-  } else {
-    return boxHtml;
-  }
-}
-
-String _formatScore(double value) {
-  if (value == null) return '--';
-  if (value <= 0.0) return '0';
-  if (value >= 1.0) return '100';
-  return (value * 100.0).round().toString();
-}
-
-String _classifyScore(double value) {
-  if (value == null) return 'missing';
-  if (value <= 0.5) return 'rotten';
-  if (value <= 0.7) return 'good';
-  return 'solid';
-}
-
-class PageLinks {
-  final int offset;
-  final int count;
-  final SearchQuery _searchQuery;
-
-  PageLinks(this.offset, this.count, {SearchQuery searchQuery})
-      : _searchQuery = searchQuery;
-
-  PageLinks.empty()
-      : offset = 1,
-        count = 1,
-        _searchQuery = null;
-
-  int get leftmostPage => max(currentPage - maxPages ~/ 2, 1);
-
-  int get currentPage => 1 + offset ~/ resultsPerPage;
-
-  int get rightmostPage {
-    final int fromSymmetry = currentPage + maxPages ~/ 2;
-    final int fromCount = 1 + ((count - 1) ~/ resultsPerPage);
-    return min(fromSymmetry, max(currentPage, fromCount));
-  }
-
-  List<Map> hrefPatterns() {
-    final List<Map> results = [];
-
-    final bool hasPrevious = currentPage > 1;
-    results.add({
-      'disabled': !hasPrevious,
-      'render_link': hasPrevious,
-      'href': htmlAttrEscape.convert(formatHref(currentPage - 1)),
-      'text': '&laquo;',
-    });
-
-    for (int page = leftmostPage; page <= rightmostPage; page++) {
-      final bool isCurrent = page == currentPage;
-      results.add({
-        'active': isCurrent,
-        'render_link': !isCurrent,
-        'href': htmlAttrEscape.convert(formatHref(page)),
-        'text': '$page',
-        'rel_prev': currentPage == page + 1,
-        'rel_next': currentPage == page - 1,
-      });
-    }
-
-    final bool hasNext = currentPage < rightmostPage;
-    results.add({
-      'disabled': !hasNext,
-      'render_link': hasNext,
-      'href': htmlAttrEscape.convert(formatHref(currentPage + 1)),
-      'text': '&raquo;',
-    });
-
-    // should not happen
-    assert(!results
-        .any((map) => map['disabled'] == true && map['active'] == true));
-    return results;
-  }
-
-  String formatHref(int page) {
-    if (_searchQuery == null) {
-      return urls.searchUrl(page: page);
-    } else {
-      return _searchQuery.toSearchLink(page: page);
-    }
-  }
 }
 
 Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {

@@ -18,7 +18,9 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/templates/admin.dart';
+import 'package:pub_dartlang_org/frontend/templates/landing.dart';
 import 'package:pub_dartlang_org/frontend/templates/layout.dart';
+import 'package:pub_dartlang_org/frontend/templates/listing.dart';
 import 'package:pub_dartlang_org/frontend/templates/misc.dart';
 
 import '../shared/html_validation.dart';
@@ -76,7 +78,7 @@ void main() {
           ),
         ),
       ]);
-      final String html = templateService.renderIndexPage(popularHtml, null);
+      final String html = renderIndexPage(popularHtml, null);
       expectGoldenFile(html, 'index_page.html');
     });
 
@@ -91,8 +93,7 @@ void main() {
           ),
         ),
       ]);
-      final String html =
-          templateService.renderIndexPage(popularHtml, KnownPlatforms.flutter);
+      final String html = renderIndexPage(popularHtml, KnownPlatforms.flutter);
       expectGoldenFile(html, 'flutter_landing_page.html');
     });
 
@@ -107,8 +108,7 @@ void main() {
           ),
         ),
       ]);
-      final String html =
-          templateService.renderIndexPage(popularHtml, KnownPlatforms.web);
+      final String html = renderIndexPage(popularHtml, KnownPlatforms.web);
       expectGoldenFile(html, 'web_landing_page.html');
     });
 
@@ -366,7 +366,7 @@ void main() {
     });
 
     test('package index page', () {
-      final String html = templateService.renderPkgIndexPage([
+      final String html = renderPkgIndexPage([
         new PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
@@ -387,7 +387,7 @@ void main() {
     test('package index page with search', () {
       final searchQuery =
           new SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
-      final String html = templateService.renderPkgIndexPage(
+      final String html = renderPkgIndexPage(
         [
           new PackageView.fromModel(
             package: testPackage,
@@ -417,7 +417,7 @@ void main() {
 
     test('search with supported qualifier', () {
       final searchQuery = new SearchQuery.parse(query: 'email:user@domain.com');
-      final String html = templateService.renderPkgIndexPage(
+      final String html = renderPkgIndexPage(
         [],
         new PageLinks.empty(),
         null,
@@ -429,7 +429,7 @@ void main() {
 
     test('search with unsupported qualifier', () {
       final searchQuery = new SearchQuery.parse(query: 'foo:bar');
-      final String html = templateService.renderPkgIndexPage(
+      final String html = renderPkgIndexPage(
         [],
         new PageLinks.empty(),
         null,
@@ -480,26 +480,22 @@ void main() {
     });
 
     test('pagination: single page', () {
-      final String html =
-          templateService.renderPagination(new PageLinks.empty());
+      final String html = renderPagination(new PageLinks.empty());
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
-      final String html =
-          templateService.renderPagination(new PageLinks(90, 299));
+      final String html = renderPagination(new PageLinks(90, 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
-      final String html =
-          templateService.renderPagination(new PageLinks(0, 600));
+      final String html = renderPagination(new PageLinks(0, 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
-      final String html =
-          templateService.renderPagination(new PageLinks(90, 91));
+      final String html = renderPagination(new PageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 

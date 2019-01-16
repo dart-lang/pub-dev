@@ -11,6 +11,7 @@ import '../models.dart';
 import '../template_consts.dart';
 
 import '_cache.dart';
+import '_utils.dart';
 import 'layout.dart';
 
 /// Renders the `views/help.mustache` template.
@@ -112,4 +113,56 @@ String renderTags(
     });
   }
   return templateCache.renderTemplate('pkg/tags', {'tags': tags});
+}
+
+/// Renders the simplified version of the circle with 'sdk' text content instead
+/// of the score.
+String renderSdkScoreBox() {
+  return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
+}
+
+/// Renders the circle with the overall score.
+String renderScoreBox(
+  double overallScore, {
+  @required bool isSkipped,
+  bool isNewPackage,
+  String package,
+}) {
+  final String formattedScore = formatScore(overallScore);
+  final String scoreClass = _classifyScore(overallScore);
+  String title;
+  if (!isSkipped && overallScore == null) {
+    title = 'Awaiting analysis to complete.';
+  } else {
+    title = 'Analysis and more details.';
+  }
+  final String escapedTitle = htmlAttrEscape.convert(title);
+  final newIndicator = (isNewPackage ?? false)
+      ? '<span class="new" title="Created in the last 30 days">new</span>'
+      : '';
+  final String boxHtml = '<div class="score-box">'
+      '$newIndicator'
+      '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
+      // TODO: decide on label - {{! <span class="text">?????</span> }}
+      '</div>';
+  if (package != null) {
+    return '<a href="${urls.analysisTabUrl(package)}">$boxHtml</a>';
+  } else {
+    return boxHtml;
+  }
+}
+
+/// Formats the score from [0.0 - 1.0] range to [0 - 100] or '--'.
+String formatScore(double value) {
+  if (value == null) return '--';
+  if (value <= 0.0) return '0';
+  if (value >= 1.0) return '100';
+  return (value * 100.0).round().toString();
+}
+
+String _classifyScore(double value) {
+  if (value == null) return 'missing';
+  if (value <= 0.5) return 'rotten';
+  if (value <= 0.7) return 'good';
+  return 'solid';
 }
