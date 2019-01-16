@@ -6,7 +6,7 @@ import 'package:gcloud/db.dart';
 
 /// Similar to [ListProperty] but one which is fully compatible with python's
 /// 'db' implementation.
-class CompatibleListProperty extends Property {
+class CompatibleListProperty<T> extends Property {
   final PrimitiveProperty subProperty;
 
   const CompatibleListProperty(this.subProperty,
@@ -41,18 +41,20 @@ class CompatibleListProperty extends Property {
   }
 
   @override
-  Object decodePrimitiveValue(ModelDB db, Object value) {
-    if (value == null) return [];
-    if (value is! List) return [subProperty.decodePrimitiveValue(db, value)];
+  List<T> decodePrimitiveValue(ModelDB db, Object value) {
+    if (value == null) return <T>[];
+    if (value is! List)
+      return [subProperty.decodePrimitiveValue(db, value)].cast<T>();
     return (value as List)
         .map((entry) => subProperty.decodePrimitiveValue(db, entry))
+        .cast<T>()
         .toList();
   }
 }
 
 /// Similar to [StringListProperty] but one which is fully compatible with
 /// python's 'db' implementation.
-class CompatibleStringListProperty extends CompatibleListProperty {
+class CompatibleStringListProperty extends CompatibleListProperty<String> {
   const CompatibleStringListProperty({String propertyName, bool indexed = true})
       : super(const StringProperty(required: true),
             propertyName: propertyName, indexed: indexed);
