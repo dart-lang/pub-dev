@@ -58,12 +58,12 @@ class PopularityStorage {
     _logger.info(
         'Loading popularity data ($reason): ${bucketUri(bucket, _latestPath)}');
     try {
-      final Map<String, dynamic> latest = await bucket
+      final latest = (await bucket
           .read(_latestPath)
           .transform(_gzip.decoder)
           .transform(utf8.decoder)
           .transform(json.decoder)
-          .single;
+          .single) as Map<String, dynamic>;
       _updateLatest(latest);
       _lastFetched = new DateTime.now().toUtc();
     } catch (e, st) {

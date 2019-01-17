@@ -20,9 +20,9 @@ final _argParser = new ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  final String package = argv['package'];
-  final String version = argv['version'];
-  final bool doContinue = argv['continue'];
+  final package = argv['package'] as String;
+  final version = argv['version'] as String;
+  final doContinue = argv['continue'] as bool;
 
   useLoggingPackageAdaptor();
   await withProdServices(() async {

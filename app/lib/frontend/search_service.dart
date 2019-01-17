@@ -54,9 +54,8 @@ Future<SearchResultPage> _loadResultForPackages(
 
     final List batchResults =
         await Future.wait([analysisExtractsFuture, allVersionsFuture]);
-    final List<ScoreCardData> scoreCards = await batchResults[0];
-    final List<PackageVersion> versions =
-        (await batchResults[1]).cast<PackageVersion>();
+    final scoreCards = ((await batchResults[0]) as List).cast<ScoreCardData>();
+    final versions = ((await batchResults[1]) as List).cast<PackageVersion>();
 
     for (int i = 0; i < versions.length; i++) {
       final package = packageEntries[i];

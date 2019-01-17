@@ -42,7 +42,7 @@ void main() async {
 
         missingVersions += versionsToCreate.length;
         if (versionsToCreate.isNotEmpty) {
-          final Package p = (await dbService.lookup([pkgKey])).single;
+          final p = (await dbService.lookup([pkgKey])).single as Package;
           if (p == null) {
             missingPackages++;
           }

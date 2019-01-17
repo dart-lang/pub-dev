@@ -81,7 +81,7 @@ class DatastoreHeadTaskSource implements TaskSource {
     }
     int count = 0;
     Timer timer;
-    await for (M model in q.run()) {
+    await for (M model in q.run().cast<M>()) {
       timer?.cancel();
       timer = new Timer(const Duration(minutes: 5), () {
         _logger.warning(
@@ -129,7 +129,7 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
       try {
         // Check and schedule the latest stable version of each package.
         final Query packageQuery = _db.query<Package>()..order('-updated');
-        await for (Package p in packageQuery.run()) {
+        await for (Package p in packageQuery.run().cast<Package>()) {
           if (await requiresUpdate(p.name, p.latestVersion,
               retryFailed: true)) {
             yield new Task(p.name, p.latestVersion, p.updated);
@@ -145,7 +145,8 @@ abstract class DatastoreHistoryTaskSource implements TaskSource {
         // of the older versions too.
         final Query versionQuery = _db.query<PackageVersion>()
           ..order('-created');
-        await for (PackageVersion pv in versionQuery.run()) {
+        await for (PackageVersion pv
+            in versionQuery.run().cast<PackageVersion>()) {
           if (await requiresUpdate(pv.package, pv.version)) {
             yield new Task(pv.package, pv.version, pv.created);
           }

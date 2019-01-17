@@ -14,7 +14,7 @@ import 'package:yaml/yaml.dart';
 final _dart2OrLater = new VersionConstraint.parse('>=2.0.0');
 
 Map<String, dynamic> _loadYaml(String yamlString) {
-  final Map map = loadYaml(yamlString);
+  final map = loadYaml(yamlString) as Map;
   // TODO: remove this part after yaml returns a proper map
   if (map is YamlMap) {
     return json.decode(json.encode(map)) as Map<String, dynamic>;

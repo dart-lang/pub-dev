@@ -139,12 +139,12 @@ class JobMaintenance {
     var pool = new Pool(4);
     for (String package in packages) {
       final String version = latestVersions[package];
-      final PackageVersion pv = (await _db.lookup([
+      final pv = (await _db.lookup([
         _db.emptyKey
             .append(Package, id: package)
             .append(PackageVersion, id: version)
       ]))
-          .single;
+          .single as PackageVersion;
       pool.withResource(() => updateJob(pv, false));
     }
     await pool.close();

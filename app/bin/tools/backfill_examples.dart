@@ -75,7 +75,7 @@ Future _backfill(PackageVersion pv) async {
   }
 
   await dbService.withTransaction((Transaction t) async {
-    final PackageVersion packageVersion = (await t.lookup([pv.key])).first;
+    final packageVersion = (await t.lookup([pv.key])).first as PackageVersion;
     packageVersion.exampleFilename = archiveFilename;
     packageVersion.exampleContent = content;
     t.queueMutations(inserts: [packageVersion]);

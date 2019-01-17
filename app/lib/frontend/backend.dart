@@ -177,7 +177,7 @@ class Backend {
     final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
     return await db.withTransaction((tx) async {
       final list = await tx.lookup([inviteKey]);
-      models.PackageInvite invite = list.single;
+      models.PackageInvite invite = list.single as models.PackageInvite;
 
       // Existing and active invite with throttled notification.
       if (invite != null && !invite.isExpired() && !invite.shouldNotify()) {
@@ -347,8 +347,8 @@ class GCloudPackageRepository extends PackageRepository {
         .append(models.Package, id: package)
         .append(models.PackageVersion, id: version);
 
-    final models.PackageVersion pv =
-        (await db.lookup([packageVersionKey])).first;
+    final pv =
+        (await db.lookup([packageVersionKey])).first as models.PackageVersion;
     if (pv == null) return null;
     return new PackageVersion(package, version, pv.pubspec.jsonString);
   }
@@ -407,7 +407,7 @@ class GCloudPackageRepository extends PackageRepository {
     return _withAuthenticatedUser((String userEmail) {
       _logger.info('User: $userEmail.');
 
-      final String guid = uuid.v4();
+      final guid = uuid.v4().toString();
       final String object = storage.tempObjectName(guid);
       final String bucket = storage.bucket.bucketName;
       final Duration lifetime = const Duration(minutes: 10);
@@ -457,11 +457,11 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    final PackageVersion pv = await db.withTransaction((Transaction T) async {
-      _logger.info('Starting datastore transaction.');
+    final pv = await db.withTransaction((Transaction T) async {
+      _logger.info('Starting datastore transaction.') as PackageVersion;
 
       final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));
-      final models.PackageVersion version = tuple[0];
+      final version = tuple[0] as models.PackageVersion;
       package = tuple[1] as models.Package;
 
       // If the version already exists, we fail.
@@ -562,7 +562,7 @@ class GCloudPackageRepository extends PackageRepository {
     if (finishCallback != null) {
       await finishCallback(newVersion);
     }
-    return pv;
+    return pv as PackageVersion;
   }
 
   Future _updatePackageSortIndex(Key packageKey) async {
@@ -610,7 +610,7 @@ class GCloudPackageRepository extends PackageRepository {
   Future addUploader(String packageName, String uploaderEmail) async {
     await _withAuthenticatedUser((String userEmail) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
-      final models.Package package = (await db.lookup([packageKey])).first;
+      final package = (await db.lookup([packageKey])).first as models.Package;
 
       _validateActiveUser(userEmail, package);
 
@@ -661,7 +661,7 @@ class GCloudPackageRepository extends PackageRepository {
       String userEmail, String packageName, String uploaderEmail) async {
     return db.withTransaction((Transaction tx) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
-      final models.Package package = (await tx.lookup([packageKey])).first;
+      final package = (await tx.lookup([packageKey])).first as models.Package;
 
       try {
         _validateActiveUser(userEmail, package);
@@ -715,7 +715,7 @@ class GCloudPackageRepository extends PackageRepository {
     return _withAuthenticatedUser((String userEmail) {
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
-        final models.Package package = (await T.lookup([packageKey])).first;
+        final package = (await T.lookup([packageKey])).first as models.Package;
 
         // Fail if package doesn't exist.
         if (package == null) {

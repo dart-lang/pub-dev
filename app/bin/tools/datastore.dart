@@ -47,7 +47,7 @@ class BackupCommand extends Command {
 
   @override
   Future run() async {
-    String packagesFileName = argResults['packages'];
+    String packagesFileName = argResults['packages'] as String;
     if (packagesFileName == null) {
       // current timestamp in YYYY-MM-DD-HH-mm-ss
       final ts = new DateTime.now()
@@ -177,10 +177,10 @@ class RestoreCommand extends Command {
           print('Processing #$pkgCounter [$packageName]...');
         }
 
-        final Package p = (await dbService.lookup([pkgKey])).single;
+        final p = (await dbService.lookup([pkgKey])).single as Package;
         if (_shouldUpdate(p, pkgArchive)) {
           await dbService.withTransaction((tx) async {
-            Package p = (await tx.lookup([pkgKey])).single;
+            var p = (await tx.lookup([pkgKey])).single as Package;
             p ??= new Package();
             p
               ..id = pkgArchive.name

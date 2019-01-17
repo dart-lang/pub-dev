@@ -18,7 +18,7 @@ final _argParser = new ArgParser()
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
-  final String package = argv['package'];
+  final package = argv['package'] as String;
 
   useLoggingPackageAdaptor();
   await withProdServices(() async {

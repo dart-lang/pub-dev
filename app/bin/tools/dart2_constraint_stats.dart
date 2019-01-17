@@ -66,7 +66,7 @@ Future main(List<String> args) async {
       final versions = await dbService.lookup([p.latestVersionKey]);
       if (versions.isEmpty) continue;
 
-      final PackageVersion latest = versions.first;
+      final latest = versions.first as PackageVersion;
       if (age > 0 && now.difference(latest.created).inDays > age) {
         continue;
       }

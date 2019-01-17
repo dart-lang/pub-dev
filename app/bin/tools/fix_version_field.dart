@@ -32,7 +32,7 @@ Future main(List<String> args) async {
 Future _updatePackageVersion(Key pvKey) async {
   await dbService.withTransaction((Transaction t) async {
     final list = (await t.lookup([pvKey]));
-    final PackageVersion pv = list[0];
+    final pv = list[0] as PackageVersion;
     pv.version = pv.key.id as String;
     t.queueMutations(inserts: [pv]);
     await t.commit();

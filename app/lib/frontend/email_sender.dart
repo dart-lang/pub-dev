@@ -64,8 +64,8 @@ class EmailSender {
       _db.emptyKey.append(Secret, id: SecretKey.smtpUsername),
       _db.emptyKey.append(Secret, id: SecretKey.smtpPassword),
     ]);
-    final Secret username = list[0];
-    final Secret password = list[1];
+    final username = list[0] as Secret;
+    final password = list[1] as Secret;
     if (username == null ||
         username.value == null ||
         username.value.isEmpty ||

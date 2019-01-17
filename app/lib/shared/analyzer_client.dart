@@ -46,8 +46,8 @@ class AnalyzerClient {
       key.version,
       runtimeVersion: card.runtimeVersion,
     );
-    final PanaReport panaReport = reports[ReportType.pana];
-    final DartdocReport dartdocReport = reports[ReportType.dartdoc];
+    final panaReport = reports[ReportType.pana] as PanaReport;
+    final dartdocReport = reports[ReportType.dartdoc] as DartdocReport;
     return new AnalysisView._(card, panaReport, dartdocReport);
   }
 
