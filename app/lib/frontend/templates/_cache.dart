@@ -22,8 +22,8 @@ class TemplateCache {
   final Map<String, mustache.Template> _cachedMustacheTemplates = {};
 
   TemplateCache({String templateDirectory})
-      : _templateDirectory =
-            templateDirectory ?? path.join(resolveAppDir(), 'views');
+      : _templateDirectory = templateDirectory ??
+            path.join(resolveAppDir(), 'lib/frontend/templates/views');
 
   /// Renders [template] with given [values].
   ///
