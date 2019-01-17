@@ -8,9 +8,9 @@ import '../../shared/search_service.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../models.dart';
-import '../template_consts.dart';
 
 import '_cache.dart';
+import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';

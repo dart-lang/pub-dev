@@ -6,9 +6,8 @@ import 'dart:convert';
 
 import '../../shared/urls.dart' as urls;
 
-import '../template_consts.dart';
-
 import '_cache.dart';
+import '_consts.dart';
 import 'layout.dart';
 
 /// Renders the `views/index.mustache` template.

@@ -11,9 +11,9 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 import '../color.dart';
-import '../template_consts.dart';
 
 import '_cache.dart';
+import '_consts.dart';
 import 'misc.dart';
 
 /// Renders the `views/pkg/analysis_tab.mustache` template.
