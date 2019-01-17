@@ -50,6 +50,7 @@ class AnalysisStatusProperty extends StringProperty {
         case 'success':
           return AnalysisStatus.success;
         case 'discontinued':
+        case 'deprecated':
           return AnalysisStatus.discontinued;
         case 'outdated':
           return AnalysisStatus.outdated;
