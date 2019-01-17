@@ -28,7 +28,7 @@ Future _deleteWithQuery<T>(String name, Query query) async {
   await for (Model m in query.run()) {
     deletes.add(m.key);
     total++;
-    if (deletes.length >= 100) {
+    if (deletes.length >= 500) {
       print('Deleting ${deletes.length} $name (total: $total)...');
       await dbService.commit(deletes: deletes);
       deletes.clear();
