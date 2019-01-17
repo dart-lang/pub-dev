@@ -35,7 +35,7 @@ String renderPkgVersionsPage(String package, List<PackageVersion> versions,
   if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
     htmlBlocks.add(
         '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
-            'on ${latestDevVersion.shortCreated}.</p>');
+        'on ${latestDevVersion.shortCreated}.</p>');
   }
   if (stableVersionRows.isNotEmpty) {
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
@@ -65,12 +65,11 @@ String renderVersionTableRow(PackageVersion version, String downloadUrl) {
     'version_url': urls.pkgPageUrl(version.package, version: version.version),
     'short_created': version.shortCreated,
     'dartdocs_url':
-    _attr(urls.pkgDocUrl(version.package, version: version.version)),
+        _attr(urls.pkgDocUrl(version.package, version: version.version)),
     'download_url': _attr(downloadUrl),
     'icons': staticUrls.versionsTableIcons,
   };
-  return templateCache.renderTemplate(
-      'pkg/versions/version_row', versionData);
+  return templateCache.renderTemplate('pkg/versions/version_row', versionData);
 }
 
 String _attr(String value) {
