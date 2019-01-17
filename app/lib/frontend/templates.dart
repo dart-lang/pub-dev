@@ -20,6 +20,7 @@ import 'templates/_utils.dart';
 import 'templates/layout.dart';
 import 'templates/misc.dart';
 import 'templates/package_analysis.dart';
+import 'templates/package_versions.dart';
 
 /// [TemplateService] singleton instance.
 /// TODO: remove after https://github.com/dart-lang/pub-dartlang-dart/issues/1907 gets fixed
@@ -27,68 +28,6 @@ final templateService = new TemplateService();
 
 /// Used for rendering HTML pages for pub.dartlang.org.
 class TemplateService {
-  /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
-    assert(versions.length == versionDownloadUrls.length);
-
-    final stableVersionRows = [];
-    final devVersionRows = [];
-    PackageVersion latestDevVersion;
-    for (int i = 0; i < versions.length; i++) {
-      final PackageVersion version = versions[i];
-      final String url = versionDownloadUrls[i].toString();
-      final rowHtml = _renderVersionTableRow(version, url);
-      if (version.semanticVersion.isPreRelease) {
-        latestDevVersion ??= version;
-        devVersionRows.add(rowHtml);
-      } else {
-        stableVersionRows.add(rowHtml);
-      }
-    }
-
-    final htmlBlocks = <String>[];
-    if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
-      htmlBlocks.add(
-          '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
-          'on ${latestDevVersion.shortCreated}.</p>');
-    }
-    if (stableVersionRows.isNotEmpty) {
-      htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
-        'id': 'stable',
-        'kind': 'Stable',
-        'package': {'name': package},
-        'version_table_rows': stableVersionRows,
-      }));
-    }
-    if (devVersionRows.isNotEmpty) {
-      htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
-        'id': 'dev',
-        'kind': 'Dev',
-        'package': {'name': package},
-        'version_table_rows': devVersionRows,
-      }));
-    }
-    return renderLayoutPage(PageType.package, htmlBlocks.join(),
-        title: '$package package - All Versions',
-        canonicalUrl: urls.pkgPageUrl(package, includeHost: true));
-  }
-
-  String _renderVersionTableRow(PackageVersion version, String downloadUrl) {
-    final versionData = {
-      'package': version.package,
-      'version': version.version,
-      'version_url': urls.pkgPageUrl(version.package, version: version.version),
-      'short_created': version.shortCreated,
-      'dartdocs_url':
-          _attr(urls.pkgDocUrl(version.package, version: version.version)),
-      'download_url': _attr(downloadUrl),
-      'icons': staticUrls.versionsTableIcons,
-    };
-    return templateCache.renderTemplate(
-        'pkg/versions/version_row', versionData);
-  }
-
   Map<String, Object> _pkgShowPageValues(
       Package package,
       List<PackageVersion> versions,
@@ -132,7 +71,7 @@ class TemplateService {
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
       final String url = versionDownloadUrls[i].toString();
-      versionTableRows.add(_renderVersionTableRow(version, url));
+      versionTableRows.add(renderVersionTableRow(version, url));
     }
 
     final bool shouldShowDev =
@@ -454,9 +393,4 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return map;
-}
-
-String _attr(String value) {
-  if (value == null) return null;
-  return htmlAttrEscape.convert(value);
 }

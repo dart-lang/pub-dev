@@ -16,6 +16,7 @@ import '../../shared/utils.dart';
 import '../backend.dart';
 import '../models.dart';
 import '../templates.dart';
+import '../templates/package_versions.dart';
 
 import 'misc.dart' show formattedNotFoundHandler;
 
@@ -98,8 +99,8 @@ Future<shelf.Response> _packageVersionsHandler(
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
-  return htmlResponse(templateService.renderPkgVersionsPage(
-      packageName, versions, versionDownloadUrls));
+  return htmlResponse(
+      renderPkgVersionsPage(packageName, versions, versionDownloadUrls));
 }
 
 /// Handles requests for /packages/<package>
