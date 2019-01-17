@@ -15,7 +15,7 @@ import '../../shared/utils.dart';
 
 import '../backend.dart';
 import '../models.dart';
-import '../templates.dart';
+import '../templates/package.dart';
 import '../templates/package_versions.dart';
 
 import 'misc.dart' show formattedNotFoundHandler;
@@ -164,7 +164,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     }).toList());
     _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
 
-    cachedPage = templateService.renderPkgShowPage(
+    cachedPage = renderPkgShowPage(
         package,
         versionName != null,
         first10Versions,
