@@ -22,6 +22,7 @@ import 'package:pub_dartlang_org/frontend/templates/landing.dart';
 import 'package:pub_dartlang_org/frontend/templates/layout.dart';
 import 'package:pub_dartlang_org/frontend/templates/listing.dart';
 import 'package:pub_dartlang_org/frontend/templates/misc.dart';
+import 'package:pub_dartlang_org/frontend/templates/package_analysis.dart';
 
 import '../shared/html_validation.dart';
 import 'utils.dart';
@@ -275,8 +276,7 @@ void main() {
 
     test('no content for analysis tab', () async {
       // no content
-      expect(templateService.renderAnalysisTab('pkg_foo', null, null, null),
-          isNull);
+      expect(renderAnalysisTab('pkg_foo', null, null, null), isNull);
     });
 
     test('analysis tab: http', () async {
@@ -290,13 +290,13 @@ void main() {
       final panaReport =
           new PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
       final view = new AnalysisView(card: card, panaReport: panaReport);
-      final String html = templateService.renderAnalysisTab(
-          'http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
+      final String html =
+          renderAnalysisTab('http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
     test('mock analysis tab', () async {
-      final String html = templateService.renderAnalysisTab(
+      final String html = renderAnalysisTab(
           'pkg_foo',
           '>=1.25.0-dev.9.0 <2.0.0',
           new ScoreCardData(
@@ -341,7 +341,7 @@ void main() {
     });
 
     test('aborted analysis tab', () async {
-      final String html = templateService.renderAnalysisTab(
+      final String html = renderAnalysisTab(
           'pkg_foo',
           null,
           new ScoreCardData(),
@@ -354,7 +354,7 @@ void main() {
     });
 
     test('outdated analysis tab', () async {
-      final String html = templateService.renderAnalysisTab(
+      final String html = renderAnalysisTab(
           'pkg_foo',
           null,
           new ScoreCardData(flags: [PackageFlags.isObsolete]),
