@@ -6,25 +6,21 @@ library pub_dartlang_org.templates;
 
 import 'dart:convert';
 
-import 'package:pana/models.dart' show SuggestionLevel;
-
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/email.dart' show EmailAddress;
-import '../shared/markdown.dart';
 import '../shared/platform.dart';
 import '../shared/search_service.dart';
 import '../shared/urls.dart' as urls;
-import '../shared/utils.dart';
 
-import 'color.dart';
 import 'models.dart';
 import 'static_files.dart';
-import 'template_consts.dart';
 import 'templates/_cache.dart';
 import 'templates/_utils.dart';
 import 'templates/layout.dart';
 import 'templates/misc.dart';
+import 'templates/package_analysis.dart';
+import 'templates/package_versions.dart';
 
 /// [TemplateService] singleton instance.
 /// TODO: remove after https://github.com/dart-lang/pub-dartlang-dart/issues/1907 gets fixed
@@ -32,184 +28,6 @@ final templateService = new TemplateService();
 
 /// Used for rendering HTML pages for pub.dartlang.org.
 class TemplateService {
-  /// Renders the `views/pkg/versions/index` template.
-  String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-      List<Uri> versionDownloadUrls) {
-    assert(versions.length == versionDownloadUrls.length);
-
-    final stableVersionRows = [];
-    final devVersionRows = [];
-    PackageVersion latestDevVersion;
-    for (int i = 0; i < versions.length; i++) {
-      final PackageVersion version = versions[i];
-      final String url = versionDownloadUrls[i].toString();
-      final rowHtml = _renderVersionTableRow(version, url);
-      if (version.semanticVersion.isPreRelease) {
-        latestDevVersion ??= version;
-        devVersionRows.add(rowHtml);
-      } else {
-        stableVersionRows.add(rowHtml);
-      }
-    }
-
-    final htmlBlocks = <String>[];
-    if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
-      htmlBlocks.add(
-          '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
-          'on ${latestDevVersion.shortCreated}.</p>');
-    }
-    if (stableVersionRows.isNotEmpty) {
-      htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
-        'id': 'stable',
-        'kind': 'Stable',
-        'package': {'name': package},
-        'version_table_rows': stableVersionRows,
-      }));
-    }
-    if (devVersionRows.isNotEmpty) {
-      htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
-        'id': 'dev',
-        'kind': 'Dev',
-        'package': {'name': package},
-        'version_table_rows': devVersionRows,
-      }));
-    }
-    return renderLayoutPage(PageType.package, htmlBlocks.join(),
-        title: '$package package - All Versions',
-        canonicalUrl: urls.pkgPageUrl(package, includeHost: true));
-  }
-
-  String _renderVersionTableRow(PackageVersion version, String downloadUrl) {
-    final versionData = {
-      'package': version.package,
-      'version': version.version,
-      'version_url': urls.pkgPageUrl(version.package, version: version.version),
-      'short_created': version.shortCreated,
-      'dartdocs_url':
-          _attr(urls.pkgDocUrl(version.package, version: version.version)),
-      'download_url': _attr(downloadUrl),
-      'icons': staticUrls.versionsTableIcons,
-    };
-    return templateCache.renderTemplate(
-        'pkg/versions/version_row', versionData);
-  }
-
-  String _renderAnalysisDepRow(PkgDependency pd) {
-    return templateCache.renderTemplate('pkg/analysis_dep_row', {
-      'is_hosted': pd.isHosted,
-      'package': pd.package,
-      'package_url': urls.pkgPageUrl(pd.package),
-      'constraint': pd.constraint?.toString(),
-      'resolved': pd.resolved?.toString(),
-      'available': pd.available?.toString(),
-    });
-  }
-
-  /// Renders the `views/pkg/analysis_tab.mustache` template.
-  String renderAnalysisTab(String package, String sdkConstraint,
-      ScoreCardData card, AnalysisView analysis) {
-    if (card == null || analysis == null || !analysis.hasAnalysisData) {
-      return null;
-    }
-
-    String statusText;
-    switch (analysis.panaReportStatus) {
-      case ReportStatus.aborted:
-        statusText = 'aborted';
-        break;
-      case ReportStatus.failed:
-        statusText = 'tool failures';
-        break;
-      case ReportStatus.success:
-        statusText = 'completed';
-        break;
-      default:
-        break;
-    }
-
-    List<Map> prepareDependencies(List<PkgDependency> list) {
-      if (list == null || list.isEmpty) return const [];
-      return list.map((pd) => {'row_html': _renderAnalysisDepRow(pd)}).toList();
-    }
-
-    final hasSdkConstraint = sdkConstraint != null && sdkConstraint.isNotEmpty;
-    final directDeps = prepareDependencies(analysis.directDependencies);
-    final transitiveDeps = prepareDependencies(analysis.transitiveDependencies);
-    final devDeps = prepareDependencies(analysis.devDependencies);
-    final hasDependency = hasSdkConstraint ||
-        directDeps.isNotEmpty ||
-        transitiveDeps.isNotEmpty ||
-        devDeps.isNotEmpty;
-
-    final Map<String, dynamic> data = {
-      'package': package,
-      'show_discontinued': card.isDiscontinued,
-      'show_outdated': card.isObsolete,
-      'show_legacy': card.isLegacy,
-      'show_analysis': !card.isSkipped,
-      'analysis_tab_url': urls.analysisTabUrl(package),
-      'date_completed': analysis.timestamp == null
-          ? null
-          : shortDateFormat.format(analysis.timestamp),
-      'analysis_status': statusText,
-      'dart_sdk_version': analysis.dartSdkVersion,
-      'pana_version': analysis.panaVersion,
-      'flutter_version': analysis.flutterVersion,
-      'platforms_html': analysis.platforms
-              ?.map((p) => getPlatformDict(p, nullIfMissing: true)?.name ?? p)
-              ?.join(', ') ??
-          '<i>unsure</i>',
-      'platforms_reason_html': markdownToHtml(analysis.platformsReason, null),
-      'analysis_suggestions_html':
-          _renderSuggestionBlockHtml('Analysis', analysis.panaSuggestions),
-      'health_suggestions_html':
-          _renderSuggestionBlockHtml('Health', analysis.healthSuggestions),
-      'maintenance_suggestions_html': _renderSuggestionBlockHtml(
-          'Maintenance', analysis.maintenanceSuggestions),
-      'has_dependency': hasDependency,
-      'dependencies': {
-        'has_sdk': hasSdkConstraint,
-        'sdk': sdkConstraint,
-        'has_direct': hasSdkConstraint || directDeps.isNotEmpty,
-        'direct': directDeps,
-        'has_transitive': transitiveDeps.isNotEmpty,
-        'transitive': transitiveDeps,
-        'has_dev': devDeps.isNotEmpty,
-        'dev': devDeps,
-      },
-      'score_bars': _renderScoreBars(card),
-    };
-
-    return templateCache.renderTemplate('pkg/analysis_tab', data);
-  }
-
-  String _renderSuggestionBlockHtml(
-      String header, List<Suggestion> suggestions) {
-    if (suggestions == null || suggestions.isEmpty) {
-      return null;
-    }
-
-    final hasIssues = suggestions.any((s) => s.isError || s.isWarning);
-    final label =
-        hasIssues ? '$header issues and suggestions' : '$header suggestions';
-
-    final mappedValues = suggestions.map((suggestion) {
-      return {
-        'icon_class': _suggestionIconClass(suggestion.level),
-        'title_html':
-            _renderSuggestionTitle(suggestion.title, suggestion.score),
-        'description_html': markdownToHtml(suggestion.description, null),
-        'suggestion_help_html': getSuggestionHelpMessage(suggestion.code),
-      };
-    }).toList();
-
-    final data = <String, dynamic>{
-      'label': label,
-      'suggestions': mappedValues,
-    };
-    return templateCache.renderTemplate('pkg/analysis_suggestion_block', data);
-  }
-
   Map<String, Object> _pkgShowPageValues(
       Package package,
       List<PackageVersion> versions,
@@ -253,7 +71,7 @@ class TemplateService {
     for (int i = 0; i < versions.length; i++) {
       final PackageVersion version = versions[i];
       final String url = versionDownloadUrls[i].toString();
-      versionTableRows.add(_renderVersionTableRow(version, url));
+      versionTableRows.add(renderVersionTableRow(version, url));
     }
 
     final bool shouldShowDev =
@@ -373,34 +191,6 @@ class TemplateService {
       'icons': staticUrls.versionsTableIcons,
     };
     return values;
-  }
-
-  Map<String, dynamic> _renderScoreBars(ScoreCardData card) {
-    String renderScoreBar(double score, Brush brush) {
-      return templateCache.renderTemplate('pkg/score_bar', {
-        'percent': formatScore(score ?? 0.0),
-        'score': formatScore(score),
-        'background': brush.background.toString(),
-        'color': brush.color.toString(),
-        'shadow': brush.shadow.toString(),
-      });
-    }
-
-    final isSkipped = card?.isSkipped ?? false;
-    final healthScore = isSkipped ? null : card?.healthScore;
-    final maintenanceScore = isSkipped ? null : card?.maintenanceScore;
-    final popularityScore = card?.popularityScore;
-    final overallScore = card?.overallScore ?? 0.0;
-    return {
-      'health_html':
-          renderScoreBar(healthScore, genericScoreBrush(healthScore)),
-      'maintenance_html':
-          renderScoreBar(maintenanceScore, genericScoreBrush(maintenanceScore)),
-      'popularity_html':
-          renderScoreBar(popularityScore, genericScoreBrush(popularityScore)),
-      'overall_html':
-          renderScoreBar(overallScore, overallScoreBrush(overallScore)),
-    };
   }
 
   String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
@@ -603,39 +393,4 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
   return map;
-}
-
-String _attr(String value) {
-  if (value == null) return null;
-  return htmlAttrEscape.convert(value);
-}
-
-String _suggestionIconClass(String level) {
-  if (level == null) return 'suggestion-icon-info';
-  switch (level) {
-    case SuggestionLevel.error:
-      return 'suggestion-icon-danger';
-    case SuggestionLevel.warning:
-      return 'suggestion-icon-warning';
-    default:
-      return 'suggestion-icon-info';
-  }
-}
-
-String _renderSuggestionTitle(String title, double score) {
-  final formattedScore = _formatSuggestionScore(score);
-  if (formattedScore != null) {
-    title = '$title ($formattedScore)';
-  }
-  return markdownToHtml(title, null);
-}
-
-String _formatSuggestionScore(double score) {
-  if (score == null || score == 0.0) {
-    return null;
-  }
-  final intValue = score.round();
-  final isInt = intValue.toDouble() == score;
-  final formatted = isInt ? intValue.toString() : score.toStringAsFixed(2);
-  return '-$formatted points';
 }
