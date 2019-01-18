@@ -270,7 +270,7 @@ void _setEventForSortControl() {
         value: sort, data: label, selected: originalSort == sort));
   }
 
-  // Synchronize with `template_consts.dart`'s SortDict.
+  // Synchronize with `_consts.dart`'s SortDict.
   if (queryText.value.trim().isEmpty) {
     add('listing_relevance', 'listing relevance');
   } else {

@@ -5,9 +5,8 @@
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionCode;
 
-import 'package:pub_dartlang_org/shared/platform.dart' show KnownPlatforms;
-
-import '../shared/urls.dart' as urls;
+import '../../shared/platform.dart' show KnownPlatforms;
+import '../../shared/urls.dart' as urls;
 
 class PlatformDict {
   final String name;
