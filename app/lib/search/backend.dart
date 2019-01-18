@@ -61,7 +61,7 @@ class SearchBackend {
 
     // Load only for the existing packages that aren't discontinued.
     final List<Key> versionKeys = packages
-        .where((p) => p != null && !p.isDiscontinued)
+        .where((p) => p != null && p.isDiscontinued != true)
         .map((p) => p.latestVersionKey)
         .toList();
     final versionList = (await _db.lookup(versionKeys)).cast<PackageVersion>();
