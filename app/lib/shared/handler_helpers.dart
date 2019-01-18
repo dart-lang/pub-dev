@@ -86,7 +86,7 @@ bool _isValidUri(shelf.Request request) {
   try {
     // should be able to parse path segments
     uri.pathSegments.forEach(Uri.decodeComponent);
-  } on ArgumentError catch (_) {
+  } catch (_) {
     return false;
   }
   return true;
