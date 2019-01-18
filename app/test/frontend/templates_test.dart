@@ -16,12 +16,12 @@ import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
-import 'package:pub_dartlang_org/frontend/templates.dart';
 import 'package:pub_dartlang_org/frontend/templates/admin.dart';
 import 'package:pub_dartlang_org/frontend/templates/landing.dart';
 import 'package:pub_dartlang_org/frontend/templates/layout.dart';
 import 'package:pub_dartlang_org/frontend/templates/listing.dart';
 import 'package:pub_dartlang_org/frontend/templates/misc.dart';
+import 'package:pub_dartlang_org/frontend/templates/package.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_analysis.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_versions.dart';
 
@@ -115,7 +115,7 @@ void main() {
     });
 
     test('package show page', () {
-      final String html = templateService.renderPkgShowPage(
+      final String html = renderPkgShowPage(
           testPackage,
           false,
           [testPackageVersion],
@@ -153,7 +153,7 @@ void main() {
     });
 
     test('package show page - with version', () {
-      final String html = templateService.renderPkgShowPage(
+      final String html = renderPkgShowPage(
           testPackage,
           true,
           [testPackageVersion],
@@ -191,7 +191,7 @@ void main() {
     });
 
     test('package show page with flutter_plugin', () {
-      final String html = templateService.renderPkgShowPage(
+      final String html = renderPkgShowPage(
           testPackage,
           false,
           [flutterPackageVersion],
@@ -214,7 +214,7 @@ void main() {
     });
 
     test('package show page with outdated version', () {
-      final String html = templateService.renderPkgShowPage(
+      final String html = renderPkgShowPage(
           testPackage,
           true /* isVersionPage */,
           [testPackageVersion],
@@ -232,7 +232,7 @@ void main() {
     });
 
     test('package show page with discontinued version', () {
-      final String html = templateService.renderPkgShowPage(
+      final String html = renderPkgShowPage(
           discontinuedPackage,
           false,
           [testPackageVersion],
@@ -257,7 +257,7 @@ void main() {
         ..panaVersion = '0.10.9'
         ..panaSuggestions = summary?.suggestions
         ..maintenanceSuggestions = summary.maintenance?.suggestions;
-      final String html = templateService.renderPkgShowPage(
+      final String html = renderPkgShowPage(
           testPackage,
           true /* isVersionPage */,
           [testPackageVersion],
