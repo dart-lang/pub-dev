@@ -173,27 +173,27 @@ enum SearchOrder {
 }
 
 /// Returns null if [value] is not a recognized search order.
-SearchOrder parseSearchOrder(String value, {SearchOrder defaultsTo}) {
-  if (value != null) {
-    switch (value) {
-      case 'top':
-        return SearchOrder.top;
-      case 'text':
-        return SearchOrder.text;
-      case 'created':
-        return SearchOrder.created;
-      case 'updated':
-        return SearchOrder.updated;
-      case 'popularity':
-        return SearchOrder.popularity;
-      case 'health':
-        return SearchOrder.health;
-      case 'maintenance':
-        return SearchOrder.maintenance;
-    }
+SearchOrder parseSearchOrder(String value) {
+  if (value == null) {
+    return null;
   }
-  if (defaultsTo != null) return defaultsTo;
-  throw new Exception('Unable to parse SearchOrder: $value');
+  switch (value) {
+    case 'top':
+      return SearchOrder.top;
+    case 'text':
+      return SearchOrder.text;
+    case 'created':
+      return SearchOrder.created;
+    case 'updated':
+      return SearchOrder.updated;
+    case 'popularity':
+      return SearchOrder.popularity;
+    case 'health':
+      return SearchOrder.health;
+    case 'maintenance':
+      return SearchOrder.maintenance;
+  }
+  return null;
 }
 
 String serializeSearchOrder(SearchOrder order) {
@@ -265,8 +265,7 @@ class SearchQuery {
     final String platform =
         uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
     final String orderValue = uri.queryParameters['order'];
-    final SearchOrder order =
-        orderValue == null ? null : parseSearchOrder(orderValue);
+    final SearchOrder order = parseSearchOrder(orderValue);
 
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
@@ -563,9 +562,7 @@ SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
   final int offset = resultsPerPage * (page - 1);
   final String queryText = url.queryParameters['q'] ?? '';
   final String sortParam = url.queryParameters['sort'];
-  final SearchOrder sortOrder = (sortParam == null || sortParam.isEmpty)
-      ? null
-      : parseSearchOrder(sortParam);
+  final SearchOrder sortOrder = parseSearchOrder(sortParam);
   final isApiEnabled = url.queryParameters['api'] != '0';
   return new SearchQuery.parse(
     query: queryText,

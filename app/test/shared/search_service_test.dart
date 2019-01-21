@@ -17,10 +17,8 @@ void main() {
       }
     });
 
-    test('defaultsTo', () {
-      expect(() => parseSearchOrder('foobar'), throwsException);
-      expect(parseSearchOrder('foobar', defaultsTo: SearchOrder.popularity),
-          SearchOrder.popularity);
+    test('unknown', () {
+      expect(parseSearchOrder('foobar'), isNull);
     });
   });
 
