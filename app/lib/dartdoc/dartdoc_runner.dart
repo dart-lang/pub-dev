@@ -322,6 +322,9 @@ class DartdocJobProcessor extends JobProcessor {
       if (!validateLinks) {
         args.add('--no-validate-links');
       }
+      if (envConfig.toolEnvDartSdkDir != null) {
+        args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
+      }
       final pr = await runProc(
         'dart',
         ['bin/pub_dartdoc.dart']..addAll(args),
