@@ -23,11 +23,11 @@
   <div class="main tabs-content">
     <ul class="package-tabs js-tabs">
       {{#tabs}}
-        <li class="tab {{active}}" data-name="-{{id}}-tab-">{{title}}</li>
+      <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{title}}</li>
       {{/tabs}}
-      <li class="tab {{#has_no_file_tab}}-active{{/has_no_file_tab}}" data-name="-installing-tab-">Installing</li>
-      <li class="tab" data-name="-versions-tab-">Versions</li>
-      <li class="tab" data-name="-analysis-tab-">
+      <li class="tab {{#has_no_file_tab}}-active{{/has_no_file_tab}}" data-name="-installing-tab-" role="button">Installing</li>
+      <li class="tab" data-name="-versions-tab-" role="button">Versions</li>
+      <li class="tab" data-name="-analysis-tab-" role="button">
         {{& package.score_box_html }}
       </li>
     </ul>
