@@ -7,11 +7,9 @@ library pub_dartlang_org.model_properties;
 import 'dart:convert';
 
 import 'package:gcloud/db.dart';
+import 'package:pana/pana.dart' show SdkConstraintStatus;
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek show Pubspec;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
-
-final _dart2OrLater = new VersionConstraint.parse('>=2.0.0');
 
 Map<String, dynamic> _loadYaml(String yamlString) {
   final map = loadYaml(yamlString) as Map;
@@ -79,11 +77,10 @@ class Pubspec {
     return _asString(environment['sdk']);
   }
 
-  VersionConstraint get sdkVersionConstraint => _inner.environment['sdk'];
-
+  // TODO: migrate uses to SdkConstraintStatus.isDart2Compatible
   bool get supportsOnlyLegacySdk {
-    return sdkVersionConstraint == null ||
-        !sdkVersionConstraint.allowsAny(_dart2OrLater);
+    final s = SdkConstraintStatus.fromSdkVersion(_inner.environment['sdk']);
+    return !s.isDart2Compatible;
   }
 
   /// Whether the pubspec file contains a flutter.plugin entry.
