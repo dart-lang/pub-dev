@@ -82,12 +82,15 @@ Future _deleteWithQuery<T>(Query query, {bool where(T item)}) async {
     final shouldDelete = where == null || where(m as T);
     if (shouldDelete) {
       deletes.add(m.key);
+      if (deletes.length >= 500) {
+        await dbService.commit(deletes: deletes);
+        deletes.clear();
+      }
     }
   }
-  await dbService.withTransaction((tx) async {
-    tx.queueMutations(deletes: deletes);
-    await tx.commit();
-  });
+  if (deletes.isNotEmpty) {
+    await dbService.commit(deletes: deletes);
+  }
 }
 
 Future removePackage(String packageName) async {
