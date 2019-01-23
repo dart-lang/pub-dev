@@ -52,7 +52,8 @@ class StaticFileCache {
     _addDirectory(Directory(_resolveStaticDirPath()).absolute);
   }
 
-  void _addDirectory(Directory contentDir) {
+  void _addDirectory(Directory contentDir, {Directory baseDir}) {
+    baseDir ??= contentDir;
     contentDir
         .listSync(recursive: true)
         .where((fse) => fse is File)
@@ -62,8 +63,7 @@ class StaticFileCache {
         final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
         final bytes = file.readAsBytesSync();
         final lastModified = file.lastModifiedSync();
-        final relativePath =
-            path.relative(file.path, from: contentDir.path);
+        final relativePath = path.relative(file.path, from: baseDir.path);
         final isRoot = _staticRootPaths.contains(relativePath);
         final prefix = isRoot ? '' : _defaultStaticPath;
         final requestPath = '$prefix/$relativePath';
