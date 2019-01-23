@@ -49,8 +49,11 @@ class StaticFileCache {
   StaticFileCache();
 
   StaticFileCache.withDefaults() {
-    final staticsDirectory = new Directory(_resolveStaticDirPath()).absolute;
-    staticsDirectory
+    _addDirectory(Directory(_resolveStaticDirPath()).absolute);
+  }
+
+  void _addDirectory(Directory contentDir) {
+    contentDir
         .listSync(recursive: true)
         .where((fse) => fse is File)
         .map((file) => file.absolute as File)
@@ -60,7 +63,7 @@ class StaticFileCache {
         final bytes = file.readAsBytesSync();
         final lastModified = file.lastModifiedSync();
         final relativePath =
-            path.relative(file.path, from: staticsDirectory.path);
+            path.relative(file.path, from: contentDir.path);
         final isRoot = _staticRootPaths.contains(relativePath);
         final prefix = isRoot ? '' : _defaultStaticPath;
         final requestPath = '$prefix/$relativePath';
