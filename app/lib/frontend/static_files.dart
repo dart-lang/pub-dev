@@ -42,6 +42,11 @@ String _resolveStaticDirPath() {
   return path.join(resolveAppDir(), '../static');
 }
 
+String _resolveRootDirPath() =>
+    Directory(path.join(resolveAppDir(), '../')).resolveSymbolicLinksSync();
+Directory _resolveDir(String relativePath) =>
+    Directory(path.join(_resolveRootDirPath(), relativePath)).absolute;
+
 /// Stores static files in memory for fast http serving.
 class StaticFileCache {
   final _files = <String, StaticFile>{};
@@ -50,6 +55,9 @@ class StaticFileCache {
 
   StaticFileCache.withDefaults() {
     _addDirectory(Directory(_resolveStaticDirPath()).absolute);
+    final thirdPartyDir = _resolveDir('third_party');
+    _addDirectory(_resolveDir('third_party/highlight'), baseDir: thirdPartyDir);
+    _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
   }
 
   void _addDirectory(Directory contentDir, {Directory baseDir}) {
