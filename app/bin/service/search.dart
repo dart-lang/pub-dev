@@ -102,6 +102,7 @@ Future _main(FrontendEntryMessage message) async {
           sleep: const Duration(minutes: 10),
           skipHistory: true,
         ),
+        batchIndexUpdater.periodicUpdateTaskSource,
       ],
     );
     scheduler.run();

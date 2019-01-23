@@ -41,6 +41,11 @@ class BatchIndexUpdater implements TaskRunner {
   // start do the index merges, making sure that the index is marked as ready.
   int _firstScanCount;
 
+  TaskSource get periodicUpdateTaskSource {
+    assert(_snapshot != null);
+    return _PeriodicUpdateTaskSource(_snapshot);
+  }
+
   void reportScanCount(int count) {
     if (_firstScanCount != null) return;
     _firstScanCount = count;
@@ -150,6 +155,32 @@ class BatchIndexUpdater implements TaskRunner {
         _logger.info('Search snapshot update completed.');
       } catch (e, st) {
         _logger.warning('Unable to update search snapshot.', e, st);
+      }
+    }
+  }
+}
+
+/// A task source that generates an update task for stale documents.
+///
+/// It scans the current search snapshot every two hours, and selects the
+/// packages that have not been updated in the last 24 hours.
+class _PeriodicUpdateTaskSource implements TaskSource {
+  final SearchSnapshot _snapshot;
+  _PeriodicUpdateTaskSource(this._snapshot);
+
+  @override
+  Stream<Task> startStreaming() async* {
+    for (;;) {
+      await Future.delayed(Duration(hours: 2));
+      final now = DateTime.now();
+      final tasks = _snapshot.documents.values
+          .where((pd) =>
+              pd.timestamp == null ||
+              now.difference(pd.timestamp).inHours >= 24)
+          .map((pd) => Task(pd.package, pd.version, now))
+          .toList();
+      for (Task task in tasks) {
+        yield task;
       }
     }
   }
