@@ -61,4 +61,22 @@ Future main() async {
       }
     });
   });
+
+  group('default content', () {
+    final cache = StaticFileCache.withDefaults();
+    final files = [
+      '/static/css/github-markdown.css',
+      '/static/highlight/github.css',
+      '/static/highlight/highlight.pack.js',
+      '/static/highlight/init.js',
+    ];
+
+    for (String file in files) {
+      test('$file exists', () {
+        final f = cache.getFile(file);
+        expect(f, isNotNull);
+        expect(f.etag.contains('mocked_hash_'), isFalse);
+      });
+    }
+  });
 }

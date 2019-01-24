@@ -42,6 +42,11 @@ String _resolveStaticDirPath() {
   return path.join(resolveAppDir(), '../static');
 }
 
+String _resolveRootDirPath() =>
+    Directory(path.join(resolveAppDir(), '../')).resolveSymbolicLinksSync();
+Directory _resolveDir(String relativePath) =>
+    Directory(path.join(_resolveRootDirPath(), relativePath)).absolute;
+
 /// Stores static files in memory for fast http serving.
 class StaticFileCache {
   final _files = <String, StaticFile>{};
@@ -49,8 +54,15 @@ class StaticFileCache {
   StaticFileCache();
 
   StaticFileCache.withDefaults() {
-    final staticsDirectory = new Directory(_resolveStaticDirPath()).absolute;
-    staticsDirectory
+    _addDirectory(Directory(_resolveStaticDirPath()).absolute);
+    final thirdPartyDir = _resolveDir('third_party');
+    _addDirectory(_resolveDir('third_party/highlight'), baseDir: thirdPartyDir);
+    _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
+  }
+
+  void _addDirectory(Directory contentDir, {Directory baseDir}) {
+    baseDir ??= contentDir;
+    contentDir
         .listSync(recursive: true)
         .where((fse) => fse is File)
         .map((file) => file.absolute as File)
@@ -59,8 +71,7 @@ class StaticFileCache {
         final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
         final bytes = file.readAsBytesSync();
         final lastModified = file.lastModifiedSync();
-        final relativePath =
-            path.relative(file.path, from: staticsDirectory.path);
+        final relativePath = path.relative(file.path, from: baseDir.path);
         final isRoot = _staticRootPaths.contains(relativePath);
         final prefix = isRoot ? '' : _defaultStaticPath;
         final requestPath = '$prefix/$relativePath';
