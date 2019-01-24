@@ -73,17 +73,20 @@
       Use <a href="https://www.dartlang.org/guides/language/analysis-options"><code>analysis_options.yaml</code></a>
       to specify further linter rules, and make sure you fix all warnings and errors before publishing.
       Here's an example <code>analysis_options.yaml</code>:</p>
-  <pre><code class="language-yaml"># https://www.dartlang.org/guides/language/analysis-options
-# Source of linter options:
-# http://dart-lang.github.io/linter/lints/options/options.html
-linter:
-  rules:
-    - camel_case_types
-    - hash_and_equals
-    - iterable_contains_unrelated_type
-    - list_remove_unrelated_type
-    - unrelated_type_equality_checks
-    - valid_regexps
+  <pre><code class="language-yaml"># Defines a default set of lint rules enforced for
+# projects at Google. For details and rationale,
+# see https://github.com/dart-lang/pedantic#enabled-lints.
+include: package:pedantic/analysis_options.yaml
+
+# For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
+# Uncomment to specify additional rules.
+# linter:
+#   rules:
+#     - camel_case_types
+
+# analyzer:
+#   exclude:
+#     - path/to/excluded/files/**
   </code></pre>
 
   <h3 id="maintenance">Maintenance</h3>
