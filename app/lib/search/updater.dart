@@ -136,6 +136,9 @@ class BatchIndexUpdater implements TaskRunner {
 
         await _updateSnapshotIfNeeded(docs);
       }
+    } catch (e, st) {
+      _logger.warning('Index update error.', e, st);
+      rethrow;
     } finally {
       completer.complete();
       _ongoingBatchUpdate = null;

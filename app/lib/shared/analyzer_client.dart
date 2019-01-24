@@ -36,6 +36,9 @@ class AnalyzerClient {
   }
 
   Future<AnalysisView> getAnalysisView(AnalysisKey key) async {
+    if (key == null) {
+      return null;
+    }
     final card = await scoreCardBackend
         .getScoreCardData(key.package, key.version, onlyCurrent: false);
     if (card == null) {
