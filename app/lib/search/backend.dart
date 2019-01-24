@@ -71,8 +71,10 @@ class SearchBackend {
 
     final pubDataFutures = Future.wait<String>(
       packages.map(
-        (p) => dartdocClient.getTextContent(p.name, 'latest', 'pub-data.json',
-            timeout: const Duration(minutes: 1)),
+        (p) => p == null
+            ? Future<String>.value()
+            : dartdocClient.getTextContent(p.name, 'latest', 'pub-data.json',
+                timeout: const Duration(minutes: 1)),
       ),
     );
 
