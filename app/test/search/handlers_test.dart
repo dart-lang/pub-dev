@@ -39,7 +39,7 @@ void main() {
         registerPackageIndex(new SimplePackageIndex());
         registerDartSdkIndex(new SimplePackageIndex());
         await packageIndex
-            .addPackages(await searchBackend.loadDocuments(['pkg_foo']));
+            .addPackage(await searchBackend.loadDocument('pkg_foo'));
         await packageIndex.merge();
       }
 
@@ -116,17 +116,18 @@ class MockSearchBackend implements SearchBackend {
   List<String> packages = ['pkg_foo'];
 
   @override
-  Future<List<PackageDocument>> loadDocuments(List<String> packages) async {
-    return packages.map((String package) {
-      return new PackageDocument(
-        package: package,
-        version: '1.0.1',
-        devVersion: '1.0.1-dev',
-        platforms: ['web', 'other'],
-        description: 'Foo package about nothing really. Maybe JSON.',
-        readme: 'Some JSON to XML mapping.',
-        popularity: 0.1,
-      );
-    }).toList();
+  Future<PackageDocument> loadDocument(String packageName) async {
+    if (!packages.contains(packageName)) {
+      return null;
+    }
+    return PackageDocument(
+      package: packageName,
+      version: '1.0.1',
+      devVersion: '1.0.1-dev',
+      platforms: ['web', 'other'],
+      description: 'Foo package about nothing really. Maybe JSON.',
+      readme: 'Some JSON to XML mapping.',
+      popularity: 0.1,
+    );
   }
 }
