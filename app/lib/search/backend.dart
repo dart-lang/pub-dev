@@ -49,87 +49,63 @@ class SearchBackend {
 
   SearchBackend(this._db);
 
-  /// Loads the list of packages, their latest stable versions and returns a
-  /// matching list of [PackageDocument] objects for search.
+  /// Loads the latest stable version, its analysis results and extracted
+  /// dartdoc content, and returns a [PackageDocument] objects for search.
+  ///
   /// When a package, its latest version or its analysis is missing, the method
-  /// returns with null at the given index.
-  Future<List<PackageDocument>> loadDocuments(List<String> packageNames) async {
-    final List<Key> packageKeys = packageNames
-        .map((String name) => _db.emptyKey.append(Package, id: name))
-        .toList();
-    final packages = (await _db.lookup(packageKeys)).cast<Package>();
-
-    // Load only for the existing packages that aren't discontinued.
-    final List<Key> versionKeys = packages
-        .where((p) => p != null && p.isDiscontinued != true)
-        .map((p) => p.latestVersionKey)
-        .toList();
-    final versionList = (await _db.lookup(versionKeys)).cast<PackageVersion>();
-    final Map<String, PackageVersion> versions = new Map.fromIterable(
-        versionList.where((pv) => pv != null),
-        key: (pv) => (pv as PackageVersion).package);
-
-    final pubDataFutures = Future.wait<String>(
-      packages.map(
-        (p) => p == null
-            ? Future<String>.value()
-            : dartdocClient.getTextContent(p.name, 'latest', 'pub-data.json',
-                timeout: const Duration(minutes: 1)),
-      ),
-    );
-
-    final List<AnalysisView> analysisViews =
-        await analyzerClient.getAnalysisViews(packages.map((p) =>
-            p == null ? null : new AnalysisKey(p.name, p.latestVersion)));
-
-    final pubDataContents = await pubDataFutures;
-
-    final List<PackageDocument> results = new List(packages.length);
-    for (int i = 0; i < packages.length; i++) {
-      final Package p = packages[i];
-      if (p == null) continue;
-      final PackageVersion pv = versions[p.name];
-      if (pv == null) continue;
-
-      final analysisView = analysisViews[i];
-      final double popularity = popularityStorage.lookup(pv.package) ?? 0.0;
-
-      final String pubDataContent = pubDataContents[i];
-      List<ApiDocPage> apiDocPages;
-      if (pubDataContent != null) {
-        try {
-          if (pubDataContent.isEmpty) {
-            _logger.info('Got empty pub-data.json for package ${p.name}.');
-          } else {
-            apiDocPages = _apiDocPagesFromPubDataText(pubDataContent);
-          }
-        } catch (e, st) {
-          _logger.severe('Parsing pub-data.json failed.', e, st);
-        }
-      }
-
-      results[i] = new PackageDocument(
-        package: pv.package,
-        version: p.latestVersion,
-        devVersion: p.latestDevVersion,
-        platforms: analysisView.platforms,
-        description: compactDescription(pv.pubspec.description),
-        created: p.created,
-        updated: pv.created,
-        readme: compactReadme(pv.readmeContent),
-        isDiscontinued: p.isDiscontinued ?? false,
-        doNotAdvertise: p.doNotAdvertise ?? false,
-        supportsOnlyLegacySdk: pv.pubspec.supportsOnlyLegacySdk,
-        health: analysisView.health,
-        popularity: popularity,
-        maintenance: analysisView.maintenanceScore,
-        dependencies: _buildDependencies(analysisView),
-        emails: _buildEmails(p, pv),
-        apiDocPages: apiDocPages,
-        timestamp: new DateTime.now().toUtc(),
-      );
+  /// returns with null.
+  Future<PackageDocument> loadDocument(String packageName) async {
+    final packageKey = _db.emptyKey.append(Package, id: packageName);
+    final p = (await _db.lookup<Package>([packageKey])).single;
+    if (p == null || p.isDiscontinued == true) {
+      return null;
     }
-    return results;
+
+    final pv = (await _db.lookup<PackageVersion>([p.latestVersionKey])).single;
+    if (pv == null) {
+      return null;
+    }
+
+    final analysisView = await analyzerClient
+        .getAnalysisView(AnalysisKey(packageName, pv.version));
+
+    final pubDataContent = await dartdocClient.getTextContent(
+        packageName, 'latest', 'pub-data.json',
+        timeout: const Duration(minutes: 1));
+
+    List<ApiDocPage> apiDocPages;
+    try {
+      if (pubDataContent == null || pubDataContent.isEmpty) {
+        _logger.info('Got empty pub-data.json for package $packageName.');
+      } else {
+        apiDocPages = _apiDocPagesFromPubDataText(pubDataContent);
+      }
+    } catch (e, st) {
+      _logger.severe('Parsing pub-data.json failed.', e, st);
+    }
+
+    final double popularity = popularityStorage.lookup(packageName) ?? 0.0;
+
+    return PackageDocument(
+      package: pv.package,
+      version: p.latestVersion,
+      devVersion: p.latestDevVersion,
+      platforms: analysisView.platforms,
+      description: compactDescription(pv.pubspec.description),
+      created: p.created,
+      updated: pv.created,
+      readme: compactReadme(pv.readmeContent),
+      isDiscontinued: p.isDiscontinued ?? false,
+      doNotAdvertise: p.doNotAdvertise ?? false,
+      supportsOnlyLegacySdk: pv.pubspec.supportsOnlyLegacySdk,
+      health: analysisView.health,
+      popularity: popularity,
+      maintenance: analysisView.maintenanceScore,
+      dependencies: _buildDependencies(analysisView),
+      emails: _buildEmails(p, pv),
+      apiDocPages: apiDocPages,
+      timestamp: new DateTime.now().toUtc(),
+    );
   }
 
   Map<String, String> _buildDependencies(AnalysisView view) {

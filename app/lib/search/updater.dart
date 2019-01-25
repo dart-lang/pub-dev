@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import '../shared/search_service.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
@@ -28,9 +27,6 @@ class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
 }
 
 class BatchIndexUpdater implements TaskRunner {
-  final List<Task> _batch = [];
-  Timer _batchUpdateTimer;
-  Future _ongoingBatchUpdate;
   int _taskCount = 0;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = new DateTime.now();
@@ -78,75 +74,25 @@ class BatchIndexUpdater implements TaskRunner {
 
   @override
   Future runTask(Task task) async {
-    while (_ongoingBatchUpdate != null) {
-      await _ongoingBatchUpdate;
-    }
-    _batch.add(task);
-    if (_batch.length < 5) {
-      _batchUpdateTimer ??= new Timer(const Duration(seconds: 10), () {
-        _updateBatch();
-      });
+    _taskCount++;
+    final doc = await searchBackend.loadDocument(task.package);
+    if (doc == null) {
+      _logger.info('Removing: ${task.package}');
+      _snapshot.remove(task.package);
+      await packageIndex.removePackage(task.package);
     } else {
-      await _updateBatch();
+      _snapshot.add(doc);
+      await packageIndex.addPackage(doc);
+    }
+    if (_firstScanCount != null && _taskCount >= _firstScanCount) {
+      _logger.info('Merging index after $_taskCount updates.');
+      await packageIndex.merge();
+      _logger.info('Merge completed.');
+      await _updateSnapshotIfNeeded();
     }
   }
 
-  Future _updateBatch() async {
-    _batchUpdateTimer?.cancel();
-    _batchUpdateTimer = null;
-
-    while (_ongoingBatchUpdate != null) {
-      await _ongoingBatchUpdate;
-    }
-    if (_batch.isEmpty) return;
-
-    final Timer timer = new Timer(const Duration(minutes: 5), () {
-      _logger.severe('Batch updated failed to complete in 5 minutes.');
-    });
-    final Completer completer = new Completer();
-    _ongoingBatchUpdate = completer.future;
-
-    try {
-      final List<Task> tasks = new List.from(_batch);
-      _batch.clear();
-      _taskCount += tasks.length;
-      _logger.info('Updating index with ${tasks.length} packages '
-          '[${tasks.map((t) => t.package)}]');
-      final List<PackageDocument> docs = (await searchBackend
-              .loadDocuments(tasks.map((t) => t.package).toList()))
-          .where((doc) => doc != null)
-          .toList();
-      _snapshot.addAll(docs);
-      await packageIndex.addPackages(docs);
-      final removedPackages = tasks.map((t) => t.package).toSet()
-        ..removeAll(docs.map((pd) => pd.package));
-      if (removedPackages.isNotEmpty) {
-        _logger.info('Removing: $removedPackages');
-        for (String package in removedPackages) {
-          _snapshot.remove(package);
-          await packageIndex.removePackage(package);
-        }
-      }
-      final bool doMerge =
-          _firstScanCount != null && _taskCount >= _firstScanCount;
-      if (doMerge) {
-        _logger.info('Merging index after $_taskCount updates.');
-        await packageIndex.merge();
-        _logger.info('Merge completed.');
-
-        await _updateSnapshotIfNeeded(docs);
-      }
-    } catch (e, st) {
-      _logger.warning('Index update error.', e, st);
-      rethrow;
-    } finally {
-      completer.complete();
-      _ongoingBatchUpdate = null;
-      timer.cancel();
-    }
-  }
-
-  Future _updateSnapshotIfNeeded(List<PackageDocument> docs) async {
+  Future _updateSnapshotIfNeeded() async {
     final DateTime now = new DateTime.now();
     if (now.difference(_lastSnapshotWrite).inHours > 12) {
       _lastSnapshotWrite = now;
