@@ -8,7 +8,7 @@ dependencies:
     path: ../pkg/_popularity
   simple_cache:
     path: ../pkg/simple_cache
-  appengine: '^0.5.0'
+  appengine: '^0.6.0'
   args: '>=0.13.7 <2.0.0'
   crypto: '^2.0.2'
   gcloud: '^0.6.0'
