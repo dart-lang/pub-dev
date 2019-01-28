@@ -48,9 +48,8 @@ abstract class Cache<T> {
   /// If [ignoreErrors] is `false` (default), errors are logged as warnings
   /// with [logger.warning()] and propagated to the caller.
   ///
-  /// If [ignoreErrors] is `true`, errors are logged are logged as errors with
-  /// [logger.severe()] and ignored, instead calls to `Entry.get` will return
-  /// `null`.
+  /// If [ignoreErrors] is `true`, errors are only logged, no exception is
+  /// thrown, instead calls to `Entry.get` will return `null`.
   ///
   /// Reading and writing to the cache is always logged with [logger.finest()].
   ///
@@ -165,7 +164,7 @@ class _Entry<T, V> implements Entry<T> {
         _logger.warning(() => 'failed to get cache entry for "$_key"', e, st);
         rethrow;
       }
-      _logger.severe(
+      _logger.finest(
         () => 'failed to get cache entry for "$_key", returning "null"',
         e,
         st,
@@ -196,7 +195,7 @@ class _Entry<T, V> implements Entry<T> {
         _logger.warning(() => 'failed to set cache entry for "$_key"', e, st);
         rethrow;
       }
-      _logger.severe(
+      _logger.finest(
           () => 'failed to set cache entry for "$_key", ignoring error', e, st);
     }
     return value;
@@ -211,7 +210,7 @@ class _Entry<T, V> implements Entry<T> {
         _logger.warning(() => 'failed to clear cache entry for "$_key"', e, st);
         rethrow;
       }
-      _logger.severe(
+      _logger.finest(
         () => 'failed to clear cache entry for "$_key", ignoring error',
         e,
         st,
