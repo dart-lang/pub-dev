@@ -220,7 +220,8 @@ class DartdocJobProcessor extends JobProcessor {
       if (isLatestStable) {
         reportIssueWithLatest(job, '$e\n$st');
       }
-      abortLog = 'Dartdoc generation aborted: $e\n\n```\n$st\n```\n';
+      abortLog =
+          'Running `dartdoc` failed with the following output: $e\n\n```\n$st\n```\n';
     } finally {
       await tempDir.delete(recursive: true);
       await toolEnvRef.release();
@@ -239,16 +240,16 @@ class DartdocJobProcessor extends JobProcessor {
               SuggestionCode.dartdocCoverage,
               level,
               'Document public APIs.',
-              '$undocumented out of ${coverage.total} API elements (library, class, field '
-              'or method) have no adequate dartdoc content. Good documentation '
-              'improves code readability and discoverability through search.',
+              '$undocumented out of ${coverage.total} API elements have no dartdoc comment.'
+              'Providing good documentation for libraries, classes, functions, and other API '
+              'elements improves code readability and helps developers find and use your API.',
               score: coverage.penalty),
         );
       }
     } else if (abortLog != null) {
       maintenanceSuggestions.add(Suggestion.error(
         SuggestionCode.dartdocAborted,
-        'Running `dartdoc` failed.',
+        "Make sure `dartdoc` successfully runs on your package's source files.",
         abortLog,
         score: 10.0,
       ));
