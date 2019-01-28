@@ -59,6 +59,10 @@ shelf.Response htmlResponse(String content,
   headers ??= <String, String>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
   headers['x-content-type-options'] = 'nosniff';
+  headers['content-security-policy'] = [
+    "frame-src 'none'",
+    "script-src 'self' https://www.googletagmanager.com/ https://www.google.com/ https://ajax.googleapis.com/",
+  ].join(';');
   return new shelf.Response(status, body: content, headers: headers);
 }
 

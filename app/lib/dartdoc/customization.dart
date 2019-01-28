@@ -138,7 +138,7 @@ class DartdocCustomizer {
     head.insertBefore(gtagScript, firstChild);
     head.insertBefore(new Text('\n  '), firstChild);
     final gtagInit = new Element.tag('script')
-      ..attributes['src'] = '$siteRoot/static/js/gtag.js';
+      ..attributes['src'] = '/static/js/gtag.js';
     head.insertBefore(gtagInit, firstChild);
   }
 
