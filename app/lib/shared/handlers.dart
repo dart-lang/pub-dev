@@ -54,11 +54,30 @@ shelf.Response jsonResponse(
   );
 }
 
+final _contentSecurityPolicyMap = <String, List<String>>{
+  'frame-src': <String>["'self'"],
+  'script-src': <String>[
+    "'self'",
+    "'unsafe-eval'", // dart2js requires it
+    'https://www.googletagmanager.com/',
+    'https://www.google.com/',
+    'https://www.google-analytics.com/',
+    'https://adservice.google.com/',
+    'https://ajax.googleapis.com/',
+  ],
+};
+final _contentSecurityPolicy =
+    _contentSecurityPolicyMap.keys.map<String>((key) {
+  final list = _contentSecurityPolicyMap[key];
+  return '$key ${list.join(' ')}';
+}).join(';');
+
 shelf.Response htmlResponse(String content,
     {int status = 200, Map<String, String> headers}) {
   headers ??= <String, String>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
   headers['x-content-type-options'] = 'nosniff';
+  headers['content-security-policy'] = _contentSecurityPolicy;
   return new shelf.Response(status, body: content, headers: headers);
 }
 
