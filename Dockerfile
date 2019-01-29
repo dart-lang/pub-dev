@@ -14,14 +14,13 @@ RUN apt-mark hold dart &&\
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
 ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 
-ADD pkg /project/pkg
+COPY app /project/app
+COPY pkg /project/pkg
+COPY static /project/static
+COPY third_party /project/third_party
 
 WORKDIR /project/app
-
-ADD static /project/static
-ADD app/pubspec.* /project/app/
 RUN pub get --no-precompile
-ADD app /project/app
 RUN pub get --offline --no-precompile
 
 ## NOTE: Uncomment the following lines for local testing:
