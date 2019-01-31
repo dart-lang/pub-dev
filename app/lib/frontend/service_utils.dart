@@ -11,22 +11,14 @@ import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../account/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/package_memcache.dart';
 import '../shared/redis_cache.dart';
 
 import 'backend.dart';
-import 'oauth2_service.dart';
 import 'search_service.dart';
 import 'upload_signer_service.dart';
-
-void initOAuth2Service() {
-  // The oauth2 service is used for getting an email address from an oauth2
-  // access token (which the pub client sends).
-  final client = new http.Client();
-  registerOAuth2Service(new OAuth2Service(client));
-  registerScopeExitCallback(() async => client.close());
-}
 
 void initSearchService() {
   registerSearchService(new SearchService());
@@ -48,9 +40,9 @@ Future registerLoggedInUserIfPossible(shelf.Request request) async {
     if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
       final accessToken = parts.last.trim();
 
-      final email = await oauth2Service.lookup(accessToken);
-      if (email != null) {
-        registerLoggedInUser(email);
+      final user = await accountBackend.lookupOrCreateUser(accessToken);
+      if (user != null) {
+        registerLoggedInUser(user.email);
       }
     }
   }

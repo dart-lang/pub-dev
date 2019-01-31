@@ -12,12 +12,14 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
-import '../frontend/oauth2_service.dart' show pubAudience;
-
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
 final _retry = RetryOptions();
+
+/// The pub client's OAuth2 identifier.
+final _pubAudience = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
+    'googleusercontent.com';
 
 /// Sets the account backend service.
 void registerAccountBackend(AccountBackend backend) =>
@@ -29,11 +31,10 @@ AccountBackend get accountBackend =>
 
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
+  final _pool = Pool(1);
   final DatastoreDB _db;
   final _defaultAuthProvider =
-      GoogleOauth2AuthProvider('dartlang-pub-1', pubAudience);
-
-  final _pool = Pool(1);
+      GoogleOauth2AuthProvider('dartlang-pub-1', _pubAudience);
 
   AccountBackend(this._db);
 
