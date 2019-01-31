@@ -22,7 +22,7 @@ void registerOAuth2Service(OAuth2Service service) =>
     ss.register(#_oauth2_service, service);
 
 /// The pub client's OAuth2 identifier.
-final _pubAudience = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
+final pubAudience = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
     'googleusercontent.com';
 
 /// A service used for looking up email addresses using an OAuth2 access token.
@@ -38,7 +38,7 @@ class OAuth2Service {
     try {
       final info = await api.tokeninfo(accessToken: accessTokenString);
       if (info != null &&
-          info.audience == _pubAudience &&
+          info.audience == pubAudience &&
           info.expiresIn != null &&
           info.expiresIn > 0 &&
           info.verifiedEmail != null &&
@@ -47,7 +47,7 @@ class OAuth2Service {
           info.email != '') {
         return info.email;
       }
-      if (info != null && info.audience != _pubAudience) {
+      if (info != null && info.audience != pubAudience) {
         _logger.warning('OAuth2 access attempted with invalid audience, '
             'for email: "${info.email}", audience: "${info.audience}"');
       }
