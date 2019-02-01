@@ -67,6 +67,11 @@ jobs:
       script: ./tool/travis.sh test
       env: PKG="pkg/simple_cache"
       dart: "2.1.1-dev.1.0"
+    - stage: smoke_test
+      name: "SDK: 2.1.1-dev.1.0 - DIR: pkg/web_app - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/web_app"
+      dart: "2.1.1-dev.1.0"
 
 stages:
   - smoke_test

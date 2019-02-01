@@ -42,6 +42,10 @@ String _resolveStaticDirPath() {
   return path.join(resolveAppDir(), '../static');
 }
 
+String _resolveWebAppDirPath() {
+  return path.join(resolveAppDir(), '../pkg/web_app');
+}
+
 String _resolveRootDirPath() =>
     Directory(path.join(resolveAppDir(), '../')).resolveSymbolicLinksSync();
 Directory _resolveDir(String relativePath) =>
@@ -162,11 +166,13 @@ class StaticUrls {
 }
 
 Future updateLocalBuiltFiles() async {
-  final staticDir = new Directory(_resolveStaticDirPath());
-  final scriptDart = new File(path.join(staticDir.path, 'js', 'script.dart'));
-  final scriptJs = new File(path.join(staticDir.path, 'js', 'script.dart.js'));
+  final staticDir = Directory(_resolveStaticDirPath());
+  final webAppDir = Directory(_resolveWebAppDirPath());
+  final scriptDart = File(path.join(webAppDir.path, 'lib', 'script.dart'));
+  final scriptJs = File(path.join(staticDir.path, 'js', 'script.dart.js'));
   if (!scriptJs.existsSync() ||
       (scriptJs.lastModifiedSync().isBefore(scriptDart.lastModifiedSync()))) {
+    await scriptJs.parent.create(recursive: true);
     final pr = await runProc(
       'dart2js',
       [
