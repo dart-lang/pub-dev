@@ -40,6 +40,7 @@ class AccountBackend {
 
   Future close() async {
     await _defaultAuthProvider.close();
+    await _pool.close();
   }
 
   Future<User> lookupOrCreateUser(String accessToken) async {
@@ -84,25 +85,22 @@ class AccountBackend {
       return null;
     }
 
-    if (!_pool.isClosed) {
-      // Future not awaited: updating the last accessed field does not need to
-      // block the request serving process.
-      _pool.withResource(() async {
-        _retry.retry(() async {
-          await _db.withTransaction((tx) async {
-            final user = (await _db.lookup<User>([userKey])).single;
-            if (user.lastAccess == null ||
-                user.lastAccess.isBefore(accessTime)) {
-              user.lastAccess = accessTime;
-              tx.queueMutations(inserts: [user]);
-              await tx.commit();
-            } else {
-              await tx.rollback();
-            }
-          });
+    // Future not awaited: updating the last accessed field does not need to
+    // block the request serving process.
+    _pool.withResource(() async {
+      _retry.retry(() async {
+        await _db.withTransaction((tx) async {
+          final user = (await _db.lookup<User>([userKey])).single;
+          if (user.lastAccess == null || user.lastAccess.isBefore(accessTime)) {
+            user.lastAccess = accessTime;
+            tx.queueMutations(inserts: [user]);
+            await tx.commit();
+          } else {
+            await tx.rollback();
+          }
         });
       });
-    }
+    });
 
     return user;
   }
