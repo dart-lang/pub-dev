@@ -24,4 +24,5 @@ key.json
 
 # Ignore pubspec.locks for most packages
 pkg/*/pubspec.lock
+!pkg/pub_dartdoc/pubspec.lock
 !pkg/web_app/pubspec.lock

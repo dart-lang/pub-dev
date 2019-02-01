@@ -19,6 +19,10 @@ COPY pkg /project/pkg
 COPY static /project/static
 COPY third_party /project/third_party
 
+WORKDIR /project/pkg/pub_dartdoc
+RUN pub get --no-precompile
+RUN pub get --offline --no-precompile
+
 WORKDIR /project/pkg/web_app
 RUN pub get --no-precompile
 RUN pub get --offline --no-precompile
