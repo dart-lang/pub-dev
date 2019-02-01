@@ -40,9 +40,8 @@ class User extends db.ExpandoModel {
       this.email = email;
       changed = true;
     }
-    if (emails == null || !emails.contains(email)) {
+    if (!emails.contains(email)) {
       this.email = email;
-      emails ??= <String>[];
       emails.add(email);
     }
 
