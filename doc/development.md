@@ -8,7 +8,11 @@ change any of the associated classes, you can regenerate the code by running
 ## Working with `mono_repo`
 
 The app uses [`mono_repo`](https://pub.dartlang.org/packages/mono_repo) to organize
-multiple packages inside the repository. To use `mono_repo`, first activate it:
+multiple packages inside the repository.
+
+### Setup / activate `mono_repo`
+
+To use `mono_repo`, first activate it:
 
 ````bash
 pub global activate mono_repo
@@ -17,6 +21,12 @@ pub global activate mono_repo
 `mono_repo` has two kinds of configuration files:
 - `mono_repo.yaml` (in the root directory)
 - `mono_pkg.yaml` (in each package directory)
+
+### Update/upgrade dependencies
+
+````bash
+pub global run mono_repo --recursive pub get
+````
 
 ### Creating a new package (or vendoring existing packages)
 
