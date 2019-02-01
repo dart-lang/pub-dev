@@ -43,6 +43,15 @@ class AccountBackend {
     await _pool.close();
   }
 
+  /// Returns the `User` entry that is associated with the [accessToken].
+  ///
+  /// When no entry exists in Datastore, this method will create a new one.
+  ///
+  /// When the authenticated e-mail of the user changes, the email field will
+  /// be updated to the latest one, and the `historicalEmails` field contains
+  /// all of the earlier and current values.
+  ///
+  /// The method returns null if the access token is invalid.
   Future<User> lookupOrCreateUser(String accessToken) async {
     final auth = await _defaultAuthProvider.tryAuthenticate(accessToken);
     if (auth == null) {
@@ -116,10 +125,18 @@ class AuthResult {
   String get compositeId => '$provider:$userId';
 }
 
+/// Authenticates access tokens.
 abstract class AuthProvider {
+  /// The unique identifier of the provider, which will be part of the Datastore key.
   String get name;
 
+  /// Checks the [accessToken] and returns a verified user information.
+  ///
+  /// Returns null on any error, or if the token is expired, or the user is not
+  /// verified,
   Future<AuthResult> tryAuthenticate(String accessToken);
+
+  /// Close resources.
   Future close();
 }
 
