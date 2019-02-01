@@ -19,7 +19,7 @@ class User extends db.ExpandoModel {
   String email;
 
   @db.StringListProperty()
-  List<String> emails = <String>[];
+  List<String> historicalEmails = <String>[];
 
   @db.BoolProperty()
   bool hideEmail = false;
@@ -33,22 +33,13 @@ class User extends db.ExpandoModel {
   @db.DateTimeProperty()
   DateTime lastAccess;
 
-  bool updateEmail(String email) {
-    bool changed = false;
-
+  void updateEmail(String email) {
     if (this.email != email) {
       this.email = email;
-      changed = true;
     }
-    if (!emails.contains(email)) {
-      this.email = email;
-      emails.add(email);
+    if (!historicalEmails.contains(email)) {
+      historicalEmails.add(email);
     }
-
-    if (changed) {
-      updated = DateTime.now().toUtc();
-    }
-    return changed;
   }
 }
 
