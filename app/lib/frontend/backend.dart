@@ -450,8 +450,9 @@ class GCloudPackageRepository extends PackageRepository {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
-    final models.PackageVersion newVersion =
+    final validatedUpload =
         await _parseAndValidateUpload(db, filename, userEmail);
+    final newVersion = validatedUpload.packageVersion;
 
     models.Package package;
 
@@ -508,7 +509,12 @@ class GCloudPackageRepository extends PackageRepository {
         // Apply update: Push to cloud storage
         await tarballUpload(package.name, newVersion.version);
 
-        final inserts = <Model>[package, newVersion];
+        final inserts = <Model>[
+          package,
+          newVersion,
+          validatedUpload.packageVersionPubspec,
+          validatedUpload.packageVersionInfo,
+        ];
         if (historyBackend.isEnabled) {
           final history = new History.entry(new PackageUploaded(
             packageName: newVersion.package,
@@ -886,6 +892,18 @@ models.Package _newPackageFromVersion(
     ..uploaderEmails = [_loggedInUser];
 }
 
+class _ValidatedUpload {
+  final models.PackageVersion packageVersion;
+  final models.PackageVersionPubspec packageVersionPubspec;
+  final models.PackageVersionInfo packageVersionInfo;
+
+  _ValidatedUpload(
+    this.packageVersion,
+    this.packageVersionPubspec,
+    this.packageVersionInfo,
+  );
+}
+
 /// Parses metadata from a tarball and & validates it.
 ///
 /// This function ensures that `tarball`
@@ -893,7 +911,7 @@ models.Package _newPackageFromVersion(
 ///   * contains a valid `pubspec.yaml` file
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
-Future<models.PackageVersion> _parseAndValidateUpload(
+Future<_ValidatedUpload> _parseAndValidateUpload(
     DatastoreDB db, String filename, String user) async {
   assert(user != null);
 
@@ -982,6 +1000,9 @@ Future<models.PackageVersion> _parseAndValidateUpload(
 
   final versionString = canonicalizeVersion(pubspec.version);
 
+  final key = models.QualifiedVersionKey(
+      namespace: null, package: pubspec.name, version: versionString);
+
   final version = new models.PackageVersion()
     ..id = versionString
     ..parentKey = packageKey
@@ -999,7 +1020,25 @@ Future<models.PackageVersion> _parseAndValidateUpload(
     ..downloads = 0
     ..sortOrder = 1
     ..uploaderEmail = user;
-  return version;
+
+  final versionPubspec = models.PackageVersionPubspec()
+    ..initFromKey(key)
+    ..updated = version.created
+    ..pubspec = pubspec;
+
+  final versionInfo = models.PackageVersionInfo()
+    ..initFromKey(key)
+    ..updated = version.created
+    ..readmeFilename = readmeFilename
+    ..readmeContent = readmeContent
+    ..changelogFilename = changelogFilename
+    ..changelogContent = changelogContent
+    ..exampleFilename = exampleFilename
+    ..exampleContent = exampleContent
+    ..libraries = libraries
+    ..libraryCount = libraries.length;
+
+  return _ValidatedUpload(version, versionPubspec, versionInfo);
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing
