@@ -46,9 +46,11 @@ class ScoreCardBackend {
     String packageName,
     String packageVersion, {
     @required bool onlyCurrent,
-    List<String> requiredReportTypes,
   }) async {
-    requiredReportTypes ??= const <String>[ReportType.pana, ReportType.dartdoc];
+    final requiredReportTypes = const <String>[
+      ReportType.pana,
+      ReportType.dartdoc,
+    ];
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
       final ps = await _db.lookup([key]);
