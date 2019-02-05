@@ -9,7 +9,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:pool/pool.dart';
 import 'package:retry/retry.dart';
 
 import 'models.dart';
@@ -31,7 +30,6 @@ AccountBackend get accountBackend =>
 
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
-  final _pool = Pool(1);
   final DatastoreDB _db;
   final _defaultAuthProvider =
       GoogleOauth2AuthProvider('dartlang-pub-1', _pubAudience);
@@ -40,7 +38,6 @@ class AccountBackend {
 
   Future close() async {
     await _defaultAuthProvider.close();
-    await _pool.close();
   }
 
   /// Returns the `User` entry that is associated with the [accessToken].
@@ -61,7 +58,7 @@ class AccountBackend {
     final userKey = _db.emptyKey.append(User, id: compositeId);
 
     final accessTime = DateTime.now().toUtc();
-    final user = await _retry.retry(() async {
+    return await _retry.retry(() async {
       User user = (await _db.lookup<User>([userKey])).single;
       if (user == null) {
         // create user
@@ -88,29 +85,6 @@ class AccountBackend {
       }
       return user;
     });
-
-    if (user == null) {
-      return null;
-    }
-
-    // Future not awaited: updating the last accessed field does not need to
-    // block the request serving process.
-    _pool.withResource(() async {
-      _retry.retry(() async {
-        await _db.withTransaction((tx) async {
-          final user = (await _db.lookup<User>([userKey])).single;
-          if (user.lastAccess == null || user.lastAccess.isBefore(accessTime)) {
-            user.lastAccess = accessTime;
-            tx.queueMutations(inserts: [user]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
-          }
-        });
-      });
-    });
-
-    return user;
   }
 }
 

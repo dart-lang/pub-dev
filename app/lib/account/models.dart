@@ -26,9 +26,6 @@ class User extends db.ExpandoModel {
 
   @db.DateTimeProperty()
   DateTime updated;
-
-  @db.DateTimeProperty()
-  DateTime lastAccess;
 }
 
 /// Derived data for [User] for fast lookup.
