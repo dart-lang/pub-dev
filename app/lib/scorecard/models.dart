@@ -332,6 +332,13 @@ class ScoreCardData extends Object with FlagMixin {
     map['overallScore'] = overallScore;
     return map;
   }
+
+  /// Whether the data has all the required report types.
+  bool hasReports(List<String> requiredTypes) {
+    if (requiredTypes == null || requiredTypes.isEmpty) return true;
+    if (reportTypes == null || reportTypes.isEmpty) return false;
+    return requiredTypes.every(reportTypes.contains);
+  }
 }
 
 abstract class ReportData {

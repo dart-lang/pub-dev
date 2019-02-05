@@ -46,7 +46,9 @@ class ScoreCardBackend {
     String packageName,
     String packageVersion, {
     @required bool onlyCurrent,
+    List<String> requiredReportTypes,
   }) async {
+    requiredReportTypes ??= const <String>[ReportType.pana, ReportType.dartdoc];
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
       final ps = await _db.lookup([key]);
@@ -59,7 +61,7 @@ class ScoreCardBackend {
     final cached = await scoreCardMemcache.getScoreCardData(
         packageName, packageVersion, versions.runtimeVersion,
         onlyCurrent: onlyCurrent);
-    if (cached != null) {
+    if (cached != null && cached.hasReports(requiredReportTypes)) {
       return cached;
     }
 
@@ -67,8 +69,10 @@ class ScoreCardBackend {
     final currentList = await _db.lookup([key]);
     if (currentList.first != null) {
       final data = (currentList.first as ScoreCard).toData();
-      await scoreCardMemcache.setScoreCardData(data);
-      return data;
+      if (data.hasReports(requiredReportTypes)) {
+        await scoreCardMemcache.setScoreCardData(data);
+        return data;
+      }
     }
 
     if (onlyCurrent) {
@@ -80,6 +84,7 @@ class ScoreCardBackend {
         .run()
         .where((sc) =>
             isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
+        .where((sc) => sc.toData().hasReports(requiredReportTypes))
         .toList();
     if (all.isEmpty) {
       return null;
