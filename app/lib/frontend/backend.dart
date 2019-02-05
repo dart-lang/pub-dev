@@ -30,6 +30,9 @@ import 'upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub.cloud_repository');
 final _random = new Random.secure();
+// The maximum stored length of `README.md` and other user-provided file content
+// that is stored separately in the database.
+final _maxStoredLength = 128 * 1024;
 
 /// Sets the active logged-in user.
 void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
@@ -982,13 +985,16 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   }
 
   final readmeContent = readmeFilename != null
-      ? await readTarballFile(filename, readmeFilename)
+      ? await readTarballFile(filename, readmeFilename,
+          maxLength: _maxStoredLength)
       : null;
   final changelogContent = changelogFilename != null
-      ? await readTarballFile(filename, changelogFilename)
+      ? await readTarballFile(filename, changelogFilename,
+          maxLength: _maxStoredLength)
       : null;
   String exampleContent = exampleFilename != null
-      ? await readTarballFile(filename, exampleFilename)
+      ? await readTarballFile(filename, exampleFilename,
+          maxLength: _maxStoredLength)
       : null;
 
   if (exampleContent != null && exampleContent.trim().isEmpty) {

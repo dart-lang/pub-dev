@@ -68,7 +68,8 @@ Future<List<String>> listTarball(String path) async {
       .toList();
 }
 
-Future<String> readTarballFile(String path, String name) async {
+Future<String> readTarballFile(String path, String name,
+    {int maxLength = 0}) async {
   final result = await Process.run(
     'tar',
     ['-O', '-xzf', path, name],
@@ -77,8 +78,11 @@ Future<String> readTarballFile(String path, String name) async {
   if (result.exitCode != 0) {
     throw new Exception('Failed to read tarball contents.');
   }
-
-  return result.stdout as String;
+  String content = result.stdout as String;
+  if (maxLength > 0 && content.length > maxLength) {
+    content = content.substring(0, maxLength) + '[...]\n\n';
+  }
+  return content;
 }
 
 String canonicalizeVersion(String version) {
