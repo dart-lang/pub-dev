@@ -54,8 +54,27 @@ shelf.Response jsonResponse(
   );
 }
 
+final _none = <String>["'none'"];
+final _self = <String>["'self'"];
+
 final _contentSecurityPolicyMap = <String, List<String>>{
-  'frame-src': <String>["'self'"],
+  'child-src': _none,
+  'connect-src': _self,
+  'default-src': _none,
+  'frame-src': _self,
+  'font-src': <String>[
+    "'self'",
+    'https://fonts.googleapis.com/',
+    'https://fonts.gstatic.com/',
+  ],
+  'img-src': <String>[
+    "'self'",
+    'https:',
+    'data:',
+  ],
+  'manifest-src': _none,
+  'media-src': _none,
+  'object-src': _none,
   'script-src': <String>[
     "'self'",
     "'unsafe-eval'", // dart2js requires it
@@ -65,6 +84,12 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
   ],
+  'style-src': <String>[
+    "'self'",
+    "'unsafe-inline'", // package page (esp. analysis tab) required is
+    'https://fonts.googleapis.com/',
+  ],
+  'worker-src': _none,
 };
 final _contentSecurityPolicy =
     _contentSecurityPolicyMap.keys.map<String>((key) {
