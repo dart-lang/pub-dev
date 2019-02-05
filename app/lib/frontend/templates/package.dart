@@ -285,9 +285,9 @@ String renderPkgShowPage(
     PackageVersion latestStableVersion,
     PackageVersion latestDevVersion,
     int totalNumberOfVersions,
-    ScoreCardData card,
     AnalysisView analysis) {
   assert(versions.length == versionDownloadUrls.length);
+  final card = analysis?.card;
   final int platformCount = card?.platformTags?.length ?? 0;
   final String singlePlatform =
       platformCount == 1 ? card.platformTags.single : null;

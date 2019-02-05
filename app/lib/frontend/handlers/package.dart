@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../scorecard/backend.dart';
 import '../../shared/analyzer_client.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
@@ -151,9 +150,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     final Stopwatch serviceSw = new Stopwatch()..start();
     final analysisKey =
         new AnalysisKey(selectedVersion.package, selectedVersion.version);
-    final card = await scoreCardBackend.getScoreCardData(
-        analysisKey.package, analysisKey.version,
-        onlyCurrent: false);
     final AnalysisView analysisView =
         await analyzerClient.getAnalysisView(analysisKey);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
@@ -173,7 +169,6 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         latestStable,
         latestDev,
         versions.length,
-        card,
         analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
