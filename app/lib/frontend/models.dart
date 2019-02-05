@@ -7,6 +7,7 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../scorecard/models.dart';
@@ -219,6 +220,133 @@ class PackageVersion extends db.ExpandoModel {
       issueTrackerUrl: pubspec.issueTracker,
     );
   }
+}
+
+/// An derived entity that holds only the `pubspec.yaml` content of [PackageVersion].
+///
+/// The content of `pubspec.yaml` may be updated/cleaned in case of a breaking
+/// change was introduced since the [PackageVersion] was published.
+@db.Kind(name: 'PackageVersionPubspec', idType: db.IdType.String)
+class PackageVersionPubspec extends db.ExpandoModel {
+  @db.StringProperty(required: true)
+  String namespace;
+
+  @db.StringProperty(required: true)
+  String package;
+
+  @db.StringProperty(required: true)
+  String qualifiedPackage;
+
+  @db.StringProperty(required: true)
+  String version;
+
+  @db.DateTimeProperty()
+  DateTime updated;
+
+  @PubspecProperty(required: true)
+  Pubspec pubspec;
+
+  PackageVersionPubspec();
+
+  void initFromKey(QualifiedVersionKey key) {
+    id = key.qualifiedVersion;
+    namespace = key.namespace;
+    package = key.package;
+    qualifiedPackage = key.qualifiedPackage;
+    version = key.version;
+  }
+}
+
+/// An derived entity that holds derived/cleaned content of [PackageVersion].
+@db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)
+class PackageVersionInfo extends db.ExpandoModel {
+  @db.StringProperty(required: true)
+  String namespace;
+
+  @db.StringProperty(required: true)
+  String package;
+
+  @db.StringProperty(required: true)
+  String qualifiedPackage;
+
+  @db.StringProperty(required: true)
+  String version;
+
+  @db.DateTimeProperty()
+  DateTime updated;
+
+  @db.StringProperty(indexed: false)
+  String readmeFilename;
+
+  @db.StringProperty(indexed: false)
+  String readmeContent;
+
+  FileObject get readme {
+    if (readmeFilename != null) {
+      return new FileObject(readmeFilename, readmeContent);
+    }
+    return null;
+  }
+
+  @db.StringProperty(indexed: false)
+  String changelogFilename;
+
+  @db.StringProperty(indexed: false)
+  String changelogContent;
+
+  FileObject get changelog {
+    if (changelogFilename != null) {
+      return new FileObject(changelogFilename, changelogContent);
+    }
+    return null;
+  }
+
+  @db.StringProperty(indexed: false)
+  String exampleFilename;
+
+  @db.StringProperty(indexed: false)
+  String exampleContent;
+
+  FileObject get example {
+    if (exampleFilename != null) {
+      return new FileObject(exampleFilename, exampleContent);
+    }
+    return null;
+  }
+
+  @CompatibleStringListProperty()
+  List<String> libraries;
+
+  @db.IntProperty()
+  int libraryCount;
+
+  PackageVersionInfo();
+
+  void initFromKey(QualifiedVersionKey key) {
+    id = key.qualifiedVersion;
+    namespace = key.namespace;
+    package = key.package;
+    qualifiedPackage = key.qualifiedPackage;
+    version = key.version;
+  }
+}
+
+/// An identifier to point to a specific [namespace], [package] and [version].
+class QualifiedVersionKey {
+  final String namespace;
+  final String package;
+  final String version;
+
+  QualifiedVersionKey({
+    @required this.namespace,
+    @required this.package,
+    @required this.version,
+  });
+
+  String get qualifiedPackage =>
+      namespace == null ? package : '$namespace:$package';
+
+  String get qualifiedVersion => '$qualifiedPackage-$version';
 }
 
 /// A secret value stored in Datastore, typically an access credential used by

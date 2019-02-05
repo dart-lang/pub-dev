@@ -635,10 +635,12 @@ void main() {
       final dateBeforeTest = new DateTime.now().toUtc();
 
       void validateSuccessfullUpdate(List<Model> inserts) {
-        expect(inserts, hasLength(3));
+        expect(inserts, hasLength(5));
         final package = inserts[0] as Package;
         final version = inserts[1] as PackageVersion;
-        final history = inserts[2] as History;
+        final versionPubspec = inserts[2] as PackageVersionPubspec;
+        final versionInfo = inserts[3] as PackageVersionInfo;
+        final history = inserts[4] as History;
 
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);
@@ -657,8 +659,28 @@ void main() {
         expect(version.pubspec.asJson, loadYaml(testPackagePubspec));
         expect(version.libraries, ['test_library.dart']);
         expect(version.downloads, 0);
-
         expect(version.sortOrder, 1);
+
+        expect(versionPubspec.id, 'foobar_pkg-0.1.1+5');
+        expect(versionPubspec.namespace, isNull);
+        expect(versionPubspec.package, testPackage.name);
+        expect(versionPubspec.qualifiedPackage, testPackage.name);
+        expect(versionPubspec.version, testPackageVersion.version);
+        expect(versionPubspec.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+        expect(versionPubspec.pubspec.asJson, loadYaml(testPackagePubspec));
+
+        expect(versionInfo.id, 'foobar_pkg-0.1.1+5');
+        expect(versionInfo.namespace, isNull);
+        expect(versionInfo.package, testPackage.name);
+        expect(versionInfo.qualifiedPackage, testPackage.name);
+        expect(versionInfo.version, testPackageVersion.version);
+        expect(versionInfo.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+        expect(versionInfo.readmeFilename, 'README.md');
+        expect(versionInfo.readmeContent, testPackageReadme);
+        expect(versionInfo.changelogFilename, 'CHANGELOG.md');
+        expect(versionInfo.changelogContent, testPackageChangelog);
+        expect(versionInfo.libraries, ['test_library.dart']);
+        expect(versionInfo.libraryCount, 1);
 
         expect(history.packageName, testPackage.name);
         expect(history.packageVersion, testPackageVersion.version);
