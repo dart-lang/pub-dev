@@ -71,7 +71,6 @@ class AccountBackend {
           ..authProvider = auth.provider
           ..authUserId = auth.userId
           ..email = auth.email
-          ..historicalEmails = <String>[auth.email]
           ..created = accessTime
           ..updated = accessTime;
         _db.commit(inserts: [user]);
@@ -80,7 +79,7 @@ class AccountBackend {
         if (user.email != auth.email) {
           await _db.withTransaction((tx) async {
             user = (await _db.lookup<User>([userKey])).single;
-            user.updateEmail(auth.email);
+            user.email = auth.email;
             user.updated = accessTime;
             tx.queueMutations(inserts: [user]);
             await tx.commit();
