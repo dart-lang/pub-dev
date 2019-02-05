@@ -12,7 +12,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 
-import 'package:pub_dartlang_org/analyzer/models.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -109,25 +108,6 @@ Future removePackage(String packageName) async {
     final List<Version> versionNames =
         versions.map((v) => v.semanticVersion).toList();
     deletes.addAll(versions.map((v) => v.key));
-
-    final packageAnalysisKey =
-        dbService.emptyKey.append(PackageAnalysis, id: packageName);
-    final packageAnalysis = (await T.lookup([packageAnalysisKey])).first;
-    if (packageAnalysis == null) {
-      print('Analysis for $packageName does not exist?');
-    }
-    final pvaQuery = T.query<PackageVersionAnalysis>(packageAnalysisKey);
-    final pvas = await pvaQuery.run().toList();
-
-    deletes.add(packageAnalysisKey);
-    deletes.addAll(pvas.map((v) => v.key));
-
-    for (final pva in pvas) {
-      final analysisQuery = T.query<Analysis>(
-          packageAnalysisKey.append(PackageVersionAnalysis, id: pva.id));
-      final as = await analysisQuery.run().toList();
-      deletes.addAll(as.map((a) => a.key));
-    }
 
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
     final storage = new TarballStorage(storageService, bucket, '');
