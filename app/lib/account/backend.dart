@@ -31,8 +31,7 @@ AccountBackend get accountBackend =>
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
-  final _defaultAuthProvider =
-      GoogleOauth2AuthProvider('dartlang-pub-1', _pubAudience);
+  final _defaultAuthProvider = GoogleOauth2AuthProvider(_pubAudience);
 
   AccountBackend(this._db);
 
@@ -54,8 +53,7 @@ class AccountBackend {
     if (auth == null) {
       return null;
     }
-    final compositeId = auth.compositeId;
-    final userKey = _db.emptyKey.append(User, id: compositeId);
+    final userKey = _db.emptyKey.append(User, id: auth.userId);
 
     final accessTime = DateTime.now().toUtc();
     return await _retry.retry(() async {
@@ -64,9 +62,7 @@ class AccountBackend {
         // create user
         user = User()
           ..parentKey = _db.emptyKey
-          ..id = compositeId
-          ..authProvider = auth.provider
-          ..authUserId = auth.userId
+          ..id = auth.userId
           ..email = auth.email
           ..created = accessTime
           ..updated = accessTime;
@@ -89,20 +85,14 @@ class AccountBackend {
 }
 
 class AuthResult {
-  final String provider;
   final String userId;
   final String email;
 
-  AuthResult(this.provider, this.userId, this.email);
-
-  String get compositeId => '$provider:$userId';
+  AuthResult(this.userId, this.email);
 }
 
 /// Authenticates access tokens.
 abstract class AuthProvider {
-  /// The unique identifier of the provider, which will be part of the Datastore key.
-  String get name;
-
   /// Checks the [accessToken] and returns a verified user information.
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
@@ -114,13 +104,11 @@ abstract class AuthProvider {
 }
 
 class GoogleOauth2AuthProvider extends AuthProvider {
-  @override
-  final String name;
   final String _audience;
   http.Client _httpClient;
   oauth2_v2.Oauth2Api _oauthApi;
 
-  GoogleOauth2AuthProvider(this.name, this._audience) {
+  GoogleOauth2AuthProvider(this._audience) {
     _httpClient = http.Client();
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
   }
@@ -152,7 +140,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      return AuthResult(name, info.userId, info.email);
+      return AuthResult(info.userId, info.email);
     } on oauth2_v2.ApiRequestError catch (e) {
       _logger.info('Access denied for OAuth2 access token.', e);
     } catch (e, st) {

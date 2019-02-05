@@ -10,12 +10,6 @@ class User extends db.ExpandoModel {
   String get userId => id as String;
 
   @db.StringProperty()
-  String authProvider;
-
-  @db.StringProperty()
-  String authUserId;
-
-  @db.StringProperty()
   String email;
 
   @db.BoolProperty()
