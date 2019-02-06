@@ -10,6 +10,9 @@ class User extends db.ExpandoModel {
   String get userId => id as String;
 
   @db.StringProperty()
+  String oauthUserId;
+
+  @db.StringProperty()
   String email;
 
   @db.BoolProperty()
@@ -17,6 +20,17 @@ class User extends db.ExpandoModel {
 
   @db.DateTimeProperty()
   DateTime created;
+}
+
+/// Maps Oauth user_id to User.id
+@db.Kind(name: 'OAuthUserID', idType: db.IdType.String)
+class OAuthUserID extends db.ExpandoModel {
+  String get oauthUserId => id as String;
+
+  @db.ModelKeyProperty(required: true)
+  db.Key userIdKey;
+
+  String get userId => userIdKey.id as String;
 }
 
 /// Derived data for [User] for fast lookup.

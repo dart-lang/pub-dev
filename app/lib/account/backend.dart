@@ -10,6 +10,7 @@ import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
+import 'package:uuid/uuid.dart';
 
 import '../frontend/models.dart' show PackageVersion;
 
@@ -17,6 +18,7 @@ import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
 final _retry = RetryOptions();
+final _uuid = Uuid();
 
 /// The pub client's OAuth2 identifier.
 final _pubAudience = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
@@ -41,54 +43,81 @@ class AccountBackend {
     await _defaultAuthProvider.close();
   }
 
+  /// Returns the `User` entry for the [userId] or null if it does not exists.
+  Future<User> lookupUserById(String userId) async {
+    final key = _db.emptyKey.append(User, id: userId);
+    return (await _db.lookup<User>([key])).single;
+  }
+
   /// Returns the `User` entry that is associated with the [accessToken].
   ///
   /// When no entry exists in Datastore, this method will create a new one.
   ///
   /// When the authenticated e-mail of the user changes, the email field will
-  /// be updated to the latest one, and the `historicalEmails` field contains
-  /// all of the earlier and current values.
+  /// be updated to the latest one.
   ///
   /// The method returns null if the access token is invalid.
-  Future<User> lookupOrCreateUser(String accessToken) async {
+  Future<User> authenticateWithAccessToken(String accessToken) async {
     final auth = await _defaultAuthProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       return null;
     }
-    final userKey = _db.emptyKey.append(User, id: auth.userId);
+    return await _lookupOrCreateUserByOauthUserId(auth);
+  }
 
-    return await _retry.retry(() async {
-      User user = (await _db.lookup<User>([userKey])).single;
-      if (user == null) {
-        // Query the first use of the e-mail address.
-        DateTime created = DateTime.now().toUtc();
-        final uploadedVersions = _db.query<PackageVersion>()
-          ..filter('uploaderEmail =', auth.email);
-        await for (var version in uploadedVersions.run()) {
-          if (created.isAfter(version.created)) {
-            created = version.created;
-          }
+  Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+    final mappingKey = _db.emptyKey.append(User, id: auth.userId);
+
+    final user = await _retry.retry(() async {
+      // Check existing mapping.
+      final mapping = (await _db.lookup<OAuthUserID>([mappingKey])).single;
+      if (mapping != null) {
+        final user = (await _db.lookup<User>([mapping.userIdKey])).single;
+        // TODO: we should probably have some kind of consistency mitigation
+        if (user == null) {
+          throw StateError('Incomplete OAuth userId mapping.');
         }
-        // create user
-        user = User()
-          ..parentKey = _db.emptyKey
-          ..id = auth.userId
-          ..email = auth.email
-          ..created = created;
-        _db.commit(inserts: [user]);
-      } else {
-        // update user if e-mail has been changed
-        if (user.email != auth.email) {
-          await _db.withTransaction((tx) async {
-            user = (await _db.lookup<User>([userKey])).single;
-            user.email = auth.email;
-            tx.queueMutations(inserts: [user]);
-            await tx.commit();
-          });
+        return user;
+      }
+
+      // Query the first use of the e-mail address.
+      DateTime created = DateTime.now().toUtc();
+      final uploadedVersions = _db.query<PackageVersion>()
+        ..filter('uploaderEmail =', auth.email);
+      await for (var version in uploadedVersions.run()) {
+        if (created.isAfter(version.created)) {
+          created = version.created;
         }
       }
-      return user;
+
+      final newUser = User()
+        ..parentKey = _db.emptyKey
+        ..id = _uuid.v4().toString()
+        ..oauthUserId = auth.userId
+        ..email = auth.email
+        ..created = created;
+
+      final newMapping = OAuthUserID()
+        ..parentKey = _db.emptyKey
+        ..id = auth.userId
+        ..userIdKey = newUser.key;
+
+      await _db.commit(inserts: [newUser, newMapping]);
+      return newUser;
     });
+
+    // update user if e-mail has been changed
+    if (user.email != auth.email) {
+      return await _db.withTransaction((tx) async {
+        final u = (await _db.lookup<User>([user.key])).single;
+        u.email = auth.email;
+        tx.queueMutations(inserts: [u]);
+        await tx.commit();
+        return u;
+      }) as User;
+    }
+
+    return user;
   }
 }
 

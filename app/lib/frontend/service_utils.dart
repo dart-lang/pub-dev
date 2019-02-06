@@ -40,7 +40,7 @@ Future registerLoggedInUserIfPossible(shelf.Request request) async {
     if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
       final accessToken = parts.last.trim();
 
-      final user = await accountBackend.lookupOrCreateUser(accessToken);
+      final user = await accountBackend.authenticateWithAccessToken(accessToken);
       if (user != null) {
         registerLoggedInUser(user.email);
       }
