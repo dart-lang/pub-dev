@@ -283,10 +283,10 @@ String renderPkgShowPage(
     'has_no_file_tab': tabs.isEmpty,
     'version_count': '$totalNumberOfVersions',
     'icons': staticUrls.versionsTableIcons,
+    'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
+    'install_tab_html': _renderInstallTab(
+        package, selectedVersion, isFlutterPackage, analysis?.platforms),
   };
-  values['search_deps_link'] = urls.searchUrl(q: 'dependency:${package.name}');
-  values['install_tab_html'] = _renderInstallTab(
-      package, selectedVersion, isFlutterPackage, analysis?.platforms);
   final content = templateCache.renderTemplate('pkg/show', values);
   final packageAndVersion = isVersionPage
       ? '${selectedVersion.package} ${selectedVersion.version}'
