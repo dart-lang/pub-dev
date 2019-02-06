@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
 
+import '../frontend/models.dart' show PackageVersion;
+
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
@@ -55,16 +57,24 @@ class AccountBackend {
     }
     final userKey = _db.emptyKey.append(User, id: auth.userId);
 
-    final accessTime = DateTime.now().toUtc();
     return await _retry.retry(() async {
       User user = (await _db.lookup<User>([userKey])).single;
       if (user == null) {
+        // Query the first use of the e-mail address.
+        DateTime created = DateTime.now().toUtc();
+        final uploadedVersions = _db.query<PackageVersion>()
+          ..filter('uploaderEmail =', auth.email);
+        await for (var version in uploadedVersions.run()) {
+          if (created.isAfter(version.created)) {
+            created = version.created;
+          }
+        }
         // create user
         user = User()
           ..parentKey = _db.emptyKey
           ..id = auth.userId
           ..email = auth.email
-          ..created = accessTime;
+          ..created = created;
         _db.commit(inserts: [user]);
       } else {
         // update user if e-mail has been changed
