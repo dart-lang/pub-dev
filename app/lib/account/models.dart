@@ -15,9 +15,6 @@ class User extends db.ExpandoModel {
   @db.StringProperty()
   String email;
 
-  @db.BoolProperty()
-  bool hideEmail = false;
-
   @db.DateTimeProperty()
   DateTime created;
 }
