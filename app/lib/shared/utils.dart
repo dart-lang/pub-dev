@@ -68,6 +68,10 @@ Future<List<String>> listTarball(String path) async {
       .toList();
 }
 
+/// Reads a text content of [name] from the tar.gz file identified by [path].
+///
+/// When [maxLength] is specified, the text content is cut at [maxLength]
+/// characters (with `[...]\n\n` added to it).
 Future<String> readTarballFile(String path, String name,
     {int maxLength = 0}) async {
   final result = await Process.run(
