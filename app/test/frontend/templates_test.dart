@@ -10,6 +10,8 @@ import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/analyzer/pana_runner.dart'
+    show panaReportFromSummary;
 import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
@@ -124,31 +126,44 @@ void main() {
           testPackageVersion,
           devPackageVersion,
           1,
-          new ScoreCardData(reportTypes: ['pana']),
-          new MockAnalysisView()
-            ..panaReportStatus = ReportStatus.success
-            ..timestamp = new DateTime(2018, 02, 05)
-            ..directDependencies = [
-              new PkgDependency(
-                package: 'quiver',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: new VersionConstraint.parse('^1.0.0'),
-                resolved: new Version.parse('1.0.0'),
-                available: null,
-                errors: null,
-              ),
-              new PkgDependency(
-                package: 'http',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                resolved: new Version.parse('1.2.0'),
-                available: new Version.parse('1.3.0'),
-                errors: null,
-              )
-            ]
-            ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
+          AnalysisView(
+            card: ScoreCardData(reportTypes: ['pana']),
+            panaReport: PanaReport(
+                timestamp: new DateTime(2018, 02, 05),
+                panaRuntimeInfo: _panaRuntimeInfo,
+                reportStatus: ReportStatus.success,
+                healthScore: null,
+                maintenanceScore: null,
+                platformTags: null,
+                platformReason: null,
+                pkgDependencies: [
+                  new PkgDependency(
+                    package: 'quiver',
+                    dependencyType: 'direct',
+                    constraintType: 'normal',
+                    constraint: new VersionConstraint.parse('^1.0.0'),
+                    resolved: new Version.parse('1.0.0'),
+                    available: null,
+                    errors: null,
+                  ),
+                  new PkgDependency(
+                    package: 'http',
+                    dependencyType: 'direct',
+                    constraintType: 'normal',
+                    constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                    resolved: new Version.parse('1.2.0'),
+                    available: new Version.parse('1.3.0'),
+                    errors: null,
+                  )
+                ],
+                licenses: [new LicenseFile('LICENSE.txt', 'BSD')],
+                panaSuggestions: null,
+                healthSuggestions: null,
+                maintenanceSuggestions: null,
+                flags: null),
+            dartdocReport: null,
+          ));
+
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
@@ -162,54 +177,81 @@ void main() {
           testPackageVersion,
           devPackageVersion,
           1,
-          new ScoreCardData(reportTypes: ['pana']),
-          new MockAnalysisView()
-            ..panaReportStatus = ReportStatus.success
-            ..timestamp = new DateTime(2018, 02, 05)
-            ..directDependencies = [
-              new PkgDependency(
-                package: 'quiver',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: new VersionConstraint.parse('^1.0.0'),
-                resolved: new Version.parse('1.0.0'),
-                available: null,
-                errors: null,
-              ),
-              new PkgDependency(
-                package: 'http',
-                dependencyType: 'direct',
-                constraintType: 'normal',
-                constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                resolved: new Version.parse('1.2.0'),
-                available: new Version.parse('1.3.0'),
-                errors: null,
-              )
-            ]
-            ..licenses = [new LicenseFile('LICENSE.txt', 'BSD')]);
+          AnalysisView(
+            card: ScoreCardData(reportTypes: ['pana']),
+            panaReport: PanaReport(
+                timestamp: new DateTime(2018, 02, 05),
+                panaRuntimeInfo: _panaRuntimeInfo,
+                reportStatus: ReportStatus.success,
+                healthScore: null,
+                maintenanceScore: null,
+                platformTags: null,
+                platformReason: null,
+                pkgDependencies: [
+                  new PkgDependency(
+                    package: 'quiver',
+                    dependencyType: 'direct',
+                    constraintType: 'normal',
+                    constraint: new VersionConstraint.parse('^1.0.0'),
+                    resolved: new Version.parse('1.0.0'),
+                    available: null,
+                    errors: null,
+                  ),
+                  new PkgDependency(
+                    package: 'http',
+                    dependencyType: 'direct',
+                    constraintType: 'normal',
+                    constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                    resolved: new Version.parse('1.2.0'),
+                    available: new Version.parse('1.3.0'),
+                    errors: null,
+                  )
+                ],
+                licenses: [new LicenseFile('LICENSE.txt', 'BSD')],
+                panaSuggestions: null,
+                healthSuggestions: null,
+                maintenanceSuggestions: null,
+                flags: null),
+            dartdocReport: null,
+          ));
       expectGoldenFile(html, 'pkg_show_version_page.html');
     });
 
     test('package show page with flutter_plugin', () {
       final String html = renderPkgShowPage(
-          testPackage,
-          false,
-          [flutterPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
-          flutterPackageVersion,
-          flutterPackageVersion,
-          flutterPackageVersion,
-          1,
-          new ScoreCardData(
+        testPackage,
+        false,
+        [flutterPackageVersion],
+        [Uri.parse('http://dart-example.com/')],
+        flutterPackageVersion,
+        flutterPackageVersion,
+        flutterPackageVersion,
+        1,
+        AnalysisView(
+          card: ScoreCardData(
             healthScore: 0.99,
             maintenanceScore: 0.99,
             popularityScore: 0.3,
             platformTags: ['flutter'],
+            flags: [PackageFlags.usesFlutter],
+            reportTypes: ['pana'],
           ),
-          new MockAnalysisView()
-            ..panaReportStatus = ReportStatus.success
-            ..timestamp = new DateTime(2018, 02, 05)
-            ..platforms = ['flutter']);
+          panaReport: PanaReport(
+              timestamp: new DateTime(2018, 02, 05),
+              panaRuntimeInfo: _panaRuntimeInfo,
+              reportStatus: ReportStatus.success,
+              healthScore: 0.99,
+              maintenanceScore: 0.99,
+              platformTags: ['flutter'],
+              platformReason: null,
+              pkgDependencies: null,
+              licenses: null,
+              panaSuggestions: null,
+              healthSuggestions: null,
+              maintenanceSuggestions: null,
+              flags: null),
+        ),
+      );
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
@@ -223,9 +265,11 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new ScoreCardData(flags: [PackageFlags.isObsolete]),
-          new MockAnalysisView(
-            timestamp: new DateTime(2018, 02, 05),
+          AnalysisView(
+            card: new ScoreCardData(
+              flags: [PackageFlags.isObsolete],
+              updated: new DateTime(2018, 02, 05),
+            ),
           ));
 
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
@@ -241,9 +285,11 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new ScoreCardData(flags: [PackageFlags.isDiscontinued]),
-          new MockAnalysisView(
-            timestamp: new DateTime(2018, 02, 05),
+          AnalysisView(
+            card: new ScoreCardData(
+              flags: [PackageFlags.isDiscontinued],
+              updated: new DateTime(2018, 02, 05),
+            ),
           ));
 
       expectGoldenFile(html, 'pkg_show_page_discontinued.html');
@@ -252,11 +298,6 @@ void main() {
     test('package show page with legacy version', () {
       final summary = createPanaSummaryForLegacy(
           testPackageVersion.package, testPackageVersion.version);
-      final analysisView = new MockAnalysisView()
-        ..timestamp = new DateTime(2018, 08, 09)
-        ..panaVersion = '0.10.9'
-        ..panaSuggestions = summary?.suggestions
-        ..maintenanceSuggestions = summary.maintenance?.suggestions;
       final String html = renderPkgShowPage(
           testPackage,
           true /* isVersionPage */,
@@ -266,11 +307,13 @@ void main() {
           testPackageVersion,
           testPackageVersion,
           1,
-          new ScoreCardData(
-            popularityScore: 0.5,
-            flags: [PackageFlags.isLegacy],
-          ),
-          analysisView);
+          AnalysisView(
+            card: ScoreCardData(
+              popularityScore: 0.5,
+              flags: [PackageFlags.isLegacy],
+            ),
+            panaReport: panaReportFromSummary(summary),
+          ));
 
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
@@ -297,25 +340,24 @@ void main() {
     });
 
     test('mock analysis tab', () async {
-      final String html = renderAnalysisTab(
-          'pkg_foo',
-          '>=1.25.0-dev.9.0 <2.0.0',
-          new ScoreCardData(
-            healthScore: 0.90234,
-            maintenanceScore: 0.8932343,
-            popularityScore: 0.2323232,
-          ),
-          new MockAnalysisView(
-            panaReportStatus: ReportStatus.failed,
-            timestamp: new DateTime.utc(2017, 10, 26, 14, 03, 06),
-            platforms: ['web'],
-            platformsReason: 'All libraries agree.',
-            health: 0.95,
-            healthSuggestions: [
-              new Suggestion.error(SuggestionCode.dartfmtAborted,
-                  'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
-            ],
-            directDependencies: [
+      final card = ScoreCardData(
+        healthScore: 0.90234,
+        maintenanceScore: 0.8932343,
+        popularityScore: 0.2323232,
+        platformTags: ['web'],
+        reportTypes: ['pana'],
+      );
+      final analysisView = AnalysisView(
+        card: card,
+        panaReport: PanaReport(
+            timestamp: DateTime.utc(2017, 10, 26, 14, 03, 06),
+            panaRuntimeInfo: _panaRuntimeInfo,
+            reportStatus: ReportStatus.failed,
+            healthScore: card.healthScore,
+            maintenanceScore: card.maintenanceScore,
+            platformTags: card.platformTags,
+            platformReason: 'All libraries agree.',
+            pkgDependencies: [
               new PkgDependency(
                 package: 'http',
                 dependencyType: 'direct',
@@ -325,8 +367,6 @@ void main() {
                 available: new Version.parse('1.1.0'),
                 errors: null,
               ),
-            ],
-            transitiveDependencies: [
               new PkgDependency(
                 package: 'async',
                 dependencyType: 'transitive',
@@ -337,7 +377,17 @@ void main() {
                 errors: null,
               ),
             ],
-          ));
+            licenses: null,
+            panaSuggestions: null,
+            healthSuggestions: [
+              new Suggestion.error(SuggestionCode.dartfmtAborted,
+                  'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
+            ],
+            maintenanceSuggestions: null,
+            flags: null),
+      );
+      final String html = renderAnalysisTab(
+          'pkg_foo', '>=1.25.0-dev.9.0 <2.0.0', card, analysisView);
       expectGoldenFile(html, 'analysis_tab_mock.html', isFragment: true);
     });
 
@@ -346,11 +396,26 @@ void main() {
           'pkg_foo',
           null,
           new ScoreCardData(),
-          new MockAnalysisView()
-            ..panaVersion = '0.8.0'
-            ..flutterVersion = '0.0.20'
-            ..panaReportStatus = ReportStatus.aborted
-            ..timestamp = new DateTime(2017, 12, 18, 14, 26, 00));
+          AnalysisView(
+            card: ScoreCardData(
+              reportTypes: ['pana'],
+            ),
+            panaReport: PanaReport(
+              timestamp: DateTime(2017, 12, 18, 14, 26, 00),
+              panaRuntimeInfo: _panaRuntimeInfo,
+              reportStatus: ReportStatus.aborted,
+              healthScore: null,
+              maintenanceScore: null,
+              platformTags: null,
+              platformReason: null,
+              pkgDependencies: null,
+              licenses: null,
+              panaSuggestions: null,
+              healthSuggestions: null,
+              maintenanceSuggestions: null,
+              flags: null,
+            ),
+          ));
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
     });
 
@@ -359,10 +424,12 @@ void main() {
           'pkg_foo',
           null,
           new ScoreCardData(flags: [PackageFlags.isObsolete]),
-          new MockAnalysisView()
-            ..panaVersion = '0.8.0'
-            ..flutterVersion = '0.0.20'
-            ..timestamp = new DateTime(2017, 12, 18, 14, 26, 00));
+          AnalysisView(
+            card: new ScoreCardData(
+              flags: [PackageFlags.isObsolete],
+              updated: DateTime(2017, 12, 18, 14, 26, 00),
+            ),
+          ));
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
@@ -609,75 +676,8 @@ void main() {
   });
 }
 
-class MockAnalysisView implements AnalysisView {
-  @override
-  bool hasAnalysisData = true;
-
-  @override
-  bool hasPanaSummary = true;
-
-  @override
-  String panaReportStatus;
-
-  @override
-  String dartSdkVersion = '2.0.0-dev.7.0';
-
-  @override
-  String panaVersion = '0.6.2';
-
-  @override
-  String flutterVersion = '0.0.18';
-
-  @override
-  List<PkgDependency> directDependencies;
-
-  @override
-  List<PkgDependency> transitiveDependencies;
-
-  @override
-  List<PkgDependency> devDependencies;
-
-  @override
-  List<PkgDependency> allDependencies;
-
-  @override
-  double health;
-
-  @override
-  List<LicenseFile> licenses;
-
-  @override
-  DateTime timestamp;
-
-  @override
-  List<String> platforms;
-
-  @override
-  String platformsReason;
-
-  @override
-  List<Suggestion> panaSuggestions;
-
-  @override
-  List<Suggestion> healthSuggestions;
-
-  @override
-  List<Suggestion> maintenanceSuggestions;
-
-  @override
-  double maintenanceScore;
-
-  MockAnalysisView({
-    this.panaReportStatus,
-    this.timestamp,
-    this.platforms,
-    this.platformsReason,
-    this.directDependencies,
-    this.transitiveDependencies,
-    this.devDependencies,
-    this.health,
-    this.panaSuggestions,
-    this.healthSuggestions,
-    this.maintenanceSuggestions,
-  });
-}
+final _panaRuntimeInfo = PanaRuntimeInfo(
+  panaVersion: '0.6.2',
+  flutterVersions: {'frameworkVersion': '0.0.18'},
+  sdkVersion: '2.0.0-dev.7.0',
+);

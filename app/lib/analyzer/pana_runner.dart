@@ -172,28 +172,32 @@ class AnalyzerJobProcessor extends JobProcessor {
   }
 
   Future _storeScoreCard(Job job, Summary summary, {List<String> flags}) async {
-    final reportStatus =
-        summary == null ? ReportStatus.aborted : ReportStatus.success;
     await scoreCardBackend.updateReport(
-        job.packageName,
-        job.packageVersion,
-        new PanaReport(
-          timestamp: new DateTime.now().toUtc(),
-          panaRuntimeInfo: summary?.runtimeInfo,
-          reportStatus: reportStatus,
-          healthScore: summary?.health?.healthScore ?? 0.0,
-          maintenanceScore: summary == null
-              ? 0.0
-              : calculateMaintenanceScore(summary.maintenance),
-          platformTags: indexDartPlatform(summary?.platform),
-          platformReason: summary?.platform?.reason,
-          pkgDependencies: summary?.pkgResolution?.dependencies,
-          panaSuggestions: summary?.suggestions,
-          healthSuggestions: summary?.health?.suggestions,
-          maintenanceSuggestions: summary?.maintenance?.suggestions,
-          licenses: summary?.licenses,
-          flags: flags,
-        ));
+      job.packageName,
+      job.packageVersion,
+      panaReportFromSummary(summary, flags: flags),
+    );
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
   }
+}
+
+PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
+  final reportStatus =
+      summary == null ? ReportStatus.aborted : ReportStatus.success;
+  return PanaReport(
+    timestamp: DateTime.now().toUtc(),
+    panaRuntimeInfo: summary?.runtimeInfo,
+    reportStatus: reportStatus,
+    healthScore: summary?.health?.healthScore ?? 0.0,
+    maintenanceScore:
+        summary == null ? 0.0 : calculateMaintenanceScore(summary.maintenance),
+    platformTags: indexDartPlatform(summary?.platform),
+    platformReason: summary?.platform?.reason,
+    pkgDependencies: summary?.pkgResolution?.dependencies,
+    panaSuggestions: summary?.suggestions,
+    healthSuggestions: summary?.health?.suggestions,
+    maintenanceSuggestions: summary?.maintenance?.suggestions,
+    licenses: summary?.licenses,
+    flags: flags,
+  );
 }
