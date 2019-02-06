@@ -64,8 +64,7 @@ class AccountBackend {
           ..parentKey = _db.emptyKey
           ..id = auth.userId
           ..email = auth.email
-          ..created = accessTime
-          ..updated = accessTime;
+          ..created = accessTime;
         _db.commit(inserts: [user]);
       } else {
         // update user if e-mail has been changed
@@ -73,7 +72,6 @@ class AccountBackend {
           await _db.withTransaction((tx) async {
             user = (await _db.lookup<User>([userKey])).single;
             user.email = auth.email;
-            user.updated = accessTime;
             tx.queueMutations(inserts: [user]);
             await tx.commit();
           });
