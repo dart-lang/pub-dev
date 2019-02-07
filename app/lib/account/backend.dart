@@ -74,7 +74,8 @@ class AccountBackend {
         final user = (await _db.lookup<User>([mapping.userIdKey])).single;
         // TODO: we should probably have some kind of consistency mitigation
         if (user == null) {
-          throw StateError('Incomplete OAuth userId mapping.');
+          throw AssertionError('Incomplete OAuth userId mapping: '
+              'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
         }
         return user;
       }
