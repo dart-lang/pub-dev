@@ -9,6 +9,7 @@ import 'package:html/parser.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:xml/xml.dart' as xml;
 
 import 'package:pub_dartlang_org/analyzer/pana_runner.dart'
     show panaReportFromSummary;
@@ -63,12 +64,16 @@ void main() {
         validateHtml(root);
       }
 
+      final xmlDoc = xml
+          .parse(isFragment ? '<fragment>' + content + '</fragment>' : content);
+      final xmlContent = xmlDoc.toXmlString(pretty: true, indent: '  ');
+
       if (_regenerateGoldens) {
-        new File('$goldenDir/$fileName').writeAsStringSync(content);
+        new File('$goldenDir/$fileName').writeAsStringSync(xmlContent);
         fail('Set `_regenerateGoldens` to `false` to run tests.');
       }
       final golden = new File('$goldenDir/$fileName').readAsStringSync();
-      expect(content.split('\n'), golden.split('\n'));
+      expect(xmlContent.split('\n'), golden.split('\n'));
     }
 
     test('index page', () {
