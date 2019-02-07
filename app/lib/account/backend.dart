@@ -17,7 +17,6 @@ import '../frontend/models.dart' show PackageVersion;
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
-final _retry = RetryOptions();
 final _uuid = Uuid();
 
 /// The pub client's OAuth2 identifier.
@@ -68,7 +67,7 @@ class AccountBackend {
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     final mappingKey = _db.emptyKey.append(User, id: auth.userId);
 
-    final user = await _retry.retry(() async {
+    final user = await retry(() async {
       // Check existing mapping.
       final mapping = (await _db.lookup<OAuthUserID>([mappingKey])).single;
       if (mapping != null) {
