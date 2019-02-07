@@ -21,17 +21,118 @@ import 'misc.dart';
 import 'package_analysis.dart';
 import 'package_versions.dart';
 
-Map<String, Object> _pkgShowPageValues(
+String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
+  if (licenses == null || licenses.isEmpty) return null;
+  return licenses.map((license) {
+    final String escapedName = htmlEscape.convert(license.shortFormatted);
+    String html = escapedName;
+
+    if (license.url != null && license.path != null) {
+      final String escapedLink = htmlAttrEscape.convert(license.url);
+      final String escapedPath = htmlEscape.convert(license.path);
+      html += ' (<a href="$escapedLink">$escapedPath</a>)';
+    } else if (license.path != null) {
+      final String escapedPath = htmlEscape.convert(license.path);
+      html += ' ($escapedPath)';
+    }
+    return html;
+  }).join('<br/>');
+}
+
+String _renderDependencyList(AnalysisView analysis) {
+  if (analysis == null ||
+      !analysis.hasPanaSummary ||
+      analysis.directDependencies == null) return null;
+  final List<String> packages =
+      analysis.directDependencies.map((pd) => pd.package).toList()..sort();
+  if (packages.isEmpty) return null;
+  return packages
+      .map((p) => '<a href="${urls.pkgPageUrl(p)}">$p</a>')
+      .join(', ');
+}
+
+String _renderInstallTab(Package package, PackageVersion selectedVersion,
+    bool isFlutterPackage, List<String> platforms) {
+  List importExamples;
+  if (selectedVersion.libraries.contains('${package.id}.dart')) {
+    importExamples = [
+      {
+        'package': package.id,
+        'library': '${package.id}.dart',
+      },
+    ];
+  } else {
+    importExamples = selectedVersion.libraries.map((library) {
+      return {
+        'package': selectedVersion.packageKey.id,
+        'library': library,
+      };
+    }).toList();
+  }
+
+  final executables = selectedVersion.pubspec.executables?.keys?.toList();
+  executables?.sort();
+  final hasExecutables = executables != null && executables.isNotEmpty;
+
+  final exampleVersionConstraint = '^${selectedVersion.version}';
+
+  final bool usePubGet = !isFlutterPackage ||
+      platforms == null ||
+      platforms.isEmpty ||
+      platforms.length > 1 ||
+      platforms.first != KnownPlatforms.flutter;
+
+  final bool useFlutterPackagesGet = isFlutterPackage ||
+      (platforms != null && platforms.contains(KnownPlatforms.flutter));
+
+  String editorSupportedToolHtml;
+  if (usePubGet && useFlutterPackagesGet) {
+    editorSupportedToolHtml =
+        '<code>pub get</code> or <code>flutter packages get</code>';
+  } else if (useFlutterPackagesGet) {
+    editorSupportedToolHtml = '<code>flutter packages get</code>';
+  } else {
+    editorSupportedToolHtml = '<code>pub get</code>';
+  }
+
+  return templateCache.renderTemplate('pkg/install_tab', {
+    'use_as_an_executable': hasExecutables,
+    'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
+    'package': package.name,
+    'example_version_constraint': exampleVersionConstraint,
+    'has_libraries': importExamples.isNotEmpty,
+    'import_examples': importExamples,
+    'use_pub_get': usePubGet,
+    'use_flutter_packages_get': useFlutterPackagesGet,
+    'show_editor_support': usePubGet || useFlutterPackagesGet,
+    'editor_supported_tool_html': editorSupportedToolHtml,
+    'executables': executables,
+  });
+}
+
+/// Renders the `views/pkg/show.mustache` template.
+String renderPkgShowPage(
     Package package,
+    bool isVersionPage,
     List<PackageVersion> versions,
     List<Uri> versionDownloadUrls,
     PackageVersion selectedVersion,
     PackageVersion latestStableVersion,
     PackageVersion latestDevVersion,
     int totalNumberOfVersions,
-    ScoreCardData card,
-    AnalysisView analysis,
-    bool isFlutterPackage) {
+    AnalysisView analysis) {
+  assert(versions.length == versionDownloadUrls.length);
+  final card = analysis?.card;
+  final int platformCount = card?.platformTags?.length ?? 0;
+  final String singlePlatform =
+      platformCount == 1 ? card.platformTags.single : null;
+  final bool hasPlatformSearch =
+      singlePlatform != null && singlePlatform != KnownPlatforms.other;
+  final bool hasOnlyFlutterPlatform = singlePlatform == KnownPlatforms.flutter;
+  final bool isFlutterPackage = hasOnlyFlutterPlatform ||
+      latestStableVersion.pubspec.dependsOnFlutterSdk ||
+      latestStableVersion.pubspec.hasFlutterPlugin;
+
   String readmeFilename;
   String renderedReadme;
   final homepageUrl = selectedVersion.homepage;
@@ -182,137 +283,10 @@ Map<String, Object> _pkgShowPageValues(
     'has_no_file_tab': tabs.isEmpty,
     'version_count': '$totalNumberOfVersions',
     'icons': staticUrls.versionsTableIcons,
+    'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
+    'install_tab_html': _renderInstallTab(
+        package, selectedVersion, isFlutterPackage, analysis?.platforms),
   };
-  return values;
-}
-
-String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
-  if (licenses == null || licenses.isEmpty) return null;
-  return licenses.map((license) {
-    final String escapedName = htmlEscape.convert(license.shortFormatted);
-    String html = escapedName;
-
-    if (license.url != null && license.path != null) {
-      final String escapedLink = htmlAttrEscape.convert(license.url);
-      final String escapedPath = htmlEscape.convert(license.path);
-      html += ' (<a href="$escapedLink">$escapedPath</a>)';
-    } else if (license.path != null) {
-      final String escapedPath = htmlEscape.convert(license.path);
-      html += ' ($escapedPath)';
-    }
-    return html;
-  }).join('<br/>');
-}
-
-String _renderDependencyList(AnalysisView analysis) {
-  if (analysis == null ||
-      !analysis.hasPanaSummary ||
-      analysis.directDependencies == null) return null;
-  final List<String> packages =
-      analysis.directDependencies.map((pd) => pd.package).toList()..sort();
-  if (packages.isEmpty) return null;
-  return packages
-      .map((p) => '<a href="${urls.pkgPageUrl(p)}">$p</a>')
-      .join(', ');
-}
-
-String _renderInstallTab(Package package, PackageVersion selectedVersion,
-    bool isFlutterPackage, List<String> platforms) {
-  List importExamples;
-  if (selectedVersion.libraries.contains('${package.id}.dart')) {
-    importExamples = [
-      {
-        'package': package.id,
-        'library': '${package.id}.dart',
-      },
-    ];
-  } else {
-    importExamples = selectedVersion.libraries.map((library) {
-      return {
-        'package': selectedVersion.packageKey.id,
-        'library': library,
-      };
-    }).toList();
-  }
-
-  final executables = selectedVersion.pubspec.executables?.keys?.toList();
-  executables?.sort();
-  final hasExecutables = executables != null && executables.isNotEmpty;
-
-  final exampleVersionConstraint = '^${selectedVersion.version}';
-
-  final bool usePubGet = !isFlutterPackage ||
-      platforms == null ||
-      platforms.isEmpty ||
-      platforms.length > 1 ||
-      platforms.first != KnownPlatforms.flutter;
-
-  final bool useFlutterPackagesGet = isFlutterPackage ||
-      (platforms != null && platforms.contains(KnownPlatforms.flutter));
-
-  String editorSupportedToolHtml;
-  if (usePubGet && useFlutterPackagesGet) {
-    editorSupportedToolHtml =
-        '<code>pub get</code> or <code>flutter packages get</code>';
-  } else if (useFlutterPackagesGet) {
-    editorSupportedToolHtml = '<code>flutter packages get</code>';
-  } else {
-    editorSupportedToolHtml = '<code>pub get</code>';
-  }
-
-  return templateCache.renderTemplate('pkg/install_tab', {
-    'use_as_an_executable': hasExecutables,
-    'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
-    'package': package.name,
-    'example_version_constraint': exampleVersionConstraint,
-    'has_libraries': importExamples.isNotEmpty,
-    'import_examples': importExamples,
-    'use_pub_get': usePubGet,
-    'use_flutter_packages_get': useFlutterPackagesGet,
-    'show_editor_support': usePubGet || useFlutterPackagesGet,
-    'editor_supported_tool_html': editorSupportedToolHtml,
-    'executables': executables,
-  });
-}
-
-/// Renders the `views/pkg/show.mustache` template.
-String renderPkgShowPage(
-    Package package,
-    bool isVersionPage,
-    List<PackageVersion> versions,
-    List<Uri> versionDownloadUrls,
-    PackageVersion selectedVersion,
-    PackageVersion latestStableVersion,
-    PackageVersion latestDevVersion,
-    int totalNumberOfVersions,
-    AnalysisView analysis) {
-  assert(versions.length == versionDownloadUrls.length);
-  final card = analysis?.card;
-  final int platformCount = card?.platformTags?.length ?? 0;
-  final String singlePlatform =
-      platformCount == 1 ? card.platformTags.single : null;
-  final bool hasPlatformSearch =
-      singlePlatform != null && singlePlatform != KnownPlatforms.other;
-  final bool hasOnlyFlutterPlatform = singlePlatform == KnownPlatforms.flutter;
-  final bool isFlutterPackage = hasOnlyFlutterPlatform ||
-      latestStableVersion.pubspec.dependsOnFlutterSdk ||
-      latestStableVersion.pubspec.hasFlutterPlugin;
-
-  final Map<String, Object> values = _pkgShowPageValues(
-    package,
-    versions,
-    versionDownloadUrls,
-    selectedVersion,
-    latestStableVersion,
-    latestDevVersion,
-    totalNumberOfVersions,
-    card,
-    analysis,
-    isFlutterPackage,
-  );
-  values['search_deps_link'] = urls.searchUrl(q: 'dependency:${package.name}');
-  values['install_tab_html'] = _renderInstallTab(
-      package, selectedVersion, isFlutterPackage, analysis?.platforms);
   final content = templateCache.renderTemplate('pkg/show', values);
   final packageAndVersion = isVersionPage
       ? '${selectedVersion.package} ${selectedVersion.version}'
