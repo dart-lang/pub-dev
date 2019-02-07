@@ -64,9 +64,10 @@ void main() {
         validateHtml(root);
       }
 
+      // Pretty printing output using XML parser and formatter.
       final xmlDoc = xml
           .parse(isFragment ? '<fragment>' + content + '</fragment>' : content);
-      final xmlContent = xmlDoc.toXmlString(pretty: true, indent: '  ');
+      final xmlContent = xmlDoc.toXmlString(pretty: true, indent: '  ') + '\n';
 
       if (_regenerateGoldens) {
         new File('$goldenDir/$fileName').writeAsStringSync(xmlContent);
