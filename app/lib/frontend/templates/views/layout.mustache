@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-26406144-13"></script>
+  <script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-26406144-13"></script>
   <script src="{{{static_assets.gtag_js}}}"></script>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -33,9 +33,9 @@
   <link href="{{{static_assets_dir}}}/highlight/github.css" rel="stylesheet" />
   <link href="{{{static_assets.github_markdown_css}}}" rel="stylesheet" type="text/css" />
   <link href="{{{static_assets.style_css}}}" rel="stylesheet" type="text/css" />
-  <script src="{{{static_assets.script_dart_js}}}" defer></script>
+  <script src="{{{static_assets.script_dart_js}}}" defer="defer"></script>
   {{#include_survey}}
-  <script async="" defer="" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
+  <script async="async" defer="defer" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
   {{/include_survey}}
 </head>
 <body>
@@ -44,7 +44,7 @@
   <button class="hamburger"></button>
   <div class="mask"></div>
   <div class="nav-wrap">
-    <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets_dir}}}/img/dart-logo.svg" alt="dart pub logo"></a>
+    <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets_dir}}}/img/dart-logo.svg" alt="dart pub logo" /></a>
       <div class="_flex-space"></div>
       <button class="close"></button>
     </div>
@@ -73,7 +73,7 @@
   <div class="_banner-bg">
     <main class="package-banner">
       <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus />
+        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
         <button class="icon"></button>
       </form>
     </main>
@@ -84,7 +84,7 @@
   <div class="_banner-bg">
     <main class="package-banner">
       <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus{{#search_query}} value="{{search_query}}"{{/search_query}}>
+        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query}} value="{{search_query}}"{{/search_query}}/>
         <button class="icon"></button>
         {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
         <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
@@ -109,7 +109,7 @@
       <h2 class="_visuallyhidden">Dart package manager</h2>
       <img class="logo" src="{{{static_assets_dir}}}/img/{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
       <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus />
+        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
         <button class="icon"></button>
       </form>
       {{& platform_tabs_html }}
