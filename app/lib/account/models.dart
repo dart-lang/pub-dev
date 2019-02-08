@@ -4,9 +4,11 @@
 
 import 'package:gcloud/db.dart' as db;
 
-/// User data model.
+/// User data model with a random UUID id.
 @db.Kind(name: 'User', idType: db.IdType.String)
 class User extends db.ExpandoModel {
+  /// Same as [id].
+  /// A random UUID id.
   String get userId => id as String;
 
   @db.StringProperty()
@@ -22,6 +24,7 @@ class User extends db.ExpandoModel {
 /// Maps Oauth user_id to User.id
 @db.Kind(name: 'OAuthUserID', idType: db.IdType.String)
 class OAuthUserID extends db.ExpandoModel {
+  /// Same as [id].
   String get oauthUserId => id as String;
 
   @db.ModelKeyProperty(required: true)
