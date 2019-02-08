@@ -50,6 +50,10 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
   db.Key latestDevVersionKey;
 
+  /// List of User.userId
+  @db.StringListProperty()
+  List<String> uploaders;
+
   @CompatibleStringListProperty()
   List<String> uploaderEmails;
 
@@ -186,6 +190,10 @@ class PackageVersion extends db.ExpandoModel {
 
   @db.IntProperty(propertyName: 'sort_order')
   int sortOrder;
+
+  // TODO: Set required attribute after [uploaderEmail] is removed.
+  @db.StringProperty()
+  String uploader;
 
   @db.StringProperty(required: true)
   String uploaderEmail;
