@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
@@ -63,6 +64,9 @@ Future _main(FrontendEntryMessage message) async {
 Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerEmailSender(new EmailSender(db.dbService));
 
+  registerAccountBackend(AccountBackend(db.dbService));
+  registerScopeExitCallback(accountBackend.close);
+
   final popularityBucket = await getOrCreateBucket(
       storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
@@ -98,8 +102,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       await getOrCreateBucket(storageService, configuration.packageBucketName);
   final tarballStorage = new TarballStorage(storageService, pkgBucket, null);
   registerTarballStorage(tarballStorage);
-
-  initOAuth2Service();
 
   initSearchService();
 
