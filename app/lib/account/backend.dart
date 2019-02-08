@@ -13,8 +13,6 @@ import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
-import '../frontend/models.dart' show PackageVersion;
-
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
@@ -66,6 +64,30 @@ class AccountBackend {
   Future<User> lookupUserById(String userId) async {
     final key = _db.emptyKey.append(User, id: userId);
     return (await _db.lookup<User>([key])).single;
+  }
+
+  /// Returns the `User` entry for the [email] or creates a new one if it does
+  /// not exists.
+  ///
+  /// Throws AssertionError if more then one `User` entry exists.
+  Future<User> lookupOrCreateUserByEmail(String email) async {
+    final query = _db.query<User>()..filter('email =', email);
+    final list = await query.run().toList();
+    if (list.length > 1) {
+      throw AssertionError('More than one User exists for e-mail: $email');
+    }
+    if (list.length == 1) {
+      return list.single;
+    }
+    final id = _uuid.v4().toString();
+    final user = User()
+      ..parentKey = dbService.emptyKey
+      ..id = id
+      ..email = email
+      ..created = DateTime.now().toUtc();
+
+    await _db.commit(inserts: [user]);
+    return user;
   }
 
   /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
@@ -124,31 +146,12 @@ class AccountBackend {
         }) as User;
       }
 
-      // Sanity check: query the first use of the e-mail address.
-      // Existing uploaders should be pre-migrated, and should be handled by the
-      // code above. A new user should not have a previously existing package
-      // uploaded.
-      DateTime created = DateTime.now().toUtc();
-      final uploadedVersions = _db.query<PackageVersion>()
-        ..filter('uploaderEmail =', auth.email);
-      int uploadedCount = 0;
-      await for (var version in uploadedVersions.run()) {
-        uploadedCount++;
-        if (created.isAfter(version.created)) {
-          created = version.created;
-        }
-      }
-      if (uploadedCount != null) {
-        _logger.warning(
-            'Pre-migration inconsistent for ${auth.email}, creating new User.');
-      }
-
       final newUser = User()
         ..parentKey = _db.emptyKey
         ..id = _uuid.v4().toString()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
-        ..created = created;
+        ..created = DateTime.now().toUtc();
 
       final newMapping = OAuthUserID()
         ..parentKey = _db.emptyKey
