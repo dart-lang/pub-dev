@@ -7,6 +7,7 @@ library pub_dartlang_org.utils;
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
@@ -40,20 +41,26 @@ final Key devPackageVersionKey =
 
 final Pubspec testPubspec = new Pubspec.fromYaml(testPackagePubspec);
 
-Package _createPackage() => new Package()
-  ..parentKey = testPackageKey.parent
-  ..id = testPackageKey.id
-  ..name = testPackageKey.id as String
-  ..created = new DateTime.utc(2014)
-  ..updated = new DateTime.utc(2015)
-  ..uploaderEmails = ['hans@juergen.com']
-  ..latestVersionKey = testPackageVersionKey
-  ..latestDevVersionKey = testPackageVersionKey;
+final testUploaderUser =
+    AuthenticatedUser('uuid-hans-at-juergen-dot-com', 'hans@juergen.com');
 
-final Package testPackage = _createPackage()
+Package createTestPackage({List<AuthenticatedUser> uploaders}) {
+  uploaders ??= [testUploaderUser];
+  return new Package()
+    ..parentKey = testPackageKey.parent
+    ..id = testPackageKey.id
+    ..name = testPackageKey.id as String
+    ..created = new DateTime.utc(2014)
+    ..updated = new DateTime.utc(2015)
+    ..uploaderEmails = uploaders.map((user) => user.email).toList()
+    ..latestVersionKey = testPackageVersionKey
+    ..latestDevVersionKey = testPackageVersionKey;
+}
+
+final Package testPackage = createTestPackage()
   ..latestDevVersionKey = devPackageVersionKey;
 
-final Package discontinuedPackage = _createPackage()..isDiscontinued = true;
+final Package discontinuedPackage = createTestPackage()..isDiscontinued = true;
 
 final PackageVersion testPackageVersion = new PackageVersion()
   ..parentKey = testPackageVersionKey.parent

@@ -12,6 +12,7 @@ import 'package:pub_server/repository.dart' as pub_server;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -269,7 +270,8 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerLoggedInUser('foo@bar.com');
+        registerAuthenticatedUser(
+            AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
         final Future f = repo.addUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect(e.toString(),
@@ -290,15 +292,19 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerLoggedInUser(testPackage.uploaderEmails.first);
+        registerAuthenticatedUser(testUploaderUser);
         final f = repo.addUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect(e.toString(), 'Package "null" does not exist');
         }));
       });
 
-      Future testAlreadyExists(
-          String user, List<String> uploaderEmails, String newUploader) async {
+      Future testAlreadyExists(AuthenticatedUser user,
+          List<String> uploaderEmails, String newUploader) async {
+        final testPackage = createTestPackage(
+            uploaders: uploaderEmails
+                .map((s) => AuthenticatedUser(s.hashCode.toString(), s))
+                .toList());
         final db = new DatastoreDBMock(
           lookupFun: expectAsync1((keys) async {
             expect(keys, hasLength(1));
@@ -310,32 +316,37 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerLoggedInUser(user);
-        testPackage.uploaderEmails = uploaderEmails;
+        registerAuthenticatedUser(user);
         await repo.addUploader(pkg, newUploader);
       }
 
       test('already exists', () async {
+        final fooLowerB = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
+        final fooUpperB = AuthenticatedUser('uuid-foo-at-B-com', 'foo@B.com');
         await scoped(
-            () => testAlreadyExists('foo@b.com', ['foo@b.com'], 'foo@b.com'));
+            () => testAlreadyExists(fooLowerB, ['foo@b.com'], 'foo@b.com'));
         await scoped(
-            () => testAlreadyExists('foo@B.com', ['foo@b.com'], 'foo@b.com'));
+            () => testAlreadyExists(fooUpperB, ['foo@b.com'], 'foo@b.com'));
         await scoped(
-            () => testAlreadyExists('foo@B.com', ['foo@B.com'], 'foo@b.com'));
+            () => testAlreadyExists(fooUpperB, ['foo@B.com'], 'foo@b.com'));
         await scoped(
-            () => testAlreadyExists('foo@b.com', ['foo@B.com'], 'foo@B.com'));
+            () => testAlreadyExists(fooLowerB, ['foo@B.com'], 'foo@B.com'));
         await scoped(
-            () => testAlreadyExists('foo@b.com', ['foo@b.com'], 'foo@B.com'));
+            () => testAlreadyExists(fooLowerB, ['foo@b.com'], 'foo@B.com'));
         await scoped(
-            () => testAlreadyExists('foo@B.com', ['foo@b.com'], 'foo@B.com'));
+            () => testAlreadyExists(fooUpperB, ['foo@b.com'], 'foo@B.com'));
         await scoped(() => testAlreadyExists(
-            'foo@b.com', ['foo@b.com', 'bar@b.com'], 'foo@B.com'));
+            fooLowerB, ['foo@b.com', 'bar@b.com'], 'foo@B.com'));
         await scoped(() => testAlreadyExists(
-            'foo@b.com', ['bar@b.com', 'foo@b.com'], 'foo@B.com'));
+            fooLowerB, ['bar@b.com', 'foo@b.com'], 'foo@B.com'));
       });
 
-      Future testSuccessful(
-          String user, List<String> uploaderEmails, String newUploader) async {
+      Future testSuccessful(AuthenticatedUser user, List<String> uploaderEmails,
+          String newUploader) async {
+        final testPackage = createTestPackage(
+            uploaders: uploaderEmails
+                .map((s) => AuthenticatedUser(s.hashCode.toString(), s))
+                .toList());
         registerHistoryBackend(new HistoryBackendMock());
         final db = new DatastoreDBMock(
           lookupFun: expectAsync1((keys) {
@@ -354,8 +365,7 @@ void main() {
         registerEmailSender(new EmailSenderMock());
 
         final pkg = testPackage.name;
-        testPackage.uploaderEmails = uploaderEmails;
-        registerLoggedInUser(user);
+        registerAuthenticatedUser(user);
         final f = repo.addUploader(pkg, newUploader);
         await f.catchError(expectAsync2((e, _) {
           expect(
@@ -366,14 +376,16 @@ void main() {
       }
 
       test('successful', () async {
+        final fooLowerB = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
+        final fooUpperB = AuthenticatedUser('uuid-foo-at-B-com', 'foo@B.com');
         await scoped(
-            () => testSuccessful('foo@b.com', ['foo@b.com'], 'bar@b.com'));
+            () => testSuccessful(fooLowerB, ['foo@b.com'], 'bar@b.com'));
         await scoped(
-            () => testSuccessful('foo@B.com', ['foo@b.com'], 'bar@B.com'));
-        await scoped(() => testSuccessful(
-            'foo@B.com', ['foo@B.com', 'bar@b.com'], 'baz@b.com'));
-        await scoped(() => testSuccessful(
-            'foo@b.com', ['foo@B.com', 'bar@B.com'], 'baz@B.com'));
+            () => testSuccessful(fooUpperB, ['foo@b.com'], 'bar@B.com'));
+        await scoped(() =>
+            testSuccessful(fooUpperB, ['foo@B.com', 'bar@b.com'], 'baz@b.com'));
+        await scoped(() =>
+            testSuccessful(fooLowerB, ['foo@B.com', 'bar@B.com'], 'baz@B.com'));
       });
     });
 
@@ -403,7 +415,8 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerLoggedInUser('foo@bar.com');
+        registerAuthenticatedUser(
+            AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
         final f = repo.removeUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect(e is pub_server.UnauthorizedAccessException, isTrue);
@@ -423,7 +436,7 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerLoggedInUser(testPackage.uploaderEmails.first);
+        registerAuthenticatedUser(testUploaderUser);
         final f = repo.removeUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect('$e', equals('Package "null" does not exist'));
@@ -431,6 +444,7 @@ void main() {
       });
 
       scopedTest('cannot remove last uploader', () async {
+        final testPackage = createTestPackage();
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
@@ -443,10 +457,9 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        testPackage.uploaderEmails = ['foo@bar.com'];
-        registerLoggedInUser(testPackage.uploaderEmails.first);
+        registerAuthenticatedUser(testUploaderUser);
         await repo
-            .removeUploader(pkg, 'foo@bar.com')
+            .removeUploader(pkg, testUploaderUser.email)
             .catchError(expectAsync2((e, _) {
           expect(e is pub_server.LastUploaderRemoveException, isTrue);
         }));
@@ -465,8 +478,7 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        testPackage.uploaderEmails = ['foo1@bar.com'];
-        registerLoggedInUser(testPackage.uploaderEmails.first);
+        registerAuthenticatedUser(testUploaderUser);
         await repo
             .removeUploader(pkg, 'foo2@bar.com')
             .catchError(expectAsync2((e, _) {
@@ -475,6 +487,9 @@ void main() {
       });
 
       scopedTest('cannot remove self', () async {
+        final foo1 = AuthenticatedUser('uuid-foo1', 'foo1@bar.com');
+        final foo2 = AuthenticatedUser('uuid-foo2', 'foo2@bar.com');
+        final testPackage = createTestPackage(uploaders: [foo1, foo2]);
         final transactionMock = new TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
@@ -487,8 +502,7 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        testPackage.uploaderEmails = ['foo1@bar.com', 'foo2@bar.com'];
-        registerLoggedInUser(testPackage.uploaderEmails.first);
+        registerAuthenticatedUser(foo1);
         await repo
             .removeUploader(pkg, 'foo1@bar.com')
             .catchError(expectAsync2((e, _) {
@@ -498,6 +512,9 @@ void main() {
       });
 
       scopedTest('successful', () async {
+        final userA = AuthenticatedUser('uuid-a', 'a@x.com');
+        final userB = AuthenticatedUser('uuid-b', 'b@x.com');
+        final testPackage = createTestPackage(uploaders: [userA, userB]);
         registerHistoryBackend(new HistoryBackendMock());
         final completion = new TestDelayCompletion();
         final transactionMock = new TransactionMock(
@@ -518,8 +535,7 @@ void main() {
         final repo = new GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        testPackage.uploaderEmails = ['a@x.com', 'b@x.com'];
-        registerLoggedInUser(testPackage.uploaderEmails.first);
+        registerAuthenticatedUser(userA);
         await repo.removeUploader(pkg, 'b@x.com');
       });
     });
@@ -745,7 +761,7 @@ void main() {
             return expectedUploadInfo;
           });
           registerUploadSigner(uploadSignerMock);
-          registerLoggedInUser('hans@juergen.com');
+          registerAuthenticatedUser(testUploaderUser);
           final uploadInfo = await repo.startAsyncUpload(redirectUri);
           expect(identical(uploadInfo, expectedUploadInfo), isTrue);
         });
@@ -774,7 +790,7 @@ void main() {
           final transactionMock = new TransactionMock();
           final db = new DatastoreDBMock(transactionMock: transactionMock);
           final repo = new GCloudPackageRepository(db, tarballStorage);
-          registerLoggedInUser('hans@juergen.com');
+          registerAuthenticatedUser(testUploaderUser);
           final historyBackendMock = new HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
           final Future result = repo.finishAsyncUpload(redirectUri);
@@ -830,7 +846,7 @@ void main() {
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
-            registerLoggedInUser('hans@juergen.com');
+            registerAuthenticatedUser(testUploaderUser);
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
             registerHistoryBackend(new HistoryBackendMock());
@@ -874,7 +890,8 @@ void main() {
                 rollbackFun: expectAsync0(() {}));
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage);
-            registerLoggedInUser('un@authorized.com');
+            registerAuthenticatedUser(AuthenticatedUser(
+                'uuid-no-at-authorized-dot-com', 'un@authorized.com'));
             repo
                 .upload(new Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
@@ -896,7 +913,8 @@ void main() {
                 rollbackFun: expectAsync0(() {}));
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage);
-            registerLoggedInUser('un@authorized.com');
+            registerAuthenticatedUser(AuthenticatedUser(
+                'uuid-no-at-authorized-dot-com', 'un@authorized.com'));
             repo
                 .upload(new Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
@@ -913,7 +931,7 @@ void main() {
           final transactionMock = new TransactionMock();
           final db = new DatastoreDBMock(transactionMock: transactionMock);
           final repo = new GCloudPackageRepository(db, tarballStorage);
-          registerLoggedInUser('hans@juergen.com');
+          registerAuthenticatedUser(testUploaderUser);
 
           // Returns the error message as String or null if it succeeded.
           Future<String> fn(String name) async {
@@ -953,7 +971,7 @@ void main() {
           final transactionMock = new TransactionMock();
           final db = new DatastoreDBMock(transactionMock: transactionMock);
           final repo = new GCloudPackageRepository(db, tarballStorage);
-          registerLoggedInUser('hans@juergen.com');
+          registerAuthenticatedUser(testUploaderUser);
           final historyBackendMock = new HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
           final Future result =
@@ -1018,7 +1036,7 @@ void main() {
             final db = new DatastoreDBMock(transactionMock: transactionMock);
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
-            registerLoggedInUser('hans@juergen.com');
+            registerAuthenticatedUser(testUploaderUser);
             registerHistoryBackend(new HistoryBackendMock());
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);

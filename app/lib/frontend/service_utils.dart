@@ -43,7 +43,7 @@ Future registerLoggedInUserIfPossible(shelf.Request request) async {
       final user =
           await accountBackend.authenticateWithAccessToken(accessToken);
       if (user != null) {
-        registerLoggedInUser(user.email);
+        registerAuthenticatedUser(user);
       }
     }
   }
