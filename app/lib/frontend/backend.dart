@@ -957,6 +957,12 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   }
 
   final pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
+  // Large pubspec content should be rejected, as either a storage limit will be
+  // limiting it, or it will slow down queries and processing for very little
+  // reason.
+  if (pubspecContent.length > 128 * 1024) {
+    throw GenericProcessingException('pubspec.yaml is too large.');
+  }
 
   final pubspec = new Pubspec.fromYaml(pubspecContent);
   if (pubspec.name == null ||
