@@ -16,6 +16,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
+import '../account/backend.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
 import '../shared/email.dart';
@@ -33,12 +34,6 @@ final _random = new Random.secure();
 // The maximum stored length of `README.md` and other user-provided file content
 // that is stored separately in the database.
 final _maxStoredLength = 128 * 1024;
-
-/// Sets the active logged-in user.
-void registerLoggedInUser(String user) => ss.register(#_logged_in_user, user);
-
-/// The active logged-in user. This is used for doing authentication checks.
-String get _loggedInUser => ss.lookup(#_logged_in_user) as String;
 
 /// Sets the active tarball storage
 void registerTarballStorage(TarballStorage ts) =>
@@ -383,7 +378,8 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future<PackageVersion> upload(Stream<List<int>> data) {
     _logger.info('Starting upload.');
-    return _withAuthenticatedUser((String userEmail) {
+    return withAuthenticatedUser((AuthenticatedUser user) {
+      final userEmail = user.email;
       _logger.info('User: $userEmail.');
 
       return withTempDirectory((Directory dir) async {
@@ -407,7 +403,8 @@ class GCloudPackageRepository extends PackageRepository {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    return _withAuthenticatedUser((String userEmail) {
+    return withAuthenticatedUser((AuthenticatedUser user) {
+      final userEmail = user.email;
       _logger.info('User: $userEmail.');
 
       final guid = uuid.v4().toString();
@@ -426,7 +423,8 @@ class GCloudPackageRepository extends PackageRepository {
   /// Finishes the upload of a package.
   @override
   Future<PackageVersion> finishAsyncUpload(Uri uri) {
-    return _withAuthenticatedUser((String userEmail) async {
+    return withAuthenticatedUser((AuthenticatedUser user) async {
+      final userEmail = user.email;
       final guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
       _logger.info('Reading tarball from cloud storage.');
@@ -617,7 +615,8 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
-    await _withAuthenticatedUser((String userEmail) async {
+    await withAuthenticatedUser((AuthenticatedUser user) async {
+      final userEmail = user.email;
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
 
@@ -721,7 +720,8 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
-    return _withAuthenticatedUser((String userEmail) {
+    return withAuthenticatedUser((AuthenticatedUser user) {
+      final userEmail = user.email;
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
         final package = (await T.lookup([packageKey])).first as models.Package;
@@ -784,17 +784,6 @@ class GCloudPackageRepository extends PackageRepository {
       });
     });
   }
-}
-
-/// Calls [func] with the currently logged in user as an argument.
-///
-/// If no user is currently logged in, this will throw an `UnauthorizedAccess`
-/// exception.
-Future<T> _withAuthenticatedUser<T>(FutureOr<T> func(String user)) async {
-  if (_loggedInUser == null) {
-    throw new UnauthorizedAccessException('No active user.');
-  }
-  return await func(_loggedInUser);
 }
 
 /// Reads a tarball from a byte stream.
@@ -892,7 +881,7 @@ models.Package _newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
-    ..uploaderEmails = [_loggedInUser];
+    ..uploaderEmails = [authenticatedUser.email];
 }
 
 class _ValidatedUpload {

@@ -9,6 +9,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,6 +32,25 @@ void registerAccountBackend(AccountBackend backend) =>
 AccountBackend get accountBackend =>
     ss.lookup(#_accountBackend) as AccountBackend;
 
+/// Sets the active authenticated user.
+void registerAuthenticatedUser(AuthenticatedUser user) =>
+    ss.register(#_authenticated_user, user);
+
+/// The active authenticated user.
+AuthenticatedUser get authenticatedUser =>
+    ss.lookup(#_authenticated_user) as AuthenticatedUser;
+
+/// Calls [fn] with the currently authenticated user as an argument.
+///
+/// If no user is currently authenticated, this will throw an
+/// `UnauthorizedAccess` exception.
+Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
+  if (authenticatedUser == null) {
+    throw UnauthorizedAccessException('No active user.');
+  }
+  return await fn(authenticatedUser);
+}
+
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
@@ -48,24 +68,25 @@ class AccountBackend {
     return (await _db.lookup<User>([key])).single;
   }
 
-  /// Returns the `User` entry that is associated with the [accessToken].
-  ///
-  /// When no entry exists in Datastore, this method will create a new one.
-  ///
-  /// When the authenticated e-mail of the user changes, the email field will
-  /// be updated to the latest one.
+  /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
   ///
   /// The method returns null if the access token is invalid.
-  Future<User> authenticateWithAccessToken(String accessToken) async {
+  ///
+  /// When no associated User entry exists in Datastore, this method will create
+  /// a new one. When the authenticated e-mail of the user changes, the email
+  /// field will be updated to the latest one.
+  Future<AuthenticatedUser> authenticateWithAccessToken(
+      String accessToken) async {
     final auth = await _defaultAuthProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       return null;
     }
-    return await _lookupOrCreateUserByOauthUserId(auth);
+    final user = await _lookupOrCreateUserByOauthUserId(auth);
+    return AuthenticatedUser(user.userId, user.email);
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
-    final mappingKey = _db.emptyKey.append(User, id: auth.userId);
+    final mappingKey = _db.emptyKey.append(User, id: auth.oauthUserId);
 
     final user = await retry(() async {
       // Check existing mapping.
@@ -95,9 +116,9 @@ class AccountBackend {
               (await tx.lookup<User>([usersWithEmail.single.key])).single;
           final newMapping = OAuthUserID()
             ..parentKey = _db.emptyKey
-            ..id = auth.userId
+            ..id = auth.oauthUserId
             ..userIdKey = user.key;
-          user.oauthUserId = auth.userId;
+          user.oauthUserId = auth.oauthUserId;
           tx.queueMutations(inserts: [user, newMapping]);
           await tx.commit();
         }) as User;
@@ -125,13 +146,13 @@ class AccountBackend {
       final newUser = User()
         ..parentKey = _db.emptyKey
         ..id = _uuid.v4().toString()
-        ..oauthUserId = auth.userId
+        ..oauthUserId = auth.oauthUserId
         ..email = auth.email
         ..created = created;
 
       final newMapping = OAuthUserID()
         ..parentKey = _db.emptyKey
-        ..id = auth.userId
+        ..id = auth.oauthUserId
         ..userIdKey = newUser.key;
 
       await _db.commit(inserts: [newUser, newMapping]);
@@ -153,11 +174,18 @@ class AccountBackend {
   }
 }
 
-class AuthResult {
+class AuthenticatedUser {
   final String userId;
   final String email;
 
-  AuthResult(this.userId, this.email);
+  AuthenticatedUser(this.userId, this.email);
+}
+
+class AuthResult {
+  final String oauthUserId;
+  final String email;
+
+  AuthResult(this.oauthUserId, this.email);
 }
 
 /// Authenticates access tokens.
@@ -165,7 +193,7 @@ abstract class AuthProvider {
   /// Checks the [accessToken] and returns a verified user information.
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
-  /// verified,
+  /// verified.
   Future<AuthResult> tryAuthenticate(String accessToken);
 
   /// Close resources.
