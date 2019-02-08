@@ -80,14 +80,46 @@ class AccountBackend {
         return user;
       }
 
-      // Query the first use of the e-mail address.
+      // Check pre-migrated User with existing email.
+      final usersWithEmail = await (_db.query<User>()
+            ..filter('email =', auth.email))
+          .run()
+          .toList();
+      // TODO: trigger consistency mitigation if more than one email exists
+      if (usersWithEmail.length == 1 &&
+          usersWithEmail.single.oauthUserId == null) {
+        // We've found a single pre-migrated User with empty oauthUserId: need
+        // to create OAuthUserID for it.
+        return await _db.withTransaction((tx) async {
+          final user =
+              (await tx.lookup<User>([usersWithEmail.single.key])).single;
+          final newMapping = OAuthUserID()
+            ..parentKey = _db.emptyKey
+            ..id = auth.userId
+            ..userIdKey = user.key;
+          user.oauthUserId = auth.userId;
+          tx.queueMutations(inserts: [user, newMapping]);
+          await tx.commit();
+        }) as User;
+      }
+
+      // Sanity check: query the first use of the e-mail address.
+      // Existing uploaders should be pre-migrated, and should be handled by the
+      // code above. A new user should not have a previously existing package
+      // uploaded.
       DateTime created = DateTime.now().toUtc();
       final uploadedVersions = _db.query<PackageVersion>()
         ..filter('uploaderEmail =', auth.email);
+      int uploadedCount = 0;
       await for (var version in uploadedVersions.run()) {
+        uploadedCount++;
         if (created.isAfter(version.created)) {
           created = version.created;
         }
+      }
+      if (uploadedCount != null) {
+        _logger.warning(
+            'Pre-migration inconsistent for ${auth.email}, creating new User.');
       }
 
       final newUser = User()
