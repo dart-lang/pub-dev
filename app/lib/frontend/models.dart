@@ -50,7 +50,8 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
   db.Key latestDevVersionKey;
 
-  @CompatibleStringListProperty()
+  /// List of User.userId
+  @db.StringListProperty()
   List<String> uploaders;
 
   @CompatibleStringListProperty()
