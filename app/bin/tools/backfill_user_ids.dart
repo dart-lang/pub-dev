@@ -83,7 +83,7 @@ Future _backfillPackage(String package) async {
   await dbService.withTransaction((tx) async {
     final p = (await dbService.lookup<Package>([pkgKey])).single;
     final uploaders = Set<String>();
-    for (String email in p.uploaders) {
+    for (String email in p.uploaderEmails) {
       final user = await _lookupUserByEmail(email);
       uploaders.add(user.userId);
     }
