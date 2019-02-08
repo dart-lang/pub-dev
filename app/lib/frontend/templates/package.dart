@@ -135,24 +135,25 @@ String renderPkgShowPage(
 
   String readmeFilename;
   String renderedReadme;
-  final homepageUrl = selectedVersion.homepage;
+  final packageLinks = selectedVersion.packageLinks;
+  final baseUrl = packageLinks.repositoryUrl ?? packageLinks.homepageUrl;
   if (selectedVersion.readme != null) {
     readmeFilename = selectedVersion.readme.filename;
-    renderedReadme = renderFile(selectedVersion.readme, homepageUrl);
+    renderedReadme = renderFile(selectedVersion.readme, baseUrl);
   }
 
   String changelogFilename;
   String renderedChangelog;
   if (selectedVersion.changelog != null) {
     changelogFilename = selectedVersion.changelog.filename;
-    renderedChangelog = renderFile(selectedVersion.changelog, homepageUrl);
+    renderedChangelog = renderFile(selectedVersion.changelog, baseUrl);
   }
 
   String exampleFilename;
   String renderedExample;
   if (selectedVersion.example != null) {
     exampleFilename = selectedVersion.example.filename;
-    renderedExample = renderFile(selectedVersion.example, homepageUrl);
+    renderedExample = renderFile(selectedVersion.example, baseUrl);
     if (renderedExample != null) {
       renderedExample = '<p style="font-family: monospace">'
           '<b>${htmlEscape.convert(exampleFilename)}</b>'
@@ -193,7 +194,7 @@ String renderPkgShowPage(
   final isAwaiting = card == null ||
       analysis == null ||
       (!card.isSkipped && !analysis.hasPanaSummary);
-  String documentationUrl = selectedVersion.documentation;
+  String documentationUrl = packageLinks.documentationUrl;
   if (documentationUrl != null &&
       (documentationUrl.startsWith('https://www.dartdocs.org/') ||
           documentationUrl.startsWith('http://www.dartdocs.org/') ||
@@ -206,7 +207,6 @@ String renderPkgShowPage(
     version: selectedVersion.version,
     isLatest: selectedVersion.version == package.latestVersion,
   );
-  final packageLinks = selectedVersion.packageLinks;
 
   final links = <Map<String, dynamic>>[];
   void addLink(
@@ -227,7 +227,7 @@ String renderPkgShowPage(
   }
 
   if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
-    addLink(homepageUrl, 'Homepage');
+    addLink(packageLinks.homepageUrl, 'Homepage');
   }
   addLink(packageLinks.repositoryUrl, 'Repository',
       detectServiceProvider: true);
@@ -266,7 +266,7 @@ String renderPkgShowPage(
       'uploaders_title': 'Uploader',
       'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
       'short_created': selectedVersion.shortCreated,
-      'license_html': _renderLicenses(homepageUrl, analysis?.licenses),
+      'license_html': _renderLicenses(baseUrl, analysis?.licenses),
       'score_box_html': renderScoreBox(card?.overallScore,
           isSkipped: card?.isSkipped ?? false,
           isNewPackage: package.isNewPackage()),
