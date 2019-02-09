@@ -187,6 +187,9 @@ final _reservedPackageNames = <String>[
   'math',
   'versions',
   'webview_flutter',
+  'flutter_web',
+  'flutter_web_ui',
+  'flutter_web_test',
 ].map(reducePackageName).toList();
 
 /// Whether the [name] is (very similar) to a reserved package name.
