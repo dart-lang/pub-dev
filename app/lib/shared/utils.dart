@@ -180,6 +180,9 @@ const List<String> _reservedWords = const <String>[
 
 final _reservedPackageNames = <String>[
   'core',
+  'flutter_web',
+  'flutter_web_test',
+  'flutter_web_ui',
   'google_maps_flutter',
   'hummingbird',
   'in_app_purchase',
