@@ -379,13 +379,12 @@ class GCloudPackageRepository extends PackageRepository {
   Future<PackageVersion> upload(Stream<List<int>> data) {
     _logger.info('Starting upload.');
     return withAuthenticatedUser((AuthenticatedUser user) {
-      final userEmail = user.email;
-      _logger.info('User: $userEmail.');
+      _logger.info('User: ${user.userId} / ${user.email}.');
 
       return withTempDirectory((Directory dir) async {
         final filename = '${dir.absolute.path}/tarball.tar.gz';
         await _saveTarballToFS(data, filename);
-        return _performTarballUpload(userEmail, filename, (package, version) {
+        return _performTarballUpload(user, filename, (package, version) {
           return storage.upload(
               package, version, new File(filename).openRead());
         });
@@ -424,7 +423,6 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future<PackageVersion> finishAsyncUpload(Uri uri) {
     return withAuthenticatedUser((AuthenticatedUser user) async {
-      final userEmail = user.email;
       final guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
       _logger.info('Reading tarball from cloud storage.');
@@ -434,7 +432,7 @@ class GCloudPackageRepository extends PackageRepository {
         // TODO: check why this is flaky https://github.com/dart-lang/pub-dartlang-dart/issues/1680
         await retryAsync(
             () => _saveTarballToFS(storage.readTempObject(guid), filename));
-        return _performTarballUpload(userEmail, filename, (package, version) {
+        return _performTarballUpload(user, filename, (package, version) {
           return storage.uploadViaTempObject(guid, package, version);
         }).whenComplete(() async {
           _logger.info('Removing temporary object $guid.');
@@ -445,14 +443,13 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   Future<PackageVersion> _performTarballUpload(
-      String userEmail,
+      AuthenticatedUser user,
       String filename,
       Future tarballUpload(String name, String version)) async {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
-    final validatedUpload =
-        await _parseAndValidateUpload(db, filename, userEmail);
+    final validatedUpload = await _parseAndValidateUpload(db, filename, user);
     final newVersion = validatedUpload.packageVersion;
 
     models.Package package;
@@ -881,6 +878,7 @@ models.Package _newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
+    ..uploaders = [authenticatedUser.userId]
     ..uploaderEmails = [authenticatedUser.email];
 }
 
@@ -904,7 +902,7 @@ class _ValidatedUpload {
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
 Future<_ValidatedUpload> _parseAndValidateUpload(
-    DatastoreDB db, String filename, String user) async {
+    DatastoreDB db, String filename, AuthenticatedUser user) async {
   assert(user != null);
 
   final files = await listTarball(filename);
@@ -1020,7 +1018,8 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..libraries = libraries
     ..downloads = 0
     ..sortOrder = 1
-    ..uploaderEmail = user;
+    ..uploader = user.userId
+    ..uploaderEmail = user.email;
 
   final versionPubspec = models.PackageVersionPubspec()
     ..initFromKey(key)
