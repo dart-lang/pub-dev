@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
@@ -30,6 +31,7 @@ Future main(List<String> arguments) async {
   final String uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withProdServices(() async {
+    registerAccountBackend(AccountBackend(dbService));
     registerHistoryBackend(new HistoryBackend(dbService));
     if (command == 'list') {
       await listUploaders(package);
@@ -53,12 +55,11 @@ Future listUploaders(String packageName) async {
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }
-    final uploaders = package.uploaderEmails;
-    print('Current uploaders: $uploaders');
+    print('Current uploaders: ${package.uploaderEmails}');
   });
 }
 
-Future addUploader(String packageName, String uploader) async {
+Future addUploader(String packageName, String uploaderEmail) async {
   return dbService.withTransaction((Transaction T) async {
     final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -66,25 +67,25 @@ Future addUploader(String packageName, String uploader) async {
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }
-    final uploaders = package.uploaderEmails;
-    print('Current uploaders: $uploaders');
-    if (uploaders.contains(uploader)) {
-      throw new Exception('Uploader $uploader already exists');
+    print('Current uploaders: ${package.uploaderEmails}');
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    if (package.hasUploader(user.userId, uploaderEmail)) {
+      throw new Exception('Uploader $uploaderEmail already exists');
     }
-    package.uploaderEmails.add(uploader);
+    package.addUploader(user.userId, uploaderEmail);
     T.queueMutations(inserts: [package]);
     await T.commit();
-    print('Uploader $uploader added to list of uploaders');
+    print('Uploader $uploaderEmail added to list of uploaders');
 
     historyBackend.storeEvent(new UploaderChanged(
       packageName: packageName,
       currentUserEmail: pubDartlangOrgEmail,
-      addedUploaderEmails: [uploader],
+      addedUploaderEmails: [uploaderEmail],
     ));
   });
 }
 
-Future removeUploader(String packageName, String uploader) async {
+Future removeUploader(String packageName, String uploaderEmail) async {
   return dbService.withTransaction((Transaction T) async {
     final package =
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
@@ -92,23 +93,24 @@ Future removeUploader(String packageName, String uploader) async {
     if (package == null) {
       throw new Exception('Package $packageName does not exist.');
     }
-    final uploaders = package.uploaderEmails;
-    print('Current uploaders: $uploaders');
-    if (!uploaders.contains(uploader)) {
-      throw new Exception('Uploader $uploader does not exist');
+
+    print('Current uploaders: ${package.uploaderEmails}');
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    if (!package.hasUploader(user.userId, uploaderEmail)) {
+      throw new Exception('Uploader $uploaderEmail does not exist');
     }
-    package.uploaderEmails.remove(uploader);
-    if (package.uploaderEmails.isEmpty) {
+    if (package.uploaderCount <= 1) {
       throw new Exception('Would remove last uploader');
     }
+    package.removeUploader(user.userId, uploaderEmail);
     T.queueMutations(inserts: [package]);
     await T.commit();
-    print('Uploader $uploader removed from list of uploaders');
+    print('Uploader $uploaderEmail removed from list of uploaders');
 
     historyBackend.storeEvent(new UploaderChanged(
       packageName: packageName,
       currentUserEmail: pubDartlangOrgEmail,
-      removedUploaderEmails: [uploader],
+      removedUploaderEmails: [uploaderEmail],
     ));
   });
 }

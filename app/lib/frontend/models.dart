@@ -80,19 +80,30 @@ class Package extends db.ExpandoModel {
   }
 
   // Check if a user is an uploader for a package.
-  bool hasUploader(String email) {
-    return uploaderEmails
-        .map((s) => s.toLowerCase())
-        .contains(email.toLowerCase());
+  bool hasUploader(String uploaderId, String uploaderEmail) {
+    if (uploaderId != null && uploaders.contains(uploaderId)) {
+      return true;
+    }
+    // fallback to emails in case the migration did not happen to this yet
+    final lowerEmail = uploaderEmail.toLowerCase();
+    return uploaderEmails.any((s) => s.toLowerCase() == lowerEmail);
+  }
+
+  int get uploaderCount => uploaderEmails.length;
+
+  /// Add the id and the email to the list of uploaders.
+  void addUploader(String uploaderId, String uploaderEmail) {
+    if (uploaderId != null) {
+      uploaders.add(uploaderId);
+    }
+    uploaderEmails.add(uploaderEmail);
   }
 
   // Remove the email from the list of uploaders.
-  void removeUploader(String email) {
-    final lowerEmail = email.toLowerCase();
-    uploaderEmails = uploaderEmails
-        .map((s) => s.toLowerCase())
-        .where((email) => email != lowerEmail)
-        .toList();
+  void removeUploader(String uploaderId, String uploaderEmail) {
+    final lowerEmail = uploaderEmail.toLowerCase();
+    uploaders.removeWhere((s) => s == uploaderId);
+    uploaderEmails.removeWhere((s) => s.toLowerCase() == lowerEmail);
   }
 
   void updateVersion(PackageVersion pv) {

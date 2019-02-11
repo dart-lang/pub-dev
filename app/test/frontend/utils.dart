@@ -52,6 +52,7 @@ Package createTestPackage({List<AuthenticatedUser> uploaders}) {
     ..name = testPackageKey.id as String
     ..created = new DateTime.utc(2014)
     ..updated = new DateTime.utc(2015)
+    ..uploaders = uploaders.map((user) => user.userId).toList()
     ..uploaderEmails = uploaders.map((user) => user.email).toList()
     ..latestVersionKey = testPackageVersionKey
     ..latestDevVersionKey = testPackageVersionKey;

@@ -487,7 +487,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
-      if (!package.hasUploader(newVersion.uploaderEmail)) {
+      if (!package.hasUploader(newVersion.uploader, newVersion.uploaderEmail)) {
         _logger.info('User ${newVersion.uploaderEmail} is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
@@ -617,14 +617,17 @@ class GCloudPackageRepository extends PackageRepository {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
 
-      _validateActiveUser(userEmail, package);
+      _validatePackageUploader(package, user.userId, user.email);
 
       if (!isValidEmail(uploaderEmail)) {
         throw new GenericProcessingException(
             'Not a valid e-mail: `$uploaderEmail`.');
       }
 
-      if (package.hasUploader(uploaderEmail)) {
+      // TODO: do not create a new User for unverified uploader email
+      final uploader =
+          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+      if (package.hasUploader(uploader.userId, uploaderEmail)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
       }
@@ -664,25 +667,28 @@ class GCloudPackageRepository extends PackageRepository {
 
   Future confirmUploader(
       String userEmail, String packageName, String uploaderEmail) async {
+    final fromUser = await accountBackend.lookupOrCreateUserByEmail(userEmail);
     return db.withTransaction((Transaction tx) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as models.Package;
 
       try {
-        _validateActiveUser(userEmail, package);
+        _validatePackageUploader(package, fromUser.userId, fromUser.email);
       } catch (_) {
         await tx.rollback();
         rethrow;
       }
 
-      if (package.hasUploader(uploaderEmail)) {
+      final uploader =
+          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+      if (package.hasUploader(uploader.userId, uploader.email)) {
         // The requested uploaderEmail is already part of the uploaders.
         await tx.rollback();
         return;
       }
 
       // Add [uploaderEmail] to uploaders and commit.
-      package.uploaderEmails.add(uploaderEmail);
+      package.addUploader(uploader.userId, uploaderEmail);
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {
@@ -702,14 +708,15 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  void _validateActiveUser(String userEmail, models.Package package) {
+  void _validatePackageUploader(
+      models.Package package, String userId, String userEmail) {
     // Fail if package doesn't exist.
     if (package == null) {
       throw new GenericProcessingException('Package "$package" does not exist');
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
-    if (!package.hasUploader(userEmail)) {
+    if (!package.hasUploader(userId, userEmail)) {
       throw new UnauthorizedAccessException(
           'Calling user does not have permission to change uploaders.');
     }
@@ -731,25 +738,24 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.hasUploader(userEmail)) {
+        if (!package.hasUploader(user.userId, userEmail)) {
           await T.rollback();
           throw new UnauthorizedAccessException(
               'Calling user does not have permission to change uploaders.');
         }
 
+        final uploader =
+            await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
         // Fail if the uploader we want to remove does not exist.
-        if (!package.hasUploader(uploaderEmail)) {
+        if (!package.hasUploader(uploader.userId, uploaderEmail)) {
           await T.rollback();
           throw new GenericProcessingException(
               'The uploader to remove does not exist.');
         }
 
-        // Remove the uploader from the list.
-        package.removeUploader(uploaderEmail);
-
         // We cannot have 0 uploaders, if we would remove the last one, we
         // fail with an error.
-        if (package.uploaderEmails.isEmpty) {
+        if (package.uploaderCount <= 1) {
           await T.rollback();
           throw new LastUploaderRemoveException();
         }
@@ -757,11 +763,14 @@ class GCloudPackageRepository extends PackageRepository {
         // At the moment we don't validate whether the other e-mail addresses
         // are able to authenticate. To prevent accidentally losing the control
         // of a package, we don't allow self-removal.
-        if (userEmail == uploaderEmail) {
+        if (userEmail == uploaderEmail || user.userId == uploader.userId) {
           await T.rollback();
           throw new GenericProcessingException('Self-removal is not allowed. '
               'Use another account to remove this e-mail address.');
         }
+
+        // Remove the uploader from the list.
+        package.removeUploader(uploader.userId, uploaderEmail);
 
         final inserts = <Model>[package];
         if (historyBackend.isEnabled) {
