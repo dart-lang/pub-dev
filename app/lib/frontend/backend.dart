@@ -685,7 +685,9 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       // Add [uploaderEmail] to uploaders and commit.
-      package.addUploader(uploaderEmail);
+      final uploader =
+          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+      package.addUploader(uploader.userId, uploaderEmail);
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {
@@ -764,7 +766,9 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Remove the uploader from the list.
-        package.removeUploader(uploaderEmail);
+        final uploader =
+            await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+        package.removeUploader(uploader.userId, uploaderEmail);
 
         final inserts = <Model>[package];
         if (historyBackend.isEnabled) {

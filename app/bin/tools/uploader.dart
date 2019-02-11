@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
@@ -30,6 +31,7 @@ Future main(List<String> arguments) async {
   final String uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withProdServices(() async {
+    registerAccountBackend(AccountBackend(dbService));
     registerHistoryBackend(new HistoryBackend(dbService));
     if (command == 'list') {
       await listUploaders(package);
@@ -69,7 +71,8 @@ Future addUploader(String packageName, String uploaderEmail) async {
     if (package.hasUploader(uploaderEmail)) {
       throw new Exception('Uploader $uploaderEmail already exists');
     }
-    package.addUploader(uploaderEmail);
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    package.addUploader(user.userId, uploaderEmail);
     T.queueMutations(inserts: [package]);
     await T.commit();
     print('Uploader $uploaderEmail added to list of uploaders');
@@ -98,7 +101,8 @@ Future removeUploader(String packageName, String uploaderEmail) async {
     if (package.uploaderCount <= 1) {
       throw new Exception('Would remove last uploader');
     }
-    package.removeUploader(uploaderEmail);
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    package.removeUploader(user.userId, uploaderEmail);
     T.queueMutations(inserts: [package]);
     await T.commit();
     print('Uploader $uploaderEmail removed from list of uploaders');

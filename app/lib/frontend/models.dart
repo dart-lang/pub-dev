@@ -88,17 +88,17 @@ class Package extends db.ExpandoModel {
 
   int get uploaderCount => uploaderEmails.length;
 
-  void addUploader(String email) {
-    uploaderEmails.add(email);
+  /// Add the id and the email to the list of uploaders.
+  void addUploader(String uploaderId, String uploaderEmail) {
+    uploaders.add(uploaderId);
+    uploaderEmails.add(uploaderEmail);
   }
 
   // Remove the email from the list of uploaders.
-  void removeUploader(String email) {
-    final lowerEmail = email.toLowerCase();
-    uploaderEmails = uploaderEmails
-        .map((s) => s.toLowerCase())
-        .where((email) => email != lowerEmail)
-        .toList();
+  void removeUploader(String uploaderId, String uploaderEmail) {
+    final lowerEmail = uploaderEmail.toLowerCase();
+    uploaders.removeWhere((s) => s == uploaderId);
+    uploaderEmails.removeWhere((s) => s.toLowerCase() == lowerEmail);
   }
 
   void updateVersion(PackageVersion pv) {
