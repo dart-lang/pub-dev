@@ -478,7 +478,7 @@ class GCloudPackageRepository extends PackageRepository {
       // reserved package names for the Dart team
       if (package == null &&
           matchesReservedPackageName(newVersion.package) &&
-          !newVersion.uploaderEmail.endsWith('@google.com')) {
+          !user.email.endsWith('@google.com')) {
         await T.rollback();
         throw new GenericProcessingException(
             'Package name ${newVersion.package} is reserved.');
@@ -489,7 +489,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
-      if (!package.hasUploader(newVersion.uploader, newVersion.uploaderEmail)) {
+      if (!package.hasUploader(user.userId, user.email)) {
         _logger.info('User ${newVersion.uploaderEmail} is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
