@@ -68,10 +68,10 @@ Future addUploader(String packageName, String uploaderEmail) async {
       throw new Exception('Package $packageName does not exist.');
     }
     print('Current uploaders: ${package.uploaderEmails}');
-    if (package.hasUploader(uploaderEmail)) {
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    if (package.hasUploader(user.userId, uploaderEmail)) {
       throw new Exception('Uploader $uploaderEmail already exists');
     }
-    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
     package.addUploader(user.userId, uploaderEmail);
     T.queueMutations(inserts: [package]);
     await T.commit();
@@ -95,13 +95,13 @@ Future removeUploader(String packageName, String uploaderEmail) async {
     }
 
     print('Current uploaders: ${package.uploaderEmails}');
-    if (!package.hasUploader(uploaderEmail)) {
+    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    if (!package.hasUploader(user.userId, uploaderEmail)) {
       throw new Exception('Uploader $uploaderEmail does not exist');
     }
     if (package.uploaderCount <= 1) {
       throw new Exception('Would remove last uploader');
     }
-    final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
     package.removeUploader(user.userId, uploaderEmail);
     T.queueMutations(inserts: [package]);
     await T.commit();
