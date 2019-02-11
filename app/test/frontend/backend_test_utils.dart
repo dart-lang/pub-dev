@@ -13,6 +13,8 @@ import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/shared/email.dart';
 import 'package:pub_server/repository.dart' show AsyncUploadInfo;
 
+import 'package:pub_dartlang_org/account/backend.dart';
+import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
@@ -431,5 +433,38 @@ class EmailSenderMock implements EmailSender {
   Future sendMessage(EmailMessage message) async {
     sentMessages.add(message);
     return;
+  }
+}
+
+class AccountBackendMock implements AccountBackend {
+  final List<User> users;
+
+  AccountBackendMock({List<User> users})
+      : users = List<User>.from(users ?? const <User>[]);
+
+  @override
+  Future<User> lookupOrCreateUserByEmail(String email) async {
+    return users.firstWhere((u) => u.email == email, orElse: () {
+      final u = User()
+        ..id = email.hashCode.toString()
+        ..email = email;
+      users.add(u);
+      return u;
+    });
+  }
+
+  @override
+  Future<User> lookupUserById(String userId) async {
+    return users.firstWhere((u) => u.userId == userId, orElse: () => null);
+  }
+
+  @override
+  Future<AuthenticatedUser> authenticateWithAccessToken(String accessToken) {
+    return null;
+  }
+
+  @override
+  Future close() {
+    return null;
   }
 }

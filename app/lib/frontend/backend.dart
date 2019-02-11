@@ -756,6 +756,13 @@ class GCloudPackageRepository extends PackageRepository {
               'The uploader to remove does not exist.');
         }
 
+        // We cannot have 0 uploaders, if we would remove the last one, we
+        // fail with an error.
+        if (package.uploaderCount <= 1) {
+          await T.rollback();
+          throw new LastUploaderRemoveException();
+        }
+
         // At the moment we don't validate whether the other e-mail addresses
         // are able to authenticate. To prevent accidentally losing the control
         // of a package, we don't allow self-removal.
@@ -763,13 +770,6 @@ class GCloudPackageRepository extends PackageRepository {
           await T.rollback();
           throw new GenericProcessingException('Self-removal is not allowed. '
               'Use another account to remove this e-mail address.');
-        }
-
-        // We cannot have 0 uploaders, if we would remove the last one, we
-        // fail with an error.
-        if (package.uploaderCount <= 1) {
-          await T.rollback();
-          throw new LastUploaderRemoveException();
         }
 
         // Remove the uploader from the list.

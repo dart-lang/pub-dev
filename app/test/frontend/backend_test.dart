@@ -317,6 +317,7 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(user);
+        registerAccountBackend(AccountBackendMock());
         await repo.addUploader(pkg, newUploader);
       }
 
@@ -357,6 +358,7 @@ void main() {
         );
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
+        registerAccountBackend(AccountBackendMock());
 
         registerBackend(BackendMock(updatePackageInviteFn: (
             {packageName, type, recipientEmail, fromEmail}) async {
@@ -458,6 +460,7 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
+        registerAccountBackend(AccountBackendMock());
         await repo
             .removeUploader(pkg, testUploaderUser.email)
             .catchError(expectAsync2((e, _) {
@@ -479,6 +482,7 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
+        registerAccountBackend(AccountBackendMock());
         await repo
             .removeUploader(pkg, 'foo2@bar.com')
             .catchError(expectAsync2((e, _) {
@@ -503,6 +507,7 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(foo1);
+        registerAccountBackend(AccountBackendMock());
         await repo
             .removeUploader(pkg, 'foo1@bar.com')
             .catchError(expectAsync2((e, _) {
@@ -536,6 +541,7 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(userA);
+        registerAccountBackend(AccountBackendMock());
         await repo.removeUploader(pkg, 'b@x.com');
       });
     });
