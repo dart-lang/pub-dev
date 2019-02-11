@@ -407,6 +407,9 @@ class PackageInvite extends db.Model {
   String urlNonce;
 
   @db.StringProperty()
+  String fromUserId;
+
+  @db.StringProperty()
   String fromEmail;
 
   @db.DateTimeProperty()

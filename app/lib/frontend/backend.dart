@@ -167,6 +167,7 @@ class Backend {
     @required String packageName,
     @required String type,
     @required String recipientEmail,
+    @required String fromUserId,
     @required String fromEmail,
   }) async {
     final now = new DateTime.now().toUtc();
@@ -203,6 +204,7 @@ class Backend {
               .join();
       invite
         ..urlNonce = urlNonce
+        ..fromUserId = fromUserId
         ..fromEmail = fromEmail
         ..created = now
         ..expires = now.add(Duration(days: 1))
@@ -636,6 +638,7 @@ class GCloudPackageRepository extends PackageRepository {
         packageName: packageName,
         type: models.PackageInviteType.newUploader,
         recipientEmail: uploaderEmail,
+        fromUserId: user.userId,
         fromEmail: userEmail,
       );
 

@@ -361,7 +361,7 @@ void main() {
         registerAccountBackend(AccountBackendMock());
 
         registerBackend(BackendMock(updatePackageInviteFn: (
-            {packageName, type, recipientEmail, fromEmail}) async {
+            {packageName, type, recipientEmail, fromUserId, fromEmail}) async {
           return new InviteStatus(urlNonce: 'abc1234');
         }));
         registerEmailSender(new EmailSenderMock());

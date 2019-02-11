@@ -150,6 +150,7 @@ class BackendMock implements Backend {
     String packageName,
     String type,
     String recipientEmail,
+    String fromUserId,
     String fromEmail,
   }) async {
     if (updatePackageInviteFn == null) {
@@ -159,6 +160,7 @@ class BackendMock implements Backend {
       packageName: packageName,
       type: type,
       recipientEmail: recipientEmail,
+      fromUserId: fromUserId,
       fromEmail: fromEmail,
     )) as InviteStatus;
   }
