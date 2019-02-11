@@ -46,7 +46,7 @@ Future main(List<String> args) async {
     }
 
     for (User user in _emailToUser.values) {
-      final created = _userFirstUsed[user];
+      final created = _userFirstUsed[user.userId];
       if (created != null && user.created.isAfter(created)) {
         await _updateUserCreatedTime(user, created);
       }
