@@ -86,6 +86,12 @@ class Package extends db.ExpandoModel {
         .contains(email.toLowerCase());
   }
 
+  int get uploaderCount => uploaderEmails.length;
+
+  void addUploader(String email) {
+    uploaderEmails.add(email);
+  }
+
   // Remove the email from the list of uploaders.
   void removeUploader(String email) {
     final lowerEmail = email.toLowerCase();
