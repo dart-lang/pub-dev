@@ -269,7 +269,7 @@ class PackageVersionPubspec extends db.ExpandoModel {
 
   void initFromKey(QualifiedVersionKey key) {
     id = key.qualifiedVersion;
-    namespace = key.namespace;
+    namespace = key.namespace ?? '';
     package = key.package;
     qualifiedPackage = key.qualifiedPackage;
     version = key.version;
@@ -343,7 +343,7 @@ class PackageVersionInfo extends db.ExpandoModel {
 
   void initFromKey(QualifiedVersionKey key) {
     id = key.qualifiedVersion;
-    namespace = key.namespace;
+    namespace = key.namespace ?? '';
     package = key.package;
     qualifiedPackage = key.qualifiedPackage;
     version = key.version;
@@ -363,7 +363,7 @@ class QualifiedVersionKey {
   });
 
   String get qualifiedPackage =>
-      namespace == null ? package : '$namespace:$package';
+      namespace == null || namespace.isEmpty ? package : '$namespace:$package';
 
   String get qualifiedVersion => '$qualifiedPackage-$version';
 }
