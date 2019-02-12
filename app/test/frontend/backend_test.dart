@@ -684,7 +684,7 @@ void main() {
         expect(version.sortOrder, 1);
 
         expect(versionPubspec.id, 'foobar_pkg-0.1.1+5');
-        expect(versionPubspec.namespace, isNull);
+        expect(versionPubspec.namespace, '');
         expect(versionPubspec.package, testPackage.name);
         expect(versionPubspec.qualifiedPackage, testPackage.name);
         expect(versionPubspec.version, testPackageVersion.version);
@@ -692,7 +692,7 @@ void main() {
         expect(versionPubspec.pubspec.asJson, loadYaml(testPackagePubspec));
 
         expect(versionInfo.id, 'foobar_pkg-0.1.1+5');
-        expect(versionInfo.namespace, isNull);
+        expect(versionInfo.namespace, '');
         expect(versionInfo.package, testPackage.name);
         expect(versionInfo.qualifiedPackage, testPackage.name);
         expect(versionInfo.version, testPackageVersion.version);
