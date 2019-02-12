@@ -69,12 +69,12 @@ class AccountBackend {
   /// Returns the `User` entry for the [email] or creates a new one if it does
   /// not exists.
   ///
-  /// Throws AssertionError if more then one `User` entry exists.
+  /// Throws Exception if more then one `User` entry exists.
   Future<User> lookupOrCreateUserByEmail(String email) async {
     final query = _db.query<User>()..filter('email =', email);
     final list = await query.run().toList();
     if (list.length > 1) {
-      throw AssertionError('More than one User exists for e-mail: $email');
+      throw Exception('More than one User exists for e-mail: $email');
     }
     if (list.length == 1) {
       return list.single;
@@ -108,7 +108,7 @@ class AccountBackend {
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
-    final mappingKey = _db.emptyKey.append(User, id: auth.oauthUserId);
+    final mappingKey = _db.emptyKey.append(OAuthUserID, id: auth.oauthUserId);
 
     final user = await retry(() async {
       // Check existing mapping.
@@ -117,7 +117,7 @@ class AccountBackend {
         final user = (await _db.lookup<User>([mapping.userIdKey])).single;
         // TODO: we should probably have some kind of consistency mitigation
         if (user == null) {
-          throw AssertionError('Incomplete OAuth userId mapping: '
+          throw Exception('Incomplete OAuth userId mapping: '
               'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
         }
         return user;
