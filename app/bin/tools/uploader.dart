@@ -77,8 +77,11 @@ Future addUploader(String packageName, String uploaderEmail) async {
     await T.commit();
     print('Uploader $uploaderEmail added to list of uploaders');
 
+    final pubUser =
+        await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
     historyBackend.storeEvent(new UploaderChanged(
       packageName: packageName,
+      currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
       addedUploaderEmails: [uploaderEmail],
     ));
@@ -107,8 +110,11 @@ Future removeUploader(String packageName, String uploaderEmail) async {
     await T.commit();
     print('Uploader $uploaderEmail removed from list of uploaders');
 
+    final pubUser =
+        await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
     historyBackend.storeEvent(new UploaderChanged(
       packageName: packageName,
+      currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
       removedUploaderEmails: [uploaderEmail],
     ));

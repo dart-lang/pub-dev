@@ -215,6 +215,7 @@ class Backend {
       if (historyBackend.isEnabled) {
         final history = new History.entry(new UploaderInvited(
           packageName: packageName,
+          currentUserId: fromUserId,
           currentUserEmail: fromEmail,
           uploaderUserEmail: recipientEmail,
         ));
@@ -518,7 +519,8 @@ class GCloudPackageRepository extends PackageRepository {
           final history = new History.entry(new PackageUploaded(
             packageName: newVersion.package,
             packageVersion: newVersion.version,
-            uploaderEmail: newVersion.uploaderEmail,
+            uploaderId: user.userId,
+            uploaderEmail: user.email,
             timestamp: newVersion.created,
           ));
           inserts.add(history);
@@ -689,14 +691,16 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       // Add [uploaderEmail] to uploaders and commit.
-      package.addUploader(uploader.userId, uploaderEmail);
+      package.addUploader(uploader.userId, uploader.email);
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {
         final history = new History.entry(new UploaderChanged(
           packageName: packageName,
-          currentUserEmail: userEmail,
-          addedUploaderEmails: [uploaderEmail],
+          currentUserId: fromUser.userId,
+          currentUserEmail: fromUser.email,
+          addedUploaderIds: [uploader.userId],
+          addedUploaderEmails: [uploader.email],
         ));
         inserts.add(history);
       }
@@ -776,8 +780,10 @@ class GCloudPackageRepository extends PackageRepository {
         if (historyBackend.isEnabled) {
           final history = new History.entry(new UploaderChanged(
             packageName: packageName,
+            currentUserId: user.userId,
             currentUserEmail: user.email,
-            removedUploaderEmails: [uploaderEmail],
+            removedUploaderIds: [uploader.userId],
+            removedUploaderEmails: [uploader.email],
           ));
           inserts.add(history);
         }

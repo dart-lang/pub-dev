@@ -141,6 +141,7 @@ class PackageUploaded implements HistoryEvent {
   final String packageName;
   @override
   final String packageVersion;
+  final String uploaderId;
   final String uploaderEmail;
   @override
   final DateTime timestamp;
@@ -148,6 +149,7 @@ class PackageUploaded implements HistoryEvent {
   PackageUploaded({
     @required this.packageName,
     @required this.packageVersion,
+    @required this.uploaderId,
     @required this.uploaderEmail,
     DateTime timestamp,
   }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
@@ -170,16 +172,22 @@ class PackageUploaded implements HistoryEvent {
 class UploaderChanged implements HistoryEvent {
   @override
   final String packageName;
+  final String currentUserId;
   final String currentUserEmail;
+  final List<String> addedUploaderIds;
   final List<String> addedUploaderEmails;
+  final List<String> removedUploaderIds;
   final List<String> removedUploaderEmails;
   @override
   final DateTime timestamp;
 
   UploaderChanged({
     @required this.packageName,
+    @required this.currentUserId,
     @required this.currentUserEmail,
+    this.addedUploaderIds,
     this.addedUploaderEmails,
+    this.removedUploaderIds,
     this.removedUploaderEmails,
     DateTime timestamp,
   }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
@@ -217,6 +225,7 @@ class UploaderChanged implements HistoryEvent {
 class UploaderInvited implements HistoryEvent {
   @override
   final String packageName;
+  final String currentUserId;
   final String currentUserEmail;
   final String uploaderUserEmail;
   @override
@@ -224,6 +233,7 @@ class UploaderInvited implements HistoryEvent {
 
   UploaderInvited({
     @required this.packageName,
+    @required this.currentUserId,
     @required this.currentUserEmail,
     @required this.uploaderUserEmail,
     DateTime timestamp,
