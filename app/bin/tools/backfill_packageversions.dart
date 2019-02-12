@@ -7,15 +7,19 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
+import 'package:pool/pool.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 final _argParser = new ArgParser()
+  ..addOption('concurrency',
+      abbr: 'c', defaultsTo: '1', help: 'Number of concurrent processing.')
   ..addOption('package', abbr: 'p', help: 'The package to backfill.');
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
+  final concurrency = int.parse(argv['concurrency'] as String);
   final package = argv['package'] as String;
 
   useLoggingPackageAdaptor();
@@ -23,9 +27,16 @@ Future main(List<String> args) async {
     if (package != null) {
       await _backfillPackage(package);
     } else {
+      final pool = Pool(concurrency);
+      final futures = <Future>[];
+
       await for (Package p in dbService.query<Package>().run()) {
-        await _backfillPackage(p.name);
+        final f = pool.withResource(() => _backfillPackage(p.name));
+        futures.add(f);
       }
+
+      await Future.wait(futures);
+      await pool.close();
     }
   });
 }
