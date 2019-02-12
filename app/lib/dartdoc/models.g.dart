@@ -18,7 +18,6 @@ DartdocEntry _$DartdocEntryFromJson(Map<String, dynamic> json) {
       sdkVersion: json['sdkVersion'] as String,
       dartdocVersion: json['dartdocVersion'] as String,
       flutterVersion: json['flutterVersion'] as String,
-      customizationVersion: json['customizationVersion'] as String,
       timestamp: json['timestamp'] == null
           ? null
           : DateTime.parse(json['timestamp'] as String),
@@ -40,7 +39,6 @@ Map<String, dynamic> _$DartdocEntryToJson(DartdocEntry instance) =>
       'sdkVersion': instance.sdkVersion,
       'dartdocVersion': instance.dartdocVersion,
       'flutterVersion': instance.flutterVersion,
-      'customizationVersion': instance.customizationVersion,
       'timestamp': instance.timestamp?.toIso8601String(),
       'depsResolved': instance.depsResolved,
       'hasContent': instance.hasContent,

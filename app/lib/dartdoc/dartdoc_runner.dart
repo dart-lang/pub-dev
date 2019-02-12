@@ -150,7 +150,6 @@ class DartdocJobProcessor extends JobProcessor {
           'pana: ${versions.panaVersion}\n'
           'dartdoc: ${versions.dartdocVersion}\n'
           'flutter: ${versions.flutterVersion}\n'
-          'customization: ${versions.customizationVersion}\n'
           'usesFlutter: $usesFlutter\n'
           'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
 
@@ -393,7 +392,6 @@ class DartdocJobProcessor extends JobProcessor {
       sdkVersion: versions.toolEnvSdkVersion,
       dartdocVersion: versions.dartdocVersion,
       flutterVersion: versions.flutterVersion,
-      customizationVersion: versions.customizationVersion,
       timestamp: new DateTime.now().toUtc(),
       depsResolved: depsResolved,
       hasContent: hasContent,

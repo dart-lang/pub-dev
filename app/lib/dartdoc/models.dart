@@ -44,10 +44,6 @@ class DartdocEntry {
   /// The version of Flutter that was used to fetch dependencies.
   final String flutterVersion;
 
-  /// The version of pub site customization over the dartdoc-generated HTML.
-  /// See [versions.customizationVersion].
-  final String customizationVersion;
-
   /// When the content was generated.
   final DateTime timestamp;
 
@@ -74,7 +70,6 @@ class DartdocEntry {
     @required this.sdkVersion,
     @required this.dartdocVersion,
     @required this.flutterVersion,
-    @required this.customizationVersion,
     @required this.timestamp,
     @required this.depsResolved,
     @required this.hasContent,
@@ -108,7 +103,6 @@ class DartdocEntry {
       sdkVersion: sdkVersion,
       dartdocVersion: dartdocVersion,
       flutterVersion: flutterVersion,
-      customizationVersion: customizationVersion,
       timestamp: timestamp,
       depsResolved: depsResolved,
       hasContent: hasContent,
