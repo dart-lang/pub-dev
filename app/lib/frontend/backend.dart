@@ -405,8 +405,7 @@ class GCloudPackageRepository extends PackageRepository {
     // because we don't even know which package or version is going to be
     // uploaded.
     return withAuthenticatedUser((AuthenticatedUser user) {
-      final userEmail = user.email;
-      _logger.info('User: $userEmail.');
+      _logger.info('User: ${user.email}.');
 
       final guid = uuid.v4().toString();
       final String object = storage.tempObjectName(guid);
@@ -478,7 +477,7 @@ class GCloudPackageRepository extends PackageRepository {
       // reserved package names for the Dart team
       if (package == null &&
           matchesReservedPackageName(newVersion.package) &&
-          !newVersion.uploaderEmail.endsWith('@google.com')) {
+          !user.email.endsWith('@google.com')) {
         await T.rollback();
         throw new GenericProcessingException(
             'Package name ${newVersion.package} is reserved.');
@@ -489,7 +488,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
-      if (!package.hasUploader(newVersion.uploader, newVersion.uploaderEmail)) {
+      if (!package.hasUploader(user.userId, user.email)) {
         _logger.info('User ${newVersion.uploaderEmail} is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
@@ -615,7 +614,6 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
     await withAuthenticatedUser((AuthenticatedUser user) async {
-      final userEmail = user.email;
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
 
@@ -639,7 +637,7 @@ class GCloudPackageRepository extends PackageRepository {
         type: models.PackageInviteType.newUploader,
         recipientEmail: uploaderEmail,
         fromUserId: user.userId,
-        fromEmail: userEmail,
+        fromEmail: user.email,
       );
 
       if (status.isDelayed) {
@@ -656,7 +654,7 @@ class GCloudPackageRepository extends PackageRepository {
       );
       final message = createUploaderConfirmationEmail(
         packageName: packageName,
-        activeAccountEmail: userEmail,
+        activeAccountEmail: user.email,
         addedUploaderEmail: uploaderEmail,
         confirmationUrl: confirmationUrl,
       );
@@ -728,7 +726,6 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
     return withAuthenticatedUser((AuthenticatedUser user) {
-      final userEmail = user.email;
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
         final package = (await T.lookup([packageKey])).first as models.Package;
@@ -741,7 +738,7 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.hasUploader(user.userId, userEmail)) {
+        if (!package.hasUploader(user.userId, user.email)) {
           await T.rollback();
           throw new UnauthorizedAccessException(
               'Calling user does not have permission to change uploaders.');
@@ -766,20 +763,20 @@ class GCloudPackageRepository extends PackageRepository {
         // At the moment we don't validate whether the other e-mail addresses
         // are able to authenticate. To prevent accidentally losing the control
         // of a package, we don't allow self-removal.
-        if (userEmail == uploaderEmail || user.userId == uploader.userId) {
+        if (user.email == uploader.email || user.userId == uploader.userId) {
           await T.rollback();
           throw new GenericProcessingException('Self-removal is not allowed. '
               'Use another account to remove this e-mail address.');
         }
 
         // Remove the uploader from the list.
-        package.removeUploader(uploader.userId, uploaderEmail);
+        package.removeUploader(uploader.userId, uploader.email);
 
         final inserts = <Model>[package];
         if (historyBackend.isEnabled) {
           final history = new History.entry(new UploaderChanged(
             packageName: packageName,
-            currentUserEmail: userEmail,
+            currentUserEmail: user.email,
             removedUploaderEmails: [uploaderEmail],
           ));
           inserts.add(history);
