@@ -248,15 +248,15 @@ class DartdocJobProcessor extends JobProcessor {
               score: coverage.penalty),
         );
       }
-    } else if (abortLog != null) {
+    } else {
+      abortLog ??=
+          _mergeOutput(dartdocResult.processResult, compressStdout: true);
       maintenanceSuggestions.add(Suggestion.error(
         SuggestionCode.dartdocAborted,
         "Make sure `dartdoc` successfully runs on your package's source files.",
         abortLog,
         score: 10.0,
       ));
-    } else {
-      maintenanceSuggestions.add(getDartdocRunFailedSuggestion(dartdocResult));
     }
     await scoreCardBackend.updateReport(
         job.packageName,
