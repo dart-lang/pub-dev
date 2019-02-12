@@ -127,6 +127,7 @@ class DartdocJobProcessor extends JobProcessor {
         await dartdocBackend.getLatestVersion(job.packageName);
     final bool isLatestStable = latestVersion == job.packageVersion;
     bool depsResolved = false;
+    DartdocResult dartdocResult;
     bool hasContent = false;
     PubDartdocData dartdocData;
 
@@ -168,8 +169,9 @@ class DartdocJobProcessor extends JobProcessor {
 
       // Generate docs only for packages that have healthy dependencies.
       if (depsResolved) {
-        hasContent =
+        dartdocResult =
             await _generateDocs(job, pkgPath, outputDir, logFileOutput);
+        hasContent = dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
       } else {
         logFileOutput
             .write('Dependencies were not resolved, skipping dartdoc.\n\n');
@@ -254,7 +256,7 @@ class DartdocJobProcessor extends JobProcessor {
         score: 10.0,
       ));
     } else {
-      maintenanceSuggestions.add(getDartdocRunFailedSuggestion());
+      maintenanceSuggestions.add(getDartdocRunFailedSuggestion(dartdocResult));
     }
     await scoreCardBackend.updateReport(
         job.packageName,
@@ -297,7 +299,7 @@ class DartdocJobProcessor extends JobProcessor {
     return true;
   }
 
-  Future<bool> _generateDocs(
+  Future<DartdocResult> _generateDocs(
     Job job,
     String pkgPath,
     String outputDir,
@@ -361,7 +363,7 @@ class DartdocJobProcessor extends JobProcessor {
       }
     }
 
-    return hasContent;
+    return r;
   }
 
   Future<DartdocEntry> _createEntry(Job job, String outputDir, bool usesFlutter,
