@@ -31,7 +31,6 @@ void main() {
       sdkVersion: '2.0.0-dev.32.0',
       dartdocVersion: '0.16.0',
       flutterVersion: '0.1.6',
-      customizationVersion: '0.0.1',
       timestamp: new DateTime(2018, 03, 08),
       depsResolved: true,
       hasContent: true,

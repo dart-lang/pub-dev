@@ -48,12 +48,6 @@ final Version semanticFlutterVersion = new Version.parse(flutterVersion);
 final String dartdocVersion = '0.28.0';
 final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
 
-/// The version of our customization going into the output of the dartdoc static
-/// HTML files.
-final String customizationVersion = '0.0.2';
-final Version semanticCustomizationVersion =
-    new Version.parse(customizationVersion);
-
 // Version that control the dartdoc serving.
 // Pin this to a specific version when there is a coordinated upgrade of the
 // generated documentation template or style. The new version can generate the

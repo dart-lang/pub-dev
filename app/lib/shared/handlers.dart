@@ -136,7 +136,6 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
       'pana': panaVersion,
       'flutter': flutterVersion,
       'dartdoc': dartdocVersion,
-      'customization': customizationVersion,
     },
     'scheduler': latestSchedulerStats,
   };
