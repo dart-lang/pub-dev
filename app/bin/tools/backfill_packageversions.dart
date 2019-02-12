@@ -15,10 +15,21 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 final _argParser = new ArgParser()
   ..addOption('concurrency',
       abbr: 'c', defaultsTo: '1', help: 'Number of concurrent processing.')
-  ..addOption('package', abbr: 'p', help: 'The package to backfill.');
+  ..addOption('package', abbr: 'p', help: 'The package to backfill.')
+  ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
+  if (argv['help'] as bool == true) {
+    print('Usage: dart backfill_packageversions.dart');
+    print(
+        'Ensures a matching PackageVersionPubspec entity exists for each PackageVersion.');
+    print(
+        'Ensures a matching PackageVersionInfo entity exists for each PackageVersion.');
+    print(_argParser.usage);
+    return;
+  }
+
   final concurrency = int.parse(argv['concurrency'] as String);
   final package = argv['package'] as String;
 
