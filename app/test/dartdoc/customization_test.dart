@@ -4,8 +4,10 @@
 
 import 'dart:io';
 
+import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:test/test.dart';
+import 'package:xml/xml.dart';
 
 import 'package:pub_dartlang_org/dartdoc/customization.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
@@ -29,6 +31,10 @@ void main() {
       final logoElem = doc.documentElement.getElementsByTagName('img').first;
       expect(
           logoElem.attributes['src'].endsWith(staticUrls.dartLogoSvg), isTrue);
+
+      // Pretty printing output using XML formatter.
+      final xmlRoot = _toXml(doc.documentElement);
+      content = xmlRoot.toXmlString(pretty: true, indent: '  ') + '\n';
     }
     if (_regenerateGoldens) {
       new File('$goldenDir/$fileName').writeAsStringSync(content);
@@ -123,4 +129,23 @@ String _miniDiff(String text1, String text2) {
   }
 
   return report.map((s) => '$s\n').join();
+}
+
+XmlElement _toXml(Element node) {
+  final xn = XmlElement(XmlName(node.localName));
+  node.attributes.forEach((k, v) {
+    xn.attributes.add(XmlAttribute(XmlName(k.toString()), v));
+  });
+  node.nodes.forEach((child) {
+    if (child is Element) {
+      xn.children.add(_toXml(child));
+    } else if (child is Text) {
+      xn.children.add(XmlText(child.text));
+    } else if (child is Comment) {
+      xn.children.add(XmlComment(child.text));
+    } else {
+      throw Exception('Unhandled HTML node: $child');
+    }
+  });
+  return xn;
 }
