@@ -172,6 +172,7 @@ class DartdocJobProcessor extends JobProcessor {
             await _generateDocs(job, pkgPath, outputDir, logFileOutput);
         hasContent = dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
       } else {
+        abortLog = 'Dependencies were not resolved.';
         logFileOutput
             .write('Dependencies were not resolved, skipping dartdoc.\n\n');
       }
@@ -248,8 +249,11 @@ class DartdocJobProcessor extends JobProcessor {
         );
       }
     } else {
-      abortLog ??=
-          _mergeOutput(dartdocResult.processResult, compressStdout: true);
+      if (abortLog == null && dartdocResult != null) {
+        abortLog =
+            _mergeOutput(dartdocResult.processResult, compressStdout: true);
+      }
+      abortLog ??= '';
       maintenanceSuggestions.add(Suggestion.error(
         SuggestionCode.dartdocAborted,
         "Make sure `dartdoc` successfully runs on your package's source files.",
