@@ -46,6 +46,7 @@ PackageUploaded _$PackageUploadedFromJson(Map<String, dynamic> json) {
   return PackageUploaded(
       packageName: json['packageName'] as String,
       packageVersion: json['packageVersion'] as String,
+      uploaderId: json['uploaderId'] as String,
       uploaderEmail: json['uploaderEmail'] as String,
       timestamp: json['timestamp'] == null
           ? null
@@ -56,6 +57,7 @@ Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
     <String, dynamic>{
       'packageName': instance.packageName,
       'packageVersion': instance.packageVersion,
+      'uploaderId': instance.uploaderId,
       'uploaderEmail': instance.uploaderEmail,
       'timestamp': instance.timestamp?.toIso8601String()
     };
@@ -63,8 +65,14 @@ Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
 UploaderChanged _$UploaderChangedFromJson(Map<String, dynamic> json) {
   return UploaderChanged(
       packageName: json['packageName'] as String,
+      currentUserId: json['currentUserId'] as String,
       currentUserEmail: json['currentUserEmail'] as String,
+      addedUploaderIds:
+          (json['addedUploaderIds'] as List)?.map((e) => e as String)?.toList(),
       addedUploaderEmails: (json['addedUploaderEmails'] as List)
+          ?.map((e) => e as String)
+          ?.toList(),
+      removedUploaderIds: (json['removedUploaderIds'] as List)
           ?.map((e) => e as String)
           ?.toList(),
       removedUploaderEmails: (json['removedUploaderEmails'] as List)
@@ -85,8 +93,11 @@ Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
   }
 
   writeNotNull('packageName', instance.packageName);
+  writeNotNull('currentUserId', instance.currentUserId);
   writeNotNull('currentUserEmail', instance.currentUserEmail);
+  writeNotNull('addedUploaderIds', instance.addedUploaderIds);
   writeNotNull('addedUploaderEmails', instance.addedUploaderEmails);
+  writeNotNull('removedUploaderIds', instance.removedUploaderIds);
   writeNotNull('removedUploaderEmails', instance.removedUploaderEmails);
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());
   return val;
@@ -95,6 +106,7 @@ Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
 UploaderInvited _$UploaderInvitedFromJson(Map<String, dynamic> json) {
   return UploaderInvited(
       packageName: json['packageName'] as String,
+      currentUserId: json['currentUserId'] as String,
       currentUserEmail: json['currentUserEmail'] as String,
       uploaderUserEmail: json['uploaderUserEmail'] as String,
       timestamp: json['timestamp'] == null
@@ -112,6 +124,7 @@ Map<String, dynamic> _$UploaderInvitedToJson(UploaderInvited instance) {
   }
 
   writeNotNull('packageName', instance.packageName);
+  writeNotNull('currentUserId', instance.currentUserId);
   writeNotNull('currentUserEmail', instance.currentUserEmail);
   writeNotNull('uploaderUserEmail', instance.uploaderUserEmail);
   writeNotNull('timestamp', instance.timestamp?.toIso8601String());

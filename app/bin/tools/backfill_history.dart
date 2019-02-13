@@ -8,6 +8,7 @@ import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
@@ -22,6 +23,7 @@ Future main(List<String> args) async {
 
   useLoggingPackageAdaptor();
   await withProdServices(() async {
+    registerAccountBackend(AccountBackend(dbService));
     registerHistoryBackend(new HistoryBackend(dbService));
 
     if (package != null) {
@@ -50,6 +52,7 @@ Future _backfillPackage(String package) async {
       historyBackend.storeEvent(new PackageUploaded(
         packageName: package,
         packageVersion: pv.version,
+        uploaderId: pv.uploader,
         uploaderEmail: pv.uploaderEmail,
         timestamp: pv.created,
       ));
