@@ -453,6 +453,10 @@ pre > code {
   background: #fafafa;
 }
 
+.list-item.-full {
+  min-height: 7em;
+}
+
 .list-item > .title{
   font-weight: 600;
   font-size: 16px;
