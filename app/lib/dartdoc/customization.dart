@@ -93,7 +93,6 @@ class DartdocCustomizer {
     }
 
     head.insertBefore(link, canonical);
-    head.insertBefore(new Text('\n  '), canonical);
   }
 
   void _addMetaNoIndex(Element head) {
@@ -102,7 +101,6 @@ class DartdocCustomizer {
     meta.attributes['content'] = 'noindex';
 
     head.insertBefore(meta, head.firstChild);
-    head.insertBefore(new Text('\n  '), head.firstChild);
   }
 
   void _addGithubMarkdownStyle(Element head, Element body) {
@@ -123,20 +121,17 @@ class DartdocCustomizer {
         ..attributes['type'] = 'text/css'
         ..attributes['href'] = '$siteRoot/static/css/github-markdown.css';
       head.insertBefore(linkElement, firstLink);
-      head.insertBefore(new Text('\n  '), firstLink);
     }
   }
 
   void _addAnalyticsTracker(Element head) {
     final firstChild = head.firstChild;
-    head.insertBefore(new Text('\n  '), firstChild);
     final gtagScript = new Element.tag('script')
       ..attributes['async'] = 'async'
       ..attributes['src'] =
           'https://www.googletagmanager.com/gtag/js?id=UA-26406144-13'
       ..text = '';
     head.insertBefore(gtagScript, firstChild);
-    head.insertBefore(new Text('\n  '), firstChild);
     final gtagInit = new Element.tag('script')
       ..attributes['src'] = '/static/js/gtag.js';
     head.insertBefore(gtagInit, firstChild);
@@ -152,7 +147,6 @@ class DartdocCustomizer {
       ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);
-    parent.insertBefore(new Text('\n  '), breadcrumbs);
   }
 
   void _addPubPackageLink(Element breadcrumbs, {int level = 1}) {
@@ -168,9 +162,7 @@ class DartdocCustomizer {
       final docitem = new Element.tag('li')
         ..className = 'self-crumb'
         ..text = 'documentation';
-      breadcrumbs.append(new Text('  '));
       breadcrumbs.append(docitem);
-      breadcrumbs.append(new Text('\n' + '  ' * level));
     } else if (breadcrumbs.children.isNotEmpty) {
       // we are inside
       final firstLink = breadcrumbs.querySelector('a');
@@ -183,8 +175,6 @@ class DartdocCustomizer {
       lead.append(leadLink);
 
       breadcrumbs.insertBefore(lead, breadcrumbs.firstChild);
-      breadcrumbs.insertBefore(
-          new Text('\n  ' + '  ' * level), breadcrumbs.firstChild);
     }
   }
 
