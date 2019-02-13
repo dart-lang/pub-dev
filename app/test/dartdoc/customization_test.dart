@@ -77,8 +77,8 @@ void main() {
 }
 
 String _miniDiff(String text1, String text2) {
-  final lines1 = text1.split('\n');
-  final lines2 = text2.split('\n');
+  final lines1 = _htmlToXml(text1).split('\n');
+  final lines2 = _htmlToXml(text2).split('\n');
 
   final report = <String>[];
 
@@ -148,4 +148,10 @@ XmlElement _toXml(Element node) {
     }
   });
   return xn;
+}
+
+String _htmlToXml(String html) {
+  final doc = HtmlParser(html, strict: true).parse();
+  final xmlRoot = _toXml(doc.documentElement);
+  return xmlRoot.toXmlString(pretty: true, indent: '  ') + '\n';
 }
