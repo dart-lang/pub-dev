@@ -89,7 +89,7 @@ class Package extends db.ExpandoModel {
     return uploaderEmails.any((s) => s.toLowerCase() == lowerEmail);
   }
 
-  int get uploaderCount => uploaderEmails.length;
+  int get uploaderCount => uploaders.length;
 
   /// Add the id and the email to the list of uploaders.
   void addUploader(String uploaderId, String uploaderEmail) {

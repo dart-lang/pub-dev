@@ -530,7 +530,7 @@ void main() {
             }),
             queueMutationFun: ({inserts, deletes}) {
               expect(inserts, hasLength(2));
-              expect(inserts.first.uploaderEmails.contains('b@x.com'), isFalse);
+              expect(inserts.first.uploaders.contains('uuid-b'), isFalse);
               expect(inserts[1] is History, isTrue);
               completion.complete();
             },
@@ -667,6 +667,7 @@ void main() {
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);
         expect(package.latestVersionKey, testPackageVersion.key);
+        expect(package.uploaders, ['uuid-hans-at-juergen-dot-com']);
         expect(package.uploaderEmails, ['hans@juergen.com']);
         expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
         expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);

@@ -113,6 +113,7 @@ String _renderInstallTab(Package package, PackageVersion selectedVersion,
 /// Renders the `views/pkg/show.mustache` template.
 String renderPkgShowPage(
     Package package,
+    List<String> uploaderEmails,
     bool isVersionPage,
     List<PackageVersion> versions,
     List<Uri> versionDownloadUrls,
@@ -264,7 +265,7 @@ String renderPkgShowPage(
       'links': links,
       // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
       'uploaders_title': 'Uploader',
-      'uploaders_html': _getAuthorsHtml(package.uploaderEmails),
+      'uploaders_html': _getAuthorsHtml(uploaderEmails),
       'short_created': selectedVersion.shortCreated,
       'license_html': _renderLicenses(baseUrl, analysis?.licenses),
       'score_box_html': renderScoreBox(card?.overallScore,

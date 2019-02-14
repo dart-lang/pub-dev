@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
+import '../account/backend.dart';
 import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
@@ -102,7 +103,7 @@ class SearchBackend {
       popularity: popularity,
       maintenance: analysisView.maintenanceScore,
       dependencies: _buildDependencies(analysisView),
-      emails: _buildEmails(p, pv),
+      emails: await _buildEmails(p, pv),
       apiDocPages: apiDocPages,
       timestamp: new DateTime.now().toUtc(),
     );
@@ -116,9 +117,10 @@ class SearchBackend {
     return dependencies;
   }
 
-  List<String> _buildEmails(Package p, PackageVersion pv) {
+  Future<List<String>> _buildEmails(Package p, PackageVersion pv) async {
     final Set<String> emails = new Set<String>();
-    emails.addAll(p.uploaderEmails.cast<String>());
+    final uploaderEmails = await accountBackend.getEmailsOfUserIds(p.uploaders);
+    emails.addAll(uploaderEmails.where((email) => email != null));
     for (String value in pv.pubspec.authors) {
       final EmailAddress author = new EmailAddress.parse(value);
       if (author.email == null) continue;

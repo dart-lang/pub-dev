@@ -459,6 +459,31 @@ class AccountBackendMock implements AccountBackend {
   }
 
   @override
+  Future<List<User>> lookupUsersById(List<String> userIds) async {
+    final result = <User>[];
+    for (String userId in userIds) {
+      result.add(await lookupUserById(userId));
+    }
+    return result;
+  }
+
+  @override
+  Future<String> getEmailOfUserId(String userId) async {
+    return users
+        .firstWhere((u) => u.userId == userId, orElse: () => null)
+        ?.email;
+  }
+
+  @override
+  Future<List<String>> getEmailsOfUserIds(List<String> userIds) async {
+    final result = <String>[];
+    for (String userId in userIds) {
+      result.add(await getEmailOfUserId(userId));
+    }
+    return result;
+  }
+
+  @override
   Future<AuthenticatedUser> authenticateWithAccessToken(String accessToken) {
     return null;
   }
