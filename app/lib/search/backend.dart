@@ -191,7 +191,10 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
   final rootMap = <String, String>{};
   data.apiElements?.forEach((elem) {
     String library;
-    if (elem.parent == null) {
+    if (elem.parent == null && elem.kind != 'library') {
+      // keep only top-level libraries
+      return;
+    } else if (elem.parent == null) {
       library = elem.name;
     } else {
       library = rootMap[elem.parent] ?? elem.parent;
