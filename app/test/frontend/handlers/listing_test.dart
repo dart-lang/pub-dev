@@ -4,6 +4,8 @@
 
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
+import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
@@ -13,6 +15,7 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/utils.dart';
+import '../backend_test_utils.dart';
 import '../mocks.dart';
 import '../utils.dart';
 
@@ -48,6 +51,11 @@ Future main() async {
         expect(package, 'foobar_pkg');
         return [testPackageVersion];
       });
+      registerAccountBackend(AccountBackendMock(users: [
+        User()
+          ..id = 'uuid-hans-at-juergen-dot-com'
+          ..email = 'hans@juergen.com',
+      ]));
       registerBackend(backend);
       await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
           body: {

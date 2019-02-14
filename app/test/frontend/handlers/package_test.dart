@@ -4,6 +4,8 @@
 
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
+import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
@@ -11,6 +13,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 
 import '../../shared/handlers_test_utils.dart';
+import '../backend_test_utils.dart';
 import '../mocks.dart';
 import '../utils.dart';
 
@@ -31,6 +34,11 @@ Future main() async {
         return Uri.parse('http://blobstore/$package/$version');
       });
       registerBackend(backend);
+      registerAccountBackend(AccountBackendMock(users: [
+        User()
+          ..id = 'uuid-hans-at-juergen-dot-com'
+          ..email = 'hans@juergen.com',
+      ]));
       registerAnalyzerClient(new AnalyzerClientMock());
       registerDartdocClient(new DartdocClientMock());
       registerScoreCardBackend(new ScoreCardBackendMock());
@@ -81,6 +89,11 @@ Future main() async {
         return Uri.parse('http://blobstore/$package/$version');
       });
       registerBackend(backend);
+      registerAccountBackend(AccountBackendMock(users: [
+        User()
+          ..id = 'uuid-hans-at-juergen-dot-com'
+          ..email = 'hans@juergen.com',
+      ]));
       registerAnalyzerClient(new AnalyzerClientMock());
       registerDartdocClient(new DartdocClientMock());
       registerScoreCardBackend(new ScoreCardBackendMock());
