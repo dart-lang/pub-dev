@@ -110,6 +110,27 @@ String _renderInstallTab(Package package, PackageVersion selectedVersion,
   });
 }
 
+String _renderVersionsTab(
+  PackageVersion selectedVersion,
+  List<PackageVersion> versions,
+  List<Uri> versionDownloadUrls,
+  int totalNumberOfVersions,
+) {
+  final versionTableRows = [];
+  for (int i = 0; i < versions.length; i++) {
+    final PackageVersion version = versions[i];
+    final String url = versionDownloadUrls[i].toString();
+    versionTableRows.add(renderVersionTableRow(version, url));
+  }
+  return templateCache.renderTemplate('pkg/versions_tab', {
+    'package_name': selectedVersion.package,
+    'version_table_rows': versionTableRows,
+    'show_versions_link': totalNumberOfVersions > versions.length,
+    'versions_url': urls.pkgVersionsUrl(selectedVersion.package),
+    'version_count': '$totalNumberOfVersions',
+  });
+}
+
 /// Renders the `views/pkg/show.mustache` template.
 String renderPkgShowPage(
     Package package,
@@ -160,13 +181,6 @@ String renderPkgShowPage(
           '</p>\n'
           '$renderedExample';
     }
-  }
-
-  final versionTableRows = [];
-  for (int i = 0; i < versions.length; i++) {
-    final PackageVersion version = versions[i];
-    final String url = versionDownloadUrls[i].toString();
-    versionTableRows.add(renderVersionTableRow(version, url));
   }
 
   final bool shouldShowDev =
@@ -276,16 +290,14 @@ String renderPkgShowPage(
       'schema_org_pkgmeta_json':
           json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
     },
-    'version_table_rows': versionTableRows,
-    'show_versions_link': totalNumberOfVersions > versions.length,
-    'versions_url': urls.pkgVersionsUrl(package.name),
     'tabs': tabs,
     'has_no_file_tab': tabs.isEmpty,
-    'version_count': '$totalNumberOfVersions',
     'icons': staticUrls.versionsTableIcons,
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'install_tab_html': _renderInstallTab(
         package, selectedVersion, isFlutterPackage, analysis?.platforms),
+    'versions_tab_html': _renderVersionsTab(
+        selectedVersion, versions, versionDownloadUrls, totalNumberOfVersions),
   };
   final content = templateCache.renderTemplate('pkg/show', values);
   final packageAndVersion = isVersionPage
