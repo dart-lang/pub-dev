@@ -805,7 +805,7 @@ class GCloudPackageRepository extends PackageRepository {
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   try {
     int receivedBytes = 0;
-    await File(filename).openWrite().addStream(data.transform(
+    final stream = data.transform(
       StreamTransformer.fromHandlers(
         handleData: (chunk, sink) {
           receivedBytes += chunk.length;
@@ -818,7 +818,8 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
           }
         },
       ),
-    ));
+    );
+    await stream.pipe(File(filename).openWrite());
   } catch (e, st) {
     _logger.warning('An error occured while streaming tarball to FS.', e, st);
     rethrow;
