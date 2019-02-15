@@ -40,24 +40,7 @@
 {{& install_tab_html}}
     </section>
     <section class="content js-content" data-name="-versions-tab-">
-      <table class="version-table" data-package="{{package.name}}">
-        <thead>
-        <tr>
-          <th>Version</th>
-          <th>Uploaded</th>
-          <th class="documentation" width="60">Documentation</th>
-          <th class="archive" width="60">Archive</th>
-        </tr>
-        </thead>
-        {{#version_table_rows}}{{& .}}{{/version_table_rows}}
-      </table>
-      {{#show_versions_link}}
-        <p>
-          <a href="{{& versions_url}}">
-            All {{version_count}} versions...
-          </a>
-        </p>
-      {{/show_versions_link}}
+      {{& versions_tab_html}}
     </section>
     <section class="content js-content" data-name="-analysis-tab-">
       {{^package.analysis_html}}
