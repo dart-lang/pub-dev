@@ -476,11 +476,11 @@ class GCloudPackageRepository extends PackageRepository {
       // Check if the uploader of the new version is allowed to upload to
       // the package.
       if (!package.hasUploader(user.userId, user.email)) {
-        _logger.info('User ${newVersion.uploaderEmail} is not an uploader '
+        _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
         throw new UnauthorizedAccessException(
-            'Unauthorized user: ${newVersion.uploaderEmail} is not allowed to '
+            'Unauthorized user: ${user.email} is not allowed to '
             'upload versions to package ${package.name}.');
       }
 
@@ -540,13 +540,16 @@ class GCloudPackageRepository extends PackageRepository {
       }
     });
 
+    final uploaderEmails =
+        await accountBackend.getEmailsOfUserIds(package.uploaders);
+
     // Notify uploaders via e-mail that a new version has been published.
     await emailSender.sendMessage(
       createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version,
-        uploaderEmail: newVersion.uploaderEmail,
-        authorizedUploaders: package.uploaderEmails
+        uploaderEmail: user.email,
+        authorizedUploaders: uploaderEmails
             .map((email) => new EmailAddress(null, email))
             .toList(),
       ),
@@ -966,8 +969,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..libraries = libraries
     ..downloads = 0
     ..sortOrder = 1
-    ..uploader = user.userId
-    ..uploaderEmail = user.email;
+    ..uploader = user.userId;
 
   final versionPubspec = models.PackageVersionPubspec()
     ..initFromKey(key)

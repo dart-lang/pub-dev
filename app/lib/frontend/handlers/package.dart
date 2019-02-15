@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/backend.dart';
 import '../../shared/analyzer_client.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
@@ -74,9 +75,12 @@ Future<shelf.Response> _packageShowHandlerJson(
   final versions = await backend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
 
+  final uploaderEmails =
+      await accountBackend.getEmailsOfUserIds(package.uploaders);
+
   final json = {
     'name': package.name,
-    'uploaders': package.uploaderEmails,
+    'uploaders': uploaderEmails,
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
@@ -160,8 +164,12 @@ Future<shelf.Response> _packageVersionHandlerHtml(
     }).toList());
     _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
 
+    final uploaderEmails =
+        await accountBackend.getEmailsOfUserIds(package.uploaders);
+
     cachedPage = renderPkgShowPage(
         package,
+        uploaderEmails,
         versionName != null,
         first10Versions,
         versionDownloadUrls,

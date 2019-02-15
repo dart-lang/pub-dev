@@ -439,8 +439,16 @@ class EmailSenderMock implements EmailSender {
 class AccountBackendMock implements AccountBackend {
   final List<User> users;
 
-  AccountBackendMock({List<User> users})
-      : users = List<User>.from(users ?? const <User>[]);
+  AccountBackendMock({
+    List<User> users,
+    List<AuthenticatedUser> authenticatedUsers,
+  }) : users = List<User>.from(users ?? const <User>[]) {
+    authenticatedUsers?.forEach((u) {
+      this.users.add(User()
+        ..id = u.userId
+        ..email = u.email);
+    });
+  }
 
   @override
   Future<User> lookupOrCreateUserByEmail(String email) async {
@@ -456,6 +464,31 @@ class AccountBackendMock implements AccountBackend {
   @override
   Future<User> lookupUserById(String userId) async {
     return users.firstWhere((u) => u.userId == userId, orElse: () => null);
+  }
+
+  @override
+  Future<List<User>> lookupUsersById(List<String> userIds) async {
+    final result = <User>[];
+    for (String userId in userIds) {
+      result.add(await lookupUserById(userId));
+    }
+    return result;
+  }
+
+  @override
+  Future<String> getEmailOfUserId(String userId) async {
+    return users
+        .firstWhere((u) => u.userId == userId, orElse: () => null)
+        ?.email;
+  }
+
+  @override
+  Future<List<String>> getEmailsOfUserIds(List<String> userIds) async {
+    final result = <String>[];
+    for (String userId in userIds) {
+      result.add(await getEmailOfUserId(userId));
+    }
+    return result;
   }
 
   @override

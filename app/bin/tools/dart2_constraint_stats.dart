@@ -15,6 +15,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
@@ -48,6 +49,7 @@ Future main(List<String> args) async {
   final onlyDart2Packages = <String>[];
 
   await withProdServices(() async {
+    registerAccountBackend(AccountBackend(dbService));
     final bucket =
         storageService.bucket(activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(new PopularityStorage(storageService, bucket));
@@ -105,7 +107,9 @@ Future main(List<String> args) async {
         }
       }
       if (selectForNotification && allowsDartDev && !allowsDart2) {
-        authorsToNotify.add(latest.uploaderEmail);
+        final uploaderEmail =
+            await accountBackend.getEmailOfUserId(latest.uploader);
+        authorsToNotify.add(uploaderEmail);
         packagesToNotify.add(p.name);
       }
     }

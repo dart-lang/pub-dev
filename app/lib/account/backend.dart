@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -10,6 +11,7 @@ import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
+import 'package:simple_cache/simple_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,6 +55,9 @@ Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
 class AccountBackend {
   final DatastoreDB _db;
   final _defaultAuthProvider = GoogleOauth2AuthProvider(_pubAudience);
+  final _emailCache = Cache(Cache.inMemoryCacheProvider(1000))
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8);
 
   AccountBackend(this._db);
 
@@ -62,8 +67,45 @@ class AccountBackend {
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User> lookupUserById(String userId) async {
-    final key = _db.emptyKey.append(User, id: userId);
-    return (await _db.lookup<User>([key])).single;
+    return (await lookupUsersById(<String>[userId])).single;
+  }
+
+  /// Returns the list of `User` entries for the corresponding id in [userIds].
+  ///
+  /// Returns null in the positions where a [User] entry was missing.
+  Future<List<User>> lookupUsersById(List<String> userIds) async {
+    final keys =
+        userIds.map((id) => _db.emptyKey.append(User, id: id)).toList();
+    return await _db.lookup<User>(keys);
+  }
+
+  /// Returns the e-mail address of the [userId].
+  ///
+  /// Uses in-memory cache to store entries locally for up to 10 minutes.
+  Future<String> getEmailOfUserId(String userId) async {
+    final entry = _emailCache[userId];
+    String email = await entry.get();
+    if (email != null) {
+      return email;
+    }
+    final user = await lookupUserById(userId);
+    if (user == null) return null;
+    email = user.email;
+    await entry.set(email);
+    return email;
+  }
+
+  /// Return the e-mail addresses of the [userIds].
+  ///
+  /// Returns null in the positions where a [User] entry was missing.
+  ///
+  /// Uses in-memory cache to store entries locally for up to 10 minutes.
+  Future<List<String>> getEmailsOfUserIds(List<String> userIds) async {
+    final result = <String>[];
+    for (String userId in userIds) {
+      result.add(await getEmailOfUserId(userId));
+    }
+    return result;
   }
 
   /// Returns the `User` entry for the [email] or creates a new one if it does

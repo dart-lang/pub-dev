@@ -530,7 +530,7 @@ void main() {
             }),
             queueMutationFun: ({inserts, deletes}) {
               expect(inserts, hasLength(2));
-              expect(inserts.first.uploaderEmails.contains('b@x.com'), isFalse);
+              expect(inserts.first.uploaders.contains('uuid-b'), isFalse);
               expect(inserts[1] is History, isTrue);
               completion.complete();
             },
@@ -541,7 +541,8 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(userA);
-        registerAccountBackend(AccountBackendMock());
+        registerAccountBackend(
+            AccountBackendMock(authenticatedUsers: [userA, userB]));
         await repo.removeUploader(pkg, 'b@x.com');
       });
     });
@@ -667,6 +668,7 @@ void main() {
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);
         expect(package.latestVersionKey, testPackageVersion.key);
+        expect(package.uploaders, ['uuid-hans-at-juergen-dot-com']);
         expect(package.uploaderEmails, ['hans@juergen.com']);
         expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
         expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
@@ -853,6 +855,8 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
+            registerAccountBackend(
+                AccountBackendMock(authenticatedUsers: [testUploaderUser]));
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
             registerHistoryBackend(new HistoryBackendMock());
@@ -1043,6 +1047,8 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
+            registerAccountBackend(
+                AccountBackendMock(authenticatedUsers: [testUploaderUser]));
             registerHistoryBackend(new HistoryBackendMock());
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
