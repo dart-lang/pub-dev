@@ -800,84 +800,30 @@ class GCloudPackageRepository extends PackageRepository {
 
 /// Reads a tarball from a byte stream.
 ///
-/// Compeltes with an error if the incoming stream has an error or if the size
-/// exceeds `GcloudPackageRepo.MAX_TARBALL_SIZE`.
+/// Completes with an error if the incoming stream has an error or if the size
+/// exceeds [UploadSignerService.maxUploadSize].
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
-  final Completer completer = new Completer();
-
-  StreamSink<List<int>> sink;
-  StreamSubscription dataSubscription;
-  StreamController<List<int>> intermediary;
-  Future addStreamFuture;
-
-  void abort(Object error, StackTrace stack) {
-    _logger.warning(
-        'An error occured while streaming tarball to FS.', error, stack);
-
-    if (dataSubscription != null) {
-      dataSubscription.cancel();
-      dataSubscription = null;
-    }
-    if (!completer.isCompleted) {
-      completer.completeError(error, stack);
-    }
-  }
-
-  void finish() {
-    _logger.info('Finished streaming tarball to FS.');
-    completer.complete();
-  }
-
-  void startReading() {
+  try {
     int receivedBytes = 0;
-
-    dataSubscription = data.listen(
-        (List<int> chunk) {
+    await File(filename).openWrite().addStream(data.transform(
+      StreamTransformer.fromHandlers(
+        handleData: (chunk, sink) {
           receivedBytes += chunk.length;
           if (receivedBytes <= UploadSignerService.maxUploadSize) {
-            intermediary.add(chunk);
+            sink.add(chunk);
           } else {
             final error = 'Invalid upload: Exceeded '
                 '${UploadSignerService.maxUploadSize} upload size.';
-            intermediary.addError(error);
-            intermediary.close();
-
-            abort(error, null);
+            sink.addError(error);
           }
         },
-        onError: abort,
-        onDone: () {
-          intermediary.close();
-          addStreamFuture.then((_) async {
-            await sink.close();
-            finish();
-          }).catchError((Object error, StackTrace stack) {
-            // NOTE: There is also an error handler further down for `addStream()`,
-            // since an error might occur before we get this `onDone` callback.
-            // In this case `abort` will not do anything.
-            abort(error, stack);
-          });
-        });
+      ),
+    ));
+  } catch (e, st) {
+    _logger.warning('An error occured while streaming tarball to FS.', e, st);
+    rethrow;
   }
-
-  intermediary = new StreamController(
-      onListen: startReading,
-      onPause: () => dataSubscription.pause(),
-      onResume: () => dataSubscription.resume(),
-      onCancel: () {
-        // NOTE: We do nothing here. The `.pipe()` further down will
-        //  - listen on the stream
-        //  - will get data
-        //  - will get the done event
-        //  - will cancel the subscription
-        // => Since this is normal behavior we're not aborting here.
-      });
-
-  sink = new File(filename).openWrite();
-  addStreamFuture = sink.addStream(intermediary.stream);
-  addStreamFuture.catchError(abort);
-
-  return completer.future;
+  _logger.info('Finished streaming tarball to FS.');
 }
 
 /// Creates a new `Package` and populates all of it's fields.
