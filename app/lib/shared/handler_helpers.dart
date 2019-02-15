@@ -19,8 +19,12 @@ import 'handlers.dart';
 import 'markdown.dart';
 import 'utils.dart' show fileAnIssueContent;
 
-Future runHandler(Logger logger, shelf.Handler handler,
-    {bool sanitize = false}) {
+Future<void> runHandler(
+  Logger logger,
+  shelf.Handler handler, {
+  bool sanitize = false,
+  shelf.Handler cronJobHandler,
+}) async {
   handler = _uriValidationRequestWrapper(handler);
   handler = _userAuthParsingWrapper(handler);
   if (sanitize) {
@@ -28,12 +32,14 @@ Future runHandler(Logger logger, shelf.Handler handler,
   }
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
-  return runAppEngine((HttpRequest request) => _handleRequest(request, handler),
-      shared: true);
+  await runAppEngine((HttpRequest request) {
+    if (cronJobHandler != null && isCronJobRequest(request)) {
+      shelf_io.handleRequest(request, cronJobHandler);
+    } else {
+      shelf_io.handleRequest(request, handler);
+    }
+  }, shared: true);
 }
-
-Future _handleRequest(HttpRequest request, shelf.Handler handler) =>
-    shelf_io.handleRequest(request, handler);
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {

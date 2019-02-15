@@ -33,6 +33,7 @@ import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/frontend/cronjobs.dart' show CronJobs;
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -55,9 +56,17 @@ Future _main(FrontendEntryMessage message) async {
   await updateLocalBuiltFiles();
   await withAppEngineAndCache(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
-    final shelf.Handler frontendHandler =
-        (shelf.Request request) => appHandler(request, apiHandler);
-    await runHandler(_logger, frontendHandler, sanitize: true);
+    final cron = CronJobs(
+      // TODO: Configure a backup bucket name, once we've tested that this
+      //       actually gets called in staging.
+      backupBucketName: null,
+    );
+    await runHandler(
+      _logger,
+      (shelf.Request request) => appHandler(request, apiHandler),
+      sanitize: true,
+      cronJobHandler: cron.handler,
+    );
   });
 }
 

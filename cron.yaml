@@ -1,0 +1,5 @@
+cron:
+- description: 'weekly datastore backup'
+  schedule: every tuesday 02:00
+  url: /cron/datastore-backup
+  target: default  # frontend
