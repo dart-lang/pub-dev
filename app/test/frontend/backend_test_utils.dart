@@ -439,8 +439,16 @@ class EmailSenderMock implements EmailSender {
 class AccountBackendMock implements AccountBackend {
   final List<User> users;
 
-  AccountBackendMock({List<User> users})
-      : users = List<User>.from(users ?? const <User>[]);
+  AccountBackendMock({
+    List<User> users,
+    List<AuthenticatedUser> authenticatedUsers,
+  }) : users = List<User>.from(users ?? const <User>[]) {
+    authenticatedUsers?.forEach((u) {
+      this.users.add(User()
+        ..id = u.userId
+        ..email = u.email);
+    });
+  }
 
   @override
   Future<User> lookupOrCreateUserByEmail(String email) async {

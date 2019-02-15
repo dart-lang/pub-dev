@@ -541,7 +541,8 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(userA);
-        registerAccountBackend(AccountBackendMock());
+        registerAccountBackend(
+            AccountBackendMock(authenticatedUsers: [userA, userB]));
         await repo.removeUploader(pkg, 'b@x.com');
       });
     });
@@ -854,6 +855,8 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
+            registerAccountBackend(
+                AccountBackendMock(authenticatedUsers: [testUploaderUser]));
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
             registerHistoryBackend(new HistoryBackendMock());
@@ -1044,6 +1047,8 @@ void main() {
             final repo = new GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
+            registerAccountBackend(
+                AccountBackendMock(authenticatedUsers: [testUploaderUser]));
             registerHistoryBackend(new HistoryBackendMock());
             final emailSenderMock = new EmailSenderMock();
             registerEmailSender(emailSenderMock);
