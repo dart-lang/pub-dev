@@ -805,8 +805,8 @@ class GCloudPackageRepository extends PackageRepository {
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
   try {
     int receivedBytes = 0;
-    final stream = data.transform(
-      StreamTransformer.fromHandlers(
+    final stream = data.transform<List<int>>(
+      StreamTransformer<List<int>, List<int>>.fromHandlers(
         handleData: (chunk, sink) {
           receivedBytes += chunk.length;
           if (receivedBytes <= UploadSignerService.maxUploadSize) {
