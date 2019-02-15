@@ -320,24 +320,10 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Stream<PackageVersion> versions(String package) {
-    StreamController<PackageVersion> controller;
-    StreamSubscription subscription;
-
-    controller = new StreamController<PackageVersion>(
-        onListen: () {
-          final packageKey = db.emptyKey.append(models.Package, id: package);
-          final query =
-              db.query<models.PackageVersion>(ancestorKey: packageKey);
-          subscription = query.run().listen((model) {
-            final packageVersion = new PackageVersion(
-                package, model.version, model.pubspec.jsonString);
-            controller.add(packageVersion);
-          }, onError: controller.addError, onDone: controller.close);
-        },
-        onPause: () => subscription.pause(),
-        onResume: () => subscription.resume(),
-        onCancel: () => subscription.cancel());
-    return controller.stream;
+    final packageKey = db.emptyKey.append(models.Package, id: package);
+    final query = db.query<models.PackageVersion>(ancestorKey: packageKey);
+    return query.run().map((model) =>
+        PackageVersion(package, model.version, model.pubspec.jsonString));
   }
 
   @override
