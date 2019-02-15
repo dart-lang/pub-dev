@@ -60,7 +60,7 @@ class DatastoreHeadTaskSource implements TaskSource {
             yield* _poll<PackageVersion>('created', _versionToTask);
             break;
           case TaskSourceModel.scorecard:
-            yield* _poll<ScoreCard>('timestamp', _scoreCardToTask);
+            yield* _poll<ScoreCard>('updated', _scoreCardToTask);
             break;
         }
         _lastTs = now.subtract(_window);
