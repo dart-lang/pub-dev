@@ -80,14 +80,16 @@ class BatchIndexUpdater implements TaskRunner {
   @override
   Future runTask(Task task) async {
     _taskCount++;
-    final doc = await searchBackend.loadDocument(task.package);
-    if (doc == null) {
+    try {
+      final doc = await searchBackend.loadDocument(task.package);
+      _snapshot.add(doc);
+      await packageIndex.addPackage(doc);
+    } on RemovedPackageException catch (_) {
       _logger.info('Removing: ${task.package}');
       _snapshot.remove(task.package);
       await packageIndex.removePackage(task.package);
-    } else {
-      _snapshot.add(doc);
-      await packageIndex.addPackage(doc);
+    } on MissingAnalysisException catch (_) {
+      // Nothing to do yet, keeping old version if it exists.
     }
     if (_firstScanCount != null && _taskCount >= _firstScanCount) {
       _logger.info('Merging index after $_taskCount updates.');
