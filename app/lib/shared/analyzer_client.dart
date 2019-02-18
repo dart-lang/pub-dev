@@ -13,8 +13,6 @@ import '../job/backend.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 
-import 'analyzer_service.dart';
-
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 export 'analyzer_service.dart' hide AnalysisData;
 
@@ -31,22 +29,18 @@ final Logger _logger = new Logger('pub.analyzer_client');
 /// Client methods that access the analyzer service and the internals of the
 /// analysis data. This keeps the interface narrow over the raw analysis data.
 class AnalyzerClient {
-  Future<List<AnalysisView>> getAnalysisViews(Iterable<AnalysisKey> keys) {
-    return Future.wait(keys.map(getAnalysisView));
-  }
-
-  Future<AnalysisView> getAnalysisView(AnalysisKey key) async {
-    if (key == null) {
-      return null;
-    }
-    final card = await scoreCardBackend
-        .getScoreCardData(key.package, key.version, onlyCurrent: false);
+  Future<AnalysisView> getAnalysisView(String package, String version) async {
+    final card = await scoreCardBackend.getScoreCardData(
+      package,
+      version,
+      onlyCurrent: false,
+    );
     if (card == null) {
       return new AnalysisView();
     }
     final reports = await scoreCardBackend.loadReports(
-      key.package,
-      key.version,
+      package,
+      version,
       runtimeVersion: card.runtimeVersion,
     );
     final panaReport = reports[ReportType.pana] as PanaReport;

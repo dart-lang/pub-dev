@@ -148,10 +148,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
       }
     }
     final Stopwatch serviceSw = new Stopwatch()..start();
-    final analysisKey =
-        new AnalysisKey(selectedVersion.package, selectedVersion.version);
-    final AnalysisView analysisView =
-        await analyzerClient.getAnalysisView(analysisKey);
+    final AnalysisView analysisView = await analyzerClient.getAnalysisView(
+        selectedVersion.package, selectedVersion.version);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
 
     final versionDownloadUrls =

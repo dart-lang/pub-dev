@@ -66,8 +66,8 @@ class SearchBackend {
       return null;
     }
 
-    final analysisView = await analyzerClient
-        .getAnalysisView(AnalysisKey(packageName, pv.version));
+    final analysisView =
+        await analyzerClient.getAnalysisView(packageName, pv.version);
 
     final pubDataContent = await dartdocClient.getTextContent(
         packageName, 'latest', 'pub-data.json',
