@@ -19,8 +19,11 @@ import 'handlers.dart';
 import 'markdown.dart';
 import 'utils.dart' show fileAnIssueContent;
 
-Future runHandler(Logger logger, shelf.Handler handler,
-    {bool sanitize = false}) {
+Future<void> runHandler(
+  Logger logger,
+  shelf.Handler handler, {
+  bool sanitize = false,
+}) async {
   handler = _uriValidationRequestWrapper(handler);
   handler = _userAuthParsingWrapper(handler);
   if (sanitize) {
@@ -28,12 +31,14 @@ Future runHandler(Logger logger, shelf.Handler handler,
   }
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
-  return runAppEngine((HttpRequest request) => _handleRequest(request, handler),
-      shared: true);
-}
-
-Future _handleRequest(HttpRequest request, shelf.Handler handler) =>
+  await runAppEngine((HttpRequest request) {
+    if (request.headers['x-appengine-cron'].contains('true') &&
+        !isCronJobRequest(request)) {
+      throw AssertionError('AppEngine violated our trust!');
+    }
     shelf_io.handleRequest(request, handler);
+  }, shared: true);
+}
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
