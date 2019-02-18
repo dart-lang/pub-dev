@@ -116,7 +116,8 @@ class MockSearchBackend implements SearchBackend {
   List<String> packages = ['pkg_foo'];
 
   @override
-  Future<PackageDocument> loadDocument(String packageName) async {
+  Future<PackageDocument> loadDocument(String packageName,
+      {bool requireAnalysis = false}) async {
     if (!packages.contains(packageName)) {
       return null;
     }

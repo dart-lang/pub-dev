@@ -81,7 +81,21 @@ class BatchIndexUpdater implements TaskRunner {
   Future runTask(Task task) async {
     _taskCount++;
     try {
-      final doc = await searchBackend.loadDocument(task.package);
+      // The index requires the analysis results in most of the cases, except:
+      // - when a new package is created, and it is not in the snapshot yet, or
+      // - when the last timestamp is older than 7 days in the snapshot.
+      //
+      // The later requirement is working on the assumption that normally the
+      // index will update the packages in the snapshot every day, but if the
+      // analysis won't complete for some reason, we still want to update the
+      // index with a potential update to the package.
+      final now = DateTime.now().toUtc();
+      final sd = _snapshot.documents[task.package];
+      final requireAnalysis =
+          sd != null && now.difference(sd.timestamp).inDays < 7;
+
+      final doc = await searchBackend.loadDocument(task.package,
+          requireAnalysis: requireAnalysis);
       _snapshot.add(doc);
       await packageIndex.addPackage(doc);
     } on RemovedPackageException catch (_) {
