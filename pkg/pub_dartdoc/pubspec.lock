@@ -70,7 +70,7 @@ packages:
       name: dartdoc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.28.1+2"
+    version: "0.28.2"
   file:
     dependency: transitive
     description:
