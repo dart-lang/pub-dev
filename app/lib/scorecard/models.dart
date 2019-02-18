@@ -46,6 +46,8 @@ abstract class PackageFlags {
 abstract class ReportType {
   static const String pana = 'pana';
   static const String dartdoc = 'dartdoc';
+
+  static const values = const <String>[pana, dartdoc];
 }
 
 abstract class ReportStatus {

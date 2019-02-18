@@ -47,10 +47,7 @@ class ScoreCardBackend {
     String packageVersion, {
     @required bool onlyCurrent,
   }) async {
-    final requiredReportTypes = const <String>[
-      ReportType.pana,
-      ReportType.dartdoc,
-    ];
+    final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
       final ps = await _db.lookup([key]);
@@ -96,9 +93,7 @@ class ScoreCardBackend {
                 latest.semanticRuntimeVersion, current.semanticRuntimeVersion)
             ? current
             : latest);
-    final data = latest.toData();
-    await scoreCardMemcache.setScoreCardData(data);
-    return data;
+    return latest.toData();
   }
 
   /// Creates or updates a [ScoreCardReport] entry with the report's [data].

@@ -43,11 +43,10 @@ class ScoreCardMemcache {
   }
 
   Future setScoreCardData(ScoreCardData data) async {
-    if (!data.isCurrent) {
-      return;
+    if (data.isCurrent && data.hasReports(ReportType.values)) {
+      await _data.setText(_dataKey(data.packageName, data.packageVersion),
+          convert.json.encode(data.toJson()));
     }
-    await _data.setText(_dataKey(data.packageName, data.packageVersion),
-        convert.json.encode(data.toJson()));
   }
 
   Future invalidate(String package, String version) async {
