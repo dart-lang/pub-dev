@@ -51,12 +51,7 @@ class CronJobs {
       final id = Ulid().toString();
 
       // Get date as: YYYY-MM-DD
-      final now = DateTime.now().toUtc();
-      final date = [
-        now.year.toString(),
-        now.month.toString().padLeft(2, '0'),
-        now.day.toString().padLeft(2, '0'),
-      ].join('-');
+      final date = DateTime.now().toUtc().toIso8601String().split('T').first;
 
       // Start the backup operation
       _log.finest('starting datastore backup: $date/job-$id');
