@@ -60,9 +60,8 @@ class ScoreCardBackend {
       }
       packageVersion = p.latestVersion;
     }
-    final cached = await scoreCardMemcache.getScoreCardData(
-        packageName, packageVersion, versions.runtimeVersion,
-        onlyCurrent: onlyCurrent);
+    final cached =
+        await scoreCardMemcache.getScoreCardData(packageName, packageVersion);
     if (cached != null && cached.hasReports(requiredReportTypes)) {
       return cached;
     }
@@ -221,8 +220,7 @@ class ScoreCardBackend {
       await tx.commit();
     });
 
-    scoreCardMemcache.invalidate(
-        packageName, packageVersion, versions.runtimeVersion);
+    scoreCardMemcache.invalidate(packageName, packageVersion);
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
