@@ -7,7 +7,6 @@ import 'dart:convert' as convert;
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import '../shared/redis_cache.dart';
 
@@ -34,17 +33,8 @@ class ScoreCardMemcache {
         );
 
   Future<ScoreCardData> getScoreCardData(
-    String packageName,
-    String packageVersion,
-    String runtimeVersion, {
-    @required bool onlyCurrent,
-  }) async {
-    String content = await _data
-        .getText(_dataKey(packageName, packageVersion, runtimeVersion, true));
-    if (content == null && !onlyCurrent) {
-      content = await _data.getText(
-          _dataKey(packageName, packageVersion, runtimeVersion, false));
-    }
+      String packageName, String packageVersion) async {
+    final content = await _data.getText(_dataKey(packageName, packageVersion));
     if (content == null) {
       return null;
     }
@@ -52,21 +42,17 @@ class ScoreCardMemcache {
         convert.json.decode(content) as Map<String, dynamic>);
   }
 
-  Future setScoreCardData(ScoreCardData data) {
-    return _data.setText(
-        _dataKey(data.packageName, data.packageVersion, data.runtimeVersion,
-            data.isCurrent),
+  Future setScoreCardData(ScoreCardData data) async {
+    if (!data.isCurrent) {
+      return;
+    }
+    await _data.setText(_dataKey(data.packageName, data.packageVersion),
         convert.json.encode(data.toJson()));
   }
 
-  Future invalidate(String package, String version, String runtimeVersion) {
-    return Future.wait([
-      _data.invalidate(_dataKey(package, version, runtimeVersion, true)),
-      _data.invalidate(_dataKey(package, version, runtimeVersion, false)),
-    ]);
+  Future invalidate(String package, String version) async {
+    await _data.invalidate(_dataKey(package, version));
   }
 
-  String _dataKey(String package, String version, String runtimeVersion,
-          bool isCurrent) =>
-      '/$package/$version/$runtimeVersion/$isCurrent';
+  String _dataKey(String package, String version) => '/$package/$version';
 }
