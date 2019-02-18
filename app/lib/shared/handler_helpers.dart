@@ -23,7 +23,6 @@ Future<void> runHandler(
   Logger logger,
   shelf.Handler handler, {
   bool sanitize = false,
-  shelf.Handler cronJobHandler,
 }) async {
   handler = _uriValidationRequestWrapper(handler);
   handler = _userAuthParsingWrapper(handler);
@@ -33,11 +32,11 @@ Future<void> runHandler(
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   await runAppEngine((HttpRequest request) {
-    if (cronJobHandler != null && isCronJobRequest(request)) {
-      shelf_io.handleRequest(request, cronJobHandler);
-    } else {
-      shelf_io.handleRequest(request, handler);
+    if (request.headers['x-appengine-cron'].contains('true') &&
+        !isCronJobRequest(request)) {
+      throw AssertionError('AppEngine violated our trust!');
     }
+    shelf_io.handleRequest(request, handler);
   }, shared: true);
 }
 

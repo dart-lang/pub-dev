@@ -63,9 +63,8 @@ Future _main(FrontendEntryMessage message) async {
     );
     await runHandler(
       _logger,
-      (shelf.Request request) => appHandler(request, apiHandler),
+      (shelf.Request request) => appHandler(request, apiHandler, cron.handler),
       sanitize: true,
-      cronJobHandler: cron.handler,
     );
   });
 }
