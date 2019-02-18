@@ -44,6 +44,13 @@ void registerSnapshotStorage(SnapshotStorage storage) =>
 SnapshotStorage get snapshotStorage =>
     ss.lookup(#_snapshotStorage) as SnapshotStorage;
 
+/// Exception when a package or a version is missing, or has other flags that
+/// indicate it should be removed from the search index.
+class RemovedPackageException implements Exception {}
+
+/// Exception when a package does not have its analysis yet.
+class MissingAnalysisException implements Exception {}
+
 /// Datastore-related access methods for the search service
 class SearchBackend {
   final DatastoreDB _db;
@@ -53,22 +60,29 @@ class SearchBackend {
   /// Loads the latest stable version, its analysis results and extracted
   /// dartdoc content, and returns a [PackageDocument] objects for search.
   ///
-  /// When a package, its latest version or its analysis is missing, the method
-  /// returns with null.
-  Future<PackageDocument> loadDocument(String packageName) async {
+  /// When a package, or its latest version is missing, the method throws
+  /// [RemovedPackageException].
+  ///
+  /// When either the analysis is not completed yet, the method returns with
+  /// null.
+  Future<PackageDocument> loadDocument(String packageName,
+      {bool requireAnalysis = false}) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
     final p = (await _db.lookup<Package>([packageKey])).single;
     if (p == null || p.isDiscontinued == true) {
-      return null;
+      throw RemovedPackageException();
     }
 
     final pv = (await _db.lookup<PackageVersion>([p.latestVersionKey])).single;
     if (pv == null) {
-      return null;
+      throw RemovedPackageException();
     }
 
-    final analysisView = await analyzerClient
-        .getAnalysisView(AnalysisKey(packageName, pv.version));
+    final analysisView =
+        await analyzerClient.getAnalysisView(packageName, pv.version);
+    if (requireAnalysis && !analysisView.hasPanaSummary) {
+      throw MissingAnalysisException();
+    }
 
     final pubDataContent = await dartdocClient.getTextContent(
         packageName, 'latest', 'pub-data.json',

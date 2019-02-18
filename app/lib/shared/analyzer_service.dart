@@ -4,26 +4,6 @@
 
 import 'package:meta/meta.dart';
 
-class AnalysisKey {
-  final String package;
-  final String version;
-
-  AnalysisKey(this.package, this.version);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AnalysisKey &&
-          package == other.package &&
-          version == other.version;
-
-  @override
-  int get hashCode => package.hashCode ^ version.hashCode;
-
-  @override
-  String toString() => '$package $version';
-}
-
 /// These status codes mark the status of the analysis, not the result/report.
 enum AnalysisStatus {
   /// Analysis was aborted without a report.
