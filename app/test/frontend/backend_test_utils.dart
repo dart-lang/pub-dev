@@ -452,6 +452,7 @@ class AccountBackendMock implements AccountBackend {
 
   @override
   Future<User> lookupOrCreateUserByEmail(String email) async {
+    email = email.toLowerCase();
     return users.firstWhere((u) => u.email == email, orElse: () {
       final u = User()
         ..id = email.hashCode.toString()
