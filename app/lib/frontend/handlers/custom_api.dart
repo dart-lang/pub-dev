@@ -179,7 +179,7 @@ Future<shelf.Response> apiPackageMetricsHandler(shelf.Request request) async {
   final packageName = parts[3];
   final packageVersion = request.requestedUri.queryParameters['version'];
   final data = await scoreCardBackend
-      .getScoreCardData(packageName, packageVersion, onlyCurrent: false);
+      .getScoreCardData(packageName, packageVersion);
   if (data == null) {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }

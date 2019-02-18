@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/packages_overrides.dart';
@@ -39,14 +38,8 @@ class ScoreCardBackend {
   ScoreCardBackend(this._db);
 
   /// Returns the [ScoreCardData] for the given package and version.
-  ///
-  /// When [onlyCurrent] is false, it will try to load earlier versions of the
-  /// data.
   Future<ScoreCardData> getScoreCardData(
-    String packageName,
-    String packageVersion, {
-    @required bool onlyCurrent,
-  }) async {
+      String packageName, String packageVersion) async {
     final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
@@ -71,10 +64,6 @@ class ScoreCardBackend {
         await scoreCardMemcache.setScoreCardData(data);
         return data;
       }
-    }
-
-    if (onlyCurrent) {
-      return null;
     }
 
     // List cards that at minimum have a pana report.
