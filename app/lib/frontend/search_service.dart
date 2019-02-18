@@ -48,8 +48,8 @@ Future<SearchResultPage> _loadResultForPackages(
   if (versionKeys.isNotEmpty) {
     // Analysis data fetched concurrently to reduce overall latency.
     final Future<List<ScoreCardData>> analysisExtractsFuture = Future.wait(
-        packageEntries.map((p) => scoreCardBackend
-            .getScoreCardData(p.name, p.latestVersion)));
+        packageEntries.map(
+            (p) => scoreCardBackend.getScoreCardData(p.name, p.latestVersion)));
     final Future<List> allVersionsFuture = dbService.lookup(versionKeys);
 
     final List batchResults =
