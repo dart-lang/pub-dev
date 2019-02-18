@@ -77,18 +77,26 @@ class ScoreCardBackend {
       return null;
     }
 
+    // List cards that at minimum have a pana report.
     final query = _db.query<ScoreCard>(ancestorKey: key.parent);
-    final all = await query
+    final cardsWithPana = await query
         .run()
         .where((sc) =>
+            sc.runtimeVersion == versions.runtimeVersion ||
             isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
+        .where((sc) => sc.toData().hasReports([ReportType.pana]))
+        .toList();
+    final cardsWithAll = cardsWithPana
         .where((sc) => sc.toData().hasReports(requiredReportTypes))
         .toList();
-    if (all.isEmpty) {
+
+    final cards = cardsWithAll.isNotEmpty ? cardsWithAll : cardsWithPana;
+    if (cards.isEmpty) {
       return null;
     }
-    final latest = all.fold<ScoreCard>(
-        all.first,
+
+    final latest = cards.fold<ScoreCard>(
+        cards.first,
         (latest, current) => isNewer(
                 latest.semanticRuntimeVersion, current.semanticRuntimeVersion)
             ? current
