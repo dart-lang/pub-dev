@@ -39,11 +39,11 @@ void _logPubHeaders(shelf.Request request) {
 ///   - /api/*
 Future<shelf.Response> appHandler(
   shelf.Request request,
-  shelf.Handler shelfPubApi,
+  shelf.Handler shelfPubApi, [
   shelf.Handler cronHandler,
-) async {
+]) async {
   // Handle cron requests, we checked the IP in handler_helpers.dart
-  if (request.headers['x-appengine-cron'] == 'true') {
+  if (cronHandler != null && request.headers['x-appengine-cron'] == 'true') {
     return cronHandler(request);
   }
 
