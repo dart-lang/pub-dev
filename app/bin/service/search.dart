@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
@@ -50,6 +51,8 @@ Future _main(FrontendEntryMessage message) async {
   ));
 
   await withAppEngineAndCache(() async {
+    registerAccountBackend(AccountBackend(db.dbService));
+
     final popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
