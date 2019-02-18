@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/packages_overrides.dart';
@@ -39,18 +38,9 @@ class ScoreCardBackend {
   ScoreCardBackend(this._db);
 
   /// Returns the [ScoreCardData] for the given package and version.
-  ///
-  /// When [onlyCurrent] is false, it will try to load earlier versions of the
-  /// data.
   Future<ScoreCardData> getScoreCardData(
-    String packageName,
-    String packageVersion, {
-    @required bool onlyCurrent,
-  }) async {
-    final requiredReportTypes = const <String>[
-      ReportType.pana,
-      ReportType.dartdoc,
-    ];
+      String packageName, String packageVersion) async {
+    final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
       final ps = await _db.lookup([key]);
@@ -76,29 +66,31 @@ class ScoreCardBackend {
       }
     }
 
-    if (onlyCurrent) {
+    // List cards that at minimum have a pana report.
+    final query = _db.query<ScoreCard>(ancestorKey: key.parent);
+    final cardsWithPana = await query
+        .run()
+        .where((sc) =>
+            sc.runtimeVersion == versions.runtimeVersion ||
+            isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
+        .where((sc) => sc.toData().hasReports([ReportType.pana]))
+        .toList();
+    final cardsWithAll = cardsWithPana
+        .where((sc) => sc.toData().hasReports(requiredReportTypes))
+        .toList();
+
+    final cards = cardsWithAll.isNotEmpty ? cardsWithAll : cardsWithPana;
+    if (cards.isEmpty) {
       return null;
     }
 
-    final query = _db.query<ScoreCard>(ancestorKey: key.parent);
-    final all = await query
-        .run()
-        .where((sc) =>
-            isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
-        .where((sc) => sc.toData().hasReports(requiredReportTypes))
-        .toList();
-    if (all.isEmpty) {
-      return null;
-    }
-    final latest = all.fold<ScoreCard>(
-        all.first,
+    final latest = cards.fold<ScoreCard>(
+        cards.first,
         (latest, current) => isNewer(
                 latest.semanticRuntimeVersion, current.semanticRuntimeVersion)
             ? current
             : latest);
-    final data = latest.toData();
-    await scoreCardMemcache.setScoreCardData(data);
-    return data;
+    return latest.toData();
   }
 
   /// Creates or updates a [ScoreCardReport] entry with the report's [data].

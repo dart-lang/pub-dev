@@ -30,11 +30,7 @@ final Logger _logger = new Logger('pub.analyzer_client');
 /// analysis data. This keeps the interface narrow over the raw analysis data.
 class AnalyzerClient {
   Future<AnalysisView> getAnalysisView(String package, String version) async {
-    final card = await scoreCardBackend.getScoreCardData(
-      package,
-      version,
-      onlyCurrent: false,
-    );
+    final card = await scoreCardBackend.getScoreCardData(package, version);
     if (card == null) {
       return new AnalysisView();
     }
