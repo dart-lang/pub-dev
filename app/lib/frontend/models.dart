@@ -80,13 +80,8 @@ class Package extends db.ExpandoModel {
   }
 
   // Check if a user is an uploader for a package.
-  bool hasUploader(String uploaderId, String uploaderEmail) {
-    if (uploaderId != null && uploaders.contains(uploaderId)) {
-      return true;
-    }
-    // fallback to emails in case the migration did not happen to this yet
-    final lowerEmail = uploaderEmail.toLowerCase();
-    return uploaderEmails.any((s) => s.toLowerCase() == lowerEmail);
+  bool hasUploader(String uploaderId) {
+    return uploaderId != null && uploaders.contains(uploaderId);
   }
 
   int get uploaderCount => uploaders.length;
@@ -202,11 +197,10 @@ class PackageVersion extends db.ExpandoModel {
   @db.IntProperty(propertyName: 'sort_order')
   int sortOrder;
 
-  // TODO: Set required attribute after [uploaderEmail] is removed.
-  @db.StringProperty()
+  @db.StringProperty(required: true)
   String uploader;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty()
   String uploaderEmail;
 
   // Convenience Fields:
