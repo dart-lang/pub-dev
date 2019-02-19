@@ -378,16 +378,10 @@ void main() {
       }
 
       test('successful', () async {
-        final fooLowerB = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
-        final fooUpperB = AuthenticatedUser('uuid-foo-at-B-com', 'foo@B.com');
+        final foo = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
+        await scoped(() => testSuccessful(foo, ['foo@b.com'], 'bar@b.com'));
         await scoped(
-            () => testSuccessful(fooLowerB, ['foo@b.com'], 'bar@b.com'));
-        await scoped(
-            () => testSuccessful(fooUpperB, ['foo@b.com'], 'bar@B.com'));
-        await scoped(() =>
-            testSuccessful(fooUpperB, ['foo@B.com', 'bar@b.com'], 'baz@b.com'));
-        await scoped(() =>
-            testSuccessful(fooLowerB, ['foo@B.com', 'bar@B.com'], 'baz@B.com'));
+            () => testSuccessful(foo, ['foo@b.com', 'bar@b.com'], 'baz@b.com'));
       });
     });
 
