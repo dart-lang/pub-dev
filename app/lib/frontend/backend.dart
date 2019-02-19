@@ -604,6 +604,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
+    uploaderEmail = uploaderEmail.toLowerCase();
     await withAuthenticatedUser((AuthenticatedUser user) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
@@ -718,6 +719,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
+    uploaderEmail = uploaderEmail.toLowerCase();
     return withAuthenticatedUser((AuthenticatedUser user) {
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
@@ -969,7 +971,8 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..libraries = libraries
     ..downloads = 0
     ..sortOrder = 1
-    ..uploader = user.userId;
+    ..uploader = user.userId
+    ..uploaderEmail = user.email;
 
   final versionPubspec = models.PackageVersionPubspec()
     ..initFromKey(key)

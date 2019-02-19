@@ -113,6 +113,7 @@ class AccountBackend {
   ///
   /// Throws Exception if more then one `User` entry exists.
   Future<User> lookupOrCreateUserByEmail(String email) async {
+    email = email.toLowerCase();
     final query = _db.query<User>()..filter('email =', email);
     final list = await query.run().toList();
     if (list.length > 1) {
@@ -282,7 +283,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      return AuthResult(info.userId, info.email);
+      return AuthResult(info.userId, info.email.toLowerCase());
     } on oauth2_v2.ApiRequestError catch (e) {
       _logger.info('Access denied for OAuth2 access token.', e);
     } catch (e, st) {
