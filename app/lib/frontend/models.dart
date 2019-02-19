@@ -96,7 +96,7 @@ class Package extends db.ExpandoModel {
     if (uploaderId != null) {
       uploaders.add(uploaderId);
     }
-    uploaderEmails.add(uploaderEmail);
+    uploaderEmails.add(uploaderEmail.toLowerCase());
   }
 
   // Remove the email from the list of uploaders.
@@ -206,7 +206,7 @@ class PackageVersion extends db.ExpandoModel {
   @db.StringProperty()
   String uploader;
 
-  @db.StringProperty(required: true)
+  @db.StringProperty()
   String uploaderEmail;
 
   // Convenience Fields:

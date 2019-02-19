@@ -63,6 +63,18 @@ Future main(List<String> args) async {
         await _updateUserCreatedTime(user, created);
       }
     }
+
+    await for (User user in dbService.query<User>().run()) {
+      if (user.email != user.email.toLowerCase()) {
+        print('Deleting: ${user.email} ${user.userId} ${user.oauthUserId}');
+        final deletes = <Key>[user.key];
+        if (user.oauthUserId != null) {
+          deletes.add(
+              dbService.emptyKey.append(OAuthUserID, id: user.oauthUserId));
+        }
+        await dbService.commit(deletes: deletes);
+      }
+    }
   });
 }
 
@@ -75,26 +87,31 @@ Future _backfillPackage(String package) async {
     final user = await _lookupUserByEmail(pv.uploaderEmail);
     _updateFirstUse(user, pv.created);
 
-    if (pv.uploader == null) {
+    final doUpdateEmail = pv.uploaderEmail != pv.uploaderEmail.toLowerCase();
+    if (pv.uploader == null || doUpdateEmail) {
       await dbService.withTransaction((tx) async {
         final version = (await tx.lookup<PackageVersion>([pv.key])).single;
-        if (version.uploader != null) {
+        if (version.uploader != null && !doUpdateEmail) {
           throw AssertionError(
               'upload updated before transaction: ${pv.package} ${pv.version}');
         }
         version.uploader = user.userId;
+        version.uploaderEmail = version.uploaderEmail.toLowerCase();
         tx.queueMutations(inserts: [version]);
         await tx.commit();
       });
-    } else if (pv.uploader != user.userId) {
+    } else if (pv.uploader != user.userId && !doUpdateEmail) {
       throw AssertionError(
-          'upload missmatch in ${pv.package} ${pv.version}: ${pv.uploaderEmail} maps to ${user.userId} but already contains ${pv.uploader}');
+          'upload missmatch in ${pv.package} ${pv.version}: ${pv.uploaderEmail} '
+          'maps to ${user.userId} but already contains ${pv.uploader}');
     }
   }
 
   await dbService.withTransaction((tx) async {
     final p = (await dbService.lookup<Package>([pkgKey])).single;
     final uploaders = Set<String>();
+    p.uploaderEmails =
+        p.uploaderEmails.map((s) => s.toLowerCase()).toSet().toList();
     for (String email in p.uploaderEmails) {
       final user = await _lookupUserByEmail(email);
       uploaders.add(user.userId);
@@ -125,6 +142,7 @@ Future _updateUserCreatedTime(User user, DateTime created) async {
 }
 
 Future<User> _lookupUserByEmail(String email) async {
+  email = email.toLowerCase();
   if (_emailInProgress.containsKey(email)) {
     await _emailInProgress[email].future;
   }
