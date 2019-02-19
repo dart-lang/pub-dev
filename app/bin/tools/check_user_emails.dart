@@ -15,6 +15,8 @@ Future main(List<String> args) async {
   await withProdServices(() async {
     registerAccountBackend(AccountBackend(dbService));
 
+    final bad = Set<String>();
+    final good = Set<String>();
     final query = dbService.query<User>();
     await for (User user in query.run()) {
       count++;
@@ -22,10 +24,15 @@ Future main(List<String> args) async {
         print(count);
       }
       if (user.email != user.email.toLowerCase()) {
+        bad.add(user.email);
         print('BAD: ${user.userId} ${user.email}');
+      } else {
+        good.add(user.email);
       }
     }
 
+    final intersect = bad.where((s) => good.contains(s.toLowerCase())).length;
     print('$count User entity checked.');
+    print('${bad.length} bad, ${good.length} good, $intersect intersect');
   });
 }
