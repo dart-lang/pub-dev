@@ -64,6 +64,7 @@ Future main(List<String> args) async {
       }
     }
 
+    // Delete users with non-lowercase e-mails.
     await for (User user in dbService.query<User>().run()) {
       if (user.email != user.email.toLowerCase()) {
         print('Deleting: ${user.email} ${user.userId} ${user.oauthUserId}');
