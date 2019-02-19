@@ -10,6 +10,8 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
+/// Checks whether the User entries are all-lowercase, or some of them have
+/// uppercase characters too.
 Future main(List<String> args) async {
   int count = 0;
   await withProdServices(() async {
