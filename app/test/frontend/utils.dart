@@ -60,8 +60,10 @@ Package createTestPackage({List<AuthenticatedUser> uploaders}) {
 
 final Package testPackage = createTestPackage()
   ..latestDevVersionKey = devPackageVersionKey;
+final testPackageUploaderEmails = [testUploaderUser.email];
 
 final Package discontinuedPackage = createTestPackage()..isDiscontinued = true;
+final discontinuedPackageUploaderEmails = [testUploaderUser.email];
 
 final PackageVersion testPackageVersion = new PackageVersion()
   ..parentKey = testPackageVersionKey.parent
