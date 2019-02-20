@@ -125,7 +125,7 @@ void main() {
     test('package show page', () {
       final String html = renderPkgShowPage(
           testPackage,
-          testPackage.uploaderEmails,
+          testPackageUploaderEmails,
           false,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -177,7 +177,7 @@ void main() {
     test('package show page - with version', () {
       final String html = renderPkgShowPage(
           testPackage,
-          testPackage.uploaderEmails,
+          testPackageUploaderEmails,
           true,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -228,7 +228,7 @@ void main() {
     test('package show page with flutter_plugin', () {
       final String html = renderPkgShowPage(
         testPackage,
-        testPackage.uploaderEmails,
+        testPackageUploaderEmails,
         false,
         [flutterPackageVersion],
         [Uri.parse('http://dart-example.com/')],
@@ -267,7 +267,7 @@ void main() {
     test('package show page with outdated version', () {
       final String html = renderPkgShowPage(
           testPackage,
-          testPackage.uploaderEmails,
+          testPackageUploaderEmails,
           true /* isVersionPage */,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -288,7 +288,7 @@ void main() {
     test('package show page with discontinued version', () {
       final String html = renderPkgShowPage(
           discontinuedPackage,
-          discontinuedPackage.uploaderEmails,
+          discontinuedPackageUploaderEmails,
           false,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
@@ -311,7 +311,7 @@ void main() {
           testPackageVersion.package, testPackageVersion.version);
       final String html = renderPkgShowPage(
           testPackage,
-          testPackage.uploaderEmails,
+          testPackageUploaderEmails,
           true /* isVersionPage */,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],

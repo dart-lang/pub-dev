@@ -49,11 +49,12 @@ Future _backfillPackage(String package) async {
       }
     }
     if (!hasUploaded) {
+      final uploaderEmail = await accountBackend.getEmailOfUserId(pv.uploader);
       historyBackend.storeEvent(new PackageUploaded(
         packageName: package,
         packageVersion: pv.version,
         uploaderId: pv.uploader,
-        uploaderEmail: pv.uploaderEmail,
+        uploaderEmail: uploaderEmail,
         timestamp: pv.created,
       ));
     }
