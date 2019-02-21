@@ -41,7 +41,7 @@ class ScoreCardBackend {
   Future<ScoreCardData> getScoreCardData(
     String packageName,
     String packageVersion, {
-    bool onlyCurrent: false,
+    bool onlyCurrent = false,
   }) async {
     final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
