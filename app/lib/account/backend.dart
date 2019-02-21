@@ -176,7 +176,7 @@ class AccountBackend {
           usersWithEmail.single.oauthUserId == null) {
         // We've found a single pre-migrated User with empty oauthUserId: need
         // to create OAuthUserID for it.
-        return await _db.withTransaction((tx) async {
+        final updatedUser = await _db.withTransaction((tx) async {
           final user =
               (await tx.lookup<User>([usersWithEmail.single.key])).single;
           final newMapping = OAuthUserID()
@@ -188,6 +188,7 @@ class AccountBackend {
           await tx.commit();
           return user;
         }) as User;
+        return updatedUser;
       }
 
       final newUser = User()
