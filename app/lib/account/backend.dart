@@ -276,7 +276,9 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      if (info.expiresIn == null ||
+      if (info.userId == null ||
+          info.userId.isEmpty ||
+          info.expiresIn == null ||
           info.expiresIn <= 0 ||
           info.verifiedEmail != true ||
           info.email == null ||
