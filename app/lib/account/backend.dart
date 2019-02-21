@@ -186,6 +186,7 @@ class AccountBackend {
           user.oauthUserId = auth.oauthUserId;
           tx.queueMutations(inserts: [user, newMapping]);
           await tx.commit();
+          return user;
         }) as User;
       }
 
