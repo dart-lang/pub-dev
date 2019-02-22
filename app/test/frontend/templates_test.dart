@@ -539,6 +539,15 @@ void main() {
       expectGoldenFile(html, 'authorized_page.html');
     });
 
+    test('uploader approval page', () {
+      final String html = renderUploaderApprovalPage(
+          'pkg_foo',
+          'admin@example.com',
+          'uploader@example.com',
+          'https://redirect.to.auth/url');
+      expectGoldenFile(html, 'uploader_approval_page.html');
+    });
+
     test('uploader confirmed page', () {
       final String html =
           renderUploaderConfirmedPage('pkg_foo', 'uploader@example.com');

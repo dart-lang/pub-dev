@@ -14,6 +14,19 @@ String renderAuthorizedPage() {
       title: 'Pub Authorized Successfully', includeSurvey: false);
 }
 
+/// Renders the `views/uploader_approval.mustache` template.
+String renderUploaderApprovalPage(
+    String package, String inviteEmail, String uploaderEmail, String authUrl) {
+  final String content = templateCache.renderTemplate('uploader_approval', {
+    'invite_email': inviteEmail,
+    'package': package,
+    'package_url': pkgPageUrl(package),
+    'auth_url': authUrl,
+  });
+  return renderLayoutPage(PageType.package, content,
+      title: 'Uploader invitation', includeSurvey: false);
+}
+
 /// Renders the `views/uploader_confirmed.mustache` template.
 String renderUploaderConfirmedPage(String package, String uploaderEmail) {
   final String content = templateCache.renderTemplate('uploader_confirmed', {
