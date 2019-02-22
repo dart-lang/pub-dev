@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -24,6 +25,7 @@ DartdocMemcache get dartdocMemcache =>
 class DartdocMemcache {
   final SimpleMemcache _entry;
   final SimpleMemcache _fileInfo;
+  final SimpleMemcache _apiSummary;
 
   DartdocMemcache()
       : _entry = new SimpleMemcache(
@@ -33,6 +35,11 @@ class DartdocMemcache {
         ),
         _fileInfo = new SimpleMemcache(
           'DartdocMemcache/fileInfo/',
+          _logger,
+          Duration(minutes: 60),
+        ),
+        _apiSummary = new SimpleMemcache(
+          'DartdocMemcache/apiSummary/',
           _logger,
           Duration(minutes: 60),
         );
@@ -59,14 +66,29 @@ class DartdocMemcache {
     return _fileInfo.setBytes(_fileInfoKey(objectName), bytes);
   }
 
+  Future<Map<String, dynamic>> getApiSummary(String package) async {
+    final text = await _apiSummary.getText(_apiSummaryKey(package));
+    if (text == null) return null;
+    return json.decode(text) as Map<String, dynamic>;
+  }
+
+  Future setApiSummary(String package, Map<String, dynamic> data) async {
+    if (data == null || data.isEmpty) return;
+    final text = json.encode(data);
+    await _apiSummary.setText(_apiSummaryKey(package), text);
+  }
+
   Future invalidate(String package, String version) {
     return Future.wait([
       _entry.invalidate(_entryKey(package, version)),
       _entry.invalidate(_entryKey(package, 'latest')),
+      _apiSummary.invalidate(_apiSummaryKey(package)),
     ]);
   }
 
   String _entryKey(String package, String version) => '/$package/$version';
 
   String _fileInfoKey(String objectName) => objectName;
+
+  String _apiSummaryKey(String package) => package;
 }

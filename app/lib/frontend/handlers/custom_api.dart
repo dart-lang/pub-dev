@@ -9,6 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/dartdoc_memcache.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/search_client.dart';
@@ -27,6 +28,11 @@ Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
   final String package = parts[2];
   if (isSoftRemoved(package)) {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
+  }
+
+  final cachedData = await dartdocMemcache.getApiSummary(package);
+  if (cachedData != null) {
+    return jsonResponse(cachedData, pretty: isPrettyJson(request));
   }
 
   final versions = await backend.versionsOfPackage(package);
@@ -58,11 +64,13 @@ Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
       'hasDocumentation': hasDocumentation,
     });
   }
-  return jsonResponse({
+  final data = {
     'name': package,
     'latestStableVersion': latestStableVersion,
     'versions': versionsData,
-  }, pretty: isPrettyJson(request));
+  };
+  await dartdocMemcache.setApiSummary(package, data);
+  return jsonResponse(data, pretty: isPrettyJson(request));
 }
 
 /// Handles requests for
