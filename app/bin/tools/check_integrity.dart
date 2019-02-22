@@ -51,7 +51,8 @@ Future main(List<String> args) async {
     print('Reading OAuthUserID entries...');
     await for (OAuthUserID mapping in dbService.query<OAuthUserID>().run()) {
       if (mapping.userIdKey == null || mapping.userId == null) {
-        _problems.add('OAuthUserID(${mapping.oauthUserId}) has invalid userId.');
+        _problems
+            .add('OAuthUserID(${mapping.oauthUserId}) has invalid userId.');
       }
       _oauthToUser[mapping.oauthUserId] = mapping.userId;
     }
