@@ -228,13 +228,16 @@ class Backend {
     }) as InviteStatus;
   }
 
-  /// Confirm the invite and return the Datastore entry object if successful,
-  /// otherwise returns null.
-  Future<models.PackageInvite> confirmPackageInvite({
+  /// Get the invite, validate and return the Datastore entry object if valid.
+  ///
+  /// When [confirm] is set, it will update the confirmed timestamp of the
+  /// invite.
+  Future<models.PackageInvite> getPackageInvite({
     @required String packageName,
     @required String type,
     @required String recipientEmail,
     @required String urlNonce,
+    @required bool confirm,
   }) async {
     final inviteId = models.PackageInvite.createId(type, recipientEmail);
     final pkgKey = db.emptyKey.append(models.Package, id: packageName);
@@ -270,6 +273,12 @@ class Backend {
 
       // Invite already confirmed.
       if (invite.confirmed != null) {
+        await tx.rollback();
+        return invite;
+      }
+
+      // Do not confirm the invite yet.
+      if (!confirm) {
         await tx.rollback();
         return invite;
       }

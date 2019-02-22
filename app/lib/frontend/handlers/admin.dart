@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/backend.dart';
 import '../../shared/handlers.dart';
 
 import '../backend.dart';
@@ -35,23 +36,51 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
     if (packageName.isEmpty || urlNonce.isEmpty) {
       return _formattedInviteExpiredHandler(request);
     }
-    final invite = await backend.confirmPackageInvite(
+
+    bool authorized = false;
+    final code = request.requestedUri.queryParameters['code'];
+    final state = request.requestedUri.queryParameters['state'];
+    if (code != null && state == urlNonce) {
+      final callbackUrl = request.requestedUri.toString().split('?').first;
+      final accessToken =
+          await accountBackend.authCodeToAccessToken(code, callbackUrl);
+      final user =
+          await accountBackend.authenticateWithAccessToken(accessToken);
+      authorized = user?.email == recipientEmail;
+    }
+
+    final invite = await backend.getPackageInvite(
       packageName: packageName,
       type: type,
       recipientEmail: recipientEmail,
       urlNonce: urlNonce,
+      confirm: authorized,
     );
     if (invite == null) {
       return _formattedInviteExpiredHandler(request);
     }
-    try {
-      await backend.repository.confirmUploader(
-          invite.fromEmail, invite.packageName, invite.recipientEmail);
-    } catch (e) {
-      _formattedInviteExpiredHandler(request, 'Error message:\n\n```\n$e\n```');
+    final inviteEmail = invite.fromUserId == null
+        ? invite.fromEmail
+        : await accountBackend.getEmailOfUserId(invite.fromUserId);
+
+    if (!authorized) {
+      // Display only the page that will have a link to authenticate the user.
+      final redirectUrl =
+          accountBackend.authorizationUrl(request.requestedUri, urlNonce);
+      return htmlResponse(renderUploaderApprovalPage(
+          invite.packageName, inviteEmail, invite.recipientEmail, redirectUrl));
+    } else {
+      // Authentication was successful, display confirmation.
+      try {
+        await backend.repository.confirmUploader(
+            invite.fromEmail, invite.packageName, invite.recipientEmail);
+      } catch (e) {
+        _formattedInviteExpiredHandler(
+            request, 'Error message:\n\n```\n$e\n```');
+      }
+      return htmlResponse(renderUploaderConfirmedPage(
+          invite.packageName, invite.recipientEmail));
     }
-    return htmlResponse(
-        renderUploaderConfirmedPage(invite.packageName, invite.recipientEmail));
   } else {
     return _formattedInviteExpiredHandler(request);
   }

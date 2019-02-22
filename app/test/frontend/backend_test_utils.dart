@@ -492,6 +492,16 @@ class AccountBackendMock implements AccountBackend {
   }
 
   @override
+  String authorizationUrl(Uri redirectUrl, String state) {
+    return null;
+  }
+
+  @override
+  Future<String> authCodeToAccessToken(String code, String redirectUrl) {
+    return null;
+  }
+
+  @override
   Future<AuthenticatedUser> authenticateWithAccessToken(String accessToken) {
     return null;
   }

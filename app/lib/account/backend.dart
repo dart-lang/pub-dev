@@ -15,7 +15,9 @@ import 'package:simple_cache/simple_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
+import '../frontend/models.dart' show Secret, SecretKey;
 import '../shared/email.dart' show isValidEmail;
+
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
@@ -55,12 +57,13 @@ Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
-  final _defaultAuthProvider = GoogleOauth2AuthProvider(_pubAudience);
+  final AuthProvider _defaultAuthProvider;
   final _emailCache = Cache(Cache.inMemoryCacheProvider(1000))
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8);
 
-  AccountBackend(this._db);
+  AccountBackend(this._db)
+      : _defaultAuthProvider = GoogleOauth2AuthProvider(_pubAudience, _db);
 
   Future close() async {
     await _defaultAuthProvider.close();
@@ -133,6 +136,20 @@ class AccountBackend {
     await _db.commit(inserts: [user]);
     return user;
   }
+
+  /// Returns the URL of the authorization endpoint.
+  String authorizationUrl(Uri redirectUrl, String state) {
+    return _defaultAuthProvider.authorizationUrl(redirectUrl, state);
+  }
+
+  /// Validates the authorization [code] (specifying the same [redirectUrl]
+  /// that was used to access the code in the first place), and returns the
+  /// access token.
+  ///
+  /// Returns null on any error, or if the token is expired, or the code is not
+  /// verified.
+  Future<String> authCodeToAccessToken(String code, String redirectUrl) =>
+      _defaultAuthProvider.authCodeToAccessToken(code, redirectUrl);
 
   /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
   ///
@@ -262,6 +279,17 @@ class AuthResult {
 
 /// Authenticates access tokens.
 abstract class AuthProvider {
+  /// Returns the URL of the authorization endpoint.
+  String authorizationUrl(Uri redirectUrl, String state);
+
+  /// Validates the authorization [code] (specifying the same [redirectUrl]
+  /// that was used to access the code in the first place), and returns the
+  /// access token.
+  ///
+  /// Returns null on any error, or if the token is expired, or the code is not
+  /// verified.
+  Future<String> authCodeToAccessToken(String code, String redirectUrl);
+
   /// Checks the [accessToken] and returns a verified user information.
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
@@ -274,12 +302,53 @@ abstract class AuthProvider {
 
 class GoogleOauth2AuthProvider extends AuthProvider {
   final String _audience;
+  final DatastoreDB _db;
   http.Client _httpClient;
   oauth2_v2.Oauth2Api _oauthApi;
+  bool _secretLoaded = false;
+  String _secret;
 
-  GoogleOauth2AuthProvider(this._audience) {
+  GoogleOauth2AuthProvider(this._audience, this._db) {
     _httpClient = http.Client();
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
+  }
+
+  @override
+  String authorizationUrl(Uri redirectUrl, String state) {
+    return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
+      queryParameters: {
+        'client_id': _audience,
+        'redirect_uri': redirectUrl.toString(),
+        'scope': 'email profile',
+        'response_type': 'code',
+        'access_type': 'online',
+        'state': state,
+      },
+    ).toString();
+  }
+
+  @override
+  Future<String> authCodeToAccessToken(String code, String redirectUrl) async {
+    try {
+      await _loadSecret();
+      final rs = await _httpClient
+          .post('https://www.googleapis.com/oauth2/v4/token', body: {
+        'code': code,
+        'client_id': _audience,
+        'client_secret': _secret,
+        'redirect_uri': redirectUrl,
+        'grant_type': 'authorization_code',
+      });
+      if (rs.statusCode >= 400) {
+        _logger.info('Bad authorization token: $code for $redirectUrl');
+        return null;
+      }
+      final tokenMap = json.decode(rs.body) as Map<String, dynamic>;
+      return tokenMap['access_token'] as String;
+    } catch (e) {
+      _logger.info('Bad authorization token: $code for $redirectUrl', e);
+    }
+    return null;
   }
 
   @override
@@ -325,5 +394,14 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   @override
   Future close() async {
     _httpClient.close();
+  }
+
+  Future _loadSecret() async {
+    if (_secretLoaded) return;
+    final key =
+        _db.emptyKey.append(Secret, id: '${SecretKey.oauthPrefix}$_audience');
+    final secret = (await _db.lookup<Secret>([key])).single;
+    _secret = secret?.value;
+    _secretLoaded = true;
   }
 }

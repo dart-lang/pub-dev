@@ -416,6 +416,9 @@ abstract class SecretKey {
   static const String smtpPassword = 'smtp.password';
   static const String redisConnectionString = 'redis.connectionString';
 
+  /// OAuth audiences have separate secrets for each audience.
+  static const String oauthPrefix = 'oauth.secret-';
+
   /// List of all keys.
   static const values = const [
     smtpUsername,

@@ -135,11 +135,12 @@ class BackendMock implements Backend {
   }
 
   @override
-  Future<PackageInvite> confirmPackageInvite({
+  Future<PackageInvite> getPackageInvite({
     String packageName,
     String type,
     String recipientEmail,
     String urlNonce,
+    bool confirm,
   }) {
     throw new UnimplementedError();
   }
