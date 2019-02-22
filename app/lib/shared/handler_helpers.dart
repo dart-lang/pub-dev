@@ -110,9 +110,12 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
     await registerLoggedInUserIfPossible(request);
     try {
       return await handler(request);
-    } on UnauthorizedAccessException catch (e) {
+    } on UnauthorizedAccessException catch (_) {
       return jsonResponse(
-        {'message': e.toString()},
+        {
+          'message': 'Unauthorized access: try `pub logout` '
+              'to re-initialize your login session.',
+        },
         status: 401,
         pretty: isPrettyJson(request),
       );
