@@ -299,9 +299,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      if (info.userId == null ||
-          info.userId.isEmpty ||
-          info.expiresIn == null ||
+      if (info.expiresIn == null ||
           info.expiresIn <= 0 ||
           // TODO: Enable when pub client is requesting the correct scopes.
           // info.userId == null ||
