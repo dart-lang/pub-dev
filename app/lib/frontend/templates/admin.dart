@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../shared/urls.dart';
+
 import '_cache.dart';
 import 'layout.dart';
 
@@ -16,6 +18,7 @@ String renderAuthorizedPage() {
 String renderUploaderConfirmedPage(String package, String uploaderEmail) {
   final String content = templateCache.renderTemplate('uploader_confirmed', {
     'package': package,
+    'package_url': pkgPageUrl(package),
     'uploader_email': uploaderEmail,
   });
   return renderLayoutPage(PageType.package, content,
