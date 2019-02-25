@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -63,7 +64,8 @@ class AccountBackend {
       .withCodec(utf8);
 
   AccountBackend(this._db)
-      : _defaultAuthProvider = GoogleOauth2AuthProvider(_pubAudience, _db);
+      : _defaultAuthProvider = GoogleOauth2AuthProvider(
+            Platform.environment['PUB_OAUTH_AUDIENCE'] ?? _pubAudience, _db);
 
   Future close() async {
     await _defaultAuthProvider.close();
