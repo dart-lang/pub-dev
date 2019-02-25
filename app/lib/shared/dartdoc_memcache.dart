@@ -67,7 +67,7 @@ class DartdocMemcache {
   }
 
   Future<Map<String, dynamic>> getApiSummary(String package) async {
-    final text = await _apiSummary.getText(_apiSummaryKey(package));
+    final text = await _apiSummary.getText(package);
     if (text == null) return null;
     return json.decode(text) as Map<String, dynamic>;
   }
@@ -75,20 +75,18 @@ class DartdocMemcache {
   Future setApiSummary(String package, Map<String, dynamic> data) async {
     if (data == null || data.isEmpty) return;
     final text = json.encode(data);
-    await _apiSummary.setText(_apiSummaryKey(package), text);
+    await _apiSummary.setText(package, text);
   }
 
   Future invalidate(String package, String version) {
     return Future.wait([
       _entry.invalidate(_entryKey(package, version)),
       _entry.invalidate(_entryKey(package, 'latest')),
-      _apiSummary.invalidate(_apiSummaryKey(package)),
+      _apiSummary.invalidate(package),
     ]);
   }
 
   String _entryKey(String package, String version) => '/$package/$version';
 
   String _fileInfoKey(String objectName) => objectName;
-
-  String _apiSummaryKey(String package) => package;
 }
