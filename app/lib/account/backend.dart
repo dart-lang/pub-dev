@@ -140,8 +140,8 @@ class AccountBackend {
   }
 
   /// Returns the URL of the authorization endpoint.
-  String authorizationUrl(Uri redirectUrl, String state) {
-    return _defaultAuthProvider.authorizationUrl(redirectUrl, state);
+  String authorizationUrl(Uri sourceUrl) {
+    return _defaultAuthProvider.authorizationUrl(sourceUrl);
   }
 
   /// Validates the authorization [code] (specifying the same [redirectUrl]
@@ -282,7 +282,7 @@ class AuthResult {
 /// Authenticates access tokens.
 abstract class AuthProvider {
   /// Returns the URL of the authorization endpoint.
-  String authorizationUrl(Uri redirectUrl, String state);
+  String authorizationUrl(Uri sourceUrl);
 
   /// Validates the authorization [code] (specifying the same [redirectUrl]
   /// that was used to access the code in the first place), and returns the
@@ -316,15 +316,15 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   @override
-  String authorizationUrl(Uri redirectUrl, String state) {
+  String authorizationUrl(Uri sourceUrl) {
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
       queryParameters: {
         'client_id': _audience,
-        'redirect_uri': redirectUrl.toString(),
+        'redirect_uri': getRedirectUrl(sourceUrl),
         'scope': 'email profile',
         'response_type': 'code',
         'access_type': 'online',
-        'state': state,
+        'state': sourceUrl.path,
       },
     ).toString();
   }
@@ -406,4 +406,13 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     _secret = secret?.value;
     _secretLoaded = true;
   }
+}
+
+String getRedirectUrl(Uri requestUrl) {
+  String redirectUrl = requestUrl
+      .replace(path: '/oauth/callback', queryParameters: {}).toString();
+  if (redirectUrl.endsWith('?')) {
+    redirectUrl = redirectUrl.substring(0, redirectUrl.length - 1);
+  }
+  return redirectUrl;
 }

@@ -492,7 +492,7 @@ class AccountBackendMock implements AccountBackend {
   }
 
   @override
-  String authorizationUrl(Uri redirectUrl, String state) {
+  String authorizationUrl(Uri sourceUrl) {
     return null;
   }
 

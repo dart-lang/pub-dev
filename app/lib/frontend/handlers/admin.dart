@@ -16,6 +16,21 @@ import '../models.dart';
 import '../templates/admin.dart';
 import '../templates/misc.dart';
 
+/// Handles requests for /oauth/callback
+shelf.Response oauthCallbackHandler(shelf.Request request) {
+  final code = request.requestedUri.queryParameters['code'];
+  final state = request.requestedUri.queryParameters['state'];
+  if (code == null || state == null) {
+    return notFoundHandler(request);
+  }
+  return redirectResponse(request.requestedUri
+      .replace(
+        path: state,
+        queryParameters: request.requestedUri.queryParameters,
+      )
+      .toString());
+}
+
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
@@ -39,11 +54,10 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
 
     bool authorized = false;
     final code = request.requestedUri.queryParameters['code'];
-    final state = request.requestedUri.queryParameters['state'];
-    if (code != null && state == urlNonce) {
-      final callbackUrl = request.requestedUri.toString().split('?').first;
+    if (code != null) {
+      final redirectUrl = getRedirectUrl(request.requestedUri);
       final accessToken =
-          await accountBackend.authCodeToAccessToken(code, callbackUrl);
+          await accountBackend.authCodeToAccessToken(code, redirectUrl);
       final user =
           await accountBackend.authenticateWithAccessToken(accessToken);
       authorized = user?.email == recipientEmail;
@@ -65,8 +79,7 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
 
     if (!authorized) {
       // Display only the page that will have a link to authenticate the user.
-      final redirectUrl =
-          accountBackend.authorizationUrl(request.requestedUri, urlNonce);
+      final redirectUrl = accountBackend.authorizationUrl(request.requestedUri);
       return htmlResponse(renderUploaderApprovalPage(
           invite.packageName, inviteEmail, invite.recipientEmail, redirectUrl));
     } else {
