@@ -224,43 +224,32 @@ class ScoreCardBackend {
     final deletes = <db.Key>[];
     final now = new DateTime.now();
 
-    // deleting reports
-    final reportQuery = _db.query<ScoreCardReport>()
-      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
-    await for (ScoreCardReport report in reportQuery.run()) {
-      final age = now.difference(report.updated);
-      if (age <= _deleteThreshold) {
-        continue;
+    // Deletes the entries that are returned from the [query].
+    Future deleteQuery<T extends db.Model>(db.Query<T> query) async {
+      await for (T model in query.run()) {
+        deletes.add(model.key);
+        if (deletes.length == 20) {
+          await _db.commit(deletes: deletes);
+          deletes.clear();
+        }
       }
-      deletes.add(report.key);
-      if (deletes.length == 20) {
+      if (deletes.isNotEmpty) {
         await _db.commit(deletes: deletes);
         deletes.clear();
       }
-    }
-    if (deletes.isNotEmpty) {
-      await _db.commit(deletes: deletes);
-      deletes.clear();
     }
 
+    // deleting reports
+    await deleteQuery(_db.query<ScoreCardReport>()
+      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
+    await deleteQuery(_db.query<ScoreCardReport>()
+      ..filter('updated <', now.subtract(_deleteThreshold)));
+
     // deleting scorecards
-    final cardQuery = _db.query<ScoreCard>()
-      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
-    await for (ScoreCard report in cardQuery.run()) {
-      final age = now.difference(report.updated);
-      if (age <= _deleteThreshold) {
-        continue;
-      }
-      deletes.add(report.key);
-      if (deletes.length == 20) {
-        await _db.commit(deletes: deletes);
-        deletes.clear();
-      }
-    }
-    if (deletes.isNotEmpty) {
-      await _db.commit(deletes: deletes);
-      deletes.clear();
-    }
+    await deleteQuery(_db.query<ScoreCard>()
+      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion));
+    await deleteQuery(_db.query<ScoreCard>()
+      ..filter('updated <', now.subtract(_deleteThreshold)));
   }
 
   /// Returns the status of a package and version.
