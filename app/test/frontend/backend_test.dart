@@ -300,11 +300,8 @@ void main() {
       });
 
       Future testAlreadyExists(AuthenticatedUser user,
-          List<String> uploaderEmails, String newUploader) async {
-        final testPackage = createTestPackage(
-            uploaders: uploaderEmails
-                .map((s) => AuthenticatedUser(s.hashCode.toString(), s))
-                .toList());
+          List<AuthenticatedUser> uploaders, String newUploader) async {
+        final testPackage = createTestPackage(uploaders: uploaders);
         final db = new DatastoreDBMock(
           lookupFun: expectAsync1((keys) async {
             expect(keys, hasLength(1));
@@ -317,37 +314,23 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(user);
-        registerAccountBackend(AccountBackendMock());
+        registerAccountBackend(
+            AccountBackendMock(authenticatedUsers: uploaders));
         await repo.addUploader(pkg, newUploader);
       }
 
       test('already exists', () async {
-        final fooLowerB = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
-        final fooUpperB = AuthenticatedUser('uuid-foo-at-B-com', 'foo@B.com');
-        await scoped(
-            () => testAlreadyExists(fooLowerB, ['foo@b.com'], 'foo@b.com'));
-        await scoped(
-            () => testAlreadyExists(fooUpperB, ['foo@b.com'], 'foo@b.com'));
-        await scoped(
-            () => testAlreadyExists(fooUpperB, ['foo@B.com'], 'foo@b.com'));
-        await scoped(
-            () => testAlreadyExists(fooLowerB, ['foo@B.com'], 'foo@B.com'));
-        await scoped(
-            () => testAlreadyExists(fooLowerB, ['foo@b.com'], 'foo@B.com'));
-        await scoped(
-            () => testAlreadyExists(fooUpperB, ['foo@b.com'], 'foo@B.com'));
-        await scoped(() => testAlreadyExists(
-            fooLowerB, ['foo@b.com', 'bar@b.com'], 'foo@B.com'));
-        await scoped(() => testAlreadyExists(
-            fooLowerB, ['bar@b.com', 'foo@b.com'], 'foo@B.com'));
+        final foo = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
+        final bar = AuthenticatedUser('uuid-bar-at-b-com', 'bar@b.com');
+        await scoped(() => testAlreadyExists(foo, [foo], 'foo@b.com'));
+        await scoped(() => testAlreadyExists(foo, [foo], 'foo@B.com'));
+        await scoped(() => testAlreadyExists(foo, [foo, bar], 'foo@B.com'));
+        await scoped(() => testAlreadyExists(foo, [bar, foo], 'foo@B.com'));
       });
 
-      Future testSuccessful(AuthenticatedUser user, List<String> uploaderEmails,
-          String newUploader) async {
-        final testPackage = createTestPackage(
-            uploaders: uploaderEmails
-                .map((s) => AuthenticatedUser(s.hashCode.toString(), s))
-                .toList());
+      Future testSuccessful(AuthenticatedUser user,
+          List<AuthenticatedUser> uploaders, String newUploader) async {
+        final testPackage = createTestPackage(uploaders: uploaders);
         registerHistoryBackend(new HistoryBackendMock());
         final db = new DatastoreDBMock(
           lookupFun: expectAsync1((keys) {
@@ -358,7 +341,8 @@ void main() {
         );
         final tarballStorage = new TarballStorageMock();
         final repo = new GCloudPackageRepository(db, tarballStorage);
-        registerAccountBackend(AccountBackendMock());
+        registerAccountBackend(
+            AccountBackendMock(authenticatedUsers: uploaders));
 
         registerBackend(BackendMock(updatePackageInviteFn: (
             {packageName, type, recipientEmail, fromUserId, fromEmail}) async {
@@ -379,9 +363,9 @@ void main() {
 
       test('successful', () async {
         final foo = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
-        await scoped(() => testSuccessful(foo, ['foo@b.com'], 'bar@b.com'));
-        await scoped(
-            () => testSuccessful(foo, ['foo@b.com', 'bar@b.com'], 'baz@b.com'));
+        final bar = AuthenticatedUser('uuid-bar-at-b-com', 'bar@b.com');
+        await scoped(() => testSuccessful(foo, [foo], 'bar@b.com'));
+        await scoped(() => testSuccessful(foo, [foo, bar], 'baz@b.com'));
       });
     });
 
@@ -454,7 +438,8 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
-        registerAccountBackend(AccountBackendMock());
+        registerAccountBackend(
+            AccountBackendMock(authenticatedUsers: [testUploaderUser]));
         await repo
             .removeUploader(pkg, testUploaderUser.email)
             .catchError(expectAsync2((e, _) {
@@ -501,7 +486,7 @@ void main() {
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(foo1);
-        registerAccountBackend(AccountBackendMock());
+        registerAccountBackend(AccountBackendMock(authenticatedUsers: [foo1]));
         await repo
             .removeUploader(pkg, 'foo1@bar.com')
             .catchError(expectAsync2((e, _) {
@@ -663,7 +648,6 @@ void main() {
         expect(package.name, testPackage.name);
         expect(package.latestVersionKey, testPackageVersion.key);
         expect(package.uploaders, ['uuid-hans-at-juergen-dot-com']);
-        expect(package.uploaderEmails, ['hans@juergen.com']);
         expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
         expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
 
@@ -676,6 +660,7 @@ void main() {
         expect(version.changelogContent, testPackageChangelog);
         expect(version.pubspec.asJson, loadYaml(testPackagePubspec));
         expect(version.libraries, ['test_library.dart']);
+        expect(version.uploader, 'uuid-hans-at-juergen-dot-com');
         expect(version.downloads, 0);
         expect(version.sortOrder, 1);
 
