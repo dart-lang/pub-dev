@@ -39,7 +39,10 @@ class ScoreCardBackend {
 
   /// Returns the [ScoreCardData] for the given package and version.
   Future<ScoreCardData> getScoreCardData(
-      String packageName, String packageVersion) async {
+    String packageName,
+    String packageVersion, {
+    bool onlyCurrent = false,
+  }) async {
     final requiredReportTypes = ReportType.values;
     if (packageVersion == null || packageVersion == 'latest') {
       final key = _db.emptyKey.append(Package, id: packageName);
@@ -50,19 +53,20 @@ class ScoreCardBackend {
       }
       packageVersion = p.latestVersion;
     }
-    final cached =
-        await scoreCardMemcache.getScoreCardData(packageName, packageVersion);
+    final cached = onlyCurrent
+        ? null
+        : await scoreCardMemcache.getScoreCardData(packageName, packageVersion);
     if (cached != null && cached.hasReports(requiredReportTypes)) {
       return cached;
     }
 
     final key = scoreCardKey(packageName, packageVersion);
-    final currentList = await _db.lookup([key]);
-    if (currentList.first != null) {
-      final data = (currentList.first as ScoreCard).toData();
-      if (data.hasReports(requiredReportTypes)) {
-        await scoreCardMemcache.setScoreCardData(data);
-        return data;
+    final current = (await _db.lookup<ScoreCard>([key])).single?.toData();
+    if (current != null) {
+      // only full cards will be stored in cache
+      await scoreCardMemcache.setScoreCardData(current);
+      if (onlyCurrent || current.hasReports(requiredReportTypes)) {
+        return current;
       }
     }
 
