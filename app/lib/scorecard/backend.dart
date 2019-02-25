@@ -220,6 +220,7 @@ class ScoreCardBackend {
     final deletes = <db.Key>[];
     final now = new DateTime.now();
 
+    // Deletes the entries that are returned from the [query].
     Future deleteQuery<T extends db.Model>(db.Query<T> query) async {
       await for (T model in query.run()) {
         deletes.add(model.key);
