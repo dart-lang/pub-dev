@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -25,7 +26,7 @@ Future<void> runHandler(
   bool sanitize = false,
 }) async {
   handler = _uriValidationRequestWrapper(handler);
-  handler = _userAuthParsingWrapper(handler);
+  handler = _userAuthWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
   }
@@ -105,10 +106,21 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
   };
 }
 
-shelf.Handler _userAuthParsingWrapper(shelf.Handler handler) {
+shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     await registerLoggedInUserIfPossible(request);
-    return await handler(request);
+    try {
+      return await handler(request);
+    } on UnauthorizedAccessException catch (_) {
+      return jsonResponse(
+        {
+          'message': 'Unauthorized access: try `pub logout` '
+              'to re-initialize your login session.',
+        },
+        status: 401,
+        pretty: false,
+      );
+    }
   };
 }
 
