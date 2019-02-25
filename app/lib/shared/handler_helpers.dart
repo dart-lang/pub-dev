@@ -117,7 +117,7 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
               'to re-initialize your login session.',
         },
         status: 401,
-        pretty: isPrettyJson(request),
+        pretty: false,
       );
     }
   };
