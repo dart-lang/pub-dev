@@ -21,7 +21,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.35.1"
+    version: "0.35.2"
   appengine:
     dependency: "direct main"
     description:
@@ -196,7 +196,7 @@ packages:
       name: front_end
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.11"
+    version: "0.1.12"
   gcloud:
     dependency: "direct main"
     description:
@@ -224,7 +224,7 @@ packages:
       name: googleapis_auth
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.6"
+    version: "0.2.7"
   graphs:
     dependency: transitive
     description:
@@ -322,7 +322,7 @@ packages:
       name: kernel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.11"
+    version: "0.3.12"
   logging:
     dependency: "direct main"
     description:
@@ -399,7 +399,7 @@ packages:
       name: package_resolver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.6"
+    version: "1.0.10"
   pana:
     dependency: "direct main"
     description:
@@ -420,7 +420,7 @@ packages:
       name: pedantic
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.0"
   petitparser:
     dependency: transitive
     description:
@@ -688,4 +688,4 @@ packages:
     source: hosted
     version: "2.1.15"
 sdks:
-  dart: ">=2.1.1-dev.1.0 <3.0.0"
+  dart: ">=2.2.0 <3.0.0"
