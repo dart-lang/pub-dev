@@ -1,0 +1,12 @@
+name: fake_gcloud
+publish_to: none  # don't publish yet
+description: Fake, in-memory implementation of `package:gcloud` interfaces.
+
+environment:
+  sdk: '>=2.1.0 <3.0.0'
+
+dependencies:
+  gcloud: '^0.6.0'
+
+dev_dependencies:
+  test: ^1.5.1

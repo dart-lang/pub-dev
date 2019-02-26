@@ -28,6 +28,16 @@ jobs:
       env: PKG="pkg/_popularity"
       dart: "2.2.0"
     - stage: smoke_test
+      name: "SDK: 2.2.0 - DIR: pkg/fake_gcloud - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
+      script: ./tool/travis.sh dartfmt dartanalyzer
+      env: PKG="pkg/fake_gcloud"
+      dart: "2.2.0"
+    - stage: unit_test
+      name: "SDK: 2.2.0 - DIR: pkg/fake_gcloud - TASKS: pub run test --run-skipped"
+      script: ./tool/travis.sh test
+      env: PKG="pkg/fake_gcloud"
+      dart: "2.2.0"
+    - stage: smoke_test
       name: "SDK: 2.2.0 - DIR: pkg/pub_dartdoc - TASKS: [dartfmt -n --set-exit-if-changed ., dartanalyzer --fatal-infos --fatal-warnings .]"
       script: ./tool/travis.sh dartfmt dartanalyzer
       env: PKG="pkg/pub_dartdoc"
