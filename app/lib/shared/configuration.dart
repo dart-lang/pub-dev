@@ -42,6 +42,14 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for datastore backup snapshots.
   final String backupSnapshotBucketName;
 
+  /// The OAuth audience (`client_id`) that the `pub` client uses.
+  final String pubClientAudience =
+      '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
+      'googleusercontent.com';
+
+  /// The OAuth audience (`client_id`) that the pub site uses.
+  final String pubSiteAudience;
+
   auth.ServiceAccountCredentials _credentials;
 
   /// Credentials to use for API calls if not reading the credentials from
@@ -78,7 +86,10 @@ class Configuration {
         dartdocStorageBucketName = '$projectId--dartdoc-storage',
         popularityDumpBucketName = '$projectId--popularity',
         searchSnapshotBucketName = '$projectId--search-snapshot',
-        backupSnapshotBucketName = '$projectId--backup-snapshots';
+        backupSnapshotBucketName = '$projectId--backup-snapshots',
+        pubSiteAudience = projectId == 'dartlang-pub'
+            ? null // TODO: fill with prod value
+            : '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com';
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {

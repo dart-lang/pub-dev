@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -17,16 +16,13 @@ import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
 import '../frontend/models.dart' show Secret, SecretKey;
+import '../shared/configuration.dart';
 import '../shared/email.dart' show isValidEmail;
 
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
 final _uuid = Uuid();
-
-/// The pub client's OAuth2 identifier.
-final _pubAudience = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
-    'googleusercontent.com';
 
 /// Sets the account backend service.
 void registerAccountBackend(AccountBackend backend) =>
@@ -65,7 +61,7 @@ class AccountBackend {
 
   AccountBackend(this._db)
       : _defaultAuthProvider = GoogleOauth2AuthProvider(
-            Platform.environment['PUB_OAUTH_AUDIENCE'] ?? _pubAudience, _db);
+            activeConfiguration.pubClientAudience, _db);
 
   Future close() async {
     await _defaultAuthProvider.close();
