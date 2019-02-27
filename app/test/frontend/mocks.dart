@@ -174,7 +174,7 @@ class ScoreCardBackendMock implements ScoreCardBackend {
   @override
   Future<ScoreCardData> getScoreCardData(
       String packageName, String packageVersion,
-      {bool onlyCurrent}) {
+      {bool onlyCurrent = false}) {
     return null;
   }
 
