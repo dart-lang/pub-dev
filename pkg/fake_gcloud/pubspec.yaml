@@ -7,6 +7,7 @@ environment:
 
 dependencies:
   gcloud: '^0.6.0'
+  meta: '^1.0.0'
 
 dev_dependencies:
   test: ^1.5.1
