@@ -322,7 +322,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       queryParameters: {
         'client_id': _audience,
         'redirect_uri': getRedirectUrl(sourceUrl),
-        'scope': 'email profile',
+        'scope': 'openid profile email',
         'response_type': 'code',
         'access_type': 'online',
         'state': sourceUrl.path,
