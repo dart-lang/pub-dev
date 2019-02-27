@@ -54,17 +54,21 @@ Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
-  final AuthProvider _defaultAuthProvider;
+  final AuthProvider _clientAuthProvider;
+  final AuthProvider _siteAuthProvider;
   final _emailCache = Cache(Cache.inMemoryCacheProvider(1000))
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8);
 
   AccountBackend(this._db)
-      : _defaultAuthProvider = GoogleOauth2AuthProvider(
-            activeConfiguration.pubClientAudience, _db);
+      : _clientAuthProvider = GoogleOauth2AuthProvider(
+            activeConfiguration.pubClientAudience, _db),
+        _siteAuthProvider =
+            GoogleOauth2AuthProvider(activeConfiguration.pubSiteAudience, _db);
 
   Future close() async {
-    await _defaultAuthProvider.close();
+    await _clientAuthProvider.close();
+    await _siteAuthProvider.close();
   }
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
@@ -135,9 +139,9 @@ class AccountBackend {
     return user;
   }
 
-  /// Returns the URL of the authorization endpoint.
-  String authorizationUrl(Uri sourceUrl) {
-    return _defaultAuthProvider.authorizationUrl(sourceUrl);
+  /// Returns the URL of the authorization endpoint used by pub site.
+  String siteAuthorizationUrl(Uri sourceUrl) {
+    return _siteAuthProvider.authorizationUrl(sourceUrl);
   }
 
   /// Validates the authorization [code] (specifying the same [redirectUrl]
@@ -146,8 +150,8 @@ class AccountBackend {
   ///
   /// Returns null on any error, or if the token is expired, or the code is not
   /// verified.
-  Future<String> authCodeToAccessToken(String code, String redirectUrl) =>
-      _defaultAuthProvider.authCodeToAccessToken(code, redirectUrl);
+  Future<String> siteAuthCodeToAccessToken(String code, String redirectUrl) =>
+      _siteAuthProvider.authCodeToAccessToken(code, redirectUrl);
 
   /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
   ///
@@ -156,9 +160,10 @@ class AccountBackend {
   /// When no associated User entry exists in Datastore, this method will create
   /// a new one. When the authenticated e-mail of the user changes, the email
   /// field will be updated to the latest one.
-  Future<AuthenticatedUser> authenticateWithAccessToken(
-      String accessToken) async {
-    final auth = await _defaultAuthProvider.tryAuthenticate(accessToken);
+  Future<AuthenticatedUser> authenticateWithAccessToken(String accessToken,
+      {bool useSiteProvider = false}) async {
+    final provider = useSiteProvider ? _siteAuthProvider : _clientAuthProvider;
+    final auth = await provider.tryAuthenticate(accessToken);
     if (auth == null) {
       return null;
     }

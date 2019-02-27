@@ -57,9 +57,11 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
     if (code != null) {
       final redirectUrl = getRedirectUrl(request.requestedUri);
       final accessToken =
-          await accountBackend.authCodeToAccessToken(code, redirectUrl);
-      final user =
-          await accountBackend.authenticateWithAccessToken(accessToken);
+          await accountBackend.siteAuthCodeToAccessToken(code, redirectUrl);
+      final user = await accountBackend.authenticateWithAccessToken(
+        accessToken,
+        useSiteProvider: true,
+      );
       authorized = user?.email == recipientEmail;
     }
 
@@ -79,7 +81,8 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
 
     if (!authorized) {
       // Display only the page that will have a link to authenticate the user.
-      final redirectUrl = accountBackend.authorizationUrl(request.requestedUri);
+      final redirectUrl =
+          accountBackend.siteAuthorizationUrl(request.requestedUri);
       return htmlResponse(renderUploaderApprovalPage(
           invite.packageName, inviteEmail, invite.recipientEmail, redirectUrl));
     } else {
