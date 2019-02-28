@@ -23,12 +23,17 @@ shelf.Response oauthCallbackHandler(shelf.Request request) {
   if (code == null || state == null) {
     return notFoundHandler(request);
   }
-  return redirectResponse(request.requestedUri
-      .replace(
-        path: state,
-        queryParameters: request.requestedUri.queryParameters,
-      )
-      .toString());
+  final isWhitelisted = state.startsWith('/admin/confirm/');
+  if (isWhitelisted) {
+    return redirectResponse(request.requestedUri
+        .replace(
+          path: state,
+          queryParameters: request.requestedUri.queryParameters,
+        )
+        .toString());
+  } else {
+    return notFoundHandler(request);
+  }
 }
 
 /// Handles requests for /authorized
