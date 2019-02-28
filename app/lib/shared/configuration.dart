@@ -42,6 +42,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for datastore backup snapshots.
   final String backupSnapshotBucketName;
 
+  /// The OAuth redirect endpoint to use.
+  final String oauthRedirectUrl;
+
   /// The OAuth audience (`client_id`) that the `pub` client uses.
   final String pubClientAudience =
       '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
@@ -87,6 +90,9 @@ class Configuration {
         popularityDumpBucketName = '$projectId--popularity',
         searchSnapshotBucketName = '$projectId--search-snapshot',
         backupSnapshotBucketName = '$projectId--backup-snapshots',
+        oauthRedirectUrl = projectId == 'dartlang-pub'
+            ? 'https://pub.dartlang.org/oauth/callback'
+            : 'https://dartlang-pub-dev.appspot.com/oauth/callback',
         pubSiteAudience = projectId == 'dartlang-pub'
             ? null // TODO: fill with prod value
             : '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com';

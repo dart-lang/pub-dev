@@ -492,12 +492,12 @@ class AccountBackendMock implements AccountBackend {
   }
 
   @override
-  String siteAuthorizationUrl(Uri sourceUrl) {
+  String siteAuthorizationUrl(String state) {
     return null;
   }
 
   @override
-  Future<String> siteAuthCodeToAccessToken(String code, String redirectUrl) {
+  Future<String> siteAuthCodeToAccessToken(String code) {
     return null;
   }
 
