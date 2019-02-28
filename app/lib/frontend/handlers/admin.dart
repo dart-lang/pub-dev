@@ -61,10 +61,8 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
     final code = request.requestedUri.queryParameters['code'];
     if (code != null) {
       final accessToken = await accountBackend.siteAuthCodeToAccessToken(code);
-      final user = await accountBackend.authenticateWithAccessToken(
-        accessToken,
-        useSiteProvider: true,
-      );
+      final user =
+          await accountBackend.authenticateWithAccessToken(accessToken);
       authorized = user?.email == recipientEmail;
     }
 

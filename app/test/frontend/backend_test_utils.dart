@@ -502,8 +502,7 @@ class AccountBackendMock implements AccountBackend {
   }
 
   @override
-  Future<AuthenticatedUser> authenticateWithAccessToken(String accessToken,
-      {bool useSiteProvider = false}) {
+  Future<AuthenticatedUser> authenticateWithAccessToken(String accessToken) {
     return null;
   }
 
