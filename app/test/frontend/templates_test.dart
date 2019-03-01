@@ -548,12 +548,6 @@ void main() {
       expectGoldenFile(html, 'uploader_approval_page.html');
     });
 
-    test('uploader confirmed page', () {
-      final String html =
-          renderUploaderConfirmedPage('pkg_foo', 'uploader@example.com');
-      expectGoldenFile(html, 'uploader_confirmed_page.html');
-    });
-
     test('error page', () {
       final String html = renderErrorPage('error_title', 'error_message', [
         new PackageView(

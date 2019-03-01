@@ -26,14 +26,3 @@ String renderUploaderApprovalPage(
   return renderLayoutPage(PageType.package, content,
       title: 'Uploader invitation', includeSurvey: false);
 }
-
-/// Renders the `views/uploader_confirmed.mustache` template.
-String renderUploaderConfirmedPage(String package, String uploaderEmail) {
-  final String content = templateCache.renderTemplate('uploader_confirmed', {
-    'package': package,
-    'package_url': pkgPageUrl(package),
-    'uploader_email': uploaderEmail,
-  });
-  return renderLayoutPage(PageType.package, content,
-      title: 'Uploader confirmed', includeSurvey: false);
-}
