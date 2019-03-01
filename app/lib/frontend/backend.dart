@@ -262,6 +262,7 @@ class Backend {
         await tx.rollback();
       }
     });
+    await uiPackageCache.invalidateUIPackagePage(invite.packageName);
   }
 
   /// Removes obsolete (== expired more than a day ago) invites from Datastore.
