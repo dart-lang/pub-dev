@@ -228,67 +228,40 @@ class Backend {
     }) as InviteStatus;
   }
 
-  /// Get the invite, validate and return the Datastore entry object if valid.
-  ///
-  /// When [confirm] is set, it will update the confirmed timestamp of the
-  /// invite.
+  /// Get the invite or return null if it does not exist or is not valid anymore.
   Future<models.PackageInvite> getPackageInvite({
     @required String packageName,
     @required String type,
     @required String recipientEmail,
     @required String urlNonce,
-    @required bool confirm,
   }) async {
     final inviteId = models.PackageInvite.createId(type, recipientEmail);
     final pkgKey = db.emptyKey.append(models.Package, id: packageName);
     final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
-    return await db.withTransaction((tx) async {
-      final list = await tx.lookup<models.PackageInvite>([inviteKey]);
-      final invite = list.single;
+    final invite = (await db.lookup<models.PackageInvite>([inviteKey])).single;
 
-      // Invite entry does not exists.
-      if (invite == null) {
-        await tx.rollback();
-        return null;
-      }
+    if (invite == null) {
+      return null;
+    }
 
-      // Consistency check
-      if (invite.recipientEmail != recipientEmail) {
-        await tx.rollback();
-        return null;
-      }
-
-      // Invite entry has expired.
-      if (invite.isExpired()) {
-        tx.queueMutations(deletes: [inviteKey]);
-        await tx.commit();
-        return null;
-      }
-
-      // urlNonce check: whether the invite has been updated.
-      if (invite.urlNonce != urlNonce) {
-        await tx.rollback();
-        return null;
-      }
-
-      // Invite already confirmed.
-      if (invite.confirmed != null) {
-        await tx.rollback();
-        return invite;
-      }
-
-      // Do not confirm the invite yet.
-      if (!confirm) {
-        await tx.rollback();
-        return invite;
-      }
-
-      // Confirming invite.
-      invite.confirmed = new DateTime.now().toUtc();
-      tx.queueMutations(inserts: [invite]);
-      await tx.commit();
+    if (invite.isValid(recipientEmail: recipientEmail, urlNonce: urlNonce)) {
       return invite;
-    }) as models.PackageInvite;
+    }
+    return null;
+  }
+
+  /// Updates the confirmed timestamp in the [invite].
+  Future confirmPackageInvite(models.PackageInvite invite) async {
+    await db.withTransaction((tx) async {
+      final pi = (await tx.lookup<models.PackageInvite>([invite.key])).single;
+      if (pi != null && pi.confirmed == null) {
+        pi.confirmed = DateTime.now().toUtc();
+        tx.queueMutations(inserts: [pi]);
+        await tx.commit();
+      } else {
+        await tx.rollback();
+      }
+    });
   }
 
   /// Removes obsolete (== expired more than a day ago) invites from Datastore.
