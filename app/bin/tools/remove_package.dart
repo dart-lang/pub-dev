@@ -120,23 +120,30 @@ Future removePackage(String packageName) async {
     await T.commit();
   });
 
+  print('Removing package from dartdoc backend ...');
   await dartdocBackend.removeAll(packageName);
 
+  print('Removing package from PackageVersionPubspec ...');
   await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
     ..filter('qualifiedPackage =', packageName));
 
+  print('Removing package from PackageVersionInfo ...');
   await _deleteWithQuery(dbService.query<PackageVersionInfo>()
     ..filter('qualifiedPackage =', packageName));
 
+  print('Removing package from Jobs ...');
   await _deleteWithQuery(
       dbService.query<Job>()..filter('packageName =', packageName));
 
+  print('Removing package from History ...');
   await _deleteWithQuery(
       dbService.query<History>()..filter('packageName =', packageName));
 
+  print('Removing package from ScoreCardReport ...');
   await _deleteWithQuery(
       dbService.query<ScoreCardReport>()..filter('packageName =', packageName));
 
+  print('Removing package from ScoreCard ...');
   await _deleteWithQuery(
       dbService.query<ScoreCard>()..filter('packageName =', packageName));
 
