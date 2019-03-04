@@ -475,7 +475,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
-      if (!package.hasUploader(user.userId, user.email)) {
+      if (!package.hasUploader(user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
@@ -619,7 +619,7 @@ class GCloudPackageRepository extends PackageRepository {
       // TODO: do not create a new User for unverified uploader email
       final uploader =
           await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-      if (package.hasUploader(uploader.userId, uploaderEmail)) {
+      if (package.hasUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
       }
@@ -674,7 +674,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       final uploader =
           await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-      if (package.hasUploader(uploader.userId, uploader.email)) {
+      if (package.hasUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         await tx.rollback();
         return;
@@ -711,7 +711,7 @@ class GCloudPackageRepository extends PackageRepository {
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
-    if (!package.hasUploader(userId, userEmail)) {
+    if (!package.hasUploader(userId)) {
       throw new UnauthorizedAccessException(
           'Calling user does not have permission to change uploaders.');
     }
@@ -733,7 +733,7 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.hasUploader(user.userId, user.email)) {
+        if (!package.hasUploader(user.userId)) {
           await T.rollback();
           throw new UnauthorizedAccessException(
               'Calling user does not have permission to change uploaders.');
@@ -742,7 +742,7 @@ class GCloudPackageRepository extends PackageRepository {
         final uploader =
             await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
         // Fail if the uploader we want to remove does not exist.
-        if (!package.hasUploader(uploader.userId, uploaderEmail)) {
+        if (!package.hasUploader(uploader.userId)) {
           await T.rollback();
           throw new GenericProcessingException(
               'The uploader to remove does not exist.');
