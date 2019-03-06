@@ -155,7 +155,7 @@ class DartdocBackendMock implements DartdocBackend {
   }
 
   @override
-  Future removeAll(String package, {String version}) {
+  Future removeAll(String package, {String version, int concurrency}) {
     throw new UnimplementedError();
   }
 
