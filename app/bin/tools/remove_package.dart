@@ -121,7 +121,7 @@ Future removePackage(String packageName) async {
   });
 
   print('Removing package from dartdoc backend ...');
-  await dartdocBackend.removeAll(packageName);
+  await dartdocBackend.removeAll(packageName, concurrency: 32);
 
   print('Removing package from PackageVersionPubspec ...');
   await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
