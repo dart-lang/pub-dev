@@ -51,8 +51,7 @@ Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
 }
 
 Future<List<String>> listTarball(String path) async {
-  // List files up-to 4 directory levels:
-  final args = ['--exclude=*/*/*/*/*', '-tzf', path];
+  final args = ['-tzf', path];
   final result = await Process.run('tar', args);
   if (result.exitCode != 0) {
     _logger.warning('The "tar $args" command failed:\n'
