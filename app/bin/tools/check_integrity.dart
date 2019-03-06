@@ -122,8 +122,10 @@ Future _checkPackage(Package p) async {
       _problems.add('Package(${p.name}) has invalid uploader: User($userId)');
     }
   }
+  final versions = <Key>{};
   await for (PackageVersion pv
       in dbService.query<PackageVersion>(ancestorKey: p.key).run()) {
+    versions.add(pv.key);
     if (pv.uploader == null) {
       _problems
           .add('PackageVersion(${pv.package} ${pv.version}) has no uploader.');
@@ -136,6 +138,15 @@ Future _checkPackage(Package p) async {
       _problems.add(
           'PackageVersion(${pv.package} ${pv.version}) has invalid uploader: User(${pv.uploader})');
     }
+  }
+  if (p.latestVersionKey != null && !versions.contains(p.latestVersionKey)) {
+    _problems.add(
+        'Package(${p.name}) has missing latestVersionKey: ${p.latestVersionKey.id}');
+  }
+  if (p.latestDevVersionKey != null &&
+      !versions.contains(p.latestDevVersionKey)) {
+    _problems.add(
+        'Package(${p.name}) has missing latestDevVersionKey: ${p.latestDevVersionKey.id}');
   }
   _packageChecked++;
   if (_packageChecked % 200 == 0) {
