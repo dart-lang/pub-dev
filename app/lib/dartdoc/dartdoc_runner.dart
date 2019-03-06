@@ -38,6 +38,19 @@ const _pubDataFileName = 'pub-data.json';
 const _sdkTimeout = const Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
+const _excludedLibraries = const <String>[
+  'dart:async',
+  'dart:collection',
+  'dart:convert',
+  'dart:core',
+  'dart:developer',
+  'dart:io',
+  'dart:isolate',
+  'dart:math',
+  'dart:typed_data',
+  'dart:ui',
+];
+
 final _pkgPubDartdocDir =
     Platform.script.resolve('../../pkg/pub_dartdoc').toFilePath();
 
@@ -324,6 +337,8 @@ class DartdocJobProcessor extends JobProcessor {
         '--rel-canonical-prefix',
         canonicalUrl,
         '--link-to-remote',
+        '--exclude',
+        _excludedLibraries.join(','),
       ];
       if (!validateLinks) {
         args.add('--no-validate-links');
