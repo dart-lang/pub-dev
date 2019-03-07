@@ -234,6 +234,14 @@ class PackageVersion extends db.ExpandoModel {
       issueTrackerUrl: pubspec.issueTracker,
     );
   }
+
+  QualifiedVersionKey get qualifiedVersionKey {
+    return QualifiedVersionKey(
+      namespace: '',
+      package: package,
+      version: version,
+    );
+  }
 }
 
 /// An derived entity that holds only the `pubspec.yaml` content of [PackageVersion].
@@ -268,6 +276,14 @@ class PackageVersionPubspec extends db.ExpandoModel {
     package = key.package;
     qualifiedPackage = key.qualifiedPackage;
     version = key.version;
+  }
+
+  QualifiedVersionKey get qualifiedVersionKey {
+    return QualifiedVersionKey(
+      namespace: namespace,
+      package: package,
+      version: version,
+    );
   }
 }
 
@@ -343,6 +359,14 @@ class PackageVersionInfo extends db.ExpandoModel {
     qualifiedPackage = key.qualifiedPackage;
     version = key.version;
   }
+
+  QualifiedVersionKey get qualifiedVersionKey {
+    return QualifiedVersionKey(
+      namespace: namespace,
+      package: package,
+      version: version,
+    );
+  }
 }
 
 /// An identifier to point to a specific [namespace], [package] and [version].
@@ -361,6 +385,21 @@ class QualifiedVersionKey {
       namespace == null || namespace.isEmpty ? package : '$namespace:$package';
 
   String get qualifiedVersion => '$qualifiedPackage-$version';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QualifiedVersionKey &&
+          runtimeType == other.runtimeType &&
+          namespace == other.namespace &&
+          package == other.package &&
+          version == other.version;
+
+  @override
+  int get hashCode => namespace.hashCode ^ package.hashCode ^ version.hashCode;
+
+  @override
+  String toString() => qualifiedVersion;
 }
 
 /// A secret value stored in Datastore, typically an access credential used by

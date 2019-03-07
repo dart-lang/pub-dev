@@ -122,10 +122,12 @@ Future _checkPackage(Package p) async {
       _problems.add('Package(${p.name}) has invalid uploader: User($userId)');
     }
   }
-  final versions = <Key>{};
+  final versionKeys = <Key>{};
+  final qualifiedVersionKeys = <QualifiedVersionKey>{};
   await for (PackageVersion pv
       in dbService.query<PackageVersion>(ancestorKey: p.key).run()) {
-    versions.add(pv.key);
+    versionKeys.add(pv.key);
+    qualifiedVersionKeys.add(pv.qualifiedVersionKey);
     if (pv.uploader == null) {
       _problems
           .add('PackageVersion(${pv.package} ${pv.version}) has no uploader.');
@@ -139,15 +141,48 @@ Future _checkPackage(Package p) async {
           'PackageVersion(${pv.package} ${pv.version}) has invalid uploader: User(${pv.uploader})');
     }
   }
-  if (p.latestVersionKey != null && !versions.contains(p.latestVersionKey)) {
+  if (p.latestVersionKey != null && !versionKeys.contains(p.latestVersionKey)) {
     _problems.add(
         'Package(${p.name}) has missing latestVersionKey: ${p.latestVersionKey.id}');
   }
   if (p.latestDevVersionKey != null &&
-      !versions.contains(p.latestDevVersionKey)) {
+      !versionKeys.contains(p.latestDevVersionKey)) {
     _problems.add(
         'Package(${p.name}) has missing latestDevVersionKey: ${p.latestDevVersionKey.id}');
   }
+
+  final pvpQuery = dbService.query<PackageVersionPubspec>()
+    ..filter('package =', p.name);
+  final pvpKeys = <QualifiedVersionKey>{};
+  await for (PackageVersionPubspec pvp in pvpQuery.run()) {
+    final key = pvp.qualifiedVersionKey;
+    pvpKeys.add(key);
+    if (!qualifiedVersionKeys.contains(key)) {
+      _problems.add('PackageVersionPubspec($key) has no PackageVersion.');
+    }
+  }
+  for (QualifiedVersionKey key in qualifiedVersionKeys) {
+    if (!pvpKeys.contains(key)) {
+      _problems.add('PackageVersion($key) has no PackageVersionPubspec.');
+    }
+  }
+
+  final pviQuery = dbService.query<PackageVersionInfo>()
+    ..filter('package =', p.name);
+  final pviKeys = <QualifiedVersionKey>{};
+  await for (PackageVersionInfo pvi in pviQuery.run()) {
+    final key = pvi.qualifiedVersionKey;
+    pviKeys.add(key);
+    if (!qualifiedVersionKeys.contains(key)) {
+      _problems.add('PackageVersionInfo($key) has no PackageVersion.');
+    }
+  }
+  for (QualifiedVersionKey key in qualifiedVersionKeys) {
+    if (!pviKeys.contains(key)) {
+      _problems.add('PackageVersion($key) has no PackageVersionInfo.');
+    }
+  }
+
   _packageChecked++;
   if (_packageChecked % 200 == 0) {
     print('  .. $_packageChecked done (${p.name})');
