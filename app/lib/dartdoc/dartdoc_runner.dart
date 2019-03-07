@@ -326,6 +326,17 @@ class DartdocJobProcessor extends JobProcessor {
     final canonicalUrl = pkgDocUrl(job.packageName,
         version: canonicalVersion, includeHost: true, omitTrailingSlash: true);
 
+    // dartdoc_options.yaml allows to change how doc content is generated.
+    // To provide uniform experience across the pub site, and to reduce the
+    // potential attack surface (HTML-, and code-injections, code executions),
+    // we do not support the use of the options.
+    //
+    // https://github.com/dart-lang/dartdoc#dartdoc_optionsyaml
+    final optionsFile = File(p.join(pkgPath, 'dartdoc_options.yaml'));
+    if (await optionsFile.exists()) {
+      await optionsFile.delete();
+    }
+
     Future<DartdocResult> runDartdoc(bool validateLinks) async {
       final args = [
         '--input',
