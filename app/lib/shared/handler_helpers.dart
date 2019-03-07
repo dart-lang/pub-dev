@@ -33,12 +33,6 @@ Future<void> runHandler(
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   await runAppEngine((HttpRequest request) {
-    if (request.headers['x-appengine-cron'] != null &&
-        request.headers['x-appengine-cron'].contains('true') &&
-        request.connectionInfo.remoteAddress != InternetAddress('10.0.0.1')) {
-      throw Exception('Expected cron from 10.0.0.1 instead it came '
-          'from ${request.connectionInfo.remoteAddress}');
-    }
     shelf_io.handleRequest(request, handler);
   }, shared: true);
 }
