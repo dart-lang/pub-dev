@@ -15,6 +15,7 @@ import 'package:simple_cache/simple_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
+import '../shared/email.dart' show isValidEmail;
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
@@ -306,7 +307,8 @@ class GoogleOauth2AuthProvider extends AuthProvider {
           // info.userId.isEmpty ||
           info.verifiedEmail != true ||
           info.email == null ||
-          info.email.isEmpty) {
+          info.email.isEmpty ||
+          !isValidEmail(info.email)) {
         _logger.warning('OAuth2 token info invalid: ${info.toJson()}');
         return null;
       }
