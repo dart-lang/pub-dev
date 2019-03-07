@@ -151,6 +151,7 @@ Future _checkPackage(Package p) async {
         'Package(${p.name}) has missing latestDevVersionKey: ${p.latestDevVersionKey.id}');
   }
 
+  // Checking if PackageVersionPubspec is referenced by a PackageVersion entity.
   final pvpQuery = dbService.query<PackageVersionPubspec>()
     ..filter('package =', p.name);
   final pvpKeys = <QualifiedVersionKey>{};
@@ -167,6 +168,7 @@ Future _checkPackage(Package p) async {
     }
   }
 
+  // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
   final pviQuery = dbService.query<PackageVersionInfo>()
     ..filter('package =', p.name);
   final pviKeys = <QualifiedVersionKey>{};
