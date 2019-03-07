@@ -249,9 +249,9 @@ class DartdocBackend {
   }
 
   /// Removes all files related to a package.
-  Future removeAll(String package, {String version}) async {
+  Future removeAll(String package, {String version, int concurrency}) async {
     final prefix = version == null ? '$package/' : '$package/$version/';
-    await _deleteAllWithPrefix(prefix);
+    await _deleteAllWithPrefix(prefix, concurrency: concurrency);
   }
 
   /// Removes incomplete uploads and old outputs from the bucket.
@@ -356,10 +356,10 @@ class DartdocBackend {
     await deleteFromBucket(_storage, entry.entryObjectName);
   }
 
-  Future _deleteAllWithPrefix(String prefix) async {
+  Future _deleteAllWithPrefix(String prefix, {int concurrency}) async {
     final Stopwatch sw = new Stopwatch()..start();
-    var page = await _storage.page(prefix: prefix);
-    final deletePool = new Pool(_concurrentDeletes);
+    var page = await _storage.page(prefix: prefix, pageSize: 256);
+    final deletePool = new Pool(concurrency ?? _concurrentDeletes);
     int count = 0;
     for (;;) {
       final List<Future> deleteFutures = [];
