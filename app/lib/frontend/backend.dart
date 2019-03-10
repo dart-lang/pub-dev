@@ -860,6 +860,19 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
 
   final files = await listTarball(filename);
 
+  // Check whether the files can be extracted on case-preserving file systems
+  // (e.g. on Windows). We can't allow two files with the same case-insensitive
+  // name.
+  final lowerCaseFiles = <String>{};
+  for (String file in files) {
+    final lower = file.toLowerCase();
+    if (lowerCaseFiles.contains(lower)) {
+      throw GenericProcessingException(
+          'Filename collision on case-preserving file systems: $file.');
+    }
+    lowerCaseFiles.add(lower);
+  }
+
   // Searches in [files] for a file name [name] and compare in a
   // case-insensitive manner.
   //
