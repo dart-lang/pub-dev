@@ -6,4 +6,4 @@ cron:
   retry_parameters:
     min_backoff_seconds: 3600 # wait at-least an hour before retrying
     max_backoff_seconds: 7200 # wait at-most two hours before retrying
-    job_retry_limit: 5
+    job_retry_limit: 3
