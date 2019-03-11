@@ -35,9 +35,6 @@ RUN pub get --offline --no-precompile
 #ADD key.json /project/key.json
 #ENV GCLOUD_KEY /project/key.json
 #ENV GCLOUD_PROJECT dartlang-pub
-# Temporarily hard-code GAE memcache address (b/79106376).
-ENV GAE_MEMCACHE_HOST 35.190.255.1
-ENV GAE_MEMCACHE_PORT 11211
 
 RUN cd / && \
     curl -sS https://storage.googleapis.com/dart-archive/channels/stable/release/2.2.0/sdk/dartsdk-linux-x64-release.zip >/dartsdk.zip && \
