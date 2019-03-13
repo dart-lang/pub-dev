@@ -17,13 +17,13 @@ void main() {
     final bucket = storage.bucket('test');
     expect(() => bucket.info('file.txt'), throwsA(anything));
     expect(() => bucket.info('/file.txt'), throwsA(anything));
-    final info = await bucket.writeBytes('file.txt', [1, 2]);
+    final info = await bucket.writeBytes('/file.txt', [1, 2]);
     expect(info.length, 2);
     final data = await bucket
         .read('/file.txt')
         .fold<List<int>>(<int>[], (buffer, data) => buffer..addAll(data));
     expect(data, [1, 2]);
-    await bucket.delete('file.txt');
+    await bucket.delete('/file.txt');
     expect(() => bucket.info('file.txt'), throwsA(anything));
     expect(() => bucket.info('/file.txt'), throwsA(anything));
   });

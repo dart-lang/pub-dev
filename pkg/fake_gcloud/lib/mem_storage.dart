@@ -110,9 +110,7 @@ class _Bucket implements Bucket {
 
   @override
   String absoluteObjectName(String objectName) {
-    if (!objectName.startsWith('/')) {
-      objectName = '/$objectName';
-    }
+    _validateObjectName(objectName);
     return Uri(scheme: 'gs', host: bucketName, path: objectName).toString();
   }
 
@@ -123,9 +121,7 @@ class _Bucket implements Bucket {
       Acl acl,
       PredefinedAcl predefinedAcl,
       String contentType}) {
-    if (!objectName.startsWith('/')) {
-      objectName = '/$objectName';
-    }
+    _validateObjectName(objectName);
     // ignore: close_sinks
     final controller = StreamController<List<int>>();
     controller.stream.fold<List<int>>(<int>[], (buffer, data) {
@@ -147,9 +143,7 @@ class _Bucket implements Bucket {
       Acl acl,
       PredefinedAcl predefinedAcl,
       String contentType}) async {
-    if (!name.startsWith('/')) {
-      name = '/$name';
-    }
+    _validateObjectName(name);
     final sink = write(
       name,
       metadata: metadata,
@@ -164,17 +158,13 @@ class _Bucket implements Bucket {
 
   @override
   Future delete(String name) async {
-    if (!name.startsWith('/')) {
-      name = '/$name';
-    }
+    _validateObjectName(name);
     _files.remove(name);
   }
 
   @override
   Future<ObjectInfo> info(String name) async {
-    if (!name.startsWith('/')) {
-      name = '/$name';
-    }
+    _validateObjectName(name);
     final info = _files[name];
     if (info == null) {
       throw DetailedApiRequestError(404, '$name does not exists');
@@ -184,20 +174,16 @@ class _Bucket implements Bucket {
 
   @override
   Stream<List<int>> read(String objectName, {int offset, int length}) async* {
-    if (!objectName.startsWith('/')) {
-      objectName = '/$objectName';
-    }
+    _validateObjectName(objectName);
     final file = _files[objectName];
     yield file.content;
   }
 
   @override
   Stream<BucketEntry> list({String prefix}) async* {
-    if (!prefix.startsWith('/')) {
-      prefix = '/$prefix';
-    }
+    _validateObjectName(prefix, allowNull: true);
     for (String name in _files.keys) {
-      if (name.startsWith(prefix)) {
+      if (prefix == null || name.startsWith(prefix)) {
         yield _BucketEntry(name, true);
       }
     }
@@ -225,4 +211,13 @@ class _BucketEntry implements BucketEntry {
   bool get isDirectory => !isObject;
 
   _BucketEntry(this.name, this.isObject);
+}
+
+void _validateObjectName(String objectName, {bool allowNull = false}) {
+  if (allowNull && objectName == null) {
+    return;
+  }
+  if (!objectName.startsWith('/')) {
+    throw Exception('ObjectName must start with / ($objectName)');
+  }
 }
