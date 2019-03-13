@@ -105,6 +105,8 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
           title: 'Authorization error', description: authErrorMessage);
     }
 
+    await backend.repository.confirmUploader(
+        invite.fromUserId, invite.fromEmail, packageName, user);
     await backend.confirmPackageInvite(invite);
     return redirectResponse(urls.pkgPageUrl(invite.packageName));
   } else {

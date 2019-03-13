@@ -641,22 +641,25 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future confirmUploader(
-      String userEmail, String packageName, String uploaderEmail) async {
-    final fromUser = await accountBackend.lookupOrCreateUserByEmail(userEmail);
+  Future confirmUploader(String fromUserId, String fromUserEmail,
+      String packageName, AuthenticatedUser uploader) async {
+    if (fromUserId == null) {
+      final user =
+          await accountBackend.lookupOrCreateUserByEmail(fromUserEmail);
+      fromUserId = user.userId;
+    }
+    assert(fromUserId != null);
     return db.withTransaction((Transaction tx) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as models.Package;
 
       try {
-        _validatePackageUploader(package, fromUser.userId, fromUser.email);
+        _validatePackageUploader(package, fromUserId, fromUserEmail);
       } catch (_) {
         await tx.rollback();
         rethrow;
       }
 
-      final uploader =
-          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
       if (package.hasUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         await tx.rollback();
@@ -670,8 +673,8 @@ class GCloudPackageRepository extends PackageRepository {
       if (historyBackend.isEnabled) {
         final history = new History.entry(new UploaderChanged(
           packageName: packageName,
-          currentUserId: fromUser.userId,
-          currentUserEmail: fromUser.email,
+          currentUserId: fromUserId,
+          currentUserEmail: fromUserEmail,
           addedUploaderIds: [uploader.userId],
           addedUploaderEmails: [uploader.email],
         ));
