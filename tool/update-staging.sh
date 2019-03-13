@@ -6,9 +6,9 @@ PROJECT_DIR="$( cd ${SCRIPT_DIR}/.. && pwd )"
 cd "$PROJECT_DIR";
 
 ALL_SERVICES='app.yaml search.yaml dartdoc.yaml analyzer.yaml'
-SERVICES=${@:-$ALL_SERVICES}    
+SERVICES=${@:-$ALL_SERVICES}
 
-# This script will attempt to 
+# This script will attempt to
 IMAGE="gcr.io/dartlang-pub-dev/$USER-staging"
 
 for f in $SERVICES; do
@@ -39,7 +39,7 @@ time gcloud --project dartlang-pub-dev builds submit -t "$IMAGE"
 
 for f in $SERVICES; do
   echo "### Deploying $f (version: $USER)"
-  time gcloud --project dartlang-pub-dev app deploy --quiet -v "$USER" --image-url "$IMAGE" "$f"
+  time gcloud --project dartlang-pub-dev app deploy --no-promote --quiet -v "$USER" --image-url "$IMAGE" "$f"
   echo "### Deployed $f"
 done
 

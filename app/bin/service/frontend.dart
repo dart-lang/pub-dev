@@ -56,15 +56,15 @@ Future _main(FrontendEntryMessage message) async {
   await updateLocalBuiltFiles();
   await withAppEngineAndCache(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
-    final cron = CronJobs(
-      // TODO: Configure a backup bucket name, once we've tested that this
-      //       actually gets called in staging.
-      backupBucketName: null,
-    );
+    final cron = CronJobs(await getOrCreateBucket(
+      storageService,
+      activeConfiguration.backupSnapshotBucketName,
+    ));
     await runHandler(
       _logger,
-      (shelf.Request request) => appHandler(request, apiHandler, cron.handler),
+      (shelf.Request request) => appHandler(request, apiHandler),
       sanitize: true,
+      cronHandler: cron.handler,
     );
   });
 }

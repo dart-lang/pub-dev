@@ -39,6 +39,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String searchSnapshotBucketName;
 
+  /// The name of the Cloud Storage bucket to use for datastore backup snapshots.
+  final String backupSnapshotBucketName;
+
   auth.ServiceAccountCredentials _credentials;
 
   /// Credentials to use for API calls if not reading the credentials from
@@ -74,7 +77,8 @@ class Configuration {
         searchServicePrefix = 'https://search-dot-$projectId.appspot.com',
         dartdocStorageBucketName = '$projectId--dartdoc-storage',
         popularityDumpBucketName = '$projectId--popularity',
-        searchSnapshotBucketName = '$projectId--search-snapshot';
+        searchSnapshotBucketName = '$projectId--search-snapshot',
+        backupSnapshotBucketName = '$projectId--backup-snapshots';
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {

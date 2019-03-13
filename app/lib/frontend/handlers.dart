@@ -39,14 +39,8 @@ void _logPubHeaders(shelf.Request request) {
 ///   - /api/*
 Future<shelf.Response> appHandler(
   shelf.Request request,
-  shelf.Handler shelfPubApi, [
-  shelf.Handler cronHandler,
-]) async {
-  // Handle cron requests, we checked the IP in handler_helpers.dart
-  if (cronHandler != null && request.headers['x-appengine-cron'] == 'true') {
-    return cronHandler(request);
-  }
-
+  shelf.Handler shelfPubApi,
+) async {
   final path = request.requestedUri.path;
 
   _logPubHeaders(request);
