@@ -1,17 +1,17 @@
-import 'package:gcloud/db.dart' as db;
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
-import 'package:fake_gcloud/mem_db.dart';
+import 'package:fake_gcloud/mem_datastore.dart';
 
 void main() {
   test('empty lookup', () async {
-    final db = MemDatastoreDB();
+    final db = DatastoreDB(MemDatastore());
     final list = await db.lookup([db.emptyKey.append(Sample, id: 'x')]);
     expect(list, [null]);
   });
 
   test('transaction with rollback', () async {
-    final db = MemDatastoreDB();
+    final db = DatastoreDB(MemDatastore());
     await db.commit(inserts: [
       Sample()
         ..parentKey = db.emptyKey
@@ -33,7 +33,7 @@ void main() {
   });
 
   test('transaction with commit', () async {
-    final db = MemDatastoreDB();
+    final db = DatastoreDB(MemDatastore());
     await db.commit(inserts: [
       Sample()
         ..parentKey = db.emptyKey
@@ -56,7 +56,7 @@ void main() {
   });
 
   group('Queries', () {
-    final db = MemDatastoreDB();
+    final db = DatastoreDB(MemDatastore());
 
     setUpAll(() async {
       await db.commit(inserts: [
@@ -115,14 +115,14 @@ void main() {
   });
 }
 
-@db.Kind(name: 'Sample', idType: db.IdType.String)
-class Sample extends db.Model {
-  @db.StringProperty()
+@Kind(name: 'Sample', idType: IdType.String)
+class Sample extends Model {
+  @StringProperty()
   String type;
 
-  @db.DateTimeProperty()
+  @DateTimeProperty()
   DateTime updated;
 
-  @db.IntProperty()
+  @IntProperty()
   int count;
 }
