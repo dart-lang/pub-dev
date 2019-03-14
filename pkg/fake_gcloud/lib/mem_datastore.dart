@@ -39,7 +39,8 @@ class MemDatastore implements Datastore {
       _entities[e.key] = e;
     });
     if (autoIdInserts != null && autoIdInserts.isNotEmpty) {
-      throw UnimplementedError();
+      throw UnimplementedError(
+          'fake_gcloud.Datastore.autoIdInserts is not implemented.');
     }
     return CommitResult([]);
   }

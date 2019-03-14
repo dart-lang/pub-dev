@@ -37,7 +37,8 @@ class MemStorage implements Storage {
 
   @override
   Future<BucketInfo> bucketInfo(String bucketName) async {
-    throw new UnimplementedError();
+    throw UnimplementedError(
+        'fake_gcloud.Storage.bucketInfo is not implemented.');
   }
 
   @override
@@ -49,7 +50,8 @@ class MemStorage implements Storage {
 
   @override
   Future<Page<String>> pageBucketNames({int pageSize = 50}) {
-    throw UnimplementedError();
+    throw UnimplementedError(
+        'fake_gcloud.Storage.pageBucketNames is not implemented.');
   }
 
   @override
@@ -85,7 +87,8 @@ class _File implements ObjectInfo {
 
   @override
   ObjectGeneration get generation {
-    throw UnimplementedError();
+    throw UnimplementedError(
+        'fake_gcloud.ObjectInfo.generation is not implemented.');
   }
 
   @override
@@ -96,7 +99,8 @@ class _File implements ObjectInfo {
 
   @override
   ObjectMetadata get metadata {
-    throw UnimplementedError();
+    throw UnimplementedError(
+        'fake_gcloud.ObjectInfo.metadata is not implemented.');
   }
 }
 
@@ -191,12 +195,13 @@ class _Bucket implements Bucket {
 
   @override
   Future<Page<BucketEntry>> page({String prefix, int pageSize = 50}) async {
-    throw UnimplementedError();
+    throw UnimplementedError('fake_gcloud.Bucket.page is not implemented.');
   }
 
   @override
   Future updateMetadata(String objectName, ObjectMetadata metadata) async {
-    throw UnimplementedError();
+    throw UnimplementedError(
+        'fake_gcloud.Bucket.updateMetadata is not implemented.');
   }
 }
 
