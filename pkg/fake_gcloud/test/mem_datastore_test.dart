@@ -113,6 +113,50 @@ void main() {
       expect(list.map((s) => s.id).toList(), ['x2', 'x1']);
     });
   });
+
+  group('hierarchies', () {
+    final db = DatastoreDB(MemDatastore());
+
+    setUpAll(() async {
+      await db.commit(inserts: [
+        Sample()
+          ..parentKey = db.emptyKey
+          ..id = 'root'
+          ..type = 'root-type'
+          ..updated = DateTime(2019, 02, 25)
+          ..count = 1,
+        Sample()
+          ..parentKey = db.emptyKey.append(Sample, id: 'root')
+          ..id = 'node-1'
+          ..type = 'node-type'
+          ..updated = DateTime(2019, 02, 26)
+          ..count = 4,
+      ]);
+    });
+
+    test('query without ancestorKey', () async {
+      final q = db.query<Sample>();
+      final list = (await q.run().toList()).map((s) => s.id).toList();
+      list.sort();
+      expect(list, ['node-1', 'root']);
+    });
+
+    test('query with ancestorKey', () async {
+      final q =
+          db.query<Sample>(ancestorKey: db.emptyKey.append(Sample, id: 'root'));
+      final list = (await q.run().toList()).map((s) => s.id).toList();
+      list.sort();
+      expect(list, ['node-1']);
+    });
+
+    test('query with missing ancestorKey', () async {
+      final q = db.query<Sample>(
+          ancestorKey: db.emptyKey.append(Sample, id: 'missing'));
+      final list = (await q.run().toList()).map((s) => s.id).toList();
+      list.sort();
+      expect(list, isEmpty);
+    });
+  });
 }
 
 @Kind(name: 'Sample', idType: IdType.String)

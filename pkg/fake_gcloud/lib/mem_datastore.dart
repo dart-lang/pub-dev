@@ -1,7 +1,7 @@
 import 'package:gcloud/common.dart';
 import 'package:gcloud/datastore.dart';
 
-/// Implementation of [DatastoreDB] interface with in-memory storage.
+/// Implementation of [Datastore] interface with in-memory storage.
 ///
 /// Entities are cloned, and should be safe to modify them once they are stored
 /// or read.
@@ -55,10 +55,25 @@ class MemDatastore implements Datastore {
       {Partition partition, Transaction transaction}) async {
     List<Entity> items = _entities.values
         .where((e) => e.key.elements.last.kind == query.kind)
-        .where((e) =>
-            query.ancestorKey == null ||
-            e.key.elements[e.key.elements.length - 2] == query.ancestorKey)
         .where(
+      (e) {
+        if (query.ancestorKey == null) {
+          return true;
+        }
+        if (query.ancestorKey.partition != e.key.partition) {
+          return false;
+        }
+        if (query.ancestorKey.elements.length != e.key.elements.length - 1) {
+          return false;
+        }
+        for (int i = 0; i < query.ancestorKey.elements.length; i++) {
+          if (query.ancestorKey.elements[i] != e.key.elements[i]) {
+            return false;
+          }
+        }
+        return true;
+      },
+    ).where(
       (e) {
         if (query.filters == null || query.filters.isEmpty) {
           return true;
@@ -119,6 +134,7 @@ class _Transaction implements Transaction {}
 
 class _Page implements Page<Entity> {
   final List<Entity> _items;
+  @override
   final List<Entity> items;
   final int _offset;
   final int _pageSize;
