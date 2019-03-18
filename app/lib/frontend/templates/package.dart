@@ -307,6 +307,9 @@ String renderPkgShowPage(
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
   final canonicalUrl =
       isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
+  final noIndex = (card?.isSkipped ?? false) ||
+      (card?.overallScore == 0.0) ||
+      (package.isDiscontinued ?? false);
   return renderLayoutPage(
     PageType.package,
     content,
@@ -315,7 +318,7 @@ String renderPkgShowPage(
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
     platform: hasPlatformSearch ? singlePlatform : null,
-    noIndex: package.isDiscontinued == true, // isDiscontinued may be null
+    noIndex: noIndex,
   );
 }
 
