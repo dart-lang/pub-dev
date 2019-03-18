@@ -151,9 +151,8 @@ String renderPkgShowPage(
   final bool hasPlatformSearch =
       singlePlatform != null && singlePlatform != KnownPlatforms.other;
   final bool hasOnlyFlutterPlatform = singlePlatform == KnownPlatforms.flutter;
-  final bool isFlutterPackage = hasOnlyFlutterPlatform ||
-      latestStableVersion.pubspec.dependsOnFlutterSdk ||
-      latestStableVersion.pubspec.hasFlutterPlugin;
+  final bool isFlutterPackage =
+      hasOnlyFlutterPlatform || latestStableVersion.pubspec.usesFlutter;
 
   String readmeFilename;
   String renderedReadme;
@@ -304,22 +303,15 @@ String renderPkgShowPage(
   final packageAndVersion = isVersionPage
       ? '${selectedVersion.package} ${selectedVersion.version}'
       : selectedVersion.package;
-  var pageDescription = packageAndVersion;
-  if (isFlutterPackage) {
-    pageDescription += ' Flutter and Dart package';
-  } else {
-    pageDescription += ' Dart package';
-  }
   final pageTitle =
       '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
-  pageDescription += ' - ${selectedVersion.ellipsizedDescription}';
   final canonicalUrl =
       isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
   return renderLayoutPage(
     PageType.package,
     content,
     title: pageTitle,
-    pageDescription: pageDescription,
+    pageDescription: selectedVersion.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
     platform: hasPlatformSearch ? singlePlatform : null,
