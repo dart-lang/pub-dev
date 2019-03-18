@@ -134,7 +134,7 @@ void main() {
           devPackageVersion,
           1,
           AnalysisView(
-            card: ScoreCardData(reportTypes: ['pana']),
+            card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
                 timestamp: new DateTime(2018, 02, 05),
                 panaRuntimeInfo: _panaRuntimeInfo,
@@ -186,7 +186,7 @@ void main() {
           devPackageVersion,
           1,
           AnalysisView(
-            card: ScoreCardData(reportTypes: ['pana']),
+            card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
                 timestamp: new DateTime(2018, 02, 05),
                 panaRuntimeInfo: _panaRuntimeInfo,
