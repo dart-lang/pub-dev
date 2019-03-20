@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190320t135247-all`
+
  * Run `gcloud app deploy cron.yaml` to update cron-job retry logic.
 
  * Behaviour changes:
