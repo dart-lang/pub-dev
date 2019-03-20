@@ -228,9 +228,8 @@ class Backend {
     }) as InviteStatus;
   }
 
-  /// Confirm the invite and return the Datastore entry object if successful,
-  /// otherwise returns null.
-  Future<models.PackageInvite> confirmPackageInvite({
+  /// Get the invite or return null if it does not exist or is not valid anymore.
+  Future<models.PackageInvite> getPackageInvite({
     @required String packageName,
     @required String type,
     @required String recipientEmail,
@@ -239,47 +238,31 @@ class Backend {
     final inviteId = models.PackageInvite.createId(type, recipientEmail);
     final pkgKey = db.emptyKey.append(models.Package, id: packageName);
     final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
-    return await db.withTransaction((tx) async {
-      final list = await tx.lookup<models.PackageInvite>([inviteKey]);
-      final invite = list.single;
+    final invite = (await db.lookup<models.PackageInvite>([inviteKey])).single;
 
-      // Invite entry does not exists.
-      if (invite == null) {
-        await tx.rollback();
-        return null;
-      }
+    if (invite == null) {
+      return null;
+    }
 
-      // Consistency check
-      if (invite.recipientEmail != recipientEmail) {
-        await tx.rollback();
-        return null;
-      }
-
-      // Invite entry has expired.
-      if (invite.isExpired()) {
-        tx.queueMutations(deletes: [inviteKey]);
-        await tx.commit();
-        return null;
-      }
-
-      // urlNonce check: whether the invite has been updated.
-      if (invite.urlNonce != urlNonce) {
-        await tx.rollback();
-        return null;
-      }
-
-      // Invite already confirmed.
-      if (invite.confirmed != null) {
-        await tx.rollback();
-        return invite;
-      }
-
-      // Confirming invite.
-      invite.confirmed = new DateTime.now().toUtc();
-      tx.queueMutations(inserts: [invite]);
-      await tx.commit();
+    if (invite.isValid(recipientEmail: recipientEmail, urlNonce: urlNonce)) {
       return invite;
-    }) as models.PackageInvite;
+    }
+    return null;
+  }
+
+  /// Updates the confirmed timestamp in the [invite].
+  Future confirmPackageInvite(models.PackageInvite invite) async {
+    await db.withTransaction((tx) async {
+      final pi = (await tx.lookup<models.PackageInvite>([invite.key])).single;
+      if (pi != null && pi.confirmed == null) {
+        pi.confirmed = DateTime.now().toUtc();
+        tx.queueMutations(inserts: [pi]);
+        await tx.commit();
+      } else {
+        await tx.rollback();
+      }
+    });
+    await uiPackageCache.invalidateUIPackagePage(invite.packageName);
   }
 
   /// Removes obsolete (== expired more than a day ago) invites from Datastore.
@@ -658,22 +641,25 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future confirmUploader(
-      String userEmail, String packageName, String uploaderEmail) async {
-    final fromUser = await accountBackend.lookupOrCreateUserByEmail(userEmail);
+  Future confirmUploader(String fromUserId, String fromUserEmail,
+      String packageName, AuthenticatedUser uploader) async {
+    if (fromUserId == null) {
+      final user =
+          await accountBackend.lookupOrCreateUserByEmail(fromUserEmail);
+      fromUserId = user.userId;
+    }
+    assert(fromUserId != null);
     return db.withTransaction((Transaction tx) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as models.Package;
 
       try {
-        _validatePackageUploader(package, fromUser.userId, fromUser.email);
+        _validatePackageUploader(package, fromUserId, fromUserEmail);
       } catch (_) {
         await tx.rollback();
         rethrow;
       }
 
-      final uploader =
-          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
       if (package.hasUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         await tx.rollback();
@@ -687,8 +673,8 @@ class GCloudPackageRepository extends PackageRepository {
       if (historyBackend.isEnabled) {
         final history = new History.entry(new UploaderChanged(
           packageName: packageName,
-          currentUserId: fromUser.userId,
-          currentUserEmail: fromUser.email,
+          currentUserId: fromUserId,
+          currentUserEmail: fromUserEmail,
           addedUploaderIds: [uploader.userId],
           addedUploaderEmails: [uploader.email],
         ));

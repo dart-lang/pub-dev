@@ -416,6 +416,9 @@ abstract class SecretKey {
   static const String smtpPassword = 'smtp.password';
   static const String redisConnectionString = 'redis.connectionString';
 
+  /// OAuth audiences have separate secrets for each audience.
+  static const String oauthPrefix = 'oauth.secret-';
+
   /// List of all keys.
   static const values = const [
     smtpUsername,
@@ -475,6 +478,14 @@ class PackageInvite extends db.Model {
   /// The timestamp when the next notification could be sent out.
   DateTime get nextNotification =>
       created.add(Duration(minutes: 1 << notificationCount));
+
+  /// Whether the invite is still valid and available.
+  bool isValid({@required String recipientEmail, @required String urlNonce}) {
+    return this.recipientEmail == recipientEmail &&
+        this.urlNonce == urlNonce &&
+        !isExpired() &&
+        confirmed != null;
+  }
 }
 
 abstract class PackageInviteType {

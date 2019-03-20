@@ -15,15 +15,14 @@ import 'package:simple_cache/simple_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
+import '../frontend/models.dart' show Secret, SecretKey;
+import '../shared/configuration.dart';
 import '../shared/email.dart' show isValidEmail;
+
 import 'models.dart';
 
 final _logger = new Logger('pub.account.backend');
 final _uuid = Uuid();
-
-/// The pub client's OAuth2 identifier.
-final _pubAudience = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
-    'googleusercontent.com';
 
 /// Sets the account backend service.
 void registerAccountBackend(AccountBackend backend) =>
@@ -55,15 +54,23 @@ Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
-  final _defaultAuthProvider = GoogleOauth2AuthProvider(_pubAudience);
+  final AuthProvider _authProvider;
   final _emailCache = Cache(Cache.inMemoryCacheProvider(1000))
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8);
 
-  AccountBackend(this._db);
+  AccountBackend(this._db)
+      : _authProvider = GoogleOauth2AuthProvider(
+          activeConfiguration.pubSiteAudience,
+          <String>[
+            activeConfiguration.pubClientAudience,
+            activeConfiguration.pubSiteAudience,
+          ],
+          _db,
+        );
 
   Future close() async {
-    await _defaultAuthProvider.close();
+    await _authProvider.close();
   }
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
@@ -134,6 +141,18 @@ class AccountBackend {
     return user;
   }
 
+  /// Returns the URL of the authorization endpoint used by pub site.
+  String siteAuthorizationUrl(String state) {
+    return _authProvider.authorizationUrl(state);
+  }
+
+  /// Validates the authorization [code] and returns the access token.
+  ///
+  /// Returns null on any error, or if the token is expired, or the code is not
+  /// verified.
+  Future<String> siteAuthCodeToAccessToken(String code) =>
+      _authProvider.authCodeToAccessToken(code);
+
   /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
   ///
   /// The method returns null if the access token is invalid.
@@ -143,7 +162,7 @@ class AccountBackend {
   /// field will be updated to the latest one.
   Future<AuthenticatedUser> authenticateWithAccessToken(
       String accessToken) async {
-    final auth = await _defaultAuthProvider.tryAuthenticate(accessToken);
+    final auth = await _authProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       return null;
     }
@@ -262,6 +281,15 @@ class AuthResult {
 
 /// Authenticates access tokens.
 abstract class AuthProvider {
+  /// Returns the URL of the authorization endpoint.
+  String authorizationUrl(String state);
+
+  /// Validates the authorization [code], and returns the access token.
+  ///
+  /// Returns null on any error, or if the token is expired, or the code is not
+  /// verified.
+  Future<String> authCodeToAccessToken(String code);
+
   /// Checks the [accessToken] and returns a verified user information.
   ///
   /// Returns null on any error, or if the token is expired, or the user is not
@@ -272,14 +300,59 @@ abstract class AuthProvider {
   Future close();
 }
 
+/// Provides OAuth2-based authentication through Google accounts.
 class GoogleOauth2AuthProvider extends AuthProvider {
-  final String _audience;
+  final String _siteAudience;
+  final List<String> _trustedAudiences;
+  final DatastoreDB _db;
   http.Client _httpClient;
   oauth2_v2.Oauth2Api _oauthApi;
+  bool _secretLoaded = false;
+  String _secret;
 
-  GoogleOauth2AuthProvider(this._audience) {
+  GoogleOauth2AuthProvider(
+      this._siteAudience, this._trustedAudiences, this._db) {
     _httpClient = http.Client();
     _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
+  }
+
+  @override
+  String authorizationUrl(String state) {
+    return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
+      queryParameters: {
+        'client_id': _siteAudience,
+        'redirect_uri': activeConfiguration.oauthRedirectUrl,
+        'scope': 'openid profile email',
+        'response_type': 'code',
+        'access_type': 'online',
+        'state': state,
+      },
+    ).toString();
+  }
+
+  @override
+  Future<String> authCodeToAccessToken(String code) async {
+    final redirectUrl = activeConfiguration.oauthRedirectUrl;
+    try {
+      await _loadSecret();
+      final rs = await _httpClient
+          .post('https://www.googleapis.com/oauth2/v4/token', body: {
+        'code': code,
+        'client_id': _siteAudience,
+        'client_secret': _secret,
+        'redirect_uri': redirectUrl,
+        'grant_type': 'authorization_code',
+      });
+      if (rs.statusCode >= 400) {
+        _logger.info('Bad authorization token: $code for $redirectUrl');
+        return null;
+      }
+      final tokenMap = json.decode(rs.body) as Map<String, dynamic>;
+      return tokenMap['access_token'] as String;
+    } catch (e) {
+      _logger.info('Bad authorization token: $code for $redirectUrl', e);
+    }
+    return null;
   }
 
   @override
@@ -294,7 +367,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
         return null;
       }
 
-      if (info.audience != _audience) {
+      if (!_trustedAudiences.contains(info.audience)) {
         _logger.warning('OAuth2 access attempted with invalid audience, '
             'for email: "${info.email}", audience: "${info.audience}"');
         return null;
@@ -325,5 +398,14 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   @override
   Future close() async {
     _httpClient.close();
+  }
+
+  Future _loadSecret() async {
+    if (_secretLoaded) return;
+    final key = _db.emptyKey
+        .append(Secret, id: '${SecretKey.oauthPrefix}$_siteAudience');
+    final secret = (await _db.lookup<Secret>([key])).single;
+    _secret = secret?.value;
+    _secretLoaded = true;
   }
 }
