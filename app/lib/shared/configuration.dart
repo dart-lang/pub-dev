@@ -94,7 +94,7 @@ class Configuration {
             ? 'https://pub.dartlang.org/oauth/callback'
             : 'https://dartlang-pub-dev.appspot.com/oauth/callback',
         pubSiteAudience = projectId == 'dartlang-pub'
-            ? null // TODO: fill with prod value
+            ? '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com'
             : '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com';
 
   /// Create a configuration based on the environment variables.
