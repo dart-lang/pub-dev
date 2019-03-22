@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
@@ -43,6 +44,7 @@ import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
 final Logger _logger = new Logger('pub');
+final _random = Random.secure();
 
 Future main() async {
   await startIsolates(logger: _logger, frontendEntryPoint: _main);
@@ -56,6 +58,12 @@ Future _main(FrontendEntryMessage message) async {
   await updateLocalBuiltFiles();
   await withAppEngineAndCache(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
+
+    // Add randomization to reduce race conditions.
+    Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)), (_) {
+      backend.deleteObsoleteInvites();
+    });
+
     final cron = CronJobs(await getOrCreateBucket(
       storageService,
       activeConfiguration.backupSnapshotBucketName,

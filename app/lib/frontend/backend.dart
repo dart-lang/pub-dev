@@ -265,12 +265,19 @@ class Backend {
     await uiPackageCache.invalidateUIPackagePage(invite.packageName);
   }
 
-  /// Removes obsolete (== expired more than a day ago) invites from Datastore.
+  /// Removes obsolete/expired invites from Datastore.
   Future deleteObsoleteInvites() async {
     final query = db.query<models.PackageInvite>()
-      ..filter('expires <', DateTime.now().subtract(Duration(days: 1)));
+      ..filter('expires <', DateTime.now().toUtc());
     await for (var invite in query.run()) {
-      db.commit(deletes: [invite.key]);
+      try {
+        await db.commit(deletes: [invite.key]);
+      } catch (e) {
+        _logger.info(
+            'PackageInvite delete failed: '
+            '${invite.packageName} ${invite.type} ${invite.recipientEmail}',
+            e);
+      }
     }
   }
 }
