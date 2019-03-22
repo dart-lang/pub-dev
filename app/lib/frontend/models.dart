@@ -461,9 +461,6 @@ class PackageInvite extends db.Model {
   @db.IntProperty()
   int notificationCount;
 
-  @db.DateTimeProperty()
-  DateTime confirmed;
-
   String get packageName => parentKey.id as String;
 
   /// Create a composite id.
@@ -483,8 +480,7 @@ class PackageInvite extends db.Model {
   bool isValid({@required String recipientEmail, @required String urlNonce}) {
     return this.recipientEmail == recipientEmail &&
         this.urlNonce == urlNonce &&
-        !isExpired() &&
-        confirmed != null;
+        !isExpired();
   }
 }
 
