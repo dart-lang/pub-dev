@@ -250,18 +250,9 @@ class Backend {
     return null;
   }
 
-  /// Updates the confirmed timestamp in the [invite].
+  /// Delete the invite and clear package cache.
   Future confirmPackageInvite(models.PackageInvite invite) async {
-    await db.withTransaction((tx) async {
-      final pi = (await tx.lookup<models.PackageInvite>([invite.key])).single;
-      if (pi != null && pi.confirmed == null) {
-        pi.confirmed = DateTime.now().toUtc();
-        tx.queueMutations(inserts: [pi]);
-        await tx.commit();
-      } else {
-        await tx.rollback();
-      }
-    });
+    await db.commit(deletes: [invite.key]);
     await uiPackageCache.invalidateUIPackagePage(invite.packageName);
   }
 
