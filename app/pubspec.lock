@@ -183,6 +183,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.0"
+  fake_gcloud:
+    dependency: "direct dev"
+    description:
+      path: "../pkg/fake_gcloud"
+      relative: true
+    source: path
+    version: "0.0.0"
   fixnum:
     dependency: transitive
     description:
