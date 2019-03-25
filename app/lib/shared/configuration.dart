@@ -40,24 +40,14 @@ class Configuration {
   final String oauthRedirectUrl;
 
   /// The OAuth audience (`client_id`) that the `pub` client uses.
-  final String pubClientAudience =
-      '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'
-      'googleusercontent.com';
+  final String pubClientAudience;
 
   /// The OAuth audience (`client_id`) that the pub site uses.
   final String pubSiteAudience;
 
-  auth.ServiceAccountCredentials _credentials;
-
   /// Credentials to use for API calls if not reading the credentials from
   /// the Datastore.
-  auth.ServiceAccountCredentials get credentials {
-    if (_credentials == null) {
-      _credentials = new auth.ServiceAccountCredentials.fromJson(
-          new File(envConfig.gcloudKey).readAsStringSync());
-    }
-    return _credentials;
-  }
+  final auth.ServiceAccountCredentials credentials;
 
   /// Create a configuration for production deployment.
   ///
@@ -83,9 +73,12 @@ class Configuration {
         oauthRedirectUrl = projectId == 'dartlang-pub'
             ? 'https://pub.dartlang.org/oauth/callback'
             : 'https://dartlang-pub-dev.appspot.com/oauth/callback',
+        pubClientAudience =
+            '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com',
         pubSiteAudience = projectId == 'dartlang-pub'
             ? '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com'
-            : '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com';
+            : '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
+        credentials = _loadCredentials();
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
@@ -142,3 +135,9 @@ class EnvConfig {
 
 /// Configuration from the environment variables.
 final EnvConfig envConfig = new EnvConfig._detect();
+
+auth.ServiceAccountCredentials _loadCredentials([String path]) {
+  path ??= envConfig.gcloudKey;
+  final content = File(path).readAsStringSync();
+  return auth.ServiceAccountCredentials.fromJson(content);
+}
