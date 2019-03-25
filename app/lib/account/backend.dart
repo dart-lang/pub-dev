@@ -59,15 +59,16 @@ class AccountBackend {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8);
 
-  AccountBackend(this._db)
-      : _authProvider = GoogleOauth2AuthProvider(
-          activeConfiguration.pubSiteAudience,
-          <String>[
-            activeConfiguration.pubClientAudience,
-            activeConfiguration.pubSiteAudience,
-          ],
-          _db,
-        );
+  AccountBackend(this._db, {AuthProvider authProvider})
+      : _authProvider = authProvider ??
+            GoogleOauth2AuthProvider(
+              activeConfiguration.pubSiteAudience,
+              <String>[
+                activeConfiguration.pubClientAudience,
+                activeConfiguration.pubSiteAudience,
+              ],
+              _db,
+            );
 
   Future close() async {
     await _authProvider.close();
@@ -132,7 +133,7 @@ class AccountBackend {
     }
     final id = _uuid.v4().toString();
     final user = User()
-      ..parentKey = dbService.emptyKey
+      ..parentKey = _db.emptyKey
       ..id = id
       ..email = email
       ..created = DateTime.now().toUtc();
