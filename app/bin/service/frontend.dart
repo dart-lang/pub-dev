@@ -163,7 +163,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerSearchMemcache(new SearchMemcache());
 
   UploadSignerService uploadSigner;
-  if (configuration.hasCredentials) {
+  if (envConfig.hasCredentials) {
     final credentials = configuration.credentials;
     uploadSigner = new ServiceAccountBasedUploadSigner(credentials);
   } else {

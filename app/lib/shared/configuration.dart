@@ -21,12 +21,6 @@ class Configuration {
   /// Datastore and/or Cloud Storage
   final String projectId;
 
-  /// The scheme://host:port prefix for the analyzer service.
-  final String analyzerServicePrefix;
-
-  /// The scheme://host:port prefix for the dartdoc service.
-  final String dartdocServicePrefix;
-
   /// The scheme://host:port prefix for the search service.
   final String searchServicePrefix;
 
@@ -65,8 +59,6 @@ class Configuration {
     return _credentials;
   }
 
-  bool get hasCredentials => envConfig.hasCredentials;
-
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -83,8 +75,6 @@ class Configuration {
         packageBucketName = projectId == 'dartlang-pub'
             ? 'pub-packages'
             : '$projectId--pub-packages',
-        analyzerServicePrefix = 'https://analyzer-dot-$projectId.appspot.com',
-        dartdocServicePrefix = 'https://dartdoc-dot-$projectId.appspot.com',
         searchServicePrefix = 'https://search-dot-$projectId.appspot.com',
         dartdocStorageBucketName = '$projectId--dartdoc-storage',
         popularityDumpBucketName = '$projectId--popularity',
