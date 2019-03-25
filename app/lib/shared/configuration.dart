@@ -71,7 +71,7 @@ class Configuration {
   /// This will use the Datastore from the cloud project and the Cloud Storage
   /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
-  factory Configuration.prod() {
+  factory Configuration._prod() {
     final projectId = 'dartlang-pub';
     return Configuration(
         projectId: projectId,
@@ -89,7 +89,7 @@ class Configuration {
   }
 
   /// Create a configuration for development/staging deployment.
-  factory Configuration.dev() {
+  factory Configuration._dev() {
     final projectId = 'dartlang-pub-dev';
     return Configuration(
       projectId: projectId,
@@ -124,9 +124,9 @@ class Configuration {
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
     if (env.gcloudProject == 'dartlang-pub') {
-      return Configuration.prod();
+      return Configuration._prod();
     } else if (env.gcloudProject == 'dartlang-pub-dev') {
-      return Configuration.dev();
+      return Configuration._dev();
     } else {
       throw Exception('Unknown project id: ${env.gcloudProject}');
     }
