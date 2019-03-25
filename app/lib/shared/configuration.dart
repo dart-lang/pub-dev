@@ -7,7 +7,19 @@ import 'dart:io';
 import 'package:googleapis_auth/auth.dart' as auth;
 import 'package:meta/meta.dart';
 
-final activeConfiguration = new Configuration.fromEnv(envConfig);
+Configuration _configuration;
+
+Configuration get activeConfiguration {
+  _configuration ??= Configuration.fromEnv(envConfig);
+  return _configuration;
+}
+
+void registerActiveConfiguration(Configuration configuration) {
+  if (_configuration != null) {
+    throw Exception('Configuration is already set.');
+  }
+  _configuration = configuration;
+}
 
 /// The OAuth audience (`client_id`) that the `pub` client uses.
 const _pubClientAudience =
