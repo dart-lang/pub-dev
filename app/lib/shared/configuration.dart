@@ -5,8 +5,13 @@
 import 'dart:io';
 
 import 'package:googleapis_auth/auth.dart' as auth;
+import 'package:meta/meta.dart';
 
 final activeConfiguration = new Configuration.fromEnv(envConfig);
+
+/// The OAuth audience (`client_id`) that the `pub` client uses.
+const _pubClientAudience =
+    '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
 
 /// Class describing the configuration of running pub.dartlang.org.
 ///
@@ -54,38 +59,64 @@ class Configuration {
   /// This will use the Datastore from the cloud project and the Cloud Storage
   /// bucket 'pub-packages'. The credentials for accessing the Cloud
   /// Storage is retrieved from the Datastore.
-  Configuration._prod() : this._local('dartlang-pub');
+  factory Configuration.prod() {
+    final projectId = 'dartlang-pub';
+    return Configuration(
+        projectId: projectId,
+        packageBucketName: 'pub-packages',
+        dartdocStorageBucketName: '$projectId--dartdoc-storage',
+        popularityDumpBucketName: '$projectId--popularity',
+        searchSnapshotBucketName: '$projectId--search-snapshot',
+        backupSnapshotBucketName: '$projectId--backup-snapshots',
+        searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+        oauthRedirectUrl: 'https://pub.dartlang.org/oauth/callback',
+        pubClientAudience: _pubClientAudience,
+        pubSiteAudience:
+            '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
+        credentials: _loadCredentials());
+  }
 
   /// Create a configuration for development/staging deployment.
-  Configuration._dev() : this._local('dartlang-pub-dev');
+  factory Configuration.dev() {
+    final projectId = 'dartlang-pub-dev';
+    return Configuration(
+      projectId: projectId,
+      packageBucketName: '$projectId--pub-packages',
+      dartdocStorageBucketName: '$projectId--dartdoc-storage',
+      popularityDumpBucketName: '$projectId--popularity',
+      searchSnapshotBucketName: '$projectId--search-snapshot',
+      backupSnapshotBucketName: '$projectId--backup-snapshots',
+      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      oauthRedirectUrl: 'https://dartlang-pub-dev.appspot.com/oauth/callback',
+      pubClientAudience: _pubClientAudience,
+      pubSiteAudience:
+          '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
+      credentials: _loadCredentials(),
+    );
+  }
 
-  /// Base configuration for local development
-  Configuration._local(String projectId)
-      : projectId = projectId,
-        packageBucketName = projectId == 'dartlang-pub'
-            ? 'pub-packages'
-            : '$projectId--pub-packages',
-        searchServicePrefix = 'https://search-dot-$projectId.appspot.com',
-        dartdocStorageBucketName = '$projectId--dartdoc-storage',
-        popularityDumpBucketName = '$projectId--popularity',
-        searchSnapshotBucketName = '$projectId--search-snapshot',
-        backupSnapshotBucketName = '$projectId--backup-snapshots',
-        oauthRedirectUrl = projectId == 'dartlang-pub'
-            ? 'https://pub.dartlang.org/oauth/callback'
-            : 'https://dartlang-pub-dev.appspot.com/oauth/callback',
-        pubClientAudience =
-            '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com',
-        pubSiteAudience = projectId == 'dartlang-pub'
-            ? '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com'
-            : '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
-        credentials = _loadCredentials();
+  Configuration({
+    @required this.projectId,
+    @required this.packageBucketName,
+    @required this.dartdocStorageBucketName,
+    @required this.popularityDumpBucketName,
+    @required this.searchSnapshotBucketName,
+    @required this.backupSnapshotBucketName,
+    @required this.searchServicePrefix,
+    @required this.oauthRedirectUrl,
+    @required this.pubClientAudience,
+    @required this.pubSiteAudience,
+    @required this.credentials,
+  });
 
   /// Create a configuration based on the environment variables.
   factory Configuration.fromEnv(EnvConfig env) {
-    if (env.gcloudProject == 'dartlang-pub-dev') {
-      return new Configuration._dev();
+    if (env.gcloudProject == 'dartlang-pub') {
+      return Configuration.prod();
+    } else if (env.gcloudProject == 'dartlang-pub-dev') {
+      return Configuration.dev();
     } else {
-      return new Configuration._prod();
+      throw Exception('Unknown project id: ${env.gcloudProject}');
     }
   }
 }
