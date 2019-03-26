@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Removed `namespace` and `qualifiedPackage` fields from `PackageVersionPubspec` and `PackageVersionInfo`.
+
 ## `20190325t131912-all`
 
  * Fixes to invitation logic.
