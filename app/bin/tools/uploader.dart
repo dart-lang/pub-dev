@@ -76,7 +76,7 @@ Future addUploader(String packageName, String uploaderEmail) async {
     if (package.hasUploader(user.userId)) {
       throw new Exception('Uploader $uploaderEmail already exists');
     }
-    package.addUploader(user.userId, uploaderEmail);
+    package.addUploader(user.userId);
     T.queueMutations(inserts: [package]);
     await T.commit();
     print('Uploader $uploaderEmail added to list of uploaders');
@@ -111,7 +111,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
     if (package.uploaderCount <= 1) {
       throw new Exception('Would remove last uploader');
     }
-    package.removeUploader(user.userId, uploaderEmail);
+    package.removeUploader(user.userId);
     T.queueMutations(inserts: [package]);
     await T.commit();
     print('Uploader $uploaderEmail removed from list of uploaders');

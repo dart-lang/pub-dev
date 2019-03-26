@@ -54,9 +54,6 @@ class Package extends db.ExpandoModel {
   @db.StringListProperty()
   List<String> uploaders;
 
-  @CompatibleStringListProperty()
-  List<String> uploaderEmails;
-
   @db.BoolProperty()
   bool isDiscontinued;
 
@@ -86,19 +83,16 @@ class Package extends db.ExpandoModel {
 
   int get uploaderCount => uploaders.length;
 
-  /// Add the id and the email to the list of uploaders.
-  void addUploader(String uploaderId, String uploaderEmail) {
+  /// Add the id to the list of uploaders.
+  void addUploader(String uploaderId) {
     if (uploaderId != null && !uploaders.contains(uploaderId)) {
       uploaders.add(uploaderId);
     }
-    uploaderEmails.add(uploaderEmail.toLowerCase());
   }
 
-  // Remove the email from the list of uploaders.
-  void removeUploader(String uploaderId, String uploaderEmail) {
-    final lowerEmail = uploaderEmail.toLowerCase();
+  // Remove the id from the list of uploaders.
+  void removeUploader(String uploaderId) {
     uploaders.removeWhere((s) => s == uploaderId);
-    uploaderEmails.removeWhere((s) => s.toLowerCase() == lowerEmail);
   }
 
   void updateVersion(PackageVersion pv) {
@@ -197,12 +191,8 @@ class PackageVersion extends db.ExpandoModel {
   @db.IntProperty(propertyName: 'sort_order')
   int sortOrder;
 
-  // TODO: Set required attribute after [uploaderEmail] is removed.
-  @db.StringProperty()
+  @db.StringProperty(required: true)
   String uploader;
-
-  @db.StringProperty()
-  String uploaderEmail;
 
   // Convenience Fields:
 
