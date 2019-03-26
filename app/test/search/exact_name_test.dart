@@ -15,8 +15,8 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'build_config',
         version: '0.0.1',
         description: compactDescription(
@@ -25,7 +25,7 @@ void main() {
         popularity: 0.1,
         maintenance: 0.1,
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'build',
         version: '0.0.1',
         description: compactDescription('A build system for Dart.'),
@@ -38,7 +38,7 @@ void main() {
 
     test('build_config', () async {
       final PackageSearchResult result =
-          await index.search(new SearchQuery.parse(query: 'build_config'));
+          await index.search(SearchQuery.parse(query: 'build_config'));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,

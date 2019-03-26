@@ -29,16 +29,16 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
-    registerJobBackend(new JobBackend(dbService));
-    registerScoreCardBackend(new ScoreCardBackend(dbService));
-    registerAnalyzerClient(new AnalyzerClient());
-    registerDartdocClient(new DartdocClient());
-    registerSearchClient(new SearchClient());
+    registerJobBackend(JobBackend(dbService));
+    registerScoreCardBackend(ScoreCardBackend(dbService));
+    registerAnalyzerClient(AnalyzerClient());
+    registerDartdocClient(DartdocClient());
+    registerSearchClient(SearchClient());
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
-      await analyzerClient.triggerAnalysis(args[1], args[2], new Set<String>());
+      await analyzerClient.triggerAnalysis(args[1], args[2], Set<String>());
     } else if (service == 'dartdoc' && args.length == 3) {
-      await dartdocClient.triggerDartdoc(args[1], args[2], new Set<String>());
+      await dartdocClient.triggerDartdoc(args[1], args[2], Set<String>());
     } else if (service == 'search' && args.length == 3) {
       await searchClient.triggerReindex(args[1], args[2]);
     } else {

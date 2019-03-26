@@ -40,7 +40,7 @@ class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   @override
   Future commit({List<gdb.Model> inserts, List<gdb.Key> deletes}) async {
     if (commitFun == null) {
-      throw new Exception('no commitFun');
+      throw Exception('no commitFun');
     }
     return commitFun(inserts: inserts, deletes: deletes);
   }
@@ -48,7 +48,7 @@ class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   @override
   Future<List<S>> lookup<S extends gdb.Model>(List<gdb.Key> keys) async {
     if (lookupFun == null) {
-      throw new Exception('no lookupFun');
+      throw Exception('no lookupFun');
     }
     return ((await lookupFun(keys)) as List).cast<S>();
   }
@@ -57,7 +57,7 @@ class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   gdb.Query<S> query<S extends gdb.Model>(
       {gdb.Partition partition, gdb.Key ancestorKey}) {
     if (queryMock == null) {
-      throw new Exception('no queryMock');
+      throw Exception('no queryMock');
     }
     queryMock._partition = partition;
     queryMock._ancestorKey = ancestorKey;
@@ -67,7 +67,7 @@ class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   @override
   Future withTransaction(Future handler(gdb.Transaction transaction)) async {
     if (transactionMock == null) {
-      throw new Exception('no transactionMock');
+      throw Exception('no transactionMock');
     }
     return handler(transactionMock);
   }
@@ -81,7 +81,7 @@ class TransactionMock implements gdb.Transaction {
   final QueryMock queryMock;
 
   @override
-  gdb.DatastoreDB get db => throw new Exception('db not supported');
+  gdb.DatastoreDB get db => throw Exception('db not supported');
 
   TransactionMock(
       {this.commitFun,
@@ -93,7 +93,7 @@ class TransactionMock implements gdb.Transaction {
   @override
   Future commit() async {
     if (commitFun == null) {
-      throw new Exception('no commitFun');
+      throw Exception('no commitFun');
     }
     return commitFun();
   }
@@ -101,7 +101,7 @@ class TransactionMock implements gdb.Transaction {
   @override
   Future<List<T>> lookup<T extends gdb.Model>(List<gdb.Key> keys) async {
     if (lookupFun == null) {
-      throw new Exception('no lookupFun');
+      throw Exception('no lookupFun');
     }
     return ((await lookupFun(keys)) as List).cast<T>();
   }
@@ -110,7 +110,7 @@ class TransactionMock implements gdb.Transaction {
   gdb.Query<T> query<T extends gdb.Model>(gdb.Key ancestorKey,
       {gdb.Partition partition}) {
     if (queryMock == null) {
-      throw new Exception('no queryMock');
+      throw Exception('no queryMock');
     }
     queryMock._partition = partition;
     queryMock._ancestorKey = ancestorKey;
@@ -120,7 +120,7 @@ class TransactionMock implements gdb.Transaction {
   @override
   void queueMutations({List<gdb.Model> inserts, List<gdb.Key> deletes}) {
     if (queueMutationFun == null) {
-      throw new Exception('no queueMutationFun');
+      throw Exception('no queueMutationFun');
     }
     queueMutationFun(inserts: inserts, deletes: deletes);
   }
@@ -128,7 +128,7 @@ class TransactionMock implements gdb.Transaction {
   @override
   Future rollback() async {
     if (rollbackFun == null) {
-      throw new Exception('no rollbackFun');
+      throw Exception('no rollbackFun');
     }
     return rollbackFun();
   }
@@ -183,7 +183,7 @@ class QueryMock<T extends gdb.Model> implements gdb.Query<T> {
   }
 }
 
-typedef Stream<T> QueryMockHandler<T extends gdb.Model>(
+typedef QueryMockHandler<T extends gdb.Model> = Stream<T> Function(
     {gdb.Partition partition,
     gdb.Key ancestorKey,
     List<String> filters,
@@ -216,15 +216,15 @@ class TarballStorageMock implements TarballStorage {
   Bucket get bucket => bucketMock;
 
   @override
-  Storage get storage => throw new Exception('no storage support');
+  Storage get storage => throw Exception('no storage support');
 
   @override
-  TarballStorageNamer get namer => throw new Exception('no namer support');
+  TarballStorageNamer get namer => throw Exception('no namer support');
 
   @override
   Stream<List<int>> download(String package, String version) {
     if (downloadFun == null) {
-      throw new Exception('no downloadFun');
+      throw Exception('no downloadFun');
     }
     return (downloadFun(package, version) as Stream).cast<List<int>>();
   }
@@ -232,7 +232,7 @@ class TarballStorageMock implements TarballStorage {
   @override
   Future<Uri> downloadUrl(String package, String version) async {
     if (downloadUrlFun == null) {
-      throw new Exception('no downloadUrlFun');
+      throw Exception('no downloadUrlFun');
     }
     return (await downloadUrlFun(package, version)) as Uri;
   }
@@ -240,7 +240,7 @@ class TarballStorageMock implements TarballStorage {
   @override
   Stream<List<int>> readTempObject(String guid) {
     if (readTempObjectFun == null) {
-      throw new Exception('no readTempObjectFun');
+      throw Exception('no readTempObjectFun');
     }
     return (readTempObjectFun(guid) as Stream).cast<List<int>>();
   }
@@ -248,7 +248,7 @@ class TarballStorageMock implements TarballStorage {
   @override
   Future removeTempObject(String guid) async {
     if (removeTempObjectFun == null) {
-      throw new Exception('no removeTempObjectFun');
+      throw Exception('no removeTempObjectFun');
     }
     return removeTempObjectFun(guid);
   }
@@ -256,7 +256,7 @@ class TarballStorageMock implements TarballStorage {
   @override
   String tempObjectName(String guid) {
     if (tmpObjectNameFun == null) {
-      throw new Exception('no tmpObjectNameFun');
+      throw Exception('no tmpObjectNameFun');
     }
     return tmpObjectNameFun(guid) as String;
   }
@@ -265,7 +265,7 @@ class TarballStorageMock implements TarballStorage {
   Future upload(
       String package, String version, Stream<List<int>> tarball) async {
     if (uploadFun == null) {
-      throw new Exception('no uploadFun');
+      throw Exception('no uploadFun');
     }
     return uploadFun(package, version, tarball);
   }
@@ -274,14 +274,13 @@ class TarballStorageMock implements TarballStorage {
   Future uploadViaTempObject(
       String guid, String package, String version) async {
     if (uploadViaTempObjectFun == null) {
-      throw new Exception('no uploadViaTempObjectFun');
+      throw Exception('no uploadViaTempObjectFun');
     }
     return uploadViaTempObjectFun(guid, package, version);
   }
 
   @override
-  Future remove(String package, String version) =>
-      throw new UnimplementedError();
+  Future remove(String package, String version) => throw UnimplementedError();
 }
 
 class UploadSignerServiceMock implements UploadSignerService {
@@ -300,7 +299,7 @@ class UploadSignerServiceMock implements UploadSignerService {
   }
 
   @override
-  Future<SigningResult> sign(List<int> bytes) => throw new UnimplementedError();
+  Future<SigningResult> sign(List<int> bytes) => throw UnimplementedError();
 }
 
 class BucketMock implements Bucket {
@@ -311,37 +310,37 @@ class BucketMock implements Bucket {
 
   @override
   String absoluteObjectName(String objectName) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future delete(String name) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<ObjectInfo> info(String name) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Stream<BucketEntry> list({String prefix}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<Page<BucketEntry>> page({String prefix, int pageSize = 50}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Stream<List<int>> read(String objectName, {int offset = 0, int length}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future updateMetadata(String objectName, ObjectMetadata metadata) async {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -351,7 +350,7 @@ class BucketMock implements Bucket {
       Acl acl,
       PredefinedAcl predefinedAcl,
       String contentType}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -360,7 +359,7 @@ class BucketMock implements Bucket {
       Acl acl,
       PredefinedAcl predefinedAcl,
       String contentType}) async {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 }
 
@@ -377,16 +376,16 @@ Future<T> withTempDirectory<T>(Future<T> func(String temp)) async {
 Future withTestPackage(Future func(List<int> tarball),
     {String pubspecContent}) {
   return withTempDirectory((String tmp) async {
-    final readme = new File('$tmp/README.md');
-    final changelog = new File('$tmp/CHANGELOG.md');
-    final pubspec = new File('$tmp/pubspec.yaml');
+    final readme = File('$tmp/README.md');
+    final changelog = File('$tmp/CHANGELOG.md');
+    final pubspec = File('$tmp/pubspec.yaml');
 
     await readme.writeAsString(testPackageReadme);
     await changelog.writeAsString(testPackageChangelog);
     await pubspec.writeAsString(pubspecContent ?? testPackagePubspec);
 
-    await new Directory('$tmp/lib').create();
-    new File('$tmp/lib/test_library.dart')
+    await Directory('$tmp/lib').create();
+    File('$tmp/lib/test_library.dart')
         .writeAsString('hello() => print("hello");');
 
     final files = [
@@ -402,7 +401,7 @@ Future withTestPackage(Future func(List<int> tarball),
     final bytes = await p.stdout.fold<List<int>>([], (b, d) => b..addAll(d));
     final exitCode = await p.exitCode;
     if (exitCode != 0) {
-      throw new Exception('Failed to make tarball of test package.');
+      throw Exception('Failed to make tarball of test package.');
     }
     return func(bytes);
   });
@@ -417,12 +416,12 @@ class HistoryBackendMock implements HistoryBackend {
   @override
   Stream<History> getAll(
       {String scope, String packageName, String packageVersion, int limit}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future storeEvent(HistoryEvent event) async {
-    storedHistories.add(new History.entry(event));
+    storedHistories.add(History.entry(event));
   }
 }
 

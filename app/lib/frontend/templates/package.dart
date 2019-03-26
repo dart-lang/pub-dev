@@ -324,12 +324,12 @@ String renderPkgShowPage(
 
 String _getAuthorsHtml(List<String> authors) {
   return (authors ?? const []).map((String value) {
-    final EmailAddress author = new EmailAddress.parse(value);
+    final EmailAddress author = EmailAddress.parse(value);
     final escapedName = htmlEscape.convert(author.name ?? author.email);
     if (author.email != null) {
       final escapedEmail = htmlAttrEscape.convert(author.email);
       final emailSearchUrl = htmlAttrEscape.convert(
-          new SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
+          SearchQuery.parse(query: 'email:${author.email}').toSearchLink());
       return '<span class="author">'
           '<a href="mailto:$escapedEmail" title="Email $escapedEmail">'
           '<i class="email-icon"></i></a> '

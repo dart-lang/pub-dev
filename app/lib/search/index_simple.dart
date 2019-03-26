@@ -37,12 +37,12 @@ class SimplePackageIndex implements PackageIndex {
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
   final Map<String, String> _normalizedPackageText = <String, String>{};
-  final TokenIndex _nameIndex = new TokenIndex(minLength: 2);
-  final TokenIndex _descrIndex = new TokenIndex(minLength: 3);
-  final TokenIndex _readmeIndex = new TokenIndex(minLength: 3);
-  final TokenIndex _apiSymbolIndex = new TokenIndex(minLength: 2);
-  final TokenIndex _apiDartdocIndex = new TokenIndex(minLength: 3);
-  final StringInternPool _internPool = new StringInternPool();
+  final TokenIndex _nameIndex = TokenIndex(minLength: 2);
+  final TokenIndex _descrIndex = TokenIndex(minLength: 3);
+  final TokenIndex _readmeIndex = TokenIndex(minLength: 3);
+  final TokenIndex _apiSymbolIndex = TokenIndex(minLength: 2);
+  final TokenIndex _apiDartdocIndex = TokenIndex(minLength: 3);
+  final StringInternPool _internPool = StringInternPool();
   DateTime _lastUpdated;
   bool _isReady = false;
 
@@ -66,7 +66,7 @@ class SimplePackageIndex implements PackageIndex {
 
     if (_lastUpdated != null) {
       data['lastUpdateDelta'] =
-          new DateTime.now().difference(_lastUpdated).toString();
+          DateTime.now().difference(_lastUpdated).toString();
     }
 
     return data;
@@ -80,7 +80,7 @@ class SimplePackageIndex implements PackageIndex {
     if (version != null && doc.version != version) return false;
     if (maxAge != null &&
         (doc.timestamp == null ||
-            new DateTime.now().toUtc().difference(doc.timestamp) > maxAge)) {
+            DateTime.now().toUtc().difference(doc.timestamp) > maxAge)) {
       return false;
     }
     return true;
@@ -139,7 +139,7 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
-    final Set<String> packages = new Set.from(_packages.keys);
+    final Set<String> packages = Set.from(_packages.keys);
 
     // filter on package prefix
     if (query.parsedQuery?.packagePrefix != null) {
@@ -236,7 +236,7 @@ class SimplePackageIndex implements PackageIndex {
           scores.add(textResults.pkgScore);
         }
         if (query.order == null && platformSpecificity != null) {
-          scores.add(new Score(platformSpecificity));
+          scores.add(Score(platformSpecificity));
         }
         Score overallScore = Score.multiply(scores);
         // If there is an exact match for a package name (in the filtered result
@@ -284,7 +284,7 @@ class SimplePackageIndex implements PackageIndex {
       results = results.map((ps) {
         final apiPages = textResults.topApiPages[ps.package]
             // TODO: extract title for the page
-            ?.map((String page) => new ApiPageRef(path: page))
+            ?.map((String page) => ApiPageRef(path: page))
             ?.toList();
         return ps.change(apiPages: apiPages);
       }).toList();
@@ -314,7 +314,7 @@ class SimplePackageIndex implements PackageIndex {
       }).toList();
     }
 
-    return new PackageSearchResult(
+    return PackageSearchResult(
       totalCount: totalCount,
       indexUpdated: _lastUpdated?.toIso8601String(),
       packages: results,
@@ -324,13 +324,13 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future merge() async {
     _isReady = true;
-    _lastUpdated = new DateTime.now().toUtc();
+    _lastUpdated = DateTime.now().toUtc();
     _internPool.checkUnboundGrowth();
   }
 
   // visible for testing only
   Map<String, double> getHealthScore(Iterable<String> packages) {
-    return new Map.fromIterable(
+    return Map.fromIterable(
       packages,
       value: (package) => (_packages[package].health ?? 0.0),
     );
@@ -338,7 +338,7 @@ class SimplePackageIndex implements PackageIndex {
 
   // visible for testing only
   Map<String, double> getPopularityScore(Iterable<String> packages) {
-    return new Map.fromIterable(
+    return Map.fromIterable(
       packages,
       value: (package) => _packages[package].popularity ?? 0.0,
     );
@@ -346,7 +346,7 @@ class SimplePackageIndex implements PackageIndex {
 
   // visible for testing only
   Map<String, double> getMaintenanceScore(Iterable<String> packages) {
-    return new Map.fromIterable(
+    return Map.fromIterable(
       packages,
       value: (package) => (_packages[package].maintenance ?? 0.0),
     );
@@ -354,7 +354,7 @@ class SimplePackageIndex implements PackageIndex {
 
   Score _getOverallScore(Iterable<String> packages) {
     final Map<String, double> values =
-        new Map.fromIterable(packages, value: (package) {
+        Map.fromIterable(packages, value: (package) {
       final doc = _packages[package];
       final double overall = calculateOverallScore(
         popularity: doc.popularity ?? 0.0,
@@ -364,7 +364,7 @@ class SimplePackageIndex implements PackageIndex {
       // don't multiply with zero.
       return 0.3 + 0.7 * overall;
     });
-    return new Score(values);
+    return Score(values);
   }
 
   _TextResults _searchText(
@@ -379,20 +379,20 @@ class SimplePackageIndex implements PackageIndex {
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
 
-        final name = new Score(_nameIndex.scoreDocs(nameTokens,
+        final name = Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
-        final descr = new Score(_descrIndex.scoreDocs(descrTokens,
+        final descr = Score(_descrIndex.scoreDocs(descrTokens,
             weight: 0.95, wordCount: wordCount));
-        final readme = new Score(_readmeIndex.scoreDocs(readmeTokens,
+        final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
             weight: 0.90, wordCount: wordCount));
 
         Score apiScore;
         if (isExperimental) {
           final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
           final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
-          final symbolPages = new Score(_apiSymbolIndex
-              .scoreDocs(apiSymbolTokens, weight: 0.95, wordCount: wordCount));
-          final dartdocPages = new Score(_apiDartdocIndex
+          final symbolPages = Score(_apiSymbolIndex.scoreDocs(apiSymbolTokens,
+              weight: 0.95, wordCount: wordCount));
+          final dartdocPages = Score(_apiDartdocIndex
               .scoreDocs(apiDartdocTokens, weight: 0.90, wordCount: wordCount));
           final apiPages = Score.max([symbolPages, dartdocPages]);
           apiPagesScores.add(apiPages);
@@ -403,9 +403,9 @@ class SimplePackageIndex implements PackageIndex {
             final value = apiPages[key];
             apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
           }
-          apiScore = new Score(apiPackages);
+          apiScore = Score(apiPackages);
         } else {
-          apiScore = new Score({});
+          apiScore = Score({});
         }
 
         pkgScores.add(Score.max([name, descr, readme, apiScore]));
@@ -429,7 +429,7 @@ class SimplePackageIndex implements PackageIndex {
             matched[package] = score[package];
           }
         }
-        score = new Score(matched);
+        score = Score(matched);
       }
 
       score = score.removeLowValues(fraction: 0.01, minValue: 0.001);
@@ -447,7 +447,7 @@ class SimplePackageIndex implements PackageIndex {
         }
       }
 
-      return new _TextResults(score, topApiPages);
+      return _TextResults(score, topApiPages);
     }
     return null;
   }
@@ -456,7 +456,7 @@ class SimplePackageIndex implements PackageIndex {
     final List<PackageScore> list = values.keys
         .map((package) {
           final score = values[package];
-          return new PackageScore(package: package, score: score);
+          return PackageScore(package: package, score: score);
         })
         .where((ps) => ps != null)
         .toList();
@@ -472,7 +472,7 @@ class SimplePackageIndex implements PackageIndex {
   List<PackageScore> _rankWithComparator(
       Set<String> packages, int compare(PackageDocument a, PackageDocument b)) {
     final List<PackageScore> list = packages
-        .map((package) => new PackageScore(package: _packages[package].package))
+        .map((package) => PackageScore(package: _packages[package].package))
         .toList();
     list.sort((a, b) => compare(_packages[a.package], _packages[b.package]));
     return list;
@@ -514,7 +514,7 @@ class _TextResults {
 class Score {
   final Map<String, double> _values;
 
-  Score(Map<String, double> values) : _values = new Map.unmodifiable(values);
+  Score(Map<String, double> values) : _values = Map.unmodifiable(values);
 
   Set<String> getKeys() => _values.keys.toSet();
   double getMaxValue() => _values.values.fold(0.0, math.max);
@@ -534,9 +534,9 @@ class Score {
       }
     }
     if (keys == null || keys.isEmpty) {
-      return new Score({});
+      return Score({});
     }
-    return new Score(new Map.fromIterable(
+    return Score(Map.fromIterable(
       keys,
       value: (key) =>
           scores.fold(1.0, (double value, Score s) => s[key as String] * value),
@@ -552,7 +552,7 @@ class Score {
         result[key] = math.max(result[key] ?? 0.0, score[key]);
       }
     }
-    return new Score(result);
+    return Score(result);
   }
 
   /// Remove insignificant values below a certain threshold:
@@ -575,7 +575,7 @@ class Score {
       if (value < threshold) continue;
       result[key] = value;
     }
-    return new Score(result);
+    return Score(result);
   }
 
   /// Keeps the scores only for values in [keys].
@@ -586,7 +586,7 @@ class Score {
       if (value == null) continue;
       result[key] = value;
     }
-    return new Score(result);
+    return Score(result);
   }
 
   /// Transfer the score values with [f].
@@ -595,7 +595,7 @@ class Score {
     for (String key in _values.keys) {
       result[key] = f(key, _values[key]);
     }
-    return new Score(result);
+    return Score(result);
   }
 }
 
@@ -616,7 +616,7 @@ class TokenMatch {
   double get maxWeight =>
       _maxWeight ??= _tokenWeights.values.fold(0.0, math.max);
 
-  Map<String, double> get tokenWeights => new Map.unmodifiable(_tokenWeights);
+  Map<String, double> get tokenWeights => Map.unmodifiable(_tokenWeights);
 }
 
 /// Stores a token -> documentId inverted index with weights.
@@ -660,7 +660,7 @@ class TokenIndex {
       if (weights.isEmpty) {
         for (String reduced in deriveLookupCandidates(token)) {
           _lookupCandidates
-              .putIfAbsent(reduced, () => new Set<String>())
+              .putIfAbsent(reduced, () => Set<String>())
               .add(token);
         }
       }
@@ -694,12 +694,12 @@ class TokenIndex {
 
   /// Match the text against the corpus and return the tokens that have match.
   TokenMatch lookupTokens(String text) {
-    final TokenMatch tokenMatch = new TokenMatch();
+    final TokenMatch tokenMatch = TokenMatch();
     final tokens = tokenize(text) ?? {};
 
     // Check which tokens have documents, and assign their weight.
     for (String token in tokens.keys) {
-      final candidates = new Set<String>();
+      final candidates = Set<String>();
       candidates.add(token);
       for (String reduced in deriveLookupCandidates(token)) {
         final set = _lookupCandidates[reduced];

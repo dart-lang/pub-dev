@@ -263,10 +263,10 @@ void _setEventForSortControl() {
 
   final String originalSort = sortControl.dataset['sort'] ?? '';
   sortControl.innerHtml = '';
-  final select = new SelectElement();
+  final select = SelectElement();
 
   void add(String sort, String label) {
-    select.append(new OptionElement(
+    select.append(OptionElement(
         value: sort, data: label, selected: originalSort == sort));
   }
 
@@ -286,7 +286,7 @@ void _setEventForSortControl() {
     InputElement sortInput =
         document.querySelector('input[name="sort"]') as InputElement;
     if (sortInput == null) {
-      sortInput = new InputElement(type: 'hidden')..name = 'sort';
+      sortInput = InputElement(type: 'hidden')..name = 'sort';
       queryText.parent.append(sortInput);
     }
     if (value == 'listing_relevance' || value == 'search_relevance') {

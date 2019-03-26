@@ -24,7 +24,7 @@ Future main() async {
 
   group('ui', () {
     tScopedTest('/packages/foobar_pkg - found', () async {
-      final backend = new BackendMock(lookupPackageFun: (String packageName) {
+      final backend = BackendMock(lookupPackageFun: (String packageName) {
         expect(packageName, 'foobar_pkg');
         return testPackage;
       }, versionsOfPackageFun: (String package) {
@@ -39,14 +39,14 @@ Future main() async {
           ..id = 'uuid-hans-at-juergen-dot-com'
           ..email = 'hans@juergen.com',
       ]));
-      registerAnalyzerClient(new AnalyzerClientMock());
-      registerDartdocClient(new DartdocClientMock());
-      registerScoreCardBackend(new ScoreCardBackendMock());
+      registerAnalyzerClient(AnalyzerClientMock());
+      registerDartdocClient(DartdocClientMock());
+      registerScoreCardBackend(ScoreCardBackendMock());
       await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
     });
 
     tScopedTest('/packages/foobar_pkg - not found', () async {
-      final backend = new BackendMock(lookupPackageFun: (String packageName) {
+      final backend = BackendMock(lookupPackageFun: (String packageName) {
         expect(packageName, 'foobar_pkg');
         return null;
       });
@@ -56,19 +56,19 @@ Future main() async {
     });
 
     tScopedTest('/packages/foobar_pkg/versions - found', () async {
-      final backend = new BackendMock(versionsOfPackageFun: (String package) {
+      final backend = BackendMock(versionsOfPackageFun: (String package) {
         expect(package, testPackage.name);
         return [testPackageVersion];
       }, downloadUrlFun: (String package, String version) {
         return Uri.parse('http://blobstore/$package/$version');
       });
       registerBackend(backend);
-      registerDartdocClient(new DartdocClientMock());
+      registerDartdocClient(DartdocClientMock());
       await expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));
     });
 
     tScopedTest('/packages/foobar_pkg/versions - not found', () async {
-      final backend = new BackendMock(versionsOfPackageFun: (String package) {
+      final backend = BackendMock(versionsOfPackageFun: (String package) {
         expect(package, testPackage.name);
         return [];
       });
@@ -79,7 +79,7 @@ Future main() async {
     });
 
     tScopedTest('/packages/foobar_pkg/versions/0.1.1 - found', () async {
-      final backend = new BackendMock(lookupPackageFun: (String package) {
+      final backend = BackendMock(lookupPackageFun: (String package) {
         expect(package, testPackage.name);
         return testPackage;
       }, versionsOfPackageFun: (String package) {
@@ -94,15 +94,15 @@ Future main() async {
           ..id = 'uuid-hans-at-juergen-dot-com'
           ..email = 'hans@juergen.com',
       ]));
-      registerAnalyzerClient(new AnalyzerClientMock());
-      registerDartdocClient(new DartdocClientMock());
-      registerScoreCardBackend(new ScoreCardBackendMock());
+      registerAnalyzerClient(AnalyzerClientMock());
+      registerDartdocClient(DartdocClientMock());
+      registerScoreCardBackend(ScoreCardBackendMock());
       await expectHtmlResponse(
           await issueGet('/packages/foobar_pkg/versions/0.1.1+5'));
     });
 
     tScopedTest('/packages/foobar_pkg/versions/0.1.2 - not found', () async {
-      final backend = new BackendMock(lookupPackageFun: (String package) {
+      final backend = BackendMock(lookupPackageFun: (String package) {
         expect(package, testPackage.name);
         return testPackage;
       }, versionsOfPackageFun: (String package) {
@@ -112,8 +112,8 @@ Future main() async {
         return Uri.parse('http://blobstore/$package/$version');
       });
       registerBackend(backend);
-      registerAnalyzerClient(new AnalyzerClientMock());
-      registerDartdocClient(new DartdocClientMock());
+      registerAnalyzerClient(AnalyzerClientMock());
+      registerDartdocClient(DartdocClientMock());
       await expectRedirectResponse(
           await issueGet('/packages/foobar_pkg/versions/0.1.2'),
           '/packages/foobar_pkg#-versions-tab-');

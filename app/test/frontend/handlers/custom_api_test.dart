@@ -18,7 +18,7 @@ void main() {
   group('editor api', () {
     tScopedTest('/api/packages', () async {
       final backend =
-          new BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
+          BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
         expect(offset, 0);
         expect(limit, greaterThan(10));
         return [testPackage];

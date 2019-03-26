@@ -24,7 +24,7 @@ void main() {
       search.main();
       break;
     default:
-      throw new StateError(
+      throw StateError(
           'Uknown GAE_SERVICE environment: ${envConfig.gaeService}');
   }
 }

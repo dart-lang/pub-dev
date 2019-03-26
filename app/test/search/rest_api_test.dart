@@ -15,8 +15,8 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'cloud_firestore',
         version: '0.7.2',
         description: compactDescription(
@@ -34,7 +34,7 @@ For Flutter plugins for other Firebase products, see [FlutterFire.md](https://gi
 
 Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec functionality](https://github.com/flutter/flutter/pull/15414) that is not yet released to the [beta channel](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels) of Flutter. If you're encountering issues using those versions, consider switching to the dev channel.'''),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'currency_cloud',
         version: '0.2.1',
         description: compactDescription(
@@ -49,7 +49,7 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
 
     test('REST API', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'rest api', order: SearchOrder.text));
+          SearchQuery.parse(query: 'rest api', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,

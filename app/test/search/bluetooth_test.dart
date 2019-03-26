@@ -15,13 +15,13 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'flutter_blue',
         version: '0.2.3',
         description: compactDescription('Bluetooth plugin for Flutter.'),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'smooth_scroll',
         version: '0.0.3',
         description: compactDescription(
@@ -32,7 +32,7 @@ void main() {
 
     test('bluetooth', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'bluetooth', order: SearchOrder.text));
+          SearchQuery.parse(query: 'bluetooth', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,

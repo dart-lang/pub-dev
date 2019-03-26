@@ -29,7 +29,7 @@ Future<shelf.Response> issueGet(String path) {
 }
 
 Future<shelf.Response> issueGetUri(Uri uri) async {
-  final request = new shelf.Request('GET', uri);
+  final request = shelf.Request('GET', uri);
   return appHandler(request, null);
 }
 
@@ -47,5 +47,5 @@ Future expectAtomXmlResponse(shelf.Response response,
   expect(response.headers['content-type'],
       'application/atom+xml; charset="utf-8"');
   final text = await response.readAsString();
-  expect(new RegExp(regexp).hasMatch(text), isTrue);
+  expect(RegExp(regexp).hasMatch(text), isTrue);
 }

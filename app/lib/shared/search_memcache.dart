@@ -11,7 +11,7 @@ import 'package:logging/logging.dart';
 import 'redis_cache.dart';
 import 'search_service.dart';
 
-final Logger _logger = new Logger('pub.search_memcache');
+final Logger _logger = Logger('pub.search_memcache');
 
 /// Sets the search memcache.
 void registerSearchMemcache(SearchMemcache value) =>
@@ -25,7 +25,7 @@ class SearchMemcache {
   final SimpleMemcache _pkgSearch;
 
   SearchMemcache()
-      : _pkgSearch = new SimpleMemcache(
+      : _pkgSearch = SimpleMemcache(
           'SearchMemcache/',
           _logger,
           Duration(minutes: 10),
@@ -35,7 +35,7 @@ class SearchMemcache {
     final content = await _pkgSearch.getText(url);
     if (content == null) return null;
     try {
-      return new PackageSearchResult.fromJson(
+      return PackageSearchResult.fromJson(
           json.decode(content) as Map<String, dynamic>);
     } catch (e, st) {
       _logger.warning('Unable to deserialize PackageSearchResult.', e, st);

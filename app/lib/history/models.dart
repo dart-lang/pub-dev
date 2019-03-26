@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 
 part 'models.g.dart';
 
-final _uuid = new Uuid();
+final _uuid = Uuid();
 
 abstract class HistorySource {
   static const String account = 'account';
@@ -31,19 +31,19 @@ class History extends db.ExpandoModel {
     HistoryUnion union,
   }) {
     id = _uuid.v4();
-    timestamp ??= new DateTime.now().toUtc();
+    timestamp ??= DateTime.now().toUtc();
     final map = union.toJson();
     eventType = map.keys.single;
     eventData = map.values.single as Map<String, dynamic>;
   }
 
   factory History.entry(HistoryEvent event) {
-    return new History._(
+    return History._(
       packageName: event.packageName,
       packageVersion: event.packageVersion ?? '*',
       timestamp: event.timestamp,
       source: event.source,
-      union: new HistoryUnion.ofEvent(event),
+      union: HistoryUnion.ofEvent(event),
     );
   }
 
@@ -73,7 +73,7 @@ class History extends db.ExpandoModel {
   }
 
   HistoryUnion get historyUnion =>
-      new HistoryUnion.fromJson({eventType: eventData});
+      HistoryUnion.fromJson({eventType: eventData});
 
   HistoryEvent get historyEvent => historyUnion.event;
 
@@ -106,15 +106,15 @@ class HistoryUnion {
 
   factory HistoryUnion.ofEvent(HistoryEvent event) {
     if (event is PackageUploaded) {
-      return new HistoryUnion(packageUploaded: event);
+      return HistoryUnion(packageUploaded: event);
     } else if (event is UploaderChanged) {
-      return new HistoryUnion(uploaderChanged: event);
+      return HistoryUnion(uploaderChanged: event);
     } else if (event is UploaderInvited) {
-      return new HistoryUnion(uploaderInvited: event);
+      return HistoryUnion(uploaderInvited: event);
     } else if (event is AnalysisCompleted) {
-      return new HistoryUnion(analysisCompleted: event);
+      return HistoryUnion(analysisCompleted: event);
     } else {
-      throw new ArgumentError('Unknown type: ${event.runtimeType}');
+      throw ArgumentError('Unknown type: ${event.runtimeType}');
     }
   }
 
@@ -152,7 +152,7 @@ class PackageUploaded implements HistoryEvent {
     @required this.uploaderId,
     @required this.uploaderEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory PackageUploaded.fromJson(Map<String, dynamic> json) =>
       _$PackageUploadedFromJson(json);
@@ -190,7 +190,7 @@ class UploaderChanged implements HistoryEvent {
     this.removedUploaderIds,
     this.removedUploaderEmails,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
 
   @override
   String get packageVersion => null;
@@ -237,7 +237,7 @@ class UploaderInvited implements HistoryEvent {
     @required this.currentUserEmail,
     @required this.uploaderUserEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory UploaderInvited.fromJson(Map<String, dynamic> json) =>
       _$UploaderInvitedFromJson(json);
@@ -273,7 +273,7 @@ class AnalysisCompleted implements HistoryEvent {
     @required this.hasErrors,
     @required this.hasPlatforms,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? new DateTime.now().toUtc();
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory AnalysisCompleted.fromJson(Map<String, dynamic> json) =>
       _$AnalysisCompletedFromJson(json);

@@ -25,17 +25,17 @@ Future main() async {
   group('handlers', () {
     group('not found', () {
       tScopedTest('/xxx', () async {
-        registerSearchService(new SearchServiceMock((SearchQuery query) {
+        registerSearchService(SearchServiceMock((SearchQuery query) {
           expect(query.order, isNull);
           expect(query.offset, 0);
           expect(query.limit, topQueryLimit);
           expect(query.platform, isNull);
           expect(query.query, isNull);
           expect(query.isAd, isTrue);
-          return new SearchResultPage(
+          return SearchResultPage(
             query,
             1,
-            [new PackageView.fromModel(version: testPackageVersion)],
+            [PackageView.fromModel(version: testPackageVersion)],
           );
         }));
         await expectNotFoundResponse(await issueGet('/xxx'));

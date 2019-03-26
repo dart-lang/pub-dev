@@ -35,7 +35,7 @@ import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 
-final Logger _logger = new Logger('pub.search');
+final Logger _logger = Logger('pub.search');
 
 Future main() async {
   await startIsolates(logger: _logger, frontendEntryPoint: _main);
@@ -44,9 +44,9 @@ Future main() async {
 Future _main(FrontendEntryMessage message) async {
   setupServiceIsolate();
 
-  final statsConsumer = new ReceivePort();
+  final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(new FrontendProtocolMessage(
+  message.protocolSendPort.send(FrontendProtocolMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
@@ -56,50 +56,50 @@ Future _main(FrontendEntryMessage message) async {
     final popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
-        new PopularityStorage(storageService, popularityBucket));
+        PopularityStorage(storageService, popularityBucket));
     await popularityStorage.init();
 
-    final AnalyzerClient analyzerClient = new AnalyzerClient();
+    final AnalyzerClient analyzerClient = AnalyzerClient();
     registerAnalyzerClient(analyzerClient);
     registerScopeExitCallback(analyzerClient.close);
 
     final Bucket dartdocBucket = await getOrCreateBucket(
         storageService, activeConfiguration.dartdocStorageBucketName);
-    registerDartdocBackend(new DartdocBackend(db.dbService, dartdocBucket));
-    registerDartdocMemcache(new DartdocMemcache());
-    final DartdocClient dartdocClient = new DartdocClient();
+    registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
+    registerDartdocMemcache(DartdocMemcache());
+    final DartdocClient dartdocClient = DartdocClient();
     registerDartdocClient(dartdocClient);
     registerScopeExitCallback(dartdocClient.close);
 
-    registerScoreCardBackend(new ScoreCardBackend(db.dbService));
-    registerScoreCardMemcache(new ScoreCardMemcache());
+    registerScoreCardBackend(ScoreCardBackend(db.dbService));
+    registerScoreCardMemcache(ScoreCardMemcache());
 
-    registerSearchBackend(new SearchBackend(db.dbService));
+    registerSearchBackend(SearchBackend(db.dbService));
 
     final Bucket snapshotBucket = await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
-    registerSnapshotStorage(new SnapshotStorage(snapshotBucket));
+    registerSnapshotStorage(SnapshotStorage(snapshotBucket));
     snapshotStorage.scheduleOldDataGC();
 
-    final ReceivePort taskReceivePort = new ReceivePort();
-    registerDartSdkIndex(new SimplePackageIndex.sdk(
-        urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerPackageIndex(new SimplePackageIndex());
+    final ReceivePort taskReceivePort = ReceivePort();
+    registerDartSdkIndex(
+        SimplePackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
+    registerPackageIndex(SimplePackageIndex());
     registerTaskSendPort(taskReceivePort.sendPort);
 
     // Don't block on SDK index updates, as it may take several minutes before
     // the dartdoc service produces the required output.
     _updateDartSdkIndex().whenComplete(() {});
 
-    final BatchIndexUpdater batchIndexUpdater = new BatchIndexUpdater();
+    final BatchIndexUpdater batchIndexUpdater = BatchIndexUpdater();
     await batchIndexUpdater.initSnapshot();
 
-    final scheduler = new TaskScheduler(
+    final scheduler = TaskScheduler(
       batchIndexUpdater,
       [
-        new ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-        new IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
-        new DatastoreHeadTaskSource(
+        ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
+        IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
+        DatastoreHeadTaskSource(
           db.dbService,
           TaskSourceModel.scorecard,
           sleep: const Duration(minutes: 10),
@@ -110,7 +110,7 @@ Future _main(FrontendEntryMessage message) async {
     );
     scheduler.run();
 
-    new Timer.periodic(const Duration(minutes: 5), (_) {
+    Timer.periodic(const Duration(minutes: 5), (_) {
       updateLatestStats(scheduler.stats());
     });
 
@@ -137,6 +137,6 @@ Future _updateDartSdkIndex() async {
     if (i % 10 == 0) {
       _logger.warning('Unable to load Dart SDK index. Attempt: $i');
     }
-    await new Future.delayed(const Duration(minutes: 1));
+    await Future.delayed(const Duration(minutes: 1));
   }
 }

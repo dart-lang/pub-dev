@@ -35,35 +35,35 @@ void main() {
 
   test('runtime version should be (somewhat) lexicographically ordered', () {
     expect(runtimeVersion.length, greaterThanOrEqualTo(10));
-    expect(new RegExp(r'\d{4}\.\d{2}\.\d{2}.*').matchAsPrefix(runtimeVersion),
+    expect(RegExp(r'\d{4}\.\d{2}\.\d{2}.*').matchAsPrefix(runtimeVersion),
         isNotNull);
   });
 
   test('runtime sdk version should match travis and dockerfile', () async {
-    final String docker = await new File('../Dockerfile').readAsString();
+    final String docker = await File('../Dockerfile').readAsString();
     expect(
         docker.contains('\nFROM google/dart-runtime-base:$runtimeSdkVersion\n'),
         isTrue);
-    final String monoPkg = await new File('mono_pkg.yaml').readAsString();
+    final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
-    final String travis = await new File('../.travis.yml').readAsString();
+    final String travis = await File('../.travis.yml').readAsString();
     expect(travis.contains('$runtimeSdkVersion'), isTrue);
   });
 
   test('tool-env sdk version should match dockerfile', () async {
-    final String docker = await new File('../Dockerfile').readAsString();
+    final String docker = await File('../Dockerfile').readAsString();
     expect(docker.contains('release/$toolEnvSdkVersion/sdk'), isTrue);
   });
 
   test('analyzer version should match resolved pana version', () async {
-    final String lockContent = await new File('pubspec.lock').readAsString();
+    final String lockContent = await File('pubspec.lock').readAsString();
     final lock = loadYaml(lockContent) as Map;
     expect(lock['packages']['pana']['version'], panaVersion);
   });
 
   test('flutter version should match the tag in setup-flutter.sh', () {
     final flutterSetupContent =
-        new File('script/setup-flutter.sh').readAsStringSync();
+        File('script/setup-flutter.sh').readAsStringSync();
 
     expect(
         flutterSetupContent,
@@ -73,8 +73,8 @@ void main() {
 
   test('dartdoc version should match pkg/pub_dartdoc', () async {
     final yamlContent =
-        await new File('../pkg/pub_dartdoc/pubspec.yaml').readAsString();
-    final pubspec = new Pubspec.parse(yamlContent);
+        await File('../pkg/pub_dartdoc/pubspec.yaml').readAsString();
+    final pubspec = Pubspec.parse(yamlContent);
     final dependency = pubspec.dependencies['dartdoc'] as HostedDependency;
     expect(dependency.version.toString(), dartdocVersion);
   });

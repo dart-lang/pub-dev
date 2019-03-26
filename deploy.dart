@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-HttpClient httpClient = new HttpClient();
+HttpClient httpClient = HttpClient();
 
 void die(String msg) {
   print('$msg:');
@@ -55,7 +55,7 @@ Future main(List<String> args) async {
     die('Cannot delete the old version without migrating traffic');
   }
 
-  final newVersion = new DateTime.now()
+  final newVersion = DateTime.now()
       .toIso8601String()
       .replaceAll('-', '')
       .replaceAll(':', '')
@@ -66,7 +66,7 @@ Future main(List<String> args) async {
 
   for (String service in services) {
     print('\nDeploying $service...\n');
-    await new _ServiceDeployer(
+    await _ServiceDeployer(
             service, newVersion, deleteOld, migrateTraffic, stopFirst)
         .deploy();
   }
@@ -87,7 +87,7 @@ class _ServiceDeployer {
       this.migrateTraffic, this.stopFirst)
       : project = Platform.environment['GCLOUD_PROJECT'] {
     if (project == null) {
-      throw new StateError('GCLOUD_PROJECT must be set!');
+      throw StateError('GCLOUD_PROJECT must be set!');
     }
   }
 
@@ -145,7 +145,7 @@ class _ServiceDeployer {
       case 'default':
         return 'https://$newVersion-dot-$project.appspot.com';
     }
-    throw new StateError('Unknown service: $service');
+    throw StateError('Unknown service: $service');
   }
 
   Future _checkHealth() async {
@@ -170,7 +170,7 @@ class _ServiceDeployer {
 
       // wait before retry
       if (i > 0) {
-        await new Future.delayed(const Duration(seconds: 15));
+        await Future.delayed(const Duration(seconds: 15));
       }
     }
 

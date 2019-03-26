@@ -55,7 +55,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     try {
       return await handler(request);
     } catch (error, st) {
-      logger.severe('Request handler failed', error, new Trace.from(st));
+      logger.severe('Request handler failed', error, Trace.from(st));
 
       final title = 'Pub is not feeling well';
       Map<String, String> debugHeaders;
@@ -135,7 +135,7 @@ shelf.Handler _redirectToHttpsWrapper(shelf.Handler handler) {
     if (context.isProductionEnvironment &&
         request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
-      return new shelf.Response.seeOther(secureUri);
+      return shelf.Response.seeOther(secureUri);
     } else {
       return await handler(request);
     }
@@ -159,7 +159,7 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
     // (The pub client will not remove it and instead directly try to request
     //  "GET //api/..." :-/ )
     final changedUri = uri.replace(path: normalizedResource);
-    final sanitized = new shelf.Request(
+    final sanitized = shelf.Request(
       request.method,
       changedUri,
       protocolVersion: request.protocolVersion,

@@ -16,8 +16,8 @@ const fileName = 'pub-data.json';
 /// Generates `pub-data.json` in the output directory, containing the extracted
 /// [PubDartdocData] instance.
 class PubDataGenerator implements Generator {
-  final _onFileCreated = new StreamController<File>();
-  final _writtenFiles = new Set<String>();
+  final _onFileCreated = StreamController<File>();
+  final _writtenFiles = Set<String>();
   final String _inputDirectory;
 
   PubDataGenerator(this._inputDirectory);
@@ -47,7 +47,7 @@ class PubDataGenerator implements Generator {
       final parent = fqnParts.isEmpty ? null : fqnParts.join('.');
       apiMap.putIfAbsent(
           elem.fullyQualifiedName,
-          () => new ApiElement(
+          () => ApiElement(
                 name: name,
                 kind: elem.kind,
                 parent: parent,
@@ -74,10 +74,10 @@ class PubDataGenerator implements Generator {
       return a.name.compareTo(b.name);
     });
 
-    final extract = new PubDartdocData(apiElements: apiElements);
+    final extract = PubDartdocData(apiElements: apiElements);
 
     final fileName = 'pub-data.json';
-    final outputFile = new File(p.join(outputDirectoryPath, fileName));
+    final outputFile = File(p.join(outputDirectoryPath, fileName));
     await outputFile.writeAsString(convert.json.encode(extract.toJson()));
     _onFileCreated.add(outputFile);
     _writtenFiles.add(fileName);

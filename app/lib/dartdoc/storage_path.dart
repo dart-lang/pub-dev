@@ -4,7 +4,7 @@
 
 import 'package:path/path.dart' as p;
 
-const _generatedStaticAssetPaths = const <String>['static-assets'];
+const _generatedStaticAssetPaths = <String>['static-assets'];
 
 // Storage contains package data in a form of /package/version/...
 // This path contains '-' and is an invalid package name, safe of conflicts.

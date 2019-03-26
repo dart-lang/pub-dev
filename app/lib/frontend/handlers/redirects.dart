@@ -9,7 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
 
-typedef shelf.Response SyncHandler(shelf.Request request);
+typedef SyncHandler = shelf.Response Function(shelf.Request request);
 
 final _handlers = <String, SyncHandler>{
   '/flutter/plugins': (_) => redirectResponse('/flutter/packages'),
@@ -48,7 +48,7 @@ shelf.Response _docRedirectHandler(shelf.Request request) {
   return redirectResponse(pubDocUrl);
 }
 
-const Map<String, String> redirectPaths = const <String, String>{
+const Map<String, String> redirectPaths = <String, String>{
   // /doc/ goes to "Getting started".
   '/doc': 'get-started.html',
   '/doc/': 'get-started.html',
@@ -85,7 +85,7 @@ shelf.Response _searchRedirectHandler(shelf.Request request) {
 /// Handles requests for /server/packages (redirects to /packages?q=...)
 shelf.Response _serverPackagesRedirectHandler(shelf.Request request) {
   final params = request.requestedUri.queryParameters;
-  final uri = new Uri(
+  final uri = Uri(
     path: '/packages',
     queryParameters: params.isNotEmpty ? params : null,
   );

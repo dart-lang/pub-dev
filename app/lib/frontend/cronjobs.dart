@@ -10,7 +10,7 @@ import 'package:stack_trace/stack_trace.dart' show Trace;
 
 import '../shared/configuration.dart' show activeConfiguration;
 
-final _log = new Logger('pub.cronjobs');
+final _log = Logger('pub.cronjobs');
 
 class CronJobs {
   final Bucket backupBucket;

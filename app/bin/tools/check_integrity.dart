@@ -13,7 +13,7 @@ import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
-final _argParser = new ArgParser()
+final _argParser = ArgParser()
   ..addOption('concurrency',
       abbr: 'c', defaultsTo: '1', help: 'Number of concurrent processing.')
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');

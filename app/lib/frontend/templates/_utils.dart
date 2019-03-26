@@ -8,7 +8,7 @@ import '../../shared/markdown.dart';
 
 import '../model_properties.dart' show FileObject;
 
-const HtmlEscape htmlAttrEscape = const HtmlEscape(HtmlEscapeMode.attribute);
+const HtmlEscape htmlAttrEscape = HtmlEscape(HtmlEscapeMode.attribute);
 
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
 String renderFile(FileObject file, String baseUrl) {

@@ -20,7 +20,7 @@ import 'scorecard_memcache.dart';
 
 export 'models.dart';
 
-final _logger = new Logger('pub.scorecard.backend');
+final _logger = Logger('pub.scorecard.backend');
 
 final Duration _deleteThreshold = const Duration(days: 182);
 
@@ -112,13 +112,13 @@ class ScoreCardBackend {
         _logger.info(
             'Updating report: $packageName $packageVersion ${data.reportType}.');
         report
-          ..updated = new DateTime.now().toUtc()
+          ..updated = DateTime.now().toUtc()
           ..reportStatus = data.reportStatus
           ..reportJson = data.toJson();
       } else {
         _logger.info(
             'Creating new report: $packageName $packageVersion ${data.reportType}.');
-        report = new ScoreCardReport.init(
+        report = ScoreCardReport.init(
           packageName: packageName,
           packageVersion: packageVersion,
           reportData: data,
@@ -161,10 +161,10 @@ class ScoreCardBackend {
     final version = pAndPv[0] as PackageVersion;
     final package = pAndPv[1] as Package;
     if (package == null || version == null) {
-      throw new Exception('Unable to lookup $packageName $packageVersion.');
+      throw Exception('Unable to lookup $packageName $packageVersion.');
     }
 
-    final status = new PackageStatus.fromModels(package, version);
+    final status = PackageStatus.fromModels(package, version);
     final reports = await loadReports(packageName, packageVersion);
 
     await _db.withTransaction((tx) async {
@@ -174,7 +174,7 @@ class ScoreCardBackend {
 
       if (scoreCard == null) {
         _logger.info('Creating new ScoreCard $packageName $packageVersion.');
-        scoreCard = new ScoreCard.init(
+        scoreCard = ScoreCard.init(
           packageName: packageName,
           packageVersion: packageVersion,
           packageCreated: package.created,
@@ -182,7 +182,7 @@ class ScoreCardBackend {
         );
       } else {
         _logger.info('Updating ScoreCard $packageName $packageVersion.');
-        scoreCard.updated = new DateTime.now().toUtc();
+        scoreCard.updated = DateTime.now().toUtc();
       }
 
       scoreCard.flags.clear();
@@ -222,7 +222,7 @@ class ScoreCardBackend {
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
   Future deleteOldEntries() async {
     final deletes = <db.Key>[];
-    final now = new DateTime.now();
+    final now = DateTime.now();
 
     // Deletes the entries that are returned from the [query].
     Future deleteQuery<T extends db.Model>(db.Query<T> query) async {
@@ -259,7 +259,7 @@ class ScoreCardBackend {
         .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
     final p = list[0] as Package;
     final pv = list[1] as PackageVersion;
-    return new PackageStatus.fromModels(p, pv);
+    return PackageStatus.fromModels(p, pv);
   }
 
   Future<bool> shouldUpdateReport(
@@ -299,7 +299,7 @@ class ScoreCardBackend {
     if (updatedAfter != null && updatedAfter.isAfter(report.updated)) {
       return true;
     }
-    final age = new DateTime.now().toUtc().difference(report.updated);
+    final age = DateTime.now().toUtc().difference(report.updated);
     final isSuccess = report.reportStatus == ReportStatus.success;
     final ageThreshold = isSuccess ? successThreshold : failureThreshold;
     return age > ageThreshold;
@@ -329,14 +329,14 @@ class PackageStatus {
 
   factory PackageStatus.fromModels(Package p, PackageVersion pv) {
     if (p == null || pv == null) {
-      return new PackageStatus(exists: false);
+      return PackageStatus(exists: false);
     }
     final publishDate = pv.created;
     final isLatestStable = p.latestVersion == pv.version;
-    final now = new DateTime.now().toUtc();
+    final now = DateTime.now().toUtc();
     final age = now.difference(publishDate).abs();
     final isObsolete = age > twoYears && !isLatestStable;
-    return new PackageStatus(
+    return PackageStatus(
       exists: true,
       publishDate: publishDate,
       age: age,

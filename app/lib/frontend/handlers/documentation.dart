@@ -72,7 +72,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       return notFoundHandler(request);
     }
     if (isNotModified(request, info.lastModified, info.etag)) {
-      return new shelf.Response.notModified();
+      return shelf.Response.notModified();
     }
     final stream = dartdocBackend.readContent(entry, docFilePath.path);
     final headers = {
@@ -87,7 +87,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       headers[HttpHeaders.etagHeader] = info.etag;
     }
     headers['x-content-type-options'] = 'nosniff';
-    return new shelf.Response(HttpStatus.ok, body: stream, headers: headers);
+    return shelf.Response(HttpStatus.ok, body: stream, headers: headers);
   }
   return notFoundHandler(request);
 }
@@ -112,15 +112,15 @@ DocFilePath parseRequestUri(Uri uri) {
   final String package = uri.pathSegments[1];
   if (package.isEmpty) return null;
   if (segmentCount == 2) {
-    return new DocFilePath(package, null, null);
+    return DocFilePath(package, null, null);
   }
 
   final String version = uri.pathSegments[2];
   if (version.isEmpty) {
-    return new DocFilePath(package, null, null);
+    return DocFilePath(package, null, null);
   }
   if (segmentCount == 3) {
-    return new DocFilePath(package, version, null);
+    return DocFilePath(package, version, null);
   }
 
   final relativeSegments =
@@ -131,5 +131,5 @@ DocFilePath parseRequestUri(Uri uri) {
   } else if (path.isNotEmpty && !relativeSegments.last.contains('.')) {
     path = '$path/index.html';
   }
-  return new DocFilePath(package, version, path);
+  return DocFilePath(package, version, path);
 }

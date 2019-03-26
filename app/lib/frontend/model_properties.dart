@@ -27,11 +27,11 @@ class Pubspec {
 
   Pubspec._(this._inner, this.jsonString);
 
-  factory Pubspec(String jsonString) => new Pubspec._(
-      new pubspek.Pubspec.parse(jsonString, lenient: true), jsonString);
+  factory Pubspec(String jsonString) =>
+      Pubspec._(pubspek.Pubspec.parse(jsonString, lenient: true), jsonString);
 
-  factory Pubspec.fromYaml(String yamlString) => new Pubspec._(
-      new pubspek.Pubspec.parse(yamlString, lenient: true),
+  factory Pubspec.fromYaml(String yamlString) => Pubspec._(
+      pubspek.Pubspec.parse(yamlString, lenient: true),
       json.encode(_loadYaml(yamlString)));
 
   Map get asJson {
@@ -126,7 +126,7 @@ class Pubspec {
   String _asString(obj) {
     if (obj == null) return null;
     if (obj is! String) {
-      throw new Exception('Expected a String value in pubspec.yaml.');
+      throw Exception('Expected a String value in pubspec.yaml.');
     }
     return obj as String;
   }
@@ -151,7 +151,7 @@ class PubspecProperty extends StringProperty {
   @override
   Object decodePrimitiveValue(ModelDB db, Object value) {
     if (value is String) {
-      return new Pubspec(value);
+      return Pubspec(value);
     }
     return null;
   }

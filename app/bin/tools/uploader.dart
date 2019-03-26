@@ -32,7 +32,7 @@ Future main(List<String> arguments) async {
 
   await withProdServices(() async {
     registerAccountBackend(AccountBackend(dbService));
-    registerHistoryBackend(new HistoryBackend(dbService));
+    registerHistoryBackend(HistoryBackend(dbService));
     if (command == 'list') {
       await listUploaders(package);
     } else if (command == 'add') {
@@ -53,7 +53,7 @@ Future listUploaders(String packageName) async {
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .first as Package;
     if (package == null) {
-      throw new Exception('Package $packageName does not exist.');
+      throw Exception('Package $packageName does not exist.');
     }
     final uploaderEmails =
         await accountBackend.getEmailsOfUserIds(package.uploaders);
@@ -67,14 +67,14 @@ Future addUploader(String packageName, String uploaderEmail) async {
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .first as Package;
     if (package == null) {
-      throw new Exception('Package $packageName does not exist.');
+      throw Exception('Package $packageName does not exist.');
     }
     final uploaderEmails =
         await accountBackend.getEmailsOfUserIds(package.uploaders);
     print('Current uploaders: $uploaderEmails');
     final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
     if (package.hasUploader(user.userId)) {
-      throw new Exception('Uploader $uploaderEmail already exists');
+      throw Exception('Uploader $uploaderEmail already exists');
     }
     package.addUploader(user.userId);
     T.queueMutations(inserts: [package]);
@@ -83,7 +83,7 @@ Future addUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    historyBackend.storeEvent(new UploaderChanged(
+    historyBackend.storeEvent(UploaderChanged(
       packageName: packageName,
       currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
@@ -98,7 +98,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
         (await T.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .first as Package;
     if (package == null) {
-      throw new Exception('Package $packageName does not exist.');
+      throw Exception('Package $packageName does not exist.');
     }
 
     final uploaderEmails =
@@ -106,10 +106,10 @@ Future removeUploader(String packageName, String uploaderEmail) async {
     print('Current uploaders: $uploaderEmails');
     final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
     if (!package.hasUploader(user.userId)) {
-      throw new Exception('Uploader $uploaderEmail does not exist');
+      throw Exception('Uploader $uploaderEmail does not exist');
     }
     if (package.uploaderCount <= 1) {
-      throw new Exception('Would remove last uploader');
+      throw Exception('Would remove last uploader');
     }
     package.removeUploader(user.userId);
     T.queueMutations(inserts: [package]);
@@ -118,7 +118,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
 
     final pubUser =
         await accountBackend.lookupOrCreateUserByEmail(pubDartlangOrgEmail);
-    historyBackend.storeEvent(new UploaderChanged(
+    historyBackend.storeEvent(UploaderChanged(
       packageName: packageName,
       currentUserId: pubUser.userId,
       currentUserEmail: pubDartlangOrgEmail,
@@ -128,7 +128,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
 }
 
 Future _clearCache(String package) async {
-  final cache = new AppEnginePackageMemcache();
+  final cache = AppEnginePackageMemcache();
   await cache.invalidateUIPackagePage(package);
   await cache.invalidatePackageData(package);
 }

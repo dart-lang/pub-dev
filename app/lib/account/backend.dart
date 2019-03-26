@@ -21,7 +21,7 @@ import '../shared/email.dart' show isValidEmail;
 
 import 'models.dart';
 
-final _logger = new Logger('pub.account.backend');
+final _logger = Logger('pub.account.backend');
 final _uuid = Uuid();
 
 /// Sets the account backend service.

@@ -32,8 +32,8 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   // By restricting to packages that have been updated in the last two years,
   // the count is closer to ~1,500
 
-  final twoYearsAgo = new DateTime.now().subtract(twoYears);
-  final items = new List.from(const ['', 'help', 'web', 'flutter']
+  final twoYearsAgo = DateTime.now().subtract(twoYears);
+  final items = List.from(const ['', 'help', 'web', 'flutter']
       .map((url) => '${urls.siteRoot}/$url'));
 
   final stream = backend.allPackageNames(
@@ -46,7 +46,7 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
 
   items.sort();
 
-  return new shelf.Response.ok(items.join('\n'));
+  return shelf.Response.ok(items.join('\n'));
 }
 
 /// Handles requests for /static/* content
@@ -56,13 +56,13 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
   final StaticFile staticFile = staticFileCache.getFile(normalized);
   if (staticFile != null) {
     if (isNotModified(request, staticFile.lastModified, staticFile.etag)) {
-      return new shelf.Response.notModified();
+      return shelf.Response.notModified();
     }
     final String hash = request.requestedUri.queryParameters['hash'];
     final Duration cacheAge = hash != null && hash == staticFile.etag
         ? staticLongCache
         : staticShortCache;
-    return new shelf.Response.ok(
+    return shelf.Response.ok(
       staticFile.bytes,
       headers: {
         HttpHeaders.contentTypeHeader: staticFile.contentType,

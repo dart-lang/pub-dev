@@ -127,20 +127,19 @@ Other useful methods will be added soon...
 
   group('ngrams', () {
     test('small input', () {
-      expect(ngrams('', 2, 2), new Set());
-      expect(ngrams('a', 2, 2), new Set());
-      expect(ngrams('ab', 2, 2), new Set());
+      expect(ngrams('', 2, 2), Set());
+      expect(ngrams('a', 2, 2), Set());
+      expect(ngrams('ab', 2, 2), Set());
     });
 
     test('2-grams', () {
-      expect(
-          ngrams('abcdef', 2, 2), new Set.from(['ab', 'bc', 'cd', 'de', 'ef']));
+      expect(ngrams('abcdef', 2, 2), Set.from(['ab', 'bc', 'cd', 'de', 'ef']));
     });
 
     test('2-3-grams', () {
       expect(
           ngrams('abcdef', 2, 3),
-          new Set.from([
+          Set.from([
             'ab',
             'bc',
             'cd',
@@ -156,21 +155,21 @@ Other useful methods will be added soon...
 
   group('deriveLookupCandidates', () {
     test('small tokens', () {
-      expect(deriveLookupCandidates(''), new Set());
-      expect(deriveLookupCandidates('a'), new Set());
-      expect(deriveLookupCandidates('ab'), new Set());
-      expect(deriveLookupCandidates('abc'), new Set());
+      expect(deriveLookupCandidates(''), Set());
+      expect(deriveLookupCandidates('a'), Set());
+      expect(deriveLookupCandidates('ab'), Set());
+      expect(deriveLookupCandidates('abc'), Set());
     });
 
     test('delete characters', () {
       expect(deriveLookupCandidates('abcd'),
-          new Set.from(['abc', 'abd', 'acd', 'bcd']));
+          Set.from(['abc', 'abd', 'acd', 'bcd']));
     });
 
     test('prefix and postfix', () {
       expect(
           deriveLookupCandidates('abcdef'),
-          new Set.from([
+          Set.from([
             'abcde', // f deleted
             'abcdf', // e deleted
             'abcef', // d deleted

@@ -28,16 +28,16 @@ void main() {
       });
 
       scopedTest('/packages/pkg_foo', () async {
-        registerSearchBackend(new MockSearchBackend());
+        registerSearchBackend(MockSearchBackend());
         await expectNotFoundResponse(await issueGet('/packages/unknown'));
       });
     });
 
     group('search', () {
       Future setUpInServiceScope() async {
-        registerSearchBackend(new MockSearchBackend());
-        registerPackageIndex(new SimplePackageIndex());
-        registerDartSdkIndex(new SimplePackageIndex());
+        registerSearchBackend(MockSearchBackend());
+        registerPackageIndex(SimplePackageIndex());
+        registerDartSdkIndex(SimplePackageIndex());
         await packageIndex
             .addPackage(await searchBackend.loadDocument('pkg_foo'));
         await packageIndex.merge();

@@ -43,7 +43,7 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 
-final Logger _logger = new Logger('pub');
+final Logger _logger = Logger('pub');
 final _random = Random.secure();
 
 Future main() async {
@@ -53,7 +53,7 @@ Future main() async {
 Future _main(FrontendEntryMessage message) async {
   setupServiceIsolate();
   message.protocolSendPort
-      .send(new FrontendProtocolMessage(statsConsumerPort: null));
+      .send(FrontendProtocolMessage(statsConsumerPort: null));
 
   await updateLocalBuiltFiles();
   await withAppEngineAndCache(() async {
@@ -78,7 +78,7 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  registerEmailSender(new EmailSender(db.dbService));
+  registerEmailSender(EmailSender(db.dbService));
 
   registerAccountBackend(AccountBackend(db.dbService));
   registerScopeExitCallback(accountBackend.close);
@@ -86,37 +86,37 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   final popularityBucket = await getOrCreateBucket(
       storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
-      new PopularityStorage(storageService, popularityBucket));
+      PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
 
-  final AnalyzerClient analyzerClient = new AnalyzerClient();
+  final AnalyzerClient analyzerClient = AnalyzerClient();
   registerAnalyzerClient(analyzerClient);
   registerScopeExitCallback(analyzerClient.close);
 
   final Bucket dartdocBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(new DartdocBackend(db.dbService, dartdocBucket));
+  registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
 
-  registerDartdocMemcache(new DartdocMemcache());
-  final dartdocClient = new DartdocClient();
+  registerDartdocMemcache(DartdocMemcache());
+  final dartdocClient = DartdocClient();
   registerDartdocClient(dartdocClient);
   registerScopeExitCallback(dartdocClient.close);
 
-  final SearchClient searchClient = new SearchClient();
+  final SearchClient searchClient = SearchClient();
   registerSearchClient(searchClient);
   registerScopeExitCallback(searchClient.close);
 
-  registerHistoryBackend(new HistoryBackend(db.dbService));
-  registerJobBackend(new JobBackend(db.dbService));
+  registerHistoryBackend(HistoryBackend(db.dbService));
+  registerJobBackend(JobBackend(db.dbService));
 
-  registerScoreCardMemcache(new ScoreCardMemcache());
-  registerScoreCardBackend(new ScoreCardBackend(db.dbService));
+  registerScoreCardMemcache(ScoreCardMemcache());
+  registerScoreCardBackend(ScoreCardBackend(db.dbService));
 
-  new NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
+  NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
 
   final pkgBucket =
       await getOrCreateBucket(storageService, configuration.packageBucketName);
-  final tarballStorage = new TarballStorage(storageService, pkgBucket, null);
+  final tarballStorage = TarballStorage(storageService, pkgBucket, null);
   registerTarballStorage(tarballStorage);
 
   initSearchService();
@@ -158,22 +158,22 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     });
   }
 
-  final cache = new AppEnginePackageMemcache();
+  final cache = AppEnginePackageMemcache();
   initBackend(cache: cache, finishCallback: uploadFinished);
-  registerSearchMemcache(new SearchMemcache());
+  registerSearchMemcache(SearchMemcache());
 
   UploadSignerService uploadSigner;
   if (envConfig.hasCredentials) {
     final credentials = configuration.credentials;
-    uploadSigner = new ServiceAccountBasedUploadSigner(credentials);
+    uploadSigner = ServiceAccountBasedUploadSigner(credentials);
   } else {
     final authClient = await auth.clientViaMetadataServer();
     registerScopeExitCallback(() async => authClient.close());
     final email = await obtainServiceAccountEmail();
     uploadSigner =
-        new IamBasedUploadSigner(configuration.projectId, email, authClient);
+        IamBasedUploadSigner(configuration.projectId, email, authClient);
   }
   registerUploadSigner(uploadSigner);
 
-  return new ShelfPubServer(backend.repository, cache: cache).requestHandler;
+  return ShelfPubServer(backend.repository, cache: cache).requestHandler;
 }

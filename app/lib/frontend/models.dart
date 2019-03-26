@@ -65,12 +65,12 @@ class Package extends db.ExpandoModel {
   String get latestVersion => latestVersionKey.id as String;
 
   Version get latestSemanticVersion =>
-      new Version.parse(latestVersionKey.id as String);
+      Version.parse(latestVersionKey.id as String);
 
   String get latestDevVersion => latestDevVersionKey?.id as String;
 
   Version get latestDevSemanticVersion =>
-      latestDevVersionKey == null ? null : new Version.parse(latestDevVersion);
+      latestDevVersionKey == null ? null : Version.parse(latestDevVersion);
 
   String get shortUpdated {
     return shortDateFormat.format(updated);
@@ -109,8 +109,7 @@ class Package extends db.ExpandoModel {
     }
   }
 
-  bool isNewPackage() =>
-      created.difference(new DateTime.now()).abs().inDays <= 30;
+  bool isNewPackage() => created.difference(DateTime.now()).abs().inDays <= 30;
 }
 
 /// Pub package metadata for a specific uploaded version.
@@ -149,7 +148,7 @@ class PackageVersion extends db.ExpandoModel {
 
   FileObject get readme {
     if (readmeFilename != null) {
-      return new FileObject(readmeFilename, readmeContent);
+      return FileObject(readmeFilename, readmeContent);
     }
     return null;
   }
@@ -162,7 +161,7 @@ class PackageVersion extends db.ExpandoModel {
 
   FileObject get changelog {
     if (changelogFilename != null) {
-      return new FileObject(changelogFilename, changelogContent);
+      return FileObject(changelogFilename, changelogContent);
     }
     return null;
   }
@@ -175,7 +174,7 @@ class PackageVersion extends db.ExpandoModel {
 
   FileObject get example {
     if (exampleFilename != null) {
-      return new FileObject(exampleFilename, exampleContent);
+      return FileObject(exampleFilename, exampleContent);
     }
     return null;
   }
@@ -196,7 +195,7 @@ class PackageVersion extends db.ExpandoModel {
 
   // Convenience Fields:
 
-  Version get semanticVersion => new Version.parse(version);
+  Version get semanticVersion => Version.parse(version);
 
   String get ellipsizedDescription {
     final String description = pubspec.description;
@@ -217,7 +216,7 @@ class PackageVersion extends db.ExpandoModel {
   }
 
   PackageLinks get packageLinks {
-    return new PackageLinks.infer(
+    return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,
       repositoryUrl: pubspec.repository,
@@ -287,7 +286,7 @@ class PackageVersionInfo extends db.ExpandoModel {
 
   FileObject get readme {
     if (readmeFilename != null) {
-      return new FileObject(readmeFilename, readmeContent);
+      return FileObject(readmeFilename, readmeContent);
     }
     return null;
   }
@@ -300,7 +299,7 @@ class PackageVersionInfo extends db.ExpandoModel {
 
   FileObject get changelog {
     if (changelogFilename != null) {
-      return new FileObject(changelogFilename, changelogContent);
+      return FileObject(changelogFilename, changelogContent);
     }
     return null;
   }
@@ -313,7 +312,7 @@ class PackageVersionInfo extends db.ExpandoModel {
 
   FileObject get example {
     if (exampleFilename != null) {
-      return new FileObject(exampleFilename, exampleContent);
+      return FileObject(exampleFilename, exampleContent);
     }
     return null;
   }
@@ -385,7 +384,7 @@ abstract class SecretKey {
   static const String oauthPrefix = 'oauth.secret-';
 
   /// List of all keys.
-  static const values = const [
+  static const values = [
     smtpUsername,
     smtpPassword,
     redisConnectionString,
@@ -432,7 +431,7 @@ class PackageInvite extends db.Model {
   static String createId(String type, String recipientEmail) =>
       '$type/$recipientEmail';
 
-  bool isExpired() => new DateTime.now().toUtc().isAfter(expires);
+  bool isExpired() => DateTime.now().toUtc().isAfter(expires);
 
   /// Whether a new notification should be sent.
   bool shouldNotify() => DateTime.now().toUtc().isAfter(nextNotification);
@@ -505,7 +504,7 @@ class PackageView extends Object with FlagMixin {
         scoreCard.reportTypes.contains(ReportType.pana);
     final isAwaiting =
         (scoreCard == null) || (!scoreCard.isSkipped && !hasPanaReport);
-    return new PackageView(
+    return PackageView(
       name: version?.package ?? package?.name,
       version: version?.version ?? package?.latestVersion,
       devVersion: devVersion,
@@ -557,7 +556,7 @@ class PackageLinks {
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
-    return new PackageLinks(
+    return PackageLinks(
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,

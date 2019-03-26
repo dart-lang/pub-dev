@@ -45,7 +45,7 @@ abstract class UploadSignerService {
       Duration lifetime, String successRedirectUrl,
       {String predefinedAcl = 'project-private',
       int maxUploadSize = maxUploadSize}) async {
-    final now = new DateTime.now().toUtc();
+    final now = DateTime.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
 
     object = '$bucket/$object';
@@ -76,7 +76,7 @@ abstract class UploadSignerService {
       'success_action_redirect': successRedirectUrl,
     };
 
-    return new AsyncUploadInfo(_uploadUrl, fields);
+    return AsyncUploadInfo(_uploadUrl, fields);
   }
 
   Future<SigningResult> sign(List<int> bytes);
@@ -92,11 +92,11 @@ class ServiceAccountBasedUploadSigner extends UploadSignerService {
 
   ServiceAccountBasedUploadSigner(auth.ServiceAccountCredentials account)
       : googleAccessId = account.email,
-        signer = new RS256Signer(account.privateRSAKey);
+        signer = RS256Signer(account.privateRSAKey);
 
   @override
   Future<SigningResult> sign(List<int> bytes) async {
-    return new SigningResult(googleAccessId, signer.sign(bytes));
+    return SigningResult(googleAccessId, signer.sign(bytes));
   }
 }
 
@@ -109,15 +109,15 @@ class IamBasedUploadSigner extends UploadSignerService {
   final iam.IamApi iamApi;
 
   IamBasedUploadSigner(this.projectId, this.email, http.Client client)
-      : iamApi = new iam.IamApi(client);
+      : iamApi = iam.IamApi(client);
 
   @override
   Future<SigningResult> sign(List<int> bytes) async {
-    final request = new iam.SignBlobRequest()..bytesToSignAsBytes = bytes;
+    final request = iam.SignBlobRequest()..bytesToSignAsBytes = bytes;
     final name = 'projects/$projectId/serviceAccounts/$email';
     final iam.SignBlobResponse response =
         await iamApi.projects.serviceAccounts.signBlob(request, name);
-    return new SigningResult(email, response.signatureAsBytes);
+    return SigningResult(email, response.signatureAsBytes);
   }
 }
 

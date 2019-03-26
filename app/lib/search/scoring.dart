@@ -48,15 +48,15 @@ class Summary {
     }
 
     if (count == 0) {
-      throw new ArgumentError('`numbers` cannot be empty.');
+      throw ArgumentError('`numbers` cannot be empty.');
     }
 
-    return new Summary._(max, min, total / count);
+    return Summary._(max, min, total / count);
   }
 
   double simpleScore(num value) {
     if (value < min || value > max) {
-      throw new RangeError("Value '$value' must be >= '$min' and <= '$max'.");
+      throw RangeError("Value '$value' must be >= '$min' and <= '$max'.");
     }
 
     final scale = max - min;
@@ -85,11 +85,11 @@ const epsilon = 1e-8;
 /// github.com/npms-io/npms-analyzer/blob/7832c17f/lib/scoring/score.js#L156
 double calculateBezierScore(num normValue, num normAvg) {
   if (normValue < 0 || normValue > 1) {
-    throw new RangeError.range(normValue, 0, 1, 'normValue');
+    throw RangeError.range(normValue, 0, 1, 'normValue');
   }
 
   if (normAvg < 0 || normAvg > 1) {
-    throw new RangeError.range(normAvg, 0, 1, 'normAvg');
+    throw RangeError.range(normAvg, 0, 1, 'normAvg');
   }
 
   final avgY = 0.75;

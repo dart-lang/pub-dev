@@ -37,9 +37,9 @@ const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 const fileAnIssueContent =
     'Please open an issue: https://github.com/dart-lang/pub-dartlang-dart/issues/new';
 
-final Logger _logger = new Logger('pub.utils');
+final Logger _logger = Logger('pub.utils');
 
-final DateFormat shortDateFormat = new DateFormat.yMMMd();
+final DateFormat shortDateFormat = DateFormat.yMMMd();
 
 Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
     {String prefix = 'dart-tempdir'}) {
@@ -58,7 +58,7 @@ Future<List<String>> listTarball(String path) async {
         'with exit code: ${result.exitCode}\n'
         'stdout: ${result.stdout}\n'
         'stderr: ${result.stderr}');
-    throw new Exception('Failed to list tarball contents.');
+    throw Exception('Failed to list tarball contents.');
   }
 
   return (result.stdout as String)
@@ -76,10 +76,10 @@ Future<String> readTarballFile(String path, String name,
   final result = await Process.run(
     'tar',
     ['-O', '-xzf', path, name],
-    stdoutEncoding: new Utf8Codec(allowMalformed: true),
+    stdoutEncoding: Utf8Codec(allowMalformed: true),
   );
   if (result.exitCode != 0) {
-    throw new Exception('Failed to read tarball contents.');
+    throw Exception('Failed to read tarball contents.');
   }
   String content = result.stdout as String;
   if (maxLength > 0 && content.length > maxLength) {
@@ -91,7 +91,7 @@ Future<String> readTarballFile(String path, String name,
 String canonicalizeVersion(String version) {
   // NOTE: This is a hack because [semver.Version.parse] does not remove
   // leading zeros for integer fields.
-  final v = new semver.Version.parse(version);
+  final v = semver.Version.parse(version);
   final pre = v.preRelease != null && v.preRelease.isNotEmpty
       ? v.preRelease.join('.')
       : null;
@@ -99,10 +99,10 @@ String canonicalizeVersion(String version) {
       v.build != null && v.build.isNotEmpty ? v.build.join('.') : null;
 
   final canonicalVersion =
-      new semver.Version(v.major, v.minor, v.patch, pre: pre, build: build);
+      semver.Version(v.major, v.minor, v.patch, pre: pre, build: build);
 
   if (v != canonicalVersion) {
-    throw new StateError(
+    throw StateError(
         'This should never happen: Canonicalization of versions is wrong.');
   }
   return canonicalVersion.toString();
@@ -140,9 +140,9 @@ int compareSemanticVersionsDesc(
 bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
     compareSemanticVersionsDesc(a, b, false, pubSorted) < 0;
 
-final RegExp _identifierExpr = new RegExp(r'^[a-zA-Z0-9_]+$');
-final RegExp _startsWithLetterOrUnderscore = new RegExp(r'^[a-zA-Z_]');
-const List<String> _reservedWords = const <String>[
+final RegExp _identifierExpr = RegExp(r'^[a-zA-Z0-9_]+$');
+final RegExp _startsWithLetterOrUnderscore = RegExp(r'^[a-zA-Z_]');
+const List<String> _reservedWords = <String>[
   'assert',
   'break',
   'case',
@@ -201,30 +201,30 @@ bool matchesReservedPackageName(String name) =>
 /// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
 void validatePackageName(String name) {
   if (!_identifierExpr.hasMatch(name)) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Package name may only contain letters, numbers, and underscores.');
   }
   if (!_startsWithLetterOrUnderscore.hasMatch(name)) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Package name must begin with a letter or underscore.');
   }
   if (_reservedWords.contains(reducePackageName(name))) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Package name must not be a reserved word in Dart.');
   }
   final bool isLower = name == name.toLowerCase();
   final bool matchesMixedCase = knownMixedCasePackages.contains(name);
   if (!isLower && !matchesMixedCase) {
-    throw new GenericProcessingException('Package name must be lowercase.');
+    throw GenericProcessingException('Package name must be lowercase.');
   }
   if (isLower && blockedLowerCasePackages.contains(name)) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
   if (!isLower &&
       matchesMixedCase &&
       !blockedLowerCasePackages.contains(name.toLowerCase())) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Name collision with mixed-case package. $fileAnIssueContent');
   }
 }
@@ -237,7 +237,7 @@ String reducePackageName(String name) =>
 List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];
   final int maxPageIndex = (list.length - 1) ~/ limit;
-  return new List.generate(maxPageIndex + 1,
+  return List.generate(maxPageIndex + 1,
       (p) => list.sublist(p * limit, min(list.length, (p + 1) * limit)));
 }
 
@@ -250,10 +250,10 @@ Stream<T> randomizeStream<T>(
   int maxPositionDiff = 1000,
   Random random,
 }) {
-  random ??= new Random.secure();
-  final Stream trigger = new Stream.periodic(duration);
+  random ??= Random.secure();
+  final Stream trigger = Stream.periodic(duration);
   final Stream<List<T>> bufferedStream = buffer<T>(trigger).bind(stream);
-  return bufferedStream.transform(new StreamTransformer.fromHandlers(
+  return bufferedStream.transform(StreamTransformer.fromHandlers(
     handleData: (List<T> items, Sink<T> sink) {
       for (List<T> list in _sliceList(items, maxPositionDiff)) {
         list.shuffle(random);
@@ -266,7 +266,7 @@ Stream<T> randomizeStream<T>(
 }
 
 class LastNTracker<T extends Comparable<T>> {
-  final Queue<T> _lastItems = new Queue();
+  final Queue<T> _lastItems = Queue();
   final int _n;
 
   LastNTracker({int lastN = 1000}) : _n = lastN;
@@ -297,7 +297,7 @@ class LastNTracker<T extends Comparable<T>> {
 
   T _getP(double p) {
     if (_lastItems.isEmpty) return null;
-    final List<T> list = new List.from(_lastItems);
+    final List<T> list = List.from(_lastItems);
     list.sort();
     return list[(list.length * p).floor()];
   }
@@ -354,7 +354,7 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
       if (i == retryCount) rethrow;
     }
     if (i < retryCount) {
-      await new Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
   return result;
@@ -380,13 +380,13 @@ String contentType(String name) {
   return mime.defaultExtensionMap[ext] ?? 'application/octet-stream';
 }
 
-final eventLoopLatencyTracker = new LastNTracker<Duration>();
+final eventLoopLatencyTracker = LastNTracker<Duration>();
 
 void trackEventLoopLatency() {
   final samplePeriod = const Duration(seconds: 3);
   void measure() {
-    final sw = new Stopwatch()..start();
-    new Timer(samplePeriod, () {
+    final sw = Stopwatch()..start();
+    Timer(samplePeriod, () {
       sw.stop();
       final diff = sw.elapsed - samplePeriod;
       final latency = diff.isNegative ? Duration.zero : diff;
@@ -433,7 +433,7 @@ Future<R> retryAsync<R>(
       _logger.info('$description failed (attempt: $i of $maxAttempt).', e, st);
       if (i < maxAttempt &&
           (shouldRetryOnError == null || shouldRetryOnError(e))) {
-        await new Future.delayed(sleep);
+        await Future.delayed(sleep);
         continue;
       }
       rethrow;

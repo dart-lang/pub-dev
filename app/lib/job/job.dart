@@ -22,8 +22,8 @@ import 'model.dart';
 
 export 'model.dart';
 
-final _logger = new Logger('pub.job');
-final _random = new math.Random.secure();
+final _logger = Logger('pub.job');
+final _random = math.Random.secure();
 
 abstract class JobProcessor {
   final JobService service;
@@ -72,7 +72,7 @@ abstract class JobProcessor {
       } catch (e, st) {
         _logger.severe('$_serviceAsString job error $jobDescription', e, st);
       }
-      await new Future.delayed(new Duration(seconds: sleepSeconds));
+      await Future.delayed(Duration(seconds: sleepSeconds));
     }
   }
 
@@ -99,7 +99,7 @@ class JobMaintenance {
 
   /// Never completes.
   Future syncDatastoreHead() async {
-    final source = new DatastoreHeadTaskSource(_db, TaskSourceModel.version,
+    final source = DatastoreHeadTaskSource(_db, TaskSourceModel.version,
         skipHistory: true);
     final stream = source.startStreaming();
     await for (Task task in stream) {
@@ -114,7 +114,7 @@ class JobMaintenance {
 
   /// Reads the current package versions and syncs them with job entries.
   Future syncDatastoreHistory() async {
-    final latestVersions = new Map<String, String>();
+    final latestVersions = Map<String, String>();
     await for (Package p in _db.query<Package>().run()) {
       latestVersions[p.name] = p.latestVersion;
     }
@@ -136,7 +136,7 @@ class JobMaintenance {
       }
     }
 
-    var pool = new Pool(4);
+    var pool = Pool(4);
     for (String package in packages) {
       final String version = latestVersions[package];
       final pv = (await _db.lookup([
@@ -149,7 +149,7 @@ class JobMaintenance {
     }
     await pool.close();
 
-    pool = new Pool(4);
+    pool = Pool(4);
     final stream = randomizeStream(_db.query<PackageVersion>().run());
     await for (PackageVersion pv in stream) {
       pool.withResource(() => updateJob(pv, true));
@@ -160,14 +160,14 @@ class JobMaintenance {
   /// Never completes
   Future updateStates() async {
     for (;;) {
-      await new Future.delayed(new Duration(minutes: 1 + _random.nextInt(10)));
+      await Future.delayed(Duration(minutes: 1 + _random.nextInt(10)));
       try {
         await jobBackend.unlockStaleProcessing(_processor.service);
       } catch (e, st) {
         _logger.warning('Error unlocking stale jobs.', e, st);
       }
 
-      await new Future.delayed(new Duration(minutes: 1 + _random.nextInt(10)));
+      await Future.delayed(Duration(minutes: 1 + _random.nextInt(10)));
       try {
         await jobBackend.checkIdle(
             _processor.service, _processor.shouldProcess);

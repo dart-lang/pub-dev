@@ -80,19 +80,19 @@ class DartdocEntry {
   factory DartdocEntry.fromJson(Map<String, dynamic> json) =>
       _$DartdocEntryFromJson(json);
 
-  factory DartdocEntry.fromBytes(List<int> bytes) => new DartdocEntry.fromJson(
+  factory DartdocEntry.fromBytes(List<int> bytes) => DartdocEntry.fromJson(
       json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
 
   static Future<DartdocEntry> fromStream(Stream<List<int>> stream) async {
     final bytes =
         await stream.fold<List<int>>([], (sum, list) => sum..addAll(list));
-    return new DartdocEntry.fromBytes(bytes);
+    return DartdocEntry.fromBytes(bytes);
   }
 
   /// Creates a new instance, copying fields that are not specified, overriding
   /// the ones that are.
   DartdocEntry replace({bool isLatest, bool isObsolete}) {
-    return new DartdocEntry(
+    return DartdocEntry(
       uuid: uuid,
       packageName: packageName,
       packageVersion: packageVersion,
@@ -181,7 +181,7 @@ class FileInfo {
   factory FileInfo.fromJson(Map<String, dynamic> json) =>
       _$FileInfoFromJson(json);
 
-  factory FileInfo.fromBytes(List<int> bytes) => new FileInfo.fromJson(
+  factory FileInfo.fromBytes(List<int> bytes) => FileInfo.fromJson(
       json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
 
   List<int> asBytes() => utf8.encode(json.encode(this.toJson()));

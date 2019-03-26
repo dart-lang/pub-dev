@@ -13,8 +13,8 @@ import 'package:_popularity/popularity.dart';
 
 import '../shared/storage.dart';
 
-final Logger _logger = new Logger('pub.popularity');
-final GZipCodec _gzip = new GZipCodec();
+final Logger _logger = Logger('pub.popularity');
+final GZipCodec _gzip = GZipCodec();
 
 /// Sets the popularity storage
 void registerPopularityStorage(PopularityStorage storage) =>
@@ -44,7 +44,7 @@ class PopularityStorage {
 
   Future init() async {
     await fetch('init');
-    _timer = new Timer.periodic(const Duration(hours: 4), (_) {
+    _timer = Timer.periodic(const Duration(hours: 4), (_) {
       fetch('refetch');
     });
   }
@@ -65,7 +65,7 @@ class PopularityStorage {
           .transform(json.decoder)
           .single) as Map<String, dynamic>;
       _updateLatest(latest);
-      _lastFetched = new DateTime.now().toUtc();
+      _lastFetched = DateTime.now().toUtc();
     } catch (e, st) {
       _logger.severe(
           'Unable to load popularity data: ${bucketUri(bucket, _latestPath)}',
@@ -75,10 +75,10 @@ class PopularityStorage {
   }
 
   void _updateLatest(Map<String, dynamic> raw) {
-    final popularity = new PackagePopularity.fromJson(raw);
+    final popularity = PackagePopularity.fromJson(raw);
     final List<_Entry> entries = <_Entry>[];
     popularity.items.forEach((package, totals) {
-      entries.add(new _Entry(package, totals.score, totals.total));
+      entries.add(_Entry(package, totals.score, totals.total));
     });
     entries.sort();
     for (int i = 0; i < entries.length; i++) {

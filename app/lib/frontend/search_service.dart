@@ -61,7 +61,7 @@ Future<SearchResultPage> _loadResultForPackages(
       final package = packageEntries[i];
       final apiPages =
           packageScores.firstWhere((ps) => ps.package == package.name).apiPages;
-      final pv = new PackageView.fromModel(
+      final pv = PackageView.fromModel(
         package: package,
         version: versions[i],
         scoreCard: scoreCards[i],
@@ -77,7 +77,7 @@ Future<SearchResultPage> _loadResultForPackages(
           return pubPackages[ps.package];
         }
         if (ps.isExternal) {
-          return new PackageView(
+          return PackageView(
             isExternal: true,
             url: ps.url,
             version: ps.version,
@@ -90,7 +90,7 @@ Future<SearchResultPage> _loadResultForPackages(
       })
       .where((pv) => pv != null)
       .toList();
-  return new SearchResultPage(query, totalCount, resultPackages);
+  return SearchResultPage(query, totalCount, resultPackages);
 }
 
 /// The results of a search via the Custom Search API.
@@ -107,14 +107,14 @@ class SearchResultPage {
   SearchResultPage(this.query, this.totalCount, this.packages);
 
   factory SearchResultPage.empty(SearchQuery query) =>
-      new SearchResultPage(query, 0, []);
+      SearchResultPage(query, 0, []);
 }
 
 /// Returns the top packages for displaying them on a landing page.
 Future<List<PackageView>> topFeaturedPackages(
     {String platform, int count = 15}) async {
   // TODO: store top packages in memcache
-  final result = await searchService.search(new SearchQuery.parse(
+  final result = await searchService.search(SearchQuery.parse(
     platform: platform,
     limit: count,
     isAd: true,

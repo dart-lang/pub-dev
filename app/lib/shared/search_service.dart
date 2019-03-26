@@ -92,7 +92,7 @@ class PackageDocument {
       _$PackageDocumentFromJson(json);
 
   PackageDocument intern(String internFn(String value)) {
-    return new PackageDocument(
+    return PackageDocument(
       package: internFn(package),
       version: version,
       devVersion: devVersion,
@@ -109,7 +109,7 @@ class PackageDocument {
       maintenance: maintenance,
       dependencies: dependencies == null
           ? null
-          : new Map.fromIterable(
+          : Map.fromIterable(
               dependencies.keys,
               key: (key) => internFn(key as String),
               value: (key) => internFn(dependencies[key]),
@@ -136,7 +136,7 @@ class ApiDocPage {
       _$ApiDocPageFromJson(json);
 
   ApiDocPage intern(String internFn(String value)) {
-    return new ApiDocPage(
+    return ApiDocPage(
       relativePath: internFn(relativePath),
       symbols: symbols?.map(internFn)?.toList(),
       textBlocks: textBlocks,
@@ -201,15 +201,15 @@ String serializeSearchOrder(SearchOrder order) {
   return order.toString().split('.').last;
 }
 
-final RegExp _whitespacesRegExp = new RegExp(r'\s+');
+final RegExp _whitespacesRegExp = RegExp(r'\s+');
 final RegExp _packageRegexp =
-    new RegExp('package:([_a-z0-9]+)', caseSensitive: false);
+    RegExp('package:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _emailRegexp =
-    new RegExp(r'email:([_a-z0-9\@\-\.\+]+)', caseSensitive: false);
+    RegExp(r'email:([_a-z0-9\@\-\.\+]+)', caseSensitive: false);
 final RegExp _refDependencyRegExp =
-    new RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
+    RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _allDependencyRegExp =
-    new RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
+    RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
 
 class SearchQuery {
   final String query;
@@ -233,7 +233,7 @@ class SearchQuery {
     this.isAd,
     this.isApiEnabled,
     this.includeLegacy,
-  })  : parsedQuery = new ParsedQuery._parse(query),
+  })  : parsedQuery = ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform;
 
   factory SearchQuery.parse({
@@ -248,7 +248,7 @@ class SearchQuery {
   }) {
     final String q =
         query != null && query.trim().isNotEmpty ? query.trim() : null;
-    return new SearchQuery._(
+    return SearchQuery._(
       query: q,
       platform: platform,
       order: order,
@@ -270,7 +270,7 @@ class SearchQuery {
     final offset = int.tryParse(uri.queryParameters['offset'] ?? '0') ?? 0;
     final limit = int.tryParse(uri.queryParameters['limit'] ?? '0') ?? 0;
 
-    return new SearchQuery.parse(
+    return SearchQuery.parse(
       query: q,
       platform: platform,
       order: order,
@@ -292,7 +292,7 @@ class SearchQuery {
     bool apiEnabled,
     bool includeLegacy,
   }) {
-    return new SearchQuery._(
+    return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
       order: order ?? this.order,
@@ -361,7 +361,7 @@ class SearchQuery {
     if (params.isEmpty) {
       return path;
     } else {
-      return new Uri(path: path, queryParameters: params).toString();
+      return Uri(path: path, queryParameters: params).toString();
     }
   }
 }
@@ -424,7 +424,7 @@ class ParsedQuery {
       queryText = null;
     }
 
-    return new ParsedQuery._(
+    return ParsedQuery._(
       queryText,
       packagePrefix,
       dependencies,
@@ -501,7 +501,7 @@ class PackageScore {
     String description,
     List<ApiPageRef> apiPages,
   }) {
-    return new PackageScore(
+    return PackageScore(
       package: package,
       score: score ?? this.score,
       url: url ?? this.url,
@@ -530,7 +530,7 @@ class ApiPageRef {
       _$ApiPageRefFromJson(json);
 
   ApiPageRef change({String title, String url}) {
-    return new ApiPageRef(
+    return ApiPageRef(
       title: title ?? this.title,
       path: path,
       url: url ?? this.url,
@@ -564,7 +564,7 @@ SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
   final String sortParam = url.queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
   final isApiEnabled = url.queryParameters['api'] != '0';
-  return new SearchQuery.parse(
+  return SearchQuery.parse(
     query: queryText,
     platform: platform,
     order: sortOrder,

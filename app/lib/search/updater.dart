@@ -13,7 +13,7 @@ import '../shared/task_sources.dart';
 import 'backend.dart';
 import 'index_simple.dart';
 
-final Logger _logger = new Logger('pub.search.updater');
+final Logger _logger = Logger('pub.search.updater');
 
 class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
   final BatchIndexUpdater _batchIndexUpdater;
@@ -29,7 +29,7 @@ class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
 class BatchIndexUpdater implements TaskRunner {
   int _taskCount = 0;
   SearchSnapshot _snapshot;
-  DateTime _lastSnapshotWrite = new DateTime.now();
+  DateTime _lastSnapshotWrite = DateTime.now();
 
   // Used by [IndexUpdateTaskSource] to indicating how many packages were
   // yielded in the first run of the index update.
@@ -71,9 +71,9 @@ class BatchIndexUpdater implements TaskRunner {
       _logger.warning('Error while fetching snapshot.', e, st);
     }
     if (_snapshot == null) {
-      _snapshot = new SearchSnapshot();
+      _snapshot = SearchSnapshot();
       // making sure snapshot will be written as soon as the first scan is done
-      _lastSnapshotWrite = new DateTime.now().subtract(new Duration(days: 1));
+      _lastSnapshotWrite = DateTime.now().subtract(Duration(days: 1));
     }
   }
 
@@ -114,7 +114,7 @@ class BatchIndexUpdater implements TaskRunner {
   }
 
   Future _updateSnapshotIfNeeded() async {
-    final DateTime now = new DateTime.now();
+    final DateTime now = DateTime.now();
     if (now.difference(_lastSnapshotWrite).inHours > 12) {
       _lastSnapshotWrite = now;
       try {

@@ -26,12 +26,12 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 /// indexed data.
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
-  final http.Client _httpClient = new http.Client();
+  final http.Client _httpClient = http.Client();
 
   Future<PackageSearchResult> search(SearchQuery query) async {
     final String httpHostPort = activeConfiguration.searchServicePrefix;
     final String serviceUrlParams =
-        new Uri(queryParameters: query.toServiceQueryParameters()).toString();
+        Uri(queryParameters: query.toServiceQueryParameters()).toString();
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
     final cached = await searchMemcache.getPackageSearchResult(serviceUrl);
@@ -45,10 +45,9 @@ class SearchClient {
     }
     if (response.statusCode != 200) {
       // There has been an issue with the service
-      throw new Exception(
-          'Service returned status code ${response.statusCode}');
+      throw Exception('Service returned status code ${response.statusCode}');
     }
-    final PackageSearchResult result = new PackageSearchResult.fromJson(
+    final PackageSearchResult result = PackageSearchResult.fromJson(
         json.decode(response.body) as Map<String, dynamic>);
     if (!result.isLegit) {
       // Search request before the service initialization completed.

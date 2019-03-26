@@ -11,7 +11,7 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
-const mockStaticFiles = const <String>[
+const mockStaticFiles = <String>[
   'js/gtag.js',
   'js/script.dart.js',
   'css/github-markdown.css',
@@ -32,26 +32,26 @@ class TestDelayCompletion {
 }
 
 final Key testPackageKey =
-    new Key.emptyKey(new Partition(null)).append(Package, id: 'foobar_pkg');
+    Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');
 
 final Key testPackageVersionKey =
     testPackageKey.append(PackageVersion, id: '0.1.1+5');
 final Key devPackageVersionKey =
     testPackageKey.append(PackageVersion, id: '0.2.0-dev');
 
-final Pubspec testPubspec = new Pubspec.fromYaml(testPackagePubspec);
+final Pubspec testPubspec = Pubspec.fromYaml(testPackagePubspec);
 
 final testUploaderUser =
     AuthenticatedUser('uuid-hans-at-juergen-dot-com', 'hans@juergen.com');
 
 Package createTestPackage({List<AuthenticatedUser> uploaders}) {
   uploaders ??= [testUploaderUser];
-  return new Package()
+  return Package()
     ..parentKey = testPackageKey.parent
     ..id = testPackageKey.id
     ..name = testPackageKey.id as String
-    ..created = new DateTime.utc(2014)
-    ..updated = new DateTime.utc(2015)
+    ..created = DateTime.utc(2014)
+    ..updated = DateTime.utc(2015)
     ..uploaders = uploaders.map((user) => user.userId).toList()
     ..latestVersionKey = testPackageVersionKey
     ..latestDevVersionKey = testPackageVersionKey;
@@ -64,12 +64,12 @@ final testPackageUploaderEmails = [testUploaderUser.email];
 final Package discontinuedPackage = createTestPackage()..isDiscontinued = true;
 final discontinuedPackageUploaderEmails = [testUploaderUser.email];
 
-final PackageVersion testPackageVersion = new PackageVersion()
+final PackageVersion testPackageVersion = PackageVersion()
   ..parentKey = testPackageVersionKey.parent
   ..id = testPackageVersionKey.id
   ..version = testPackageVersionKey.id as String
   ..packageKey = testPackageKey
-  ..created = new DateTime.utc(2014)
+  ..created = DateTime.utc(2014)
   ..libraries = ['foolib.dart']
   ..pubspec = testPubspec
   ..readmeFilename = 'README.md'
@@ -82,8 +82,8 @@ final PackageVersion testPackageVersion = new PackageVersion()
 
 final PackageVersion flutterPackageVersion =
     clonePackageVersion(testPackageVersion)
-      ..created = new DateTime.utc(2015)
-      ..pubspec = new Pubspec.fromYaml(testPackagePubspec +
+      ..created = DateTime.utc(2015)
+      ..pubspec = Pubspec.fromYaml(testPackagePubspec +
           '''
 flutter:
   plugin:
@@ -94,20 +94,19 @@ final PackageVersion devPackageVersion = clonePackageVersion(testPackageVersion)
   ..id = devPackageVersionKey.id
   ..version = devPackageVersionKey.id as String;
 
-PackageVersion clonePackageVersion(PackageVersion original) =>
-    new PackageVersion()
-      ..packageKey = original.parentKey
-      ..id = original.id
-      ..version = original.version
-      ..packageKey = original.packageKey
-      ..created = original.created
-      ..libraries = original.libraries
-      ..pubspec = original.pubspec
-      ..readmeFilename = original.readmeFilename
-      ..readmeContent = original.readmeContent
-      ..changelogFilename = original.changelogFilename
-      ..changelogContent = original.changelogContent
-      ..sortOrder = original.sortOrder;
+PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
+  ..packageKey = original.parentKey
+  ..id = original.id
+  ..version = original.version
+  ..packageKey = original.packageKey
+  ..created = original.created
+  ..libraries = original.libraries
+  ..pubspec = original.pubspec
+  ..readmeFilename = original.readmeFilename
+  ..readmeContent = original.readmeContent
+  ..changelogFilename = original.changelogFilename
+  ..changelogContent = original.changelogContent
+  ..sortOrder = original.sortOrder;
 
 final String testPackageReadme = '''
 Test Package

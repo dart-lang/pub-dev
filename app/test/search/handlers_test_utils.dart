@@ -11,13 +11,13 @@ import 'package:pub_dartlang_org/search/handlers.dart';
 
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://search-dot-dartlang-pub.appspot.com$path';
-  final request = new shelf.Request('GET', Uri.parse(uri));
+  final request = shelf.Request('GET', Uri.parse(uri));
   return searchServiceHandler(request);
 }
 
 Future<shelf.Response> issuePost(String path, {Map body}) async {
   final uri = 'https://search-dot-dartlang-pub.appspot.com$path';
   final encodedBody = body == null ? null : json.encode(body);
-  final request = new shelf.Request('POST', Uri.parse(uri), body: encodedBody);
+  final request = shelf.Request('POST', Uri.parse(uri), body: encodedBody);
   return searchServiceHandler(request);
 }

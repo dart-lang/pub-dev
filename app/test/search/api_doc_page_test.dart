@@ -15,13 +15,13 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'foo',
         version: '1.0.0',
         description: compactDescription('Yet another web framework.'),
         apiDocPages: [
-          new ApiDocPage(
+          ApiDocPage(
             relativePath: 'generator.html',
             symbols: [
               'generateWebPage',
@@ -33,17 +33,16 @@ void main() {
           ),
         ],
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'other_with_api',
         version: '2.0.0',
         description: compactDescription('Unrelated package'),
         apiDocPages: [
-          new ApiDocPage(relativePath: 'main.html', symbols: ['foo']),
-          new ApiDocPage(
-              relativePath: 'serve.html', symbols: ['serveWebPages']),
+          ApiDocPage(relativePath: 'main.html', symbols: ['foo']),
+          ApiDocPage(relativePath: 'serve.html', symbols: ['serveWebPages']),
         ],
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'other_without_api',
         version: '2.0.0',
         description: compactDescription('Unrelated package'),
@@ -53,7 +52,7 @@ void main() {
 
     test('foo', () async {
       final PackageSearchResult result = await index
-          .search(new SearchQuery.parse(query: 'foo', order: SearchOrder.text));
+          .search(SearchQuery.parse(query: 'foo', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -75,8 +74,8 @@ void main() {
     });
 
     test('server', () async {
-      final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'server', order: SearchOrder.text));
+      final PackageSearchResult result = await index
+          .search(SearchQuery.parse(query: 'server', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -95,8 +94,7 @@ void main() {
 
     test('page generator', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(
-              query: 'page generator', order: SearchOrder.text));
+          SearchQuery.parse(query: 'page generator', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -115,7 +113,7 @@ void main() {
 
     test('web page', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'web page', order: SearchOrder.text));
+          SearchQuery.parse(query: 'web page', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -135,7 +133,7 @@ void main() {
 
     test('text block', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'goal fancy', order: SearchOrder.text));
+          SearchQuery.parse(query: 'goal fancy', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,

@@ -127,11 +127,11 @@ final String _defaultPageDescriptionEscaped = htmlEscape.convert(
     'Pub is the package manager for the Dart programming language, containing reusable '
     'libraries & packages for Flutter, AngularDart, and general Dart programs.');
 
-const _schemaOrgSearchAction = const {
+const _schemaOrgSearchAction = {
   '@context': 'http://schema.org',
   '@type': 'WebSite',
   'url': '${urls.siteRoot}/',
-  'potentialAction': const {
+  'potentialAction': {
     '@type': 'SearchAction',
     'target': '${urls.siteRoot}/packages?q={search_term_string}',
     'query-input': 'required name=search_term_string',

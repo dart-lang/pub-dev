@@ -4,7 +4,7 @@
 
 /// 'internal' packages are developed by the Dart team, and they are allowed to
 /// point their URLs to *.dartlang.org (others would get a penalty for it).
-const internalPackageNames = const <String>[
+const internalPackageNames = <String>[
   'angular',
   'angular_components',
 ];
@@ -15,7 +15,7 @@ final Set<String> blockedLowerCasePackages = _knownMixedCasePackages
     .toSet()
       ..removeAll(_knownGoodLowerCasePackages);
 
-const _knownMixedCasePackages = const [
+const _knownMixedCasePackages = [
   'Autolinker',
   'Babylon',
   'DartDemoCLI',
@@ -29,20 +29,20 @@ const _knownMixedCasePackages = const [
   'Transmission_RPC',
   'ViAuthClient',
 ];
-const _knownGoodLowerCasePackages = const [
+const _knownGoodLowerCasePackages = [
   'babylon',
 ];
 
-const redirectPackagePages = const <String, String>{
+const redirectPackagePages = <String, String>{
   'flutter': 'https://pub.dartlang.org/flutter',
 };
 
-const redirectDartdocPages = const <String, String>{
+const redirectDartdocPages = <String, String>{
   'flutter': 'https://docs.flutter.io/',
 };
 
 // TODO: remove this after all of the flutter plugins have a proper issue tracker entry in their pubspec.yaml
-const _issueTrackerUrlOverrides = const <String, String>{
+const _issueTrackerUrlOverrides = <String, String>{
   'https://github.com/flutter/plugins/issues':
       'https://github.com/flutter/flutter/issues',
 };

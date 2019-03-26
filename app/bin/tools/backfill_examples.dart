@@ -23,12 +23,11 @@ Future main(List<String> args) async {
   }
 
   int updated = 0;
-  _httpClient = new http.Client();
+  _httpClient = http.Client();
   await withProdServices(() async {
     final query = dbService.query<PackageVersion>()..order('-created');
     if (pkg != null) {
-      query.filter(
-          'package =', new ds.Key([new ds.KeyElement('Package', pkg)]));
+      query.filter('package =', ds.Key([ds.KeyElement('Package', pkg)]));
     }
     await for (PackageVersion pv in query.run()) {
       if (pv.exampleFilename == null && pv.exampleContent == null) {
@@ -56,8 +55,8 @@ Future _backfill(PackageVersion pv) async {
     return;
   }
 
-  final Archive archive = new TarDecoder()
-      .decodeBytes(new GZipDecoder().decodeBytes(rs.bodyBytes, verify: true));
+  final Archive archive = TarDecoder()
+      .decodeBytes(GZipDecoder().decodeBytes(rs.bodyBytes, verify: true));
   ArchiveFile archiveFile;
   for (String candidate in exampleFileCandidates(pv.package)) {
     archiveFile = archive.findFile(candidate);

@@ -15,10 +15,10 @@ import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/tool_env.dart';
 
-final Logger _logger = new Logger('pub.analyzer.pana');
+final Logger _logger = Logger('pub.analyzer.pana');
 
 class AnalyzerJobProcessor extends JobProcessor {
-  final _urlChecker = new UrlChecker();
+  final _urlChecker = UrlChecker();
 
   AnalyzerJobProcessor({Duration lockDuration})
       : super(service: JobService.analyzer, lockDuration: lockDuration);
@@ -67,14 +67,14 @@ class AnalyzerJobProcessor extends JobProcessor {
       final toolEnvRef = await getOrCreateToolEnvRef();
       try {
         final PackageAnalyzer analyzer =
-            new PackageAnalyzer(toolEnvRef.toolEnv, urlChecker: _urlChecker);
+            PackageAnalyzer(toolEnvRef.toolEnv, urlChecker: _urlChecker);
         final isInternal = internalPackageNames.contains(job.packageName);
         return await analyzer.inspectPackage(
           job.packageName,
           version: job.packageVersion,
-          options: new InspectOptions(isInternal: isInternal),
-          logger: new Logger.detached(
-              'pana/${job.packageName}/${job.packageVersion}'),
+          options: InspectOptions(isInternal: isInternal),
+          logger:
+              Logger.detached('pana/${job.packageName}/${job.packageVersion}'),
         );
       } catch (e, st) {
         _logger.severe(
@@ -92,7 +92,7 @@ class AnalyzerJobProcessor extends JobProcessor {
         summary?.suggestions?.where((s) => s.isError)?.isNotEmpty ?? false;
     if (summary == null || firstRunWithErrors) {
       _logger.info('Retrying $job...');
-      await new Future.delayed(new Duration(seconds: 15));
+      await Future.delayed(Duration(seconds: 15));
       summary = await analyze();
     }
 
@@ -156,7 +156,7 @@ class AnalyzerJobProcessor extends JobProcessor {
   Future<Summary> _expandSummary(Summary summary, Duration age) async {
     if (summary.maintenance != null) {
       final suggestions =
-          new List<Suggestion>.from(summary.maintenance.suggestions ?? []);
+          List<Suggestion>.from(summary.maintenance.suggestions ?? []);
 
       // age suggestion
       final ageSuggestion = getAgeSuggestion(age);

@@ -15,30 +15,30 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'flutter_iap',
         version: '1.0.0',
         description: compactDescription('in app purchases for flutter'),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'flutter_blue',
         version: '0.2.3',
         description: compactDescription('Bluetooth plugin for Flutter.'),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'flutter_redux',
         version: '0.3.4',
         description: compactDescription(
             'A library that connects Widgets to a Redux Store.'),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'flutter_web_view',
         version: '0.0.2',
         description: compactDescription(
             'A native WebView plugin for Flutter with Nav Bar support. Works with iOS and Android'),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'flutter_3d_obj',
         version: '0.0.3',
         description: compactDescription(
@@ -50,7 +50,7 @@ void main() {
 
     test('flutter iap', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'flutter iap', order: SearchOrder.text));
+          SearchQuery.parse(query: 'flutter iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -65,7 +65,7 @@ void main() {
 
     test('flutter_iap', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'flutter_iap', order: SearchOrder.text));
+          SearchQuery.parse(query: 'flutter_iap', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,

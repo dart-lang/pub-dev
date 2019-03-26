@@ -53,19 +53,19 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'json_0',
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'json_1',
         platforms: ['flutter'],
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'json_2',
         platforms: ['flutter', 'other'],
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'json_3',
         platforms: KnownPlatforms.all,
       ));
@@ -74,7 +74,7 @@ void main() {
 
     test('text search without platform', () async {
       final PackageSearchResult withoutPlatform =
-          await index.search(new SearchQuery.parse(query: 'json'));
+          await index.search(SearchQuery.parse(query: 'json'));
       expect(json.decode(json.encode(withoutPlatform)), {
         'indexUpdated': isNotNull,
         'totalCount': 4,
@@ -101,7 +101,7 @@ void main() {
 
     test('text search with platform', () async {
       final PackageSearchResult withPlatform =
-          await index.search(new SearchQuery.parse(
+          await index.search(SearchQuery.parse(
         query: 'json',
         platform: 'flutter',
       ));

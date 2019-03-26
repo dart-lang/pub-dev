@@ -13,7 +13,7 @@ import '../shared/search_service.dart';
 import 'index_simple.dart';
 import 'result_combiner.dart';
 
-final Logger _logger = new Logger('pub.search.handlers');
+final Logger _logger = Logger('pub.search.handlers');
 final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 
 /// Handlers for the search service.
@@ -46,9 +46,9 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
     return htmlResponse(searchIndexNotReadyText,
         status: searchIndexNotReadyCode);
   }
-  final Stopwatch sw = new Stopwatch()..start();
-  final SearchQuery query = new SearchQuery.fromServiceUrl(request.url);
-  final combiner = new SearchResultCombiner(
+  final Stopwatch sw = Stopwatch()..start();
+  final SearchQuery query = SearchQuery.fromServiceUrl(request.url);
+  final combiner = SearchResultCombiner(
       primaryIndex: packageIndex, dartSdkIndex: dartSdkIndex);
   final result = await combiner.search(query);
   final Duration elapsed = sw.elapsed;

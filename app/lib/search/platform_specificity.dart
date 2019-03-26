@@ -15,7 +15,7 @@ double scorePlatformSpecificity(List<String> platforms, String p) {
 }
 
 /// Returns the platform specificity score given the package's platforms.
-typedef double _SpecificityFn(List<String> platforms);
+typedef _SpecificityFn = double Function(List<String> platforms);
 
 final _platformFns = const <String, _SpecificityFn>{
   KnownPlatforms.flutter: _heavySingle,

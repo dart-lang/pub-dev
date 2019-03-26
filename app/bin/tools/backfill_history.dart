@@ -14,7 +14,7 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 
-final _argParser = new ArgParser()
+final _argParser = ArgParser()
   ..addOption('package', abbr: 'p', help: 'The package to backfill.');
 
 Future main(List<String> args) async {
@@ -24,7 +24,7 @@ Future main(List<String> args) async {
   useLoggingPackageAdaptor();
   await withProdServices(() async {
     registerAccountBackend(AccountBackend(dbService));
-    registerHistoryBackend(new HistoryBackend(dbService));
+    registerHistoryBackend(HistoryBackend(dbService));
 
     if (package != null) {
       await _backfillPackage(package);
@@ -50,7 +50,7 @@ Future _backfillPackage(String package) async {
     }
     if (!hasUploaded) {
       final uploaderEmail = await accountBackend.getEmailOfUserId(pv.uploader);
-      historyBackend.storeEvent(new PackageUploaded(
+      historyBackend.storeEvent(PackageUploaded(
         packageName: package,
         packageVersion: pv.version,
         uploaderId: pv.uploader,

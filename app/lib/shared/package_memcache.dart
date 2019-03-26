@@ -12,7 +12,7 @@ import 'package:pub_server/shelf_pubserver.dart';
 import 'platform.dart' show KnownPlatforms;
 import 'redis_cache.dart';
 
-final Logger _logger = new Logger('pub.package_memcache');
+final Logger _logger = Logger('pub.package_memcache');
 
 abstract class UIPackageCache {
   // If [version] is `null` then it corresponds to the cache entry which can be
@@ -37,17 +37,17 @@ class AppEnginePackageMemcache implements PackageCache, UIPackageCache {
   final SimpleMemcache _uiIndexPage;
 
   AppEnginePackageMemcache()
-      : _json = new SimpleMemcache(
+      : _json = SimpleMemcache(
           'AppEnginePackageMemcache/json/',
           _logger,
           Duration(minutes: 10),
         ),
-        _uiPage = new SimpleMemcache(
+        _uiPage = SimpleMemcache(
           'AppEnginePackageMemcache/ui/',
           _logger,
           Duration(minutes: 10),
         ),
-        _uiIndexPage = new SimpleMemcache(
+        _uiIndexPage = SimpleMemcache(
           'AppEnginePackageMemcache/index/',
           _logger,
           Duration(minutes: 10),

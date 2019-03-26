@@ -19,7 +19,7 @@ class DartdocCustomizer {
 
   Future<bool> customizeDir(String path) async {
     bool changed = false;
-    final dir = new Directory(path);
+    final dir = Directory(path);
     await for (var fse in dir.list(recursive: true)) {
       if (fse is File && fse.path.endsWith('.html')) {
         final c = await customizeFile(fse);
@@ -83,7 +83,7 @@ class DartdocCustomizer {
   void _addAlternateUrl(Element head, Element canonical) {
     if (isLatestStable) return;
 
-    final link = new Element.tag('link');
+    final link = Element.tag('link');
     link.attributes['rel'] = 'alternate';
     link.attributes['href'] = pkgDocUrl(packageName, isLatest: true);
 
@@ -96,7 +96,7 @@ class DartdocCustomizer {
   }
 
   void _addMetaNoIndex(Element head) {
-    final meta = new Element.tag('meta');
+    final meta = Element.tag('meta');
     meta.attributes['name'] = 'robots';
     meta.attributes['content'] = 'noindex';
 
@@ -116,7 +116,7 @@ class DartdocCustomizer {
       // adding CSS link
       final firstLink = head.children.firstWhere((elem) =>
           elem.localName == 'link' && elem.attributes['rel'] == 'stylesheet');
-      final linkElement = new Element.tag('link')
+      final linkElement = Element.tag('link')
         ..attributes['rel'] = 'stylesheet'
         ..attributes['type'] = 'text/css'
         ..attributes['href'] = '$siteRoot/static/css/github-markdown.css';
@@ -126,23 +126,23 @@ class DartdocCustomizer {
 
   void _addAnalyticsTracker(Element head) {
     final firstChild = head.firstChild;
-    final gtagScript = new Element.tag('script')
+    final gtagScript = Element.tag('script')
       ..attributes['async'] = 'async'
       ..attributes['src'] =
           'https://www.googletagmanager.com/gtag/js?id=UA-26406144-13'
       ..text = '';
     head.insertBefore(gtagScript, firstChild);
-    final gtagInit = new Element.tag('script')
+    final gtagInit = Element.tag('script')
       ..attributes['src'] = '/static/js/gtag.js';
     head.insertBefore(gtagInit, firstChild);
   }
 
   void _addPubSiteLogo(Element breadcrumbs) {
     final parent = breadcrumbs.parent;
-    final logoLink = new Element.tag('a')
+    final logoLink = Element.tag('a')
       ..className = 'hidden-xs'
       ..attributes['href'] = '$siteRoot/';
-    final imgRef = new Element.tag('img')
+    final imgRef = Element.tag('img')
       ..attributes['src'] = '$siteRoot/static/img/dart-logo.svg'
       ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
@@ -159,7 +159,7 @@ class DartdocCustomizer {
       firstLink.attributes['href'] = pubPackageLink;
       firstLink.text = pubPackageText;
 
-      final docitem = new Element.tag('li')
+      final docitem = Element.tag('li')
         ..className = 'self-crumb'
         ..text = 'documentation';
       breadcrumbs.append(docitem);
@@ -168,8 +168,8 @@ class DartdocCustomizer {
       final firstLink = breadcrumbs.querySelector('a');
       firstLink.text = 'documentation';
 
-      final lead = new Element.tag('li');
-      final leadLink = new Element.tag('a');
+      final lead = Element.tag('li');
+      final leadLink = Element.tag('a');
       leadLink.attributes['href'] = pubPackageLink;
       leadLink.text = pubPackageText;
       lead.append(leadLink);

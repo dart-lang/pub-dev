@@ -14,7 +14,7 @@ import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 
-final _argParser = new ArgParser(allowTrailingOptions: true)
+final _argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('discontinued',
       help: 'Set or clear the discontinued flag', allowed: ['set', 'clear'])
   ..addOption('do-not-advertise',
@@ -58,7 +58,7 @@ Future _read(String packageName) async {
           .lookup([dbService.emptyKey.append(Package, id: packageName)]))
       .single as Package;
   if (p == null) {
-    throw new Exception('Package $packageName does not exist.');
+    throw Exception('Package $packageName does not exist.');
   }
   final flags = <String>[];
   if (p.isDiscontinued ?? false) {
@@ -72,13 +72,13 @@ Future _read(String packageName) async {
 }
 
 Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
-  registerJobBackend(new JobBackend(dbService));
+  registerJobBackend(JobBackend(dbService));
   return dbService.withTransaction((Transaction tx) async {
     final p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
             .single as Package;
     if (p == null) {
-      throw new Exception('Package $packageName does not exist.');
+      throw Exception('Package $packageName does not exist.');
     }
     if (discontinued != null) {
       p.isDiscontinued = discontinued == 'set';
@@ -90,13 +90,12 @@ Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
     await tx.commit();
     print(
         'Package $packageName: isDiscontinued=${p.isDiscontinued} doNotAdverise=${p.doNotAdvertise}');
-    await new AnalyzerClient()
-        .triggerAnalysis(packageName, p.latestVersion, new Set());
+    await AnalyzerClient().triggerAnalysis(packageName, p.latestVersion, Set());
   });
 }
 
 Future _clearCaches(String packageName) async {
-  final pkgCache = new AppEnginePackageMemcache();
+  final pkgCache = AppEnginePackageMemcache();
   await pkgCache.invalidateUIPackagePage(packageName);
   await pkgCache.invalidatePackageData(packageName);
 }

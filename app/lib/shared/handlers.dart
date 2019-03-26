@@ -19,16 +19,16 @@ const String default404NotFound = '404 Not Found';
 
 /// The default age a browser would take hold of the static files before
 /// checking with the server for a newer version.
-const staticShortCache = const Duration(minutes: 5);
+const staticShortCache = Duration(minutes: 5);
 
 /// The age the browser should cache the static file if there is a hash provided
 /// and it matches the etag.
-const staticLongCache = const Duration(hours: 24);
+const staticLongCache = Duration(hours: 24);
 
-final _logger = new Logger('pub.shared.handler');
-final _prettyJson = new JsonEncoder.withIndent('  ');
+final _logger = Logger('pub.shared.handler');
+final _prettyJson = JsonEncoder.withIndent('  ');
 
-shelf.Response redirectResponse(String url) => new shelf.Response.seeOther(url);
+shelf.Response redirectResponse(String url) => shelf.Response.seeOther(url);
 
 shelf.Response redirectToSearch(String query) {
   return redirectResponse(searchUrl(q: query));
@@ -44,7 +44,7 @@ shelf.Response jsonResponse(
   int status = 200,
 }) {
   final String body = pretty ? _prettyJson.convert(map) : json.encode(map);
-  return new shelf.Response(
+  return shelf.Response(
     status,
     body: body,
     headers: {
@@ -103,7 +103,7 @@ shelf.Response htmlResponse(String content,
   headers['content-type'] = 'text/html; charset="utf-8"';
   headers['x-content-type-options'] = 'nosniff';
   headers['content-security-policy'] = _contentSecurityPolicy;
-  return new shelf.Response(status, body: content, headers: headers);
+  return shelf.Response(status, body: content, headers: headers);
 }
 
 shelf.Response notFoundHandler(shelf.Request request,
@@ -111,7 +111,7 @@ shelf.Response notFoundHandler(shelf.Request request,
     htmlResponse(body, status: 404);
 
 shelf.Response rejectRobotsHandler(shelf.Request request) =>
-    new shelf.Response.ok('User-agent: *\nDisallow: /\n');
+    shelf.Response.ok('User-agent: *\nDisallow: /\n');
 
 /// Combines a response for /debug requests
 shelf.Response debugResponse([Map<String, dynamic> data]) {

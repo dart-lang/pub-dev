@@ -29,7 +29,7 @@ class PubClient {
     final map = convert.json.decode(content) as Map<String, dynamic>;
     final uploaders = (map['uploaders'] as List)?.cast<String>();
     final versions = (map['versions'] as List)?.cast<String>();
-    return new PackageData(uploaders: uploaders, versions: versions);
+    return PackageData(uploaders: uploaders, versions: versions);
   }
 
   /// Fetch the package version data (created, pubspec).
@@ -42,7 +42,7 @@ class PubClient {
         .firstWhere((s) => s.contains('"@type":"SoftwareSourceCode"'));
     final searchMap = convert.json.decode(searchJson) as Map<String, dynamic>;
     final created = DateTime.parse(searchMap['dateModified'] as String);
-    return new PackageVersionData(
+    return PackageVersionData(
       created: created,
       pubspec: await _getPubspec(package, version),
     );

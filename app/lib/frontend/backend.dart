@@ -29,8 +29,8 @@ import 'models.dart' as models;
 import 'name_tracker.dart';
 import 'upload_signer_service.dart';
 
-final Logger _logger = new Logger('pub.cloud_repository');
-final _random = new Random.secure();
+final Logger _logger = Logger('pub.cloud_repository');
+final _random = Random.secure();
 // The maximum stored length of `README.md` and other user-provided file content
 // that is stored separately in the database.
 final _maxStoredLength = 128 * 1024;
@@ -50,7 +50,7 @@ void registerBackend(Backend backend) => ss.register(#_backend, backend);
 Backend get backend => ss.lookup(#_backend) as Backend;
 
 /// A callback to be invoked after an upload of a new [PackageVersion].
-typedef Future FinishedUploadCallback(models.PackageVersion pv);
+typedef FinishedUploadCallback = Future Function(models.PackageVersion pv);
 
 /// Represents the backend for the pub.dartlang.org site.
 class Backend {
@@ -61,7 +61,7 @@ class Backend {
   Backend(DatastoreDB db, TarballStorage storage,
       {UIPackageCache cache, FinishedUploadCallback finishCallback})
       : db = db,
-        repository = new GCloudPackageRepository(db, storage,
+        repository = GCloudPackageRepository(db, storage,
             cache: cache, finishCallback: finishCallback),
         uiPackageCache = cache;
 
@@ -170,7 +170,7 @@ class Backend {
     @required String fromUserId,
     @required String fromEmail,
   }) async {
-    final now = new DateTime.now().toUtc();
+    final now = DateTime.now().toUtc();
     final inviteId = models.PackageInvite.createId(type, recipientEmail);
     final pkgKey = db.emptyKey.append(models.Package, id: packageName);
     final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
@@ -181,7 +181,7 @@ class Backend {
       // Existing and active invite with throttled notification.
       if (invite != null && !invite.isExpired() && !invite.shouldNotify()) {
         await tx.rollback();
-        return new InviteStatus(nextNotification: invite.nextNotification);
+        return InviteStatus(nextNotification: invite.nextNotification);
       }
 
       // Existing and active invite with notification enabled.
@@ -190,7 +190,7 @@ class Backend {
         invite.notificationCount++;
         tx.queueMutations(inserts: [invite]);
         await tx.commit();
-        return new InviteStatus(urlNonce: invite.urlNonce);
+        return InviteStatus(urlNonce: invite.urlNonce);
       }
 
       // Reset old or create new invite.
@@ -200,7 +200,7 @@ class Backend {
         ..type = type
         ..recipientEmail = recipientEmail;
       final urlNonce =
-          new List.generate(25, (i) => _random.nextInt(36).toRadixString(36))
+          List.generate(25, (i) => _random.nextInt(36).toRadixString(36))
               .join();
       invite
         ..urlNonce = urlNonce
@@ -213,7 +213,7 @@ class Backend {
 
       final inserts = <Model>[invite];
       if (historyBackend.isEnabled) {
-        final history = new History.entry(new UploaderInvited(
+        final history = History.entry(UploaderInvited(
           packageName: packageName,
           currentUserId: fromUserId,
           currentUserEmail: fromEmail,
@@ -224,7 +224,7 @@ class Backend {
 
       tx.queueMutations(inserts: inserts);
       await tx.commit();
-      return new InviteStatus(urlNonce: invite.urlNonce);
+      return InviteStatus(urlNonce: invite.urlNonce);
     }) as InviteStatus;
   }
 
@@ -288,7 +288,7 @@ class InviteStatus {
 /// A read-only implementation of [PackageRepository] using the Cloud Datastore
 /// for metadata and Cloud Storage for tarball storage.
 class GCloudPackageRepository extends PackageRepository {
-  final Uuid uuid = new Uuid();
+  final Uuid uuid = Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
   final UIPackageCache cache;
@@ -318,7 +318,7 @@ class GCloudPackageRepository extends PackageRepository {
     final pv =
         (await db.lookup([packageVersionKey])).first as models.PackageVersion;
     if (pv == null) return null;
-    return new PackageVersion(package, version, pv.pubspec.jsonString);
+    return PackageVersion(package, version, pv.pubspec.jsonString);
   }
 
   // Download support.
@@ -355,8 +355,7 @@ class GCloudPackageRepository extends PackageRepository {
         final filename = '${dir.absolute.path}/tarball.tar.gz';
         await _saveTarballToFS(data, filename);
         return _performTarballUpload(user, filename, (package, version) {
-          return storage.upload(
-              package, version, new File(filename).openRead());
+          return storage.upload(package, version, File(filename).openRead());
         });
       });
     });
@@ -437,7 +436,7 @@ class GCloudPackageRepository extends PackageRepository {
         await T.rollback();
         _logger.info('Version ${version.version} of package '
             '${version.package} already exists, rolling transaction back.');
-        throw new GenericProcessingException(
+        throw GenericProcessingException(
             'Version ${version.version} of package '
             '${version.package} already exists.');
       }
@@ -447,7 +446,7 @@ class GCloudPackageRepository extends PackageRepository {
           matchesReservedPackageName(newVersion.package) &&
           !user.email.endsWith('@google.com')) {
         await T.rollback();
-        throw new GenericProcessingException(
+        throw GenericProcessingException(
             'Package name ${newVersion.package} is reserved.');
       }
 
@@ -460,7 +459,7 @@ class GCloudPackageRepository extends PackageRepository {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
-        throw new UnauthorizedAccessException(
+        throw UnauthorizedAccessException(
             'Unauthorized user: ${user.email} is not allowed to '
             'upload versions to package ${package.name}.');
       }
@@ -483,7 +482,7 @@ class GCloudPackageRepository extends PackageRepository {
           validatedUpload.packageVersionInfo,
         ];
         if (historyBackend.isEnabled) {
-          final history = new History.entry(new PackageUploaded(
+          final history = History.entry(PackageUploaded(
             packageName: newVersion.package,
             packageVersion: newVersion.version,
             uploaderId: user.userId,
@@ -504,7 +503,7 @@ class GCloudPackageRepository extends PackageRepository {
         // store them again.
         await _updatePackageSortIndex(package.key);
 
-        return new PackageVersion(newVersion.package, newVersion.version,
+        return PackageVersion(newVersion.package, newVersion.version,
             newVersion.pubspec.jsonString);
       } catch (error, stack) {
         _logger.warning('Error while committing: $error, $stack');
@@ -530,9 +529,8 @@ class GCloudPackageRepository extends PackageRepository {
         packageName: newVersion.package,
         packageVersion: newVersion.version,
         uploaderEmail: user.email,
-        authorizedUploaders: uploaderEmails
-            .map((email) => new EmailAddress(null, email))
-            .toList(),
+        authorizedUploaders:
+            uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
       ),
     );
 
@@ -593,7 +591,7 @@ class GCloudPackageRepository extends PackageRepository {
       _validatePackageUploader(package, user.userId, user.email);
 
       if (!isValidEmail(uploaderEmail)) {
-        throw new GenericProcessingException(
+        throw GenericProcessingException(
             'Not a valid e-mail: `$uploaderEmail`.');
       }
 
@@ -614,7 +612,7 @@ class GCloudPackageRepository extends PackageRepository {
       );
 
       if (status.isDelayed) {
-        throw new GenericProcessingException(
+        throw GenericProcessingException(
             'Previous invite is still active, next notification can be sent '
             'on ${status.nextNotification.toIso8601String()}.');
       }
@@ -633,7 +631,7 @@ class GCloudPackageRepository extends PackageRepository {
       );
       await emailSender.sendMessage(message);
 
-      throw new GenericProcessingException(
+      throw GenericProcessingException(
           'We have sent an invitation to $uploaderEmail, '
           'they will be added as uploader after they confirm it.');
     });
@@ -669,7 +667,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {
-        final history = new History.entry(new UploaderChanged(
+        final history = History.entry(UploaderChanged(
           packageName: packageName,
           currentUserId: fromUserId,
           currentUserEmail: fromUserEmail,
@@ -691,12 +689,12 @@ class GCloudPackageRepository extends PackageRepository {
       models.Package package, String userId, String userEmail) {
     // Fail if package doesn't exist.
     if (package == null) {
-      throw new GenericProcessingException('Package "$package" does not exist');
+      throw GenericProcessingException('Package "$package" does not exist');
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
     if (!package.hasUploader(userId)) {
-      throw new UnauthorizedAccessException(
+      throw UnauthorizedAccessException(
           'Calling user does not have permission to change uploaders.');
     }
   }
@@ -712,14 +710,13 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if package doesn't exist.
         if (package == null) {
           await T.rollback();
-          throw new GenericProcessingException(
-              'Package "$package" does not exist');
+          throw GenericProcessingException('Package "$package" does not exist');
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
         if (!package.hasUploader(user.userId)) {
           await T.rollback();
-          throw new UnauthorizedAccessException(
+          throw UnauthorizedAccessException(
               'Calling user does not have permission to change uploaders.');
         }
 
@@ -728,7 +725,7 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if the uploader we want to remove does not exist.
         if (!package.hasUploader(uploader.userId)) {
           await T.rollback();
-          throw new GenericProcessingException(
+          throw GenericProcessingException(
               'The uploader to remove does not exist.');
         }
 
@@ -736,7 +733,7 @@ class GCloudPackageRepository extends PackageRepository {
         // fail with an error.
         if (package.uploaderCount <= 1) {
           await T.rollback();
-          throw new LastUploaderRemoveException();
+          throw LastUploaderRemoveException();
         }
 
         // At the moment we don't validate whether the other e-mail addresses
@@ -744,7 +741,7 @@ class GCloudPackageRepository extends PackageRepository {
         // of a package, we don't allow self-removal.
         if (user.email == uploader.email || user.userId == uploader.userId) {
           await T.rollback();
-          throw new GenericProcessingException('Self-removal is not allowed. '
+          throw GenericProcessingException('Self-removal is not allowed. '
               'Use another account to remove this e-mail address.');
         }
 
@@ -753,7 +750,7 @@ class GCloudPackageRepository extends PackageRepository {
 
         final inserts = <Model>[package];
         if (historyBackend.isEnabled) {
-          final history = new History.entry(new UploaderChanged(
+          final history = History.entry(UploaderChanged(
             packageName: packageName,
             currentUserId: user.userId,
             currentUserEmail: user.email,
@@ -805,8 +802,8 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
 /// Creates a new `Package` and populates all of it's fields.
 models.Package _newPackageFromVersion(
     DatastoreDB db, models.PackageVersion version) {
-  final now = new DateTime.now().toUtc();
-  return new models.Package()
+  final now = DateTime.now().toUtc();
+  return models.Package()
     ..parentKey = db.emptyKey
     ..id = version.pubspec.name
     ..name = version.pubspec.name
@@ -888,8 +885,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
       .toList();
 
   if (!files.contains('pubspec.yaml')) {
-    throw new GenericProcessingException(
-        'Invalid upload: no pubspec.yaml file');
+    throw GenericProcessingException('Invalid upload: no pubspec.yaml file');
   }
 
   final pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
@@ -900,23 +896,23 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     throw GenericProcessingException('pubspec.yaml is too large.');
   }
 
-  final pubspec = new Pubspec.fromYaml(pubspecContent);
+  final pubspec = Pubspec.fromYaml(pubspecContent);
   if (pubspec.name == null ||
       pubspec.version == null ||
       pubspec.name.trim().isEmpty ||
       pubspec.version.trim().isEmpty) {
-    throw new GenericProcessingException('Invalid `pubspec.yaml` file');
+    throw GenericProcessingException('Invalid `pubspec.yaml` file');
   }
 
   validatePackageName(pubspec.name);
   if (!nameTracker.accept(pubspec.name)) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Package name is too similar to another package.');
   }
   urls.syntaxCheckHomepageUrl(pubspec.homepage);
 
   if (pubspec.hasBothAuthorAndAuthors) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
   }
 
@@ -951,12 +947,12 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   final key =
       models.QualifiedVersionKey(package: pubspec.name, version: versionString);
 
-  final version = new models.PackageVersion()
+  final version = models.PackageVersion()
     ..id = versionString
     ..parentKey = packageKey
     ..version = versionString
     ..packageKey = packageKey
-    ..created = new DateTime.now().toUtc()
+    ..created = DateTime.now().toUtc()
     ..pubspec = pubspec
     ..readmeFilename = readmeFilename
     ..readmeContent = readmeContent
@@ -998,7 +994,7 @@ class TarballStorage {
 
   TarballStorage(this.storage, Bucket bucket, String namespace)
       : bucket = bucket,
-        namer = new TarballStorageNamer(bucket.bucketName, namespace);
+        namer = TarballStorageNamer(bucket.bucketName, namespace);
 
   /// Generates a path to a temporary object on cloud storage.
   String tempObjectName(String guid) => namer.tmpObjectName(guid);
@@ -1019,15 +1015,14 @@ class TarballStorage {
 
     // Change the ACL to include a `public-read` entry.
     final ObjectInfo info = await bucket.info(object);
-    final publicRead = new AclEntry(new AllUsersScope(), AclPermission.READ);
-    final acl =
-        new Acl(new List.from(info.metadata.acl.entries)..add(publicRead));
+    final publicRead = AclEntry(AllUsersScope(), AclPermission.READ);
+    final acl = Acl(List.from(info.metadata.acl.entries)..add(publicRead));
     await bucket.updateMetadata(object, info.metadata.replace(acl: acl));
   }
 
   /// Remove a previously generated temporary object.
   Future removeTempObject(String guid) async {
-    if (guid == null) throw new ArgumentError('No guid given.');
+    if (guid == null) throw ArgumentError('No guid given.');
     return bucket.delete(namer.tmpObjectName(guid));
   }
 
@@ -1048,8 +1043,7 @@ class TarballStorage {
     // NOTE: We should maybe check for existence first?
     // return storage.bucket(bucket).info(object)
     //     .then((info) => info.downloadLink);
-    return new Future.value(
-        Uri.parse(namer.tarballObjectUrl(package, version)));
+    return Future.value(Uri.parse(namer.tarballObjectUrl(package, version)));
   }
 
   /// Upload [tarball] of a [package] in the given [version].

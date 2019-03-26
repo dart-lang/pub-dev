@@ -92,7 +92,7 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
       continue;
     }
 
-    _ongoing = new Completer();
+    _ongoing = Completer();
 
     final cacheDir = await Directory.systemTemp.createTemp('pub-cache-dir');
     final resolvedDirName = await cacheDir.resolveSymbolicLinks();
@@ -101,7 +101,7 @@ Future<ToolEnvRef> getOrCreateToolEnvRef() async {
       flutterSdkDir: envConfig.flutterSdkDir,
       pubCacheDir: resolvedDirName,
     );
-    _current = new ToolEnvRef(cacheDir, toolEnv);
+    _current = ToolEnvRef(cacheDir, toolEnv);
     result = _current;
     result._aquire();
     _ongoing.complete();

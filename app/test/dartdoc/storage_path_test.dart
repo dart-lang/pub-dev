@@ -20,7 +20,7 @@ void main() {
   });
 
   test('entry paths', () {
-    final entry = new DartdocEntry(
+    final entry = DartdocEntry(
       uuid: '12345678-abcdef10',
       packageName: 'pkg_foo',
       packageVersion: '1.2.3',
@@ -31,7 +31,7 @@ void main() {
       sdkVersion: '2.0.0-dev.32.0',
       dartdocVersion: '0.16.0',
       flutterVersion: '0.1.6',
-      timestamp: new DateTime(2018, 03, 08),
+      timestamp: DateTime(2018, 03, 08),
       depsResolved: true,
       hasContent: true,
       archiveSize: 10000,

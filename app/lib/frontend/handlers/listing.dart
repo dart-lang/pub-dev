@@ -17,7 +17,7 @@ import '../models.dart';
 import '../search_service.dart';
 import '../templates/listing.dart';
 
-final _searchOverallLatencyTracker = new DurationTracker();
+final _searchOverallLatencyTracker = DurationTracker();
 
 Map searchDebugStats() {
   return {
@@ -46,12 +46,12 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
   final searchQuery = parseFrontendSearchQuery(request.requestedUri, platform);
-  final sw = new Stopwatch()..start();
+  final sw = Stopwatch()..start();
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
 
   final links =
-      new PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
   final result = htmlResponse(renderPkgIndexPage(
     searchResult.packages,
     links,

@@ -8,8 +8,8 @@ import 'urls.dart';
 
 const pubDartlangOrgEmail = 'pub@dartlang.org';
 final _emailRegExp = RegExp(r'^\S+@\S+\.\S+$');
-final _nameEmailRegExp = new RegExp(r'^(.*)<(.+@.+)>$');
-final _defaultFrom = new EmailAddress(
+final _nameEmailRegExp = RegExp(r'^(.*)<(.+@.+)>$');
+final _defaultFrom = EmailAddress(
   'Dart package site admin',
   pubDartlangOrgEmail,
 );
@@ -47,7 +47,7 @@ class EmailAddress {
     if (!isValidEmail(email)) {
       email = null;
     }
-    return new EmailAddress(name, email);
+    return EmailAddress(name, email);
   }
 
   bool get isEmpty => name == null && email == null;
@@ -135,7 +135,7 @@ Thanks for your contributions to the Dart community!
 With appreciation, the Dart package site admin
 ''';
 
-  return new EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
+  return EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
 }
 
 /// Creates the [EmailMessage] that will be sent to the new uploader for confirmation.
@@ -162,6 +162,6 @@ Thanks for your contributions to the Dart community!
 
 With appreciation, the Dart package site admin
 ''';
-  return new EmailMessage(_defaultFrom,
-      [new EmailAddress(null, addedUploaderEmail)], subject, bodyText);
+  return EmailMessage(_defaultFrom, [EmailAddress(null, addedUploaderEmail)],
+      subject, bodyText);
 }

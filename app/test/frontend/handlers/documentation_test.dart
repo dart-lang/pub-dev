@@ -67,7 +67,7 @@ void main() {
 
   group('dartdoc handlers', () {
     Future<shelf.Response> issueGet(String uri) => documentationHandler(
-        new shelf.Request('GET', Uri.parse('https://pub.dartlang.org$uri')));
+        shelf.Request('GET', Uri.parse('https://pub.dartlang.org$uri')));
 
     test('/documentation/flutter redirect', () async {
       expectRedirectResponse(
@@ -96,7 +96,7 @@ void main() {
     });
 
     scopedTest('/documentation/no_pkg redirect', () async {
-      registerDartdocBackend(new DartdocBackendMock());
+      registerDartdocBackend(DartdocBackendMock());
       expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
           '/packages/no_pkg/versions');
     });
@@ -111,7 +111,7 @@ class DartdocBackendMock implements DartdocBackend {
 
   @override
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -151,51 +151,51 @@ class DartdocBackendMock implements DartdocBackend {
 
   @override
   Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future removeAll(String package, {String version, int concurrency}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future removeObsolete(String package, String version) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future uploadDir(DartdocEntry entry, String dirPath) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<bool> hasValidDartSdkDartdocData() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<PubDartdocData> getDartSdkDartdocData() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future uploadDartSdkDartdocData(File file) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   void scheduleOldDataGC() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<String> getTextContent(DartdocEntry entry, String relativePath) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future updateOldEntry(DartdocEntry old, DartdocEntry current) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 }

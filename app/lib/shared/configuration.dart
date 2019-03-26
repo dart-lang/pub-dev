@@ -153,7 +153,7 @@ class EnvConfig {
     this.workerCount,
   ) {
     if (this.gcloudProject == null) {
-      throw new Exception('GCLOUD_PROJECT needs to be set!');
+      throw Exception('GCLOUD_PROJECT needs to be set!');
     }
   }
 
@@ -162,7 +162,7 @@ class EnvConfig {
         int.tryParse(Platform.environment['FRONTEND_COUNT'] ?? '1') ?? 1;
     final workerCount =
         int.tryParse(Platform.environment['WORKER_COUNT'] ?? '1') ?? 1;
-    return new EnvConfig._(
+    return EnvConfig._(
       Platform.environment['GAE_SERVICE'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
@@ -177,7 +177,7 @@ class EnvConfig {
 }
 
 /// Configuration from the environment variables.
-final EnvConfig envConfig = new EnvConfig._detect();
+final EnvConfig envConfig = EnvConfig._detect();
 
 auth.ServiceAccountCredentials _loadCredentials([String path]) {
   path ??= envConfig.gcloudKey;

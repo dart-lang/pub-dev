@@ -32,7 +32,7 @@ export 'package:pana/models.dart'
 
 part 'models.g.dart';
 
-final _gzipCodec = new GZipCodec();
+final _gzipCodec = GZipCodec();
 
 abstract class PackageFlags {
   static const String doNotAdvertise = 'do-not-adverise';
@@ -47,7 +47,7 @@ abstract class ReportType {
   static const String pana = 'pana';
   static const String dartdoc = 'dartdoc';
 
-  static const values = const <String>[pana, dartdoc];
+  static const values = <String>[pana, dartdoc];
 }
 
 abstract class ReportStatus {
@@ -119,10 +119,10 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
     final key = scoreCardKey(packageName, packageVersion);
     parentKey = key.parent;
     id = key.id;
-    updated = new DateTime.now().toUtc();
+    updated = DateTime.now().toUtc();
   }
 
-  ScoreCardData toData() => new ScoreCardData(
+  ScoreCardData toData() => ScoreCardData(
         packageName: packageName,
         packageVersion: packageVersion,
         runtimeVersion: runtimeVersion,
@@ -137,7 +137,7 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
         reportTypes: reportTypes,
       );
 
-  Version get semanticRuntimeVersion => new Version.parse(runtimeVersion);
+  Version get semanticRuntimeVersion => Version.parse(runtimeVersion);
 
   void addFlag(String flag) {
     flags ??= <String>[];
@@ -222,7 +222,7 @@ class ScoreCardReport extends db.ExpandoModel {
     reportType = reportData.reportType;
     reportStatus = reportData.reportStatus;
     id = reportType;
-    updated = new DateTime.now().toUtc();
+    updated = DateTime.now().toUtc();
     reportJson = reportData.toJson();
   }
 
@@ -243,11 +243,11 @@ class ScoreCardReport extends db.ExpandoModel {
   ReportData get reportData {
     switch (reportType) {
       case ReportType.pana:
-        return new PanaReport.fromJson(reportJson);
+        return PanaReport.fromJson(reportJson);
       case ReportType.dartdoc:
-        return new DartdocReport.fromJson(reportJson);
+        return DartdocReport.fromJson(reportJson);
     }
-    throw new Exception('Unknown report type: $reportType');
+    throw Exception('Unknown report type: $reportType');
   }
 }
 
@@ -325,7 +325,7 @@ class ScoreCardData extends Object with FlagMixin {
     );
   }
 
-  bool get isNew => new DateTime.now().difference(packageCreated).inDays <= 30;
+  bool get isNew => DateTime.now().difference(packageCreated).inDays <= 30;
 
   bool get isCurrent => runtimeVersion == versions.runtimeVersion;
 
