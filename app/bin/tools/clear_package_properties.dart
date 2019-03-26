@@ -48,6 +48,19 @@ Future main(List<String> args) async {
   });
 }
 
+Future _processWithQuery<T extends ExpandoModel>(Query<T> query) async {
+  await for (T m in query.run()) {
+    if (m.additionalProperties.isNotEmpty) {
+      await dbService.withTransaction((tx) async {
+        final entry = (await tx.lookup<T>([m.key])).single;
+        entry.additionalProperties.clear();
+        tx.queueMutations(inserts: [entry]);
+        await tx.commit();
+      });
+    }
+  }
+}
+
 Future _processPackage(
   String package, {
   bool packageEntityNeedsUpdate = true,
@@ -56,16 +69,15 @@ Future _processPackage(
   final pkgKey = dbService.emptyKey.append(Package, id: package);
 
   final versionQuery = dbService.query<PackageVersion>(ancestorKey: pkgKey);
-  await for (PackageVersion pv in versionQuery.run()) {
-    if (pv.additionalProperties.isNotEmpty) {
-      await dbService.withTransaction((tx) async {
-        final version = (await tx.lookup<PackageVersion>([pv.key])).single;
-        version.additionalProperties.clear();
-        tx.queueMutations(inserts: [version]);
-        await tx.commit();
-      });
-    }
-  }
+  await _processWithQuery(versionQuery);
+
+  final pubspecQuery = dbService.query<PackageVersionPubspec>()
+    ..filter('package =', package);
+  await _processWithQuery(pubspecQuery);
+
+  final infoQuery = dbService.query<PackageVersionInfo>()
+    ..filter('package =', package);
+  await _processWithQuery(infoQuery);
 
   if (packageEntityNeedsUpdate) {
     await dbService.withTransaction((tx) async {
