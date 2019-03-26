@@ -46,22 +46,22 @@ class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   }
 
   @override
-  Future<List<T>> lookup<T extends gdb.Model>(List<gdb.Key> keys) async {
+  Future<List<S>> lookup<S extends gdb.Model>(List<gdb.Key> keys) async {
     if (lookupFun == null) {
       throw new Exception('no lookupFun');
     }
-    return ((await lookupFun(keys)) as List).cast<T>();
+    return ((await lookupFun(keys)) as List).cast<S>();
   }
 
   @override
-  gdb.Query<T> query<T extends gdb.Model>(
+  gdb.Query<S> query<S extends gdb.Model>(
       {gdb.Partition partition, gdb.Key ancestorKey}) {
     if (queryMock == null) {
       throw new Exception('no queryMock');
     }
     queryMock._partition = partition;
     queryMock._ancestorKey = ancestorKey;
-    return queryMock as QueryMock<T>;
+    return queryMock as QueryMock<S>;
   }
 
   @override

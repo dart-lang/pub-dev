@@ -14,6 +14,7 @@ linter:
   - avoid_init_to_null
   - avoid_relative_lib_imports
   - avoid_return_types_on_setters
+  - avoid_shadowing_type_parameters
   - avoid_types_as_parameter_names
   - await_only_futures
   - camel_case_types
