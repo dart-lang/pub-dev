@@ -58,8 +58,8 @@ Future _backfillPackage(String package) async {
   final packageKey = dbService.emptyKey.append(Package, id: package);
   final query = dbService.query<PackageVersion>(ancestorKey: packageKey);
   await for (PackageVersion pv in query.run()) {
-    final qualifiedKey = QualifiedVersionKey(
-        namespace: null, package: pv.package, version: pv.version);
+    final qualifiedKey =
+        QualifiedVersionKey(package: pv.package, version: pv.version);
 
     final pvPubspecKey = dbService.emptyKey
         .append(PackageVersionPubspec, id: qualifiedKey.qualifiedVersion);

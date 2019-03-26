@@ -237,7 +237,6 @@ class PackageVersion extends db.ExpandoModel {
 
   QualifiedVersionKey get qualifiedVersionKey {
     return QualifiedVersionKey(
-      namespace: '',
       package: package,
       version: version,
     );
@@ -251,13 +250,7 @@ class PackageVersion extends db.ExpandoModel {
 @db.Kind(name: 'PackageVersionPubspec', idType: db.IdType.String)
 class PackageVersionPubspec extends db.ExpandoModel {
   @db.StringProperty(required: true)
-  String namespace;
-
-  @db.StringProperty(required: true)
   String package;
-
-  @db.StringProperty(required: true)
-  String qualifiedPackage;
 
   @db.StringProperty(required: true)
   String version;
@@ -272,15 +265,12 @@ class PackageVersionPubspec extends db.ExpandoModel {
 
   void initFromKey(QualifiedVersionKey key) {
     id = key.qualifiedVersion;
-    namespace = key.namespace ?? '';
     package = key.package;
-    qualifiedPackage = key.qualifiedPackage;
     version = key.version;
   }
 
   QualifiedVersionKey get qualifiedVersionKey {
     return QualifiedVersionKey(
-      namespace: namespace,
       package: package,
       version: version,
     );
@@ -291,13 +281,7 @@ class PackageVersionPubspec extends db.ExpandoModel {
 @db.Kind(name: 'PackageVersionInfo', idType: db.IdType.String)
 class PackageVersionInfo extends db.ExpandoModel {
   @db.StringProperty(required: true)
-  String namespace;
-
-  @db.StringProperty(required: true)
   String package;
-
-  @db.StringProperty(required: true)
-  String qualifiedPackage;
 
   @db.StringProperty(required: true)
   String version;
@@ -354,49 +338,40 @@ class PackageVersionInfo extends db.ExpandoModel {
 
   void initFromKey(QualifiedVersionKey key) {
     id = key.qualifiedVersion;
-    namespace = key.namespace ?? '';
     package = key.package;
-    qualifiedPackage = key.qualifiedPackage;
     version = key.version;
   }
 
   QualifiedVersionKey get qualifiedVersionKey {
     return QualifiedVersionKey(
-      namespace: namespace,
       package: package,
       version: version,
     );
   }
 }
 
-/// An identifier to point to a specific [namespace], [package] and [version].
+/// An identifier to point to a specific [package] and [version].
 class QualifiedVersionKey {
-  final String namespace;
   final String package;
   final String version;
 
   QualifiedVersionKey({
-    @required this.namespace,
     @required this.package,
     @required this.version,
   });
 
-  String get qualifiedPackage =>
-      namespace == null || namespace.isEmpty ? package : '$namespace:$package';
-
-  String get qualifiedVersion => '$qualifiedPackage-$version';
+  String get qualifiedVersion => '$package-$version';
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is QualifiedVersionKey &&
           runtimeType == other.runtimeType &&
-          namespace == other.namespace &&
           package == other.package &&
           version == other.version;
 
   @override
-  int get hashCode => namespace.hashCode ^ package.hashCode ^ version.hashCode;
+  int get hashCode => package.hashCode ^ version.hashCode;
 
   @override
   String toString() => qualifiedVersion;

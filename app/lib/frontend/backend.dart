@@ -949,8 +949,8 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
 
   final versionString = canonicalizeVersion(pubspec.version);
 
-  final key = models.QualifiedVersionKey(
-      namespace: null, package: pubspec.name, version: versionString);
+  final key =
+      models.QualifiedVersionKey(package: pubspec.name, version: versionString);
 
   final version = new models.PackageVersion()
     ..id = versionString
