@@ -665,7 +665,7 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       // Add [uploaderEmail] to uploaders and commit.
-      package.addUploader(uploader.userId, uploader.email);
+      package.addUploader(uploader.userId);
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {
@@ -749,7 +749,7 @@ class GCloudPackageRepository extends PackageRepository {
         }
 
         // Remove the uploader from the list.
-        package.removeUploader(uploader.userId, uploader.email);
+        package.removeUploader(uploader.userId);
 
         final inserts = <Model>[package];
         if (historyBackend.isEnabled) {
@@ -815,8 +815,7 @@ models.Package _newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
-    ..uploaders = [authenticatedUser.userId]
-    ..uploaderEmails = [authenticatedUser.email];
+    ..uploaders = [authenticatedUser.userId];
 }
 
 class _ValidatedUpload {
@@ -968,8 +967,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..libraries = libraries
     ..downloads = 0
     ..sortOrder = 1
-    ..uploader = user.userId
-    ..uploaderEmail = user.email;
+    ..uploader = user.userId;
 
   final versionPubspec = models.PackageVersionPubspec()
     ..initFromKey(key)
