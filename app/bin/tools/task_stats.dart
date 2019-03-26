@@ -22,26 +22,25 @@ import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 
 Future main(List<String> args) async {
-  final ArgParser parser = new ArgParser()
+  final ArgParser parser = ArgParser()
     ..addOption('max-age',
         defaultsTo: '365', help: 'The maximum age of the package in days.')
     ..addOption('output', help: 'The report output file (or stdout otherwise)');
   final ArgResults argv = parser.parse(args);
   final int maxAgeDays = int.parse(argv['max-age'] as String);
 
-  final pool = new Pool(20);
+  final pool = Pool(20);
 
   final Map report = {};
 
   await withProdServices(() async {
-    registerDartdocMemcache(new DartdocMemcache());
-    registerScoreCardBackend(new ScoreCardBackend(dbService));
-    registerAnalyzerClient(new AnalyzerClient());
-    registerDartdocClient(new DartdocClient());
+    registerDartdocMemcache(DartdocMemcache());
+    registerScoreCardBackend(ScoreCardBackend(dbService));
+    registerAnalyzerClient(AnalyzerClient());
+    registerDartdocClient(DartdocClient());
 
     final statFutures = <Future<_Stat>>[];
-    final updatedAfter =
-        new DateTime.now().subtract(new Duration(days: maxAgeDays));
+    final updatedAfter = DateTime.now().subtract(Duration(days: maxAgeDays));
     final query = dbService.query<Package>()
       ..filter('updated >=', updatedAfter);
     await for (Package p in query.run()) {
@@ -54,9 +53,9 @@ Future main(List<String> args) async {
     report['dartdoc'] = _summarize(stats, (s) => s.dartdoc);
   });
 
-  final String json = new JsonEncoder.withIndent('  ').convert(report);
+  final String json = JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
-    final File outputFile = new File(argv['output'] as String);
+    final File outputFile = File(argv['output'] as String);
     print('Writing report to ${outputFile.path}');
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(json + '\n');
@@ -86,7 +85,7 @@ Future<_Stat> _getStat(String package, String version) async {
     _analyzerStatus(package, version),
     _dartdocStatus(package, version),
   ]);
-  return new _Stat(
+  return _Stat(
     package: package,
     version: version,
     analyzer: statusList[0],

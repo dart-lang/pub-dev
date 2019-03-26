@@ -38,14 +38,10 @@ final _regenerateGoldens = false;
 void main() {
   group('templates', () {
     setUpAll(() {
-      final cache = new StaticFileCache();
+      final cache = StaticFileCache();
       for (String path in mockStaticFiles) {
-        final file = new StaticFile(
-            '${staticUrls.staticPath}/$path',
-            'text/mock',
-            [],
-            new DateTime.now(),
-            'mocked_hash_${path.hashCode.abs()}');
+        final file = StaticFile('${staticUrls.staticPath}/$path', 'text/mock',
+            [], DateTime.now(), 'mocked_hash_${path.hashCode.abs()}');
         cache.addFile(file);
       }
       registerStaticFileCache(cache);
@@ -54,7 +50,7 @@ void main() {
     void expectGoldenFile(String content, String fileName,
         {bool isFragment = false}) {
       // Making sure it is valid HTML
-      final htmlParser = new HtmlParser(content, strict: true);
+      final htmlParser = HtmlParser(content, strict: true);
 
       if (isFragment) {
         final root = htmlParser.parseFragment();
@@ -70,19 +66,19 @@ void main() {
       final xmlContent = xmlDoc.toXmlString(pretty: true, indent: '  ') + '\n';
 
       if (_regenerateGoldens) {
-        new File('$goldenDir/$fileName').writeAsStringSync(xmlContent);
+        File('$goldenDir/$fileName').writeAsStringSync(xmlContent);
         fail('Set `_regenerateGoldens` to `false` to run tests.');
       }
-      final golden = new File('$goldenDir/$fileName').readAsStringSync();
+      final golden = File('$goldenDir/$fileName').readAsStringSync();
       expect(xmlContent.split('\n'), golden.split('\n'));
     }
 
     test('index page', () {
       final popularHtml = renderMiniList([
-        new PackageView.fromModel(
+        PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          scoreCard: new ScoreCardData(
+          scoreCard: ScoreCardData(
             platformTags: ['web'],
             reportTypes: ['pana'],
           ),
@@ -94,10 +90,10 @@ void main() {
 
     test('landing page flutter', () {
       final popularHtml = renderMiniList([
-        new PackageView.fromModel(
+        PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          scoreCard: new ScoreCardData(
+          scoreCard: ScoreCardData(
             platformTags: ['flutter'],
             reportTypes: ['pana'],
           ),
@@ -109,10 +105,10 @@ void main() {
 
     test('landing page web', () {
       final popularHtml = renderMiniList([
-        new PackageView.fromModel(
+        PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          scoreCard: new ScoreCardData(
+          scoreCard: ScoreCardData(
             platformTags: ['web'],
             reportTypes: ['pana'],
           ),
@@ -136,7 +132,7 @@ void main() {
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
-                timestamp: new DateTime(2018, 02, 05),
+                timestamp: DateTime(2018, 02, 05),
                 panaRuntimeInfo: _panaRuntimeInfo,
                 reportStatus: ReportStatus.success,
                 healthScore: null,
@@ -144,26 +140,26 @@ void main() {
                 platformTags: null,
                 platformReason: null,
                 pkgDependencies: [
-                  new PkgDependency(
+                  PkgDependency(
                     package: 'quiver',
                     dependencyType: 'direct',
                     constraintType: 'normal',
-                    constraint: new VersionConstraint.parse('^1.0.0'),
-                    resolved: new Version.parse('1.0.0'),
+                    constraint: VersionConstraint.parse('^1.0.0'),
+                    resolved: Version.parse('1.0.0'),
                     available: null,
                     errors: null,
                   ),
-                  new PkgDependency(
+                  PkgDependency(
                     package: 'http',
                     dependencyType: 'direct',
                     constraintType: 'normal',
-                    constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                    resolved: new Version.parse('1.2.0'),
-                    available: new Version.parse('1.3.0'),
+                    constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                    resolved: Version.parse('1.2.0'),
+                    available: Version.parse('1.3.0'),
                     errors: null,
                   )
                 ],
-                licenses: [new LicenseFile('LICENSE.txt', 'BSD')],
+                licenses: [LicenseFile('LICENSE.txt', 'BSD')],
                 panaSuggestions: null,
                 healthSuggestions: null,
                 maintenanceSuggestions: null,
@@ -188,7 +184,7 @@ void main() {
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
-                timestamp: new DateTime(2018, 02, 05),
+                timestamp: DateTime(2018, 02, 05),
                 panaRuntimeInfo: _panaRuntimeInfo,
                 reportStatus: ReportStatus.success,
                 healthScore: null,
@@ -196,26 +192,26 @@ void main() {
                 platformTags: null,
                 platformReason: null,
                 pkgDependencies: [
-                  new PkgDependency(
+                  PkgDependency(
                     package: 'quiver',
                     dependencyType: 'direct',
                     constraintType: 'normal',
-                    constraint: new VersionConstraint.parse('^1.0.0'),
-                    resolved: new Version.parse('1.0.0'),
+                    constraint: VersionConstraint.parse('^1.0.0'),
+                    resolved: Version.parse('1.0.0'),
                     available: null,
                     errors: null,
                   ),
-                  new PkgDependency(
+                  PkgDependency(
                     package: 'http',
                     dependencyType: 'direct',
                     constraintType: 'normal',
-                    constraint: new VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                    resolved: new Version.parse('1.2.0'),
-                    available: new Version.parse('1.3.0'),
+                    constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                    resolved: Version.parse('1.2.0'),
+                    available: Version.parse('1.3.0'),
                     errors: null,
                   )
                 ],
-                licenses: [new LicenseFile('LICENSE.txt', 'BSD')],
+                licenses: [LicenseFile('LICENSE.txt', 'BSD')],
                 panaSuggestions: null,
                 healthSuggestions: null,
                 maintenanceSuggestions: null,
@@ -246,7 +242,7 @@ void main() {
             reportTypes: ['pana'],
           ),
           panaReport: PanaReport(
-              timestamp: new DateTime(2018, 02, 05),
+              timestamp: DateTime(2018, 02, 05),
               panaRuntimeInfo: _panaRuntimeInfo,
               reportStatus: ReportStatus.success,
               healthScore: 0.99,
@@ -276,9 +272,9 @@ void main() {
           testPackageVersion,
           1,
           AnalysisView(
-            card: new ScoreCardData(
+            card: ScoreCardData(
               flags: [PackageFlags.isObsolete],
-              updated: new DateTime(2018, 02, 05),
+              updated: DateTime(2018, 02, 05),
             ),
           ));
 
@@ -297,9 +293,9 @@ void main() {
           testPackageVersion,
           1,
           AnalysisView(
-            card: new ScoreCardData(
+            card: ScoreCardData(
               flags: [PackageFlags.isDiscontinued],
-              updated: new DateTime(2018, 02, 05),
+              updated: DateTime(2018, 02, 05),
             ),
           ));
 
@@ -338,14 +334,14 @@ void main() {
     test('analysis tab: http', () async {
       // stored analysis of http
       final String content =
-          await new File('$goldenDir/analysis_tab_http.json').readAsString();
+          await File('$goldenDir/analysis_tab_http.json').readAsString();
       final map = json.decode(content) as Map<String, dynamic>;
       final card =
-          new ScoreCardData.fromJson(map['scorecard'] as Map<String, dynamic>);
+          ScoreCardData.fromJson(map['scorecard'] as Map<String, dynamic>);
       final reports = map['reports'] as Map<String, dynamic>;
       final panaReport =
-          new PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
-      final view = new AnalysisView(card: card, panaReport: panaReport);
+          PanaReport.fromJson(reports['pana'] as Map<String, dynamic>);
+      final view = AnalysisView(card: card, panaReport: panaReport);
       final String html =
           renderAnalysisTab('http', '>=1.23.0-dev.0.0 <2.0.0', card, view);
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
@@ -370,30 +366,30 @@ void main() {
             platformTags: card.platformTags,
             platformReason: 'All libraries agree.',
             pkgDependencies: [
-              new PkgDependency(
+              PkgDependency(
                 package: 'http',
                 dependencyType: 'direct',
                 constraintType: 'normal',
-                constraint: new VersionConstraint.parse('^1.0.0'),
-                resolved: new Version.parse('1.0.0'),
-                available: new Version.parse('1.1.0'),
+                constraint: VersionConstraint.parse('^1.0.0'),
+                resolved: Version.parse('1.0.0'),
+                available: Version.parse('1.1.0'),
                 errors: null,
               ),
-              new PkgDependency(
+              PkgDependency(
                 package: 'async',
                 dependencyType: 'transitive',
                 constraintType: 'normal',
-                constraint: new VersionConstraint.parse('>=0.3.0 <1.0.0'),
-                resolved: new Version.parse('0.5.1'),
-                available: new Version.parse('1.0.2'),
+                constraint: VersionConstraint.parse('>=0.3.0 <1.0.0'),
+                resolved: Version.parse('0.5.1'),
+                available: Version.parse('1.0.2'),
                 errors: null,
               ),
             ],
             licenses: null,
             panaSuggestions: null,
             healthSuggestions: [
-              new Suggestion.error(SuggestionCode.dartfmtAborted,
-                  'Fix `dartfmt`.', 'Running `dartfmt -n .` failed.'),
+              Suggestion.error(SuggestionCode.dartfmtAborted, 'Fix `dartfmt`.',
+                  'Running `dartfmt -n .` failed.'),
             ],
             maintenanceSuggestions: null,
             flags: null),
@@ -407,7 +403,7 @@ void main() {
       final String html = renderAnalysisTab(
           'pkg_foo',
           null,
-          new ScoreCardData(),
+          ScoreCardData(),
           AnalysisView(
             card: ScoreCardData(
               reportTypes: ['pana'],
@@ -435,9 +431,9 @@ void main() {
       final String html = renderAnalysisTab(
           'pkg_foo',
           null,
-          new ScoreCardData(flags: [PackageFlags.isObsolete]),
+          ScoreCardData(flags: [PackageFlags.isObsolete]),
           AnalysisView(
-            card: new ScoreCardData(
+            card: ScoreCardData(
               flags: [PackageFlags.isObsolete],
               updated: DateTime(2017, 12, 18, 14, 26, 00),
             ),
@@ -447,47 +443,47 @@ void main() {
 
     test('package index page', () {
       final String html = renderPkgIndexPage([
-        new PackageView.fromModel(
+        PackageView.fromModel(
           package: testPackage,
           version: testPackageVersion,
-          scoreCard: new ScoreCardData(),
+          scoreCard: ScoreCardData(),
         ),
-        new PackageView.fromModel(
+        PackageView.fromModel(
           package: testPackage,
           version: flutterPackageVersion,
-          scoreCard: new ScoreCardData(
+          scoreCard: ScoreCardData(
             platformTags: ['flutter'],
             reportTypes: ['pana'],
           ),
         ),
-      ], new PageLinks.empty(), null);
+      ], PageLinks.empty(), null);
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
     test('package index page with search', () {
       final searchQuery =
-          new SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
+          SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
       final String html = renderPkgIndexPage(
         [
-          new PackageView.fromModel(
+          PackageView.fromModel(
             package: testPackage,
             version: testPackageVersion,
-            scoreCard: new ScoreCardData(),
+            scoreCard: ScoreCardData(),
             apiPages: [
-              new ApiPageRef(path: 'some/some-library.html'),
-              new ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
+              ApiPageRef(path: 'some/some-library.html'),
+              ApiPageRef(title: 'Class X', path: 'some/x-class.html'),
             ],
           ),
-          new PackageView.fromModel(
+          PackageView.fromModel(
             package: testPackage,
             version: flutterPackageVersion,
-            scoreCard: new ScoreCardData(
+            scoreCard: ScoreCardData(
               platformTags: ['flutter'],
               reportTypes: ['pana'],
             ),
           ),
         ],
-        new PageLinks(0, 50, searchQuery: searchQuery),
+        PageLinks(0, 50, searchQuery: searchQuery),
         null,
         searchQuery: searchQuery,
         totalCount: 2,
@@ -496,10 +492,10 @@ void main() {
     });
 
     test('search with supported qualifier', () {
-      final searchQuery = new SearchQuery.parse(query: 'email:user@domain.com');
+      final searchQuery = SearchQuery.parse(query: 'email:user@domain.com');
       final String html = renderPkgIndexPage(
         [],
-        new PageLinks.empty(),
+        PageLinks.empty(),
         null,
         searchQuery: searchQuery,
         totalCount: 0,
@@ -508,10 +504,10 @@ void main() {
     });
 
     test('search with unsupported qualifier', () {
-      final searchQuery = new SearchQuery.parse(query: 'foo:bar');
+      final searchQuery = SearchQuery.parse(query: 'foo:bar');
       final String html = renderPkgIndexPage(
         [],
-        new PageLinks.empty(),
+        PageLinks.empty(),
         null,
         searchQuery: searchQuery,
         totalCount: 0,
@@ -550,7 +546,7 @@ void main() {
 
     test('error page', () {
       final String html = renderErrorPage('error_title', 'error_message', [
-        new PackageView(
+        PackageView(
           name: 'popular_pkg',
           version: '1.0.2',
           ellipsizedDescription:
@@ -563,22 +559,22 @@ void main() {
     });
 
     test('pagination: single page', () {
-      final String html = renderPagination(new PageLinks.empty());
+      final String html = renderPagination(PageLinks.empty());
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
     test('pagination: in the middle', () {
-      final String html = renderPagination(new PageLinks(90, 299));
+      final String html = renderPagination(PageLinks(90, 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
     test('pagination: at first page', () {
-      final String html = renderPagination(new PageLinks(0, 600));
+      final String html = renderPagination(PageLinks(0, 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
     test('pagination: at last page', () {
-      final String html = renderPagination(new PageLinks(90, 91));
+      final String html = renderPagination(PageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 
@@ -589,7 +585,7 @@ void main() {
 
     test('platform tabs: search', () {
       final String html = renderPlatformTabs(
-          searchQuery: new SearchQuery.parse(
+          searchQuery: SearchQuery.parse(
         query: 'foo',
         platform: 'web',
       ));
@@ -599,35 +595,35 @@ void main() {
 
   group('PageLinks', () {
     test('empty', () {
-      final links = new PageLinks.empty();
+      final links = PageLinks.empty();
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('one', () {
-      final links = new PageLinks(0, 1);
+      final links = PageLinks(0, 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links = new PageLinks(0, resultsPerPage - 1);
+      final links = PageLinks(0, resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE', () {
-      final links = new PageLinks(0, resultsPerPage);
+      final links = PageLinks(0, resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
     test('PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links = new PageLinks(0, resultsPerPage + 1);
+      final links = PageLinks(0, resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -636,37 +632,35 @@ void main() {
     final int page2Offset = resultsPerPage;
 
     test('page=2 + one item', () {
-      final links = new PageLinks(page2Offset, page2Offset + 1);
+      final links = PageLinks(page2Offset, page2Offset + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
-      final links =
-          new PageLinks(page2Offset, page2Offset + resultsPerPage - 1);
+      final links = PageLinks(page2Offset, page2Offset + resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
-      final links = new PageLinks(page2Offset, page2Offset + resultsPerPage);
+      final links = PageLinks(page2Offset, page2Offset + resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
-      final links =
-          new PageLinks(page2Offset, page2Offset + resultsPerPage + 1);
+      final links = PageLinks(page2Offset, page2Offset + resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);
     });
 
     test('deep in the middle', () {
-      final links = new PageLinks(200, 600);
+      final links = PageLinks(200, 600);
       expect(links.currentPage, 21);
       expect(links.leftmostPage, 16);
       expect(links.rightmostPage, 26);
@@ -675,16 +669,16 @@ void main() {
 
   group('URLs', () {
     test('PageLinks defaults', () {
-      final query = new SearchQuery.parse(query: 'web framework');
-      final PageLinks links = new PageLinks(0, 100, searchQuery: query);
+      final query = SearchQuery.parse(query: 'web framework');
+      final PageLinks links = PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/packages?q=web+framework&page=1');
       expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
     test('PageLinks with platform', () {
       final query =
-          new SearchQuery.parse(query: 'some framework', platform: 'flutter');
-      final PageLinks links = new PageLinks(0, 100, searchQuery: query);
+          SearchQuery.parse(query: 'some framework', platform: 'flutter');
+      final PageLinks links = PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/flutter/packages?q=some+framework&page=1');
       expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
     });

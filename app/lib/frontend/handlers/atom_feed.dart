@@ -31,7 +31,7 @@ Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
 }
 
 shelf.Response atomXmlResponse(String content, {int status = 200}) =>
-    new shelf.Response(
+    shelf.Response(
       status,
       body: content,
       headers: {
@@ -104,7 +104,7 @@ class Feed {
       this.entries);
 
   String toXmlDocument() {
-    final buffer = new StringBuffer();
+    final buffer = StringBuffer();
     buffer..writeln('<?xml version="1.0" encoding="UTF-8"?>');
 
     writeToXmlBuffer(buffer);
@@ -138,7 +138,7 @@ class Feed {
 }
 
 Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
-  final uuid = new Uuid();
+  final uuid = Uuid();
 
   // TODO: Remove this after the we moved the to the dart version of the app.
   final requestedUri = Uri.parse('$siteRoot/feed.atom');
@@ -167,7 +167,7 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
       }
     }
 
-    return new FeedEntry(id as String, title, version.created, authors, content,
+    return FeedEntry(id as String, title, version.created, authors, content,
         alternateUrl, alternateTitle);
   }).toList();
 
@@ -178,8 +178,8 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
   final subTitle = 'Last Updated Packages';
   final alternateUrl = requestedUri.resolve('/').toString();
   final author = 'Dart Team';
-  final updated = new DateTime.now().toUtc();
+  final updated = DateTime.now().toUtc();
 
-  return new Feed(id, title, subTitle, updated, author, alternateUrl, selfUrl,
+  return Feed(id, title, subTitle, updated, author, alternateUrl, selfUrl,
       'Pub Feed Generator', '0.1.0', entries);
 }

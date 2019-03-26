@@ -33,7 +33,7 @@ void main() {
 
   group('EmailAddress.parse', () {
     void validateParse(String input, String name, String email) {
-      final parsed = new EmailAddress.parse(input);
+      final parsed = EmailAddress.parse(input);
       expect(parsed.name, name);
       expect(parsed.email, email);
     }
@@ -69,20 +69,20 @@ void main() {
 
   group('EmailAddress format', () {
     test('empty', () {
-      expect(new EmailAddress(null, null).toString(), null);
+      expect(EmailAddress(null, null).toString(), null);
     });
 
     test('name only', () {
-      expect(new EmailAddress('John Doe', null).toString(), 'John Doe');
+      expect(EmailAddress('John Doe', null).toString(), 'John Doe');
     });
 
     test('email only', () {
-      expect(new EmailAddress(null, 'john.doe@example.com').toString(),
+      expect(EmailAddress(null, 'john.doe@example.com').toString(),
           'john.doe@example.com');
     });
 
     test('composite', () {
-      expect(new EmailAddress('John Doe', 'john.doe@example.com').toString(),
+      expect(EmailAddress('John Doe', 'john.doe@example.com').toString(),
           'John Doe <john.doe@example.com>');
     });
   });
@@ -137,8 +137,8 @@ void main() {
         packageVersion: '1.0.0',
         uploaderEmail: 'uploader@example.com',
         authorizedUploaders: [
-          new EmailAddress('Joe', 'joe@example.com'),
-          new EmailAddress(null, 'uploader@example.com')
+          EmailAddress('Joe', 'joe@example.com'),
+          EmailAddress(null, 'uploader@example.com')
         ],
       );
       expect(message.from.toString(), contains('<pub@dartlang.org>'));

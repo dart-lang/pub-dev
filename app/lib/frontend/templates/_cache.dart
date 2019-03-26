@@ -9,7 +9,7 @@ import 'package:path/path.dart' as path;
 
 import '../static_files.dart' show resolveAppDir;
 
-final templateCache = new TemplateCache();
+final templateCache = TemplateCache();
 
 /// Loads, parses, caches and renders mustache templates.
 class TemplateCache {
@@ -31,8 +31,8 @@ class TemplateCache {
   String renderTemplate(String template, values, {bool escapeValues = true}) {
     final mustache.Template parsedTemplate =
         _cachedMustacheTemplates.putIfAbsent(template, () {
-      final file = new File('$_templateDirectory/$template.mustache');
-      return new mustache.Template(file.readAsStringSync(),
+      final file = File('$_templateDirectory/$template.mustache');
+      return mustache.Template(file.readAsStringSync(),
           htmlEscapeValues: escapeValues, lenient: true);
     });
     return parsedTemplate.renderString(values);

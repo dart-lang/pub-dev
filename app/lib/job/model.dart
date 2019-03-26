@@ -55,7 +55,7 @@ class Job extends ExpandoModel {
   @IntProperty()
   int errorCount;
 
-  Version get semanticRuntimeVersion => new Version.parse(runtimeVersion);
+  Version get semanticRuntimeVersion => Version.parse(runtimeVersion);
 
   @override
   String toString() => '$packageName $packageVersion';
@@ -64,7 +64,7 @@ class Job extends ExpandoModel {
     priority = 0;
 
     // newer versions first
-    final now = new DateTime.now().toUtc();
+    final now = DateTime.now().toUtc();
     final age = now.difference(packageVersionUpdated).abs();
     priority += age.inDays;
 
@@ -95,7 +95,7 @@ class JobServiceProperty extends StringProperty {
     if (value is JobService) {
       return jobServiceAsString(value);
     } else {
-      throw new Exception('Unknown job service: $value');
+      throw Exception('Unknown job service: $value');
     }
   }
 
@@ -121,7 +121,7 @@ class JobStateProperty extends StringProperty {
     if (value is JobState) {
       return jobStateAsString(value);
     } else {
-      throw new Exception('Unknown job state: $value');
+      throw Exception('Unknown job state: $value');
     }
   }
 
@@ -147,7 +147,7 @@ class JobStatusProperty extends StringProperty {
     if (value is JobStatus) {
       return jobStatusAsString(value);
     } else {
-      throw new Exception('Unknown job status: $value');
+      throw Exception('Unknown job status: $value');
     }
   }
 

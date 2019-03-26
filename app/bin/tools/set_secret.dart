@@ -36,7 +36,7 @@ Future main(List<String> args) async {
               as Secret;
       if (secret == null) {
         t.queueMutations(inserts: [
-          new Secret()
+          Secret()
             ..parentKey = dbService.emptyKey
             ..id = id
             ..value = value,

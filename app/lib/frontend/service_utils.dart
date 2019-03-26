@@ -21,13 +21,13 @@ import 'search_service.dart';
 import 'upload_signer_service.dart';
 
 void initSearchService() {
-  registerSearchService(new SearchService());
+  registerSearchService(SearchService());
   registerScopeExitCallback(searchService.close);
 }
 
 void initBackend(
     {UIPackageCache cache, FinishedUploadCallback finishCallback}) {
-  registerBackend(new Backend(dbService, tarballStorage,
+  registerBackend(Backend(dbService, tarballStorage,
       cache: cache, finishCallback: finishCallback));
 }
 
@@ -66,11 +66,10 @@ Future<String> obtainServiceAccountEmail() async {
 Future withProdServices(Future fn()) {
   return withAppEngineAndCache(() {
     if (!envConfig.hasCredentials) {
-      throw new Exception(
-          'Missing GCLOUD_* environments for package:appengine');
+      throw Exception('Missing GCLOUD_* environments for package:appengine');
     }
     registerUploadSigner(
-        new ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
+        ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
     initBackend();
     return fn();
   });

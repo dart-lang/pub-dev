@@ -15,7 +15,7 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
+      index = SimplePackageIndex();
       final packageNames = [
         'rainbow_vis',
         'mongo_dart_query',
@@ -24,14 +24,14 @@ void main() {
         'w_transport',
         'sass_transformer',
       ];
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'travis',
         version: '0.0.1-dev',
         description: compactDescription(
             'A starting point for Dart libraries or applications.'),
       ));
       for (String packageName in packageNames) {
-        await index.addPackage(new PackageDocument(
+        await index.addPackage(PackageDocument(
           package: packageName,
           version: '1.0.0',
           description:
@@ -52,8 +52,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
     });
 
     test('travis', () async {
-      final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'travis', order: SearchOrder.text));
+      final PackageSearchResult result = await index
+          .search(SearchQuery.parse(query: 'travis', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,

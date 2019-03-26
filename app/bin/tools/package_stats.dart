@@ -18,7 +18,7 @@ import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 Future main(List<String> args) async {
-  final ArgParser parser = new ArgParser()
+  final ArgParser parser = ArgParser()
     ..addOption('output', help: 'The report output file (or stdout otherwise)');
   final ArgResults argv = parser.parse(args);
 
@@ -90,9 +90,9 @@ Future main(List<String> args) async {
     },
     'homepage': homepageDomains,
   };
-  final String json = new JsonEncoder.withIndent('  ').convert(report);
+  final String json = JsonEncoder.withIndent('  ').convert(report);
   if (argv['output'] != null) {
-    final File outputFile = new File(argv['output'] as String);
+    final File outputFile = File(argv['output'] as String);
     print('Writing report to ${outputFile.path}');
     await outputFile.parent.create(recursive: true);
     await outputFile.writeAsString(json + '\n');

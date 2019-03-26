@@ -15,13 +15,13 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
-      await index.addPackage(new PackageDocument(
+      index = SimplePackageIndex();
+      await index.addPackage(PackageDocument(
         package: 'angular',
         version: '4.0.0',
         description: compactDescription('Fast and productive web framework.'),
       ));
-      await index.addPackage(new PackageDocument(
+      await index.addPackage(PackageDocument(
         package: 'angular_ui',
         version: '0.6.5',
         description: compactDescription('Port of Angular-UI to Dart.'),
@@ -30,8 +30,8 @@ void main() {
     });
 
     test('angular', () async {
-      final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'angular', order: SearchOrder.text));
+      final PackageSearchResult result = await index
+          .search(SearchQuery.parse(query: 'angular', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 2,

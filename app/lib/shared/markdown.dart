@@ -6,7 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pana/pana.dart' show getRepositoryUrl;
 
-final Logger _logger = new Logger('pub.markdown');
+final Logger _logger = Logger('pub.markdown');
 
 final List<m.InlineSyntax> _inlineSyntaxes = m
     .ExtensionSet.gitHubWeb.inlineSyntaxes
@@ -17,7 +17,7 @@ String markdownToHtml(String text, String baseUrl) {
   if (text == null) return null;
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
 
-  final document = new m.Document(
+  final document = m.Document(
       extensionSet: m.ExtensionSet.none,
       blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes,
       inlineSyntaxes: _inlineSyntaxes);
@@ -109,7 +109,7 @@ class _UrlRewriter implements m.NodeVisitor {
     if (uri.host == 'github.com') {
       final segments = uri.pathSegments;
       if (segments.length > 3 && segments[2] == 'blob') {
-        final newSegments = new List<String>.from(segments);
+        final newSegments = List<String>.from(segments);
         newSegments[2] = 'raw';
         return uri.replace(pathSegments: newSegments).toString();
       }

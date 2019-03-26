@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'packages_overrides.dart';
 import 'utils.dart';
 
-final Logger _logger = new Logger('pub.scheduler');
+final Logger _logger = Logger('pub.scheduler');
 
 /// Interface for task execution.
 // ignore: one_member_abstracts
@@ -46,18 +46,18 @@ class TaskScheduler {
   final TaskRunner taskRunner;
   final List<TaskSource> sources;
   final bool randomize;
-  final LastNTracker<String> _statusTracker = new LastNTracker();
-  final LastNTracker<num> _latencyTracker = new LastNTracker();
+  final LastNTracker<String> _statusTracker = LastNTracker();
+  final LastNTracker<num> _latencyTracker = LastNTracker();
   List<List<Task>> _queues;
   bool _needsShuffle = false;
 
   TaskScheduler(this.taskRunner, this.sources, {this.randomize = false}) {
-    _queues = new List<List<Task>>.generate(sources.length, (i) => <Task>[]);
+    _queues = List<List<Task>>.generate(sources.length, (i) => <Task>[]);
   }
 
   Future run() async {
     Future runTask(Task task) async {
-      final Stopwatch sw = new Stopwatch()..start();
+      final Stopwatch sw = Stopwatch()..start();
       try {
         if (isSoftRemoved(task.package)) {
           return;
@@ -91,7 +91,7 @@ class TaskScheduler {
       final task = _pickFirstTask();
 
       if (task == null) {
-        await new Future.delayed(const Duration(seconds: 5));
+        await Future.delayed(const Duration(seconds: 5));
         continue;
       }
 
@@ -127,7 +127,7 @@ class TaskScheduler {
       final double tph = 60 * 60 * 1000.0 / avgMillis;
       stats['taskPerHour'] = tph;
       final remaining =
-          new Duration(milliseconds: (pendingCount * avgMillis).round());
+          Duration(milliseconds: (pendingCount * avgMillis).round());
       stats['remaining'] = formatDuration(remaining);
     }
     return stats;
@@ -142,7 +142,7 @@ class Task {
 
   Task(this.package, this.version, this.updated);
 
-  Task.now(this.package, this.version) : updated = new DateTime.now();
+  Task.now(this.package, this.version) : updated = DateTime.now();
 
   @override
   String toString() => '$package $version';

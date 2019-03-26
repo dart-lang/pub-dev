@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 
 void main() {
-  final nameTracker = new NameTracker();
+  final nameTracker = NameTracker();
   nameTracker.add('json');
   nameTracker.add('j_son');
 

@@ -38,11 +38,11 @@ class BackendMock implements Backend {
 
   @override
   // ignore: always_declare_return_types
-  get db => throw new Exception('unexpected db access');
+  get db => throw Exception('unexpected db access');
 
   @override
   // ignore: always_declare_return_types
-  get repository => throw new Exception('unexpected repository access');
+  get repository => throw Exception('unexpected repository access');
 
   @override
   // ignore: always_declare_return_types
@@ -51,7 +51,7 @@ class BackendMock implements Backend {
   @override
   Future<List<Package>> newestPackages({int offset, int limit}) async {
     if (newestPackagesFun == null) {
-      throw new Exception('no newestPackagesFun');
+      throw Exception('no newestPackagesFun');
     }
     return ((await newestPackagesFun(offset: offset, limit: limit)) as List)
         .cast<Package>();
@@ -60,14 +60,14 @@ class BackendMock implements Backend {
   @override
   Stream<String> allPackageNames(
       {DateTime updatedSince, bool excludeDiscontinued = false}) {
-    throw new UnsupportedError('sorry!');
+    throw UnsupportedError('sorry!');
   }
 
   @override
   Future<List<PackageVersion>> latestPackageVersions(
       {int offset, int limit, bool devVersions = false}) async {
     if (latestPackageVersionsFun == null) {
-      throw new Exception('no latestPackageVersionsFun');
+      throw Exception('no latestPackageVersionsFun');
     }
     return ((await latestPackageVersionsFun(offset: offset, limit: limit))
             as List)
@@ -78,7 +78,7 @@ class BackendMock implements Backend {
   Future<List<Package>> latestPackages(
       {int offset, int limit, String detectedType}) async {
     if (latestPackagesFun == null) {
-      throw new Exception('no latestPackagesFun');
+      throw Exception('no latestPackagesFun');
     }
     return ((await latestPackagesFun(
             offset: offset, limit: limit, detectedType: detectedType)) as List)
@@ -89,7 +89,7 @@ class BackendMock implements Backend {
   Future<List<PackageVersion>> lookupLatestVersions(List<Package> packages,
       {bool devVersions = false}) async {
     if (lookupLatestVersionsFun == null) {
-      throw new Exception('no lookupLatestVersionsFun');
+      throw Exception('no lookupLatestVersionsFun');
     }
     return ((await lookupLatestVersionsFun(packages)) as List)
         .cast<PackageVersion>();
@@ -98,7 +98,7 @@ class BackendMock implements Backend {
   @override
   Future<Package> lookupPackage(String packageName) async {
     if (lookupPackageFun == null) {
-      throw new Exception('no lookupPackageFun');
+      throw Exception('no lookupPackageFun');
     }
     return (await lookupPackageFun(packageName)) as Package;
   }
@@ -112,7 +112,7 @@ class BackendMock implements Backend {
   Future<PackageVersion> lookupPackageVersion(
       String package, String version) async {
     if (lookupPackageVersionFun == null) {
-      throw new Exception('no lookupPackageVersionFun');
+      throw Exception('no lookupPackageVersionFun');
     }
     return (await lookupPackageVersionFun(package, version)) as PackageVersion;
   }
@@ -120,7 +120,7 @@ class BackendMock implements Backend {
   @override
   Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
     if (versionsOfPackageFun == null) {
-      throw new Exception('no versionsOfPackageFun');
+      throw Exception('no versionsOfPackageFun');
     }
     return ((await versionsOfPackageFun(packageName)) as List)
         .cast<PackageVersion>();
@@ -129,7 +129,7 @@ class BackendMock implements Backend {
   @override
   Future<Uri> downloadUrl(String package, String version) async {
     if (downloadUrlFun == null) {
-      throw new Exception('no downloadUrlFun');
+      throw Exception('no downloadUrlFun');
     }
     return (await downloadUrlFun(package, version)) as Uri;
   }
@@ -141,12 +141,12 @@ class BackendMock implements Backend {
     String recipientEmail,
     String urlNonce,
   }) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future confirmPackageInvite(PackageInvite invite) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -158,7 +158,7 @@ class BackendMock implements Backend {
     String fromEmail,
   }) async {
     if (updatePackageInviteFn == null) {
-      throw new Exception('no downloadUrlFun');
+      throw Exception('no downloadUrlFun');
     }
     return (await updatePackageInviteFn(
       packageName: packageName,
@@ -171,7 +171,7 @@ class BackendMock implements Backend {
 
   @override
   Future deleteObsoleteInvites() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 }
 
@@ -185,19 +185,19 @@ class ScoreCardBackendMock implements ScoreCardBackend {
 
   @override
   Future<PackageStatus> getPackageStatus(String package, String version) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future deleteOldEntries() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future<Map<String, ReportData>> loadReports(
       String packageName, String packageVersion,
       {List<String> reportTypes, String runtimeVersion}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -208,18 +208,18 @@ class ScoreCardBackendMock implements ScoreCardBackend {
       Duration successThreshold = const Duration(days: 30),
       Duration failureThreshold = const Duration(days: 1),
       DateTime updatedAfter}) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future updateReport(
       String packageName, String packageVersion, ReportData data) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
   Future updateScoreCard(String packageName, String packageVersion) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 }
 
@@ -272,7 +272,7 @@ class SearchClientMock implements SearchClient {
   @override
   Future<PackageSearchResult> search(SearchQuery query) async {
     if (searchFun == null) {
-      throw new Exception('no searchFun');
+      throw Exception('no searchFun');
     }
     return (await searchFun(query)) as PackageSearchResult;
   }

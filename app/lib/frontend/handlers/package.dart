@@ -21,10 +21,10 @@ import '../templates/package_versions.dart';
 import 'misc.dart' show formattedNotFoundHandler;
 
 // Non-revealing metrics to monitor the search service behavior from outside.
-final _packageAnalysisLatencyTracker = new DurationTracker();
-final _packagePreRenderLatencyTracker = new DurationTracker();
-final _packageDoneLatencyTracker = new DurationTracker();
-final _packageOverallLatencyTracker = new DurationTracker();
+final _packageAnalysisLatencyTracker = DurationTracker();
+final _packagePreRenderLatencyTracker = DurationTracker();
+final _packageDoneLatencyTracker = DurationTracker();
+final _packageOverallLatencyTracker = DurationTracker();
 
 Map packageDebugStats() {
   return {
@@ -114,7 +114,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   if (redirectPackagePages.containsKey(packageName)) {
     return redirectResponse(redirectPackagePages[packageName]);
   }
-  final Stopwatch sw = new Stopwatch()..start();
+  final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
   final bool isProd = isProductionHost(request);
   if (isProd && backend.uiPackageCache != null) {
@@ -151,7 +151,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         selectedVersion = latestStable;
       }
     }
-    final Stopwatch serviceSw = new Stopwatch()..start();
+    final Stopwatch serviceSw = Stopwatch()..start();
     final AnalysisView analysisView = await analyzerClient.getAnalysisView(
         selectedVersion.package, selectedVersion.version);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);

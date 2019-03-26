@@ -22,7 +22,7 @@ import 'handlers/package.dart';
 import 'handlers/redirects.dart';
 import 'static_files.dart';
 
-final _pubHeaderLogger = new Logger('pub.header_logger');
+final _pubHeaderLogger = Logger('pub.header_logger');
 
 void _logPubHeaders(shelf.Request request) {
   request.headers.forEach((String key, String value) {
@@ -82,7 +82,7 @@ Future<shelf.Response> appHandler(
   }
 }
 
-const _handlers = const <String, shelf.Handler>{
+const _handlers = <String, shelf.Handler>{
   '/': indexLandingHandler,
   '/packages': packagesHandlerHtml,
   '/flutter': flutterLandingHandler,

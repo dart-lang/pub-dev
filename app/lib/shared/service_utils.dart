@@ -65,13 +65,13 @@ Future startIsolates({
     frontendStarted++;
     final frontendIndex = frontendStarted;
     logger.info('About to start frontend isolate #$frontendIndex...');
-    final ReceivePort errorReceivePort = new ReceivePort();
-    final ReceivePort protocolReceivePort = new ReceivePort();
+    final ReceivePort errorReceivePort = ReceivePort();
+    final ReceivePort protocolReceivePort = ReceivePort();
     await Isolate.spawn(
       _wrapper,
       [
         frontendEntryPoint,
-        new FrontendEntryMessage(
+        FrontendEntryMessage(
           frontendIndex: frontendIndex,
           protocolSendPort: protocolReceivePort.sendPort,
         ),
@@ -103,7 +103,7 @@ Future startIsolates({
       logger.severe('ERROR from frontend isolate #$frontendIndex', e);
       await close();
       // restart isolate after a brief pause
-      await new Future.delayed(new Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: 5));
       await startFrontendIsolate();
     });
   }
@@ -112,14 +112,14 @@ Future startIsolates({
     workerStarted++;
     final workerIndex = workerStarted;
     logger.info('About to start worker isolate #$workerIndex...');
-    final ReceivePort errorReceivePort = new ReceivePort();
-    final ReceivePort protocolReceivePort = new ReceivePort();
-    final ReceivePort statsReceivePort = new ReceivePort();
+    final ReceivePort errorReceivePort = ReceivePort();
+    final ReceivePort protocolReceivePort = ReceivePort();
+    final ReceivePort statsReceivePort = ReceivePort();
     await Isolate.spawn(
       _wrapper,
       [
         workerEntryPoint,
-        new WorkerEntryMessage(
+        WorkerEntryMessage(
           workerIndex: workerIndex,
           protocolSendPort: protocolReceivePort.sendPort,
           statsSendPort: statsReceivePort.sendPort,
@@ -155,7 +155,7 @@ Future startIsolates({
       logger.severe('ERROR from worker isolate #$workerIndex', e);
       await close();
       // restart isolate after a brief pause
-      await new Future.delayed(new Duration(minutes: 1));
+      await Future.delayed(Duration(minutes: 1));
       await startWorkerIsolate();
     });
   }
@@ -196,19 +196,19 @@ Future initFlutterSdk(Logger logger) async {
     // running the setup script multiple times should be safe (no-op if
     // FLUTTER_SDK directory exists).
     if (FileSystemEntity.isFileSync('/project/app/script/setup-flutter.sh')) {
-      final sw = new Stopwatch()..start();
+      final sw = Stopwatch()..start();
       logger.info('Setting up flutter checkout. This may take some time.');
       final ProcessResult result = await runProc(
           '/project/app/script/setup-flutter.sh', ['v$flutterVersion'],
           timeout: const Duration(minutes: 5));
       if (result.exitCode != 0) {
-        throw new Exception(
+        throw Exception(
             'Failed to checkout flutter (exited with ${result.exitCode})\n'
             'stdout: ${result.stdout}\nstderr: ${result.stderr}');
       }
-      final flutterBin = new File('${envConfig.flutterSdkDir}/bin/flutter');
+      final flutterBin = File('${envConfig.flutterSdkDir}/bin/flutter');
       if (!(await flutterBin.exists())) {
-        throw new Exception(
+        throw Exception(
             'Flutter binary is missing after running setup-flutter.sh');
       }
       sw.stop();
@@ -220,7 +220,7 @@ Future initFlutterSdk(Logger logger) async {
 void _wrapper(List fnAndMessage) {
   final fn = fnAndMessage[0] as Function;
   final message = fnAndMessage[1];
-  final logger = new Logger('isolate.wrapper');
+  final logger = Logger('isolate.wrapper');
   Chain.capture(() async {
     try {
       return await fn(message);

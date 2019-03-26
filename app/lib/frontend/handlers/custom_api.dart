@@ -202,7 +202,7 @@ Future<shelf.Response> apiPackageMetricsHandler(shelf.Request request) async {
       runtimeVersion: data.runtimeVersion,
     );
     result['reports'] =
-        reports.map((k, report) => new MapEntry(k, report.toJson()));
+        reports.map((k, report) => MapEntry(k, report.toJson()));
   }
   return jsonResponse(result, pretty: isPrettyJson(request));
 }
@@ -244,7 +244,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   };
   if (hasNextPage) {
     final newParams =
-        new Map<String, dynamic>.from(request.requestedUri.queryParameters);
+        Map<String, dynamic>.from(request.requestedUri.queryParameters);
     final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
     newParams['page'] = nextPageIndex.toString();
     final nextPageUrl =

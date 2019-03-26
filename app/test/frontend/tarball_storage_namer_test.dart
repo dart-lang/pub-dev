@@ -14,7 +14,7 @@ void main() {
 
     test('empty namespace', () {
       for (var namespace in [null, '']) {
-        final namer = new TarballStorageNamer(bucket, namespace);
+        final namer = TarballStorageNamer(bucket, namespace);
         expect(namer.bucket, equals(bucket));
         expect(namer.namespace, equals(''));
         expect(namer.prefix, equals(''));
@@ -29,7 +29,7 @@ void main() {
     });
 
     test('staging namespace', () {
-      final namer = new TarballStorageNamer(bucket, 'staging');
+      final namer = TarballStorageNamer(bucket, 'staging');
       expect(namer.bucket, equals(bucket));
       expect(namer.namespace, equals('staging'));
       expect(namer.prefix, equals('ns/staging/'));

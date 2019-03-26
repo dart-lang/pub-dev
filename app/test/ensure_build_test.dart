@@ -4,7 +4,7 @@
 
 // TODO(kevmoo): replace with a common utility
 //               https://github.com/dart-lang/build/issues/716
-@Tags(const ['presubmit-only'])
+@Tags(['presubmit-only'])
 
 import 'dart:convert';
 import 'dart:io';
@@ -22,7 +22,7 @@ void main() {
     final currentDir = Directory.current.resolveSymbolicLinksSync();
 
     if (!p.equals(p.join(pkgRoot, 'app'), currentDir)) {
-      throw new StateError('Expected the git root ($pkgRoot) '
+      throw StateError('Expected the git root ($pkgRoot) '
           'to match the current directory ($currentDir).');
     }
   });
@@ -35,14 +35,14 @@ void main() {
     final result = _runProc(
         _pub, ['run', 'build_runner', 'build', '--delete-conflicting-outputs']);
     expect(result,
-        contains(new RegExp(r'Succeeded after( \S+){1,2} with \d+ outputs')));
+        contains(RegExp(r'Succeeded after( \S+){1,2} with \d+ outputs')));
 
     // 3 - get a list of modified `.g.dart` files - should still be empty
     expect(_changedGeneratedFiles(), isEmpty);
   });
 }
 
-final _whitespace = new RegExp(r'\s');
+final _whitespace = RegExp(r'\s');
 
 Set<String> _changedGeneratedFiles() {
   final output = _runProc('git', ['status', '--porcelain']);
@@ -57,7 +57,7 @@ String _runProc(String proc, List<String> args) {
   final result = Process.runSync(proc, args);
 
   if (result.exitCode != 0) {
-    throw new ProcessException(
+    throw ProcessException(
         proc, args, result.stderr as String, result.exitCode);
   }
 

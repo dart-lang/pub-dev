@@ -11,14 +11,14 @@ import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as path;
 
 const String _defaultStaticPath = '/static';
-const _staticRootPaths = const <String>['favicon.ico', 'robots.txt'];
+const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
 
 StaticFileCache _cache;
 
 /// The static file cache. If no cache was registered before the first access,
 /// the default instance will be created.
 StaticFileCache get staticFileCache =>
-    _cache ??= new StaticFileCache.withDefaults();
+    _cache ??= StaticFileCache.withDefaults();
 
 /// Register the static file cache.
 /// Can be called only once, before the static file cache is set.
@@ -35,7 +35,7 @@ String resolveAppDir() {
   if (Platform.script.path.contains('app/test')) {
     return Directory.current.path;
   }
-  throw new Exception('Unknown script: ${Platform.script}');
+  throw Exception('Unknown script: ${Platform.script}');
 }
 
 String _resolveStaticDirPath() {
@@ -82,8 +82,7 @@ class StaticFileCache {
         final digest = crypto.sha256.convert(bytes);
         final String etag =
             digest.bytes.map((b) => (b & 31).toRadixString(32)).join();
-        return new StaticFile(
-            requestPath, contentType, bytes, lastModified, etag);
+        return StaticFile(requestPath, contentType, bytes, lastModified, etag);
       },
     ).forEach(addFile);
   }
@@ -114,7 +113,7 @@ class StaticFile {
   );
 }
 
-final staticUrls = new StaticUrls();
+final staticUrls = StaticUrls();
 
 class StaticUrls {
   final String staticPath = _defaultStaticPath;
@@ -158,7 +157,7 @@ class StaticUrls {
     final String requestPath = '$staticPath$relativePath';
     final file = staticFileCache.getFile(requestPath);
     if (file == null) {
-      throw new Exception('Static resource not found: $relativePath');
+      throw Exception('Static resource not found: $relativePath');
     } else {
       return '$requestPath?hash=${file.etag}';
     }
@@ -192,7 +191,7 @@ Future updateLocalBuiltFiles() async {
           'exitCode: ${pr.exitCode}\n'
           'STDOUT:\n${pr.stdout}\n\n'
           'STDERR:\n${pr.stderr}';
-      throw new Exception(message);
+      throw Exception(message);
     }
   }
 }

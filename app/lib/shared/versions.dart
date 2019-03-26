@@ -7,7 +7,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'utils.dart' show isNewer;
 
 /// The pattern of [runtimeVersion].
-final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
+final RegExp runtimeVersionPattern = RegExp(r'\d{4}\.\d{2}\.\d{2}');
 
 /// Represents a combined version of the overall toolchain and processing,
 /// allowing easy check for data compatibility, age comparison and also reflects
@@ -17,7 +17,7 @@ final RegExp runtimeVersionPattern = new RegExp(r'\d{4}\.\d{2}\.\d{2}');
 /// reprocessing, including: version change in pana, dartdoc, or the SDKs,
 /// or when an feature or bugfix should be picked up by the analysis ASAP.
 const String runtimeVersion = '2019.03.05';
-final Version semanticRuntimeVersion = new Version.parse(runtimeVersion);
+final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
@@ -39,21 +39,21 @@ final String toolEnvSdkVersion = '2.2.0';
 
 // keep in-sync with app/pubspec.yaml
 final String panaVersion = '0.12.14';
-final Version semanticPanaVersion = new Version.parse(panaVersion);
+final Version semanticPanaVersion = Version.parse(panaVersion);
 
 final String flutterVersion = '1.3.3';
-final Version semanticFlutterVersion = new Version.parse(flutterVersion);
+final Version semanticFlutterVersion = Version.parse(flutterVersion);
 
 // keep in-sync with pkg/pub_dartdoc/pubspec.yaml
 final String dartdocVersion = '0.28.2';
-final Version semanticDartdocVersion = new Version.parse(dartdocVersion);
+final Version semanticDartdocVersion = Version.parse(dartdocVersion);
 
 // Version that control the dartdoc serving.
 // Pin this to a specific version when there is a coordinated upgrade of the
 // generated documentation template or style. The new version can generate the
 // docs without any traffic sent to it, while the old won't accidentally serve
 // them.
-final dartdocServingRuntime = new Version.parse(runtimeVersion);
+final dartdocServingRuntime = Version.parse(runtimeVersion);
 
 // Version that marks the default runtime version for analyzer entries created
 // before the runtime version was tracked.
@@ -68,6 +68,6 @@ final dartdocRuntimeEpoch = '2018.3.8';
 /// Whether the given runtime version (stored with the dartdoc entry) should
 /// be displayed on the live site (or a coordinated upgrade is in progress).
 bool shouldServeDartdoc(String storedRuntimeVersion) {
-  final stored = new Version.parse(storedRuntimeVersion ?? dartdocRuntimeEpoch);
+  final stored = Version.parse(storedRuntimeVersion ?? dartdocRuntimeEpoch);
   return !isNewer(dartdocServingRuntime, stored);
 }

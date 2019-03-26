@@ -69,11 +69,11 @@ void main() {
 
   group('summary', () {
     test('empty', () {
-      expect(() => new Summary([]), throwsArgumentError);
+      expect(() => Summary([]), throwsArgumentError);
     });
 
     test('trivial', () {
-      final summary = new Summary([5]);
+      final summary = Summary([5]);
 
       expect(summary.min, 5);
       expect(summary.max, 5);
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('easy', () {
-      final summary = new Summary([5, 6, 7]);
+      final summary = Summary([5, 6, 7]);
 
       expect(summary.min, 5);
       expect(summary.max, 7);
@@ -92,7 +92,7 @@ void main() {
       test('0.75 average', () {
         // If the average is ~0.75 the result from `bezierScore` will
         // ~= `simpleScore`
-        final summary = new Summary([0, 7.5, 7.5, 9, 9, 9, 8, 10]);
+        final summary = Summary([0, 7.5, 7.5, 9, 9, 9, 8, 10]);
 
         expect(summary.min, 0);
         expect(summary.max, 10);
@@ -111,7 +111,7 @@ void main() {
       });
 
       test('simple', () {
-        final summary = new Summary(new Iterable.generate(101, (i) => 50 + i));
+        final summary = Summary(Iterable.generate(101, (i) => 50 + i));
         expect(summary.min, 50);
         expect(summary.max, 150);
         expect(summary.mean, 100);
@@ -129,7 +129,7 @@ void main() {
       });
 
       test('negative', () {
-        final summary = new Summary(new Iterable.generate(101, (i) => i - 200));
+        final summary = Summary(Iterable.generate(101, (i) => i - 200));
         expect(summary.min, -200);
         expect(summary.max, -100);
         expect(summary.mean, -150);
@@ -147,10 +147,10 @@ void main() {
       });
 
       test('random', () {
-        final rnd = new Random();
+        final rnd = Random();
         for (var x = 0; x < 1000; x++) {
-          final summary = new Summary(
-              new Iterable.generate(1000, (i) => 50 - rnd.nextDouble() * 100));
+          final summary = Summary(
+              Iterable.generate(1000, (i) => 50 - rnd.nextDouble() * 100));
           expect(summary.min, isNegative);
           expect(summary.max, isPositive);
           expect(summary.mean, inInclusiveRange(-25, 25));

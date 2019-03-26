@@ -15,7 +15,7 @@ import 'package:logging/logging.dart';
 import '../frontend/models.dart' show Secret, SecretKey;
 import 'versions.dart';
 
-final Logger _log = new Logger('rediscache');
+final Logger _log = Logger('rediscache');
 
 /// The active cache.
 ///

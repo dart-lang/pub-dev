@@ -27,7 +27,7 @@ import '../shared/versions.dart' as shared_versions;
 import 'models.dart';
 import 'storage_path.dart' as storage_path;
 
-final Logger _logger = new Logger('pub.dartdoc.backend');
+final Logger _logger = Logger('pub.dartdoc.backend');
 
 final Duration _contentDeleteThreshold = const Duration(days: 1);
 final int _concurrentUploads = 8;
@@ -47,7 +47,7 @@ class DartdocBackend {
   final VersionedJsonStorage _sdkStorage;
 
   DartdocBackend(this._db, this._storage)
-      : _sdkStorage = new VersionedJsonStorage(
+      : _sdkStorage = VersionedJsonStorage(
             _storage, '${storage_path.dartSdkDartdocPrefix()}/');
 
   /// Whether the storage bucket has a usable extracted data file.
@@ -64,7 +64,7 @@ class DartdocBackend {
   /// Read the generated dartdoc data file for the Dart SDK.
   Future<PubDartdocData> getDartSdkDartdocData() async {
     final map = await _sdkStorage.getContentAsJsonMap();
-    return new PubDartdocData.fromJson(map);
+    return PubDartdocData.fromJson(map);
   }
 
   /// Schedules the delete of old data files.
@@ -111,7 +111,7 @@ class DartdocBackend {
         _storage, entry.inProgressObjectName, entry.asBytes());
 
     // upload all files
-    final dir = new Directory(dirPath);
+    final dir = Directory(dirPath);
     final Stream<File> fileStream = dir
         .list(recursive: true)
         .where((fse) => fse is File)
@@ -134,8 +134,8 @@ class DartdocBackend {
       }
     }
 
-    final sw = new Stopwatch()..start();
-    final uploadPool = new Pool(_concurrentUploads);
+    final sw = Stopwatch()..start();
+    final uploadPool = Pool(_concurrentUploads);
     final List<Future> uploadFutures = [];
     await for (File file in fileStream) {
       final pooledUpload = uploadPool.withResource(() => upload(file));
@@ -220,13 +220,12 @@ class DartdocBackend {
     final objectName = entry.objectName(relativePath);
     final cachedContent = await dartdocMemcache?.getFileInfoBytes(objectName);
     if (cachedContent != null) {
-      return new FileInfo.fromBytes(cachedContent);
+      return FileInfo.fromBytes(cachedContent);
     }
     try {
       final info = await _storage.info(objectName);
       if (info == null) return null;
-      final fileInfo =
-          new FileInfo(lastModified: info.updated, etag: info.etag);
+      final fileInfo = FileInfo(lastModified: info.updated, etag: info.etag);
       dartdocMemcache?.setFileInfoBytes(objectName, fileInfo.asBytes());
       return fileInfo;
     } catch (e) {
@@ -267,7 +266,7 @@ class DartdocBackend {
         // the in-progress indicator. Doing the later now.
         await deleteFromBucket(_storage, entry.inProgressObjectName);
       } else {
-        final age = new DateTime.now().difference(entry.timestamp).abs();
+        final age = DateTime.now().difference(entry.timestamp).abs();
         if (age > _contentDeleteThreshold) {
           await _deleteAll(entry);
           await deleteFromBucket(_storage, entry.inProgressObjectName);
@@ -285,7 +284,7 @@ class DartdocBackend {
           .map((entry) => entry.runtimeVersion)
           .where((s) => s != null) // protect against old entries without it
           .toSet()
-          .map((String version) => new Version.parse(version))
+          .map((String version) => Version.parse(version))
           .toList();
       versions.sort();
 
@@ -297,7 +296,7 @@ class DartdocBackend {
         if (index >= 0) {
           final entry = completedList[index];
           completedList.removeAt(index);
-          versions.remove(new Version.parse(entry.runtimeVersion));
+          versions.remove(Version.parse(entry.runtimeVersion));
         }
       }
 
@@ -325,7 +324,7 @@ class DartdocBackend {
 
     // delete everything else
     for (var entry in completedList) {
-      final age = new DateTime.now().difference(entry.timestamp).abs();
+      final age = DateTime.now().difference(entry.timestamp).abs();
       if (age > _contentDeleteThreshold) {
         await _deleteAll(entry);
       }
@@ -357,9 +356,9 @@ class DartdocBackend {
   }
 
   Future _deleteAllWithPrefix(String prefix, {int concurrency}) async {
-    final Stopwatch sw = new Stopwatch()..start();
+    final Stopwatch sw = Stopwatch()..start();
     var page = await _storage.page(prefix: prefix, pageSize: 256);
-    final deletePool = new Pool(concurrency ?? _concurrentDeletes);
+    final deletePool = Pool(concurrency ?? _concurrentDeletes);
     int count = 0;
     for (;;) {
       final List<Future> deleteFutures = [];

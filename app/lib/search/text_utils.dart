@@ -7,12 +7,12 @@ import 'package:html/parser.dart';
 import '../shared/markdown.dart';
 
 final RegExp _separators =
-    new RegExp(r'[_\.,;=\:\(\)\>\<\[\]\{\}\|\?\!\/\+\-\*]|\s');
-final RegExp _nonCharacterRegExp = new RegExp('[^a-z0-9]');
-final RegExp _multiWhitespaceRegExp = new RegExp('\\s+');
-final RegExp _exactTermRegExp = new RegExp(r'"([^"]+)"');
+    RegExp(r'[_\.,;=\:\(\)\>\<\[\]\{\}\|\?\!\/\+\-\*]|\s');
+final RegExp _nonCharacterRegExp = RegExp('[^a-z0-9]');
+final RegExp _multiWhitespaceRegExp = RegExp('\\s+');
+final RegExp _exactTermRegExp = RegExp(r'"([^"]+)"');
 
-final _commonApiSymbols = new Set.from([
+final _commonApiSymbols = Set.from([
   'toString',
   'noSuchMethod',
   'hashCode',
@@ -64,7 +64,7 @@ String normalizeBeforeIndexing(String text) {
 }
 
 Iterable<String> splitForIndexing(String text) {
-  if (text == null || text.isEmpty) return new Iterable.empty();
+  if (text == null || text.isEmpty) return Iterable.empty();
   return text.split(_separators).where((s) => s.isNotEmpty);
 }
 
@@ -116,7 +116,7 @@ bool _isLower(String c) => c.toLowerCase() == c;
 /// length between [minLength] and [maxLength] (both inclusive).
 /// Eg. abc -> ab, bc
 Set<String> ngrams(String input, int minLength, int maxLength) {
-  final ngrams = new Set<String>();
+  final ngrams = Set<String>();
   for (int length = minLength; length <= maxLength; length++) {
     if (input.length > length) {
       for (int i = 0; i <= input.length - length; i++) {
@@ -132,7 +132,7 @@ Set<String> ngrams(String input, int minLength, int maxLength) {
 /// - are the prefix part of [token] (min 4 characters)
 /// - are the suffix part of [token] (min 4 characters)
 Set<String> deriveLookupCandidates(String token) {
-  final set = new Set<String>();
+  final set = Set<String>();
   if (token.length <= 3) {
     return set;
   }

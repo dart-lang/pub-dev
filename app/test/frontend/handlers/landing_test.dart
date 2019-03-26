@@ -21,53 +21,51 @@ Future main() async {
 
   group('ui', () {
     tScopedTest('/', () async {
-      registerSearchService(new SearchServiceMock((SearchQuery query) {
+      registerSearchService(SearchServiceMock((SearchQuery query) {
         expect(query.order, isNull);
         expect(query.offset, 0);
         expect(query.limit, topQueryLimit);
         expect(query.platform, isNull);
         expect(query.query, isNull);
         expect(query.isAd, isTrue);
-        return new SearchResultPage(
+        return SearchResultPage(
           query,
           1,
-          [new PackageView.fromModel(version: testPackageVersion)],
+          [PackageView.fromModel(version: testPackageVersion)],
         );
       }));
-      final backend =
-          new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
+      final backend = BackendMock(latestPackageVersionsFun: ({offset, limit}) {
         expect(offset, isNull);
         expect(limit, equals(5));
         return [testPackageVersion];
       });
       registerBackend(backend);
-      registerAnalyzerClient(new AnalyzerClientMock());
+      registerAnalyzerClient(AnalyzerClientMock());
 
       await expectHtmlResponse(await issueGet('/'));
     });
 
     tScopedTest('/flutter', () async {
-      registerSearchService(new SearchServiceMock((SearchQuery query) {
+      registerSearchService(SearchServiceMock((SearchQuery query) {
         expect(query.order, isNull);
         expect(query.offset, 0);
         expect(query.limit, topQueryLimit);
         expect(query.platform, 'flutter');
         expect(query.query, isNull);
         expect(query.isAd, isTrue);
-        return new SearchResultPage(
+        return SearchResultPage(
           query,
           1,
-          [new PackageView.fromModel(version: testPackageVersion)],
+          [PackageView.fromModel(version: testPackageVersion)],
         );
       }));
-      final backend =
-          new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
+      final backend = BackendMock(latestPackageVersionsFun: ({offset, limit}) {
         expect(offset, isNull);
         expect(limit, equals(5));
         return [testPackageVersion];
       });
       registerBackend(backend);
-      registerAnalyzerClient(new AnalyzerClientMock());
+      registerAnalyzerClient(AnalyzerClientMock());
 
       await expectHtmlResponse(await issueGet('/flutter'));
     });

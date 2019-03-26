@@ -21,7 +21,7 @@ void validateHtml(root) {
     links = root.querySelectorAll('a');
     scripts = root.querySelectorAll('script');
   } else {
-    throw new ArgumentError('Unknown html element type: $root');
+    throw ArgumentError('Unknown html element type: $root');
   }
 
   // No inline JS attribute

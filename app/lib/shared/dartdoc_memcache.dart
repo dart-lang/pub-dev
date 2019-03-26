@@ -12,7 +12,7 @@ import 'dartdoc_client.dart' show DartdocEntry;
 import 'redis_cache.dart';
 import 'versions.dart' as versions;
 
-final Logger _logger = new Logger('pub.dartdoc_memcache');
+final Logger _logger = Logger('pub.dartdoc_memcache');
 
 /// Sets the dartdoc memcache.
 void registerDartdocMemcache(DartdocMemcache value) =>
@@ -28,17 +28,17 @@ class DartdocMemcache {
   final SimpleMemcache _apiSummary;
 
   DartdocMemcache()
-      : _entry = new SimpleMemcache(
+      : _entry = SimpleMemcache(
           'DartdocMemcache/entry/',
           _logger,
           Duration(hours: 24),
         ),
-        _fileInfo = new SimpleMemcache(
+        _fileInfo = SimpleMemcache(
           'DartdocMemcache/fileInfo/',
           _logger,
           Duration(minutes: 60),
         ),
-        _apiSummary = new SimpleMemcache(
+        _apiSummary = SimpleMemcache(
           'DartdocMemcache/apiSummary/',
           _logger,
           Duration(minutes: 60),
@@ -47,7 +47,7 @@ class DartdocMemcache {
   Future<DartdocEntry> getEntry(String package, String version) async {
     final bytes = await _entry.getBytes(_entryKey(package, version));
     if (bytes == null) return null;
-    return new DartdocEntry.fromBytes(bytes);
+    return DartdocEntry.fromBytes(bytes);
   }
 
   Future setEntry(DartdocEntry entry) async {

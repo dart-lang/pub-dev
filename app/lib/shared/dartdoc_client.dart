@@ -16,7 +16,7 @@ import 'dartdoc_memcache.dart';
 
 export '../dartdoc/models.dart' show DartdocEntry;
 
-final Logger _logger = new Logger('dartdoc.client');
+final Logger _logger = Logger('dartdoc.client');
 
 /// Sets the dartdoc client.
 void registerDartdocClient(DartdocClient client) =>
@@ -30,7 +30,7 @@ class DartdocClient {
   Future<List<DartdocEntry>> getEntries(
       String package, List<String> versions) async {
     final resultFutures = <Future<DartdocEntry>>[];
-    final pool = new Pool(4); // concurrent requests
+    final pool = Pool(4); // concurrent requests
     for (String version in versions) {
       final future = pool.withResource(() => getEntry(package, version));
       resultFutures.add(future);

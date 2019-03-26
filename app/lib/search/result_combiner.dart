@@ -57,7 +57,7 @@ class SearchResultCombiner {
     final packages =
         boundedList(allPackages, offset: query.offset, limit: query.limit);
 
-    return new PackageSearchResult(
+    return PackageSearchResult(
       indexUpdated: primaryResult.indexUpdated,
       totalCount: allPackages.length,
       packages: packages,

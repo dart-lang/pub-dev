@@ -78,8 +78,8 @@ void main() {
     test(
       'document pub_dartdoc project',
       () async {
-        final goldenFile = new File('test/self-pub-data.json');
-        final dataFile = new File('${tempDir.path}/pub-data.json');
+        final goldenFile = File('test/self-pub-data.json');
+        final dataFile = File('${tempDir.path}/pub-data.json');
         final fileContent = await dataFile.readAsString();
         final actualMap = json.decode(fileContent);
 
@@ -87,7 +87,7 @@ void main() {
         expect(fileContent.contains('PubDataGenerator.toString'), isFalse);
 
         if (_regenerateGoldens) {
-          final content = new JsonEncoder.withIndent('  ').convert(actualMap);
+          final content = JsonEncoder.withIndent('  ').convert(actualMap);
           await goldenFile.writeAsString(content);
           fail('Set `_regenerateGoldens` to `false` to run tests.');
         }
@@ -95,7 +95,7 @@ void main() {
         final expectedMap = json.decode(await goldenFile.readAsString());
         expect(expectedMap, actualMap);
       },
-      timeout: new Timeout(const Duration(minutes: 5)),
+      timeout: Timeout(const Duration(minutes: 5)),
     );
-  }, timeout: new Timeout(const Duration(minutes: 5)));
+  }, timeout: Timeout(const Duration(minutes: 5)));
 }

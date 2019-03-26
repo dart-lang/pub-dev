@@ -12,7 +12,7 @@ import '../shared/redis_cache.dart';
 
 import 'models.dart';
 
-final Logger _logger = new Logger('pub.scorecard_memcache');
+final Logger _logger = Logger('pub.scorecard_memcache');
 
 /// Sets the ScoreCard memcache.
 void registerScoreCardMemcache(ScoreCardMemcache value) =>
@@ -26,7 +26,7 @@ class ScoreCardMemcache {
   final SimpleMemcache _data;
 
   ScoreCardMemcache()
-      : _data = new SimpleMemcache(
+      : _data = SimpleMemcache(
           'ScoreCardMemcache/',
           _logger,
           Duration(minutes: 60),
@@ -38,7 +38,7 @@ class ScoreCardMemcache {
     if (content == null) {
       return null;
     }
-    return new ScoreCardData.fromJson(
+    return ScoreCardData.fromJson(
         convert.json.decode(content) as Map<String, dynamic>);
   }
 

@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 
 import 'models.dart';
 
-final _logger = new Logger('pub.history.backend');
+final _logger = Logger('pub.history.backend');
 
 /// Sets the history backend.
 void registerHistoryBackend(HistoryBackend backend) =>
@@ -34,7 +34,7 @@ class HistoryBackend {
   /// Store a history [event]. When storing is not enabled, this will only log
   /// the method call, and not store the entry in Datastore.
   Future storeEvent(HistoryEvent event) async {
-    final history = new History.entry(event);
+    final history = History.entry(event);
     if (!_enabled) {
       _logger.info('History is not enabled, store aborted: '
           '${history.packageName} ${history.packageVersion} ${history.eventType}');

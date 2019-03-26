@@ -18,11 +18,11 @@ void main(List<String> arguments) async {
   ]);
   optionSet.parseArguments(arguments);
 
-  final optionContext = new DartdocProgramOptionContext(optionSet, null);
+  final optionContext = DartdocProgramOptionContext(optionSet, null);
   startLogging(optionContext);
 
   final dartdoc = await Dartdoc.withDefaultGenerators(optionContext);
-  dartdoc.generators.add(new PubDataGenerator(optionContext.inputDir));
+  dartdoc.generators.add(PubDataGenerator(optionContext.inputDir));
 
   await dartdoc.generateDocs();
 }

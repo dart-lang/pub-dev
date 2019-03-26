@@ -12,14 +12,14 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 
 void main() {
   group('ResultCombiner', () {
-    final primaryIndex = new SimplePackageIndex();
-    final dartSdkIndex = new SimplePackageIndex.sdk(
+    final primaryIndex = SimplePackageIndex();
+    final dartSdkIndex = SimplePackageIndex.sdk(
         urlPrefix: 'https://api.dartlang.org/stable/2.0.0');
-    final combiner = new SearchResultCombiner(
+    final combiner = SearchResultCombiner(
         primaryIndex: primaryIndex, dartSdkIndex: dartSdkIndex);
 
     setUpAll(() async {
-      await primaryIndex.addPackage(new PackageDocument(
+      await primaryIndex.addPackage(PackageDocument(
         package: 'stringutils',
         version: '1.0.0',
         description: 'many utils utils',
@@ -29,11 +29,11 @@ void main() {
         maintenance: 1.0,
         emails: ['foo@example.com'],
       ));
-      await dartSdkIndex.addPackage(new PackageDocument(
+      await dartSdkIndex.addPackage(PackageDocument(
         package: 'dart:core',
         description: 'Dart core utils',
         apiDocPages: [
-          new ApiDocPage(
+          ApiDocPage(
             relativePath: 'dart-core/String-class.html',
             symbols: ['String', 'substring', 'stringutils'],
           )
@@ -46,7 +46,7 @@ void main() {
 
     test('non-text ranking', () async {
       final results = await combiner
-          .search(new SearchQuery.parse(order: SearchOrder.popularity));
+          .search(SearchQuery.parse(order: SearchOrder.popularity));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -58,7 +58,7 @@ void main() {
 
     test('no actual text query', () async {
       final results = await combiner
-          .search(new SearchQuery.parse(query: 'email:foo@example.com'));
+          .search(SearchQuery.parse(query: 'email:foo@example.com'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -70,7 +70,7 @@ void main() {
 
     test('search: substring', () async {
       final results =
-          await combiner.search(new SearchQuery.parse(query: 'substring'));
+          await combiner.search(SearchQuery.parse(query: 'substring'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'totalCount': 2,
@@ -97,7 +97,7 @@ void main() {
 
     test('exact name match: stringutils', () async {
       final results =
-          await combiner.search(new SearchQuery.parse(query: 'stringutils'));
+          await combiner.search(SearchQuery.parse(query: 'stringutils'));
       expect(json.decode(json.encode(results.toJson())), {
         'indexUpdated': isNotNull,
         'totalCount': 2,

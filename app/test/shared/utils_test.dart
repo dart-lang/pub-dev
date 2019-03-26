@@ -13,24 +13,24 @@ void main() {
   group('Randomize Stream', () {
     test('Single batch', () async {
       final Stream<int> randomizedStream = randomizeStream(
-        new Stream.fromIterable(new List.generate(10, (i) => i)),
-        duration: new Duration(milliseconds: 100),
-        random: new Random(123),
+        Stream.fromIterable(List.generate(10, (i) => i)),
+        duration: Duration(milliseconds: 100),
+        random: Random(123),
       );
       expect(await randomizedStream.toList(), [4, 3, 2, 8, 7, 5, 9, 1, 0, 6]);
     });
 
     test('Two batches', () async {
-      final StreamController<int> controller = new StreamController<int>();
+      final StreamController<int> controller = StreamController<int>();
       final Stream<int> randomizedStream = randomizeStream(
         controller.stream,
-        duration: new Duration(milliseconds: 100),
-        random: new Random(123),
+        duration: Duration(milliseconds: 100),
+        random: Random(123),
       );
       final Future<List<int>> valuesFuture = randomizedStream.toList();
-      new List.generate(8, (i) => i).forEach(controller.add);
-      await new Future.delayed(new Duration(milliseconds: 200));
-      new List.generate(8, (i) => i + 10).forEach(controller.add);
+      List.generate(8, (i) => i).forEach(controller.add);
+      await Future.delayed(Duration(milliseconds: 200));
+      List.generate(8, (i) => i + 10).forEach(controller.add);
       controller.close();
       // 0-7, 10-17 in separate batches
       expect(await valuesFuture,
@@ -38,16 +38,16 @@ void main() {
     });
 
     test('Small slices', () async {
-      final StreamController<int> controller = new StreamController<int>();
+      final StreamController<int> controller = StreamController<int>();
       final Stream<int> randomizedStream = randomizeStream(
         controller.stream,
-        duration: new Duration(milliseconds: 100),
+        duration: Duration(milliseconds: 100),
         maxPositionDiff: 4,
-        random: new Random(123),
+        random: Random(123),
       );
       final Future<List<int>> valuesFuture = randomizedStream.toList();
-      new List.generate(8, (i) => i).forEach(controller.add);
-      new List.generate(8, (i) => i + 10).forEach(controller.add);
+      List.generate(8, (i) => i).forEach(controller.add);
+      List.generate(8, (i) => i + 10).forEach(controller.add);
       controller.close();
       // 0-3, 4-7, 10-13, 14-17 in separate batches
       expect(await valuesFuture,
@@ -85,7 +85,7 @@ void main() {
   });
 
   group('boundedList', () {
-    final numbers10 = new List.generate(10, (i) => i);
+    final numbers10 = List.generate(10, (i) => i);
 
     test('empty bounds', () {
       expect(boundedList(numbers10), numbers10);

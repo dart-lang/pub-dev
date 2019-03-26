@@ -29,8 +29,8 @@ import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
 import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
 
-final Logger logger = new Logger('pub.analyzer');
-final _random = new math.Random.secure();
+final Logger logger = Logger('pub.analyzer');
+final _random = math.Random.secure();
 
 Future main() async {
   Future workerSetup() async {
@@ -48,9 +48,9 @@ Future main() async {
 Future _frontendMain(FrontendEntryMessage message) async {
   setupServiceIsolate();
 
-  final statsConsumer = new ReceivePort();
+  final statsConsumer = ReceivePort();
   registerSchedulerStatsStream(statsConsumer.cast<Map>());
-  message.protocolSendPort.send(new FrontendProtocolMessage(
+  message.protocolSendPort.send(FrontendProtocolMessage(
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
@@ -63,19 +63,19 @@ Future _frontendMain(FrontendEntryMessage message) async {
 Future _workerMain(WorkerEntryMessage message) async {
   setupServiceIsolate();
 
-  message.protocolSendPort.send(new WorkerProtocolMessage());
+  message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withAppEngineAndCache(() async {
     await _registerServices();
-    final jobProcessor = new AnalyzerJobProcessor();
-    final jobMaintenance = new JobMaintenance(db.dbService, jobProcessor);
+    final jobProcessor = AnalyzerJobProcessor();
+    final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
 
-    new Timer.periodic(const Duration(minutes: 15), (_) async {
+    Timer.periodic(const Duration(minutes: 15), (_) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
     });
 
     // Run ScoreCard GC in the next 6 hours (randomized wait to reduce race).
-    new Timer(new Duration(minutes: _random.nextInt(360)), () {
+    Timer(Duration(minutes: _random.nextInt(360)), () {
       scoreCardBackend.deleteOldEntries();
     });
 
@@ -88,16 +88,15 @@ Future _registerServices() async {
   final popularityBucket = await getOrCreateBucket(
       storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
-      new PopularityStorage(storageService, popularityBucket));
+      PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-  registerDartdocMemcache(new DartdocMemcache());
+  registerDartdocMemcache(DartdocMemcache());
   final Bucket dartdocStorageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(
-      new DartdocBackend(db.dbService, dartdocStorageBucket));
-  registerDartdocClient(new DartdocClient());
-  registerHistoryBackend(new HistoryBackend(db.dbService));
-  registerJobBackend(new JobBackend(db.dbService));
-  registerScoreCardMemcache(new ScoreCardMemcache());
-  registerScoreCardBackend(new ScoreCardBackend(db.dbService));
+  registerDartdocBackend(DartdocBackend(db.dbService, dartdocStorageBucket));
+  registerDartdocClient(DartdocClient());
+  registerHistoryBackend(HistoryBackend(db.dbService));
+  registerJobBackend(JobBackend(db.dbService));
+  registerScoreCardMemcache(ScoreCardMemcache());
+  registerScoreCardBackend(ScoreCardBackend(db.dbService));
 }

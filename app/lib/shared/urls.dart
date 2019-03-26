@@ -78,7 +78,7 @@ String searchUrl({String platform, String q, int page}) {
   if (page != null && page > 1) {
     params['page'] = page.toString();
   }
-  return new Uri(
+  return Uri(
     path: packagesPath,
     queryParameters: params.isEmpty ? null : params,
   ).toString();
@@ -90,7 +90,7 @@ String pkgInviteUrl({
   @required String email,
   @required String urlNonce,
 }) {
-  return new Uri(
+  return Uri(
     scheme: 'https',
     host: pubHostedDomain,
     path: p.join('/admin/confirm', type, package, email, urlNonce),
@@ -114,19 +114,18 @@ void syntaxCheckHomepageUrl(String url) {
   try {
     uri = Uri.parse(url);
   } catch (_) {
-    throw new GenericProcessingException('Unable to parse homepage URL: $url');
+    throw GenericProcessingException('Unable to parse homepage URL: $url');
   }
   final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
   if (!hasValidScheme) {
-    throw new GenericProcessingException(
+    throw GenericProcessingException(
         'Use http:// or https:// URL schemes for homepage URL: $url');
   }
   if (uri.host == null ||
       uri.host.isEmpty ||
       !uri.host.contains('.') ||
       _invalidHostNames.contains(uri.host)) {
-    throw new GenericProcessingException(
-        'Homepage URL has no valid host: $url');
+    throw GenericProcessingException('Homepage URL has no valid host: $url');
   }
 }
 
@@ -157,7 +156,7 @@ String inferRepositoryUrl(String baseUrl) {
     if (segments.length != 2) {
       return null;
     }
-    return new Uri(scheme: uri.scheme, host: uri.host, pathSegments: segments)
+    return Uri(scheme: uri.scheme, host: uri.host, pathSegments: segments)
         .toString();
   }
   return null;
@@ -184,7 +183,7 @@ String inferIssueTrackerUrl(String baseUrl) {
       return null;
     }
     segments.add('issues');
-    final url = new Uri(
+    final url = Uri(
       scheme: 'https',
       host: uri.host,
       pathSegments: segments,

@@ -22,7 +22,7 @@ void main() {
   void expectGoldenFile(String content, String fileName) {
     if (fileName.endsWith('.html')) {
       // Making sure it is valid HTML
-      final htmlParser = new HtmlParser(content, strict: true);
+      final htmlParser = HtmlParser(content, strict: true);
       final doc = htmlParser.parse();
       validateHtml(doc);
 
@@ -37,10 +37,10 @@ void main() {
       content = xmlRoot.toXmlString(pretty: true, indent: '  ') + '\n';
     }
     if (_regenerateGoldens) {
-      new File('$goldenDir/$fileName').writeAsStringSync(content);
+      File('$goldenDir/$fileName').writeAsStringSync(content);
     }
 
-    final golden = new File('$goldenDir/$fileName').readAsStringSync();
+    final golden = File('$goldenDir/$fileName').readAsStringSync();
     // Not sure why, but the dart 2 preview tests produce an additional newline
     // in the output.
     expect(content.split('\n').where((s) => s.isNotEmpty),
@@ -48,15 +48,15 @@ void main() {
   }
 
   group('pana 0.10.2', () {
-    final prevCustomizer = new DartdocCustomizer('pana', '0.12.2', false);
-    final latestCustomizer = new DartdocCustomizer('pana', '0.12.2', true);
+    final prevCustomizer = DartdocCustomizer('pana', '0.12.2', false);
+    final latestCustomizer = DartdocCustomizer('pana', '0.12.2', true);
 
     void expectMatch(String name) {
       test(name, () {
         final inputName = 'pana_0.12.2_$name.html';
         final outputName = 'pana_0.12.2_$name.out.html';
         final diffName = 'pana_0.12.2_$name.latest.diff';
-        final html = new File('$goldenDir/$inputName').readAsStringSync();
+        final html = File('$goldenDir/$inputName').readAsStringSync();
         final prevResult = prevCustomizer.customizeHtml(html) ?? html;
         final latestResult = latestCustomizer.customizeHtml(html) ?? html;
         expectGoldenFile(prevResult, outputName);

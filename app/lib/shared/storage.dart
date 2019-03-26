@@ -16,9 +16,9 @@ import 'package:path/path.dart' as p;
 import 'utils.dart' show contentType, retryAsync;
 import 'versions.dart' as versions;
 
-final _gzip = new GZipCodec();
-final _logger = new Logger('shared.storage');
-final _random = new math.Random.secure();
+final _gzip = GZipCodec();
+final _logger = Logger('shared.storage');
+final _random = math.Random.secure();
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
@@ -65,8 +65,8 @@ Future uploadWithRetry(Bucket bucket, String objectName, int length,
 /// Uploads content from [bytes] to the [bucket] as [objectName].
 Future uploadBytesWithRetry(
         Bucket bucket, String objectName, List<int> bytes) =>
-    uploadWithRetry(bucket, objectName, bytes.length,
-        () => new Stream.fromIterable([bytes]));
+    uploadWithRetry(
+        bucket, objectName, bytes.length, () => Stream.fromIterable([bytes]));
 
 /// Utility class to access versioned JSON data that follows the name pattern:
 /// "/path-prefix/runtime-version.json.gz".
@@ -162,7 +162,7 @@ class VersionedJsonStorage {
       if (matchesPattern &&
           version.compareTo(versions.gcBeforeRuntimeVersion) < 0) {
         final info = await _bucket.info(entry.name);
-        final age = new DateTime.now().difference(info.updated);
+        final age = DateTime.now().difference(info.updated);
         if (minAgeThreshold == null || age > minAgeThreshold) {
           await deleteFromBucket(_bucket, entry.name);
         }
@@ -173,7 +173,7 @@ class VersionedJsonStorage {
   /// Schedules a GC of old data files to be run in the next 6 hours.
   void scheduleOldDataGC({Duration minAgeThreshold}) {
     // Run GC in the next 6 hours (randomized wait to reduce race).
-    new Timer(new Duration(minutes: _random.nextInt(360)), () async {
+    Timer(Duration(minutes: _random.nextInt(360)), () async {
       try {
         await deleteOldData(
             minAgeThreshold: minAgeThreshold ?? const Duration(days: 182));

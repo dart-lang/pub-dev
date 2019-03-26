@@ -19,15 +19,15 @@ import 'model.dart';
 
 export 'model.dart';
 
-const _defaultLockDuration = const Duration(hours: 1);
-const _extendDuration = const Duration(hours: 12);
-const _gcThreshold = const Duration(days: 90);
+const _defaultLockDuration = Duration(hours: 1);
+const _extendDuration = Duration(hours: 12);
+const _gcThreshold = Duration(days: 90);
 
-final _logger = new Logger('pub.job.backend');
-final _random = new math.Random.secure();
-final _uuid = new Uuid();
+final _logger = Logger('pub.job.backend');
+final _random = math.Random.secure();
+final _uuid = Uuid();
 
-typedef Future<bool> ShouldProcess(
+typedef ShouldProcess = Future<bool> Function(
     String package, String version, DateTime updated);
 
 /// Sets the active job backend.
@@ -42,7 +42,7 @@ class JobBackend {
   final _lastStats = <JobService, List<_AllStats>>{};
   JobBackend(this._db);
 
-  String _id(JobService service, String package, String version) => new Uri(
+  String _id(JobService service, String package, String version) => Uri(
         pathSegments: [
           versions.runtimeVersion,
           service.toString().split('.').last,
@@ -89,7 +89,7 @@ class JobBackend {
     final id = _id(service, package, version);
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
-        shouldProcess ? null : new DateTime.now().add(_extendDuration);
+        shouldProcess ? null : DateTime.now().add(_extendDuration);
     await _db.withTransaction((tx) async {
       final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
       final current = list.single as Job;
@@ -120,7 +120,7 @@ class JobBackend {
         return;
       } else {
         _logger.info('Creating job: $id');
-        final job = new Job()
+        final job = Job()
           ..id = id
           ..service = service
           ..packageName = package
@@ -164,7 +164,7 @@ class JobBackend {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
       final selected = items.single as Job;
       if (!isApplicable(selected)) return null;
-      final now = new DateTime.now().toUtc();
+      final now = DateTime.now().toUtc();
       selected
         ..state = JobState.processing
         ..processingKey = _uuid.v4().toString()
@@ -201,7 +201,7 @@ class JobBackend {
       ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.processing)
-      ..filter('lockedUntil <', new DateTime.now().toUtc());
+      ..filter('lockedUntil <', DateTime.now().toUtc());
     await for (Job job in query.run()) {
       try {
         await _unlock(job);
@@ -236,7 +236,7 @@ class JobBackend {
             current.lockedUntil == job.lockedUntil) {
           current
             ..processingKey = null
-            ..lockedUntil = new DateTime.now().toUtc().add(_extendDuration);
+            ..lockedUntil = DateTime.now().toUtc().add(_extendDuration);
           tx.queueMutations(inserts: [current]);
           await tx.commit();
         }
@@ -247,7 +247,7 @@ class JobBackend {
       ..filter('runtimeVersion =', versions.runtimeVersion)
       ..filter('service =', service)
       ..filter('state =', JobState.idle)
-      ..filter('lockedUntil <', new DateTime.now().toUtc());
+      ..filter('lockedUntil <', DateTime.now().toUtc());
     await for (Job job in query.run()) {
       if (job.runtimeVersion != versions.runtimeVersion) continue;
       try {
@@ -290,7 +290,7 @@ class JobBackend {
   }
 
   Future<Map> stats(JobService service) async {
-    final _AllStats stats = new _AllStats();
+    final _AllStats stats = _AllStats();
 
     final query = _db.query<Job>()
       ..filter('runtimeVersion =', versions.runtimeVersion)
@@ -312,17 +312,17 @@ class JobBackend {
   }
 
   DateTime _extendLock(int errorCount, {Duration duration}) {
-    return new DateTime.now()
+    return DateTime.now()
         .toUtc()
         .add(duration ?? _extendDuration)
-        .add(new Duration(hours: math.min(errorCount, 168 /* one week */)));
+        .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
   }
 
   void scheduleOldDataGC() {
     // Run GC in the next 6 hours (randomized wait to reduce race).
-    new Timer(new Duration(minutes: _random.nextInt(360)), () async {
+    Timer(Duration(minutes: _random.nextInt(360)), () async {
       try {
-        final now = new DateTime.now().toUtc();
+        final now = DateTime.now().toUtc();
         final query = _db.query<Job>()
           ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
         final deleteKeys = <db.Key>[];
@@ -352,7 +352,7 @@ class _Stat {
   final _stateMap = <String, int>{};
   final _statusMap = <String, int>{};
   final bool _collectFailed;
-  final _failedPackages = new Set<String>();
+  final _failedPackages = Set<String>();
   int _totalCount = 0;
   int _availableCount = 0;
 
@@ -392,10 +392,10 @@ class _Stat {
 }
 
 class _AllStats {
-  final DateTime timestamp = new DateTime.now().toUtc();
-  final _Stat all = new _Stat();
-  final _Stat latest = new _Stat();
-  final _Stat last90 = new _Stat(collectFailed: true);
+  final DateTime timestamp = DateTime.now().toUtc();
+  final _Stat all = _Stat();
+  final _Stat latest = _Stat();
+  final _Stat last90 = _Stat(collectFailed: true);
   String _estimate;
 
   void add(Job job) {

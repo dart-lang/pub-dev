@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(const Duration(seconds: 15))
+@Timeout(Duration(seconds: 15))
 library pub_dartlang_org.backend_test;
 
 import 'dart:async';
@@ -36,7 +36,7 @@ void main() {
       })
           .forEach((String testName, List<Package> expectedPackages) {
         test(testName, () async {
-          final completion = new TestDelayCompletion();
+          final completion = TestDelayCompletion();
           Stream<Package> queryRunFun(
               {partition,
               ancestorKey,
@@ -49,11 +49,11 @@ void main() {
             expect(offset, 4);
             expect(limit, 9);
             expect(orders, ['-updated']);
-            return new Stream.fromIterable(expectedPackages);
+            return Stream.fromIterable(expectedPackages);
           }
 
-          final db = new DatastoreDBMock(queryMock: new QueryMock(queryRunFun));
-          final backend = new Backend(db, null);
+          final db = DatastoreDBMock(queryMock: QueryMock(queryRunFun));
+          final backend = Backend(db, null);
 
           final packages = await backend.latestPackages(offset: 4, limit: 9);
           expect(packages, equals(expectedPackages));
@@ -63,7 +63,7 @@ void main() {
 
     group('Backend.latestPackageVersions', () {
       test('one package', () async {
-        final completion = new TestDelayCompletion();
+        final completion = TestDelayCompletion();
         Stream<Package> queryRunFun(
             {partition,
             ancestorKey,
@@ -76,7 +76,7 @@ void main() {
           expect(offset, 4);
           expect(limit, 9);
           expect(orders, ['-updated']);
-          return new Stream.fromIterable([testPackage]);
+          return Stream.fromIterable([testPackage]);
         }
 
         List<PackageVersion> lookupFun(keys) {
@@ -85,10 +85,10 @@ void main() {
           return [testPackageVersion];
         }
 
-        final db = new DatastoreDBMock(
-            queryMock: new QueryMock(queryRunFun),
+        final db = DatastoreDBMock(
+            queryMock: QueryMock(queryRunFun),
             lookupFun: expectAsync1(lookupFun));
-        final backend = new Backend(db, null);
+        final backend = Backend(db, null);
 
         final versions =
             await backend.latestPackageVersions(offset: 4, limit: 9);
@@ -97,7 +97,7 @@ void main() {
       });
 
       test('empty', () async {
-        final completion = new TestDelayCompletion();
+        final completion = TestDelayCompletion();
         Stream<Package> queryRunFun(
             {partition,
             ancestorKey,
@@ -110,7 +110,7 @@ void main() {
           expect(offset, 4);
           expect(limit, 9);
           expect(orders, ['-updated']);
-          return new Stream.fromIterable(<Package>[]);
+          return Stream.fromIterable(<Package>[]);
         }
 
         List lookupFun(keys) {
@@ -118,10 +118,10 @@ void main() {
           return [];
         }
 
-        final db = new DatastoreDBMock(
-            queryMock: new QueryMock(queryRunFun),
+        final db = DatastoreDBMock(
+            queryMock: QueryMock(queryRunFun),
             lookupFun: expectAsync1(lookupFun));
-        final backend = new Backend(db, null);
+        final backend = Backend(db, null);
 
         final versions =
             await backend.latestPackageVersions(offset: 4, limit: 9);
@@ -143,8 +143,8 @@ void main() {
             return expectedPackages;
           }
 
-          final db = new DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
-          final backend = new Backend(db, null);
+          final db = DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
+          final backend = Backend(db, null);
 
           final package = await backend.lookupPackage('foobar');
           expect(package, equals(expectedPackages.first));
@@ -165,8 +165,8 @@ void main() {
             return expectedVersions;
           }
 
-          final db = new DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
-          final backend = new Backend(db, null);
+          final db = DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
+          final backend = Backend(db, null);
 
           final version = await backend.lookupPackageVersion(
               testPackageVersion.package, testPackageVersion.version);
@@ -188,8 +188,8 @@ void main() {
             return expectedVersions;
           }
 
-          final db = new DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
-          final backend = new Backend(db, null);
+          final db = DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
+          final backend = Backend(db, null);
 
           final versions = await backend.lookupLatestVersions([testPackage]);
           expect(versions, hasLength(1));
@@ -205,7 +205,7 @@ void main() {
       })
           .forEach((String testName, List<PackageVersion> expectedVersions) {
         test(testName, () async {
-          final completion = new TestDelayCompletion();
+          final completion = TestDelayCompletion();
           Stream<PackageVersion> queryRunFun(
               {partition,
               ancestorKey,
@@ -216,11 +216,11 @@ void main() {
               orders}) {
             completion.complete();
             expect(ancestorKey, testPackage.key);
-            return new Stream.fromIterable(expectedVersions);
+            return Stream.fromIterable(expectedVersions);
           }
 
-          final db = new DatastoreDBMock(queryMock: new QueryMock(queryRunFun));
-          final backend = new Backend(db, null);
+          final db = DatastoreDBMock(queryMock: QueryMock(queryRunFun));
+          final backend = Backend(db, null);
 
           final versions = await backend.versionsOfPackage(testPackage.name);
           expect(versions, hasLength(1));
@@ -230,14 +230,14 @@ void main() {
     });
 
     test('Backend.downloadUrl', () async {
-      final db = new DatastoreDBMock();
-      final tarballStorage = new TarballStorageMock(
-          downloadUrlFun: expectAsync2((package, version) {
+      final db = DatastoreDBMock();
+      final tarballStorage =
+          TarballStorageMock(downloadUrlFun: expectAsync2((package, version) {
         expect(package, 'foobar');
         expect(version, '0.1.0');
         return Uri.parse('http://blob/foobar/0.1.0.tar.gz');
       }));
-      final backend = new Backend(db, tarballStorage);
+      final backend = Backend(db, tarballStorage);
 
       final url = await backend.downloadUrl('foobar', '0.1.0');
       expect(url.toString(), 'http://blob/foobar/0.1.0.tar.gz');
@@ -247,9 +247,9 @@ void main() {
   group('backend.repository', () {
     group('GCloudRepository.addUploader', () {
       scopedTest('not logged in', () async {
-        final db = new DatastoreDBMock();
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock();
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         await repo.addUploader(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
@@ -263,11 +263,11 @@ void main() {
           expect(keys.first, testPackage.key);
           return [testPackage];
         };
-        final db = new DatastoreDBMock(
+        final db = DatastoreDBMock(
           lookupFun: lookupFn,
         );
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(
@@ -285,11 +285,11 @@ void main() {
           expect(keys.first, testPackage.key);
           return [null];
         };
-        final db = new DatastoreDBMock(
+        final db = DatastoreDBMock(
           lookupFun: lookupFn,
         );
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
@@ -302,15 +302,15 @@ void main() {
       Future testAlreadyExists(AuthenticatedUser user,
           List<AuthenticatedUser> uploaders, String newUploader) async {
         final testPackage = createTestPackage(uploaders: uploaders);
-        final db = new DatastoreDBMock(
+        final db = DatastoreDBMock(
           lookupFun: expectAsync1((keys) async {
             expect(keys, hasLength(1));
             expect(keys.first, testPackage.key);
             return [testPackage];
           }),
         );
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(user);
@@ -331,24 +331,24 @@ void main() {
       Future testSuccessful(AuthenticatedUser user,
           List<AuthenticatedUser> uploaders, String newUploader) async {
         final testPackage = createTestPackage(uploaders: uploaders);
-        registerHistoryBackend(new HistoryBackendMock());
-        final db = new DatastoreDBMock(
+        registerHistoryBackend(HistoryBackendMock());
+        final db = DatastoreDBMock(
           lookupFun: expectAsync1((keys) {
             expect(keys, hasLength(1));
             expect(keys.first, testPackage.key);
             return [testPackage];
           }),
         );
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
         registerAccountBackend(
             AccountBackendMock(authenticatedUsers: uploaders));
 
         registerBackend(BackendMock(updatePackageInviteFn: (
             {packageName, type, recipientEmail, fromUserId, fromEmail}) async {
-          return new InviteStatus(urlNonce: 'abc1234');
+          return InviteStatus(urlNonce: 'abc1234');
         }));
-        registerEmailSender(new EmailSenderMock());
+        registerEmailSender(EmailSenderMock());
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(user);
@@ -371,9 +371,9 @@ void main() {
 
     group('GCloudRepository.removeUploader', () {
       scopedTest('not logged in', () async {
-        final db = new DatastoreDBMock();
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock();
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         final f = repo.removeUploader(pkg, 'a@b.com');
@@ -383,16 +383,16 @@ void main() {
       });
 
       scopedTest('not authorized', () async {
-        final transactionMock = new TransactionMock(
+        final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
               expect(keys.first, testPackage.key);
               return [testPackage];
             }),
             rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(
@@ -404,16 +404,16 @@ void main() {
       });
 
       scopedTest('package does not exist', () async {
-        final transactionMock = new TransactionMock(
+        final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
               expect(keys.first, testPackage.key);
               return [null];
             }),
             rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
@@ -425,16 +425,16 @@ void main() {
 
       scopedTest('cannot remove last uploader', () async {
         final testPackage = createTestPackage();
-        final transactionMock = new TransactionMock(
+        final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
               expect(keys.first, testPackage.key);
               return [testPackage];
             }),
             rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
@@ -448,16 +448,16 @@ void main() {
       });
 
       scopedTest('cannot remove non-existent uploader', () async {
-        final transactionMock = new TransactionMock(
+        final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
               expect(keys.first, testPackage.key);
               return [testPackage];
             }),
             rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(testUploaderUser);
@@ -473,16 +473,16 @@ void main() {
         final foo1 = AuthenticatedUser('uuid-foo1', 'foo1@bar.com');
         final foo2 = AuthenticatedUser('uuid-foo2', 'foo2@bar.com');
         final testPackage = createTestPackage(uploaders: [foo1, foo2]);
-        final transactionMock = new TransactionMock(
+        final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
               expect(keys.first, testPackage.key);
               return [testPackage];
             }),
             rollbackFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(foo1);
@@ -499,9 +499,9 @@ void main() {
         final userA = AuthenticatedUser('uuid-a', 'a@x.com');
         final userB = AuthenticatedUser('uuid-b', 'b@x.com');
         final testPackage = createTestPackage(uploaders: [userA, userB]);
-        registerHistoryBackend(new HistoryBackendMock());
-        final completion = new TestDelayCompletion();
-        final transactionMock = new TransactionMock(
+        registerHistoryBackend(HistoryBackendMock());
+        final completion = TestDelayCompletion();
+        final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
               expect(keys.first, testPackage.key);
@@ -514,9 +514,9 @@ void main() {
               completion.complete();
             },
             commitFun: expectAsync0(() {}));
-        final db = new DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = new TarballStorageMock();
-        final repo = new GCloudPackageRepository(db, tarballStorage);
+        final db = DatastoreDBMock(transactionMock: transactionMock);
+        final tarballStorage = TarballStorageMock();
+        final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
         registerAuthenticatedUser(userA);
@@ -528,11 +528,11 @@ void main() {
 
     group('GCloudRepository.downloadUrl', () {
       test('successful', () async {
-        final tarballStorage = new TarballStorageMock(
-            downloadUrlFun: expectAsync2((package, version) {
+        final tarballStorage =
+            TarballStorageMock(downloadUrlFun: expectAsync2((package, version) {
           return Uri.parse('http://blobstore/$package/$version.tar.gz');
         }));
-        final repo = new GCloudPackageRepository(null, tarballStorage);
+        final repo = GCloudPackageRepository(null, tarballStorage);
 
         final url = await repo.downloadUrl('foo', '0.1.0');
         expect('$url', 'http://blobstore/foo/0.1.0.tar.gz');
@@ -541,13 +541,13 @@ void main() {
 
     group('GCloudRepository.download', () {
       test('successful', () async {
-        final tarballStorage = new TarballStorageMock(
-            downloadFun: expectAsync2((package, version) {
-          return new Stream.fromIterable([
+        final tarballStorage =
+            TarballStorageMock(downloadFun: expectAsync2((package, version) {
+          return Stream.fromIterable([
             [1, 2, 3]
           ]);
         }));
-        final repo = new GCloudPackageRepository(null, tarballStorage);
+        final repo = GCloudPackageRepository(null, tarballStorage);
 
         final stream = await repo.download('foo', '0.1.0');
         final data = await stream.fold([], (b, d) => b..addAll(d));
@@ -557,24 +557,24 @@ void main() {
 
     group('GCloudRepository.lookupVersion', () {
       test('not found', () async {
-        final db = new DatastoreDBMock(lookupFun: expectAsync1((keys) {
+        final db = DatastoreDBMock(lookupFun: expectAsync1((keys) {
           expect(keys, hasLength(1));
           expect(keys.first, testPackageVersionKey);
           return [null];
         }));
-        final repo = new GCloudPackageRepository(db, null);
+        final repo = GCloudPackageRepository(db, null);
         final version = await repo.lookupVersion(
             testPackageVersion.package, testPackageVersion.version);
         expect(version, isNull);
       });
 
       test('successful', () async {
-        final db = new DatastoreDBMock(lookupFun: expectAsync1((keys) {
+        final db = DatastoreDBMock(lookupFun: expectAsync1((keys) {
           expect(keys, hasLength(1));
           expect(keys.first, testPackageVersionKey);
           return [testPackageVersion];
         }));
-        final repo = new GCloudPackageRepository(db, null);
+        final repo = GCloudPackageRepository(db, null);
         final version = await repo.lookupVersion(
             testPackageVersion.package, testPackageVersion.version);
         expect(version, isNotNull);
@@ -585,7 +585,7 @@ void main() {
 
     group('GCloudRepository.versions', () {
       test('not found', () async {
-        final completion = new TestDelayCompletion();
+        final completion = TestDelayCompletion();
         Stream<PackageVersion> queryRunFun(
             {partition,
             ancestorKey,
@@ -596,19 +596,19 @@ void main() {
             orders}) {
           completion.complete();
           expect(ancestorKey, testPackageKey);
-          return new Stream.fromIterable(<PackageVersion>[]);
+          return Stream.fromIterable(<PackageVersion>[]);
         }
 
-        final queryMock = new QueryMock(queryRunFun);
-        final db = new DatastoreDBMock(queryMock: queryMock);
-        final repo = new GCloudPackageRepository(db, null);
+        final queryMock = QueryMock(queryRunFun);
+        final db = DatastoreDBMock(queryMock: queryMock);
+        final repo = GCloudPackageRepository(db, null);
         final version =
             await repo.versions(testPackageVersion.package).toList();
         expect(version, isEmpty);
       });
 
       test('found', () async {
-        final completion = new TestDelayCompletion();
+        final completion = TestDelayCompletion();
         Stream<PackageVersion> queryRunFun(
             {partition,
             ancestorKey,
@@ -619,12 +619,12 @@ void main() {
             orders}) {
           completion.complete();
           expect(ancestorKey, testPackageKey);
-          return new Stream.fromIterable([testPackageVersion]);
+          return Stream.fromIterable([testPackageVersion]);
         }
 
-        final queryMock = new QueryMock(queryRunFun);
-        final db = new DatastoreDBMock(queryMock: queryMock);
-        final repo = new GCloudPackageRepository(db, null);
+        final queryMock = QueryMock(queryRunFun);
+        final db = DatastoreDBMock(queryMock: queryMock);
+        final repo = GCloudPackageRepository(db, null);
         final version =
             await repo.versions(testPackageVersion.package).toList();
         expect(version, hasLength(1));
@@ -634,7 +634,7 @@ void main() {
     });
 
     group('uploading', () {
-      final dateBeforeTest = new DateTime.now().toUtc();
+      final dateBeforeTest = DateTime.now().toUtc();
 
       void validateSuccessfullUpdate(List<Model> inserts) {
         expect(inserts, hasLength(5));
@@ -708,16 +708,16 @@ void main() {
         expect(limit, isNull);
         expect(ancestorKey, testPackage.key);
         testPackageVersion.sortOrder = 50;
-        return new Stream.fromIterable([testPackageVersion]);
+        return Stream.fromIterable([testPackageVersion]);
       }
 
       group('GCloudRepository.startAsyncUpload', () {
         final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
 
         scopedTest('no active user', () async {
-          final db = new DatastoreDBMock();
-          final repo = new GCloudPackageRepository(db, null);
-          registerUploadSigner(new UploadSignerServiceMock(null));
+          final db = DatastoreDBMock();
+          final repo = GCloudPackageRepository(db, null);
+          registerUploadSigner(UploadSignerServiceMock(null));
           await repo
               .startAsyncUpload(redirectUri)
               .catchError(expectAsync2((e, _) {
@@ -728,16 +728,16 @@ void main() {
         scopedTest('successful', () async {
           final uri = Uri.parse('http://foobar.com');
           final expectedUploadInfo =
-              new pub_server.AsyncUploadInfo(uri, {'a': 'b'});
-          final bucketMock = new BucketMock('mbucket');
-          final tarballStorage = new TarballStorageMock(
+              pub_server.AsyncUploadInfo(uri, {'a': 'b'});
+          final bucketMock = BucketMock('mbucket');
+          final tarballStorage = TarballStorageMock(
               tmpObjectNameFun: expectAsync1((guid) {
                 return 'obj/$guid';
               }),
               bucketMock: bucketMock);
-          final db = new DatastoreDBMock();
-          final repo = new GCloudPackageRepository(db, tarballStorage);
-          final uploadSignerMock = new UploadSignerServiceMock(
+          final db = DatastoreDBMock();
+          final repo = GCloudPackageRepository(db, tarballStorage);
+          final uploadSignerMock = UploadSignerServiceMock(
               (bucket, object, lifetime, successRedirectUrl,
                   {predefinedAcl, maxUploadSize}) {
             expect(bucket, 'mbucket');
@@ -755,7 +755,7 @@ void main() {
             Uri.parse('http://blobstore.com/upload?upload_id=myguid');
 
         scopedTest('upload-too-big', () async {
-          final oneKB = new List.filled(1024, 42);
+          final oneKB = List.filled(1024, 42);
           final bigTarball = <List<int>>[];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
@@ -763,18 +763,17 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final tarballStorage =
-              new TarballStorageMock(readTempObjectFun: (guid) {
+          final tarballStorage = TarballStorageMock(readTempObjectFun: (guid) {
             expect(guid, 'myguid');
-            return new Stream.fromIterable(bigTarball);
+            return Stream.fromIterable(bigTarball);
           }, removeTempObjectFun: (guid) {
             expect(guid, 'myguid');
           });
-          final transactionMock = new TransactionMock();
-          final db = new DatastoreDBMock(transactionMock: transactionMock);
-          final repo = new GCloudPackageRepository(db, tarballStorage);
+          final transactionMock = TransactionMock();
+          final db = DatastoreDBMock(transactionMock: transactionMock);
+          final repo = GCloudPackageRepository(db, tarballStorage);
           registerAuthenticatedUser(testUploaderUser);
-          final historyBackendMock = new HistoryBackendMock();
+          final historyBackendMock = HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
           final Future result = repo.finishAsyncUpload(redirectUri);
           await result.catchError(expectAsync2((error, _) {
@@ -784,14 +783,14 @@ void main() {
                     'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
           expect(historyBackendMock.storedHistories, hasLength(0));
-        }, timeout: new Timeout.factor(2));
+        }, timeout: Timeout.factor(2));
 
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
-            final tarballStorage = new TarballStorageMock(
+            final tarballStorage = TarballStorageMock(
                 readTempObjectFun: (guid) {
               expect(guid, 'myguid');
-              return new Stream.fromIterable([tarball]);
+              return Stream.fromIterable([tarball]);
             }, uploadViaTempObjectFun:
                     (String guid, String package, String version) {
               expect(guid, 'myguid');
@@ -800,9 +799,9 @@ void main() {
             }, removeTempObjectFun: (guid) {
               expect(guid, 'myguid');
             });
-            final queryMock = new QueryMock(sortOrderUpdateQueryMock);
+            final queryMock = QueryMock(sortOrderUpdateQueryMock);
             int queueMutationCallNr = 0;
-            final transactionMock = new TransactionMock(
+            final transactionMock = TransactionMock(
                 lookupFun: (keys) {
                   expect(keys, hasLength(2));
                   expect(keys.first, testPackageVersion.key);
@@ -826,15 +825,15 @@ void main() {
               expect(pv.package, 'foobar_pkg');
               expect(pv.version, '0.1.1+5');
             });
-            final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage,
+            final db = DatastoreDBMock(transactionMock: transactionMock);
+            final repo = GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
             registerAccountBackend(
                 AccountBackendMock(authenticatedUsers: [testUploaderUser]));
-            final emailSenderMock = new EmailSenderMock();
+            final emailSenderMock = EmailSenderMock();
             registerEmailSender(emailSenderMock);
-            registerHistoryBackend(new HistoryBackendMock());
+            registerHistoryBackend(HistoryBackendMock());
             final version = await repo.finishAsyncUpload(redirectUri);
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
@@ -850,12 +849,12 @@ void main() {
       group('GCloudRepository.upload', () {
         scopedTest('not logged in', () async {
           return withTestPackage((List<int> tarball) async {
-            final tarballStorage = new TarballStorageMock();
-            final transactionMock = new TransactionMock();
-            final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage);
+            final tarballStorage = TarballStorageMock();
+            final transactionMock = TransactionMock();
+            final db = DatastoreDBMock(transactionMock: transactionMock);
+            final repo = GCloudPackageRepository(db, tarballStorage);
             repo
-                .upload(new Stream.fromIterable([tarball]))
+                .upload(Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(error is pub_server.UnauthorizedAccessException, isTrue);
             }));
@@ -864,8 +863,8 @@ void main() {
 
         scopedTest('not authorized', () async {
           return withTestPackage((List<int> tarball) async {
-            final tarballStorage = new TarballStorageMock();
-            final transactionMock = new TransactionMock(
+            final tarballStorage = TarballStorageMock();
+            final transactionMock = TransactionMock(
                 lookupFun: expectAsync1((keys) {
                   expect(keys, hasLength(2));
                   expect(keys.first, testPackageVersion.key);
@@ -873,12 +872,12 @@ void main() {
                   return [null, testPackage];
                 }),
                 rollbackFun: expectAsync0(() {}));
-            final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage);
+            final db = DatastoreDBMock(transactionMock: transactionMock);
+            final repo = GCloudPackageRepository(db, tarballStorage);
             registerAuthenticatedUser(AuthenticatedUser(
                 'uuid-no-at-authorized-dot-com', 'un@authorized.com'));
             repo
-                .upload(new Stream.fromIterable([tarball]))
+                .upload(Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(error is pub_server.UnauthorizedAccessException, isTrue);
             }));
@@ -887,8 +886,8 @@ void main() {
 
         scopedTest('versions already exist', () async {
           return withTestPackage((List<int> tarball) async {
-            final tarballStorage = new TarballStorageMock();
-            final transactionMock = new TransactionMock(
+            final tarballStorage = TarballStorageMock();
+            final transactionMock = TransactionMock(
                 lookupFun: expectAsync1((keys) {
                   expect(keys, hasLength(2));
                   expect(keys.first, testPackageVersion.key);
@@ -896,12 +895,12 @@ void main() {
                   return [testPackageVersion, testPackage];
                 }),
                 rollbackFun: expectAsync0(() {}));
-            final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage);
+            final db = DatastoreDBMock(transactionMock: transactionMock);
+            final repo = GCloudPackageRepository(db, tarballStorage);
             registerAuthenticatedUser(AuthenticatedUser(
                 'uuid-no-at-authorized-dot-com', 'un@authorized.com'));
             repo
-                .upload(new Stream.fromIterable([tarball]))
+                .upload(Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(
                   '$error'.contains(
@@ -912,10 +911,10 @@ void main() {
         });
 
         scopedTest('bad package names are rejected', () async {
-          final tarballStorage = new TarballStorageMock();
-          final transactionMock = new TransactionMock();
-          final db = new DatastoreDBMock(transactionMock: transactionMock);
-          final repo = new GCloudPackageRepository(db, tarballStorage);
+          final tarballStorage = TarballStorageMock();
+          final transactionMock = TransactionMock();
+          final db = DatastoreDBMock(transactionMock: transactionMock);
+          final repo = GCloudPackageRepository(db, tarballStorage);
           registerAuthenticatedUser(testUploaderUser);
 
           // Returns the error message as String or null if it succeeded.
@@ -924,7 +923,7 @@ void main() {
                 testPackagePubspec.replaceAll('foobar_pkg', name);
             try {
               await withTestPackage((List<int> tarball) async {
-                await repo.upload(new Stream.fromIterable([tarball]));
+                await repo.upload(Stream.fromIterable([tarball]));
               }, pubspecContent: pubspecContent);
             } catch (e) {
               return e.toString();
@@ -944,7 +943,7 @@ void main() {
         });
 
         scopedTest('upload-too-big', () async {
-          final oneKB = new List.filled(1024, 42);
+          final oneKB = List.filled(1024, 42);
           final List<List<int>> bigTarball = [];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
             bigTarball.add(oneKB);
@@ -952,15 +951,14 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final tarballStorage = new TarballStorageMock();
-          final transactionMock = new TransactionMock();
-          final db = new DatastoreDBMock(transactionMock: transactionMock);
-          final repo = new GCloudPackageRepository(db, tarballStorage);
+          final tarballStorage = TarballStorageMock();
+          final transactionMock = TransactionMock();
+          final db = DatastoreDBMock(transactionMock: transactionMock);
+          final repo = GCloudPackageRepository(db, tarballStorage);
           registerAuthenticatedUser(testUploaderUser);
-          final historyBackendMock = new HistoryBackendMock();
+          final historyBackendMock = HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
-          final Future result =
-              repo.upload(new Stream.fromIterable(bigTarball));
+          final Future result = repo.upload(Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
             expect(
                 error,
@@ -968,12 +966,12 @@ void main() {
                     'Exceeded ${UploadSignerService.maxUploadSize} upload size'));
           }));
           expect(historyBackendMock.storedHistories, hasLength(0));
-        }, timeout: new Timeout.factor(2));
+        }, timeout: Timeout.factor(2));
 
         scopedTest('successful', () async {
           return withTestPackage((List<int> tarball) async {
-            final completion = new TestDelayCompletion(count: 2);
-            final tarballStorage = new TarballStorageMock(uploadFun:
+            final completion = TestDelayCompletion(count: 2);
+            final tarballStorage = TarballStorageMock(uploadFun:
                 (String package, String version,
                     Stream<List<int>> uploadTarball) async {
               expect(package, testPackage.name);
@@ -989,8 +987,8 @@ void main() {
             //  a) for inserting a new Package + PackageVersion
             //  b) for inserting a new PackageVersions sorted by `sort_order`.
             int queueMutationCallNr = 0;
-            final queryMock = new QueryMock(sortOrderUpdateQueryMock);
-            final transactionMock = new TransactionMock(
+            final queryMock = QueryMock(sortOrderUpdateQueryMock);
+            final transactionMock = TransactionMock(
                 lookupFun: expectAsync1((keys) {
                   expect(queueMutationCallNr, 0);
 
@@ -1018,17 +1016,16 @@ void main() {
               expect(pv.version, '0.1.1+5');
             });
 
-            final db = new DatastoreDBMock(transactionMock: transactionMock);
-            final repo = new GCloudPackageRepository(db, tarballStorage,
+            final db = DatastoreDBMock(transactionMock: transactionMock);
+            final repo = GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
             registerAccountBackend(
                 AccountBackendMock(authenticatedUsers: [testUploaderUser]));
-            registerHistoryBackend(new HistoryBackendMock());
-            final emailSenderMock = new EmailSenderMock();
+            registerHistoryBackend(HistoryBackendMock());
+            final emailSenderMock = EmailSenderMock();
             registerEmailSender(emailSenderMock);
-            final version =
-                await repo.upload(new Stream.fromIterable([tarball]));
+            final version = await repo.upload(Stream.fromIterable([tarball]));
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
             expect(emailSenderMock.sentMessages, hasLength(1));
@@ -1039,6 +1036,6 @@ void main() {
           });
         });
       });
-    }, timeout: new Timeout.factor(2));
+    }, timeout: Timeout.factor(2));
   });
 }

@@ -15,9 +15,9 @@ void main() {
     SimplePackageIndex index;
 
     setUpAll(() async {
-      index = new SimplePackageIndex();
+      index = SimplePackageIndex();
       await index.addPackages([
-        new PackageDocument(
+        PackageDocument(
           package: 'haversine',
           version: '0.0.2',
           description: compactDescription(
@@ -34,7 +34,7 @@ The formula in this library works on the basis of a spherical earth, which is ac
 
 Check [this](https://gis.stackexchange.com/questions/25494/how-accurate-is-approximating-the-earth-as-a-sphere#25580) detailed information.'''),
         ),
-        new PackageDocument(
+        PackageDocument(
             package: 'latlong',
             version: '0.3.4',
             description: compactDescription(
@@ -122,7 +122,7 @@ Please file feature requests and bugs at the [issue tracker](https://github.com/
 If this plugin is helpful for you - please [(Circle)](http://gplus.mikemitterer.at/) me
 or **star** this repo here on GitHub
 ''')),
-        new PackageDocument(
+        PackageDocument(
           package: 'great_circle_distance',
           version: '0.0.3',
           description: compactDescription(
@@ -160,7 +160,7 @@ print('Distance from location 1 to 2 using the Vicenty`s formula is: ${gcd.vince
 Check Wikipedia for detailed description on [Great-circle distance](https://en.wikipedia.org/wiki/Great-circle_distance)
           '''),
         ),
-        new PackageDocument(
+        PackageDocument(
           package: 'version',
           version: '1.0.2',
           description: compactDescription(
@@ -207,7 +207,7 @@ Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dartalog/version_dart/issues'''),
         ),
-        new PackageDocument(
+        PackageDocument(
           package: 'reversi',
           version: '0.1.1',
           description: compactDescription(
@@ -378,7 +378,7 @@ MIT'''),
 
     test('haversine', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
+          SearchQuery.parse(query: 'haversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 3,
@@ -404,7 +404,7 @@ MIT'''),
 
     test('type: hoversine', () async {
       final PackageSearchResult result = await index.search(
-          new SearchQuery.parse(query: 'hoversine', order: SearchOrder.text));
+          SearchQuery.parse(query: 'hoversine', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 3,

@@ -10,9 +10,9 @@ import 'package:test/test.dart';
 
 void main() {
   test('popularity round trip', () {
-    final string = new File('test/popularity-sample.json').readAsStringSync();
-    final popularity = new PackagePopularity.fromJson(
-        json.decode(string) as Map<String, dynamic>);
+    final string = File('test/popularity-sample.json').readAsStringSync();
+    final popularity =
+        PackagePopularity.fromJson(json.decode(string) as Map<String, dynamic>);
     expect(popularity.dateFirst.isUtc, isTrue);
     expect(popularity.dateFirst.isUtc, isTrue);
 

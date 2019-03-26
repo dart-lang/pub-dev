@@ -11,7 +11,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
-final _argParser = new ArgParser()
+final _argParser = ArgParser()
   ..addOption('concurrency',
       abbr: 'c', defaultsTo: '1', help: 'Number of concurrent processing.')
   ..addOption('package', abbr: 'p', help: 'The package to process.')

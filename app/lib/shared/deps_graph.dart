@@ -11,7 +11,7 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 
 import 'utils.dart' show StringInternPool;
 
-final Logger _logger = new Logger('pub.package_graph');
+final Logger _logger = Logger('pub.package_graph');
 
 // TODO(kustermann): We could incorporate the pubspec constraints to make the
 // sets smaller.
@@ -56,24 +56,24 @@ class TransitiveDependencyGraph {
     }
   }
 
-  static Set<String> _newSet() => new Set<String>();
+  static Set<String> _newSet() => Set<String>();
 }
 
 class PackageDependencyBuilder {
-  static const Duration pollingInterval = const Duration(minutes: 1);
+  static const Duration pollingInterval = Duration(minutes: 1);
   static const String devPrefix = 'dev/';
 
   final DatastoreDB db;
 
-  final TransitiveDependencyGraph reverseDeps = new TransitiveDependencyGraph();
-  final String Function(String) _intern = new StringInternPool().intern;
+  final TransitiveDependencyGraph reverseDeps = TransitiveDependencyGraph();
+  final String Function(String) _intern = StringInternPool().intern;
 
   DateTime _lastTs;
 
   static Future<PackageDependencyBuilder> loadInitialGraphFromDb(
       DatastoreDB db) async {
-    final sw = new Stopwatch()..start();
-    final builder = new PackageDependencyBuilder._(db);
+    final sw = Stopwatch()..start();
+    final builder = PackageDependencyBuilder._(db);
     await builder.scanExistingPackageGraph();
     _logger.info('Scanned initial dependency graph in ${sw.elapsed}.');
     builder.monitorInBackground();
@@ -83,7 +83,7 @@ class PackageDependencyBuilder {
   PackageDependencyBuilder._(this.db);
 
   Future scanExistingPackageGraph() async {
-    final sw = new Stopwatch()..start();
+    final sw = Stopwatch()..start();
     for (;;) {
       _logger.info('Scanning existing package graph');
       try {
@@ -118,14 +118,13 @@ class PackageDependencyBuilder {
       } catch (e, s) {
         _logger.severe(e, s);
       }
-      await new Future.delayed(pollingInterval);
+      await Future.delayed(pollingInterval);
     }
   }
 
   void addPackageVersion(PackageVersion pv) {
-    final Set<String> depsSet = new Set<String>.from(pv.pubspec.dependencies);
-    final Set<String> devDepsSet =
-        new Set<String>.from(pv.pubspec.devDependencies);
+    final Set<String> depsSet = Set<String>.from(pv.pubspec.dependencies);
+    final Set<String> devDepsSet = Set<String>.from(pv.pubspec.devDependencies);
 
     // First we add the [package] together with the dependencies /
     // dev_dependencies to the graph.  This will update the graph transitively,

@@ -24,7 +24,7 @@ void registerAnalyzerClient(AnalyzerClient client) =>
 AnalyzerClient get analyzerClient =>
     ss.lookup(#_analyzerClient) as AnalyzerClient;
 
-final Logger _logger = new Logger('pub.analyzer_client');
+final Logger _logger = Logger('pub.analyzer_client');
 
 /// Client methods that access the analyzer service and the internals of the
 /// analysis data. This keeps the interface narrow over the raw analysis data.
@@ -32,7 +32,7 @@ class AnalyzerClient {
   Future<AnalysisView> getAnalysisView(String package, String version) async {
     final card = await scoreCardBackend.getScoreCardData(package, version);
     if (card == null) {
-      return new AnalysisView();
+      return AnalysisView();
     }
     final reports = await scoreCardBackend.loadReports(
       package,
@@ -41,7 +41,7 @@ class AnalyzerClient {
     );
     final panaReport = reports[ReportType.pana] as PanaReport;
     final dartdocReport = reports[ReportType.dartdoc] as DartdocReport;
-    return new AnalysisView._(card, panaReport, dartdocReport);
+    return AnalysisView._(card, panaReport, dartdocReport);
   }
 
   Future triggerAnalysis(
@@ -73,7 +73,7 @@ class AnalysisView {
     PanaReport panaReport,
     DartdocReport dartdocReport,
   }) =>
-      new AnalysisView._(card, panaReport, dartdocReport);
+      AnalysisView._(card, panaReport, dartdocReport);
 
   bool get hasAnalysisData => _card != null;
   bool get hasPanaSummary => _pana != null;
@@ -136,10 +136,10 @@ class AnalysisView {
 }
 
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
-  return new Summary(
-      runtimeInfo: new PanaRuntimeInfo(),
+  return Summary(
+      runtimeInfo: PanaRuntimeInfo(),
       packageName: packageName,
-      packageVersion: new Version.parse(packageVersion),
+      packageVersion: Version.parse(packageVersion),
       pubspec: null,
       pkgResolution: null,
       dartFiles: null,
@@ -148,7 +148,7 @@ Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
       health: null,
       maintenance: null,
       suggestions: <Suggestion>[
-        new Suggestion.error(
+        Suggestion.error(
           'pubspec.sdk.legacy',
           'Support Dart 2 in `pubspec.yaml`.',
           'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
@@ -156,7 +156,7 @@ Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
               '[https://www.dartlang.org/dart-2#migration](https://www.dartlang.org/dart-2#migration).',
         ),
       ],
-      stats: new Stats(
+      stats: Stats(
         analyzeProcessElapsed: 0,
         formatProcessElapsed: 0,
         resolveProcessElapsed: 0,

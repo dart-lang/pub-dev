@@ -16,8 +16,7 @@ void main() {
 
   group('feeds', () {
     tScopedTest('/feed.atom', () async {
-      final backend =
-          new BackendMock(latestPackageVersionsFun: ({offset, limit}) {
+      final backend = BackendMock(latestPackageVersionsFun: ({offset, limit}) {
         expect(offset, 0);
         expect(limit, pageSize);
         return [testPackageVersion];

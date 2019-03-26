@@ -12,7 +12,7 @@ import 'package:mailer/smtp_server.dart';
 import '../shared/email.dart';
 import 'models.dart' show Secret, SecretKey;
 
-final _logger = new Logger('pub.email');
+final _logger = Logger('pub.email');
 
 /// Sets the active [EmailSender].
 void registerEmailSender(EmailSender value) =>
@@ -56,7 +56,7 @@ class EmailSender {
   Future _update() async {
     // Caching the values for 10 minutes, updating them only if the previous
     // access happened earlier.
-    final now = new DateTime.now().toUtc();
+    final now = DateTime.now().toUtc();
     if (_lastUpdated != null && now.difference(_lastUpdated).inMinutes < 10) {
       return;
     }
@@ -80,7 +80,7 @@ class EmailSender {
   }
 
   Message _toMessage(EmailMessage input) {
-    return new Message()
+    return Message()
       ..from = _toAddress(input.from)
       ..recipients = input.recipients.map(_toAddress).toList()
       ..subject = input.subject
@@ -88,5 +88,5 @@ class EmailSender {
   }
 
   Address _toAddress(EmailAddress input) =>
-      input == null ? null : new Address(input.email, input.name);
+      input == null ? null : Address(input.email, input.name);
 }

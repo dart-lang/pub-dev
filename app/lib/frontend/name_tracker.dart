@@ -11,10 +11,10 @@ import '../shared/utils.dart';
 
 import 'models.dart';
 
-final _logger = new Logger('pub.name_tracker');
-const _pollingInterval = const Duration(minutes: 1);
+final _logger = Logger('pub.name_tracker');
+const _pollingInterval = Duration(minutes: 1);
 
-final nameTracker = new NameTracker();
+final nameTracker = NameTracker();
 
 /// Tracks names of packages that exists, to avoid risks of using similar names
 /// or typo-squatting.
@@ -23,9 +23,9 @@ final nameTracker = new NameTracker();
 /// iterating over Datastore entries.
 /// TODO: support remove and re-scan package names every day or so.
 class NameTracker {
-  final Set<String> _names = new Set<String>();
-  final Set<String> _reducedNames = new Set<String>();
-  final _firstScanCompleter = new Completer();
+  final Set<String> _names = Set<String>();
+  final Set<String> _reducedNames = Set<String>();
+  final _firstScanCompleter = Completer();
 
   /// Add a package name to the tracker.
   void add(String name) {
@@ -65,7 +65,7 @@ class NameTrackerUpdater {
 
   // Note, this method never returns.
   Future startNameTrackerUpdates() async {
-    final sw = new Stopwatch()..start();
+    final sw = Stopwatch()..start();
     _logger.info('Scanning existing package names');
     for (;;) {
       try {
@@ -80,7 +80,7 @@ class NameTrackerUpdater {
     _logger.info(
         'Scanned initial package names (${nameTracker.length}) in ${sw.elapsed}.');
 
-    await new Future.delayed(_pollingInterval);
+    await Future.delayed(_pollingInterval);
 
     _logger.info('Monitoring new package creation.');
     for (;;) {
@@ -89,7 +89,7 @@ class NameTrackerUpdater {
       } catch (e, st) {
         _logger.severe(e, st);
       }
-      await new Future.delayed(_pollingInterval);
+      await Future.delayed(_pollingInterval);
     }
   }
 

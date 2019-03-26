@@ -8,13 +8,13 @@ abstract class KnownPlatforms {
   static const String flutter = PlatformNames.flutter;
   static const String web = PlatformNames.web;
   static const String other = PlatformNames.other;
-  static const List<String> all = const [flutter, web, other];
+  static const List<String> all = [flutter, web, other];
 
   static bool isKnownPlatform(String platform) => all.contains(platform);
 }
 
 final _whitelistedOverride = 'Whitelisted platform override.';
-DartPlatform _webOnly() => new DartPlatform.fromComponents(
+DartPlatform _webOnly() => DartPlatform.fromComponents(
       [ComponentNames.html],
       reason: _whitelistedOverride,
     );

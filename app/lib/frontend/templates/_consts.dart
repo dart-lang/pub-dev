@@ -47,7 +47,7 @@ class PlatformDict {
         hasCompatible ? '$formattedPlatform-compatible' : formattedPlatform;
     final platformOnly =
         hasOnly ? '$formattedPlatform-only' : formattedPlatform;
-    return new PlatformDict(
+    return PlatformDict(
       name: formattedPlatform,
       topPlatformPackages: 'Top $platformCompatible packages',
       morePlatformPackagesLabel: 'More $platformCompatible packages...',
@@ -73,17 +73,17 @@ PlatformDict getPlatformDict(String platform, {bool nullIfMissing = false}) {
 }
 
 final _dictionaries = <String, PlatformDict>{
-  'default': new PlatformDict.forPlatform(null),
-  KnownPlatforms.flutter: new PlatformDict.forPlatform(
+  'default': PlatformDict.forPlatform(null),
+  KnownPlatforms.flutter: PlatformDict.forPlatform(
     KnownPlatforms.flutter,
     tagTitle: 'Compatible with the Flutter platform.',
     onlyPlatformPackagesUrl: '/packages?q=dependency%3Aflutter',
   ),
-  KnownPlatforms.web: new PlatformDict.forPlatform(
+  KnownPlatforms.web: PlatformDict.forPlatform(
     KnownPlatforms.web,
     tagTitle: 'Compatible with the web platform.',
   ),
-  KnownPlatforms.other: new PlatformDict(
+  KnownPlatforms.other: PlatformDict(
     name: KnownPlatforms.other,
     tagTitle: 'Compatible with other platforms (terminal, server, etc.).',
     listingUrl: null, // no listing for platform tag
@@ -145,25 +145,25 @@ class SortDict {
 
 // Synchronize with `script.dart`'s dropdown.
 final _sortDicts = const <String, SortDict>{
-  'listing_relevance': const SortDict(
+  'listing_relevance': SortDict(
       label: 'listing relevance',
       tooltip:
           'Packages are sorted by the combination of their overall score and '
           'their specificity to the selected platform.'),
-  'search_relevance': const SortDict(
+  'search_relevance': SortDict(
       label: 'search relevance',
       tooltip: 'Packages are sorted by the combination of the text match, '
           'their overall score and their specificity to the selected platform.'),
-  'top': const SortDict(
+  'top': SortDict(
       label: 'overall score',
       tooltip: 'Packages are sorted by the overall score.'),
-  'updated': const SortDict(
+  'updated': SortDict(
       label: 'recently updated',
       tooltip: 'Packages are sorted by their updated time.'),
-  'created': const SortDict(
+  'created': SortDict(
       label: 'newest package',
       tooltip: 'Packages are sorted by their created time.'),
-  'popularity': const SortDict(
+  'popularity': SortDict(
       label: 'popularity',
       tooltip: 'Packages are sorted by their popularity score.'),
 };
@@ -171,7 +171,7 @@ final _sortDicts = const <String, SortDict>{
 SortDict getSortDict(String sort) {
   final SortDict dict = _sortDicts[sort];
   if (dict != null) return dict;
-  return new SortDict(
+  return SortDict(
     label: sort,
     tooltip: 'Packages are sort by $sort.',
   );

@@ -27,7 +27,7 @@ import 'text_utils.dart';
 
 part 'backend.g.dart';
 
-final Logger _logger = new Logger('pub.search.backend');
+final Logger _logger = Logger('pub.search.backend');
 
 /// Sets the backend service.
 void registerSearchBackend(SearchBackend backend) =>
@@ -119,7 +119,7 @@ class SearchBackend {
       dependencies: _buildDependencies(analysisView),
       emails: await _buildEmails(p, pv),
       apiDocPages: apiDocPages,
-      timestamp: new DateTime.now().toUtc(),
+      timestamp: DateTime.now().toUtc(),
     );
   }
 
@@ -132,11 +132,11 @@ class SearchBackend {
   }
 
   Future<List<String>> _buildEmails(Package p, PackageVersion pv) async {
-    final Set<String> emails = new Set<String>();
+    final Set<String> emails = Set<String>();
     final uploaderEmails = await accountBackend.getEmailsOfUserIds(p.uploaders);
     emails.addAll(uploaderEmails.where((email) => email != null));
     for (String value in pv.pubspec.authors) {
-      final EmailAddress author = new EmailAddress.parse(value);
+      final EmailAddress author = EmailAddress.parse(value);
       if (author.email == null) continue;
       emails.add(author.email);
     }
@@ -145,7 +145,7 @@ class SearchBackend {
 
   List<ApiDocPage> _apiDocPagesFromPubDataText(String text) {
     final decodedMap = json.decode(text) as Map;
-    final pubData = new PubDartdocData.fromJson(decodedMap.cast());
+    final pubData = PubDartdocData.fromJson(decodedMap.cast());
     return apiDocPagesFromPubData(pubData);
   }
 }
@@ -164,7 +164,7 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
   void update(String key, String symbol, String documentation) {
-    final set = symbolMap.putIfAbsent(key, () => new Set<String>());
+    final set = symbolMap.putIfAbsent(key, () => Set<String>());
     set.add(symbol);
 
     documentation = documentation?.trim();
@@ -191,7 +191,7 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   final results = pathMap.keys.map((key) {
     final path = pathMap[key];
     final symbols = symbolMap[key].toList()..sort();
-    return new ApiDocPage(
+    return ApiDocPage(
       relativePath: path,
       symbols: symbols,
       textBlocks: docMap[key],
@@ -219,7 +219,7 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
     librariesMap.putIfAbsent(library, () => <ApiElement>[]).add(elem);
   });
   return librariesMap.values
-      .map((list) => new PubDartdocData(apiElements: list))
+      .map((list) => PubDartdocData(apiElements: list))
       .toList();
 }
 
@@ -229,7 +229,7 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
   final package = lib.apiElements.first.name;
   final documentation = lib.apiElements.first.documentation ?? '';
   final description = documentation.split('\n\n').first.trim();
-  return new PackageDocument(
+  return PackageDocument(
     package: package,
     version: versions.toolEnvSdkVersion,
     description: description,
@@ -241,7 +241,7 @@ class SnapshotStorage {
   VersionedJsonStorage _snapshots;
 
   SnapshotStorage(Bucket bucket)
-      : _snapshots = new VersionedJsonStorage(bucket, 'snapshot/');
+      : _snapshots = VersionedJsonStorage(bucket, 'snapshot/');
 
   Future<SearchSnapshot> fetch() async {
     final version = await _snapshots.detectLatestVersion();
@@ -251,7 +251,7 @@ class SnapshotStorage {
     }
     try {
       final map = await _snapshots.getContentAsJsonMap(version);
-      final snapshot = new SearchSnapshot.fromJson(map);
+      final snapshot = SearchSnapshot.fromJson(map);
       snapshot.documents
           .removeWhere((packageName, doc) => isSoftRemoved(packageName));
       return snapshot;
@@ -281,14 +281,13 @@ class SearchSnapshot {
 
   SearchSnapshot._(this.updated, this.documents);
 
-  factory SearchSnapshot() =>
-      new SearchSnapshot._(new DateTime.now().toUtc(), {});
+  factory SearchSnapshot() => SearchSnapshot._(DateTime.now().toUtc(), {});
 
   factory SearchSnapshot.fromJson(Map<String, dynamic> json) =>
       _$SearchSnapshotFromJson(json);
 
   void add(PackageDocument doc) {
-    updated = new DateTime.now().toUtc();
+    updated = DateTime.now().toUtc();
     documents[doc.package] = doc;
   }
 
@@ -297,7 +296,7 @@ class SearchSnapshot {
   }
 
   void remove(String packageName) {
-    updated = new DateTime.now().toUtc();
+    updated = DateTime.now().toUtc();
     documents.remove(packageName);
   }
 

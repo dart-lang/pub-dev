@@ -12,12 +12,12 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 
 void main() async {
   await withProdServices(() async {
-    final pubClient = new PubClient(new Client());
+    final pubClient = PubClient(Client());
 
     int processIdx = 0;
     int missingPackages = 0;
     int missingVersions = 0;
-    final pool = new Pool(4);
+    final pool = Pool(4);
     final futures = <Future>[];
 
     final packages = await pubClient.listPackages();

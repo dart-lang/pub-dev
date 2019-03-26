@@ -27,18 +27,18 @@ import 'coverage.dart';
 import 'customization.dart';
 import 'models.dart';
 
-final Logger _logger = new Logger('pub.dartdoc.runner');
-final Uuid _uuid = new Uuid();
+final Logger _logger = Logger('pub.dartdoc.runner');
+final Uuid _uuid = Uuid();
 
 const statusFilePath = 'status.json';
 const _archiveFilePath = 'package.tar.gz';
 const _buildLogFilePath = 'log.txt';
-const _packageTimeout = const Duration(minutes: 10);
+const _packageTimeout = Duration(minutes: 10);
 const _pubDataFileName = 'pub-data.json';
-const _sdkTimeout = const Duration(minutes: 20);
+const _sdkTimeout = Duration(minutes: 20);
 final Duration _twoYears = const Duration(days: 2 * 365);
 
-const _excludedLibraries = const <String>[
+const _excludedLibraries = <String>[
   'dart:async',
   'dart:collection',
   'dart:convert',
@@ -87,13 +87,13 @@ class DartdocJobProcessor extends JobProcessor {
         timeout: _sdkTimeout,
       );
 
-      final pubDataFile = new File(p.join(outputDir, _pubDataFileName));
+      final pubDataFile = File(p.join(outputDir, _pubDataFileName));
       final hasPubData = await pubDataFile.exists();
       final isOk = pr.exitCode == 0 && hasPubData;
       if (!isOk) {
         _logger.warning(
             'Error while generating SDK docs.\n\n${pr.stdout}\n\n${pr.stderr}');
-        throw new Exception(
+        throw Exception(
             'Error while generating SDK docs (hasPubData: $hasPubData).');
       }
 
@@ -132,7 +132,7 @@ class DartdocJobProcessor extends JobProcessor {
     final outputDir = p.join(tarDir, job.packageName, job.packageVersion);
 
     // directories need to be created
-    await new Directory(outputDir).create(recursive: true);
+    await Directory(outputDir).create(recursive: true);
 
     final toolEnvRef = await getOrCreateToolEnvRef();
 
@@ -156,7 +156,7 @@ class DartdocJobProcessor extends JobProcessor {
       await pkgDir.rename(pkgPath);
       final usesFlutter = await toolEnvRef.toolEnv.detectFlutterUse(pkgPath);
 
-      final logFileOutput = new StringBuffer();
+      final logFileOutput = StringBuffer();
       logFileOutput.write('Dartdoc generation for $job\n\n'
           'runtime: ${versions.runtimeVersion}\n'
           'toolEnv Dart SDK: ${versions.toolEnvSdkVersion}\n'
@@ -165,7 +165,7 @@ class DartdocJobProcessor extends JobProcessor {
           'dartdoc: ${versions.dartdocVersion}\n'
           'flutter: ${versions.flutterVersion}\n'
           'usesFlutter: $usesFlutter\n'
-          'started: ${new DateTime.now().toUtc().toIso8601String()}\n\n');
+          'started: ${DateTime.now().toUtc().toIso8601String()}\n\n');
 
       final status = await scoreCardBackend.getPackageStatus(
           job.packageName, job.packageVersion);
@@ -191,7 +191,7 @@ class DartdocJobProcessor extends JobProcessor {
       }
 
       if (hasContent) {
-        await new DartdocCustomizer(
+        await DartdocCustomizer(
                 job.packageName, job.packageVersion, job.isLatestStable)
             .customizeDir(outputDir);
         logFileOutput.write('Content customization completed.\n\n');
@@ -251,7 +251,7 @@ class DartdocJobProcessor extends JobProcessor {
             : SuggestionLevel.hint;
         final undocumented = coverage.total - coverage.documented;
         healthSuggestions.add(
-          new Suggestion(
+          Suggestion(
               SuggestionCode.dartdocCoverage,
               level,
               'Document public APIs.',
@@ -277,7 +277,7 @@ class DartdocJobProcessor extends JobProcessor {
     await scoreCardBackend.updateReport(
         job.packageName,
         job.packageVersion,
-        new DartdocReport(
+        DartdocReport(
           reportStatus: reportStatus,
           coverage: coverage.percent,
           coverageScore: coverage.score,
@@ -363,15 +363,12 @@ class DartdocJobProcessor extends JobProcessor {
         workingDirectory: _pkgPubDartdocDir,
         timeout: _packageTimeout,
       );
-      final hasIndexHtml =
-          await new File(p.join(outputDir, 'index.html')).exists();
-      final hasIndexJson =
-          await new File(p.join(outputDir, 'index.json')).exists();
-      return new DartdocResult(
-          pr, pr.exitCode == 15, hasIndexHtml, hasIndexJson);
+      final hasIndexHtml = await File(p.join(outputDir, 'index.html')).exists();
+      final hasIndexJson = await File(p.join(outputDir, 'index.json')).exists();
+      return DartdocResult(pr, pr.exitCode == 15, hasIndexHtml, hasIndexJson);
     }
 
-    final sw = new Stopwatch()..start();
+    final sw = Stopwatch()..start();
     DartdocResult r = await runDartdoc(true);
     sw.stop();
     _logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
@@ -400,9 +397,9 @@ class DartdocJobProcessor extends JobProcessor {
     int archiveSize;
     int totalSize;
     if (hasContent) {
-      final archiveFile = new File(p.join(outputDir, _archiveFilePath));
+      final archiveFile = File(p.join(outputDir, _archiveFilePath));
       archiveSize = await archiveFile.length();
-      totalSize = await new Directory(outputDir)
+      totalSize = await Directory(outputDir)
           .list(recursive: true)
           .where((fse) => fse is File)
           .cast<File>()
@@ -410,10 +407,10 @@ class DartdocJobProcessor extends JobProcessor {
           .fold(0, (a, b) => a + b);
       totalSize -= archiveSize;
     }
-    final now = new DateTime.now();
+    final now = DateTime.now();
     final isObsolete = job.isLatestStable == false &&
         job.packageVersionUpdated.difference(now).abs() > _twoYears;
-    final entry = new DartdocEntry(
+    final entry = DartdocEntry(
       uuid: _uuid.v4().toString(),
       packageName: job.packageName,
       packageVersion: job.packageVersion,
@@ -424,7 +421,7 @@ class DartdocJobProcessor extends JobProcessor {
       sdkVersion: versions.toolEnvSdkVersion,
       dartdocVersion: versions.dartdocVersion,
       flutterVersion: versions.flutterVersion,
-      timestamp: new DateTime.now().toUtc(),
+      timestamp: DateTime.now().toUtc(),
       depsResolved: depsResolved,
       hasContent: hasContent,
       archiveSize: archiveSize,
@@ -432,14 +429,13 @@ class DartdocJobProcessor extends JobProcessor {
     );
 
     // write entry into local file
-    await new File(p.join(outputDir, statusFilePath))
-        .writeAsBytes(entry.asBytes());
+    await File(p.join(outputDir, statusFilePath)).writeAsBytes(entry.asBytes());
 
     return entry;
   }
 
   Future _writeLog(String outputDir, StringBuffer buffer) async {
-    await new File(p.join(outputDir, _buildLogFilePath))
+    await File(p.join(outputDir, _buildLogFilePath))
         .writeAsString(buffer.toString());
   }
 
@@ -451,7 +447,7 @@ class DartdocJobProcessor extends JobProcessor {
   Future _tar(String tmpDir, String tarDir, String outputDir,
       StringBuffer logFileOutput) async {
     logFileOutput.write('Running tar:\n');
-    final File tmpTar = new File(p.join(tmpDir, _archiveFilePath));
+    final File tmpTar = File(p.join(tmpDir, _archiveFilePath));
     final pr = await runProc(
       'tar',
       ['-czf', tmpTar.path, '.'],
@@ -462,13 +458,13 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future<PubDartdocData> _loadPubDartdocData(String outputDir) async {
-    final file = new File(p.join(outputDir, _pubDataFileName));
+    final file = File(p.join(outputDir, _pubDataFileName));
     if (!file.existsSync()) {
       return null;
     }
     try {
       final content = await file.readAsString();
-      return new PubDartdocData.fromJson(
+      return PubDartdocData.fromJson(
           convert.json.decode(content) as Map<String, dynamic>);
     } catch (e, st) {
       _logger.warning('Unable to parse $_pubDataFileName.', e, st);

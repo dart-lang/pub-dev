@@ -43,14 +43,14 @@ Future main(List<String> arguments) async {
     } else if (command == 'remove') {
       final Bucket storageBucket = await getOrCreateBucket(
           storageService, activeConfiguration.dartdocStorageBucketName);
-      registerDartdocBackend(new DartdocBackend(dbService, storageBucket));
+      registerDartdocBackend(DartdocBackend(dbService, storageBucket));
       if (version == null) {
         await removePackage(package);
       } else {
         await removePackageVersion(package, version);
       }
     } else {
-      throw new Exception('unexpected command $command');
+      throw Exception('unexpected command $command');
     }
   });
 
@@ -62,7 +62,7 @@ Future listPackage(String packageName) async {
   final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
   final package = (await dbService.lookup([packageKey])).first as Package;
   if (package == null) {
-    throw new Exception('Package $packageName does not exist.');
+    throw Exception('Package $packageName does not exist.');
   }
 
   final versionsQuery =
@@ -110,7 +110,7 @@ Future removePackage(String packageName) async {
     deletes.addAll(versions.map((v) => v.key));
 
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
-    final storage = new TarballStorage(storageService, bucket, '');
+    final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await Future.wait(versionNames
         .map((version) => storage.remove(packageName, version.toString())));
@@ -156,7 +156,7 @@ Future removePackageVersion(String packageName, String version) async {
     final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await T.lookup([packageKey])).first as Package;
     if (package == null) {
-      throw new Exception('Package $packageName does not exist.');
+      throw Exception('Package $packageName does not exist.');
     }
 
     final versionsQuery = T.query<PackageVersion>(packageKey);
@@ -167,7 +167,7 @@ Future removePackageVersion(String packageName, String version) async {
     }
 
     if ('${package.latestSemanticVersion}' == version) {
-      throw new Exception('Cannot delete the latest version of $packageName.');
+      throw Exception('Cannot delete the latest version of $packageName.');
     }
 
     final deletes = [packageKey.append(PackageVersion, id: version)];
@@ -177,7 +177,7 @@ Future removePackageVersion(String packageName, String version) async {
     await T.commit();
 
     final bucket = storageService.bucket(activeConfiguration.packageBucketName);
-    final storage = new TarballStorage(storageService, bucket, '');
+    final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await storage.remove(packageName, version);
   });
