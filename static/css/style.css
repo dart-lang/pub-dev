@@ -6,11 +6,8 @@
   box-sizing: border-box;
 }
 
-html {
-  background-color: #fff;
-}
-
 body {
+  background-color: #fff;
   line-height: 1.6;
   margin: 0;
   padding: 0;
