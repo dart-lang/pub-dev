@@ -6,6 +6,10 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: #fff;
+}
+
 body {
   line-height: 1.6;
   margin: 0;
