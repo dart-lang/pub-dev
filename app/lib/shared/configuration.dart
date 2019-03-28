@@ -131,6 +131,13 @@ class Configuration {
       throw Exception('Unknown project id: ${env.gcloudProject}');
     }
   }
+
+  /// Whether the current project is the production one.
+  bool get isProdProjectId => projectId == 'dartlang-pub';
+
+  /// The PUB_HOSTED_URL to use in analyzer and dartdoc.
+  String get pubHostedUrl =>
+      isProdProjectId ? null : 'https://dartlang-pub-dev.appspot.com';
 }
 
 /// Configuration from the environment variables.
