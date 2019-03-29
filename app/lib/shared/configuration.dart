@@ -53,6 +53,9 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for datastore backup snapshots.
   final String backupSnapshotBucketName;
 
+  /// The PUB_HOSTED_URL to use in analyzer and dartdoc.
+  final String pubHostedUrl;
+
   /// The OAuth redirect endpoint to use.
   final String oauthRedirectUrl;
 
@@ -81,6 +84,7 @@ class Configuration {
         searchSnapshotBucketName: '$projectId--search-snapshot',
         backupSnapshotBucketName: '$projectId--backup-snapshots',
         searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+        pubHostedUrl: 'https://pub.dartlang.org',
         oauthRedirectUrl: 'https://pub.dartlang.org/oauth/callback',
         pubClientAudience: _pubClientAudience,
         pubSiteAudience:
@@ -99,6 +103,7 @@ class Configuration {
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      pubHostedUrl: 'https://dartlang-pub-dev.appspot.com',
       oauthRedirectUrl: 'https://dartlang-pub-dev.appspot.com/oauth/callback',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
@@ -115,6 +120,7 @@ class Configuration {
     @required this.searchSnapshotBucketName,
     @required this.backupSnapshotBucketName,
     @required this.searchServicePrefix,
+    @required this.pubHostedUrl,
     @required this.oauthRedirectUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
@@ -131,13 +137,6 @@ class Configuration {
       throw Exception('Unknown project id: ${env.gcloudProject}');
     }
   }
-
-  /// Whether the current project is the production one.
-  bool get isProdProjectId => projectId == 'dartlang-pub';
-
-  /// The PUB_HOSTED_URL to use in analyzer and dartdoc.
-  String get pubHostedUrl =>
-      isProdProjectId ? null : 'https://dartlang-pub-dev.appspot.com';
 }
 
 /// Configuration from the environment variables.
