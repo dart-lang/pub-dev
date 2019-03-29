@@ -22,7 +22,10 @@ final _problems = <String>[];
 final _userToOauth = <String, String>{};
 final _oauthToUser = <String, String>{};
 final _invalidUsers = Set<String>();
+final _packages = <String>{};
+final _packagesWithVersion = <String>{};
 int _packageChecked = 0;
+int _versionChecked = 0;
 
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
@@ -91,14 +94,28 @@ Future main(List<String> args) async {
     print('Reading Package entries...');
     final pool = Pool(concurrency);
     final futures = <Future>[];
-
     await for (Package p in dbService.query<Package>().run()) {
       final f = pool.withResource(() => _checkPackage(p));
       futures.add(f);
     }
-
     await Future.wait(futures);
     await pool.close();
+
+    print('Reading PackageVersion entries...');
+    await for (PackageVersion pv in dbService.query<PackageVersion>().run()) {
+      _checkPackageVersion(pv);
+    }
+
+    _packages
+        .where((package) => !_packagesWithVersion.contains(package))
+        .forEach((package) {
+      _problems.add('Package ($package) has no version.');
+    });
+    _packagesWithVersion
+        .where((package) => !_packages.contains(package))
+        .forEach((package) {
+      _problems.add('Package ($package) is missing.');
+    });
   });
 
   print('\nProblems detected: ${_problems.length}\n');
@@ -111,6 +128,7 @@ Future main(List<String> args) async {
 }
 
 Future _checkPackage(Package p) async {
+  _packages.add(p.name);
   if (p.uploaders == null || p.uploaders.isEmpty) {
     _problems.add('Package(${p.name}) has no uploaders.');
   }
@@ -188,5 +206,18 @@ Future _checkPackage(Package p) async {
   _packageChecked++;
   if (_packageChecked % 200 == 0) {
     print('  .. $_packageChecked done (${p.name})');
+  }
+}
+
+void _checkPackageVersion(PackageVersion pv) {
+  _packagesWithVersion.add(pv.package);
+
+  if (pv.uploader == null) {
+    _problems.add('PackageVersion(${pv.qualifiedVersionKey}) has no uploader.');
+  }
+
+  _versionChecked++;
+  if (_versionChecked % 5000 == 0) {
+    print('  .. $_versionChecked done (${pv.qualifiedVersionKey})');
   }
 }
