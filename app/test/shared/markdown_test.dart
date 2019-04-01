@@ -136,6 +136,13 @@ void main() {
     });
   });
 
+  group('Unsafe markdown', () {
+    test('javascript link', () {
+      expect(markdownToHtml('[a](javascript:alert("x"))', null),
+          '<p><a>a</a></p>\n');
+    });
+  });
+
   group('Bad markdown', () {
     test('bad link', () {
       expect(markdownToHtml('[a][b]', 'http://www.example.com/'),
