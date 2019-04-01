@@ -1,3 +1,6 @@
 travis:
   services:
     - redis-server
+
+merge_stages:
+- smoke_test
