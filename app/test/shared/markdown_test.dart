@@ -143,6 +143,20 @@ void main() {
     });
   });
 
+  group('non-whitelisted inline HTML', () {
+    test('<a>', () {
+      expect(markdownToHtml('a <a href="x">x</a>', null),
+          '<p>a &lt;a href="x">x&lt;/a></p>\n');
+    });
+  });
+
+  group('whitelisted inline HTML', () {
+    test('<br/>', () {
+      expect(markdownToHtml('a <br>b', null), '<p>a <br />\nb</p>\n');
+      expect(markdownToHtml('a <br  />b', null), '<p>a <br />\nb</p>\n');
+    });
+  });
+
   group('GitHub rewrites', () {
     test('absolute url: http://[..]/blob/master/[path].gif', () {
       expect(
