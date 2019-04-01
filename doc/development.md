@@ -18,6 +18,8 @@ To use `mono_repo`, first activate it:
 pub global activate mono_repo
 ````
 
+> Note: Run `pub global list` to make sure the version is at least `2.0.0`.
+
 `mono_repo` has two kinds of configuration files:
 - `mono_repo.yaml` (in the root directory)
 - `mono_pkg.yaml` (in each package directory)
@@ -25,14 +27,14 @@ pub global activate mono_repo
 ### Update/upgrade dependencies
 
 ````bash
-pub global run mono_repo --recursive pub get
+pub global run mono_repo pub get
 ````
 
 ### Creating a new package (or vendoring existing packages)
 
 1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
 
-2. Run `pub global run mono_repo travis --recursive` from the root.
+2. Run `pub global run mono_repo travis` from the root.
 
 3. Revert change in `tool/travis.sh`: always use `pub get` instead of `pub upgrade`.
 
