@@ -8,15 +8,21 @@ import 'package:pana/pana.dart' show getRepositoryUrl;
 
 final Logger _logger = Logger('pub.markdown');
 
-final List<m.InlineSyntax> _inlineSyntaxes = m
-    .ExtensionSet.gitHubWeb.inlineSyntaxes
-    .where((s) => s is! m.InlineHtmlSyntax)
-    .toList();
+List<m.InlineSyntax> _inlineSyntaxes;
+
+void _initInlineSyntaxes() {
+  if (_inlineSyntaxes != null) return;
+  _inlineSyntaxes = m.ExtensionSet.gitHubWeb.inlineSyntaxes
+      .where((s) => s is! m.InlineHtmlSyntax)
+      .toList();
+  _inlineSyntaxes.add(_InlineBrHtmlSyntax());
+}
 
 String markdownToHtml(String text, String baseUrl) {
   if (text == null) return null;
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
 
+  _initInlineSyntaxes();
   final document = m.Document(
       extensionSet: m.ExtensionSet.none,
       blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes,
@@ -60,6 +66,17 @@ class _HashLink implements m.NodeVisitor {
           ..attributes['class'] = 'hash-link',
       ]);
     }
+  }
+}
+
+/// Enables inline <br> to be emitted as <br/> HTML element.
+class _InlineBrHtmlSyntax extends m.TextSyntax {
+  _InlineBrHtmlSyntax() : super(r'(<br>)|(<br\s*/>)|(<BR>)|(<BR\s*/>)');
+
+  @override
+  bool onMatch(m.InlineParser parser, Match match) {
+    parser.addNode(m.Element('br', null));
+    return true;
   }
 }
 
