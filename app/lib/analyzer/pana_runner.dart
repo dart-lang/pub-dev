@@ -11,6 +11,7 @@ import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/analyzer_client.dart' show createPanaSummaryForLegacy;
+import '../shared/configuration.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/tool_env.dart';
@@ -72,7 +73,10 @@ class AnalyzerJobProcessor extends JobProcessor {
         return await analyzer.inspectPackage(
           job.packageName,
           version: job.packageVersion,
-          options: InspectOptions(isInternal: isInternal),
+          options: InspectOptions(
+            isInternal: isInternal,
+            pubHostedUrl: activeConfiguration.pubHostedUrl,
+          ),
           logger:
               Logger.detached('pana/${job.packageName}/${job.packageVersion}'),
         );

@@ -17,7 +17,7 @@ import '../job/backend.dart';
 import '../job/job.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
-import '../shared/configuration.dart' show envConfig;
+import '../shared/configuration.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
@@ -357,9 +357,14 @@ class DartdocJobProcessor extends JobProcessor {
       if (envConfig.toolEnvDartSdkDir != null) {
         args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
       }
+      final environment = <String, String>{
+        'PUB_HOSTED_URL': activeConfiguration.pubHostedUrl,
+      };
+      environment.removeWhere((k, v) => v == null);
       final pr = await runProc(
         'dart',
         ['bin/pub_dartdoc.dart']..addAll(args),
+        environment: environment,
         workingDirectory: _pkgPubDartdocDir,
         timeout: _packageTimeout,
       );
