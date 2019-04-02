@@ -31,11 +31,13 @@ String markdownToHtml(String text, String baseUrl) {
   final lines = text.replaceAll('\r\n', '\n').split('\n');
   final nodes = document.parseLines(lines);
 
-  final urlRewriter = _UrlRewriter(sanitizedBaseUrl);
+  final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl);
   final hashLink = _HashLink();
+  final unsafeUrlFilter = _UnsafeUrlFilter();
   for (final node in nodes) {
     node.accept(urlRewriter);
     node.accept(hashLink);
+    node.accept(unsafeUrlFilter);
   }
 
   return m.renderToHtml(nodes) + '\n';
@@ -80,9 +82,50 @@ class _InlineBrHtmlSyntax extends m.TextSyntax {
   }
 }
 
-class _UrlRewriter implements m.NodeVisitor {
+/// Filters unsafe URLs from the generated HTML.
+class _UnsafeUrlFilter implements m.NodeVisitor {
+  static const _trustedSchemes = <String>['http', 'https', 'mailto'];
+
+  @override
+  void visitText(m.Text text) {}
+
+  @override
+  bool visitElementBefore(m.Element element) {
+    final isUnsafe =
+        _isUnsafe(element, 'a', 'href') || _isUnsafe(element, 'img', 'src');
+    return !isUnsafe;
+  }
+
+  @override
+  void visitElementAfter(m.Element element) {
+    // no-op
+  }
+
+  bool _isUnsafe(m.Element element, String tag, String attr) {
+    if (element.tag != tag) {
+      return false;
+    }
+    final url = element.attributes[attr];
+    if (url == null || url.isEmpty) {
+      return false;
+    }
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      element.attributes.remove(attr);
+      return true;
+    }
+    if (uri.hasScheme && !_trustedSchemes.contains(uri.scheme)) {
+      element.attributes.remove(attr);
+      return true;
+    }
+    return false;
+  }
+}
+
+/// Rewrites relative URLs with the provided [baseUrl]
+class _RelativeUrlRewriter implements m.NodeVisitor {
   final String baseUrl;
-  _UrlRewriter(this.baseUrl);
+  _RelativeUrlRewriter(this.baseUrl);
 
   @override
   void visitText(m.Text text) {}
