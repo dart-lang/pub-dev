@@ -5,7 +5,10 @@
 import 'dart:io';
 
 import 'package:googleapis_auth/auth.dart' as auth;
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+
+final _logger = Logger('configuration');
 
 Configuration _configuration;
 
@@ -185,8 +188,14 @@ class EnvConfig {
 /// Configuration from the environment variables.
 final EnvConfig envConfig = EnvConfig._detect();
 
-auth.ServiceAccountCredentials _loadCredentials([String path]) {
-  path ??= envConfig.gcloudKey;
-  final content = File(path).readAsStringSync();
-  return auth.ServiceAccountCredentials.fromJson(content);
+auth.ServiceAccountCredentials _loadCredentials() {
+  if (envConfig.hasCredentials) {
+    final path = envConfig.gcloudKey;
+    final content = File(path).readAsStringSync();
+    return auth.ServiceAccountCredentials.fromJson(content);
+  } else {
+    _logger.info(
+        'Missing GCLOUD_PROJECT and/or GCLOUD_KEY, service account credentials are not loaded.');
+    return null;
+  }
 }
