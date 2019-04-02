@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
  * `Package.uploaderEmails` and `PackageVersion.uploaderEmail` is no longer used/updated.
  * Removed `namespace` and `qualifiedPackage` fields from `PackageVersionPubspec` and `PackageVersionInfo`.
+ * Upgrade Flutter SDK to 1.4.7, bumped runtimeVersion to `2019.04.02`.
 
 ## `20190325t131912-all`
 
