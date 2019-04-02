@@ -37,7 +37,6 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/cronjobs.dart' show CronJobs;
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
-import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
@@ -121,6 +120,13 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   initSearchService();
 
+  // Updates job entries for analyzer and dartdoc.
+  Future triggerDependentAnalysis(
+      String package, String version, Set<String> affected) async {
+    await analyzerClient.triggerAnalysis(package, version, affected);
+    await dartdocClient.triggerDartdoc(package, version, affected);
+  }
+
   // The future will complete once the initial database has been scanned and a
   // graph has been built.  It will nonetheless continue to monitor the database
   // in the background and maintains a global set of package dependencies.
@@ -128,38 +134,11 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   // It can take up to 1 minute until this future completes.  Though normally we
   // don't have a new package upload within the first minute of deployment, so
   // for all practical purposes this future will be ready.
-  final Future<PackageDependencyBuilder> depsGraphBuilderFuture =
-      PackageDependencyBuilder.loadInitialGraphFromDb(db.dbService);
-
-  Future uploadFinished(PackageVersion pv) async {
-    // Future is not awaited: upload should not be blocked on the package graph initialization.
-    depsGraphBuilderFuture.then((depsGraphBuilder) async {
-      // Even though the deps graph builder would pick up the new [pv] eventually,
-      // we'll add it explicitly here right after the upload to ensure the graph
-      // is up-to-date.
-      depsGraphBuilder.addPackageVersion(pv);
-
-      // Notify analyzer services about a new version, and *DO NOT* do the
-      // same with search service.  The later will get notified after analyzer
-      // ran the first analysis on the new version.
-      //
-      // Note: We provide the analyzer service with a list of packages which need
-      // re-analysis.
-      final Set<String> dependentPackages =
-          depsGraphBuilder.affectedPackages(pv.package);
-
-      _logger.info(
-          'Found ${dependentPackages.length} dependent packages for ${pv.package}.');
-
-      await analyzerClient.triggerAnalysis(
-          pv.package, pv.version, dependentPackages);
-      await dartdocClient.triggerDartdoc(
-          pv.package, pv.version, dependentPackages);
-    });
-  }
+  PackageDependencyBuilder.loadInitialGraphFromDb(
+      db.dbService, triggerDependentAnalysis);
 
   final cache = AppEnginePackageMemcache();
-  initBackend(cache: cache, finishCallback: uploadFinished);
+  initBackend(cache: cache);
   registerSearchMemcache(SearchMemcache());
 
   UploadSignerService uploadSigner;
