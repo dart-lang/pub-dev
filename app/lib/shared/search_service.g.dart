@@ -26,8 +26,9 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
       health: (json['health'] as num)?.toDouble(),
       popularity: (json['popularity'] as num)?.toDouble(),
       maintenance: (json['maintenance'] as num)?.toDouble(),
-      dependencies: (json['dependencies'] as Map<String, dynamic>)
-          ?.map((k, e) => MapEntry(k, e as String)),
+      dependencies: (json['dependencies'] as Map<String, dynamic>)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
       emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
       apiDocPages: (json['apiDocPages'] as List)
           ?.map((e) =>
