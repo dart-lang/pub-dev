@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show DetailedApiRequestError;
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
@@ -130,6 +132,12 @@ Future _updateDartSdkIndex() async {
         await dartSdkIndex.merge();
         _logger.info('Dart SDK index loaded successfully.');
         return;
+      }
+    } on DetailedApiRequestError catch (e, st) {
+      if (e.status == 404) {
+        _logger.info('Error loading Dart SDK index.', e, st);
+      } else {
+        _logger.warning('Error loading Dart SDK index.', e, st);
       }
     } catch (e, st) {
       _logger.warning('Error loading Dart SDK index.', e, st);
