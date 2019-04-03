@@ -59,11 +59,17 @@ class TransitiveDependencyGraph {
   static Set<String> _newSet() => Set<String>();
 }
 
+/// Callback function to be called when a new [PackageVersion] should trigger the
+/// re-analysis of a package that depends on it.
+typedef OnAffected = Future Function(
+    String package, String version, Set<String> affected);
+
 class PackageDependencyBuilder {
   static const Duration pollingInterval = Duration(minutes: 1);
   static const String devPrefix = 'dev/';
 
   final DatastoreDB db;
+  final OnAffected _onAffected;
 
   final TransitiveDependencyGraph reverseDeps = TransitiveDependencyGraph();
   final String Function(String) _intern = StringInternPool().intern;
@@ -71,16 +77,16 @@ class PackageDependencyBuilder {
   DateTime _lastTs;
 
   static Future<PackageDependencyBuilder> loadInitialGraphFromDb(
-      DatastoreDB db) async {
+      DatastoreDB db, OnAffected onAffected) async {
     final sw = Stopwatch()..start();
-    final builder = PackageDependencyBuilder._(db);
+    final builder = PackageDependencyBuilder._(db, onAffected);
     await builder.scanExistingPackageGraph();
     _logger.info('Scanned initial dependency graph in ${sw.elapsed}.');
     builder.monitorInBackground();
     return builder;
   }
 
-  PackageDependencyBuilder._(this.db);
+  PackageDependencyBuilder._(this.db, this._onAffected);
 
   Future scanExistingPackageGraph() async {
     final sw = Stopwatch()..start();
@@ -89,10 +95,11 @@ class PackageDependencyBuilder {
       try {
         // We scan from oldest to newest and therefore keep [_lastTs] always
         // increasing.
-        final query = dbService.query<PackageVersion>()..order('created');
-        await for (PackageVersion pv in query.run()) {
+        final query = dbService.query<PackageVersionPubspec>()
+          ..order('updated');
+        await for (PackageVersionPubspec pv in query.run()) {
           addPackageVersion(pv);
-          _lastTs = pv.created;
+          _lastTs = pv.updated;
         }
       } catch (e, s) {
         _logger.severe(e, s);
@@ -108,12 +115,28 @@ class PackageDependencyBuilder {
     _logger.info('Monitoring new package uploads.');
     for (;;) {
       try {
-        final query = dbService.query<PackageVersion>()
-          ..filter('created >', _lastTs)
-          ..order('created');
-        await for (PackageVersion pv in query.run()) {
+        final query = dbService.query<PackageVersionPubspec>()
+          ..filter('updated >', _lastTs)
+          ..order('updated');
+        await for (PackageVersionPubspec pv in query.run()) {
           addPackageVersion(pv);
-          _lastTs = pv.created;
+
+          final affected = affectedPackages(pv.package);
+          _logger.info(
+              'Found ${affected.length} dependent packages for ${pv.package}.');
+
+          if (affected != null && affected.isNotEmpty) {
+            try {
+              await _onAffected(pv.package, pv.version, affected);
+            } catch (e, st) {
+              _logger.warning(
+                  'Error triggering action for ${pv.qualifiedVersionKey}',
+                  e,
+                  st);
+            }
+          }
+
+          _lastTs = pv.updated;
         }
       } catch (e, s) {
         _logger.severe(e, s);
@@ -122,7 +145,7 @@ class PackageDependencyBuilder {
     }
   }
 
-  void addPackageVersion(PackageVersion pv) {
+  void addPackageVersion(PackageVersionPubspec pv) {
     final Set<String> depsSet = Set<String>.from(pv.pubspec.dependencies);
     final Set<String> devDepsSet = Set<String>.from(pv.pubspec.devDependencies);
 
