@@ -15,16 +15,16 @@ void main() {
   test('write and read content', () async {
     final storage = MemStorage(buckets: ['test']);
     final bucket = storage.bucket('test');
-    expect(() => bucket.info('file.txt'), throwsA(anything));
     expect(() => bucket.info('/file.txt'), throwsA(anything));
-    final info = await bucket.writeBytes('/file.txt', [1, 2]);
+    expect(() => bucket.info('file.txt'), throwsA(anything));
+    final info = await bucket.writeBytes('file.txt', [1, 2]);
     expect(info.length, 2);
     final data = await bucket
-        .read('/file.txt')
+        .read('file.txt')
         .fold<List<int>>(<int>[], (buffer, data) => buffer..addAll(data));
     expect(data, [1, 2]);
-    await bucket.delete('/file.txt');
-    expect(() => bucket.info('file.txt'), throwsA(anything));
+    await bucket.delete('file.txt');
     expect(() => bucket.info('/file.txt'), throwsA(anything));
+    expect(() => bucket.info('file.txt'), throwsA(anything));
   });
 }

@@ -1,0 +1,17 @@
+name: fake_pub_server
+publish_to: none  # don't publish yet
+description: Fake pub server for integration tests.
+
+environment:
+  sdk: '>=2.2.0 <3.0.0'
+
+dependencies:
+  buffer: ^1.0.0
+  logging: ^0.11.3
+  fake_gcloud:
+    path: ../fake_gcloud
+  pub_dartlang_org:
+    path: ../../app
+
+dev_dependencies:
+  test: ^1.5.1

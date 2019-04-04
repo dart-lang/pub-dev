@@ -25,6 +25,7 @@ Future<void> runHandler(
   shelf.Handler handler, {
   bool sanitize = false,
   shelf.Handler cronHandler,
+  int port = 8080,
 }) async {
   handler = _uriValidationRequestWrapper(handler);
   handler = _userAuthWrapper(handler);
@@ -46,7 +47,7 @@ Future<void> runHandler(
       return;
     }
     shelf_io.handleRequest(request, handler);
-  }, shared: true);
+  }, shared: true, port: port);
 }
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {

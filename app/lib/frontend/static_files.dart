@@ -32,6 +32,9 @@ String resolveAppDir() {
   if (Platform.script.path.contains('bin/server.dart')) {
     return Platform.script.resolve('../').toFilePath();
   }
+  if (Platform.script.path.contains('bin/fake_pub_server.dart')) {
+    return Platform.script.resolve('../../../app').toFilePath();
+  }
   if (Platform.script.path.contains('app/test')) {
     return Directory.current.path;
   }

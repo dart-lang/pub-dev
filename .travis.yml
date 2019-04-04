@@ -8,9 +8,9 @@ services:
 jobs:
   include:
     - stage: smoke_test
-      name: "SDK: 2.2.0; PKGS: app, pkg/_popularity, pkg/fake_gcloud, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/retry, pkg/simple_cache, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      name: "SDK: 2.2.0; PKGS: app, pkg/_popularity, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/retry, pkg/simple_cache, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: "2.2.0"
-      env: PKGS="app pkg/_popularity pkg/fake_gcloud pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/retry pkg/simple_cache pkg/web_app"
+      env: PKGS="app pkg/_popularity pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/retry pkg/simple_cache pkg/web_app"
       script: ./tool/travis.sh dartfmt dartanalyzer
     - stage: unit_test
       name: "SDK: 2.2.0; PKG: app; TASKS: `pub run test --run-skipped`"
