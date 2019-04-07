@@ -282,7 +282,6 @@ class DartdocBackend {
     if (completedList.isNotEmpty) {
       final versions = completedList
           .map((entry) => entry.runtimeVersion)
-          .where((s) => s != null) // protect against old entries without it
           .toSet()
           .map((String version) => Version.parse(version))
           .toList();
@@ -296,9 +295,7 @@ class DartdocBackend {
         if (index >= 0) {
           final entry = completedList[index];
           completedList.removeAt(index);
-          if (entry.runtimeVersion != null) {
-            versions.remove(Version.parse(entry.runtimeVersion));
-          }
+          versions.remove(Version.parse(entry.runtimeVersion));
         }
       }
 
