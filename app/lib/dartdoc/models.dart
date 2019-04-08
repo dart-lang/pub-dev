@@ -66,7 +66,7 @@ class DartdocEntry {
     @required this.isLatest,
     @required this.isObsolete,
     @required this.usesFlutter,
-    @required this.runtimeVersion,
+    @required String runtimeVersion,
     @required this.sdkVersion,
     @required this.dartdocVersion,
     @required this.flutterVersion,
@@ -75,7 +75,9 @@ class DartdocEntry {
     @required this.hasContent,
     @required this.archiveSize,
     @required this.totalSize,
-  });
+  }) :
+        // Some old entries do not have runtimeVersion filled, using the epoch.
+        runtimeVersion = runtimeVersion ?? versions.dartdocRuntimeEpoch;
 
   factory DartdocEntry.fromJson(Map<String, dynamic> json) =>
       _$DartdocEntryFromJson(json);
