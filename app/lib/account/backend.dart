@@ -121,7 +121,8 @@ class AccountBackend {
   /// not exists.
   ///
   /// Throws Exception if more then one `User` entry exists.
-  Future<User> lookupOrCreateUserByEmail(String email) async {
+  Future<User> lookupOrCreateUserByEmail(String email,
+      {bool create = true}) async {
     email = email.toLowerCase();
     final query = _db.query<User>()..filter('email =', email);
     final list = await query.run().toList();
@@ -130,6 +131,9 @@ class AccountBackend {
     }
     if (list.length == 1) {
       return list.single;
+    }
+    if (!create) {
+      return null;
     }
     final id = _uuid.v4().toString();
     final user = User()
