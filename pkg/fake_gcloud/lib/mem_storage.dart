@@ -84,7 +84,8 @@ class _File implements ObjectInfo {
     @required this.bucketName,
     @required this.name,
     @required this.content,
-  })  : crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
+  })  : // TODO: use a real CRC32 check
+        crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
         updated = DateTime.now().toUtc(),
         metadata = ObjectMetadata(acl: Acl([]));
 
