@@ -34,6 +34,7 @@ Future<void> runHandler(
   }
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
+  handler = _cspHeaderWrapper(handler);
   await runAppEngine((HttpRequest request) {
     // If request origins from the appengine cron scheduler, and we have a
     // cron handler we call that.
@@ -48,6 +49,25 @@ Future<void> runHandler(
     }
     shelf_io.handleRequest(request, handler);
   }, shared: true, port: port);
+}
+
+// Extends response with content security policy headers when the response's
+// content type is HTML.
+shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
+    final rs = await handler(request);
+    final contentType = rs.headers['content-type'];
+    final isHtml = contentType != null && contentType.startsWith('text/html');
+    if (isHtml) {
+      return rs.change(headers: {
+        'x-content-type-options': 'nosniff',
+        'x-frame-options': 'deny',
+        'content-security-policy': contentSecurityPolicy,
+      });
+    } else {
+      return rs;
+    }
+  };
 }
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {

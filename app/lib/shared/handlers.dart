@@ -86,13 +86,15 @@ final _contentSecurityPolicyMap = <String, List<String>>{
   ],
   'style-src': <String>[
     "'self'",
+    'https://pub.dartlang.org/static/', // older dartdoc content requires it
     "'unsafe-inline'", // package page (esp. analysis tab) required is
     'https://fonts.googleapis.com/',
   ],
   'worker-src': _none,
 };
-final _contentSecurityPolicy =
-    _contentSecurityPolicyMap.keys.map<String>((key) {
+
+/// The serialized string of the CSP header.
+final contentSecurityPolicy = _contentSecurityPolicyMap.keys.map<String>((key) {
   final list = _contentSecurityPolicyMap[key];
   return '$key ${list.join(' ')}';
 }).join(';');
@@ -101,8 +103,6 @@ shelf.Response htmlResponse(String content,
     {int status = 200, Map<String, String> headers}) {
   headers ??= <String, String>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
-  headers['x-content-type-options'] = 'nosniff';
-  headers['content-security-policy'] = _contentSecurityPolicy;
   return shelf.Response(status, body: content, headers: headers);
 }
 
