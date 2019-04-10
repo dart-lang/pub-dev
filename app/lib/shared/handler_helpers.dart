@@ -60,6 +60,7 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
     if (isHtml) {
       return rs.change(headers: {
         'x-content-type-options': 'nosniff',
+        'x-frame-options': 'deny',
         'content-security-policy': contentSecurityPolicy,
       });
     } else {
