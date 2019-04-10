@@ -119,7 +119,7 @@ class DartdocCustomizer {
       final linkElement = Element.tag('link')
         ..attributes['rel'] = 'stylesheet'
         ..attributes['type'] = 'text/css'
-        ..attributes['href'] = '$siteRoot/static/css/github-markdown.css';
+        ..attributes['href'] = '/static/css/github-markdown.css';
       head.insertBefore(linkElement, firstLink);
     }
   }
@@ -141,9 +141,9 @@ class DartdocCustomizer {
     final parent = breadcrumbs.parent;
     final logoLink = Element.tag('a')
       ..className = 'hidden-xs'
-      ..attributes['href'] = '$siteRoot/';
+      ..attributes['href'] = '/';
     final imgRef = Element.tag('img')
-      ..attributes['src'] = '$siteRoot/static/img/dart-logo.svg'
+      ..attributes['src'] = '/static/img/dart-logo.svg'
       ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);
@@ -151,7 +151,7 @@ class DartdocCustomizer {
 
   void _addPubPackageLink(Element breadcrumbs, {int level = 1}) {
     final pubPackageLink = pkgPageUrl(packageName,
-        version: isLatestStable ? null : packageVersion, includeHost: true);
+        version: isLatestStable ? null : packageVersion);
     final pubPackageText = '$packageName package';
     if (breadcrumbs.children.length == 1) {
       // we are on the index page
