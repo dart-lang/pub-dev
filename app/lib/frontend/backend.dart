@@ -19,6 +19,8 @@ import 'package:uuid/uuid.dart';
 import '../account/backend.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
+import '../shared/analyzer_client.dart';
+import '../shared/dartdoc_client.dart';
 import '../shared/email.dart';
 import '../shared/package_memcache.dart';
 import '../shared/urls.dart' as urls;
@@ -533,6 +535,12 @@ class GCloudPackageRepository extends PackageRepository {
             uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
       ),
     );
+
+    // Trigger analysis and dartdoc generation
+    await analyzerClient.triggerAnalysis(
+        newVersion.package, newVersion.version, <String>{});
+    await dartdocClient.triggerDartdoc(
+        newVersion.package, newVersion.version, <String>{});
 
     if (finishCallback != null) {
       await finishCallback(newVersion);
