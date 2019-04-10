@@ -14,7 +14,6 @@ import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
-export 'analyzer_service.dart' hide AnalysisData;
 
 /// Sets the analyzer client.
 void registerAnalyzerClient(AnalyzerClient client) =>
