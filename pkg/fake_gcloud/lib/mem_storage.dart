@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 import 'package:gcloud/storage.dart';
 import 'package:meta/meta.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('mem_storage');
 
 class MemStorage implements Storage {
   final _buckets = <String, _Bucket>{};
@@ -56,9 +59,12 @@ class MemStorage implements Storage {
 
   @override
   Future copyObject(String src, String dest) async {
+    _logger.info('Copy object from $src to $dest');
     final srcUri = Uri.parse(src);
     final destUri = Uri.parse(dest);
-    await bucket(src).read(srcUri.path).pipe(bucket(dest).write(destUri.path));
+    await bucket(srcUri.host)
+        .read(srcUri.path.substring(1))
+        .pipe(bucket(destUri.host).write(destUri.path.substring(1)));
   }
 }
 
@@ -71,13 +77,17 @@ class _File implements ObjectInfo {
   final int crc32CChecksum;
   @override
   final DateTime updated;
+  @override
+  final ObjectMetadata metadata;
 
   _File({
     @required this.bucketName,
     @required this.name,
     @required this.content,
-  })  : crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
-        updated = DateTime.now().toUtc();
+  })  : // TODO: use a real CRC32 check
+        crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
+        updated = DateTime.now().toUtc(),
+        metadata = ObjectMetadata(acl: Acl([]));
 
   @override
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
@@ -96,12 +106,6 @@ class _File implements ObjectInfo {
 
   @override
   List<int> get md5Hash => etag.codeUnits;
-
-  @override
-  ObjectMetadata get metadata {
-    throw UnimplementedError(
-        'fake_gcloud.ObjectInfo.metadata is not implemented.');
-  }
 }
 
 class _Bucket implements Bucket {
@@ -126,6 +130,7 @@ class _Bucket implements Bucket {
       PredefinedAcl predefinedAcl,
       String contentType}) {
     _validateObjectName(objectName);
+    _logger.info('Writing stream to: $objectName');
     // ignore: close_sinks
     final controller = StreamController<List<int>>();
     controller.stream.fold<List<int>>(<int>[], (buffer, data) {
@@ -137,6 +142,7 @@ class _Bucket implements Bucket {
         name: objectName,
         content: content,
       );
+      _logger.info('Completed ${content.length} bytes: $objectName');
     });
     return controller.sink;
   }
@@ -169,6 +175,7 @@ class _Bucket implements Bucket {
   @override
   Future<ObjectInfo> info(String name) async {
     _validateObjectName(name);
+    _logger.info('info request for $name');
     final info = _files[name];
     if (info == null) {
       throw DetailedApiRequestError(404, '$name does not exists');
@@ -179,6 +186,7 @@ class _Bucket implements Bucket {
   @override
   Stream<List<int>> read(String objectName, {int offset, int length}) async* {
     _validateObjectName(objectName);
+    _logger.info('read request for $objectName');
     final file = _files[objectName];
     yield file.content;
   }
@@ -200,8 +208,8 @@ class _Bucket implements Bucket {
 
   @override
   Future updateMetadata(String objectName, ObjectMetadata metadata) async {
-    throw UnimplementedError(
-        'fake_gcloud.Bucket.updateMetadata is not implemented.');
+    _logger.severe(
+        'UpdateMeadata: $objectName not yet implemented, call ignored.');
   }
 }
 
@@ -222,7 +230,7 @@ void _validateObjectName(String objectName, {bool allowNull = false}) {
   if (allowNull && objectName == null) {
     return;
   }
-  if (!objectName.startsWith('/')) {
-    throw Exception('ObjectName must start with / ($objectName)');
+  if (objectName.startsWith('/')) {
+    throw Exception('ObjectName must not start with / ($objectName)');
   }
 }
