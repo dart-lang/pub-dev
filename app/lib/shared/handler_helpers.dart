@@ -36,7 +36,7 @@ Future<void> runHandler(
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   handler = _cspHeaderWrapper(handler);
-  handler = _clientContextWrapper(handler);
+  handler = _requestContextWrapper(handler);
   await runAppEngine((HttpRequest request) {
     // If request origins from the appengine cron scheduler, and we have a
     // cron handler we call that.
@@ -53,8 +53,8 @@ Future<void> runHandler(
   }, shared: true, port: port);
 }
 
-/// Populates [clientContext] with the extracted request attributes.
-shelf.Handler _clientContextWrapper(shelf.Handler handler) {
+/// Populates [requestContext] with the extracted request attributes.
+shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final isPubDev = request.requestedUri.host == 'pub.dev';
     final cookies =
