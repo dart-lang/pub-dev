@@ -13,12 +13,13 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../frontend/request_context.dart';
 import '../frontend/service_utils.dart';
 import '../frontend/templates/layout.dart';
 
 import 'handlers.dart';
 import 'markdown.dart';
-import 'utils.dart' show fileAnIssueContent;
+import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 
 Future<void> runHandler(
   Logger logger,
@@ -35,6 +36,7 @@ Future<void> runHandler(
   handler = _redirectToHttpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   handler = _cspHeaderWrapper(handler);
+  handler = _clientContextWrapper(handler);
   await runAppEngine((HttpRequest request) {
     // If request origins from the appengine cron scheduler, and we have a
     // cron handler we call that.
@@ -49,6 +51,19 @@ Future<void> runHandler(
     }
     shelf_io.handleRequest(request, handler);
   }, shared: true, port: port);
+}
+
+/// Populates [clientContext] with the extracted request attributes.
+shelf.Handler _clientContextWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
+    final isPubDev = request.requestedUri.host == 'pub.dev';
+    final cookies =
+        parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
+    final hasExperimentalCookie = cookies['experimental'] == '1';
+    final isExperimental = isPubDev || hasExperimentalCookie;
+    registerRequestContext(RequestContext(isExperimental: isExperimental));
+    return await handler(request);
+  };
 }
 
 // Extends response with content security policy headers when the response's

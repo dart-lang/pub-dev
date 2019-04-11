@@ -440,3 +440,31 @@ Future<R> retryAsync<R>(
     }
   }
 }
+
+/// Parses the Cookie HTTP header and returns a map of the values.
+Map<String, String> parseCookieHeader(String cookieHeader) {
+  if (cookieHeader == null) {
+    return const <String, String>{};
+  }
+  final r = <String, String>{};
+  cookieHeader
+      .split(';')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .map(
+        (s) {
+          try {
+            return Cookie.fromSetCookieValue(s);
+          } catch (_) {
+            return null;
+          }
+        },
+      )
+      .where((c) => c != null)
+      .forEach(
+        (c) {
+          r[c.name] = c.value;
+        },
+      );
+  return r;
+}
