@@ -13,25 +13,37 @@ final templateCache = TemplateCache();
 
 /// Loads, parses, caches and renders mustache templates.
 class TemplateCache {
-  /// The path to the directory which contains mustache templates.
-  ///
-  /// The path should not contain a trailing slash (e.g. "/tmp/views").
-  final String _templateDirectory;
-
   /// A cache which keeps all used mustache templates parsed in memory.
-  final Map<String, mustache.Template> _cachedMustacheTemplates = {};
+  final Map<String, mustache.Template> _parsedMustacheTemplates = {};
 
-  TemplateCache({String templateDirectory})
-      : _templateDirectory = templateDirectory ??
-            path.join(resolveAppDir(), 'lib/frontend/templates/views');
+  TemplateCache() {
+    _loadDirectory(path.join(resolveAppDir(), 'lib/frontend/templates/views'));
+  }
+
+  void _loadDirectory(String dirPath) {
+    Directory(dirPath)
+        .listSync(recursive: true)
+        .where((fse) => fse is File)
+        .cast<File>()
+        .where((f) => f.path.endsWith('.mustache'))
+        .forEach(
+      (file) {
+        final t = mustache.Template(file.readAsStringSync(), lenient: true);
+        final relativePath = path.relative(file.path, from: dirPath);
+        final ext = path.extension(relativePath);
+        final simplePath =
+            relativePath.substring(0, relativePath.length - ext.length);
+        _parsedMustacheTemplates[simplePath] = t;
+      },
+    );
+  }
 
   /// Renders [template] with given [values].
   String renderTemplate(String template, values) {
-    final mustache.Template parsedTemplate =
-        _cachedMustacheTemplates.putIfAbsent(template, () {
-      final file = File('$_templateDirectory/$template.mustache');
-      return mustache.Template(file.readAsStringSync(), lenient: true);
-    });
+    final parsedTemplate = _parsedMustacheTemplates[template];
+    if (parsedTemplate == null) {
+      throw Exception('Template $template was not found.');
+    }
     return parsedTemplate.renderString(values);
   }
 }
