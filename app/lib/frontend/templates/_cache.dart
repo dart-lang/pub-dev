@@ -26,14 +26,11 @@ class TemplateCache {
             path.join(resolveAppDir(), 'lib/frontend/templates/views');
 
   /// Renders [template] with given [values].
-  ///
-  /// If [escapeValues] is `false`, values in `values` will not be escaped.
-  String renderTemplate(String template, values, {bool escapeValues = true}) {
+  String renderTemplate(String template, values) {
     final mustache.Template parsedTemplate =
         _cachedMustacheTemplates.putIfAbsent(template, () {
       final file = File('$_templateDirectory/$template.mustache');
-      return mustache.Template(file.readAsStringSync(),
-          htmlEscapeValues: escapeValues, lenient: true);
+      return mustache.Template(file.readAsStringSync(), lenient: true);
     });
     return parsedTemplate.renderString(values);
   }

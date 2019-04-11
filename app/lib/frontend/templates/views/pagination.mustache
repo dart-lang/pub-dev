@@ -5,8 +5,8 @@
 <ul class="pagination">
   {{#page_links}}
     <li class="{{#active}}-active{{/active}}{{#disabled}}-disabled{{/disabled}}">
-      <a href="{{#render_link}}{{href}}{{/render_link}}"{{#rel_prev}} rel="prev"{{/rel_prev}}{{#rel_next}} rel="next"{{/rel_next}}>
-        <span>{{{text}}}</span>
+      <a href="{{#render_link}}{{& href}}{{/render_link}}"{{#rel_prev}} rel="prev"{{/rel_prev}}{{#rel_next}} rel="next"{{/rel_next}}>
+        <span>{{& text}}</span>
       </a>
     </li>
   {{/page_links}}
