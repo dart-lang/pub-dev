@@ -595,10 +595,8 @@ class GCloudPackageRepository extends PackageRepository {
             'Not a valid e-mail: `$uploaderEmail`.');
       }
 
-      // TODO: do not create a new User for unverified uploader email
-      final uploader =
-          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-      if (package.hasUploader(uploader.userId)) {
+      final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
+      if (uploader != null && package.hasUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
       }
