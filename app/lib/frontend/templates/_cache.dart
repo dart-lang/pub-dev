@@ -20,8 +20,8 @@ class TemplateCache {
     _loadDirectory(path.join(resolveAppDir(), 'lib/frontend/templates/views'));
   }
 
-  void _loadDirectory(String dirPath) {
-    Directory(dirPath)
+  void _loadDirectory(String templateFolder) {
+    Directory(templateFolder)
         .listSync(recursive: true)
         .where((fse) => fse is File)
         .cast<File>()
@@ -29,7 +29,7 @@ class TemplateCache {
         .forEach(
       (file) {
         final t = mustache.Template(file.readAsStringSync(), lenient: true);
-        final relativePath = path.relative(file.path, from: dirPath);
+        final relativePath = path.relative(file.path, from: templateFolder);
         final ext = path.extension(relativePath);
         final simplePath =
             relativePath.substring(0, relativePath.length - ext.length);
