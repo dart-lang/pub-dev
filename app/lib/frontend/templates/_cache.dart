@@ -30,10 +30,8 @@ class TemplateCache {
       (file) {
         final t = mustache.Template(file.readAsStringSync(), lenient: true);
         final relativePath = path.relative(file.path, from: templateFolder);
-        final ext = path.extension(relativePath);
-        final simplePath =
-            relativePath.substring(0, relativePath.length - ext.length);
-        _parsedMustacheTemplates[simplePath] = t;
+        final name = path.withoutExtension(relativePath);
+        _parsedMustacheTemplates[name] = t;
       },
     );
   }
