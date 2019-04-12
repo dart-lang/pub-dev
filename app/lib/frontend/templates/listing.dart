@@ -20,8 +20,7 @@ String renderPagination(PageLinks pageLinks) {
   final values = {
     'page_links': pageLinks.hrefPatterns(),
   };
-  return templateCache.renderTemplate('pagination', values,
-      escapeValues: false);
+  return templateCache.renderTemplate('pagination', values);
 }
 
 /// Renders the `views/pkg/index.mustache` template.

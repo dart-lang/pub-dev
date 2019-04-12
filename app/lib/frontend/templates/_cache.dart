@@ -13,28 +13,35 @@ final templateCache = TemplateCache();
 
 /// Loads, parses, caches and renders mustache templates.
 class TemplateCache {
-  /// The path to the directory which contains mustache templates.
-  ///
-  /// The path should not contain a trailing slash (e.g. "/tmp/views").
-  final String _templateDirectory;
-
   /// A cache which keeps all used mustache templates parsed in memory.
-  final Map<String, mustache.Template> _cachedMustacheTemplates = {};
+  final Map<String, mustache.Template> _parsedMustacheTemplates = {};
 
-  TemplateCache({String templateDirectory})
-      : _templateDirectory = templateDirectory ??
-            path.join(resolveAppDir(), 'lib/frontend/templates/views');
+  TemplateCache() {
+    _loadDirectory(path.join(resolveAppDir(), 'lib/frontend/templates/views'));
+  }
+
+  void _loadDirectory(String templateFolder) {
+    Directory(templateFolder)
+        .listSync(recursive: true)
+        .where((fse) => fse is File)
+        .cast<File>()
+        .where((f) => f.path.endsWith('.mustache'))
+        .forEach(
+      (file) {
+        final t = mustache.Template(file.readAsStringSync(), lenient: true);
+        final relativePath = path.relative(file.path, from: templateFolder);
+        final name = path.withoutExtension(relativePath);
+        _parsedMustacheTemplates[name] = t;
+      },
+    );
+  }
 
   /// Renders [template] with given [values].
-  ///
-  /// If [escapeValues] is `false`, values in `values` will not be escaped.
-  String renderTemplate(String template, values, {bool escapeValues = true}) {
-    final mustache.Template parsedTemplate =
-        _cachedMustacheTemplates.putIfAbsent(template, () {
-      final file = File('$_templateDirectory/$template.mustache');
-      return mustache.Template(file.readAsStringSync(),
-          htmlEscapeValues: escapeValues, lenient: true);
-    });
+  String renderTemplate(String template, values) {
+    final parsedTemplate = _parsedMustacheTemplates[template];
+    if (parsedTemplate == null) {
+      throw ArgumentError('Template $template was not found.');
+    }
     return parsedTemplate.renderString(values);
   }
 }

@@ -82,7 +82,7 @@ String renderLayoutPage(
     'schema_org_searchaction_json':
         isRoot ? json.encode(_schemaOrgSearchAction) : null,
   };
-  return templateCache.renderTemplate('layout', values, escapeValues: false);
+  return templateCache.renderTemplate('layout', values);
 }
 
 String renderPlatformTabs({
