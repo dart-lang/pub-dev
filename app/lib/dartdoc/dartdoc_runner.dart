@@ -124,6 +124,8 @@ class DartdocJobProcessor extends JobProcessor {
 
   @override
   Future<JobStatus> process(Job job) async {
+    final logger =
+        Logger('pub.dartdoc.runner/${job.packageName}/${job.packageVersion}');
     final tempDir =
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
     final tempDirPath = tempDir.resolveSymbolicLinksSync();
@@ -172,8 +174,8 @@ class DartdocJobProcessor extends JobProcessor {
 
       // Resolve dependencies only for non-legacy package versions.
       if (!status.isLegacy) {
-        depsResolved = await _resolveDependencies(
-            toolEnvRef.toolEnv, job, pkgPath, usesFlutter, logFileOutput);
+        depsResolved = await _resolveDependencies(logger, toolEnvRef.toolEnv,
+            job, pkgPath, usesFlutter, logFileOutput);
       } else {
         logFileOutput.write(
             'Package version does not allow current SDK, skipping pub upgrade.\n\n');
@@ -182,7 +184,7 @@ class DartdocJobProcessor extends JobProcessor {
       // Generate docs only for packages that have healthy dependencies.
       if (depsResolved) {
         dartdocResult =
-            await _generateDocs(job, pkgPath, outputDir, logFileOutput);
+            await _generateDocs(logger, job, pkgPath, outputDir, logFileOutput);
         hasContent = dartdocResult.hasIndexHtml && dartdocResult.hasIndexJson;
       } else {
         abortLog = 'Dependencies were not resolved.';
@@ -211,7 +213,7 @@ class DartdocJobProcessor extends JobProcessor {
       final oldEntry = await dartdocBackend.getLatestEntry(
           job.packageName, job.packageVersion);
       if (entry.isRegression(oldEntry)) {
-        _logger.severe('Regression detected in $job, aborting upload.');
+        logger.severe('Regression detected in $job, aborting upload.');
         // If `isLatest` or `isObsolete` have changed, we still want to update
         // the old entry, even if the job failed. `isLatest` is used to redirect
         // latest versions from versioned url to url with `/latest/`, and this
@@ -229,7 +231,7 @@ class DartdocJobProcessor extends JobProcessor {
         reportIssueWithLatest(job, 'No content.');
       }
 
-      dartdocData = await _loadPubDartdocData(outputDir);
+      dartdocData = await _loadPubDartdocData(logger, outputDir);
     } catch (e, st) {
       reportStatus = ReportStatus.aborted;
       if (isLatestStable) {
@@ -297,8 +299,13 @@ class DartdocJobProcessor extends JobProcessor {
     }
   }
 
-  Future<bool> _resolveDependencies(ToolEnvironment toolEnv, Job job,
-      String pkgPath, bool usesFlutter, StringBuffer logFileOutput) async {
+  Future<bool> _resolveDependencies(
+      Logger logger,
+      ToolEnvironment toolEnv,
+      Job job,
+      String pkgPath,
+      bool usesFlutter,
+      StringBuffer logFileOutput) async {
     logFileOutput.write('Running pub upgrade:\n');
     final pr = await toolEnv.runUpgrade(pkgPath, usesFlutter);
     _appendLog(logFileOutput, pr);
@@ -308,7 +315,7 @@ class DartdocJobProcessor extends JobProcessor {
           message.contains('Git error.');
       if (!isUserProblem) {
         final output = _mergeOutput(pr, compressStdout: true);
-        _logger.warning('Error while running pub upgrade for $job.\n$output');
+        logger.warning('Error while running pub upgrade for $job.\n$output');
       }
       return false;
     }
@@ -316,6 +323,7 @@ class DartdocJobProcessor extends JobProcessor {
   }
 
   Future<DartdocResult> _generateDocs(
+    Logger logger,
     Job job,
     String pkgPath,
     String outputDir,
@@ -376,7 +384,7 @@ class DartdocJobProcessor extends JobProcessor {
     final sw = Stopwatch()..start();
     DartdocResult r = await runDartdoc(true);
     sw.stop();
-    _logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
+    logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
         'completed in ${sw.elapsed}.');
     if (r.wasTimeout) {
       r = await runDartdoc(false);
@@ -387,10 +395,10 @@ class DartdocJobProcessor extends JobProcessor {
 
     if (r.processResult.exitCode != 0) {
       if (hasContent || _isKnownFailurePattern(_mergeOutput(r.processResult))) {
-        _logger.info('Error while running dartdoc for $job (see log.txt).');
+        logger.info('Error while running dartdoc for $job (see log.txt).');
       } else {
         final output = _mergeOutput(r.processResult, compressStdout: true);
-        _logger.warning('Error while running dartdoc for $job.\n$output');
+        logger.warning('Error while running dartdoc for $job.\n$output');
       }
     }
 
@@ -462,7 +470,8 @@ class DartdocJobProcessor extends JobProcessor {
     _appendLog(logFileOutput, pr);
   }
 
-  Future<PubDartdocData> _loadPubDartdocData(String outputDir) async {
+  Future<PubDartdocData> _loadPubDartdocData(
+      Logger logger, String outputDir) async {
     final file = File(p.join(outputDir, _pubDataFileName));
     if (!file.existsSync()) {
       return null;
@@ -472,7 +481,7 @@ class DartdocJobProcessor extends JobProcessor {
       return PubDartdocData.fromJson(
           convert.json.decode(content) as Map<String, dynamic>);
     } catch (e, st) {
-      _logger.warning('Unable to parse $_pubDataFileName.', e, st);
+      logger.warning('Unable to parse $_pubDataFileName.', e, st);
       return null;
     }
   }
