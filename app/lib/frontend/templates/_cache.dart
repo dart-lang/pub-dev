@@ -40,7 +40,7 @@ class TemplateCache {
   String renderTemplate(String template, values) {
     final parsedTemplate = _parsedMustacheTemplates[template];
     if (parsedTemplate == null) {
-      throw Exception('Template $template was not found.');
+      throw ArgumentError('Template $template was not found.');
     }
     return parsedTemplate.renderString(values);
   }
