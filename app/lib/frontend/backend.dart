@@ -536,7 +536,9 @@ class GCloudPackageRepository extends PackageRepository {
       ),
     );
 
-    // Trigger analysis and dartdoc generation
+    // Trigger analysis and dartdoc generation. Dependent packages can be left
+    // out here, because the dependency graph's background polling will pick up
+    // the new upload, and will trigger analysis for the dependent packages.
     await analyzerClient.triggerAnalysis(
         newVersion.package, newVersion.version, <String>{});
     await dartdocClient.triggerDartdoc(
