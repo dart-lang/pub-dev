@@ -19,6 +19,8 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
+import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 
 import '../shared/utils.dart';
 
@@ -834,6 +836,8 @@ void main() {
             final emailSenderMock = EmailSenderMock();
             registerEmailSender(emailSenderMock);
             registerHistoryBackend(HistoryBackendMock());
+            registerAnalyzerClient(AnalyzerClientMock());
+            registerDartdocClient(DartdocClientMock());
             final version = await repo.finishAsyncUpload(redirectUri);
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
@@ -956,6 +960,8 @@ void main() {
           final db = DatastoreDBMock(transactionMock: transactionMock);
           final repo = GCloudPackageRepository(db, tarballStorage);
           registerAuthenticatedUser(testUploaderUser);
+          registerAnalyzerClient(AnalyzerClientMock());
+          registerDartdocClient(DartdocClientMock());
           final historyBackendMock = HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
           final Future result = repo.upload(Stream.fromIterable(bigTarball));
@@ -1020,6 +1026,8 @@ void main() {
             final repo = GCloudPackageRepository(db, tarballStorage,
                 finishCallback: finishCallback);
             registerAuthenticatedUser(testUploaderUser);
+            registerAnalyzerClient(AnalyzerClientMock());
+            registerDartdocClient(DartdocClientMock());
             registerAccountBackend(
                 AccountBackendMock(authenticatedUsers: [testUploaderUser]));
             registerHistoryBackend(HistoryBackendMock());
