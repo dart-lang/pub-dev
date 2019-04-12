@@ -98,6 +98,7 @@ const _handlers = <String, shelf.Handler>{
   '/packages.json': packagesHandler,
   '/help': helpPageHandler,
   '/oauth/callback': oauthCallbackHandler,
+  '/experimental': experimentalHandler,
 };
 
 /// Handles requests for /debug

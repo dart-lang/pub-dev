@@ -107,4 +107,19 @@ void main() {
       expect(boundedList(numbers10, offset: 9, limit: 10), [9]);
     });
   });
+
+  group('parseCookieHeader', () {
+    test('no value', () {
+      expect(parseCookieHeader(null), {});
+      expect(parseCookieHeader(' '), {});
+    });
+
+    test('single value', () {
+      expect(parseCookieHeader('a=b'), {'a': 'b'});
+    });
+
+    test('two values', () {
+      expect(parseCookieHeader('a=b; c=dd'), {'a': 'b', 'c': 'dd'});
+    });
+  });
 }

@@ -76,6 +76,18 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
   return notFoundHandler(request);
 }
 
+/// Handles requests for /experimental
+Future<shelf.Response> experimentalHandler(shelf.Request request) async {
+  final enabled = request.requestedUri.queryParameters['enabled'] == '1';
+  final cookie = Cookie('experimental', enabled ? '1' : '0')
+    ..httpOnly = true
+    ..path = '/'
+    ..maxAge = enabled ? 7 * 24 * 60 * 60 : 0; // cookie lives for one week
+  return htmlResponse('Cookie enabled: $enabled', headers: {
+    HttpHeaders.setCookieHeader: cookie.toString(),
+  });
+}
+
 Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
   final packages = await topFeaturedPackages();
   final message =
