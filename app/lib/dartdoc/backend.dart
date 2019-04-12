@@ -29,7 +29,8 @@ import 'storage_path.dart' as storage_path;
 
 final Logger _logger = Logger('pub.dartdoc.backend');
 
-final Duration _contentDeleteThreshold = const Duration(days: 1);
+final Duration _oldestKeepThreshold = const Duration(days: 180);
+final Duration _obsoleteDeleteThreshold = const Duration(days: 1);
 final int _concurrentUploads = 8;
 final int _concurrentDeletes = 8;
 
@@ -266,8 +267,7 @@ class DartdocBackend {
         // the in-progress indicator. Doing the later now.
         await deleteFromBucket(_storage, entry.inProgressObjectName);
       } else {
-        final age = DateTime.now().difference(entry.timestamp).abs();
-        if (age > _contentDeleteThreshold) {
+        if (entry.age > _obsoleteDeleteThreshold) {
           await _deleteAll(entry);
           await deleteFromBucket(_storage, entry.inProgressObjectName);
         }
@@ -291,10 +291,10 @@ class DartdocBackend {
 
       // Keep the latest one with content.
       if (completedList.isNotEmpty) {
-        final index = completedList.lastIndexWhere((entry) => entry.hasContent);
+        final index = completedList.lastIndexWhere(
+            (entry) => entry.hasContent && entry.age < _oldestKeepThreshold);
         if (index >= 0) {
-          final entry = completedList[index];
-          completedList.removeAt(index);
+          final entry = completedList.removeAt(index);
           versions.remove(Version.parse(entry.runtimeVersion));
         }
       }
@@ -322,8 +322,7 @@ class DartdocBackend {
 
     // delete everything else
     for (var entry in completedList) {
-      final age = DateTime.now().difference(entry.timestamp).abs();
-      if (age > _contentDeleteThreshold) {
+      if (entry.age > _obsoleteDeleteThreshold) {
         await _deleteAll(entry);
       }
     }
