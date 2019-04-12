@@ -29,6 +29,7 @@ import 'package:pub_dartlang_org/frontend/templates/package_analysis.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_versions.dart';
 
 import '../shared/html_validation.dart';
+import '../shared/utils.dart';
 import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
@@ -73,7 +74,7 @@ void main() {
       expect(xmlContent.split('\n'), golden.split('\n'));
     }
 
-    test('index page', () {
+    scopedTest('index page', () {
       final popularHtml = renderMiniList([
         PackageView.fromModel(
           package: testPackage,
@@ -88,7 +89,7 @@ void main() {
       expectGoldenFile(html, 'index_page.html');
     });
 
-    test('landing page flutter', () {
+    scopedTest('landing page flutter', () {
       final popularHtml = renderMiniList([
         PackageView.fromModel(
           package: testPackage,
@@ -103,7 +104,7 @@ void main() {
       expectGoldenFile(html, 'flutter_landing_page.html');
     });
 
-    test('landing page web', () {
+    scopedTest('landing page web', () {
       final popularHtml = renderMiniList([
         PackageView.fromModel(
           package: testPackage,
@@ -118,7 +119,7 @@ void main() {
       expectGoldenFile(html, 'web_landing_page.html');
     });
 
-    test('package show page', () {
+    scopedTest('package show page', () {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
@@ -170,7 +171,7 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
-    test('package show page - with version', () {
+    scopedTest('package show page - with version', () {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
@@ -221,7 +222,7 @@ void main() {
       expectGoldenFile(html, 'pkg_show_version_page.html');
     });
 
-    test('package show page with flutter_plugin', () {
+    scopedTest('package show page with flutter_plugin', () {
       final String html = renderPkgShowPage(
         testPackage,
         testPackageUploaderEmails,
@@ -260,7 +261,7 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
-    test('package show page with outdated version', () {
+    scopedTest('package show page with outdated version', () {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
@@ -281,7 +282,7 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
-    test('package show page with discontinued version', () {
+    scopedTest('package show page with discontinued version', () {
       final String html = renderPkgShowPage(
           discontinuedPackage,
           discontinuedPackageUploaderEmails,
@@ -302,7 +303,7 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_discontinued.html');
     });
 
-    test('package show page with legacy version', () {
+    scopedTest('package show page with legacy version', () {
       final summary = createPanaSummaryForLegacy(
           testPackageVersion.package, testPackageVersion.version);
       final String html = renderPkgShowPage(
@@ -326,12 +327,12 @@ void main() {
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
 
-    test('no content for analysis tab', () async {
+    scopedTest('no content for analysis tab', () async {
       // no content
       expect(renderAnalysisTab('pkg_foo', null, null, null), isNull);
     });
 
-    test('analysis tab: http', () async {
+    scopedTest('analysis tab: http', () async {
       // stored analysis of http
       final String content =
           await File('$goldenDir/analysis_tab_http.json').readAsString();
@@ -347,7 +348,7 @@ void main() {
       expectGoldenFile(html, 'analysis_tab_http.html', isFragment: true);
     });
 
-    test('mock analysis tab', () async {
+    scopedTest('mock analysis tab', () async {
       final card = ScoreCardData(
         healthScore: 0.90234,
         maintenanceScore: 0.8932343,
@@ -399,7 +400,7 @@ void main() {
       expectGoldenFile(html, 'analysis_tab_mock.html', isFragment: true);
     });
 
-    test('aborted analysis tab', () async {
+    scopedTest('aborted analysis tab', () async {
       final String html = renderAnalysisTab(
           'pkg_foo',
           null,
@@ -427,7 +428,7 @@ void main() {
       expectGoldenFile(html, 'analysis_tab_aborted.html', isFragment: true);
     });
 
-    test('outdated analysis tab', () async {
+    scopedTest('outdated analysis tab', () async {
       final String html = renderAnalysisTab(
           'pkg_foo',
           null,
@@ -441,7 +442,7 @@ void main() {
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
     });
 
-    test('package index page', () {
+    scopedTest('package index page', () {
       final String html = renderPkgIndexPage([
         PackageView.fromModel(
           package: testPackage,
@@ -460,7 +461,7 @@ void main() {
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
-    test('package index page with search', () {
+    scopedTest('package index page with search', () {
       final searchQuery =
           SearchQuery.parse(query: 'foobar', order: SearchOrder.top);
       final String html = renderPkgIndexPage(
@@ -491,7 +492,7 @@ void main() {
       expectGoldenFile(html, 'search_page.html');
     });
 
-    test('search with supported qualifier', () {
+    scopedTest('search with supported qualifier', () {
       final searchQuery = SearchQuery.parse(query: 'email:user@domain.com');
       final String html = renderPkgIndexPage(
         [],
@@ -503,7 +504,7 @@ void main() {
       expectGoldenFile(html, 'search_supported_qualifier.html');
     });
 
-    test('search with unsupported qualifier', () {
+    scopedTest('search with unsupported qualifier', () {
       final searchQuery = SearchQuery.parse(query: 'foo:bar');
       final String html = renderPkgIndexPage(
         [],
@@ -515,7 +516,7 @@ void main() {
       expectGoldenFile(html, 'search_unsupported_qualifier.html');
     });
 
-    test('package versions page', () {
+    scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
         'foobar',
         [
@@ -530,12 +531,12 @@ void main() {
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
 
-    test('authorized page', () {
+    scopedTest('authorized page', () {
       final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
     });
 
-    test('uploader approval page', () {
+    scopedTest('uploader approval page', () {
       final String html = renderUploaderApprovalPage(
           'pkg_foo',
           'admin@example.com',
@@ -544,7 +545,7 @@ void main() {
       expectGoldenFile(html, 'uploader_approval_page.html');
     });
 
-    test('error page', () {
+    scopedTest('error page', () {
       final String html = renderErrorPage('error_title', 'error_message', [
         PackageView(
           name: 'popular_pkg',
@@ -558,32 +559,32 @@ void main() {
       expectGoldenFile(html, 'error_page.html');
     });
 
-    test('pagination: single page', () {
+    scopedTest('pagination: single page', () {
       final String html = renderPagination(PageLinks.empty());
       expectGoldenFile(html, 'pagination_single.html', isFragment: true);
     });
 
-    test('pagination: in the middle', () {
+    scopedTest('pagination: in the middle', () {
       final String html = renderPagination(PageLinks(90, 299));
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
-    test('pagination: at first page', () {
+    scopedTest('pagination: at first page', () {
       final String html = renderPagination(PageLinks(0, 600));
       expectGoldenFile(html, 'pagination_first.html', isFragment: true);
     });
 
-    test('pagination: at last page', () {
+    scopedTest('pagination: at last page', () {
       final String html = renderPagination(PageLinks(90, 91));
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
 
-    test('platform tabs: list', () {
+    scopedTest('platform tabs: list', () {
       final String html = renderPlatformTabs(platform: 'web');
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
-    test('platform tabs: search', () {
+    scopedTest('platform tabs: search', () {
       final String html = renderPlatformTabs(
           searchQuery: SearchQuery.parse(
         query: 'foo',
@@ -594,35 +595,35 @@ void main() {
   });
 
   group('PageLinks', () {
-    test('empty', () {
+    scopedTest('empty', () {
       final links = PageLinks.empty();
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('one', () {
+    scopedTest('one', () {
       final links = PageLinks(0, 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('PageLinks.RESULTS_PER_PAGE - 1', () {
+    scopedTest('PageLinks.RESULTS_PER_PAGE - 1', () {
       final links = PageLinks(0, resultsPerPage - 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('PageLinks.RESULTS_PER_PAGE', () {
+    scopedTest('PageLinks.RESULTS_PER_PAGE', () {
       final links = PageLinks(0, resultsPerPage);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 1);
     });
 
-    test('PageLinks.RESULTS_PER_PAGE + 1', () {
+    scopedTest('PageLinks.RESULTS_PER_PAGE + 1', () {
       final links = PageLinks(0, resultsPerPage + 1);
       expect(links.currentPage, 1);
       expect(links.leftmostPage, 1);
@@ -631,35 +632,35 @@ void main() {
 
     final int page2Offset = resultsPerPage;
 
-    test('page=2 + one item', () {
+    scopedTest('page=2 + one item', () {
       final links = PageLinks(page2Offset, page2Offset + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
+    scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
       final links = PageLinks(page2Offset, page2Offset + resultsPerPage - 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
+    scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE', () {
       final links = PageLinks(page2Offset, page2Offset + resultsPerPage);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
-    test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
+    scopedTest('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
       final links = PageLinks(page2Offset, page2Offset + resultsPerPage + 1);
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);
     });
 
-    test('deep in the middle', () {
+    scopedTest('deep in the middle', () {
       final links = PageLinks(200, 600);
       expect(links.currentPage, 21);
       expect(links.leftmostPage, 16);
@@ -668,14 +669,14 @@ void main() {
   });
 
   group('URLs', () {
-    test('PageLinks defaults', () {
+    scopedTest('PageLinks defaults', () {
       final query = SearchQuery.parse(query: 'web framework');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/packages?q=web+framework&page=1');
       expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
-    test('PageLinks with platform', () {
+    scopedTest('PageLinks with platform', () {
       final query =
           SearchQuery.parse(query: 'some framework', platform: 'flutter');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);

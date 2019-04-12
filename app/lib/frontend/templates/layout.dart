@@ -10,6 +10,7 @@ import '../../shared/platform.dart' show KnownPlatforms;
 import '../../shared/search_service.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -50,7 +51,9 @@ String renderLayoutPage(
       : serializeSearchOrder(searchQuery.order);
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
+  final bodyClass = requestContext.isExperimental ? 'experimental' : '';
   final values = {
+    'body_class': bodyClass,
     'no_index': noIndex,
     'static_assets_dir': staticUrls.staticPath,
     'static_assets': staticUrls.assets,
