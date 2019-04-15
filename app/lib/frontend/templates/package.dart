@@ -131,6 +131,74 @@ String _renderVersionsTab(
   });
 }
 
+/// Renders the right-side info box (quick summary of the package, mostly coming
+/// from pubspec.yaml).
+String _renderSidebar(
+  Package package,
+  PackageVersion selectedVersion,
+  List<String> uploaderEmails,
+  AnalysisView analysis,
+) {
+  final packageLinks = selectedVersion.packageLinks;
+  final baseUrl = packageLinks.repositoryUrl ?? packageLinks.homepageUrl;
+
+  String documentationUrl = packageLinks.documentationUrl;
+  if (documentationUrl != null &&
+      (documentationUrl.startsWith('https://www.dartdocs.org/') ||
+          documentationUrl.startsWith('http://www.dartdocs.org/') ||
+          documentationUrl.startsWith('https://pub.dartlang.org/') ||
+          documentationUrl.startsWith('http://pub.dartlang.org/'))) {
+    documentationUrl = null;
+  }
+  final dartdocsUrl = urls.pkgDocUrl(
+    package.name,
+    version: selectedVersion.version,
+    isLatest: selectedVersion.version == package.latestVersion,
+  );
+
+  final links = <Map<String, dynamic>>[];
+  void addLink(
+    String href,
+    String label, {
+    bool detectServiceProvider = false,
+  }) {
+    if (href == null || href.isEmpty) {
+      return;
+    }
+    if (detectServiceProvider) {
+      final providerName = urls.inferServiceProviderName(href);
+      if (providerName != null) {
+        label += ' ($providerName)';
+      }
+    }
+    links.add(<String, dynamic>{'href': href, 'label': label});
+  }
+
+  if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
+    addLink(packageLinks.homepageUrl, 'Homepage');
+  }
+  addLink(packageLinks.repositoryUrl, 'Repository',
+      detectServiceProvider: true);
+  addLink(packageLinks.issueTrackerUrl, 'View/report issues');
+  addLink(packageLinks.documentationUrl, 'Documentation');
+  addLink(dartdocsUrl, 'API reference');
+
+  return templateCache.renderTemplate('pkg/sidebar', {
+    'name': package.name,
+    'description': selectedVersion.pubspec.description,
+    'links': links,
+    // TODO: make this 'Authors' if PackageVersion.authors is a list?!
+    'authors_title': 'Author',
+    'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
+    // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
+    'uploaders_title': 'Uploader',
+    'uploaders_html': _getAuthorsHtml(uploaderEmails),
+    'license_html': _renderLicenses(baseUrl, analysis?.licenses),
+    'dependencies_html': _renderDependencyList(analysis),
+    'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
+  });
+}
+
 /// Renders the `views/pkg/show.mustache` template.
 String renderPkgShowPage(
     Package package,
@@ -208,53 +276,11 @@ String renderPkgShowPage(
   final isAwaiting = card == null ||
       analysis == null ||
       (!card.isSkipped && !analysis.hasPanaSummary);
-  String documentationUrl = packageLinks.documentationUrl;
-  if (documentationUrl != null &&
-      (documentationUrl.startsWith('https://www.dartdocs.org/') ||
-          documentationUrl.startsWith('http://www.dartdocs.org/') ||
-          documentationUrl.startsWith('https://pub.dartlang.org/') ||
-          documentationUrl.startsWith('http://pub.dartlang.org/'))) {
-    documentationUrl = null;
-  }
-  final dartdocsUrl = urls.pkgDocUrl(
-    package.name,
-    version: selectedVersion.version,
-    isLatest: selectedVersion.version == package.latestVersion,
-  );
-
-  final links = <Map<String, dynamic>>[];
-  void addLink(
-    String href,
-    String label, {
-    bool detectServiceProvider = false,
-  }) {
-    if (href == null || href.isEmpty) {
-      return;
-    }
-    if (detectServiceProvider) {
-      final providerName = urls.inferServiceProviderName(href);
-      if (providerName != null) {
-        label += ' ($providerName)';
-      }
-    }
-    links.add(<String, dynamic>{'href': href, 'label': label});
-  }
-
-  if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
-    addLink(packageLinks.homepageUrl, 'Homepage');
-  }
-  addLink(packageLinks.repositoryUrl, 'Repository',
-      detectServiceProvider: true);
-  addLink(packageLinks.issueTrackerUrl, 'View/report issues');
-  addLink(packageLinks.documentationUrl, 'Documentation');
-  addLink(dartdocsUrl, 'API reference');
 
   final values = {
     'package': {
       'name': package.name,
-      'selected_version': {
-        'version': selectedVersion.id,
-      },
+      'version': selectedVersion.id,
       'latest': {
         'should_show': shouldShow,
         'should_show_dev': shouldShowDev,
@@ -271,20 +297,10 @@ String renderPkgShowPage(
         isLegacy: card?.isLegacy ?? false,
         isObsolete: card?.isObsolete ?? false,
       ),
-      'description': selectedVersion.pubspec.description,
-      // TODO: make this 'Authors' if PackageVersion.authors is a list?!
-      'authors_title': 'Author',
-      'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
-      'links': links,
-      // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
-      'uploaders_title': 'Uploader',
-      'uploaders_html': _getAuthorsHtml(uploaderEmails),
       'short_created': selectedVersion.shortCreated,
-      'license_html': _renderLicenses(baseUrl, analysis?.licenses),
       'score_box_html': renderScoreBox(card?.overallScore,
           isSkipped: card?.isSkipped ?? false,
           isNewPackage: package.isNewPackage()),
-      'dependencies_html': _renderDependencyList(analysis),
       'analysis_html': renderAnalysisTab(
           package.name, selectedVersion.pubspec.sdkConstraint, card, analysis),
       'schema_org_pkgmeta_json':
@@ -293,11 +309,12 @@ String renderPkgShowPage(
     'tabs': tabs,
     'has_no_file_tab': tabs.isEmpty,
     'icons': staticUrls.versionsTableIcons,
-    'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
     'install_tab_html': _renderInstallTab(
         package, selectedVersion, isFlutterPackage, analysis?.platforms),
     'versions_tab_html': _renderVersionsTab(
         selectedVersion, versions, versionDownloadUrls, totalNumberOfVersions),
+    'sidebar_html':
+        _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
   };
   final content = templateCache.renderTemplate('pkg/show', values);
   final packageAndVersion = isVersionPage

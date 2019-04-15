@@ -3,7 +3,7 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <div class="package-header">
-  <h2 class="title">{{package.name}} {{package.selected_version.version}}</h2>
+  <h2 class="title">{{package.name}} {{package.version}}</h2>
   <div class="metadata">
     Published <span>{{package.short_created}}</span>
     <!-- &bull; Downloads: X -->
@@ -50,36 +50,7 @@
     </section>
   </div>
 
-  <aside class="sidebar sidebar-content">
-    <h3 class="title">About</h3>
-    {{#package.description}}
-      <p>{{package.description}}</p>
-      <p>
-      {{#package.links}}
-          <a class="link" href="{{& href}}">{{label}}</a><br/>
-      {{/package.links}}
-      </p>
-    {{/package.description}}
-
-    <h3 class="title">{{package.authors_title}}</h3>
-    <div>{{& package.authors_html}}</div>
-
-    <h3 class="title">{{package.uploaders_title}}</h3>
-    <p>{{& package.uploaders_html}}</p>
-
-    {{#package.license_html}}
-      <h3 class="title">License</h3>
-      <p>{{& package.license_html}}</p>
-    {{/package.license_html}}
-
-    {{#package.dependencies_html}}
-      <h3 class="title">Dependencies</h3>
-      <p>{{& package.dependencies_html}}</p>
-    {{/package.dependencies_html}}
-
-    <h3 class="title">More</h3>
-    <p><a href="{{{search_deps_link}}}" rel="nofollow">Packages that depend on {{package.name}}</a></p>
-  </aside>
+  {{& sidebar_html}}
 </div>
 
 <script type="application/ld+json">
