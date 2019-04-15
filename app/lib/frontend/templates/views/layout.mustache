@@ -5,7 +5,7 @@
 <html lang="en-us">
 <head>
   <script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-26406144-13"></script>
-  <script src="{{{static_assets.gtag_js}}}"></script>
+  <script src="{{{static_assets.js__gtag_js}}}"></script>
   <meta charset="utf-8" />
   <meta http-equiv="x-ua-compatible" content="ie=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -18,8 +18,8 @@
   <title>{{& title}}</title>
   <meta property="og:title" content="{{& title}}" />
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" />
-  <meta itemprop="image" content="{{{static_assets_dir}}}/img/dart-logo-400x400.png" />
-  <meta property="og:image" content="{{{static_assets_dir}}}/img/dart-logo-400x400.png" />
+  <meta itemprop="image" content="{{{static_assets.img__dart-logo-400x400_png}}}" />
+  <meta property="og:image" content="{{{static_assets.img__dart-logo-400x400_png}}}" />
   {{#favicon}}
   <link rel="shortcut icon" href="{{{favicon}}}" />
   {{/favicon}}
@@ -30,10 +30,10 @@
   <meta name="description" content="{{& pageDescription}}" />
   <meta property="og:description" content="{{& pageDescription}}" />
   <link rel="alternate" type="application/atom+xml" title="Updated Packages Feed for Pub" href="/feed.atom" />
-  <link href="{{{static_assets_dir}}}/highlight/github.css" rel="stylesheet" />
-  <link href="{{{static_assets.github_markdown_css}}}" rel="stylesheet" type="text/css" />
-  <link href="{{{static_assets.style_css}}}" rel="stylesheet" type="text/css" />
-  <script src="{{{static_assets.script_dart_js}}}" defer="defer"></script>
+  <link href="{{{static_assets.highlight__github_css}}}" rel="stylesheet" />
+  <link href="{{{static_assets.css__github-markdown_css}}}" rel="stylesheet" type="text/css" />
+  <link href="{{{static_assets.css__style_css}}}" rel="stylesheet" type="text/css" />
+  <script src="{{{static_assets.js__script_dart_js}}}" defer="defer"></script>
   {{#include_survey}}
   <script async="async" defer="defer" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
   {{/include_survey}}
@@ -44,7 +44,7 @@
   <button class="hamburger"></button>
   <div class="mask"></div>
   <div class="nav-wrap">
-    <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets_dir}}}/img/dart-logo.svg" alt="dart pub logo" /></a>
+    <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets.img__dart-logo_svg}}}" alt="dart pub logo" /></a>
       <div class="_flex-space"></div>
       <button class="close"></button>
     </div>
@@ -107,7 +107,7 @@
   <div class="_banner-bg">
     <main class="home-banner">
       <h2 class="_visuallyhidden">Dart package manager</h2>
-      <img class="logo" src="{{{static_assets_dir}}}/img/{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
+      <img class="logo" src="{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
       <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
         <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
         <button class="icon"></button>
@@ -127,12 +127,12 @@
   <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>
   <a class="link" href="https://www.google.com/intl/en/policies/privacy/">Privacy</a>
   <a class="link" href="/help">Help</a>
-  <a class="link" href="/feed.atom"><img src="{{{static_assets_dir}}}/img/atom-feed-icon-32x32.png" class="inline-icon" /></a>
+  <a class="link" href="/feed.atom"><img src="{{{static_assets.img__atom-feed-icon-32x32_png}}}" class="inline-icon" /></a>
   <a class="link github_issue" href="https://github.com/dart-lang/pub-dartlang-dart/issues/new">Report an issue with this site</a>
 </footer>
 {{#include_highlight}}
-<script src="{{{static_assets_dir}}}/highlight/highlight.pack.js"></script>
-<script src="{{{static_assets_dir}}}/highlight/init.js"></script>
+<script src="{{{static_assets.highlight__highlight_pack_js}}}"></script>
+<script src="{{{static_assets.highlight__init_js}}}"></script>
 {{/include_highlight}}
 {{#schema_org_searchaction_json}}
 <script type="application/ld+json">

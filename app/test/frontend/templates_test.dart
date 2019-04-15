@@ -39,7 +39,7 @@ void main() {
   group('templates', () {
     setUpAll(() {
       final cache = StaticFileCache();
-      for (String path in mockStaticFiles) {
+      for (String path in hashedFiles) {
         final file = StaticFile('${staticUrls.staticPath}/$path', 'text/mock',
             [], DateTime.now(), 'mocked_hash_${path.hashCode.abs()}');
         cache.addFile(file);

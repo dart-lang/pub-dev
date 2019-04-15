@@ -118,6 +118,23 @@ class StaticFile {
 
 final staticUrls = StaticUrls();
 
+/// The static assets that get a ?hash=<hash> in their URL and with that, longer
+/// cached timeouts.
+final hashedFiles = const <String>[
+  'css/github-markdown.css',
+  'css/style.css',
+  'highlight/github.css',
+  'highlight/highlight.pack.js',
+  'highlight/init.js',
+  'img/atom-feed-icon-32x32.png',
+  'img/dart-logo-400x400.png',
+  'img/dart-logo.svg',
+  'img/dart-packages.png',
+  'img/flutter-packages.png',
+  'js/gtag.js',
+  'js/script.dart.js',
+];
+
 class StaticUrls {
   final String staticPath = _defaultStaticPath;
   final String smallDartFavicon;
@@ -143,13 +160,16 @@ class StaticUrls {
     };
   }
 
+  /// A hashed version of the static assets referenced in [hashedFiles].
   Map<String, String> get assets {
-    return _assets ??= {
-      'gtag_js': _getCacheableStaticUrl('/js/gtag.js'),
-      'script_dart_js': _getCacheableStaticUrl('/js/script.dart.js'),
-      'github_markdown_css': _getCacheableStaticUrl('/css/github-markdown.css'),
-      'style_css': _getCacheableStaticUrl('/css/style.css'),
-    };
+    if (_assets == null) {
+      _assets = <String, String>{};
+      for (String hashedFile in hashedFiles) {
+        final key = hashedFile.replaceAll('/', '__').replaceAll('.', '_');
+        _assets[key] = _getCacheableStaticUrl('/$hashedFile');
+      }
+    }
+    return _assets;
   }
 
   /// Returns the URL of a static resource
