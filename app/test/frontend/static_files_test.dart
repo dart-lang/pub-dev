@@ -12,8 +12,6 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 
-import 'utils.dart';
-
 Future main() async {
   await updateLocalBuiltFiles();
 
@@ -43,7 +41,7 @@ Future main() async {
 
   group('mocked static files', () {
     test('exists', () {
-      for (String path in mockStaticFiles) {
+      for (String path in hashedFiles) {
         final file = staticFileCache.getFile('/static/$path');
         expect(file, isNotNull);
         expect(file.bytes.length, greaterThan(10));
@@ -53,7 +51,7 @@ Future main() async {
 
     test('urls populated with hash', () {
       final assets = staticUrls.assets;
-      expect(assets.length, mockStaticFiles.length);
+      expect(assets.length, hashedFiles.length);
       for (String value in assets.values) {
         final parts = value.split('?hash=');
         expect(parts.length, greaterThan(1));
