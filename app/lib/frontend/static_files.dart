@@ -123,6 +123,12 @@ final staticUrls = StaticUrls();
 final hashedFiles = const <String>[
   'css/github-markdown.css',
   'css/style.css',
+  'highlight/github.css',
+  'highlight/highlight.pack.js',
+  'highlight/init.js',
+  'img/atom-feed-icon-32x32.png',
+  'img/dart-logo-400x400.png',
+  'img/dart-logo.svg',
   'js/gtag.js',
   'js/script.dart.js',
 ];
