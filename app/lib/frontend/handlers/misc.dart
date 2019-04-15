@@ -59,19 +59,17 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
       return shelf.Response.notModified();
     }
     final String hash = request.requestedUri.queryParameters['hash'];
-    final Duration cacheAge = hash != null && hash == staticFile.etag
-        ? staticLongCache
-        : staticShortCache;
-    return shelf.Response.ok(
-      staticFile.bytes,
-      headers: {
-        HttpHeaders.contentTypeHeader: staticFile.contentType,
-        HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),
-        HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
-        HttpHeaders.etagHeader: staticFile.etag,
-        HttpHeaders.cacheControlHeader: 'max-age: ${cacheAge.inSeconds}',
-      },
-    );
+    final headers = <String, String>{
+      HttpHeaders.contentTypeHeader: staticFile.contentType,
+      HttpHeaders.contentLengthHeader: staticFile.bytes.length.toString(),
+      HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
+      HttpHeaders.etagHeader: staticFile.etag,
+    };
+    if (hash == staticFile.etag) {
+      headers[HttpHeaders.cacheControlHeader] =
+          'max-age=${staticLongCache.inSeconds}';
+    }
+    return shelf.Response.ok(staticFile.bytes, headers: headers);
   }
   return notFoundHandler(request);
 }
