@@ -10,6 +10,7 @@ import '../../shared/platform.dart' show KnownPlatforms;
 import '../../shared/search_service.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -51,6 +52,7 @@ String renderLayoutPage(
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
   final values = {
+    'body_class': requestContext.isExperimental ? 'experimental' : '',
     'no_index': noIndex,
     'static_assets': staticUrls.assets,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
