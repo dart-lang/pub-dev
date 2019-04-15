@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Old dartdoc content will be deleted after 180 days, even if it is the only successful dartdoc run.
 
 ## `20190404t123731-all`
 

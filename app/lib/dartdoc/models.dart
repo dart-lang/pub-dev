@@ -171,6 +171,11 @@ class DartdocEntry {
     // Older entry seems to be better.
     return true;
   }
+
+  /// The current age of the entry.
+  Duration get age {
+    return DateTime.now().toUtc().difference(timestamp);
+  }
 }
 
 @JsonSerializable()
