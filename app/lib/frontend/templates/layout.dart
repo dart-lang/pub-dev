@@ -51,9 +51,8 @@ String renderLayoutPage(
       : serializeSearchOrder(searchQuery.order);
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
-  final bodyClass = requestContext.isExperimental ? 'experimental' : '';
   final values = {
-    'body_class': bodyClass,
+    'body_class': requestContext.isExperimental ? 'experimental' : '',
     'no_index': noIndex,
     'static_assets_dir': staticUrls.staticPath,
     'static_assets': staticUrls.assets,
