@@ -23,7 +23,7 @@ const staticShortCache = Duration(minutes: 5);
 
 /// The age the browser should cache the static file if there is a hash provided
 /// and it matches the etag.
-const staticLongCache = Duration(hours: 24);
+const staticLongCache = Duration(days: 7);
 
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonEncoder.withIndent('  ');
