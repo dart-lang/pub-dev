@@ -77,7 +77,8 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
     final stream = dartdocBackend.readContent(entry, docFilePath.path);
     final headers = {
       HttpHeaders.contentTypeHeader: contentType(docFilePath.path),
-      HttpHeaders.cacheControlHeader: 'max-age=${staticShortCache.inSeconds}',
+      HttpHeaders.cacheControlHeader:
+          'private, max-age=${staticShortCache.inSeconds}',
     };
     if (info.lastModified != null) {
       headers[HttpHeaders.lastModifiedHeader] =

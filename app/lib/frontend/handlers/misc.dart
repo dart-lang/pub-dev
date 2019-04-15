@@ -67,7 +67,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
     };
     if (hash != null && hash.isNotEmpty && hash == staticFile.etag) {
       headers[HttpHeaders.cacheControlHeader] =
-          'max-age=${staticLongCache.inSeconds}';
+          'private, max-age=${staticLongCache.inSeconds}';
     }
     return shelf.Response.ok(staticFile.bytes, headers: headers);
   }
