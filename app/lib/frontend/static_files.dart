@@ -129,6 +129,8 @@ final hashedFiles = const <String>[
   'img/atom-feed-icon-32x32.png',
   'img/dart-logo-400x400.png',
   'img/dart-logo.svg',
+  'img/dart-packages.png',
+  'img/flutter-packages.png',
   'js/gtag.js',
   'js/script.dart.js',
 ];

@@ -73,8 +73,9 @@ String renderLayoutPage(
     'include_survey': includeSurvey,
     'include_highlight': type == PageType.package,
     'landing_banner': type == PageType.landing,
-    'landing_banner_image':
-        platform == 'flutter' ? 'flutter-packages.png' : 'dart-packages.png',
+    'landing_banner_image': platform == 'flutter'
+        ? staticUrls.assets['img__flutter-packages_png']
+        : staticUrls.assets['img__dart-packages_png'],
     'landing_banner_alt':
         platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
     'listing_banner': type == PageType.listing,
