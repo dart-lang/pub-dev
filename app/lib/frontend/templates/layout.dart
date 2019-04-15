@@ -52,7 +52,6 @@ String renderLayoutPage(
   final isRoot = type == PageType.landing && platform == null;
   final values = {
     'no_index': noIndex,
-    'static_assets_dir': staticUrls.staticPath,
     'static_assets': staticUrls.assets,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
     'canonicalUrl': canonicalUrl,
