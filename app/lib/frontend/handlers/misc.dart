@@ -65,7 +65,7 @@ Future<shelf.Response> staticsHandler(shelf.Request request) async {
       HttpHeaders.lastModifiedHeader: formatHttpDate(staticFile.lastModified),
       HttpHeaders.etagHeader: staticFile.etag,
     };
-    if (hash == staticFile.etag) {
+    if (hash != null && hash.isNotEmpty && hash == staticFile.etag) {
       headers[HttpHeaders.cacheControlHeader] =
           'max-age=${staticLongCache.inSeconds}';
     }
