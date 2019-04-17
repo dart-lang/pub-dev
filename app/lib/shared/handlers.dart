@@ -77,7 +77,6 @@ final _contentSecurityPolicyMap = <String, List<String>>{
   'object-src': _none,
   'script-src': <String>[
     "'self'",
-    "'unsafe-eval'", // dart2js requires it
     'https://www.googletagmanager.com/',
     'https://www.google.com/',
     'https://www.google-analytics.com/',
