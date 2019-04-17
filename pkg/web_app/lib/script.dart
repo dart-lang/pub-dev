@@ -451,4 +451,5 @@ void _updateDartdocStatus() {
   }
 }
 
+/// The dataset attribute name we use to store the documentation status.
 const _hasDocumentationAttr = 'hasDocumentation';
