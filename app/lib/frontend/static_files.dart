@@ -190,24 +190,28 @@ class StaticUrls {
 Future updateLocalBuiltFiles() async {
   final staticDir = Directory(_resolveStaticDirPath());
   final webAppDir = Directory(_resolveWebAppDirPath());
-  final scriptDart = File(path.join(webAppDir.path, 'lib', 'script.dart'));
+  // detect last modification of the web_app dir
+  DateTime lastModified;
+  await for (FileSystemEntity fse in webAppDir.list(recursive: true)) {
+    if (fse is File) {
+      final lm = await fse.lastModified();
+      if (lastModified == null || lastModified.isBefore(lm)) {
+        lastModified = lm;
+      }
+    }
+  }
+  if (lastModified == null) {
+    throw StateError('No files detected in pkg/web_app.');
+  }
+
   final scriptJs = File(path.join(staticDir.path, 'js', 'script.dart.js'));
   if (!scriptJs.existsSync() ||
-      (scriptJs.lastModifiedSync().isBefore(scriptDart.lastModifiedSync()))) {
+      (scriptJs.lastModifiedSync().isBefore(lastModified))) {
     await scriptJs.parent.create(recursive: true);
     final pr = await runProc(
-      'dart2js',
-      [
-        '--csp',
-        '--dump-info',
-        '--minify',
-        '--trust-primitives',
-        '--omit-implicit-checks',
-        scriptDart.path,
-        '-o',
-        scriptJs.path,
-      ],
-      workingDirectory: staticDir.path,
+      'build.sh',
+      [],
+      workingDirectory: webAppDir.path,
       timeout: const Duration(minutes: 2),
     );
     if (pr.exitCode != 0) {
