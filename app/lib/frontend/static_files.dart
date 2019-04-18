@@ -198,6 +198,7 @@ Future updateLocalBuiltFiles() async {
     final pr = await runProc(
       'dart2js',
       [
+        '--csp',
         '--dump-info',
         '--minify',
         '--trust-primitives',
