@@ -21,6 +21,8 @@ import 'handlers.dart';
 import 'markdown.dart';
 import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 
+const _hstsDuration = Duration(minutes: 15);
+
 Future<void> runHandler(
   Logger logger,
   shelf.Handler handler, {
@@ -33,7 +35,7 @@ Future<void> runHandler(
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
   }
-  handler = _redirectToHttpsWrapper(handler);
+  handler = _httpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   handler = _cspHeaderWrapper(handler);
   handler = _requestContextWrapper(handler);
@@ -166,15 +168,25 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   };
 }
 
-shelf.Handler _redirectToHttpsWrapper(shelf.Handler handler) {
+/// In production environment (as defined by appengine's [context] variable):
+/// - redirects non-https requests to https
+/// - adds Strict-Transport-Security response header (HSTS)
+shelf.Handler _httpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     if (context.isProductionEnvironment &&
         request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return shelf.Response.seeOther(secureUri);
-    } else {
-      return await handler(request);
     }
+
+    shelf.Response rs = await handler(request);
+    if (context.isProductionEnvironment) {
+      rs = rs.change(headers: {
+        'strict-transport-security':
+            'max-age=${_hstsDuration.inSeconds}; preload',
+      });
+    }
+    return rs;
   };
 }
 
