@@ -177,7 +177,6 @@ Other useful methods will be added soon...
             'acdef', // b deleted
             'bcdef', // a deleted
             'abcd', // prefix of the input
-            'cdef', // postfix of the input
           ]));
     });
   });
