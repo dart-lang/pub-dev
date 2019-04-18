@@ -23,31 +23,14 @@
   <div class="main tabs-content">
     <ul class="package-tabs js-tabs">
       {{#tabs}}
-      <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{title}}</li>
+        <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
       {{/tabs}}
-      <li class="tab {{#has_no_file_tab}}-active{{/has_no_file_tab}}" data-name="-installing-tab-" role="button">Installing</li>
-      <li class="tab" data-name="-versions-tab-" role="button">Versions</li>
-      <li class="tab" data-name="-analysis-tab-" role="button">
-        {{& package.score_box_html }}
-      </li>
     </ul>
     {{#tabs}}
-      <section class="content {{active}} js-content markdown-body" data-name="-{{id}}-tab-">
-        {{&content}}
+      <section class="content {{active}} js-content {{markdown-body}}" data-name="-{{id}}-tab-">
+        {{& content_html}}
       </section>
     {{/tabs}}
-    <section class="content {{#has_no_file_tab}}-active{{/has_no_file_tab}} js-content" data-name="-installing-tab-">
-{{& install_tab_html}}
-    </section>
-    <section class="content js-content" data-name="-versions-tab-">
-      {{& versions_tab_html}}
-    </section>
-    <section class="content js-content" data-name="-analysis-tab-">
-      {{^package.analysis_html}}
-        <i>Awaiting analysis to complete.</i>
-      {{/package.analysis_html}}
-      {{& package.analysis_html}}
-    </section>
   </div>
 
   {{& sidebar_html}}

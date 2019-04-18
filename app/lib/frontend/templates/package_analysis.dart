@@ -20,7 +20,7 @@ import 'misc.dart';
 String renderAnalysisTab(String package, String sdkConstraint,
     ScoreCardData card, AnalysisView analysis) {
   if (card == null || analysis == null || !analysis.hasAnalysisData) {
-    return null;
+    return '<i>Awaiting analysis to complete.</i>';
   }
 
   String statusText;

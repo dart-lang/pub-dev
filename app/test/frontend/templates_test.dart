@@ -329,7 +329,8 @@ void main() {
 
     scopedTest('no content for analysis tab', () async {
       // no content
-      expect(renderAnalysisTab('pkg_foo', null, null, null), isNull);
+      expect(renderAnalysisTab('pkg_foo', null, null, null),
+          '<i>Awaiting analysis to complete.</i>');
     });
 
     scopedTest('analysis tab: http', () async {
