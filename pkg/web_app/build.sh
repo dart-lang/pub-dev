@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Compiles script.dart to JavaScript and places the output in the static/js directory.
 
 set -e
 
