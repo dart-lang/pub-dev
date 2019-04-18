@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
+
 import '../../scorecard/models.dart';
 import '../../shared/analyzer_client.dart';
 import '../../shared/email.dart' show EmailAddress;
@@ -51,14 +53,15 @@ String _renderDependencyList(AnalysisView analysis) {
       .join(', ');
 }
 
-String _renderInstallTab(Package package, PackageVersion selectedVersion,
-    bool isFlutterPackage, List<String> platforms) {
+String _renderInstallTab(PackageVersion selectedVersion, bool isFlutterPackage,
+    List<String> platforms) {
+  final packageName = selectedVersion.package;
   List importExamples;
-  if (selectedVersion.libraries.contains('${package.id}.dart')) {
+  if (selectedVersion.libraries.contains('$packageName.dart')) {
     importExamples = [
       {
-        'package': package.id,
-        'library': '${package.id}.dart',
+        'package': packageName,
+        'library': '$packageName.dart',
       },
     ];
   } else {
@@ -98,7 +101,7 @@ String _renderInstallTab(Package package, PackageVersion selectedVersion,
   return templateCache.renderTemplate('pkg/install_tab', {
     'use_as_an_executable': hasExecutables,
     'use_as_a_library': !hasExecutables || importExamples.isNotEmpty,
-    'package': package.name,
+    'package': packageName,
     'example_version_constraint': exampleVersionConstraint,
     'has_libraries': importExamples.isNotEmpty,
     'import_examples': importExamples,
@@ -222,6 +225,88 @@ String renderPkgShowPage(
   final bool isFlutterPackage =
       hasOnlyFlutterPlatform || latestStableVersion.pubspec.usesFlutter;
 
+  final bool shouldShowDev =
+      latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
+  final bool shouldShow =
+      selectedVersion != latestStableVersion || shouldShowDev;
+
+  final isAwaiting = card == null ||
+      analysis == null ||
+      (!card.isSkipped && !analysis.hasPanaSummary);
+
+  final tabsData = _tabsData(
+    selectedVersion,
+    isFlutterPackage,
+    analysis,
+    versions,
+    versionDownloadUrls,
+    totalNumberOfVersions,
+    isNewPackage: package.isNewPackage(),
+  );
+
+  final values = {
+    'package': {
+      'name': package.name,
+      'version': selectedVersion.id,
+      'latest': {
+        'should_show': shouldShow,
+        'should_show_dev': shouldShowDev,
+        'stable_url': urls.pkgPageUrl(package.name),
+        'stable_name': latestStableVersion.version,
+        'dev_url':
+            urls.pkgPageUrl(package.name, version: latestDevVersion.version),
+        'dev_name': latestDevVersion.version,
+      },
+      'tags_html': renderTags(
+        analysis?.platforms,
+        isAwaiting: isAwaiting,
+        isDiscontinued: card?.isDiscontinued ?? false,
+        isLegacy: card?.isLegacy ?? false,
+        isObsolete: card?.isObsolete ?? false,
+      ),
+      'short_created': selectedVersion.shortCreated,
+      'schema_org_pkgmeta_json':
+          json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
+    },
+    'tabs': tabsData,
+    'icons': staticUrls.versionsTableIcons,
+    'sidebar_html':
+        _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
+  };
+  final content = templateCache.renderTemplate('pkg/show', values);
+  final packageAndVersion = isVersionPage
+      ? '${selectedVersion.package} ${selectedVersion.version}'
+      : selectedVersion.package;
+  final pageTitle =
+      '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
+  final canonicalUrl =
+      isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
+  final noIndex = (card?.isSkipped ?? false) ||
+      (card?.overallScore == 0.0) ||
+      (package.isDiscontinued ?? false);
+  return renderLayoutPage(
+    PageType.package,
+    content,
+    title: pageTitle,
+    pageDescription: selectedVersion.ellipsizedDescription,
+    faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
+    canonicalUrl: canonicalUrl,
+    platform: hasPlatformSearch ? singlePlatform : null,
+    noIndex: noIndex,
+  );
+}
+
+List<Map<String, String>> _tabsData(
+  PackageVersion selectedVersion,
+  bool isFlutterPackage,
+  AnalysisView analysis,
+  List<PackageVersion> versions,
+  List<Uri> versionDownloadUrls,
+  int totalNumberOfVersions, {
+  @required bool isNewPackage,
+}) {
+  final card = analysis?.card;
+
   String readmeFilename;
   String renderedReadme;
   final packageLinks = selectedVersion.packageLinks;
@@ -251,92 +336,50 @@ String renderPkgShowPage(
     }
   }
 
-  final bool shouldShowDev =
-      latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
-  final bool shouldShow =
-      selectedVersion != latestStableVersion || shouldShowDev;
+  final tabs = <Map<String, String>>[];
+  void addTab(
+    String id, {
+    String title,
+    String titleHtml,
+    String content,
+    bool markdown = false,
+  }) {
+    tabs.add({
+      'id': id,
+      'title_html': titleHtml ?? htmlEscape.convert(title),
+      'content_html': content,
+      'markdown-body': markdown ? 'markdown-body' : null,
+    });
+  }
 
-  final List<Map<String, String>> tabs = <Map<String, String>>[];
   void addFileTab(String id, String title, String content) {
-    if (content != null) {
-      tabs.add({
-        'id': id,
-        'title': title,
-        'content': content,
-      });
-    }
+    if (content == null) return;
+    addTab(id, title: title, content: content, markdown: true);
   }
 
   addFileTab('readme', readmeFilename, renderedReadme);
   addFileTab('changelog', changelogFilename, renderedChangelog);
   addFileTab('example', 'Example', renderedExample);
+
+  addTab('installing',
+      title: 'Installing',
+      content: _renderInstallTab(
+          selectedVersion, isFlutterPackage, analysis?.platforms));
+  addTab('versions',
+      title: 'Versions',
+      content: _renderVersionsTab(selectedVersion, versions,
+          versionDownloadUrls, totalNumberOfVersions));
+  addTab(
+    'analysis',
+    titleHtml: renderScoreBox(card?.overallScore,
+        isSkipped: card?.isSkipped ?? false, isNewPackage: isNewPackage),
+    content: renderAnalysisTab(selectedVersion.package,
+        selectedVersion.pubspec.sdkConstraint, card, analysis),
+  );
   if (tabs.isNotEmpty) {
     tabs.first['active'] = '-active';
   }
-  final isAwaiting = card == null ||
-      analysis == null ||
-      (!card.isSkipped && !analysis.hasPanaSummary);
-
-  final values = {
-    'package': {
-      'name': package.name,
-      'version': selectedVersion.id,
-      'latest': {
-        'should_show': shouldShow,
-        'should_show_dev': shouldShowDev,
-        'stable_url': urls.pkgPageUrl(package.name),
-        'stable_name': latestStableVersion.version,
-        'dev_url':
-            urls.pkgPageUrl(package.name, version: latestDevVersion.version),
-        'dev_name': latestDevVersion.version,
-      },
-      'tags_html': renderTags(
-        analysis?.platforms,
-        isAwaiting: isAwaiting,
-        isDiscontinued: card?.isDiscontinued ?? false,
-        isLegacy: card?.isLegacy ?? false,
-        isObsolete: card?.isObsolete ?? false,
-      ),
-      'short_created': selectedVersion.shortCreated,
-      'score_box_html': renderScoreBox(card?.overallScore,
-          isSkipped: card?.isSkipped ?? false,
-          isNewPackage: package.isNewPackage()),
-      'analysis_html': renderAnalysisTab(
-          package.name, selectedVersion.pubspec.sdkConstraint, card, analysis),
-      'schema_org_pkgmeta_json':
-          json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
-    },
-    'tabs': tabs,
-    'has_no_file_tab': tabs.isEmpty,
-    'icons': staticUrls.versionsTableIcons,
-    'install_tab_html': _renderInstallTab(
-        package, selectedVersion, isFlutterPackage, analysis?.platforms),
-    'versions_tab_html': _renderVersionsTab(
-        selectedVersion, versions, versionDownloadUrls, totalNumberOfVersions),
-    'sidebar_html':
-        _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
-  };
-  final content = templateCache.renderTemplate('pkg/show', values);
-  final packageAndVersion = isVersionPage
-      ? '${selectedVersion.package} ${selectedVersion.version}'
-      : selectedVersion.package;
-  final pageTitle =
-      '$packageAndVersion | ${isFlutterPackage ? 'Flutter' : 'Dart'} Package';
-  final canonicalUrl =
-      isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
-  final noIndex = (card?.isSkipped ?? false) ||
-      (card?.overallScore == 0.0) ||
-      (package.isDiscontinued ?? false);
-  return renderLayoutPage(
-    PageType.package,
-    content,
-    title: pageTitle,
-    pageDescription: selectedVersion.ellipsizedDescription,
-    faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
-    canonicalUrl: canonicalUrl,
-    platform: hasPlatformSearch ? singlePlatform : null,
-    noIndex: noIndex,
-  );
+  return tabs;
 }
 
 String _getAuthorsHtml(List<String> authors) {
