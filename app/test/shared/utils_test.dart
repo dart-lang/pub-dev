@@ -12,12 +12,15 @@ import 'package:pub_dartlang_org/shared/utils.dart';
 void main() {
   group('Randomize Stream', () {
     test('Single batch', () async {
+      final input = List.generate(10, (i) => i);
       final Stream<int> randomizedStream = randomizeStream(
-        Stream.fromIterable(List.generate(10, (i) => i)),
+        Stream.fromIterable(input),
         duration: Duration(milliseconds: 100),
         random: Random(123),
       );
-      expect(await randomizedStream.toList(), [4, 3, 2, 8, 7, 5, 9, 1, 0, 6]);
+      final result = await randomizedStream.toList();
+      expect(input.every(result.contains), isTrue);
+      expect(result, isNot(input)); // checks that items are randomized
     });
 
     test('Two batches', () async {
@@ -32,9 +35,10 @@ void main() {
       await Future.delayed(Duration(milliseconds: 200));
       List.generate(8, (i) => i + 10).forEach(controller.add);
       controller.close();
-      // 0-7, 10-17 in separate batches
-      expect(await valuesFuture,
-          [1, 0, 7, 5, 6, 3, 4, 2, 10, 14, 11, 17, 13, 16, 15, 12]);
+      final result = await valuesFuture;
+      final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
+      expect(input.every(result.contains), isTrue);
+      expect(result, isNot(input)); // checks that items are randomized
     });
 
     test('Small slices', () async {
@@ -49,9 +53,10 @@ void main() {
       List.generate(8, (i) => i).forEach(controller.add);
       List.generate(8, (i) => i + 10).forEach(controller.add);
       controller.close();
-      // 0-3, 4-7, 10-13, 14-17 in separate batches
-      expect(await valuesFuture,
-          [3, 1, 0, 2, 4, 5, 6, 7, 11, 13, 12, 10, 16, 14, 17, 15]);
+      final result = await valuesFuture;
+      final input = [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17];
+      expect(input.every(result.contains), isTrue);
+      expect(result, isNot(input)); // checks that items are randomized
     });
   });
 
