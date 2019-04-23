@@ -1,4 +1,4 @@
-# Created with package:mono_repo v2.0.0
+# Created with package:mono_repo v2.1.0
 language: dart
 
 # Custom configuration
@@ -12,6 +12,11 @@ jobs:
       dart: "2.2.0"
       env: PKGS="app pkg/_popularity pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/retry pkg/simple_cache pkg/web_app"
       script: ./tool/travis.sh dartfmt dartanalyzer
+    - stage: smoke_test
+      name: "SDK: 2.2.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
+      dart: "2.2.0"
+      env: PKGS="pkg/web_css"
+      script: ./tool/travis.sh dartfmt
     - stage: unit_test
       name: "SDK: 2.2.0; PKG: app; TASKS: `pub run test --run-skipped`"
       dart: "2.2.0"
@@ -47,11 +52,6 @@ jobs:
       dart: "2.2.0"
       env: PKGS="pkg/simple_cache"
       script: ./tool/travis.sh test
-    - stage: smoke_test
-      name: "SDK: 2.2.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
-      dart: "2.2.0"
-      env: PKGS="pkg/web_css"
-      script: ./tool/travis.sh dartfmt
 
 stages:
   - smoke_test
