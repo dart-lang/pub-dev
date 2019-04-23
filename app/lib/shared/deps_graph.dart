@@ -76,13 +76,14 @@ class PackageDependencyBuilder {
 
   DateTime _lastTs;
 
+  /// The future will complete once the initial database has been scanned and a
+  /// graph has been built.
   static Future<PackageDependencyBuilder> loadInitialGraphFromDb(
       DatastoreDB db, OnAffected onAffected) async {
     final sw = Stopwatch()..start();
     final builder = PackageDependencyBuilder._(db, onAffected);
     await builder.scanExistingPackageGraph();
     _logger.info('Scanned initial dependency graph in ${sw.elapsed}.');
-    builder.monitorInBackground();
     return builder;
   }
 
