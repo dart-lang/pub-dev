@@ -209,6 +209,22 @@ Future<DateTime> _detectLastModified(Directory dir) async {
   return lastModified;
 }
 
+Future _runPubGet(Directory dir) async {
+  final pr = await runProc(
+    'pub',
+    ['get'],
+    workingDirectory: dir.path,
+    timeout: Duration(minutes: 2),
+  );
+  if (pr.exitCode != 0) {
+    final message = 'Unable to run `pub get` in ${dir.path}\n\n'
+        'exitCode: ${pr.exitCode}\n'
+        'STDOUT:\n${pr.stdout}\n\n'
+        'STDERR:\n${pr.stderr}';
+    throw Exception(message);
+  }
+}
+
 Future updateLocalBuiltFiles() async {
   final staticDir = Directory(_resolveStaticDirPath());
 
@@ -218,6 +234,7 @@ Future updateLocalBuiltFiles() async {
   if (!scriptJs.existsSync() ||
       (scriptJs.lastModifiedSync().isBefore(webAppLastModified))) {
     await scriptJs.parent.create(recursive: true);
+    await _runPubGet(webAppDir);
     final pr = await runProc(
       '/bin/sh',
       ['build.sh'],
@@ -238,6 +255,7 @@ Future updateLocalBuiltFiles() async {
   final styleCss = File(path.join(staticDir.path, 'css', 'style.css'));
   if (!styleCss.existsSync() ||
       (styleCss.lastModifiedSync().isBefore(webCssLastModified))) {
+    await _runPubGet(webCssDir);
     final pr = await runProc(
       '/bin/sh',
       ['build.sh'],
