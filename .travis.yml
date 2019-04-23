@@ -47,6 +47,11 @@ jobs:
       dart: "2.2.0"
       env: PKGS="pkg/simple_cache"
       script: ./tool/travis.sh test
+    - stage: smoke_test
+      name: "SDK: 2.2.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
+      dart: "2.2.0"
+      env: PKGS="pkg/web_css"
+      script: ./tool/travis.sh dartfmt
 
 stages:
   - smoke_test

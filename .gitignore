@@ -28,3 +28,4 @@ key.json
 pkg/*/pubspec.lock
 !pkg/pub_dartdoc/pubspec.lock
 !pkg/web_app/pubspec.lock
+!pkg/web_css/pubspec.lock
