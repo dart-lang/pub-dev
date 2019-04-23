@@ -1,0 +1,21 @@
+/******************************************************
+  site footer
+******************************************************/
+.site-footer {
+  padding: 16px;
+  margin: 80px 0 30px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.site-footer > .link {
+  margin: 0 12px;
+  font-weight: 400;
+}
+
+.site-footer > .link > .inline-icon {
+  display: inline-block;
+  max-height: 16px;
+  position: relative;
+  top: 3px;
+}

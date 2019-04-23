@@ -28,6 +28,11 @@ RUN pub get --no-precompile
 RUN pub get --offline --no-precompile
 RUN ./build.sh
 
+WORKDIR /project/pkg/web_css
+RUN pub get --no-precompile
+RUN pub get --offline --no-precompile
+RUN ./build.sh
+
 WORKDIR /project/app
 RUN pub get --no-precompile
 RUN pub get --offline --no-precompile

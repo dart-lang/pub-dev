@@ -1,0 +1,57 @@
+/******************************************************
+  searchbar
+******************************************************/
+.search-bar {
+  border: 1px solid #E2E2E2;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 3px;
+  background: #f5f5f5;
+  max-width: 650px;
+  background: #fff;
+}
+
+.search-bar > .input {
+  font-size: 16px;
+  padding: 0.8em 1em;
+  border: none;
+  width: 250px;
+  -webkit-box-flex: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
+  background: transparent;
+}
+
+.search-bar > .icon {
+  width: 45px;
+  height: 45px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+  background-color: #0175C2;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABGdBTUEAALGPC/xhBQAAARdJREFUOBHNkz1uwkAQhTGkhCuELlQUiAtwilzHtU8BVLkHF4iokbJJkS41EiTS5nvL2FrQGMsdIz3N7ntvZn+8HgyyiDEuwBv4BifLmi8yW/sQ4xMowRl4Ib4Eo/YuKGYixT9QgSUYW9ZcvKJsbYSo42hFmVeeUbzp8vnHRNAdKCqvSc1JTy78NXeVEXWxiuWVcDORnlz4b6TLFFFfRzF2DUaiT5IrxqPnG0L+mDDzDBn3YuNDxjVDNdrZ7LVh/UGtv7sy2+3z1X7xz91GIhFLoOh6R+vWJtao62VrgW1aKsZP8rSrYf6vHSnYgw1IxyEHoAjgfrN7K6kYBKAI4DGbfbCzZ72j3lEUxRdFKxB6F3sF2okg7R/6f6gee6OuegAAAABJRU5ErkJggg==");
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  -webkit-transform: scale(1.02);
+  transform: scale(1.02);
+}
+
+.search-bar-details {
+  position: relative;
+  max-width: 650px;
+}
+
+.search-bar-options {
+  font-size: 14px;
+}
+
+@media (min-width: 600px) {
+  .search-bar-options {
+    position: absolute;
+    top: 16px;
+    right: 0px;
+  }
+}
