@@ -1,0 +1,338 @@
+/******************************************************
+  package page
+******************************************************/
+.package-banner {
+  padding: 10px;
+}
+
+.package-header {
+  margin: 30px 0 10px;
+}
+
+.package-header > .title {
+  font-size: 32px;
+  font-weight: 600;
+  display: inline-block;
+  margin: 0;
+}
+
+.package-header > .metadata {
+  font-size: 14px;
+  color: #555;
+}
+
+.package-header > .metadata > .tags {
+  display: inline-block;
+  margin-left: 20px;
+}
+
+.package-tabs {
+  margin: 10px 0 20px;
+  padding: 0;
+  border-bottom: 1px solid #f0f0f0;
+  list-style: none;
+}
+
+.package-tabs > .tab {
+  color: #666666;
+  display: inline-block;
+  margin-right: 35px;
+  padding: 10px 2px;
+  border-bottom: 4px solid;
+  border-bottom-color: transparent;
+  cursor: pointer;
+  vertical-align: bottom;
+}
+
+.package-tabs > .tab:hover {
+  border-bottom-color: #dddddd;
+}
+
+.package-tabs > .tab:last-child {
+  margin-right: 0;
+}
+
+.package-tabs > .tab.-active {
+  color: black;
+  border-bottom-color: black;
+}
+
+.package-tabs > .tab > .score-box {
+  margin: 0;
+}
+
+.tabs-content > .content {
+  display: none;
+}
+
+.tabs-content > .content.-active {
+  display: block;
+}
+
+.package-container > .main {
+  display: inline-block;
+  width: calc(100% - 300px);
+  vertical-align: top;
+}
+
+.package-container > .sidebar {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 60px;
+  margin-left: 20px;
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 270px;
+  flex: 0 0 270px;
+  width: 270px;
+  padding: 20px;
+  background: #F8F8F8;
+  border: 1px solid #DDD;
+  position: relative;
+  top: -1px;
+}
+
+.sidebar-content {
+  font-size: 14px;
+}
+
+.sidebar-content > .title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.sidebar-content > .title:not(:first-child) {
+  margin-top: 12px;
+}
+
+.sidebar-content > p {
+  margin: 0;
+}
+
+.sidebar-content > .link {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+  line-height: 1.2em;
+}
+
+.sidebar-content > .share {
+  background-color: transparent;
+}
+
+.mobile-os span {
+  vertical-align: middle;
+  margin-right: 16px;
+}
+
+.mobile-os span > img {
+  width: 22px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+@media screen and (max-width: 920px) {
+  .package-container > .main {
+    display: block;
+    width: 100%;
+    vertical-align: top;
+  }
+
+  .package-container > .sidebar {
+    display: block;
+    width: 100%;
+    margin: 60px 0 0;
+  }
+}
+.version-table {
+  width: 100%;
+}
+
+.version-table td,
+.version-table th {
+  width: 25%;
+  padding: 4px 10px;
+  text-align: left;
+}
+
+.dependency-table {
+  width: 100%;
+}
+
+.dependency-table td,
+.dependency-table th {
+  width: 25%;
+  padding: 4px 10px;
+  text-align: left;
+}
+
+.dependency-table th.sub-header {
+  font-weight: 500;
+  font-style: italic;
+}
+
+
+/******************************************************
+  Analysis tab
+******************************************************/
+.score-percent-row {
+  margin: 0px 24px;
+  height: 28px;
+  position: relative;
+}
+
+.score-percent {
+  background: #dddddd;
+  color: black;
+  display: inline-block;
+  padding: 2px 4px;
+  margin-left: -12px;
+  position: absolute;
+  top: -4px;
+  font-size: 10pt;
+  min-width: 24px;
+  text-align: center;
+}
+
+.score-percent::after {
+  content: " ";
+  position: absolute;
+  top: 100%;
+  left: 12px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #dddddd transparent transparent transparent;
+}
+
+.score-progress-row {
+  padding: 3px 0px;
+  margin: 0px 24px;
+}
+
+.score-progress-frame {
+  background: #f0f0f0;
+}
+
+.score-progress-frame > .score-progress {
+  height: 4px;
+}
+
+#scores-table {
+  margin-bottom: 1em;
+}
+
+#scores-table tr {
+  vertical-align: baseline;
+}
+
+#scores-table .score-name {
+  min-width: 100px;
+  padding-right: 4px;
+  text-align: right;
+}
+
+#scores-table .score-value {
+  width: 100%;
+}
+
+.tooltip-base {
+  position: relative;
+  display: inline-block;
+  padding: 4px;
+}
+
+.tooltip-dotted {
+  border-bottom: 1px dotted #ddd;
+}
+
+.tooltip-content {
+  visibility: hidden;
+  background: #f8f8f8;
+  color: black;
+  opacity: 0.95;
+  padding: 12px 12px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  text-align: left;
+  position: absolute;
+  width: 300px;
+  top: 100%;
+  left: -24px;
+  z-index: 3;
+}
+
+.tooltip-content::after {
+  content: " ";
+  position: absolute;
+  bottom: 100%;
+  /* At the top of the tooltip */
+  left: 48px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #ddd transparent;
+}
+
+.tooltip-bottom-left {
+  left: inherit;
+  right: -24px;
+}
+
+.tooltip-bottom-left.tooltip-content::after {
+  left: inherit;
+  right: 48px;
+}
+
+.tooltip-base:hover .tooltip-content,
+.tooltip-base.hover .tooltip-content {
+  visibility: visible;
+}
+
+.suggestion-row {
+  padding: 2px;
+}
+
+.suggestion-row:hover {
+  background-color: #f8f8f8;
+}
+
+.suggestion-title {
+  font-weight: bold;
+}
+
+.suggestion-icon-info,
+.suggestion-icon-warning,
+.suggestion-icon-danger {
+  float: left;
+  margin: 2px 20px 0px 0px;
+}
+
+.suggestion-icon-info {
+  display: inline-block;
+  width: 0px;
+  height: 0px;
+  border: 10px solid lightblue;
+  border-radius: 10px;
+}
+
+.suggestion-icon-warning {
+  display: inline-block;
+  width: 0px;
+  height: 0px;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid orange;
+}
+
+.suggestion-icon-danger {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: red;
+}
+
+.suggestion-description {
+  margin-left: 40px;
+}

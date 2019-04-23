@@ -46,7 +46,13 @@ String _resolveStaticDirPath() {
 }
 
 String _resolveWebAppDirPath() {
-  return path.join(resolveAppDir(), '../pkg/web_app');
+  return Directory(path.join(resolveAppDir(), '../pkg/web_app'))
+      .resolveSymbolicLinksSync();
+}
+
+String _resolveWebCssDirPath() {
+  return Directory(path.join(resolveAppDir(), '../pkg/web_css'))
+      .resolveSymbolicLinksSync();
 }
 
 String _resolveRootDirPath() =>
@@ -187,12 +193,9 @@ class StaticUrls {
   }
 }
 
-Future updateLocalBuiltFiles() async {
-  final staticDir = Directory(_resolveStaticDirPath());
-  final webAppDir = Directory(_resolveWebAppDirPath());
-  // detect last modification of the web_app dir
+Future<DateTime> _detectLastModified(Directory dir) async {
   DateTime lastModified;
-  await for (FileSystemEntity fse in webAppDir.list(recursive: true)) {
+  await for (FileSystemEntity fse in dir.list(recursive: true)) {
     if (fse is File) {
       final lm = await fse.lastModified();
       if (lastModified == null || lastModified.isBefore(lm)) {
@@ -201,21 +204,66 @@ Future updateLocalBuiltFiles() async {
     }
   }
   if (lastModified == null) {
-    throw StateError('No files detected in pkg/web_app.');
+    throw StateError('No files detected in ${dir.path}.');
   }
+  return lastModified;
+}
 
+Future _runPubGet(Directory dir) async {
+  final pr = await runProc(
+    'pub',
+    ['get'],
+    workingDirectory: dir.path,
+    timeout: Duration(minutes: 2),
+  );
+  if (pr.exitCode != 0) {
+    final message = 'Unable to run `pub get` in ${dir.path}\n\n'
+        'exitCode: ${pr.exitCode}\n'
+        'STDOUT:\n${pr.stdout}\n\n'
+        'STDERR:\n${pr.stderr}';
+    throw Exception(message);
+  }
+}
+
+Future updateLocalBuiltFiles() async {
+  final staticDir = Directory(_resolveStaticDirPath());
+
+  final webAppDir = Directory(_resolveWebAppDirPath());
+  final webAppLastModified = await _detectLastModified(webAppDir);
   final scriptJs = File(path.join(staticDir.path, 'js', 'script.dart.js'));
   if (!scriptJs.existsSync() ||
-      (scriptJs.lastModifiedSync().isBefore(lastModified))) {
+      (scriptJs.lastModifiedSync().isBefore(webAppLastModified))) {
     await scriptJs.parent.create(recursive: true);
+    await _runPubGet(webAppDir);
     final pr = await runProc(
-      'build.sh',
-      [],
+      '/bin/sh',
+      ['build.sh'],
       workingDirectory: webAppDir.path,
       timeout: const Duration(minutes: 2),
     );
     if (pr.exitCode != 0) {
       final message = 'Unable to compile script.dart\n\n'
+          'exitCode: ${pr.exitCode}\n'
+          'STDOUT:\n${pr.stdout}\n\n'
+          'STDERR:\n${pr.stderr}';
+      throw Exception(message);
+    }
+  }
+
+  final webCssDir = Directory(_resolveWebCssDirPath());
+  final webCssLastModified = await _detectLastModified(webCssDir);
+  final styleCss = File(path.join(staticDir.path, 'css', 'style.css'));
+  if (!styleCss.existsSync() ||
+      (styleCss.lastModifiedSync().isBefore(webCssLastModified))) {
+    await _runPubGet(webCssDir);
+    final pr = await runProc(
+      '/bin/sh',
+      ['build.sh'],
+      workingDirectory: webCssDir.path,
+      timeout: const Duration(minutes: 2),
+    );
+    if (pr.exitCode != 0) {
+      final message = 'Unable to compile style.scss\n\n'
           'exitCode: ${pr.exitCode}\n'
           'STDOUT:\n${pr.stdout}\n\n'
           'STDERR:\n${pr.stderr}';

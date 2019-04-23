@@ -15,6 +15,8 @@ packages
 *.sum
 
 # Ignore files built when the server is started
+/static/css/style.css
+/static/css/style.css.map
 /static/js/script.dart.js
 /static/js/script.dart.js.info.json
 /static/js/script.dart.js.map
@@ -26,3 +28,4 @@ key.json
 pkg/*/pubspec.lock
 !pkg/pub_dartdoc/pubspec.lock
 !pkg/web_app/pubspec.lock
+!pkg/web_css/pubspec.lock
