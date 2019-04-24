@@ -46,7 +46,11 @@ final Logger _logger = Logger('pub');
 final _random = Random.secure();
 
 Future main() async {
-  await startIsolates(logger: _logger, frontendEntryPoint: _main);
+  await startIsolates(
+    logger: _logger,
+    frontendEntryPoint: _main,
+    workerEntryPoint: _worker,
+  );
 }
 
 Future _main(FrontendEntryMessage message) async {
@@ -120,23 +124,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   initSearchService();
 
-  // Updates job entries for analyzer and dartdoc.
-  Future triggerDependentAnalysis(
-      String package, String version, Set<String> affected) async {
-    await analyzerClient.triggerAnalysis(package, version, affected);
-    await dartdocClient.triggerDartdoc(package, version, affected);
-  }
-
-  // The future will complete once the initial database has been scanned and a
-  // graph has been built.  It will nonetheless continue to monitor the database
-  // in the background and maintains a global set of package dependencies.
-  //
-  // It can take up to 1 minute until this future completes.  Though normally we
-  // don't have a new package upload within the first minute of deployment, so
-  // for all practical purposes this future will be ready.
-  PackageDependencyBuilder.loadInitialGraphFromDb(
-      db.dbService, triggerDependentAnalysis);
-
   final cache = AppEnginePackageMemcache();
   initBackend(cache: cache);
   registerSearchMemcache(SearchMemcache());
@@ -155,4 +142,26 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerUploadSigner(uploadSigner);
 
   return ShelfPubServer(backend.repository, cache: cache).requestHandler;
+}
+
+Future _worker(WorkerEntryMessage message) async {
+  setupServiceIsolate();
+  message.protocolSendPort.send(WorkerProtocolMessage());
+
+  await withAppEngineAndCache(() async {
+    registerAnalyzerClient(AnalyzerClient());
+    registerDartdocClient(DartdocClient());
+    registerJobBackend(JobBackend(db.dbService));
+
+    // Updates job entries for analyzer and dartdoc.
+    Future triggerDependentAnalysis(
+        String package, String version, Set<String> affected) async {
+      await analyzerClient.triggerAnalysis(package, version, affected);
+      await dartdocClient.triggerDartdoc(package, version, affected);
+    }
+
+    final pdb = await PackageDependencyBuilder.loadInitialGraphFromDb(
+        db.dbService, triggerDependentAnalysis);
+    await pdb.monitorInBackground(); // never returns
+  });
 }
