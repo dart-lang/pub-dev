@@ -39,33 +39,35 @@
   {{/include_survey}}
 </head>
 <body class="{{& body_class}}">
-<header class="site-header">
-  <h1 class="_visuallyhidden">Dart pub</h1>
-  <button class="hamburger"></button>
-  <div class="mask"></div>
-  <div class="nav-wrap">
-    <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets.img__dart-logo_svg}}}" alt="dart pub logo" /></a>
-      <div class="_flex-space"></div>
-      <button class="close"></button>
+<header class="site-header-row">
+  <div class="site-header">
+    <h1 class="_visuallyhidden">Dart pub</h1>
+    <button class="hamburger"></button>
+    <div class="mask"></div>
+    <div class="nav-wrap">
+      <div class="nav-header"><a class="logo" href="/"><img src="{{{static_assets.img__dart-logo_svg}}}" alt="dart pub logo" /></a>
+        <div class="_flex-space"></div>
+        <button class="close"></button>
+      </div>
+      <nav class="site-nav">
+        <span>Getting Started:</span>
+        <div class="sub-wrap hoverable">
+          <button class="button">Flutter</button>
+          <div class="sub-nav">
+            <a class="link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using Packages</a>
+            <a class="link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing Packages and Plugins</a>
+          </div>
+        </div>
+        <div class="sub-wrap hoverable">
+          <button class="button">Web &amp; Server</button>
+          <div class="sub-nav">
+            <a class="link" target="_blank" rel="noopener" href="https://www.dartlang.org/tools/pub/get-started">Using Packages</a>
+            <a class="link" target="_blank" rel="noopener" href="https://www.dartlang.org/tools/pub/publishing">Publishing a Package</a>
+            <a class="link" target="_blank" rel="noopener" href="https://www.dartlang.org/tools/pub">Overview</a>
+          </div>
+        </div>
+      </nav>
     </div>
-    <nav class="site-nav">
-      <span>Getting Started:</span>
-      <div class="sub-wrap hoverable">
-        <button class="button">Flutter</button>
-        <div class="sub-nav">
-          <a class="link" target="_blank" rel="noopener" href="https://flutter.io/using-packages/">Using Packages</a>
-          <a class="link" target="_blank" rel="noopener" href="https://flutter.io/developing-packages/">Developing Packages and Plugins</a>
-        </div>
-      </div>
-      <div class="sub-wrap hoverable">
-        <button class="button">Web &amp; Server</button>
-        <div class="sub-nav">
-          <a class="link" target="_blank" rel="noopener" href="https://www.dartlang.org/tools/pub/get-started">Using Packages</a>
-          <a class="link" target="_blank" rel="noopener" href="https://www.dartlang.org/tools/pub/publishing">Publishing a Package</a>
-          <a class="link" target="_blank" rel="noopener" href="https://www.dartlang.org/tools/pub">Overview</a>
-        </div>
-      </div>
-    </nav>
   </div>
 </header>
 
