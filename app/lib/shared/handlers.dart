@@ -11,7 +11,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
-import 'urls.dart';
+import 'urls.dart' as urls;
 import 'utils.dart' show eventLoopLatencyTracker;
 import 'versions.dart';
 
@@ -31,7 +31,7 @@ final _prettyJson = JsonEncoder.withIndent('  ');
 shelf.Response redirectResponse(String url) => shelf.Response.seeOther(url);
 
 shelf.Response redirectToSearch(String query) {
-  return redirectResponse(searchUrl(q: query));
+  return redirectResponse(urls.searchUrl(q: query));
 }
 
 bool isPrettyJson(shelf.Request request) {
@@ -172,7 +172,5 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
   return false;
 }
 
-bool isProductionHost(shelf.Request request) {
-  final String host = request.requestedUri.host;
-  return host == pubHostedDomain;
-}
+bool isProductionHost(shelf.Request request) =>
+    urls.isProductionHost(request.requestedUri.host);

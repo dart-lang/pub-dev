@@ -9,10 +9,16 @@ import 'package:pub_server/repository.dart' show GenericProcessingException;
 import 'packages_overrides.dart';
 import 'versions.dart';
 
-const pubHostedDomain = 'pub.dartlang.org';
+const _pubDartlangOrg = 'pub.dartlang.org';
+const _pubDev = 'pub.dev';
+const _apiPubDev = 'api.pub.dev';
 
-const siteRoot = 'https://$pubHostedDomain';
+const siteRoot = 'https://$_pubDartlangOrg';
 const _apiDartlangOrg = 'https://api.dartlang.org/';
+
+bool isProductionHost(String host) {
+  return host == _pubDartlangOrg || host == _pubDev || host == _apiPubDev;
+}
 
 String pkgPageUrl(String package,
     {String version, bool includeHost = false, String fragment}) {
@@ -92,7 +98,7 @@ String pkgInviteUrl({
 }) {
   return Uri(
     scheme: 'https',
-    host: pubHostedDomain,
+    host: _pubDartlangOrg,
     path: p.join('/admin/confirm', type, package, email, urlNonce),
   ).toString();
 }
