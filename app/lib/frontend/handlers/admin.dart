@@ -77,15 +77,16 @@ Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
       final inviteEmail = invite.fromUserId == null
           ? invite.fromEmail
           : await accountBackend.getEmailOfUserId(invite.fromUserId);
-      final redirectUrl =
-          accountBackend.siteAuthorizationUrl(request.requestedUri.path);
+      final redirectUrl = accountBackend.siteAuthorizationUrl(
+          _oauthRedirectUrl(request), request.requestedUri.path);
       return htmlResponse(renderUploaderApprovalPage(
           invite.packageName, inviteEmail, invite.recipientEmail, redirectUrl));
     }
 
     // Check and validate the auth code.
     String authErrorMessage;
-    final accessToken = await accountBackend.siteAuthCodeToAccessToken(code);
+    final accessToken = await accountBackend.siteAuthCodeToAccessToken(
+        _oauthRedirectUrl(request), code);
     if (accessToken == null) {
       authErrorMessage ??= 'Unable to verify auth code.';
     }
@@ -120,4 +121,9 @@ Future<shelf.Response> _formattedInviteExpiredHandler(
   String description = 'The URL you have clicked expired or became invalid.',
 }) async {
   return htmlResponse(renderErrorPage(title, description, null), status: 404);
+}
+
+String _oauthRedirectUrl(shelf.Request request) {
+  final uri = request.requestedUri;
+  return uri.replace(path: '/oauth/callback').toString();
 }

@@ -59,9 +59,6 @@ class Configuration {
   /// The PUB_HOSTED_URL to use in analyzer and dartdoc.
   final String pubHostedUrl;
 
-  /// The OAuth redirect endpoint to use.
-  final String oauthRedirectUrl;
-
   /// The OAuth audience (`client_id`) that the `pub` client uses.
   final String pubClientAudience;
 
@@ -88,7 +85,6 @@ class Configuration {
         backupSnapshotBucketName: '$projectId--backup-snapshots',
         searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
         pubHostedUrl: 'https://pub.dartlang.org',
-        oauthRedirectUrl: 'https://pub.dartlang.org/oauth/callback',
         pubClientAudience: _pubClientAudience,
         pubSiteAudience:
             '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
@@ -107,7 +103,6 @@ class Configuration {
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
       pubHostedUrl: 'https://dartlang-pub-dev.appspot.com',
-      oauthRedirectUrl: 'https://dartlang-pub-dev.appspot.com/oauth/callback',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
@@ -124,7 +119,6 @@ class Configuration {
     @required this.backupSnapshotBucketName,
     @required this.searchServicePrefix,
     @required this.pubHostedUrl,
-    @required this.oauthRedirectUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
     @required this.credentials,

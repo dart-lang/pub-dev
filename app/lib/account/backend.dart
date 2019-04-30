@@ -155,16 +155,16 @@ class AccountBackend {
   }
 
   /// Returns the URL of the authorization endpoint used by pub site.
-  String siteAuthorizationUrl(String state) {
-    return _authProvider.authorizationUrl(state);
+  String siteAuthorizationUrl(String redirectUrl, String state) {
+    return _authProvider.authorizationUrl(redirectUrl, state);
   }
 
   /// Validates the authorization [code] and returns the access token.
   ///
   /// Returns null on any error, or if the token is expired, or the code is not
   /// verified.
-  Future<String> siteAuthCodeToAccessToken(String code) =>
-      _authProvider.authCodeToAccessToken(code);
+  Future<String> siteAuthCodeToAccessToken(String redirectUrl, String code) =>
+      _authProvider.authCodeToAccessToken(redirectUrl, code);
 
   /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
   ///
@@ -295,13 +295,13 @@ class AuthResult {
 /// Authenticates access tokens.
 abstract class AuthProvider {
   /// Returns the URL of the authorization endpoint.
-  String authorizationUrl(String state);
+  String authorizationUrl(String redirectUrl, String state);
 
   /// Validates the authorization [code], and returns the access token.
   ///
   /// Returns null on any error, or if the token is expired, or the code is not
   /// verified.
-  Future<String> authCodeToAccessToken(String code);
+  Future<String> authCodeToAccessToken(String redirectUrl, String code);
 
   /// Checks the [accessToken] and returns a verified user information.
   ///
@@ -330,11 +330,11 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   @override
-  String authorizationUrl(String state) {
+  String authorizationUrl(String redirectUrl, String state) {
     return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
       queryParameters: {
         'client_id': _siteAudience,
-        'redirect_uri': activeConfiguration.oauthRedirectUrl,
+        'redirect_uri': redirectUrl,
         'scope': 'openid profile email',
         'response_type': 'code',
         'access_type': 'online',
@@ -344,8 +344,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   @override
-  Future<String> authCodeToAccessToken(String code) async {
-    final redirectUrl = activeConfiguration.oauthRedirectUrl;
+  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
     try {
       await _loadSecret();
       final rs = await _httpClient
