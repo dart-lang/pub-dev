@@ -24,6 +24,18 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
 }
 
+/// Handles requests for /robots.txt
+Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
+  if (!isProductionHost(request)) {
+    return rejectRobotsHandler(request);
+  }
+  final uri = request.requestedUri;
+  final sitemapUri = uri.replace(path: 'sitemap.txt');
+  return shelf.Response(200, body: '''User-agent: *
+sitemap: $sitemapUri
+''');
+}
+
 /// Handles requests for /sitemap.txt
 Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   // Google wants the return page to have < 50,000 entries and be less than

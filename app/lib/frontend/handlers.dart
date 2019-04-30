@@ -73,8 +73,6 @@ Future<shelf.Response> appHandler(
   } else if (path.startsWith('/documentation')) {
     return documentationHandler(
         request.context['_originalRequest'] as shelf.Request ?? request);
-  } else if (path == '/robots.txt' && !isProductionHost(request)) {
-    return rejectRobotsHandler(request);
   } else if (staticFileCache.hasFile(request.requestedUri.path)) {
     return staticsHandler(request);
   } else {
@@ -93,6 +91,7 @@ const _handlers = <String, shelf.Handler>{
   '/api/history': apiHistoryHandler, // experimental, do not rely on it
   '/debug': _debugHandler,
   '/feed.atom': atomFeedHandler,
+  '/robots.txt': robotsTxtHandler,
   '/sitemap.txt': siteMapTxtHandler,
   '/authorized': authorizedHandler,
   '/packages.json': packagesHandler,
