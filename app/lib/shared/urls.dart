@@ -211,3 +211,16 @@ String inferServiceProviderName(String url) {
 String panaMaintenanceUrl() {
   return 'https://pub.dartlang.org/documentation/pana/$panaVersion/#maintenance-score';
 }
+
+/// Return true if the user-provided `documentation` URL should not be shown.
+bool hideUserProvidedDocUrl(String url) {
+  if (url == null || url.isEmpty) return true;
+  final uri = Uri.parse(url);
+  if (uri == null) return true;
+  if (uri.scheme != 'http' && uri.scheme != 'https') return true;
+  final host = uri.host.toLowerCase();
+  return host == 'dartdocs.org' ||
+      host == 'www.dartdocs.org' ||
+      host == 'pub.dartlang.org' ||
+      host == 'pub.dev';
+}
