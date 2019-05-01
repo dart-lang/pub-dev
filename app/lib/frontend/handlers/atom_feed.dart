@@ -104,7 +104,8 @@ class Feed {
       this.entries);
 
   String toXmlDocument() {
-    final buffer = StringBuffer('<?xml version="1.0" encoding="UTF-8"?>');
+    final buffer = StringBuffer();
+    buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
     writeToXmlBuffer(buffer);
     return buffer.toString();
   }
@@ -143,8 +144,13 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
     final alternateUrl = requestedUri.replace(path: pkgPage).toString();
     final alternateTitle = version.package;
 
-    final id =
-        uuid.v5(Uuid.NAMESPACE_URL, version.qualifiedVersionKey.toString());
+    // TODO: use only qualifiedVersion as seed after the domain migration
+    final seed = (requestedUri.host == 'pub.dartlang.org')
+        ? requestedUri
+            .resolve('/packages/${version.package}#${version.version}')
+            .toString()
+        : version.qualifiedVersionKey.toString();
+    final id = uuid.v5(Uuid.NAMESPACE_URL, seed);
     final title = 'v${version.version} of ${version.package}';
 
     // NOTE: A pubspec.yaml file can have "author: ..." or "authors: ...".
