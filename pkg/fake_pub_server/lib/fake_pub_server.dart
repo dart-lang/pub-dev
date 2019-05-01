@@ -68,13 +68,13 @@ class FakePubServer {
 
 class FakeAuthProvider implements AuthProvider {
   @override
-  Future<String> authCodeToAccessToken(String code) async {
+  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
     return code;
   }
 
   @override
-  String authorizationUrl(String state) {
-    return '/auth/callback';
+  String authorizationUrl(String redirectUrl, String state) {
+    return redirectUrl;
   }
 
   @override

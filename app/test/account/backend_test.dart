@@ -124,12 +124,12 @@ class AuthProviderMock implements AuthProvider {
   });
 
   @override
-  String authorizationUrl(String state) {
+  String authorizationUrl(String redirectUrl, String state) {
     return 'https://auth.provider.com/url?state=${Uri.encodeQueryComponent(state)}';
   }
 
   @override
-  Future<String> authCodeToAccessToken(String code) async {
+  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
     return codes[code];
   }
 
