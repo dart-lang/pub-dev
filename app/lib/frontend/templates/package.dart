@@ -146,11 +146,7 @@ String _renderSidebar(
   final baseUrl = packageLinks.repositoryUrl ?? packageLinks.homepageUrl;
 
   String documentationUrl = packageLinks.documentationUrl;
-  if (documentationUrl != null &&
-      (documentationUrl.startsWith('https://www.dartdocs.org/') ||
-          documentationUrl.startsWith('http://www.dartdocs.org/') ||
-          documentationUrl.startsWith('https://pub.dartlang.org/') ||
-          documentationUrl.startsWith('http://pub.dartlang.org/'))) {
+  if (urls.hideUserProvidedDocUrl(documentationUrl)) {
     documentationUrl = null;
   }
   final dartdocsUrl = urls.pkgDocUrl(
@@ -183,7 +179,7 @@ String _renderSidebar(
   addLink(packageLinks.repositoryUrl, 'Repository',
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
-  addLink(packageLinks.documentationUrl, 'Documentation');
+  addLink(documentationUrl, 'Documentation');
   addLink(dartdocsUrl, 'API reference');
 
   return templateCache.renderTemplate('pkg/sidebar', {
