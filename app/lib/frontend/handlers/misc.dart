@@ -27,7 +27,7 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
 
 /// Handles requests for /robots.txt
 Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
-  if (!requestContext.isProductionHost) {
+  if (requestContext.blockRobots) {
     return rejectRobotsHandler(request);
   }
   final uri = request.requestedUri;
@@ -39,7 +39,7 @@ sitemap: $sitemapUri
 
 /// Handles requests for /sitemap.txt
 Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
-  if (!requestContext.isProductionHost) {
+  if (requestContext.blockRobots) {
     return notFoundHandler(request);
   }
 
@@ -53,23 +53,19 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
 
   final twoYearsAgo = DateTime.now().subtract(twoYears);
   final items = <String>[];
-  if (requestContext.showPackages) {
-    final pages = ['/', '/help', '/web', '/flutter'];
-    items.addAll(pages.map((page) => uri.replace(path: page).toString()));
-  }
+  final pages = ['/', '/help', '/web', '/flutter'];
+  items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
   final stream = backend.allPackageNames(
       updatedSince: twoYearsAgo, excludeDiscontinued: true);
   await for (var package in stream) {
     if (isSoftRemoved(package)) continue;
-    if (requestContext.showPackages) {
-      final path = urls.pkgPageUrl(package);
-      items.add(uri.replace(path: path).toString());
-    }
-    if (requestContext.showApiDocs) {
-      final path = urls.pkgDocUrl(package, isLatest: true);
-      items.add(uri.replace(path: path).toString());
-    }
+
+    final pkgPath = urls.pkgPageUrl(package);
+    items.add(uri.replace(path: pkgPath).toString());
+
+    final docPath = urls.pkgDocUrl(package, isLatest: true);
+    items.add(uri.replace(path: docPath).toString());
   }
 
   items.sort();

@@ -41,15 +41,15 @@ Future<shelf.Response> _indexHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  final isProd = requestContext.isProductionHost;
+  final useCache = requestContext.uiCacheEnabled;
   String pageContent =
-      isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
+      useCache ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
   if (pageContent == null) {
     final packages = await topFeaturedPackages(platform: platform);
     final minilist = renderMiniList(packages);
 
     pageContent = renderIndexPage(minilist, platform);
-    if (isProd) {
+    if (useCache) {
       await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
     }
   }

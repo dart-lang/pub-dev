@@ -17,6 +17,7 @@ import '../frontend/request_context.dart';
 import '../frontend/service_utils.dart';
 import '../frontend/templates/layout.dart';
 
+import 'configuration.dart';
 import 'handlers.dart';
 import 'markdown.dart';
 import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
@@ -59,24 +60,22 @@ Future<void> runHandler(
 shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final host = request.requestedUri.host;
-    final isProductionHost = host == 'pub.dartlang.org' ||
-        host == 'pub.dev' ||
-        host == 'api.pub.dev';
-    final isPubDev =
-        host == 'pub.dev' || host == 'pubdev-dot-dartlang-pub-dev.appspot.com';
-    final isApiPubDev = host == 'api.pub.dev' ||
-        host == 'apipubdev-dot-dartlang-pub-dev.appspot.com';
+    final isProductionHost = activeConfiguration.productionHosts.contains(host);
+    final isPubDev = host == 'pub.dev';
 
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final hasExperimentalCookie = cookies['experimental'] == '1';
     final isExperimental = isPubDev || hasExperimentalCookie;
 
+    final enableRobots = hasExperimentalCookie ||
+        (!activeConfiguration.blockRobots && isProductionHost);
+    final uiCacheEnabled = isProductionHost;
+
     registerRequestContext(RequestContext(
-      isProductionHost: isProductionHost,
-      showPackages: !isApiPubDev,
-      showApiDocs: !isPubDev,
       isExperimental: isExperimental,
+      blockRobots: !enableRobots,
+      uiCacheEnabled: uiCacheEnabled,
     ));
     return await handler(request);
   };
