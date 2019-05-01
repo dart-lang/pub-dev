@@ -68,13 +68,13 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final hasExperimentalCookie = cookies['experimental'] == '1';
     final isExperimental = isPubDev || hasExperimentalCookie;
 
-    final searchEnginesEnabled = hasExperimentalCookie ||
-        (activeConfiguration.searchEnginesEnabled && isProductionHost);
+    final enableRobots = hasExperimentalCookie ||
+        (!activeConfiguration.blockRobots && isProductionHost);
     final uiCacheEnabled = isProductionHost;
 
     registerRequestContext(RequestContext(
       isExperimental: isExperimental,
-      searchEnginesEnabled: searchEnginesEnabled,
+      blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
     ));
     return await handler(request);

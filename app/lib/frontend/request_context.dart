@@ -17,8 +17,8 @@ class RequestContext {
   /// Whether experimental UI features are activated.
   final bool isExperimental;
 
-  /// Whether indexing of the content by search engines is enabled.
-  final bool searchEnginesEnabled;
+  /// Whether indexing of the content by robots should be blocked.
+  final bool blockRobots;
 
   /// Whether the use of UI cache is enabled (when there is a risk of cache
   /// pollution by visually changing the site).
@@ -26,7 +26,7 @@ class RequestContext {
 
   const RequestContext({
     this.isExperimental = false,
-    this.searchEnginesEnabled = false,
+    this.blockRobots = true,
     this.uiCacheEnabled = false,
   });
 }

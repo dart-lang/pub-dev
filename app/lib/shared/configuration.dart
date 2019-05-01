@@ -69,8 +69,8 @@ class Configuration {
   /// the Datastore.
   final auth.ServiceAccountCredentials credentials;
 
-  /// Whether indexing of the content by search engines is enabled.
-  final bool searchEnginesEnabled;
+  /// Whether indexing of the content by robots should be blocked.
+  final bool blockRobots;
 
   /// The list of hostnames which are considered production hosts (e.g. which
   /// are not limited in the cache use).
@@ -96,7 +96,7 @@ class Configuration {
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
       credentials: _loadCredentials(),
-      searchEnginesEnabled: true,
+      blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
     );
   }
@@ -117,7 +117,7 @@ class Configuration {
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
       credentials: _loadCredentials(),
-      searchEnginesEnabled: false,
+      blockRobots: true,
       productionHosts: const ['dartlang-pub-dev.appspot.com'],
     );
   }
@@ -134,7 +134,7 @@ class Configuration {
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
     @required this.credentials,
-    @required this.searchEnginesEnabled,
+    @required this.blockRobots,
     @required this.productionHosts,
   });
 

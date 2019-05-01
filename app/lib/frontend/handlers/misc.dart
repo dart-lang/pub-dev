@@ -27,7 +27,7 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
 
 /// Handles requests for /robots.txt
 Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
-  if (!requestContext.searchEnginesEnabled) {
+  if (requestContext.blockRobots) {
     return rejectRobotsHandler(request);
   }
   final uri = request.requestedUri;
@@ -39,7 +39,7 @@ sitemap: $sitemapUri
 
 /// Handles requests for /sitemap.txt
 Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
-  if (!requestContext.searchEnginesEnabled) {
+  if (requestContext.blockRobots) {
     return notFoundHandler(request);
   }
 
