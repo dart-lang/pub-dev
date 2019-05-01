@@ -171,6 +171,3 @@ bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {
 
   return false;
 }
-
-bool isProductionHost(shelf.Request request) =>
-    urls.isProductionHost(request.requestedUri.host);

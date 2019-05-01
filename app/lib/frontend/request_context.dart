@@ -14,7 +14,22 @@ RequestContext get requestContext =>
 
 /// Holds flags for request context.
 class RequestContext {
+  /// Whether the request is on a production host (vs. staging or dev)
+  final bool isProductionHost;
+
+  /// Whether the request is on a host that should serve packages.
+  final bool showPackages;
+
+  /// Whether the request is on a host the should serve API docs.
+  final bool showApiDocs;
+
+  /// Whether experimental UI features are activated.
   final bool isExperimental;
 
-  const RequestContext({this.isExperimental = false});
+  const RequestContext({
+    this.isProductionHost = false,
+    this.showPackages = true,
+    this.showApiDocs = true,
+    this.isExperimental = false,
+  });
 }

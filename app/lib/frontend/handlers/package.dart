@@ -15,6 +15,7 @@ import '../../shared/utils.dart';
 
 import '../backend.dart';
 import '../models.dart';
+import '../request_context.dart';
 import '../templates/package.dart';
 import '../templates/package_versions.dart';
 
@@ -116,7 +117,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   }
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
-  final bool isProd = isProductionHost(request);
+  final bool isProd = requestContext.isProductionHost;
   if (isProd && backend.uiPackageCache != null) {
     cachedPage =
         await backend.uiPackageCache.getUIPackagePage(packageName, versionName);

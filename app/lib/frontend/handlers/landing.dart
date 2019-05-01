@@ -10,6 +10,7 @@ import '../../shared/handlers.dart';
 import '../../shared/platform.dart';
 
 import '../backend.dart';
+import '../request_context.dart';
 import '../search_service.dart';
 import '../templates/landing.dart';
 import '../templates/misc.dart';
@@ -40,7 +41,7 @@ Future<shelf.Response> _indexHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  final isProd = isProductionHost(request);
+  final isProd = requestContext.isProductionHost;
   String pageContent =
       isProd ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
   if (pageContent == null) {

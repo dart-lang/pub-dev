@@ -10,15 +10,9 @@ import 'packages_overrides.dart';
 import 'versions.dart';
 
 const _pubDartlangOrg = 'pub.dartlang.org';
-const _pubDev = 'pub.dev';
-const _apiPubDev = 'api.pub.dev';
 
 const siteRoot = 'https://$_pubDartlangOrg';
 const _apiDartlangOrg = 'https://api.dartlang.org/';
-
-bool isProductionHost(String host) {
-  return host == _pubDartlangOrg || host == _pubDev || host == _apiPubDev;
-}
 
 String pkgPageUrl(String package,
     {String version, bool includeHost = false, String fragment}) {

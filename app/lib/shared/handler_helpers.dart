@@ -58,12 +58,26 @@ Future<void> runHandler(
 /// Populates [requestContext] with the extracted request attributes.
 shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    final isPubDev = request.requestedUri.host == 'pub.dev';
+    final host = request.requestedUri.host;
+    final isProductionHost = host == 'pub.dartlang.org' ||
+        host == 'pub.dev' ||
+        host == 'api.pub.dev';
+    final isPubDev =
+        host == 'pub.dev' || host == 'pubdev-dot-dartlang-pub-dev.appspot.com';
+    final isApiPubDev = host == 'api.pub.dev' ||
+        host == 'apipubdev-dot-dartlang-pub-dev.appspot.com';
+
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final hasExperimentalCookie = cookies['experimental'] == '1';
     final isExperimental = isPubDev || hasExperimentalCookie;
-    registerRequestContext(RequestContext(isExperimental: isExperimental));
+
+    registerRequestContext(RequestContext(
+      isProductionHost: isProductionHost,
+      showPackages: !isApiPubDev,
+      showApiDocs: !isPubDev,
+      isExperimental: isExperimental,
+    ));
     return await handler(request);
   };
 }
