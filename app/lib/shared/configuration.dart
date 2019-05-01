@@ -69,6 +69,13 @@ class Configuration {
   /// the Datastore.
   final auth.ServiceAccountCredentials credentials;
 
+  /// Whether indexing of the content by search engines is enabled.
+  final bool searchEnginesEnabled;
+
+  /// The list of hostnames which are considered production hosts (e.g. which
+  /// are not limited in the cache use).
+  final List<String> productionHosts;
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -77,18 +84,21 @@ class Configuration {
   factory Configuration._prod() {
     final projectId = 'dartlang-pub';
     return Configuration(
-        projectId: projectId,
-        packageBucketName: 'pub-packages',
-        dartdocStorageBucketName: '$projectId--dartdoc-storage',
-        popularityDumpBucketName: '$projectId--popularity',
-        searchSnapshotBucketName: '$projectId--search-snapshot',
-        backupSnapshotBucketName: '$projectId--backup-snapshots',
-        searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-        pubHostedUrl: 'https://pub.dartlang.org',
-        pubClientAudience: _pubClientAudience,
-        pubSiteAudience:
-            '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
-        credentials: _loadCredentials());
+      projectId: projectId,
+      packageBucketName: 'pub-packages',
+      dartdocStorageBucketName: '$projectId--dartdoc-storage',
+      popularityDumpBucketName: '$projectId--popularity',
+      searchSnapshotBucketName: '$projectId--search-snapshot',
+      backupSnapshotBucketName: '$projectId--backup-snapshots',
+      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      pubHostedUrl: 'https://pub.dartlang.org',
+      pubClientAudience: _pubClientAudience,
+      pubSiteAudience:
+          '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
+      credentials: _loadCredentials(),
+      searchEnginesEnabled: true,
+      productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
+    );
   }
 
   /// Create a configuration for development/staging deployment.
@@ -107,6 +117,8 @@ class Configuration {
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
       credentials: _loadCredentials(),
+      searchEnginesEnabled: false,
+      productionHosts: const ['dartlang-pub-dev.appspot.com'],
     );
   }
 
@@ -122,6 +134,8 @@ class Configuration {
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
     @required this.credentials,
+    @required this.searchEnginesEnabled,
+    @required this.productionHosts,
   });
 
   /// Create a configuration based on the environment variables.

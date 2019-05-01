@@ -117,8 +117,8 @@ Future<shelf.Response> _packageVersionHandlerHtml(
   }
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
-  final bool isProd = requestContext.isProductionHost;
-  if (isProd && backend.uiPackageCache != null) {
+  final bool useCache = requestContext.uiCacheEnabled;
+  if (useCache && backend.uiPackageCache != null) {
     cachedPage =
         await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
   }
@@ -179,7 +179,7 @@ Future<shelf.Response> _packageVersionHandlerHtml(
         analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
-    if (isProd && backend.uiPackageCache != null) {
+    if (useCache && backend.uiPackageCache != null) {
       await backend.uiPackageCache
           .setUIPackagePage(packageName, versionName, cachedPage);
     }
