@@ -214,7 +214,7 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
     // With the new flex VMs we can get requests from the load balancer which
     // can contain [Uri]s with e.g. double slashes
     //
-    //    -> e.g. https://pub.dartlang.org//api/packages/foo
+    //    -> e.g. https://pub.dev//api/packages/foo
     //
     // Setting PUB_HOSTED_URL to a URL with a slash at the end can cause this.
     // (The pub client will not remove it and instead directly try to request

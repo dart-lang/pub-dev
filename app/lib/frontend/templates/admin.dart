@@ -21,6 +21,8 @@ String renderUploaderApprovalPage(
     'invite_email': inviteEmail,
     'package': package,
     'package_url': pkgPageUrl(package),
+    'full_site_url': fullSiteUrl,
+    'primary_host': primaryHost,
     'auth_url': authUrl,
   });
   return renderLayoutPage(PageType.package, content,

@@ -24,7 +24,7 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
   final host = request.requestedUri.host;
   if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
     return redirectResponse(
-        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
+        request.requestedUri.replace(host: urls.primaryHost).toString());
   }
 
   final path = request.requestedUri.path;
