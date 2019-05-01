@@ -40,7 +40,7 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
 
 /// Handles requests for /doc
 shelf.Response _docRedirectHandler(shelf.Request request) {
-  final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
+  final pubDocUrl = '${urls.dartSiteRoot}/tools/pub/';
   final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
     return redirectResponse('$pubDocUrl$dartlangDotOrgPath');

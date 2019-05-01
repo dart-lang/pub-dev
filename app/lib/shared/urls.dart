@@ -12,6 +12,7 @@ import 'versions.dart';
 const primaryHost = 'pub.dartlang.org';
 const fullSiteUrl = 'https://$primaryHost/';
 const siteRoot = 'https://$primaryHost';
+const dartSiteRoot = 'https://www.dartlang.org';
 const _apiDartlangOrg = 'https://api.dartlang.org/';
 
 String pkgPageUrl(String package,

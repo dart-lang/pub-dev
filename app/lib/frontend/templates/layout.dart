@@ -52,6 +52,7 @@ String renderLayoutPage(
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
   final values = {
+    'dart_site_root': urls.dartSiteRoot,
     'body_class': requestContext.isExperimental ? 'experimental' : '',
     'no_index': noIndex,
     'static_assets': staticUrls.assets,
