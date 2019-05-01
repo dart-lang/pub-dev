@@ -11,7 +11,7 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:uuid/uuid.dart';
 
-import '../../shared/urls.dart' show siteRoot;
+import '../../shared/urls.dart' as urls;
 
 import '../backend.dart';
 import '../models.dart';
@@ -104,11 +104,9 @@ class Feed {
       this.entries);
 
   String toXmlDocument() {
-    final buffer = StringBuffer();
-    buffer..writeln('<?xml version="1.0" encoding="UTF-8"?>');
-
+    final buffer = StringBuffer('<?xml version="1.0" encoding="UTF-8"?>');
     writeToXmlBuffer(buffer);
-    return '$buffer';
+    return buffer.toString();
   }
 
   void writeToXmlBuffer(StringBuffer buffer) {
@@ -140,19 +138,13 @@ class Feed {
 Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
   final uuid = Uuid();
 
-  // TODO: Remove this after the we moved the to the dart version of the app.
-  final requestedUri = Uri.parse('$siteRoot/feed.atom');
-
   final entries = versions.map((PackageVersion version) {
-    final url = requestedUri
-        .resolve('/packages/${version.package}#${version.version}')
-        .toString();
-    final alternateUrl = requestedUri
-        .resolve('/packages/${Uri.encodeComponent(version.package)}')
-        .toString();
+    final pkgPage = urls.pkgPageUrl(version.package);
+    final alternateUrl = requestedUri.replace(path: pkgPage).toString();
     final alternateTitle = version.package;
 
-    final id = uuid.v5(Uuid.NAMESPACE_URL, url);
+    final id =
+        uuid.v5(Uuid.NAMESPACE_URL, version.qualifiedVersionKey.toString());
     final title = 'v${version.version} of ${version.package}';
 
     // NOTE: A pubspec.yaml file can have "author: ..." or "authors: ...".

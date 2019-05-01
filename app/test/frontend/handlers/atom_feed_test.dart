@@ -37,7 +37,7 @@ void main() {
         <subtitle>Last Updated Packages</subtitle>
 (\\s*)
         <entry>
-          <id>urn:uuid:d4fe7eb8-fc0e-5515-a5e5-5868b339d660</id>
+          <id>urn:uuid:ebaa25c2-6b0c-5829-a686-dc55c2bbd8e4</id>
           <title>v0.1.1\\+5 of foobar_pkg</title>
           <updated>${testPackageVersion.created.toIso8601String()}</updated>
           <author><name>Hans Juergen &lt;hans@juergen.com&gt;</name></author>
