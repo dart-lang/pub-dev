@@ -39,14 +39,11 @@ sitemap: $sitemapUri
 
 /// Handles requests for /sitemap.txt
 Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
-  if (!isProductionHost(request)) {
+  if (!requestContext.isProductionHost) {
     return notFoundHandler(request);
   }
 
   final uri = request.requestedUri;
-  // TODO: use requestContext to infer these
-  final showPackages = uri.host != 'api.pub.dev';
-  final showApiDocs = uri.host != 'pub.dev';
 
   // Google wants the return page to have < 50,000 entries and be less than
   // 50MB -  https://support.google.com/webmasters/answer/183668?hl=en
@@ -56,7 +53,7 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
 
   final twoYearsAgo = DateTime.now().subtract(twoYears);
   final items = <String>[];
-  if (showPackages) {
+  if (requestContext.showPackages) {
     final pages = ['/', '/help', '/web', '/flutter'];
     items.addAll(pages.map((page) => uri.replace(path: page).toString()));
   }
@@ -65,11 +62,11 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
       updatedSince: twoYearsAgo, excludeDiscontinued: true);
   await for (var package in stream) {
     if (isSoftRemoved(package)) continue;
-    if (showPackages) {
+    if (requestContext.showPackages) {
       final path = urls.pkgPageUrl(package);
       items.add(uri.replace(path: path).toString());
     }
-    if (showApiDocs) {
+    if (requestContext.showApiDocs) {
       final path = urls.pkgDocUrl(package, isLatest: true);
       items.add(uri.replace(path: path).toString());
     }
