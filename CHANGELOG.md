@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190502t154607-all`
+
+ * Enabled new design on `pub.dev` (redirects still missing).
  * Dependency graph monitoring in a separate isolate of the `frontend` service.
  * `/feed.atom` changes random seed to generate `uuid` for feed entry.
 
