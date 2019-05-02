@@ -13,6 +13,10 @@
   background: #f5f5f5;
   max-width: 650px;
   background: #fff;
+
+  .experimental & {
+    border-color: $color-searchbar-dark-border;
+  }
 }
 
 .search-bar > .input {
@@ -24,6 +28,11 @@
   -ms-flex-positive: 1;
   flex-grow: 1;
   background: transparent;
+
+  .experimental & {
+    background: $color-searchbar-dark-input-bg;
+    color: $color-searchbar-dark-input-fg;
+  }
 }
 
 .search-bar > .icon {
@@ -37,6 +46,10 @@
   background-position: 50% 50%;
   -webkit-transform: scale(1.02);
   transform: scale(1.02);
+
+  .experimental & {
+    background-color: $color-searchbar-dark-link;
+  }
 }
 
 .search-bar-details {

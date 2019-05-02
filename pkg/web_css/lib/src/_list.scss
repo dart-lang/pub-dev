@@ -184,6 +184,10 @@
   margin: 16px 0;
   border: 1px solid #eee;
   border-radius: 3px;
+
+  .experimental & {
+    border: 1px solid $color-searchbar-dark-border;
+  }
 }
 
 .list-filters > .filter {
@@ -195,11 +199,26 @@
   font-weight: 500;
   padding: 4px 24px;
   cursor: pointer;
+
+  .experimental & {
+    background: transparent;
+    color: $color-searchbar-dark-input-fg;
+    border-right: 1px solid $color-searchbar-dark-border;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.10);
+    }
+  }
 }
 
 .list-filters > .filter.-active {
   color: #0175C2;
   background: #eef9fe;
+
+  .experimental & {
+    color: $color-searchbar-dark-input-fg;
+    background: $color-searchbar-dark-link;
+  }
 }
 
 .package-count {
