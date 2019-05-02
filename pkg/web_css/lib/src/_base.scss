@@ -139,6 +139,13 @@ pre > code {
   }
 }
 
+.nav-wrap {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
 .site-nav {
   display: -webkit-inline-box;
   display: -ms-inline-flexbox;
@@ -311,6 +318,8 @@ pre > code {
   }
 
   .nav-wrap {
+    display: block;
+    width: inherit;
     position: fixed;
     top: 0;
     bottom: 0;
