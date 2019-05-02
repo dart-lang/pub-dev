@@ -4,10 +4,10 @@
 <div style="max-width: 600px">
   <h2>Publishing a Package</h2>
   <p>
-      <a href="https://www.dartlang.org/tools/pub">Pub</a> isn't just for using
+      <a href="{{& dart_site_root}}/tools/pub">Pub</a> isn't just for using
       other people's packages. It also allows you to share your packages with the world.
       If you have a useful project and you want others to be able to use it, use the
-      <a href="https://www.dartlang.org/tools/pub/publishing">pub publish</a> command.
+      <a href="{{& dart_site_root}}/tools/pub/publishing">pub publish</a> command.
   </p>
 
   <h2 id="search">Search</h2>
@@ -70,9 +70,9 @@
     decrease the health score).
   </p>
   <p>
-      Use <a href="https://www.dartlang.org/guides/language/analysis-options"><code>analysis_options.yaml</code></a>
+      Use <a href="{{& dart_site_root}}/guides/language/analysis-options"><code>analysis_options.yaml</code></a>
       to specify further linter rules,
-      <a href="https://www.dartlang.org/guides/language/analysis-options#default-google-rules-pedantic">enable default rules Google uses</a>,
+      <a href="{{& dart_site_root}}/guides/language/analysis-options#default-google-rules-pedantic">enable default rules Google uses</a>,
       and make sure you fix all warnings and errors before publishing.
       Here's an example <code>analysis_options.yaml</code>:</p>
   <pre><code class="language-yaml"># Defines a default set of lint rules enforced for
@@ -104,10 +104,10 @@ include: package:pedantic/analysis_options.yaml
     the latest version.</li>
     <li>README, CHANGELOG, and example files: Best if all are present. For
     information on how to provide these files, see the
-    <a href="https://www.dartlang.org/tools/pub/package-layout">pub package layout
+    <a href="{{& dart_site_root}}/tools/pub/package-layout">pub package layout
     conventions</a>.</li>
     <li><code>analysis_options.yaml</code>: Best if this file is present. For more information, see
-    <a href="https://www.dartlang.org/guides/language/analysis-options">Customize
+    <a href="{{& dart_site_root}}/guides/language/analysis-options">Customize
     Static Analysis</a>.</li>
   </ul>
 
@@ -118,7 +118,7 @@ include: package:pedantic/analysis_options.yaml
     at least one new version every year to keep your maintenance score up.
   </p>
   <p>
-    Pub site uses <a href="https://pub.dartlang.org/packages/pana">pana</a>
+    Pub site uses <a href="{{& pana_url}}">pana</a>
     to create maintenance suggestions. To get suggestions before publishing,
     run <code>pana</code> locally (using <code>--source path</code>), or
     validate your package against the

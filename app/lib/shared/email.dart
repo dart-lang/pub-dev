@@ -124,7 +124,7 @@ EmailMessage createPackageUploadedEmail({
   final subject = 'Package uploaded: $packageName $packageVersion';
   final bodyText = '''Dear package maintainer,  
 
-$uploaderEmail has published a new version ($packageVersion) of the $packageName package to the Dart package site (pub.dartlang.org).
+$uploaderEmail has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).
 
 For details, go to $url.
 
@@ -148,7 +148,7 @@ EmailMessage createUploaderConfirmationEmail({
   final subject = 'Uploader invitation for package: $packageName';
   final bodyText = '''Dear package maintainer,
 
-$activeAccountEmail has invited you to become an uploader of the $packageName package. If you accept this invitation, you’ll be able to upload new versions of the package to the Dart package site (pub.dartlang.org), and you’ll be listed as an uploader at https://pub.dartlang.org/packages/$packageName.
+$activeAccountEmail has invited you to become an uploader of the $packageName package. If you accept this invitation, you’ll be able to upload new versions of the package to the Dart package site ($primaryHost), and you’ll be listed as an uploader at $siteRoot/packages/$packageName.
 
 To accept this invitation, visit the following URL:
 $confirmationUrl

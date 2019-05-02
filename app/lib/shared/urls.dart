@@ -9,9 +9,10 @@ import 'package:pub_server/repository.dart' show GenericProcessingException;
 import 'packages_overrides.dart';
 import 'versions.dart';
 
-const _pubDartlangOrg = 'pub.dartlang.org';
-
-const siteRoot = 'https://$_pubDartlangOrg';
+const primaryHost = 'pub.dartlang.org';
+const fullSiteUrl = 'https://$primaryHost/';
+const siteRoot = 'https://$primaryHost';
+const dartSiteRoot = 'https://www.dartlang.org';
 const _apiDartlangOrg = 'https://api.dartlang.org/';
 
 String pkgPageUrl(String package,
@@ -92,7 +93,7 @@ String pkgInviteUrl({
 }) {
   return Uri(
     scheme: 'https',
-    host: _pubDartlangOrg,
+    host: primaryHost,
     path: p.join('/admin/confirm', type, package, email, urlNonce),
   ).toString();
 }
@@ -207,9 +208,13 @@ String inferServiceProviderName(String url) {
   return null;
 }
 
+String panaUrl() {
+  return '$siteRoot/packages/pana';
+}
+
 /// Returns the versioned documentation URL for pana's maintenance suggestions.
 String panaMaintenanceUrl() {
-  return 'https://pub.dartlang.org/documentation/pana/$panaVersion/#maintenance-score';
+  return '$siteRoot/documentation/pana/$panaVersion/#maintenance-score';
 }
 
 /// Return true if the user-provided `documentation` URL should not be shown.

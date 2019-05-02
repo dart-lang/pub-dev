@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
+import '../shared/urls.dart' as urls;
 
 /// Handlers for the dartdoc service.
 Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
@@ -19,7 +20,7 @@ Future<shelf.Response> dartdocServiceHandler(shelf.Request request) async {
   final host = request.requestedUri.host;
   if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
     return redirectResponse(
-        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
+        request.requestedUri.replace(host: urls.primaryHost).toString());
   }
 
   if (handler != null) {

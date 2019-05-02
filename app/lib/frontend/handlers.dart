@@ -33,7 +33,7 @@ void _logPubHeaders(shelf.Request request) {
   });
 }
 
-/// Handler for the whole URL space of pub.dartlang.org
+/// Handler for the whole URL space of the pub site.
 ///
 /// The passed in [shelfPubApi] handler will be used for handling requests to
 ///   - /api/*

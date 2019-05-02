@@ -54,7 +54,7 @@ Backend get backend => ss.lookup(#_backend) as Backend;
 /// A callback to be invoked after an upload of a new [PackageVersion].
 typedef FinishedUploadCallback = Future Function(models.PackageVersion pv);
 
-/// Represents the backend for the pub.dartlang.org site.
+/// Represents the backend for the pub site.
 class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;

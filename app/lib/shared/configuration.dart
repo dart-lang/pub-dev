@@ -8,6 +8,8 @@ import 'package:googleapis_auth/auth.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
+import 'urls.dart' as urls;
+
 final _logger = Logger('configuration');
 
 Configuration _configuration;
@@ -28,7 +30,7 @@ void registerActiveConfiguration(Configuration configuration) {
 const _pubClientAudience =
     '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.googleusercontent.com';
 
-/// Class describing the configuration of running pub.dartlang.org.
+/// Class describing the configuration of running the pub site.
 ///
 /// The configuration define the location of the Datastore with the
 /// package metadata and the Cloud Storage bucket for the actual package
@@ -91,7 +93,7 @@ class Configuration {
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      pubHostedUrl: 'https://pub.dartlang.org',
+      pubHostedUrl: urls.siteRoot,
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',

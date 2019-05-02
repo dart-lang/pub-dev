@@ -55,6 +55,7 @@ String renderLayoutPage(
       ? staticUrls.pubDevLogo2xPng
       : staticUrls.assets['img__dart-logo_svg'];
   final values = {
+    'dart_site_root': urls.dartSiteRoot,
     'body_class': requestContext.isExperimental ? 'experimental' : '',
     'no_index': noIndex,
     'static_assets': staticUrls.assets,

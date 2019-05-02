@@ -24,7 +24,7 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
   final host = request.requestedUri.host;
   if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
     return redirectResponse(
-        request.requestedUri.replace(host: 'pub.dartlang.org').toString());
+        request.requestedUri.replace(host: urls.primaryHost).toString());
   }
 
   final path = request.requestedUri.path;
@@ -40,7 +40,7 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
 
 /// Handles requests for /doc
 shelf.Response _docRedirectHandler(shelf.Request request) {
-  final pubDocUrl = 'https://www.dartlang.org/tools/pub/';
+  final pubDocUrl = '${urls.dartSiteRoot}/tools/pub/';
   final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
     return redirectResponse('$pubDocUrl$dartlangDotOrgPath');

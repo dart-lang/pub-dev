@@ -13,6 +13,8 @@ import '../job/backend.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 
+import 'urls.dart' as urls;
+
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 
 /// Sets the analyzer client.
@@ -152,7 +154,7 @@ Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
           'Support Dart 2 in `pubspec.yaml`.',
           'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
               'For information about upgrading it to be Dart 2 compatible, please see '
-              '[https://www.dartlang.org/dart-2#migration](https://www.dartlang.org/dart-2#migration).',
+              '[${urls.dartSiteRoot}/dart-2#migration](${urls.dartSiteRoot}/dart-2#migration).',
         ),
       ],
       stats: Stats(

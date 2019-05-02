@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'urls.dart' as urls;
+
 /// 'internal' packages are developed by the Dart team, and they are allowed to
 /// point their URLs to *.dartlang.org (others would get a penalty for it).
 const internalPackageNames = <String>[
@@ -34,7 +36,7 @@ const _knownGoodLowerCasePackages = [
 ];
 
 const redirectPackagePages = <String, String>{
-  'flutter': 'https://pub.dartlang.org/flutter',
+  'flutter': '${urls.siteRoot}/flutter',
 };
 
 const redirectDartdocPages = <String, String>{
