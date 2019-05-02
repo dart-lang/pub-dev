@@ -137,6 +137,7 @@ final hashedFiles = const <String>[
   'img/dart-logo.svg',
   'img/dart-packages.png',
   'img/flutter-packages.png',
+  'img/pub-dev-logo-2x.png',
   'js/gtag.js',
   'js/script.dart.js',
 ];
@@ -158,6 +159,9 @@ class StaticUrls {
         documentationIcon =
             '$_defaultStaticPath/img/ic_drive_document_black_24dp.svg',
         downloadIcon = '$_defaultStaticPath/img/ic_get_app_black_24dp.svg';
+
+  String get pubDevLogo2xPng =>
+      _getCacheableStaticUrl('/img/pub-dev-logo-2x.png');
 
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {

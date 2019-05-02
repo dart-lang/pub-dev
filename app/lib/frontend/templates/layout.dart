@@ -51,6 +51,9 @@ String renderLayoutPage(
       : serializeSearchOrder(searchQuery.order);
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
+  final siteLogoUrl = requestContext.isExperimental
+      ? staticUrls.pubDevLogo2xPng
+      : staticUrls.assets['img__dart-logo_svg'];
   final values = {
     'body_class': requestContext.isExperimental ? 'experimental' : '',
     'no_index': noIndex,
@@ -61,6 +64,7 @@ String renderLayoutPage(
         ? _defaultPageDescriptionEscaped
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
+    'site_logo_url': siteLogoUrl,
     'search_platform': platform,
     'search_query': escapedSearchQuery,
     'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
