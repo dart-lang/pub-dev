@@ -20,6 +20,7 @@ import '../frontend/templates/layout.dart';
 import 'configuration.dart';
 import 'handlers.dart';
 import 'markdown.dart';
+import 'urls.dart' as urls;
 import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 
 const _hstsDuration = Duration(minutes: 15);
@@ -60,6 +61,7 @@ Future<void> runHandler(
 shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final host = request.requestedUri.host;
+    final isPrimaryHost = host == urls.primaryHost;
     final isProductionHost = activeConfiguration.productionHosts.contains(host);
     final isPubDev = host == 'pub.dev';
 
@@ -70,7 +72,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
 
     final enableRobots = hasExperimentalCookie ||
         (!activeConfiguration.blockRobots && isProductionHost);
-    final uiCacheEnabled = isProductionHost;
+    final uiCacheEnabled = isPrimaryHost && !hasExperimentalCookie;
 
     registerRequestContext(RequestContext(
       isExperimental: isExperimental,
