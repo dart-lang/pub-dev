@@ -43,6 +43,10 @@ main {
   margin: 0 auto;
   padding: 0 20px;
 }
+// TODO: replace searchbar's 'main' element with something non-main
+body > main {
+  min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
+}
 
 code {
   background: #f8f8f8;
@@ -67,6 +71,16 @@ pre > code {
 ._banner-bg {
   background-image: url(../img/background-pattern.png);
   background-size: cover;
+
+  .experimental & {
+    background: $color-searchbar-dark-bg;
+    background-image: url(../img/background-pattern-darkblue.jpg);
+    color: $color-searchbar-dark-fg;
+
+    a {
+      color: $color-searchbar-dark-link;
+    }
+  }
 }
 
 /*

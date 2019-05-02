@@ -79,9 +79,7 @@ String renderLayoutPage(
     'include_survey': includeSurvey,
     'include_highlight': type == PageType.package,
     'landing_banner': type == PageType.landing,
-    'landing_banner_image': platform == 'flutter'
-        ? staticUrls.assets['img__flutter-packages_png']
-        : staticUrls.assets['img__dart-packages_png'],
+    'landing_banner_image': _landingBannerImage(platform == 'flutter'),
     'landing_banner_alt':
         platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
     'listing_banner': type == PageType.listing,
@@ -90,6 +88,18 @@ String renderLayoutPage(
         isRoot ? json.encode(_schemaOrgSearchAction) : null,
   };
   return templateCache.renderTemplate('layout', values);
+}
+
+String _landingBannerImage(bool isFlutter) {
+  if (requestContext.isExperimental) {
+    return isFlutter
+        ? staticUrls.assets['img__flutter-packages-white_png']
+        : staticUrls.assets['img__dart-packages-white_png'];
+  } else {
+    return isFlutter
+        ? staticUrls.assets['img__flutter-packages_png']
+        : staticUrls.assets['img__dart-packages_png'];
+  }
 }
 
 String renderPlatformTabs({
