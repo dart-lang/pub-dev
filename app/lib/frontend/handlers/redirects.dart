@@ -22,12 +22,20 @@ final _handlers = <String, SyncHandler>{
 /// Returns null when there is no redirect.
 shelf.Response tryHandleRedirects(shelf.Request request) {
   final host = request.requestedUri.host;
+  final path = request.requestedUri.path;
   if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
     return redirectResponse(
         request.requestedUri.replace(host: urls.primaryHost).toString());
   }
 
-  final path = request.requestedUri.path;
+  // Redirect from legacy host (pub.dartlang.org) to primary host (pub.dev).
+  if (host == urls.legacyHost &&
+      host != urls.primaryHost &&
+      _shouldRedirectToPubDev(path)) {
+    return redirectResponse(
+        request.requestedUri.replace(host: urls.primaryHost).toString());
+  }
+
   final handler = _handlers[path];
   if (handler != null) {
     return handler(request);
@@ -36,6 +44,14 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
     return _docRedirectHandler(request);
   }
   return null;
+}
+
+bool _shouldRedirectToPubDev(String path) {
+  if (path.startsWith('/api/')) return false;
+  if (path.endsWith('.tar.gz')) return false;
+  if (path.endsWith('.json')) return false;
+  if (path == '/debug') return false;
+  return true;
 }
 
 /// Handles requests for /doc

@@ -23,8 +23,8 @@ void tScopedTest(String name, Future func()) {
   });
 }
 
-Future<shelf.Response> issueGet(String path) {
-  final uri = '$siteRoot$path';
+Future<shelf.Response> issueGet(String path, {String host}) {
+  final uri = host == null ? '$siteRoot$path' : 'https://$host$path';
   return issueGetUri(Uri.parse(uri));
 }
 

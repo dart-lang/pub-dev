@@ -152,7 +152,7 @@ void main() {
       expect(message.bodyText, contains('1.0.0'));
       expect(message.bodyText, contains('uploader@example.com'));
       expect(message.bodyText,
-          contains('https://pub.dartlang.org/packages/pkg_foo/versions/1.0.0'));
+          contains('https://pub.dev/packages/pkg_foo/versions/1.0.0'));
     });
   });
 
@@ -163,7 +163,7 @@ void main() {
         activeAccountEmail: 'active@example.com',
         addedUploaderEmail: 'uploader@example.com',
         confirmationUrl:
-            'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890',
+            'https://pub.dev/confirmation/add-uploader/abcdef1234567890',
       );
       expect(message.from.toString(), contains('<pub@dartlang.org>'));
       expect(message.recipients.map((e) => e.toString()).toList(),
@@ -171,12 +171,11 @@ void main() {
       expect(message.subject, contains('pkg_foo'));
       expect(message.bodyText, contains('active@example.com'));
       expect(message.bodyText, contains('pkg_foo'));
-      expect(message.bodyText,
-          contains('https://pub.dartlang.org/packages/pkg_foo'));
+      expect(message.bodyText, contains('https://pub.dev/packages/pkg_foo'));
       expect(
           message.bodyText,
           contains(
-              'https://pub.dartlang.org/confirmation/add-uploader/abcdef1234567890'));
+              'https://pub.dev/confirmation/add-uploader/abcdef1234567890'));
     });
   });
 }
