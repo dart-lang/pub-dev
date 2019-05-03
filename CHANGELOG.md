@@ -7,6 +7,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20190503t132754-all`
 
  * Fixed the bug in dynamic oauth `redirect_uri` calculation.
+ * Redirect UI traffic to `pub.dev`.
+ * Emit `pub.dev` as primary host URL.
 
 ## `20190502t154607-all`
 
