@@ -3,13 +3,13 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Redirect UI traffic to `pub.dev`.
+ * Emit `pub.dev` as primary host URL.
+ * Bumped runtimeVersion to `2019.05.03` to trigger `dartdoc` content generation with the new primary hosts.
 
 ## `20190503t132754-all`
 
  * Fixed the bug in dynamic oauth `redirect_uri` calculation.
- * Redirect UI traffic to `pub.dev`.
- * Emit `pub.dev` as primary host URL.
- * Bumped runtimeVersion to `2019.05.03` to trigger `dartdoc` content generation with the new primary hosts.
 
 ## `20190502t154607-all`
 
