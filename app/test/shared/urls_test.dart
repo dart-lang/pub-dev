@@ -16,9 +16,9 @@ void main() {
 
     test('with host', () {
       expect(pkgPageUrl('foo_bar', includeHost: true),
-          'https://pub.dartlang.org/packages/foo_bar');
+          'https://pub.dev/packages/foo_bar');
       expect(pkgPageUrl('foo_bar', version: '1.0.0', includeHost: true),
-          'https://pub.dartlang.org/packages/foo_bar/versions/1.0.0');
+          'https://pub.dev/packages/foo_bar/versions/1.0.0');
     });
   });
 
@@ -33,13 +33,13 @@ void main() {
 
     test('with host', () {
       expect(pkgDocUrl('foo_bar', includeHost: true),
-          'https://pub.dartlang.org/documentation/foo_bar/');
+          'https://pub.dev/documentation/foo_bar/');
       expect(pkgDocUrl('foo_bar', version: '1.0.0', includeHost: true),
-          'https://pub.dartlang.org/documentation/foo_bar/1.0.0/');
+          'https://pub.dev/documentation/foo_bar/1.0.0/');
       expect(
           pkgDocUrl('foo_bar',
               version: '1.0.0', includeHost: true, omitTrailingSlash: true),
-          'https://pub.dartlang.org/documentation/foo_bar/1.0.0');
+          'https://pub.dev/documentation/foo_bar/1.0.0');
     });
   });
 
@@ -75,11 +75,11 @@ void main() {
   group('SDK urls', () {
     test('dev', () {
       expect(dartSdkMainUrl('2.1.0-dev.3.1'),
-          'https://api.dartlang.org/dev/2.1.0-dev.3.1/');
+          'https://api.dart.dev/dev/2.1.0-dev.3.1/');
     });
 
     test('stable', () {
-      expect(dartSdkMainUrl('2.0.0'), 'https://api.dartlang.org/stable/2.0.0/');
+      expect(dartSdkMainUrl('2.0.0'), 'https://api.dart.dev/stable/2.0.0/');
     });
   });
 
@@ -157,7 +157,7 @@ void main() {
             email: 'uploader@example.com',
             urlNonce: 'abcdefghijklmnop1234567890',
           ),
-          'https://pub.dartlang.org/admin/confirm/new-uploader/pkg_foo/uploader@example.com/abcdefghijklmnop1234567890');
+          'https://pub.dev/admin/confirm/new-uploader/pkg_foo/uploader@example.com/abcdefghijklmnop1234567890');
     });
   });
 }

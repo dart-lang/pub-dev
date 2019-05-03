@@ -9,11 +9,12 @@ import 'package:pub_server/repository.dart' show GenericProcessingException;
 import 'packages_overrides.dart';
 import 'versions.dart';
 
-const primaryHost = 'pub.dartlang.org';
+const primaryHost = 'pub.dev';
+const legacyHost = 'pub.dartlang.org';
 const fullSiteUrl = 'https://$primaryHost/';
 const siteRoot = 'https://$primaryHost';
-const dartSiteRoot = 'https://www.dartlang.org';
-const _apiDartlangOrg = 'https://api.dartlang.org/';
+const dartSiteRoot = 'https://dart.dev';
+const _apiDartlangOrg = 'https://api.dart.dev/';
 
 String pkgPageUrl(String package,
     {String version, bool includeHost = false, String fragment}) {

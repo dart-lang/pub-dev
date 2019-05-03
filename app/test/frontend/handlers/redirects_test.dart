@@ -12,11 +12,25 @@ import '_utils.dart';
 
 void main() {
   group('redirects', () {
+    test('pub.dartlang.org', () async {
+      Future testRedirect(String path) async {
+        expectRedirectResponse(
+            await issueGetUri(Uri.parse('https://pub.dartlang.org$path')),
+            'https://pub.dev$path');
+      }
+
+      testRedirect('/');
+      testRedirect('/packages');
+      testRedirect('/packages/pana');
+      testRedirect('/flutter');
+      testRedirect('/web');
+    });
+
     test('dartdocs.org redirect', () async {
       expectRedirectResponse(
         await issueGetUri(
             Uri.parse('https://dartdocs.org/documentation/pkg/latest/')),
-        'https://pub.dartlang.org/documentation/pkg/latest/',
+        'https://pub.dev/documentation/pkg/latest/',
       );
     });
 
@@ -24,14 +38,13 @@ void main() {
       expectRedirectResponse(
         await issueGetUri(
             Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/')),
-        'https://pub.dartlang.org/documentation/pkg/latest/',
+        'https://pub.dev/documentation/pkg/latest/',
       );
     });
 
     tScopedTest('/doc', () async {
       for (var path in redirectPaths.keys) {
-        final redirectUrl =
-            'https://www.dartlang.org/tools/pub/${redirectPaths[path]}';
+        final redirectUrl = 'https://dart.dev/tools/pub/${redirectPaths[path]}';
         expectRedirectResponse(await issueGet(path), redirectUrl);
       }
     });
@@ -49,12 +62,12 @@ void main() {
 
     tScopedTest('/search?q=foobar', () async {
       expectRedirectResponse(await issueGet('/search?q=foobar'),
-          'https://pub.dartlang.org/packages?q=foobar');
+          'https://pub.dev/packages?q=foobar');
     });
 
     tScopedTest('/search?q=foobar&page=2', () async {
       expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
-          'https://pub.dartlang.org/packages?q=foobar&page=2');
+          'https://pub.dev/packages?q=foobar&page=2');
     });
 
     tScopedTest('/server', () async {
@@ -73,14 +86,14 @@ void main() {
     tScopedTest('/packages/flutter - redirect', () async {
       expectRedirectResponse(
         await issueGet('/packages/flutter'),
-        'https://pub.dartlang.org/flutter',
+        'https://pub.dev/flutter',
       );
     });
 
     tScopedTest('/packages/flutter/versions/* - redirect', () async {
       expectRedirectResponse(
         await issueGet('/packages/flutter/versions/0.20'),
-        'https://pub.dartlang.org/flutter',
+        'https://pub.dev/flutter',
       );
     });
   });

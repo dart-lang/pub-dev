@@ -38,7 +38,7 @@ Future main() async {
       });
       registerBackend(backend);
       await expectJsonResponse(await issueGet('/packages.json'), body: {
-        'packages': ['https://pub.dartlang.org/packages/foobar_pkg.json'],
+        'packages': ['https://pub.dev/packages/foobar_pkg.json'],
         'next': null
       });
     });

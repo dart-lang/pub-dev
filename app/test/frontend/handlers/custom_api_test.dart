@@ -7,6 +7,7 @@ import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/shared/urls.dart' as urls;
 
 import '../../shared/handlers_test_utils.dart';
 import '../mocks.dart';
@@ -28,31 +29,34 @@ void main() {
         return [testPackageVersion];
       });
       registerBackend(backend);
-      await expectJsonResponse(await issueGet('/api/packages'), body: {
-        'next_url': null,
-        'packages': [
-          {
-            'name': 'foobar_pkg',
-            'latest': {
-              'version': '0.1.1+5',
-              'pubspec': loadYaml(testPackagePubspec),
-              'archive_url': 'https://pub.dartlang.org'
-                  '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
-              'package_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg',
-              'url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/versions/0.1.1%2B5'
+      await expectJsonResponse(
+        await issueGet('/api/packages', host: urls.legacyHost),
+        body: {
+          'next_url': null,
+          'packages': [
+            {
+              'name': 'foobar_pkg',
+              'latest': {
+                'version': '0.1.1+5',
+                'pubspec': loadYaml(testPackagePubspec),
+                'archive_url': 'https://pub.dartlang.org'
+                    '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
+                'package_url': 'https://pub.dartlang.org'
+                    '/api/packages/foobar_pkg',
+                'url': 'https://pub.dartlang.org'
+                    '/api/packages/foobar_pkg/versions/0.1.1%2B5'
+              },
+              'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
+              'version_url': 'https://pub.dartlang.org'
+                  '/api/packages/foobar_pkg/versions/%7Bversion%7D',
+              'new_version_url': 'https://pub.dartlang.org'
+                  '/api/packages/foobar_pkg/new',
+              'uploaders_url': 'https://pub.dartlang.org'
+                  '/api/packages/foobar_pkg/uploaders'
             },
-            'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
-            'version_url': 'https://pub.dartlang.org'
-                '/api/packages/foobar_pkg/versions/%7Bversion%7D',
-            'new_version_url': 'https://pub.dartlang.org'
-                '/api/packages/foobar_pkg/new',
-            'uploaders_url': 'https://pub.dartlang.org'
-                '/api/packages/foobar_pkg/uploaders'
-          }
-        ]
-      });
+          ],
+        },
+      );
     });
   });
 }
