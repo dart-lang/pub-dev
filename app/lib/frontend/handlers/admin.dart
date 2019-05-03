@@ -125,5 +125,9 @@ Future<shelf.Response> _formattedInviteExpiredHandler(
 
 String _oauthRedirectUrl(shelf.Request request) {
   final uri = request.requestedUri;
-  return uri.replace(path: '/oauth/callback').toString();
+  return Uri(
+    scheme: uri.scheme,
+    host: uri.host,
+    path: '/oauth/callback',
+  ).toString();
 }

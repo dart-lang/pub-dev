@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Fixed the bug in dynamic oauth `redirect_uri` calculation.
+
 ## `20190502t154607-all`
 
  * Enabled new design on `pub.dev` (redirects still missing).
