@@ -83,7 +83,4 @@ class PublisherMember extends db.ExpandoModel {
   /// One of [PublisherMemberRole].
   @db.StringProperty()
   String role;
-
-  @db.BoolProperty()
-  bool isPublic;
 }
