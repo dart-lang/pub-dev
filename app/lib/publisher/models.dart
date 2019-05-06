@@ -19,6 +19,9 @@ class Publisher extends db.ExpandoModel {
   @db.StringProperty()
   String websiteUrl;
 
+  @db.StringProperty()
+  String contactEmail;
+
   @db.DateTimeProperty()
   DateTime created;
 
