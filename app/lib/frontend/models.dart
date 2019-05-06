@@ -50,7 +50,7 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
   db.Key latestDevVersionKey;
 
-  /// The publisher id (if the package is associated with a publisher).
+  /// The publisher id (null, if the package does not have a publisher).
   @db.StringProperty()
   String publisherId;
 
