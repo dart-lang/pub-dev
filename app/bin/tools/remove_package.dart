@@ -125,11 +125,11 @@ Future removePackage(String packageName) async {
 
   print('Removing package from PackageVersionPubspec ...');
   await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
-    ..filter('qualifiedPackage =', packageName));
+    ..filter('package =', packageName));
 
   print('Removing package from PackageVersionInfo ...');
-  await _deleteWithQuery(dbService.query<PackageVersionInfo>()
-    ..filter('qualifiedPackage =', packageName));
+  await _deleteWithQuery(
+      dbService.query<PackageVersionInfo>()..filter('package =', packageName));
 
   print('Removing package from Jobs ...');
   await _deleteWithQuery(
@@ -185,14 +185,12 @@ Future removePackageVersion(String packageName, String version) async {
   await dartdocBackend.removeAll(packageName, version: version);
 
   await _deleteWithQuery(
-    dbService.query<PackageVersionPubspec>()
-      ..filter('qualifiedPackage =', packageName),
+    dbService.query<PackageVersionPubspec>()..filter('package =', packageName),
     where: (PackageVersionPubspec info) => info.version == version,
   );
 
   await _deleteWithQuery(
-    dbService.query<PackageVersionInfo>()
-      ..filter('qualifiedPackage =', packageName),
+    dbService.query<PackageVersionInfo>()..filter('package =', packageName),
     where: (PackageVersionInfo info) => info.version == version,
   );
 
