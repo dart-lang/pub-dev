@@ -13,6 +13,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pana/pana.dart'
+    show readmeFileNames, changelogFileNames, exampleFileCandidates;
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -482,7 +484,7 @@ class GCloudPackageRepository extends PackageRepository {
           newVersion,
           validatedUpload.packageVersionPubspec,
           validatedUpload.packageVersionInfo,
-        ];
+        ]..addAll(validatedUpload.packageVersionAssets);
         if (historyBackend.isEnabled) {
           final history = History.entry(PackageUploaded(
             packageName: newVersion.package,
@@ -827,11 +829,13 @@ class _ValidatedUpload {
   final models.PackageVersion packageVersion;
   final models.PackageVersionPubspec packageVersionPubspec;
   final models.PackageVersionInfo packageVersionInfo;
+  final List<models.PackageVersionAsset> packageVersionAssets;
 
   _ValidatedUpload(
     this.packageVersion,
     this.packageVersionPubspec,
     this.packageVersionInfo,
+    this.packageVersionAssets,
   );
 }
 
@@ -875,16 +879,6 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     return null;
   }
 
-  var readmeFilename = searchForFile('README.md');
-  if (readmeFilename == null) {
-    readmeFilename = searchForFile('README');
-  }
-
-  var changelogFilename = searchForFile('CHANGELOG.md');
-  if (changelogFilename == null) {
-    changelogFilename = searchForFile('CHANGELOG');
-  }
-
   final libraries = files
       .where((file) => file.startsWith('lib/'))
       .where((file) => !file.startsWith('lib/src'))
@@ -924,36 +918,8 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
   }
 
-  String exampleFilename;
-  for (String candidate in exampleFileCandidates(pubspec.name)) {
-    exampleFilename = searchForFile(candidate);
-    if (exampleFilename != null) break;
-  }
-
-  final readmeContent = readmeFilename != null
-      ? await readTarballFile(filename, readmeFilename,
-          maxLength: _maxStoredLength)
-      : null;
-  final changelogContent = changelogFilename != null
-      ? await readTarballFile(filename, changelogFilename,
-          maxLength: _maxStoredLength)
-      : null;
-  String exampleContent = exampleFilename != null
-      ? await readTarballFile(filename, exampleFilename,
-          maxLength: _maxStoredLength)
-      : null;
-
-  if (exampleContent != null && exampleContent.trim().isEmpty) {
-    exampleFilename = null;
-    exampleContent = null;
-  }
-
   final packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
-
   final versionString = canonicalizeVersion(pubspec.version);
-
-  final key =
-      models.QualifiedVersionKey(package: pubspec.name, version: versionString);
 
   final version = models.PackageVersion()
     ..id = versionString
@@ -962,35 +928,73 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..packageKey = packageKey
     ..created = DateTime.now().toUtc()
     ..pubspec = pubspec
-    ..readmeFilename = readmeFilename
-    ..readmeContent = readmeContent
-    ..changelogFilename = changelogFilename
-    ..changelogContent = changelogContent
-    ..exampleFilename = exampleFilename
-    ..exampleContent = exampleContent
     ..libraries = libraries
     ..downloads = 0
     ..sortOrder = 1
     ..uploader = user.userId;
 
+  Future<models.PackageVersionAsset> loadAsset(
+      String assetName, List<String> candidates) async {
+    String assetFileName;
+    for (String candidate in candidates) {
+      assetFileName = searchForFile(candidate);
+      if (assetFileName != null) break;
+    }
+    if (assetFileName != null) {
+      final content = await readTarballFile(filename, assetFileName,
+          maxLength: _maxStoredLength);
+      if (content == null || content.trim().isEmpty) {
+        return null;
+      } else {
+        return models.PackageVersionAsset.from(
+            version, assetName, assetFileName, content);
+      }
+    }
+    return null;
+  }
+
+  final pubspecAsset = models.PackageVersionAsset.from(version,
+      models.PackageVersionAssetName.pubspec, 'pubspec.yaml', pubspecContent);
+
+  final readmeAsset =
+      await loadAsset(models.PackageVersionAssetName.readme, readmeFileNames);
+  final changelogAsset = await loadAsset(
+      models.PackageVersionAssetName.changelog, changelogFileNames);
+  final exampleAsset = await loadAsset(models.PackageVersionAssetName.example,
+      exampleFileCandidates(version.package));
+  final licenseAsset = await loadAsset(models.PackageVersionAssetName.license,
+      ['license', 'license.txt', 'license.md']);
+
+  // TODO: remove once we move to asset-based content display
+  version
+    ..readmeFilename = readmeAsset?.path
+    ..readmeContent = readmeAsset?.content
+    ..changelogFilename = changelogAsset?.path
+    ..changelogContent = changelogAsset?.content
+    ..exampleFilename = exampleAsset?.path
+    ..exampleContent = exampleAsset?.content;
+
+  final assets = [
+    pubspecAsset,
+    readmeAsset,
+    changelogAsset,
+    exampleAsset,
+    licenseAsset,
+  ].where((a) => a != null).toList();
+
   final versionPubspec = models.PackageVersionPubspec()
-    ..initFromKey(key)
+    ..initFromKey(version.qualifiedVersionKey)
     ..updated = version.created
     ..pubspec = pubspec;
 
   final versionInfo = models.PackageVersionInfo()
-    ..initFromKey(key)
+    ..initFromKey(version.qualifiedVersionKey)
     ..updated = version.created
-    ..readmeFilename = readmeFilename
-    ..readmeContent = readmeContent
-    ..changelogFilename = changelogFilename
-    ..changelogContent = changelogContent
-    ..exampleFilename = exampleFilename
-    ..exampleContent = exampleContent
+    ..assetNames = assets.map((a) => a.name).toList()
     ..libraries = libraries
     ..libraryCount = libraries.length;
 
-  return _ValidatedUpload(version, versionPubspec, versionInfo);
+  return _ValidatedUpload(version, versionPubspec, versionInfo, assets);
 }
 
 /// Helper utility class for interfacing with Cloud Storage for storing

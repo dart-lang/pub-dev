@@ -66,6 +66,8 @@ Future _backfillPackage(String package) async {
     final pvInfoKey = dbService.emptyKey
         .append(PackageVersionInfo, id: qualifiedKey.qualifiedVersion);
 
+    // TODO: query assets
+    // TODO: extract and store assets
     final items = await dbService.lookup([pvPubspecKey, pvInfoKey]);
     final inserts = <Model>[];
     if (items[0] == null) {
@@ -74,15 +76,11 @@ Future _backfillPackage(String package) async {
         ..pubspec = pv.pubspec
         ..updated = pv.created);
     }
+    // TODO: also check if assetNames need to be updated
     if (items[1] == null) {
       inserts.add(PackageVersionInfo()
         ..initFromKey(qualifiedKey)
-        ..readmeFilename = pv.readmeFilename
-        ..readmeContent = pv.readmeContent
-        ..changelogFilename = pv.changelogFilename
-        ..changelogContent = pv.changelogContent
-        ..exampleFilename = pv.exampleFilename
-        ..exampleContent = pv.exampleContent
+        // TODO: populate assetNames
         ..libraries = pv.libraries
         ..libraryCount = pv.libraries.length
         ..updated = pv.created);

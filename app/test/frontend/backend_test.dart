@@ -639,12 +639,15 @@ void main() {
       final dateBeforeTest = DateTime.now().toUtc();
 
       void validateSuccessfullUpdate(List<Model> inserts) {
-        expect(inserts, hasLength(5));
+        expect(inserts, hasLength(8));
         final package = inserts[0] as Package;
         final version = inserts[1] as PackageVersion;
         final versionPubspec = inserts[2] as PackageVersionPubspec;
         final versionInfo = inserts[3] as PackageVersionInfo;
-        final history = inserts[4] as History;
+        final pubspecAsset = inserts[4] as PackageVersionAsset;
+        final readmeAsset = inserts[5] as PackageVersionAsset;
+        final changelogAsset = inserts[6] as PackageVersionAsset;
+        final history = inserts[7] as History;
 
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);
@@ -676,12 +679,36 @@ void main() {
         expect(versionInfo.package, testPackage.name);
         expect(versionInfo.version, testPackageVersion.version);
         expect(versionInfo.updated.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(versionInfo.readmeFilename, 'README.md');
-        expect(versionInfo.readmeContent, testPackageReadme);
-        expect(versionInfo.changelogFilename, 'CHANGELOG.md');
-        expect(versionInfo.changelogContent, testPackageChangelog);
+        expect(versionInfo.assetNames, ['pubspec', 'readme', 'changelog']);
         expect(versionInfo.libraries, ['test_library.dart']);
         expect(versionInfo.libraryCount, 1);
+
+        expect(pubspecAsset.parentKey, testPackageVersion.key);
+        expect(pubspecAsset.id, 'pubspec');
+        expect(pubspecAsset.package, testPackage.name);
+        expect(pubspecAsset.version, testPackageVersion.version);
+        expect(pubspecAsset.name, 'pubspec');
+        expect(pubspecAsset.path, 'pubspec.yaml');
+        expect(pubspecAsset.content, testPackagePubspec);
+        expect(pubspecAsset.contentLength, 175);
+
+        expect(readmeAsset.parentKey, testPackageVersion.key);
+        expect(readmeAsset.id, 'readme');
+        expect(readmeAsset.package, testPackage.name);
+        expect(readmeAsset.version, testPackageVersion.version);
+        expect(readmeAsset.name, 'readme');
+        expect(readmeAsset.path, 'README.md');
+        expect(readmeAsset.content, testPackageReadme);
+        expect(readmeAsset.contentLength, 79);
+
+        expect(changelogAsset.parentKey, testPackageVersion.key);
+        expect(changelogAsset.id, 'changelog');
+        expect(changelogAsset.package, testPackage.name);
+        expect(changelogAsset.version, testPackageVersion.version);
+        expect(changelogAsset.name, 'changelog');
+        expect(changelogAsset.path, 'CHANGELOG.md');
+        expect(changelogAsset.content, testPackageChangelog);
+        expect(changelogAsset.contentLength, 46);
 
         expect(history.packageName, testPackage.name);
         expect(history.packageVersion, testPackageVersion.version);

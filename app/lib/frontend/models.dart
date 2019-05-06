@@ -15,6 +15,7 @@ import '../shared/model_properties.dart';
 import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import '../shared/versions.dart' as versions;
 import 'model_properties.dart';
 
 export 'model_properties.dart' show FileObject;
@@ -236,6 +237,64 @@ class PackageVersion extends db.ExpandoModel {
   }
 }
 
+/// The const values for [PackageVersionAsset.name].
+abstract class PackageVersionAssetName {
+  static const pubspec = 'pubspec';
+  static const readme = 'readme';
+  static const changelog = 'changelog';
+  static const example = 'example';
+  static const license = 'license';
+}
+
+/// An entity that holds derived/cleaned content of [PackageVersion].
+@db.Kind(name: 'PackageVersionAsset', idType: db.IdType.String)
+class PackageVersionAsset extends db.ExpandoModel {
+  @db.StringProperty(required: true)
+  String package;
+
+  @db.StringProperty(required: true)
+  String version;
+
+  /// same as [id]
+  ///
+  /// Available values in [PackageVersionAssetName]
+  @db.StringProperty(required: true)
+  String name;
+
+  @db.StringProperty(required: true)
+  String path;
+
+  @db.StringProperty(required: true, indexed: false)
+  String content;
+
+  @db.IntProperty(required: true)
+  int contentLength;
+
+  @db.DateTimeProperty()
+  DateTime updated;
+
+  @db.StringProperty(required: true)
+  String runtimeVersion;
+
+  PackageVersionAsset();
+
+  PackageVersionAsset.from(PackageVersion pv, String name, String path, String content) {
+    parentKey = pv.key;
+    id = name;
+    package = pv.package;
+    version = pv.version;
+    this.name = name;
+    this.path = path;
+    this.content = content;
+    // TODO: consider using the byte-length
+    this.contentLength = content.length;
+    this.updated = DateTime.now().toUtc();
+    this.runtimeVersion = versions.runtimeVersion;
+  }
+
+  FileObject get fileObject => FileObject(path, content);
+}
+
 /// An derived entity that holds only the `pubspec.yaml` content of [PackageVersion].
 ///
 /// The content of `pubspec.yaml` may be updated/cleaned in case of a breaking
@@ -282,44 +341,8 @@ class PackageVersionInfo extends db.ExpandoModel {
   @db.DateTimeProperty()
   DateTime updated;
 
-  @db.StringProperty(indexed: false)
-  String readmeFilename;
-
-  @db.StringProperty(indexed: false)
-  String readmeContent;
-
-  FileObject get readme {
-    if (readmeFilename != null) {
-      return FileObject(readmeFilename, readmeContent);
-    }
-    return null;
-  }
-
-  @db.StringProperty(indexed: false)
-  String changelogFilename;
-
-  @db.StringProperty(indexed: false)
-  String changelogContent;
-
-  FileObject get changelog {
-    if (changelogFilename != null) {
-      return FileObject(changelogFilename, changelogContent);
-    }
-    return null;
-  }
-
-  @db.StringProperty(indexed: false)
-  String exampleFilename;
-
-  @db.StringProperty(indexed: false)
-  String exampleContent;
-
-  FileObject get example {
-    if (exampleFilename != null) {
-      return FileObject(exampleFilename, exampleContent);
-    }
-    return null;
-  }
+  @db.StringListProperty()
+  List<String> assetNames;
 
   @CompatibleStringListProperty()
   List<String> libraries;

@@ -123,6 +123,10 @@ Future removePackage(String packageName) async {
   print('Removing package from dartdoc backend ...');
   await dartdocBackend.removeAll(packageName, concurrency: 32);
 
+  print('Removing package from PackageVersionAsset...');
+  await _deleteWithQuery(
+      dbService.query<PackageVersionAsset>()..filter('package =', packageName));
+
   print('Removing package from PackageVersionPubspec ...');
   await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
     ..filter('qualifiedPackage =', packageName));
@@ -152,8 +156,9 @@ Future removePackage(String packageName) async {
 }
 
 Future removePackageVersion(String packageName, String version) async {
+  final packageKey = dbService.emptyKey.append(Package, id: packageName);
+  final versionKey = packageKey.append(PackageVersion, id: version);
   await dbService.withTransaction((Transaction T) async {
-    final Key packageKey = dbService.emptyKey.append(Package, id: packageName);
     final package = (await T.lookup([packageKey])).first as Package;
     if (package == null) {
       throw Exception('Package $packageName does not exist.');
@@ -170,8 +175,7 @@ Future removePackageVersion(String packageName, String version) async {
       throw Exception('Cannot delete the latest version of $packageName.');
     }
 
-    final deletes = [packageKey.append(PackageVersion, id: version)];
-    T.queueMutations(deletes: deletes);
+    T.queueMutations(deletes: [versionKey]);
 
     print('Committing changes to DB ...');
     await T.commit();
@@ -183,6 +187,9 @@ Future removePackageVersion(String packageName, String version) async {
   });
 
   await dartdocBackend.removeAll(packageName, version: version);
+
+  await _deleteWithQuery(
+      dbService.query<PackageVersionAsset>(ancestorKey: versionKey));
 
   await _deleteWithQuery(
     dbService.query<PackageVersionPubspec>()
