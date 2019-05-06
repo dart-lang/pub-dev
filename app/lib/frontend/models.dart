@@ -278,7 +278,8 @@ class PackageVersionAsset extends db.ExpandoModel {
 
   PackageVersionAsset();
 
-  PackageVersionAsset.from(PackageVersion pv, String name, String path, String content) {
+  PackageVersionAsset.from(
+      PackageVersion pv, String name, String path, String content) {
     parentKey = pv.key;
     id = name;
     package = pv.package;
