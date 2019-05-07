@@ -8,7 +8,7 @@ import 'package:gcloud/db.dart' as db;
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
 class Publisher extends db.ExpandoModel {
   /// The associated domain name of the publisher.
-  String get domainName => id as String;
+  String get publisherId => id as String;
 
   /// Markdown formatted description of the publisher.
   ///
@@ -33,7 +33,7 @@ class Publisher extends db.ExpandoModel {
 @db.Kind(name: 'PublisherInfo', idType: db.IdType.String)
 class PublisherInfo extends db.ExpandoModel {
   /// The associated domain name of the publisher.
-  String get domainName => id as String;
+  String get publisherId => id as String;
 
   @db.DateTimeProperty()
   DateTime updated;
@@ -72,7 +72,7 @@ class PublisherMember extends db.ExpandoModel {
   db.Key get publisherKey => parentKey;
 
   /// The associated domain name of the publisher.
-  String get domainName => publisherKey.id as String;
+  String get publisherId => publisherKey.id as String;
 
   /// The userId of the member.
   String get userId => id as String;
