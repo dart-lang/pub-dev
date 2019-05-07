@@ -23,7 +23,9 @@ final _handlers = <String, SyncHandler>{
 shelf.Response tryHandleRedirects(shelf.Request request) {
   final host = request.requestedUri.host;
   final path = request.requestedUri.path;
-  if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
+  if (host == 'www.dartdocs.org' ||
+      host == 'dartdocs.org' ||
+      host == 'www.pub.dev') {
     return redirectResponse(
         request.requestedUri.replace(host: urls.primaryHost).toString());
   }
