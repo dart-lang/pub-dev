@@ -158,6 +158,10 @@ pre > code {
   justify-content: space-between;
   width: 100%;
   align-items: center;
+
+  &.-show {
+    display: block;
+  }
 }
 
 .site-nav {
