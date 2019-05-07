@@ -3,7 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
- * Upgraded `pana` (`0.12.15`), Dart SDK (`2.3.0-dev.0.5`) and Flutter SDK (`1.5.8`).
+ * Upgraded `pana` (`0.12.15`), Dart SDK (`2.3.0`) and Flutter SDK (`1.5.8`).
  * Bumped runtimeVersion to `2019.05.07`.
 
 ## `20190503t145023-all`
