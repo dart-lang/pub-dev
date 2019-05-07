@@ -63,12 +63,11 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final host = request.requestedUri.host;
     final isPrimaryHost = host == urls.primaryHost;
     final isProductionHost = activeConfiguration.productionHosts.contains(host);
-    final isPubDev = host == 'pub.dev';
 
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final hasExperimentalCookie = cookies['experimental'] == '1';
-    final isExperimental = isPubDev || hasExperimentalCookie;
+    final isExperimental = hasExperimentalCookie;
 
     final enableRobots = hasExperimentalCookie ||
         (!activeConfiguration.blockRobots && isProductionHost);

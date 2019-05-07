@@ -51,9 +51,6 @@ String renderLayoutPage(
       : serializeSearchOrder(searchQuery.order);
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
-  final siteLogoUrl = requestContext.isExperimental
-      ? staticUrls.pubDevLogo2xPng
-      : staticUrls.assets['img__dart-logo_svg'];
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'body_class': requestContext.isExperimental ? 'experimental' : '',
@@ -65,7 +62,7 @@ String renderLayoutPage(
         ? _defaultPageDescriptionEscaped
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
-    'site_logo_url': siteLogoUrl,
+    'site_logo_url': staticUrls.pubDevLogo2xPng,
     'search_platform': platform,
     'search_query': escapedSearchQuery,
     'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
@@ -91,15 +88,9 @@ String renderLayoutPage(
 }
 
 String _landingBannerImage(bool isFlutter) {
-  if (requestContext.isExperimental) {
-    return isFlutter
-        ? staticUrls.assets['img__flutter-packages-white_png']
-        : staticUrls.assets['img__dart-packages-white_png'];
-  } else {
-    return isFlutter
-        ? staticUrls.assets['img__flutter-packages_png']
-        : staticUrls.assets['img__dart-packages_png'];
-  }
+  return isFlutter
+      ? staticUrls.assets['img__flutter-packages-white_png']
+      : staticUrls.assets['img__dart-packages-white_png'];
 }
 
 String renderPlatformTabs({
