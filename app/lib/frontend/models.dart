@@ -50,6 +50,10 @@ class Package extends db.ExpandoModel {
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
   db.Key latestDevVersionKey;
 
+  /// The publisher id (null, if the package does not have a publisher).
+  @db.StringProperty()
+  String publisherId;
+
   /// List of User.userId
   @db.StringListProperty()
   List<String> uploaders;
@@ -196,6 +200,10 @@ class PackageVersion extends db.ExpandoModel {
   // TODO: set it to required: true once the integrity check script passes
   @db.StringProperty(required: false)
   String uploader;
+
+  /// The publisher id at the time of the upload.
+  @db.StringProperty()
+  String publisherId;
 
   // Convenience Fields:
 
