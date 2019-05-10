@@ -1,15 +1,15 @@
 [![Build Status](https://travis-ci.org/dart-lang/pub-dartlang-dart.svg?branch=master)](https://travis-ci.org/dart-lang/pub-dartlang-dart)
 
-# Code for the "pub.dartlang.org" website.
+# Code for the "pub.dev" website.
 
-The server for hosting pub packages on [pub.dartlang.org](https://pub.dartlang.org)
+The server for hosting pub packages on [pub.dev](https://pub.dev)
 is implemented using AppEngine Custom Runtimes with Flexible environment
-(see [package:appengine](https://pub.dartlang.org/packages/appengine) for more information about
+(see [package:appengine](https://pub.dev/packages/appengine) for more information about
 Dart support for AppEngine).
 
 If you are looking only for a simple self-hosted site to publish internal package,
-see [package:pub_server](https://pub.dartlang.org/packages/pub_server), which has
-an [example](https://pub.dartlang.org/packages/pub_server#-example-tab-) for running
+see [package:pub_server](https://pub.dev/packages/pub_server), which has
+an [example](https://pub.dev/packages/pub_server#-example-tab-) for running
 one using the local filesystem as storage.
 
 ## Documentation
