@@ -139,16 +139,16 @@ version: 1.0.9
       test('Depends on Flutter SDK', () {
         final Pubspec p = Pubspec(pubspecBase +
             'dependencies:\n'
-            '  flutter:\n'
-            '    sdk: flutter\n');
+                '  flutter:\n'
+                '    sdk: flutter\n');
         expect(p.hasFlutterPlugin, isFalse);
         expect(p.dependsOnFlutterSdk, isTrue);
       });
       test('Has flutter plugin', () {
         final Pubspec p = Pubspec(pubspecBase +
             'flutter:\n'
-            '  plugin:\n'
-            '    androidPackage: com.example.EntryPoint\n');
+                '  plugin:\n'
+                '    androidPackage: com.example.EntryPoint\n');
         expect(p.hasFlutterPlugin, isTrue);
         expect(p.dependsOnFlutterSdk, isFalse);
       });
