@@ -8,6 +8,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'package:pub_dartlang_org/shared/flutter_archive.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 
 void main() {
@@ -30,7 +31,7 @@ void main() {
     // This test is a reminder that if pana, the SDK or any of the above
     // versions change, we should also adjust the [runtimeVersion]. Before
     // updating the hash value, double-check if it is being updated.
-    expect(hash, 147423433);
+    expect(hash, 633851915);
   });
 
   test('runtime version should be (somewhat) lexicographically ordered', () {
@@ -62,7 +63,7 @@ void main() {
     expect(lock['packages']['pana']['version'], panaVersion);
   });
 
-  test('flutter version should match the tag in setup-flutter.sh', () {
+  test('flutter version should be a dynamic tag in setup-flutter.sh', () {
     final flutterSetupContent =
         File('script/setup-flutter.sh').readAsStringSync();
 
@@ -70,6 +71,14 @@ void main() {
         flutterSetupContent,
         contains('git clone -b \$1 --single-branch '
             'https://github.com/flutter/flutter.git \$FLUTTER_SDK'));
+  });
+
+  test('Flutter is using a version from the stable channel.', () async {
+    final flutterArchive = await fetchFlutterArchive();
+    expect(
+        flutterArchive.releases.any(
+            (fr) => fr.version == 'v$flutterVersion' && fr.channel == 'stable'),
+        isTrue);
   });
 
   test('dartdoc version should match pkg/pub_dartdoc', () async {
