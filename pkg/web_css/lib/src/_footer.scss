@@ -6,14 +6,11 @@
   margin: 80px 0 0;
   text-align: center;
   font-size: 14px;
+  background: $color-header-dark-bg;
+  color: $color-header-dark-fg;
 
-  .experimental & {
-    background: $color-header-dark-bg;
+  a {
     color: $color-header-dark-fg;
-
-    a {
-      color: $color-header-dark-fg;
-    }
   }
 }
 

@@ -69,17 +69,13 @@ pre > code {
 }
 
 ._banner-bg {
-  background-image: url(../img/background-pattern.png);
+  background: $color-searchbar-dark-bg;
+  background-image: url(../img/background-pattern-darkblue.jpg);
   background-size: cover;
+  color: $color-searchbar-dark-fg;
 
-  .experimental & {
-    background: $color-searchbar-dark-bg;
-    background-image: url(../img/background-pattern-darkblue.jpg);
-    color: $color-searchbar-dark-fg;
-
-    a {
-      color: $color-searchbar-dark-link;
-    }
+  a {
+    color: $color-searchbar-dark-link;
   }
 }
 
@@ -116,12 +112,8 @@ pre > code {
   site header
 ******************************************************/
 .site-header-row {
-  background: #fff;
-
-  .experimental & {
-    background: $color-header-dark-bg;
-    color: $color-header-dark-fg;
-  }
+  background: $color-header-dark-bg;
+  color: $color-header-dark-fg;
 }
 
 .site-header {
@@ -144,16 +136,12 @@ pre > code {
   height: 40px;
   background-position: center;
   margin-left: 10px;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAKklEQVR4Ae3TMRUAAAhCQfuX1g4+BoY7AjD9qQOwmb0OHICSlQxCUzLAAUfPrmAyBxxOAAAAAElFTkSuQmCC);
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfjBB0KByvlnQBfAAAANklEQVRYw+3TsQkAMAgAQZP9dzZVwAESRLjrbBSLjwDot+qQ+Whp2bp/fzD/AChZyaBkJQNcB6AzBhZq14GdAAAAAElFTkSuQmCC');
   background-size: 100%;
   background-repeat: no-repeat;
-
-  .experimental & {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfjBB0KByvlnQBfAAAANklEQVRYw+3TsQkAMAgAQZP9dzZVwAESRLjrbBSLjwDot+qQ+Whp2bp/fzD/AChZyaBkJQNcB6AzBhZq14GdAAAAAElFTkSuQmCC');
-  }
 }
 
-.experimental .nav-wrap {
+.nav-wrap {
   display: flex;
   justify-content: space-between;
   width: 100%;
@@ -383,12 +371,8 @@ pre > code {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
-    background: #fff;
+    background: $color-header-dark-bg;
     height: 56px;
-
-    .experimental & {
-      background: $color-header-dark-bg;
-    }
   }
 
   .nav-header > .close {
