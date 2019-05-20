@@ -122,13 +122,13 @@ String _landingPageTitle(String platform) {
 final Map<String, String> _landingBlurbs = const {
   'default':
       '<p class="text">Find and use packages to build <a href="/flutter">Flutter</a> and '
-      '<a href="/web">web</a> apps with <a target="_blank" rel="noopener" href="${urls.dartSiteRoot}">Dart</a>.</p>',
+          '<a href="/web">web</a> apps with <a target="_blank" rel="noopener" href="${urls.dartSiteRoot}">Dart</a>.</p>',
   KnownPlatforms.flutter:
       '<p class="text"><a target="_blank" rel="noopener" href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '
-      'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
+          'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
   KnownPlatforms.web:
       '<p class="text">Use Dart to create web applications that run on any modern browser.<br/> Start '
-      'with <a target="_blank" rel="noopener" href="https://webdev.dartlang.org/angular">AngularDart<sup><small>↗</small></sup></a>.</p>'
+          'with <a target="_blank" rel="noopener" href="https://webdev.dartlang.org/angular">AngularDart<sup><small>↗</small></sup></a>.</p>'
 };
 
 String _landingBlurb(String platform) =>

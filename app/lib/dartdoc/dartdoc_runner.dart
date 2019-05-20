@@ -258,8 +258,8 @@ class DartdocJobProcessor extends JobProcessor {
               level,
               'Document public APIs.',
               '$undocumented out of ${coverage.total} API elements have no dartdoc comment.'
-              'Providing good documentation for libraries, classes, functions, and other API '
-              'elements improves code readability and helps developers find and use your API.',
+                  'Providing good documentation for libraries, classes, functions, and other API '
+                  'elements improves code readability and helps developers find and use your API.',
               score: coverage.penalty),
         );
       }

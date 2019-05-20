@@ -98,7 +98,7 @@ packages:
       name: pedantic
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.0"
+    version: "1.7.0"
   quiver:
     dependency: transitive
     description:
@@ -112,7 +112,7 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.19.0"
+    version: "1.20.1"
   source_maps:
     dependency: transitive
     description:
@@ -140,7 +140,7 @@ packages:
       name: stream_transform
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.17"
+    version: "0.0.19"
   string_scanner:
     dependency: transitive
     description:

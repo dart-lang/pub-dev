@@ -41,13 +41,8 @@ void main() {
 
   test('runtime sdk version should match travis and dockerfile', () async {
     final String docker = await File('../Dockerfile').readAsString();
-    // TODO: remove once we are past the 2.2.0
-    final override = runtimeSdkVersion == '2.2.0' &&
-        docker.contains('\nFROM google/dart-runtime-base:2.2\n');
     expect(
-        override ||
-            docker.contains(
-                '\nFROM google/dart-runtime-base:$runtimeSdkVersion\n'),
+        docker.contains('\nFROM google/dart-runtime-base:$runtimeSdkVersion\n'),
         isTrue);
     final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
