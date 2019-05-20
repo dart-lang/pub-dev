@@ -23,7 +23,7 @@ import 'markdown.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 
-const _hstsDuration = Duration(minutes: 15);
+const _hstsDuration = Duration(hours: 2);
 
 Future<void> runHandler(
   Logger logger,
