@@ -22,7 +22,7 @@ String renderHelpPage() {
     'pana_maintenance_url': urls.panaMaintenanceUrl(),
   });
   return renderLayoutPage(PageType.package, content,
-      title: 'Help | Dart Packages');
+      title: 'Help | Dart packages');
 }
 
 /// Renders the `views/index.mustache` template.

@@ -112,11 +112,11 @@ String _formattedPlatformName(String platform) {
 
 String _landingPageTitle(String platform) {
   if (platform == KnownPlatforms.flutter) {
-    return 'Flutter Packages';
+    return 'Flutter packages';
   } else if (platform == KnownPlatforms.web) {
-    return 'Dart Packages for Web';
+    return 'Dart packages for Web';
   }
-  return 'Dart Packages';
+  return 'Dart packages';
 }
 
 final Map<String, String> _landingBlurbs = const {
