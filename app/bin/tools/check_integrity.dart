@@ -21,6 +21,7 @@ final _argParser = ArgParser()
 final _problems = <String>[];
 final _userToOauth = <String, String>{};
 final _oauthToUser = <String, String>{};
+final _emailToUser = <String, List<String>>{};
 final _invalidUsers = Set<String>();
 final _packages = <String>{};
 final _packagesWithVersion = <String>{};
@@ -50,7 +51,22 @@ Future main(List<String> args) async {
         _problems.add('User(${user.userId}) has invalid e-mail: ${user.email}');
         _invalidUsers.add(user.userId);
       }
+      if (user.email != null && user.email.isNotEmpty) {
+        _emailToUser.putIfAbsent(user.email, () => []).add(user.userId);
+      }
     }
+    int badEmailToUserMappingCount = 0;
+    _emailToUser.forEach((email, userIds) {
+      if (userIds.length > 1) {
+        badEmailToUserMappingCount++;
+        _problems.add(
+            'E-mail address $email is present at ${userIds.length} User: ${userIds.join(', ')}');
+      }
+    });
+    if (badEmailToUserMappingCount > 0) {
+      _problems.add('$badEmailToUserMappingCount e-mail addresses have more than one User entity.');
+    }
+
     print('Reading OAuthUserID entries...');
     await for (OAuthUserID mapping in dbService.query<OAuthUserID>().run()) {
       if (mapping.userIdKey == null || mapping.userId == null) {
