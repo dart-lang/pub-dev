@@ -242,15 +242,17 @@ class SimplePackageIndex implements PackageIndex {
         // If there is an exact match for a package name (in the filtered result
         // set), promote that package to the top position.
         final queryText = query?.parsedQuery?.text;
-        final matchingPackage = queryText == null ? null : _packages[queryText];
+        final matchingPackage = queryText == null
+            ? null
+            : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
         if (query.order == null &&
             matchingPackage != null &&
-            overallScore.containsKey(queryText) &&
+            overallScore.containsKey(matchingPackage.package) &&
             matchingPackage.maintenance != null &&
             matchingPackage.maintenance > 0.0) {
           final double maxValue = overallScore.getMaxValue();
-          overallScore = overallScore
-              .map((key, value) => key == queryText ? maxValue : value * 0.99);
+          overallScore = overallScore.map((key, value) =>
+              key == matchingPackage.package ? maxValue : value * 0.99);
         }
         results = _rankWithValues(overallScore.getValues());
         break;
