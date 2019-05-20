@@ -11,14 +11,14 @@
   align-items: center;
   border-radius: 3px;
   max-width: 650px;
-  background: #fff;
+  background: transparent;
 }
 
 .search-bar > .input {
   font-size: 16px;
   padding: 0.8em 1em;
   border: none;
-  width: 250px;
+  width: 150px;
   -webkit-box-flex: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
