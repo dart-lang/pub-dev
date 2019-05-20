@@ -64,7 +64,8 @@ Future main(List<String> args) async {
       }
     });
     if (badEmailToUserMappingCount > 0) {
-      _problems.add('$badEmailToUserMappingCount e-mail addresses have more than one User entity.');
+      _problems.add(
+          '$badEmailToUserMappingCount e-mail addresses have more than one User entity.');
     }
 
     print('Reading OAuthUserID entries...');
