@@ -368,19 +368,13 @@ class GoogleOauth2AuthProvider extends AuthProvider {
 
       if (info.expiresIn == null ||
           info.expiresIn <= 0 ||
-          // TODO: Enable when pub client is requesting the correct scopes.
-          // info.userId == null ||
-          // info.userId.isEmpty ||
+          info.userId == null ||
+          info.userId.isEmpty ||
           info.verifiedEmail != true ||
           info.email == null ||
           info.email.isEmpty ||
           !isValidEmail(info.email)) {
         _logger.warning('OAuth2 token info invalid: ${info.toJson()}');
-        return null;
-      }
-
-      if (info.userId == null) {
-        _logger.warning('OAuth2 token info missing userId: ${info.toJson()}');
         return null;
       }
 
