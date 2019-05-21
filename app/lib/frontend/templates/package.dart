@@ -91,9 +91,9 @@ String _renderInstallTab(PackageVersion selectedVersion, bool isFlutterPackage,
   String editorSupportedToolHtml;
   if (usePubGet && useFlutterPackagesGet) {
     editorSupportedToolHtml =
-        '<code>pub get</code> or <code>flutter packages get</code>';
+        '<code>pub get</code> or <code>flutter pub get</code>';
   } else if (useFlutterPackagesGet) {
-    editorSupportedToolHtml = '<code>flutter packages get</code>';
+    editorSupportedToolHtml = '<code>flutter pub get</code>';
   } else {
     editorSupportedToolHtml = '<code>pub get</code>';
   }
