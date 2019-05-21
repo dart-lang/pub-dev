@@ -522,30 +522,37 @@ class GCloudPackageRepository extends PackageRepository {
       }
     });
 
-    final uploaderEmails =
-        await accountBackend.getEmailsOfUserIds(package.uploaders);
+    try {
+      final uploaderEmails =
+          await accountBackend.getEmailsOfUserIds(package.uploaders);
 
-    // Notify uploaders via e-mail that a new version has been published.
-    await emailSender.sendMessage(
-      createPackageUploadedEmail(
-        packageName: newVersion.package,
-        packageVersion: newVersion.version,
-        uploaderEmail: user.email,
-        authorizedUploaders:
-            uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
-      ),
-    );
+      // Notify uploaders via e-mail that a new version has been published.
+      final email = emailSender.sendMessage(
+        createPackageUploadedEmail(
+          packageName: newVersion.package,
+          packageVersion: newVersion.version,
+          uploaderEmail: user.email,
+          authorizedUploaders:
+              uploaderEmails.map((email) => EmailAddress(null, email)).toList(),
+        ),
+      );
 
-    // Trigger analysis and dartdoc generation. Dependent packages can be left
-    // out here, because the dependency graph's background polling will pick up
-    // the new upload, and will trigger analysis for the dependent packages.
-    await analyzerClient
-        .triggerAnalysis(newVersion.package, newVersion.version, <String>{});
-    await dartdocClient
-        .triggerDartdoc(newVersion.package, newVersion.version, <String>{});
+      // Trigger analysis and dartdoc generation. Dependent packages can be left
+      // out here, because the dependency graph's background polling will pick up
+      // the new upload, and will trigger analysis for the dependent packages.
+      final triggerAnalysis = analyzerClient
+          .triggerAnalysis(newVersion.package, newVersion.version, <String>{});
+      final triggerDartdoc = dartdocClient
+          .triggerDartdoc(newVersion.package, newVersion.version, <String>{});
 
-    if (finishCallback != null) {
-      await finishCallback(newVersion);
+      await Future.wait([email, triggerAnalysis, triggerDartdoc]);
+
+      if (finishCallback != null) {
+        await finishCallback(newVersion);
+      }
+    } catch (e, st) {
+      final v = newVersion.qualifiedVersionKey;
+      _logger.severe('Error post-processing package upload $v', e, st);
     }
     return pv as PackageVersion;
   }
