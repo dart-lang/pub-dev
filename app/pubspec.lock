@@ -84,7 +84,7 @@ packages:
       name: build_resolvers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   build_runner:
     dependency: "direct dev"
     description:
@@ -413,7 +413,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.15"
+    version: "0.12.16"
   path:
     dependency: "direct main"
     description:
@@ -422,12 +422,12 @@ packages:
     source: hosted
     version: "1.6.2"
   pedantic:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: pedantic
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.0"
+    version: "1.7.0"
   petitparser:
     dependency: transitive
     description:
