@@ -527,7 +527,7 @@ class GCloudPackageRepository extends PackageRepository {
           await accountBackend.getEmailsOfUserIds(package.uploaders);
 
       // Notify uploaders via e-mail that a new version has been published.
-      await emailSender.sendMessage(
+      final email = emailSender.sendMessage(
         createPackageUploadedEmail(
           packageName: newVersion.package,
           packageVersion: newVersion.version,
@@ -540,10 +540,12 @@ class GCloudPackageRepository extends PackageRepository {
       // Trigger analysis and dartdoc generation. Dependent packages can be left
       // out here, because the dependency graph's background polling will pick up
       // the new upload, and will trigger analysis for the dependent packages.
-      await analyzerClient
+      final triggerAnalysis = analyzerClient
           .triggerAnalysis(newVersion.package, newVersion.version, <String>{});
-      await dartdocClient
+      final triggerDartdoc = dartdocClient
           .triggerDartdoc(newVersion.package, newVersion.version, <String>{});
+
+      await Future.wait([email, triggerAnalysis, triggerDartdoc]);
 
       if (finishCallback != null) {
         await finishCallback(newVersion);
