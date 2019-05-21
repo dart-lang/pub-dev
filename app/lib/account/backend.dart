@@ -184,22 +184,22 @@ class AccountBackend {
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+    if (auth.oauthUserId == null) {
+      throw StateError('Authenticated user ${auth.email} without userId.');
+    }
     final mappingKey = _db.emptyKey.append(OAuthUserID, id: auth.oauthUserId);
 
     final user = await retry(() async {
-      // Handle legacy logins that don't have 'openid' scope
-      if (auth.oauthUserId != null) {
-        // Check existing mapping.
-        final mapping = (await _db.lookup<OAuthUserID>([mappingKey])).single;
-        if (mapping != null) {
-          final user = (await _db.lookup<User>([mapping.userIdKey])).single;
-          // TODO: we should probably have some kind of consistency mitigation
-          if (user == null) {
-            throw Exception('Incomplete OAuth userId mapping: '
-                'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
-          }
-          return user;
+      // Check existing mapping.
+      final mapping = (await _db.lookup<OAuthUserID>([mappingKey])).single;
+      if (mapping != null) {
+        final user = (await _db.lookup<User>([mapping.userIdKey])).single;
+        // TODO: we should probably have some kind of consistency mitigation
+        if (user == null) {
+          throw Exception('Incomplete OAuth userId mapping: '
+              'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
         }
+        return user;
       }
 
       // Check pre-migrated User with existing email.
@@ -210,12 +210,6 @@ class AccountBackend {
       // TODO: trigger consistency mitigation if more than one email exists
       if (usersWithEmail.length == 1 &&
           usersWithEmail.single.oauthUserId == null) {
-        // Handle legacy logins that don't have 'openid' scope, and thus, no
-        // user_id (oauthUserId), these can't be upgraded yet.
-        if (auth.oauthUserId == null) {
-          return usersWithEmail.single;
-        }
-
         // We've found a single pre-migrated User with empty oauthUserId: need
         // to create OAuthUserID for it.
         final updatedUser = await _db.withTransaction((tx) async {
@@ -231,19 +225,6 @@ class AccountBackend {
           return user;
         }) as User;
         return updatedUser;
-      }
-
-      // Create new user without oauth2 user_id, to support legacy clients
-      // that don't have 'openid' scope, and thus, no user_id.
-      if (auth.oauthUserId == null) {
-        final newUser = User()
-          ..parentKey = _db.emptyKey
-          ..id = _uuid.v4().toString()
-          ..oauthUserId = null
-          ..email = auth.email
-          ..created = DateTime.now().toUtc();
-        await _db.commit(inserts: [newUser]);
-        return newUser;
       }
 
       // Create new user with oauth2 user_id mapping
@@ -387,9 +368,8 @@ class GoogleOauth2AuthProvider extends AuthProvider {
 
       if (info.expiresIn == null ||
           info.expiresIn <= 0 ||
-          // TODO: Enable when pub client is requesting the correct scopes.
-          // info.userId == null ||
-          // info.userId.isEmpty ||
+          info.userId == null ||
+          info.userId.isEmpty ||
           info.verifiedEmail != true ||
           info.email == null ||
           info.email.isEmpty ||
