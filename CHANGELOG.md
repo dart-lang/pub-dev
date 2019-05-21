@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
 
  * Removed support for legacy auth tokens (without `user_id`).
+   Users with legacy tokens will be requested to login again.
 
 ## `20190508??`
 
