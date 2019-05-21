@@ -35,7 +35,7 @@ final Duration twoYears = const Duration(days: 2 * 365);
 const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
 const fileAnIssueContent =
-    'Please open an issue: https://github.com/dart-lang/pub-dartlang-dart/issues/new';
+    'Please open an issue: https://github.com/dart-lang/pub-dev/issues/new';
 
 final Logger _logger = Logger('pub.utils');
 

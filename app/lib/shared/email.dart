@@ -128,7 +128,7 @@ $uploaderEmail has published a new version ($packageVersion) of the $packageName
 
 For details, go to $url.
 
-If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dartlang-dart/issues.
+If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dev/issues.
 
 Thanks for your contributions to the Dart community!
 
@@ -156,7 +156,7 @@ $confirmationUrl
 
 If you don’t want to be an uploader, simply ignore this email.
 
-If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dartlang-dart/issues.
+If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues.
 
 Thanks for your contributions to the Dart community!
 
