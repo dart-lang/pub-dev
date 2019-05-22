@@ -60,16 +60,14 @@ Future main(List<String> args) async {
     }
     if (targetUser.oauthUserId == null) {
       print('Target user does not have oauth user id.');
-      print('Please say "yes" if you still want to continue, CTRL+C to abort:');
-      final answer = stdin.readLineSync().toLowerCase();
-      if (answer != 'y' && answer != 'yes') {
-        exit(1);
-      }
-      print('YES');
     }
     print(
         'Transferring ownership from ${sourceUser.email} to ${targetUser.email}.');
-    await Future.delayed(Duration(seconds: 5));
+    print('Please say "yes" if you still want to continue, CTRL+C to abort:');
+    final answer = stdin.readLineSync().toLowerCase();
+    if (answer != 'y' && answer != 'yes') {
+      exit(1);
+    }
 
     print('Querying Packages...');
     final pkgQuery = dbService.query<Package>()
