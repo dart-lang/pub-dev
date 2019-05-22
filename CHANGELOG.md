@@ -3,12 +3,14 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190522t135532-all`
+
  * Removed support for legacy auth tokens (without `user_id`).
    Users with legacy tokens will be requested to login again.
  * Upgraded `pana` (`0.12.16`), Dart SDK (`2.3.1`) and downgraded Flutter SDK (`1.5.4-hotfix.2`).
  * Bumped runtimeVersion to `2019.05.22`.
 
-## `20190508??`
+## `20190508t114341-all`
 
  * Upgraded `pana` (`0.12.15`), Dart SDK (`2.3.0`) and Flutter SDK (`1.5.8`).
  * Bumped runtimeVersion to `2019.05.07`.
