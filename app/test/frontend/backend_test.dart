@@ -823,13 +823,8 @@ void main() {
                 },
                 commitFun: expectAsync0(() {}, count: 2),
                 queryMock: queryMock);
-            final finishCallback = expectAsync1((PackageVersion pv) {
-              expect(pv.package, 'foobar_pkg');
-              expect(pv.version, '0.1.1+5');
-            });
             final db = DatastoreDBMock(transactionMock: transactionMock);
-            final repo = GCloudPackageRepository(db, tarballStorage,
-                finishCallback: finishCallback);
+            final repo = GCloudPackageRepository(db, tarballStorage);
             registerAuthenticatedUser(testUploaderUser);
             registerAccountBackend(
                 AccountBackendMock(authenticatedUsers: [testUploaderUser]));
@@ -1017,14 +1012,9 @@ void main() {
                 },
                 commitFun: expectAsync0(() {}, count: 2),
                 queryMock: queryMock);
-            final finishCallback = expectAsync1((PackageVersion pv) {
-              expect(pv.package, 'foobar_pkg');
-              expect(pv.version, '0.1.1+5');
-            });
 
             final db = DatastoreDBMock(transactionMock: transactionMock);
-            final repo = GCloudPackageRepository(db, tarballStorage,
-                finishCallback: finishCallback);
+            final repo = GCloudPackageRepository(db, tarballStorage);
             registerAuthenticatedUser(testUploaderUser);
             registerAnalyzerClient(AnalyzerClientMock());
             registerDartdocClient(DartdocClientMock());
