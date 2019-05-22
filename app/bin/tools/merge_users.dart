@@ -79,30 +79,29 @@ Future main(List<String> args) async {
     print('Found: ${packages.length} packages and '
         '${versions.length} versions.');
 
-    final historyPackages = packages.map((p) => p.name).toSet();
-    versions.forEach((pv) => historyPackages.add(pv.package));
-    for (String package in historyPackages) {
-      print('Querying History for package $package...');
-      final query = dbService.query<History>()
-        ..filter('packageName =', package);
-
-      await for (History history in query.run()) {
-        if (!history.eventJson.contains(sourceUserId)) continue;
-        print('Updating History [${history.id}]');
-        await dbService.withTransaction((tx) async {
-          final h = (await tx.lookup<History>([history.key])).single;
-          final event = h.historyEvent;
-          final newEvent = event.migrateUser(
-              sourceUserId, sourceUser.email, targetUserId, targetUser.email);
-          if (event == newEvent) {
-            await tx.rollback();
-          } else {
-            h.historyEvent = newEvent;
-            tx.queueMutations(inserts: [h]);
-            await tx.commit();
-          }
-        });
+    print('Querying History...');
+    int historyCount = 0;
+    await for (History history in dbService.query<History>().run()) {
+      historyCount++;
+      if (historyCount % 1000 == 0) {
+        print(' .. $historyCount');
       }
+      if (!history.eventJson.contains(sourceUserId)) continue;
+      print(
+          'Updating History [${history.packageName}/${history.packageVersion}/${history.id}]');
+      await dbService.withTransaction((tx) async {
+        final h = (await tx.lookup<History>([history.key])).single;
+        final event = h.historyEvent;
+        final newEvent = event.migrateUser(
+            sourceUserId, sourceUser.email, targetUserId, targetUser.email);
+        if (event == newEvent) {
+          await tx.rollback();
+        } else {
+          h.historyEvent = newEvent;
+          tx.queueMutations(inserts: [h]);
+          await tx.commit();
+        }
+      });
     }
 
     for (Package package in packages) {
