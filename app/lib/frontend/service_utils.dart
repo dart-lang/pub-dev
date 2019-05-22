@@ -25,10 +25,8 @@ void initSearchService() {
   registerScopeExitCallback(searchService.close);
 }
 
-void initBackend(
-    {UIPackageCache cache, FinishedUploadCallback finishCallback}) {
-  registerBackend(Backend(dbService, tarballStorage,
-      cache: cache, finishCallback: finishCallback));
+void initBackend({UIPackageCache cache}) {
+  registerBackend(Backend(dbService, tarballStorage, cache: cache));
 }
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get

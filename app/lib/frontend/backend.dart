@@ -51,20 +51,15 @@ void registerBackend(Backend backend) => ss.register(#_backend, backend);
 /// The active backend service.
 Backend get backend => ss.lookup(#_backend) as Backend;
 
-/// A callback to be invoked after an upload of a new [PackageVersion].
-typedef FinishedUploadCallback = Future Function(models.PackageVersion pv);
-
 /// Represents the backend for the pub site.
 class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
   final UIPackageCache uiPackageCache;
 
-  Backend(DatastoreDB db, TarballStorage storage,
-      {UIPackageCache cache, FinishedUploadCallback finishCallback})
+  Backend(DatastoreDB db, TarballStorage storage, {UIPackageCache cache})
       : db = db,
-        repository = GCloudPackageRepository(db, storage,
-            cache: cache, finishCallback: finishCallback),
+        repository = GCloudPackageRepository(db, storage, cache: cache),
         uiPackageCache = cache;
 
   /// Retrieves packages ordered by their created date.
@@ -294,10 +289,8 @@ class GCloudPackageRepository extends PackageRepository {
   final DatastoreDB db;
   final TarballStorage storage;
   final UIPackageCache cache;
-  final FinishedUploadCallback finishCallback;
 
-  GCloudPackageRepository(this.db, this.storage,
-      {this.cache, this.finishCallback});
+  GCloudPackageRepository(this.db, this.storage, {this.cache});
 
   // Metadata support.
 
@@ -546,10 +539,6 @@ class GCloudPackageRepository extends PackageRepository {
           .triggerDartdoc(newVersion.package, newVersion.version, <String>{});
 
       await Future.wait([email, triggerAnalysis, triggerDartdoc]);
-
-      if (finishCallback != null) {
-        await finishCallback(newVersion);
-      }
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
