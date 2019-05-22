@@ -10,8 +10,9 @@ PackagePopularity _$PackagePopularityFromJson(Map<String, dynamic> json) {
   return PackagePopularity(
       DateTime.parse(json['date_first'] as String),
       DateTime.parse(json['date_last'] as String),
-      (json['items'] as Map<String, dynamic>).map((k, e) =>
-          MapEntry(k, VoteTotals.fromJson(e as Map<String, dynamic>))));
+      (json['items'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(k, VoteTotals.fromJson(e as Map<String, dynamic>)),
+      ));
 }
 
 Map<String, dynamic> _$PackagePopularityToJson(PackagePopularity instance) =>
