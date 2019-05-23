@@ -40,79 +40,65 @@ shelf.Response oauthCallbackHandler(shelf.Request request) {
 /// Handles requests for /authorized
 shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
-/// Handles requests for /admin/confirm
-Future<shelf.Response> adminConfirmHandler(shelf.Request request) async {
-  final segments = request.requestedUri.pathSegments;
-  if (segments.length <= 2) {
-    return notFoundHandler(request);
-  }
-  final type = segments[2];
-  if (type == PackageInviteType.newUploader) {
-    // Parse URL segments.
-    if (segments.length != 6) {
-      return _formattedInviteExpiredHandler(request);
-    }
-    final packageName = segments[3];
-    final recipientEmail = segments[4];
-    final urlNonce = segments[5];
-    if (packageName.isEmpty || urlNonce.isEmpty) {
-      return _formattedInviteExpiredHandler(request);
-    }
-
-    // Check if invite exists and is still valid.
-    final invite = await backend.getPackageInvite(
-      packageName: packageName,
-      type: type,
-      recipientEmail: recipientEmail,
-      urlNonce: urlNonce,
-    );
-    if (invite == null) {
-      return _formattedInviteExpiredHandler(request);
-    }
-
-    // If there is no auth code, display only the page that will have a link to
-    // authenticate the user.
-    final code = request.requestedUri.queryParameters['code'];
-    if (code == null) {
-      final inviteEmail = invite.fromUserId == null
-          ? invite.fromEmail
-          : await accountBackend.getEmailOfUserId(invite.fromUserId);
-      final redirectUrl = accountBackend.siteAuthorizationUrl(
-          _oauthRedirectUrl(request), request.requestedUri.path);
-      return htmlResponse(renderUploaderApprovalPage(
-          invite.packageName, inviteEmail, invite.recipientEmail, redirectUrl));
-    }
-
-    // Check and validate the auth code.
-    String authErrorMessage;
-    final accessToken = await accountBackend.siteAuthCodeToAccessToken(
-        _oauthRedirectUrl(request), code);
-    if (accessToken == null) {
-      authErrorMessage ??= 'Unable to verify auth code.';
-    }
-
-    final user = await accountBackend.authenticateWithAccessToken(accessToken);
-    if (user == null) {
-      authErrorMessage ??= 'Unable to verify access token.';
-    }
-
-    final matchesEmail = user?.email == recipientEmail;
-    if (!matchesEmail) {
-      authErrorMessage ??= 'E-mail address does not match invite.';
-    }
-
-    if (!matchesEmail) {
-      return _formattedInviteExpiredHandler(request,
-          title: 'Authorization error', description: authErrorMessage);
-    }
-
-    await backend.repository.confirmUploader(
-        invite.fromUserId, invite.fromEmail, packageName, user);
-    await backend.confirmPackageInvite(invite);
-    return redirectResponse(urls.pkgPageUrl(invite.packageName));
-  } else {
+/// Handles requests for /admin/confirm/new-uploader/...
+Future<shelf.Response> confirmNewUploaderHandler(shelf.Request request,
+    String packageName, String recipientEmail, String urlNonce) async {
+  final type = PackageInviteType.newUploader;
+  if (packageName.isEmpty || urlNonce.isEmpty) {
     return _formattedInviteExpiredHandler(request);
   }
+
+  // Check if invite exists and is still valid.
+  final invite = await backend.getPackageInvite(
+    packageName: packageName,
+    type: type,
+    recipientEmail: recipientEmail,
+    urlNonce: urlNonce,
+  );
+  if (invite == null) {
+    return _formattedInviteExpiredHandler(request);
+  }
+
+  // If there is no auth code, display only the page that will have a link to
+  // authenticate the user.
+  final code = request.requestedUri.queryParameters['code'];
+  if (code == null) {
+    final inviteEmail = invite.fromUserId == null
+        ? invite.fromEmail
+        : await accountBackend.getEmailOfUserId(invite.fromUserId);
+    final redirectUrl = accountBackend.siteAuthorizationUrl(
+        _oauthRedirectUrl(request), request.requestedUri.path);
+    return htmlResponse(renderUploaderApprovalPage(
+        invite.packageName, inviteEmail, invite.recipientEmail, redirectUrl));
+  }
+
+  // Check and validate the auth code.
+  String authErrorMessage;
+  final accessToken = await accountBackend.siteAuthCodeToAccessToken(
+      _oauthRedirectUrl(request), code);
+  if (accessToken == null) {
+    authErrorMessage ??= 'Unable to verify auth code.';
+  }
+
+  final user = await accountBackend.authenticateWithAccessToken(accessToken);
+  if (user == null) {
+    authErrorMessage ??= 'Unable to verify access token.';
+  }
+
+  final matchesEmail = user?.email == recipientEmail;
+  if (!matchesEmail) {
+    authErrorMessage ??= 'E-mail address does not match invite.';
+  }
+
+  if (!matchesEmail) {
+    return _formattedInviteExpiredHandler(request,
+        title: 'Authorization error', description: authErrorMessage);
+  }
+
+  await backend.repository
+      .confirmUploader(invite.fromUserId, invite.fromEmail, packageName, user);
+  await backend.confirmPackageInvite(invite);
+  return redirectResponse(urls.pkgPageUrl(invite.packageName));
 }
 
 Future<shelf.Response> _formattedInviteExpiredHandler(

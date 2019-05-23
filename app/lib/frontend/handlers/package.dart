@@ -36,39 +36,8 @@ Map packageDebugStats() {
   };
 }
 
-/// Handles requests for /packages/...  - multiplexes to HTML/JSON handlers
-///
-/// Handles the following URLs:
-///   - /packages/<package>
-///   - /packages/<package>/versions
-FutureOr<shelf.Response> packageHandler(shelf.Request request) {
-  final segments = request.url.pathSegments;
-  assert(segments.first == 'packages');
-
-  final package = segments[1];
-
-  if (segments.length == 2) {
-    if (package.endsWith('.json')) {
-      final packageName = package.substring(0, package.length - '.json'.length);
-      return _packageShowHandlerJson(request, Uri.decodeComponent(packageName));
-    } else {
-      return _packageVersionHandlerHtml(request, Uri.decodeComponent(package));
-    }
-  }
-
-  if (segments[2] == 'versions') {
-    if (segments.length == 4) {
-      final String version = Uri.decodeComponent(segments[3]);
-      return _packageVersionHandlerHtml(request, package, versionName: version);
-    } else {
-      return _packageVersionsHandler(request, package);
-    }
-  }
-  return formattedNotFoundHandler(request);
-}
-
 /// Handles requests for /packages/<package> - JSON
-Future<shelf.Response> _packageShowHandlerJson(
+Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
   final Package package = await backend.lookupPackage(packageName);
   if (package == null) return formattedNotFoundHandler(request);
@@ -89,7 +58,7 @@ Future<shelf.Response> _packageShowHandlerJson(
 }
 
 /// Handles requests for /packages/<package>/versions
-Future<shelf.Response> _packageVersionsHandler(
+Future<shelf.Response> packageVersionsListHandler(
     shelf.Request request, String packageName) async {
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) {
@@ -109,7 +78,7 @@ Future<shelf.Response> _packageVersionsHandler(
 
 /// Handles requests for /packages/<package>
 /// Handles requests for /packages/<package>/versions/<version>
-Future<shelf.Response> _packageVersionHandlerHtml(
+Future<shelf.Response> packageVersionHandlerHtml(
     shelf.Request request, String packageName,
     {String versionName}) async {
   if (redirectPackagePages.containsKey(packageName)) {

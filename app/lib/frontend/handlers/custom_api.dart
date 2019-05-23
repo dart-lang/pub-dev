@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:path/path.dart' as path;
+
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -20,12 +20,8 @@ import '../models.dart';
 import '../name_tracker.dart';
 
 /// Handles requests for /api/documentation/<package>
-Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
-  final parts = path.split(request.requestedUri.path).skip(1).toList();
-  if (parts.length != 3 || parts[2].isEmpty) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-  final String package = parts[2];
+Future<shelf.Response> apiDocumentationHandler(
+    shelf.Request request, String package) async {
   if (isSoftRemoved(package)) {
     return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
   }
@@ -74,7 +70,7 @@ Future<shelf.Response> apiDocumentationHandler(shelf.Request request) async {
 }
 
 /// Handles requests for
-/// - /api/packages?list=compact
+/// - /api/packages?compact=1
 Future<shelf.Response> apiPackagesCompactListHandler(
     shelf.Request request) async {
   final packageNames = await nameTracker.getPackageNames();
@@ -178,13 +174,8 @@ bool isHandlerForApiPackageMetrics(Uri requestedUri) {
 
 /// Handles requests for
 /// - /api/packages/<package>/metrics
-Future<shelf.Response> apiPackageMetricsHandler(shelf.Request request) async {
-  final requestedPath = request.requestedUri.path;
-  final parts = requestedPath.split('/');
-  if (parts.length != 5) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
-  }
-  final packageName = parts[3];
+Future<shelf.Response> apiPackageMetricsHandler(
+    shelf.Request request, String packageName) async {
   final packageVersion = request.requestedUri.queryParameters['version'];
   final current = request.requestedUri.queryParameters.containsKey('current');
   final data = await scoreCardBackend
