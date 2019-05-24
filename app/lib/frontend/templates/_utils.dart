@@ -29,7 +29,12 @@ String renderFile(FileObject file, String baseUrl) {
 String _escapeAngleBrackets(String msg) =>
     const HtmlEscape(HtmlEscapeMode.element).convert(msg);
 
-bool _isMarkdownFile(String filename) => filename.toLowerCase().endsWith('.md');
+bool _isMarkdownFile(String filename) {
+  final lc = filename.toLowerCase();
+  return lc.endsWith('.md') ||
+      lc.endsWith('.markdown') ||
+      lc.endsWith('.mdown');
+}
 
 bool _isDartFile(String filename) => filename.toLowerCase().endsWith('.dart');
 
