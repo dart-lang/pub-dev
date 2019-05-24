@@ -31,8 +31,14 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       'GET', '/packages/<package>/versions', service.packageVersionsJson);
   router.add('GET', '/packages/<package>.json', service.packageJson);
   router.add('GET', '/packages/<package>', service.package);
-  router.add(
-      'GET', '/documentation/<package>/<version>', service.documentation);
+  router.add('GET', '/documentation/<package>/<version>/<path|[^]*>',
+      service.documentation);
+  router.add('GET', '/documentation/<package>/<version>',
+      service.documentationVersion);
+  router.add('GET', '/documentation/<package>/<version>/',
+      service.documentationVersion);
+  router.add('GET', '/documentation/<package>', service.documentationLatest);
+  router.add('GET', '/documentation/<package>/', service.documentationLatest);
   router.add('GET', '/feed.atom', service.atomFeed);
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);
