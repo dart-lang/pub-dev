@@ -13,6 +13,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       'GET', '/api/packages/<package>/versions/<version>', service.versionInfo);
   router.add('GET', '/api/packages/<package>/versions/<version>.tar.gz',
       service.versionArchive);
+  router.add('GET', '/packages/<package>/versions/<version>.tar.gz',
+      service.versionArchive);
   router.add('GET', '/api/packages/versions/new', service.startUpload);
   router.add(
       'GET', '/api/packages/versions/newUploadFinish', service.finishUpload);

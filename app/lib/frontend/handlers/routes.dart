@@ -52,6 +52,7 @@ class PubSiteService {
   /// GET /api/packages/<package-name>/versions/<version-name>.tar.gz
   /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L67-L75
   @Route.get('/api/packages/<package>/versions/<version>.tar.gz')
+  @Route.get('/packages/<package>/versions/<version>.tar.gz')
   Future<Response> versionArchive(
           Request request, String package, String version) async =>
       _pubServerHandler(request);
