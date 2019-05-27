@@ -32,15 +32,7 @@ Future<void> runHandler(
   shelf.Handler cronHandler,
   int port = 8080,
 }) async {
-  handler = _uriValidationRequestWrapper(handler);
-  handler = _userAuthWrapper(handler);
-  if (sanitize) {
-    handler = _sanitizeRequestWrapper(handler);
-  }
-  handler = _httpsWrapper(handler);
-  handler = _logRequestWrapper(logger, handler);
-  handler = _cspHeaderWrapper(handler);
-  handler = _requestContextWrapper(handler);
+  handler = wrapHandler(logger, handler, sanitize: sanitize);
   await runAppEngine((HttpRequest request) {
     // If request origins from the appengine cron scheduler, and we have a
     // cron handler we call that.
@@ -55,6 +47,24 @@ Future<void> runHandler(
     }
     shelf_io.handleRequest(request, handler);
   }, shared: true, port: port);
+}
+
+/// Wraps the app handler with useful wrappers.
+shelf.Handler wrapHandler(
+  Logger logger,
+  shelf.Handler handler, {
+  bool sanitize = false,
+}) {
+  handler = _uriValidationRequestWrapper(handler);
+  handler = _userAuthWrapper(handler);
+  if (sanitize) {
+    handler = _sanitizeRequestWrapper(handler);
+  }
+  handler = _httpsWrapper(handler);
+  handler = _logRequestWrapper(logger, handler);
+  handler = _cspHeaderWrapper(handler);
+  handler = _requestContextWrapper(handler);
+  return handler;
 }
 
 /// Populates [requestContext] with the extracted request attributes.
@@ -187,14 +197,15 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
 /// - adds Strict-Transport-Security response header (HSTS)
 shelf.Handler _httpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    if (context.isProductionEnvironment &&
+    if (context != null &&
+        context.isProductionEnvironment &&
         request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return shelf.Response.seeOther(secureUri);
     }
 
     shelf.Response rs = await handler(request);
-    if (context.isProductionEnvironment) {
+    if (context != null && context.isProductionEnvironment) {
       rs = rs.change(headers: {
         'strict-transport-security':
             'max-age=${_hstsDuration.inSeconds}; preload',
