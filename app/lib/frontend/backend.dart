@@ -999,7 +999,8 @@ class TarballStorage {
 
   TarballStorage(this.storage, Bucket bucket, String namespace)
       : bucket = bucket,
-        namer = TarballStorageNamer(bucket.bucketName, namespace);
+        namer = TarballStorageNamer(
+            activeConfiguration.storagePrefix, bucket.bucketName, namespace);
 
   /// Generates a path to a temporary object on cloud storage.
   String tempObjectName(String guid) => namer.tmpObjectName(guid);
@@ -1071,6 +1072,9 @@ class TarballStorage {
 ///   gs://<bucket-name>/packages/<package-name>-<version>.tar.gz
 ///   gs://<bucket-name>/ns/<namespace>/packages/<package-name>-<version>.tar.gz
 class TarballStorageNamer {
+  /// The tarball object storage prefix
+  final String storagePrefix;
+
   /// The GCS bucket used.
   final String bucket;
 
@@ -1080,7 +1084,7 @@ class TarballStorageNamer {
   /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
   final String prefix;
 
-  TarballStorageNamer(this.bucket, String namespace)
+  TarballStorageNamer(this.storagePrefix, this.bucket, String namespace)
       : namespace = namespace == null ? '' : namespace,
         prefix =
             (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
@@ -1097,6 +1101,6 @@ class TarballStorageNamer {
   /// The http URL of a publicly accessable GCS object.
   String tarballObjectUrl(String package, String version) {
     final object = tarballObjectName(package, version);
-    return '${activeConfiguration.storagePrefix}/$bucket/$object';
+    return '$storagePrefix/$bucket/$object';
   }
 }
