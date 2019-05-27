@@ -30,14 +30,19 @@ void _registerCache(Cache<List<int>> cache) => ss.register(#_cache, cache);
 /// services like datastore and logging.
 Future withAppEngineAndCache(FutureOr Function() fn) async {
   return withAppEngineServices(() async {
-    // Use in-memory cache, if not running on AppEngine
-    if (Platform.environment.containsKey('GAE_VERSION')) {
-      return await _withRedisCache(fn);
-    } else {
-      _log.warning('using in-memory cache instead of redis');
-      return await _withInmemoryCache(fn);
-    }
+    return await withCache(fn);
   });
+}
+
+// Run [fn] with a redis or an in-memory cache.
+Future withCache(FutureOr Function() fn) async {
+  // Use in-memory cache, if not running on AppEngine
+  if (Platform.environment.containsKey('GAE_VERSION')) {
+    return await _withRedisCache(fn);
+  } else {
+    _log.warning('using in-memory cache instead of redis');
+    return await _withInmemoryCache(fn);
+  }
 }
 
 /// Run [fn] with [cache] connected to a redis cache.
