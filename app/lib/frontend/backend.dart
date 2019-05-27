@@ -20,6 +20,7 @@ import '../account/backend.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/email.dart';
 import '../shared/package_memcache.dart';
@@ -1096,6 +1097,6 @@ class TarballStorageNamer {
   /// The http URL of a publicly accessable GCS object.
   String tarballObjectUrl(String package, String version) {
     final object = tarballObjectName(package, version);
-    return 'https://storage.googleapis.com/$bucket/$object';
+    return '${activeConfiguration.storagePrefix}/$bucket/$object';
   }
 }
