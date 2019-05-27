@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -17,6 +21,7 @@ import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
@@ -33,35 +38,60 @@ class FakePubServer {
   Future run(
       {int port = 8080, String storagePrefix = 'http://localhost:8081'}) async {
     await updateLocalBuiltFiles();
-    await withAppEngineAndCache(() async {
+    await ss.fork(() async {
       final db = DatastoreDB(_datastore);
+      registerDbService(db);
 
-      registerAccountBackend(
-          AccountBackend(db, authProvider: FakeAuthProvider()));
-      registerAnalyzerClient(AnalyzerClient());
-      registerEmailSender(EmailSender(db));
-      registerHistoryBackend(HistoryBackend(db));
-      registerScoreCardBackend(ScoreCardBackend(db));
-      registerScoreCardMemcache(ScoreCardMemcache());
+      await withCache(() async {
+        registerActiveConfiguration(Configuration(
+          projectId: 'dartlang-pub-fake',
+          packageBucketName: 'fake-bucket-pub',
+          dartdocStorageBucketName: 'fake-bucket-dartdoc',
+          popularityDumpBucketName: 'fake-bucket-popularity',
+          searchSnapshotBucketName: 'fake-bucket-search',
+          backupSnapshotBucketName: 'fake-bucket-backup',
+          searchServicePrefix: 'http://localhost:$port',
+          pubHostedUrl: 'http://localhost:$port',
+          storagePrefix: storagePrefix,
+          pubClientAudience: null,
+          pubSiteAudience: null,
+          credentials: null,
+          blockRobots: true,
+          productionHosts: ['localhost'],
+        ));
+        registerAccountBackend(
+            AccountBackend(db, authProvider: FakeAuthProvider()));
+        registerAnalyzerClient(AnalyzerClient());
+        registerDartdocClient(DartdocClient());
+        registerEmailSender(EmailSender(db));
+        registerHistoryBackend(HistoryBackend(db));
+        registerScoreCardBackend(ScoreCardBackend(db));
+        registerScoreCardMemcache(ScoreCardMemcache());
 
-      registerUploadSigner(FakeUploaderSignerService(storagePrefix));
+        registerUploadSigner(FakeUploaderSignerService(storagePrefix));
 
-      final pkgBucket = await getOrCreateBucket(
-          _storage, activeConfiguration.packageBucketName);
-      registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
+        final pkgBucket = await getOrCreateBucket(
+            _storage, activeConfiguration.packageBucketName);
+        registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
 
-      final cache = AppEnginePackageMemcache();
-      registerBackend(Backend(db, tarballStorage, cache: cache));
+        final cache = AppEnginePackageMemcache();
+        registerBackend(Backend(db, tarballStorage, cache: cache));
 
-      final apiHandler =
-          ShelfPubServer(backend.repository, cache: cache).requestHandler;
+        final apiHandler =
+            ShelfPubServer(backend.repository, cache: cache).requestHandler;
 
-      await runHandler(
-        _logger,
-        (shelf.Request request) => appHandler(request, apiHandler),
-        sanitize: true,
-        port: port,
-      );
+        final handler = wrapHandler(
+            _logger, (shelf.Request request) => appHandler(request, apiHandler),
+            sanitize: true);
+
+        await shelf_io.serve((request) async {
+          return await ss.fork(() async {
+            return await handler(request);
+          }) as shelf.Response;
+        }, InternetAddress.anyIPv4, port);
+        _logger.info('fake_pub_server running on port $port');
+        await Future.delayed(Duration(days: 1000));
+      });
     });
   }
 }
