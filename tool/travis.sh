@@ -27,8 +27,8 @@ for PKG in ${PKGS}; do
       dartanalyzer --fatal-infos --fatal-warnings . || EXIT_CODE=$?
       ;;
     dartanalyzer_1)
-      echo 'dartanalyzer --fatal-infos --fatal-warnings bin/ lib/'
-      dartanalyzer --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
+      echo 'dartanalyzer --fatal-infos --fatal-warnings lib/'
+      dartanalyzer --fatal-infos --fatal-warnings lib/ || EXIT_CODE=$?
       ;;
     dartfmt)
       echo 'dartfmt -n --set-exit-if-changed .'
