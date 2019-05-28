@@ -22,9 +22,13 @@ for PKG in ${PKGS}; do
     echo
     echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
     case ${TASK} in
-    dartanalyzer)
+    dartanalyzer_0)
       echo 'dartanalyzer --fatal-infos --fatal-warnings .'
       dartanalyzer --fatal-infos --fatal-warnings . || EXIT_CODE=$?
+      ;;
+    dartanalyzer_1)
+      echo 'dartanalyzer --fatal-infos --fatal-warnings bin/ lib/'
+      dartanalyzer --fatal-infos --fatal-warnings bin/ lib/ || EXIT_CODE=$?
       ;;
     dartfmt)
       echo 'dartfmt -n --set-exit-if-changed .'
