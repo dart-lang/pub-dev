@@ -39,10 +39,9 @@ Future withCache(FutureOr Function() fn) async {
   // Use in-memory cache, if not running on AppEngine
   if (Platform.environment.containsKey('GAE_VERSION')) {
     return await _withRedisCache(fn);
-  } else {
-    _log.warning('using in-memory cache instead of redis');
-    return await _withInmemoryCache(fn);
   }
+  _log.warning('using in-memory cache instead of redis');
+  return await _withInmemoryCache(fn);
 }
 
 /// Run [fn] with [cache] connected to a redis cache.
