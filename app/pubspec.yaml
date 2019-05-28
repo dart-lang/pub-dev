@@ -41,6 +41,7 @@ dependencies:
   # 3rd-party packages with pinned versions
   archive: '2.0.3'
   mailer: '2.1.1'
+  sanitize_html: '1.2.0'
   uuid: '1.0.3'
   ulid: '1.0.2'
 

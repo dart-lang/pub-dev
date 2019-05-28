@@ -498,6 +498,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  sanitize_html:
+    dependency: "direct main"
+    description:
+      name: sanitize_html
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   shelf:
     dependency: "direct main"
     description:
