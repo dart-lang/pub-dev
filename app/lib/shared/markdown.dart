@@ -5,6 +5,7 @@
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pana/pana.dart' show getRepositoryUrl;
+import 'package:path/path.dart' as p;
 
 final Logger _logger = Logger('pub.markdown');
 
@@ -18,7 +19,7 @@ void _initInlineSyntaxes() {
   _inlineSyntaxes.add(_InlineBrHtmlSyntax());
 }
 
-String markdownToHtml(String text, String baseUrl) {
+String markdownToHtml(String text, String baseUrl, {String baseDir}) {
   if (text == null) return null;
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
 
@@ -31,7 +32,7 @@ String markdownToHtml(String text, String baseUrl) {
   final lines = text.replaceAll('\r\n', '\n').split('\n');
   final nodes = document.parseLines(lines);
 
-  final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl);
+  final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl, baseDir);
   final hashLink = _HashLink();
   final unsafeUrlFilter = _UnsafeUrlFilter();
   for (final node in nodes) {
@@ -125,7 +126,8 @@ class _UnsafeUrlFilter implements m.NodeVisitor {
 /// Rewrites relative URLs with the provided [baseUrl]
 class _RelativeUrlRewriter implements m.NodeVisitor {
   final String baseUrl;
-  _RelativeUrlRewriter(this.baseUrl);
+  final String baseDir;
+  _RelativeUrlRewriter(this.baseUrl, this.baseDir);
 
   @override
   void visitText(m.Text text) {}
@@ -188,7 +190,8 @@ class _RelativeUrlRewriter implements m.NodeVisitor {
     if (linkPath.startsWith('/')) {
       newUrl = Uri.parse(baseUrl).replace(path: linkPath).toString();
     } else {
-      final repoUrl = getRepositoryUrl(baseUrl, linkPath);
+      final adjustedLinkPath = p.normalize(p.join(baseDir ?? '.', linkPath));
+      final repoUrl = getRepositoryUrl(baseUrl, adjustedLinkPath);
       if (repoUrl == null) {
         return url;
       }
