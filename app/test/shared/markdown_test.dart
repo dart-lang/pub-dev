@@ -71,6 +71,17 @@ void main() {
           '<p><img src="https://github.com/example/project/raw/master/image.png" alt="text" /></p>\n');
     });
 
+    test('sibling image inside a relative directory', () {
+      expect(markdownToHtml('![text](image.png)', null, baseDir: 'example'),
+          '<p><img src="image.png" alt="text" /></p>\n');
+      expect(markdownToHtml('![text](image.png)', baseUrl, baseDir: 'example'),
+          '<p><img src="https://github.com/example/project/raw/master/example/image.png" alt="text" /></p>\n');
+      expect(
+          markdownToHtml('![text](img/image.png)', '$baseUrl/',
+              baseDir: 'example'),
+          '<p><img src="https://github.com/example/project/raw/master/example/img/image.png" alt="text" /></p>\n');
+    });
+
     test('sibling link plus relative link', () {
       expect(markdownToHtml('[text](README.md#section)', null),
           '<p><a href="README.md#section">text</a></p>\n');

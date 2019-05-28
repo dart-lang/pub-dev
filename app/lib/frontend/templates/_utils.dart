@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
+
 import '../../shared/markdown.dart';
 
 import '../model_properties.dart' show FileObject;
@@ -16,7 +18,7 @@ String renderFile(FileObject file, String baseUrl) {
   final content = file.text;
   if (content != null) {
     if (_isMarkdownFile(filename)) {
-      return markdownToHtml(content, baseUrl);
+      return markdownToHtml(content, baseUrl, baseDir: p.dirname(filename));
     } else if (_isDartFile(filename)) {
       return _renderDartCode(content);
     } else {
