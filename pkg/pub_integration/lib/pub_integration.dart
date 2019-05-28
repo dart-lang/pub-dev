@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'src/dummy_pkg.dart' as dummy_pkg;
 import 'src/pub_client.dart';
 import 'src/test_data.dart';
 
@@ -88,7 +87,7 @@ class _PubIntegration {
     _dummyDir = Directory(path.join(_temp.path, 'pkg', '_dummy_pkg'));
     _dummyExampleDir = Directory(path.join(_dummyDir.path, 'example'));
     await _dummyDir.create(recursive: true);
-    await dummy_pkg.createDummyPkg(_dummyDir.path, _newDummyVersion);
+    await createDummyPkg(_dummyDir.path, _newDummyVersion);
   }
 
   Future _createFakeRetryPkg() async {
