@@ -10,8 +10,8 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 import 'src/dummy_pkg.dart' as dummy_pkg;
-import 'src/fake_retry_pkg.dart' as fake_retry_pkg;
 import 'src/pub_client.dart';
+import 'src/test_data.dart';
 
 final _random = Random.secure();
 
@@ -94,7 +94,7 @@ class _PubIntegration {
   Future _createFakeRetryPkg() async {
     _retryDir = Directory(path.join(_temp.path, 'pkg', 'retry'));
     await _retryDir.create(recursive: true);
-    await fake_retry_pkg.createFakeRetryPkg(_retryDir.path, '2.0.0');
+    await createFakeRetryPkg(_retryDir.path);
   }
 
   Future _pubGet(Directory dir) async {
