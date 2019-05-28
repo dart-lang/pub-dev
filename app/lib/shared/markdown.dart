@@ -38,7 +38,10 @@ String markdownToHtml(String text, String baseUrl, {String baseDir}) {
   final html = sanitizeHtml(
     m.renderToHtml(nodes),
     allowElementId: (String id) => true, // TODO: blacklist ids used by pub site
-    allowClassName: (String cn) => _whitelistedClassNames.contains(cn),
+    allowClassName: (String cn) {
+      if (cn.startsWith('language-')) return true;
+      return _whitelistedClassNames.contains(cn);
+    },
   );
   return html + '\n';
 }
