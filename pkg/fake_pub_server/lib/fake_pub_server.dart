@@ -35,8 +35,10 @@ class FakePubServer {
 
   FakePubServer(this._storage);
 
-  Future run(
-      {int port = 8080, String storagePrefix = 'http://localhost:8081'}) async {
+  Future run({
+    int port = 8080,
+    String storageBaseUrl = 'http://localhost:8081',
+  }) async {
     await updateLocalBuiltFiles();
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
@@ -52,7 +54,7 @@ class FakePubServer {
           backupSnapshotBucketName: 'fake-bucket-backup',
           searchServicePrefix: 'http://localhost:$port',
           pubHostedUrl: 'http://localhost:$port',
-          storagePrefix: storagePrefix,
+          storageBaseUrl: storageBaseUrl,
           pubClientAudience: null,
           pubSiteAudience: null,
           credentials: null,
@@ -68,7 +70,7 @@ class FakePubServer {
         registerScoreCardBackend(ScoreCardBackend(db));
         registerScoreCardMemcache(ScoreCardMemcache());
 
-        registerUploadSigner(FakeUploaderSignerService(storagePrefix));
+        registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
 
         final pkgBucket = await getOrCreateBucket(
             _storage, activeConfiguration.packageBucketName);

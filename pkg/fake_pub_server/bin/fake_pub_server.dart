@@ -33,7 +33,7 @@ Future main(List<String> args) async {
   await Future.wait(
     [
       storageServer.run(port: storagePort),
-      pubServer.run(port: port, storagePrefix: 'http://localhost:$storagePort'),
+      pubServer.run(port: port, storageBaseUrl: 'http://localhost:$storagePort'),
     ],
     eagerError: true,
   );

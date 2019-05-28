@@ -62,7 +62,7 @@ class Configuration {
   final String pubHostedUrl;
 
   // The scheme://host:port prefix for storage URLs.
-  final String storagePrefix;
+  final String storageBaseUrl;
 
   /// The OAuth audience (`client_id`) that the `pub` client uses.
   final String pubClientAudience;
@@ -97,7 +97,7 @@ class Configuration {
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
       pubHostedUrl: urls.siteRoot,
-      storagePrefix: 'https://storage.googleapis.com/',
+      storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
@@ -119,7 +119,7 @@ class Configuration {
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
       pubHostedUrl: 'https://dartlang-pub-dev.appspot.com',
-      storagePrefix: 'https://storage.googleapis.com/',
+      storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
@@ -138,7 +138,7 @@ class Configuration {
     @required this.backupSnapshotBucketName,
     @required this.searchServicePrefix,
     @required this.pubHostedUrl,
-    @required this.storagePrefix,
+    @required this.storageBaseUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
     @required this.credentials,
