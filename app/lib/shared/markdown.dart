@@ -6,28 +6,22 @@ import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:path/path.dart' as p;
+import 'package:sanitize_html/sanitize_html.dart';
 
 final Logger _logger = Logger('pub.markdown');
 
-List<m.InlineSyntax> _inlineSyntaxes;
-
-void _initInlineSyntaxes() {
-  if (_inlineSyntaxes != null) return;
-  _inlineSyntaxes = m.ExtensionSet.gitHubWeb.inlineSyntaxes
-      .where((s) => s is! m.InlineHtmlSyntax)
-      .toList();
-  _inlineSyntaxes.add(_InlineBrHtmlSyntax());
-}
+const _whitelistedClassNames = <String>[
+  'hash-header',
+  'hash-link',
+];
 
 String markdownToHtml(String text, String baseUrl, {String baseDir}) {
   if (text == null) return null;
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
 
-  _initInlineSyntaxes();
   final document = m.Document(
-      extensionSet: m.ExtensionSet.none,
-      blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes,
-      inlineSyntaxes: _inlineSyntaxes);
+      extensionSet: m.ExtensionSet.gitHubWeb,
+      blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
 
   final lines = text.replaceAll('\r\n', '\n').split('\n');
   final nodes = document.parseLines(lines);
@@ -41,7 +35,15 @@ String markdownToHtml(String text, String baseUrl, {String baseDir}) {
     node.accept(unsafeUrlFilter);
   }
 
-  return m.renderToHtml(nodes) + '\n';
+  final html = sanitizeHtml(
+    m.renderToHtml(nodes),
+    allowElementId: (String id) => true, // TODO: blacklist ids used by pub site
+    allowClassName: (String cn) {
+      if (cn.startsWith('language-')) return true;
+      return _whitelistedClassNames.contains(cn);
+    },
+  );
+  return html + '\n';
 }
 
 final _headers = Set.from(<String>['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
@@ -69,17 +71,6 @@ class _HashLink implements m.NodeVisitor {
           ..attributes['class'] = 'hash-link',
       ]);
     }
-  }
-}
-
-/// Enables inline <br> to be emitted as <br/> HTML element.
-class _InlineBrHtmlSyntax extends m.TextSyntax {
-  _InlineBrHtmlSyntax() : super(r'(<br>)|(<br\s*/>)|(<BR>)|(<BR\s*/>)');
-
-  @override
-  bool onMatch(m.InlineParser parser, Match match) {
-    parser.addNode(m.Element('br', null));
-    return true;
   }
 }
 

@@ -12,11 +12,7 @@ void main() {
       expect(markdownToHtml(':white_check_mark:', null), '<p>✅</p>\n');
     });
 
-    test('do not render inline html', () {
-      expect(markdownToHtml('<a></a>', null), '<p>&lt;a>&lt;/a></p>\n');
-    });
-
-    test('render link ids', () {
+    test('render link id and class', () {
       expect(markdownToHtml('# ABC def', null),
           '<h1 class="hash-header" id="abc-def">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n');
     });
@@ -162,16 +158,22 @@ void main() {
   });
 
   group('non-whitelisted inline HTML', () {
-    test('<a>', () {
-      expect(markdownToHtml('a <a href="x">x</a>', null),
-          '<p>a &lt;a href="x">x&lt;/a></p>\n');
+    test('script', () {
+      expect(markdownToHtml('<script></script>', null), '\n');
     });
   });
 
   group('whitelisted inline HTML', () {
+    test('a', () {
+      expect(
+        markdownToHtml('<a href="https://google.com">link</a>', null),
+        '<p><a href="https://google.com">link</a></p>\n',
+      );
+    });
+
     test('<br/>', () {
-      expect(markdownToHtml('a <br>b', null), '<p>a <br />\nb</p>\n');
-      expect(markdownToHtml('a <br  />b', null), '<p>a <br />\nb</p>\n');
+      expect(markdownToHtml('a <br>b', null), '<p>a <br />b</p>\n');
+      expect(markdownToHtml('a <br  />b', null), '<p>a <br />b</p>\n');
     });
   });
 
