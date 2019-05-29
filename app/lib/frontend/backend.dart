@@ -20,6 +20,7 @@ import '../account/backend.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/email.dart';
 import '../shared/package_memcache.dart';
@@ -998,7 +999,8 @@ class TarballStorage {
 
   TarballStorage(this.storage, Bucket bucket, String namespace)
       : bucket = bucket,
-        namer = TarballStorageNamer(bucket.bucketName, namespace);
+        namer = TarballStorageNamer(
+            activeConfiguration.storageBaseUrl, bucket.bucketName, namespace);
 
   /// Generates a path to a temporary object on cloud storage.
   String tempObjectName(String guid) => namer.tmpObjectName(guid);
@@ -1070,6 +1072,9 @@ class TarballStorage {
 ///   gs://<bucket-name>/packages/<package-name>-<version>.tar.gz
 ///   gs://<bucket-name>/ns/<namespace>/packages/<package-name>-<version>.tar.gz
 class TarballStorageNamer {
+  /// The tarball object storage prefix
+  final String storageBaseUrl;
+
   /// The GCS bucket used.
   final String bucket;
 
@@ -1079,7 +1084,7 @@ class TarballStorageNamer {
   /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
   final String prefix;
 
-  TarballStorageNamer(this.bucket, String namespace)
+  TarballStorageNamer(this.storageBaseUrl, this.bucket, String namespace)
       : namespace = namespace == null ? '' : namespace,
         prefix =
             (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
@@ -1096,6 +1101,6 @@ class TarballStorageNamer {
   /// The http URL of a publicly accessable GCS object.
   String tarballObjectUrl(String package, String version) {
     final object = tarballObjectName(package, version);
-    return 'https://storage.googleapis.com/$bucket/$object';
+    return '$storageBaseUrl/$bucket/$object';
   }
 }

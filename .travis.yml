@@ -11,7 +11,12 @@ jobs:
       name: "SDK: 2.3.0; PKGS: app, pkg/_popularity, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/retry, pkg/simple_cache, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: "2.3.0"
       env: PKGS="app pkg/_popularity pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/retry pkg/simple_cache pkg/web_app"
-      script: ./tool/travis.sh dartfmt dartanalyzer
+      script: ./tool/travis.sh dartfmt dartanalyzer_0
+    - stage: smoke_test
+      name: "SDK: 2.3.0; PKG: pkg/pub_integration; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings lib/`]"
+      dart: "2.3.0"
+      env: PKGS="pkg/pub_integration"
+      script: ./tool/travis.sh dartfmt dartanalyzer_1
     - stage: smoke_test
       name: "SDK: 2.3.0; PKG: pkg/web_css; TASKS: `dartfmt -n --set-exit-if-changed .`"
       dart: "2.3.0"
@@ -41,6 +46,11 @@ jobs:
       name: "SDK: 2.3.0; PKG: pkg/pub_dartdoc_data; TASKS: `pub run test --run-skipped`"
       dart: "2.3.0"
       env: PKGS="pkg/pub_dartdoc_data"
+      script: ./tool/travis.sh test
+    - stage: unit_test
+      name: "SDK: 2.3.0; PKG: pkg/pub_integration; TASKS: `pub run test --run-skipped`"
+      dart: "2.3.0"
+      env: PKGS="pkg/pub_integration"
       script: ./tool/travis.sh test
     - stage: unit_test
       name: "SDK: 2.3.0; PKG: pkg/retry; TASKS: `pub run test --run-skipped`"
