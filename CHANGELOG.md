@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+
+## `20190529t163905-all`
+
  * Upgraded `pana` (`0.12.17`).
  * Bumped runtimeVersion to `2019.05.29`.
 
