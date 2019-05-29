@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Upgraded `pana` (`0.12.17`).
+ * Bumped runtimeVersion to `2019.05.29`.
+
 ## `20190522t135532-all`
 
  * Removed support for legacy auth tokens (without `user_id`).
