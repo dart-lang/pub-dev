@@ -11,13 +11,6 @@ import '../../shared/urls.dart' as urls;
 
 typedef SyncHandler = shelf.Response Function(shelf.Request request);
 
-final _handlers = <String, SyncHandler>{
-  '/flutter/plugins': (_) => redirectResponse('/flutter/packages'),
-  '/search': _searchRedirectHandler,
-  '/server': (_) => redirectResponse('/'),
-  '/server/packages': _serverPackagesRedirectHandler,
-};
-
 /// Checks [request] whether it can handle it via redirect.
 /// Returns null when there is no redirect.
 shelf.Response tryHandleRedirects(shelf.Request request) {
@@ -38,10 +31,6 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
         request.requestedUri.replace(host: urls.primaryHost).toString());
   }
 
-  final handler = _handlers[path];
-  if (handler != null) {
-    return handler(request);
-  }
   if (path == '/doc' || path.startsWith('/doc/')) {
     return _docRedirectHandler(request);
   }
@@ -93,19 +82,3 @@ const Map<String, String> redirectPaths = <String, String>{
   '/doc/pub-upgrade.html': 'cmd/pub-upgrade.html',
   '/doc/pub-serve.html': 'cmd/pub-serve.html'
 };
-
-/// Handles requests for /search (redirects to /packages?q=...)
-shelf.Response _searchRedirectHandler(shelf.Request request) {
-  return redirectResponse(
-      request.requestedUri.replace(path: urls.searchUrl()).toString());
-}
-
-/// Handles requests for /server/packages (redirects to /packages?q=...)
-shelf.Response _serverPackagesRedirectHandler(shelf.Request request) {
-  final params = request.requestedUri.queryParameters;
-  final uri = Uri(
-    path: '/packages',
-    queryParameters: params.isNotEmpty ? params : null,
-  );
-  return redirectResponse(uri.toString());
-}

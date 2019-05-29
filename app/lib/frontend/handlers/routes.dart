@@ -106,6 +106,10 @@ class PubSiteService {
   @Route.get('/web')
   Future<Response> web(Request request) => webLandingHandler(request);
 
+  /// (Old) server index redirect
+  @Route.get('/server')
+  Future<Response> server(Request request) async => redirectResponse('/');
+
   // ****
   // **** Listing pages
   // ****
@@ -121,6 +125,21 @@ class PubSiteService {
   @Route.get('/web/packages')
   Future<Response> webPackages(Request request) =>
       webPackagesHandlerHtml(request);
+
+  /// (Old) Flutter plugins redirect
+  @Route.get('/flutter/plugins')
+  Future<Response> flutterPlugins(Request request) async =>
+      redirectResponse('/flutter/packages');
+
+  /// (Old) Server packages redirect
+  @Route.get('/server/packages')
+  Future<Response> serverPackages(Request request) async => redirectResponse(
+      request.requestedUri.replace(path: '/packages').toString());
+
+  /// (Old) Search redirect
+  @Route.get('/search')
+  Future<Response> search(Request request) async => redirectResponse(
+      request.requestedUri.replace(path: '/packages').toString());
 
   // ****
   // **** Packages

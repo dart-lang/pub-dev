@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers/redirects.dart';
+import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../../shared/handlers_test_utils.dart';
 
@@ -16,7 +17,7 @@ void main() {
       Future testRedirect(String path) async {
         expectRedirectResponse(
             await issueGetUri(Uri.parse('https://pub.dartlang.org$path')),
-            'https://pub.dev$path');
+            '$siteRoot$path');
       }
 
       testRedirect('/');
@@ -30,7 +31,7 @@ void main() {
       expectRedirectResponse(
         await issueGetUri(
             Uri.parse('https://dartdocs.org/documentation/pkg/latest/')),
-        'https://pub.dev/documentation/pkg/latest/',
+        '$siteRoot/documentation/pkg/latest/',
       );
     });
 
@@ -38,7 +39,7 @@ void main() {
       expectRedirectResponse(
         await issueGetUri(
             Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/')),
-        'https://pub.dev/documentation/pkg/latest/',
+        '$siteRoot/documentation/pkg/latest/',
       );
     });
 
@@ -61,13 +62,13 @@ void main() {
     });
 
     tScopedTest('/search?q=foobar', () async {
-      expectRedirectResponse(await issueGet('/search?q=foobar'),
-          'https://pub.dev/packages?q=foobar');
+      expectRedirectResponse(
+          await issueGet('/search?q=foobar'), '$siteRoot/packages?q=foobar');
     });
 
     tScopedTest('/search?q=foobar&page=2', () async {
       expectRedirectResponse(await issueGet('/search?q=foobar&page=2'),
-          'https://pub.dev/packages?q=foobar&page=2');
+          '$siteRoot/packages?q=foobar&page=2');
     });
 
     tScopedTest('/server', () async {
@@ -75,25 +76,26 @@ void main() {
     });
 
     tScopedTest('/server/packages with parameters', () async {
-      expectRedirectResponse(
-          await issueGet('/server/packages?sort=top'), '/packages?sort=top');
+      expectRedirectResponse(await issueGet('/server/packages?sort=top'),
+          '$siteRoot/packages?sort=top');
     });
 
     tScopedTest('/server/packages', () async {
-      expectRedirectResponse(await issueGet('/server/packages'), '/packages');
+      expectRedirectResponse(
+          await issueGet('/server/packages'), '$siteRoot/packages');
     });
 
     tScopedTest('/packages/flutter - redirect', () async {
       expectRedirectResponse(
         await issueGet('/packages/flutter'),
-        'https://pub.dev/flutter',
+        '$siteRoot/flutter',
       );
     });
 
     tScopedTest('/packages/flutter/versions/* - redirect', () async {
       expectRedirectResponse(
         await issueGet('/packages/flutter/versions/0.20'),
-        'https://pub.dev/flutter',
+        '$siteRoot/flutter',
       );
     });
   });
