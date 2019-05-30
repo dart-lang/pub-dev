@@ -19,8 +19,9 @@ import '../utils.dart';
 
 import '_utils.dart';
 
-Future main() async {
-  await updateLocalBuiltFiles();
+void main() {
+  test('init', () => updateLocalBuiltFiles(),
+      timeout: Timeout(Duration(minutes: 10)));
 
   group('ui', () {
     tScopedTest('/packages/foobar_pkg - found', () async {

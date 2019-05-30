@@ -21,8 +21,9 @@ import '../utils.dart';
 
 import '_utils.dart';
 
-Future main() async {
-  await updateLocalBuiltFiles();
+void main() {
+  test('init', () => updateLocalBuiltFiles(),
+      timeout: Timeout(Duration(minutes: 10)));
 
   group('old api', () {
     scopedTest('/packages.json', () async {
