@@ -51,6 +51,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/authorized', service.authorizationConfirmed);
   router.add('GET', '/admin/confirm/new-uploader/<package>/<email>/<nonce>',
       service.confirmUploader);
+  router.add('GET', '/api/account/v1/info', service.accountV1Info);
   router.add('GET', '/api/documentation/<package>', service.apiDocumentation);
   router.add('GET', '/api/history', service.apiHistory);
   router.add('GET', '/api/packages', service.apiPackages);
