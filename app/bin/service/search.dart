@@ -94,27 +94,33 @@ Future _main(FrontendEntryMessage message) async {
     _updateDartSdkIndex().whenComplete(() {});
 
     final BatchIndexUpdater batchIndexUpdater = BatchIndexUpdater();
-    await batchIndexUpdater.initSnapshot();
+    // Don't block on init, we need to serve liveliness and readiness checks.
+    batchIndexUpdater.init().then(
+      (_) {
+        final scheduler = TaskScheduler(
+          batchIndexUpdater,
+          [
+            ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
+            IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
+            DatastoreHeadTaskSource(
+              db.dbService,
+              TaskSourceModel.scorecard,
+              sleep: const Duration(minutes: 10),
+              skipHistory: true,
+            ),
+            batchIndexUpdater.periodicUpdateTaskSource,
+          ],
+        );
+        scheduler.run();
 
-    final scheduler = TaskScheduler(
-      batchIndexUpdater,
-      [
-        ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-        IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
-        DatastoreHeadTaskSource(
-          db.dbService,
-          TaskSourceModel.scorecard,
-          sleep: const Duration(minutes: 10),
-          skipHistory: true,
-        ),
-        batchIndexUpdater.periodicUpdateTaskSource,
-      ],
+        Timer.periodic(const Duration(minutes: 5), (_) {
+          updateLatestStats(scheduler.stats());
+        });
+      },
+      onError: (e, StackTrace st) {
+        _logger.shout('Error initializing search service.', e, st);
+      },
     );
-    scheduler.run();
-
-    Timer.periodic(const Duration(minutes: 5), (_) {
-      updateLatestStats(scheduler.stats());
-    });
 
     await runHandler(_logger, searchServiceHandler);
   });
