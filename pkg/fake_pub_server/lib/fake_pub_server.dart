@@ -95,12 +95,9 @@ class FakePubServer {
         });
         _logger.info('fake_pub_server running on port $port');
 
-        StreamSubscription sigsubs;
-        sigsubs = ProcessSignal.sighup.watch().listen((_) async {
-          await sigsubs.cancel();
-          await server.close();
-        });
-        await sigsubs.asFuture();
+        await ProcessSignal.sigterm.watch().first;
+        await server.close();
+        _logger.info('closing');
       });
     });
   }

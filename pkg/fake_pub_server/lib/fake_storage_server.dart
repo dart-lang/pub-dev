@@ -20,12 +20,8 @@ class FakeStorageServer {
     final server = await IOServer.bind('localhost', port);
     serveRequests(server.server, _handler);
     _logger.info('Storage server running on port $port');
-    StreamSubscription sigsubs;
-    sigsubs = ProcessSignal.sighup.watch().listen((_) async {
-      await sigsubs.cancel();
-      await server.close();
-    });
-    await sigsubs.asFuture();
+    await ProcessSignal.sigterm.watch().first;
+    await server.close();
   }
 
   Future<Response> _handler(Request request) async {
