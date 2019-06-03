@@ -17,8 +17,7 @@ import '../utils.dart';
 import '_utils.dart';
 
 void main() {
-  test('init', () => updateLocalBuiltFiles(),
-      timeout: Timeout(Duration(minutes: 10)));
+  setUpAll(() => updateLocalBuiltFiles());
 
   group('ui', () {
     tScopedTest('/', () async {
