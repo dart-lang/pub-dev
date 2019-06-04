@@ -129,4 +129,9 @@ class MockSearchBackend implements SearchBackend {
       popularity: 0.1,
     );
   }
+
+  @override
+  Stream<PackageDocument> loadMinimumPackageIndex() async* {
+    throw UnimplementedError();
+  }
 }

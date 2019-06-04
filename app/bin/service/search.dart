@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
@@ -94,26 +95,34 @@ Future _main(FrontendEntryMessage message) async {
     _updateDartSdkIndex().whenComplete(() {});
 
     final BatchIndexUpdater batchIndexUpdater = BatchIndexUpdater();
-    await batchIndexUpdater.initSnapshot();
+    // Don't block on init, we need to serve liveliness and readiness checks.
+    scheduleMicrotask(() async {
+      try {
+        await batchIndexUpdater.init();
+      } catch (e, st) {
+        _logger.shout('Error initializing search service.', e, st);
+        exit(1);
+      }
 
-    final scheduler = TaskScheduler(
-      batchIndexUpdater,
-      [
-        ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-        IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
-        DatastoreHeadTaskSource(
-          db.dbService,
-          TaskSourceModel.scorecard,
-          sleep: const Duration(minutes: 10),
-          skipHistory: true,
-        ),
-        batchIndexUpdater.periodicUpdateTaskSource,
-      ],
-    );
-    scheduler.run();
+      final scheduler = TaskScheduler(
+        batchIndexUpdater,
+        [
+          ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
+          IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
+          DatastoreHeadTaskSource(
+            db.dbService,
+            TaskSourceModel.scorecard,
+            sleep: const Duration(minutes: 10),
+            skipHistory: true,
+          ),
+          batchIndexUpdater.periodicUpdateTaskSource,
+        ],
+      );
+      scheduler.run();
 
-    Timer.periodic(const Duration(minutes: 5), (_) {
-      updateLatestStats(scheduler.stats());
+      Timer.periodic(const Duration(minutes: 5), (_) {
+        updateLatestStats(scheduler.stats());
+      });
     });
 
     await runHandler(_logger, searchServiceHandler);

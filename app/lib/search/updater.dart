@@ -37,6 +37,26 @@ class BatchIndexUpdater implements TaskRunner {
   // start do the index merges, making sure that the index is marked as ready.
   int _firstScanCount;
 
+  /// Loads the package index snapshot, or if it fails, creates a minimal
+  /// package index with only package names and minimal information.
+  Future init() async {
+    await _initSnapshot();
+
+    if (!packageIndex.isReady) {
+      _logger.info('Loading minimum package index...');
+      int cnt = 0;
+      await for (final pd in searchBackend.loadMinimumPackageIndex()) {
+        await packageIndex.addPackage(pd);
+        cnt++;
+        if (cnt % 500 == 0) {
+          _logger.info('Loaded $cnt minimum package data (${pd.package})');
+        }
+      }
+      await packageIndex.merge();
+      _logger.info('Minimum package index loaded with $cnt packages.');
+    }
+  }
+
   TaskSource get periodicUpdateTaskSource {
     assert(_snapshot != null);
     return _PeriodicUpdateTaskSource(_snapshot);
@@ -47,7 +67,7 @@ class BatchIndexUpdater implements TaskRunner {
     _firstScanCount = count;
   }
 
-  Future initSnapshot() async {
+  Future _initSnapshot() async {
     if (_snapshot != null) return;
     try {
       _logger.info('Loading snapshot...');
@@ -70,11 +90,9 @@ class BatchIndexUpdater implements TaskRunner {
     } catch (e, st) {
       _logger.warning('Error while fetching snapshot.', e, st);
     }
-    if (_snapshot == null) {
-      _snapshot = SearchSnapshot();
-      // making sure snapshot will be written as soon as the first scan is done
-      _lastSnapshotWrite = DateTime.now().subtract(Duration(days: 1));
-    }
+    // Create an empty snapshot if the above failed. This will be populated with
+    // package data via a separate update process.
+    _snapshot ??= SearchSnapshot();
   }
 
   @override

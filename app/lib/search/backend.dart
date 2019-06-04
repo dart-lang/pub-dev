@@ -135,7 +135,7 @@ class SearchBackend {
     final Set<String> emails = Set<String>();
     final uploaderEmails = await accountBackend.getEmailsOfUserIds(p.uploaders);
     emails.addAll(uploaderEmails.where((email) => email != null));
-    for (String value in pv.pubspec.authors) {
+    for (String value in pv?.pubspec?.authors ?? []) {
       final EmailAddress author = EmailAddress.parse(value);
       if (author.email == null) continue;
       emails.add(author.email);
@@ -147,6 +147,28 @@ class SearchBackend {
     final decodedMap = json.decode(text) as Map;
     final pubData = PubDartdocData.fromJson(decodedMap.cast());
     return apiDocPagesFromPubData(pubData);
+  }
+
+  /// Loads a minimum set of package document data for indexing.
+  Stream<PackageDocument> loadMinimumPackageIndex() async* {
+    final query = _db.query<Package>();
+    await for (final p in query.run()) {
+      final popularity = popularityStorage.lookup(p.name) ?? 0.0;
+      yield PackageDocument(
+        package: p.name,
+        version: p.latestVersion,
+        devVersion: p.latestDevVersion,
+        created: p.created,
+        updated: p.updated,
+        isDiscontinued: p.isDiscontinued ?? false,
+        doNotAdvertise: p.doNotAdvertise ?? false,
+        health: 0.0,
+        popularity: popularity,
+        maintenance: 0.0,
+        emails: await _buildEmails(p, null),
+        timestamp: DateTime.now().toUtc(),
+      );
+    }
   }
 }
 

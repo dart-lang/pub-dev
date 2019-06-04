@@ -21,6 +21,8 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = <String, shelf.Handler>{
     '/debug': _debugHandler,
+    '/liveness_check': _livenessCheckHandler,
+    '/readiness_check': _readinessCheckHandler,
     '/search': _searchHandler,
     '/robots.txt': rejectRobotsHandler,
   }[path];
@@ -29,6 +31,20 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
     return await handler(request);
   } else {
     return notFoundHandler(request);
+  }
+}
+
+/// Handles /liveness_check requests.
+Future<shelf.Response> _livenessCheckHandler(shelf.Request request) async {
+  return htmlResponse('OK');
+}
+
+/// Handles /readiness_check requests.
+Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
+  if (packageIndex.isReady) {
+    return htmlResponse('OK');
+  } else {
+    return htmlResponse('Service Unavailable', status: 503);
   }
 }
 
