@@ -12,8 +12,9 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 
-Future main() async {
-  await updateLocalBuiltFiles();
+void main() {
+  test('init', () => updateLocalBuiltFiles(),
+      timeout: Timeout(Duration(minutes: 10)));
 
   group('dartdoc assets', () {
     Future checkAsset(String url, String path) async {

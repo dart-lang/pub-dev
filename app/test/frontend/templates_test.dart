@@ -38,6 +38,8 @@ final _regenerateGoldens = false;
 
 void main() {
   group('templates', () {
+    StaticFileCache oldCache;
+
     setUpAll(() {
       final cache = StaticFileCache();
       for (String path in hashedFiles) {
@@ -45,7 +47,12 @@ void main() {
             [], DateTime.now(), 'mocked_hash_${path.hashCode.abs()}');
         cache.addFile(file);
       }
-      registerStaticFileCache(cache);
+      oldCache = staticFileCache;
+      registerStaticFileCacheForTest(cache);
+    });
+
+    tearDownAll(() {
+      registerStaticFileCacheForTest(oldCache);
     });
 
     void expectGoldenFile(String content, String fileName,

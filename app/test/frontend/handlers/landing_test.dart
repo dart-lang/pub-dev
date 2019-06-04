@@ -16,8 +16,8 @@ import '../utils.dart';
 
 import '_utils.dart';
 
-Future main() async {
-  await updateLocalBuiltFiles();
+void main() {
+  setUpAll(() => updateLocalBuiltFiles());
 
   group('ui', () {
     tScopedTest('/', () async {

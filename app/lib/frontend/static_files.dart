@@ -14,17 +14,19 @@ const String _defaultStaticPath = '/static';
 const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
 
 StaticFileCache _cache;
+StaticUrls _staticUrls;
 
 /// The static file cache. If no cache was registered before the first access,
 /// the default instance will be created.
 StaticFileCache get staticFileCache =>
     _cache ??= StaticFileCache.withDefaults();
 
+StaticUrls get staticUrls => _staticUrls ?? StaticUrls();
+
 /// Register the static file cache.
-/// Can be called only once, before the static file cache is set.
-void registerStaticFileCache(StaticFileCache cache) {
-  assert(_cache == null);
+void registerStaticFileCacheForTest(StaticFileCache cache) {
   _cache = cache;
+  _staticUrls = null;
 }
 
 /// Returns the path of the `app/` directory.
@@ -121,8 +123,6 @@ class StaticFile {
     this.etag,
   );
 }
-
-final staticUrls = StaticUrls();
 
 /// The static assets that get a ?hash=<hash> in their URL and with that, longer
 /// cached timeouts.
