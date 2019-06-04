@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
@@ -100,6 +101,7 @@ Future _main(FrontendEntryMessage message) async {
         await batchIndexUpdater.init();
       } catch (e, st) {
         _logger.shout('Error initializing search service.', e, st);
+        exit(1);
       }
 
       final scheduler = TaskScheduler(
