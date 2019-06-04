@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:buffer/buffer.dart';
 import 'package:logging/logging.dart';
@@ -18,7 +20,8 @@ class FakeStorageServer {
     final server = await IOServer.bind('localhost', port);
     serveRequests(server.server, _handler);
     _logger.info('Storage server running on port $port');
-    await Future.delayed(Duration(days: 10000));
+    await ProcessSignal.sigterm.watch().first;
+    await server.close();
   }
 
   Future<Response> _handler(Request request) async {

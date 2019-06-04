@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:fake_gcloud/mem_datastore.dart';
@@ -8,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf/shelf_io.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -86,13 +87,17 @@ class FakePubServer {
             _logger, (shelf.Request request) => appHandler(request, apiHandler),
             sanitize: true);
 
-        await shelf_io.serve((request) async {
+        final server = await IOServer.bind('localhost', port);
+        serveRequests(server.server, (request) async {
           return await ss.fork(() async {
             return await handler(request);
           }) as shelf.Response;
-        }, InternetAddress.anyIPv4, port);
+        });
         _logger.info('fake_pub_server running on port $port');
-        await Future.delayed(Duration(days: 1000));
+
+        await ProcessSignal.sigterm.watch().first;
+        await server.close();
+        _logger.info('closing');
       });
     });
   }
