@@ -95,32 +95,33 @@ Future _main(FrontendEntryMessage message) async {
 
     final BatchIndexUpdater batchIndexUpdater = BatchIndexUpdater();
     // Don't block on init, we need to serve liveliness and readiness checks.
-    batchIndexUpdater.init().then(
-      (_) {
-        final scheduler = TaskScheduler(
-          batchIndexUpdater,
-          [
-            ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-            IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
-            DatastoreHeadTaskSource(
-              db.dbService,
-              TaskSourceModel.scorecard,
-              sleep: const Duration(minutes: 10),
-              skipHistory: true,
-            ),
-            batchIndexUpdater.periodicUpdateTaskSource,
-          ],
-        );
-        scheduler.run();
-
-        Timer.periodic(const Duration(minutes: 5), (_) {
-          updateLatestStats(scheduler.stats());
-        });
-      },
-      onError: (e, StackTrace st) {
+    scheduleMicrotask(() async {
+      try {
+        await batchIndexUpdater.init();
+      } catch (e, st) {
         _logger.shout('Error initializing search service.', e, st);
-      },
-    );
+      }
+
+      final scheduler = TaskScheduler(
+        batchIndexUpdater,
+        [
+          ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
+          IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
+          DatastoreHeadTaskSource(
+            db.dbService,
+            TaskSourceModel.scorecard,
+            sleep: const Duration(minutes: 10),
+            skipHistory: true,
+          ),
+          batchIndexUpdater.periodicUpdateTaskSource,
+        ],
+      );
+      scheduler.run();
+
+      Timer.periodic(const Duration(minutes: 5), (_) {
+        updateLatestStats(scheduler.stats());
+      });
+    });
 
     await runHandler(_logger, searchServiceHandler);
   });
