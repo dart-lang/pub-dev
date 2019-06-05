@@ -24,9 +24,13 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/', service.index);
   router.add('GET', '/flutter', service.flutter);
   router.add('GET', '/web', service.web);
+  router.add('GET', '/server', service.server);
   router.add('GET', '/packages', service.packages);
   router.add('GET', '/flutter/packages', service.flutterPackages);
   router.add('GET', '/web/packages', service.webPackages);
+  router.add('GET', '/flutter/plugins', service.flutterPlugins);
+  router.add('GET', '/server/packages', service.serverPackages);
+  router.add('GET', '/search', service.search);
   router.add(
       'GET', '/packages/<package>/versions/<version>', service.packageVersion);
   router.add(
