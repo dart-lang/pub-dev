@@ -55,7 +55,7 @@ COVERAGE_PID=$!
 
 cd "${PUB_INTEGRATION_PATH}"
 pub get
-dart test/fake_pub_server_test.dart --coverage
+COVERAGE=1 dart test/fake_pub_server_test.dart
 
 echo "Waiting for pub_integration_fake_pub_server code coverage to complete..."
 wait ${COVERAGE_PID}
