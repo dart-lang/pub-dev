@@ -20,8 +20,13 @@ class FakePubServerProcess {
 
   FakePubServerProcess._(this.port, this._process);
 
-  static Future<FakePubServerProcess> start(
-      {String pkgDir, int port, int storagePort}) async {
+  static Future<FakePubServerProcess> start({
+    String pkgDir,
+    int port,
+    int storagePort,
+    bool collectCoverage = false,
+    int vmServicePort = 29999,
+  }) async {
     pkgDir ??= p.join(Directory.current.path, '../fake_pub_server');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
@@ -34,6 +39,11 @@ class FakePubServerProcess {
     final process = await Process.start(
       'dart',
       [
+        if (collectCoverage) ...[
+          '--pause-isolates-on-exit',
+          '--enable-vm-service=$vmServicePort',
+          '--disable-service-auth-codes',
+        ],
         'bin/fake_pub_server.dart',
         '--port=$port',
         '--storage-port=$storagePort',
@@ -69,7 +79,12 @@ class FakePubServerProcess {
 
   Future kill() async {
     _stdoutListener?.cancel();
-    _process.kill();
+    // First try SIGTERM, and after 10 minutes do SIGKILL.
+    _process.kill(ProcessSignal.sigterm);
+    Timer timer = Timer(Duration(minutes: 10), () {
+      _process.kill();
+    });
     await _process.exitCode;
+    timer.cancel();
   }
 }

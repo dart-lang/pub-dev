@@ -5,13 +5,22 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:pub_integration/pub_integration.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 
-void main() {
+final _argParser = ArgParser()
+  ..addFlag('coverage',
+      defaultsTo: false,
+      help: 'Run server with VM service to enable coverage collection.');
+
+void main(List<String> args) {
+  final argv = _argParser.parse(args);
+  final collectCoverage = argv['coverage'] as bool;
+
   group('Integration test using pkg/fake_pub_server', () {
     Directory tempDir;
     String fakeCredentialsFile;
@@ -30,7 +39,8 @@ void main() {
         'expiration': 2558512791154,
       }));
 
-      fakePubServerProcess = await FakePubServerProcess.start();
+      fakePubServerProcess =
+          await FakePubServerProcess.start(collectCoverage: collectCoverage);
       await fakePubServerProcess.started;
     });
 
