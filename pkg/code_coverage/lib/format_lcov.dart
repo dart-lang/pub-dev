@@ -2,20 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:lcov/lcov.dart';
 
-Future main() async {
-  final coverage = await File('build/lcov.info').readAsString();
-  final report = Report.fromCoverage(coverage);
+Map<String, Map<int, int>> _lineExecCounts = <String, Map<int, int>>{};
 
-  for (final record in report.records) {
-    if (record.sourceFile.startsWith('app/') ||
-        record.sourceFile.startsWith('pkg/')) {
-      _add(record.sourceFile, record.lines.found, record.lines.hit);
+Future main() async {
+  final files = await Directory('build/lcov')
+      .list()
+      .where((f) => f is File)
+      .cast<File>()
+      .toList();
+  for (File file in files) {
+    final coverage = await file.readAsString();
+    final report = Report.fromCoverage(coverage);
+
+    for (final record in report.records) {
+      final path = record.sourceFile;
+      final partOfPubDev = path.startsWith('app/') || path.startsWith('pkg/');
+      final partOfTest = path.contains('/test/');
+      if (partOfPubDev && !partOfTest) {
+        final counts = _lineExecCounts.putIfAbsent(path, () => <int, int>{});
+        for (final lineData in record.lines.data) {
+          counts[lineData.lineNumber] =
+              (counts[lineData.lineNumber] ?? 0) + lineData.executionCount;
+        }
+      }
     }
+  }
+
+  for (String path in _lineExecCounts.keys) {
+    final counts = _lineExecCounts[path];
+    final total = counts.length;
+    final covered = counts.values.where((i) => i > 0).length;
+    _add(path, total, covered);
   }
 
   final output = StringBuffer();
@@ -28,6 +49,10 @@ Future main() async {
     final sb = StringBuffer();
     sb.write('   ' * entry.depth);
     sb.write('${entry.leaf} - $pctStr% - ${entry.covered}/${entry.total}');
+    // mark some lines with markers
+    if (pct < 50.0 || entry.total - entry.covered > 100) {
+      sb.write(' [low]');
+    }
     output.writeln(sb);
   }
 
