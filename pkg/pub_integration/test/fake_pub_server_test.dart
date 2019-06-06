@@ -30,8 +30,7 @@ void main() {
         'expiration': 2558512791154,
       }));
 
-      fakePubServerProcess =
-          await FakePubServerProcess.start();
+      fakePubServerProcess = await FakePubServerProcess.start();
       await fakePubServerProcess.started;
     });
 
