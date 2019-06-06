@@ -25,8 +25,10 @@ class FakePubServerProcess {
     int port,
     int storagePort,
   }) async {
-    final pubDartArgs =
-        (Platform.environment['PUB_DART_ARGUMENTS'] ?? '').split(' ');
+    final pubDartArgs = (Platform.environment['PUB_DART_ARGUMENTS'] ?? '')
+        .split(' ')
+        .where((s) => s.isNotEmpty)
+        .toList();
     pkgDir ??= p.join(Directory.current.path, '../fake_pub_server');
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
