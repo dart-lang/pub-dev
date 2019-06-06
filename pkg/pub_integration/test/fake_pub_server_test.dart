@@ -12,8 +12,6 @@ import 'package:pub_integration/pub_integration.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
-  final collectCoverage = Platform.environment['COVERAGE'] == '1';
-
   group('Integration test using pkg/fake_pub_server', () {
     Directory tempDir;
     String fakeCredentialsFile;
@@ -33,7 +31,7 @@ void main() {
       }));
 
       fakePubServerProcess =
-          await FakePubServerProcess.start(collectCoverage: collectCoverage);
+          await FakePubServerProcess.start();
       await fakePubServerProcess.started;
     });
 

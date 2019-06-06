@@ -55,7 +55,8 @@ COVERAGE_PID=$!
 
 cd "${PUB_INTEGRATION_PATH}"
 pub get
-COVERAGE=1 dart test/fake_pub_server_test.dart
+PUB_DART_ARGUMENTS="--pause-isolates-on-exit --enable-vm-service=29999 --disable-service-auth-codes" \
+  dart test/fake_pub_server_test.dart
 
 echo "Waiting for pub_integration_fake_pub_server code coverage to complete..."
 wait ${COVERAGE_PID}
