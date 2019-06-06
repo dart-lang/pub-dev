@@ -49,6 +49,10 @@ Future main() async {
     final sb = StringBuffer();
     sb.write('   ' * entry.depth);
     sb.write('${entry.leaf} - $pctStr% - ${entry.covered}/${entry.total}');
+    // mark some lines with markers
+    if (pct < 50.0 || entry.total - entry.covered > 100) {
+      sb.write(' [low]');
+    }
     output.writeln(sb);
   }
 
