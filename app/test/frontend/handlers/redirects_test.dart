@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers/redirects.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
+import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -14,6 +15,8 @@ import '../../shared/handlers_test_utils.dart';
 import '_utils.dart';
 
 void main() {
+  setUpAll(() => updateLocalBuiltFiles());
+
   group('redirects', () {
     test('pub.dartlang.org', () async {
       Future testRedirect(String path) async {
