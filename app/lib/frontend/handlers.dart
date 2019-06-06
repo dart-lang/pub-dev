@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../shared/urls.dart';
+
 import 'handlers/misc.dart';
 import 'handlers/redirects.dart';
 import 'handlers/routes.dart';
@@ -33,6 +35,14 @@ Future<shelf.Response> appHandler(
   shelf.Handler shelfPubApi,
 ) async {
   _logPubHeaders(request);
+
+  // do pub.dartlang.org-only routes
+  if (request.requestedUri.host == legacyHost) {
+    final rs = await PubDartlangOrgService().router.handler(request);
+    if (rs != null) {
+      return rs;
+    }
+  }
 
   final redirected = tryHandleRedirects(request);
   if (redirected != null) return redirected;
