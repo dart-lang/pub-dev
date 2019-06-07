@@ -249,7 +249,7 @@ class PubSiteService {
   // ****
 
   @Route.get('/api/account/info')
-  Future<Response> accountV1Info(Request request) => accountV1InfoHandler(request);
+  Future<Response> accountInfo(Request request) => accountInfoHandler(request);
 
   @Route.get('/api/documentation/<package>')
   Future<Response> apiDocumentation(Request request, String package) =>

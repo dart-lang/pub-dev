@@ -8,7 +8,7 @@ import '../../account/backend.dart';
 import '../../shared/handlers.dart';
 
 /// Handles /api/account/v1/info
-Future<shelf.Response> accountV1InfoHandler(shelf.Request request) async {
+Future<shelf.Response> accountInfoHandler(shelf.Request request) async {
   return jsonResponse({'email': authenticatedUser?.email ?? '-'},
       pretty: isPrettyJson(request));
 }
