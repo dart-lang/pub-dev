@@ -12,8 +12,7 @@ Client getAuthenticatedClient(String token) {
   return token == null ? BrowserClient() : _AuthenticatedClient(token);
 }
 
-/// An [http.Client] which sends a `Bearer` token as `Authorization` header
-/// for each request.
+/// An [Client] which sends a `Bearer` token as `Authorization` header for each request.
 class _AuthenticatedClient extends BrowserClient {
   final String _token;
   final _client = BrowserClient();
