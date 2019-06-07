@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'src/account.dart';
 import 'src/dartdoc_status.dart';
 import 'src/hoverable.dart';
 import 'src/issues.dart';
@@ -18,4 +19,5 @@ void main() {
   setupMobileNav();
   setupIssues();
   updateDartdocStatus();
+  setupAccount();
 }
