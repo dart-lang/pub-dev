@@ -17,6 +17,7 @@ class FakePubServerProcess {
   final Process _process;
   final _startedCompleter = Completer();
   StreamSubscription _stdoutListener;
+  final _linePatterns = <_LinePattern>[];
 
   FakePubServerProcess._(this.port, this._process);
 
@@ -63,7 +64,13 @@ class FakePubServerProcess {
         if (line.contains('fake_pub_server running on port $port')) {
           _startedCompleter.complete();
         }
-        // TODO: scan and process verification links sent out in e-mail
+        for (int i = _linePatterns.length - 1; i>=0;i--) {
+          final p = _linePatterns[i];
+          if (p.matcher(line)) {
+            _linePatterns.removeAt(i);
+            p.completer.complete(line);
+          }
+        }
       },
     );
     Timer(Duration(seconds: 30), () {
@@ -75,6 +82,12 @@ class FakePubServerProcess {
 
   Future get started => _startedCompleter.future;
 
+  Future<String> waitForLine(LineMatcher matcher) {
+    final p = _LinePattern(matcher);
+    _linePatterns.add(p);
+    return p.completer.future;
+  }
+
   Future kill() async {
     _stdoutListener?.cancel();
     // First try SIGTERM, and after 10 minutes do SIGKILL.
@@ -85,4 +98,13 @@ class FakePubServerProcess {
     await _process.exitCode;
     timer.cancel();
   }
+}
+
+/// Matches the output line.
+typedef LineMatcher = bool Function(String line);
+
+class _LinePattern {
+  final LineMatcher matcher;
+  final completer  = Completer<String>();
+  _LinePattern(this.matcher);
 }

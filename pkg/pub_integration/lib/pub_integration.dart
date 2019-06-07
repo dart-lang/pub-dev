@@ -14,17 +14,23 @@ import 'src/test_data.dart';
 
 final _random = Random.secure();
 
+typedef InviteCompleterFn = Future Function();
+
 Future verifyPubIntegration({
   String pubHostedUrl,
   // TODO: autodetect based on the credentials?
   @required String mainAccountEmail,
   // TODO: autodetect $HOME/.pub-cache directory
   @required String credentialsFile,
+  @required String invitedAccountEmail,
+  @required InviteCompleterFn inviteCompleterFn,
 }) async {
   final integration = _PubIntegration._(
     pubHostedUrl ?? Platform.environment['PUB_HOSTED_URL'],
     mainAccountEmail,
     credentialsFile,
+    invitedAccountEmail,
+    inviteCompleterFn,
   );
   await integration.verify();
 }
@@ -34,6 +40,8 @@ class _PubIntegration {
   final String pubHostedUrl;
   final String mainAccountEmail;
   final String credentialsFile;
+  final String invitedAccountEmail;
+  final InviteCompleterFn inviteCompleterFn;
   final PubClient _pubClient;
 
   String _newDummyVersion;
@@ -46,8 +54,12 @@ class _PubIntegration {
   Directory _retryDir;
 
   _PubIntegration._(
-      this.pubHostedUrl, this.mainAccountEmail, this.credentialsFile)
-      : this._pubClient = PubClient(pubHostedUrl);
+    this.pubHostedUrl,
+    this.mainAccountEmail,
+    this.credentialsFile,
+    this.invitedAccountEmail,
+    this.inviteCompleterFn,
+  ) : this._pubClient = PubClient(pubHostedUrl);
 
   /// Verify all integration steps.
   Future verify() async {
@@ -64,13 +76,22 @@ class _PubIntegration {
         await _pubGet(_retryDir);
         await _upload(_retryDir);
       }
+      // upload package
       await _createDummyPkg();
       await _pubGet(_dummyDir);
       await _upload(_dummyDir);
       await Future.delayed(Duration(seconds: 1));
+      await _verifyDummyPkg();
+
+      // run example
       await _pubGet(_dummyExampleDir);
       await _run(_dummyExampleDir, 'bin/main.dart');
-      await _verifyDummyPkg();
+
+      // add/remove uploader
+      await _addUploader();
+      await _verifyDummyPkg(matchInvited: true);
+      await _removeUploader();
+      await _verifyDummyPkg(matchInvited: false);
     } finally {
       await _temp.delete(recursive: true);
     }
@@ -113,7 +134,7 @@ class _PubIntegration {
     await _runProc('dart', [file], workingDirectory: dir.path);
   }
 
-  Future _verifyDummyPkg() async {
+  Future _verifyDummyPkg({bool matchInvited}) async {
     final dv = await _pubClient.getLatestVersionName('_dummy_pkg');
     if (dv != _newDummyVersion) {
       throw Exception(
@@ -131,10 +152,43 @@ class _PubIntegration {
     if (!pageHtml.contains(mainAccountEmail)) {
       throw Exception('Uploader email is not to be found on package page.');
     }
+    if (matchInvited != null) {
+      final found = pageHtml.contains(invitedAccountEmail);
+      if (matchInvited && !found) {
+        throw Exception('Invited email is not to be found on package page.');
+      }
+      if (!matchInvited && found) {
+        throw Exception('Invited email is still to be found on package page.');
+      }
+    }
   }
 
-  Future<ProcessResult> _runProc(String executable, List<String> arguments,
-      {String workingDirectory, Map<String, String> environment}) async {
+  Future _addUploader() async {
+    await _runProc(
+      'pub',
+      ['uploader', 'add', invitedAccountEmail],
+      workingDirectory: _dummyDir.path,
+      expectedError:
+          'We have sent an invitation to dev@example.org, they will be added as uploader after they confirm it.',
+    );
+    await inviteCompleterFn();
+  }
+
+  Future _removeUploader() async {
+    await _runProc(
+      'pub',
+      ['uploader', 'remove', invitedAccountEmail],
+      workingDirectory: _dummyDir.path,
+    );
+  }
+
+  Future<ProcessResult> _runProc(
+    String executable,
+    List<String> arguments, {
+    String workingDirectory,
+    Map<String, String> environment,
+    String expectedError,
+  }) async {
     final cmd = '$executable ${arguments.join(' ')}';
     print('Running $cmd in $workingDirectory...');
     environment ??= <String, String>{};
@@ -148,6 +202,7 @@ class _PubIntegration {
       environment: environment,
     );
     if (pr.exitCode == 0) return pr;
+    if (expectedError == pr.stderr.toString().trim()) return pr;
     throw Exception('$cmd failed with exit code ${pr.exitCode}.\n'
         'STDOUT: ${pr.stdout}\n'
         'STDERR: ${pr.stderr}');
