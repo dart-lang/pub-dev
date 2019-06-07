@@ -10,6 +10,7 @@ import 'package:http/http.dart';
 
 import '_authenticated_client.dart';
 import 'google_auth_js.dart';
+import 'google_js.dart';
 
 bool _initialized = false;
 Element _logoutElem;
@@ -31,15 +32,17 @@ Client get client {
       getAuthenticatedClient(currentUser.getAuthResponse(true)?.access_token);
 }
 
-Future<void> setupAccount() async {
+void setupAccount() {
   // Initialization hook that will run after the auth library is loaded and
   // initialized. Method name is passed in as request parameter when loading
   // the auth library.
   context['pubAuthInit'] = () {
-    _initialized = true;
-    _updateUser(null);
-    getAuthInstance().currentUser.listen(allowInterop(_updateUser));
+    load('auth2', allowInterop(_init));
   };
+}
+
+void _init() {
+  _initialized = true;
 
   final accountHeaderElem = document.body.querySelector('.account-header');
   if (accountHeaderElem == null) {
@@ -58,7 +61,8 @@ Future<void> setupAccount() async {
   _accountInfoElem = document.createElement('div');
   accountHeaderElem.append(_accountInfoElem);
 
-  _updateUi();
+  _updateUser(null);
+  getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
 
 void _updateUser(GoogleUser user) {
