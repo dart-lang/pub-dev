@@ -4,8 +4,6 @@
 
 library pub_dartlang_org.handlers;
 
-import 'dart:async';
-
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -30,29 +28,28 @@ void _logPubHeaders(shelf.Request request) {
 ///
 /// The passed in [shelfPubApi] handler will be used for handling requests to
 ///   - /api/*
-Future<shelf.Response> appHandler(
-  shelf.Request request,
-  shelf.Handler shelfPubApi,
-) async {
-  _logPubHeaders(request);
-
-  // do pub.dartlang.org-only routes
-  if (request.requestedUri.host == legacyHost) {
-    final rs = await PubDartlangOrgService().router.handler(request);
-    if (rs != null) {
-      return rs;
-    }
-  }
-
-  final redirected = tryHandleRedirects(request);
-  if (redirected != null) return redirected;
-
+shelf.Handler createAppHandler(shelf.Handler shelfPubApi) {
+  final pubDartlangOrgHandler = PubDartlangOrgService().router.handler;
   final pubSiteHandler = PubSiteService(shelfPubApi).router.handler;
+  return (shelf.Request request) async {
+    _logPubHeaders(request);
 
-  final res = await pubSiteHandler(request);
-  if (res != null) {
-    return res;
-  }
+    // do pub.dartlang.org-only routes
+    if (request.requestedUri.host == legacyHost) {
+      final rs = await pubDartlangOrgHandler(request);
+      if (rs != null) {
+        return rs;
+      }
+    }
 
-  return formattedNotFoundHandler(request);
+    final redirected = tryHandleRedirects(request);
+    if (redirected != null) return redirected;
+
+    final res = await pubSiteHandler(request);
+    if (res != null) {
+      return res;
+    }
+
+    return formattedNotFoundHandler(request);
+  };
 }

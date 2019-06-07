@@ -83,9 +83,8 @@ class FakePubServer {
         final apiHandler =
             ShelfPubServer(backend.repository, cache: cache).requestHandler;
 
-        final handler = wrapHandler(
-            _logger, (shelf.Request request) => appHandler(request, apiHandler),
-            sanitize: true);
+        final appHandler = createAppHandler(apiHandler);
+        final handler = wrapHandler(_logger, appHandler, sanitize: true);
 
         final server = await IOServer.bind('localhost', port);
         serveRequests(server.server, (request) async {
