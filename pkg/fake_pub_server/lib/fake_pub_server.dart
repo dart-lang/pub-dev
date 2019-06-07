@@ -119,7 +119,9 @@ class FakeAuthProvider implements AuthProvider {
 
   @override
   Future<AuthResult> tryAuthenticate(String accessToken) async {
-    return AuthResult('user-example-com', 'user@example.com');
+    final email = accessToken.replaceAll('-at-', '@').replaceAll('-dot-', '.');
+    final id = email.replaceAll('@', '-').replaceAll('.', '-');
+    return AuthResult(id, email);
   }
 }
 

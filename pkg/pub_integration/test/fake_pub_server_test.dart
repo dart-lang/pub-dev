@@ -23,7 +23,7 @@ void main() {
       // fake credentials.json
       fakeCredentialsFile = p.join(tempDir.path, 'credentials.json');
       await File(fakeCredentialsFile).writeAsString(json.encode({
-        'accessToken': 'access-token',
+        'accessToken': 'user-at-example-dot-com',
         'refreshToken': 'refresh-token',
         'tokenEndpoint': 'http://localhost:9999/o/oauth2/token',
         'scopes': ['email', 'openid'],
@@ -42,6 +42,7 @@ void main() {
     test('standard integration', () async {
       await verifyPubIntegration(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
+        mainAccountEmail: 'user@example.com',
         credentialsFile: fakeCredentialsFile,
       );
     });

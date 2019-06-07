@@ -15,12 +15,15 @@ import 'src/test_data.dart';
 final _random = Random.secure();
 
 Future verifyPubIntegration({
+  String pubHostedUrl,
+  // TODO: autodetect based on the credentials?
+  @required String mainAccountEmail,
   // TODO: autodetect $HOME/.pub-cache directory
   @required String credentialsFile,
-  String pubHostedUrl,
 }) async {
   final integration = _PubIntegration._(
     pubHostedUrl ?? Platform.environment['PUB_HOSTED_URL'],
+    mainAccountEmail,
     credentialsFile,
   );
   await integration.verify();
@@ -29,6 +32,7 @@ Future verifyPubIntegration({
 /// A single object to execute integration tests on the pub site (or a test site).
 class _PubIntegration {
   final String pubHostedUrl;
+  final String mainAccountEmail;
   final String credentialsFile;
   final PubClient _pubClient;
 
@@ -41,7 +45,8 @@ class _PubIntegration {
   Directory _dummyExampleDir;
   Directory _retryDir;
 
-  _PubIntegration._(this.pubHostedUrl, this.credentialsFile)
+  _PubIntegration._(
+      this.pubHostedUrl, this.mainAccountEmail, this.credentialsFile)
       : this._pubClient = PubClient(pubHostedUrl);
 
   /// Verify all integration steps.
@@ -118,6 +123,13 @@ class _PubIntegration {
     final pageHtml = await _pubClient.getLatestVersionPage('_dummy_pkg');
     if (!pageHtml.contains(_newDummyVersion)) {
       throw Exception('New version is not to be found on package page.');
+    }
+    if (!pageHtml.contains('developer@example.com')) {
+      throw Exception(
+          'pubspec author field is not to be found on package page.');
+    }
+    if (!pageHtml.contains(mainAccountEmail)) {
+      throw Exception('Uploader email is not to be found on package page.');
     }
   }
 
