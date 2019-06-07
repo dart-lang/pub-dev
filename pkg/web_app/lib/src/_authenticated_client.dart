@@ -22,7 +22,7 @@ class _AuthenticatedClient extends BrowserClient {
   Future<StreamedResponse> send(BaseRequest request) async {
     // Make new request object and perform the authenticated request.
     final modifiedRequest =
-    _RequestImpl(request.method, request.url, request.finalize());
+        _RequestImpl(request.method, request.url, request.finalize());
     modifiedRequest.headers.addAll(request.headers);
     modifiedRequest.headers['Authorization'] = 'Bearer $_token';
     final response = await _client.send(modifiedRequest);
