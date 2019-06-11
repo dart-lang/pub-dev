@@ -54,6 +54,13 @@ class NameTracker {
     }
     return _names.toList()..sort();
   }
+
+  /// Should be used in tests only!
+  void markReady() {
+    if (!_firstScanCompleter.isCompleted) {
+      _firstScanCompleter.complete();
+    }
+  }
 }
 
 /// Updates [nameTracker] by polling the Datastore periodically.

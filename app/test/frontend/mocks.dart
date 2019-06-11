@@ -104,8 +104,8 @@ class BackendMock implements Backend {
   }
 
   @override
-  Future<List<Package>> lookupPackages(Iterable<String> packageNames) {
-    return Future.wait(packageNames.map(lookupPackage));
+  Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
+    return (await Future.wait(packageNames.map(lookupPackage))).toList();
   }
 
   @override
@@ -179,7 +179,7 @@ class ScoreCardBackendMock implements ScoreCardBackend {
   @override
   Future<ScoreCardData> getScoreCardData(
       String packageName, String packageVersion,
-      {bool onlyCurrent = false}) {
+      {bool onlyCurrent = false}) async {
     return null;
   }
 
@@ -290,7 +290,8 @@ class SearchServiceMock implements SearchService {
   SearchServiceMock(this.searchFun);
 
   @override
-  Future<SearchResultPage> search(SearchQuery query) async {
+  Future<SearchResultPage> search(SearchQuery query,
+      {bool fallbackToNames = true}) async {
     return (await searchFun(query)) as SearchResultPage;
   }
 

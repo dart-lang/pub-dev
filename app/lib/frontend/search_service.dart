@@ -16,7 +16,9 @@ import '../shared/platform.dart';
 import '../shared/search_client.dart';
 import '../shared/search_service.dart';
 
+import 'backend.dart';
 import 'models.dart';
+import 'name_tracker.dart';
 
 final _logger = Logger('frontend.search_service');
 
@@ -28,73 +30,104 @@ void registerSearchService(SearchService s) => ss.register(#_search, s);
 
 /// A wrapper around the Custom Search API, used for searching for pub packages.
 class SearchService {
-  Future<SearchResultPage> search(SearchQuery query) async {
-    final result = await searchClient.search(query);
+  Future<SearchResultPage> search(SearchQuery query,
+      {bool fallbackToNames = true}) async {
+    PackageSearchResult result;
+    try {
+      result = await searchClient.search(query);
+    } catch (e, st) {
+      _logger.severe('Unable to search packages', e, st);
+    }
+    if (result == null && fallbackToNames) {
+      result = await _fallbackSearch(query);
+    }
     return _loadResultForPackages(query, result.totalCount, result.packages);
   }
 
-  Future close() async {}
-}
-
-Future<SearchResultPage> _loadResultForPackages(
-    SearchQuery query, int totalCount, List<PackageScore> packageScores) async {
-  final List<Key> packageKeys = packageScores
-      .where((ps) => !ps.isExternal)
-      .map((ps) => ps.package)
-      .map((package) => dbService.emptyKey.append(Package, id: package))
-      .toList();
-  final packageEntries = (await dbService.lookup(packageKeys)).cast<Package>();
-  packageEntries.removeWhere((p) => p == null);
-
-  final pubPackages = <String, PackageView>{};
-  final List<Key> versionKeys =
-      packageEntries.map((p) => p.latestVersionKey).toList();
-  if (versionKeys.isNotEmpty) {
-    // Analysis data fetched concurrently to reduce overall latency.
-    final Future<List<ScoreCardData>> analysisExtractsFuture = Future.wait(
-        packageEntries.map(
-            (p) => scoreCardBackend.getScoreCardData(p.name, p.latestVersion)));
-    final Future<List> allVersionsFuture = dbService.lookup(versionKeys);
-
-    final List batchResults =
-        await Future.wait([analysisExtractsFuture, allVersionsFuture]);
-    final scoreCards = ((await batchResults[0]) as List).cast<ScoreCardData>();
-    final versions = ((await batchResults[1]) as List).cast<PackageVersion>();
-
-    for (int i = 0; i < versions.length; i++) {
-      final package = packageEntries[i];
-      final apiPages =
-          packageScores.firstWhere((ps) => ps.package == package.name).apiPages;
-      final pv = PackageView.fromModel(
-        package: package,
-        version: versions[i],
-        scoreCard: scoreCards[i],
-        apiPages: apiPages,
-      );
-      pubPackages[pv.name] = pv;
+  Future<PackageSearchResult> _fallbackSearch(SearchQuery query) async {
+    final names =
+        await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
+    List<PackageScore> scores = <PackageScore>[];
+    final text = (query.query ?? '').trim().toLowerCase();
+    if (text.isNotEmpty) {
+      if (nameTracker.hasPackage(text)) {
+        scores.add(PackageScore(package: text, score: 1.0));
+      }
+      names.where((s) => s != text && s.startsWith(text)).forEach((s) {
+        scores.add(PackageScore(package: s, score: 0.75));
+      });
+      names.where((s) => !s.startsWith(text) && s.contains(text)).forEach((s) {
+        scores.add(PackageScore(package: s, score: 0.50));
+      });
+    } else {
+      scores.addAll(names.map((s) => PackageScore(package: s, score: 0.1)));
     }
+    final totalCount = scores.length;
+    scores = scores.skip(query.offset ?? 0).take(query.limit ?? 10).toList();
+    return PackageSearchResult(packages: scores, totalCount: totalCount);
   }
 
-  final resultPackages = packageScores
-      .map((ps) {
-        if (pubPackages.containsKey(ps.package)) {
-          return pubPackages[ps.package];
-        }
-        if (ps.isExternal) {
-          return PackageView(
-            isExternal: true,
-            url: ps.url,
-            version: ps.version,
-            name: ps.package,
-            ellipsizedDescription: ps.description,
-            apiPages: ps.apiPages,
-          );
-        }
-        return null;
-      })
-      .where((pv) => pv != null)
-      .toList();
-  return SearchResultPage(query, totalCount, resultPackages);
+  Future close() async {}
+
+  Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
+      int totalCount, List<PackageScore> packageScores) async {
+    final packageEntries = await backend.lookupPackages(
+        packageScores.where((ps) => !ps.isExternal).map((ps) => ps.package));
+    packageEntries.removeWhere((p) => p == null);
+
+    final pubPackages = <String, PackageView>{};
+    final List<Key> versionKeys =
+        packageEntries.map((p) => p.latestVersionKey).toList();
+    if (versionKeys.isNotEmpty) {
+      // Analysis data fetched concurrently to reduce overall latency.
+      final Future<List<ScoreCardData>> analysisExtractsFuture = Future.wait(
+          packageEntries.map((p) =>
+              scoreCardBackend.getScoreCardData(p.name, p.latestVersion)));
+      final Future<List<PackageVersion>> allVersionsFuture =
+          backend.lookupLatestVersions(packageEntries);
+
+      final List batchResults =
+          await Future.wait([analysisExtractsFuture, allVersionsFuture]);
+      final scoreCards =
+          ((await batchResults[0]) as List).cast<ScoreCardData>();
+      final versions = ((await batchResults[1]) as List).cast<PackageVersion>();
+
+      for (int i = 0; i < versions.length; i++) {
+        final package = packageEntries[i];
+        final apiPages = packageScores
+            .firstWhere((ps) => ps.package == package.name)
+            .apiPages;
+        final pv = PackageView.fromModel(
+          package: package,
+          version: versions[i],
+          scoreCard: scoreCards[i],
+          apiPages: apiPages,
+        );
+        pubPackages[pv.name] = pv;
+      }
+    }
+
+    final resultPackages = packageScores
+        .map((ps) {
+          if (pubPackages.containsKey(ps.package)) {
+            return pubPackages[ps.package];
+          }
+          if (ps.isExternal) {
+            return PackageView(
+              isExternal: true,
+              url: ps.url,
+              version: ps.version,
+              name: ps.package,
+              ellipsizedDescription: ps.description,
+              apiPages: ps.apiPages,
+            );
+          }
+          return null;
+        })
+        .where((pv) => pv != null)
+        .toList();
+    return SearchResultPage(query, totalCount, resultPackages);
+  }
 }
 
 /// The results of a search via the Custom Search API.
@@ -158,11 +191,14 @@ Future<List<PackageView>> topFeaturedPackages(
     {String platform, int count = 15}) async {
   // TODO: store top packages in memcache
   try {
-    final result = await searchService.search(SearchQuery.parse(
-      platform: platform,
-      limit: count,
-      isAd: true,
-    ));
+    final result = await searchService.search(
+      SearchQuery.parse(
+        platform: platform,
+        limit: count,
+        isAd: true,
+      ),
+      fallbackToNames: false,
+    );
     return result.packages.take(count).toList();
   } catch (e, st) {
     _logger.severe('Unable to load top packages', e, st);
