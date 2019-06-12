@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html_parser;
 
+import '../frontend/static_files.dart';
 import '../shared/urls.dart';
 
 class DartdocCustomizer {
@@ -119,7 +120,7 @@ class DartdocCustomizer {
       final linkElement = Element.tag('link')
         ..attributes['rel'] = 'stylesheet'
         ..attributes['type'] = 'text/css'
-        ..attributes['href'] = '/static/css/github-markdown.css';
+        ..attributes['href'] = staticUrls.githubMarkdownCss;
       head.insertBefore(linkElement, firstLink);
     }
   }
@@ -143,7 +144,7 @@ class DartdocCustomizer {
       ..className = 'hidden-xs'
       ..attributes['href'] = '/';
     final imgRef = Element.tag('img')
-      ..attributes['src'] = '/static/img/dart-logo.svg'
+      ..attributes['src'] = staticUrls.dartLogoSvg
       ..attributes['style'] = 'height: 30px; margin-right: 1em;';
     logoLink.append(imgRef);
     parent.insertBefore(logoLink, breadcrumbs);

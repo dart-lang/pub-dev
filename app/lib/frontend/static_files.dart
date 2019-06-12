@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as path;
@@ -21,7 +22,7 @@ StaticUrls _staticUrls;
 StaticFileCache get staticFileCache =>
     _cache ??= StaticFileCache.withDefaults();
 
-StaticUrls get staticUrls => _staticUrls ??= StaticUrls();
+StaticUrls get staticUrls => _staticUrls ??= StaticUrls._();
 
 /// Register the static file cache.
 void registerStaticFileCacheForTest(StaticFileCache cache) {
@@ -75,6 +76,9 @@ class StaticFileCache {
     _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
   }
 
+  /// Returns the keys that are accepted as requests paths.
+  Iterable<String> get keys => _files.keys;
+
   void _addDirectory(Directory contentDir, {Directory baseDir}) {
     baseDir ??= contentDir;
     contentDir
@@ -98,6 +102,7 @@ class StaticFileCache {
     ).forEach(addFile);
   }
 
+  @visibleForTesting
   void addFile(StaticFile file) {
     _files[file.requestPath] = file;
   }
@@ -124,26 +129,6 @@ class StaticFile {
   );
 }
 
-/// The static assets that get a ?hash=<hash> in their URL and with that, longer
-/// cached timeouts.
-final hashedFiles = const <String>[
-  'css/github-markdown.css',
-  'css/style.css',
-  'highlight/github.css',
-  'highlight/highlight.pack.js',
-  'highlight/init.js',
-  'img/atom-feed-icon-32x32.png',
-  'img/dart-logo-400x400.png',
-  'img/dart-logo.svg',
-  'img/dart-packages.png',
-  'img/dart-packages-white.png',
-  'img/flutter-packages.png',
-  'img/flutter-packages-white.png',
-  'img/pub-dev-logo-2x.png',
-  'js/gtag.js',
-  'js/script.dart.js',
-];
-
 class StaticUrls {
   final String staticPath = _defaultStaticPath;
   final String smallDartFavicon;
@@ -151,19 +136,25 @@ class StaticUrls {
   final String flutterLogo32x32;
   final String documentationIcon;
   final String downloadIcon;
+  final String pubDevLogo2xPng;
+  final String githubMarkdownCss;
   Map _versionsTableIcons;
   Map<String, String> _assets;
 
-  StaticUrls()
-      : smallDartFavicon = '/favicon.ico',
-        dartLogoSvg = '$_defaultStaticPath/img/dart-logo.svg',
-        flutterLogo32x32 = '$_defaultStaticPath/img/flutter-logo-32x32.png',
-        documentationIcon =
-            '$_defaultStaticPath/img/ic_drive_document_black_24dp.svg',
-        downloadIcon = '$_defaultStaticPath/img/ic_get_app_black_24dp.svg';
-
-  String get pubDevLogo2xPng =>
-      _getCacheableStaticUrl('/img/pub-dev-logo-2x.png');
+  StaticUrls._()
+      : smallDartFavicon = _getCacheableStaticUrl('/favicon.ico'),
+        dartLogoSvg =
+            _getCacheableStaticUrl('$_defaultStaticPath/img/dart-logo.svg'),
+        flutterLogo32x32 = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/flutter-logo-32x32.png'),
+        documentationIcon = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/ic_drive_document_black_24dp.svg'),
+        downloadIcon = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/ic_get_app_black_24dp.svg'),
+        pubDevLogo2xPng = _getCacheableStaticUrl(
+            '$_defaultStaticPath/img/pub-dev-logo-2x.png'),
+        githubMarkdownCss = _getCacheableStaticUrl(
+            '$_defaultStaticPath/css/github-markdown.css');
 
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {
@@ -172,30 +163,38 @@ class StaticUrls {
     };
   }
 
-  /// A hashed version of the static assets referenced in [hashedFiles].
+  /// A hashed version of the static assets.
+  ///
+  /// For each file like /static/img/logo.gif we create a key and value of:
+  /// `img__logo_gif => /static/img/logo.gif?hash=etag_hash`
+  ///
+  /// The /static/ prefix is stripped from the start of the key in order to
+  /// reduce the length of the mostly used files in the mustache templates.
   Map<String, String> get assets {
     if (_assets == null) {
       _assets = <String, String>{};
-      for (String hashedFile in hashedFiles) {
+      for (String requestPath in staticFileCache.keys) {
+        final inStatic = requestPath.startsWith('$_defaultStaticPath/');
+        // Removing the /static/ prefix from the keys in order to make them
+        // shorter in the templates.
+        final hashedFile = inStatic
+            ? requestPath.substring(_defaultStaticPath.length + 1)
+            : requestPath;
         final key = hashedFile.replaceAll('/', '__').replaceAll('.', '_');
-        _assets[key] = _getCacheableStaticUrl('/$hashedFile');
+        _assets[key] = _getCacheableStaticUrl(requestPath);
       }
     }
     return _assets;
   }
+}
 
-  /// Returns the URL of a static resource
-  String _getCacheableStaticUrl(String relativePath) {
-    if (!relativePath.startsWith('/')) {
-      relativePath = '/$relativePath';
-    }
-    final String requestPath = '$staticPath$relativePath';
-    final file = staticFileCache.getFile(requestPath);
-    if (file == null) {
-      throw Exception('Static resource not found: $relativePath');
-    } else {
-      return '$requestPath?hash=${file.etag}';
-    }
+/// Returns the URL of a static resource
+String _getCacheableStaticUrl(String requestPath) {
+  final file = staticFileCache.getFile(requestPath);
+  if (file == null) {
+    throw Exception('Static resource not found: $requestPath');
+  } else {
+    return '$requestPath?hash=${file.etag}';
   }
 }
 
