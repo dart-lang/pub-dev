@@ -61,7 +61,10 @@ final _contentSecurityPolicyMap = <String, List<String>>{
   'child-src': _none,
   'connect-src': _self,
   'default-src': _none,
-  'frame-src': _self,
+  'frame-src': [
+    "'self'",
+    'https://accounts.google.com/',
+  ],
   'font-src': <String>[
     "'self'",
     'https://fonts.googleapis.com/',
@@ -82,6 +85,7 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'https://www.google-analytics.com/',
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
+    'https://apis.google.com/',
   ],
   'style-src': <String>[
     "'self'",

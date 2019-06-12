@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
+import '../../shared/configuration.dart';
 import '../../shared/platform.dart' show KnownPlatforms;
 import '../../shared/search_service.dart';
 import '../../shared/urls.dart' as urls;
@@ -53,6 +54,9 @@ String renderLayoutPage(
   final isRoot = type == PageType.landing && platform == null;
   final values = {
     'dart_site_root': urls.dartSiteRoot,
+    'oauth_client_id': requestContext.isExperimental
+        ? activeConfiguration.pubSiteAudience
+        : null,
     'body_class': requestContext.isExperimental ? 'experimental' : '',
     'no_index': noIndex,
     'static_assets': staticUrls.assets,

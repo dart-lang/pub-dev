@@ -7,6 +7,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 import '../../shared/handlers.dart';
 
+import 'account.dart';
 import 'admin.dart';
 import 'atom_feed.dart';
 import 'custom_api.dart';
@@ -246,6 +247,9 @@ class PubSiteService {
   // ****
   // **** Custom API
   // ****
+
+  @Route.get('/api/account/info')
+  Future<Response> accountInfo(Request request) => accountInfoHandler(request);
 
   @Route.get('/api/documentation/<package>')
   Future<Response> apiDocumentation(Request request, String package) =>
