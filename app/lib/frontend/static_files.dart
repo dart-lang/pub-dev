@@ -21,7 +21,7 @@ StaticUrls _staticUrls;
 StaticFileCache get staticFileCache =>
     _cache ??= StaticFileCache.withDefaults();
 
-StaticUrls get staticUrls => _staticUrls ?? StaticUrls();
+StaticUrls get staticUrls => _staticUrls ??= StaticUrls();
 
 /// Register the static file cache.
 void registerStaticFileCacheForTest(StaticFileCache cache) {
