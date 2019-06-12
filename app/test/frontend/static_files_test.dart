@@ -81,8 +81,8 @@ void main() {
     test('proper hash in css content', () {
       final cssHashes = <String, String>{};
       final css = cache.getFile('/static/css/style.css');
-      for (Match m in RegExp('url\\("(.*?)"\\);')
-          .allMatches(css.contentAsString)) {
+      for (Match m
+          in RegExp('url\\("(.*?)"\\);').allMatches(css.contentAsString)) {
         final matched = m.group(1);
         if (matched.contains('data:image')) continue;
         final uri = Uri.parse(matched);
