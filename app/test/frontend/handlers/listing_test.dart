@@ -8,9 +8,12 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../../shared/handlers_test_utils.dart';
@@ -126,6 +129,29 @@ void main() {
       registerBackend(backend);
       registerAnalyzerClient(AnalyzerClientMock());
       await expectHtmlResponse(await issueGet('/packages?q=foobar'));
+    });
+
+    tScopedTest('/packages?q=foo without working search', () async {
+      registerSearchClient(null);
+      registerSearchService(SearchService());
+      nameTracker.add('foobar_pkg');
+      nameTracker.markReady();
+      final backend = BackendMock(
+        lookupPackageFun: (packageName) {
+          return packageName == testPackage.name ? testPackage : null;
+        },
+        lookupLatestVersionsFun: (List<Package> packages) {
+          expect(packages.length, 1);
+          expect(packages.first, testPackage);
+          return [testPackageVersion];
+        },
+      );
+      registerBackend(backend);
+      registerAnalyzerClient(AnalyzerClientMock());
+      registerScoreCardBackend(ScoreCardBackendMock());
+      final content =
+          await expectHtmlResponse(await issueGet('/packages?q=foo'));
+      expect(content, contains('my package description'));
     });
 
     tScopedTest('/packages?page=2', () async {

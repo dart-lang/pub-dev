@@ -33,12 +33,14 @@ Future<shelf.Response> issueGetUri(Uri uri) async {
   return appHandler(request, null);
 }
 
-Future expectHtmlResponse(shelf.Response response, {int status = 200}) async {
+Future<String> expectHtmlResponse(shelf.Response response,
+    {int status = 200}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
   final content = await response.readAsString();
   expect(content, contains('<!DOCTYPE html>'));
   expect(content, contains('</html>'));
+  return content;
 }
 
 Future expectAtomXmlResponse(shelf.Response response,
