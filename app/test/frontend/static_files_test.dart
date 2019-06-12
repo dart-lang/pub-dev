@@ -40,27 +40,6 @@ void main() {
             '/static/highlight/highlight.pack.js'));
   });
 
-  group('mocked static files', () {
-    test('exists', () {
-      for (String path in hashedFiles) {
-        final file = staticFileCache.getFile('/static/$path');
-        expect(file, isNotNull);
-        expect(file.bytes.length, greaterThan(10));
-        expect(file.etag.contains('mocked_hash'), isFalse);
-      }
-    });
-
-    test('urls populated with hash', () {
-      final assets = staticUrls.assets;
-      expect(assets.length, hashedFiles.length);
-      for (String value in assets.values) {
-        final parts = value.split('?hash=');
-        expect(parts.length, greaterThan(1));
-        expect(parts.last.length, greaterThan(20));
-      }
-    });
-  });
-
   group('default content', () {
     final cache = StaticFileCache.withDefaults();
     final files = [
