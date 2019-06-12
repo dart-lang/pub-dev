@@ -50,6 +50,8 @@ class SearchService {
     return _loadResultForPackages(query, result.totalCount, result.packages);
   }
 
+  /// Search over the package names as a fallback, in the absence of the
+  /// `search` service.
   Future<PackageSearchResult> _fallbackSearch(SearchQuery query) async {
     final names =
         await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
