@@ -46,13 +46,6 @@ void main() {
                 'url': 'https://pub.dartlang.org'
                     '/api/packages/foobar_pkg/versions/0.1.1%2B5'
               },
-              'url': 'https://pub.dartlang.org/api/packages/foobar_pkg',
-              'version_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/versions/%7Bversion%7D',
-              'new_version_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/new',
-              'uploaders_url': 'https://pub.dartlang.org'
-                  '/api/packages/foobar_pkg/uploaders'
             },
           ],
         },
