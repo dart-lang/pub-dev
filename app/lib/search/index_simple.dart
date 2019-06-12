@@ -248,8 +248,10 @@ class SimplePackageIndex implements PackageIndex {
             matchingPackage.maintenance != null &&
             matchingPackage.maintenance > 0.0) {
           final double maxValue = overallScore.getMaxValue();
-          overallScore = overallScore.map((key, value) => value * 0.99);
-          overallScore._values[matchingPackage.package] = maxValue;
+          final map = Map<String, double>.from(
+              overallScore.map((key, value) => value * 0.99)._values);
+          map[matchingPackage.package] = maxValue;
+          overallScore = Score(map);
         }
         results = _rankWithValues(overallScore.getValues());
         break;
