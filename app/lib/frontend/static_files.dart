@@ -164,6 +164,12 @@ class StaticUrls {
   }
 
   /// A hashed version of the static assets.
+  ///
+  /// For each file like /static/img/logo.gif we create a key and value of:
+  /// `img__logo_gif => /static/img/logo.gif?hash=etag_hash`
+  ///
+  /// The /static/ prefix is stripped from the start of the key in order to
+  /// reduce the length of the mostly used files in the mustache templates.
   Map<String, String> get assets {
     if (_assets == null) {
       _assets = <String, String>{};
