@@ -113,13 +113,6 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     final apiPackageVersionUrl = uri
         .resolve('/api/packages/$packageString/versions/$versionString')
         .toString();
-    final apiNewPackageVersionUrl =
-        uri.resolve('/api/packages/$packageString/new').toString();
-    final apiUploadersUrl =
-        uri.resolve('/api/packages/$packageString/uploaders').toString();
-    final versionUrl = uri
-        .resolve('/api/packages/$packageString/versions/{version}')
-        .toString();
 
     packagesJson.add({
       'name': version.package,
@@ -135,11 +128,6 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         // NOTE: We do not add the following
         //    - 'new_dartdoc_url'
       },
-      // TODO: We should get rid of these:
-      'url': apiPackageUrl,
-      'version_url': versionUrl,
-      'new_version_url': apiNewPackageVersionUrl,
-      'uploaders_url': apiUploadersUrl,
     });
   }
 
