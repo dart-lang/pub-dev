@@ -21,7 +21,7 @@ StaticUrls _staticUrls;
 StaticFileCache get staticFileCache =>
     _cache ??= StaticFileCache.withDefaults();
 
-StaticUrls get staticUrls => _staticUrls ??= StaticUrls();
+StaticUrls get staticUrls => _staticUrls ??= StaticUrls._();
 
 /// Register the static file cache.
 void registerStaticFileCacheForTest(StaticFileCache cache) {
@@ -139,7 +139,7 @@ class StaticUrls {
   Map _versionsTableIcons;
   Map<String, String> _assets;
 
-  StaticUrls()
+  StaticUrls._()
       : smallDartFavicon = _getCacheableStaticUrl('/favicon.ico'),
         dartLogoSvg =
             _getCacheableStaticUrl('$_defaultStaticPath/img/dart-logo.svg'),
