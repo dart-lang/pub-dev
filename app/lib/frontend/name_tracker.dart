@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
+import 'package:meta/meta.dart';
 
 import '../shared/utils.dart';
 
@@ -55,7 +56,8 @@ class NameTracker {
     return _names.toList()..sort();
   }
 
-  /// Should be used in tests only!
+  /// Should be used in tests, indicates that the first scan is completed.
+  @visibleForTesting
   void markReady() {
     if (!_firstScanCompleter.isCompleted) {
       _firstScanCompleter.complete();
