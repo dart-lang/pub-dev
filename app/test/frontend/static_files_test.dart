@@ -86,7 +86,8 @@ void main() {
         final matched = m.group(1);
         if (matched.contains('data:image')) continue;
         final uri = Uri.parse(matched);
-        final absPath = p.normalize(p.join('/static/css', uri.path));
+        final absPath =
+            Uri.parse('/static/css/style.css').resolve(uri.path).toString();
         final hash = uri.queryParameters['hash'] ?? '_no_hash_';
         if (cssHashes.containsKey(absPath) && cssHashes[absPath] != hash) {
           throw Exception(
