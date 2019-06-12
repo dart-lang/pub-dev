@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/static_files.dart';
@@ -79,7 +78,6 @@ void main() {
     }
 
     test('proper hash in css content', () {
-      final cssHashes = <String, String>{};
       final css = cache.getFile('/static/css/style.css');
       for (Match m
           in RegExp('url\\("(.*)"\\);').allMatches(css.contentAsString)) {
@@ -89,24 +87,11 @@ void main() {
         final absPath =
             Uri.parse('/static/css/style.css').resolve(uri.path).toString();
         final hash = uri.queryParameters['hash'] ?? '_no_hash_';
-        if (cssHashes.containsKey(absPath) && cssHashes[absPath] != hash) {
-          throw Exception(
-              'Multiple hash for key: $absPath ($hash vs ${cssHashes[absPath]})');
+        final expectedHash = cache.getFile(absPath).etag;
+        if (hash != expectedHash) {
+          throw Exception('$absPath must use hash $expectedHash');
         }
-        cssHashes[absPath] = hash;
       }
-
-      final expectedHashes = <String, String>{};
-      final containedFiles = [
-        '/static/img/background-pattern-darkblue.jpg',
-        '/static/img/ic_email_black_18px.svg',
-        '/static/img/ic_search_black_18px.svg',
-      ];
-      for (String file in containedFiles) {
-        final cf = cache.getFile(file);
-        expectedHashes[file] = cf.etag;
-      }
-      expect(cssHashes, expectedHashes);
     });
   });
 }
