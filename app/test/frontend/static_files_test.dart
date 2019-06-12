@@ -8,13 +8,13 @@ import 'dart:async';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 
 void main() {
-  test('init', () => updateLocalBuiltFiles(),
-      timeout: Timeout(Duration(minutes: 10)));
+  setUpAll(() => updateLocalBuiltFiles());
 
   group('dartdoc assets', () {
     Future checkAsset(String url, String path) async {
@@ -77,5 +77,35 @@ void main() {
         expect(f.etag.contains('mocked_hash_'), isFalse);
       });
     }
+
+    test('proper hash in css content', () {
+      final cssHashes = <String, String>{};
+      final css = cache.getFile('/static/css/style.css');
+      for (Match m in RegExp('image: url\\("(.*?)"\\);')
+          .allMatches(css.contentAsString)) {
+        final matched = m.group(1);
+        if (matched.contains('data:image')) continue;
+        final uri = Uri.parse(matched);
+        final absPath = p.normalize(p.join('/static/css', uri.path));
+        final hash = uri.queryParameters['hash'] ?? '_no_hash_';
+        if (cssHashes.containsKey(absPath) && cssHashes[absPath] != hash) {
+          throw Exception(
+              'Multiple hash for key: $absPath ($hash vs ${cssHashes[absPath]})');
+        }
+        cssHashes[absPath] = hash;
+      }
+
+      final expectedHashes = <String, String>{};
+      final containedFiles = [
+        '/static/img/background-pattern-darkblue.jpg',
+        '/static/img/ic_email_black_18px.svg',
+        '/static/img/ic_search_black_18px.svg',
+      ];
+      for (String file in containedFiles) {
+        final cf = cache.getFile(file);
+        expectedHashes[file] = cf.etag;
+      }
+      expect(cssHashes, expectedHashes);
+    });
   });
 }

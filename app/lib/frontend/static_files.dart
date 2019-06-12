@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
@@ -122,6 +123,8 @@ class StaticFile {
     this.lastModified,
     this.etag,
   );
+
+  String get contentAsString => utf8.decode(bytes);
 }
 
 /// The static assets that get a ?hash=<hash> in their URL and with that, longer
