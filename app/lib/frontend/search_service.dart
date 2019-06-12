@@ -30,7 +30,6 @@ void registerSearchService(SearchService s) => ss.register(#_search, s);
 
 /// A wrapper around the Custom Search API, used for searching for pub packages.
 class SearchService {
-
   /// Performs search using the `search` service and lookup package info and
   /// score from DatastoreDB.
   ///
@@ -54,21 +53,19 @@ class SearchService {
   Future<PackageSearchResult> _fallbackSearch(SearchQuery query) async {
     final names =
         await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
-    List<PackageScore> scores = <PackageScore>[];
     final text = (query.query ?? '').trim().toLowerCase();
-    if (text.isNotEmpty) {
-      if (nameTracker.hasPackage(text)) {
-        scores.add(PackageScore(package: text, score: 1.0));
+    List<PackageScore> scores =
+        names.where((s) => s.contains(text)).map((pkgName) {
+      if (pkgName == text) {
+        return PackageScore(package: pkgName, score: 1.0);
+      } else if (pkgName.startsWith(text)) {
+        return PackageScore(package: pkgName, score: 0.75);
+      } else {
+        return PackageScore(package: pkgName, score: 0.5);
       }
-      names.where((s) => s != text && s.startsWith(text)).forEach((s) {
-        scores.add(PackageScore(package: s, score: 0.75));
-      });
-      names.where((s) => !s.startsWith(text) && s.contains(text)).forEach((s) {
-        scores.add(PackageScore(package: s, score: 0.50));
-      });
-    } else {
-      scores.addAll(names.map((s) => PackageScore(package: s, score: 0.1)));
-    }
+    }).toList();
+    scores.sort((a, b) => -a.score.compareTo(b.score));
+
     final totalCount = scores.length;
     scores = scores.skip(query.offset ?? 0).take(query.limit ?? 10).toList();
     return PackageSearchResult(packages: scores, totalCount: totalCount);
