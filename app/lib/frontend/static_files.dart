@@ -135,6 +135,7 @@ class StaticUrls {
   final String documentationIcon;
   final String downloadIcon;
   final String pubDevLogo2xPng;
+  final String githubMarkdownCss;
   Map _versionsTableIcons;
   Map<String, String> _assets;
 
@@ -149,7 +150,9 @@ class StaticUrls {
         downloadIcon = _getCacheableStaticUrl(
             '$_defaultStaticPath/img/ic_get_app_black_24dp.svg'),
         pubDevLogo2xPng = _getCacheableStaticUrl(
-            '$_defaultStaticPath/img/pub-dev-logo-2x.png');
+            '$_defaultStaticPath/img/pub-dev-logo-2x.png'),
+        githubMarkdownCss = _getCacheableStaticUrl(
+            '$_defaultStaticPath/css/github-markdown.css');
 
   Map get versionsTableIcons {
     return _versionsTableIcons ??= {
