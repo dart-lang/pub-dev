@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:meta/meta.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as path;
@@ -101,6 +102,7 @@ class StaticFileCache {
     ).forEach(addFile);
   }
 
+  @visibleForTesting
   void addFile(StaticFile file) {
     _files[file.requestPath] = file;
   }
