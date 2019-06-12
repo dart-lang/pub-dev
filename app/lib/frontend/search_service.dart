@@ -30,6 +30,13 @@ void registerSearchService(SearchService s) => ss.register(#_search, s);
 
 /// A wrapper around the Custom Search API, used for searching for pub packages.
 class SearchService {
+
+  /// Performs search using the `search` service and lookup package info and
+  /// score from DatastoreDB.
+  ///
+  /// When the `search` service fails, it falls back to use the name tracker to
+  /// provide package names and perform search in that set. Set [fallbackToNames]
+  /// to false in cases where this is not the desired result.
   Future<SearchResultPage> search(SearchQuery query,
       {bool fallbackToNames = true}) async {
     PackageSearchResult result;
