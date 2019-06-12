@@ -245,14 +245,12 @@ class SimplePackageIndex implements PackageIndex {
         final matchingPackage = queryText == null
             ? null
             : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
-        if (query.order == null &&
-            matchingPackage != null &&
-            overallScore.containsKey(matchingPackage.package) &&
+        if (matchingPackage != null &&
             matchingPackage.maintenance != null &&
             matchingPackage.maintenance > 0.0) {
           final double maxValue = overallScore.getMaxValue();
-          overallScore = overallScore.map((key, value) =>
-              key == matchingPackage.package ? maxValue : value * 0.99);
+          overallScore = overallScore.map((key, value) => value * 0.99);
+          overallScore._values[matchingPackage.package] = maxValue;
         }
         results = _rankWithValues(overallScore.getValues());
         break;
