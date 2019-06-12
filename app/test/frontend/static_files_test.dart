@@ -82,7 +82,7 @@ void main() {
       final cssHashes = <String, String>{};
       final css = cache.getFile('/static/css/style.css');
       for (Match m
-          in RegExp('url\\("(.*?)"\\);').allMatches(css.contentAsString)) {
+          in RegExp('url\\("(.*)"\\);').allMatches(css.contentAsString)) {
         final matched = m.group(1);
         if (matched.contains('data:image')) continue;
         final uri = Uri.parse(matched);
