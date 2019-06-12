@@ -13,8 +13,7 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 
 void main() {
-  test('init', () => updateLocalBuiltFiles(),
-      timeout: Timeout(Duration(minutes: 10)));
+  setUpAll(() => updateLocalBuiltFiles());
 
   group('dartdoc assets', () {
     Future checkAsset(String url, String path) async {
@@ -56,5 +55,22 @@ void main() {
         expect(f.etag.contains('mocked_hash_'), isFalse);
       });
     }
+
+    test('proper hash in css content', () {
+      final css = cache.getFile('/static/css/style.css');
+      for (Match m
+          in RegExp('url\\("(.*)"\\);').allMatches(css.contentAsString)) {
+        final matched = m.group(1);
+        if (matched.contains('data:image')) continue;
+        final uri = Uri.parse(matched);
+        final absPath =
+            Uri.parse('/static/css/style.css').resolve(uri.path).toString();
+        final hash = uri.queryParameters['hash'] ?? '_no_hash_';
+        final expectedHash = cache.getFile(absPath).etag;
+        if (hash != expectedHash) {
+          throw Exception('$absPath must use hash $expectedHash');
+        }
+      }
+    });
   });
 }
