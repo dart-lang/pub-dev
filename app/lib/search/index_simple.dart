@@ -239,8 +239,7 @@ class SimplePackageIndex implements PackageIndex {
           scores.add(Score(platformSpecificity));
         }
         Score overallScore = Score.multiply(scores);
-        // If there is an exact match for a package name (in the filtered result
-        // set), promote that package to the top position.
+        // If there is an exact match for a package name, promote it to the top position.
         final queryText = query?.parsedQuery?.text;
         final matchingPackage = queryText == null
             ? null
