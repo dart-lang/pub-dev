@@ -1084,8 +1084,11 @@ class TarballStorageNamer {
   /// The prefix of where packages are stored (i.e. '' or 'ns/<namespace>').
   final String prefix;
 
-  TarballStorageNamer(this.storageBaseUrl, this.bucket, String namespace)
-      : namespace = namespace == null ? '' : namespace,
+  TarballStorageNamer(String storageBaseUrl, this.bucket, String namespace)
+      : storageBaseUrl = storageBaseUrl.endsWith('/')
+            ? storageBaseUrl.substring(0, storageBaseUrl.length - 1)
+            : storageBaseUrl,
+        namespace = namespace == null ? '' : namespace,
         prefix =
             (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
 
