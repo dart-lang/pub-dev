@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -55,9 +56,9 @@ void main() {
         );
         print('Requesting confirm URL $confirmUrl');
         final pageRs = await httpClient.get(confirmUrl);
-        final acceptLine = pageRs.body.split('\n').firstWhere(
-            (line) => line.contains('Authorize and Accept Invite</a>'));
-        final acceptUrl = acceptLine.split('"')[1].replaceAll('&#x2F;', '/');
+        final pageDom = html_parser.parse(pageRs.body);
+        final elem = pageDom.getElementById('accept-invite-link');
+        final acceptUrl = elem.attributes['href'];
         print('Requesting accept URL $acceptUrl');
         final acceptUri = Uri.parse(acceptUrl);
         await httpClient.get(acceptUri.replace(
