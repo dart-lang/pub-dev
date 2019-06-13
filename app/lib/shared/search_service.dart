@@ -23,8 +23,6 @@ const int maxPages = 10;
 /// Package search index and lookup.
 abstract class PackageIndex {
   bool get isReady;
-  Future<bool> containsPackage(String package,
-      {String version, Duration maxAge});
   Future addPackage(PackageDocument doc);
   Future addPackages(Iterable<PackageDocument> documents);
   Future removePackage(String package);

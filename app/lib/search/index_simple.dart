@@ -73,20 +73,6 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future<bool> containsPackage(String package,
-      {String version, Duration maxAge}) async {
-    final PackageDocument doc = _packages[package];
-    if (doc == null) return false;
-    if (version != null && doc.version != version) return false;
-    if (maxAge != null &&
-        (doc.timestamp == null ||
-            DateTime.now().toUtc().difference(doc.timestamp) > maxAge)) {
-      return false;
-    }
-    return true;
-  }
-
-  @override
   Future addPackage(PackageDocument document) async {
     final PackageDocument doc = document.intern(_internPool.intern);
 
