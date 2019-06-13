@@ -59,6 +59,7 @@ class FakePubServer {
           pubClientAudience: null,
           pubSiteAudience: null,
           credentials: null,
+          blockEmails: true,
           blockRobots: true,
           productionHosts: ['localhost'],
         ));
@@ -66,7 +67,7 @@ class FakePubServer {
             AccountBackend(db, authProvider: FakeAuthProvider(port)));
         registerAnalyzerClient(AnalyzerClient());
         registerDartdocClient(DartdocClient());
-        registerEmailSender(EmailSender(db));
+        registerEmailSender(EmailSender(db, activeConfiguration.blockEmails));
         registerHistoryBackend(HistoryBackend(db));
         registerScoreCardBackend(ScoreCardBackend(db));
         registerScoreCardMemcache(ScoreCardMemcache());

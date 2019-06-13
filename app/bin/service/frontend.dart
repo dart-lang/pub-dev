@@ -81,7 +81,8 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  registerEmailSender(EmailSender(db.dbService));
+  registerEmailSender(
+      EmailSender(db.dbService, activeConfiguration.blockEmails));
 
   registerAccountBackend(AccountBackend(db.dbService));
   registerScopeExitCallback(accountBackend.close);

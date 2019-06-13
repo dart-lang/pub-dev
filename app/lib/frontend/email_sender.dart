@@ -24,9 +24,10 @@ EmailSender get emailSender => ss.lookup(#_email_sender) as EmailSender;
 /// Sends emails using credentials periodically fetched from Datastore.
 class EmailSender {
   final DatastoreDB _db;
+  final bool _blockEmails;
   SmtpServer _server;
   DateTime _lastUpdated;
-  EmailSender(this._db);
+  EmailSender(this._db, this._blockEmails);
 
   /// Sends a [message] and returns when the operation completed.
   /// Errors are only logged, they do not block the processing.
@@ -35,7 +36,7 @@ class EmailSender {
     final debugHeader = '(${message.subject}) '
         'from ${message.from} '
         'to ${message.recipients.join(', ')}';
-    if (_server == null) {
+    if (_blockEmails || _server == null) {
       _logger.info('Not sending e-mail (SMTP not configured): '
           '$debugHeader\n${message.bodyText}.');
     } else {
