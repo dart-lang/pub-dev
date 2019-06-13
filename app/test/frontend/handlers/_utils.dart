@@ -30,7 +30,7 @@ Future<shelf.Response> issueGet(String path, {String host}) {
 
 Future<shelf.Response> issueGetUri(Uri uri) async {
   final request = shelf.Request('GET', uri);
-  return appHandler(request, null);
+  return createAppHandler(null)(request);
 }
 
 Future<String> expectHtmlResponse(shelf.Response response,

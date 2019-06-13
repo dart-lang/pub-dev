@@ -31,9 +31,6 @@ shelf.Response tryHandleRedirects(shelf.Request request) {
         request.requestedUri.replace(host: urls.primaryHost).toString());
   }
 
-  if (path == '/doc' || path.startsWith('/doc/')) {
-    return _docRedirectHandler(request);
-  }
   return null;
 }
 
@@ -46,7 +43,7 @@ bool _shouldRedirectToPubDev(String path) {
 }
 
 /// Handles requests for /doc
-shelf.Response _docRedirectHandler(shelf.Request request) {
+shelf.Response docRedirectHandler(shelf.Request request) {
   final pubDocUrl = '${urls.dartSiteRoot}/tools/pub/';
   final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {

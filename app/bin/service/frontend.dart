@@ -71,12 +71,9 @@ Future _main(FrontendEntryMessage message) async {
       storageService,
       activeConfiguration.backupSnapshotBucketName,
     ));
-    await runHandler(
-      _logger,
-      (shelf.Request request) => appHandler(request, apiHandler),
-      sanitize: true,
-      cronHandler: cron.handler,
-    );
+    final appHandler = createAppHandler(apiHandler);
+    await runHandler(_logger, appHandler,
+        sanitize: true, cronHandler: cron.handler);
   });
 }
 

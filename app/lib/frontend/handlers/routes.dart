@@ -6,6 +6,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import '../../shared/handlers.dart';
+import '../../shared/urls.dart';
 
 import 'account.dart';
 import 'admin.dart';
@@ -16,6 +17,7 @@ import 'landing.dart';
 import 'listing.dart';
 import 'misc.dart';
 import 'package.dart';
+import 'redirects.dart';
 
 part 'routes.g.dart';
 
@@ -107,10 +109,6 @@ class PubSiteService {
   @Route.get('/web')
   Future<Response> web(Request request) => webLandingHandler(request);
 
-  /// (Old) server index redirect
-  @Route.get('/server')
-  Future<Response> server(Request request) async => redirectResponse('/');
-
   // ****
   // **** Listing pages
   // ****
@@ -126,21 +124,6 @@ class PubSiteService {
   @Route.get('/web/packages')
   Future<Response> webPackages(Request request) =>
       webPackagesHandlerHtml(request);
-
-  /// (Old) Flutter plugins redirect
-  @Route.get('/flutter/plugins')
-  Future<Response> flutterPlugins(Request request) async =>
-      redirectResponse('/flutter/packages');
-
-  /// (Old) Server packages redirect
-  @Route.get('/server/packages')
-  Future<Response> serverPackages(Request request) async => redirectResponse(
-      request.requestedUri.replace(path: '/packages').toString());
-
-  /// (Old) Search redirect
-  @Route.get('/search')
-  Future<Response> search(Request request) async => redirectResponse(
-      request.requestedUri.replace(path: '/packages').toString());
 
   // ****
   // **** Packages
@@ -286,4 +269,38 @@ class PubSiteService {
 
   @Route.get('/packages.json')
   Future<Response> packagesJson(Request request) => packagesHandler(request);
+}
+
+/// Routes that are only processed by the old pub domain.
+class PubDartlangOrgService {
+  Router get router => _$PubDartlangOrgServiceRouter(this);
+
+  /// (Old) pub client doc redirect
+  @Route.get('/doc')
+  @Route.get('/doc/<path|[^]*>')
+  Future<Response> doc(Request request) async => docRedirectHandler(request);
+
+  /// (Old) server index redirect
+  @Route.get('/server')
+  Future<Response> server(Request request) async =>
+      redirectResponse('$siteRoot/');
+
+  /// (Old) Flutter plugins redirect
+  @Route.get('/flutter/plugins')
+  Future<Response> flutterPlugins(Request request) async =>
+      redirectResponse('$siteRoot/flutter/packages');
+
+  /// (Old) Server packages redirect
+  @Route.get('/server/packages')
+  Future<Response> serverPackages(Request request) async =>
+      redirectResponse(request.requestedUri
+          .replace(host: primaryHost, path: '/packages')
+          .toString());
+
+  /// (Old) Search redirect
+  @Route.get('/search')
+  Future<Response> search(Request request) async =>
+      redirectResponse(request.requestedUri
+          .replace(host: primaryHost, path: '/packages')
+          .toString());
 }
