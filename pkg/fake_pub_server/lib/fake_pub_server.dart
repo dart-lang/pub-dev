@@ -63,7 +63,7 @@ class FakePubServer {
           productionHosts: ['localhost'],
         ));
         registerAccountBackend(
-            AccountBackend(db, authProvider: FakeAuthProvider()));
+            AccountBackend(db, authProvider: FakeAuthProvider(port)));
         registerAnalyzerClient(AnalyzerClient());
         registerDartdocClient(DartdocClient());
         registerEmailSender(EmailSender(db));
@@ -104,6 +104,9 @@ class FakePubServer {
 }
 
 class FakeAuthProvider implements AuthProvider {
+  final int httpPort;
+  FakeAuthProvider(this.httpPort);
+
   @override
   Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
     return code;
@@ -111,7 +114,8 @@ class FakeAuthProvider implements AuthProvider {
 
   @override
   String authorizationUrl(String redirectUrl, String state) {
-    return redirectUrl;
+    return Uri.parse(redirectUrl)
+        .replace(port: httpPort, queryParameters: {'state': state}).toString();
   }
 
   @override
@@ -119,7 +123,9 @@ class FakeAuthProvider implements AuthProvider {
 
   @override
   Future<AuthResult> tryAuthenticate(String accessToken) async {
-    return AuthResult('user-example-com', 'user@example.com');
+    final email = accessToken.replaceAll('-at-', '@').replaceAll('-dot-', '.');
+    final id = email.replaceAll('@', '-').replaceAll('.', '-');
+    return AuthResult(id, email);
   }
 }
 
