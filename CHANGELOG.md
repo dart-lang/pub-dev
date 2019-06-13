@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Update project to use split health checks, run:
    `gcloud app update --split-health-checks --project dartlang-pub`
  * `search` service is using custom liveness and readiness checks.
+ * Search results (top packages, listing pages) use local fallbacks.
 
 ## `20190529t163905-all`
 

@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dart-lang/pub-dartlang-dart.svg?branch=master)](https://travis-ci.org/dart-lang/pub-dartlang-dart)
+[![Build Status](https://travis-ci.org/dart-lang/pub-dev.svg?branch=master)](https://travis-ci.org/dart-lang/pub-dev)
 
 # Code for the "pub.dev" website.
 
