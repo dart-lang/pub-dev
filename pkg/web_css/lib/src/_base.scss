@@ -128,7 +128,6 @@ pre > code {
 
   max-width: $site-max-width;
   margin: 0 auto;
-  padding: 6px;
 }
 
 .site-header > .hamburger {
@@ -148,6 +147,7 @@ pre > code {
   justify-content: space-between;
   width: 100%;
   align-items: center;
+  height: 50px;
 
   &.-show {
     display: block;
@@ -186,7 +186,7 @@ pre > code {
 }
 
 .nav-header > .logo img {
-  height: 30px;
+  height: 27px;
   margin-left: 16px;
   vertical-align: middle;
 }
@@ -332,6 +332,7 @@ pre > code {
     top: 0;
     bottom: 0;
     left: 0;
+    height: 100%;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
     background: #f5f5f5;
     transition: -webkit-transform 0.3s ease;
