@@ -9,13 +9,12 @@ import 'dart:js';
 import 'package:http/http.dart';
 
 import '_authenticated_client.dart';
+import '_dom_helper.dart';
 import 'google_auth_js.dart';
 import 'google_js.dart';
+import 'hoverable.dart';
 
 bool _initialized = false;
-Element _logoutElem;
-Element _accountInfoElem;
-
 GoogleUser _currentUser;
 
 /// Returns whether the user is currently signed-in.
@@ -25,6 +24,7 @@ bool get isSignedIn => _initialized && _currentUser != null;
 GoogleUser get currentUser => _currentUser;
 
 Client _client;
+final _navWidget = _AccountNavWidget();
 
 /// The HTTP Client to use with account credentials.
 Client get client {
@@ -37,31 +37,22 @@ void setupAccount() {
   // initialized. Method name is passed in as request parameter when loading
   // the auth library.
   context['pubAuthInit'] = () {
-    load('auth2', allowInterop(_init));
+    final clientId = document
+        .querySelector('meta[name="google-signin-client_id"]')
+        .attributes['content'];
+    if (clientId == null) return;
+    load('auth2', allowInterop(() {
+      init(JsObject.jsify({'client_id': clientId}))
+          .then(allowInterop((_) => _init()));
+    }));
   };
 }
 
 void _init() {
   _initialized = true;
-
-  final accountHeaderElem = document.body.querySelector('.account-header');
-  if (accountHeaderElem == null) {
-    return;
-  }
-
-  _logoutElem = document.createElement('a')
-    ..text = 'Logout'
-    ..onClick.listen((_) {
-      // TODO: await Promise
-      getAuthInstance().signOut();
-      _updateUser(null);
-    });
-  accountHeaderElem.append(_logoutElem);
-
-  _accountInfoElem = document.createElement('div');
-  accountHeaderElem.append(_accountInfoElem);
-
-  _updateUser(null);
+  final navRoot = document.getElementById('account-nav');
+  if (navRoot != null) _navWidget.init(navRoot);
+  _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
 
@@ -100,11 +91,59 @@ Future _updateOnCredChange() async {
 void _updateUi() {
   if (isSignedIn) {
     print('user: ${currentUser.getBasicProfile().getEmail()}');
-    _accountInfoElem.text = currentUser.getBasicProfile().getEmail();
-    _logoutElem.style.display = 'block';
   } else {
     print('No active user');
-    _accountInfoElem.text = '-';
-    _logoutElem.style.display = 'none';
+  }
+  _navWidget.update();
+}
+
+class _AccountNavWidget {
+  Element _root;
+
+  Element _login;
+  Element _profile;
+  Element _image;
+  Element _email;
+
+  void init(Element root) {
+    _root = root;
+    _login = elem('a',
+        classes: ['link'],
+        text: 'Login',
+        onClick: (_) => getAuthInstance().signIn());
+    _profile = elem(
+      'div',
+      classes: ['sub-wrap', 'hoverable'],
+      children: [
+        _image = elem('img', classes: ['profile-img']),
+        elem(
+          'div',
+          classes: ['sub-nav'],
+          children: [
+            _email = elem('div'),
+            elem('a',
+                classes: ['link'],
+                text: 'Logout',
+                onClick: (_) => getAuthInstance().signOut())
+          ],
+        ),
+      ],
+    );
+    _root.append(_login);
+    _root.append(_profile);
+    registerHoverable(_profile);
+    update();
+  }
+
+  void update() {
+    if (!_initialized) {
+      return;
+    }
+    updateDisplay(_login, !isSignedIn);
+    updateDisplay(_profile, isSignedIn);
+    if (isSignedIn) {
+      _image.attributes['src'] = _currentUser.getBasicProfile().getImageUrl();
+      _email.text = _currentUser.getBasicProfile().getEmail();
+    }
   }
 }
