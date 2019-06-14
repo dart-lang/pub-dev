@@ -129,7 +129,8 @@ void main() {
 
 class SearchServiceMock implements SearchService {
   @override
-  Future<SearchResultPage> search(SearchQuery query) async {
+  Future<SearchResultPage> search(SearchQuery query,
+      {bool fallbackToNames = true}) async {
     return SearchResultPage.empty(query);
   }
 
