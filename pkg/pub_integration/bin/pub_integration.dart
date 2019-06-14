@@ -59,6 +59,11 @@ Future main(List<String> args) async {
   }
 
   String credentialsFile = argv['credentials-json'] as String;
+  if (credentialsFile == null && Platform.environment['PUB_CACHE'] != null) {
+    credentialsFile =
+        p.join(Platform.environment['PUB_CACHE'], 'credentials.json');
+    verifyParameters = true;
+  }
   if (credentialsFile == null && Platform.environment['HOME'] != null) {
     credentialsFile =
         p.join(Platform.environment['HOME'], '.pub-cache', 'credentials.json');
