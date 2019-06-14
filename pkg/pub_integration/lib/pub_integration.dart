@@ -16,20 +16,17 @@ final _random = Random.secure();
 
 typedef InviteCompleterFn = Future Function();
 
+/// Runs the integration tests on the [pubHostedUrl].
 Future verifyPubIntegration({
-  String pubHostedUrl,
-  // TODO: autodetect based on the credentials?
-  @required String mainAccountEmail,
-  // TODO: autodetect $HOME/.pub-cache directory
+  @required String pubHostedUrl,
   @required String credentialsFile,
-  @required String invitedAccountEmail,
+  @required String invitedEmail,
   @required InviteCompleterFn inviteCompleterFn,
 }) async {
   final integration = _PubIntegration._(
-    pubHostedUrl ?? Platform.environment['PUB_HOSTED_URL'],
-    mainAccountEmail,
+    pubHostedUrl,
     credentialsFile,
-    invitedAccountEmail,
+    invitedEmail,
     inviteCompleterFn,
   );
   await integration.verify();
@@ -38,9 +35,8 @@ Future verifyPubIntegration({
 /// A single object to execute integration tests on the pub site (or a test site).
 class _PubIntegration {
   final String pubHostedUrl;
-  final String mainAccountEmail;
   final String credentialsFile;
-  final String invitedAccountEmail;
+  final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
   final PubClient _pubClient;
 
@@ -55,9 +51,8 @@ class _PubIntegration {
 
   _PubIntegration._(
     this.pubHostedUrl,
-    this.mainAccountEmail,
     this.credentialsFile,
-    this.invitedAccountEmail,
+    this.invitedEmail,
     this.inviteCompleterFn,
   ) : this._pubClient = PubClient(pubHostedUrl);
 
@@ -149,11 +144,8 @@ class _PubIntegration {
       throw Exception(
           'pubspec author field is not to be found on package page.');
     }
-    if (!pageHtml.contains(mainAccountEmail)) {
-      throw Exception('Uploader email is not to be found on package page.');
-    }
     if (matchInvited != null) {
-      final found = pageHtml.contains(invitedAccountEmail);
+      final found = pageHtml.contains(invitedEmail);
       if (matchInvited && !found) {
         throw Exception('Invited email is not to be found on package page.');
       }
@@ -166,10 +158,10 @@ class _PubIntegration {
   Future _addUploader() async {
     await _runProc(
       'pub',
-      ['uploader', 'add', invitedAccountEmail],
+      ['uploader', 'add', invitedEmail],
       workingDirectory: _dummyDir.path,
       expectedError:
-          'We have sent an invitation to dev@example.org, they will be added as uploader after they confirm it.',
+          'We have sent an invitation to $invitedEmail, they will be added as uploader after they confirm it.',
     );
     await inviteCompleterFn();
   }
@@ -177,7 +169,7 @@ class _PubIntegration {
   Future _removeUploader() async {
     await _runProc(
       'pub',
-      ['uploader', 'remove', invitedAccountEmail],
+      ['uploader', 'remove', invitedEmail],
       workingDirectory: _dummyDir.path,
     );
   }

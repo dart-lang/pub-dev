@@ -68,9 +68,8 @@ void main() {
 
       await verifyPubIntegration(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
-        mainAccountEmail: 'user@example.com',
         credentialsFile: fakeCredentialsFile,
-        invitedAccountEmail: 'dev@example.org',
+        invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,
       );
     });

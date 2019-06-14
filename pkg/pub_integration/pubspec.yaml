@@ -6,6 +6,7 @@ environment:
   sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
+  args: ^1.5.0
   http: ^0.12.0
   meta: ^1.0.0
   path: ^1.0.0
