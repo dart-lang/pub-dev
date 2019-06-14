@@ -68,7 +68,6 @@ void main() {
 
       await verifyPubIntegration(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
-        verifierEmail: 'user@example.com',
         credentialsFile: fakeCredentialsFile,
         invitedEmail: 'dev@example.org',
         inviteCompleterFn: inviteCompleterFn,

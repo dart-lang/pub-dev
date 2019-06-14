@@ -19,14 +19,12 @@ typedef InviteCompleterFn = Future Function();
 /// Runs the integration tests on the [pubHostedUrl].
 Future verifyPubIntegration({
   @required String pubHostedUrl,
-  @required String verifierEmail,
   @required String credentialsFile,
   @required String invitedEmail,
   @required InviteCompleterFn inviteCompleterFn,
 }) async {
   final integration = _PubIntegration._(
     pubHostedUrl,
-    verifierEmail,
     credentialsFile,
     invitedEmail,
     inviteCompleterFn,
@@ -37,7 +35,6 @@ Future verifyPubIntegration({
 /// A single object to execute integration tests on the pub site (or a test site).
 class _PubIntegration {
   final String pubHostedUrl;
-  final String verifierEmail;
   final String credentialsFile;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
@@ -54,7 +51,6 @@ class _PubIntegration {
 
   _PubIntegration._(
     this.pubHostedUrl,
-    this.verifierEmail,
     this.credentialsFile,
     this.invitedEmail,
     this.inviteCompleterFn,
@@ -147,9 +143,6 @@ class _PubIntegration {
     if (!pageHtml.contains('developer@example.com')) {
       throw Exception(
           'pubspec author field is not to be found on package page.');
-    }
-    if (!pageHtml.contains(verifierEmail)) {
-      throw Exception('Uploader email is not to be found on package page.');
     }
     if (matchInvited != null) {
       final found = pageHtml.contains(invitedEmail);

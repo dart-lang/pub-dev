@@ -13,7 +13,6 @@ import 'package:pub_integration/pub_integration.dart';
 Future main(List<String> args) async {
   final _argParser = ArgParser()
     ..addOption('pub-hosted-url', help: 'The PUB_HOSTED_URL to use.')
-    ..addOption('verifier-email', help: 'The e-mail of the verifier account.')
     ..addOption('invited-email', help: 'The e-mail of the invited account.')
     ..addOption('credentials-json',
         help: 'The credentials.json to use for uploads and other actions.');
@@ -32,24 +31,6 @@ Future main(List<String> args) async {
   }
   if (pubHostedUrl.endsWith('/')) {
     pubHostedUrl = pubHostedUrl.substring(0, pubHostedUrl.length - 1);
-  }
-
-  String verifierEmail = argv['verifier-email'] as String;
-  if (verifierEmail == null) {
-    print('Detecting e-mail via "git config user.email".');
-    final pr = await Process.run('git', ['config', 'user.email']);
-    if (pr.exitCode == 0) {
-      final email = (pr.stdout as String).trim();
-      if (email.isNotEmpty) {
-        print('Using $email as --verifier-email');
-        verifierEmail = email;
-      }
-    }
-    verifyParameters = true;
-  }
-  if (verifierEmail == null || verifierEmail.isEmpty) {
-    print('--verifier-email must be set');
-    exit(1);
   }
 
   final invitedEmail = argv['invited-email'] as String;
@@ -81,7 +62,6 @@ Future main(List<String> args) async {
 
   print('');
   print('PUB_HOSTED_URL:   $pubHostedUrl');
-  print('verifier e-mail:  $verifierEmail');
   print('invited e-mail:   $invitedEmail');
   print('credentials.json: $credentialsFile');
   print('');
@@ -94,7 +74,6 @@ Future main(List<String> args) async {
 
   await verifyPubIntegration(
     pubHostedUrl: pubHostedUrl,
-    verifierEmail: verifierEmail,
     credentialsFile: credentialsFile,
     invitedEmail: invitedEmail,
     inviteCompleterFn: () async {
