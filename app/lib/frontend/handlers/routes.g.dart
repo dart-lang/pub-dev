@@ -45,6 +45,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);
   router.add('GET', '/sitemap.txt', service.sitemapTxt);
+  router.add('GET', '/favicon.ico', service.staticAsset);
   router.add('GET', '/static/<path|[^]*>', service.staticAsset);
   router.add('GET', '/experimental', service.experimental);
   router.add('GET', '/oauth/callback', service.oauthCallback);

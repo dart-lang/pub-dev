@@ -196,11 +196,9 @@ class PubSiteService {
   Future<Response> sitemapTxt(Request request) => siteMapTxtHandler(request);
 
   /// Renders static assets
+  @Route.get('/favicon.ico')
   @Route.get('/static/<path|[^]*>')
-  Future<Response> staticAsset(Request request, String path) {
-    // TODO: pass-in the [path] parameter
-    return staticsHandler(request);
-  }
+  Future<Response> staticAsset(Request request) => staticsHandler(request);
 
   /// Controls the experimental cookie.
   @Route.get('/experimental')
