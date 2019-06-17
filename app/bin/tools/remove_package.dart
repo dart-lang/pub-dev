@@ -9,9 +9,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
-
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -19,6 +16,8 @@ import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/model.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';
+import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/storage.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -109,7 +108,8 @@ Future removePackage(String packageName) async {
         versions.map((v) => v.semanticVersion).toList();
     deletes.addAll(versions.map((v) => v.key));
 
-    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
+    final bucket = await getOrCreateBucket(
+        storageService, activeConfiguration.packageBucketName);
     final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await Future.wait(versionNames
@@ -176,7 +176,8 @@ Future removePackageVersion(String packageName, String version) async {
     print('Committing changes to DB ...');
     await T.commit();
 
-    final bucket = storageService.bucket(activeConfiguration.packageBucketName);
+    final bucket = await getOrCreateBucket(
+        storageService, activeConfiguration.packageBucketName);
     final storage = TarballStorage(storageService, bucket, '');
     print('Removing GCS objects ...');
     await storage.remove(packageName, version);

@@ -12,6 +12,7 @@ import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
+import 'package:retry/retry.dart';
 
 import 'utils.dart' show contentType, retryAsync;
 import 'versions.dart' as versions;
@@ -28,7 +29,7 @@ Future<Bucket> getOrCreateBucket(Storage storage, String name) async {
   if (!await storage.bucketExists(name)) {
     await storage.createBucket(name);
   }
-  return storage.bucket(name);
+  return RetryingBucket(storage.bucket(name));
 }
 
 Future deleteFromBucket(Bucket bucket, String objectName) async {
@@ -191,3 +192,106 @@ class VersionedJsonStorage {
     return '$_prefix$version$_extension';
   }
 }
+
+/// A [Bucket] wrapper that retries failed read attempts.
+class RetryingBucket implements Bucket {
+  final Bucket _bucket;
+  final RetryOptions _retryOptions;
+  RetryingBucket(this._bucket, [RetryOptions options])
+      : _retryOptions = options ?? RetryOptions();
+
+  @override
+  String absoluteObjectName(String objectName) {
+    return _bucket.absoluteObjectName(objectName);
+  }
+
+  @override
+  String get bucketName => _bucket.bucketName;
+
+  @override
+  Future delete(String name) {
+    return _retry(() => _bucket.delete(name));
+  }
+
+  @override
+  Future<ObjectInfo> info(String name) => _retry(() => _bucket.info(name));
+
+  @override
+  Stream<BucketEntry> list({String prefix}) async* {
+    final entries = await _retry(() => _bucket.list(prefix: prefix).toList());
+    for (final entry in entries) {
+      yield entry;
+    }
+  }
+
+  @override
+  Future<Page<BucketEntry>> page({String prefix, int pageSize = 50}) =>
+      // TODO: use retry and also wrap Page.next
+      _bucket.page(prefix: prefix, pageSize: pageSize);
+
+  @override
+  Stream<List<int>> read(String objectName, {int offset, int length}) async* {
+    final chunks = await _retry(() =>
+        _bucket.read(objectName, offset: offset, length: length).toList());
+    for (final chunk in chunks) {
+      yield chunk;
+    }
+  }
+
+  @override
+  Future updateMetadata(String objectName, ObjectMetadata metadata) =>
+      _retry(() => _bucket.updateMetadata(objectName, metadata));
+
+  @override
+  StreamSink<List<int>> write(String objectName,
+      {int length,
+      ObjectMetadata metadata,
+      Acl acl,
+      PredefinedAcl predefinedAcl,
+      String contentType}) {
+    // TODO: Buffer sinked bytes and use retry to upload them.
+    return _bucket.write(
+      objectName,
+      length: length,
+      metadata: metadata,
+      acl: acl,
+      predefinedAcl: predefinedAcl,
+      contentType: contentType,
+    );
+  }
+
+  @override
+  Future<ObjectInfo> writeBytes(String name, List<int> bytes,
+      {ObjectMetadata metadata,
+      Acl acl,
+      PredefinedAcl predefinedAcl,
+      String contentType}) {
+    return _retry(() => _bucket.writeBytes(
+          name,
+          bytes,
+          metadata: metadata,
+          acl: acl,
+          predefinedAcl: predefinedAcl,
+          contentType: contentType,
+        ));
+  }
+
+  Future<T> _retry<T>(FutureOr<T> Function() fn) {
+    return _retryOptions.retry(
+      () async {
+        try {
+          return await fn();
+        } on DetailedApiRequestError catch (e) {
+          if (e.status >= 500) {
+            throw _RetryException();
+          } else {
+            rethrow;
+          }
+        }
+      },
+      retryIf: (ex) => ex is _RetryException,
+    );
+  }
+}
+
+class _RetryException implements Exception {}
