@@ -44,11 +44,6 @@
 </head>
 <body class="{{& body_class}}">
 <header class="site-header-row">
-  {{#oauth_client_id}}
-  <div class="account-header">
-    <div class="g-signin2"></div>
-  </div>
-  {{/oauth_client_id}}
   <div class="site-header">
     <h1 class="_visuallyhidden">Dart pub</h1>
     <button class="hamburger"></button>
@@ -76,6 +71,9 @@
           </div>
         </div>
       </nav>
+      {{#oauth_client_id}}
+      <div id="account-nav"></div>
+      {{/oauth_client_id}}
     </div>
   </div>
 </header>

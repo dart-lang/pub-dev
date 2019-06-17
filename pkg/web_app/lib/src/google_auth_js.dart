@@ -9,6 +9,11 @@ library google_auth_js;
 
 import 'package:js/js.dart';
 
+/// Initializes the GoogleAuth object. You must call this method before calling
+/// gapi.auth2.GoogleAuth's methods.
+@JS()
+external GoogleAuth init(dynamic params);
+
 /// Returns the auth library's main instance (if initialized).
 @JS()
 external GoogleAuth getAuthInstance();
@@ -22,9 +27,18 @@ abstract class GoogleAuth {
   /// The current user.
   external GoogleAuthCurrentUser get currentUser;
 
+  /// Triggers a sign-in, and returns a Promise that will complete when the
+  /// sign-in is finalized.
+  external dynamic signIn();
+
   /// Triggers a sign-out, and returns a Promise that will complete when the
   /// sign-out is finalized.
   external dynamic signOut();
+
+  /// Calls the onInit function when the GoogleAuth object is fully initialized.
+  /// If an error is raised while initializing, the onError function will be
+  /// called instead.
+  external dynamic then(Function onInit);
 }
 
 @anonymous
@@ -68,6 +82,9 @@ abstract class AuthResponse {
 /// The basic profile data of the user.
 @JS()
 abstract class BasicProfile {
-  /// The e-mail address of the user
+  /// The profile image URL of the user.
+  external String getImageUrl();
+
+  /// The e-mail address of the user.
   external String getEmail();
 }

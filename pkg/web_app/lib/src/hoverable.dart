@@ -8,6 +8,8 @@ void setupHoverable() {
   _setEventForHoverable();
 }
 
+Element _activeHover;
+
 /// Elements with the `hoverable` class provide hover tooltip for both desktop
 /// browsers and touchscreen devices:
 ///   - when clicked, they are added a `hover` class (toggled on repeated clicks)
@@ -17,29 +19,33 @@ void setupHoverable() {
 ///
 ///  Their `:hover` and `.hover` style must match to have the same effect.
 void _setEventForHoverable() {
-  Element activeHover;
-  void deactivateHover(_) {
-    if (activeHover != null) {
-      activeHover.classes.remove('hover');
-      activeHover = null;
-    }
-  }
-
   document.body.onClick.listen(deactivateHover);
-
   for (Element h in document.querySelectorAll('.hoverable')) {
-    h.onClick.listen((e) {
-      if (h != activeHover) {
-        deactivateHover(e);
-        activeHover = h;
-        activeHover.classes.add('hover');
-        e.stopPropagation();
-      }
-    });
-    h.onMouseEnter.listen((e) {
-      if (h != activeHover) {
-        deactivateHover(e);
-      }
-    });
+    registerHoverable(h);
   }
+}
+
+/// Deactivates the active hover (hiding the hovering panel).
+void deactivateHover(_) {
+  if (_activeHover != null) {
+    _activeHover.classes.remove('hover');
+    _activeHover = null;
+  }
+}
+
+/// Registers the given Element to follow hoverable events.
+void registerHoverable(Element h) {
+  h.onClick.listen((e) {
+    if (h != _activeHover) {
+      deactivateHover(e);
+      _activeHover = h;
+      _activeHover.classes.add('hover');
+      e.stopPropagation();
+    }
+  });
+  h.onMouseEnter.listen((e) {
+    if (h != _activeHover) {
+      deactivateHover(e);
+    }
+  });
 }
