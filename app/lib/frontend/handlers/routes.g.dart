@@ -63,14 +63,3 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/packages.json', service.packagesJson);
   return router;
 }
-
-Router _$PubDartlangOrgServiceRouter(PubDartlangOrgService service) {
-  final router = Router();
-  router.add('GET', '/doc', service.doc);
-  router.add('GET', '/doc/<path|[^]*>', service.doc);
-  router.add('GET', '/server', service.server);
-  router.add('GET', '/flutter/plugins', service.flutterPlugins);
-  router.add('GET', '/server/packages', service.serverPackages);
-  router.add('GET', '/search', service.search);
-  return router;
-}

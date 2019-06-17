@@ -6,6 +6,7 @@ targets:
       - 'lib/history/models.dart'
       - 'lib/dartdoc/models.dart'
       - 'lib/frontend/handlers/routes.dart'
+      - 'lib/frontend/handlers/redirects.dart'
       - 'lib/scorecard/models.dart'
       - 'lib/shared/*.dart'
       - 'lib/search/backend*.dart'
