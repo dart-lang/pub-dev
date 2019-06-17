@@ -420,7 +420,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.17"
+    version: "0.12.18"
   path:
     dependency: "direct main"
     description:
