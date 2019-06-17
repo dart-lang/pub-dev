@@ -8,14 +8,14 @@ dependencies:
     path: ../pkg/_popularity
   simple_cache:
     path: ../pkg/simple_cache
-  appengine: '^0.6.0'
+  appengine: '^0.7.0'
   args: '>=0.13.7 <2.0.0'
   crypto: '^2.0.2'
   gcloud: '^0.6.0'
-  googleapis: '>=0.31.0 <0.52.0'
+  googleapis: '>=0.53.0 <0.54.0'
   googleapis_auth: ^0.2.4
   html: '>=0.12.0 <0.15.0'
-  http: '>=0.11.0 <0.12.0'
+  http: '>=0.12.0 <0.13.0'
   http_parser: '>=3.1.1 <4.0.0'
   intl: '>=0.13.0 <0.16.0'
   json_annotation: '^2.0.0'
