@@ -15,5 +15,6 @@ mkdir -p ${OUTPUT_DIR}
 cd "${WEB_CSS_DIR}";
 
 pub run sass \
+  --style=compressed \
   "${WEB_CSS_DIR}/lib/style.scss" \
   "${OUTPUT_DIR}/style.css"
