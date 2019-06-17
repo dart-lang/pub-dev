@@ -39,8 +39,7 @@ shelf.Handler createAppHandler(shelf.Handler shelfPubApi) {
     // legacy dartdocs.org URLs
     final host = request.requestedUri.host;
     if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
-      final rs = await legacyDartdocHandler(request);
-      return rs ?? shelf.Response.notFound('Not Found.');
+      return legacyDartdocHandler(request);
     }
 
     // do pub.dartlang.org-only routes

@@ -22,5 +22,6 @@ Router _$LegacyDartdocServiceRouter(LegacyDartdocService service) {
   router.add('GET', '/', service.index);
   router.add('GET', '/documentation', service.documentation);
   router.add('GET', '/documentation/<path|[^]*>', service.documentation);
+  router.all('/<_|.*>', service.catchAll);
   return router;
 }

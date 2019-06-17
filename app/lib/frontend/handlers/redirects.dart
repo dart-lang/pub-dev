@@ -62,6 +62,9 @@ class LegacyDartdocService {
       redirectResponse(Uri.parse(fullSiteUrl)
           .replace(path: request.requestedUri.path)
           .toString());
+
+  @Route.all('/<_|.*>')
+  Response catchAll(Request request) => Response.notFound('Not Found.');
 }
 
 /// Handles requests for /doc
