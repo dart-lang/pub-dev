@@ -7,6 +7,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    `gcloud app update --split-health-checks --project dartlang-pub`
  * `search` service is using custom liveness and readiness checks.
  * Search results (top packages, listing pages) use local fallbacks.
+ * Upgraded `pana` (`0.12.18`), runtime and analysis Dart SDK (`2.3.2`).
+ * Bumped runtimeVersion to `2019.06.17`.
 
 ## `20190529t163905-all`
 
