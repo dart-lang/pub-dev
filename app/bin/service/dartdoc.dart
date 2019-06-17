@@ -23,6 +23,7 @@ import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/storage_retry.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
@@ -53,6 +54,7 @@ Future _frontendMain(FrontendEntryMessage message) async {
   ));
 
   await withAppEngineAndCache(() async {
+    registerStorageWithRetry();
     await _registerServices();
     await runHandler(logger, dartdocServiceHandler);
   });
@@ -64,6 +66,7 @@ Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withAppEngineAndCache(() async {
+    registerStorageWithRetry();
     await _registerServices();
 
     final jobProcessor =

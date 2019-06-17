@@ -32,6 +32,7 @@ import 'package:pub_dartlang_org/shared/search_memcache.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/storage_retry.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/cronjobs.dart' show CronJobs;
@@ -60,6 +61,7 @@ Future _main(FrontendEntryMessage message) async {
 
   await updateLocalBuiltFiles();
   await withAppEngineAndCache(() async {
+    registerStorageWithRetry();
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
     // Add randomization to reduce race conditions.
@@ -147,6 +149,7 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withAppEngineAndCache(() async {
+    registerStorageWithRetry();
     registerAnalyzerClient(AnalyzerClient());
     registerDartdocClient(DartdocClient());
     registerJobBackend(JobBackend(db.dbService));

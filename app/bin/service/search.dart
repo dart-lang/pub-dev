@@ -32,6 +32,7 @@ import 'package:pub_dartlang_org/shared/task_sources.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/storage_retry.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -54,6 +55,8 @@ Future _main(FrontendEntryMessage message) async {
   ));
 
   await withAppEngineAndCache(() async {
+    registerStorageWithRetry();
+
     registerAccountBackend(AccountBackend(db.dbService));
 
     final popularityBucket = await getOrCreateBucket(

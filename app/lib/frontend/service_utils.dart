@@ -15,6 +15,7 @@ import '../account/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/package_memcache.dart';
 import '../shared/redis_cache.dart';
+import '../shared/storage_retry.dart';
 
 import 'backend.dart';
 import 'search_service.dart';
@@ -63,6 +64,7 @@ Future<String> obtainServiceAccountEmail() async {
 /// environment variables.
 Future withProdServices(Future fn()) {
   return withAppEngineAndCache(() {
+    registerStorageWithRetry();
     if (!envConfig.hasCredentials) {
       throw Exception('Missing GCLOUD_* environments for package:appengine');
     }
