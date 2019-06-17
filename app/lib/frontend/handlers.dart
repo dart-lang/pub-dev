@@ -7,6 +7,7 @@ library pub_dartlang_org.handlers;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../shared/handlers.dart';
 import '../shared/urls.dart';
 
 import 'handlers/misc.dart';
@@ -29,21 +30,36 @@ void _logPubHeaders(shelf.Request request) {
 /// The passed in [shelfPubApi] handler will be used for handling requests to
 ///   - /api/*
 shelf.Handler createAppHandler(shelf.Handler shelfPubApi) {
+  final legacyDartdocHandler = LegacyDartdocService().router.handler;
   final pubDartlangOrgHandler = PubDartlangOrgService().router.handler;
   final pubSiteHandler = PubSiteService(shelfPubApi).router.handler;
   return (shelf.Request request) async {
     _logPubHeaders(request);
 
+    // legacy dartdocs.org URLs
+    final host = request.requestedUri.host;
+    if (host == 'www.dartdocs.org' || host == 'dartdocs.org') {
+      final rs = await legacyDartdocHandler(request);
+      return rs ?? shelf.Response.notFound('Not Found.');
+    }
+
     // do pub.dartlang.org-only routes
-    if (request.requestedUri.host == legacyHost) {
+    if (host == legacyHost) {
       final rs = await pubDartlangOrgHandler(request);
       if (rs != null) {
         return rs;
       }
+      if (_shouldRedirectToPubDev(request.requestedUri.path)) {
+        return redirectResponse(
+            request.requestedUri.replace(host: primaryHost).toString());
+      }
     }
 
-    final redirected = tryHandleRedirects(request);
-    if (redirected != null) return redirected;
+    // do www.pub.dev redirect
+    if (host == 'www.$primaryHost') {
+      return redirectResponse(
+          request.requestedUri.replace(host: primaryHost).toString());
+    }
 
     final res = await pubSiteHandler(request);
     if (res != null) {
@@ -52,4 +68,12 @@ shelf.Handler createAppHandler(shelf.Handler shelfPubApi) {
 
     return formattedNotFoundHandler(request);
   };
+}
+
+bool _shouldRedirectToPubDev(String path) {
+  if (path.startsWith('/api/')) return false;
+  if (path.endsWith('.tar.gz')) return false;
+  if (path.endsWith('.json')) return false;
+  if (path == '/debug') return false;
+  return true;
 }
