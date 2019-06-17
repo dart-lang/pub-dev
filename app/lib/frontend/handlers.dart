@@ -71,9 +71,12 @@ shelf.Handler createAppHandler(shelf.Handler shelfPubApi) {
 }
 
 bool _shouldRedirectToPubDev(String path) {
+  // pub client uses API calls with pub.dartlang.org
   if (path.startsWith('/api/')) return false;
+  // pub client downloads package archives with pub.dartlang.org
   if (path.endsWith('.tar.gz')) return false;
+  // pub client uses API calls with .json endpoint on pub.dartlang.org
   if (path.endsWith('.json')) return false;
-  if (path == '/debug') return false;
+  // everything else should be redirected
   return true;
 }
