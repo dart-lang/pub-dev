@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Upgraded `package:appengine` to `0.7.0`, need to watch for side-effects.
+
 ## `20190617t112618-all`
 
  * Update project to use split health checks, run:
