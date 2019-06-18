@@ -13,9 +13,8 @@ import 'package:pana/pana.dart' show runProc;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'configuration.dart';
-import 'redis_cache.dart';
 import 'scheduler_stats.dart';
-import 'storage_retry.dart';
+import 'services.dart';
 import 'utils.dart' show trackEventLoopLatency;
 import 'versions.dart';
 
@@ -162,8 +161,7 @@ Future startIsolates({
   }
 
   try {
-    await withAppEngineAndCache(() async {
-      registerStorageWithRetry();
+    await withServices(() async {
       if (frontendEntryPoint != null) {
         for (int i = 0; i < envConfig.frontendCount; i++) {
           await startFrontendIsolate();
