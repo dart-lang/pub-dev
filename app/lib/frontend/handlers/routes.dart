@@ -27,6 +27,17 @@ class PubSiteService {
   Router get router => _$PubSiteServiceRouter(this);
 
   // ****
+  // **** AppEngine health checks
+  // ****
+
+  @Route.get('/liveness_check')
+  Future<Response> livenessCheck(Request request) async => htmlResponse('OK');
+
+  @Route.get('/readiness_check')
+  Future<Response> readinessCheck(Request request) async =>
+      readinessCheckHandler(request);
+
+  // ****
   // **** pub client APIs
   // ****
 

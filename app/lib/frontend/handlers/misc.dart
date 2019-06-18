@@ -15,6 +15,7 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 import '../backend.dart';
+import '../name_tracker.dart';
 import '../request_context.dart';
 import '../search_service.dart';
 import '../static_files.dart';
@@ -23,6 +24,15 @@ import '../templates/misc.dart';
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
+}
+
+/// Handles requests for /readiness_check
+Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
+  if (nameTracker.isReady) {
+    return htmlResponse('OK');
+  } else {
+    return htmlResponse('Service Unavailable', status: 503);
+  }
 }
 
 /// Handles requests for /robots.txt
