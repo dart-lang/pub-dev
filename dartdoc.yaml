@@ -24,3 +24,11 @@ automatic_scaling:
 
 skip_files:
 - ^\.git/.*$
+
+liveness_check:
+  path: '/liveness_check'
+
+readiness_check:
+  path: '/readiness_check'
+  check_interval_sec: 15
+  app_start_timeout_sec: 1800

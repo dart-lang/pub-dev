@@ -46,6 +46,9 @@ class NameTracker {
 
   int get length => _names.length;
 
+  /// Whether the first scan was already completed.
+  bool get isReady => _firstScanCompleter.isCompleted;
+
   /// Get the list of all the packages. If it is called before the first scan
   /// was done, it will wait for it to complete. Afterwards it always returns
   /// the currently cached list of names, without scanning the Datastore.

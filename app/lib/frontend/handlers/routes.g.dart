@@ -8,6 +8,8 @@ part of 'routes.dart';
 
 Router _$PubSiteServiceRouter(PubSiteService service) {
   final router = Router();
+  router.add('GET', '/liveness_check', service.livenessCheck);
+  router.add('GET', '/readiness_check', service.readinessCheck);
   router.add('GET', '/api/packages/<package>', service.listVersions);
   router.add(
       'GET', '/api/packages/<package>/versions/<version>', service.versionInfo);
