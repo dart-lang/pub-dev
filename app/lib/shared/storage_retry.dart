@@ -3,6 +3,7 @@ import 'package:http_retry/http_retry.dart' show RetryClient;
 import 'package:gcloud/storage.dart'
     show registerStorageService, Storage, storageService;
 import 'package:gcloud/http.dart' show authClientService;
+import 'configuration.dart' show activeConfiguration;
 
 final _transientStatusCodes = {
   // See: https://cloud.google.com/storage/docs/xml-api/reference-status
@@ -22,11 +23,6 @@ void registerStorageWithRetry() {
   if (authClientService != null) {
     throw StateError('gcloud/appengine must be setup');
   }
-  // Find the projectId.
-  final projectId = Platform.environment['GCLOUD_PROJECT'];
-  if (projectId == null || projectId.isEmpty) {
-    throw StateError('GCLOUD_PROJECT env var must be set');
-  }
 
   // Create a that retries on transient errors
   final client = RetryClient(
@@ -41,6 +37,6 @@ void registerStorageWithRetry() {
   // Register a new storage service.
   registerStorageService(Storage(
     client,
-    projectId,
+    activeConfiguration.projectId,
   ));
 }
