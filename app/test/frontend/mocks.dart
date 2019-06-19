@@ -173,6 +173,12 @@ class BackendMock implements Backend {
   Future deleteObsoleteInvites() {
     throw UnimplementedError();
   }
+
+  @override
+  Future updateFlag(String package,
+      {bool isDiscontinued, bool doNotAdvertise}) {
+    throw UnimplementedError();
+  }
 }
 
 class ScoreCardBackendMock implements ScoreCardBackend {

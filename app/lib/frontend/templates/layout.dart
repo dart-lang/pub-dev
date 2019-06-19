@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../shared/configuration.dart';
@@ -36,6 +37,7 @@ String renderLayoutPage(
   SearchQuery searchQuery,
   bool includeSurvey = true,
   bool noIndex = false,
+  PageData pageData,
 }) {
   final queryText = searchQuery?.query;
   final String escapedSearchQuery =
@@ -52,6 +54,9 @@ String renderLayoutPage(
       : serializeSearchOrder(searchQuery.order);
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
+  final pageDataJson = pageData == null
+      ? null
+      : json.encode({'@context': 'https://pub.dev', 'data': pageData.toJson()});
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
@@ -87,6 +92,7 @@ String renderLayoutPage(
     'package_banner': type == PageType.package,
     'schema_org_searchaction_json':
         isRoot ? json.encode(_schemaOrgSearchAction) : null,
+    'page_data_json': pageDataJson,
   };
   return templateCache.renderTemplate('layout', values);
 }

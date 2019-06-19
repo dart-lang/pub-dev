@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:logging/logging.dart';
+import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -18,6 +20,8 @@ import '../../shared/search_service.dart';
 import '../backend.dart';
 import '../models.dart';
 import '../name_tracker.dart';
+
+final _logger = Logger('frontend.custom_api');
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -230,4 +234,34 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
     result['next'] = nextPageUrl;
   }
   return jsonResponse(result);
+}
+
+/// Handles POST /api/packages/<package>/flag/<flag>/<status>
+Future<shelf.Response> updateFlagHandler(
+    shelf.Request request, String package, String flag, String status) async {
+  bool parsedStatus;
+  if (status == '1' || status == 'true') parsedStatus = true;
+  if (status == '0' || status == 'false') parsedStatus = false;
+  if (parsedStatus == null) {
+    return jsonResponse(
+      {'error': 'Unable to parse status: $status.'},
+      status: 400,
+      pretty: false,
+    );
+  }
+  if (flag == 'discontinued') {
+    try {
+      await backend.updateFlag(package, isDiscontinued: parsedStatus);
+      return jsonResponse({'success': true}, pretty: false);
+    } on UnauthorizedAccessException catch (_) {
+      return jsonResponse({'error': 'Not Authorized.'},
+          status: 403, pretty: false);
+    } catch (e, st) {
+      _logger.warning('Error processing flag update.', e, st);
+      return jsonResponse({'error': 'Error while processing request.'},
+          status: 500, pretty: false);
+    }
+  }
+  return jsonResponse({'error': 'Unable to parse flag: $flag.'},
+      status: 400, pretty: false);
 }

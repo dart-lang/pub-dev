@@ -245,6 +245,11 @@ class PubSiteService {
   Future<Response> apiDocumentation(Request request, String package) =>
       apiDocumentationHandler(request, package);
 
+  @Route.post('/api/packages/<package>/flag/<flag>/<status>')
+  Future<Response> updateFlag(
+          Request request, String package, String flag, String status) =>
+      updateFlagHandler(request, package, flag, status);
+
   /// Exposes History entities.
   ///
   /// NOTE: experimental, do not rely on it

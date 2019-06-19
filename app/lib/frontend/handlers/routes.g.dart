@@ -56,6 +56,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       service.confirmUploader);
   router.add('GET', '/api/account/info', service.accountInfo);
   router.add('GET', '/api/documentation/<package>', service.apiDocumentation);
+  router.add('POST', '/api/packages/<package>/flag/<flag>/<status>',
+      service.updateFlag);
   router.add('GET', '/api/history', service.apiHistory);
   router.add('GET', '/api/packages', service.apiPackages);
   router.add(

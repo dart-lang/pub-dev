@@ -267,6 +267,35 @@ class Backend {
       }
     }
   }
+
+  /// Updates flags on [package].
+  Future updateFlag(String package,
+      {bool isDiscontinued, bool doNotAdvertise}) async {
+    final pkgKey = db.emptyKey.append(models.Package, id: package);
+    await withAuthenticatedUser((user) async {
+      String latestVersion;
+      await db.withTransaction((tx) async {
+        final p = (await tx.lookup<models.Package>([pkgKey])).single;
+        if (p == null) {
+          throw Exception('Package does not exists.');
+        }
+        latestVersion = p.latestVersion;
+        if (!p.hasUploader(user.userId)) {
+          throw UnauthorizedAccessException(
+              'User (${user.email}) is not admin for package $package.');
+        }
+        p.isDiscontinued = isDiscontinued ?? p.isDiscontinued;
+        p.doNotAdvertise = doNotAdvertise ?? p.doNotAdvertise;
+        _logger.info('Updating $package flags: '
+            'isDiscontinued: ${p.isDiscontinued} '
+            'doNotAdvertise: ${p.doNotAdvertise}');
+        tx.queueMutations(inserts: [p]);
+        await tx.commit();
+      });
+      await uiPackageCache.invalidateUIPackagePage(package);
+      await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
+    });
+  }
 }
 
 /// The status of an invite after being created or updated.
