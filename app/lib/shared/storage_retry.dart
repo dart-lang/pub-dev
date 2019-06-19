@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:http_retry/http_retry.dart' show RetryClient;
 import 'package:gcloud/storage.dart'
     show registerStorageService, Storage, storageService;
