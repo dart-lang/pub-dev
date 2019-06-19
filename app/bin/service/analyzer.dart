@@ -24,7 +24,7 @@ import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/services.dart';
 
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
 import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
@@ -54,7 +54,7 @@ Future _frontendMain(FrontendEntryMessage message) async {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  await withAppEngineAndCache(() async {
+  await withServices(() async {
     await _registerServices();
     await runHandler(logger, analyzerServiceHandler);
   });
@@ -65,7 +65,7 @@ Future _workerMain(WorkerEntryMessage message) async {
 
   message.protocolSendPort.send(WorkerProtocolMessage());
 
-  await withAppEngineAndCache(() async {
+  await withServices(() async {
     await _registerServices();
     final jobProcessor = AnalyzerJobProcessor();
     final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);

@@ -14,7 +14,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../account/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/package_memcache.dart';
-import '../shared/redis_cache.dart';
+import '../shared/services.dart';
 
 import 'backend.dart';
 import 'search_service.dart';
@@ -62,7 +62,7 @@ Future<String> obtainServiceAccountEmail() async {
 /// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
 /// environment variables.
 Future withProdServices(Future fn()) {
-  return withAppEngineAndCache(() {
+  return withServices(() {
     if (!envConfig.hasCredentials) {
       throw Exception('Missing GCLOUD_* environments for package:appengine');
     }

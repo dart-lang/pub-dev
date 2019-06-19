@@ -31,7 +31,7 @@ import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/services.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -53,7 +53,7 @@ Future _main(FrontendEntryMessage message) async {
     statsConsumerPort: statsConsumer.sendPort,
   ));
 
-  await withAppEngineAndCache(() async {
+  await withServices(() async {
     registerAccountBackend(AccountBackend(db.dbService));
 
     final popularityBucket = await getOrCreateBucket(
