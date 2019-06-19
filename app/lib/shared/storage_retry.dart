@@ -19,7 +19,7 @@ final _transientStatusCodes = {
 /// in-order to do retries.
 void registerStorageWithRetry() {
   // Ensure we're we have a client...
-  if (authClientService != null) {
+  if (authClientService == null) {
     throw StateError('gcloud/appengine must be setup');
   }
 
