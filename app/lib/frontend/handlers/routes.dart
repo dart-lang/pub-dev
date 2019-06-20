@@ -238,8 +238,9 @@ class PubSiteService {
   // **** Custom API
   // ****
 
-  @Route.get('/api/account/info')
-  Future<Response> accountInfo(Request request) => accountInfoHandler(request);
+  @Route.get('/api/account/options/packages/<package>')
+  Future<Response> accountPkgOptions(Request request, String package) =>
+      accountPkgOptionsHandler(request, package);
 
   @Route.get('/api/documentation/<package>')
   Future<Response> apiDocumentation(Request request, String package) =>

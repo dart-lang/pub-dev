@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
-import 'package:client_data/account_info.dart';
+import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:http/http.dart';
 
@@ -82,20 +82,14 @@ void _updateUser(GoogleUser user) {
 Future _updateOnCredChange() async {
   if (isSignedIn) {
     try {
-      // Dummy placeholder to test if the auth is working.
-      Map<String, String> params;
       if (pageData.isPackagePage) {
-        params = <String, String>{};
-        params['package'] = pageData.pkgData.package;
+        final rs = await client
+            .get('/api/account/options/packages/${pageData.pkgData.package}');
+        final map = json.decode(rs.body) as Map<String, dynamic>;
+        final options = AccountPkgOptions.fromJson(map);
+        _isPkgUploader = options.isUploader ?? false;
+        _updateUi();
       }
-      final rs = await client
-          .get(Uri(path: '/api/account/info', queryParameters: params));
-      final map = json.decode(rs.body) as Map<String, dynamic>;
-      final info = AccountInfo.fromJson(map);
-      _isPkgUploader =
-          pageData.isPackagePage && (info.pkgScopeData?.isUploader ?? false);
-      print('Server sent e-mail: ${info.email}');
-      _updateUi();
     } catch (e) {
       print(e);
     }
