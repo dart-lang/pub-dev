@@ -20,12 +20,12 @@
 </div>
 
 <div class="package-container">
+  <ul class="package-tabs js-tabs">
+    {{#tabs}}
+      <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
+    {{/tabs}}
+  </ul>
   <div class="main tabs-content">
-    <ul class="package-tabs js-tabs">
-      {{#tabs}}
-        <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
-      {{/tabs}}
-    </ul>
     {{#tabs}}
       <section class="content {{active}} js-content {{markdown-body}}" data-name="-{{id}}-tab-">
         {{& content_html}}

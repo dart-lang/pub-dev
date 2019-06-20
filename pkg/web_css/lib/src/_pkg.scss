@@ -77,7 +77,6 @@
 .package-container > .sidebar {
   display: inline-block;
   vertical-align: top;
-  margin-top: 60px;
   margin-left: 20px;
   -webkit-box-flex: 0;
   -ms-flex: 0 0 270px;
@@ -87,7 +86,6 @@
   background: #F8F8F8;
   border: 1px solid #DDD;
   position: relative;
-  top: -1px;
 }
 
 .sidebar-content {
