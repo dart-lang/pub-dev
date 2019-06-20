@@ -245,11 +245,6 @@ class PubSiteService {
   Future<Response> apiDocumentation(Request request, String package) =>
       apiDocumentationHandler(request, package);
 
-  @Route.post('/api/packages/<package>/flag/<flag>/<status>')
-  Future<Response> updateFlag(
-          Request request, String package, String flag, String status) =>
-      updateFlagHandler(request, package, flag, status);
-
   /// Exposes History entities.
   ///
   /// NOTE: experimental, do not rely on it
@@ -269,6 +264,11 @@ class PubSiteService {
   @Route.get('/api/packages/<package>/metrics')
   Future<Response> apiPackageMetrics(Request request, String package) =>
       apiPackageMetricsHandler(request, package);
+
+  @Route.get('/api/packages/<package>/options')
+  @Route.put('/api/packages/<package>/options')
+  Future<Response> packageOptions(Request request, String package) =>
+      packageOptionsHandler(request, package);
 
   @Route.get('/api/search')
   Future<Response> apiSearch(Request request) => apiSearchHandler(request);

@@ -4,4 +4,5 @@ targets:
   $default:
     sources:
       - 'lib/account_info.dart'
+      - 'lib/package_api.dart'
       - 'lib/page_data.dart'

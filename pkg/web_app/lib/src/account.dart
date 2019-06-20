@@ -7,6 +7,7 @@ import 'dart:html';
 import 'dart:js';
 
 import 'package:client_data/account_info.dart';
+import 'package:client_data/package_api.dart';
 import 'package:http/http.dart';
 
 import '_authenticated_client.dart';
@@ -174,8 +175,12 @@ class _PkgAdminWidget {
           ? 'Remove "discontinued"'
           : 'Mark as "discontinued"',
       onClick: (_) async {
-        final rs = await client.post(
-            '/api/packages/${pageData.pkgData.package}/flag/discontinued/${!pageData.pkgData.isDiscontinued}');
+        final options =
+            PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
+        final rs = await client.put(
+          '/api/packages/${pageData.pkgData.package}/options',
+          body: json.encode(options.toJson()),
+        );
         final map = json.decode(rs.body) as Map<String, dynamic>;
         if (rs.statusCode == 200) {
           window.location.reload();

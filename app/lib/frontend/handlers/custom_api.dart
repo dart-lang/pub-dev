@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:client_data/package_api.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:shelf/shelf.dart' as shelf;
@@ -16,6 +18,7 @@ import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/search_client.dart';
 import '../../shared/search_service.dart';
+import '../../shared/utils.dart';
 
 import '../backend.dart';
 import '../models.dart';
@@ -236,32 +239,35 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   return jsonResponse(result);
 }
 
-/// Handles POST /api/packages/<package>/flag/<flag>/<status>
-Future<shelf.Response> updateFlagHandler(
-    shelf.Request request, String package, String flag, String status) async {
-  bool parsedStatus;
-  if (status == '1' || status == 'true') parsedStatus = true;
-  if (status == '0' || status == 'false') parsedStatus = false;
-  if (parsedStatus == null) {
-    return jsonResponse(
-      {'error': 'Unable to parse status: $status.'},
-      status: 400,
-      pretty: false,
-    );
-  }
-  if (flag == 'discontinued') {
+/// Handles POST /api/packages/<package>/options
+Future<shelf.Response> packageOptionsHandler(
+    shelf.Request request, String package) async {
+  if (request.method.toUpperCase() == 'GET') {
+    final p = await backend.lookupPackage(package);
+    if (p == null) {
+      return notFoundHandler(request);
+    }
+    final options = PkgOptions(isDiscontinued: p.isDiscontinued);
+    return jsonResponse(options.toJson(), pretty: isPrettyJson(request));
+  } else if (request.method.toUpperCase() == 'PUT') {
     try {
-      await backend.updateFlag(package, isDiscontinued: parsedStatus);
+      final body = await request.readAsString();
+      final options =
+          PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
+      await backend.updateOptions(package, options);
       return jsonResponse({'success': true}, pretty: false);
     } on UnauthorizedAccessException catch (_) {
       return jsonResponse({'error': 'Not Authorized.'},
           status: 403, pretty: false);
+    } on ClientInputException catch (e) {
+      return jsonResponse({'error': e.message},
+          status: e.status, pretty: false);
     } catch (e, st) {
       _logger.warning('Error processing flag update.', e, st);
       return jsonResponse({'error': 'Error while processing request.'},
           status: 500, pretty: false);
     }
+  } else {
+    return notFoundHandler(request);
   }
-  return jsonResponse({'error': 'Unable to parse flag: $flag.'},
-      status: 400, pretty: false);
 }
