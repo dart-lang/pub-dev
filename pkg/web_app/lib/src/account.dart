@@ -167,7 +167,7 @@ class _PkgAdminWidget {
   void init(Element root) {
     if (!pageData.isPackagePage) return;
     _root = root;
-    _root.append(elem('h3', classes: ['title'], text: 'Self-admin'));
+    _root.append(elem('h3', classes: ['title'], text: 'Admin'));
     final discontinueToggle = elem(
       'a',
       text: pageData.pkgData.isDiscontinued
