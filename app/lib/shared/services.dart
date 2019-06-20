@@ -1,7 +1,7 @@
 import 'dart:async' show FutureOr;
 
 import 'redis_cache.dart' show withAppEngineAndCache;
-import 'storage_retry.dart' show registerStorageWithRetry;
+import 'storage_retry.dart' show withStorageRetry;
 
 /// Run [fn] with services;
 ///
@@ -10,8 +10,6 @@ import 'storage_retry.dart' show registerStorageWithRetry;
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   return await withAppEngineAndCache(() async {
-    registerStorageWithRetry();
-
-    return await fn();
+    return await withStorageRetry(fn);
   });
 }
