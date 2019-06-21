@@ -43,35 +43,6 @@ void main() {
     });
   });
 
-  group('homepage syntax check', () {
-    test('no url is not accepted', () {
-      expect(() => syntaxCheckHomepageUrl(null), throwsException);
-    });
-
-    test('example urls that are accepted', () {
-      syntaxCheckHomepageUrl('http://github.com/user/repo/');
-      syntaxCheckHomepageUrl('https://github.com/user/repo/');
-      syntaxCheckHomepageUrl('http://some.domain.com');
-    });
-
-    test('urls without valid scheme are not accepted', () {
-      expect(() => syntaxCheckHomepageUrl('github.com/x/y'), throwsException);
-      expect(() => syntaxCheckHomepageUrl('httpx://github.com/x/y'),
-          throwsException);
-      expect(() => syntaxCheckHomepageUrl('ftp://github.com/x/y'),
-          throwsException);
-    });
-
-    test('urls without valid host are not accepted', () {
-      expect(() => syntaxCheckHomepageUrl('http://none/x/'), throwsException);
-      expect(() => syntaxCheckHomepageUrl('http://example.com/x/'),
-          throwsException);
-      expect(
-          () => syntaxCheckHomepageUrl('http://localhost/x/'), throwsException);
-      expect(() => syntaxCheckHomepageUrl('http://.../x/'), throwsException);
-    });
-  });
-
   group('SDK urls', () {
     test('dev', () {
       expect(dartSdkMainUrl('2.1.0-dev.3.1'),

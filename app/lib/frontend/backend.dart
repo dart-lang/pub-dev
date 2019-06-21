@@ -13,6 +13,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:package_archive/package_archive.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,9 +35,6 @@ import 'upload_signer_service.dart';
 
 final Logger _logger = Logger('pub.cloud_repository');
 final _random = Random.secure();
-// The maximum stored length of `README.md` and other user-provided file content
-// that is stored separately in the database.
-final _maxStoredLength = 128 * 1024;
 
 /// Sets the active tarball storage
 void registerTarballStorage(TarballStorage ts) =>
@@ -841,106 +839,20 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     DatastoreDB db, String filename, AuthenticatedUser user) async {
   assert(user != null);
 
-  final files = await listTarball(filename);
-
-  // Check whether the files can be extracted on case-preserving file systems
-  // (e.g. on Windows). We can't allow two files with the same case-insensitive
-  // name.
-  final lowerCaseFiles = <String>{};
-  for (String file in files) {
-    final lower = file.toLowerCase();
-    if (lowerCaseFiles.contains(lower)) {
-      throw GenericProcessingException(
-          'Filename collision on case-preserving file systems: $file.');
-    }
-    lowerCaseFiles.add(lower);
+  final archive = await observePackageArchive(filename);
+  if (archive.hasError) {
+    throw GenericProcessingException(archive.errors.first.message);
   }
 
-  // Searches in [files] for a file name [name] and compare in a
-  // case-insensitive manner.
-  //
-  // Returns `null` if not found otherwise the correct filename.
-  String searchForFile(String name) {
-    final String nameLowercase = name.toLowerCase();
-    for (String filename in files) {
-      if (filename.toLowerCase() == nameLowercase) {
-        return filename;
-      }
-    }
-    return null;
-  }
-
-  var readmeFilename = searchForFile('README.md');
-  if (readmeFilename == null) {
-    readmeFilename = searchForFile('README');
-  }
-
-  var changelogFilename = searchForFile('CHANGELOG.md');
-  if (changelogFilename == null) {
-    changelogFilename = searchForFile('CHANGELOG');
-  }
-
-  final libraries = files
-      .where((file) => file.startsWith('lib/'))
-      .where((file) => !file.startsWith('lib/src'))
-      .where((file) => file.endsWith('.dart'))
-      .map((file) => file.substring('lib/'.length))
-      .toList();
-
-  if (!files.contains('pubspec.yaml')) {
-    throw GenericProcessingException('Invalid upload: no pubspec.yaml file');
-  }
-
-  final pubspecContent = await readTarballFile(filename, 'pubspec.yaml');
-  // Large pubspec content should be rejected, as either a storage limit will be
-  // limiting it, or it will slow down queries and processing for very little
-  // reason.
-  if (pubspecContent.length > 128 * 1024) {
-    throw GenericProcessingException('pubspec.yaml is too large.');
-  }
-
-  final pubspec = Pubspec.fromYaml(pubspecContent);
-  if (pubspec.name == null ||
-      pubspec.version == null ||
-      pubspec.name.trim().isEmpty ||
-      pubspec.version.trim().isEmpty) {
-    throw GenericProcessingException('Invalid `pubspec.yaml` file');
-  }
-
-  validatePackageName(pubspec.name);
+  final pubspec = Pubspec.fromYaml(archive.pubspecContent);
   if (!nameTracker.accept(pubspec.name)) {
     throw GenericProcessingException(
         'Package name is too similar to another package.');
   }
-  urls.syntaxCheckHomepageUrl(pubspec.homepage);
 
   if (pubspec.hasBothAuthorAndAuthors) {
     throw GenericProcessingException(
         'Do not specify both `author` and `authors` in `pubspec.yaml`.');
-  }
-
-  String exampleFilename;
-  for (String candidate in exampleFileCandidates(pubspec.name)) {
-    exampleFilename = searchForFile(candidate);
-    if (exampleFilename != null) break;
-  }
-
-  final readmeContent = readmeFilename != null
-      ? await readTarballFile(filename, readmeFilename,
-          maxLength: _maxStoredLength)
-      : null;
-  final changelogContent = changelogFilename != null
-      ? await readTarballFile(filename, changelogFilename,
-          maxLength: _maxStoredLength)
-      : null;
-  String exampleContent = exampleFilename != null
-      ? await readTarballFile(filename, exampleFilename,
-          maxLength: _maxStoredLength)
-      : null;
-
-  if (exampleContent != null && exampleContent.trim().isEmpty) {
-    exampleFilename = null;
-    exampleContent = null;
   }
 
   final packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
@@ -957,13 +869,13 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     ..packageKey = packageKey
     ..created = DateTime.now().toUtc()
     ..pubspec = pubspec
-    ..readmeFilename = readmeFilename
-    ..readmeContent = readmeContent
-    ..changelogFilename = changelogFilename
-    ..changelogContent = changelogContent
-    ..exampleFilename = exampleFilename
-    ..exampleContent = exampleContent
-    ..libraries = libraries
+    ..readmeFilename = archive.readmePath
+    ..readmeContent = archive.readmeContent
+    ..changelogFilename = archive.changelogPath
+    ..changelogContent = archive.changelogContent
+    ..exampleFilename = archive.examplePath
+    ..exampleContent = archive.exampleContent
+    ..libraries = archive.libraries
     ..downloads = 0
     ..sortOrder = 1
     ..uploader = user.userId;
@@ -976,14 +888,14 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   final versionInfo = models.PackageVersionInfo()
     ..initFromKey(key)
     ..updated = version.created
-    ..readmeFilename = readmeFilename
-    ..readmeContent = readmeContent
-    ..changelogFilename = changelogFilename
-    ..changelogContent = changelogContent
-    ..exampleFilename = exampleFilename
-    ..exampleContent = exampleContent
-    ..libraries = libraries
-    ..libraryCount = libraries.length;
+    ..readmeFilename = archive.readmePath
+    ..readmeContent = archive.readmeContent
+    ..changelogFilename = archive.changelogPath
+    ..changelogContent = archive.changelogContent
+    ..exampleFilename = archive.examplePath
+    ..exampleContent = archive.exampleContent
+    ..libraries = archive.libraries
+    ..libraryCount = archive.libraries.length;
 
   return _ValidatedUpload(version, versionPubspec, versionInfo);
 }

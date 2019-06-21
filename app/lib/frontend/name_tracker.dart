@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
-
-import '../shared/utils.dart';
+import 'package:package_archive/package_archive.dart';
 
 import 'models.dart';
 

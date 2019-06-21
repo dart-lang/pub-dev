@@ -6,7 +6,6 @@ library pub_dartlang_org.utils;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -16,14 +15,12 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
+import 'package:package_archive/package_archive.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
-import 'package:pub_server/repository.dart' show GenericProcessingException;
 import 'package:stream_transform/stream_transform.dart';
 
-import 'packages_overrides.dart';
-
-export 'package:pana/src/maintenance.dart' show exampleFileCandidates;
+export 'package:pana/pana.dart' show exampleFileCandidates;
 
 final Duration twoYears = const Duration(days: 2 * 365);
 
@@ -48,44 +45,6 @@ Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
       return dir.delete(recursive: true);
     });
   });
-}
-
-Future<List<String>> listTarball(String path) async {
-  final args = ['-tzf', path];
-  final result = await Process.run('tar', args);
-  if (result.exitCode != 0) {
-    _logger.warning('The "tar $args" command failed:\n'
-        'with exit code: ${result.exitCode}\n'
-        'stdout: ${result.stdout}\n'
-        'stderr: ${result.stderr}');
-    throw Exception('Failed to list tarball contents.');
-  }
-
-  return (result.stdout as String)
-      .split('\n')
-      .where((part) => part != '')
-      .toList();
-}
-
-/// Reads a text content of [name] from the tar.gz file identified by [path].
-///
-/// When [maxLength] is specified, the text content is cut at [maxLength]
-/// characters (with `[...]\n\n` added to it).
-Future<String> readTarballFile(String path, String name,
-    {int maxLength = 0}) async {
-  final result = await Process.run(
-    'tar',
-    ['-O', '-xzf', path, name],
-    stdoutEncoding: Utf8Codec(allowMalformed: true),
-  );
-  if (result.exitCode != 0) {
-    throw Exception('Failed to read tarball contents.');
-  }
-  String content = result.stdout as String;
-  if (maxLength > 0 && content.length > maxLength) {
-    content = content.substring(0, maxLength) + '[...]\n\n';
-  }
-  return content;
 }
 
 String canonicalizeVersion(String version) {
@@ -140,43 +99,6 @@ int compareSemanticVersionsDesc(
 bool isNewer(semver.Version a, semver.Version b, {bool pubSorted = true}) =>
     compareSemanticVersionsDesc(a, b, false, pubSorted) < 0;
 
-final RegExp _identifierExpr = RegExp(r'^[a-zA-Z0-9_]+$');
-final RegExp _startsWithLetterOrUnderscore = RegExp(r'^[a-zA-Z_]');
-const List<String> _reservedWords = <String>[
-  'assert',
-  'break',
-  'case',
-  'catch',
-  'class',
-  'const',
-  'continue',
-  'default',
-  'do',
-  'else',
-  'extends',
-  'false',
-  'final',
-  'finally',
-  'for',
-  'if',
-  'in',
-  'is',
-  'mixin',
-  'new',
-  'null',
-  'return',
-  'super',
-  'switch',
-  'this',
-  'throw',
-  'true',
-  'try',
-  'var',
-  'void',
-  'while',
-  'with'
-];
-
 final _reservedPackageNames = <String>[
   'core',
   'flutter_web',
@@ -194,45 +116,6 @@ final _reservedPackageNames = <String>[
 /// Whether the [name] is (very similar) to a reserved package name.
 bool matchesReservedPackageName(String name) =>
     _reservedPackageNames.contains(reducePackageName(name));
-
-/// Sanity checks if the user would upload a package with a modified pub client
-/// that skips these verifications.
-/// TODO: share code to use the same validations as in
-/// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
-void validatePackageName(String name) {
-  if (!_identifierExpr.hasMatch(name)) {
-    throw GenericProcessingException(
-        'Package name may only contain letters, numbers, and underscores.');
-  }
-  if (!_startsWithLetterOrUnderscore.hasMatch(name)) {
-    throw GenericProcessingException(
-        'Package name must begin with a letter or underscore.');
-  }
-  if (_reservedWords.contains(reducePackageName(name))) {
-    throw GenericProcessingException(
-        'Package name must not be a reserved word in Dart.');
-  }
-  final bool isLower = name == name.toLowerCase();
-  final bool matchesMixedCase = knownMixedCasePackages.contains(name);
-  if (!isLower && !matchesMixedCase) {
-    throw GenericProcessingException('Package name must be lowercase.');
-  }
-  if (isLower && blockedLowerCasePackages.contains(name)) {
-    throw GenericProcessingException(
-        'Name collision with mixed-case package. $fileAnIssueContent');
-  }
-  if (!isLower &&
-      matchesMixedCase &&
-      !blockedLowerCasePackages.contains(name.toLowerCase())) {
-    throw GenericProcessingException(
-        'Name collision with mixed-case package. $fileAnIssueContent');
-  }
-}
-
-/// Removes extra characters from the package name
-String reducePackageName(String name) =>
-    // we allow only `_` as part of the name.
-    name.replaceAll('_', '').toLowerCase();
 
 List<List<T>> _sliceList<T>(List<T> list, int limit) {
   if (list.length <= limit) return [list];

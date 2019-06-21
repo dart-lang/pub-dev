@@ -1,0 +1,229 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:pana/pana.dart'
+    show readmeFileNames, changelogFileNames, exampleFileCandidates;
+
+import 'src/names.dart';
+import 'src/tar_utils.dart';
+
+// The maximum stored length of `README.md` and other user-provided file content
+// that is stored separately in the database.
+final _maxStoredLength = 128 * 1024;
+
+/// A validation error in the package archive.
+class ArchiveError {
+  /// An error message that will be displayed to the developer or pub client.
+  final String message;
+
+  ArchiveError(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// The observed / extracted information of a package archive.
+class PackageArchive {
+  final List<ArchiveError> errors;
+  final String pubspecContent;
+  final String readmePath;
+  final String readmeContent;
+  final String changelogPath;
+  final String changelogContent;
+  final String examplePath;
+  final String exampleContent;
+  final List<String> libraries;
+
+  PackageArchive({
+    this.errors,
+    this.pubspecContent,
+    this.readmePath,
+    this.readmeContent,
+    this.changelogPath,
+    this.changelogContent,
+    this.examplePath,
+    this.exampleContent,
+    this.libraries,
+  });
+
+  bool get hasError => errors != null && errors.isNotEmpty;
+}
+
+/// Observe the .tar.gz archive on [archivePath] and return the results.
+Future<PackageArchive> observePackageArchive(String archivePath) async {
+  final errors = <ArchiveError>[];
+  final files = await listTarball(archivePath);
+
+  // Searches in [files] for a file name [name] and compare in a
+  // case-insensitive manner.
+  //
+  // Returns `null` if not found otherwise the correct filename.
+  String searchForFile(Iterable<String> names) {
+    for (String name in names) {
+      final String nameLowercase = name.toLowerCase();
+      for (String filename in files) {
+        if (filename.toLowerCase() == nameLowercase) {
+          return filename;
+        }
+      }
+    }
+    return null;
+  }
+
+  // processing pubspec.yaml
+  if (!files.contains('pubspec.yaml')) {
+    errors.add(ArchiveError('pubspec.yaml is missing.'));
+    return PackageArchive(errors: errors);
+  }
+
+  final pubspecContent = await readTarballFile(archivePath, 'pubspec.yaml');
+  // Large pubspec content should be rejected, as either a storage limit will be
+  // limiting it, or it will slow down queries and processing for very little
+  // reason.
+  if (pubspecContent.length > 128 * 1024) {
+    errors.add(ArchiveError('pubspec.yaml is too large.'));
+  }
+  Pubspec pubspec;
+  try {
+    pubspec = Pubspec.parse(pubspecContent);
+  } catch (e) {
+    pubspec = Pubspec.parse(pubspecContent, lenient: true);
+    errors.add(ArchiveError('Error parsing pubspec.yaml: $e'));
+  }
+
+  // Check whether the files can be extracted on case-preserving file systems
+  // (e.g. on Windows). We can't allow two files with the same case-insensitive
+  // name.
+  final lowerCaseFiles = <String, List<String>>{};
+  for (String file in files) {
+    final lower = file.toLowerCase();
+    lowerCaseFiles.putIfAbsent(lower, () => <String>[]).add(file);
+  }
+  final fileNameCollisions =
+      lowerCaseFiles.values.firstWhere((l) => l.length > 1, orElse: () => null);
+  if (fileNameCollisions != null) {
+    errors.add(ArchiveError(
+        'Filename collision on case-preserving file systems: ${fileNameCollisions.join(' vs. ')}.'));
+  }
+
+  if (pubspec.name == null || pubspec.name.trim().isEmpty) {
+    errors.add(ArchiveError('pubspec.yaml is missing `name`.'));
+    return PackageArchive(errors: errors);
+  }
+  if (pubspec.version == null) {
+    errors.add(ArchiveError('pubspec.yaml is missing `version`.'));
+  }
+
+  final package = pubspec.name;
+
+  Future<String> extractContent(String contentPath) async {
+    if (contentPath == null) return null;
+    final content = await readTarballFile(archivePath, contentPath,
+        maxLength: _maxStoredLength);
+    if (content != null && content.trim().isEmpty) {
+      return null;
+    }
+    return content;
+  }
+
+  String readmePath = searchForFile(readmeFileNames);
+  final readmeContent = await extractContent(readmePath);
+  if (readmeContent == null) {
+    readmePath = null;
+  }
+
+  String changelogPath = searchForFile(changelogFileNames);
+  final changelogContent = await extractContent(changelogPath);
+  if (changelogContent == null) {
+    changelogPath = null;
+  }
+
+  String examplePath = searchForFile(exampleFileCandidates(package));
+  final exampleContent = await extractContent(examplePath);
+  if (exampleContent == null) {
+    examplePath = null;
+  }
+
+  final libraries = files
+      .where((file) => file.startsWith('lib/'))
+      .where((file) => !file.startsWith('lib/src'))
+      .where((file) => file.endsWith('.dart'))
+      .map((file) => file.substring('lib/'.length))
+      .toList();
+
+  errors.addAll(validatePackageName(pubspec.name));
+  errors.addAll(syntaxCheckHomepageUrl(
+      pubspec.homepage ?? pubspec.repository?.toString()));
+
+  return PackageArchive(
+    errors: errors,
+    pubspecContent: pubspecContent,
+    readmePath: readmePath,
+    readmeContent: readmeContent,
+    changelogPath: changelogPath,
+    changelogContent: changelogContent,
+    examplePath: examplePath,
+    exampleContent: exampleContent,
+    libraries: libraries,
+  );
+}
+
+/// Sanity checks if the user would upload a package with a modified pub client
+/// that skips these verifications.
+/// TODO: share code to use the same validations as in
+/// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
+Iterable<ArchiveError> validatePackageName(String name) sync* {
+  if (!identifierExpr.hasMatch(name)) {
+    yield ArchiveError(
+        'Package name may only contain letters, numbers, and underscores.');
+  }
+  if (!startsWithLetterOrUnderscore.hasMatch(name)) {
+    yield ArchiveError('Package name must begin with a letter or underscore.');
+  }
+  if (reservedWords.contains(reducePackageName(name))) {
+    yield ArchiveError('Package name must not be a reserved word in Dart.');
+  }
+
+  final bool isLower = name == name.toLowerCase();
+  final bool matchesMixedCase = knownMixedCasePackages.contains(name);
+  if (!isLower && !matchesMixedCase) {
+    yield ArchiveError('Package name must be lowercase.');
+  }
+  if (isLower && blockedLowerCasePackages.contains(name)) {
+    yield ArchiveError('Name collision with mixed-case package.');
+  }
+  if (!isLower &&
+      matchesMixedCase &&
+      !blockedLowerCasePackages.contains(name.toLowerCase())) {
+    yield ArchiveError('Name collision with mixed-case package.');
+  }
+}
+
+/// Removes extra characters from the package name
+String reducePackageName(String name) =>
+    // we allow only `_` as part of the name.
+    name.replaceAll('_', '').toLowerCase();
+
+Iterable<ArchiveError> syntaxCheckHomepageUrl(String url) sync* {
+  if (url == null) {
+    yield ArchiveError('pubspec.yaml is missing `homepage`.');
+    return;
+  }
+  final uri = Uri.tryParse(url);
+  if (uri == null) {
+    yield ArchiveError('Unable to parse homepage URL: $url');
+  }
+  final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
+  if (!hasValidScheme) {
+    yield ArchiveError(
+        'Use http:// or https:// URL schemes for homepage URL: $url');
+  }
+  if (uri.host == null ||
+      uri.host.isEmpty ||
+      !uri.host.contains('.') ||
+      invalidHostNames.contains(uri.host)) {
+    yield ArchiveError('Homepage URL has no valid host: $url');
+  }
+}

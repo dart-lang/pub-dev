@@ -1,0 +1,13 @@
+name: package_archive
+publish_to: none
+
+environment:
+  sdk: '>=2.3.0 <3.0.0'
+
+dependencies:
+  logging: ^0.11.3
+  pana: ^0.12.18
+  pubspec_parse: ^0.1.4
+
+dev_dependencies:
+  test: ^1.5.1
