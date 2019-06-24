@@ -6,6 +6,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded `package:appengine` to `0.7.0`, need to watch for side-effects.
  * Update project to use split health checks, run:
    `gcloud app update --split-health-checks --project dartlang-pub`
+ * Upgraded `pana` (`0.12.19`).
+ * Bumped runtimeVersion to `2019.06.24`.
 
 ## `20190617t112618-all`
 
