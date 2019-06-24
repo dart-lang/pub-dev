@@ -12,6 +12,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
+import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
@@ -100,32 +101,6 @@ class FakePubServer {
         _logger.info('closing');
       });
     });
-  }
-}
-
-class FakeAuthProvider implements AuthProvider {
-  final int httpPort;
-  FakeAuthProvider(this.httpPort);
-
-  @override
-  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
-    return code;
-  }
-
-  @override
-  String authorizationUrl(String redirectUrl, String state) {
-    return Uri.parse(redirectUrl)
-        .replace(port: httpPort, queryParameters: {'state': state}).toString();
-  }
-
-  @override
-  Future close() async {}
-
-  @override
-  Future<AuthResult> tryAuthenticate(String accessToken) async {
-    final email = accessToken.replaceAll('-at-', '@').replaceAll('-dot-', '.');
-    final id = email.replaceAll('@', '-').replaceAll('.', '-');
-    return AuthResult(id, email);
   }
 }
 
