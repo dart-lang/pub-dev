@@ -434,7 +434,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.18"
+    version: "0.12.19"
   path:
     dependency: "direct main"
     description:
