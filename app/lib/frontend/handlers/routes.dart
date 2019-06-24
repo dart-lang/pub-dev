@@ -267,9 +267,12 @@ class PubSiteService {
       apiPackageMetricsHandler(request, package);
 
   @Route.get('/api/packages/<package>/options')
+  Future<Response> getPackageOptions(Request request, String package) =>
+      getPackageOptionsHandler(request, package);
+
   @Route.put('/api/packages/<package>/options')
-  Future<Response> packageOptions(Request request, String package) =>
-      packageOptionsHandler(request, package);
+  Future<Response> putPackageOptions(Request request, String package) =>
+      putPackageOptionsHandler(request, package);
 
   @Route.get('/api/search')
   Future<Response> apiSearch(Request request) => apiSearchHandler(request);

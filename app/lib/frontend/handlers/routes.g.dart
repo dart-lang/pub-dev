@@ -61,8 +61,10 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/api/packages', service.apiPackages);
   router.add(
       'GET', '/api/packages/<package>/metrics', service.apiPackageMetrics);
-  router.add('GET', '/api/packages/<package>/options', service.packageOptions);
-  router.add('PUT', '/api/packages/<package>/options', service.packageOptions);
+  router.add(
+      'GET', '/api/packages/<package>/options', service.getPackageOptions);
+  router.add(
+      'PUT', '/api/packages/<package>/options', service.putPackageOptions);
   router.add('GET', '/api/search', service.apiSearch);
   router.add('GET', '/debug', service.debug);
   router.add('GET', '/packages.json', service.packagesJson);

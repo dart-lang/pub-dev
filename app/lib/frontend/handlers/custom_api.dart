@@ -239,35 +239,34 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   return jsonResponse(result);
 }
 
-/// Handles POST /api/packages/<package>/options
-Future<shelf.Response> packageOptionsHandler(
+/// Handles GET /api/packages/<package>/options
+Future<shelf.Response> getPackageOptionsHandler(
     shelf.Request request, String package) async {
-  if (request.method.toUpperCase() == 'GET') {
-    final p = await backend.lookupPackage(package);
-    if (p == null) {
-      return notFoundHandler(request);
-    }
-    final options = PkgOptions(isDiscontinued: p.isDiscontinued);
-    return jsonResponse(options.toJson(), pretty: isPrettyJson(request));
-  } else if (request.method.toUpperCase() == 'PUT') {
-    try {
-      final body = await request.readAsString();
-      final options =
-          PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
-      await backend.updateOptions(package, options);
-      return jsonResponse({'success': true}, pretty: false);
-    } on UnauthorizedAccessException catch (_) {
-      return jsonResponse({'error': 'Not Authorized.'},
-          status: 403, pretty: false);
-    } on ClientInputException catch (e) {
-      return jsonResponse({'error': e.message},
-          status: e.status, pretty: false);
-    } catch (e, st) {
-      _logger.warning('Error processing flag update.', e, st);
-      return jsonResponse({'error': 'Error while processing request.'},
-          status: 500, pretty: false);
-    }
-  } else {
+  final p = await backend.lookupPackage(package);
+  if (p == null) {
     return notFoundHandler(request);
+  }
+  final options = PkgOptions(isDiscontinued: p.isDiscontinued);
+  return jsonResponse(options.toJson(), pretty: isPrettyJson(request));
+}
+
+/// Handles PUT /api/packages/<package>/options
+Future<shelf.Response> putPackageOptionsHandler(
+    shelf.Request request, String package) async {
+  try {
+    final body = await request.readAsString();
+    final options =
+        PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
+    await backend.updateOptions(package, options);
+    return jsonResponse({'success': true}, pretty: false);
+  } on UnauthorizedAccessException catch (_) {
+    return jsonResponse({'error': 'Not Authorized.'},
+        status: 403, pretty: false);
+  } on ClientInputException catch (e) {
+    return jsonResponse({'error': e.message}, status: e.status, pretty: false);
+  } catch (e, st) {
+    _logger.warning('Error processing flag update.', e, st);
+    return jsonResponse({'error': 'Error while processing request.'},
+        status: 500, pretty: false);
   }
 }
