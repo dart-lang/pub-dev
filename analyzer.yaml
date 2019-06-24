@@ -12,8 +12,8 @@ env_variables:
   TOOL_ENV_DART_SDK: '/dart-sdk'
 
 resources:
-  cpu: 1
-  memory_gb: 4
+  cpu: 2
+  memory_gb: 8
 
 #manual_scaling:
 #  instances: 1
