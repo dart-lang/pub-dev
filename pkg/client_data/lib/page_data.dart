@@ -7,7 +7,10 @@ import 'package:meta/meta.dart';
 
 part 'page_data.g.dart';
 
-/// The server-provided config/data of the current page.
+/// The server-provided config/data for the current page.
+///
+/// This is the `application/ld+json` data embedded in the page with
+/// `"@context":"https://pub.dev"`.
 @JsonSerializable()
 class PageData {
   final PkgData pkgData;

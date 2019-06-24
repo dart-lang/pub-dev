@@ -9,7 +9,10 @@ import 'package:client_data/page_data.dart';
 
 PageData _data;
 
-/// The server-provided config/data of the current page.
+/// The server-provided config/data for the current page.
+///
+/// This is the `application/ld+json` data embedded in the page with
+/// `"@context":"https://pub.dev"`.
 PageData get pageData {
   return _data ??= _extractData() ?? PageData();
 }
