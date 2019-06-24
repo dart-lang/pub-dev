@@ -1,4 +1,5 @@
 name: package_archive
+description: Scans the package archive, extracts its main content and checks for errors.
 publish_to: none
 
 environment:
