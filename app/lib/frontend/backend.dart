@@ -444,8 +444,8 @@ class GCloudPackageRepository extends PackageRepository {
 
       // If the package does not exist, then we create a new package.
       if (package == null) {
-          _logger.info('New package uploaded. [new-package-uploaded]');
-          package = _newPackageFromVersion(db, newVersion);
+        _logger.info('New package uploaded. [new-package-uploaded]');
+        package = _newPackageFromVersion(db, newVersion);
       }
 
       // Check if the uploader of the new version is allowed to upload to
