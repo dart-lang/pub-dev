@@ -98,7 +98,7 @@ Future _clearAdditionalProperties<T extends ExpandoModel>(T model) async {
   }
 
   for (String prop in props) {
-    final statKey = '${model.key.type.toString()}-$prop';
+    final statKey = '${model.key.type.toString()}.$prop';
     _removedCount[statKey] = (_removedCount[statKey] ?? 0) + 1;
   }
 
