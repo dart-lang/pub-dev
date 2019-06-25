@@ -840,8 +840,8 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   assert(user != null);
 
   final archive = await observePackageArchive(filename);
-  if (archive.hasError) {
-    throw GenericProcessingException(archive.errors.first.message);
+  if (archive.hasIssues) {
+    throw GenericProcessingException(archive.issues.first.message);
   }
 
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);

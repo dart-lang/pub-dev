@@ -13,12 +13,12 @@ import 'src/tar_utils.dart';
 // that is stored separately in the database.
 final _maxStoredLength = 128 * 1024;
 
-/// A validation error in the package archive.
-class ArchiveError {
+/// A validation issue in the package archive.
+class ArchiveIssue {
   /// An error message that will be displayed to the developer or pub client.
   final String message;
 
-  ArchiveError(this.message);
+  ArchiveIssue(this.message);
 
   @override
   String toString() => message;
@@ -26,7 +26,7 @@ class ArchiveError {
 
 /// The observed / extracted information of a package archive.
 class PackageArchive {
-  final List<ArchiveError> errors;
+  final List<ArchiveIssue> issues;
   final String pubspecContent;
   final String readmePath;
   final String readmeContent;
@@ -37,7 +37,7 @@ class PackageArchive {
   final List<String> libraries;
 
   PackageArchive({
-    this.errors,
+    this.issues,
     this.pubspecContent,
     this.readmePath,
     this.readmeContent,
@@ -48,12 +48,12 @@ class PackageArchive {
     this.libraries,
   });
 
-  bool get hasError => errors != null && errors.isNotEmpty;
+  bool get hasIssues => issues != null && issues.isNotEmpty;
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageArchive> observePackageArchive(String archivePath) async {
-  final errors = <ArchiveError>[];
+  final issues = <ArchiveIssue>[];
   final files = await listTarball(archivePath);
 
   // Searches in [files] for a file name [name] and compare in a
@@ -74,8 +74,8 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
 
   // processing pubspec.yaml
   if (!files.contains('pubspec.yaml')) {
-    errors.add(ArchiveError('pubspec.yaml is missing.'));
-    return PackageArchive(errors: errors);
+    issues.add(ArchiveIssue('pubspec.yaml is missing.'));
+    return PackageArchive(issues: issues);
   }
 
   final pubspecContent = await readTarballFile(archivePath, 'pubspec.yaml');
@@ -83,14 +83,14 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
   // limiting it, or it will slow down queries and processing for very little
   // reason.
   if (pubspecContent.length > 128 * 1024) {
-    errors.add(ArchiveError('pubspec.yaml is too large.'));
+    issues.add(ArchiveIssue('pubspec.yaml is too large.'));
   }
   Pubspec pubspec;
   try {
     pubspec = Pubspec.parse(pubspecContent);
   } catch (e) {
     pubspec = Pubspec.parse(pubspecContent, lenient: true);
-    errors.add(ArchiveError('Error parsing pubspec.yaml: $e'));
+    issues.add(ArchiveIssue('Error parsing pubspec.yaml: $e'));
   }
 
   // Check whether the files can be extracted on case-preserving file systems
@@ -104,16 +104,16 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
   final fileNameCollisions =
       lowerCaseFiles.values.firstWhere((l) => l.length > 1, orElse: () => null);
   if (fileNameCollisions != null) {
-    errors.add(ArchiveError(
+    issues.add(ArchiveIssue(
         'Filename collision on case-preserving file systems: ${fileNameCollisions.join(' vs. ')}.'));
   }
 
   if (pubspec.name == null || pubspec.name.trim().isEmpty) {
-    errors.add(ArchiveError('pubspec.yaml is missing `name`.'));
-    return PackageArchive(errors: errors);
+    issues.add(ArchiveIssue('pubspec.yaml is missing `name`.'));
+    return PackageArchive(issues: issues);
   }
   if (pubspec.version == null) {
-    errors.add(ArchiveError('pubspec.yaml is missing `version`.'));
+    issues.add(ArchiveIssue('pubspec.yaml is missing `version`.'));
   }
 
   final package = pubspec.name;
@@ -153,12 +153,12 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
       .map((file) => file.substring('lib/'.length))
       .toList();
 
-  errors.addAll(validatePackageName(pubspec.name));
-  errors.addAll(syntaxCheckHomepageUrl(
+  issues.addAll(validatePackageName(pubspec.name));
+  issues.addAll(syntaxCheckHomepageUrl(
       pubspec.homepage ?? pubspec.repository?.toString()));
 
   return PackageArchive(
-    errors: errors,
+    issues: issues,
     pubspecContent: pubspecContent,
     readmePath: readmePath,
     readmeContent: readmeContent,
@@ -174,30 +174,30 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
 /// that skips these verifications.
 /// TODO: share code to use the same validations as in
 /// https://github.com/dart-lang/pub/blob/master/lib/src/validator/name.dart#L52
-Iterable<ArchiveError> validatePackageName(String name) sync* {
+Iterable<ArchiveIssue> validatePackageName(String name) sync* {
   if (!identifierExpr.hasMatch(name)) {
-    yield ArchiveError(
+    yield ArchiveIssue(
         'Package name may only contain letters, numbers, and underscores.');
   }
   if (!startsWithLetterOrUnderscore.hasMatch(name)) {
-    yield ArchiveError('Package name must begin with a letter or underscore.');
+    yield ArchiveIssue('Package name must begin with a letter or underscore.');
   }
   if (reservedWords.contains(reducePackageName(name))) {
-    yield ArchiveError('Package name must not be a reserved word in Dart.');
+    yield ArchiveIssue('Package name must not be a reserved word in Dart.');
   }
 
   final bool isLower = name == name.toLowerCase();
   final bool matchesMixedCase = knownMixedCasePackages.contains(name);
   if (!isLower && !matchesMixedCase) {
-    yield ArchiveError('Package name must be lowercase.');
+    yield ArchiveIssue('Package name must be lowercase.');
   }
   if (isLower && blockedLowerCasePackages.contains(name)) {
-    yield ArchiveError('Name collision with mixed-case package.');
+    yield ArchiveIssue('Name collision with mixed-case package.');
   }
   if (!isLower &&
       matchesMixedCase &&
       !blockedLowerCasePackages.contains(name.toLowerCase())) {
-    yield ArchiveError('Name collision with mixed-case package.');
+    yield ArchiveIssue('Name collision with mixed-case package.');
   }
 }
 
@@ -206,24 +206,24 @@ String reducePackageName(String name) =>
     // we allow only `_` as part of the name.
     name.replaceAll('_', '').toLowerCase();
 
-Iterable<ArchiveError> syntaxCheckHomepageUrl(String url) sync* {
+Iterable<ArchiveIssue> syntaxCheckHomepageUrl(String url) sync* {
   if (url == null) {
-    yield ArchiveError('pubspec.yaml is missing `homepage`.');
+    yield ArchiveIssue('pubspec.yaml is missing `homepage`.');
     return;
   }
   final uri = Uri.tryParse(url);
   if (uri == null) {
-    yield ArchiveError('Unable to parse homepage URL: $url');
+    yield ArchiveIssue('Unable to parse homepage URL: $url');
   }
   final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
   if (!hasValidScheme) {
-    yield ArchiveError(
+    yield ArchiveIssue(
         'Use http:// or https:// URL schemes for homepage URL: $url');
   }
   if (uri.host == null ||
       uri.host.isEmpty ||
       !uri.host.contains('.') ||
       invalidHostNames.contains(uri.host)) {
-    yield ArchiveError('Homepage URL has no valid host: $url');
+    yield ArchiveIssue('Homepage URL has no valid host: $url');
   }
 }
