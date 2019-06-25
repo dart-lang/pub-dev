@@ -477,6 +477,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  pub_package_reader:
+    dependency: "direct main"
+    description:
+      path: "../pkg/pub_package_reader"
+      relative: true
+    source: path
+    version: "0.0.0"
   pub_semver:
     dependency: "direct main"
     description:

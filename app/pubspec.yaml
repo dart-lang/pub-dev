@@ -28,6 +28,8 @@ dependencies:
   pool: '^1.3.4'
   pub_dartdoc_data:
     path: ../pkg/pub_dartdoc_data
+  pub_package_reader:
+    path: ../pkg/pub_package_reader
   pub_semver: ">=1.2.2 <2.0.0"
   pub_server: ">=0.1.0 <0.2.0"
   pubspec_parse: ^0.1.4
