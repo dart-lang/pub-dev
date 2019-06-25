@@ -676,10 +676,6 @@ void main() {
         expect(versionInfo.package, testPackage.name);
         expect(versionInfo.version, testPackageVersion.version);
         expect(versionInfo.updated.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(versionInfo.readmeFilename, 'README.md');
-        expect(versionInfo.readmeContent, testPackageReadme);
-        expect(versionInfo.changelogFilename, 'CHANGELOG.md');
-        expect(versionInfo.changelogContent, testPackageChangelog);
         expect(versionInfo.libraries, ['test_library.dart']);
         expect(versionInfo.libraryCount, 1);
 

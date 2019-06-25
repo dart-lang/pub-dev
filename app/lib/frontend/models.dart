@@ -290,45 +290,6 @@ class PackageVersionInfo extends db.ExpandoModel {
   @db.DateTimeProperty()
   DateTime updated;
 
-  @db.StringProperty(indexed: false)
-  String readmeFilename;
-
-  @db.StringProperty(indexed: false)
-  String readmeContent;
-
-  FileObject get readme {
-    if (readmeFilename != null) {
-      return FileObject(readmeFilename, readmeContent);
-    }
-    return null;
-  }
-
-  @db.StringProperty(indexed: false)
-  String changelogFilename;
-
-  @db.StringProperty(indexed: false)
-  String changelogContent;
-
-  FileObject get changelog {
-    if (changelogFilename != null) {
-      return FileObject(changelogFilename, changelogContent);
-    }
-    return null;
-  }
-
-  @db.StringProperty(indexed: false)
-  String exampleFilename;
-
-  @db.StringProperty(indexed: false)
-  String exampleContent;
-
-  FileObject get example {
-    if (exampleFilename != null) {
-      return FileObject(exampleFilename, exampleContent);
-    }
-    return null;
-  }
-
   @CompatibleStringListProperty()
   List<String> libraries;
 

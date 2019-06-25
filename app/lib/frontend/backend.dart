@@ -891,12 +891,6 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   final versionInfo = models.PackageVersionInfo()
     ..initFromKey(key)
     ..updated = version.created
-    ..readmeFilename = archive.readmePath
-    ..readmeContent = archive.readmeContent
-    ..changelogFilename = archive.changelogPath
-    ..changelogContent = archive.changelogContent
-    ..exampleFilename = archive.examplePath
-    ..exampleContent = archive.exampleContent
     ..libraries = archive.libraries
     ..libraryCount = archive.libraries.length;
 
