@@ -13,7 +13,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:package_archive/package_archive.dart';
+import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_server/repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -839,7 +839,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
     DatastoreDB db, String filename, AuthenticatedUser user) async {
   assert(user != null);
 
-  final archive = await observePackageArchive(filename);
+  final archive = await summarizePackageArchive(filename);
   if (archive.hasIssues) {
     throw GenericProcessingException(archive.issues.first.message);
   }

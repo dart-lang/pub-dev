@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:package_archive/package_archive.dart';
+import 'package:pub_package_reader/pub_package_reader.dart';
 
 void main() {
   group('package name validation', () {

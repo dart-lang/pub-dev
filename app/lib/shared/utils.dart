@@ -15,8 +15,8 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
-import 'package:package_archive/package_archive.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
 
