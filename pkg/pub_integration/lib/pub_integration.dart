@@ -78,6 +78,11 @@ class _PubIntegration {
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg();
 
+      // upload the same version again
+      await _upload(_dummyDir,
+          expectedError:
+              'Version $_newDummyVersion of package _dummy_pkg already exists..');
+
       // run example
       await _pubGet(_dummyExampleDir);
       await _run(_dummyExampleDir, 'bin/main.dart');
@@ -121,8 +126,13 @@ class _PubIntegration {
     await _runProc('pub', ['get'], workingDirectory: dir.path);
   }
 
-  Future _upload(Directory dir) async {
-    await _runProc('pub', ['publish', '--force'], workingDirectory: dir.path);
+  Future _upload(Directory dir, {String expectedError}) async {
+    await _runProc(
+      'pub',
+      ['publish', '--force'],
+      workingDirectory: dir.path,
+      expectedError: expectedError,
+    );
   }
 
   Future _run(Directory dir, String file) async {
