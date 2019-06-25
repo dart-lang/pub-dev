@@ -77,12 +77,6 @@ Future _backfillPackage(String package) async {
     if (items[1] == null) {
       inserts.add(PackageVersionInfo()
         ..initFromKey(qualifiedKey)
-        ..readmeFilename = pv.readmeFilename
-        ..readmeContent = pv.readmeContent
-        ..changelogFilename = pv.changelogFilename
-        ..changelogContent = pv.changelogContent
-        ..exampleFilename = pv.exampleFilename
-        ..exampleContent = pv.exampleContent
         ..libraries = pv.libraries
         ..libraryCount = pv.libraries.length
         ..updated = pv.created);
