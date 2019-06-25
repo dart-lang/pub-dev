@@ -64,9 +64,7 @@ Future main(List<String> args) async {
 
 Future _processWithQuery<T extends ExpandoModel>(Query<T> query) async {
   await for (T m in query.run()) {
-    if (m.additionalProperties.isNotEmpty) {
-      await _clearAdditionalProperties(m);
-    }
+    await _clearAdditionalProperties(m);
   }
 }
 
@@ -85,12 +83,13 @@ Future _processPackage(Package package) async {
     ..filter('package =', package.name);
   await _processWithQuery(infoQuery);
 
-  if (package.additionalProperties.isNotEmpty) {
-    await _clearAdditionalProperties(package);
-  }
+  await _clearAdditionalProperties(package);
 }
 
 Future _clearAdditionalProperties<T extends ExpandoModel>(T model) async {
+  if (model.additionalProperties.isEmpty) {
+    return;
+  }
   final props = model.additionalProperties.keys.toList();
   props.sort();
   if (_isVerbose) {
