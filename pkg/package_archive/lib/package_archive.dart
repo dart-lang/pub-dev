@@ -25,7 +25,7 @@ class ArchiveIssue {
 }
 
 /// The observed / extracted information of a package archive.
-class PackageArchive {
+class PackageSummary {
   final List<ArchiveIssue> issues;
   final String pubspecContent;
   final String readmePath;
@@ -36,7 +36,7 @@ class PackageArchive {
   final String exampleContent;
   final List<String> libraries;
 
-  PackageArchive({
+  PackageSummary({
     this.issues,
     this.pubspecContent,
     this.readmePath,
@@ -52,7 +52,7 @@ class PackageArchive {
 }
 
 /// Observe the .tar.gz archive on [archivePath] and return the results.
-Future<PackageArchive> observePackageArchive(String archivePath) async {
+Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   final issues = <ArchiveIssue>[];
   final files = await listTarball(archivePath);
 
@@ -75,7 +75,7 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
   // processing pubspec.yaml
   if (!files.contains('pubspec.yaml')) {
     issues.add(ArchiveIssue('pubspec.yaml is missing.'));
-    return PackageArchive(issues: issues);
+    return PackageSummary(issues: issues);
   }
 
   final pubspecContent = await readTarballFile(archivePath, 'pubspec.yaml');
@@ -110,7 +110,7 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
 
   if (pubspec.name == null || pubspec.name.trim().isEmpty) {
     issues.add(ArchiveIssue('pubspec.yaml is missing `name`.'));
-    return PackageArchive(issues: issues);
+    return PackageSummary(issues: issues);
   }
   if (pubspec.version == null) {
     issues.add(ArchiveIssue('pubspec.yaml is missing `version`.'));
@@ -157,7 +157,7 @@ Future<PackageArchive> observePackageArchive(String archivePath) async {
   issues.addAll(syntaxCheckHomepageUrl(
       pubspec.homepage ?? pubspec.repository?.toString()));
 
-  return PackageArchive(
+  return PackageSummary(
     issues: issues,
     pubspecContent: pubspecContent,
     readmePath: readmePath,
