@@ -443,7 +443,10 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       // If the package does not exist, then we create a new package.
-      if (package == null) package = _newPackageFromVersion(db, newVersion);
+      if (package == null) {
+          _logger.info('New package uploaded. [new-package-uploaded]');
+          package = _newPackageFromVersion(db, newVersion);
+      }
 
       // Check if the uploader of the new version is allowed to upload to
       // the package.
@@ -489,7 +492,7 @@ class GCloudPackageRepository extends PackageRepository {
         T.queueMutations(inserts: inserts);
         await T.commit();
 
-        _logger.info('Upload successful.');
+        _logger.info('Upload successful. [package-uploaded]');
 
         // Try to load all package versions, sort them by `sort_order` and
         // store them again.
