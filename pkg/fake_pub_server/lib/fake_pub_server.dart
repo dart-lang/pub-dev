@@ -16,6 +16,8 @@ import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/frontend/name_tracker.dart';
+import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
@@ -72,6 +74,8 @@ class FakePubServer {
         registerHistoryBackend(HistoryBackend(db));
         registerScoreCardBackend(ScoreCardBackend(db));
         registerScoreCardMemcache(ScoreCardMemcache());
+        NameTrackerUpdater(db).startNameTrackerUpdates();
+        registerSearchService(SearchService());
 
         registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
 
