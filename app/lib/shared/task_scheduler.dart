@@ -102,6 +102,8 @@ class TaskScheduler {
 
       // Throttle processing in case there was a network issue.
       if (errorCount >= 5) {
+        _logger.warning(
+            'Sleeping 1 minute after 5 errors, before trying more tasks.');
         await Future.delayed(Duration(minutes: 1));
         errorCount = 0;
       }
