@@ -6,8 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
+
+import '../frontend/request_context.dart';
 
 import 'popularity_storage.dart';
 import 'scheduler_stats.dart';
@@ -34,16 +35,11 @@ shelf.Response redirectToSearch(String query) {
   return redirectResponse(urls.searchUrl(q: query));
 }
 
-bool isPrettyJson(shelf.Request request) {
-  return request.url.queryParameters.containsKey('pretty');
-}
-
-shelf.Response jsonResponse(
-  Map map, {
-  @required bool pretty,
-  int status = 200,
-}) {
-  final String body = pretty ? _prettyJson.convert(map) : json.encode(map);
+shelf.Response jsonResponse(Map map,
+    {int status = 200, bool indentJson = false}) {
+  final String body = (indentJson || requestContext.indentJson)
+      ? _prettyJson.convert(map)
+      : json.encode(map);
   return shelf.Response(
     status,
     body: body,
@@ -152,7 +148,7 @@ shelf.Response debugResponse([Map<String, dynamic> data]) {
       'dateRange': popularityStorage.dateRange,
     };
   }
-  return jsonResponse(map, pretty: true);
+  return jsonResponse(map, indentJson: true);
 }
 
 bool isNotModified(shelf.Request request, DateTime lastModified, String etag) {

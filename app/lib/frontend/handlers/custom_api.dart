@@ -23,17 +23,17 @@ import '../name_tracker.dart';
 Future<shelf.Response> apiDocumentationHandler(
     shelf.Request request, String package) async {
   if (isSoftRemoved(package)) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
+    return jsonResponse({}, status: 404);
   }
 
   final cachedData = await dartdocMemcache.getApiSummary(package);
   if (cachedData != null) {
-    return jsonResponse(cachedData, pretty: isPrettyJson(request));
+    return jsonResponse(cachedData);
   }
 
   final versions = await backend.versionsOfPackage(package);
   if (versions.isEmpty) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
+    return jsonResponse({}, status: 404);
   }
 
   versions.sort((a, b) => a.semanticVersion.compareTo(b.semanticVersion));
@@ -66,7 +66,7 @@ Future<shelf.Response> apiDocumentationHandler(
     'versions': versionsData,
   };
   await dartdocMemcache.setApiSummary(package, data);
-  return jsonResponse(data, pretty: isPrettyJson(request));
+  return jsonResponse(data);
 }
 
 /// Handles requests for
@@ -75,8 +75,7 @@ Future<shelf.Response> apiPackagesCompactListHandler(
     shelf.Request request) async {
   final packageNames = await nameTracker.getPackageNames();
   packageNames.removeWhere(isSoftRemoved);
-  return jsonResponse({'packages': packageNames},
-      pretty: isPrettyJson(request));
+  return jsonResponse({'packages': packageNames});
 }
 
 /// Handles request for /api/packages?page=<num>
@@ -145,7 +144,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
   }
 
-  return jsonResponse(json, pretty: isPrettyJson(request));
+  return jsonResponse(json);
 }
 
 /// Whether [requestedUri] matches /api/packages/<package>/metrics
@@ -169,7 +168,7 @@ Future<shelf.Response> apiPackageMetricsHandler(
   final data = await scoreCardBackend
       .getScoreCardData(packageName, packageVersion, onlyCurrent: current);
   if (data == null) {
-    return jsonResponse({}, status: 404, pretty: isPrettyJson(request));
+    return jsonResponse({}, status: 404);
   }
   final result = {
     'scorecard': data.toJson(),
@@ -183,7 +182,7 @@ Future<shelf.Response> apiPackageMetricsHandler(
     result['reports'] =
         reports.map((k, report) => MapEntry(k, report.toJson()));
   }
-  return jsonResponse(result, pretty: isPrettyJson(request));
+  return jsonResponse(result);
 }
 
 /// Handles requests for /api/history
@@ -209,7 +208,7 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
               'markdown': h.formatMarkdown(),
             })
         .toList(),
-  }, pretty: true);
+  });
 }
 
 /// Handles requests for /api/search
@@ -230,5 +229,5 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
         request.requestedUri.replace(queryParameters: newParams).toString();
     result['next'] = nextPageUrl;
   }
-  return jsonResponse(result, pretty: isPrettyJson(request));
+  return jsonResponse(result);
 }

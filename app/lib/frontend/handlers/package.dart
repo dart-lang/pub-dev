@@ -54,7 +54,7 @@ Future<shelf.Response> packageShowHandlerJson(
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
-  return jsonResponse(json, pretty: isPrettyJson(request));
+  return jsonResponse(json);
 }
 
 /// Handles requests for /packages/<package>/versions
