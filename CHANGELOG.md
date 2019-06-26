@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Downgraded `package:appengine` to `0.6.1` due to `grpc` issues.
+
 ## `20190625t130656-all`
 
  * Upgraded `package:appengine` to `0.7.0`, need to watch for side-effects.
