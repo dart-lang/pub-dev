@@ -56,6 +56,8 @@ class TaskScheduler {
   }
 
   Future run() async {
+    int errorCount = 0;
+
     Future runTask(Task task) async {
       final Stopwatch sw = Stopwatch()..start();
       try {
@@ -65,6 +67,7 @@ class TaskScheduler {
         await taskRunner.runTask(task);
         _statusTracker.add('normal');
       } catch (e, st) {
+        errorCount++;
         _logger.severe('Error processing task: $task', e, st);
         _statusTracker.add('error');
       }
@@ -96,6 +99,12 @@ class TaskScheduler {
       }
 
       await runTask(task);
+
+      // Throttle processing in case there was a network issue.
+      if (errorCount >= 5) {
+        await Future.delayed(Duration(minutes: 1));
+        errorCount = 0;
+      }
     }
   }
 
