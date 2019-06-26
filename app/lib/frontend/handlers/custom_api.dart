@@ -247,7 +247,7 @@ Future<shelf.Response> getPackageOptionsHandler(
     return notFoundHandler(request);
   }
   final options = PkgOptions(isDiscontinued: p.isDiscontinued);
-  return jsonResponse(options.toJson(), pretty: isPrettyJson(request));
+  return jsonResponse(options.toJson());
 }
 
 /// Handles PUT /api/packages/<package>/options
@@ -258,15 +258,14 @@ Future<shelf.Response> putPackageOptionsHandler(
     final options =
         PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
     await backend.updateOptions(package, options);
-    return jsonResponse({'success': true}, pretty: false);
+    return jsonResponse({'success': true});
   } on UnauthorizedAccessException catch (_) {
-    return jsonResponse({'error': 'Not Authorized.'},
-        status: 403, pretty: false);
+    return jsonResponse({'error': 'Not Authorized.'}, status: 403);
   } on ClientInputException catch (e) {
-    return jsonResponse({'error': e.message}, status: e.status, pretty: false);
+    return jsonResponse({'error': e.message}, status: e.status);
   } catch (e, st) {
     _logger.warning('Error processing flag update.', e, st);
     return jsonResponse({'error': 'Error while processing request.'},
-        status: 500, pretty: false);
+        status: 500);
   }
 }
