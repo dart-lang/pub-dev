@@ -7,14 +7,14 @@
   <div class="metadata">
     Published <span>{{package.short_created}}</span>
     <!-- &bull; Downloads: X -->
-    {{#package.latest.should_show}}
+    {{#package.latest.show_updated}}
       &bull; Updated:
-      <span><a href="{{& package.latest.stable_url}}">{{package.latest.stable_name}}</a></span>
-      {{#package.latest.should_show_dev}}
+      <span><a href="{{& package.latest.stable_url}}">{{package.latest.stable_version}}</a></span>
+      {{#package.latest.show_dev_version}}
         /
-        <span><a href="{{& package.latest.dev_url}}">{{package.latest.dev_name}}</a></span>
-      {{/package.latest.should_show_dev}}
-    {{/package.latest.should_show}}
+        <span><a href="{{& package.latest.dev_url}}">{{package.latest.dev_version}}</a></span>
+      {{/package.latest.show_dev_version}}
+    {{/package.latest.show_updated}}
     <div class="tags">{{& package.tags_html}}</div>
   </div>
 </div>
