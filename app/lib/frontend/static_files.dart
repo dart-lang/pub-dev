@@ -13,7 +13,7 @@ import 'package:pana/pana.dart' show runProc;
 import 'package:path/path.dart' as path;
 
 const String _defaultStaticPath = '/static';
-const _staticRootPaths = <String>['favicon.ico', 'robots.txt'];
+const _staticRootPaths = <String>['favicon.ico', 'robots.txt', 'osd.xml'];
 
 StaticFileCache _cache;
 StaticUrls _staticUrls;
@@ -135,6 +135,7 @@ class StaticFile {
 class StaticUrls {
   final String staticPath = _defaultStaticPath;
   final String smallDartFavicon;
+  final String openSearchDescription;
   final String dartLogoSvg;
   final String flutterLogo32x32;
   final String documentationIcon;
@@ -146,6 +147,7 @@ class StaticUrls {
 
   StaticUrls._()
       : smallDartFavicon = _getCacheableStaticUrl('/favicon.ico'),
+        openSearchDescription = _getCacheableStaticUrl('/osd.xml'),
         dartLogoSvg =
             _getCacheableStaticUrl('$_defaultStaticPath/img/dart-logo.svg'),
         flutterLogo32x32 = _getCacheableStaticUrl(
