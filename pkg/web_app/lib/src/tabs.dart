@@ -44,9 +44,15 @@ void _changeTabOnUrlHash() {
     hash = hash.substring(1);
   }
   // Navigating back to a non-hashed package page will result an empty hash.
-  // Displaying the default tab: readme.
+  // Displaying the first tab (with content) by default.
   if (hash.isEmpty) {
-    changeTab('-readme-tab-');
+    final active = tabContents.firstWhere(
+      (e) => e.classes.contains('-active'),
+      orElse: () => null,
+    );
+    if (active == null) {
+      changeTab(tabContents.first.dataset['name']);
+    }
   } else {
     if (hash.startsWith('pub-pkg-tab-')) {
       hash = '-${hash.substring(12)}-tab-';
