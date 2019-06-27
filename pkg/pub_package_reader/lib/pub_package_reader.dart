@@ -156,6 +156,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   issues.addAll(validatePackageName(pubspec.name));
   issues.addAll(syntaxCheckHomepageUrl(
       pubspec.homepage ?? pubspec.repository?.toString()));
+  issues.addAll(forbidGitDependencies(pubspec));
 
   return PackageSummary(
     issues: issues,
@@ -225,5 +226,43 @@ Iterable<ArchiveIssue> syntaxCheckHomepageUrl(String url) sync* {
       !uri.host.contains('.') ||
       invalidHostNames.contains(uri.host)) {
     yield ArchiveIssue('Homepage URL has no valid host: $url');
+  }
+}
+
+/// Validate that the package does not have any git dependencies.
+///
+/// This also enforces that `dependencies` are hosted on the default pub server.
+/// It ignores `dev_dependencies` as these are for development only.
+Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
+  for (final entry in pubspec.dependencies.entries) {
+    final name = entry.key;
+
+    if (entry.value is GitDependency) {
+      yield ArchiveIssue(
+        'Package dependency $name is a git dependency, '
+        'this not allowed in published packages',
+      );
+      continue;
+    }
+    if (entry.value is! HostedDependency) {
+      yield ArchiveIssue('Package dependency $name is not hosted on pub.dev');
+      continue;
+    }
+
+    final dep = entry.value as HostedDependency;
+    if (dep.hosted == null) {
+      continue;
+    }
+    if (dep.hosted.url != null) {
+      yield ArchiveIssue(
+        'Package dependency $name must be hosted on the default pub '
+        'repository, and cannot have an explicit "url" specified',
+      );
+    }
+    if (dep.hosted.name != name) {
+      yield ArchiveIssue(
+        'Package dependency $name depends on a package with a different name',
+      );
+    }
   }
 }
