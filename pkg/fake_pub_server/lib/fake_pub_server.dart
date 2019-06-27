@@ -102,6 +102,8 @@ class FakePubServer {
         _logger.info('fake_pub_server running on port $port');
 
         await ProcessSignal.sigterm.watch().first;
+
+        _logger.info('fake_pub_server shutting down');
         await server.close();
         nameTrackerUpdater.stop();
         _logger.info('closing');
