@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'package:pub_package_reader/pub_package_reader.dart';
 
@@ -58,6 +59,67 @@ void main() {
       expect(syntaxCheckHomepageUrl('http://example.com/x/'), isNotEmpty);
       expect(syntaxCheckHomepageUrl('http://localhost/x/'), isNotEmpty);
       expect(syntaxCheckHomepageUrl('http://.../x/'), isNotEmpty);
+    });
+  });
+
+  group('forbid git dependencies', () {
+    test('normal dependencies are fine', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        test: ^1.0.0
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isEmpty);
+    });
+
+    test('git dependencies are forbidden', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        kittens:
+          git: git://github.com/munificent/kittens.git
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isNotEmpty);
+    });
+
+    test('custom hosted dependencies are forbidden', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        kittens:
+          hosted:
+            name: kittens
+            url: 'https://not-the-right-pub.dev'
+          version: ^1.0.0
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isNotEmpty);
+    });
+
+    test('renaming hosted dependencies is forbidden', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        kittens:
+          hosted:
+            name: cats
+          version: ^1.0.0
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isNotEmpty);
+    });
+
+    test('git dev_dependencies are fine', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dev_dependencies:
+        kittens:
+          git: git://github.com/munificent/kittens.git
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isEmpty);
     });
   });
 }
