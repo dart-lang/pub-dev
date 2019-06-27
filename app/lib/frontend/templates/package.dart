@@ -301,26 +301,21 @@ List<Map<String, String>> _tabsData(
 }) {
   final card = analysis?.card;
 
-  String readmeFilename;
   String renderedReadme;
   final packageLinks = selectedVersion.packageLinks;
   final baseUrl = packageLinks.repositoryUrl ?? packageLinks.homepageUrl;
   if (selectedVersion.readme != null) {
-    readmeFilename = selectedVersion.readme.filename;
     renderedReadme = renderFile(selectedVersion.readme, baseUrl);
   }
 
-  String changelogFilename;
   String renderedChangelog;
   if (selectedVersion.changelog != null) {
-    changelogFilename = selectedVersion.changelog.filename;
     renderedChangelog = renderFile(selectedVersion.changelog, baseUrl);
   }
 
-  String exampleFilename;
   String renderedExample;
   if (selectedVersion.example != null) {
-    exampleFilename = selectedVersion.example.filename;
+    final exampleFilename = selectedVersion.example.filename;
     renderedExample = renderFile(selectedVersion.example, baseUrl);
     if (renderedExample != null) {
       renderedExample = '<p style="font-family: monospace">'
@@ -351,8 +346,8 @@ List<Map<String, String>> _tabsData(
     addTab(id, title: title, content: content, markdown: true);
   }
 
-  addFileTab('readme', readmeFilename, renderedReadme);
-  addFileTab('changelog', changelogFilename, renderedChangelog);
+  addFileTab('readme', 'Readme', renderedReadme);
+  addFileTab('changelog', 'Changelog', renderedChangelog);
   addFileTab('example', 'Example', renderedExample);
 
   addTab('installing',
