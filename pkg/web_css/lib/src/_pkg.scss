@@ -25,13 +25,13 @@
   }
 }
 
-.package-tabs {
+.package-tabs-header {
   margin: 10px 0 20px;
   padding: 0;
   border-bottom: 1px solid #f0f0f0;
   list-style: none;
 
-  > .tab {
+  > .tab-button {
     color: #666666;
     display: inline-block;
     margin-right: 35px;
@@ -60,8 +60,8 @@
   }
 }
 
-.tabs-content {
-  > .content {
+.package-tabs-content {
+  > .tab-content {
     display: none;
 
     &.-active {

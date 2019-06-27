@@ -4,12 +4,12 @@
 
 import 'dart:html';
 
-Element tabRoot;
-List<Element> tabContents;
+Element _headerRoot;
+Element _contentRoot;
 
 void setupTabs() {
-  tabRoot = document.querySelector('.js-tabs');
-  tabContents = document.querySelectorAll('.js-content');
+  _headerRoot = document.querySelector('ul.package-tabs-header');
+  _contentRoot = document.querySelector('div.package-tabs-content');
   _setEventsForTabs();
 
   window.onHashChange.listen((_) {
@@ -19,8 +19,8 @@ void setupTabs() {
 }
 
 void _setEventsForTabs() {
-  if (tabRoot != null && tabContents.isNotEmpty) {
-    tabRoot.onClick.listen((e) {
+  if (_headerRoot != null && _contentRoot != null) {
+    _headerRoot.onClick.listen((e) {
       // locate the <li> tag
       Element target = e.target as Element;
       while (target != null &&
@@ -38,7 +38,7 @@ void _setEventsForTabs() {
 
 /// change the tab based on URL hash
 void _changeTabOnUrlHash() {
-  if (tabRoot == null) return;
+  if (_headerRoot == null) return;
   String hash = window.location.hash ?? '';
   if (hash.startsWith('#')) {
     hash = hash.substring(1);
@@ -46,12 +46,12 @@ void _changeTabOnUrlHash() {
   // Navigating back to a non-hashed package page will result an empty hash.
   // Displaying the first tab (with content) by default.
   if (hash.isEmpty) {
-    final active = tabContents.firstWhere(
+    final active = _contentRoot.children.firstWhere(
       (e) => e.classes.contains('-active'),
       orElse: () => null,
     );
     if (active == null) {
-      changeTab(tabContents.first.dataset['name']);
+      changeTab(_contentRoot.children.first.dataset['name']);
     }
   } else {
     if (hash.startsWith('pub-pkg-tab-')) {
@@ -63,8 +63,8 @@ void _changeTabOnUrlHash() {
 }
 
 String getTabName(Element elem) {
-  final isTabContainer =
-      elem.classes.contains('tab') || elem.classes.contains('content');
+  final isTabContainer = elem.classes.contains('tab-button') ||
+      elem.classes.contains('tab-content');
   if (isTabContainer && elem.dataset['name'] != null) {
     return elem.dataset['name'];
   }
@@ -75,24 +75,18 @@ String getTabName(Element elem) {
 }
 
 void changeTab(String name) {
-  final tabOrContentElem =
-      tabRoot.querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
+  final tabOrContentElem = _headerRoot
+      .querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
   if (tabOrContentElem != null) {
-    // toggle tab highlights
-    tabRoot.children.forEach((node) {
-      if (node.dataset['name'] != name) {
-        node.classes.remove('-active');
-      } else {
-        node.classes.add('-active');
-      }
-    });
-    // toggle content
-    tabContents.forEach((node) {
-      if (node.dataset['name'] != name) {
-        node.classes.remove('-active');
-      } else {
-        node.classes.add('-active');
-      }
-    });
+    _headerRoot.children.forEach((node) => _toggle(node, name));
+    _contentRoot.children.forEach((node) => _toggle(node, name));
+  }
+}
+
+void _toggle(Element node, String name) {
+  if (node.dataset['name'] != name) {
+    node.classes.remove('-active');
+  } else {
+    node.classes.add('-active');
   }
 }
