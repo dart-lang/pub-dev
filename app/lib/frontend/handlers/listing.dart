@@ -110,5 +110,5 @@ Future<shelf.Response> _packagesHandlerJson(
     //   - 'pages'
   };
 
-  return jsonResponse(json, pretty: isPrettyJson(request));
+  return jsonResponse(json);
 }

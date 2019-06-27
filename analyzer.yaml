@@ -12,8 +12,8 @@ env_variables:
   TOOL_ENV_DART_SDK: '/dart-sdk'
 
 resources:
-  cpu: 1
-  memory_gb: 4
+  cpu: 2
+  memory_gb: 8
 
 #manual_scaling:
 #  instances: 1
@@ -24,3 +24,11 @@ automatic_scaling:
 
 skip_files:
 - ^\.git/.*$
+
+liveness_check:
+  path: '/liveness_check'
+
+readiness_check:
+  path: '/readiness_check'
+  check_interval_sec: 15
+  app_start_timeout_sec: 1800

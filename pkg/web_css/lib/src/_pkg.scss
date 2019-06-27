@@ -7,22 +7,22 @@
 
 .package-header {
   margin: 30px 0 10px;
-}
 
-.package-header > .title {
-  font-size: 32px;
-  font-weight: 600;
-  margin: 0;
-}
+  > .title {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+  }
 
-.package-header > .metadata {
-  font-size: 14px;
-  color: #555;
-}
+  > .metadata {
+    font-size: 14px;
+    color: #555;
 
-.package-header > .metadata > .tags {
-  display: inline-block;
-  margin-left: 20px;
+    > .tags {
+      display: inline-block;
+      margin-left: 20px;
+    }
+  }
 }
 
 .package-tabs {
@@ -30,147 +30,134 @@
   padding: 0;
   border-bottom: 1px solid #f0f0f0;
   list-style: none;
+
+  > .tab {
+    color: #666666;
+    display: inline-block;
+    margin-right: 35px;
+    padding: 10px 2px;
+    border-bottom: 4px solid;
+    border-bottom-color: transparent;
+    cursor: pointer;
+    vertical-align: bottom;
+
+    &:hover {
+      border-bottom-color: #dddddd;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &.-active {
+      color: black;
+      border-bottom-color: black;
+    }
+
+    > .score-box {
+      margin: 0;
+    }
+  }
 }
 
-.package-tabs > .tab {
-  color: #666666;
-  display: inline-block;
-  margin-right: 35px;
-  padding: 10px 2px;
-  border-bottom: 4px solid;
-  border-bottom-color: transparent;
-  cursor: pointer;
-  vertical-align: bottom;
+.tabs-content {
+  > .content {
+    display: none;
+
+    &.-active {
+      display: block;
+    }
+  }
 }
 
-.package-tabs > .tab:hover {
-  border-bottom-color: #dddddd;
-}
+.package-container {
+  > .main {
+    display: inline-block;
+    width: calc(100% - 300px);
+    vertical-align: top;
+  }
 
-.package-tabs > .tab:last-child {
-  margin-right: 0;
-}
-
-.package-tabs > .tab.-active {
-  color: black;
-  border-bottom-color: black;
-}
-
-.package-tabs > .tab > .score-box {
-  margin: 0;
-}
-
-.tabs-content > .content {
-  display: none;
-}
-
-.tabs-content > .content.-active {
-  display: block;
-}
-
-.package-container > .main {
-  display: inline-block;
-  width: calc(100% - 300px);
-  vertical-align: top;
-}
-
-.package-container > .sidebar {
-  display: inline-block;
-  vertical-align: top;
-  margin-top: 60px;
-  margin-left: 20px;
-  -webkit-box-flex: 0;
-  -ms-flex: 0 0 270px;
-  flex: 0 0 270px;
-  width: 270px;
-  padding: 20px;
-  background: #F8F8F8;
-  border: 1px solid #DDD;
-  position: relative;
-  top: -1px;
+  > .sidebar {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 20px;
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 270px;
+    flex: 0 0 270px;
+    width: 270px;
+    padding: 20px;
+    background: #F8F8F8;
+    border: 1px solid #DDD;
+    position: relative;
+  }
 }
 
 .sidebar-content {
   font-size: 14px;
-}
 
-.sidebar-content > .title {
-  font-size: 14px;
-  margin: 0;
-}
+  > .title {
+    font-size: 14px;
+    margin: 0;
+  }
 
-.sidebar-content > .title:not(:first-child) {
-  margin-top: 12px;
-}
+  &:not(:first-child) {
+    margin-top: 12px;
+  }
 
-.sidebar-content > p {
-  margin: 0;
-}
+  > p {
+    margin: 0;
+  }
 
-.sidebar-content > .link {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  max-width: 100%;
-  display: inline-block;
-  line-height: 1.2em;
-}
-
-.sidebar-content > .share {
-  background-color: transparent;
-}
-
-.mobile-os span {
-  vertical-align: middle;
-  margin-right: 16px;
-}
-
-.mobile-os span > img {
-  width: 22px;
-  margin-right: 6px;
-  vertical-align: middle;
+  > .link {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
+    line-height: 1.2em;
+  }
 }
 
 @media screen and (max-width: 920px) {
-  .package-container > .main {
-    display: block;
-    width: 100%;
-    vertical-align: top;
-  }
+  .package-container {
+    > .main {
+      display: block;
+      width: 100%;
+      vertical-align: top;
+    }
 
-  .package-container > .sidebar {
-    display: block;
-    width: 100%;
-    margin: 60px 0 0;
+    > .sidebar {
+      display: block;
+      width: 100%;
+      margin: 60px 0 0;
+    }
   }
 }
+
 .version-table {
   width: 100%;
-}
 
-.version-table td,
-.version-table th {
-  width: 25%;
-  padding: 4px 10px;
-  text-align: left;
+  td, th {
+    width: 25%;
+    padding: 4px 10px;
+    text-align: left;
+  }
 }
 
 .dependency-table {
   width: 100%;
-}
 
-.dependency-table td,
-.dependency-table th {
-  width: 25%;
-  padding: 4px 10px;
-  text-align: left;
-}
+  td, th {
+    width: 25%;
+    padding: 4px 10px;
+    text-align: left;
+  }
 
-.dependency-table th.sub-header {
-  font-weight: 500;
-  font-style: italic;
+  th.sub-header {
+    font-weight: 500;
+    font-style: italic;
+  }
 }
-
 
 /******************************************************
   Analysis tab

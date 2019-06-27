@@ -54,7 +54,7 @@ Future<shelf.Response> packageShowHandlerJson(
     'versions':
         versions.map((packageVersion) => packageVersion.version).toList(),
   };
-  return jsonResponse(json, pretty: isPrettyJson(request));
+  return jsonResponse(json);
 }
 
 /// Handles requests for /packages/<package>/versions
@@ -105,7 +105,6 @@ Future<shelf.Response> packageVersionHandlerHtml(
     final first10Versions = versions.take(10).toList();
 
     sortPackageVersionsDesc(versions, decreasing: true, pubSorting: false);
-    final latestDev = versions[0];
 
     PackageVersion selectedVersion;
     if (versionName != null) {
@@ -142,8 +141,6 @@ Future<shelf.Response> packageVersionHandlerHtml(
         first10Versions,
         versionDownloadUrls,
         selectedVersion,
-        latestStable,
-        latestDev,
         versions.length,
         analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);

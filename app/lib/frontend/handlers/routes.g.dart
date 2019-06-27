@@ -8,6 +8,8 @@ part of 'routes.dart';
 
 Router _$PubSiteServiceRouter(PubSiteService service) {
   final router = Router();
+  router.add('GET', '/liveness_check', service.livenessCheck);
+  router.add('GET', '/readiness_check', service.readinessCheck);
   router.add('GET', '/api/packages/<package>', service.listVersions);
   router.add(
       'GET', '/api/packages/<package>/versions/<version>', service.versionInfo);
@@ -45,6 +47,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);
   router.add('GET', '/sitemap.txt', service.sitemapTxt);
+  router.add('GET', '/favicon.ico', service.staticAsset);
   router.add('GET', '/static/<path|[^]*>', service.staticAsset);
   router.add('GET', '/experimental', service.experimental);
   router.add('GET', '/oauth/callback', service.oauthCallback);
@@ -60,16 +63,5 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/api/search', service.apiSearch);
   router.add('GET', '/debug', service.debug);
   router.add('GET', '/packages.json', service.packagesJson);
-  return router;
-}
-
-Router _$PubDartlangOrgServiceRouter(PubDartlangOrgService service) {
-  final router = Router();
-  router.add('GET', '/doc', service.doc);
-  router.add('GET', '/doc/<path|[^]*>', service.doc);
-  router.add('GET', '/server', service.server);
-  router.add('GET', '/flutter/plugins', service.flutterPlugins);
-  router.add('GET', '/server/packages', service.serverPackages);
-  router.add('GET', '/search', service.search);
   return router;
 }

@@ -74,5 +74,5 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
         '${query.toServiceQueryParameters()}');
   }
 
-  return jsonResponse(result.toJson(), pretty: isPrettyJson(request));
+  return jsonResponse(result.toJson());
 }

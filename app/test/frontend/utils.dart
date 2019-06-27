@@ -47,7 +47,8 @@ Package createTestPackage({List<AuthenticatedUser> uploaders}) {
     ..updated = DateTime.utc(2015)
     ..uploaders = uploaders.map((user) => user.userId).toList()
     ..latestVersionKey = testPackageVersionKey
-    ..latestDevVersionKey = testPackageVersionKey;
+    ..latestDevVersionKey = testPackageVersionKey
+    ..downloads = 0;
 }
 
 final Package testPackage = createTestPackage()
@@ -71,7 +72,8 @@ final PackageVersion testPackageVersion = PackageVersion()
   ..changelogContent = testPackageChangelog
   ..exampleFilename = 'example/lib/main.dart'
   ..exampleContent = testPackageExample
-  ..sortOrder = -1;
+  ..sortOrder = -1
+  ..downloads = 0;
 
 final PackageVersion flutterPackageVersion =
     clonePackageVersion(testPackageVersion)

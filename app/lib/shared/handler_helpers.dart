@@ -70,6 +70,9 @@ shelf.Handler wrapHandler(
 /// Populates [requestContext] with the extracted request attributes.
 shelf.Handler _requestContextWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
+    final indentJson =
+        request.requestedUri.queryParameters.containsKey('pretty');
+
     final host = request.requestedUri.host;
     final isPrimaryHost = host == urls.primaryHost;
     final isProductionHost = activeConfiguration.productionHosts.contains(host);
@@ -84,6 +87,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
     final uiCacheEnabled = isPrimaryHost && !hasExperimentalCookie;
 
     registerRequestContext(RequestContext(
+      indentJson: indentJson,
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
       uiCacheEnabled: uiCacheEnabled,
@@ -186,7 +190,6 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
               'to re-initialize your login session.',
         },
         status: 401,
-        pretty: false,
       );
     }
   };

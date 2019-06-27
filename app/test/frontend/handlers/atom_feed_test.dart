@@ -2,26 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:fake_gcloud/mem_datastore.dart';
+import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 
-import '../mocks.dart';
 import '../utils.dart';
 
 import '_utils.dart';
 
 void main() {
-  final pageSize = 10;
-
   group('feeds', () {
     tScopedTest('/feed.atom', () async {
-      final backend = BackendMock(latestPackageVersionsFun: ({offset, limit}) {
-        expect(offset, 0);
-        expect(limit, pageSize);
-        return [testPackageVersion];
-      });
-      registerBackend(backend);
+      final db = DatastoreDB(MemDatastore());
+      await db.commit(inserts: [testPackage, testPackageVersion]);
+      registerBackend(Backend(db, null));
       await expectAtomXmlResponse(await issueGet('/feed.atom'), regexp: '''
 <\\?xml version="1.0" encoding="UTF-8"\\?>
 <feed xmlns="http://www.w3.org/2005/Atom">

@@ -8,22 +8,19 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
+import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 
 void main() {
   group('AccountBackend', () {
     final memDb = MemDatastore();
     final datastore = DatastoreDB(memDb);
-    final backend = AccountBackend(datastore,
-        authProvider: AuthProviderMock(tokens: {
-          'token-a': AuthResult('oauth-id-a', 'a@example.com'),
-          'token-c': AuthResult('oauth-id-c', 'c@example.com'),
-        }));
+    final backend = AccountBackend(datastore, authProvider: FakeAuthProvider());
 
     setUpAll(() async {
       datastore.commit(inserts: [
         User()
           ..parentKey = datastore.emptyKey
-          ..id = 'user-a'
+          ..id = 'a-example-com'
           ..oauthUserId = null
           ..email = 'a@example.com'
           ..created = DateTime(2019, 01, 01)
@@ -36,9 +33,9 @@ void main() {
     });
 
     test('Successful lookup', () async {
-      final email = await backend.getEmailOfUserId('user-a');
+      final email = await backend.getEmailOfUserId('a-example-com');
       expect(email, 'a@example.com');
-      final u1 = await backend.lookupUserById('user-a');
+      final u1 = await backend.lookupUserById('a-example-com');
       expect(u1.email, 'a@example.com');
       expect(u1.oauthUserId, isNull);
       final u2 = await backend.lookupOrCreateUserByEmail('a@example.com');
@@ -54,7 +51,7 @@ void main() {
       final ids =
           await datastore.query<User>().run().map((u) => u.userId).toList();
       expect(ids.length, 2);
-      expect(ids.contains('user-a'), isTrue);
+      expect(ids.contains('a-example-com'), isTrue);
       expect(ids.contains(u.userId), isTrue);
     });
 
@@ -71,20 +68,21 @@ void main() {
           .toList();
       expect(ids1, isEmpty);
 
-      final u1 = await backend.authenticateWithAccessToken('token-a');
-      expect(u1.userId, 'user-a');
+      final u1 =
+          await backend.authenticateWithAccessToken('a-at-example-dot-com');
+      expect(u1.userId, 'a-example-com');
       expect(u1.email, 'a@example.com');
 
-      final u2 = await backend.lookupUserById('user-a');
+      final u2 = await backend.lookupUserById('a-example-com');
       expect(u2.email, 'a@example.com');
-      expect(u2.oauthUserId, 'oauth-id-a');
+      expect(u2.oauthUserId, 'a-example-com');
 
       final ids2 = await datastore
           .query<OAuthUserID>()
           .run()
           .map((u) => u.oauthUserId)
           .toList();
-      expect(ids2, ['oauth-id-a']);
+      expect(ids2, ['a-example-com']);
     });
 
     test('Authenticate: new user', () async {
@@ -93,15 +91,16 @@ void main() {
           .run()
           .map((u) => u.oauthUserId)
           .toList();
-      expect(ids1, ['oauth-id-a']);
+      expect(ids1, ['a-example-com']);
 
-      final u1 = await backend.authenticateWithAccessToken('token-c');
+      final u1 =
+          await backend.authenticateWithAccessToken('c-at-example-dot-com');
       expect(u1.userId, hasLength(36));
       expect(u1.email, 'c@example.com');
 
       final u2 = await backend.lookupUserById(u1.userId);
       expect(u2.email, 'c@example.com');
-      expect(u2.oauthUserId, 'oauth-id-c');
+      expect(u2.oauthUserId, 'c-example-com');
 
       final ids2 = await datastore
           .query<OAuthUserID>()
@@ -109,35 +108,7 @@ void main() {
           .map((u) => u.oauthUserId)
           .toList();
       ids2.sort();
-      expect(ids2, ['oauth-id-a', 'oauth-id-c']);
+      expect(ids2, ['a-example-com', 'c-example-com']);
     });
   });
-}
-
-class AuthProviderMock implements AuthProvider {
-  final Map<String, String> codes;
-  final Map<String, AuthResult> tokens;
-
-  AuthProviderMock({
-    this.codes = const <String, String>{},
-    this.tokens = const <String, AuthResult>{},
-  });
-
-  @override
-  String authorizationUrl(String redirectUrl, String state) {
-    return 'https://auth.provider.com/url?state=${Uri.encodeQueryComponent(state)}';
-  }
-
-  @override
-  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
-    return codes[code];
-  }
-
-  @override
-  Future<AuthResult> tryAuthenticate(String accessToken) async {
-    return tokens[accessToken];
-  }
-
-  @override
-  Future close() async {}
 }

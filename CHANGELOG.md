@@ -3,10 +3,24 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190626t135754-all`
+
+ * Downgraded `package:appengine` to `0.6.1` due to `grpc` issues.
+
+## `20190625t130656-all`
+
+ * Upgraded `package:appengine` to `0.7.0`, need to watch for side-effects.
  * Update project to use split health checks, run:
    `gcloud app update --split-health-checks --project dartlang-pub`
+ * Upgraded `pana` (`0.12.19`).
+ * Bumped runtimeVersion to `2019.06.24`.
+
+## `20190617t112618-all`
+
  * `search` service is using custom liveness and readiness checks.
  * Search results (top packages, listing pages) use local fallbacks.
+ * Upgraded `pana` (`0.12.18`), runtime and analysis Dart SDK (`2.3.2`).
+ * Bumped runtimeVersion to `2019.06.17`.
 
 ## `20190529t163905-all`
 

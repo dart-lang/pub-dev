@@ -4,7 +4,6 @@
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_server/repository.dart' show GenericProcessingException;
 
 import 'packages_overrides.dart';
 import 'versions.dart';
@@ -97,38 +96,6 @@ String pkgInviteUrl({
     host: primaryHost,
     path: p.join('/admin/confirm', type, package, email, urlNonce),
   ).toString();
-}
-
-final _invalidHostNames = const <String>[
-  '..',
-  '...',
-  'example.com',
-  'example.org',
-  'example.net',
-  'www.example.com',
-  'www.example.org',
-  'www.example.net',
-  'none',
-];
-
-void syntaxCheckHomepageUrl(String url) {
-  Uri uri;
-  try {
-    uri = Uri.parse(url);
-  } catch (_) {
-    throw GenericProcessingException('Unable to parse homepage URL: $url');
-  }
-  final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
-  if (!hasValidScheme) {
-    throw GenericProcessingException(
-        'Use http:// or https:// URL schemes for homepage URL: $url');
-  }
-  if (uri.host == null ||
-      uri.host.isEmpty ||
-      !uri.host.contains('.') ||
-      _invalidHostNames.contains(uri.host)) {
-    throw GenericProcessingException('Homepage URL has no valid host: $url');
-  }
 }
 
 String dartSdkMainUrl(String version) {

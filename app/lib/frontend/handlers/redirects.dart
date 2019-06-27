@@ -4,47 +4,72 @@
 
 library pub_dartlang_org.handlers_redirects;
 
-import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart';
 
 import '../../shared/handlers.dart';
-import '../../shared/urls.dart' as urls;
+import '../../shared/urls.dart';
 
-typedef SyncHandler = shelf.Response Function(shelf.Request request);
+part 'redirects.g.dart';
 
-/// Checks [request] whether it can handle it via redirect.
-/// Returns null when there is no redirect.
-shelf.Response tryHandleRedirects(shelf.Request request) {
-  final host = request.requestedUri.host;
-  final path = request.requestedUri.path;
-  if (host == 'www.dartdocs.org' ||
-      host == 'dartdocs.org' ||
-      host == 'www.pub.dev') {
-    return redirectResponse(
-        request.requestedUri.replace(host: urls.primaryHost).toString());
-  }
+/// Routes that are only processed by the old pub domain.
+class PubDartlangOrgService {
+  Router get router => _$PubDartlangOrgServiceRouter(this);
 
-  // Redirect from legacy host (pub.dartlang.org) to primary host (pub.dev).
-  if (host == urls.legacyHost &&
-      host != urls.primaryHost &&
-      _shouldRedirectToPubDev(path)) {
-    return redirectResponse(
-        request.requestedUri.replace(host: urls.primaryHost).toString());
-  }
+  /// (Old) pub client doc redirect
+  @Route.get('/doc')
+  @Route.get('/doc/<path|[^]*>')
+  Future<Response> doc(Request request) async => _docRedirectHandler(request);
 
-  return null;
+  /// (Old) server index redirect
+  @Route.get('/server')
+  Future<Response> server(Request request) async =>
+      redirectResponse('$siteRoot/');
+
+  /// (Old) Flutter plugins redirect
+  @Route.get('/flutter/plugins')
+  Future<Response> flutterPlugins(Request request) async =>
+      redirectResponse('$siteRoot/flutter/packages');
+
+  /// (Old) Server packages redirect
+  @Route.get('/server/packages')
+  Future<Response> serverPackages(Request request) async =>
+      redirectResponse(request.requestedUri
+          .replace(host: primaryHost, path: '/packages')
+          .toString());
+
+  /// (Old) Search redirect
+  @Route.get('/search')
+  Future<Response> search(Request request) async =>
+      redirectResponse(request.requestedUri
+          .replace(host: primaryHost, path: '/packages')
+          .toString());
 }
 
-bool _shouldRedirectToPubDev(String path) {
-  if (path.startsWith('/api/')) return false;
-  if (path.endsWith('.tar.gz')) return false;
-  if (path.endsWith('.json')) return false;
-  if (path == '/debug') return false;
-  return true;
+/// Routes that are only processed by the legacy dartdocs.org domain.
+class LegacyDartdocService {
+  Router get router => _$LegacyDartdocServiceRouter(this);
+
+  /// Landing page of dartdocs.org
+  @Route.get('/')
+  Future<Response> index(Request request) async =>
+      redirectResponse(fullSiteUrl);
+
+  /// Specific documentation page of dartdocs.org
+  @Route.get('/documentation')
+  @Route.get('/documentation/<path|[^]*>')
+  Future<Response> documentation(Request request) async =>
+      redirectResponse(Uri.parse(fullSiteUrl)
+          .replace(path: request.requestedUri.path)
+          .toString());
+
+  @Route.all('/<_|.*>')
+  Response catchAll(Request request) => Response.notFound('Not Found.');
 }
 
 /// Handles requests for /doc
-shelf.Response docRedirectHandler(shelf.Request request) {
-  final pubDocUrl = '${urls.dartSiteRoot}/tools/pub/';
+Response _docRedirectHandler(Request request) {
+  final pubDocUrl = '$dartSiteRoot/tools/pub/';
   final dartlangDotOrgPath = redirectPaths[request.requestedUri.path];
   if (dartlangDotOrgPath != null) {
     return redirectResponse('$pubDocUrl$dartlangDotOrgPath');

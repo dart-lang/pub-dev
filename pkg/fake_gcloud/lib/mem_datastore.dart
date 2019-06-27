@@ -118,7 +118,7 @@ class MemDatastore implements Datastore {
     if (query.offset != null && query.offset > 0) {
       items = items.skip(query.offset).toList();
     }
-    if (query.limit != null && query.limit > items.length) {
+    if (query.limit != null && query.limit < items.length) {
       items = items.sublist(0, query.limit);
     }
     return _Page(items, 0, 100);

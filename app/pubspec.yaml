@@ -12,10 +12,10 @@ dependencies:
   args: '>=0.13.7 <2.0.0'
   crypto: '^2.0.2'
   gcloud: '^0.6.0'
-  googleapis: '>=0.31.0 <0.52.0'
+  googleapis: '>=0.53.0 <0.54.0'
   googleapis_auth: ^0.2.4
   html: '>=0.12.0 <0.15.0'
-  http: '>=0.11.0 <0.12.0'
+  http: '>=0.12.0 <0.13.0'
   http_parser: '>=3.1.1 <4.0.0'
   intl: '>=0.13.0 <0.16.0'
   json_annotation: '^2.0.0'
@@ -28,6 +28,8 @@ dependencies:
   pool: '^1.3.4'
   pub_dartdoc_data:
     path: ../pkg/pub_dartdoc_data
+  pub_package_reader:
+    path: ../pkg/pub_package_reader
   pub_semver: ">=1.2.2 <2.0.0"
   pub_server: ">=0.1.0 <0.2.0"
   pubspec_parse: ^0.1.4
@@ -38,13 +40,14 @@ dependencies:
   yaml: '^2.1.12'
   # pana version to be pinned
   # keep in-sync with app/lib/shared/versions.dart
-  pana: '0.12.17'
+  pana: '0.12.19'
   # 3rd-party packages with pinned versions
   archive: '2.0.3'
   mailer: '2.1.1'
-  sanitize_html: '1.2.0'
+  sanitize_html: '1.3.0'
   uuid: '1.0.3'
   ulid: '1.0.2'
+  http_retry: '0.1.1+3'
 
 dev_dependencies:
   build_runner: '^1.0.0'

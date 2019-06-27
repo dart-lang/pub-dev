@@ -11,30 +11,6 @@ const internalPackageNames = <String>[
   'angular_components',
 ];
 
-final Set<String> knownMixedCasePackages = _knownMixedCasePackages.toSet();
-final Set<String> blockedLowerCasePackages = _knownMixedCasePackages
-    .map((s) => s.toLowerCase())
-    .toSet()
-      ..removeAll(_knownGoodLowerCasePackages);
-
-const _knownMixedCasePackages = [
-  'Autolinker',
-  'Babylon',
-  'DartDemoCLI',
-  'FileTeCouch',
-  'Flutter_Nectar',
-  'Google_Search_v2',
-  'LoadingBox',
-  'PolymerIntro',
-  'Pong',
-  'RAL',
-  'Transmission_RPC',
-  'ViAuthClient',
-];
-const _knownGoodLowerCasePackages = [
-  'babylon',
-];
-
 const redirectPackagePages = <String, String>{
   'flutter': '${urls.siteRoot}/flutter',
 };

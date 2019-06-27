@@ -7,25 +7,25 @@
   <div class="metadata">
     Published <span>{{package.short_created}}</span>
     <!-- &bull; Downloads: X -->
-    {{#package.latest.should_show}}
+    {{#package.latest.show_updated}}
       &bull; Updated:
-      <span><a href="{{& package.latest.stable_url}}">{{package.latest.stable_name}}</a></span>
-      {{#package.latest.should_show_dev}}
+      <span><a href="{{& package.latest.stable_url}}">{{package.latest.stable_version}}</a></span>
+      {{#package.latest.show_dev_version}}
         /
-        <span><a href="{{& package.latest.dev_url}}">{{package.latest.dev_name}}</a></span>
-      {{/package.latest.should_show_dev}}
-    {{/package.latest.should_show}}
+        <span><a href="{{& package.latest.dev_url}}">{{package.latest.dev_version}}</a></span>
+      {{/package.latest.show_dev_version}}
+    {{/package.latest.show_updated}}
     <div class="tags">{{& package.tags_html}}</div>
   </div>
 </div>
 
 <div class="package-container">
+  <ul class="package-tabs js-tabs">
+    {{#tabs}}
+      <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
+    {{/tabs}}
+  </ul>
   <div class="main tabs-content">
-    <ul class="package-tabs js-tabs">
-      {{#tabs}}
-        <li class="tab {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
-      {{/tabs}}
-    </ul>
     {{#tabs}}
       <section class="content {{active}} js-content {{markdown-body}}" data-name="-{{id}}-tab-">
         {{& content_html}}
