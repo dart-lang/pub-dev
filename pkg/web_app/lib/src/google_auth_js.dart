@@ -7,7 +7,30 @@
 @JS('gapi.auth2')
 library google_auth_js;
 
+import 'dart:async';
 import 'package:js/js.dart';
+
+/// Minimal interface for promise.
+@JS('Promise')
+class Promise<T> {
+  external Promise then(
+    void Function(T) onAccept,
+    void Function(Exception) onReject,
+  );
+}
+
+/// Convert a promise to a future.
+Future<T> promiseAsFuture<T>(Promise<T> promise) {
+  ArgumentError.checkNotNull(promise, 'promise');
+
+  final c = Completer<T>();
+  promise.then(allowInterop(Zone.current.bindUnaryCallback((T result) {
+    c.complete(result);
+  })), allowInterop(Zone.current.bindUnaryCallback((Object e) {
+    c.completeError(e);
+  })));
+  return c.future;
+}
 
 /// Initializes the GoogleAuth object. You must call this method before calling
 /// gapi.auth2.GoogleAuth's methods.
@@ -67,6 +90,28 @@ abstract class GoogleUser {
   /// The auth response.
   external AuthResponse getAuthResponse(bool includeAuthorizationData);
 
+  /// Returns true if the user granted the specified scopes.
+  ///
+  /// The [scopes] is a space-delemited list of scopes.
+  external bool hasGrantedScopes(String scopes);
+
+  /// Request additional scopes to the user.
+  ///
+  /// **Example**
+  /// ```dart
+  /// GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
+  ///
+  /// final extraScope = 'https://www.googleapis.com/auth/webmasters.readonly';
+  ///
+  /// if (!currentUser.hasGrantedScopes(extraScope)) {
+  ///   // We don't have the extract scope, so let's ask for it
+  ///   currentUser = await promiseAsFuture(currentUser.grant(GrantOptions(
+  ///     scope: extraScope,
+  ///   )));
+  /// }
+  /// ```
+  external Promise<GoogleUser> grant(GrantOptions options);
+
   /// The basic profile info.
   external BasicProfile getBasicProfile();
 }
@@ -87,4 +132,14 @@ abstract class BasicProfile {
 
   /// The e-mail address of the user.
   external String getEmail();
+}
+
+@JS()
+@anonymous
+abstract class GrantOptions {
+  external String get scope;
+
+  external factory GrantOptions({
+    String scope,
+  });
 }
