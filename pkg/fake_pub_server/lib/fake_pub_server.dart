@@ -74,7 +74,8 @@ class FakePubServer {
         registerHistoryBackend(HistoryBackend(db));
         registerScoreCardBackend(ScoreCardBackend(db));
         registerScoreCardMemcache(ScoreCardMemcache());
-        NameTrackerUpdater(db).startNameTrackerUpdates();
+        final nameTrackerUpdater = NameTrackerUpdater(db);
+        nameTrackerUpdater.startNameTrackerUpdates();
         registerSearchService(SearchService());
 
         registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
@@ -102,6 +103,7 @@ class FakePubServer {
 
         await ProcessSignal.sigterm.watch().first;
         await server.close();
+        nameTrackerUpdater.stop();
         _logger.info('closing');
       });
     });

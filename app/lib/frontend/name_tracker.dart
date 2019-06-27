@@ -71,6 +71,7 @@ class NameTracker {
 class NameTrackerUpdater {
   final DatastoreDB _db;
   DateTime _lastTs;
+  bool _stopped = false;
 
   NameTrackerUpdater(this._db);
 
@@ -79,6 +80,7 @@ class NameTrackerUpdater {
     final sw = Stopwatch()..start();
     _logger.info('Scanning existing package names');
     for (;;) {
+      if (_stopped) return;
       try {
         await _scan();
       } catch (e, st) {
@@ -95,6 +97,7 @@ class NameTrackerUpdater {
 
     _logger.info('Monitoring new package creation.');
     for (;;) {
+      if (_stopped) return;
       try {
         await _scan();
       } catch (e, st) {
@@ -110,8 +113,13 @@ class NameTrackerUpdater {
       query.filter('created >', _lastTs);
     }
     await for (Package p in query.run()) {
+      if (_stopped) return;
       nameTracker.add(p.name);
       _lastTs = p.created;
     }
+  }
+
+  void stop() {
+    _stopped = true;
   }
 }
