@@ -137,8 +137,6 @@ void main() {
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          testPackageVersion,
-          devPackageVersion,
           1,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
@@ -189,8 +187,6 @@ void main() {
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          testPackageVersion,
-          devPackageVersion,
           1,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
@@ -240,8 +236,6 @@ void main() {
         [flutterPackageVersion],
         [Uri.parse('http://dart-example.com/')],
         flutterPackageVersion,
-        flutterPackageVersion,
-        flutterPackageVersion,
         1,
         AnalysisView(
           card: ScoreCardData(
@@ -279,8 +273,6 @@ void main() {
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          testPackageVersion,
-          testPackageVersion,
           1,
           AnalysisView(
             card: ScoreCardData(
@@ -299,8 +291,6 @@ void main() {
           false,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
-          testPackageVersion,
-          testPackageVersion,
           testPackageVersion,
           1,
           AnalysisView(
@@ -322,8 +312,6 @@ void main() {
           true /* isVersionPage */,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
-          testPackageVersion,
-          testPackageVersion,
           testPackageVersion,
           1,
           AnalysisView(

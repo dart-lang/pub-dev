@@ -206,8 +206,6 @@ String renderPkgShowPage(
     List<PackageVersion> versions,
     List<Uri> versionDownloadUrls,
     PackageVersion selectedVersion,
-    PackageVersion latestStableVersion,
-    PackageVersion latestDevVersion,
     int totalNumberOfVersions,
     AnalysisView analysis) {
   assert(versions.length == versionDownloadUrls.length);
@@ -219,12 +217,12 @@ String renderPkgShowPage(
       singlePlatform != null && singlePlatform != KnownPlatforms.other;
   final bool hasOnlyFlutterPlatform = singlePlatform == KnownPlatforms.flutter;
   final bool isFlutterPackage =
-      hasOnlyFlutterPlatform || latestStableVersion.pubspec.usesFlutter;
+      hasOnlyFlutterPlatform || selectedVersion.pubspec.usesFlutter;
 
-  final bool shouldShowDev =
-      latestStableVersion.semanticVersion < latestDevVersion.semanticVersion;
-  final bool shouldShow =
-      selectedVersion != latestStableVersion || shouldShowDev;
+  final bool showDevVersion = package.latestDevVersion != null &&
+      package.latestSemanticVersion < package.latestDevSemanticVersion;
+  final bool showUpdated =
+      selectedVersion.version != package.latestVersion || showDevVersion;
 
   final isAwaiting = card == null ||
       analysis == null ||
@@ -245,13 +243,13 @@ String renderPkgShowPage(
       'name': package.name,
       'version': selectedVersion.id,
       'latest': {
-        'should_show': shouldShow,
-        'should_show_dev': shouldShowDev,
+        'show_updated': showUpdated,
+        'show_dev_version': showDevVersion,
         'stable_url': urls.pkgPageUrl(package.name),
-        'stable_name': latestStableVersion.version,
+        'stable_version': package.latestVersion,
         'dev_url':
-            urls.pkgPageUrl(package.name, version: latestDevVersion.version),
-        'dev_name': latestDevVersion.version,
+            urls.pkgPageUrl(package.name, version: package.latestDevVersion),
+        'dev_version': package.latestDevVersion,
       },
       'tags_html': renderTags(
         analysis?.platforms,
