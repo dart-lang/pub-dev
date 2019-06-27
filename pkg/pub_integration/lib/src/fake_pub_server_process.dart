@@ -89,13 +89,13 @@ class FakePubServerProcess {
   }
 
   Future kill() async {
-    _stdoutListener?.cancel();
     // First try SIGTERM, and after 10 minutes do SIGKILL.
     _process.kill(ProcessSignal.sigterm);
     final timer = Timer(Duration(minutes: 10), () {
       _process.kill();
     });
     await _process.exitCode;
+    _stdoutListener?.cancel();
     timer.cancel();
   }
 }

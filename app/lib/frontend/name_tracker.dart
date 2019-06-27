@@ -71,14 +71,18 @@ class NameTracker {
 class NameTrackerUpdater {
   final DatastoreDB _db;
   DateTime _lastTs;
+  Completer _sleepCompleter;
+  Timer _sleepTimer;
+  bool _stopped = false;
 
   NameTrackerUpdater(this._db);
 
-  // Note, this method never returns.
+  /// The returned future completes after the `stop` method is called.
   Future startNameTrackerUpdates() async {
     final sw = Stopwatch()..start();
     _logger.info('Scanning existing package names');
     for (;;) {
+      if (_stopped) return;
       try {
         await _scan();
       } catch (e, st) {
@@ -91,17 +95,31 @@ class NameTrackerUpdater {
     _logger.info(
         'Scanned initial package names (${nameTracker.length}) in ${sw.elapsed}.');
 
-    await Future.delayed(_pollingInterval);
+    await _sleep();
 
     _logger.info('Monitoring new package creation.');
     for (;;) {
+      if (_stopped) return;
       try {
         await _scan();
       } catch (e, st) {
         _logger.severe(e, st);
       }
-      await Future.delayed(_pollingInterval);
+      await _sleep();
     }
+  }
+
+  Future _sleep() async {
+    _sleepCompleter = Completer();
+    _sleepTimer = Timer(_pollingInterval, () {
+      if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
+        _sleepCompleter.complete();
+      }
+    });
+    await _sleepCompleter.future;
+    _sleepTimer.cancel();
+    _sleepCompleter = null;
+    _sleepTimer = null;
   }
 
   Future _scan() async {
@@ -110,8 +128,16 @@ class NameTrackerUpdater {
       query.filter('created >', _lastTs);
     }
     await for (Package p in query.run()) {
+      if (_stopped) return;
       nameTracker.add(p.name);
       _lastTs = p.created;
+    }
+  }
+
+  void stop() {
+    _stopped = true;
+    if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
+      _sleepCompleter.complete();
     }
   }
 }

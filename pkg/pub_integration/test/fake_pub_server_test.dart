@@ -66,7 +66,7 @@ void main() {
               ..addAll({'code': 'dev-at-example-dot-org'})));
       }
 
-      await verifyPubIntegration(
+      await verifyPub(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
         credentialsFile: fakeCredentialsFile,
         invitedEmail: 'dev@example.org',

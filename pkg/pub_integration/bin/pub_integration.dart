@@ -72,7 +72,7 @@ Future main(List<String> args) async {
     stdin.readByteSync();
   }
 
-  await verifyPubIntegration(
+  await verifyPub(
     pubHostedUrl: pubHostedUrl,
     credentialsFile: credentialsFile,
     invitedEmail: invitedEmail,
