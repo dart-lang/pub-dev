@@ -82,20 +82,20 @@
         </div>
       </div>
       <div class="package-container">
-        <ul class="package-tabs js-tabs">
-          <li class="tab -active" data-name="-readme-tab-" role="button">Readme</li>
-          <li class="tab " data-name="-changelog-tab-" role="button">Changelog</li>
-          <li class="tab " data-name="-example-tab-" role="button">Example</li>
-          <li class="tab " data-name="-installing-tab-" role="button">Installing</li>
-          <li class="tab " data-name="-versions-tab-" role="button">Versions</li>
-          <li class="tab " data-name="-analysis-tab-" role="button">
+        <ul class="package-tabs-header">
+          <li class="tab-button -active" data-name="-readme-tab-" role="button">Readme</li>
+          <li class="tab-button " data-name="-changelog-tab-" role="button">Changelog</li>
+          <li class="tab-button " data-name="-example-tab-" role="button">Example</li>
+          <li class="tab-button " data-name="-installing-tab-" role="button">Installing</li>
+          <li class="tab-button " data-name="-versions-tab-" role="button">Versions</li>
+          <li class="tab-button " data-name="-analysis-tab-" role="button">
             <div class="score-box">
               <span class="number -rotten" title="Analysis and more details.">0</span>
             </div>
           </li>
         </ul>
-        <div class="main tabs-content">
-          <section class="content -active js-content markdown-body" data-name="-readme-tab-">
+        <div class="main package-tabs-content">
+          <section class="tab-content -active markdown-body" data-name="-readme-tab-">
             <h1 class="hash-header" id="test-package">Test Package 
               <a href="#test-package" class="hash-link">#</a>
             </h1>
@@ -106,13 +106,13 @@
 </code>
             </pre>
           </section>
-          <section class="content  js-content markdown-body" data-name="-changelog-tab-">
+          <section class="tab-content  markdown-body" data-name="-changelog-tab-">
             <h1 class="hash-header" id="changelog">Changelog 
               <a href="#changelog" class="hash-link">#</a>
             </h1>
             <p>0.1.1 - test package</p>
           </section>
-          <section class="content  js-content markdown-body" data-name="-example-tab-">
+          <section class="tab-content  markdown-body" data-name="-example-tab-">
             <p style="font-family: monospace">
               <b>example/lib/main.dart</b>
             </p>
@@ -123,7 +123,7 @@
 </code>
             </pre>
           </section>
-          <section class="content  js-content " data-name="-installing-tab-">
+          <section class="tab-content  " data-name="-installing-tab-">
             <h2>Use this package as a library</h2>
             <h3>1. Depend on it</h3>
             <p>Add this to your package's pubspec.yaml file:</p>
@@ -156,7 +156,7 @@ import 'package:foobar_pkg/foolib.dart';
   </code>
             </pre>
           </section>
-          <section class="content  js-content " data-name="-versions-tab-">
+          <section class="tab-content  " data-name="-versions-tab-">
             <table class="version-table" data-package="foobar_pkg">
               <thead>
                 <tr>
@@ -188,7 +188,7 @@ import 'package:foobar_pkg/foolib.dart';
               </tbody>
             </table>
           </section>
-          <section class="content  js-content " data-name="-analysis-tab-">
+          <section class="tab-content  " data-name="-analysis-tab-">
             <table id='scores-table'>
               <tr>
                 <td class="score-name">
