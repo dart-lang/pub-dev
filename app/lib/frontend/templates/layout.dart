@@ -31,7 +31,6 @@ String renderLayoutPage(
   @required String title,
   String pageDescription,
   String faviconUrl,
-  String openSearchDescriptionUrl,
   String canonicalUrl,
   String platform,
   SearchQuery searchQuery,
@@ -62,8 +61,6 @@ String renderLayoutPage(
     'no_index': noIndex,
     'static_assets': staticUrls.assets,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
-    'open_search_description':
-        openSearchDescriptionUrl ?? staticUrls.openSearchDescription,
     'canonicalUrl': canonicalUrl,
     'pageDescription': pageDescription == null
         ? _defaultPageDescriptionEscaped
