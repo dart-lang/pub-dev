@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 for details. All rights reserved. Use of this source code is governed by a
 BSD-style license that can be found in the LICENSE file.
 -->
@@ -22,6 +22,6 @@ BSD-style license that can be found in the LICENSE file.
     <Url type="text/html" template="https://pub.dev/packages">
         <Param name="q" value="{searchTerms}"/>
     </Url>
-    <Url type="application/opensearchdescription+xml" rel="self" template="https://pub.dev/osd.xml"/>
+    <Url type="application/opensearchdescription+xml" rel="self" template="https://pub.dev/static/osd.xml"/>
     <moz:SearchForm>https://pub.dev</moz:SearchForm>
 </OpenSearchDescription>
