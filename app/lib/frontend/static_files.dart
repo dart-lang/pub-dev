@@ -88,10 +88,13 @@ class StaticFileCache {
         .map((file) => file.absolute as File)
         .map(
       (File file) {
-        final contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
+        final relativePath = path.relative(file.path, from: baseDir.path);
+        String contentType = mime.lookupMimeType(file.path) ?? 'octet/binary';
+        if (relativePath == 'osd.xml') {
+          contentType = 'application/opensearchdescription+xml';
+        }
         final bytes = file.readAsBytesSync();
         final lastModified = file.lastModifiedSync();
-        final relativePath = path.relative(file.path, from: baseDir.path);
         final isRoot = _staticRootPaths.contains(relativePath);
         final prefix = isRoot ? '' : _defaultStaticPath;
         final requestPath = '$prefix/$relativePath';
