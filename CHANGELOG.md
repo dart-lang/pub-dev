@@ -3,8 +3,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
- * Made search accessible via an OpenSearch description file at `/osd.xml`.
-
 ## `20190626t135754-all`
 
  * Downgraded `package:appengine` to `0.6.1` due to `grpc` issues.
