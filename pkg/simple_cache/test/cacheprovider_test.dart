@@ -98,9 +98,9 @@ void main() {
   testCacheProvider(
     name: 'in-memory cache',
     create: () async => StringCacheProvider(
-          cache: Cache.inMemoryCacheProvider(4096),
-          codec: utf8,
-        ),
+      cache: Cache.inMemoryCacheProvider(4096),
+      codec: utf8,
+    ),
   );
 
   CacheProvider<List<int>> p;

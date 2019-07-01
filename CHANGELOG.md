@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Upgraded to Dart `2.4.0`.
+ * Bumped runtimeVersion to `2019.05.03`.
+
 ## `20190626t135754-all`
 
  * Downgraded `package:appengine` to `0.6.1` due to `grpc` issues.

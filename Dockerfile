@@ -1,5 +1,5 @@
 # Keep version in-sync with .travis.yml, .mono_repo.yml and app/lib/shared/versions.dart
-FROM google/dart-runtime-base:2.3.2
+FROM google/dart-runtime-base:2.4.0
 
 # `apt-mark hold dart` ensures that Dart is not upgraded with the other packages
 #   We want to make sure SDK upgrades are explicit.
@@ -43,7 +43,7 @@ RUN pub get --offline --no-precompile
 #ENV GCLOUD_PROJECT dartlang-pub
 
 RUN cd / && \
-  curl -sS https://storage.googleapis.com/dart-archive/channels/stable/raw/2.3.2/sdk/dartsdk-linux-x64-release.zip >/dartsdk.zip && \
+  curl -sS https://storage.googleapis.com/dart-archive/channels/stable/raw/2.4.0/sdk/dartsdk-linux-x64-release.zip >/dartsdk.zip && \
   unzip -q /dartsdk.zip && \
   rm -f /dartsdk.zip
 
