@@ -20,15 +20,15 @@ final List<String> readmeFileNames = textFileNameCandidates('readme');
 /// Returns the candidates in priority order to display under the 'Example' tab.
 List<String> exampleFileCandidates(String package) {
   return <String>[
-  ...textFileNameCandidates('example/readme'),
-  ...textFileNameCandidates('example/example'),
-  'example/lib/main.dart',
-  'example/main.dart',
-  'example/lib/$package.dart',
-  'example/$package.dart',
-  'example/lib/${package}_example.dart',
-  'example/${package}_example.dart',
-  'example/lib/example.dart',
-  'example/example.dart',
+    ...textFileNameCandidates('example/readme'),
+    ...textFileNameCandidates('example/example'),
+    'example/lib/main.dart',
+    'example/main.dart',
+    'example/lib/$package.dart',
+    'example/$package.dart',
+    'example/lib/${package}_example.dart',
+    'example/${package}_example.dart',
+    'example/lib/example.dart',
+    'example/example.dart',
   ];
 }
