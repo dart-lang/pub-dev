@@ -2,22 +2,7 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<div class="package-header">
-  <h2 class="title">{{package.name}} {{package.version}}</h2>
-  <div class="metadata">
-    Published <span>{{package.short_created}}</span>
-    <!-- &bull; Downloads: X -->
-    {{#package.latest.show_updated}}
-      &bull; Updated:
-      <span><a href="{{& package.latest.stable_url}}">{{package.latest.stable_version}}</a></span>
-      {{#package.latest.show_dev_version}}
-        /
-        <span><a href="{{& package.latest.dev_url}}">{{package.latest.dev_version}}</a></span>
-      {{/package.latest.show_dev_version}}
-    {{/package.latest.show_updated}}
-    <div class="tags">{{& package.tags_html}}</div>
-  </div>
-</div>
+{{& header_html}}
 
 <div class="package-container">
   <ul class="package-tabs js-tabs">
@@ -37,5 +22,5 @@
 </div>
 
 <script type="application/ld+json">
-{{& package.schema_org_pkgmeta_json}}
+{{& schema_org_pkgmeta_json}}
 </script>

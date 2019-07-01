@@ -199,6 +199,44 @@ String _renderSidebar(
   });
 }
 
+/// Renders the `views/pkg/header.mustache` template.
+String renderPkgHeader(
+    Package package, PackageVersion selectedVersion, AnalysisView analysis) {
+  final card = analysis?.card;
+
+  final bool showDevVersion = package.latestDevVersion != null &&
+      package.latestSemanticVersion < package.latestDevSemanticVersion;
+  final bool showUpdated =
+      selectedVersion.version != package.latestVersion || showDevVersion;
+
+  final isAwaiting = card == null ||
+      analysis == null ||
+      (!card.isSkipped && !analysis.hasPanaSummary);
+
+  final values = {
+    'name': package.name,
+    'version': selectedVersion.id,
+    'latest': {
+      'show_updated': showUpdated,
+      'show_dev_version': showDevVersion,
+      'stable_url': urls.pkgPageUrl(package.name),
+      'stable_version': package.latestVersion,
+      'dev_url':
+          urls.pkgPageUrl(package.name, version: package.latestDevVersion),
+      'dev_version': package.latestDevVersion,
+    },
+    'tags_html': renderTags(
+      analysis?.platforms,
+      isAwaiting: isAwaiting,
+      isDiscontinued: card?.isDiscontinued ?? false,
+      isLegacy: card?.isLegacy ?? false,
+      isObsolete: card?.isObsolete ?? false,
+    ),
+    'short_created': selectedVersion.shortCreated,
+  };
+  return templateCache.renderTemplate('pkg/header', values);
+}
+
 /// Renders the `views/pkg/show.mustache` template.
 String renderPkgShowPage(
     Package package,
@@ -212,15 +250,6 @@ String renderPkgShowPage(
   assert(versions.length == versionDownloadUrls.length);
   final card = analysis?.card;
 
-  final bool showDevVersion = package.latestDevVersion != null &&
-      package.latestSemanticVersion < package.latestDevSemanticVersion;
-  final bool showUpdated =
-      selectedVersion.version != package.latestVersion || showDevVersion;
-
-  final isAwaiting = card == null ||
-      analysis == null ||
-      (!card.isSkipped && !analysis.hasPanaSummary);
-
   final tabsData = _tabsData(
     selectedVersion,
     analysis,
@@ -231,33 +260,13 @@ String renderPkgShowPage(
   );
 
   final values = {
-    'package': {
-      'name': package.name,
-      'version': selectedVersion.id,
-      'latest': {
-        'show_updated': showUpdated,
-        'show_dev_version': showDevVersion,
-        'stable_url': urls.pkgPageUrl(package.name),
-        'stable_version': package.latestVersion,
-        'dev_url':
-            urls.pkgPageUrl(package.name, version: package.latestDevVersion),
-        'dev_version': package.latestDevVersion,
-      },
-      'tags_html': renderTags(
-        analysis?.platforms,
-        isAwaiting: isAwaiting,
-        isDiscontinued: card?.isDiscontinued ?? false,
-        isLegacy: card?.isLegacy ?? false,
-        isObsolete: card?.isObsolete ?? false,
-      ),
-      'short_created': selectedVersion.shortCreated,
-      'schema_org_pkgmeta_json':
-          json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
-    },
+    'header_html': renderPkgHeader(package, selectedVersion, analysis),
     'tabs': tabsData,
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
         _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
+    'schema_org_pkgmeta_json':
+        json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
   };
   final content = templateCache.renderTemplate('pkg/show', values);
   final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
