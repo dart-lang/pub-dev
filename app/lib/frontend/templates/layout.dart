@@ -39,7 +39,7 @@ String renderLayoutPage(
 }) {
   final queryText = searchQuery?.query;
   final String escapedSearchQuery =
-      queryText == null ? null : htmlEscape.convert(queryText);
+      queryText == null ? null : htmlAttrEscape.convert(queryText);
   String platformTabs;
   if (type == PageType.landing) {
     platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
@@ -68,7 +68,7 @@ String renderLayoutPage(
     'title': htmlEscape.convert(title),
     'site_logo_url': staticUrls.pubDevLogo2xPng,
     'search_platform': platform,
-    'search_query': escapedSearchQuery,
+    'search_query_html': escapedSearchQuery,
     'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
     'search_sort_param': searchSort,
     'platform_tabs_html': platformTabs,
