@@ -70,8 +70,10 @@ final invalidHostNames = const <String>[
   'example.com',
   'example.org',
   'example.net',
+  'google.com',
   'www.example.com',
   'www.example.org',
   'www.example.net',
+  'www.google.com',
   'none',
 ];

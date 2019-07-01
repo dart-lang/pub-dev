@@ -7,7 +7,6 @@ environment:
 
 dependencies:
   logging: ^0.11.3
-  pana: ^0.12.18
   pubspec_parse: ^0.1.4
 
 dev_dependencies:

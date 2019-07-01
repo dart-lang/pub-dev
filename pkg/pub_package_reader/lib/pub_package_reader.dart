@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pubspec_parse/pubspec_parse.dart';
-import 'package:pana/pana.dart'
-    show readmeFileNames, changelogFileNames, exampleFileCandidates;
 
+import 'src/file_names.dart';
 import 'src/names.dart';
 import 'src/tar_utils.dart';
 
