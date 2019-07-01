@@ -53,9 +53,10 @@ String _renderDependencyList(AnalysisView analysis) {
       .join(', ');
 }
 
-String _renderInstallTab(PackageVersion selectedVersion, bool isFlutterPackage,
-    List<String> platforms) {
+String _renderInstallTab(
+    PackageVersion selectedVersion, List<String> platforms) {
   final packageName = selectedVersion.package;
+  final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
   List importExamples;
   if (selectedVersion.libraries.contains('$packageName.dart')) {
     importExamples = [
@@ -210,14 +211,6 @@ String renderPkgShowPage(
     AnalysisView analysis) {
   assert(versions.length == versionDownloadUrls.length);
   final card = analysis?.card;
-  final int platformCount = card?.platformTags?.length ?? 0;
-  final String singlePlatform =
-      platformCount == 1 ? card.platformTags.single : null;
-  final bool hasPlatformSearch =
-      singlePlatform != null && singlePlatform != KnownPlatforms.other;
-  final bool hasOnlyFlutterPlatform = singlePlatform == KnownPlatforms.flutter;
-  final bool isFlutterPackage =
-      hasOnlyFlutterPlatform || selectedVersion.pubspec.usesFlutter;
 
   final bool showDevVersion = package.latestDevVersion != null &&
       package.latestSemanticVersion < package.latestDevSemanticVersion;
@@ -230,7 +223,6 @@ String renderPkgShowPage(
 
   final tabsData = _tabsData(
     selectedVersion,
-    isFlutterPackage,
     analysis,
     versions,
     versionDownloadUrls,
@@ -268,6 +260,7 @@ String renderPkgShowPage(
         _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
   };
   final content = templateCache.renderTemplate('pkg/show', values);
+  final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
   final packageAndVersion = isVersionPage
       ? '${selectedVersion.package} ${selectedVersion.version}'
       : selectedVersion.package;
@@ -285,14 +278,13 @@ String renderPkgShowPage(
     pageDescription: selectedVersion.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
-    platform: hasPlatformSearch ? singlePlatform : null,
+    platform: card?.asSinglePlatform,
     noIndex: noIndex,
   );
 }
 
 List<Map<String, String>> _tabsData(
   PackageVersion selectedVersion,
-  bool isFlutterPackage,
   AnalysisView analysis,
   List<PackageVersion> versions,
   List<Uri> versionDownloadUrls,
@@ -352,8 +344,7 @@ List<Map<String, String>> _tabsData(
 
   addTab('installing',
       title: 'Installing',
-      content: _renderInstallTab(
-          selectedVersion, isFlutterPackage, analysis?.platforms));
+      content: _renderInstallTab(selectedVersion, analysis?.platforms));
   addTab('versions',
       title: 'Versions',
       content: _renderVersionsTab(selectedVersion, versions,
