@@ -292,6 +292,18 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
+    test('exact phrase with dot: "once on demand."', () async {
+      final result =
+          await index.search(SearchQuery.parse(query: '"once on demand."'));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.65, 0.01)},
+        ],
+      });
+    });
+
     test('package prefix: chrome', () async {
       final PackageSearchResult result =
           await index.search(SearchQuery.parse(query: 'package:chrome'));

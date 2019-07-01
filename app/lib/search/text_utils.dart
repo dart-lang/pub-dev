@@ -6,8 +6,9 @@ import 'package:html/parser.dart';
 
 import '../shared/markdown.dart';
 
-final RegExp _separators =
-    RegExp(r'[_\.,;=\:\(\)\>\<\[\]\{\}\|\?\!\/\+\-\*]|\s');
+final _separatorChars = '_.?!,;:=()<>[]{}~@#\$%&|+-*\\/"\'`';
+final _escapedSeparators = _separatorChars.split('').map((s) => '\\$s').join();
+final _separators = RegExp('[$_escapedSeparators]|\\s');
 final RegExp _nonCharacterRegExp = RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = RegExp('\\s+');
 final RegExp _exactTermRegExp = RegExp(r'"([^"]+)"');
