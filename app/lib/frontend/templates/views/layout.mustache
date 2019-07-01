@@ -93,7 +93,7 @@
   <div class="_banner-bg">
     <main class="package-banner">
       <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query}} value="{{search_query}}"{{/search_query}}/>
+        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
         <button class="icon"></button>
         {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
         <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
