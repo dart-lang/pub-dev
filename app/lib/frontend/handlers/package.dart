@@ -60,20 +60,33 @@ Future<shelf.Response> packageShowHandlerJson(
 /// Handles requests for /packages/<package>/versions
 Future<shelf.Response> packageVersionsListHandler(
     shelf.Request request, String packageName) async {
+  final package = await backend.lookupPackage(packageName);
+  if (package == null) return redirectToSearch(packageName);
+
   final versions = await backend.versionsOfPackage(packageName);
   if (versions.isEmpty) {
     return redirectToSearch(packageName);
   }
 
   sortPackageVersionsDesc(versions);
+  PackageVersion latestVersion = versions.firstWhere(
+      (v) => v.version == package.latestVersion,
+      orElse: () => null);
+  latestVersion ??= versions.firstWhere(
+      (v) => v.version == package.latestDevVersion,
+      orElse: () => null);
+  latestVersion ??= versions.first;
 
   final versionDownloadUrls =
       await Future.wait(versions.map((PackageVersion version) {
     return backend.downloadUrl(packageName, version.version);
   }).toList());
 
-  return htmlResponse(
-      renderPkgVersionsPage(packageName, versions, versionDownloadUrls));
+  final analysis = await analyzerClient.getAnalysisView(
+      latestVersion.package, latestVersion.version);
+
+  return htmlResponse(renderPkgVersionsPage(
+      package, latestVersion, versions, versionDownloadUrls, analysis));
 }
 
 /// Handles requests for /packages/<package>

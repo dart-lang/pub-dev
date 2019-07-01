@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../shared/analyzer_client.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../models.dart';
@@ -10,10 +11,16 @@ import '../static_files.dart';
 import '_cache.dart';
 import '_utils.dart';
 import 'layout.dart';
+import 'package.dart';
 
 /// Renders the `views/pkg/versions/index` template.
-String renderPkgVersionsPage(String package, List<PackageVersion> versions,
-    List<Uri> versionDownloadUrls) {
+String renderPkgVersionsPage(
+  Package package,
+  PackageVersion latestVersion,
+  List<PackageVersion> versions,
+  List<Uri> versionDownloadUrls,
+  AnalysisView latestAnalysis,
+) {
   assert(versions.length == versionDownloadUrls.length);
 
   final stableVersionRows = [];
@@ -31,7 +38,9 @@ String renderPkgVersionsPage(String package, List<PackageVersion> versions,
     }
   }
 
-  final htmlBlocks = <String>[];
+  final htmlBlocks = <String>[
+    renderPkgHeader(package, latestVersion, latestAnalysis),
+  ];
   if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
     htmlBlocks.add(
         '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
@@ -41,7 +50,7 @@ String renderPkgVersionsPage(String package, List<PackageVersion> versions,
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
       'id': 'stable',
       'kind': 'Stable',
-      'package': {'name': package},
+      'package': {'name': package.name},
       'version_table_rows': stableVersionRows,
     }));
   }
@@ -49,13 +58,13 @@ String renderPkgVersionsPage(String package, List<PackageVersion> versions,
     htmlBlocks.add(templateCache.renderTemplate('pkg/versions/index', {
       'id': 'dev',
       'kind': 'Dev',
-      'package': {'name': package},
+      'package': {'name': package.name},
       'version_table_rows': devVersionRows,
     }));
   }
   return renderLayoutPage(PageType.package, htmlBlocks.join(),
-      title: '$package package - All Versions',
-      canonicalUrl: urls.pkgPageUrl(package, includeHost: true));
+      title: '${package.name} package - All Versions',
+      canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true));
 }
 
 String renderVersionTableRow(PackageVersion version, String downloadUrl) {

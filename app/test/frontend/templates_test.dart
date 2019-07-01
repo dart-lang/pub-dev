@@ -517,7 +517,8 @@ void main() {
 
     scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
-        'foobar',
+        testPackage,
+        testPackageVersion,
         [
           testPackageVersion,
           devPackageVersion,
@@ -526,6 +527,14 @@ void main() {
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),
         ],
+        AnalysisView(
+          card: ScoreCardData(
+            platformTags: KnownPlatforms.all,
+            maintenanceScore: 0.9,
+            healthScore: 0.9,
+            popularityScore: 0.2,
+          ),
+        ),
       );
       expectGoldenFile(html, 'pkg_versions_page.html');
     });

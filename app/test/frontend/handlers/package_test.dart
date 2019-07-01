@@ -56,22 +56,28 @@ void main() {
     });
 
     tScopedTest('/packages/foobar_pkg/versions - found', () async {
-      final backend = BackendMock(versionsOfPackageFun: (String package) {
+      final backend = BackendMock(lookupPackageFun: (String package) {
+        expect(package, testPackage.name);
+        return testPackage;
+      }, versionsOfPackageFun: (String package) {
         expect(package, testPackage.name);
         return [testPackageVersion];
       }, downloadUrlFun: (String package, String version) {
         return Uri.parse('http://blobstore/$package/$version');
       });
       registerBackend(backend);
+      registerAnalyzerClient(AnalyzerClientMock());
       registerDartdocClient(DartdocClientMock());
       await expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));
     });
 
     tScopedTest('/packages/foobar_pkg/versions - not found', () async {
-      final backend = BackendMock(versionsOfPackageFun: (String package) {
-        expect(package, testPackage.name);
-        return [];
-      });
+      final backend = BackendMock(
+        lookupPackageFun: (String package) {
+          expect(package, testPackage.name);
+          return null;
+        },
+      );
       registerBackend(backend);
       await expectRedirectResponse(
           await issueGet('/packages/foobar_pkg/versions'),
