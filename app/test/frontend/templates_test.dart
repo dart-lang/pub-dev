@@ -133,7 +133,6 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          false,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
@@ -183,10 +182,9 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          true,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
-          testPackageVersion,
+          devPackageVersion,
           1,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
@@ -232,7 +230,6 @@ void main() {
       final String html = renderPkgShowPage(
         testPackage,
         testPackageUploaderEmails,
-        false,
         [flutterPackageVersion],
         [Uri.parse('http://dart-example.com/')],
         flutterPackageVersion,
@@ -269,7 +266,6 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          true /* isVersionPage */,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
@@ -288,7 +284,6 @@ void main() {
       final String html = renderPkgShowPage(
           discontinuedPackage,
           discontinuedPackageUploaderEmails,
-          false,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
@@ -309,7 +304,6 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          true /* isVersionPage */,
           [testPackageVersion],
           [Uri.parse('http://dart-example.com/')],
           testPackageVersion,

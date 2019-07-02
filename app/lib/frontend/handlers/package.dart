@@ -147,15 +147,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
     final uploaderEmails =
         await accountBackend.getEmailsOfUserIds(package.uploaders);
 
-    cachedPage = renderPkgShowPage(
-        package,
-        uploaderEmails,
-        versionName != null,
-        first10Versions,
-        versionDownloadUrls,
-        selectedVersion,
-        versions.length,
-        analysisView);
+    cachedPage = renderPkgShowPage(package, uploaderEmails, first10Versions,
+        versionDownloadUrls, selectedVersion, versions.length, analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
     if (useCache && backend.uiPackageCache != null) {
