@@ -515,10 +515,10 @@ packages:
   retry:
     dependency: transitive
     description:
-      path: "../pkg/retry"
-      relative: true
-    source: path
-    version: "0.0.0"
+      name: retry
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0"
   sanitize_html:
     dependency: "direct main"
     description:
