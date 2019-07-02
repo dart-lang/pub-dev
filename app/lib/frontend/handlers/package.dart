@@ -150,7 +150,6 @@ Future<shelf.Response> packageVersionHandlerHtml(
     cachedPage = renderPkgShowPage(
         package,
         uploaderEmails,
-        versionName != null,
         first10Versions,
         versionDownloadUrls,
         selectedVersion,

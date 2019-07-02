@@ -241,7 +241,6 @@ String renderPkgHeader(
 String renderPkgShowPage(
     Package package,
     List<String> uploaderEmails,
-    bool isVersionPage,
     List<PackageVersion> versions,
     List<Uri> versionDownloadUrls,
     PackageVersion selectedVersion,
@@ -270,6 +269,7 @@ String renderPkgShowPage(
   };
   final content = templateCache.renderTemplate('pkg/show', values);
   final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
+  final isVersionPage = package.latestVersion != selectedVersion.version;
   final packageAndVersion = isVersionPage
       ? '${selectedVersion.package} ${selectedVersion.version}'
       : selectedVersion.package;
