@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis_auth/auth.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -12,18 +13,21 @@ import 'urls.dart' as urls;
 
 final _logger = Logger('configuration');
 
-Configuration _configuration;
+final _configurationKey = #_active_configuration;
 
+/// Gets the active configuration.
 Configuration get activeConfiguration {
-  _configuration ??= Configuration.fromEnv(envConfig);
-  return _configuration;
+  Configuration config = ss.lookup(_configurationKey) as Configuration;
+  if (config == null) {
+    config = Configuration.fromEnv(envConfig);
+    ss.register(_configurationKey, config);
+  }
+  return config;
 }
 
+/// Sets the active configuration.
 void registerActiveConfiguration(Configuration configuration) {
-  if (_configuration != null) {
-    throw Exception('Configuration is already set.');
-  }
-  _configuration = configuration;
+  ss.register(_configurationKey, configuration);
 }
 
 /// The OAuth audience (`client_id`) that the `pub` client uses.
@@ -162,6 +166,30 @@ class Configuration {
     } else {
       throw Exception('Unknown project id: ${env.gcloudProject}');
     }
+  }
+
+  /// Configuration for pkg/fake_pub_server and tests.
+  factory Configuration.fakePubServer({
+    @required int port,
+    @required String storageBaseUrl,
+  }) {
+    return Configuration(
+      projectId: 'dartlang-pub-fake',
+      packageBucketName: 'fake-bucket-pub',
+      dartdocStorageBucketName: 'fake-bucket-dartdoc',
+      popularityDumpBucketName: 'fake-bucket-popularity',
+      searchSnapshotBucketName: 'fake-bucket-search',
+      backupSnapshotBucketName: 'fake-bucket-backup',
+      searchServicePrefix: 'http://localhost:$port',
+      pubHostedUrl: 'http://localhost:$port',
+      storageBaseUrl: storageBaseUrl,
+      pubClientAudience: null,
+      pubSiteAudience: null,
+      credentials: null,
+      blockEmails: true,
+      blockRobots: true,
+      productionHosts: ['localhost'],
+    );
   }
 }
 

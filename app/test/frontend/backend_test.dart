@@ -649,7 +649,7 @@ void main() {
         expect(package.key, testPackage.key);
         expect(package.name, testPackage.name);
         expect(package.latestVersionKey, testPackageVersion.key);
-        expect(package.uploaders, ['uuid-hans-at-juergen-dot-com']);
+        expect(package.uploaders, ['hans-at-juergen-dot-com']);
         expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
         expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
 
@@ -662,7 +662,7 @@ void main() {
         expect(version.changelogContent, testPackageChangelog);
         expect(version.pubspec.asJson, loadYaml(testPackagePubspec));
         expect(version.libraries, ['test_library.dart']);
-        expect(version.uploader, 'uuid-hans-at-juergen-dot-com');
+        expect(version.uploader, 'hans-at-juergen-dot-com');
         expect(version.downloads, 0);
         expect(version.sortOrder, 1);
 
