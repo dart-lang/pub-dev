@@ -11,6 +11,7 @@ import '../static_files.dart';
 import '_cache.dart';
 import '_utils.dart';
 import 'layout.dart';
+import 'misc.dart';
 import 'package.dart';
 
 /// Renders the `views/pkg/versions/index` template.
@@ -23,6 +24,7 @@ String renderPkgVersionsPage(
   AnalysisView latestAnalysis,
 ) {
   assert(versions.length == versionDownloadUrls.length);
+  final card = latestAnalysis?.card;
 
   final stableVersionRows = [];
   final devVersionRows = [];
@@ -62,13 +64,35 @@ String renderPkgVersionsPage(
     }));
   }
 
-  final tabs = [
-    Tab.withContent(
-      id: 'versions',
-      title: 'Versions',
-      contentHtml: htmlBlocks.join(),
-    ),
-  ];
+  final tabs = <Tab>[];
+  if (latestVersion.readme != null) {
+    tabs.add(Tab.withLink(
+        title: 'Readme',
+        href: urls.pkgPageUrl(package.name, fragment: '-readme-tab-')));
+  }
+  if (latestVersion.changelog != null) {
+    tabs.add(Tab.withLink(
+        title: 'Changelog',
+        href: urls.pkgPageUrl(package.name, fragment: '-changelog-tab-')));
+  }
+  if (latestVersion.example != null) {
+    tabs.add(Tab.withLink(
+        title: 'Example',
+        href: urls.pkgPageUrl(package.name, fragment: '-example-tab-')));
+  }
+  tabs.add(Tab.withLink(
+      title: 'Installing',
+      href: urls.pkgPageUrl(package.name, fragment: '-installing-tab-')));
+  tabs.add(Tab.withContent(
+    id: 'versions',
+    title: 'Versions',
+    contentHtml: htmlBlocks.join(),
+  ));
+  tabs.add(Tab.withLink(
+      titleHtml: renderScoreBox(card?.overallScore,
+          isSkipped: card?.isSkipped ?? false,
+          isNewPackage: package.isNewPackage()),
+      href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
 
   final values = {
     'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),

@@ -322,10 +322,12 @@ class Tab {
   }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
 
   Tab.withLink({
-    @required this.id,
-    @required String title,
+    String title,
+    String titleHtml,
     @required String href,
-  })  : titleHtml = '<a href="$href">${htmlEscape.convert(title)}</a>',
+  })  : titleHtml =
+            '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
+        id = null,
         contentHtml = null,
         isMarkdown = false;
 

@@ -55,7 +55,9 @@
     }
 
     > .score-box {
+      float: none;
       margin: 0;
+      position: inherit;
     }
   }
 
