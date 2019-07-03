@@ -19,6 +19,8 @@ import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import '../shared/utils.dart';
 import 'utils.dart';
 
+/// Setup scoped services (including fake datastore with pre-populated base data
+/// and fake storage) for tests.
 void testWithServices(String name, Future fn()) {
   scopedTest(name, () async {
     await withCache(() async {
