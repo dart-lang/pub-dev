@@ -699,6 +699,8 @@ class TokenIndex {
         double candidateWeight = 0.0;
         if (token == candidate) {
           candidateWeight = 1.0;
+        } else if (token.startsWith(candidate) || token.endsWith(candidate)) {
+          candidateWeight = candidate.length / token.length;
         } else {
           final candidateNgrams = ngrams(candidate, _minLength, 6);
           candidateWeight = _ngramSimilarity(tokenNgrams, candidateNgrams);
