@@ -260,7 +260,7 @@ String renderPkgShowPage(
 
   final values = {
     'header_html': renderPkgHeader(package, selectedVersion, analysis),
-    'tabs': tabsData,
+    'tabs_html': renderPkgTabs(tabsData),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
         _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
@@ -290,6 +290,12 @@ String renderPkgShowPage(
     platform: card?.asSinglePlatform,
     noIndex: noIndex,
   );
+}
+
+/// Renders the `views/pkg/tabs.mustache` template.
+String renderPkgTabs(List tabsData) {
+  final values = {'tabs': tabsData};
+  return templateCache.renderTemplate('pkg/tabs', values);
 }
 
 List<Map<String, String>> _tabsData(
