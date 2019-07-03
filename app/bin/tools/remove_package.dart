@@ -181,7 +181,9 @@ Future removePackageVersion(String packageName, String version) async {
       updatePackage = true;
     }
     if (updatePackage) {
-      versions.forEach(package.updateVersion);
+      versions
+          .where((v) => v.version != version)
+          .forEach(package.updateVersion);
       T.queueMutations(inserts: [package]);
     }
 
