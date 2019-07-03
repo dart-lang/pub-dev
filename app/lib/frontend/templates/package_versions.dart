@@ -38,9 +38,7 @@ String renderPkgVersionsPage(
     }
   }
 
-  final htmlBlocks = <String>[
-    renderPkgHeader(package, latestVersion, latestAnalysis),
-  ];
+  final htmlBlocks = <String>[];
   if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
     htmlBlocks.add(
         '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
@@ -62,7 +60,25 @@ String renderPkgVersionsPage(
       'version_table_rows': devVersionRows,
     }));
   }
-  return renderLayoutPage(PageType.package, htmlBlocks.join(),
+
+  final tabs = [
+    Tab.withContent(
+      id: 'versions',
+      title: 'Versions',
+      contentHtml: htmlBlocks.join(),
+    ),
+  ];
+
+  final values = {
+    'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),
+    'tabs_html': renderPkgTabs(tabs),
+    'icons': staticUrls.versionsTableIcons,
+    // TODO: render sidebar_html
+    // TODO: render schema_org_pkgmeta_json
+  };
+  final content = templateCache.renderTemplate('pkg/show', values);
+
+  return renderLayoutPage(PageType.package, content,
       title: '${package.name} package - All Versions',
       canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true));
 }
