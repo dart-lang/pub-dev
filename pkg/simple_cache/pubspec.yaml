@@ -10,8 +10,7 @@ environment:
 dependencies:
   convert: ^2.1.1
   logging: '^0.11.3'
-  retry:
-    path: ../retry
+  retry: ^3.0.0
   dartis: 0.3.0
 
 dev_dependencies:

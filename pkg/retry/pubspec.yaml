@@ -1,9 +1,0 @@
-name: retry
-publish_to: none  # don't publish yet
-description: Retry functions with ease.
-environment:
-  sdk: '>=2.0.0 <3.0.0'
-dependencies:
-dev_dependencies:
-  test: ^1.5.1
-
