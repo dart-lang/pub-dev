@@ -249,7 +249,7 @@ String renderPkgShowPage(
   assert(versions.length == versionDownloadUrls.length);
   final card = analysis?.card;
 
-  final tabsData = _tabsData(
+  final tabs = _pkgTabs(
     selectedVersion,
     analysis,
     versions,
@@ -260,7 +260,7 @@ String renderPkgShowPage(
 
   final values = {
     'header_html': renderPkgHeader(package, selectedVersion, analysis),
-    'tabs_html': renderPkgTabs(tabsData),
+    'tabs_html': renderPkgTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
         _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
@@ -293,12 +293,43 @@ String renderPkgShowPage(
 }
 
 /// Renders the `views/pkg/tabs.mustache` template.
-String renderPkgTabs(List tabsData) {
+String renderPkgTabs(List<Tab> tabs) {
+  final tabsData = tabs.map((t) => t.toMustacheData()).toList();
+  // active: the first one with content
+  for (int i = 0; i < tabs.length; i++) {
+    if (tabs[i].contentHtml != null) {
+      tabsData[i]['active'] = '-active';
+      break;
+    }
+  }
   final values = {'tabs': tabsData};
   return templateCache.renderTemplate('pkg/tabs', values);
 }
 
-List<Map<String, String>> _tabsData(
+/// Defines the header and content part of a tab.
+class Tab {
+  final String id;
+  final String titleHtml;
+  final String contentHtml;
+  final bool isMarkdown;
+
+  Tab.withContent({
+    @required this.id,
+    String title,
+    String titleHtml,
+    @required this.contentHtml,
+    this.isMarkdown = false,
+  }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
+
+  Map toMustacheData() => <String, dynamic>{
+        'id': id,
+        'title_html': titleHtml,
+        'content_html': contentHtml,
+        'markdown-body': isMarkdown ? 'markdown-body' : null,
+      };
+}
+
+List<Tab> _pkgTabs(
   PackageVersion selectedVersion,
   AnalysisView analysis,
   List<PackageVersion> versions,
@@ -332,48 +363,34 @@ List<Map<String, String>> _tabsData(
     }
   }
 
-  final tabs = <Map<String, String>>[];
-  void addTab(
-    String id, {
-    String title,
-    String titleHtml,
-    String content,
-    bool markdown = false,
-  }) {
-    tabs.add({
-      'id': id,
-      'title_html': titleHtml ?? htmlEscape.convert(title),
-      'content_html': content,
-      'markdown-body': markdown ? 'markdown-body' : null,
-    });
-  }
+  final tabs = <Tab>[];
 
   void addFileTab(String id, String title, String content) {
     if (content == null) return;
-    addTab(id, title: title, content: content, markdown: true);
+    tabs.add(Tab.withContent(
+        id: id, title: title, contentHtml: content, isMarkdown: true));
   }
 
   addFileTab('readme', 'Readme', renderedReadme);
   addFileTab('changelog', 'Changelog', renderedChangelog);
   addFileTab('example', 'Example', renderedExample);
 
-  addTab('installing',
+  tabs.add(Tab.withContent(
+      id: 'installing',
       title: 'Installing',
-      content: _renderInstallTab(selectedVersion, analysis?.platforms));
-  addTab('versions',
+      contentHtml: _renderInstallTab(selectedVersion, analysis?.platforms)));
+  tabs.add(Tab.withContent(
+      id: 'versions',
       title: 'Versions',
-      content: _renderVersionsTab(selectedVersion, versions,
-          versionDownloadUrls, totalNumberOfVersions));
-  addTab(
-    'analysis',
+      contentHtml: _renderVersionsTab(selectedVersion, versions,
+          versionDownloadUrls, totalNumberOfVersions)));
+  tabs.add(Tab.withContent(
+    id: 'analysis',
     titleHtml: renderScoreBox(card?.overallScore,
         isSkipped: card?.isSkipped ?? false, isNewPackage: isNewPackage),
-    content: renderAnalysisTab(selectedVersion.package,
+    contentHtml: renderAnalysisTab(selectedVersion.package,
         selectedVersion.pubspec.sdkConstraint, card, analysis),
-  );
-  if (tabs.isNotEmpty) {
-    tabs.first['active'] = '-active';
-  }
+  ));
   return tabs;
 }
 
