@@ -8,6 +8,7 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
+import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
@@ -34,8 +35,13 @@ final Key devPackageVersionKey =
 
 final Pubspec testPubspec = Pubspec.fromYaml(testPackagePubspec);
 
+final testUser = User()
+  ..id = 'hans-at-juergen-dot-com'
+  ..email = 'hans@juergen.com'
+  ..created = DateTime.utc(2014);
+
 final testUploaderUser =
-    AuthenticatedUser('uuid-hans-at-juergen-dot-com', 'hans@juergen.com');
+    AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
 
 Package createTestPackage({List<AuthenticatedUser> uploaders}) {
   uploaders ??= [testUploaderUser];
@@ -101,7 +107,8 @@ PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
   ..readmeContent = original.readmeContent
   ..changelogFilename = original.changelogFilename
   ..changelogContent = original.changelogContent
-  ..sortOrder = original.sortOrder;
+  ..sortOrder = original.sortOrder
+  ..downloads = original.downloads;
 
 final String testPackageReadme = '''
 Test Package

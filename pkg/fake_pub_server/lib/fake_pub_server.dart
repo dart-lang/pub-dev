@@ -49,22 +49,9 @@ class FakePubServer {
       registerDbService(db);
 
       await withCache(() async {
-        registerActiveConfiguration(Configuration(
-          projectId: 'dartlang-pub-fake',
-          packageBucketName: 'fake-bucket-pub',
-          dartdocStorageBucketName: 'fake-bucket-dartdoc',
-          popularityDumpBucketName: 'fake-bucket-popularity',
-          searchSnapshotBucketName: 'fake-bucket-search',
-          backupSnapshotBucketName: 'fake-bucket-backup',
-          searchServicePrefix: 'http://localhost:$port',
-          pubHostedUrl: 'http://localhost:$port',
+        registerActiveConfiguration(Configuration.fakePubServer(
+          port: port,
           storageBaseUrl: storageBaseUrl,
-          pubClientAudience: null,
-          pubSiteAudience: null,
-          credentials: null,
-          blockEmails: true,
-          blockRobots: true,
-          productionHosts: ['localhost'],
         ));
         registerAccountBackend(
             AccountBackend(db, authProvider: FakeAuthProvider(port)));

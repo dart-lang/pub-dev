@@ -56,7 +56,7 @@ void main() {
       });
       registerAccountBackend(AccountBackendMock(users: [
         User()
-          ..id = 'uuid-hans-at-juergen-dot-com'
+          ..id = 'hans-at-juergen-dot-com'
           ..email = 'hans@juergen.com',
       ]));
       registerBackend(backend);
