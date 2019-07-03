@@ -137,7 +137,7 @@ String _renderVersionsTab(
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
-String _renderSidebar(
+String renderPkgSidebar(
   Package package,
   PackageVersion selectedVersion,
   List<String> uploaderEmails,
@@ -263,7 +263,7 @@ String renderPkgShowPage(
     'tabs_html': renderPkgTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
-        _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
+        renderPkgSidebar(package, selectedVersion, uploaderEmails, analysis),
     'schema_org_pkgmeta_json':
         json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
   };

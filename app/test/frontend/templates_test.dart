@@ -512,6 +512,7 @@ void main() {
     scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
         testPackage,
+        testPackageUploaderEmails,
         testPackageVersion,
         [
           testPackageVersion,

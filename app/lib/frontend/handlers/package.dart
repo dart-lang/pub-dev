@@ -85,8 +85,11 @@ Future<shelf.Response> packageVersionsListHandler(
   final analysis = await analyzerClient.getAnalysisView(
       latestVersion.package, latestVersion.version);
 
-  return htmlResponse(renderPkgVersionsPage(
-      package, latestVersion, versions, versionDownloadUrls, analysis));
+  final uploaderEmails =
+      await accountBackend.getEmailsOfUserIds(package.uploaders);
+
+  return htmlResponse(renderPkgVersionsPage(package, uploaderEmails,
+      latestVersion, versions, versionDownloadUrls, analysis));
 }
 
 /// Handles requests for /packages/<package>

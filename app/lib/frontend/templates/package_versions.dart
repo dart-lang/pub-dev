@@ -16,6 +16,7 @@ import 'package.dart';
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
   Package package,
+  List<String> uploaderEmails,
   PackageVersion latestVersion,
   List<PackageVersion> versions,
   List<Uri> versionDownloadUrls,
@@ -73,7 +74,8 @@ String renderPkgVersionsPage(
     'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),
     'tabs_html': renderPkgTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
-    // TODO: render sidebar_html
+    'sidebar_html': renderPkgSidebar(
+        package, latestVersion, uploaderEmails, latestAnalysis),
     // TODO: render schema_org_pkgmeta_json
   };
   final content = templateCache.renderTemplate('pkg/show', values);
