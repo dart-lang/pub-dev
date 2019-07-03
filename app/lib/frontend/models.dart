@@ -104,7 +104,8 @@ class Package extends db.ExpandoModel {
     final Version latestStable = latestSemanticVersion;
     final Version latestDev = latestDevSemanticVersion;
 
-    if (isNewer(latestStable, newVersion, pubSorted: true)) {
+    if (latestStable == null ||
+        isNewer(latestStable, newVersion, pubSorted: true)) {
       latestVersionKey = pv.key;
     }
 

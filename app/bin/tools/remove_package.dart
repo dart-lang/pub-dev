@@ -161,13 +161,28 @@ Future removePackageVersion(String packageName, String version) async {
 
     final versionsQuery = T.query<PackageVersion>(packageKey);
     final versions = await versionsQuery.run().toList();
-    final versionNames = versions.map((v) => '${v.semanticVersion}').toList();
+    final versionNames = versions.map((v) => v.version).toList();
     if (!versionNames.contains(version)) {
       print('Package $packageName does not have a version $version.');
     }
 
-    if ('${package.latestSemanticVersion}' == version) {
-      throw Exception('Cannot delete the latest version of $packageName.');
+    if (versionNames.length == 1 && versionNames.single == version) {
+      throw Exception(
+          'Last version detected. Use full package removal without the version qualifier.');
+    }
+
+    bool updatePackage = false;
+    if (package.latestVersion == version) {
+      package.latestVersionKey = null;
+      updatePackage = true;
+    }
+    if (package.latestDevVersion == version) {
+      package.latestDevVersionKey = null;
+      updatePackage = true;
+    }
+    if (updatePackage) {
+      versions.forEach(package.updateVersion);
+      T.queueMutations(inserts: [package]);
     }
 
     final deletes = [packageKey.append(PackageVersion, id: version)];
