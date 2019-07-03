@@ -321,11 +321,20 @@ class Tab {
     this.isMarkdown = false,
   }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
 
+  Tab.withLink({
+    @required this.id,
+    @required String title,
+    @required String href,
+  })  : titleHtml = '<a href="$href">${htmlEscape.convert(title)}</a>',
+        contentHtml = null,
+        isMarkdown = false;
+
   Map toMustacheData() => <String, dynamic>{
         'id': id,
         'title_html': titleHtml,
         'content_html': contentHtml,
         'markdown-body': isMarkdown ? 'markdown-body' : null,
+        'is_link': contentHtml == null,
       };
 }
 

@@ -31,32 +31,44 @@
   border-bottom: 1px solid #f0f0f0;
   list-style: none;
 
-  > .tab-button {
-    color: #666666;
+  > .tab-button,
+  > .tab-link {
     display: inline-block;
     margin-right: 35px;
+    vertical-align: bottom;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  > .tab-button,
+  > .tab-link > a {
+    color: #666666;
     padding: 10px 2px;
     border-bottom: 4px solid;
     border-bottom-color: transparent;
     cursor: pointer;
-    vertical-align: bottom;
 
     &:hover {
       border-bottom-color: #dddddd;
     }
 
-    &:last-child {
-      margin-right: 0;
+    > .score-box {
+      margin: 0;
     }
+  }
 
+  > .tab-button {
     &.-active {
       color: black;
       border-bottom-color: black;
     }
+  }
 
-    > .score-box {
-      margin: 0;
-    }
+  > .tab-link > a {
+    display: block;
+    font-weight: 400;
   }
 }
 

@@ -3,7 +3,12 @@
     BSD-style license that can be found in the LICENSE file. }}
 <ul class="package-tabs-header">
   {{#tabs}}
+    {{^is_link}}
     <li class="tab-button {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
+    {{/is_link}}
+    {{#is_link}}
+      <li class="tab-link {{active}}" role="button">{{& title_html}}</li>
+    {{/is_link}}
   {{/tabs}}
 </ul>
 <div class="main package-tabs-content">
