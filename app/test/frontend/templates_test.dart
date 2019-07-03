@@ -133,10 +133,7 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          [testPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          1,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
@@ -182,10 +179,7 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          [testPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
           devPackageVersion,
-          1,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
@@ -230,10 +224,7 @@ void main() {
       final String html = renderPkgShowPage(
         testPackage,
         testPackageUploaderEmails,
-        [flutterPackageVersion],
-        [Uri.parse('http://dart-example.com/')],
         flutterPackageVersion,
-        1,
         AnalysisView(
           card: ScoreCardData(
             healthScore: 0.99,
@@ -266,10 +257,7 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          [testPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          1,
           AnalysisView(
             card: ScoreCardData(
               flags: [PackageFlags.isObsolete],
@@ -284,10 +272,7 @@ void main() {
       final String html = renderPkgShowPage(
           discontinuedPackage,
           discontinuedPackageUploaderEmails,
-          [testPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          1,
           AnalysisView(
             card: ScoreCardData(
               flags: [PackageFlags.isDiscontinued],
@@ -304,10 +289,7 @@ void main() {
       final String html = renderPkgShowPage(
           testPackage,
           testPackageUploaderEmails,
-          [testPackageVersion],
-          [Uri.parse('http://dart-example.com/')],
           testPackageVersion,
-          1,
           AnalysisView(
             card: ScoreCardData(
               popularityScore: 0.5,

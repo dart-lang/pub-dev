@@ -21,7 +21,6 @@ import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
-import 'package_versions.dart';
 
 String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
   if (licenses == null || licenses.isEmpty) return null;
@@ -111,27 +110,6 @@ String _renderInstallTab(
     'show_editor_support': usePubGet || useFlutterPackagesGet,
     'editor_supported_tool_html': editorSupportedToolHtml,
     'executables': executables,
-  });
-}
-
-String _renderVersionsTab(
-  PackageVersion selectedVersion,
-  List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls,
-  int totalNumberOfVersions,
-) {
-  final versionTableRows = [];
-  for (int i = 0; i < versions.length; i++) {
-    final PackageVersion version = versions[i];
-    final String url = versionDownloadUrls[i].toString();
-    versionTableRows.add(renderVersionTableRow(version, url));
-  }
-  return templateCache.renderTemplate('pkg/versions_tab', {
-    'package_name': selectedVersion.package,
-    'version_table_rows': versionTableRows,
-    'show_versions_link': totalNumberOfVersions > versions.length,
-    'versions_url': urls.pkgVersionsUrl(selectedVersion.package),
-    'version_count': '$totalNumberOfVersions',
   });
 }
 
@@ -241,20 +219,13 @@ String renderPkgHeader(
 String renderPkgShowPage(
     Package package,
     List<String> uploaderEmails,
-    List<PackageVersion> versions,
-    List<Uri> versionDownloadUrls,
     PackageVersion selectedVersion,
-    int totalNumberOfVersions,
     AnalysisView analysis) {
-  assert(versions.length == versionDownloadUrls.length);
   final card = analysis?.card;
 
   final tabs = _pkgTabs(
     selectedVersion,
     analysis,
-    versions,
-    versionDownloadUrls,
-    totalNumberOfVersions,
     isNewPackage: package.isNewPackage(),
   );
 
@@ -342,10 +313,7 @@ class Tab {
 
 List<Tab> _pkgTabs(
   PackageVersion selectedVersion,
-  AnalysisView analysis,
-  List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls,
-  int totalNumberOfVersions, {
+  AnalysisView analysis, {
   @required bool isNewPackage,
 }) {
   final card = analysis?.card;
@@ -390,11 +358,10 @@ List<Tab> _pkgTabs(
       id: 'installing',
       title: 'Installing',
       contentHtml: _renderInstallTab(selectedVersion, analysis?.platforms)));
-  tabs.add(Tab.withContent(
-      id: 'versions',
-      title: 'Versions',
-      contentHtml: _renderVersionsTab(selectedVersion, versions,
-          versionDownloadUrls, totalNumberOfVersions)));
+  tabs.add(Tab.withLink(
+    title: 'Versions',
+    href: urls.pkgVersionsUrl(selectedVersion.package),
+  ));
   tabs.add(Tab.withContent(
     id: 'analysis',
     titleHtml: renderScoreBox(card?.overallScore,
