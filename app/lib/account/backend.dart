@@ -11,7 +11,7 @@ import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
-import 'package:simple_cache/simple_cache.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
