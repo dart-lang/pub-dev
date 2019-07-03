@@ -99,6 +99,7 @@ class Package extends db.ExpandoModel {
     uploaders.removeWhere((s) => s == uploaderId);
   }
 
+  /// Updates latest stable and dev version keys with the new version.
   void updateVersion(PackageVersion pv) {
     final Version newVersion = pv.semanticVersion;
 
