@@ -6,7 +6,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'src/file_names.dart';
 import 'src/names.dart';
-import 'src/tar_utils.dart';
+import 'src/package_dir.dart';
 
 // The maximum stored length of `README.md` and other user-provided file content
 // that is stored separately in the database.
@@ -53,7 +53,8 @@ class PackageSummary {
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   final issues = <ArchiveIssue>[];
-  final files = await listTarball(archivePath);
+  final packageDir = ArchiveTarGzPackageDir(archivePath);
+  final files = await packageDir.listFileNames();
 
   // Searches in [files] for a file name [name] and compare in a
   // case-insensitive manner.
@@ -77,7 +78,7 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
     return PackageSummary(issues: issues);
   }
 
-  final pubspecContent = await readTarballFile(archivePath, 'pubspec.yaml');
+  final pubspecContent = await packageDir.readAsString('pubspec.yaml');
   // Large pubspec content should be rejected, as either a storage limit will be
   // limiting it, or it will slow down queries and processing for very little
   // reason.
@@ -119,8 +120,8 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
 
   Future<String> extractContent(String contentPath) async {
     if (contentPath == null) return null;
-    final content = await readTarballFile(archivePath, contentPath,
-        maxLength: _maxStoredLength);
+    final content =
+        await packageDir.readAsString(contentPath, maxLength: _maxStoredLength);
     if (content != null && content.trim().isEmpty) {
       return null;
     }

@@ -26,21 +26,28 @@ Future<List<String>> listTarball(String path) async {
       .toList();
 }
 
+/// Opens the file [name] to read (as binary).
+Stream<List<int>> openTarballFile(String path, String name) async* {
+  final p = await Process.start(
+    'tar',
+    ['-O', '-xzf', path, name],
+  );
+  yield* p.stdout;
+  final code = await p.exitCode;
+  if (code != 0) {
+    throw Exception('Failed to read tarball contents (code=$code).');
+  }
+}
+
 /// Reads a text content of [name] from the tar.gz file identified by [path].
 ///
 /// When [maxLength] is specified, the text content is cut at [maxLength]
 /// characters (with `[...]\n\n` added to it).
 Future<String> readTarballFile(String path, String name,
     {int maxLength = 0}) async {
-  final result = await Process.run(
-    'tar',
-    ['-O', '-xzf', path, name],
-    stdoutEncoding: Utf8Codec(allowMalformed: true),
-  );
-  if (result.exitCode != 0) {
-    throw Exception('Failed to read tarball contents.');
-  }
-  String content = result.stdout as String;
+  String content = await Utf8Codec(allowMalformed: true)
+      .decodeStream(openTarballFile(path, name));
+
   if (maxLength > 0 && content.length > maxLength) {
     content = content.substring(0, maxLength) + '[...]\n\n';
   }
