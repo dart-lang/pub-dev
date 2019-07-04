@@ -161,24 +161,34 @@ Other useful methods will be added soon...
       expect(deriveLookupCandidates('abc'), Set());
     });
 
-    test('delete characters', () {
-      expect(deriveLookupCandidates('abcd'),
-          Set.from(['abc', 'abd', 'acd', 'bcd']));
+    test('only deleted characters', () {
+      expect(deriveLookupCandidates('abcd'), {'abc', 'abd', 'acd', 'bcd'});
     });
 
-    test('prefix and postfix', () {
-      expect(
-          deriveLookupCandidates('abcdef'),
-          Set.from([
-            'abcde', // f deleted
-            'abcdf', // e deleted
-            'abcef', // d deleted
-            'abdef', // c deleted
-            'acdef', // b deleted
-            'bcdef', // a deleted
-            'abcd', // prefix of the input
-            'cdef', // postfix of the input
-          ]));
+    test('deleted, prefix and postfix', () {
+      expect(deriveLookupCandidates('abcdef'), {
+        'abcde', // f deleted
+        'abcdf', // e deleted
+        'abcef', // d deleted
+        'abdef', // c deleted
+        'acdef', // b deleted
+        'bcdef', // a deleted
+        'abcd', // prefix of the input
+        'cdef', // postfix of the input
+      });
+    });
+
+    test('only prefix and postfix', () {
+      expect(deriveLookupCandidates('abcdefghi'), {
+        'abcde',
+        'abcdef',
+        'abcdefg',
+        'cdefghi',
+        'defghi',
+        'efghi',
+        'abcd',
+        'fghi',
+      });
     });
   });
 }

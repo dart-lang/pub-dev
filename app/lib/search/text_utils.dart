@@ -129,9 +129,10 @@ Set<String> ngrams(String input, int minLength, int maxLength) {
 }
 
 /// Generates lookup candidates that are, either:
-/// - derived by deleting one character from [token],
-/// - are the prefix part of [token] (min 4 characters)
-/// - are the suffix part of [token] (min 4 characters)
+/// - derived by deleting one character from [token]
+///   (if total length is less than 7 characters),
+/// - are the prefix part of [token] (4-7 characters)
+/// - are the suffix part of [token] (4-7 characters)
 Set<String> deriveLookupCandidates(String token) {
   final set = Set<String>();
   if (token.length <= 3) {
@@ -140,13 +141,15 @@ Set<String> deriveLookupCandidates(String token) {
   for (int i = 0; i < token.length; i++) {
     final prefix = i == 0 ? '' : token.substring(0, i);
     final suffix = i == token.length - 1 ? '' : token.substring(i + 1);
-    if (prefix.length > 3) {
+    if (3 < prefix.length && prefix.length < 8) {
       set.add(prefix);
     }
-    if (suffix.length > 3) {
+    if (3 < suffix.length && suffix.length < 8) {
       set.add(suffix);
     }
-    set.add(prefix + suffix);
+    if (token.length < 8) {
+      set.add(prefix + suffix);
+    }
   }
   return set;
 }
