@@ -216,11 +216,8 @@ String renderPkgHeader(
 }
 
 /// Renders the `views/pkg/show.mustache` template.
-String renderPkgShowPage(
-    Package package,
-    List<String> uploaderEmails,
-    PackageVersion selectedVersion,
-    AnalysisView analysis) {
+String renderPkgShowPage(Package package, List<String> uploaderEmails,
+    PackageVersion selectedVersion, AnalysisView analysis) {
   final card = analysis?.card;
 
   final tabs = _pkgTabs(
