@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart' as db;
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../frontend/models.dart' show Secret, SecretKey;
 import 'versions.dart';
@@ -90,4 +91,34 @@ class SimpleMemcache {
   Future<List<int>> getBytes(String key) => _bCache[key].get();
   Future setBytes(String key, List<int> content) => _bCache[key].set(content);
   Future invalidate(String key) async => _bCache[key].purge();
+}
+
+/// Utility to wrapping a function as a [Converter].
+///
+/// This class creates a [Converter] that can convert from `S` to `T`.
+class WrapAsConverter<S, T> extends Converter<S, T> {
+  final T Function(S) _convert;
+  const WrapAsConverter(this._convert);
+  @override
+  T convert(S input) => _convert(input);
+}
+
+/// Utility for wrapping two functions as a [Codec].
+///
+/// The [WrapAsCodec] class creates a [Codec] that can encode `S` as a `T`.
+/// And decode an `T` into an `S`.
+class WrapAsCodec<S, T> extends Codec<S, T> {
+  final Converter<S, T> _encoder;
+  final Converter<T, S> _decoder;
+
+  WrapAsCodec({
+    @required T Function(S) encode,
+    @required S Function(T) decode,
+  })  : _encoder = WrapAsConverter(encode),
+        _decoder = WrapAsConverter(decode);
+
+  @override
+  Converter<S, T> get encoder => _encoder;
+  @override
+  Converter<T, S> get decoder => _decoder;
 }

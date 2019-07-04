@@ -24,7 +24,6 @@ DartdocMemcache get dartdocMemcache =>
 
 class DartdocMemcache {
   final SimpleMemcache _entry;
-  final SimpleMemcache _fileInfo;
   final SimpleMemcache _apiSummary;
 
   DartdocMemcache()
@@ -32,11 +31,6 @@ class DartdocMemcache {
           'DartdocMemcache/entry/',
           _logger,
           Duration(hours: 24),
-        ),
-        _fileInfo = SimpleMemcache(
-          'DartdocMemcache/fileInfo/',
-          _logger,
-          Duration(minutes: 60),
         ),
         _apiSummary = SimpleMemcache(
           'DartdocMemcache/apiSummary/',
@@ -56,14 +50,6 @@ class DartdocMemcache {
     final key = _entryKey(entry.packageName, entry.packageVersion);
     final bytes = entry.asBytes();
     await _entry.setBytes(key, bytes);
-  }
-
-  Future<List<int>> getFileInfoBytes(String objectName) {
-    return _fileInfo.getBytes(_fileInfoKey(objectName));
-  }
-
-  Future setFileInfoBytes(String objectName, List<int> bytes) {
-    return _fileInfo.setBytes(_fileInfoKey(objectName), bytes);
   }
 
   Future<Map<String, dynamic>> getApiSummary(String package) async {
@@ -87,6 +73,4 @@ class DartdocMemcache {
   }
 
   String _entryKey(String package, String version) => '/$package/$version';
-
-  String _fileInfoKey(String objectName) => objectName;
 }

@@ -15,12 +15,14 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:neat_cache/neat_cache.dart' show Cache;
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
 
 import '../shared/dartdoc_memcache.dart';
+import '../shared/redis_cache.dart' show cache, WrapAsCodec;
 import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;
 
@@ -46,6 +48,13 @@ class DartdocBackend {
   final DatastoreDB _db;
   final Bucket _storage;
   final VersionedJsonStorage _sdkStorage;
+  final Cache<FileInfo> _fileInfoCache = cache
+      .withPrefix('dartdoc-fileinfo')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(WrapAsCodec(
+        encode: (FileInfo info) => info.asBytes(),
+        decode: (List<int> bytes) => FileInfo.fromBytes(bytes),
+      ));
 
   DartdocBackend(this._db, this._storage)
       : _sdkStorage = VersionedJsonStorage(
@@ -219,20 +228,22 @@ class DartdocBackend {
   /// Returns the file's header from the storage bucket
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) async {
     final objectName = entry.objectName(relativePath);
-    final cachedContent = await dartdocMemcache?.getFileInfoBytes(objectName);
-    if (cachedContent != null) {
-      return FileInfo.fromBytes(cachedContent);
-    }
-    try {
-      final info = await _storage.info(objectName);
-      if (info == null) return null;
-      final fileInfo = FileInfo(lastModified: info.updated, etag: info.etag);
-      dartdocMemcache?.setFileInfoBytes(objectName, fileInfo.asBytes());
-      return fileInfo;
-    } catch (e) {
-      _logger.info('Requested path $objectName does not exists.');
-    }
-    return null;
+    return await _fileInfoCache[objectName].get(() async {
+      try {
+        final info = await _storage.info(objectName);
+        return FileInfo(lastModified: info.updated, etag: info.etag);
+      } catch (e, st) {
+        // TODO: Clean-up error handling here, and stop eating exceptions/errors
+        if (e is DetailedApiRequestError && e.status == 404) {
+          // NOTE: We could consider caching this.
+          _logger.info('Requested path $objectName does not exists.');
+        } else {
+          _logger.warning(
+              'Unhandled error doing info($objectName) being eaten', e, st);
+        }
+        return null;
+      }
+    });
   }
 
   /// Returns a file's content from the storage bucket.
