@@ -11,17 +11,20 @@ import '../static_files.dart';
 import '_cache.dart';
 import '_utils.dart';
 import 'layout.dart';
+import 'misc.dart';
 import 'package.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
   Package package,
+  List<String> uploaderEmails,
   PackageVersion latestVersion,
   List<PackageVersion> versions,
   List<Uri> versionDownloadUrls,
   AnalysisView latestAnalysis,
 ) {
   assert(versions.length == versionDownloadUrls.length);
+  final card = latestAnalysis?.card;
 
   final stableVersionRows = [];
   final devVersionRows = [];
@@ -38,9 +41,7 @@ String renderPkgVersionsPage(
     }
   }
 
-  final htmlBlocks = <String>[
-    renderPkgHeader(package, latestVersion, latestAnalysis),
-  ];
+  final htmlBlocks = <String>[];
   if (stableVersionRows.isNotEmpty && devVersionRows.isNotEmpty) {
     htmlBlocks.add(
         '<p>The latest dev release was <a href="#dev">${latestDevVersion.version}</a> '
@@ -62,7 +63,48 @@ String renderPkgVersionsPage(
       'version_table_rows': devVersionRows,
     }));
   }
-  return renderLayoutPage(PageType.package, htmlBlocks.join(),
+
+  final tabs = <Tab>[];
+  if (latestVersion.readme != null) {
+    tabs.add(Tab.withLink(
+        title: 'Readme',
+        href: urls.pkgPageUrl(package.name, fragment: '-readme-tab-')));
+  }
+  if (latestVersion.changelog != null) {
+    tabs.add(Tab.withLink(
+        title: 'Changelog',
+        href: urls.pkgPageUrl(package.name, fragment: '-changelog-tab-')));
+  }
+  if (latestVersion.example != null) {
+    tabs.add(Tab.withLink(
+        title: 'Example',
+        href: urls.pkgPageUrl(package.name, fragment: '-example-tab-')));
+  }
+  tabs.add(Tab.withLink(
+      title: 'Installing',
+      href: urls.pkgPageUrl(package.name, fragment: '-installing-tab-')));
+  tabs.add(Tab.withContent(
+    id: 'versions',
+    title: 'Versions',
+    contentHtml: htmlBlocks.join(),
+  ));
+  tabs.add(Tab.withLink(
+      titleHtml: renderScoreBox(card?.overallScore,
+          isSkipped: card?.isSkipped ?? false,
+          isNewPackage: package.isNewPackage()),
+      href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
+
+  final values = {
+    'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),
+    'tabs_html': renderPkgTabs(tabs),
+    'icons': staticUrls.versionsTableIcons,
+    'sidebar_html': renderPkgSidebar(
+        package, latestVersion, uploaderEmails, latestAnalysis),
+    // TODO: render schema_org_pkgmeta_json
+  };
+  final content = templateCache.renderTemplate('pkg/show', values);
+
+  return renderLayoutPage(PageType.package, content,
       title: '${package.name} package - All Versions',
       canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true));
 }

@@ -5,22 +5,12 @@
 {{& header_html}}
 
 <div class="package-container">
-  <ul class="package-tabs-header">
-    {{#tabs}}
-      <li class="tab-button {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
-    {{/tabs}}
-  </ul>
-  <div class="main package-tabs-content">
-    {{#tabs}}
-      <section class="tab-content {{active}} {{markdown-body}}" data-name="-{{id}}-tab-">
-        {{& content_html}}
-      </section>
-    {{/tabs}}
-  </div>
-
+  {{& tabs_html}}
   {{& sidebar_html}}
 </div>
 
+{{#schema_org_pkgmeta_json}}
 <script type="application/ld+json">
 {{& schema_org_pkgmeta_json}}
 </script>
+{{/schema_org_pkgmeta_json}}

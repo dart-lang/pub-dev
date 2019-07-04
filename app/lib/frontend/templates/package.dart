@@ -21,7 +21,6 @@ import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
-import 'package_versions.dart';
 
 String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
   if (licenses == null || licenses.isEmpty) return null;
@@ -114,30 +113,9 @@ String _renderInstallTab(
   });
 }
 
-String _renderVersionsTab(
-  PackageVersion selectedVersion,
-  List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls,
-  int totalNumberOfVersions,
-) {
-  final versionTableRows = [];
-  for (int i = 0; i < versions.length; i++) {
-    final PackageVersion version = versions[i];
-    final String url = versionDownloadUrls[i].toString();
-    versionTableRows.add(renderVersionTableRow(version, url));
-  }
-  return templateCache.renderTemplate('pkg/versions_tab', {
-    'package_name': selectedVersion.package,
-    'version_table_rows': versionTableRows,
-    'show_versions_link': totalNumberOfVersions > versions.length,
-    'versions_url': urls.pkgVersionsUrl(selectedVersion.package),
-    'version_count': '$totalNumberOfVersions',
-  });
-}
-
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
-String _renderSidebar(
+String renderPkgSidebar(
   Package package,
   PackageVersion selectedVersion,
   List<String> uploaderEmails,
@@ -238,32 +216,22 @@ String renderPkgHeader(
 }
 
 /// Renders the `views/pkg/show.mustache` template.
-String renderPkgShowPage(
-    Package package,
-    List<String> uploaderEmails,
-    List<PackageVersion> versions,
-    List<Uri> versionDownloadUrls,
-    PackageVersion selectedVersion,
-    int totalNumberOfVersions,
-    AnalysisView analysis) {
-  assert(versions.length == versionDownloadUrls.length);
+String renderPkgShowPage(Package package, List<String> uploaderEmails,
+    PackageVersion selectedVersion, AnalysisView analysis) {
   final card = analysis?.card;
 
-  final tabsData = _tabsData(
+  final tabs = _pkgTabs(
     selectedVersion,
     analysis,
-    versions,
-    versionDownloadUrls,
-    totalNumberOfVersions,
     isNewPackage: package.isNewPackage(),
   );
 
   final values = {
     'header_html': renderPkgHeader(package, selectedVersion, analysis),
-    'tabs': tabsData,
+    'tabs_html': renderPkgTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
-        _renderSidebar(package, selectedVersion, uploaderEmails, analysis),
+        renderPkgSidebar(package, selectedVersion, uploaderEmails, analysis),
     'schema_org_pkgmeta_json':
         json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
   };
@@ -292,12 +260,57 @@ String renderPkgShowPage(
   );
 }
 
-List<Map<String, String>> _tabsData(
+/// Renders the `views/pkg/tabs.mustache` template.
+String renderPkgTabs(List<Tab> tabs) {
+  final tabsData = tabs.map((t) => t.toMustacheData()).toList();
+  // active: the first one with content
+  for (int i = 0; i < tabs.length; i++) {
+    if (tabs[i].contentHtml != null) {
+      tabsData[i]['active'] = '-active';
+      break;
+    }
+  }
+  final values = {'tabs': tabsData};
+  return templateCache.renderTemplate('pkg/tabs', values);
+}
+
+/// Defines the header and content part of a tab.
+class Tab {
+  final String id;
+  final String titleHtml;
+  final String contentHtml;
+  final bool isMarkdown;
+
+  Tab.withContent({
+    @required this.id,
+    String title,
+    String titleHtml,
+    @required this.contentHtml,
+    this.isMarkdown = false,
+  }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
+
+  Tab.withLink({
+    String title,
+    String titleHtml,
+    @required String href,
+  })  : titleHtml =
+            '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
+        id = null,
+        contentHtml = null,
+        isMarkdown = false;
+
+  Map toMustacheData() => <String, dynamic>{
+        'id': id,
+        'title_html': titleHtml,
+        'content_html': contentHtml,
+        'markdown-body': isMarkdown ? 'markdown-body' : null,
+        'is_link': contentHtml == null,
+      };
+}
+
+List<Tab> _pkgTabs(
   PackageVersion selectedVersion,
-  AnalysisView analysis,
-  List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls,
-  int totalNumberOfVersions, {
+  AnalysisView analysis, {
   @required bool isNewPackage,
 }) {
   final card = analysis?.card;
@@ -326,48 +339,33 @@ List<Map<String, String>> _tabsData(
     }
   }
 
-  final tabs = <Map<String, String>>[];
-  void addTab(
-    String id, {
-    String title,
-    String titleHtml,
-    String content,
-    bool markdown = false,
-  }) {
-    tabs.add({
-      'id': id,
-      'title_html': titleHtml ?? htmlEscape.convert(title),
-      'content_html': content,
-      'markdown-body': markdown ? 'markdown-body' : null,
-    });
-  }
+  final tabs = <Tab>[];
 
   void addFileTab(String id, String title, String content) {
     if (content == null) return;
-    addTab(id, title: title, content: content, markdown: true);
+    tabs.add(Tab.withContent(
+        id: id, title: title, contentHtml: content, isMarkdown: true));
   }
 
   addFileTab('readme', 'Readme', renderedReadme);
   addFileTab('changelog', 'Changelog', renderedChangelog);
   addFileTab('example', 'Example', renderedExample);
 
-  addTab('installing',
+  tabs.add(Tab.withContent(
+      id: 'installing',
       title: 'Installing',
-      content: _renderInstallTab(selectedVersion, analysis?.platforms));
-  addTab('versions',
-      title: 'Versions',
-      content: _renderVersionsTab(selectedVersion, versions,
-          versionDownloadUrls, totalNumberOfVersions));
-  addTab(
-    'analysis',
+      contentHtml: _renderInstallTab(selectedVersion, analysis?.platforms)));
+  tabs.add(Tab.withLink(
+    title: 'Versions',
+    href: urls.pkgVersionsUrl(selectedVersion.package),
+  ));
+  tabs.add(Tab.withContent(
+    id: 'analysis',
     titleHtml: renderScoreBox(card?.overallScore,
         isSkipped: card?.isSkipped ?? false, isNewPackage: isNewPackage),
-    content: renderAnalysisTab(selectedVersion.package,
+    contentHtml: renderAnalysisTab(selectedVersion.package,
         selectedVersion.pubspec.sdkConstraint, card, analysis),
-  );
-  if (tabs.isNotEmpty) {
-    tabs.first['active'] = '-active';
-  }
+  ));
   return tabs;
 }
 

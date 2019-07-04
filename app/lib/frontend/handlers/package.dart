@@ -85,8 +85,11 @@ Future<shelf.Response> packageVersionsListHandler(
   final analysis = await analyzerClient.getAnalysisView(
       latestVersion.package, latestVersion.version);
 
-  return htmlResponse(renderPkgVersionsPage(
-      package, latestVersion, versions, versionDownloadUrls, analysis));
+  final uploaderEmails =
+      await accountBackend.getEmailsOfUserIds(package.uploaders);
+
+  return htmlResponse(renderPkgVersionsPage(package, uploaderEmails,
+      latestVersion, versions, versionDownloadUrls, analysis));
 }
 
 /// Handles requests for /packages/<package>
@@ -111,44 +114,23 @@ Future<shelf.Response> packageVersionHandlerHtml(
       return redirectToSearch(packageName);
     }
 
-    final versions = await backend.versionsOfPackage(packageName);
-
-    sortPackageVersionsDesc(versions, decreasing: true, pubSorting: true);
-    final latestStable = versions[0];
-    final first10Versions = versions.take(10).toList();
-
-    sortPackageVersionsDesc(versions, decreasing: true, pubSorting: false);
-
-    PackageVersion selectedVersion;
-    if (versionName != null) {
-      selectedVersion = versions.firstWhere(
-        (v) => v.version == versionName,
-        orElse: () => null,
-      );
-      if (selectedVersion == null) {
-        return redirectResponse(urls.versionsTabUrl(packageName));
-      }
-    } else {
-      if (selectedVersion == null) {
-        selectedVersion = latestStable;
-      }
+    final selectedVersion = await backend.lookupPackageVersion(
+        packageName, versionName ?? package.latestVersion);
+    if (selectedVersion == null) {
+      return redirectResponse(urls.versionsTabUrl(packageName));
     }
+
     final Stopwatch serviceSw = Stopwatch()..start();
     final AnalysisView analysisView = await analyzerClient.getAnalysisView(
         selectedVersion.package, selectedVersion.version);
     _packageAnalysisLatencyTracker.add(serviceSw.elapsed);
 
-    final versionDownloadUrls =
-        await Future.wait(first10Versions.map((PackageVersion version) {
-      return backend.downloadUrl(packageName, version.version);
-    }).toList());
-    _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
-
     final uploaderEmails =
         await accountBackend.getEmailsOfUserIds(package.uploaders);
+    _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
 
-    cachedPage = renderPkgShowPage(package, uploaderEmails, first10Versions,
-        versionDownloadUrls, selectedVersion, versions.length, analysisView);
+    cachedPage = renderPkgShowPage(
+        package, uploaderEmails, selectedVersion, analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
     if (useCache && backend.uiPackageCache != null) {
