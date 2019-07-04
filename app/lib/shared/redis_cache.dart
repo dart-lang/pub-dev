@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:simple_cache/simple_cache.dart';
+import 'package:neat_cache/neat_cache.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart' as db;
 import 'package:appengine/appengine.dart';
@@ -81,13 +81,9 @@ class SimpleMemcache {
   SimpleMemcache(String prefix, Logger logger, Duration ttl)
       : _sCache = cache
             .withPrefix('$runtimeVersion/$prefix/')
-            .withLogger(logger, ignoreErrors: true)
             .withTTL(ttl)
             .withCodec(utf8),
-        _bCache = cache
-            .withPrefix('$runtimeVersion/$prefix/')
-            .withLogger(logger, ignoreErrors: true)
-            .withTTL(ttl);
+        _bCache = cache.withPrefix('$runtimeVersion/$prefix/').withTTL(ttl);
 
   Future<String> getText(String key) => _sCache[key].get();
   Future setText(String key, String content) => _sCache[key].set(content);
