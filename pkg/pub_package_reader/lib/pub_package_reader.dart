@@ -243,6 +243,16 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
       );
       continue;
     }
+
+    if (entry.value is SdkDependency) {
+      final dep = entry.value as SdkDependency;
+      if (dep.sdk != 'flutter') {
+        yield ArchiveIssue(
+            'SDK dependency $name is not a supported SDK (${dep.sdk}).');
+      }
+      continue;
+    }
+
     if (entry.value is! HostedDependency) {
       yield ArchiveIssue('Package dependency $name is not hosted on pub.dev');
       continue;
