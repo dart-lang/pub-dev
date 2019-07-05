@@ -54,12 +54,17 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/authorized', service.authorizationConfirmed);
   router.add('GET', '/admin/confirm/new-uploader/<package>/<email>/<nonce>',
       service.confirmUploader);
-  router.add('GET', '/api/account/info', service.accountInfo);
+  router.add('GET', '/api/account/options/packages/<package>',
+      service.accountPkgOptions);
   router.add('GET', '/api/documentation/<package>', service.apiDocumentation);
   router.add('GET', '/api/history', service.apiHistory);
   router.add('GET', '/api/packages', service.apiPackages);
   router.add(
       'GET', '/api/packages/<package>/metrics', service.apiPackageMetrics);
+  router.add(
+      'GET', '/api/packages/<package>/options', service.getPackageOptions);
+  router.add(
+      'PUT', '/api/packages/<package>/options', service.putPackageOptions);
   router.add('GET', '/api/search', service.apiSearch);
   router.add('GET', '/debug', service.debug);
   router.add('GET', '/packages.json', service.packagesJson);

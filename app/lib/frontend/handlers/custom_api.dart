@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:client_data/package_api.dart';
+import 'package:logging/logging.dart';
+import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -14,10 +18,13 @@ import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/search_client.dart';
 import '../../shared/search_service.dart';
+import '../../shared/utils.dart';
 
 import '../backend.dart';
 import '../models.dart';
 import '../name_tracker.dart';
+
+final _logger = Logger('frontend.custom_api');
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -230,4 +237,35 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
     result['next'] = nextPageUrl;
   }
   return jsonResponse(result);
+}
+
+/// Handles GET /api/packages/<package>/options
+Future<shelf.Response> getPackageOptionsHandler(
+    shelf.Request request, String package) async {
+  final p = await backend.lookupPackage(package);
+  if (p == null) {
+    return notFoundHandler(request);
+  }
+  final options = PkgOptions(isDiscontinued: p.isDiscontinued);
+  return jsonResponse(options.toJson());
+}
+
+/// Handles PUT /api/packages/<package>/options
+Future<shelf.Response> putPackageOptionsHandler(
+    shelf.Request request, String package) async {
+  try {
+    final body = await request.readAsString();
+    final options =
+        PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
+    await backend.updateOptions(package, options);
+    return jsonResponse({'success': true});
+  } on UnauthorizedAccessException catch (_) {
+    return jsonResponse({'error': 'Not Authorized.'}, status: 403);
+  } on ClientInputException catch (e) {
+    return jsonResponse({'error': e.message}, status: e.status);
+  } catch (e, st) {
+    _logger.warning('Error processing flag update.', e, st);
+    return jsonResponse({'error': 'Error while processing request.'},
+        status: 500);
+  }
 }

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../scorecard/models.dart';
@@ -257,6 +258,13 @@ String renderPkgShowPage(Package package, List<String> uploaderEmails,
     canonicalUrl: canonicalUrl,
     platform: card?.asSinglePlatform,
     noIndex: noIndex,
+    pageData: PageData(
+      pkgData: PkgData(
+        package: package.name,
+        version: selectedVersion.version,
+        isDiscontinued: package.isDiscontinued == true,
+      ),
+    ),
   );
 }
 

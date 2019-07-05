@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
+import 'package:client_data/account_api.dart';
+import 'package:client_data/package_api.dart';
 import 'package:http/http.dart';
 
 import '_authenticated_client.dart';
@@ -13,9 +15,11 @@ import '_dom_helper.dart';
 import 'google_auth_js.dart';
 import 'google_js.dart';
 import 'hoverable.dart';
+import 'page_data.dart';
 
 bool _initialized = false;
 GoogleUser _currentUser;
+bool _isPkgUploader = false;
 
 /// Returns whether the user is currently signed-in.
 bool get isSignedIn => _initialized && _currentUser != null;
@@ -25,6 +29,7 @@ GoogleUser get currentUser => _currentUser;
 
 Client _client;
 final _navWidget = _AccountNavWidget();
+final _pkgAdminWidget = _PkgAdminWidget();
 
 /// The HTTP Client to use with account credentials.
 Client get client {
@@ -52,6 +57,7 @@ void _init() {
   _initialized = true;
   final navRoot = document.getElementById('account-nav');
   if (navRoot != null) _navWidget.init(navRoot);
+  _pkgAdminWidget.init(document.getElementById('-pub-pkg-admin'));
   _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
@@ -76,12 +82,14 @@ void _updateUser(GoogleUser user) {
 Future _updateOnCredChange() async {
   if (isSignedIn) {
     try {
-      // Dummy placeholder to test if the auth is working.
-      final rs = await client.get('/api/account/info');
-      final map = json.decode(rs.body) as Map<String, dynamic>;
-      final email = map['email'] as String;
-      print('Server sent e-mail: $email');
-      _updateUi();
+      if (pageData.isPackagePage) {
+        final rs = await client
+            .get('/api/account/options/packages/${pageData.pkgData.package}');
+        final map = json.decode(rs.body) as Map<String, dynamic>;
+        final options = AccountPkgOptions.fromJson(map);
+        _isPkgUploader = options.isUploader ?? false;
+        _updateUi();
+      }
     } catch (e) {
       print(e);
     }
@@ -95,6 +103,7 @@ void _updateUi() {
     print('No active user');
   }
   _navWidget.update();
+  _pkgAdminWidget.update();
 }
 
 class _AccountNavWidget {
@@ -145,5 +154,41 @@ class _AccountNavWidget {
       _image.attributes['src'] = _currentUser.getBasicProfile().getImageUrl();
       _email.text = _currentUser.getBasicProfile().getEmail();
     }
+  }
+}
+
+class _PkgAdminWidget {
+  Element _root;
+  void init(Element root) {
+    if (!pageData.isPackagePage) return;
+    _root = root;
+    _root.append(elem('h3', classes: ['title'], text: 'Admin'));
+    final discontinueToggle = elem(
+      'a',
+      text: pageData.pkgData.isDiscontinued
+          ? 'Remove "discontinued"'
+          : 'Mark as "discontinued"',
+      onClick: (_) async {
+        final options =
+            PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
+        final rs = await client.put(
+          '/api/packages/${pageData.pkgData.package}/options',
+          body: json.encode(options.toJson()),
+        );
+        final map = json.decode(rs.body) as Map<String, dynamic>;
+        if (rs.statusCode == 200) {
+          window.location.reload();
+        } else {
+          window.alert(map['error'] as String);
+        }
+      },
+    );
+    _root.append(elem('p', children: [discontinueToggle]));
+    update();
+  }
+
+  void update() {
+    if (_root == null) return;
+    updateDisplay(_root, _initialized && _isPkgUploader);
   }
 }

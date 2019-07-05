@@ -238,8 +238,9 @@ class PubSiteService {
   // **** Custom API
   // ****
 
-  @Route.get('/api/account/info')
-  Future<Response> accountInfo(Request request) => accountInfoHandler(request);
+  @Route.get('/api/account/options/packages/<package>')
+  Future<Response> accountPkgOptions(Request request, String package) =>
+      accountPkgOptionsHandler(request, package);
 
   @Route.get('/api/documentation/<package>')
   Future<Response> apiDocumentation(Request request, String package) =>
@@ -264,6 +265,14 @@ class PubSiteService {
   @Route.get('/api/packages/<package>/metrics')
   Future<Response> apiPackageMetrics(Request request, String package) =>
       apiPackageMetricsHandler(request, package);
+
+  @Route.get('/api/packages/<package>/options')
+  Future<Response> getPackageOptions(Request request, String package) =>
+      getPackageOptionsHandler(request, package);
+
+  @Route.put('/api/packages/<package>/options')
+  Future<Response> putPackageOptions(Request request, String package) =>
+      putPackageOptionsHandler(request, package);
 
   @Route.get('/api/search')
   Future<Response> apiSearch(Request request) => apiSearchHandler(request);

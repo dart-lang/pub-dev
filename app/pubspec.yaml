@@ -9,6 +9,8 @@ dependencies:
   neat_cache: ^1.0.0
   appengine: '^0.6.0'
   args: '>=0.13.7 <2.0.0'
+  client_data:
+    path: ../pkg/client_data
   crypto: '^2.0.2'
   gcloud: '^0.6.0'
   googleapis: '>=0.53.0 <0.54.0'

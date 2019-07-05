@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:client_data/package_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -266,6 +267,34 @@ class Backend {
             e);
       }
     }
+  }
+
+  /// Updates [options] on [package].
+  Future updateOptions(String package, PkgOptions options) async {
+    final pkgKey = db.emptyKey.append(models.Package, id: package);
+    await withAuthenticatedUser((user) async {
+      String latestVersion;
+      await db.withTransaction((tx) async {
+        final p = (await tx.lookup<models.Package>([pkgKey])).single;
+        if (p == null) {
+          throw ClientInputException('Package $package does not exists.',
+              status: 404);
+        }
+        latestVersion = p.latestVersion;
+        if (!p.hasUploader(user.userId)) {
+          throw UnauthorizedAccessException(
+              'User (${user.email}) is not admin for package $package.');
+        }
+        p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
+        _logger.info('Updating $package options: '
+            'isDiscontinued: ${p.isDiscontinued} '
+            'doNotAdvertise: ${p.doNotAdvertise}');
+        tx.queueMutations(inserts: [p]);
+        await tx.commit();
+      });
+      await uiPackageCache.invalidateUIPackagePage(package);
+      await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
+    });
   }
 }
 

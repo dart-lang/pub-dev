@@ -351,3 +351,14 @@ Map<String, String> parseCookieHeader(String cookieHeader) {
       );
   return r;
 }
+
+/// Exception to communicate errors back to the client.
+class ClientInputException implements Exception {
+  final int status;
+  final String message;
+
+  ClientInputException(this.message, {this.status = 400});
+
+  @override
+  String toString() => 'Exception: $message';
+}

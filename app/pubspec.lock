@@ -134,6 +134,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.3+2"
+  client_data:
+    dependency: "direct main"
+    description:
+      path: "../pkg/client_data"
+      relative: true
+    source: path
+    version: "0.0.0"
   code_builder:
     dependency: transitive
     description:

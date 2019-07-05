@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/package_api.dart';
 import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -171,6 +172,11 @@ class BackendMock implements Backend {
 
   @override
   Future deleteObsoleteInvites() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future updateOptions(String package, PkgOptions options) {
     throw UnimplementedError();
   }
 }
