@@ -8,7 +8,8 @@ import 'dart:math';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'pub_client.dart';
+import 'pub_http_client.dart';
+import 'pub_tool_client.dart';
 import 'test_data.dart';
 
 final _random = Random.secure();
@@ -19,38 +20,38 @@ typedef InviteCompleterFn = Future Function();
 /// `pub` tool on the pub.dev site (or on a test site).
 class PubToolScript {
   final String pubHostedUrl;
-  final String credentialsFile;
+  final String credentialsFileContent;
   final String invitedEmail;
   final InviteCompleterFn inviteCompleterFn;
-  PubClient _pubClient;
+  PubHttpClient _pubHttpClient;
+  PubToolClient _pubToolClient;
 
   String _newDummyVersion;
   bool _hasRetry;
 
   Directory _temp;
-  Directory _pubCacheDir;
   Directory _dummyDir;
   Directory _dummyExampleDir;
   Directory _retryDir;
 
   PubToolScript(
     this.pubHostedUrl,
-    this.credentialsFile,
+    this.credentialsFileContent,
     this.invitedEmail,
     this.inviteCompleterFn,
   );
 
   /// Verify all integration steps.
   Future verify() async {
-    assert(_pubClient == null);
-    _pubClient = PubClient(pubHostedUrl);
+    assert(_pubHttpClient == null);
+    assert(_pubToolClient == null);
+    _pubHttpClient = PubHttpClient(pubHostedUrl);
     await _queryVersions();
     _temp = await Directory.systemTemp.createTemp('pub-integration');
     try {
-      _pubCacheDir = Directory(path.join(_temp.path, 'pub-cache'));
-      await _pubCacheDir.create(recursive: true);
-      await File(credentialsFile)
-          .copy(path.join(_pubCacheDir.path, 'credentials.json'));
+      _pubToolClient = await PubToolClient.create(
+          pubHostedUrl: pubHostedUrl,
+          credentialsFileContent: credentialsFileContent);
 
       if (!_hasRetry) {
         await _createFakeRetryPkg();
@@ -80,15 +81,16 @@ class PubToolScript {
       await _verifyDummyPkg(matchInvited: false);
     } finally {
       await _temp.delete(recursive: true);
-      _pubClient.close();
+      _pubHttpClient.close();
+      await _pubToolClient?.close();
     }
   }
 
   Future _queryVersions() async {
-    final retryVersion = await _pubClient.getLatestVersionName('retry');
+    final retryVersion = await _pubHttpClient.getLatestVersionName('retry');
     _hasRetry = retryVersion != null;
 
-    final dv = await _pubClient.getLatestVersionName('_dummy_pkg');
+    final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     final v = Version.parse(dv ?? '0.0.1');
     final build =
         List.generate(5, (i) => _random.nextInt(36).toRadixString(36)).join();
@@ -110,11 +112,11 @@ class PubToolScript {
   }
 
   Future _pubGet(Directory dir) async {
-    await _runProc('pub', ['get'], workingDirectory: dir.path);
+    await _pubToolClient.runProc('pub', ['get'], workingDirectory: dir.path);
   }
 
   Future _upload(Directory dir, {String expectedError}) async {
-    await _runProc(
+    await _pubToolClient.runProc(
       'pub',
       ['publish', '--force'],
       workingDirectory: dir.path,
@@ -123,17 +125,17 @@ class PubToolScript {
   }
 
   Future _run(Directory dir, String file) async {
-    await _runProc('dart', [file], workingDirectory: dir.path);
+    await _pubToolClient.runProc('dart', [file], workingDirectory: dir.path);
   }
 
   Future _verifyDummyPkg({bool matchInvited}) async {
-    final dv = await _pubClient.getLatestVersionName('_dummy_pkg');
+    final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != _newDummyVersion) {
       throw Exception(
           'Expected version does not match: $dv != $_newDummyVersion');
     }
 
-    final pageHtml = await _pubClient.getLatestVersionPage('_dummy_pkg');
+    final pageHtml = await _pubHttpClient.getLatestVersionPage('_dummy_pkg');
     if (!pageHtml.contains(_newDummyVersion)) {
       throw Exception('New version is not to be found on package page.');
     }
@@ -153,7 +155,7 @@ class PubToolScript {
   }
 
   Future _addUploader() async {
-    await _runProc(
+    await _pubToolClient.runProc(
       'pub',
       ['uploader', 'add', invitedEmail],
       workingDirectory: _dummyDir.path,
@@ -164,36 +166,10 @@ class PubToolScript {
   }
 
   Future _removeUploader() async {
-    await _runProc(
+    await _pubToolClient.runProc(
       'pub',
       ['uploader', 'remove', invitedEmail],
       workingDirectory: _dummyDir.path,
     );
-  }
-
-  Future<ProcessResult> _runProc(
-    String executable,
-    List<String> arguments, {
-    String workingDirectory,
-    Map<String, String> environment,
-    String expectedError,
-  }) async {
-    final cmd = '$executable ${arguments.join(' ')}';
-    print('Running $cmd in $workingDirectory...');
-    environment ??= <String, String>{};
-    environment['PUB_CACHE'] = _pubCacheDir.path;
-    environment['PUB_HOSTED_URL'] = pubHostedUrl;
-
-    final pr = await Process.run(
-      executable,
-      arguments,
-      workingDirectory: workingDirectory,
-      environment: environment,
-    );
-    if (pr.exitCode == 0) return pr;
-    if (expectedError == pr.stderr.toString().trim()) return pr;
-    throw Exception('$cmd failed with exit code ${pr.exitCode}.\n'
-        'STDOUT: ${pr.stdout}\n'
-        'STDERR: ${pr.stderr}');
   }
 }

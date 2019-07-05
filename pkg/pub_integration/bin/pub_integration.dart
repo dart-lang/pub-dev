@@ -64,6 +64,7 @@ Future main(List<String> args) async {
     print('credentials.json must exist');
     exit(1);
   }
+  final credentialsFileContent = await File(credentialsFile).readAsString();
 
   print('');
   print('PUB_HOSTED_URL:   $pubHostedUrl');
@@ -79,7 +80,7 @@ Future main(List<String> args) async {
 
   await verifyPub(
     pubHostedUrl: pubHostedUrl,
-    credentialsFile: credentialsFile,
+    credentialsFileContent: credentialsFileContent,
     invitedEmail: invitedEmail,
     inviteCompleterFn: () async {
       print('******');

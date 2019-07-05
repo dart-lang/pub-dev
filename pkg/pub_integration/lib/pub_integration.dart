@@ -10,13 +10,13 @@ import 'src/public_pages_script.dart';
 /// Runs the integration tests on the [pubHostedUrl].
 Future verifyPub({
   @required String pubHostedUrl,
-  @required String credentialsFile,
+  @required String credentialsFileContent,
   @required String invitedEmail,
   @required InviteCompleterFn inviteCompleterFn,
 }) async {
   final pubToolScript = PubToolScript(
     pubHostedUrl,
-    credentialsFile,
+    credentialsFileContent,
     invitedEmail,
     inviteCompleterFn,
   );
