@@ -7,11 +7,11 @@ import 'dart:convert';
 import 'package:http/http.dart';
 
 /// Simple pub client library.
-class PubClient {
+class PubHttpClient {
   final _http = Client();
   final String pubHostedUrl;
 
-  PubClient(this.pubHostedUrl) {
+  PubHttpClient(this.pubHostedUrl) {
     if (pubHostedUrl == null) {
       throw Exception('pubHostedUrl must be set');
     }

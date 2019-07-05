@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'pub_client.dart';
+import 'pub_http_client.dart';
 
 /// A single object to execute integration script and verification tests querying
 /// public pages on the pub.dev site (or on a test site).
 class PublicPagesScript {
   final String pubHostedUrl;
-  PubClient _pubClient;
+  PubHttpClient _pubClient;
 
   PublicPagesScript(this.pubHostedUrl);
 
   /// Verify public pages.
   Future verify() async {
     assert(_pubClient == null);
-    _pubClient = PubClient(pubHostedUrl);
+    _pubClient = PubHttpClient(pubHostedUrl);
     try {
       await _landingPage();
       await _flutterLandingPage();
