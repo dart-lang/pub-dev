@@ -243,6 +243,12 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
       );
       continue;
     }
+
+    if (entry.value is SdkDependency) {
+      // allow any SDK dependency
+      continue;
+    }
+
     if (entry.value is! HostedDependency) {
       yield ArchiveIssue('Package dependency $name is not hosted on pub.dev');
       continue;

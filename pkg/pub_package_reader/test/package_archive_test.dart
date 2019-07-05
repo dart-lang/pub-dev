@@ -73,6 +73,28 @@ void main() {
       expect(forbidGitDependencies(pubspec).toList(), isEmpty);
     });
 
+    test('flutter dependencies are fine', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        flutter:
+          sdk: flutter
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isEmpty);
+    });
+
+    test('Unknown SDK', () {
+      final pubspec = Pubspec.parse('''
+      name: hack
+      version: 1.0.1
+      dependencies:
+        kittens:
+          sdk: kittens
+      ''');
+      expect(forbidGitDependencies(pubspec).toList(), isEmpty);
+    });
+
     test('git dependencies are forbidden', () {
       final pubspec = Pubspec.parse('''
       name: hack
