@@ -144,4 +144,68 @@ void main() {
       expect(forbidGitDependencies(pubspec).toList(), isEmpty);
     });
   });
+
+  group('real-world pubspec files', () {
+    test('package:provider', () {
+      final pubspec = Pubspec.parse('''
+      name: provider
+      description: A mixture between dependency injection and state management, built with widgets for widgets.
+      version: 3.1.0
+      homepage: https://github.com/rrousselGit/provider
+      authors:
+        - Remi Rousselet <darky12s@gmail.com>
+        - Flutter Team <flutter-dev@googlegroups.com>
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+      
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      dev_dependencies:
+        pedantic: ^1.4.0
+        mockito: ^4.0.0
+        flutter_test:
+          sdk: flutter
+      ''');
+      expect(forbidGitDependencies(pubspec), isEmpty);
+    });
+
+    test('package:camera', () {
+      final pubspec = Pubspec.parse('''
+      name: camera
+      description: A Flutter plugin for getting information about and controlling the
+        camera on Android and iOS. Supports previewing the camera feed, capturing images, capturing video,
+        and streaming image buffers to dart.
+      version: 0.5.2+1
+      authors:
+        - Flutter Team <flutter-dev@googlegroups.com>
+        - Luigi Agosti <luigi@tengio.com>
+        - Quentin Le Guennec <quentin@tengio.com>
+        - Koushik Ravikumar <koushik@tengio.com>
+        - Nissim Dsilva <nissim@tengio.com>
+      
+      homepage: https://github.com/flutter/plugins/tree/master/packages/camera
+      
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      dev_dependencies:
+        path_provider: ^0.5.0
+        video_player: ^0.10.0
+      
+      flutter:
+        plugin:
+          androidPackage: io.flutter.plugins.camera
+          pluginClass: CameraPlugin
+      
+      environment:
+        sdk: ">=2.0.0-dev.28.0 <3.0.0"
+        flutter: ">=1.2.0 <2.0.0"
+      ''');
+      expect(forbidGitDependencies(pubspec), isEmpty);
+    });
+  });
 }
