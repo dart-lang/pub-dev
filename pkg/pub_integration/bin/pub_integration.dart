@@ -12,11 +12,16 @@ import 'package:pub_integration/pub_integration.dart';
 /// Runs integration test against prod or staging server.
 Future main(List<String> args) async {
   final _argParser = ArgParser()
+    ..addFlag('help', defaultsTo: false, abbr: 'h')
     ..addOption('pub-hosted-url', help: 'The PUB_HOSTED_URL to use.')
     ..addOption('invited-email', help: 'The e-mail of the invited account.')
     ..addOption('credentials-json',
         help: 'The credentials.json to use for uploads and other actions.');
   final argv = _argParser.parse(args);
+  if (argv['help']) {
+    print(_argParser.usage);
+    exit(0);
+  }
 
   bool verifyParameters = false;
 
