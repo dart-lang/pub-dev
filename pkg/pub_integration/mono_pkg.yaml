@@ -6,6 +6,6 @@ stages:
   - smoke_test:
     - group:
         - dartfmt
-        - dartanalyzer: --fatal-infos --fatal-warnings lib/
+        - dartanalyzer: --fatal-infos --fatal-warnings bin/ lib/
   - unit_test:
     - test: --run-skipped

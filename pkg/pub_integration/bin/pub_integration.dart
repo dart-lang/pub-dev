@@ -18,7 +18,7 @@ Future main(List<String> args) async {
     ..addOption('credentials-json',
         help: 'The credentials.json to use for uploads and other actions.');
   final argv = _argParser.parse(args);
-  if (argv['help']) {
+  if (argv['help'] as bool) {
     print(_argParser.usage);
     exit(0);
   }
