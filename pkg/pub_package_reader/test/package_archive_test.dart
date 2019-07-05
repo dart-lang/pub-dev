@@ -84,7 +84,7 @@ void main() {
       expect(forbidGitDependencies(pubspec).toList(), isEmpty);
     });
 
-    test('Unsupported SDK', () {
+    test('Unknown SDK', () {
       final pubspec = Pubspec.parse('''
       name: hack
       version: 1.0.1
@@ -92,7 +92,7 @@ void main() {
         kittens:
           sdk: kittens
       ''');
-      expect(forbidGitDependencies(pubspec).toList(), isNotEmpty);
+      expect(forbidGitDependencies(pubspec).toList(), isEmpty);
     });
 
     test('git dependencies are forbidden', () {
