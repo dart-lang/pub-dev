@@ -99,6 +99,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.6"
+  build_verify:
+    dependency: "direct dev"
+    description:
+      name: build_verify
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.1"
   built_collection:
     dependency: transitive
     description:
