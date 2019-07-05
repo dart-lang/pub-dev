@@ -12,15 +12,11 @@ import '../../shared/handlers.dart';
 /// Handles /api/account/options/packages/<package>
 Future<shelf.Response> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
-  if (request.method.toUpperCase() == 'GET') {
-    final p = await backend.lookupPackage(package);
-    if (p == null) {
-      return notFoundHandler(request);
-    }
-    final options =
-        AccountPkgOptions(isUploader: p.hasUploader(authenticatedUser.userId));
-    return jsonResponse(options.toJson());
-  } else {
+  final p = await backend.lookupPackage(package);
+  if (p == null) {
     return notFoundHandler(request);
   }
+  final options =
+      AccountPkgOptions(isUploader: p.hasUploader(authenticatedUser.userId));
+  return jsonResponse(options.toJson());
 }
