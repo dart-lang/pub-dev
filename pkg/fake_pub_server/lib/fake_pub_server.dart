@@ -71,11 +71,9 @@ class FakePubServer {
             _storage, activeConfiguration.packageBucketName);
         registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
 
-        final cache = AppEnginePackageMemcache();
-        registerBackend(Backend(db, tarballStorage, cache: cache));
+        registerBackend(Backend(db, tarballStorage));
 
-        final apiHandler =
-            ShelfPubServer(backend.repository, cache: cache).requestHandler;
+        final apiHandler = backend.pubServer.requestHandler;
 
         final appHandler = createAppHandler(apiHandler);
         final handler = wrapHandler(_logger, appHandler, sanitize: true);

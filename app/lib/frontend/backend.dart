@@ -16,6 +16,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_server/repository.dart';
+import 'package:pub_server/shelf_pubserver.dart'
+    show PackageCache, ShelfPubServer;
 import 'package:uuid/uuid.dart';
 
 import '../account/backend.dart';
@@ -25,7 +27,8 @@ import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/email.dart';
-import '../shared/package_memcache.dart';
+import '../shared/platform.dart' show KnownPlatforms;
+import '../shared/redis_cache.dart' show cache, CachePatterns;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import 'email_sender.dart';
@@ -55,12 +58,16 @@ Backend get backend => ss.lookup(#_backend) as Backend;
 class Backend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
-  final UIPackageCache uiPackageCache;
 
-  Backend(DatastoreDB db, TarballStorage storage, {UIPackageCache cache})
+  Backend(DatastoreDB db, TarballStorage storage)
       : db = db,
-        repository = GCloudPackageRepository(db, storage, cache: cache),
-        uiPackageCache = cache;
+        repository = GCloudPackageRepository(db, storage);
+
+  /// Get [ShelfPubServer] for handling the HTTP interface.
+  ShelfPubServer get pubServer => ShelfPubServer(
+        repository,
+        cache: _PackageCache(cache),
+      );
 
   /// Retrieves packages ordered by their created date.
   Future<List<models.Package>> newestPackages({int offset, int limit}) {
@@ -250,7 +257,7 @@ class Backend {
   /// Delete the invite and clear package cache.
   Future confirmPackageInvite(models.PackageInvite invite) async {
     await db.commit(deletes: [invite.key]);
-    await uiPackageCache.invalidateUIPackagePage(invite.packageName);
+    await invalidatePackageCache(cache, invite.packageName);
   }
 
   /// Removes obsolete/expired invites from Datastore.
@@ -292,10 +299,38 @@ class Backend {
         tx.queueMutations(inserts: [p]);
         await tx.commit();
       });
-      await uiPackageCache.invalidateUIPackagePage(package);
+      await invalidatePackageCache(cache, package);
       await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
     });
   }
+}
+
+/// Invalidate [cache] entries for given [package].
+Future<void> invalidatePackageCache(CachePatterns cache, String package) async {
+  await Future.wait([
+    cache.packageData(package).purge(),
+    cache.uiPackagePage(package, null).purge(),
+    cache.uiIndexPage(null).purge(),
+    ...KnownPlatforms.all.map((p) => cache.uiIndexPage(p).purge()),
+  ]);
+}
+
+/// Implementation of [PackageCache] using given cache and backend.
+class _PackageCache implements PackageCache {
+  final CachePatterns _cache;
+  _PackageCache(this._cache);
+
+  @override
+  Future<List<int>> getPackageData(String package) =>
+      _cache.packageData(package).get();
+
+  @override
+  Future setPackageData(String package, List<int> data) =>
+      _cache.packageData(package).set(data);
+
+  @override
+  Future invalidatePackageData(String package) =>
+      invalidatePackageCache(_cache, package);
 }
 
 /// The status of an invite after being created or updated.
@@ -316,9 +351,8 @@ class GCloudPackageRepository extends PackageRepository {
   final Uuid uuid = Uuid();
   final DatastoreDB db;
   final TarballStorage storage;
-  final UIPackageCache cache;
 
-  GCloudPackageRepository(this.db, this.storage, {this.cache});
+  GCloudPackageRepository(this.db, this.storage);
 
   // Metadata support.
 
@@ -712,9 +746,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       tx.queueMutations(inserts: inserts);
       await tx.commit();
-      if (cache != null) {
-        await cache.invalidateUIPackagePage(package.name);
-      }
+      await invalidatePackageCache(cache, package.name);
     });
   }
 
@@ -795,9 +827,7 @@ class GCloudPackageRepository extends PackageRepository {
 
         T.queueMutations(inserts: inserts);
         await T.commit();
-        if (cache != null) {
-          await cache.invalidateUIPackagePage(package.name);
-        }
+        await invalidatePackageCache(cache, package.name);
       });
     });
   }

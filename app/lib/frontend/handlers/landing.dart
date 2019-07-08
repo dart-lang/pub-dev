@@ -8,8 +8,8 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../shared/handlers.dart';
 import '../../shared/platform.dart';
+import '../../shared/redis_cache.dart' show cache;
 
-import '../backend.dart';
 import '../request_context.dart';
 import '../search_service.dart';
 import '../templates/landing.dart';
@@ -41,17 +41,15 @@ Future<shelf.Response> _indexHandler(
     return redirectResponse(
         request.requestedUri.replace(path: newPath).toString());
   }
-  final useCache = requestContext.uiCacheEnabled;
-  String pageContent =
-      useCache ? await backend.uiPackageCache?.getUIIndexPage(platform) : null;
-  if (pageContent == null) {
+
+  Future<String> _render() async {
     final packages = await topFeaturedPackages(platform: platform);
     final minilist = renderMiniList(packages);
-
-    pageContent = renderIndexPage(minilist, platform);
-    if (useCache) {
-      await backend.uiPackageCache?.setUIIndexPage(platform, pageContent);
-    }
+    return renderIndexPage(minilist, platform);
   }
-  return htmlResponse(pageContent);
+
+  if (requestContext.uiCacheEnabled) {
+    return htmlResponse(await cache.uiIndexPage(platform).get(_render));
+  }
+  return htmlResponse(await _render());
 }

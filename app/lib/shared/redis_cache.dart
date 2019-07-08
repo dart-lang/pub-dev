@@ -60,6 +60,20 @@ class CachePatterns {
         encode: (map) => map,
         decode: (obj) => obj as Map<String, dynamic>,
       ))[package];
+
+  Entry<String> uiPackagePage(String package, String version) => _cache
+      .withPrefix('ui-packagepage')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
+  Entry<String> uiIndexPage(String platform) => _cache
+      .withPrefix('ui-indexpage')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$platform'];
+
+  Entry<List<int>> packageData(String package) => _cache
+      .withPrefix('package-data')
+      .withTTL(Duration(minutes: 10))['$package'];
 }
 
 /// The active cache.

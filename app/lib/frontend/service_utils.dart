@@ -13,7 +13,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../account/backend.dart';
 import '../shared/configuration.dart';
-import '../shared/package_memcache.dart';
 import '../shared/services.dart';
 
 import 'backend.dart';
@@ -25,8 +24,8 @@ void initSearchService() {
   registerScopeExitCallback(searchService.close);
 }
 
-void initBackend({UIPackageCache cache}) {
-  registerBackend(Backend(dbService, tarballStorage, cache: cache));
+void initBackend() {
+  registerBackend(Backend(dbService, tarballStorage));
 }
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get

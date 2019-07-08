@@ -10,6 +10,7 @@ import '../../account/backend.dart';
 import '../../shared/analyzer_client.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
+import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
@@ -103,9 +104,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
   final bool useCache = requestContext.uiCacheEnabled;
-  if (useCache && backend.uiPackageCache != null) {
-    cachedPage =
-        await backend.uiPackageCache.getUIPackagePage(packageName, versionName);
+  if (useCache) {
+    cachedPage = await cache.uiPackagePage(packageName, versionName).get();
   }
 
   if (cachedPage == null) {
@@ -133,9 +133,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
         package, uploaderEmails, selectedVersion, analysisView);
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
-    if (useCache && backend.uiPackageCache != null) {
-      await backend.uiPackageCache
-          .setUIPackagePage(packageName, versionName, cachedPage);
+    if (useCache) {
+      await cache.uiPackagePage(packageName, versionName).set(cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);
   }

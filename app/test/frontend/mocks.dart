@@ -38,6 +38,9 @@ class BackendMock implements Backend {
   });
 
   @override
+  get pubServer => throw Exception('unexpected pubServer access');
+
+  @override
   // ignore: always_declare_return_types
   get db => throw Exception('unexpected db access');
 

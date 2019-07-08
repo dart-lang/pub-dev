@@ -10,7 +10,6 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
-import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/account/backend.dart';
@@ -24,7 +23,6 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_memcache.dart';
@@ -120,8 +118,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   initSearchService();
 
-  final cache = AppEnginePackageMemcache();
-  initBackend(cache: cache);
+  initBackend();
   registerSearchMemcache(SearchMemcache());
 
   UploadSignerService uploadSigner;
@@ -137,7 +134,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   }
   registerUploadSigner(uploadSigner);
 
-  return ShelfPubServer(backend.repository, cache: cache).requestHandler;
+  return backend.pubServer.requestHandler;
 }
 
 Future _worker(WorkerEntryMessage message) async {
