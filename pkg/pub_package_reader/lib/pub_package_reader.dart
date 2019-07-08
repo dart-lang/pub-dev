@@ -6,7 +6,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'src/file_names.dart';
 import 'src/names.dart';
-import 'src/package_dir.dart';
+import 'src/package_folder.dart';
 
 // The maximum stored length of `README.md` and other user-provided file content
 // that is stored separately in the database.
@@ -53,7 +53,7 @@ class PackageSummary {
 /// Observe the .tar.gz archive on [archivePath] and return the results.
 Future<PackageSummary> summarizePackageArchive(String archivePath) async {
   final issues = <ArchiveIssue>[];
-  final packageDir = ArchiveTarGzPackageDir(archivePath);
+  final packageDir = PackageFolder.tarballPath(archivePath);
   final files = await packageDir.listFileNames();
 
   // Searches in [files] for a file name [name] and compare in a

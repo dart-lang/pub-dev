@@ -7,7 +7,14 @@ import 'dart:convert';
 import 'tar_utils.dart';
 
 /// Helper methods to access package content.
-abstract class PackageDir {
+abstract class PackageFolder {
+  /// Returns and implementation that uses archive.tar.gz to provide access to
+  /// the package archive.
+  ///
+  /// Caches list of files for faster access.
+  static PackageFolder tarballPath(String path) =>
+      _ArchiveTarGzPackageFolder(path);
+
   /// List all the file names in the directory.
   Future<List<String>> listFileNames();
 
@@ -41,11 +48,11 @@ abstract class PackageDir {
 /// Uses archive.tar.gz to provide access to the package archive.
 ///
 /// Caches list of files for faster access.
-class ArchiveTarGzPackageDir extends PackageDir {
+class _ArchiveTarGzPackageFolder extends PackageFolder {
   final String _path;
   List<String> _fileNames;
 
-  ArchiveTarGzPackageDir(this._path);
+  _ArchiveTarGzPackageFolder(this._path);
 
   @override
   Future<bool> exists(String path) async {
