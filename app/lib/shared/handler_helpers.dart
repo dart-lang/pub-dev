@@ -117,7 +117,12 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
-    logger.info('Handling request: ${request.requestedUri}');
+    final isLiveness = request.requestedUri.path == '/liveness_check';
+    final isReadiness = request.requestedUri.path == '/readiness_check';
+    final shouldLog = !(isLiveness || isReadiness);
+    if (shouldLog) {
+      logger.info('Handling request: ${request.requestedUri}');
+    }
     try {
       return await handler(request);
     } catch (error, st) {
@@ -146,7 +151,9 @@ Request ID: ${context.traceId}
           title: title);
       return htmlResponse(content, status: 500, headers: debugHeaders);
     } finally {
-      logger.info('Request handler done.');
+      if (shouldLog) {
+        logger.info('Request handler done.');
+      }
     }
   };
 }
