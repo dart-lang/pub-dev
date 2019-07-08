@@ -16,15 +16,23 @@ abstract class PackageFolder {
       _ArchiveTarGzPackageFolder(path);
 
   /// List all the file names in the directory.
+  ///
+  /// Throws IOException if directory listing or file access fails.
   Future<List<String>> listFileNames();
 
   /// Whether the file on the given relative [path] exists.
+  ///
+  /// Throws IOException if directory listing or file access fails.
   Future<bool> exists(String path);
 
   /// Read the content of the file on the given relative [path].
+  ///
+  /// Emits IOException if directory listing or file access fails.
   Stream<List<int>> read(String path);
 
   /// Read the content of the file on the given relative [path] as String.
+  ///
+  /// Throws IOException if directory listing or file access fails.
   Future<String> readAsString(
     String path, {
     int maxLength,
@@ -42,6 +50,8 @@ abstract class PackageFolder {
   }
 
   /// Free up resources (if it was extracted to a temp directory).
+  ///
+  /// Throws IOException if directory listing or file access fails.
   Future close();
 }
 

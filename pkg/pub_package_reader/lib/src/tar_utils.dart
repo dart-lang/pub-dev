@@ -17,7 +17,7 @@ Future<List<String>> listTarball(String path) async {
         'with exit code: ${result.exitCode}\n'
         'stdout: ${result.stdout}\n'
         'stderr: ${result.stderr}');
-    throw Exception('Failed to list tarball contents.');
+    throw FileSystemException('Failed to list tarball contents.');
   }
 
   return (result.stdout as String)
@@ -35,7 +35,7 @@ Stream<List<int>> openTarballFile(String path, String name) async* {
   yield* p.stdout;
   final code = await p.exitCode;
   if (code != 0) {
-    throw Exception('Failed to read tarball contents (code=$code).');
+    throw FileSystemException('Failed to read tarball contents (code=$code).');
   }
 }
 
