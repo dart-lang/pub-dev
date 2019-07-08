@@ -22,7 +22,6 @@ import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/package_memcache.dart';
@@ -98,7 +97,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       storageService, activeConfiguration.dartdocStorageBucketName);
   registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
 
-  registerDartdocMemcache(DartdocMemcache());
   final dartdocClient = DartdocClient();
   registerDartdocClient(dartdocClient);
   registerScopeExitCallback(dartdocClient.close);

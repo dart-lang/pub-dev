@@ -16,7 +16,6 @@ import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
@@ -88,8 +87,6 @@ Future _registerServices() async {
   registerPopularityStorage(
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
-  registerDartdocMemcache(DartdocMemcache());
 
   registerAnalyzerClient(AnalyzerClient());
   final Bucket storageBucket = await getOrCreateBucket(

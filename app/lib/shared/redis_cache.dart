@@ -11,16 +11,61 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart' as db;
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dartlang_org/dartdoc/models.dart' show FileInfo;
 
 import '../frontend/models.dart' show Secret, SecretKey;
+import 'convert.dart';
+import 'dartdoc_client.dart' show DartdocEntry;
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
 
+CachePatterns get cache => CachePatterns._(rawCache);
+
+class CachePatterns {
+  Cache<List<int>> _cache;
+  CachePatterns._(Cache<List<int>> cache)
+      : _cache = cache
+            .withPrefix('rv-$runtimeVersion')
+            .withTTL(Duration(minutes: 10));
+
+  // NOTE: This class should only contain methods that return Entry<T>, as well
+  //       configuration options like prefix and TTL.
+
+  /// Cache for [DartdocEntry] objects.
+  Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache
+      .withPrefix('dartdoc-entry')
+      .withTTL(Duration(hours: 24))
+      .withCodec(wrapAsCodec(
+        encode: (DartdocEntry entry) => entry.asBytes(),
+        decode: (data) => DartdocEntry.fromBytes(data),
+      ))['$package-$version'];
+
+  /// Cache for [FileInfo] objects used by dartdoc.
+  Entry<FileInfo> dartdocFileInfo(String objectName) => _cache
+      .withPrefix('dartdoc-fileinfo')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(wrapAsCodec(
+        encode: (FileInfo info) => info.asBytes(),
+        decode: (data) => FileInfo.fromBytes(data),
+      ))[objectName];
+
+  /// Cache for API summaries used by dartdoc.
+  Entry<Map<String, dynamic>> dartdocApiSummary(String package) => _cache
+      .withPrefix('dartdoc-apisummary')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (map) => map,
+        decode: (obj) => obj as Map<String, dynamic>,
+      ))[package];
+}
+
 /// The active cache.
 ///
 /// Can only be used within the context of [withAppEngineAndCache].
-Cache<List<int>> get cache => ss.lookup(#_cache) as Cache<List<int>>;
+Cache<List<int>> get rawCache => ss.lookup(#_cache) as Cache<List<int>>;
 
 void _registerCache(Cache<List<int>> cache) => ss.register(#_cache, cache);
 
@@ -79,11 +124,11 @@ class SimpleMemcache {
   final Cache<List<int>> _bCache;
 
   SimpleMemcache(String prefix, Logger logger, Duration ttl)
-      : _sCache = cache
+      : _sCache = rawCache
             .withPrefix('$runtimeVersion/$prefix/')
             .withTTL(ttl)
             .withCodec(utf8),
-        _bCache = cache.withPrefix('$runtimeVersion/$prefix/').withTTL(ttl);
+        _bCache = rawCache.withPrefix('$runtimeVersion/$prefix/').withTTL(ttl);
 
   Future<String> getText(String key) => _sCache[key].get();
   Future setText(String key, String content) => _sCache[key].set(content);
