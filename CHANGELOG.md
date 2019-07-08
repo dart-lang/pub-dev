@@ -3,6 +3,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190708t104225-all`
+
+ * Fixed issue with sdk dependencies.
+
 ## `20190704t133404-all`
 
  * Upgraded to Dart `2.4.0`.
