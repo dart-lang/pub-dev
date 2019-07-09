@@ -16,6 +16,7 @@ import 'package:pub_dartlang_org/dartdoc/models.dart' show FileInfo;
 import '../frontend/models.dart' show Secret, SecretKey;
 import 'convert.dart';
 import 'dartdoc_client.dart' show DartdocEntry;
+import 'search_service.dart' show PackageSearchResult;
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
@@ -74,6 +75,16 @@ class CachePatterns {
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('package-data')
       .withTTL(Duration(minutes: 10))['$package'];
+
+  Entry<PackageSearchResult> packageSearchResult(String url) => _cache
+      .withPrefix('search-result')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PackageSearchResult r) => r.toJson(),
+        decode: (d) => PackageSearchResult.fromJson(d as Map<String, dynamic>),
+      ))[url];
 }
 
 /// The active cache.
