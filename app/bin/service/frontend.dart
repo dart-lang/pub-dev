@@ -25,7 +25,6 @@ import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
-import 'package:pub_dartlang_org/shared/search_memcache.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -119,7 +118,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   initSearchService();
 
   initBackend();
-  registerSearchMemcache(SearchMemcache());
 
   UploadSignerService uploadSigner;
   if (envConfig.hasCredentials) {

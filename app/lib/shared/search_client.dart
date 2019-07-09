@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 import '../scorecard/backend.dart';
 
 import 'configuration.dart';
-import 'search_memcache.dart';
+import 'redis_cache.dart' show cache;
 import 'search_service.dart';
 import 'utils.dart';
 
@@ -34,27 +34,25 @@ class SearchClient {
         Uri(queryParameters: query.toServiceQueryParameters()).toString();
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
-    final cached = await searchMemcache.getPackageSearchResult(serviceUrl);
-    if (cached != null) return cached;
-
-    final http.Response response =
-        await getUrlWithRetry(_httpClient, serviceUrl);
-    if (response.statusCode == searchIndexNotReadyCode) {
-      // Search request before the service initialization completed.
-      return null;
-    }
-    if (response.statusCode != 200) {
-      // There has been an issue with the service
-      throw Exception('Service returned status code ${response.statusCode}');
-    }
-    final PackageSearchResult result = PackageSearchResult.fromJson(
-        json.decode(response.body) as Map<String, dynamic>);
-    if (!result.isLegit) {
-      // Search request before the service initialization completed.
-      return null;
-    }
-    await searchMemcache.setPackageSearchResult(serviceUrl, result);
-    return result;
+    return await cache.packageSearchResult(serviceUrl).get(() async {
+      final response = await getUrlWithRetry(_httpClient, serviceUrl);
+      if (response.statusCode == searchIndexNotReadyCode) {
+        // Search request before the service initialization completed.
+        return null;
+      }
+      if (response.statusCode != 200) {
+        // There has been an issue with the service
+        throw Exception('Service returned status code ${response.statusCode}');
+      }
+      final result = PackageSearchResult.fromJson(
+        json.decode(response.body) as Map<String, dynamic>,
+      );
+      if (!result.isLegit) {
+        // Search request before the service initialization completed.
+        return null;
+      }
+      return result;
+    });
   }
 
   /// Search service maintains a separate index in each of the running instances.
