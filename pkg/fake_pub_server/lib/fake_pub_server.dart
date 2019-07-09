@@ -7,7 +7,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
-import 'package:pub_server/shelf_pubserver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -27,7 +26,6 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/package_memcache.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 

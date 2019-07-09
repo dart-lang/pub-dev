@@ -21,12 +21,20 @@ import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/shared/redis_cache.dart' show withCache;
 
 import '../shared/utils.dart';
 
 import 'backend_test_utils.dart';
 import 'mocks.dart';
 import 'utils.dart';
+
+void testWithCache(String name, Function fn, {Timeout timeout}) =>
+    scopedTest(name, () async {
+      await withCache(() async {
+        await fn();
+      });
+    }, timeout: timeout);
 
 // TODO: Add missing tests when a query returns more than one result.
 void main() {
@@ -248,7 +256,7 @@ void main() {
 
   group('backend.repository', () {
     group('GCloudRepository.addUploader', () {
-      scopedTest('not logged in', () async {
+      testWithCache('not logged in', () async {
         final db = DatastoreDBMock();
         final tarballStorage = TarballStorageMock();
         final repo = GCloudPackageRepository(db, tarballStorage);
@@ -259,7 +267,7 @@ void main() {
         }));
       });
 
-      scopedTest('not authorized', () async {
+      testWithCache('not authorized', () async {
         final lookupFn = (keys) async {
           expect(keys, hasLength(1));
           expect(keys.first, testPackage.key);
@@ -281,7 +289,7 @@ void main() {
         }));
       });
 
-      scopedTest('package does not exist', () async {
+      testWithCache('package does not exist', () async {
         final lookupFn = (keys) async {
           expect(keys, hasLength(1));
           expect(keys.first, testPackage.key);
@@ -372,7 +380,7 @@ void main() {
     });
 
     group('GCloudRepository.removeUploader', () {
-      scopedTest('not logged in', () async {
+      testWithCache('not logged in', () async {
         final db = DatastoreDBMock();
         final tarballStorage = TarballStorageMock();
         final repo = GCloudPackageRepository(db, tarballStorage);
@@ -384,7 +392,7 @@ void main() {
         }));
       });
 
-      scopedTest('not authorized', () async {
+      testWithCache('not authorized', () async {
         final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
@@ -405,7 +413,7 @@ void main() {
         }));
       });
 
-      scopedTest('package does not exist', () async {
+      testWithCache('package does not exist', () async {
         final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
@@ -425,7 +433,7 @@ void main() {
         }));
       });
 
-      scopedTest('cannot remove last uploader', () async {
+      testWithCache('cannot remove last uploader', () async {
         final testPackage = createTestPackage();
         final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
@@ -449,7 +457,7 @@ void main() {
         }));
       });
 
-      scopedTest('cannot remove non-existent uploader', () async {
+      testWithCache('cannot remove non-existent uploader', () async {
         final transactionMock = TransactionMock(
             lookupFun: expectAsync1((keys) {
               expect(keys, hasLength(1));
@@ -471,7 +479,7 @@ void main() {
         }));
       });
 
-      scopedTest('cannot remove self', () async {
+      testWithCache('cannot remove self', () async {
         final foo1 = AuthenticatedUser('uuid-foo1', 'foo1@bar.com');
         final foo2 = AuthenticatedUser('uuid-foo2', 'foo2@bar.com');
         final testPackage = createTestPackage(uploaders: [foo1, foo2]);
@@ -497,7 +505,7 @@ void main() {
         }));
       });
 
-      scopedTest('successful', () async {
+      testWithCache('successful', () async {
         final userA = AuthenticatedUser('uuid-a', 'a@x.com');
         final userB = AuthenticatedUser('uuid-b', 'b@x.com');
         final testPackage = createTestPackage(uploaders: [userA, userB]);
@@ -712,7 +720,7 @@ void main() {
       group('GCloudRepository.startAsyncUpload', () {
         final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
 
-        scopedTest('no active user', () async {
+        testWithCache('no active user', () async {
           final db = DatastoreDBMock();
           final repo = GCloudPackageRepository(db, null);
           registerUploadSigner(UploadSignerServiceMock(null));
@@ -723,7 +731,7 @@ void main() {
           }));
         });
 
-        scopedTest('successful', () async {
+        testWithCache('successful', () async {
           final uri = Uri.parse('http://foobar.com');
           final expectedUploadInfo =
               pub_server.AsyncUploadInfo(uri, {'a': 'b'});
@@ -752,7 +760,7 @@ void main() {
         final Uri redirectUri =
             Uri.parse('http://blobstore.com/upload?upload_id=myguid');
 
-        scopedTest('upload-too-big', () async {
+        testWithCache('upload-too-big', () async {
           final oneKB = List.filled(1024, 42);
           final bigTarball = <List<int>>[];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
@@ -783,7 +791,7 @@ void main() {
           expect(historyBackendMock.storedHistories, hasLength(0));
         }, timeout: Timeout.factor(2));
 
-        scopedTest('successful', () async {
+        testWithCache('successful', () async {
           return withTestPackage((List<int> tarball) async {
             final tarballStorage = TarballStorageMock(
                 readTempObjectFun: (guid) {
@@ -842,7 +850,7 @@ void main() {
       });
 
       group('GCloudRepository.upload', () {
-        scopedTest('not logged in', () async {
+        testWithCache('not logged in', () async {
           return withTestPackage((List<int> tarball) async {
             final tarballStorage = TarballStorageMock();
             final transactionMock = TransactionMock();
@@ -856,7 +864,7 @@ void main() {
           });
         });
 
-        scopedTest('not authorized', () async {
+        testWithCache('not authorized', () async {
           return withTestPackage((List<int> tarball) async {
             final tarballStorage = TarballStorageMock();
             final transactionMock = TransactionMock(
@@ -879,7 +887,7 @@ void main() {
           });
         });
 
-        scopedTest('versions already exist', () async {
+        testWithCache('versions already exist', () async {
           return withTestPackage((List<int> tarball) async {
             final tarballStorage = TarballStorageMock();
             final transactionMock = TransactionMock(
@@ -905,7 +913,7 @@ void main() {
           });
         });
 
-        scopedTest('bad package names are rejected', () async {
+        testWithCache('bad package names are rejected', () async {
           final tarballStorage = TarballStorageMock();
           final transactionMock = TransactionMock();
           final db = DatastoreDBMock(transactionMock: transactionMock);
@@ -937,7 +945,7 @@ void main() {
           expect(await fn('ok_name'), 'Exception: no lookupFun');
         });
 
-        scopedTest('upload-too-big', () async {
+        testWithCache('upload-too-big', () async {
           final oneKB = List.filled(1024, 42);
           final List<List<int>> bigTarball = [];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
@@ -965,7 +973,7 @@ void main() {
           expect(historyBackendMock.storedHistories, hasLength(0));
         }, timeout: Timeout.factor(2));
 
-        scopedTest('successful', () async {
+        testWithCache('successful', () async {
           return withTestPackage((List<int> tarball) async {
             final completion = TestDelayCompletion(count: 2);
             final tarballStorage = TarballStorageMock(uploadFun:

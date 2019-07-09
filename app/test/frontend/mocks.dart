@@ -13,6 +13,7 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
+import 'package:pub_server/shelf_pubserver.dart' show ShelfPubServer;
 
 class BackendMock implements Backend {
   final Function newestPackagesFun;
@@ -38,7 +39,8 @@ class BackendMock implements Backend {
   });
 
   @override
-  get pubServer => throw Exception('unexpected pubServer access');
+  ShelfPubServer get pubServer =>
+      throw Exception('unexpected pubServer access');
 
   @override
   // ignore: always_declare_return_types
@@ -47,10 +49,6 @@ class BackendMock implements Backend {
   @override
   // ignore: always_declare_return_types
   get repository => throw Exception('unexpected repository access');
-
-  @override
-  // ignore: always_declare_return_types
-  get uiPackageCache => null;
 
   @override
   Future<List<Package>> newestPackages({int offset, int limit}) async {
