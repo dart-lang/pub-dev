@@ -3,18 +3,15 @@
     BSD-style license that can be found in the LICENSE file. }}
 <ul class="package-tabs-header">
   {{#tabs}}
-    {{^is_link}}
-    <li class="tab-button {{active}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
-    {{/is_link}}
-    {{#is_link}}
-      <li class="tab-link {{active}}" role="button">{{& title_html}}</li>
-    {{/is_link}}
+    <li class="{{title_classes}}"{{#has_content}} data-name="-{{id}}-tab-"{{/has_content}} role="button">{{& title_html}}</li>
   {{/tabs}}
 </ul>
 <div class="main package-tabs-content">
   {{#tabs}}
-    <section class="tab-content {{active}} {{markdown-body}}" data-name="-{{id}}-tab-">
+    {{#has_content}}
+    <section class="{{content_classes}}" data-name="-{{id}}-tab-">
       {{& content_html}}
     </section>
+    {{/has_content}}
   {{/tabs}}
 </div>
