@@ -287,6 +287,7 @@ class Tab {
   final String titleHtml;
   final String contentHtml;
   final bool isMarkdown;
+  final bool isHidden;
   bool isActive = false;
 
   Tab.withContent({
@@ -295,12 +296,14 @@ class Tab {
     String titleHtml,
     @required this.contentHtml,
     this.isMarkdown = false,
+    this.isHidden = false,
   }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
 
   Tab.withLink({
     String title,
     String titleHtml,
     @required String href,
+    this.isHidden = false,
   })  : titleHtml =
             '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
         id = null,
@@ -311,6 +314,7 @@ class Tab {
     final titleClasses = <String>[
       contentHtml == null ? 'tab-link' : 'tab-button',
       if (isActive) '-active',
+      if (isHidden) '-hidden',
     ];
     final contentClasses = <String>[
       'tab-content',
@@ -385,6 +389,12 @@ List<Tab> _pkgTabs(
         isSkipped: card?.isSkipped ?? false, isNewPackage: isNewPackage),
     contentHtml: renderAnalysisTab(selectedVersion.package,
         selectedVersion.pubspec.sdkConstraint, card, analysis),
+  ));
+  tabs.add(Tab.withContent(
+    id: 'admin',
+    title: 'Admin',
+    contentHtml: '<h1>Admin</h1>',
+    isHidden: true,
   ));
   return tabs;
 }

@@ -75,13 +75,16 @@ String getTabName(Element elem) {
 }
 
 void changeTab(String name) {
-  final tabOrContentElem = _headerRoot
-      .querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
-  if (tabOrContentElem != null) {
+  final tabOrContentElem = getTabElement(name);
+  if (tabOrContentElem != null &&
+      !tabOrContentElem.classes.contains('-hidden')) {
     _headerRoot.children.forEach((node) => _toggle(node, name));
     _contentRoot.children.forEach((node) => _toggle(node, name));
   }
 }
+
+Element getTabElement(String name) => _headerRoot
+    .querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
 
 void _toggle(Element node, String name) {
   if (node.dataset['name'] != name) {
