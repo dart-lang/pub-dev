@@ -148,7 +148,7 @@ Future removePackage(String packageName) async {
       dbService.query<ScoreCard>()..filter('packageName =', packageName));
 
   print('Package "$packageName" got successfully removed.');
-  print('WARNING: Please remember to clear the AppEngine memcache!');
+  print('NOTICE: Redis caches referencing the package will expire given time.');
 }
 
 Future removePackageVersion(String packageName, String version) async {
@@ -222,5 +222,5 @@ Future removePackageVersion(String packageName, String version) async {
   );
 
   print('Version "$version" of "$packageName" got successfully removed.');
-  print('WARNING: Please remember to clear the AppEngine memcache!');
+  print('NOTICE: Redis caches referencing the package will expire given time.');
 }
