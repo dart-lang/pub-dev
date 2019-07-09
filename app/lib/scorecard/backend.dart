@@ -11,12 +11,12 @@ import 'package:logging/logging.dart';
 import '../frontend/models.dart' show Package, PackageVersion;
 import '../shared/packages_overrides.dart';
 import '../shared/popularity_storage.dart';
+import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
 import 'models.dart';
-import 'scorecard_memcache.dart';
 
 export 'models.dart';
 
@@ -55,7 +55,7 @@ class ScoreCardBackend {
     }
     final cached = onlyCurrent
         ? null
-        : await scoreCardMemcache.getScoreCardData(packageName, packageVersion);
+        : await cache.scoreCardData(packageName, packageVersion).get();
     if (cached != null && cached.hasReports(requiredReportTypes)) {
       return cached;
     }
@@ -64,7 +64,9 @@ class ScoreCardBackend {
     final current = (await _db.lookup<ScoreCard>([key])).single?.toData();
     if (current != null) {
       // only full cards will be stored in cache
-      await scoreCardMemcache.setScoreCardData(current);
+      if (current.isCurrent && current.hasReports(ReportType.values)) {
+        await cache.scoreCardData(packageName, packageVersion).set(current);
+      }
       if (onlyCurrent || current.hasReports(requiredReportTypes)) {
         return current;
       }
@@ -216,7 +218,7 @@ class ScoreCardBackend {
       await tx.commit();
     });
 
-    scoreCardMemcache.invalidate(packageName, packageVersion);
+    await cache.scoreCardData(packageName, packageVersion).purge();
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].

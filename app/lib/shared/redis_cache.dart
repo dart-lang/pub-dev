@@ -14,14 +14,13 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartlang_org/dartdoc/models.dart' show FileInfo;
 
 import '../frontend/models.dart' show Secret, SecretKey;
+import '../scorecard/models.dart' show ScoreCardData;
 import 'convert.dart';
 import 'dartdoc_client.dart' show DartdocEntry;
 import 'search_service.dart' show PackageSearchResult;
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
-
-CachePatterns get cache => CachePatterns._(rawCache);
 
 class CachePatterns {
   Cache<List<int>> _cache;
@@ -85,14 +84,23 @@ class CachePatterns {
         encode: (PackageSearchResult r) => r.toJson(),
         decode: (d) => PackageSearchResult.fromJson(d as Map<String, dynamic>),
       ))[url];
+
+  Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
+      .withPrefix('scorecarddata')
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (ScoreCardData d) => d.toJson(),
+        decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
+      ))['$package-$version'];
 }
 
 /// The active cache.
 ///
 /// Can only be used within the context of [withAppEngineAndCache].
-Cache<List<int>> get rawCache => ss.lookup(#_cache) as Cache<List<int>>;
+CachePatterns get cache => ss.lookup(#_cache) as CachePatterns;
 
-void _registerCache(Cache<List<int>> cache) => ss.register(#_cache, cache);
+void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 
 /// Run [fn] with AppEngine services and [cache].
 ///
@@ -128,7 +136,7 @@ Future _withRedisCache(FutureOr Function() fn) async {
 
   // Create and register a cache
   final cacheProvider = Cache.redisCacheProvider(connectionString);
-  _registerCache(Cache(cacheProvider));
+  _registerCache(CachePatterns._(Cache(cacheProvider)));
 
   try {
     // Call fn
@@ -140,24 +148,6 @@ Future _withRedisCache(FutureOr Function() fn) async {
 
 /// Run [fn] with an in-memory cache for [cache].
 Future _withInmemoryCache(FutureOr Function() fn) async {
-  _registerCache(Cache(Cache.inMemoryCacheProvider(4096)));
+  _registerCache(CachePatterns._(Cache(Cache.inMemoryCacheProvider(4096))));
   return await fn();
-}
-
-class SimpleMemcache {
-  final Cache<String> _sCache;
-  final Cache<List<int>> _bCache;
-
-  SimpleMemcache(String prefix, Logger logger, Duration ttl)
-      : _sCache = rawCache
-            .withPrefix('$runtimeVersion/$prefix/')
-            .withTTL(ttl)
-            .withCodec(utf8),
-        _bCache = rawCache.withPrefix('$runtimeVersion/$prefix/').withTTL(ttl);
-
-  Future<String> getText(String key) => _sCache[key].get();
-  Future setText(String key, String content) => _sCache[key].set(content);
-  Future<List<int>> getBytes(String key) => _bCache[key].get();
-  Future setBytes(String key, List<int> content) => _bCache[key].set(content);
-  Future invalidate(String key) async => _bCache[key].purge();
 }
