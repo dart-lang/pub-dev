@@ -270,15 +270,14 @@ String renderPkgShowPage(Package package, List<String> uploaderEmails,
 
 /// Renders the `views/pkg/tabs.mustache` template.
 String renderPkgTabs(List<Tab> tabs) {
-  final tabsData = tabs.map((t) => t.toMustacheData()).toList();
   // active: the first one with content
-  for (int i = 0; i < tabs.length; i++) {
-    if (tabs[i].contentHtml != null) {
-      tabsData[i]['active'] = '-active';
+  for (Tab tab in tabs) {
+    if (tab.contentHtml != null) {
+      tab.isActive = true;
       break;
     }
   }
-  final values = {'tabs': tabsData};
+  final values = {'tabs': tabs.map((t) => t.toMustacheData()).toList()};
   return templateCache.renderTemplate('pkg/tabs', values);
 }
 
@@ -288,6 +287,7 @@ class Tab {
   final String titleHtml;
   final String contentHtml;
   final bool isMarkdown;
+  bool isActive = false;
 
   Tab.withContent({
     @required this.id,
@@ -307,13 +307,25 @@ class Tab {
         contentHtml = null,
         isMarkdown = false;
 
-  Map toMustacheData() => <String, dynamic>{
-        'id': id,
-        'title_html': titleHtml,
-        'content_html': contentHtml,
-        'markdown-body': isMarkdown ? 'markdown-body' : null,
-        'is_link': contentHtml == null,
-      };
+  Map toMustacheData() {
+    final titleClasses = <String>[
+      contentHtml == null ? 'tab-link' : 'tab-button',
+      if (isActive) '-active',
+    ];
+    final contentClasses = <String>[
+      'tab-content',
+      if (isActive) '-active',
+      if (isMarkdown) 'markdown-body',
+    ];
+    return <String, dynamic>{
+      'id': id,
+      'title_classes': titleClasses.join(' '),
+      'title_html': titleHtml,
+      'content_classes': contentClasses.join(' '),
+      'content_html': contentHtml,
+      'has_content': contentHtml != null,
+    };
+  }
 }
 
 List<Tab> _pkgTabs(
