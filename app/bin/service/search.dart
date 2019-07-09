@@ -16,7 +16,6 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -73,7 +72,6 @@ Future _main(FrontendEntryMessage message) async {
     registerScopeExitCallback(dartdocClient.close);
 
     registerScoreCardBackend(ScoreCardBackend(db.dbService));
-    registerScoreCardMemcache(ScoreCardMemcache());
 
     registerSearchBackend(SearchBackend(db.dbService));
 

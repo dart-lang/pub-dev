@@ -21,7 +21,6 @@ import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -58,7 +57,6 @@ class FakePubServer {
         registerEmailSender(EmailSender(db, activeConfiguration.blockEmails));
         registerHistoryBackend(HistoryBackend(db));
         registerScoreCardBackend(ScoreCardBackend(db));
-        registerScoreCardMemcache(ScoreCardMemcache());
         final nameTrackerUpdater = NameTrackerUpdater(db);
         nameTrackerUpdater.startNameTrackerUpdates();
         registerSearchService(SearchService());
