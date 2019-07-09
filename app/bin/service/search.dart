@@ -20,7 +20,6 @@ import 'package:pub_dartlang_org/scorecard/scorecard_memcache.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_memcache.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
@@ -69,7 +68,6 @@ Future _main(FrontendEntryMessage message) async {
     final Bucket dartdocBucket = await getOrCreateBucket(
         storageService, activeConfiguration.dartdocStorageBucketName);
     registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
-    registerDartdocMemcache(DartdocMemcache());
     final DartdocClient dartdocClient = DartdocClient();
     registerDartdocClient(dartdocClient);
     registerScopeExitCallback(dartdocClient.close);

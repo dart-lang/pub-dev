@@ -13,9 +13,9 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
-import '../../shared/dartdoc_memcache.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
+import '../../shared/redis_cache.dart' show cache;
 import '../../shared/search_client.dart';
 import '../../shared/search_service.dart';
 import '../../shared/utils.dart';
@@ -33,7 +33,7 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse({}, status: 404);
   }
 
-  final cachedData = await dartdocMemcache.getApiSummary(package);
+  final cachedData = await cache.dartdocApiSummary(package).get();
   if (cachedData != null) {
     return jsonResponse(cachedData);
   }
@@ -72,7 +72,7 @@ Future<shelf.Response> apiDocumentationHandler(
     'latestStableVersion': latestStableVersion,
     'versions': versionsData,
   };
-  await dartdocMemcache.setApiSummary(package, data);
+  await cache.dartdocApiSummary(package).set(data);
   return jsonResponse(data);
 }
 

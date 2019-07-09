@@ -20,7 +20,7 @@ import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../frontend/models.dart' show Package, PackageVersion;
 
-import '../shared/dartdoc_memcache.dart';
+import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;
 
@@ -156,12 +156,16 @@ class DartdocBackend {
     // deleted, but the [removeObsolete] should be able to validate it.
     await deleteFromBucket(_storage, entry.inProgressObjectName);
 
-    await dartdocMemcache?.invalidate(entry.packageName, entry.packageVersion);
+    await Future.wait([
+      cache.dartdocEntry(entry.packageName, entry.packageVersion).purge(),
+      cache.dartdocEntry(entry.packageName, 'latest').purge(),
+      cache.dartdocApiSummary(entry.packageName).purge(),
+    ]);
   }
 
   /// Return the latest entry that should be used to serve the content.
   Future<DartdocEntry> getServingEntry(String package, String version) async {
-    final cachedEntry = await dartdocMemcache?.getEntry(package, version);
+    final cachedEntry = await cache.dartdocEntry(package, version).get();
     if (cachedEntry != null) {
       return cachedEntry;
     }
@@ -203,7 +207,10 @@ class DartdocBackend {
       }
     }
 
-    await dartdocMemcache?.setEntry(entry);
+    // Only cache, if this is the latest runtime version
+    if (entry.runtimeVersion == shared_versions.runtimeVersion) {
+      await cache.dartdocEntry(package, version).set(entry);
+    }
     return entry;
   }
 
@@ -219,20 +226,16 @@ class DartdocBackend {
   /// Returns the file's header from the storage bucket
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) async {
     final objectName = entry.objectName(relativePath);
-    final cachedContent = await dartdocMemcache?.getFileInfoBytes(objectName);
-    if (cachedContent != null) {
-      return FileInfo.fromBytes(cachedContent);
-    }
-    try {
-      final info = await _storage.info(objectName);
-      if (info == null) return null;
-      final fileInfo = FileInfo(lastModified: info.updated, etag: info.etag);
-      dartdocMemcache?.setFileInfoBytes(objectName, fileInfo.asBytes());
-      return fileInfo;
-    } catch (e) {
-      _logger.info('Requested path $objectName does not exists.');
-    }
-    return null;
+    return cache.dartdocFileInfo(objectName).get(() async {
+      try {
+        final info = await _storage.info(objectName);
+        return FileInfo(lastModified: info.updated, etag: info.etag);
+      } catch (e) {
+        // TODO: Handle exceptions / errors
+        _logger.info('Requested path $objectName does not exists.');
+        return null;
+      }
+    });
   }
 
   /// Returns a file's content from the storage bucket.

@@ -12,8 +12,6 @@ import '../dartdoc/backend.dart';
 import '../dartdoc/models.dart' show DartdocEntry;
 import '../job/backend.dart';
 
-import 'dartdoc_memcache.dart';
-
 export '../dartdoc/models.dart' show DartdocEntry;
 
 final Logger _logger = Logger('dartdoc.client');
@@ -75,12 +73,6 @@ class DartdocClient {
   }
 
   Future<DartdocEntry> getEntry(String package, String version) async {
-    final cachedEntry = await dartdocMemcache?.getEntry(package, version);
-    if (cachedEntry != null) {
-      return cachedEntry;
-    }
-    final entry = await dartdocBackend.getServingEntry(package, version);
-    await dartdocMemcache?.setEntry(entry);
-    return entry;
+    return await dartdocBackend.getServingEntry(package, version);
   }
 }

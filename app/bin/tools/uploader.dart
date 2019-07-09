@@ -9,11 +9,12 @@ import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/shared/email.dart';
-import 'package:pub_dartlang_org/shared/package_memcache.dart';
+import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -37,10 +38,10 @@ Future main(List<String> arguments) async {
       await listUploaders(package);
     } else if (command == 'add') {
       await addUploader(package, uploader);
-      await _clearCache(package);
+      await invalidatePackageCache(cache, package);
     } else if (command == 'remove') {
       await removeUploader(package, uploader);
-      await _clearCache(package);
+      await invalidatePackageCache(cache, package);
     }
   });
 
@@ -125,10 +126,4 @@ Future removeUploader(String packageName, String uploaderEmail) async {
       removedUploaderEmails: [uploaderEmail],
     ));
   });
-}
-
-Future _clearCache(String package) async {
-  final cache = AppEnginePackageMemcache();
-  await cache.invalidateUIPackagePage(package);
-  await cache.invalidatePackageData(package);
 }

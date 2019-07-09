@@ -12,7 +12,8 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/package_memcache.dart';
+import 'package:pub_dartlang_org/shared/redis_cache.dart' show cache;
+import 'package:pub_dartlang_org/frontend/backend.dart';
 
 final _argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('discontinued',
@@ -46,7 +47,7 @@ Future main(List<String> arguments) async {
         discontinued: discontinued,
         doNotAdvertise: doNotAdvertise,
       );
-      await _clearCaches(package);
+      await invalidatePackageCache(cache, package);
     }
     // TODO: figure out why the services do not exit.
     exit(0);
@@ -92,10 +93,4 @@ Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
         'Package $packageName: isDiscontinued=${p.isDiscontinued} doNotAdverise=${p.doNotAdvertise}');
     await AnalyzerClient().triggerAnalysis(packageName, p.latestVersion, Set());
   });
-}
-
-Future _clearCaches(String packageName) async {
-  final pkgCache = AppEnginePackageMemcache();
-  await pkgCache.invalidateUIPackagePage(packageName);
-  await pkgCache.invalidatePackageData(packageName);
 }
