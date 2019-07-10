@@ -208,7 +208,8 @@ class DartdocBackend {
     }
 
     // Only cache, if this is the latest runtime version
-    if (entry.runtimeVersion == shared_versions.runtimeVersion) {
+    if (entry != null &&
+        entry.runtimeVersion == shared_versions.runtimeVersion) {
       await cache.dartdocEntry(package, version).set(entry);
     }
     return entry;
