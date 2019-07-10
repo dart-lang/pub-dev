@@ -9,6 +9,7 @@ import 'package:gcloud/storage.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
+import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
@@ -33,8 +34,8 @@ void testWithServices(String name, Future fn()) {
       ]);
       registerDbService(db);
 
-      final storage = MemStorage(buckets: ['bucket']);
-      final bucket = storage.bucket('bucket');
+      final storage = MemStorage(buckets: ['dartdoc', 'tarball']);
+      final tarballBucket = storage.bucket('tarball');
       registerStorageService(storage);
 
       // registering config with bad ports, as we won't access them via network
@@ -46,7 +47,9 @@ void testWithServices(String name, Future fn()) {
       registerAccountBackend(
           AccountBackend(db, authProvider: FakeAuthProvider()));
       registerAnalyzerClient(AnalyzerClient());
-      registerBackend(Backend(db, TarballStorage(storage, bucket, null)));
+      registerBackend(
+          Backend(db, TarballStorage(storage, tarballBucket, null)));
+      registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
       registerScoreCardBackend(ScoreCardBackend(db));
 
       await fn();
