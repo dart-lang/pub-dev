@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Upgraded Flutter to `1.7.8+hotfix.3`.
+ * Bumped runtimeVersion to `2019.07.10`.
+
 ## `20190708t104225-all`
 
  * Fixed issue with sdk dependencies.
