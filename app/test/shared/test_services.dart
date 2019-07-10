@@ -15,8 +15,8 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
+import '../frontend/utils.dart';
 import '../shared/utils.dart';
-import 'utils.dart';
 
 /// Setup scoped services (including fake datastore with pre-populated base data
 /// and fake storage) for tests.
@@ -28,7 +28,8 @@ void testWithServices(String name, Future fn()) {
         testPackage,
         testPackageVersion,
         devPackageVersion,
-        testUser,
+        testUserA,
+        testUserHans,
       ]);
       registerDbService(db);
 

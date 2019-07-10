@@ -35,10 +35,14 @@ final Key devPackageVersionKey =
 
 final Pubspec testPubspec = Pubspec.fromYaml(testPackagePubspec);
 
-final testUser = User()
+final testUserHans = User()
   ..id = 'hans-at-juergen-dot-com'
   ..email = 'hans@juergen.com'
   ..created = DateTime.utc(2014);
+final testUserA = User()
+  ..id = 'a-example-com'
+  ..email = 'a@example.com'
+  ..created = DateTime(2019, 01, 01);
 
 final testUploaderUser =
     AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
