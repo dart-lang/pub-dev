@@ -3,20 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/dartdoc/models.dart';
 import 'package:pub_dartlang_org/frontend/handlers/documentation.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
-import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
-
 import '../../shared/handlers_test_utils.dart';
-import '../../shared/utils.dart';
+import '../../shared/test_services.dart';
 
 void main() {
   group('path parsing', () {
@@ -69,133 +64,48 @@ void main() {
     Future<shelf.Response> issueGet(String uri) => documentationHandler(
         shelf.Request('GET', Uri.parse('https://pub.dartlang.org$uri')));
 
-    test('/documentation/flutter redirect', () async {
-      expectRedirectResponse(
+    testWithServices('/documentation/flutter redirect', () async {
+      await expectRedirectResponse(
         await issueGet('/documentation/flutter'),
         'https://docs.flutter.io/',
       );
     });
 
-    test('/documentation/flutter/version redirect', () async {
-      expectRedirectResponse(
+    testWithServices('/documentation/flutter/version redirect', () async {
+      await expectRedirectResponse(
         await issueGet('/documentation/flutter/version'),
         'https://docs.flutter.io/',
       );
     });
 
-    test('/documentation/foo/bar redirect', () async {
-      expectRedirectResponse(
+    testWithServices('/documentation/foor/bar redirect', () async {
+      await expectRedirectResponse(
         await issueGet('/documentation/foor/bar'),
         'https://pub.dartlang.org/documentation/foor/bar/',
       );
     });
 
-    scopedTest('trailing slash redirect', () async {
-      expectRedirectResponse(
+    testWithServices('trailing slash redirect', () async {
+      await expectRedirectResponse(
           await issueGet('/documentation/foo'), '/documentation/foo/latest/');
     });
 
-    scopedTest('/documentation/no_pkg redirect', () async {
-      registerDartdocBackend(DartdocBackendMock());
-      expectRedirectResponse(await issueGet('/documentation/no_pkg/latest/'),
+    testWithServices('/documentation/no_pkg redirect', () async {
+      await expectRedirectResponse(
+          await issueGet('/documentation/no_pkg/latest/'),
           '/packages/no_pkg/versions');
     });
+
+    testWithServices('/d/foobar_pkg/latest/ redirect', () async {
+      await expectRedirectResponse(
+          await issueGet('/documentation/foobar_pkg/latest/'),
+          '/packages/foobar_pkg/versions');
+    });
+
+    testWithServices('/d/foobar_pkg/latest/unknown.html redirect', () async {
+      await expectRedirectResponse(
+          await issueGet('/documentation/foobar_pkg/latest/unknown.html'),
+          '/packages/foobar_pkg/versions');
+    });
   });
-}
-
-class DartdocBackendMock implements DartdocBackend {
-  final List<DartdocEntry> entries;
-  final Map<String, String> latestVersions;
-
-  DartdocBackendMock({this.entries, this.latestVersions});
-
-  @override
-  Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<DartdocEntry> getServingEntry(String package, String version) async {
-    return entries?.lastWhere(
-      (entry) =>
-          entry.packageName == package &&
-          entry.packageVersion == version &&
-          entry.isServing,
-      orElse: () => null,
-    );
-  }
-
-  @override
-  Future<DartdocEntry> getLatestEntry(String package, String version) async {
-    return entries?.lastWhere(
-      (entry) =>
-          entry.packageName == package && entry.packageVersion == version,
-      orElse: () => null,
-    );
-  }
-
-  @override
-  Future<String> getLatestVersion(String package) async {
-    if (latestVersions == null) return null;
-    return latestVersions[package];
-  }
-
-  @override
-  Future<List<String>> getLatestVersions(String package,
-      {int limit = 10}) async {
-    if (latestVersions == null) return <String>[];
-    final v = latestVersions[package];
-    if (v == null) return <String>[];
-    return <String>[v];
-  }
-
-  @override
-  Stream<List<int>> readContent(DartdocEntry entry, String relativePath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future removeAll(String package, {String version, int concurrency}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future removeObsolete(String package, String version) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future uploadDir(DartdocEntry entry, String dirPath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> hasValidDartSdkDartdocData() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<PubDartdocData> getDartSdkDartdocData() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future uploadDartSdkDartdocData(File file) {
-    throw UnimplementedError();
-  }
-
-  @override
-  void scheduleOldDataGC() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> getTextContent(DartdocEntry entry, String relativePath) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future updateOldEntry(DartdocEntry old, DartdocEntry current) {
-    throw UnimplementedError();
-  }
 }
