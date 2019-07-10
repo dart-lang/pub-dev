@@ -33,13 +33,27 @@ Future<shelf.Response> issueGetUri(Uri uri) async {
   return createAppHandler(null)(request);
 }
 
-Future<String> expectHtmlResponse(shelf.Response response,
-    {int status = 200}) async {
+Future<String> expectHtmlResponse(
+  shelf.Response response, {
+  int status = 200,
+  List<Pattern> present = const [],
+  List<Pattern> absent = const [],
+}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'], 'text/html; charset="utf-8"');
   final content = await response.readAsString();
   expect(content, contains('<!DOCTYPE html>'));
   expect(content, contains('</html>'));
+  for (Pattern p in present) {
+    if (p.allMatches(content).isEmpty) {
+      throw Exception('$p is missing from the content.');
+    }
+  }
+  for (Pattern p in absent) {
+    if (p.allMatches(content).isNotEmpty) {
+      throw Exception('$p is present in the content.');
+    }
+  }
   return content;
 }
 

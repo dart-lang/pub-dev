@@ -16,7 +16,14 @@ void main() {
 
   group('ui', () {
     testWithServices('/packages/foobar_pkg - found', () async {
-      await expectHtmlResponse(await issueGet('/packages/foobar_pkg'));
+      await expectHtmlResponse(
+        await issueGet('/packages/foobar_pkg'),
+        present: [
+          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          '<a href="/packages/foobar_pkg">0.1.1+5</a>',
+          '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
+        ],
+      );
     });
 
     testWithServices('/packages/foobar_not_found - not found', () async {
@@ -25,7 +32,14 @@ void main() {
     });
 
     testWithServices('/packages/foobar_pkg/versions - found', () async {
-      await expectHtmlResponse(await issueGet('/packages/foobar_pkg/versions'));
+      await expectHtmlResponse(
+        await issueGet('/packages/foobar_pkg/versions'),
+        present: [
+          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          '<a href="/packages/foobar_pkg">0.1.1+5</a>',
+          '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
+        ],
+      );
     });
 
     testWithServices(
@@ -39,7 +53,13 @@ void main() {
 
     testWithServices('/packages/foobar_pkg/versions/0.1.1 - found', () async {
       await expectHtmlResponse(
-          await issueGet('/packages/foobar_pkg/versions/0.1.1+5'));
+        await issueGet('/packages/foobar_pkg/versions/0.1.1+5'),
+        present: [
+          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          '<a href="/packages/foobar_pkg">0.1.1+5</a>',
+          '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
+        ],
+      );
     });
 
     testWithServices(
