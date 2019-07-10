@@ -93,6 +93,11 @@ String renderPkgVersionsPage(
           isSkipped: card?.isSkipped ?? false,
           isNewPackage: package.isNewPackage()),
       href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
+  tabs.add(Tab.withLink(
+    title: 'Admin',
+    href: urls.pkgPageUrl(package.name, fragment: '-admin-tab-'),
+    isHidden: true,
+  ));
 
   final values = {
     'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),

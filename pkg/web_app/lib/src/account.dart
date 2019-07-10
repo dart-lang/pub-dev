@@ -16,6 +16,7 @@ import 'google_auth_js.dart';
 import 'google_js.dart';
 import 'hoverable.dart';
 import 'page_data.dart';
+import 'tabs.dart';
 
 bool _initialized = false;
 GoogleUser _currentUser;
@@ -190,5 +191,16 @@ class _PkgAdminWidget {
   void update() {
     if (_root == null) return;
     updateDisplay(_root, _initialized && _isPkgUploader);
+    final adminTab = getTabElement('-admin-tab-');
+    if (_initialized && _isPkgUploader) {
+      final removed = adminTab.classes.remove('-hidden');
+      // If this was the first change since the page load or login, and the
+      // active hash is pointing to the tab, let's change it.
+      if (removed && window.location.hash == '#-admin-tab-') {
+        changeTab('-admin-tab-');
+      }
+    } else {
+      adminTab.classes.add('-hidden');
+    }
   }
 }
