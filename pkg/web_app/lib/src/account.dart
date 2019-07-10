@@ -128,7 +128,7 @@ class _AccountNavWidget {
         _image = elem('img', classes: ['profile-img']),
         elem(
           'div',
-          classes: ['sub-nav'],
+          classes: ['sub-nav', 'sub-nav-right'],
           children: [
             _email = elem('div'),
             elem('a',

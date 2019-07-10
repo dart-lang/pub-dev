@@ -1,6 +1,17 @@
 #account-nav {
-  min-width: 200px;
   color: #000;
+  min-width: 140px;
+  padding-right: 16px;
+  text-align: right;
+
+  > a.link {
+    color: white;
+    font-size: 14px;
+  }
+
+  > .sub-wrap {
+    display: inline-block;
+  }
 
   .profile-img {
     width: auto;
