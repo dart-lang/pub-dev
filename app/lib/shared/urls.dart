@@ -63,9 +63,6 @@ String pkgAdminUrl(String package, {String version}) =>
 
 String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
 
-String versionsTabUrl(String package) =>
-    pkgPageUrl(package, fragment: '-versions-tab-');
-
 String analysisTabUrl(String package) {
   final String fragment = '-analysis-tab-';
   return package == null
