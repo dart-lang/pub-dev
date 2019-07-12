@@ -1,0 +1,40 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div id="-admin-unauthenticated">
+  <p>
+    Package administration is for signed-in users only.
+  </p>
+</div>
+
+<div id="-admin-unauthorized">
+  <p>You are not admin of this package.</p>
+</div>
+
+<div id="-admin-authorized">
+  <h2>Admin package</h2>
+
+    {{^is_discontinued}}
+    <div>
+      <p>
+        If you are no longer developing the package, you can mark it as discontinued.
+        Pub site won't run analysis on it, and we won't display it in search results.
+      </p>
+      <ul>
+        <li><a class="-admin-is-discontinued-toggle">Mark as "discontinued".</a></li>
+      </ul>
+    </div>
+    {{/is_discontinued}}
+    {{#is_discontinued}}
+    <div>
+      <p>
+        If you want to continue developing the package, you can remove its discontinued
+        status. Pub site will run analysis on it again, and we will include it in search results.
+      </p>
+      <ul>
+        <li><a class="-admin-is-discontinued-toggle">Remove "discontinued".</a></li>
+      </ul>
+    </div>
+    {{/is_discontinued}}
+</div>

@@ -22,6 +22,10 @@ void main() {
           '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
           '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
+          '<li class="tab-link -hidden" data-name="-admin-tab-" role="button">',
+        ],
+        absent: [
+          '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
         ],
       );
     });
@@ -68,6 +72,36 @@ void main() {
         await expectRedirectResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.2'),
             '/packages/foobar_pkg#-versions-tab-');
+      },
+    );
+
+    testWithServices(
+      '/packages/foobar_pkg/admin',
+      () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/foobar_pkg/admin'),
+          present: [
+            '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
+          ],
+          absent: [
+            '<li class="tab-link -hidden" data-name="-admin-tab-" role="button">',
+          ],
+        );
+      },
+    );
+
+    testWithServices(
+      '/packages/foobar_pkg/versions/0.1.1+5/admin',
+      () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/foobar_pkg/versions/0.1.1+5/admin'),
+          present: [
+            '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
+          ],
+          absent: [
+            '<li class="tab-link -hidden" data-name="-admin-tab-" role="button">',
+          ],
+        );
       },
     );
   });

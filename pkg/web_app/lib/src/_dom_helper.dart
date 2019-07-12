@@ -35,6 +35,6 @@ Element elem(
 }
 
 /// Show/hide an element.
-void updateDisplay(Element elem, bool show) {
-  elem.style.display = show ? null : 'none';
+void updateDisplay(Element elem, bool show, {String display}) {
+  elem.style.display = show ? display : 'none';
 }

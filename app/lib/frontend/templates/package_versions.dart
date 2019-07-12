@@ -67,20 +67,24 @@ String renderPkgVersionsPage(
   final tabs = <Tab>[];
   if (latestVersion.readme != null) {
     tabs.add(Tab.withLink(
+        id: 'readme',
         title: 'Readme',
         href: urls.pkgPageUrl(package.name, fragment: '-readme-tab-')));
   }
   if (latestVersion.changelog != null) {
     tabs.add(Tab.withLink(
+        id: 'changelog',
         title: 'Changelog',
         href: urls.pkgPageUrl(package.name, fragment: '-changelog-tab-')));
   }
   if (latestVersion.example != null) {
     tabs.add(Tab.withLink(
+        id: 'example',
         title: 'Example',
         href: urls.pkgPageUrl(package.name, fragment: '-example-tab-')));
   }
   tabs.add(Tab.withLink(
+      id: 'installing',
       title: 'Installing',
       href: urls.pkgPageUrl(package.name, fragment: '-installing-tab-')));
   tabs.add(Tab.withContent(
@@ -89,13 +93,15 @@ String renderPkgVersionsPage(
     contentHtml: htmlBlocks.join(),
   ));
   tabs.add(Tab.withLink(
+      id: 'analysis',
       titleHtml: renderScoreBox(card?.overallScore,
           isSkipped: card?.isSkipped ?? false,
           isNewPackage: package.isNewPackage()),
       href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
   tabs.add(Tab.withLink(
+    id: 'admin',
     title: 'Admin',
-    href: urls.pkgPageUrl(package.name, fragment: '-admin-tab-'),
+    href: urls.pkgAdminUrl(package.name),
     isHidden: true,
   ));
 
@@ -109,9 +115,13 @@ String renderPkgVersionsPage(
   };
   final content = templateCache.renderTemplate('pkg/show', values);
 
-  return renderLayoutPage(PageType.package, content,
-      title: '${package.name} package - All Versions',
-      canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true));
+  return renderLayoutPage(
+    PageType.package,
+    content,
+    title: '${package.name} package - All Versions',
+    canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true),
+    pageData: pkgPageData(package, latestVersion),
+  );
 }
 
 String renderVersionTableRow(PackageVersion version, String downloadUrl) {
