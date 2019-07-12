@@ -99,7 +99,7 @@
           <li class="tab-button -active" data-name="-readme-tab-" role="button">Readme</li>
           <li class="tab-button" data-name="-changelog-tab-" role="button">Changelog</li>
           <li class="tab-button" data-name="-installing-tab-" role="button">Installing</li>
-          <li class="tab-link" role="button">
+          <li class="tab-link" data-name="-versions-tab-" role="button">
             <a href="/packages/foobar_pkg/versions">Versions</a>
           </li>
           <li class="tab-button" data-name="-analysis-tab-" role="button">
@@ -107,7 +107,9 @@
               <span class="number -rotten" title="Analysis and more details.">3</span>
             </div>
           </li>
-          <li class="tab-button -hidden" data-name="-admin-tab-" role="button">Admin</li>
+          <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
+            <a href="/packages/foobar_pkg/admin">Admin</a>
+          </li>
         </ul>
         <div class="main package-tabs-content">
           <section class="tab-content -active markdown-body" data-name="-readme-tab-">
@@ -303,9 +305,6 @@ import 'package:foobar_pkg/foolib.dart';
               </table>
             </div>
           </section>
-          <section class="tab-content" data-name="-admin-tab-">
-            <h1>Admin</h1>
-          </section>
         </div>
         <aside class="sidebar sidebar-content">
           <h3 class="title">About</h3>
@@ -349,7 +348,6 @@ import 'package:foobar_pkg/foolib.dart';
           <p>
             <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
           </p>
-          <div id="-pub-pkg-admin"></div>
         </aside>
       </div>
       <script type="application/ld+json">

@@ -25,6 +25,7 @@ import 'package:pub_dartlang_org/frontend/templates/layout.dart';
 import 'package:pub_dartlang_org/frontend/templates/listing.dart';
 import 'package:pub_dartlang_org/frontend/templates/misc.dart';
 import 'package:pub_dartlang_org/frontend/templates/package.dart';
+import 'package:pub_dartlang_org/frontend/templates/package_admin.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_analysis.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_versions.dart';
 
@@ -415,6 +416,21 @@ void main() {
             ),
           ));
       expectGoldenFile(html, 'analysis_tab_outdated.html', isFragment: true);
+    });
+
+    scopedTest('package admin page with outdated version', () {
+      final String html = renderPkgAdminPage(
+          testPackage,
+          testPackageUploaderEmails,
+          testPackageVersion,
+          AnalysisView(
+            card: ScoreCardData(
+              flags: [PackageFlags.isObsolete],
+              updated: DateTime(2018, 02, 05),
+            ),
+          ));
+
+      expectGoldenFile(html, 'pkg_admin_page_outdated.html');
     });
 
     scopedTest('package index page', () {

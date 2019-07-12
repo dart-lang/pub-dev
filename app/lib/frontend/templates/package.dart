@@ -220,12 +220,7 @@ String renderPkgHeader(
 String renderPkgShowPage(Package package, List<String> uploaderEmails,
     PackageVersion selectedVersion, AnalysisView analysis) {
   final card = analysis?.card;
-
-  final tabs = _pkgTabs(
-    selectedVersion,
-    analysis,
-    isNewPackage: package.isNewPackage(),
-  );
+  final tabs = _pkgTabs(package, selectedVersion, analysis);
 
   final values = {
     'header_html': renderPkgHeader(package, selectedVersion, analysis),
@@ -258,12 +253,16 @@ String renderPkgShowPage(Package package, List<String> uploaderEmails,
     canonicalUrl: canonicalUrl,
     platform: card?.asSinglePlatform,
     noIndex: noIndex,
-    pageData: PageData(
-      pkgData: PkgData(
-        package: package.name,
-        version: selectedVersion.version,
-        isDiscontinued: package.isDiscontinued == true,
-      ),
+    pageData: pkgPageData(package, selectedVersion),
+  );
+}
+
+PageData pkgPageData(Package package, PackageVersion selectedVersion) {
+  return PageData(
+    pkgData: PkgData(
+      package: package.name,
+      version: selectedVersion.version,
+      isDiscontinued: package.isDiscontinued == true,
     ),
   );
 }
@@ -300,13 +299,13 @@ class Tab {
   }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
 
   Tab.withLink({
+    @required this.id,
     String title,
     String titleHtml,
     @required String href,
     this.isHidden = false,
   })  : titleHtml =
             '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
-        id = null,
         contentHtml = null,
         isMarkdown = false;
 
@@ -333,10 +332,10 @@ class Tab {
 }
 
 List<Tab> _pkgTabs(
+  Package package,
   PackageVersion selectedVersion,
-  AnalysisView analysis, {
-  @required bool isNewPackage,
-}) {
+  AnalysisView analysis,
+) {
   final card = analysis?.card;
 
   String renderedReadme;
@@ -380,20 +379,22 @@ List<Tab> _pkgTabs(
       title: 'Installing',
       contentHtml: _renderInstallTab(selectedVersion, analysis?.platforms)));
   tabs.add(Tab.withLink(
+    id: 'versions',
     title: 'Versions',
     href: urls.pkgVersionsUrl(selectedVersion.package),
   ));
   tabs.add(Tab.withContent(
     id: 'analysis',
     titleHtml: renderScoreBox(card?.overallScore,
-        isSkipped: card?.isSkipped ?? false, isNewPackage: isNewPackage),
+        isSkipped: card?.isSkipped ?? false,
+        isNewPackage: package.isNewPackage()),
     contentHtml: renderAnalysisTab(selectedVersion.package,
         selectedVersion.pubspec.sdkConstraint, card, analysis),
   ));
-  tabs.add(Tab.withContent(
+  tabs.add(Tab.withLink(
     id: 'admin',
     title: 'Admin',
-    contentHtml: '<h1>Admin</h1>',
+    href: urls.pkgAdminUrl(selectedVersion.package),
     isHidden: true,
   ));
   return tabs;

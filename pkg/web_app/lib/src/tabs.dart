@@ -77,6 +77,7 @@ String getTabName(Element elem) {
 void changeTab(String name) {
   final tabOrContentElem = getTabElement(name);
   if (tabOrContentElem != null &&
+      tabOrContentElem.classes.contains('tab-button') &&
       !tabOrContentElem.classes.contains('-hidden')) {
     _headerRoot.children.forEach((node) => _toggle(node, name));
     _contentRoot.children.forEach((node) => _toggle(node, name));
@@ -85,6 +86,9 @@ void changeTab(String name) {
 
 Element getTabElement(String name) => _headerRoot
     .querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
+
+bool hasContentTab(String name) =>
+    _contentRoot.children.any((e) => e.dataset['name'] == name);
 
 void _toggle(Element node, String name) {
   if (node.dataset['name'] != name) {

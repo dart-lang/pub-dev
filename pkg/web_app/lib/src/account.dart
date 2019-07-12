@@ -58,7 +58,7 @@ void _init() {
   _initialized = true;
   final navRoot = document.getElementById('account-nav');
   if (navRoot != null) _navWidget.init(navRoot);
-  _pkgAdminWidget.init(document.getElementById('-pub-pkg-admin'));
+  _pkgAdminWidget.init();
   _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
@@ -159,38 +159,56 @@ class _AccountNavWidget {
 }
 
 class _PkgAdminWidget {
-  Element _root;
-  void init(Element root) {
+  Element _unauthenticatedRoot;
+  Element _unauthorizedRoot;
+  Element _authorizedRoot;
+
+  void init() {
     if (!pageData.isPackagePage) return;
-    _root = root;
-    _root.append(elem('h3', classes: ['title'], text: 'Admin'));
-    final discontinueToggle = elem(
-      'a',
-      text: pageData.pkgData.isDiscontinued
-          ? 'Remove "discontinued"'
-          : 'Mark as "discontinued"',
-      onClick: (_) async {
-        final options =
-            PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
-        final rs = await client.put(
-          '/api/packages/${pageData.pkgData.package}/options',
-          body: json.encode(options.toJson()),
-        );
-        final map = json.decode(rs.body) as Map<String, dynamic>;
-        if (rs.statusCode == 200) {
-          window.location.reload();
-        } else {
-          window.alert(map['error'] as String);
-        }
-      },
-    );
-    _root.append(elem('p', children: [discontinueToggle]));
+    _unauthenticatedRoot = document.getElementById('-admin-unauthenticated');
+    _unauthorizedRoot = document.getElementById('-admin-unauthorized');
+    _authorizedRoot = document.getElementById('-admin-authorized');
     update();
   }
 
+  Future _toogleDiscontinued() async {
+    if (!window.confirm(
+        'Are you sure you want change the "discontinued" status of the package?')) {
+      return;
+    }
+    final options =
+        PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
+    final rs = await client.put(
+      '/api/packages/${pageData.pkgData.package}/options',
+      body: json.encode(options.toJson()),
+    );
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    if (rs.statusCode == 200) {
+      window.location.reload();
+    } else {
+      window.alert(map['error'] as String);
+    }
+  }
+
   void update() {
-    if (_root == null) return;
-    updateDisplay(_root, _initialized && _isPkgUploader);
+    if (isAdminPage) {
+      final unauthenticated = !isSignedIn;
+      final unauthorized = isSignedIn && !_isPkgUploader;
+      final authorized = isSignedIn && _isPkgUploader;
+      updateDisplay(_unauthenticatedRoot, unauthenticated);
+      updateDisplay(_unauthorizedRoot, unauthorized, display: 'block');
+      updateDisplay(_authorizedRoot, authorized, display: 'block');
+
+      // initialize only once
+      if (authorized && _authorizedRoot.dataset['initialized'] != '1') {
+        document
+            .querySelector('.-admin-is-discontinued-toggle')
+            .onClick
+            .listen((_) => _toogleDiscontinued());
+        _authorizedRoot.dataset['initialized'] = '1';
+      }
+    }
+
     final adminTab = getTabElement('-admin-tab-');
     if (_initialized && _isPkgUploader) {
       final removed = adminTab.classes.remove('-hidden');
@@ -200,7 +218,14 @@ class _PkgAdminWidget {
         changeTab('-admin-tab-');
       }
     } else {
-      adminTab.classes.add('-hidden');
+      if (!hasContentTab('-admin-tab-')) {
+        adminTab.classes.add('-hidden');
+      }
     }
   }
+
+  bool get isAdminPage =>
+      _unauthenticatedRoot != null &&
+      _unauthorizedRoot != null &&
+      _authorizedRoot != null;
 }

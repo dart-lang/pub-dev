@@ -58,6 +58,9 @@ String pkgDocUrl(
   return url;
 }
 
+String pkgAdminUrl(String package, {String version}) =>
+    pkgPageUrl(package, version: version) + '/admin';
+
 String pkgVersionsUrl(String package) => pkgPageUrl(package) + '/versions';
 
 String versionsTabUrl(String package) =>

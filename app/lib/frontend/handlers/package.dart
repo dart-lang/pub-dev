@@ -18,6 +18,7 @@ import '../backend.dart';
 import '../models.dart';
 import '../request_context.dart';
 import '../templates/package.dart';
+import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
 
 import 'misc.dart' show formattedNotFoundHandler;
@@ -140,4 +141,29 @@ Future<shelf.Response> packageVersionHandlerHtml(
   }
 
   return htmlResponse(cachedPage);
+}
+
+/// Handles requests for /packages/<package>/admin
+/// Handles requests for /packages/<package>/versions/<version>/admin
+Future<shelf.Response> packageAdminHandler(
+    shelf.Request request, String packageName) async {
+  if (redirectPackagePages.containsKey(packageName)) {
+    return redirectResponse(redirectPackagePages[packageName]);
+  }
+  final package = await backend.lookupPackage(packageName);
+  if (package == null) return redirectToSearch(packageName);
+
+  final version =
+      await backend.lookupPackageVersion(packageName, package.latestVersion);
+  if (version == null) {
+    return redirectResponse(urls.versionsTabUrl(packageName));
+  }
+
+  final uploaderEmails =
+      await accountBackend.getEmailsOfUserIds(package.uploaders);
+  final analysis =
+      await analyzerClient.getAnalysisView(version.package, version.version);
+
+  return htmlResponse(
+      renderPkgAdminPage(package, uploaderEmails, version, analysis));
 }
