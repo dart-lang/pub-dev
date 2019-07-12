@@ -118,7 +118,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     final selectedVersion = await backend.lookupPackageVersion(
         packageName, versionName ?? package.latestVersion);
     if (selectedVersion == null) {
-      return redirectResponse(urls.versionsTabUrl(packageName));
+      return redirectResponse(urls.pkgVersionsUrl(packageName));
     }
 
     final Stopwatch serviceSw = Stopwatch()..start();
@@ -156,7 +156,7 @@ Future<shelf.Response> packageAdminHandler(
   final version =
       await backend.lookupPackageVersion(packageName, package.latestVersion);
   if (version == null) {
-    return redirectResponse(urls.versionsTabUrl(packageName));
+    return redirectResponse(urls.pkgVersionsUrl(packageName));
   }
 
   final uploaderEmails =

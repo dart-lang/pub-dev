@@ -71,7 +71,16 @@ void main() {
       () async {
         await expectRedirectResponse(
             await issueGet('/packages/foobar_pkg/versions/0.1.2'),
-            '/packages/foobar_pkg#-versions-tab-');
+            '/packages/foobar_pkg/versions');
+      },
+    );
+
+    testWithServices(
+      '/packages/foobar_pkg/versions/xyz - bad version',
+      () async {
+        await expectRedirectResponse(
+            await issueGet('/packages/foobar_pkg/versions/xyz'),
+            '/packages/foobar_pkg/versions');
       },
     );
 
