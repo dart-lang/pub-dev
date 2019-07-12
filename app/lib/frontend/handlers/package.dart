@@ -146,16 +146,15 @@ Future<shelf.Response> packageVersionHandlerHtml(
 /// Handles requests for /packages/<package>/admin
 /// Handles requests for /packages/<package>/versions/<version>/admin
 Future<shelf.Response> packageAdminHandler(
-    shelf.Request request, String packageName,
-    {String versionName}) async {
+    shelf.Request request, String packageName) async {
   if (redirectPackagePages.containsKey(packageName)) {
     return redirectResponse(redirectPackagePages[packageName]);
   }
   final package = await backend.lookupPackage(packageName);
   if (package == null) return redirectToSearch(packageName);
 
-  final version = await backend.lookupPackageVersion(
-      packageName, versionName ?? package.latestVersion);
+  final version =
+      await backend.lookupPackageVersion(packageName, package.latestVersion);
   if (version == null) {
     return redirectResponse(urls.versionsTabUrl(packageName));
   }

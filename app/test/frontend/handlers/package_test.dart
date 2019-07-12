@@ -89,20 +89,5 @@ void main() {
         );
       },
     );
-
-    testWithServices(
-      '/packages/foobar_pkg/versions/0.1.1+5/admin',
-      () async {
-        await expectHtmlResponse(
-          await issueGet('/packages/foobar_pkg/versions/0.1.1+5/admin'),
-          present: [
-            '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
-          ],
-          absent: [
-            '<li class="tab-link -hidden" data-name="-admin-tab-" role="button">',
-          ],
-        );
-      },
-    );
   });
 }

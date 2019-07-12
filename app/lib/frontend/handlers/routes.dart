@@ -138,11 +138,6 @@ class PubSiteService {
   // **** Packages
   // ****
 
-  @Route.get('/packages/<package>/versions/<version>/admin')
-  Future<Response> packageVersionAdmin(
-          Request request, String package, String version) =>
-      packageAdminHandler(request, package, versionName: version);
-
   @Route.get('/packages/<package>/versions/<version>')
   Future<Response> packageVersion(
           Request request, String package, String version) =>

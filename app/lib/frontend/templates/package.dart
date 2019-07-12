@@ -394,12 +394,7 @@ List<Tab> _pkgTabs(
   tabs.add(Tab.withLink(
     id: 'admin',
     title: 'Admin',
-    href: urls.pkgAdminUrl(
-      selectedVersion.package,
-      version: selectedVersion.version == package.latestVersion
-          ? null
-          : selectedVersion.version,
-    ),
+    href: urls.pkgAdminUrl(selectedVersion.package),
     isHidden: true,
   ));
   return tabs;

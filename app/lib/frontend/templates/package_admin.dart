@@ -21,39 +21,33 @@ String renderPkgAdminPage(
   AnalysisView analysis,
 ) {
   final card = analysis?.card;
-  final versionSegment =
-      package.latestVersion == version.version ? null : version.version;
 
   final tabs = <Tab>[];
   if (version.readme != null) {
     tabs.add(Tab.withLink(
       id: 'readme',
       title: 'Readme',
-      href: urls.pkgPageUrl(package.name,
-          version: versionSegment, fragment: '-readme-tab-'),
+      href: urls.pkgPageUrl(package.name, fragment: '-readme-tab-'),
     ));
   }
   if (version.changelog != null) {
     tabs.add(Tab.withLink(
       id: 'changelog',
       title: 'Changelog',
-      href: urls.pkgPageUrl(package.name,
-          version: versionSegment, fragment: '-changelog-tab-'),
+      href: urls.pkgPageUrl(package.name, fragment: '-changelog-tab-'),
     ));
   }
   if (version.example != null) {
     tabs.add(Tab.withLink(
       id: 'example',
       title: 'Example',
-      href: urls.pkgPageUrl(package.name,
-          version: versionSegment, fragment: '-example-tab-'),
+      href: urls.pkgPageUrl(package.name, fragment: '-example-tab-'),
     ));
   }
   tabs.add(Tab.withLink(
     id: 'installing',
     title: 'Installing',
-    href: urls.pkgPageUrl(package.name,
-        version: versionSegment, fragment: '-installing-tab-'),
+    href: urls.pkgPageUrl(package.name, fragment: '-installing-tab-'),
   ));
   tabs.add(Tab.withLink(
     id: 'versions',
@@ -65,8 +59,7 @@ String renderPkgAdminPage(
       titleHtml: renderScoreBox(card?.overallScore,
           isSkipped: card?.isSkipped ?? false,
           isNewPackage: package.isNewPackage()),
-      href: urls.pkgPageUrl(package.name,
-          version: versionSegment, fragment: '-analysis-tab-')));
+      href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
   tabs.add(Tab.withContent(
     id: 'admin',
     title: 'Admin',
