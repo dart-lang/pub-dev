@@ -56,8 +56,7 @@ void setupAccount() {
 
 void _init() {
   _initialized = true;
-  final navRoot = document.getElementById('account-nav');
-  if (navRoot != null) _navWidget.init(navRoot);
+  _navWidget.init();
   _pkgAdminWidget.init();
   _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
@@ -108,39 +107,21 @@ void _updateUi() {
 }
 
 class _AccountNavWidget {
-  Element _root;
-
   Element _login;
   Element _profile;
   Element _image;
   Element _email;
 
-  void init(Element root) {
-    _root = root;
-    _login = elem('a',
-        classes: ['link'],
-        text: 'Login',
-        onClick: (_) => getAuthInstance().signIn());
-    _profile = elem(
-      'div',
-      classes: ['sub-wrap', 'hoverable'],
-      children: [
-        _image = elem('img', classes: ['profile-img']),
-        elem(
-          'div',
-          classes: ['sub-nav', 'sub-nav-right'],
-          children: [
-            _email = elem('div'),
-            elem('a',
-                classes: ['link'],
-                text: 'Logout',
-                onClick: (_) => getAuthInstance().signOut())
-          ],
-        ),
-      ],
-    );
-    _root.append(_login);
-    _root.append(_profile);
+  void init() {
+    final navRoot = document.getElementById('account-nav');
+    if (navRoot == null) return;
+    _login = document.getElementById('-account-login');
+    _profile = document.getElementById('-account-profile');
+    _image = document.getElementById('-account-profile-img');
+    _email = document.getElementById('-account-profile-email');
+    final logout = document.getElementById('-account-logout');
+    _login.onClick.listen((_) => getAuthInstance().signIn());
+    logout.onClick.listen((_) => getAuthInstance().signOut());
     registerHoverable(_profile);
     update();
   }
@@ -149,8 +130,8 @@ class _AccountNavWidget {
     if (!_initialized) {
       return;
     }
-    updateDisplay(_login, !isSignedIn);
-    updateDisplay(_profile, isSignedIn);
+    updateDisplay(_login, !isSignedIn, display: 'block');
+    updateDisplay(_profile, isSignedIn, display: 'inline-block');
     if (isSignedIn) {
       _image.attributes['src'] = _currentUser.getBasicProfile().getImageUrl();
       _email.text = _currentUser.getBasicProfile().getEmail();
