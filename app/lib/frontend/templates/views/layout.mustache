@@ -75,7 +75,16 @@
         </div>
       </nav>
       {{#oauth_client_id}}
-      <div id="account-nav"></div>
+      <div id="account-nav">
+        <a id="-account-login" class="link">Login</a>
+        <div id="-account-profile" class="sub-wrap hoverable">
+          <img class="profile-img" id="-account-profile-img" />
+          <div class="sub-nav sub-nav-right">
+            <div id="-account-profile-email"></div>
+            <a id="-account-logout" class="link">Logout</a>
+          </div>
+        </div>
+      </div>
       {{/oauth_client_id}}
     </div>
   </div>
