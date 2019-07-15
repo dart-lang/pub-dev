@@ -191,16 +191,18 @@ class _PkgAdminWidget {
     }
 
     final adminTab = getTabElement('-admin-tab-');
-    if (adminTab != null && _initialized && _isPkgUploader) {
-      final removed = adminTab.classes.remove('-hidden');
-      // If this was the first change since the page load or login, and the
-      // active hash is pointing to the tab, let's change it.
-      if (removed && window.location.hash == '#-admin-tab-') {
-        changeTab('-admin-tab-');
-      }
-    } else {
-      if (!hasContentTab('-admin-tab-')) {
-        adminTab.classes.add('-hidden');
+    if (adminTab != null) {
+      if (_initialized && _isPkgUploader) {
+        final removed = adminTab.classes.remove('-hidden');
+        // If this was the first change since the page load or login, and the
+        // active hash is pointing to the tab, let's change it.
+        if (removed && window.location.hash == '#-admin-tab-') {
+          changeTab('-admin-tab-');
+        }
+      } else {
+        if (!hasContentTab('-admin-tab-')) {
+          adminTab.classes.add('-hidden');
+        }
       }
     }
   }
