@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Upgraded dartdoc to `0.28.4` (upgraded analyzer).
+ * Bumped runtimeVersion to `2019.07.15`.
+
 ## `20190711t114908-all`
  
  * Fix NPE in cache logic.
