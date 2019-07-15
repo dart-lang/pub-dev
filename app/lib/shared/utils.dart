@@ -47,10 +47,19 @@ Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
   });
 }
 
+/// Returns null if version is invalid or cannot be normalized.
 String canonicalizeVersion(String version) {
+  if (version == null || version.trim().isEmpty) {
+    return null;
+  }
   // NOTE: This is a hack because [semver.Version.parse] does not remove
   // leading zeros for integer fields.
-  final v = semver.Version.parse(version);
+  semver.Version v;
+  try {
+    v = semver.Version.parse(version);
+  } on FormatException catch (_) {
+    return null;
+  }
   final pre = v.preRelease != null && v.preRelease.isNotEmpty
       ? v.preRelease.join('.')
       : null;
@@ -61,8 +70,7 @@ String canonicalizeVersion(String version) {
       semver.Version(v.major, v.minor, v.patch, pre: pre, build: build);
 
   if (v != canonicalVersion) {
-    throw StateError(
-        'This should never happen: Canonicalization of versions is wrong.');
+    return null;
   }
   return canonicalVersion.toString();
 }

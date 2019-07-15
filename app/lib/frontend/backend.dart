@@ -920,6 +920,10 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   final packageKey = db.emptyKey.append(models.Package, id: pubspec.name);
 
   final versionString = canonicalizeVersion(pubspec.version);
+  if (versionString == null) {
+    throw GenericProcessingException(
+        'Unable to canonicalize the version: ${pubspec.version}');
+  }
 
   final key =
       models.QualifiedVersionKey(package: pubspec.name, version: versionString);
