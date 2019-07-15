@@ -188,9 +188,14 @@ String renderPkgHeader(
   final bool showUpdated =
       selectedVersion.version != package.latestVersion || showDevVersion;
 
-  final isAwaiting = card == null ||
-      analysis == null ||
-      (!card.isSkipped && !analysis.hasPanaSummary);
+  final isAwaiting =
+      // No analysis yet.
+      card == null ||
+          // The uploader has recently removed the "discontinued" flag, but the
+          // analysis did not complete yet.
+          (card.isDiscontinued && package.isDiscontinued != true) ||
+          // No blocker for analysis, but no results yet.
+          (!card.isSkipped && !analysis.hasPanaSummary);
 
   final values = {
     'name': package.name,
@@ -207,7 +212,7 @@ String renderPkgHeader(
     'tags_html': renderTags(
       analysis?.platforms,
       isAwaiting: isAwaiting,
-      isDiscontinued: card?.isDiscontinued ?? false,
+      isDiscontinued: package.isDiscontinued ?? false,
       isLegacy: card?.isLegacy ?? false,
       isObsolete: card?.isObsolete ?? false,
     ),
