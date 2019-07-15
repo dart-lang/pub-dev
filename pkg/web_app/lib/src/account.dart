@@ -191,7 +191,7 @@ class _PkgAdminWidget {
     }
 
     final adminTab = getTabElement('-admin-tab-');
-    if (_initialized && _isPkgUploader) {
+    if (adminTab != null && _initialized && _isPkgUploader) {
       final removed = adminTab.classes.remove('-hidden');
       // If this was the first change since the page load or login, and the
       // active hash is pointing to the tab, let's change it.

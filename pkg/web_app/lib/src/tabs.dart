@@ -85,9 +85,10 @@ void changeTab(String name) {
 }
 
 Element getTabElement(String name) => _headerRoot
-    .querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
+    ?.querySelector('[data-name="${Uri.encodeQueryComponent(name)}"]');
 
 bool hasContentTab(String name) =>
+    _contentRoot != null &&
     _contentRoot.children.any((e) => e.dataset['name'] == name);
 
 void _toggle(Element node, String name) {
