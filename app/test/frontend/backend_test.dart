@@ -16,6 +16,7 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
@@ -837,6 +838,7 @@ void main() {
             registerHistoryBackend(HistoryBackendMock());
             registerAnalyzerClient(AnalyzerClientMock());
             registerDartdocClient(DartdocClientMock());
+            registerNameTracker(NameTracker(null));
             final version = await repo.finishAsyncUpload(redirectUri);
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);
@@ -879,7 +881,8 @@ void main() {
             final repo = GCloudPackageRepository(db, tarballStorage);
             registerAuthenticatedUser(AuthenticatedUser(
                 'uuid-no-at-authorized-dot-com', 'un@authorized.com'));
-            repo
+            registerNameTracker(NameTracker(null));
+            await repo
                 .upload(Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(error is pub_server.UnauthorizedAccessException, isTrue);
@@ -902,7 +905,8 @@ void main() {
             final repo = GCloudPackageRepository(db, tarballStorage);
             registerAuthenticatedUser(AuthenticatedUser(
                 'uuid-no-at-authorized-dot-com', 'un@authorized.com'));
-            repo
+            registerNameTracker(NameTracker(null));
+            await repo
                 .upload(Stream.fromIterable([tarball]))
                 .catchError(expectAsync2((error, _) {
               expect(
@@ -919,6 +923,8 @@ void main() {
           final db = DatastoreDBMock(transactionMock: transactionMock);
           final repo = GCloudPackageRepository(db, tarballStorage);
           registerAuthenticatedUser(testUploaderUser);
+          registerNameTracker(NameTracker(null));
+          nameTracker.add('foobar_pkg');
 
           // Returns the error message as String or null if it succeeded.
           Future<String> fn(String name) async {
@@ -963,6 +969,7 @@ void main() {
           registerDartdocClient(DartdocClientMock());
           final historyBackendMock = HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
+          registerNameTracker(NameTracker(null));
           final Future result = repo.upload(Stream.fromIterable(bigTarball));
           await result.catchError(expectAsync2((error, _) {
             expect(
@@ -1027,6 +1034,7 @@ void main() {
             registerHistoryBackend(HistoryBackendMock());
             final emailSenderMock = EmailSenderMock();
             registerEmailSender(emailSenderMock);
+            registerNameTracker(NameTracker(null));
             final version = await repo.upload(Stream.fromIterable([tarball]));
             expect(version.packageName, testPackage.name);
             expect(version.versionString, testPackageVersion.version);

@@ -106,7 +106,8 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   registerScoreCardBackend(ScoreCardBackend(db.dbService));
 
-  NameTrackerUpdater(db.dbService).startNameTrackerUpdates();
+  registerNameTracker(NameTracker(db.dbService));
+  nameTracker.startTracking();
 
   final pkgBucket =
       await getOrCreateBucket(storageService, configuration.packageBucketName);

@@ -57,8 +57,8 @@ class FakePubServer {
         registerEmailSender(EmailSender(db, activeConfiguration.blockEmails));
         registerHistoryBackend(HistoryBackend(db));
         registerScoreCardBackend(ScoreCardBackend(db));
-        final nameTrackerUpdater = NameTrackerUpdater(db);
-        nameTrackerUpdater.startNameTrackerUpdates();
+        registerNameTracker(NameTracker(db));
+        nameTracker.startTracking();
         registerSearchService(SearchService());
 
         registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
@@ -86,7 +86,7 @@ class FakePubServer {
 
         _logger.info('fake_pub_server shutting down');
         await server.close();
-        nameTrackerUpdater.stop();
+        nameTracker.stopTracking();
         _logger.info('closing');
       });
     });
