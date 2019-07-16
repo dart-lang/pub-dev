@@ -134,6 +134,7 @@ void main() {
     tScopedTest('/packages?q=foo without working search', () async {
       registerSearchClient(null);
       registerSearchService(SearchService());
+      registerNameTracker(NameTracker(null));
       nameTracker.add('foobar_pkg');
       nameTracker.markReady();
       final backend = BackendMock(
