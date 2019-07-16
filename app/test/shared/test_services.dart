@@ -11,6 +11,7 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/publisher/backend.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -50,6 +51,7 @@ void testWithServices(String name, Future fn()) {
       registerBackend(
           Backend(db, TarballStorage(storage, tarballBucket, null)));
       registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
+      registerPublisherBackend(PublisherBackend(db));
       registerScoreCardBackend(ScoreCardBackend(db));
 
       await fn();
