@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 
@@ -14,7 +15,12 @@ import 'models.dart';
 final _logger = Logger('pub.name_tracker');
 const _pollingInterval = Duration(minutes: 1);
 
-final nameTracker = NameTracker();
+/// Sets the active [NameTracker].
+void registerNameTracker(NameTracker value) =>
+    ss.register(#_name_tracker, value);
+
+/// The active [NameTracker].
+NameTracker get nameTracker => ss.lookup(#_name_tracker) as NameTracker;
 
 /// Tracks names of packages that exists, to avoid risks of using similar names
 /// or typo-squatting.
@@ -23,9 +29,13 @@ final nameTracker = NameTracker();
 /// iterating over Datastore entries.
 /// TODO: support remove and re-scan package names every day or so.
 class NameTracker {
+  final DatastoreDB _db;
   final Set<String> _names = Set<String>();
   final Set<String> _reducedNames = Set<String>();
   final _firstScanCompleter = Completer();
+  _NameTrackerUpdater _updater;
+
+  NameTracker(this._db);
 
   /// Add a package name to the tracker.
   void add(String name) {
@@ -65,17 +75,33 @@ class NameTracker {
       _firstScanCompleter.complete();
     }
   }
+
+  /// Updates this [NameTracker] by polling the Datastore periodically.
+  /// The returned future completes after the `stopTracking` method is called.
+  Future startTracking() async {
+    if (_updater != null) {
+      throw StateError('Already tracking datastore.');
+    }
+    _updater = _NameTrackerUpdater(_db);
+    return _updater.startNameTrackerUpdates();
+  }
+
+  /// Stops tracking the datastore.
+  void stopTracking() {
+    _updater?.stop();
+    _updater = null;
+  }
 }
 
 /// Updates [nameTracker] by polling the Datastore periodically.
-class NameTrackerUpdater {
+class _NameTrackerUpdater {
   final DatastoreDB _db;
   DateTime _lastTs;
   Completer _sleepCompleter;
   Timer _sleepTimer;
   bool _stopped = false;
 
-  NameTrackerUpdater(this._db);
+  _NameTrackerUpdater(this._db);
 
   /// The returned future completes after the `stop` method is called.
   Future startNameTrackerUpdates() async {
