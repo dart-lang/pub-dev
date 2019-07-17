@@ -44,11 +44,11 @@ final testUserA = User()
   ..email = 'a@example.com'
   ..created = DateTime(2019, 01, 01);
 
-final testUploaderUser =
+final testAuthenticatedUserHans =
     AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
 
 Package createTestPackage({List<AuthenticatedUser> uploaders}) {
-  uploaders ??= [testUploaderUser];
+  uploaders ??= [testAuthenticatedUserHans];
   return Package()
     ..parentKey = testPackageKey.parent
     ..id = testPackageKey.id
@@ -63,10 +63,10 @@ Package createTestPackage({List<AuthenticatedUser> uploaders}) {
 
 final Package testPackage = createTestPackage()
   ..latestDevVersionKey = devPackageVersionKey;
-final testPackageUploaderEmails = [testUploaderUser.email];
+final testPackageUploaderEmails = [testAuthenticatedUserHans.email];
 
 final Package discontinuedPackage = createTestPackage()..isDiscontinued = true;
-final discontinuedPackageUploaderEmails = [testUploaderUser.email];
+final discontinuedPackageUploaderEmails = [testAuthenticatedUserHans.email];
 
 final PackageVersion testPackageVersion = PackageVersion()
   ..parentKey = testPackageVersionKey.parent

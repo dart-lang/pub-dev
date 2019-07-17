@@ -303,7 +303,7 @@ void main() {
         final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerAuthenticatedUser(testUploaderUser);
+        registerAuthenticatedUser(testAuthenticatedUserHans);
         final f = repo.addUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect(e.toString(), 'Package "null" does not exist');
@@ -427,7 +427,7 @@ void main() {
         final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerAuthenticatedUser(testUploaderUser);
+        registerAuthenticatedUser(testAuthenticatedUserHans);
         final f = repo.removeUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect('$e', equals('Package "null" does not exist'));
@@ -448,11 +448,11 @@ void main() {
         final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerAuthenticatedUser(testUploaderUser);
-        registerAccountBackend(
-            AccountBackendMock(authenticatedUsers: [testUploaderUser]));
+        registerAuthenticatedUser(testAuthenticatedUserHans);
+        registerAccountBackend(AccountBackendMock(
+            authenticatedUsers: [testAuthenticatedUserHans]));
         await repo
-            .removeUploader(pkg, testUploaderUser.email)
+            .removeUploader(pkg, testAuthenticatedUserHans.email)
             .catchError(expectAsync2((e, _) {
           expect(e is pub_server.LastUploaderRemoveException, isTrue);
         }));
@@ -471,7 +471,7 @@ void main() {
         final repo = GCloudPackageRepository(db, tarballStorage);
 
         final pkg = testPackage.name;
-        registerAuthenticatedUser(testUploaderUser);
+        registerAuthenticatedUser(testAuthenticatedUserHans);
         registerAccountBackend(AccountBackendMock());
         await repo
             .removeUploader(pkg, 'foo2@bar.com')
@@ -751,7 +751,7 @@ void main() {
             return expectedUploadInfo;
           });
           registerUploadSigner(uploadSignerMock);
-          registerAuthenticatedUser(testUploaderUser);
+          registerAuthenticatedUser(testAuthenticatedUserHans);
           final uploadInfo = await repo.startAsyncUpload(redirectUri);
           expect(identical(uploadInfo, expectedUploadInfo), isTrue);
         });
@@ -779,7 +779,7 @@ void main() {
           final transactionMock = TransactionMock();
           final db = DatastoreDBMock(transactionMock: transactionMock);
           final repo = GCloudPackageRepository(db, tarballStorage);
-          registerAuthenticatedUser(testUploaderUser);
+          registerAuthenticatedUser(testAuthenticatedUserHans);
           final historyBackendMock = HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
           final Future result = repo.finishAsyncUpload(redirectUri);
@@ -830,9 +830,9 @@ void main() {
                 queryMock: queryMock);
             final db = DatastoreDBMock(transactionMock: transactionMock);
             final repo = GCloudPackageRepository(db, tarballStorage);
-            registerAuthenticatedUser(testUploaderUser);
-            registerAccountBackend(
-                AccountBackendMock(authenticatedUsers: [testUploaderUser]));
+            registerAuthenticatedUser(testAuthenticatedUserHans);
+            registerAccountBackend(AccountBackendMock(
+                authenticatedUsers: [testAuthenticatedUserHans]));
             final emailSenderMock = EmailSenderMock();
             registerEmailSender(emailSenderMock);
             registerHistoryBackend(HistoryBackendMock());
@@ -922,7 +922,7 @@ void main() {
           final transactionMock = TransactionMock();
           final db = DatastoreDBMock(transactionMock: transactionMock);
           final repo = GCloudPackageRepository(db, tarballStorage);
-          registerAuthenticatedUser(testUploaderUser);
+          registerAuthenticatedUser(testAuthenticatedUserHans);
           registerNameTracker(NameTracker(null));
           nameTracker.add('foobar_pkg');
 
@@ -964,7 +964,7 @@ void main() {
           final transactionMock = TransactionMock();
           final db = DatastoreDBMock(transactionMock: transactionMock);
           final repo = GCloudPackageRepository(db, tarballStorage);
-          registerAuthenticatedUser(testUploaderUser);
+          registerAuthenticatedUser(testAuthenticatedUserHans);
           registerAnalyzerClient(AnalyzerClientMock());
           registerDartdocClient(DartdocClientMock());
           final historyBackendMock = HistoryBackendMock();
@@ -1026,11 +1026,11 @@ void main() {
 
             final db = DatastoreDBMock(transactionMock: transactionMock);
             final repo = GCloudPackageRepository(db, tarballStorage);
-            registerAuthenticatedUser(testUploaderUser);
+            registerAuthenticatedUser(testAuthenticatedUserHans);
             registerAnalyzerClient(AnalyzerClientMock());
             registerDartdocClient(DartdocClientMock());
-            registerAccountBackend(
-                AccountBackendMock(authenticatedUsers: [testUploaderUser]));
+            registerAccountBackend(AccountBackendMock(
+                authenticatedUsers: [testAuthenticatedUserHans]));
             registerHistoryBackend(HistoryBackendMock());
             final emailSenderMock = EmailSenderMock();
             registerEmailSender(emailSenderMock);
