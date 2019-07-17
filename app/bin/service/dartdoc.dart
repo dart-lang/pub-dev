@@ -9,11 +9,8 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
@@ -87,11 +84,7 @@ Future _registerServices() async {
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
 
-  registerAnalyzerClient(AnalyzerClient());
   final Bucket storageBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
   registerDartdocBackend(DartdocBackend(dbService, storageBucket));
-  registerHistoryBackend(HistoryBackend(dbService));
-  registerJobBackend(JobBackend(dbService));
-  registerScoreCardBackend(ScoreCardBackend(dbService));
 }

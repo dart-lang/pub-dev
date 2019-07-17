@@ -234,9 +234,6 @@ class AnalyzerClientMock implements AnalyzerClient {
   AnalysisView mockAnalysisView;
 
   @override
-  Future close() async => null;
-
-  @override
   Future<AnalysisView> getAnalysisView(String package, String version) async =>
       mockAnalysisView;
 

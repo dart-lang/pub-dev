@@ -4,11 +4,7 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
-
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
-import 'package:pub_dartlang_org/job/backend.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
@@ -29,9 +25,6 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
-    registerJobBackend(JobBackend(dbService));
-    registerScoreCardBackend(ScoreCardBackend(dbService));
-    registerAnalyzerClient(AnalyzerClient());
     registerDartdocClient(DartdocClient());
     registerSearchClient(SearchClient());
     final String service = args[0];
@@ -44,7 +37,6 @@ Future main(List<String> args) async {
     } else {
       _printHelp();
     }
-    await analyzerClient.close();
     await searchClient.close();
   });
 }

@@ -13,10 +13,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
@@ -52,17 +49,11 @@ Future _main(FrontendEntryMessage message) async {
   ));
 
   await withServices(() async {
-    registerAccountBackend(AccountBackend(db.dbService));
-
     final popularityBucket = await getOrCreateBucket(
         storageService, activeConfiguration.popularityDumpBucketName);
     registerPopularityStorage(
         PopularityStorage(storageService, popularityBucket));
     await popularityStorage.init();
-
-    final AnalyzerClient analyzerClient = AnalyzerClient();
-    registerAnalyzerClient(analyzerClient);
-    registerScopeExitCallback(analyzerClient.close);
 
     final Bucket dartdocBucket = await getOrCreateBucket(
         storageService, activeConfiguration.dartdocStorageBucketName);
@@ -70,8 +61,6 @@ Future _main(FrontendEntryMessage message) async {
     final DartdocClient dartdocClient = DartdocClient();
     registerDartdocClient(dartdocClient);
     registerScopeExitCallback(dartdocClient.close);
-
-    registerScoreCardBackend(ScoreCardBackend(db.dbService));
 
     registerSearchBackend(SearchBackend(db.dbService));
 

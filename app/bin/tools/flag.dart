@@ -10,7 +10,6 @@ import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
-import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart' show cache;
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -73,7 +72,6 @@ Future _read(String packageName) async {
 }
 
 Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
-  registerJobBackend(JobBackend(dbService));
   return dbService.withTransaction((Transaction tx) async {
     final p =
         (await tx.lookup([dbService.emptyKey.append(Package, id: packageName)]))
