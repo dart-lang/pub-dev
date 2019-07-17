@@ -58,9 +58,7 @@ class PublisherBackend {
 
   /// Updates the publisher data.
   Future updatePublisherData(String publisherId, String description) async {
-    if (description == null) {
-      throw ArgumentError.notNull('description');
-    }
+    ArgumentError.checkNotNull(description, 'description');
     if (description.length > 64 * 1024) {
       throw ArgumentError('Description too long.');
     }
