@@ -11,7 +11,6 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
@@ -92,7 +91,4 @@ Future _registerServices() async {
       storageService, activeConfiguration.dartdocStorageBucketName);
   registerDartdocBackend(DartdocBackend(db.dbService, dartdocStorageBucket));
   registerDartdocClient(DartdocClient());
-  registerHistoryBackend(HistoryBackend(db.dbService));
-  registerJobBackend(JobBackend(db.dbService));
-  registerScoreCardBackend(ScoreCardBackend(db.dbService));
 }

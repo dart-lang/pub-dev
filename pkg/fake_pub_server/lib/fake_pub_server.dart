@@ -19,13 +19,11 @@ import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
-import 'package:pub_dartlang_org/history/backend.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/services.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 
 final _logger = Logger('fake_server');
@@ -44,50 +42,53 @@ class FakePubServer {
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);
+      registerActiveConfiguration(Configuration.fakePubServer(
+        port: port,
+        storageBaseUrl: storageBaseUrl,
+      ));
 
       await withCache(() async {
-        registerActiveConfiguration(Configuration.fakePubServer(
-          port: port,
-          storageBaseUrl: storageBaseUrl,
-        ));
-        registerAccountBackend(
-            AccountBackend(db, authProvider: FakeAuthProvider(port)));
-        registerAnalyzerClient(AnalyzerClient());
-        registerDartdocClient(DartdocClient());
-        registerEmailSender(EmailSender(db, activeConfiguration.blockEmails));
-        registerHistoryBackend(HistoryBackend(db));
-        registerScoreCardBackend(ScoreCardBackend(db));
-        registerNameTracker(NameTracker(db));
-        nameTracker.startTracking();
-        registerSearchService(SearchService());
+        await withPubServices(() async {
+          await ss.fork(() async {
+            registerAccountBackend(
+                AccountBackend(db, authProvider: FakeAuthProvider(port)));
 
-        registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
+            registerDartdocClient(DartdocClient());
+            registerEmailSender(
+                EmailSender(db, activeConfiguration.blockEmails));
+            registerNameTracker(NameTracker(db));
+            nameTracker.startTracking();
+            registerSearchService(SearchService());
 
-        final pkgBucket = await getOrCreateBucket(
-            _storage, activeConfiguration.packageBucketName);
-        registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
+            registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
 
-        registerBackend(Backend(db, tarballStorage));
+            final pkgBucket = await getOrCreateBucket(
+                _storage, activeConfiguration.packageBucketName);
+            registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
 
-        final apiHandler = backend.pubServer.requestHandler;
+            registerBackend(Backend(db, tarballStorage));
 
-        final appHandler = createAppHandler(apiHandler);
-        final handler = wrapHandler(_logger, appHandler, sanitize: true);
+            final apiHandler = backend.pubServer.requestHandler;
 
-        final server = await IOServer.bind('localhost', port);
-        serveRequests(server.server, (request) async {
-          return await ss.fork(() async {
-            return await handler(request);
-          }) as shelf.Response;
+            final appHandler = createAppHandler(apiHandler);
+            final handler = wrapHandler(_logger, appHandler, sanitize: true);
+
+            final server = await IOServer.bind('localhost', port);
+            serveRequests(server.server, (request) async {
+              return await ss.fork(() async {
+                return await handler(request);
+              }) as shelf.Response;
+            });
+            _logger.info('fake_pub_server running on port $port');
+
+            await ProcessSignal.sigterm.watch().first;
+
+            _logger.info('fake_pub_server shutting down');
+            await server.close();
+            nameTracker.stopTracking();
+            _logger.info('closing');
+          });
         });
-        _logger.info('fake_pub_server running on port $port');
-
-        await ProcessSignal.sigterm.watch().first;
-
-        _logger.info('fake_pub_server shutting down');
-        await server.close();
-        nameTracker.stopTracking();
-        _logger.info('closing');
       });
     });
   }

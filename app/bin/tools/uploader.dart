@@ -32,8 +32,6 @@ Future main(List<String> arguments) async {
   final String uploader = arguments.length == 3 ? arguments[2] : null;
 
   await withProdServices(() async {
-    registerAccountBackend(AccountBackend(dbService));
-    registerHistoryBackend(HistoryBackend(dbService));
     if (command == 'list') {
       await listUploaders(package);
     } else if (command == 'add') {

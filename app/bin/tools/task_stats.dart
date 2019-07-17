@@ -17,7 +17,6 @@ import 'package:pool/pool.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 
 Future main(List<String> args) async {
@@ -33,8 +32,6 @@ Future main(List<String> args) async {
   final Map report = {};
 
   await withProdServices(() async {
-    registerScoreCardBackend(ScoreCardBackend(dbService));
-    registerAnalyzerClient(AnalyzerClient());
     registerDartdocClient(DartdocClient());
 
     final statFutures = <Future<_Stat>>[];

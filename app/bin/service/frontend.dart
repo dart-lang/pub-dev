@@ -14,9 +14,6 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/history/backend.dart';
-import 'package:pub_dartlang_org/job/backend.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -76,7 +73,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerEmailSender(
       EmailSender(db.dbService, activeConfiguration.blockEmails));
 
-  registerAccountBackend(AccountBackend(db.dbService));
   registerScopeExitCallback(accountBackend.close);
 
   final popularityBucket = await getOrCreateBucket(
@@ -84,10 +80,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerPopularityStorage(
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
-  final AnalyzerClient analyzerClient = AnalyzerClient();
-  registerAnalyzerClient(analyzerClient);
-  registerScopeExitCallback(analyzerClient.close);
 
   final Bucket dartdocBucket = await getOrCreateBucket(
       storageService, activeConfiguration.dartdocStorageBucketName);
@@ -100,11 +92,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   final SearchClient searchClient = SearchClient();
   registerSearchClient(searchClient);
   registerScopeExitCallback(searchClient.close);
-
-  registerHistoryBackend(HistoryBackend(db.dbService));
-  registerJobBackend(JobBackend(db.dbService));
-
-  registerScoreCardBackend(ScoreCardBackend(db.dbService));
 
   registerNameTracker(NameTracker(db.dbService));
   nameTracker.startTracking();
@@ -139,9 +126,7 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
-    registerAnalyzerClient(AnalyzerClient());
     registerDartdocClient(DartdocClient());
-    registerJobBackend(JobBackend(db.dbService));
 
     // Updates job entries for analyzer and dartdoc.
     Future triggerDependentAnalysis(

@@ -56,10 +56,6 @@ class AnalyzerClient {
       await jobBackend.trigger(JobService.analyzer, package);
     }
   }
-
-  Future close() async {
-    // no-op
-  }
 }
 
 class AnalysisView {

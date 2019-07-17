@@ -23,9 +23,6 @@ Future main(List<String> args) async {
 
   useLoggingPackageAdaptor();
   await withProdServices(() async {
-    registerAccountBackend(AccountBackend(dbService));
-    registerHistoryBackend(HistoryBackend(dbService));
-
     if (package != null) {
       await _backfillPackage(package);
     } else {
