@@ -119,9 +119,17 @@ abstract class GoogleUser {
 /// The auth response data.
 @JS()
 abstract class AuthResponse {
-  /// The access token to use for requests.
-  // ignore: non_constant_identifier_names
-  external String get access_token;
+  /// The access token to use for requests to googleapis.
+  external String get access_token; // ignore: non_constant_identifier_names
+
+  /// The openid-connect ID token for authenticating requests pub.dev
+  external String get id_token; // ignore: non_constant_identifier_names
+
+  /// The scopes granted in the Access Token.
+  external String get scope; // ignore: non_constant_identifier_names
+
+  /// The timestamp at which the Access Token will expire.
+  external int get expires_at; // ignore: non_constant_identifier_names
 }
 
 /// The basic profile data of the user.
