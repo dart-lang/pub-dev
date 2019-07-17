@@ -6,6 +6,7 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
+import 'package:gcloud/service_scope.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
@@ -24,6 +25,12 @@ import '../shared/utils.dart';
 /// and fake storage) for tests.
 void testWithServices(String name, Future fn()) {
   scopedTest(name, () async {
+    // registering config with bad ports, as we won't access them via network
+    registerActiveConfiguration(Configuration.fakePubServer(
+      port: 0,
+      storageBaseUrl: 'http://localhost:0',
+    ));
+
     await withCache(() async {
       final db = DatastoreDB(MemDatastore());
       await db.commit(inserts: [
@@ -39,12 +46,6 @@ void testWithServices(String name, Future fn()) {
       final tarballBucket = storage.bucket('tarball');
       registerStorageService(storage);
 
-      // registering config with bad ports, as we won't access them via network
-      registerActiveConfiguration(Configuration.fakePubServer(
-        port: 0,
-        storageBaseUrl: 'http://localhost:0',
-      ));
-
       registerAccountBackend(
           AccountBackend(db, authProvider: FakeAuthProvider()));
       registerBackend(
@@ -54,7 +55,15 @@ void testWithServices(String name, Future fn()) {
       registerScoreCardBackend(ScoreCardBackend(db));
 
       await withPubServices(() async {
-        return await fn();
+        await fork(() async {
+          registerAccountBackend(
+              AccountBackend(db, authProvider: FakeAuthProvider()));
+          registerBackend(
+              Backend(db, TarballStorage(storage, tarballBucket, null)));
+          registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
+
+          return await fn();
+        });
       });
     });
   });
