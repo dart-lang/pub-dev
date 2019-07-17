@@ -35,6 +35,7 @@ class PublisherBackend {
 
   /// Checks whether the current authenticated user has admin role of the
   /// publisher, and executes [fn] if it does.
+  /// Otherwise, it throws [UnauthorizedAccessException].
   Future<R> _withPublisherAdmin<R>(
       String publisherId, Future<R> fn(Publisher p)) async {
     return await withAuthenticatedUser((user) async {
@@ -58,10 +59,10 @@ class PublisherBackend {
   /// Updates the publisher data.
   Future updatePublisherData(String publisherId, String description) async {
     if (description == null) {
-      throw Exception('Description must not be null.');
+      throw ArgumentError.notNull('description');
     }
     if (description.length > 64 * 1024) {
-      throw Exception('Description too long.');
+      throw ArgumentError('Description too long.');
     }
     await _withPublisherAdmin(publisherId, (_) async {
       await _db.withTransaction((tx) async {
