@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
+import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
@@ -16,22 +17,24 @@ void main() {
   group('PublisherBackend', () {
     group('Update description', () {
       testWithServices('No active user', () async {
-        await publisherBackend
-            .updatePublisherData('example.com', 'new description')
-            .catchError(expectAsync1((e) {
-          expect('$e', 'UnauthorizedAccess: No active user.');
-        }));
+        await expectLater(
+          publisherBackend.updatePublisherData(
+              'example.com', 'new description'),
+          throwsA(isException.having(
+              (e) => '$e', 'text', 'UnauthorizedAccess: No active user.')),
+        );
         final p = await publisherBackend.getPublisher('example.com');
         expect(p, isNull);
       });
 
       testWithServices('No publisher with given id', () async {
         registerAuthenticatedUser(testAuthenticatedUserHans);
-        await publisherBackend
-            .updatePublisherData('example.com', 'new description')
-            .catchError(expectAsync1((e) {
-          expect('$e', 'Exception: Publisher does not exists.');
-        }));
+        await expectLater(
+          publisherBackend.updatePublisherData(
+              'example.com', 'new description'),
+          throwsA(isException.having(
+              (e) => '$e', 'text', 'Exception: Publisher does not exists.')),
+        );
         final p = await publisherBackend.getPublisher('example.com');
         expect(p, isNull);
       });
@@ -39,11 +42,12 @@ void main() {
       testWithServices('Not a member', () async {
         await dbService.commit(inserts: [testPublisher]);
         registerAuthenticatedUser(testAuthenticatedUserHans);
-        await publisherBackend
-            .updatePublisherData('example.com', 'new description')
-            .catchError(expectAsync1((e) {
-          expect('$e', 'UnauthorizedAccess: User is not an admin.');
-        }));
+        await expectLater(
+          publisherBackend.updatePublisherData(
+              'example.com', 'new description'),
+          throwsA(isException.having((e) => '$e', 'text',
+              'UnauthorizedAccess: User is not an admin.')),
+        );
         final p = await publisherBackend.getPublisher('example.com');
         expect(p.description, testPublisher.description);
       });
@@ -54,11 +58,12 @@ void main() {
           testMember(testUserHans.userId, PublisherMemberRole.pending),
         ]);
         registerAuthenticatedUser(testAuthenticatedUserHans);
-        await publisherBackend
-            .updatePublisherData('example.com', 'new description')
-            .catchError(expectAsync1((e) {
-          expect('$e', 'UnauthorizedAccess: User is not an admin.');
-        }));
+        await expectLater(
+          publisherBackend.updatePublisherData(
+              'example.com', 'new description'),
+          throwsA(isException.having((e) => '$e', 'text',
+              'UnauthorizedAccess: User is not an admin.')),
+        );
         final p = await publisherBackend.getPublisher('example.com');
         expect(p.description, testPublisher.description);
       });
