@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart';
-import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
