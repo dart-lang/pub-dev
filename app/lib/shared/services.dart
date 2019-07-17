@@ -6,6 +6,7 @@ import 'package:gcloud/service_scope.dart';
 import '../account/backend.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
+import '../publisher/backend.dart';
 import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
 
@@ -33,6 +34,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerAnalyzerClient(AnalyzerClient());
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
+    registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
 
     registerScopeExitCallback(accountBackend.close);
