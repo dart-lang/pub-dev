@@ -31,8 +31,8 @@ void main() {
         await expectLater(
           publisherBackend.updatePublisherData(
               'example.com', 'new description'),
-          throwsA(isException.having(
-              (e) => '$e', 'text', 'Exception: Publisher does not exists.')),
+          throwsA(isException.having((e) => '$e', 'text',
+              'NotFoundException: Publisher example.com does not exists.')),
         );
         final p = await publisherBackend.getPublisher('example.com');
         expect(p, isNull);
