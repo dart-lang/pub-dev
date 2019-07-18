@@ -21,3 +21,15 @@ class AccountPkgOptions {
 
   Map<String, dynamic> toJson() => _$AccountPkgOptionsToJson(this);
 }
+
+@JsonSerializable(nullable: false)
+class ConsentResult {
+  final bool granted;
+
+  ConsentResult({@required this.granted});
+
+  factory ConsentResult.fromJson(Map<String, dynamic> json) =>
+      _$ConsentResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ConsentResultToJson(this);
+}
