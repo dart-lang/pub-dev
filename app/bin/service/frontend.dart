@@ -12,7 +12,6 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -68,8 +67,6 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  registerScopeExitCallback(accountBackend.close);
-
   final popularityBucket = await getOrCreateBucket(
       storageService, activeConfiguration.popularityDumpBucketName);
   registerPopularityStorage(
