@@ -6,6 +6,7 @@ import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
+import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
@@ -134,3 +135,15 @@ description: 'my package description'
 dependencies:
   gcloud: any
 ''';
+
+final testPublisher = Publisher()
+  ..id = 'example.com'
+  ..description = 'This is us!'
+  ..created = DateTime(2019, 07, 15)
+  ..updated = DateTime(2019, 07, 16);
+
+PublisherMember testPublisherMember(String userId, String role) =>
+    PublisherMember()
+      ..parentKey = testPublisher.key
+      ..id = userId
+      ..role = role;
