@@ -9,6 +9,26 @@ import '../../account/backend.dart';
 import '../../frontend/backend.dart';
 import '../../shared/handlers.dart';
 
+/// Handles GET /consent
+Future<shelf.Response> consentPageHandler(shelf.Request request) async {
+  // TODO: implement
+  return notFoundHandler(request);
+}
+
+/// Handles GET /api/account/consent/<consentId>
+Future<shelf.Response> getAccountConsentHandler(
+    shelf.Request request, String consentId) async {
+  // TODO: implement
+  return notFoundHandler(request);
+}
+
+/// Handles PUT /api/account/consent/<consentId>
+Future<shelf.Response> putAccountConsentHandler(
+    shelf.Request request, String consentId) async {
+  // TODO: implement
+  return notFoundHandler(request);
+}
+
 /// Handles /api/account/options/packages/<package>
 Future<shelf.Response> accountPkgOptionsHandler(
     shelf.Request request, String package) async {

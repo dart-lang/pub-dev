@@ -16,6 +16,7 @@ import 'landing.dart';
 import 'listing.dart';
 import 'misc.dart';
 import 'package.dart';
+import 'publisher.dart';
 
 part 'routes.g.dart';
 
@@ -189,6 +190,59 @@ class PubSiteService {
           request.context['_originalRequest'] as Request ?? request);
 
   // ****
+  // **** Publishers
+  // ****
+
+  /// Renders the page where users can start creating a publisher.
+  @Route.get('/create-publisher')
+  Future<Response> createPublisherPage(Request request) =>
+      createPublisherPageHandler(request);
+
+  /// Starts publisher creation flow.
+  @Route.post('/api/publisher/<publisherId>')
+  Future<Response> createPublisherApi(Request request, String publisherId) =>
+      createPublisherApiHandler(request, publisherId);
+
+  /// Returns publisher data in a JSON form.
+  @Route.get('/api/publisher/<publisherId>')
+  Future<Response> getPublisherApi(Request request, String publisherId) =>
+      getPublisherApiHandler(request, publisherId);
+
+  /// Updates publisher data.
+  @Route.put('/api/publisher/<publisherId>')
+  Future<Response> putPublisherApi(Request request, String publisherId) =>
+      putPublisherApiHandler(request, publisherId);
+
+  /// Returns a publisher's member data and role in a JSON form.
+  @Route.post('/api/publisher/<publisherId>/invite-member')
+  Future<Response> invitePublisherMember(Request request, String publisherId) =>
+      invitePublisherMemberHandler(request, publisherId);
+
+  /// Returns publisher members data in a JSON form.
+  @Route.get('/api/publisher/<publisherId>/members')
+  Future<Response> getPublisherMembersApi(
+          Request request, String publisherId) =>
+      getPublisherMembersApiHandler(request, publisherId);
+
+  /// Returns a publisher's member data and role in a JSON form.
+  @Route.get('/api/publisher/<publisherId>/members/<userId>')
+  Future<Response> getPublisherMemberDataApi(
+          Request request, String publisherId, String userId) =>
+      getPublisherMemberDataApiHandler(request, publisherId, userId);
+
+  /// Updates a publisher's member data and role.
+  @Route.put('/api/publisher/<publisherId>/members/<userId>')
+  Future<Response> putPublisherMemberDataApi(
+          Request request, String publisherId, String userId) =>
+      putPublisherMemberDataApiHandler(request, publisherId, userId);
+
+  /// Deletes a publisher's member.
+  @Route.delete('/api/publisher/<publisherId>/members/<userId>')
+  Future<Response> deletePublisherMemberDataApi(
+          Request request, String publisherId, String userId) =>
+      deletePublisherMemberDataApiHandler(request, publisherId, userId);
+
+  // ****
   // **** Site content and metadata
   // ****
 
@@ -237,6 +291,20 @@ class PubSiteService {
   Future<Response> confirmUploader(
           Request request, String package, String email, String nonce) =>
       confirmNewUploaderHandler(request, package, email, nonce);
+
+  /// Renders the page where an user can accept their invites/consents.
+  @Route.get('/consent')
+  Future<Response> consentPage(Request request) => consentPageHandler(request);
+
+  /// Returns the consent request details.
+  @Route.get('/api/account/consent/<consentId>')
+  Future<Response> getAccountConsent(Request request, String consentId) =>
+      getAccountConsentHandler(request, consentId);
+
+  /// Accepts or declines the consent.
+  @Route.put('/api/account/consent/<consentId>')
+  Future<Response> putAccountConsent(Request request, String consentId) =>
+      putAccountConsentHandler(request, consentId);
 
   // ****
   // **** Custom API
