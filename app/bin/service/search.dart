@@ -53,8 +53,6 @@ Future _main(FrontendEntryMessage message) async {
         PopularityStorage(storageService, popularityBucket));
     await popularityStorage.init();
 
-    registerSearchBackend(SearchBackend(db.dbService));
-
     final Bucket snapshotBucket = await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName);
     registerSnapshotStorage(SnapshotStorage(snapshotBucket));

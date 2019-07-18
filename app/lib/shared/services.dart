@@ -12,6 +12,7 @@ import '../history/backend.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../scorecard/backend.dart';
+import '../search/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
@@ -53,6 +54,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerJobBackend(JobBackend(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
+    registerSearchBackend(SearchBackend(dbService));
     registerTarballStorage(
       TarballStorage(
           storageService,
