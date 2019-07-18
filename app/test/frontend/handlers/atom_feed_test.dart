@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
 
-import '../utils.dart';
+import '../../shared/test_models.dart';
 
 import '_utils.dart';
 

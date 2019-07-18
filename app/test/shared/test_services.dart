@@ -14,8 +14,8 @@ import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
 
-import '../frontend/utils.dart';
 import '../shared/utils.dart';
+import 'test_models.dart';
 
 /// Setup scoped services (including fake datastore with pre-populated base data
 /// and fake storage) for tests.
