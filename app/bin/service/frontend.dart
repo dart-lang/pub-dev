@@ -18,7 +18,6 @@ import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -72,10 +71,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerPopularityStorage(
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
-  final SearchClient searchClient = SearchClient();
-  registerSearchClient(searchClient);
-  registerScopeExitCallback(searchClient.close);
 
   registerNameTracker(NameTracker(db.dbService));
   nameTracker.startTracking();

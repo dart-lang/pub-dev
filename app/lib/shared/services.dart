@@ -16,6 +16,7 @@ import '../search/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
+import '../shared/search_client.dart';
 import '../shared/storage.dart';
 
 import 'redis_cache.dart' show withAppEngineAndCache;
@@ -55,6 +56,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));
+    registerSearchClient(SearchClient());
     registerTarballStorage(
       TarballStorage(
           storageService,
@@ -68,6 +70,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
 
     registerScopeExitCallback(accountBackend.close);
     registerScopeExitCallback(dartdocClient.close);
+    registerScopeExitCallback(searchClient.close);
 
     return await fn();
   });

@@ -9,7 +9,6 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../mocks.dart';
@@ -47,7 +46,6 @@ void main() {
     });
 
     tScopedTest('/ without a working search service', () async {
-      registerSearchClient(null);
       registerSearchService(SearchService());
       final rs = await issueGet('/');
       final content = await expectHtmlResponse(rs);
