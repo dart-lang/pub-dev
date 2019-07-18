@@ -7,6 +7,7 @@ import 'package:gcloud/storage.dart';
 import '../account/backend.dart';
 import '../dartdoc/backend.dart';
 import '../frontend/backend.dart';
+import '../frontend/email_sender.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
@@ -46,6 +47,8 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
       ),
     );
     registerDartdocClient(DartdocClient());
+    registerEmailSender(
+        EmailSender(dbService, activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerPublisherBackend(PublisherBackend(dbService));

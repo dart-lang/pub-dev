@@ -14,7 +14,6 @@ import 'package:shelf/shelf_io.dart';
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
@@ -53,8 +52,6 @@ class FakePubServer {
             registerAccountBackend(
                 AccountBackend(db, authProvider: FakeAuthProvider(port)));
 
-            registerEmailSender(
-                EmailSender(db, activeConfiguration.blockEmails));
             registerNameTracker(NameTracker(db));
             nameTracker.startTracking();
             registerSearchService(SearchService());

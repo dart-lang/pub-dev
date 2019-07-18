@@ -27,7 +27,6 @@ import 'package:pub_dartlang_org/shared/services.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/cronjobs.dart' show CronJobs;
 import 'package:pub_dartlang_org/frontend/handlers.dart';
-import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
@@ -69,9 +68,6 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  registerEmailSender(
-      EmailSender(db.dbService, activeConfiguration.blockEmails));
-
   registerScopeExitCallback(accountBackend.close);
 
   final popularityBucket = await getOrCreateBucket(
