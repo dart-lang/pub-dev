@@ -5,7 +5,9 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_server/repository.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
@@ -13,18 +15,15 @@ import 'package:shelf/shelf_io.dart';
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
-import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
 
 final _logger = Logger('fake_server');
 
@@ -42,6 +41,7 @@ class FakePubServer {
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);
+      registerStorageService(_storage);
       registerActiveConfiguration(Configuration.fakePubServer(
         port: port,
         storageBaseUrl: storageBaseUrl,
@@ -52,21 +52,10 @@ class FakePubServer {
           await ss.fork(() async {
             registerAccountBackend(
                 AccountBackend(db, authProvider: FakeAuthProvider(port)));
-
-            registerDartdocClient(DartdocClient());
-            registerEmailSender(
-                EmailSender(db, activeConfiguration.blockEmails));
-            registerNameTracker(NameTracker(db));
-            nameTracker.startTracking();
-            registerSearchService(SearchService());
-
             registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
+            registerSearchClient(MockSearchClient());
 
-            final pkgBucket = await getOrCreateBucket(
-                _storage, activeConfiguration.packageBucketName);
-            registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
-
-            registerBackend(Backend(db, tarballStorage));
+            nameTracker.startTracking();
 
             final apiHandler = backend.pubServer.requestHandler;
 
@@ -117,4 +106,17 @@ class FakeUploaderSignerService implements UploadSignerService {
   Future<SigningResult> sign(List<int> bytes) async {
     return SigningResult('google-access-id', [1, 2, 3, 4]);
   }
+}
+
+class MockSearchClient implements SearchClient {
+  @override
+  Future<PackageSearchResult> search(SearchQuery query) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future triggerReindex(String package, String version) async {}
+
+  @override
+  Future close() async {}
 }

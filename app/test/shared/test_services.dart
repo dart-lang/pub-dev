@@ -10,9 +10,6 @@ import 'package:gcloud/service_scope.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -40,26 +37,12 @@ void testWithServices(String name, Future fn()) {
         testUserHans,
       ]);
       registerDbService(db);
-
-      final storage = MemStorage(buckets: ['dartdoc', 'tarball']);
-      final tarballBucket = storage.bucket('tarball');
-      registerStorageService(storage);
-
-      registerAccountBackend(
-          AccountBackend(db, authProvider: FakeAuthProvider()));
-      registerBackend(
-          Backend(db, TarballStorage(storage, tarballBucket, null)));
-      registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
-      registerScoreCardBackend(ScoreCardBackend(db));
+      registerStorageService(MemStorage());
 
       await withPubServices(() async {
         await fork(() async {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
-          registerBackend(
-              Backend(db, TarballStorage(storage, tarballBucket, null)));
-          registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
-
           return await fn();
         });
       });

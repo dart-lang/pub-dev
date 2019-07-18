@@ -10,7 +10,6 @@ import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -41,9 +40,6 @@ Future main(List<String> arguments) async {
     if (command == 'list') {
       await listPackage(package);
     } else if (command == 'remove') {
-      final Bucket storageBucket = await getOrCreateBucket(
-          storageService, activeConfiguration.dartdocStorageBucketName);
-      registerDartdocBackend(DartdocBackend(dbService, storageBucket));
       if (version == null) {
         await removePackage(package);
       } else {

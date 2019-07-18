@@ -2,13 +2,24 @@ import 'dart:async' show FutureOr;
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
+import 'package:gcloud/storage.dart';
 
 import '../account/backend.dart';
+import '../dartdoc/backend.dart';
+import '../frontend/backend.dart';
+import '../frontend/email_sender.dart';
+import '../frontend/name_tracker.dart';
+import '../frontend/search_service.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../scorecard/backend.dart';
+import '../search/backend.dart';
 import '../shared/analyzer_client.dart';
+import '../shared/configuration.dart';
+import '../shared/dartdoc_client.dart';
+import '../shared/search_client.dart';
+import '../shared/storage.dart';
 
 import 'redis_cache.dart' show withAppEngineAndCache;
 import 'storage_retry.dart' show withStorageRetry;
@@ -32,12 +43,39 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
     registerAccountBackend(AccountBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
+    registerDartdocBackend(
+      DartdocBackend(
+        dbService,
+        await getOrCreateBucket(
+            storageService, activeConfiguration.dartdocStorageBucketName),
+      ),
+    );
+    registerDartdocClient(DartdocClient());
+    registerEmailSender(
+        EmailSender(dbService, activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
+    registerNameTracker(NameTracker(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
+    registerSearchBackend(SearchBackend(dbService));
+    registerSearchClient(SearchClient());
+    registerSearchService(SearchService());
+    registerTarballStorage(
+      TarballStorage(
+          storageService,
+          await getOrCreateBucket(
+              storageService, activeConfiguration.packageBucketName),
+          null),
+    );
+
+    // depends on previously registered services
+    registerBackend(Backend(dbService, tarballStorage));
 
     registerScopeExitCallback(accountBackend.close);
+    registerScopeExitCallback(dartdocClient.close);
+    registerScopeExitCallback(searchClient.close);
+    registerScopeExitCallback(searchService.close);
 
     return await fn();
   });

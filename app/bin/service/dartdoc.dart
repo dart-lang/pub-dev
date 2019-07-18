@@ -83,8 +83,4 @@ Future _registerServices() async {
   registerPopularityStorage(
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
-  final Bucket storageBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(DartdocBackend(dbService, storageBucket));
 }
