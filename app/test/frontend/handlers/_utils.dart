@@ -4,12 +4,14 @@
 
 library pub_dartlang_org.frontend.handlers_test;
 
-import 'dart:async';
+import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../../shared/utils.dart';
@@ -31,6 +33,31 @@ Future<shelf.Response> issueGet(String path, {String host}) {
 Future<shelf.Response> issueGetUri(Uri uri) async {
   final request = shelf.Request('GET', uri);
   return createAppHandler(null)(request);
+}
+
+Future<shelf.Response> httpRequest(
+  String method,
+  dynamic uri, {
+  String authToken,
+  Map<String, dynamic> jsonBody,
+}) async {
+  if ('$uri'.startsWith('/')) {
+    uri = '$siteRoot$uri';
+  }
+  final request = shelf.Request(
+    method,
+    uri is Uri ? uri : Uri.parse(uri.toString()),
+    headers: {
+      if (authToken != null) 'authorization': 'bearer $authToken',
+    },
+    body: jsonBody == null ? null : json.encode(jsonBody),
+  );
+  final handler = wrapHandler(
+    Logger.detached('test'),
+    createAppHandler(null),
+    sanitize: true,
+  );
+  return await handler(request);
 }
 
 Future<String> expectHtmlResponse(
