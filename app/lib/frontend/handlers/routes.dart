@@ -210,8 +210,8 @@ class PubSiteService {
 
   /// Updates publisher data.
   @Route.put('/api/publisher/<publisherId>')
-  Future<Response> putPublisherApi(Request request, String publisherId) =>
-      putPublisherApiHandler(request, publisherId);
+  Future<Response> updatePublisherApi(Request request, String publisherId) =>
+      updatePublisherApiHandler(request, publisherId);
 
   /// Returns a publisher's member data and role in a JSON form.
   @Route.post('/api/publisher/<publisherId>/invite-member')

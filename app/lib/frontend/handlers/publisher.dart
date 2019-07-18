@@ -29,7 +29,7 @@ Future<shelf.Response> getPublisherApiHandler(
 }
 
 /// Handles requests for PUT /api/publisher/<publisherId>
-Future<shelf.Response> putPublisherApiHandler(
+Future<shelf.Response> updatePublisherApiHandler(
     shelf.Request request, String publisherId) async {
   // TODO: implement
   return notFoundHandler(request);

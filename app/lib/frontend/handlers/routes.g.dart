@@ -48,7 +48,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add(
       'POST', '/api/publisher/<publisherId>', service.createPublisherApi);
   router.add('GET', '/api/publisher/<publisherId>', service.getPublisherApi);
-  router.add('PUT', '/api/publisher/<publisherId>', service.putPublisherApi);
+  router.add('PUT', '/api/publisher/<publisherId>', service.updatePublisherApi);
   router.add('POST', '/api/publisher/<publisherId>/invite-member',
       service.invitePublisherMember);
   router.add('GET', '/api/publisher/<publisherId>/members',
