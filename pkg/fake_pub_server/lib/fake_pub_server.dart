@@ -5,6 +5,7 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_server/repository.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -24,7 +25,6 @@ import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
 
 final _logger = Logger('fake_server');
 
@@ -42,6 +42,7 @@ class FakePubServer {
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);
+      registerStorageService(_storage);
       registerActiveConfiguration(Configuration.fakePubServer(
         port: port,
         storageBaseUrl: storageBaseUrl,
@@ -61,10 +62,6 @@ class FakePubServer {
             registerSearchService(SearchService());
 
             registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
-
-            final pkgBucket = await getOrCreateBucket(
-                _storage, activeConfiguration.packageBucketName);
-            registerTarballStorage(TarballStorage(_storage, pkgBucket, null));
 
             registerBackend(Backend(db, tarballStorage));
 

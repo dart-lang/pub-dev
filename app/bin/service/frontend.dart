@@ -91,11 +91,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerNameTracker(NameTracker(db.dbService));
   nameTracker.startTracking();
 
-  final pkgBucket =
-      await getOrCreateBucket(storageService, configuration.packageBucketName);
-  final tarballStorage = TarballStorage(storageService, pkgBucket, null);
-  registerTarballStorage(tarballStorage);
-
   initSearchService();
 
   initBackend();

@@ -6,6 +6,7 @@ import 'package:gcloud/storage.dart';
 
 import '../account/backend.dart';
 import '../dartdoc/backend.dart';
+import '../frontend/backend.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
@@ -47,6 +48,13 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerJobBackend(JobBackend(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
+    registerTarballStorage(
+      TarballStorage(
+          storageService,
+          await getOrCreateBucket(
+              storageService, activeConfiguration.packageBucketName),
+          null),
+    );
 
     registerScopeExitCallback(accountBackend.close);
 
