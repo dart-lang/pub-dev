@@ -55,9 +55,6 @@ Future _main(FrontendEntryMessage message) async {
         PopularityStorage(storageService, popularityBucket));
     await popularityStorage.init();
 
-    final Bucket dartdocBucket = await getOrCreateBucket(
-        storageService, activeConfiguration.dartdocStorageBucketName);
-    registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
     final DartdocClient dartdocClient = DartdocClient();
     registerDartdocClient(dartdocClient);
     registerScopeExitCallback(dartdocClient.close);

@@ -10,7 +10,6 @@ import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
@@ -87,8 +86,5 @@ Future _registerServices() async {
   registerPopularityStorage(
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-  final Bucket dartdocStorageBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(DartdocBackend(db.dbService, dartdocStorageBucket));
   registerDartdocClient(DartdocClient());
 }

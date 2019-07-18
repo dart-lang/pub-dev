@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -80,10 +79,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerPopularityStorage(
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
-  final Bucket dartdocBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
 
   final dartdocClient = DartdocClient();
   registerDartdocClient(dartdocClient);

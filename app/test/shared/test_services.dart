@@ -10,9 +10,7 @@ import 'package:gcloud/service_scope.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -49,7 +47,6 @@ void testWithServices(String name, Future fn()) {
           AccountBackend(db, authProvider: FakeAuthProvider()));
       registerBackend(
           Backend(db, TarballStorage(storage, tarballBucket, null)));
-      registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
 
       await withPubServices(() async {
         await fork(() async {
