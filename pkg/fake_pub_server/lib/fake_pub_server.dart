@@ -16,7 +16,6 @@ import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
-import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
@@ -54,7 +53,6 @@ class FakePubServer {
 
             registerNameTracker(NameTracker(db));
             nameTracker.startTracking();
-            registerSearchService(SearchService());
 
             registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
 

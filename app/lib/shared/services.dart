@@ -8,6 +8,7 @@ import '../account/backend.dart';
 import '../dartdoc/backend.dart';
 import '../frontend/backend.dart';
 import '../frontend/email_sender.dart';
+import '../frontend/search_service.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
@@ -57,6 +58,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));
     registerSearchClient(SearchClient());
+    registerSearchService(SearchService());
     registerTarballStorage(
       TarballStorage(
           storageService,
@@ -71,6 +73,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(accountBackend.close);
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
+    registerScopeExitCallback(searchService.close);
 
     return await fn();
   });

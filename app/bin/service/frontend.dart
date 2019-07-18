@@ -75,8 +75,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   registerNameTracker(NameTracker(db.dbService));
   nameTracker.startTracking();
 
-  initSearchService();
-
   UploadSignerService uploadSigner;
   if (envConfig.hasCredentials) {
     final credentials = configuration.credentials;
