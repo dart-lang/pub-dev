@@ -144,7 +144,7 @@ class InviteMemberRequest {
 
   // json_serializable boiler-plate
   InviteMemberRequest({@required this.reason, @required this.email});
-  factory InviteMemberRequest.fromJson(Map<String, dynamic> json) =>
+  static InviteMemberRequest fromJson(Map<String, dynamic> json) =>
       _$InviteMemberRequestFromJson(json);
   Map<String, dynamic> toJson() => _$InviteMemberRequestToJson(this);
 }

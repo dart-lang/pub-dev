@@ -10,3 +10,4 @@ targets:
       - 'lib/scorecard/models.dart'
       - 'lib/shared/*.dart'
       - 'lib/search/backend*.dart'
+      - 'lib/frontend/handlers/publisher.dart'

@@ -5,8 +5,25 @@
 import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:client_data/publisher_api.dart';
+import 'package:api_generator/api_generator.dart';
 
 import '../../shared/handlers.dart';
+
+part 'publisher.g.dart';
+
+class PublisherApi {
+  @EndPoint.put('/api/publisher/<publisherId>')
+  Future<PublisherInfo> updatePublisher(
+    shelf.Request request,
+    String publisherId,
+    UpdatePublisherRequest body,
+  ) async {
+    return null;
+  }
+
+  Router get router => _$PublisherApiRouter(this);
+}
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
