@@ -7,6 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_server/repository.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
@@ -21,6 +22,7 @@ import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
 
 final _logger = Logger('fake_server');
@@ -51,6 +53,7 @@ class FakePubServer {
             registerAccountBackend(
                 AccountBackend(db, authProvider: FakeAuthProvider(port)));
             registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
+            registerSearchClient(MockSearchClient());
 
             nameTracker.startTracking();
 
@@ -103,4 +106,17 @@ class FakeUploaderSignerService implements UploadSignerService {
   Future<SigningResult> sign(List<int> bytes) async {
     return SigningResult('google-access-id', [1, 2, 3, 4]);
   }
+}
+
+class MockSearchClient implements SearchClient {
+  @override
+  Future<PackageSearchResult> search(SearchQuery query) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future triggerReindex(String package, String version) async {}
+
+  @override
+  Future close() async {}
 }
