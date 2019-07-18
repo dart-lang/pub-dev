@@ -5,9 +5,9 @@
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
-import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 
 import '../account/backend.dart';
+import '../shared/exceptions.dart';
 
 import 'models.dart';
 
@@ -41,7 +41,7 @@ class PublisherBackend {
     return await withAuthenticatedUser((user) async {
       final p = await getPublisher(publisherId);
       if (p == null) {
-        throw Exception('Publisher does not exists.');
+        throw NotFoundException('Publisher $publisherId does not exists.');
       }
 
       final member = (await _db.lookup<PublisherMember>(
