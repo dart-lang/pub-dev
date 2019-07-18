@@ -8,6 +8,7 @@ import '../account/backend.dart';
 import '../dartdoc/backend.dart';
 import '../frontend/backend.dart';
 import '../frontend/email_sender.dart';
+import '../frontend/name_tracker.dart';
 import '../frontend/search_service.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
@@ -54,6 +55,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
         EmailSender(dbService, activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
+    registerNameTracker(NameTracker(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));

@@ -72,7 +72,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
 
-  registerNameTracker(NameTracker(db.dbService));
   nameTracker.startTracking();
 
   UploadSignerService uploadSigner;

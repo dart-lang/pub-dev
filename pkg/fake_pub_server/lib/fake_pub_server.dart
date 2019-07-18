@@ -50,11 +50,9 @@ class FakePubServer {
           await ss.fork(() async {
             registerAccountBackend(
                 AccountBackend(db, authProvider: FakeAuthProvider(port)));
-
-            registerNameTracker(NameTracker(db));
-            nameTracker.startTracking();
-
             registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
+
+            nameTracker.startTracking();
 
             final apiHandler = backend.pubServer.requestHandler;
 
