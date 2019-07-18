@@ -44,6 +44,21 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
       service.documentationVersion);
   router.add('GET', '/documentation/<package>', service.documentationLatest);
   router.add('GET', '/documentation/<package>/', service.documentationLatest);
+  router.add('GET', '/create-publisher', service.createPublisherPage);
+  router.add(
+      'POST', '/api/publisher/<publisherId>', service.createPublisherApi);
+  router.add('GET', '/api/publisher/<publisherId>', service.getPublisherApi);
+  router.add('PUT', '/api/publisher/<publisherId>', service.updatePublisherApi);
+  router.add('POST', '/api/publisher/<publisherId>/invite-member',
+      service.invitePublisherMember);
+  router.add('GET', '/api/publisher/<publisherId>/members',
+      service.getPublisherMembersApi);
+  router.add('GET', '/api/publisher/<publisherId>/members/<userId>',
+      service.getPublisherMemberDataApi);
+  router.add('PUT', '/api/publisher/<publisherId>/members/<userId>',
+      service.putPublisherMemberDataApi);
+  router.add('DELETE', '/api/publisher/<publisherId>/members/<userId>',
+      service.deletePublisherMemberDataApi);
   router.add('GET', '/feed.atom', service.atomFeed);
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);
@@ -55,6 +70,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/authorized', service.authorizationConfirmed);
   router.add('GET', '/admin/confirm/new-uploader/<package>/<email>/<nonce>',
       service.confirmUploader);
+  router.add('GET', '/consent', service.consentPage);
+  router.add(
+      'GET', '/api/account/consent/<consentId>', service.getAccountConsent);
+  router.add(
+      'PUT', '/api/account/consent/<consentId>', service.putAccountConsent);
   router.add('GET', '/api/account/options/packages/<package>',
       service.accountPkgOptions);
   router.add('GET', '/api/documentation/<package>', service.apiDocumentation);
