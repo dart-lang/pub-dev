@@ -21,7 +21,6 @@ import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -54,7 +53,6 @@ class FakePubServer {
             registerAccountBackend(
                 AccountBackend(db, authProvider: FakeAuthProvider(port)));
 
-            registerDartdocClient(DartdocClient());
             registerEmailSender(
                 EmailSender(db, activeConfiguration.blockEmails));
             registerNameTracker(NameTracker(db));

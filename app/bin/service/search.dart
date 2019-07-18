@@ -9,13 +9,11 @@ import 'dart:isolate';
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
 import 'package:gcloud/db.dart' as db;
-import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
@@ -54,10 +52,6 @@ Future _main(FrontendEntryMessage message) async {
     registerPopularityStorage(
         PopularityStorage(storageService, popularityBucket));
     await popularityStorage.init();
-
-    final DartdocClient dartdocClient = DartdocClient();
-    registerDartdocClient(dartdocClient);
-    registerScopeExitCallback(dartdocClient.close);
 
     registerSearchBackend(SearchBackend(db.dbService));
 

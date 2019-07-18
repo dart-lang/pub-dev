@@ -13,6 +13,7 @@ import '../publisher/backend.dart';
 import '../scorecard/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
+import '../shared/dartdoc_client.dart';
 import '../shared/storage.dart';
 
 import 'redis_cache.dart' show withAppEngineAndCache;
@@ -44,6 +45,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
             storageService, activeConfiguration.dartdocStorageBucketName),
       ),
     );
+    registerDartdocClient(DartdocClient());
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerPublisherBackend(PublisherBackend(dbService));
@@ -60,6 +62,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerBackend(Backend(dbService, tarballStorage));
 
     registerScopeExitCallback(accountBackend.close);
+    registerScopeExitCallback(dartdocClient.close);
 
     return await fn();
   });

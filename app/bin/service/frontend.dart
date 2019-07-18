@@ -80,10 +80,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
       PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
 
-  final dartdocClient = DartdocClient();
-  registerDartdocClient(dartdocClient);
-  registerScopeExitCallback(dartdocClient.close);
-
   final SearchClient searchClient = SearchClient();
   registerSearchClient(searchClient);
   registerScopeExitCallback(searchClient.close);
@@ -114,8 +110,6 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
-    registerDartdocClient(DartdocClient());
-
     // Updates job entries for analyzer and dartdoc.
     Future triggerDependentAnalysis(
         String package, String version, Set<String> affected) async {
