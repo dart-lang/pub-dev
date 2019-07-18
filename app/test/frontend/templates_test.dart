@@ -30,8 +30,8 @@ import 'package:pub_dartlang_org/frontend/templates/package_analysis.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_versions.dart';
 
 import '../shared/html_validation.dart';
+import '../shared/test_models.dart';
 import '../shared/utils.dart';
-import 'utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
 

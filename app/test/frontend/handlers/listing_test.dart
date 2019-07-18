@@ -16,10 +16,10 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../../shared/handlers_test_utils.dart';
+import '../../shared/test_models.dart';
 import '../../shared/utils.dart';
 import '../backend_test_utils.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 import '_utils.dart';
 

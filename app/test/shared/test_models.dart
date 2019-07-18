@@ -2,28 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.utils;
-
 import 'package:gcloud/db.dart';
-import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
-
-class TestDelayCompletion {
-  final int count;
-  final Function _complete = expectAsync0(() {});
-  int _got = 0;
-
-  TestDelayCompletion({this.count = 1});
-
-  void complete() {
-    _got++;
-    if (_got == count) _complete();
-  }
-}
 
 final Key testPackageKey =
     Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');

@@ -24,11 +24,11 @@ import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart' show withCache;
 
+import '../shared/test_models.dart';
 import '../shared/utils.dart';
 
 import 'backend_test_utils.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 void testWithCache(String name, Function fn, {Timeout timeout}) =>
     scopedTest(name, () async {
@@ -1048,4 +1048,17 @@ void main() {
       });
     }, timeout: Timeout.factor(2));
   });
+}
+
+class TestDelayCompletion {
+  final int count;
+  final Function _complete = expectAsync0(() {});
+  int _got = 0;
+
+  TestDelayCompletion({this.count = 1});
+
+  void complete() {
+    _got++;
+    if (_got == count) _complete();
+  }
 }

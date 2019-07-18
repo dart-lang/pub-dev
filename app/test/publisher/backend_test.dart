@@ -9,7 +9,7 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/publisher/backend.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 
-import '../frontend/utils.dart';
+import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
