@@ -63,8 +63,6 @@ class FakePubServer {
 
             registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
 
-            registerBackend(Backend(db, tarballStorage));
-
             final apiHandler = backend.pubServer.requestHandler;
 
             final appHandler = createAppHandler(apiHandler);

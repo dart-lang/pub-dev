@@ -93,8 +93,6 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
 
   initSearchService();
 
-  initBackend();
-
   UploadSignerService uploadSigner;
   if (envConfig.hasCredentials) {
     final credentials = configuration.credentials;

@@ -56,6 +56,9 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
           null),
     );
 
+    // depends on previously registered services
+    registerBackend(Backend(dbService, tarballStorage));
+
     registerScopeExitCallback(accountBackend.close);
 
     return await fn();
