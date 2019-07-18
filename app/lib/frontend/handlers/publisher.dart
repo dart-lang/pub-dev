@@ -6,13 +6,14 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:client_data/publisher_api.dart';
-import 'package:api_generator/api_generator.dart';
+import 'package:api_builder/api_builder.dart';
 
 import '../../shared/handlers.dart';
 
 part 'publisher.g.dart';
 
 class PublisherApi {
+  // NOTE: This has a body and returns a JSON structure
   @EndPoint.put('/api/publisher/<publisherId>')
   Future<PublisherInfo> updatePublisher(
     shelf.Request request,
@@ -21,6 +22,17 @@ class PublisherApi {
   ) async {
     return null;
   }
+
+  // NOTE: This has no body and returns no JSON structure
+  @EndPoint.delete('/api/publisher/<publisherId>')
+  Future<shelf.Response> deletePublisher(
+    shelf.Request request,
+    String publisherId,
+  ) async {
+    return null;
+  }
+
+  // NOTE: The above variants can be combined as desired.
 
   Router get router => _$PublisherApiRouter(this);
 }

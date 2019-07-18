@@ -90,7 +90,7 @@ abstract class $utilities {
   }
 
   /// Utility method exported for use in generated code.
-  static shelf.Response encodeJson(Map<String, dynamic> payload) {
+  static shelf.Response jsonResponse(Map<String, dynamic> payload) {
     return shelf.Response(200, body: json.fuse(utf8).encode(payload), headers: {
       'content-type': 'application/json; charset="utf-8"',
       'x-content-type-options': 'nosniff',

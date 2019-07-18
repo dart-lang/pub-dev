@@ -17,7 +17,16 @@ Router _$PublisherApiRouter(PublisherApi service) {
           await $utilities.decodeJson<UpdatePublisherRequest>(request, (o) {
             return UpdatePublisherRequest.fromJson(o);
           }));
-      return $utilities.encodeJson(_$result.toJson());
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ResponseException catch (e) {
+      return e.asResponse();
+    }
+  });
+  router.add('DELETE', r'/api/publisher/<publisherId>',
+      (Request request, String publisherId) async {
+    try {
+      final _$result = await service.deletePublisher(request, publisherId);
+      return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
     }

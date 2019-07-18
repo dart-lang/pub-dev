@@ -22,10 +22,10 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.36.3"
-  api_generator:
+  api_builder:
     dependency: "direct main"
     description:
-      path: "../pkg/api_generator"
+      path: "../pkg/api_builder"
       relative: true
     source: path
     version: "0.0.0"
