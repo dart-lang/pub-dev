@@ -50,16 +50,11 @@ void testWithServices(String name, Future fn()) {
       registerBackend(
           Backend(db, TarballStorage(storage, tarballBucket, null)));
       registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
-      registerScoreCardBackend(ScoreCardBackend(db));
 
       await withPubServices(() async {
         await fork(() async {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
-          registerBackend(
-              Backend(db, TarballStorage(storage, tarballBucket, null)));
-          registerDartdocBackend(DartdocBackend(db, storage.bucket('dartdoc')));
-
           return await fn();
         });
       });
