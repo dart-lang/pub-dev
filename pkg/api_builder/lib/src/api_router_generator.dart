@@ -21,7 +21,7 @@ class ApiRouterGenerator extends EndPointGenerator {
           handlers: e.value,
         ));
     return code.Library((b) => b.body.addAll(methods))
-        .accept(code.DartEmitter(code.Allocator.simplePrefixing()))
+        .accept(code.DartEmitter(code.Allocator.simplePrefixing(), true))
         .toString();
   }
 }

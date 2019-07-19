@@ -4,9 +4,10 @@
 // ClientLibraryGenerator
 // **************************************************************************
 
-export 'package:api_builder/_client_utils.dart' show RequestException;
-import 'package:http/http.dart' as _i1;
 import 'package:api_builder/_client_utils.dart' as _i2;
+import 'package:http/http.dart' as _i1;
+
+export 'package:api_builder/_client_utils.dart' show RequestException;
 
 /// Client for invoking `PubApi` through the generated router.
 ///

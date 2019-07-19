@@ -37,7 +37,7 @@ class ClientLibraryGenerator extends EndPointGenerator {
               _buildClientClass(cls.key, cls.value),
           ]))
         .accept(
-          code.DartEmitter(code.Allocator.simplePrefixing()),
+          code.DartEmitter(code.Allocator.simplePrefixing(), true),
         )
         .toString();
   }
