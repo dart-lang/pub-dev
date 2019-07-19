@@ -61,6 +61,7 @@ shelf.Handler wrapHandler(
     handler = _sanitizeRequestWrapper(handler);
   }
   handler = _httpsWrapper(handler);
+  handler = _exceptionHandlerWrapper(logger, handler);
   handler = _logRequestWrapper(logger, handler);
   handler = _cspHeaderWrapper(handler);
   handler = _requestContextWrapper(handler);
@@ -86,7 +87,12 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
         (!activeConfiguration.blockRobots && isProductionHost);
     final uiCacheEnabled = isPrimaryHost && !hasExperimentalCookie;
 
+    final path = request.requestedUri.path;
+    final isApi = path.startsWith('/api/') && !path.endsWith('.tar.gz');
+    final emitsJsonResponse = isApi || path.endsWith('.json');
+
     registerRequestContext(RequestContext(
+      emitsJsonResponse: emitsJsonResponse,
       indentJson: indentJson,
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
@@ -125,15 +131,56 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     }
     try {
       return await handler(request);
-    } catch (error, st) {
-      logger.severe('Request handler failed', error, Trace.from(st));
-
-      final title = 'Pub is not feeling well';
-      Map<String, String> debugHeaders;
-      if (context.traceId != null) {
-        debugHeaders = {'package-site-request-id': context.traceId};
+    } finally {
+      if (shouldLog) {
+        logger.info('Request handler done.');
       }
-      final markdownText = '''# $title
+    }
+  };
+}
+
+shelf.Handler _exceptionHandlerWrapper(Logger logger, shelf.Handler handler) {
+  return (shelf.Request request) async {
+    if (requestContext.emitsJsonResponse) {
+      try {
+        return await handler(request);
+      } on UnauthorizedAccessException catch (_) {
+        return jsonResponse(
+          {
+            'message': 'Unauthorized access: try `pub logout` '
+                'to re-initialize your login session.',
+          },
+          status: 401,
+        );
+      } on NotFoundException catch (e) {
+        return jsonResponse(
+          {
+            'message': e.message ?? 'Not found.',
+          },
+          status: 404,
+        );
+      } catch (error, st) {
+        logger.severe('Request handler failed', error, Trace.from(st));
+        return jsonResponse(
+          {
+            'message': 'Unexpected error.',
+            'traceId': context?.traceId,
+          },
+          status: 500,
+        );
+      }
+    } else {
+      try {
+        return await handler(request);
+      } catch (error, st) {
+        logger.severe('Request handler failed', error, Trace.from(st));
+
+        final title = 'Pub is not feeling well';
+        Map<String, String> debugHeaders;
+        if (context?.traceId != null) {
+          debugHeaders = {'package-site-request-id': context.traceId};
+        }
+        final markdownText = '''# $title
 
 **Fatal package site error.**
 
@@ -142,17 +189,14 @@ $fileAnIssueContent
 Add these details to help us fix the issue:
 ````
 Requested URL: ${request.requestedUri}
-Request ID: ${context.traceId}
+Request ID: ${context?.traceId}
 ````
       ''';
 
-      final content = renderLayoutPage(
-          PageType.package, markdownToHtml(markdownText, null),
-          title: title);
-      return htmlResponse(content, status: 500, headers: debugHeaders);
-    } finally {
-      if (shouldLog) {
-        logger.info('Request handler done.');
+        final content = renderLayoutPage(
+            PageType.package, markdownToHtml(markdownText, null),
+            title: title);
+        return htmlResponse(content, status: 500, headers: debugHeaders);
       }
     }
   };
@@ -188,17 +232,7 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
 shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     await registerLoggedInUserIfPossible(request);
-    try {
-      return await handler(request);
-    } on UnauthorizedAccessException catch (_) {
-      return jsonResponse(
-        {
-          'message': 'Unauthorized access: try `pub logout` '
-              'to re-initialize your login session.',
-        },
-        status: 401,
-      );
-    }
+    return await handler(request);
   };
 }
 
