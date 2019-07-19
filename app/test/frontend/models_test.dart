@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 
-import 'utils.dart';
+import '../shared/test_models.dart';
 
 void main() {
   group('models', () {

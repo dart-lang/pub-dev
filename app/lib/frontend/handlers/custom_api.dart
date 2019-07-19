@@ -7,18 +7,17 @@ import 'dart:convert';
 
 import 'package:client_data/package_api.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/search_client.dart';
 import '../../shared/search_service.dart';
-import '../../shared/utils.dart';
 
 import '../backend.dart';
 import '../models.dart';
@@ -261,8 +260,8 @@ Future<shelf.Response> putPackageOptionsHandler(
     return jsonResponse({'success': true});
   } on UnauthorizedAccessException catch (_) {
     return jsonResponse({'error': 'Not Authorized.'}, status: 403);
-  } on ClientInputException catch (e) {
-    return jsonResponse({'error': e.message}, status: e.status);
+  } on NotFoundException catch (e) {
+    return jsonResponse({'error': e.message}, status: 404);
   } catch (e, st) {
     _logger.warning('Error processing flag update.', e, st);
     return jsonResponse({'error': 'Error while processing request.'},

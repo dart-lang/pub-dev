@@ -27,6 +27,7 @@ import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/email.dart';
+import '../shared/exceptions.dart';
 import '../shared/platform.dart' show KnownPlatforms;
 import '../shared/redis_cache.dart' show cache, CachePatterns;
 import '../shared/urls.dart' as urls;
@@ -284,8 +285,7 @@ class Backend {
       await db.withTransaction((tx) async {
         final p = (await tx.lookup<models.Package>([pkgKey])).single;
         if (p == null) {
-          throw ClientInputException('Package $package does not exists.',
-              status: 404);
+          throw NotFoundException('Package $package does not exists.');
         }
         latestVersion = p.latestVersion;
         if (!p.hasUploader(user.userId)) {

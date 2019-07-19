@@ -18,6 +18,7 @@ import '../frontend/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/email.dart' show EmailAddress;
+import '../shared/exceptions.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_service.dart';
@@ -43,13 +44,6 @@ void registerSnapshotStorage(SnapshotStorage storage) =>
 /// The active snapshot storage
 SnapshotStorage get snapshotStorage =>
     ss.lookup(#_snapshotStorage) as SnapshotStorage;
-
-/// Exception when a package or a version is missing, or has other flags that
-/// indicate it should be removed from the search index.
-class RemovedPackageException implements Exception {}
-
-/// Exception when a package does not have its analysis yet.
-class MissingAnalysisException implements Exception {}
 
 /// Datastore-related access methods for the search service
 class SearchBackend {

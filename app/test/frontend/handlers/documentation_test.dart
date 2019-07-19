@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers/documentation.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
+import '../../frontend/handlers/_utils.dart';
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_services.dart';
 
@@ -61,9 +59,6 @@ void main() {
   });
 
   group('dartdoc handlers', () {
-    Future<shelf.Response> issueGet(String uri) => documentationHandler(
-        shelf.Request('GET', Uri.parse('https://pub.dartlang.org$uri')));
-
     testWithServices('/documentation/flutter redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/flutter'),
@@ -81,7 +76,7 @@ void main() {
     testWithServices('/documentation/foor/bar redirect', () async {
       await expectRedirectResponse(
         await issueGet('/documentation/foor/bar'),
-        'https://pub.dartlang.org/documentation/foor/bar/',
+        'https://pub.dev/documentation/foor/bar/',
       );
     });
 

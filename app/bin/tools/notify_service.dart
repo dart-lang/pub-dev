@@ -25,8 +25,6 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
-    registerDartdocClient(DartdocClient());
-    registerSearchClient(SearchClient());
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
       await analyzerClient.triggerAnalysis(args[1], args[2], Set<String>());

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
+import '../shared/exceptions.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 

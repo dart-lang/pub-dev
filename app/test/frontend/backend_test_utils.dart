@@ -20,7 +20,7 @@ import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 
-import 'utils.dart';
+import '../shared/test_models.dart';
 
 class DatastoreDBMock<T extends gdb.Model> extends gdb.DatastoreDB {
   final Function commitFun;

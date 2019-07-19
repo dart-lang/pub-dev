@@ -13,14 +13,13 @@ import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../../shared/handlers_test_utils.dart';
+import '../../shared/test_models.dart';
 import '../../shared/utils.dart';
 import '../backend_test_utils.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 import '_utils.dart';
 
@@ -132,7 +131,6 @@ void main() {
     });
 
     tScopedTest('/packages?q=foo without working search', () async {
-      registerSearchClient(null);
       registerSearchService(SearchService());
       registerNameTracker(NameTracker(null));
       nameTracker.add('foobar_pkg');

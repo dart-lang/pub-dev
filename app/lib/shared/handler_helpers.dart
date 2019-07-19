@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
@@ -18,6 +17,7 @@ import '../frontend/service_utils.dart';
 import '../frontend/templates/layout.dart';
 
 import 'configuration.dart';
+import 'exceptions.dart';
 import 'handlers.dart';
 import 'markdown.dart';
 import 'urls.dart' as urls;

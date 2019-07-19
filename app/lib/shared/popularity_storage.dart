@@ -25,7 +25,6 @@ PopularityStorage get popularityStorage =>
     ss.lookup(#_popularityStorage) as PopularityStorage;
 
 class PopularityStorage {
-  final Storage storage;
   final Bucket bucket;
   final _values = <String, double>{};
   DateTime _lastFetched;
@@ -34,7 +33,7 @@ class PopularityStorage {
 
   String get _latestPath => PackagePopularity.popularityFileName;
 
-  PopularityStorage(this.storage, this.bucket);
+  PopularityStorage(this.bucket);
 
   DateTime get lastFetched => _lastFetched;
   String get dateRange => _dateRange;

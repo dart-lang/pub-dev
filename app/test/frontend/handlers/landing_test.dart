@@ -9,11 +9,11 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 
+import '../../shared/handlers_test_utils.dart';
+import '../../shared/test_models.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 import '_utils.dart';
 
@@ -47,7 +47,6 @@ void main() {
     });
 
     tScopedTest('/ without a working search service', () async {
-      registerSearchClient(null);
       registerSearchService(SearchService());
       final rs = await issueGet('/');
       final content = await expectHtmlResponse(rs);
@@ -79,6 +78,23 @@ void main() {
       registerAnalyzerClient(AnalyzerClientMock());
 
       await expectHtmlResponse(await issueGet('/flutter'));
+    });
+
+    tScopedTest('/xxx - not found page', () async {
+      registerSearchService(SearchServiceMock((SearchQuery query) {
+        expect(query.order, isNull);
+        expect(query.offset, 0);
+        expect(query.limit, topQueryLimit);
+        expect(query.platform, isNull);
+        expect(query.query, isNull);
+        expect(query.isAd, isTrue);
+        return SearchResultPage(
+          query,
+          1,
+          [PackageView.fromModel(version: testPackageVersion)],
+        );
+      }));
+      await expectNotFoundResponse(await issueGet('/xxx'));
     });
   });
 }

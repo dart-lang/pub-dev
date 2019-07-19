@@ -23,14 +23,11 @@ void tScopedTest(String name, Future func()) {
   });
 }
 
-Future<shelf.Response> issueGet(String path, {String host}) {
+Future<shelf.Response> issueGet(String path, {String host}) async {
   final uri = host == null ? '$siteRoot$path' : 'https://$host$path';
-  return issueGetUri(Uri.parse(uri));
-}
-
-Future<shelf.Response> issueGetUri(Uri uri) async {
-  final request = shelf.Request('GET', uri);
-  return createAppHandler(null)(request);
+  final request = shelf.Request('GET', Uri.parse(uri));
+  final handler = createAppHandler(null);
+  return await handler(request);
 }
 
 Future<String> expectHtmlResponse(

@@ -9,7 +9,7 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/publisher/backend.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 
-import '../frontend/utils.dart';
+import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -31,8 +31,8 @@ void main() {
         await expectLater(
           publisherBackend.updatePublisherData(
               'example.com', 'new description'),
-          throwsA(isException.having(
-              (e) => '$e', 'text', 'Exception: Publisher does not exists.')),
+          throwsA(isException.having((e) => '$e', 'text',
+              'NotFoundException: Publisher example.com does not exists.')),
         );
         final p = await publisherBackend.getPublisher('example.com');
         expect(p, isNull);
@@ -54,7 +54,7 @@ void main() {
       testWithServices('Not an admin yet', () async {
         await dbService.commit(inserts: [
           testPublisher,
-          testMember(testUserHans.userId, PublisherMemberRole.pending),
+          testPublisherMember(testUserHans.userId, PublisherMemberRole.pending),
         ]);
         registerAuthenticatedUser(testAuthenticatedUserHans);
         await expectLater(
@@ -70,7 +70,7 @@ void main() {
       testWithServices('OK', () async {
         await dbService.commit(inserts: [
           testPublisher,
-          testMember(testUserHans.userId, PublisherMemberRole.admin),
+          testPublisherMember(testUserHans.userId, PublisherMemberRole.admin),
         ]);
         registerAuthenticatedUser(testAuthenticatedUserHans);
         await publisherBackend.updatePublisherData(
@@ -81,14 +81,3 @@ void main() {
     });
   });
 }
-
-final testPublisher = Publisher()
-  ..id = 'example.com'
-  ..description = 'This is us!'
-  ..created = DateTime(2019, 07, 15)
-  ..updated = DateTime(2019, 07, 16);
-
-PublisherMember testMember(String userId, String role) => PublisherMember()
-  ..parentKey = testPublisher.key
-  ..id = userId
-  ..role = role;

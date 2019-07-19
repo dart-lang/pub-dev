@@ -6,8 +6,6 @@ library pub_dartlang_org.server_common;
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
-import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -15,18 +13,7 @@ import '../account/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/services.dart';
 
-import 'backend.dart';
-import 'search_service.dart';
 import 'upload_signer_service.dart';
-
-void initSearchService() {
-  registerSearchService(SearchService());
-  registerScopeExitCallback(searchService.close);
-}
-
-void initBackend() {
-  registerBackend(Backend(dbService, tarballStorage));
-}
 
 /// Looks at [request] and if the 'Authorization' header was set tries to get
 /// the user email address and registers it.
@@ -67,7 +54,6 @@ Future withProdServices(Future fn()) {
     }
     registerUploadSigner(
         ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
-    initBackend();
     return fn();
   });
 }

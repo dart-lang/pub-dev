@@ -12,15 +12,12 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/deps_graph.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -28,7 +25,6 @@ import 'package:pub_dartlang_org/shared/services.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/cronjobs.dart' show CronJobs;
 import 'package:pub_dartlang_org/frontend/handlers.dart';
-import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
@@ -70,40 +66,8 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  registerEmailSender(
-      EmailSender(db.dbService, activeConfiguration.blockEmails));
-
-  registerScopeExitCallback(accountBackend.close);
-
-  final popularityBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.popularityDumpBucketName);
-  registerPopularityStorage(
-      PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
-  final Bucket dartdocBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.dartdocStorageBucketName);
-  registerDartdocBackend(DartdocBackend(db.dbService, dartdocBucket));
-
-  final dartdocClient = DartdocClient();
-  registerDartdocClient(dartdocClient);
-  registerScopeExitCallback(dartdocClient.close);
-
-  final SearchClient searchClient = SearchClient();
-  registerSearchClient(searchClient);
-  registerScopeExitCallback(searchClient.close);
-
-  registerNameTracker(NameTracker(db.dbService));
   nameTracker.startTracking();
-
-  final pkgBucket =
-      await getOrCreateBucket(storageService, configuration.packageBucketName);
-  final tarballStorage = TarballStorage(storageService, pkgBucket, null);
-  registerTarballStorage(tarballStorage);
-
-  initSearchService();
-
-  initBackend();
 
   UploadSignerService uploadSigner;
   if (envConfig.hasCredentials) {
@@ -126,8 +90,6 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
-    registerDartdocClient(DartdocClient());
-
     // Updates job entries for analyzer and dartdoc.
     Future triggerDependentAnalysis(
         String package, String version, Set<String> affected) async {
