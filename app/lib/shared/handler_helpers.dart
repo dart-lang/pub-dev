@@ -130,7 +130,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
 
       final title = 'Pub is not feeling well';
       Map<String, String> debugHeaders;
-      if (context?.traceId != null) {
+      if (context.traceId != null) {
         debugHeaders = {'package-site-request-id': context.traceId};
       }
       final markdownText = '''# $title
@@ -142,7 +142,7 @@ $fileAnIssueContent
 Add these details to help us fix the issue:
 ````
 Requested URL: ${request.requestedUri}
-Request ID: ${context?.traceId}
+Request ID: ${context.traceId}
 ````
       ''';
 
