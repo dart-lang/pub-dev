@@ -25,6 +25,7 @@ import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart' show withCache;
 
 import '../shared/test_models.dart';
+import '../shared/test_services.dart';
 import '../shared/utils.dart';
 
 import 'backend_test_utils.dart';
@@ -41,34 +42,42 @@ void testWithCache(String name, Function fn, {Timeout timeout}) =>
 void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
-      (<String, List<Package>>{
-        'one package': [testPackage],
-        'empty': [],
-      })
-          .forEach((String testName, List<Package> expectedPackages) {
-        test(testName, () async {
-          final completion = TestDelayCompletion();
-          Stream<Package> queryRunFun(
-              {partition,
-              ancestorKey,
-              filters,
-              filterComparisonObjects,
-              offset,
-              limit,
-              orders}) {
-            completion.complete();
-            expect(offset, 4);
-            expect(limit, 9);
-            expect(orders, ['-updated']);
-            return Stream.fromIterable(expectedPackages);
-          }
+      testWithServices('empty', () async {
+        await dbService.commit(deletes: [testPackage.key]);
+        expect(await backend.latestPackages(), []);
+      });
 
-          final db = DatastoreDBMock(queryMock: QueryMock(queryRunFun));
-          final backend = Backend(db, null);
+      testWithServices('one package', () async {
+        final list = await backend.latestPackages();
+        expect(list.map((p) => p.name), ['foobar_pkg']);
+      });
 
-          final packages = await backend.latestPackages(offset: 4, limit: 9);
-          expect(packages, equals(expectedPackages));
-        });
+      testWithServices('two packages, other earlier', () async {
+        final p = createTestPackage(name: 'other')..updated = DateTime(2010);
+        await dbService.commit(inserts: [p]);
+        final list = await backend.latestPackages();
+        expect(list.map((p) => p.name), ['foobar_pkg', 'other']);
+      });
+
+      testWithServices('two packages, other later', () async {
+        final p = createTestPackage(name: 'other')..updated = DateTime(2018);
+        await dbService.commit(inserts: [p]);
+        final list = await backend.latestPackages();
+        expect(list.map((p) => p.name), ['other', 'foobar_pkg']);
+      });
+
+      testWithServices('two packages, offset: 1', () async {
+        final p = createTestPackage(name: 'other')..updated = DateTime(2018);
+        await dbService.commit(inserts: [p]);
+        final list = await backend.latestPackages(offset: 1);
+        expect(list.map((p) => p.name), ['foobar_pkg']);
+      });
+
+      testWithServices('two packages, limit: 1', () async {
+        final p = createTestPackage(name: 'other')..updated = DateTime(2018);
+        await dbService.commit(inserts: [p]);
+        final list = await backend.latestPackages(limit: 1);
+        expect(list.map((p) => p.name), ['other']);
       });
     });
 

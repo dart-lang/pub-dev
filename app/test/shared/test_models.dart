@@ -32,12 +32,13 @@ final testUserA = User()
 final testAuthenticatedUserHans =
     AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
 
-Package createTestPackage({List<AuthenticatedUser> uploaders}) {
+Package createTestPackage({String name, List<AuthenticatedUser> uploaders}) {
+  name ??= testPackageKey.id as String;
   uploaders ??= [testAuthenticatedUserHans];
   return Package()
     ..parentKey = testPackageKey.parent
-    ..id = testPackageKey.id
-    ..name = testPackageKey.id as String
+    ..id = name
+    ..name = name
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
     ..uploaders = uploaders.map((user) => user.userId).toList()
