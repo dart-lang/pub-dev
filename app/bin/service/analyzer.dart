@@ -7,18 +7,15 @@ import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:gcloud/db.dart' as db;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/job/backend.dart';
 import 'package:pub_dartlang_org/job/job.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
 
 import 'package:pub_dartlang_org/analyzer/handlers.dart';
@@ -50,7 +47,6 @@ Future _frontendMain(FrontendEntryMessage message) async {
   ));
 
   await withServices(() async {
-    await _registerServices();
     await runHandler(logger, analyzerServiceHandler);
   });
 }
@@ -61,7 +57,7 @@ Future _workerMain(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
-    await _registerServices();
+    await popularityStorage.init();
     final jobProcessor = AnalyzerJobProcessor();
     final jobMaintenance = JobMaintenance(db.dbService, jobProcessor);
 
@@ -77,12 +73,4 @@ Future _workerMain(WorkerEntryMessage message) async {
     jobBackend.scheduleOldDataGC();
     await jobMaintenance.run();
   });
-}
-
-Future _registerServices() async {
-  final popularityBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.popularityDumpBucketName);
-  registerPopularityStorage(
-      PopularityStorage(storageService, popularityBucket));
-  await popularityStorage.init();
 }

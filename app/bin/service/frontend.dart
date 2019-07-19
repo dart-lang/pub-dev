@@ -66,12 +66,7 @@ Future _main(FrontendEntryMessage message) async {
 }
 
 Future<shelf.Handler> setupServices(Configuration configuration) async {
-  final popularityBucket = await getOrCreateBucket(
-      storageService, activeConfiguration.popularityDumpBucketName);
-  registerPopularityStorage(
-      PopularityStorage(storageService, popularityBucket));
   await popularityStorage.init();
-
   nameTracker.startTracking();
 
   UploadSignerService uploadSigner;

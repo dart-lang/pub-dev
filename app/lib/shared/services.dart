@@ -18,6 +18,7 @@ import '../search/backend.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
+import '../shared/popularity_storage.dart';
 import '../shared/search_client.dart';
 import '../shared/storage.dart';
 
@@ -56,6 +57,10 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerHistoryBackend(HistoryBackend(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
+    registerPopularityStorage(
+      PopularityStorage(await getOrCreateBucket(
+          storageService, activeConfiguration.popularityDumpBucketName)),
+    );
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));
