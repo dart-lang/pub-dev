@@ -10,14 +10,13 @@ import '../../shared/handlers.dart';
 import 'account.dart';
 import 'admin.dart';
 import 'atom_feed.dart';
-import 'custom_api.dart';
 import 'documentation.dart';
 import 'landing.dart';
 import 'listing.dart';
 import 'misc.dart';
 import 'package.dart';
-import 'publisher.dart';
 import 'pubapi.dart' show PubApi;
+import 'publisher.dart';
 
 part 'routes.g.dart';
 

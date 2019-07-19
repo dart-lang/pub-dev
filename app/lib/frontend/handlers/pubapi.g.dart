@@ -11,7 +11,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/<package>',
       (Request request, String package) async {
     try {
-      final _$result = await service.listVersions(request, package);
+      final _$result = await service.listPackageVersions(request, package);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -20,7 +20,8 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/<package>/versions/<version>',
       (Request request, String package, String version) async {
     try {
-      final _$result = await service.versionInfo(request, package, version);
+      final _$result =
+          await service.packageVersionInfo(request, package, version);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -29,7 +30,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/<package>/versions/<version>.tar.gz',
       (Request request, String package, String version) async {
     try {
-      final _$result = await service.versionArchive(request, package, version);
+      final _$result = await service.fetchPackage(request, package, version);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -38,7 +39,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/packages/<package>/versions/<version>.tar.gz',
       (Request request, String package, String version) async {
     try {
-      final _$result = await service.versionArchive(request, package, version);
+      final _$result = await service.fetchPackage(request, package, version);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -46,7 +47,7 @@ Router _$PubApiRouter(PubApi service) {
   });
   router.add('GET', r'/api/packages/versions/new', (Request request) async {
     try {
-      final _$result = await service.startUpload(request);
+      final _$result = await service.getPackageUploadUrl(request);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -55,7 +56,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/versions/newUploadFinish',
       (Request request) async {
     try {
-      final _$result = await service.finishUpload(request);
+      final _$result = await service.packageUploadCallback(request);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -82,7 +83,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('POST', r'/api/publisher/<publisherId>',
       (Request request, String publisherId) async {
     try {
-      final _$result = await service.createPublisherApi(request, publisherId);
+      final _$result = await service.createPublisher(request, publisherId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -91,7 +92,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/publisher/<publisherId>',
       (Request request, String publisherId) async {
     try {
-      final _$result = await service.getPublisherApi(request, publisherId);
+      final _$result = await service.publisherInfo(request, publisherId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -100,7 +101,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('PUT', r'/api/publisher/<publisherId>',
       (Request request, String publisherId) async {
     try {
-      final _$result = await service.updatePublisherApi(request, publisherId);
+      final _$result = await service.updatePublisher(request, publisherId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -119,8 +120,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/publisher/<publisherId>/members',
       (Request request, String publisherId) async {
     try {
-      final _$result =
-          await service.getPublisherMembersApi(request, publisherId);
+      final _$result = await service.listPublisherMembers(request, publisherId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -130,7 +130,7 @@ Router _$PubApiRouter(PubApi service) {
       (Request request, String publisherId, String userId) async {
     try {
       final _$result =
-          await service.getPublisherMemberDataApi(request, publisherId, userId);
+          await service.publisherMemberInfo(request, publisherId, userId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -140,7 +140,7 @@ Router _$PubApiRouter(PubApi service) {
       (Request request, String publisherId, String userId) async {
     try {
       final _$result =
-          await service.putPublisherMemberDataApi(request, publisherId, userId);
+          await service.updatePublisherMember(request, publisherId, userId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -149,8 +149,8 @@ Router _$PubApiRouter(PubApi service) {
   router.add('DELETE', r'/api/publisher/<publisherId>/members/<userId>',
       (Request request, String publisherId, String userId) async {
     try {
-      final _$result = await service.deletePublisherMemberDataApi(
-          request, publisherId, userId);
+      final _$result =
+          await service.removePublisherMember(request, publisherId, userId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -159,7 +159,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/account/consent/<consentId>',
       (Request request, String consentId) async {
     try {
-      final _$result = await service.getAccountConsent(request, consentId);
+      final _$result = await service.consentInfo(request, consentId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -168,7 +168,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('PUT', r'/api/account/consent/<consentId>',
       (Request request, String consentId) async {
     try {
-      final _$result = await service.putAccountConsent(request, consentId);
+      final _$result = await service.resolveConsent(request, consentId);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -177,7 +177,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/account/options/packages/<package>',
       (Request request, String package) async {
     try {
-      final _$result = await service.accountPkgOptions(request, package);
+      final _$result = await service.accountPackageOptions(request, package);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -186,7 +186,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/documentation/<package>',
       (Request request, String package) async {
     try {
-      final _$result = await service.apiDocumentation(request, package);
+      final _$result = await service.documentation(request, package);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -194,7 +194,7 @@ Router _$PubApiRouter(PubApi service) {
   });
   router.add('GET', r'/api/history', (Request request) async {
     try {
-      final _$result = await service.apiHistory(request);
+      final _$result = await service.history(request);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -202,7 +202,7 @@ Router _$PubApiRouter(PubApi service) {
   });
   router.add('GET', r'/api/packages', (Request request) async {
     try {
-      final _$result = await service.apiPackages(request);
+      final _$result = await service.listPackages(request);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -211,7 +211,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/<package>/metrics',
       (Request request, String package) async {
     try {
-      final _$result = await service.apiPackageMetrics(request, package);
+      final _$result = await service.packageMetrics(request, package);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -220,7 +220,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('GET', r'/api/packages/<package>/options',
       (Request request, String package) async {
     try {
-      final _$result = await service.getPackageOptions(request, package);
+      final _$result = await service.packageOptions(request, package);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -229,7 +229,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('PUT', r'/api/packages/<package>/options',
       (Request request, String package) async {
     try {
-      final _$result = await service.putPackageOptions(request, package);
+      final _$result = await service.setPackageOptions(request, package);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -237,7 +237,7 @@ Router _$PubApiRouter(PubApi service) {
   });
   router.add('GET', r'/api/search', (Request request) async {
     try {
-      final _$result = await service.apiSearch(request);
+      final _$result = await service.search(request);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();
@@ -253,7 +253,7 @@ Router _$PubApiRouter(PubApi service) {
   });
   router.add('GET', r'/packages.json', (Request request) async {
     try {
-      final _$result = await service.packagesJson(request);
+      final _$result = await service.packages(request);
       return _$result;
     } on ResponseException catch (e) {
       return e.asResponse();

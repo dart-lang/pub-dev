@@ -22,35 +22,35 @@ class PubApiClient {
 
   final _i2.Client _client;
 
-  Future<List<int>> listVersions(String package) async {
+  Future<List<int>> listPackageVersions(String package) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package',
     );
   }
 
-  Future<List<int>> versionInfo(String package, String version) async {
+  Future<List<int>> packageVersionInfo(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/versions/$version',
     );
   }
 
-  Future<List<int>> versionArchive(String package, String version) async {
+  Future<List<int>> fetchPackage(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/versions/$version.tar.gz',
     );
   }
 
-  Future<List<int>> startUpload() async {
+  Future<List<int>> getPackageUploadUrl() async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/versions/new',
     );
   }
 
-  Future<List<int>> finishUpload() async {
+  Future<List<int>> packageUploadCallback() async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/versions/newUploadFinish',
@@ -71,21 +71,21 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> createPublisherApi(String publisherId) async {
+  Future<List<int>> createPublisher(String publisherId) async {
     return await _client.requestBytes(
       verb: 'post',
       path: '/api/publisher/$publisherId',
     );
   }
 
-  Future<List<int>> getPublisherApi(String publisherId) async {
+  Future<List<int>> publisherInfo(String publisherId) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/publisher/$publisherId',
     );
   }
 
-  Future<List<int>> updatePublisherApi(String publisherId) async {
+  Future<List<int>> updatePublisher(String publisherId) async {
     return await _client.requestBytes(
       verb: 'put',
       path: '/api/publisher/$publisherId',
@@ -99,14 +99,14 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> getPublisherMembersApi(String publisherId) async {
+  Future<List<int>> listPublisherMembers(String publisherId) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/publisher/$publisherId/members',
     );
   }
 
-  Future<List<int>> getPublisherMemberDataApi(
+  Future<List<int>> publisherMemberInfo(
       String publisherId, String userId) async {
     return await _client.requestBytes(
       verb: 'get',
@@ -114,7 +114,7 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> putPublisherMemberDataApi(
+  Future<List<int>> updatePublisherMember(
       String publisherId, String userId) async {
     return await _client.requestBytes(
       verb: 'put',
@@ -122,7 +122,7 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> deletePublisherMemberDataApi(
+  Future<List<int>> removePublisherMember(
       String publisherId, String userId) async {
     return await _client.requestBytes(
       verb: 'delete',
@@ -130,70 +130,70 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> getAccountConsent(String consentId) async {
+  Future<List<int>> consentInfo(String consentId) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/account/consent/$consentId',
     );
   }
 
-  Future<List<int>> putAccountConsent(String consentId) async {
+  Future<List<int>> resolveConsent(String consentId) async {
     return await _client.requestBytes(
       verb: 'put',
       path: '/api/account/consent/$consentId',
     );
   }
 
-  Future<List<int>> accountPkgOptions(String package) async {
+  Future<List<int>> accountPackageOptions(String package) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/account/options/packages/$package',
     );
   }
 
-  Future<List<int>> apiDocumentation(String package) async {
+  Future<List<int>> documentation(String package) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/documentation/$package',
     );
   }
 
-  Future<List<int>> apiHistory() async {
+  Future<List<int>> history() async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/history',
     );
   }
 
-  Future<List<int>> apiPackages() async {
+  Future<List<int>> listPackages() async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages',
     );
   }
 
-  Future<List<int>> apiPackageMetrics(String package) async {
+  Future<List<int>> packageMetrics(String package) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/metrics',
     );
   }
 
-  Future<List<int>> getPackageOptions(String package) async {
+  Future<List<int>> packageOptions(String package) async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/packages/$package/options',
     );
   }
 
-  Future<List<int>> putPackageOptions(String package) async {
+  Future<List<int>> setPackageOptions(String package) async {
     return await _client.requestBytes(
       verb: 'put',
       path: '/api/packages/$package/options',
     );
   }
 
-  Future<List<int>> apiSearch() async {
+  Future<List<int>> search() async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/api/search',
@@ -207,7 +207,7 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> packagesJson() async {
+  Future<List<int>> packages() async {
     return await _client.requestBytes(
       verb: 'get',
       path: '/packages.json',
