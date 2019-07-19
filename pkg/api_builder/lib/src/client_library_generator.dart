@@ -97,6 +97,9 @@ code.Class _buildClientClass(
         ),
     );
 
+/// Route pattern parser
+///
+/// This will match `'user/<userId|.*>'` as `['user/', 'userId', '.*']`.
 final _parser = RegExp(r'([^<]*)(?:<([^>|]+)(?:\|([^>]*))?>)?');
 
 code.Method _buildClientMethod(
