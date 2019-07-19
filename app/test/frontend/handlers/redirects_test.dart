@@ -21,8 +21,7 @@ void main() {
     test('pub.dartlang.org', () async {
       Future testRedirect(String path) async {
         expectRedirectResponse(
-            await issueGetUri(Uri.parse('https://pub.dartlang.org$path')),
-            '$siteRoot$path');
+            await issueGet(path, host: 'pub.dartlang.org'), '$siteRoot$path');
       }
 
       testRedirect('/');
@@ -34,16 +33,14 @@ void main() {
 
     test('dartdocs.org redirect', () async {
       expectRedirectResponse(
-        await issueGetUri(
-            Uri.parse('https://dartdocs.org/documentation/pkg/latest/')),
+        await issueGet('/documentation/pkg/latest/', host: 'dartdocs.org'),
         '$siteRoot/documentation/pkg/latest/',
       );
     });
 
     test('www.dartdocs.org redirect', () async {
       expectRedirectResponse(
-        await issueGetUri(
-            Uri.parse('https://www.dartdocs.org/documentation/pkg/latest/')),
+        await issueGet('/documentation/pkg/latest/', host: 'www.dartdocs.org'),
         '$siteRoot/documentation/pkg/latest/',
       );
     });
