@@ -1,6 +1,7 @@
 import 'package:code_builder/code_builder.dart' as code;
 import 'package:code_builder/code_builder.dart' show Code;
-import 'package:analyzer/dart/element/element.dart' show ClassElement;
+import 'package:analyzer/dart/element/element.dart'
+    show ClassElement, ExecutableElement;
 import 'package:analyzer/dart/element/type.dart'
     show DartType, ParameterizedType;
 import 'package:shelf/shelf.dart' as shelf;
@@ -13,15 +14,23 @@ code.Reference _referToType(DartType type) =>
 
 final _responseType = g.TypeChecker.fromRuntime(shelf.Response);
 
+/// Use the first Handler when a method has multiple EndPoint annotations.
+Iterable<Handler> _removeDuplicateHandlers(Iterable<Handler> handlers) {
+  final seen = Set<ExecutableElement>();
+  return handlers.where((h) {
+    return seen.add(h.element);
+  });
+}
+
 class ClientLibraryGenerator extends EndPointGenerator {
   @override
   Future<String> generateForClasses(
     Map<ClassElement, List<Handler>> classes,
   ) async {
     return code.Library((b) => b
-          ..directives.add(code.Directive.import(
+          ..directives.add(code.Directive.export(
             'package:api_builder/_client_utils.dart',
-            show: ['ResponseException'],
+            show: ['RequestException'],
           ))
           ..body.addAll([
             for (final cls in classes.entries)
@@ -44,7 +53,7 @@ code.Class _buildClientClass(
           '/// Client for invoking `${cls.name}` through the generated router.',
           '///',
           '/// Reponses other than 2xx causes the methods to throw',
-          '/// `ResponseException`. JSON encoding/decoding errors are not',
+          '/// `RequestException`. JSON encoding/decoding errors are not',
           '/// handled gracefully. End-points that does not return a JSON',
           '/// structure result in a method that returns the response body',
           '/// as bytes',
@@ -83,7 +92,9 @@ code.Class _buildClientClass(
                 )
                 .code,
           )))
-        ..methods.addAll(handlers.map(_buildClientMethod)),
+        ..methods.addAll(
+          _removeDuplicateHandlers(handlers).map(_buildClientMethod),
+        ),
     );
 
 final _parser = RegExp(r'([^<]*)(?:<([^>|]+)(?:\|([^>]*))?>)?');
@@ -102,10 +113,6 @@ code.Method _buildClientMethod(
     _parser,
     (m) => m[2] != null ? '${m[1]}\$${m[2]}' : m[1],
   );
-
-  // Find if we have payload, and what type
-  final hasPayload = !h.element.parameters.last.type.isDartCoreString;
-  final payloadType = h.element.parameters.last.type;
 
   // Check the return value of the method.
   var retType = h.element.returnType;
@@ -134,11 +141,11 @@ code.Method _buildClientMethod(
               ..name = param
               ..type = code.refer('String'),
           ),
-        if (hasPayload)
+        if (h.hasPayload)
           code.Parameter(
             (b) => b
               ..name = 'payload'
-              ..type = _referToType(payloadType),
+              ..type = _referToType(h.payloadType),
           )
       ])
       ..modifier = code.MethodModifier.async
@@ -146,13 +153,13 @@ code.Method _buildClientMethod(
         return await _client.requestBytes(
           verb: '${h.verb.toLowerCase()}',
           path: '$urlPattern',
-          ${hasPayload ? 'body: payload.toJson(),' : ''}
+          ${h.hasPayload ? 'body: payload.toJson(),' : ''}
         );
       ''') : Code.scope((r) => '''
         return ${r(returnTypeRef)}.fromJson(await _client.requestJson(
           verb: '${h.verb.toLowerCase()}',
           path: '$urlPattern',
-          ${hasPayload ? 'body: payload.toJson(),' : ''}
+          ${h.hasPayload ? 'body: payload.toJson(),' : ''}
         ));
       '''),
   );

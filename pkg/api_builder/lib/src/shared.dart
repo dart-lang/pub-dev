@@ -3,6 +3,9 @@ import 'package:http_methods/http_methods.dart' show isHttpMethod;
 import 'package:source_gen/source_gen.dart' as g;
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, ExecutableElement;
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:analyzer/dart/element/type.dart' show DartType;
+
 import '../api_builder.dart' show EndPoint;
 
 // Type checkers that we need later
@@ -14,6 +17,13 @@ class Handler {
   final ExecutableElement element;
 
   Handler(this.verb, this.route, this.element);
+
+  /// If this handler has a payload
+  bool get hasPayload =>
+      element.parameters.length > 1 &&
+      !element.parameters.last.type.isDartCoreString;
+
+  DartType get payloadType => element.parameters.last.type;
 }
 
 /// Find members of a class annotated with [EndPoint].

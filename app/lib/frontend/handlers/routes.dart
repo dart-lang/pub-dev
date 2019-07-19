@@ -17,6 +17,7 @@ import 'listing.dart';
 import 'misc.dart';
 import 'package.dart';
 import 'publisher.dart';
+import 'pubapi.dart' show PubApi;
 
 part 'routes.g.dart';
 
@@ -26,6 +27,9 @@ class PubSiteService {
   PubSiteService(this._pubServerHandler);
 
   Router get router => _$PubSiteServiceRouter(this);
+
+  @Route.mount('/')
+  Router get _api => PubApi(_pubServerHandler).router;
 
   // ****
   // **** AppEngine health checks
@@ -37,71 +41,6 @@ class PubSiteService {
   @Route.get('/readiness_check')
   Future<Response> readinessCheck(Request request) async =>
       readinessCheckHandler(request);
-
-  // ****
-  // **** pub client APIs
-  // ****
-
-  /// Getting information about all versions of a package.
-  ///
-  /// GET /api/packages/<package-name>
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L28-L49
-  @Route.get('/api/packages/<package>')
-  Future<Response> listVersions(Request request, String package) async =>
-      _pubServerHandler(request);
-
-  /// Getting information about a specific (package, version) pair.
-  ///
-  /// GET /api/packages/<package-name>/versions/<version-name>
-  ///
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L51-L65
-  @Route.get('/api/packages/<package>/versions/<version>')
-  Future<Response> versionInfo(
-          Request request, String package, String version) async =>
-      _pubServerHandler(request);
-
-  /// Downloading package.
-  ///
-  /// GET /api/packages/<package-name>/versions/<version-name>.tar.gz
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L67-L75
-  @Route.get('/api/packages/<package>/versions/<version>.tar.gz')
-  @Route.get('/packages/<package>/versions/<version>.tar.gz')
-  Future<Response> versionArchive(
-          Request request, String package, String version) async =>
-      _pubServerHandler(request);
-
-  /// Start async upload.
-  ///
-  /// GET /api/packages/versions/new
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
-  @Route.get('/api/packages/versions/new')
-  Future<Response> startUpload(Request request) async =>
-      _pubServerHandler(request);
-
-  /// Finish async upload.
-  ///
-  /// GET /api/packages/versions/newUploadFinish
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
-  @Route.get('/api/packages/versions/newUploadFinish')
-  Future<Response> finishUpload(Request request) async =>
-      _pubServerHandler(request);
-
-  /// Adding a new uploader
-  ///
-  /// POST /api/packages/<package-name>/uploaders
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L109-L116
-  @Route.post('/api/packages/<package>/uploaders')
-  Future<Response> addUploader(Request request, String package) async =>
-      _pubServerHandler(request);
-
-  /// Removing an existing uploader.
-  ///
-  /// DELETE /api/packages/<package-name>/uploaders/<uploader-email>
-  /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L118-L123
-  @Route.delete('/api/packages/<package>/uploaders/<email>')
-  Future<Response> removeUploader(
-          Request request, String package, String email) async =>
-      _pubServerHandler(request);
 
   // ****
   // **** Landing pages
@@ -198,50 +137,6 @@ class PubSiteService {
   Future<Response> createPublisherPage(Request request) =>
       createPublisherPageHandler(request);
 
-  /// Starts publisher creation flow.
-  @Route.post('/api/publisher/<publisherId>')
-  Future<Response> createPublisherApi(Request request, String publisherId) =>
-      createPublisherApiHandler(request, publisherId);
-
-  /// Returns publisher data in a JSON form.
-  @Route.get('/api/publisher/<publisherId>')
-  Future<Response> getPublisherApi(Request request, String publisherId) =>
-      getPublisherApiHandler(request, publisherId);
-
-  /// Updates publisher data.
-  @Route.put('/api/publisher/<publisherId>')
-  Future<Response> updatePublisherApi(Request request, String publisherId) =>
-      updatePublisherApiHandler(request, publisherId);
-
-  /// Returns a publisher's member data and role in a JSON form.
-  @Route.post('/api/publisher/<publisherId>/invite-member')
-  Future<Response> invitePublisherMember(Request request, String publisherId) =>
-      invitePublisherMemberHandler(request, publisherId);
-
-  /// Returns publisher members data in a JSON form.
-  @Route.get('/api/publisher/<publisherId>/members')
-  Future<Response> getPublisherMembersApi(
-          Request request, String publisherId) =>
-      getPublisherMembersApiHandler(request, publisherId);
-
-  /// Returns a publisher's member data and role in a JSON form.
-  @Route.get('/api/publisher/<publisherId>/members/<userId>')
-  Future<Response> getPublisherMemberDataApi(
-          Request request, String publisherId, String userId) =>
-      getPublisherMemberDataApiHandler(request, publisherId, userId);
-
-  /// Updates a publisher's member data and role.
-  @Route.put('/api/publisher/<publisherId>/members/<userId>')
-  Future<Response> putPublisherMemberDataApi(
-          Request request, String publisherId, String userId) =>
-      putPublisherMemberDataApiHandler(request, publisherId, userId);
-
-  /// Deletes a publisher's member.
-  @Route.delete('/api/publisher/<publisherId>/members/<userId>')
-  Future<Response> deletePublisherMemberDataApi(
-          Request request, String publisherId, String userId) =>
-      deletePublisherMemberDataApiHandler(request, publisherId, userId);
-
   // ****
   // **** Site content and metadata
   // ****
@@ -295,66 +190,4 @@ class PubSiteService {
   /// Renders the page where an user can accept their invites/consents.
   @Route.get('/consent')
   Future<Response> consentPage(Request request) => consentPageHandler(request);
-
-  /// Returns the consent request details.
-  @Route.get('/api/account/consent/<consentId>')
-  Future<Response> getAccountConsent(Request request, String consentId) =>
-      getAccountConsentHandler(request, consentId);
-
-  /// Accepts or declines the consent.
-  @Route.put('/api/account/consent/<consentId>')
-  Future<Response> putAccountConsent(Request request, String consentId) =>
-      putAccountConsentHandler(request, consentId);
-
-  // ****
-  // **** Custom API
-  // ****
-
-  @Route.get('/api/account/options/packages/<package>')
-  Future<Response> accountPkgOptions(Request request, String package) =>
-      accountPkgOptionsHandler(request, package);
-
-  @Route.get('/api/documentation/<package>')
-  Future<Response> apiDocumentation(Request request, String package) =>
-      apiDocumentationHandler(request, package);
-
-  /// Exposes History entities.
-  ///
-  /// NOTE: experimental, do not rely on it
-  @Route.get('/api/history')
-  Future<Response> apiHistory(Request request) => apiHistoryHandler(request);
-
-  @Route.get('/api/packages')
-  Future<Response> apiPackages(Request request) async {
-    if (request.requestedUri.queryParameters['compact'] == '1') {
-      return apiPackagesCompactListHandler(request);
-    } else {
-      // /api/packages?page=<num>
-      return apiPackagesHandler(request);
-    }
-  }
-
-  @Route.get('/api/packages/<package>/metrics')
-  Future<Response> apiPackageMetrics(Request request, String package) =>
-      apiPackageMetricsHandler(request, package);
-
-  @Route.get('/api/packages/<package>/options')
-  Future<Response> getPackageOptions(Request request, String package) =>
-      getPackageOptionsHandler(request, package);
-
-  @Route.put('/api/packages/<package>/options')
-  Future<Response> putPackageOptions(Request request, String package) =>
-      putPackageOptionsHandler(request, package);
-
-  @Route.get('/api/search')
-  Future<Response> apiSearch(Request request) => apiSearchHandler(request);
-
-  @Route.get('/debug')
-  Future<Response> debug(Request request) async => debugResponse({
-        'package': packageDebugStats(),
-        'search': searchDebugStats(),
-      });
-
-  @Route.get('/packages.json')
-  Future<Response> packagesJson(Request request) => packagesHandler(request);
 }

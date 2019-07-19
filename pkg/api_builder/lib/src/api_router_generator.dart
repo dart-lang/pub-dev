@@ -64,8 +64,6 @@ code.Code _buildAddHandlerCode({
       .skip(1)
       .takeWhile((p) => p.type.isDartCoreString)
       .map((p) => p.displayName);
-  final hasBody = !handler.element.parameters.last.type.isDartCoreString;
-  final bodyType = handler.element.parameters.last.type.displayName;
 
   // Check the return value of the method.
   var returnType = handler.element.returnType;
@@ -104,7 +102,7 @@ code.Code _buildAddHandlerCode({
               .call([
                 code.refer('request'),
                 for (final param in routeParams) code.refer(param),
-                if (hasBody)
+                if (handler.hasPayload)
                   code.refer('\$utilities').property('decodeJson').call([
                     code.refer('request'),
                     code.Method(
@@ -112,14 +110,14 @@ code.Code _buildAddHandlerCode({
                         ..requiredParameters
                             .add(code.Parameter((b) => b.name = 'o'))
                         ..body = code
-                            .refer(bodyType)
+                            .refer(handler.payloadType.displayName)
                             .property('fromJson')
                             .call([code.refer('o')])
                             .returned
                             .statement,
                     ).closure,
                   ], {}, [
-                    code.refer(bodyType),
+                    code.refer(handler.payloadType.displayName),
                   ]).awaited,
               ])
               .awaited
