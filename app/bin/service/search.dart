@@ -47,10 +47,6 @@ Future _main(FrontendEntryMessage message) async {
   ));
 
   await withServices(() async {
-    final popularityBucket = await getOrCreateBucket(
-        storageService, activeConfiguration.popularityDumpBucketName);
-    registerPopularityStorage(
-        PopularityStorage(storageService, popularityBucket));
     await popularityStorage.init();
 
     final Bucket snapshotBucket = await getOrCreateBucket(
