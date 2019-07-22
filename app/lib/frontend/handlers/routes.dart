@@ -90,10 +90,6 @@ class PubSiteService {
   Future<Response> packageVersionsJson(Request request, String package) =>
       packageVersionsListHandler(request, package);
 
-  @Route.get('/packages/<package>.json')
-  Future<Response> packageJson(Request request, String package) =>
-      packageShowHandlerJson(request, package);
-
   @Route.get('/packages/<package>')
   Future<Response> package(Request request, String package) =>
       packageVersionHandlerHtml(request, package);

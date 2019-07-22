@@ -211,4 +211,8 @@ class PubApi {
 
   @EndPoint.get('/packages.json')
   Future<Response> packages(Request request) => packagesHandler(request);
+
+  @EndPoint.get('/packages/<package>.json')
+  Future<Response> packageJson(Request request, String package) =>
+      packageShowHandlerJson(request, package);
 }

@@ -213,4 +213,11 @@ class PubApiClient {
       path: '/packages.json',
     );
   }
+
+  Future<List<int>> packageJson(String package) async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/packages/$package.json',
+    );
+  }
 }

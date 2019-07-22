@@ -259,5 +259,14 @@ Router _$PubApiRouter(PubApi service) {
       return e.asResponse();
     }
   });
+  router.add('GET', r'/packages/<package>.json',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.packageJson(request, package);
+      return _$result;
+    } on ResponseException catch (e) {
+      return e.asResponse();
+    }
+  });
   return router;
 }
