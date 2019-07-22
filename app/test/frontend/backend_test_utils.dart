@@ -380,9 +380,9 @@ Future withTestPackage(Future func(List<int> tarball),
     final changelog = File('$tmp/CHANGELOG.md');
     final pubspec = File('$tmp/pubspec.yaml');
 
-    await readme.writeAsString(testPackageReadme);
-    await changelog.writeAsString(testPackageChangelog);
-    await pubspec.writeAsString(pubspecContent ?? testPackagePubspec);
+    await readme.writeAsString(foobarReadmeContent);
+    await changelog.writeAsString(foobarChangelogContent);
+    await pubspec.writeAsString(pubspecContent ?? foobarStablePubspec);
 
     await Directory('$tmp/lib').create();
     File('$tmp/lib/test_library.dart')

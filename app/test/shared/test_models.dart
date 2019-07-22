@@ -10,17 +10,14 @@ import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 
-final Key testPackageKey =
+final Key foobarPkgKey =
     Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');
 
-final Key testPackageVersionKey =
-    testPackageKey.append(PackageVersion, id: '0.1.1+5');
-final Key devPackageVersionKey =
-    testPackageKey.append(PackageVersion, id: '0.2.0-dev');
+final Key foobarStablePVKey =
+    foobarPkgKey.append(PackageVersion, id: '0.1.1+5');
+final Key foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
 
-final Pubspec testPubspec = Pubspec.fromYaml(testPackagePubspec);
-
-final testUserHans = User()
+final hansUser = User()
   ..id = 'hans-at-juergen-dot-com'
   ..email = 'hans@juergen.com'
   ..created = DateTime.utc(2014);
@@ -29,61 +26,60 @@ final testUserA = User()
   ..email = 'a@example.com'
   ..created = DateTime(2019, 01, 01);
 
-final testAuthenticatedUserHans =
+final hansAuthenticated =
     AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
 
-Package createTestPackage({String name, List<AuthenticatedUser> uploaders}) {
-  name ??= testPackageKey.id as String;
-  uploaders ??= [testAuthenticatedUserHans];
+Package createFoobarPackage({String name, List<AuthenticatedUser> uploaders}) {
+  name ??= foobarPkgKey.id as String;
+  uploaders ??= [hansAuthenticated];
   return Package()
-    ..parentKey = testPackageKey.parent
+    ..parentKey = foobarPkgKey.parent
     ..id = name
     ..name = name
     ..created = DateTime.utc(2014)
     ..updated = DateTime.utc(2015)
     ..uploaders = uploaders.map((user) => user.userId).toList()
-    ..latestVersionKey = testPackageVersionKey
-    ..latestDevVersionKey = testPackageVersionKey
+    ..latestVersionKey = foobarStablePVKey
+    ..latestDevVersionKey = foobarStablePVKey
     ..downloads = 0;
 }
 
-final Package testPackage = createTestPackage()
-  ..latestDevVersionKey = devPackageVersionKey;
-final testPackageUploaderEmails = [testAuthenticatedUserHans.email];
+final Package foobarPackage = createFoobarPackage()
+  ..latestDevVersionKey = foobarDevPVKey;
+final foobarUploaderEmails = [hansAuthenticated.email];
 
-final Package discontinuedPackage = createTestPackage()..isDiscontinued = true;
-final discontinuedPackageUploaderEmails = [testAuthenticatedUserHans.email];
+final Package discontinuedPackage = createFoobarPackage()
+  ..isDiscontinued = true;
 
-final PackageVersion testPackageVersion = PackageVersion()
-  ..parentKey = testPackageVersionKey.parent
-  ..id = testPackageVersionKey.id
-  ..version = testPackageVersionKey.id as String
-  ..packageKey = testPackageKey
+final PackageVersion foobarStablePV = PackageVersion()
+  ..parentKey = foobarStablePVKey.parent
+  ..id = foobarStablePVKey.id
+  ..version = foobarStablePVKey.id as String
+  ..packageKey = foobarPkgKey
   ..created = DateTime.utc(2014)
   ..libraries = ['foolib.dart']
-  ..pubspec = testPubspec
+  ..pubspec = Pubspec.fromYaml(foobarStablePubspec)
   ..readmeFilename = 'README.md'
-  ..readmeContent = testPackageReadme
+  ..readmeContent = foobarReadmeContent
   ..changelogFilename = 'CHANGELOG.md'
-  ..changelogContent = testPackageChangelog
+  ..changelogContent = foobarChangelogContent
   ..exampleFilename = 'example/lib/main.dart'
-  ..exampleContent = testPackageExample
+  ..exampleContent = foobarExampleContent
   ..sortOrder = -1
   ..downloads = 0;
 
-final PackageVersion flutterPackageVersion =
-    clonePackageVersion(testPackageVersion)
-      ..created = DateTime.utc(2015)
-      ..pubspec = Pubspec.fromYaml(testPackagePubspec +
-          '''
+final PackageVersion flutterPackageVersion = clonePackageVersion(foobarStablePV)
+  ..created = DateTime.utc(2015)
+  ..pubspec = Pubspec.fromYaml(foobarStablePubspec +
+      '''
 flutter:
   plugin:
     class: SomeClass
   ''');
 
-final PackageVersion devPackageVersion = clonePackageVersion(testPackageVersion)
-  ..id = devPackageVersionKey.id
-  ..version = devPackageVersionKey.id as String;
+final PackageVersion foobarDevPV = clonePackageVersion(foobarStablePV)
+  ..id = foobarDevPVKey.id
+  ..version = foobarDevPVKey.id as String;
 
 PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
   ..packageKey = original.parentKey
@@ -100,7 +96,7 @@ PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
   ..sortOrder = original.sortOrder
   ..downloads = original.downloads;
 
-final String testPackageReadme = '''
+final String foobarReadmeContent = '''
 Test Package
 ============
 
@@ -112,7 +108,7 @@ void main() {
 ```
 ''';
 
-final String testPackageChangelog = '''
+final String foobarChangelogContent = '''
 Changelog
 ============
 
@@ -120,13 +116,13 @@ Changelog
 
 ''';
 
-final String testPackageExample = '''
+final String foobarExampleContent = '''
 main() {
   print('Hello world!');
 }
 ''';
 
-final String testPackagePubspec = '''
+final String foobarStablePubspec = '''
 name: foobar_pkg
 version: 0.1.1+5
 author: Hans Juergen <hans@juergen.com>
@@ -137,14 +133,14 @@ dependencies:
   gcloud: any
 ''';
 
-final testPublisher = Publisher()
+final exampleComPublisher = Publisher()
   ..id = 'example.com'
   ..description = 'This is us!'
   ..created = DateTime(2019, 07, 15)
   ..updated = DateTime(2019, 07, 16);
 
-PublisherMember testPublisherMember(String userId, String role) =>
+PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
     PublisherMember()
-      ..parentKey = testPublisher.key
+      ..parentKey = parentKey ?? exampleComPublisher.key
       ..id = userId
       ..role = role;

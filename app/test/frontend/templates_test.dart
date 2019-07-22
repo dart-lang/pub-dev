@@ -88,8 +88,8 @@ void main() {
     scopedTest('index page', () {
       final popularHtml = renderMiniList([
         PackageView.fromModel(
-          package: testPackage,
-          version: testPackageVersion,
+          package: foobarPackage,
+          version: foobarStablePV,
           scoreCard: ScoreCardData(
             platformTags: ['web'],
             reportTypes: ['pana'],
@@ -103,8 +103,8 @@ void main() {
     scopedTest('landing page flutter', () {
       final popularHtml = renderMiniList([
         PackageView.fromModel(
-          package: testPackage,
-          version: testPackageVersion,
+          package: foobarPackage,
+          version: foobarStablePV,
           scoreCard: ScoreCardData(
             platformTags: ['flutter'],
             reportTypes: ['pana'],
@@ -118,8 +118,8 @@ void main() {
     scopedTest('landing page web', () {
       final popularHtml = renderMiniList([
         PackageView.fromModel(
-          package: testPackage,
-          version: testPackageVersion,
+          package: foobarPackage,
+          version: foobarStablePV,
           scoreCard: ScoreCardData(
             platformTags: ['web'],
             reportTypes: ['pana'],
@@ -132,9 +132,9 @@ void main() {
 
     scopedTest('package show page', () {
       final String html = renderPkgShowPage(
-          testPackage,
-          testPackageUploaderEmails,
-          testPackageVersion,
+          foobarPackage,
+          foobarUploaderEmails,
+          foobarStablePV,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
@@ -178,9 +178,9 @@ void main() {
 
     scopedTest('package show page - with version', () {
       final String html = renderPkgShowPage(
-          testPackage,
-          testPackageUploaderEmails,
-          devPackageVersion,
+          foobarPackage,
+          foobarUploaderEmails,
+          foobarDevPV,
           AnalysisView(
             card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
             panaReport: PanaReport(
@@ -223,8 +223,8 @@ void main() {
 
     scopedTest('package show page with flutter_plugin', () {
       final String html = renderPkgShowPage(
-        testPackage,
-        testPackageUploaderEmails,
+        foobarPackage,
+        foobarUploaderEmails,
         flutterPackageVersion,
         AnalysisView(
           card: ScoreCardData(
@@ -256,9 +256,9 @@ void main() {
 
     scopedTest('package show page with outdated version', () {
       final String html = renderPkgShowPage(
-          testPackage,
-          testPackageUploaderEmails,
-          testPackageVersion,
+          foobarPackage,
+          foobarUploaderEmails,
+          foobarStablePV,
           AnalysisView(
             card: ScoreCardData(
               flags: [PackageFlags.isObsolete],
@@ -272,8 +272,8 @@ void main() {
     scopedTest('package show page with discontinued version', () {
       final String html = renderPkgShowPage(
           discontinuedPackage,
-          discontinuedPackageUploaderEmails,
-          testPackageVersion,
+          foobarUploaderEmails,
+          foobarStablePV,
           AnalysisView(
             card: ScoreCardData(
               flags: [PackageFlags.isDiscontinued],
@@ -286,11 +286,11 @@ void main() {
 
     scopedTest('package show page with legacy version', () {
       final summary = createPanaSummaryForLegacy(
-          testPackageVersion.package, testPackageVersion.version);
+          foobarStablePV.package, foobarStablePV.version);
       final String html = renderPkgShowPage(
-          testPackage,
-          testPackageUploaderEmails,
-          testPackageVersion,
+          foobarPackage,
+          foobarUploaderEmails,
+          foobarStablePV,
           AnalysisView(
             card: ScoreCardData(
               popularityScore: 0.5,
@@ -420,9 +420,9 @@ void main() {
 
     scopedTest('package admin page with outdated version', () {
       final String html = renderPkgAdminPage(
-          testPackage,
-          testPackageUploaderEmails,
-          testPackageVersion,
+          foobarPackage,
+          foobarUploaderEmails,
+          foobarStablePV,
           AnalysisView(
             card: ScoreCardData(
               flags: [PackageFlags.isObsolete],
@@ -436,12 +436,12 @@ void main() {
     scopedTest('package index page', () {
       final String html = renderPkgIndexPage([
         PackageView.fromModel(
-          package: testPackage,
-          version: testPackageVersion,
+          package: foobarPackage,
+          version: foobarStablePV,
           scoreCard: ScoreCardData(),
         ),
         PackageView.fromModel(
-          package: testPackage,
+          package: foobarPackage,
           version: flutterPackageVersion,
           scoreCard: ScoreCardData(
             platformTags: ['flutter'],
@@ -458,8 +458,8 @@ void main() {
       final String html = renderPkgIndexPage(
         [
           PackageView.fromModel(
-            package: testPackage,
-            version: testPackageVersion,
+            package: foobarPackage,
+            version: foobarStablePV,
             scoreCard: ScoreCardData(),
             apiPages: [
               ApiPageRef(path: 'some/some-library.html'),
@@ -467,7 +467,7 @@ void main() {
             ],
           ),
           PackageView.fromModel(
-            package: testPackage,
+            package: foobarPackage,
             version: flutterPackageVersion,
             scoreCard: ScoreCardData(
               platformTags: ['flutter'],
@@ -509,12 +509,12 @@ void main() {
 
     scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
-        testPackage,
-        testPackageUploaderEmails,
-        testPackageVersion,
+        foobarPackage,
+        foobarUploaderEmails,
+        foobarStablePV,
         [
-          testPackageVersion,
-          devPackageVersion,
+          foobarStablePV,
+          foobarDevPV,
         ],
         [
           Uri.parse('https://pub.dartlang.org/mock-download-uri.tar.gz'),

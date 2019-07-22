@@ -32,11 +32,11 @@ void main() {
           BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
         expect(offset, 0);
         expect(limit, greaterThan(pageSize));
-        return [testPackage];
+        return [foobarPackage];
       }, lookupLatestVersionsFun: (List<Package> packages) {
         expect(packages.length, 1);
-        expect(packages.first, testPackage);
-        return [testPackageVersion];
+        expect(packages.first, foobarPackage);
+        return [foobarStablePV];
       });
       registerBackend(backend);
       await expectJsonResponse(await issueGet('/packages.json'), body: {
@@ -48,10 +48,10 @@ void main() {
     tScopedTest('/packages/foobar_pkg.json', () async {
       final backend = BackendMock(lookupPackageFun: (String package) {
         expect(package, 'foobar_pkg');
-        return testPackage;
+        return foobarPackage;
       }, versionsOfPackageFun: (String package) {
         expect(package, 'foobar_pkg');
-        return [testPackageVersion];
+        return [foobarStablePV];
       });
       registerAccountBackend(AccountBackendMock(users: [
         User()
@@ -78,20 +78,20 @@ void main() {
           expect(query.isAd, isFalse);
           return SearchResultPage(query, 1, [
             PackageView.fromModel(
-                package: testPackage,
-                version: testPackageVersion,
+                package: foobarPackage,
+                version: foobarStablePV,
                 scoreCard: null)
           ]);
         },
       ));
       final backend = BackendMock(
         lookupPackageFun: (packageName) {
-          return packageName == testPackage.name ? testPackage : null;
+          return packageName == foobarPackage.name ? foobarPackage : null;
         },
         lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
+          expect(packages.first, foobarPackage);
+          return [foobarStablePV];
         },
       );
       registerBackend(backend);
@@ -109,20 +109,20 @@ void main() {
           expect(query.isAd, isFalse);
           return SearchResultPage(query, 1, [
             PackageView.fromModel(
-                package: testPackage,
-                version: testPackageVersion,
+                package: foobarPackage,
+                version: foobarStablePV,
                 scoreCard: null)
           ]);
         },
       ));
       final backend = BackendMock(
         lookupPackageFun: (packageName) {
-          return packageName == testPackage.name ? testPackage : null;
+          return packageName == foobarPackage.name ? foobarPackage : null;
         },
         lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
+          expect(packages.first, foobarPackage);
+          return [foobarStablePV];
         },
       );
       registerBackend(backend);
@@ -137,12 +137,12 @@ void main() {
       nameTracker.markReady();
       final backend = BackendMock(
         lookupPackageFun: (packageName) {
-          return packageName == testPackage.name ? testPackage : null;
+          return packageName == foobarPackage.name ? foobarPackage : null;
         },
         lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
+          expect(packages.first, foobarPackage);
+          return [foobarStablePV];
         },
       );
       registerBackend(backend);
@@ -162,20 +162,20 @@ void main() {
           expect(query.isAd, isFalse);
           return SearchResultPage(query, 1, [
             PackageView.fromModel(
-                package: testPackage,
-                version: testPackageVersion,
+                package: foobarPackage,
+                version: foobarStablePV,
                 scoreCard: null)
           ]);
         },
       ));
       final backend = BackendMock(
         lookupPackageFun: (packageName) {
-          return packageName == testPackage.name ? testPackage : null;
+          return packageName == foobarPackage.name ? foobarPackage : null;
         },
         lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
+          expect(packages.first, foobarPackage);
+          return [foobarStablePV];
         },
       );
       registerBackend(backend);
@@ -192,20 +192,20 @@ void main() {
           expect(query.isAd, isFalse);
           return SearchResultPage(query, 1, [
             PackageView.fromModel(
-                package: testPackage,
-                version: testPackageVersion,
+                package: foobarPackage,
+                version: foobarStablePV,
                 scoreCard: null)
           ]);
         },
       ));
       final backend = BackendMock(
         lookupPackageFun: (packageName) {
-          return packageName == testPackage.name ? testPackage : null;
+          return packageName == foobarPackage.name ? foobarPackage : null;
         },
         lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
+          expect(packages.first, foobarPackage);
+          return [foobarStablePV];
         },
       );
       registerBackend(backend);
@@ -222,20 +222,20 @@ void main() {
           expect(query.isAd, isFalse);
           return SearchResultPage(query, 1, [
             PackageView.fromModel(
-                package: testPackage,
-                version: testPackageVersion,
+                package: foobarPackage,
+                version: foobarStablePV,
                 scoreCard: null)
           ]);
         },
       ));
       final backend = BackendMock(
         lookupPackageFun: (packageName) {
-          return packageName == testPackage.name ? testPackage : null;
+          return packageName == foobarPackage.name ? foobarPackage : null;
         },
         lookupLatestVersionsFun: (List<Package> packages) {
           expect(packages.length, 1);
-          expect(packages.first, testPackage);
-          return [testPackageVersion];
+          expect(packages.first, foobarPackage);
+          return [foobarStablePV];
         },
       );
       registerBackend(backend);
