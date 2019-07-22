@@ -1,0 +1,16 @@
+builders:
+  api_router:
+    import: "package:api_builder/builder.dart"
+    builder_factories: ["apiRouterPartBuilder"]
+    build_extensions: {".dart": [".api_router.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
+  client_library:
+    import: "package:api_builder/builder.dart"
+    builder_factories: ["clientLibraryBuilder"]
+    build_extensions: {".dart": [".client.dart"]}
+    auto_apply: dependents
+    # Client libraries are built as an entirely separate file.
+    build_to: source
+

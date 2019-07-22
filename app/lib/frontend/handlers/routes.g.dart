@@ -8,21 +8,9 @@ part of 'routes.dart';
 
 Router _$PubSiteServiceRouter(PubSiteService service) {
   final router = Router();
+  router.mount('/', service._api);
   router.add('GET', '/liveness_check', service.livenessCheck);
   router.add('GET', '/readiness_check', service.readinessCheck);
-  router.add('GET', '/api/packages/<package>', service.listVersions);
-  router.add(
-      'GET', '/api/packages/<package>/versions/<version>', service.versionInfo);
-  router.add('GET', '/api/packages/<package>/versions/<version>.tar.gz',
-      service.versionArchive);
-  router.add('GET', '/packages/<package>/versions/<version>.tar.gz',
-      service.versionArchive);
-  router.add('GET', '/api/packages/versions/new', service.startUpload);
-  router.add(
-      'GET', '/api/packages/versions/newUploadFinish', service.finishUpload);
-  router.add('POST', '/api/packages/<package>/uploaders', service.addUploader);
-  router.add('DELETE', '/api/packages/<package>/uploaders/<email>',
-      service.removeUploader);
   router.add('GET', '/', service.index);
   router.add('GET', '/flutter', service.flutter);
   router.add('GET', '/web', service.web);
@@ -45,20 +33,6 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/documentation/<package>', service.documentationLatest);
   router.add('GET', '/documentation/<package>/', service.documentationLatest);
   router.add('GET', '/create-publisher', service.createPublisherPage);
-  router.add(
-      'POST', '/api/publisher/<publisherId>', service.createPublisherApi);
-  router.add('GET', '/api/publisher/<publisherId>', service.getPublisherApi);
-  router.add('PUT', '/api/publisher/<publisherId>', service.updatePublisherApi);
-  router.add('POST', '/api/publisher/<publisherId>/invite-member',
-      service.invitePublisherMember);
-  router.add('GET', '/api/publisher/<publisherId>/members',
-      service.getPublisherMembersApi);
-  router.add('GET', '/api/publisher/<publisherId>/members/<userId>',
-      service.getPublisherMemberDataApi);
-  router.add('PUT', '/api/publisher/<publisherId>/members/<userId>',
-      service.putPublisherMemberDataApi);
-  router.add('DELETE', '/api/publisher/<publisherId>/members/<userId>',
-      service.deletePublisherMemberDataApi);
   router.add('GET', '/feed.atom', service.atomFeed);
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);
@@ -71,23 +45,5 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/admin/confirm/new-uploader/<package>/<email>/<nonce>',
       service.confirmUploader);
   router.add('GET', '/consent', service.consentPage);
-  router.add(
-      'GET', '/api/account/consent/<consentId>', service.getAccountConsent);
-  router.add(
-      'PUT', '/api/account/consent/<consentId>', service.putAccountConsent);
-  router.add('GET', '/api/account/options/packages/<package>',
-      service.accountPkgOptions);
-  router.add('GET', '/api/documentation/<package>', service.apiDocumentation);
-  router.add('GET', '/api/history', service.apiHistory);
-  router.add('GET', '/api/packages', service.apiPackages);
-  router.add(
-      'GET', '/api/packages/<package>/metrics', service.apiPackageMetrics);
-  router.add(
-      'GET', '/api/packages/<package>/options', service.getPackageOptions);
-  router.add(
-      'PUT', '/api/packages/<package>/options', service.putPackageOptions);
-  router.add('GET', '/api/search', service.apiSearch);
-  router.add('GET', '/debug', service.debug);
-  router.add('GET', '/packages.json', service.packagesJson);
   return router;
 }
