@@ -22,7 +22,6 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/packages/<package>/admin', service.packageAdmin);
   router.add(
       'GET', '/packages/<package>/versions', service.packageVersionsJson);
-  router.add('GET', '/packages/<package>.json', service.packageJson);
   router.add('GET', '/packages/<package>', service.package);
   router.add('GET', '/documentation/<package>/<version>/<path|[^]*>',
       service.documentation);
