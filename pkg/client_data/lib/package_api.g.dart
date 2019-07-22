@@ -7,8 +7,12 @@ part of 'package_api.dart';
 // **************************************************************************
 
 PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) {
-  return PkgOptions(isDiscontinued: json['isDiscontinued'] as bool);
+  return PkgOptions(
+    isDiscontinued: json['isDiscontinued'] as bool,
+  );
 }
 
 Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
-    <String, dynamic>{'isDiscontinued': instance.isDiscontinued};
+    <String, dynamic>{
+      'isDiscontinued': instance.isDiscontinued,
+    };
