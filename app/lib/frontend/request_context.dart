@@ -14,9 +14,6 @@ RequestContext get requestContext =>
 
 /// Holds flags for request context.
 class RequestContext {
-  /// Whether the handler is expected to emit a JSON response.
-  final bool emitsJsonResponse;
-
   /// Whether the JSON responses should be indented.
   final bool indentJson;
 
@@ -31,7 +28,6 @@ class RequestContext {
   final bool uiCacheEnabled;
 
   const RequestContext({
-    this.emitsJsonResponse = false,
     this.indentJson = false,
     this.isExperimental = false,
     this.blockRobots = true,

@@ -87,12 +87,7 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
         (!activeConfiguration.blockRobots && isProductionHost);
     final uiCacheEnabled = isPrimaryHost && !hasExperimentalCookie;
 
-    final path = request.requestedUri.path;
-    final isApi = path.startsWith('/api/') && !path.endsWith('.tar.gz');
-    final emitsJsonResponse = isApi || path.endsWith('.json');
-
     registerRequestContext(RequestContext(
-      emitsJsonResponse: emitsJsonResponse,
       indentJson: indentJson,
       isExperimental: isExperimental,
       blockRobots: !enableRobots,
@@ -141,7 +136,9 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
 
 shelf.Handler _exceptionHandlerWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
-    if (requestContext.emitsJsonResponse) {
+    final acceptHeader = request.headers['accept'];
+    final isJson = acceptHeader != null && acceptHeader.contains('application/json');
+    if (isJson) {
       try {
         return await handler(request);
       } on UnauthorizedAccessException catch (_) {
