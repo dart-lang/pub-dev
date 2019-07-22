@@ -11,7 +11,6 @@ import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_server/shelf_pubserver.dart' show ShelfPubServer;
 
@@ -267,25 +266,6 @@ class DartdocClientMock implements DartdocClient {
       {Duration timeout}) async {
     return null;
   }
-}
-
-class SearchClientMock implements SearchClient {
-  final Function searchFun;
-  SearchClientMock({this.searchFun});
-
-  @override
-  Future<PackageSearchResult> search(SearchQuery query) async {
-    if (searchFun == null) {
-      throw Exception('no searchFun');
-    }
-    return (await searchFun(query)) as PackageSearchResult;
-  }
-
-  @override
-  Future triggerReindex(String package, String version) async {}
-
-  @override
-  Future close() async {}
 }
 
 class SearchServiceMock implements SearchService {
