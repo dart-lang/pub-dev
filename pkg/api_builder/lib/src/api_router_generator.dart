@@ -126,8 +126,10 @@ code.Code _buildAddHandlerCode({
           (returnsResponse
               ? Code('return _\$result;')
               : Code('return \$utilities.jsonResponse(_\$result.toJson());')),
-          Code('} on ResponseException catch (e) {'),
-          Code('  return e.asResponse();'),
+          Code('} on ApiResponseException catch (e) {'),
+          Code('  return e.asApiResponse();'),
+          Code('} catch (e, st) {'),
+          Code('  return \$utilities.unhandledError(e, st);'),
           Code('}'),
         ]),
     ).closure,

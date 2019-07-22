@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:meta/meta.dart';
+import 'package:logging/logging.dart' show Logger;
+import 'package:uuid/uuid.dart' show Uuid;
 
 export 'package:shelf_router/shelf_router.dart' show Router;
 export 'package:shelf/shelf.dart' show Request, Response;
+
+final _log = Logger('api_builder');
 
 /// Annotation for an API end-point.
 class EndPoint {
@@ -43,15 +48,26 @@ class EndPoint {
 
 /// Thrown to cause a different response than what the end-point would normally
 /// return.
-class ResponseException implements Exception {
+class ApiResponseException implements Exception {
   final int status;
-  final List<int> body;
-  final Map<String, String> headers;
+  final String code;
+  final String message;
 
-  ResponseException(this.status, this.body, this.headers);
+  ApiResponseException({
+    @required this.status,
+    @required this.code,
+    @required this.message,
+  });
 
-  shelf.Response asResponse() =>
-      shelf.Response(status, body: body, headers: headers);
+  shelf.Response asApiResponse() => shelf.Response(status,
+          body: json.fuse(utf8).encode({
+            'code': code,
+            'message': message,
+          }),
+          headers: {
+            'content-type': 'application/json; charset="utf-8"',
+            'x-content-type-options': 'nosniff',
+          });
 }
 
 /// Utility methods exported for use in generated code.
@@ -76,15 +92,10 @@ abstract class $utilities {
       }
       throw FormatException('payload must always be a JSON object');
     } on FormatException {
-      throw ResponseException(
-        400,
-        json.fuse(utf8).encode({
-          'message': 'malformed JSON payload',
-        }),
-        {
-          'content-type': 'application/json; charset="utf-8"',
-          'x-content-type-options': 'nosniff',
-        },
+      throw ApiResponseException(
+        status: 400,
+        code: 'InvalidInput',
+        message: 'Malformed JSON payload',
       );
     }
   }
@@ -95,5 +106,18 @@ abstract class $utilities {
       'content-type': 'application/json; charset="utf-8"',
       'x-content-type-options': 'nosniff',
     });
+  }
+
+  /// Utility method exported for use in generated code.
+  static shelf.Response unhandledError(Object e, StackTrace st) {
+    final incidentId = Uuid().v4();
+    _log.severe(
+        'Unhandled error in API handler (incidentId: $incidentId)', e, st);
+    return ApiResponseException(
+      status: 500,
+      code: 'InternalError',
+      message:
+          'internal server error, ask operator to lookup incidentId: $incidentId',
+    ).asApiResponse();
   }
 }
