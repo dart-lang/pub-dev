@@ -27,7 +27,7 @@ void main() {
       });
 
       testWithServices('No publisher with given id', () async {
-        registerAuthenticatedUser(testAuthenticatedUserHans);
+        registerAuthenticatedUser(hansAuthenticated);
         await expectLater(
           publisherBackend.updatePublisherData(
               'example.com', 'new description'),
@@ -39,8 +39,8 @@ void main() {
       });
 
       testWithServices('Not a member', () async {
-        await dbService.commit(inserts: [testPublisher]);
-        registerAuthenticatedUser(testAuthenticatedUserHans);
+        await dbService.commit(inserts: [exampleComPublisher]);
+        registerAuthenticatedUser(hansAuthenticated);
         await expectLater(
           publisherBackend.updatePublisherData(
               'example.com', 'new description'),
@@ -48,15 +48,15 @@ void main() {
               'UnauthorizedAccess: User is not an admin.')),
         );
         final p = await publisherBackend.getPublisher('example.com');
-        expect(p.description, testPublisher.description);
+        expect(p.description, exampleComPublisher.description);
       });
 
       testWithServices('Not an admin yet', () async {
         await dbService.commit(inserts: [
-          testPublisher,
-          testPublisherMember(testUserHans.userId, PublisherMemberRole.pending),
+          exampleComPublisher,
+          publisherMember(hansUser.userId, PublisherMemberRole.pending),
         ]);
-        registerAuthenticatedUser(testAuthenticatedUserHans);
+        registerAuthenticatedUser(hansAuthenticated);
         await expectLater(
           publisherBackend.updatePublisherData(
               'example.com', 'new description'),
@@ -64,15 +64,15 @@ void main() {
               'UnauthorizedAccess: User is not an admin.')),
         );
         final p = await publisherBackend.getPublisher('example.com');
-        expect(p.description, testPublisher.description);
+        expect(p.description, exampleComPublisher.description);
       });
 
       testWithServices('OK', () async {
         await dbService.commit(inserts: [
-          testPublisher,
-          testPublisherMember(testUserHans.userId, PublisherMemberRole.admin),
+          exampleComPublisher,
+          publisherMember(hansUser.userId, PublisherMemberRole.admin),
         ]);
-        registerAuthenticatedUser(testAuthenticatedUserHans);
+        registerAuthenticatedUser(hansAuthenticated);
         await publisherBackend.updatePublisherData(
             'example.com', 'new description');
         final p = await publisherBackend.getPublisher('example.com');

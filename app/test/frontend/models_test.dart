@@ -13,13 +13,12 @@ void main() {
   group('models', () {
     group('Package', () {
       test('only dev version', () {
-        final devVersion =
-            testPackageKey.append(PackageVersion, id: '0.0.1-dev');
+        final devVersion = foobarPkgKey.append(PackageVersion, id: '0.0.1-dev');
         final Package p = Package()
           ..latestVersionKey = devVersion
           ..latestDevVersionKey = devVersion;
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '0.2.0-dev'
           ..version = '0.2.0-dev');
         expect(p.latestVersion, '0.2.0-dev');
@@ -27,13 +26,12 @@ void main() {
       });
 
       test('update old with only dev version', () {
-        final devVersion =
-            testPackageKey.append(PackageVersion, id: '1.0.0-dev');
+        final devVersion = foobarPkgKey.append(PackageVersion, id: '1.0.0-dev');
         final Package p = Package()
           ..latestVersionKey = devVersion
           ..latestDevVersionKey = devVersion;
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '0.2.1-dev'
           ..version = '0.2.1-dev');
         expect(p.latestVersion, '1.0.0-dev');
@@ -41,13 +39,12 @@ void main() {
       });
 
       test('stable after dev', () {
-        final devVersion =
-            testPackageKey.append(PackageVersion, id: '1.0.0-dev');
+        final devVersion = foobarPkgKey.append(PackageVersion, id: '1.0.0-dev');
         final Package p = Package()
           ..latestVersionKey = devVersion
           ..latestDevVersionKey = devVersion;
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '0.2.0'
           ..version = '0.2.0');
         expect(p.latestVersion, '0.2.0');
@@ -56,11 +53,11 @@ void main() {
 
       test('new stable version', () {
         final Package p = Package()
-          ..latestVersionKey = testPackageVersionKey
-          ..latestDevVersionKey = testPackageVersionKey;
+          ..latestVersionKey = foobarStablePVKey
+          ..latestDevVersionKey = foobarStablePVKey;
         expect(p.latestVersion, '0.1.1+5');
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '0.2.0'
           ..version = '0.2.0');
         expect(p.latestVersion, '0.2.0');
@@ -69,11 +66,11 @@ void main() {
 
       test('update old stable version', () {
         final Package p = Package()
-          ..latestVersionKey = testPackageVersionKey
-          ..latestDevVersionKey = testPackageVersionKey;
+          ..latestVersionKey = foobarStablePVKey
+          ..latestDevVersionKey = foobarStablePVKey;
         expect(p.latestVersion, '0.1.1+5');
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '0.1.0'
           ..version = '0.1.0');
         expect(p.latestVersion, '0.1.1+5');
@@ -82,11 +79,11 @@ void main() {
 
       test('new dev version', () {
         final Package p = Package()
-          ..latestVersionKey = testPackageVersionKey
-          ..latestDevVersionKey = testPackageVersionKey;
+          ..latestVersionKey = foobarStablePVKey
+          ..latestDevVersionKey = foobarStablePVKey;
         expect(p.latestVersion, '0.1.1+5');
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '1.0.0-dev'
           ..version = '1.0.0-dev');
         expect(p.latestVersion, '0.1.1+5');
@@ -95,19 +92,19 @@ void main() {
 
       test('new dev version, then a stable patch', () {
         final Package p = Package()
-          ..latestVersionKey = testPackageVersionKey
-          ..latestDevVersionKey = testPackageVersionKey;
+          ..latestVersionKey = foobarStablePVKey
+          ..latestDevVersionKey = foobarStablePVKey;
         expect(p.latestVersion, '0.1.1+5');
 
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '1.0.0-dev'
           ..version = '1.0.0-dev');
         expect(p.latestVersion, '0.1.1+5');
         expect(p.latestDevVersion, '1.0.0-dev');
 
         p.updateVersion(PackageVersion()
-          ..parentKey = testPackageKey
+          ..parentKey = foobarPkgKey
           ..id = '0.2.0'
           ..version = '0.2.0');
         expect(p.latestVersion, '0.2.0');

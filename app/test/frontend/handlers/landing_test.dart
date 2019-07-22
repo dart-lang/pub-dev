@@ -32,13 +32,13 @@ void main() {
         return SearchResultPage(
           query,
           1,
-          [PackageView.fromModel(version: testPackageVersion)],
+          [PackageView.fromModel(version: foobarStablePV)],
         );
       }));
       final backend = BackendMock(latestPackageVersionsFun: ({offset, limit}) {
         expect(offset, isNull);
         expect(limit, equals(5));
-        return [testPackageVersion];
+        return [foobarStablePV];
       });
       registerBackend(backend);
       registerAnalyzerClient(AnalyzerClientMock());
@@ -66,13 +66,13 @@ void main() {
         return SearchResultPage(
           query,
           1,
-          [PackageView.fromModel(version: testPackageVersion)],
+          [PackageView.fromModel(version: foobarStablePV)],
         );
       }));
       final backend = BackendMock(latestPackageVersionsFun: ({offset, limit}) {
         expect(offset, isNull);
         expect(limit, equals(5));
-        return [testPackageVersion];
+        return [foobarStablePV];
       });
       registerBackend(backend);
       registerAnalyzerClient(AnalyzerClientMock());
@@ -91,7 +91,7 @@ void main() {
         return SearchResultPage(
           query,
           1,
-          [PackageView.fromModel(version: testPackageVersion)],
+          [PackageView.fromModel(version: foobarStablePV)],
         );
       }));
       await expectNotFoundResponse(await issueGet('/xxx'));

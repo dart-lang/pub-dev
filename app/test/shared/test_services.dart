@@ -30,11 +30,11 @@ void testWithServices(String name, Future fn()) {
     await withCache(() async {
       final db = DatastoreDB(MemDatastore());
       await db.commit(inserts: [
-        testPackage,
-        testPackageVersion,
-        devPackageVersion,
+        foobarPackage,
+        foobarStablePV,
+        foobarDevPV,
         testUserA,
-        testUserHans,
+        hansUser,
       ]);
       registerDbService(db);
       registerStorageService(MemStorage());

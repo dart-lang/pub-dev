@@ -29,7 +29,7 @@ void main() {
         <entry>
           <id>urn:uuid:ebaa25c2-6b0c-5829-a686-dc55c2bbd8e4</id>
           <title>v0.1.1\\+5 of foobar_pkg</title>
-          <updated>${testPackageVersion.created.toIso8601String()}</updated>
+          <updated>${foobarStablePV.created.toIso8601String()}</updated>
           <author><name>Hans Juergen &lt;hans@juergen.com&gt;</name></author>
           <content type="html">&lt;h1&gt;Test Package&lt;&#47;h1&gt;
 &lt;p&gt;This is a readme file.&lt;&#47;p&gt;

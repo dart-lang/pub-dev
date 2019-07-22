@@ -25,7 +25,7 @@ void main() {
               'name': 'foobar_pkg',
               'latest': {
                 'version': '0.1.1+5',
-                'pubspec': loadYaml(testPackagePubspec),
+                'pubspec': loadYaml(foobarStablePubspec),
                 'archive_url': 'https://pub.dartlang.org'
                     '/packages/foobar_pkg/versions/0.1.1%2B5.tar.gz',
                 'package_url': 'https://pub.dartlang.org'
