@@ -137,7 +137,8 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
 shelf.Handler _exceptionHandlerWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
     final acceptHeader = request.headers['accept'];
-    final isJson = acceptHeader != null && acceptHeader.contains('application/json');
+    final isJson =
+        acceptHeader != null && acceptHeader.contains('application/json');
     if (isJson) {
       try {
         return await handler(request);
