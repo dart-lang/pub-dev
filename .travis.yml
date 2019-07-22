@@ -8,9 +8,9 @@ services:
 jobs:
   include:
     - stage: smoke_test
-      name: "SDK: 2.4.0; PKGS: app, pkg/_popularity, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
+      name: "SDK: 2.4.0; PKGS: app, pkg/_popularity, pkg/api_builder, pkg/client_data, pkg/fake_gcloud, pkg/fake_pub_server, pkg/pub_dartdoc, pkg/pub_dartdoc_data, pkg/pub_package_reader, pkg/web_app; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings .`]"
       dart: "2.4.0"
-      env: PKGS="app pkg/_popularity pkg/client_data pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/web_app"
+      env: PKGS="app pkg/_popularity pkg/api_builder pkg/client_data pkg/fake_gcloud pkg/fake_pub_server pkg/pub_dartdoc pkg/pub_dartdoc_data pkg/pub_package_reader pkg/web_app"
       script: ./tool/travis.sh dartfmt dartanalyzer_0
     - stage: smoke_test
       name: "SDK: 2.4.0; PKG: pkg/pub_integration; TASKS: [`dartfmt -n --set-exit-if-changed .`, `dartanalyzer --fatal-infos --fatal-warnings bin/ lib/`]"

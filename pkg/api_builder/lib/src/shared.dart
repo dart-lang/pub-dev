@@ -3,7 +3,6 @@ import 'package:http_methods/http_methods.dart' show isHttpMethod;
 import 'package:source_gen/source_gen.dart' as g;
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, ExecutableElement;
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:analyzer/dart/element/type.dart' show DartType;
 
 import '../api_builder.dart' show EndPoint;
