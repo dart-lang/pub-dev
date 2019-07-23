@@ -180,9 +180,7 @@ class LastNTracker<T extends Comparable<T>> {
 
   double get average {
     if (_lastItems.isEmpty) return 0.0;
-    final double sum = _lastItems
-        .where((item) => item is num)
-        .fold(0.0, (a, b) => a + (b as num));
+    final double sum = _lastItems.whereType<num>().fold(0.0, (a, b) => a + b);
     return sum / _lastItems.length;
   }
 

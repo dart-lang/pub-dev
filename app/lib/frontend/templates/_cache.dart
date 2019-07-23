@@ -24,8 +24,7 @@ class TemplateCache {
   void _loadDirectory(String templateFolder) {
     Directory(templateFolder)
         .listSync(recursive: true)
-        .where((fse) => fse is File)
-        .cast<File>()
+        .whereType<File>()
         .where((f) => f.path.endsWith('.mustache'))
         .forEach(
       (file) {

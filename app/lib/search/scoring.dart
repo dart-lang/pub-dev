@@ -151,16 +151,19 @@ List<num> solveCubic(num a, num b, num c, num d) {
       // Linear case, ax+b=0
       a = b;
       b = c;
-      if (a.abs() < epsilon) // Degenerate case
+      if (a.abs() < epsilon) {
+        // Degenerate case
         return [];
+      }
       return [-b / a];
     }
 
     final D = b * b - 4 * a * c;
-    if (D.abs() < epsilon)
+    if (D.abs() < epsilon) {
       return [-b / (2 * a)];
-    else if (D > 0)
+    } else if (D > 0) {
       return [(-b + math.sqrt(D)) / (2 * a), (-b - math.sqrt(D)) / (2 * a)];
+    }
     return [];
   }
 
@@ -195,7 +198,9 @@ List<num> solveCubic(num a, num b, num c, num d) {
   }
 
   // Convert back from depressed cubic
-  for (var i = 0; i < roots.length; i++) roots[i] -= b / (3 * a);
+  for (var i = 0; i < roots.length; i++) {
+    roots[i] -= b / (3 * a);
+  }
 
   return roots;
 }

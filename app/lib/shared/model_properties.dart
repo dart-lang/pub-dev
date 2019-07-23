@@ -43,8 +43,9 @@ class CompatibleListProperty<T> extends Property {
   @override
   List<T> decodePrimitiveValue(ModelDB db, Object value) {
     if (value == null) return <T>[];
-    if (value is! List)
+    if (value is! List) {
       return [subProperty.decodePrimitiveValue(db, value)].cast<T>();
+    }
     return (value as List)
         .map((entry) => subProperty.decodePrimitiveValue(db, entry))
         .cast<T>()

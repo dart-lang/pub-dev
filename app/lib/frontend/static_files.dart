@@ -84,8 +84,8 @@ class StaticFileCache {
     baseDir ??= contentDir;
     contentDir
         .listSync(recursive: true)
-        .where((fse) => fse is File)
-        .map((file) => file.absolute as File)
+        .whereType<File>()
+        .map((file) => file.absolute)
         .map(
       (File file) {
         final relativePath = path.relative(file.path, from: baseDir.path);
