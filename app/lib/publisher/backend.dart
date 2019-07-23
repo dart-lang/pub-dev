@@ -57,19 +57,21 @@ class PublisherBackend {
   }
 
   /// Updates the publisher data.
-  Future updatePublisherData(String publisherId, String description) async {
+  Future<Publisher> updatePublisherData(
+      String publisherId, String description) async {
     ArgumentError.checkNotNull(description, 'description');
     if (description.length > 64 * 1024) {
       throw ArgumentError('Description too long.');
     }
-    await _withPublisherAdmin(publisherId, (_) async {
-      await _db.withTransaction((tx) async {
+    return await _withPublisherAdmin(publisherId, (_) async {
+      return await _db.withTransaction((tx) async {
         final key = _db.emptyKey.append(Publisher, id: publisherId);
         final p = (await tx.lookup<Publisher>([key])).single;
         p.description = description;
         tx.queueMutations(inserts: [p]);
         await tx.commit();
-      });
+        return p;
+      }) as Publisher;
     });
   }
 }
