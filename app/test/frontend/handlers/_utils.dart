@@ -54,11 +54,10 @@ Future<String> expectHtmlResponse(
   return content;
 }
 
-Future expectAtomXmlResponse(shelf.Response response,
-    {int status = 200, String regexp}) async {
+Future<String> expectAtomXmlResponse(shelf.Response response,
+    {int status = 200}) async {
   expect(response.statusCode, status);
   expect(response.headers['content-type'],
       'application/atom+xml; charset="utf-8"');
-  final text = await response.readAsString();
-  expect(RegExp(regexp).hasMatch(text), isTrue);
+  return await response.readAsString();
 }

@@ -2,13 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:gcloud/db.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+
+// regular package
+final hydrogen = generateBundle('hydrogen', generateVersions(13, increment: 9));
+
+// Flutter plugin
+final helium = generateBundle(
+  'helium',
+  generateVersions(16, increment: 7),
+  pubspecExtraContent: '''
+flutter:
+  plugin:
+    class: SomeClass
+''',
+);
+
+// Regular package with dev releases.
+final lithium = generateBundle(
+    'lithium', generateVersions(19, increment: 27, devOffset: 5));
 
 final Key foobarPkgKey =
     Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');
@@ -144,3 +165,138 @@ PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
       ..parentKey = parentKey ?? exampleComPublisher.key
       ..id = userId
       ..role = role;
+
+class PkgBundle {
+  final Package package;
+  final List<PackageVersion> versions;
+  final PackageVersion firstVersion;
+  final PackageVersion latestStableVersion;
+  final PackageVersion latestDevVersion;
+
+  PkgBundle._(this.package, this.versions, this.firstVersion,
+      this.latestStableVersion, this.latestDevVersion) {
+    assert(package.latestVersionKey != null);
+    assert(package.latestDevVersionKey != null);
+  }
+
+  factory PkgBundle(Package package, List<PackageVersion> versions) {
+    versions.sort((a, b) => a.created.compareTo(b.created));
+    final firstVersion = versions.first;
+    final latestStableVersion = versions.lastWhere(
+      (pv) => !pv.semanticVersion.isPreRelease,
+      orElse: () => null,
+    );
+    final latestDevVersion = versions.lastWhere(
+      (pv) => pv.semanticVersion.isPreRelease,
+      orElse: () => null,
+    );
+
+    package.created ??= versions.first.created;
+    package.updated ??= versions.last.created;
+    package.latestVersionKey ??=
+        latestStableVersion?.key ?? latestDevVersion?.key;
+    package.latestDevVersionKey ??=
+        latestDevVersion?.key ?? package.latestVersionKey;
+
+    return PkgBundle._(
+        package, versions, firstVersion, latestStableVersion, latestDevVersion);
+  }
+}
+
+Iterable<String> generateVersions(
+  int count, {
+  String start,
+  int devOffset = 0,
+  int increment = 1,
+  int partThreshold = 10,
+}) sync* {
+  int devCounter = 0;
+  Version version = Version.parse(start ?? '1.0.0');
+  for (int i = 0; i < count; i++) {
+    yield version.toString();
+    final isPre = devOffset != 0 && (i % devOffset == devOffset - 1);
+    int major = version.major;
+    int minor = version.minor;
+    int patch = version.patch + increment;
+    if (patch >= partThreshold) {
+      minor += patch ~/ partThreshold;
+      patch = patch % partThreshold;
+    }
+    if (minor >= partThreshold) {
+      major += minor ~/ partThreshold;
+      minor = minor % partThreshold;
+    }
+
+    version =
+        Version(major, minor, patch, pre: isPre ? 'dev${devCounter++}' : null);
+  }
+}
+
+PkgBundle generateBundle(
+  String name,
+  Iterable<String> versionValues, {
+  String description,
+  String homepage,
+  List<User> uploaders,
+  String publisherId,
+  String pubspecExtraContent,
+}) {
+  description ??= '$name is a Dart package';
+  uploaders ??= <User>[hansUser];
+  homepage ??= 'https://example.com/$name';
+
+  final package = Package()
+    ..parentKey = Key.emptyKey(Partition(null))
+    ..id = name
+    ..name = name
+    ..downloads = 0
+    ..uploaders = uploaders.map((u) => u.userId).toList();
+
+  DateTime ts = DateTime(2014);
+  final versions = <PackageVersion>[];
+  for (String versionValue in versionValues) {
+    final hash = (name.hashCode + versionValue.hashCode).abs();
+    ts = ts.add(Duration(hours: hash % 177, minutes: hash % 60));
+
+    final uploader = uploaders[hash % uploaders.length];
+
+    final pubspec = 'name: $name\n'
+        'version: $versionValue\n'
+        'description: ${json.encode(description)}\n'
+        'author: ${uploader.email}\n'
+        'homepage: $homepage\n'
+        '${pubspecExtraContent ?? ''}';
+
+    final readme = (hash % 99 == 0) ? null : '# $name\n\n$description\n\n';
+    final changelog = (hash % 17 == 0)
+        ? null
+        : '## $versionValue\n\n'
+            '- Bug fix #1${hash % 10}.';
+    final String example = (hash % 9 == 0)
+        ? null
+        : 'import \'package:$name\';\n\n'
+            'main() {}';
+
+    final version = PackageVersion()
+      ..parentKey = package.key
+      ..packageKey = package.key
+      ..id = versionValue
+      ..version = versionValue
+      ..created = ts
+      ..pubspec = Pubspec.fromYaml(pubspec)
+      ..readmeFilename = readme == null ? null : 'README.md'
+      ..readmeContent = readme
+      ..changelogFilename = changelog == null ? null : 'CHANGELOG.md'
+      ..changelogContent = changelog
+      ..exampleFilename = example == null ? null : 'example/example.dart'
+      ..exampleContent = example
+      ..libraries = ['lib/$name.dart']
+      ..downloads = 0
+      ..sortOrder = 0
+      ..uploader = uploader.userId
+      ..publisherId = publisherId;
+    versions.add(version);
+  }
+
+  return PkgBundle(package, versions);
+}

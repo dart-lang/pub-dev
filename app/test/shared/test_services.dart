@@ -35,6 +35,12 @@ void testWithServices(String name, Future fn()) {
         foobarDevPV,
         testUserA,
         hansUser,
+        hydrogen.package,
+        ...hydrogen.versions,
+        helium.package,
+        ...helium.versions,
+        lithium.package,
+        ...lithium.versions,
       ]);
       registerDbService(db);
       registerStorageService(MemStorage());
