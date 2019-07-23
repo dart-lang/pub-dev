@@ -254,7 +254,7 @@ PackageDocument createSdkDocument(PubDartdocData lib) {
 }
 
 class SnapshotStorage {
-  VersionedJsonStorage _snapshots;
+  final VersionedJsonStorage _snapshots;
 
   SnapshotStorage(Bucket bucket)
       : _snapshots = VersionedJsonStorage(bucket, 'snapshot/');

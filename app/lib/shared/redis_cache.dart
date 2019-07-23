@@ -23,7 +23,7 @@ import 'versions.dart';
 final Logger _log = Logger('rediscache');
 
 class CachePatterns {
-  Cache<List<int>> _cache;
+  final Cache<List<int>> _cache;
   CachePatterns._(Cache<List<int>> cache)
       : _cache = cache
             .withPrefix('rv-$runtimeVersion')
