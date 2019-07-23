@@ -281,7 +281,7 @@ void main() {
         final Future f = repo.addUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect(e.toString(),
-              'UnauthorizedAccess: Calling user does not have permission to change uploaders.');
+              'UnauthorizedAccessException: Calling user does not have permission to change uploaders.');
         }));
       });
 
