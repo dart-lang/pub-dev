@@ -2,6 +2,7 @@ import 'package:api_builder/api_builder.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
+import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
 import 'custom_api.dart';
@@ -109,7 +110,7 @@ class PubApi {
   @EndPoint.put('/api/publisher/<publisherId>')
   Future<PublisherInfo> updatePublisher(
           Request request, String publisherId, UpdatePublisherRequest update) =>
-      updatePublisherApiHandler(request, publisherId, update);
+      publisherBackend.updatePublisher(publisherId, update);
 
   /// Returns a publisher's member data and role in a JSON form.
   @EndPoint.post('/api/publisher/<publisherId>/invite-member')
