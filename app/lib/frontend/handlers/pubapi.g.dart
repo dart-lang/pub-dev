@@ -101,8 +101,13 @@ Router _$PubApiRouter(PubApi service) {
   router.add('PUT', r'/api/publisher/<publisherId>',
       (Request request, String publisherId) async {
     try {
-      final _$result = await service.updatePublisher(request, publisherId);
-      return _$result;
+      final _$result = await service.updatePublisher(
+          request,
+          publisherId,
+          await $utilities.decodeJson<UpdatePublisherRequest>(request, (o) {
+            return UpdatePublisherRequest.fromJson(o);
+          }));
+      return $utilities.jsonResponse(_$result.toJson());
     } on ResponseException catch (e) {
       return e.asResponse();
     }

@@ -5,6 +5,7 @@
 // **************************************************************************
 
 import 'package:api_builder/_client_utils.dart' as _i2;
+import 'package:client_data/publisher_api.dart' as _i3;
 import 'package:http/http.dart' as _i1;
 
 export 'package:api_builder/_client_utils.dart' show RequestException;
@@ -85,11 +86,13 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> updatePublisher(String publisherId) async {
-    return await _client.requestBytes(
+  Future<_i3.PublisherInfo> updatePublisher(
+      String publisherId, _i3.UpdatePublisherRequest payload) async {
+    return _i3.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/publisher/$publisherId',
-    );
+      body: payload.toJson(),
+    ));
   }
 
   Future<List<int>> invitePublisherMember(String publisherId) async {
