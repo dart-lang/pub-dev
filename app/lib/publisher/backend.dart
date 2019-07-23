@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/publisher_api.dart' as api;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -57,21 +58,35 @@ class PublisherBackend {
   }
 
   /// Updates the publisher data.
-  Future<Publisher> updatePublisherData(
-      String publisherId, String description) async {
-    ArgumentError.checkNotNull(description, 'description');
-    if (description.length > 64 * 1024) {
-      throw ArgumentError('Description too long.');
+  /// TODO: remove once publisher/backend_test.dart is migrated to use handlers.
+  Future updatePublisherData(String publisherId, String description) async {
+    await updatePublisher(
+        publisherId, api.UpdatePublisherRequest(description: description));
+  }
+
+  /// Updates the publisher data.
+  Future<api.PublisherInfo> updatePublisher(
+      String publisherId, api.UpdatePublisherRequest update) async {
+    if (update.description != null) {
+      ArgumentError.checkNotNull(update.description, 'description');
+      if (update.description.length > 64 * 1024) {
+        throw ArgumentError('Description too long.');
+      }
     }
-    return await _withPublisherAdmin(publisherId, (_) async {
+    if (update.contact != null) {
+      throw ArgumentError('Contact change is not implemented.');
+    }
+    final p = await _withPublisherAdmin(publisherId, (_) async {
       return await _db.withTransaction((tx) async {
         final key = _db.emptyKey.append(Publisher, id: publisherId);
         final p = (await tx.lookup<Publisher>([key])).single;
-        p.description = description;
+        p.description = update.description ?? p.description;
         tx.queueMutations(inserts: [p]);
         await tx.commit();
         return p;
       }) as Publisher;
     });
+    return api.PublisherInfo(
+        description: p.description, contact: p.contactEmail);
   }
 }
