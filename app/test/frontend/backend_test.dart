@@ -43,41 +43,59 @@ void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
       testWithServices('empty', () async {
-        await dbService.commit(deletes: [foobarPackage.key]);
+        await dbService.commit(deletes: [
+          foobarPackage.key,
+          hydrogen.package.key,
+          helium.package.key,
+          lithium.package.key,
+        ]);
         expect(await backend.latestPackages(), []);
       });
 
-      testWithServices('one package', () async {
+      testWithServices('default packages', () async {
         final list = await backend.latestPackages();
-        expect(list.map((p) => p.name), ['foobar_pkg']);
+        expect(list.map((p) => p.name), [
+          'foobar_pkg',
+          'lithium',
+          'helium',
+          'hydrogen',
+        ]);
       });
 
-      testWithServices('two packages, other earlier', () async {
+      testWithServices('default packages, extra earlier', () async {
         final p = createFoobarPackage(name: 'other')..updated = DateTime(2010);
         await dbService.commit(inserts: [p]);
         final list = await backend.latestPackages();
-        expect(list.map((p) => p.name), ['foobar_pkg', 'other']);
+        expect(list.map((p) => p.name), [
+          'foobar_pkg',
+          'lithium',
+          'helium',
+          'hydrogen',
+          'other',
+        ]);
       });
 
-      testWithServices('two packages, other later', () async {
+      testWithServices('default packages, extra later', () async {
         final p = createFoobarPackage(name: 'other')..updated = DateTime(2018);
         await dbService.commit(inserts: [p]);
         final list = await backend.latestPackages();
-        expect(list.map((p) => p.name), ['other', 'foobar_pkg']);
+        expect(list.map((p) => p.name), [
+          'other',
+          'foobar_pkg',
+          'lithium',
+          'helium',
+          'hydrogen',
+        ]);
       });
 
-      testWithServices('two packages, offset: 1', () async {
-        final p = createFoobarPackage(name: 'other')..updated = DateTime(2018);
-        await dbService.commit(inserts: [p]);
-        final list = await backend.latestPackages(offset: 1);
-        expect(list.map((p) => p.name), ['foobar_pkg']);
+      testWithServices('default packages, offset: 2', () async {
+        final list = await backend.latestPackages(offset: 2);
+        expect(list.map((p) => p.name), ['helium', 'hydrogen']);
       });
 
-      testWithServices('two packages, limit: 1', () async {
-        final p = createFoobarPackage(name: 'other')..updated = DateTime(2018);
-        await dbService.commit(inserts: [p]);
-        final list = await backend.latestPackages(limit: 1);
-        expect(list.map((p) => p.name), ['other']);
+      testWithServices('default packages, offset: 1, limit: 1', () async {
+        final list = await backend.latestPackages(offset: 1, limit: 1);
+        expect(list.map((p) => p.name), ['lithium']);
       });
     });
 

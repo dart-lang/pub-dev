@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:test/test.dart';
+import 'package:xml/xml.dart';
 
-import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 import '_utils.dart';
@@ -12,38 +12,66 @@ import '_utils.dart';
 void main() {
   group('feeds', () {
     testWithServices('/feed.atom', () async {
-      await expectAtomXmlResponse(await issueGet('/feed.atom'), regexp: '''
-<\\?xml version="1.0" encoding="UTF-8"\\?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-        <id>https://pub.dev/feed.atom</id>
-        <title>Pub Packages for Dart</title>
-        <updated>(.*)</updated>
-        <author>
-          <name>Dart Team</name>
-        </author>
-        <link href="https://pub.dev/" rel="alternate" />
-        <link href="https://pub.dev/feed.atom" rel="self" />
-        <generator version="0.1.0">Pub Feed Generator</generator>
-        <subtitle>Last Updated Packages</subtitle>
-(\\s*)
-        <entry>
-          <id>urn:uuid:ebaa25c2-6b0c-5829-a686-dc55c2bbd8e4</id>
-          <title>v0.1.1\\+5 of foobar_pkg</title>
-          <updated>${foobarStablePV.created.toIso8601String()}</updated>
-          <author><name>Hans Juergen &lt;hans@juergen.com&gt;</name></author>
-          <content type="html">&lt;h1&gt;Test Package&lt;&#47;h1&gt;
-&lt;p&gt;This is a readme file.&lt;&#47;p&gt;
-&lt;pre&gt;&lt;code class=&quot;language-dart&quot;&gt;void main\\(\\) {
-}
-&lt;&#47;code&gt;&lt;&#47;pre&gt;
-</content>
-          <link href="https://pub.dev/packages/foobar_pkg"
-                rel="alternate"
-                title="foobar_pkg" />
-        </entry>
-(\\s*)
-</feed>
-''');
+      final content = await expectAtomXmlResponse(await issueGet('/feed.atom'));
+
+      // check if content is valid XML
+      final root = parse(content);
+      final feed = root.rootElement;
+
+      final entries = feed.findElements('entry').toList();
+      expect(entries.length, 4);
+      expect(entries.map((e) => e.findElements('title').first.text).toList(), [
+        'v0.1.1+5 of foobar_pkg',
+        'v5.8.6 of lithium',
+        'v2.0.5 of helium',
+        'v2.0.8 of hydrogen',
+      ]);
+
+      expect(
+          entries[0].toXmlString(indent: '  '),
+          '<entry>\n'
+          '          <id>urn:uuid:ebaa25c2-6b0c-5829-a686-dc55c2bbd8e4</id>\n'
+          '          <title>v0.1.1+5 of foobar_pkg</title>\n'
+          '          <updated>2014-01-01T00:00:00.000Z</updated>\n'
+          '          <author><name>Hans Juergen &lt;hans@juergen.com></name></author>\n'
+          '          <content type="html">&lt;h1>Test Package&lt;/h1>\n'
+          '&lt;p>This is a readme file.&lt;/p>\n'
+          '&lt;pre>&lt;code class="language-dart">void main() {\n'
+          '}\n'
+          '&lt;/code>&lt;/pre>\n'
+          '</content>\n'
+          '          <link href="https://pub.dev/packages/foobar_pkg" rel="alternate" title="foobar_pkg"/>\n'
+          '        </entry>');
+
+      expect(
+          entries[3].toXmlString(indent: '  '),
+          '<entry>\n'
+          '          <id>urn:uuid:36e685fb-45d2-56ca-8c6e-0d204290be14</id>\n'
+          '          <title>v2.0.8 of hydrogen</title>\n'
+          '          <updated>2014-02-08T17:30:00.000</updated>\n'
+          '          <author><name>hans@juergen.com</name></author>\n'
+          '          <content type="html">&lt;h1>hydrogen&lt;/h1>\n'
+          '&lt;p>hydrogen is a Dart package&lt;/p>\n'
+          '</content>\n'
+          '          <link href="https://pub.dev/packages/hydrogen" rel="alternate" title="hydrogen"/>\n'
+          '        </entry>');
+
+      entries.forEach((e) => e.parent.children.remove(e));
+
+      final restExp = RegExp('<feed xmlns="http://www.w3.org/2005/Atom">\n'
+          '        <id>https://pub.dev/feed.atom</id>\n'
+          '        <title>Pub Packages for Dart</title>\n'
+          '        <updated>(.*)</updated>\n'
+          '        <author>\n'
+          '          <name>Dart Team</name>\n'
+          '        </author>\n'
+          '        <link href="https://pub.dev/" rel="alternate"/>\n'
+          '        <link href="https://pub.dev/feed.atom" rel="self"/>\n'
+          '        <generator version="0.1.0">Pub Feed Generator</generator>\n'
+          '        <subtitle>Last Updated Packages</subtitle>\n'
+          '(\\s*)'
+          '</feed>');
+      expect(restExp.hasMatch(feed.toXmlString(indent: '  ')), isTrue);
     });
   });
 }
