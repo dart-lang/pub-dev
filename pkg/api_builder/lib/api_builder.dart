@@ -117,7 +117,7 @@ abstract class $utilities {
       status: 500,
       code: 'InternalError',
       message:
-          'internal server error, ask operator to lookup incidentId: $incidentId',
+          'Internal server error, ask operator to lookup incidentId: $incidentId',
     ).asApiResponse();
   }
 }
