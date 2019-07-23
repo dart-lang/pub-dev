@@ -22,6 +22,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.36.3"
+  api_builder:
+    dependency: transitive
+    description:
+      path: "../api_builder"
+      relative: true
+    source: path
+    version: "0.0.0"
   appengine:
     dependency: transitive
     description:
@@ -64,6 +71,34 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.6"
+  build:
+    dependency: transitive
+    description:
+      name: build
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.5"
+  build_config:
+    dependency: transitive
+    description:
+      name: build_config
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0"
+  built_collection:
+    dependency: transitive
+    description:
+      name: built_collection
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.2.2"
+  built_value:
+    dependency: transitive
+    description:
+      name: built_value
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.7.0"
   charcode:
     dependency: transitive
     description:
@@ -85,6 +120,13 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
+  code_builder:
+    dependency: transitive
+    description:
+      name: code_builder
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.2.0"
   collection:
     dependency: transitive
     description:
@@ -120,6 +162,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2+dart2"
+  dart_style:
+    dependency: transitive
+    description:
+      name: dart_style
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.9"
   dartis:
     dependency: transitive
     description:
@@ -498,6 +547,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.2+5"
+  source_gen:
+    dependency: transitive
+    description:
+      name: source_gen
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.4+3"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -632,4 +688,4 @@ packages:
     source: hosted
     version: "2.1.15"
 sdks:
-  dart: ">=2.3.0 <3.0.0"
+  dart: ">=2.4.0 <3.0.0"
