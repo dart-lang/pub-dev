@@ -5,8 +5,40 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
+
+import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
+import 'package:pub_dartlang_org/shared/urls.dart';
+
+Future<shelf.Response> httpRequest(
+  String method,
+  dynamic uri, {
+  String authToken,
+  Map<String, dynamic> jsonBody,
+}) async {
+  if ('$uri'.startsWith('/')) {
+    uri = '$siteRoot$uri';
+  }
+  final request = shelf.Request(
+    method,
+    uri is Uri ? uri : Uri.parse(uri.toString()),
+    headers: {
+      if (authToken != null) 'authorization': 'bearer $authToken',
+      if (jsonBody != null) 'content-type': 'application/json; charset=utf-8',
+      if (jsonBody != null) 'accept': 'application/json',
+    },
+    body: jsonBody == null ? null : json.encode(jsonBody),
+  );
+  final handler = wrapHandler(
+    Logger.detached('test'),
+    createAppHandler(null),
+    sanitize: true,
+  );
+  return await handler(request);
+}
 
 Future expectJsonResponse(shelf.Response response, {status = 200, body}) async {
   expect(response.statusCode, status);

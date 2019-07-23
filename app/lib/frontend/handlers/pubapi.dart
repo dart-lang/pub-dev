@@ -97,33 +97,33 @@ class PubApi {
   // ****
 
   /// Starts publisher creation flow.
-  @EndPoint.post('/api/publisher/<publisherId>')
+  @EndPoint.post('/api/publishers/<publisherId>')
   Future<Response> createPublisher(Request request, String publisherId) =>
       createPublisherApiHandler(request, publisherId);
 
   /// Returns publisher data in a JSON form.
-  @EndPoint.get('/api/publisher/<publisherId>')
+  @EndPoint.get('/api/publishers/<publisherId>')
   Future<Response> publisherInfo(Request request, String publisherId) =>
       getPublisherApiHandler(request, publisherId);
 
   /// Updates publisher data.
-  @EndPoint.put('/api/publisher/<publisherId>')
+  @EndPoint.put('/api/publishers/<publisherId>')
   Future<PublisherInfo> updatePublisher(
           Request request, String publisherId, UpdatePublisherRequest update) =>
       publisherBackend.updatePublisher(publisherId, update);
 
   /// Returns a publisher's member data and role in a JSON form.
-  @EndPoint.post('/api/publisher/<publisherId>/invite-member')
+  @EndPoint.post('/api/publishers/<publisherId>/invite-member')
   Future<Response> invitePublisherMember(Request request, String publisherId) =>
       invitePublisherMemberHandler(request, publisherId);
 
   /// Returns publisher members data in a JSON form.
-  @EndPoint.get('/api/publisher/<publisherId>/members')
+  @EndPoint.get('/api/publishers/<publisherId>/members')
   Future<Response> listPublisherMembers(Request request, String publisherId) =>
       getPublisherMembersApiHandler(request, publisherId);
 
   /// Returns a publisher's member data and role in a JSON form.
-  @EndPoint.get('/api/publisher/<publisherId>/members/<userId>')
+  @EndPoint.get('/api/publishers/<publisherId>/members/<userId>')
   Future<Response> publisherMemberInfo(
     Request request,
     String publisherId,
@@ -132,7 +132,7 @@ class PubApi {
       getPublisherMemberDataApiHandler(request, publisherId, userId);
 
   /// Updates a publisher's member data and role.
-  @EndPoint.put('/api/publisher/<publisherId>/members/<userId>')
+  @EndPoint.put('/api/publishers/<publisherId>/members/<userId>')
   Future<Response> updatePublisherMember(
     Request request,
     String publisherId,
@@ -141,7 +141,7 @@ class PubApi {
       putPublisherMemberDataApiHandler(request, publisherId, userId);
 
   /// Deletes a publisher's member.
-  @EndPoint.delete('/api/publisher/<publisherId>/members/<userId>')
+  @EndPoint.delete('/api/publishers/<publisherId>/members/<userId>')
   Future<Response> removePublisherMember(
     Request request,
     String publisherId,

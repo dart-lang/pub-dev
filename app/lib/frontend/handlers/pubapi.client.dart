@@ -75,14 +75,14 @@ class PubApiClient {
   Future<List<int>> createPublisher(String publisherId) async {
     return await _client.requestBytes(
       verb: 'post',
-      path: '/api/publisher/$publisherId',
+      path: '/api/publishers/$publisherId',
     );
   }
 
   Future<List<int>> publisherInfo(String publisherId) async {
     return await _client.requestBytes(
       verb: 'get',
-      path: '/api/publisher/$publisherId',
+      path: '/api/publishers/$publisherId',
     );
   }
 
@@ -90,7 +90,7 @@ class PubApiClient {
       String publisherId, _i3.UpdatePublisherRequest payload) async {
     return _i3.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'put',
-      path: '/api/publisher/$publisherId',
+      path: '/api/publishers/$publisherId',
       body: payload.toJson(),
     ));
   }
@@ -98,14 +98,14 @@ class PubApiClient {
   Future<List<int>> invitePublisherMember(String publisherId) async {
     return await _client.requestBytes(
       verb: 'post',
-      path: '/api/publisher/$publisherId/invite-member',
+      path: '/api/publishers/$publisherId/invite-member',
     );
   }
 
   Future<List<int>> listPublisherMembers(String publisherId) async {
     return await _client.requestBytes(
       verb: 'get',
-      path: '/api/publisher/$publisherId/members',
+      path: '/api/publishers/$publisherId/members',
     );
   }
 
@@ -113,7 +113,7 @@ class PubApiClient {
       String publisherId, String userId) async {
     return await _client.requestBytes(
       verb: 'get',
-      path: '/api/publisher/$publisherId/members/$userId',
+      path: '/api/publishers/$publisherId/members/$userId',
     );
   }
 
@@ -121,7 +121,7 @@ class PubApiClient {
       String publisherId, String userId) async {
     return await _client.requestBytes(
       verb: 'put',
-      path: '/api/publisher/$publisherId/members/$userId',
+      path: '/api/publishers/$publisherId/members/$userId',
     );
   }
 
@@ -129,7 +129,7 @@ class PubApiClient {
       String publisherId, String userId) async {
     return await _client.requestBytes(
       verb: 'delete',
-      path: '/api/publisher/$publisherId/members/$userId',
+      path: '/api/publishers/$publisherId/members/$userId',
     );
   }
 

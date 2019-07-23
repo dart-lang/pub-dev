@@ -96,7 +96,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('POST', r'/api/publisher/<publisherId>',
+  router.add('POST', r'/api/publishers/<publisherId>',
       (Request request, String publisherId) async {
     try {
       final _$result = await service.createPublisher(request, publisherId);
@@ -107,7 +107,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('GET', r'/api/publisher/<publisherId>',
+  router.add('GET', r'/api/publishers/<publisherId>',
       (Request request, String publisherId) async {
     try {
       final _$result = await service.publisherInfo(request, publisherId);
@@ -118,7 +118,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('PUT', r'/api/publisher/<publisherId>',
+  router.add('PUT', r'/api/publishers/<publisherId>',
       (Request request, String publisherId) async {
     try {
       final _$result = await service.updatePublisher(
@@ -134,7 +134,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('POST', r'/api/publisher/<publisherId>/invite-member',
+  router.add('POST', r'/api/publishers/<publisherId>/invite-member',
       (Request request, String publisherId) async {
     try {
       final _$result =
@@ -146,7 +146,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('GET', r'/api/publisher/<publisherId>/members',
+  router.add('GET', r'/api/publishers/<publisherId>/members',
       (Request request, String publisherId) async {
     try {
       final _$result = await service.listPublisherMembers(request, publisherId);
@@ -157,7 +157,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('GET', r'/api/publisher/<publisherId>/members/<userId>',
+  router.add('GET', r'/api/publishers/<publisherId>/members/<userId>',
       (Request request, String publisherId, String userId) async {
     try {
       final _$result =
@@ -169,7 +169,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('PUT', r'/api/publisher/<publisherId>/members/<userId>',
+  router.add('PUT', r'/api/publishers/<publisherId>/members/<userId>',
       (Request request, String publisherId, String userId) async {
     try {
       final _$result =
@@ -181,7 +181,7 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
-  router.add('DELETE', r'/api/publisher/<publisherId>/members/<userId>',
+  router.add('DELETE', r'/api/publishers/<publisherId>/members/<userId>',
       (Request request, String publisherId, String userId) async {
     try {
       final _$result =
