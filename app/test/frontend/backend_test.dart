@@ -168,48 +168,38 @@ void main() {
     });
 
     group('Backend.lookupPackage', () {
-      (<String, List<Package>>{
-        'exists': [foobarPackage],
-        'does not exist': [null],
-      })
-          .forEach((String testName, List<Package> expectedPackages) {
-        test(testName, () async {
-          List<Package> lookupFun(List<Key> keys) {
-            expect(keys, hasLength(1));
-            expect(keys.first.type, Package);
-            expect(keys.first.id, 'foobar');
-            return expectedPackages;
-          }
+      testWithServices('exists', () async {
+        final p = await backend.lookupPackage('hydrogen');
+        expect(p, isNotNull);
+        expect(p.name, 'hydrogen');
+        expect(p.latestVersion, isNotNull);
+      });
 
-          final db = DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
-          final backend = Backend(db, null);
-
-          final package = await backend.lookupPackage('foobar');
-          expect(package, equals(expectedPackages.first));
-        });
+      testWithServices('does not exists', () async {
+        final p = await backend.lookupPackage('not_yet_a_package');
+        expect(p, isNull);
       });
     });
 
     group('Backend.lookupPackageVersion', () {
-      (<String, List<PackageVersion>>{
-        'exists': [foobarStablePV],
-        'does not exist': [null],
-      })
-          .forEach((String testName, List<PackageVersion> expectedVersions) {
-        test(testName, () async {
-          List<PackageVersion> lookupFun(List<Key> keys) {
-            expect(keys, hasLength(1));
-            expect(keys.first, foobarStablePV.key);
-            return expectedVersions;
-          }
+      testWithServices('exists', () async {
+        final p = await backend.lookupPackage('hydrogen');
+        final pv =
+            await backend.lookupPackageVersion('hydrogen', p.latestVersion);
+        expect(pv, isNotNull);
+        expect(pv.package, 'hydrogen');
+        expect(pv.version, p.latestVersion);
+      });
 
-          final db = DatastoreDBMock(lookupFun: expectAsync1(lookupFun));
-          final backend = Backend(db, null);
+      testWithServices('package does not exists', () async {
+        final pv =
+            await backend.lookupPackageVersion('not_yet_a_package', '1.0.0');
+        expect(pv, isNull);
+      });
 
-          final version = await backend.lookupPackageVersion(
-              foobarStablePV.package, foobarStablePV.version);
-          expect(version, equals(expectedVersions.first));
-        });
+      testWithServices('version does not exists', () async {
+        final pv = await backend.lookupPackageVersion('hydrogen', '0.0.0-dev');
+        expect(pv, isNull);
       });
     });
 
@@ -237,48 +227,26 @@ void main() {
     });
 
     group('Backend.versionsOfPackage', () {
-      (<String, List<PackageVersion>>{
-        'one version': [foobarStablePV],
-        'empty': [null],
-      })
-          .forEach((String testName, List<PackageVersion> expectedVersions) {
-        test(testName, () async {
-          final completion = TestDelayCompletion();
-          Stream<PackageVersion> queryRunFun(
-              {partition,
-              ancestorKey,
-              filters,
-              filterComparisonObjects,
-              offset,
-              limit,
-              orders}) {
-            completion.complete();
-            expect(ancestorKey, foobarPackage.key);
-            return Stream.fromIterable(expectedVersions);
-          }
+      testWithServices('exists', () async {
+        final list = await backend.versionsOfPackage('hydrogen');
+        final values = list.map((pv) => pv.version).toList();
+        values.sort();
+        expect(values, hasLength(13));
+        expect(values.first, '1.0.0');
+        expect(values[5], '1.4.5');
+        expect(values.last, '2.0.8');
+      });
 
-          final db = DatastoreDBMock(queryMock: QueryMock(queryRunFun));
-          final backend = Backend(db, null);
-
-          final versions = await backend.versionsOfPackage(foobarPackage.name);
-          expect(versions, hasLength(1));
-          expect(versions.first, equals(expectedVersions.first));
-        });
+      testWithServices('package does not exists', () async {
+        final list = await backend.versionsOfPackage('not_yet_a_package');
+        expect(list, isEmpty);
       });
     });
 
-    test('Backend.downloadUrl', () async {
-      final db = DatastoreDBMock();
-      final tarballStorage =
-          TarballStorageMock(downloadUrlFun: expectAsync2((package, version) {
-        expect(package, 'foobar');
-        expect(version, '0.1.0');
-        return Uri.parse('http://blob/foobar/0.1.0.tar.gz');
-      }));
-      final backend = Backend(db, tarballStorage);
-
-      final url = await backend.downloadUrl('foobar', '0.1.0');
-      expect(url.toString(), 'http://blob/foobar/0.1.0.tar.gz');
+    testWithServices('Backend.downloadUrl', () async {
+      final url = await backend.downloadUrl('hydrogen', '2.0.8');
+      expect(url.toString(),
+          'http://localhost:0/fake-bucket-pub/packages/hydrogen-2.0.8.tar.gz');
     });
   });
 
@@ -561,19 +529,6 @@ void main() {
         registerAccountBackend(
             AccountBackendMock(authenticatedUsers: [userA, userB]));
         await repo.removeUploader(pkg, 'b@x.com');
-      });
-    });
-
-    group('GCloudRepository.downloadUrl', () {
-      test('successful', () async {
-        final tarballStorage =
-            TarballStorageMock(downloadUrlFun: expectAsync2((package, version) {
-          return Uri.parse('http://blobstore/$package/$version.tar.gz');
-        }));
-        final repo = GCloudPackageRepository(null, tarballStorage);
-
-        final url = await repo.downloadUrl('foo', '0.1.0');
-        expect('$url', 'http://blobstore/foo/0.1.0.tar.gz');
       });
     });
 
