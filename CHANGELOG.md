@@ -3,6 +3,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190724t163532-all`
+
+ * Caching logic for package listing API end-point.
+
 ## `20190711t114908-all`
  
  * Fix NPE in cache logic.
