@@ -75,6 +75,16 @@ class CachePatterns {
       .withPrefix('package-data')
       .withTTL(Duration(minutes: 10))['$package'];
 
+  Entry<Map<String, dynamic>> apiPackagesListPage(int page) => _cache
+      .withPrefix('api-packages-list')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (map) => map,
+        decode: (obj) => obj as Map<String, dynamic>,
+      ))['$page'];
+
   Entry<PackageSearchResult> packageSearchResult(String url) => _cache
       .withPrefix('search-result')
       .withTTL(Duration(minutes: 10))

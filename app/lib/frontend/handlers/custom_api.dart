@@ -87,70 +87,78 @@ Future<shelf.Response> apiPackagesCompactListHandler(
 /// Handles request for /api/packages?page=<num>
 Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   final int pageSize = 100;
-
   final int page = extractPageFromUrlParameters(request.url);
 
-  final packages = await backend.latestPackages(
-      offset: pageSize * (page - 1), limit: pageSize + 1);
+  final data = await cache.apiPackagesListPage(page).get(
+    () async {
+      final packages = await backend.latestPackages(
+          offset: pageSize * (page - 1), limit: pageSize + 1);
 
-  // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
-  // know it was the last page.
-  // But we only use `PageSize` packages to display in the result.
-  final List<Package> pagePackages = packages.take(pageSize).toList();
-  pagePackages.removeWhere((p) => isSoftRemoved(p.name));
-  final List<PackageVersion> pageVersions =
-      await backend.lookupLatestVersions(pagePackages);
+      // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
+      // know it was the last page.
+      // But we only use `PageSize` packages to display in the result.
+      final List<Package> pagePackages = packages.take(pageSize).toList();
+      pagePackages.removeWhere((p) => isSoftRemoved(p.name));
+      final List<PackageVersion> pageVersions =
+          await backend.lookupLatestVersions(pagePackages);
 
-  final lastPage = packages.length == pagePackages.length;
+      final lastPage = packages.length == pagePackages.length;
 
-  final packagesJson = [];
+      final packagesJson = [];
 
-  final uri = request.requestedUri;
-  for (var version in pageVersions) {
-    final versionString = Uri.encodeComponent(version.version);
-    final packageString = Uri.encodeComponent(version.package);
+      final uri = request.requestedUri;
+      for (var version in pageVersions) {
+        final versionString = Uri.encodeComponent(version.version);
+        final packageString = Uri.encodeComponent(version.package);
 
-    final apiArchiveUrl = uri
-        .resolve('/packages/$packageString/versions/$versionString.tar.gz')
-        .toString();
-    final apiPackageUrl =
-        uri.resolve('/api/packages/$packageString').toString();
-    final apiPackageVersionUrl = uri
-        .resolve('/api/packages/$packageString/versions/$versionString')
-        .toString();
+        final apiArchiveUrl = uri
+            .resolve('/packages/$packageString/versions/$versionString.tar.gz')
+            .toString();
+        final apiPackageUrl =
+            uri.resolve('/api/packages/$packageString').toString();
+        final apiPackageVersionUrl = uri
+            .resolve('/api/packages/$packageString/versions/$versionString')
+            .toString();
 
-    packagesJson.add({
-      'name': version.package,
-      'latest': {
-        'version': version.version,
-        'pubspec': version.pubspec.asJson,
+        packagesJson.add({
+          'name': version.package,
+          'latest': {
+            'version': version.version,
+            'pubspec': version.pubspec.asJson,
 
-        // TODO: We should get rid of these:
-        'archive_url': apiArchiveUrl,
-        'package_url': apiPackageUrl,
-        'url': apiPackageVersionUrl,
+            // TODO: We should get rid of these:
+            'archive_url': apiArchiveUrl,
+            'package_url': apiPackageUrl,
+            'url': apiPackageVersionUrl,
 
-        // NOTE: We do not add the following
-        //    - 'new_dartdoc_url'
-      },
-    });
-  }
+            // NOTE: We do not add the following
+            //    - 'new_dartdoc_url'
+          },
+        });
+      }
 
-  final Map<String, dynamic> json = {
-    'next_url': null,
-    'packages': packagesJson,
+      final json = <String, dynamic>{
+        'next_url': null,
+        'packages': packagesJson,
 
-    // NOTE: We do not add the following:
-    //     - 'pages'
-    //     - 'prev_url'
-  };
+        // NOTE: We do not add the following:
+        //     - 'pages'
+        //     - 'prev_url'
+      };
 
-  if (!lastPage) {
-    json['next_url'] =
-        '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
-  }
-
-  return jsonResponse(json);
+      if (!lastPage) {
+        json['next_url'] =
+            '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
+      }
+      return json;
+    },
+    // Dynamic TTL:
+    // - the recent updates are on the first page with 15 minutes TTL
+    // - updates in the past month are on page < 5, with about 1.5 hours TTL
+    // - updates much longer than a few months are on page 20+, TTL is a day
+    page <= 12 ? Duration(minutes: 10 + page * page * 5) : Duration(days: 1),
+  );
+  return jsonResponse(data);
 }
 
 /// Whether [requestedUri] matches /api/packages/<package>/metrics
