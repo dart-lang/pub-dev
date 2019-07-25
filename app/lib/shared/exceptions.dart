@@ -175,14 +175,14 @@ class AuthorizationException extends ResponseException
   /// of [package].
   factory AuthorizationException.userCannotUploadNewVersion(String package) =>
       AuthorizationException._(
-        'Insufficient permissions to upload new versions of package `$package`',
+        'Insufficient permissions to upload new versions of package `$package`.',
       );
 
   /// Signaling that the user does not have permissions to change uploaders for
   /// given [package].
   factory AuthorizationException.userCannotChangeUploaders(String package) =>
       AuthorizationException._(
-        'Unsufficient permissions to change uploaders for `$package`',
+        'Unsufficient permissions to change uploaders for `$package`.',
       );
 
   /// Signaling that the user is not an administrator for the given [publisher]
@@ -214,11 +214,11 @@ class ConflictException extends ResponseException {
 /// Thrown when the analysis for a package is not done yet.
 class MissingAnalysisException extends NotFoundException {
   MissingAnalysisException()
-      : super('Analysis is not ready for the given package');
+      : super('Analysis is not ready for the given package.');
 }
 
 /// Thrown when package or versions is missing or has flags indicating that it
 /// should be removed from the search index.
 class RemovedPackageException extends NotFoundException {
-  RemovedPackageException() : super('Package has been removed');
+  RemovedPackageException() : super('Package has been removed.');
 }
