@@ -281,7 +281,7 @@ void main() {
         final Future f = repo.addUploader(pkg, 'a@b.com');
         await f.catchError(expectAsync2((e, _) {
           expect(e.toString(),
-              'UnauthorizedAccessException: Calling user does not have permission to change uploaders.');
+              'InsufficientPermissions: Unsufficient permissions to change uploaders for `foobar_pkg`.');
         }));
       });
 
