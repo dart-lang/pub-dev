@@ -24,19 +24,37 @@ void main() {
   group('ui', () {
     testWithServices('/', () async {
       final rs = await issueGet('/');
-      final content = await expectHtmlResponse(rs);
-      expect(content, contains('/packages/helium'));
-      expect(content, contains('/packages/hydrogen'));
-      expect(content, contains('hydrogen is a Dart package'));
+      await expectHtmlResponse(
+        rs,
+        present: [
+          '/packages/helium',
+          '/packages/hydrogen',
+          'hydrogen is a Dart package',
+        ],
+        absent: [
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
+      );
     });
 
     testWithServices('/ without a working search service', () async {
       registerSearchClient(null);
       final rs = await issueGet('/');
-      final content = await expectHtmlResponse(rs);
-      expect(content, contains('/packages/http'));
-      expect(content, contains('/packages/event_bus'));
-      expect(content, contains('lightweight library for parsing'));
+      await expectHtmlResponse(
+        rs,
+        present: [
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
+        absent: [
+          '/packages/helium',
+          '/packages/hydrogen',
+          'hydrogen is a Dart package',
+        ],
+      );
     });
 
     tScopedTest('/flutter', () async {
@@ -66,11 +84,16 @@ void main() {
 
     testWithServices('/xxx - not found page', () async {
       final rs = await issueGet('/xxx');
-      final content = await expectHtmlResponse(rs, status: 404);
-      expect(content, contains('You\'ve stumbled onto a page'));
-      expect(content, contains('/packages/helium'));
-      expect(content, contains('/packages/hydrogen'));
-      expect(content, contains('hydrogen is a Dart package'));
+      await expectHtmlResponse(rs, status: 404, present: [
+        'You\'ve stumbled onto a page',
+        '/packages/helium',
+        '/packages/hydrogen',
+        'hydrogen is a Dart package',
+      ], absent: [
+        '/packages/http',
+        '/packages/event_bus',
+        'lightweight library for parsing',
+      ]);
     });
   });
 }
