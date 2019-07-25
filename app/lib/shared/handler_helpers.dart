@@ -190,14 +190,10 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
     await registerLoggedInUserIfPossible(request);
     try {
       return await handler(request);
-    } on UnauthorizedAccessException catch (_) {
-      return jsonResponse(
-        {
-          'message': 'Unauthorized access: try `pub logout` '
-              'to re-initialize your login session.',
-        },
-        status: 401,
-      );
+    } on AuthenticationException catch (e) {
+      return e.asApiResponse();
+    } on AuthorizationException catch (e) {
+      return e.asApiResponse();
     }
   };
 }

@@ -259,7 +259,9 @@ Future<shelf.Response> putPackageOptionsHandler(
         PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
     await backend.updateOptions(package, options);
     return jsonResponse({'success': true});
-  } on UnauthorizedAccessException catch (_) {
+  } on AuthenticationException catch (_) {
+    return jsonResponse({'error': 'Not Authorized.'}, status: 403);
+  } on AuthorizationException catch (_) {
     return jsonResponse({'error': 'Not Authorized.'}, status: 403);
   } on NotFoundException catch (e) {
     return jsonResponse({'error': e.message}, status: 404);

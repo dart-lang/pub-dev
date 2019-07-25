@@ -43,10 +43,10 @@ AuthenticatedUser get authenticatedUser =>
 /// Calls [fn] with the currently authenticated user as an argument.
 ///
 /// If no user is currently authenticated, this will throw an
-/// `UnauthorizedAccess` exception.
+/// `AuthenticationException` exception.
 Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
   if (authenticatedUser == null) {
-    throw UnauthorizedAccessException('No active user.');
+    throw AuthenticationException('authentication required');
   }
   return await fn(authenticatedUser);
 }

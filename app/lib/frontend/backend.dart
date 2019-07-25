@@ -289,8 +289,9 @@ class Backend {
         }
         latestVersion = p.latestVersion;
         if (!p.hasUploader(user.userId)) {
-          throw UnauthorizedAccessException(
-              'User (${user.email}) is not admin for package $package.');
+          throw AuthorizationException(
+            'Insufficient permissions to perform adminstrative tasks on package "$package"',
+          );
         }
         p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
         _logger.info('Updating $package options: '
@@ -517,9 +518,9 @@ class GCloudPackageRepository extends PackageRepository {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
-        throw UnauthorizedAccessException(
-            'Unauthorized user: ${user.email} is not allowed to '
-            'upload versions to package ${package.name}.');
+        throw AuthorizationException(
+          'Insufficient permissions to upload new versions of package "${package.name}"',
+        );
       }
 
       // Update the date when the package was last updated.
@@ -759,8 +760,9 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Fail if calling user doesn't have permission to change uploaders.
     if (!package.hasUploader(userId)) {
-      throw UnauthorizedAccessException(
-          'Calling user does not have permission to change uploaders.');
+      throw AuthorizationException(
+        'Unsufficient permissions to change uploaders for "$package"',
+      );
     }
   }
 
@@ -781,8 +783,8 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if calling user doesn't have permission to change uploaders.
         if (!package.hasUploader(user.userId)) {
           await T.rollback();
-          throw UnauthorizedAccessException(
-              'Calling user does not have permission to change uploaders.');
+          throw AuthorizationException(
+              'insufficient permissions to change uploaders');
         }
 
         final uploader =
