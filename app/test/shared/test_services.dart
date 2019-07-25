@@ -13,6 +13,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
+import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
@@ -59,6 +60,13 @@ void testWithServices(String name, Future fn()) {
           helium.package.name: 1.0,
           lithium.package.name: 0.7,
         });
+
+        await scoreCardBackend.updateReport(
+            helium.package.name,
+            helium.package.latestVersion,
+            generatePanaReport(platformTags: ['flutter']));
+        await scoreCardBackend.updateScoreCard(
+            helium.package.name, helium.package.latestVersion);
 
         await fork(() async {
           registerAccountBackend(
