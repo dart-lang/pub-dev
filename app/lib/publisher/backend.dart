@@ -58,13 +58,6 @@ class PublisherBackend {
   }
 
   /// Updates the publisher data.
-  /// TODO: remove once publisher/backend_test.dart is migrated to use handlers.
-  Future updatePublisherData(String publisherId, String description) async {
-    await updatePublisher(
-        publisherId, api.UpdatePublisherRequest(description: description));
-  }
-
-  /// Updates the publisher data.
   Future<api.PublisherInfo> updatePublisher(
       String publisherId, api.UpdatePublisherRequest update) async {
     if (update.description != null) {

@@ -15,7 +15,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
-import 'package:pub_server/repository.dart';
+import 'package:pub_server/repository.dart' hide UnauthorizedAccessException;
 import 'package:pub_server/shelf_pubserver.dart'
     show PackageCache, ShelfPubServer;
 import 'package:uuid/uuid.dart';
