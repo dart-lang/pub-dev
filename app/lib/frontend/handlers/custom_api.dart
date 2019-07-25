@@ -6,13 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:client_data/package_api.dart';
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
-import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
@@ -22,8 +20,6 @@ import '../../shared/search_service.dart';
 import '../backend.dart';
 import '../models.dart';
 import '../name_tracker.dart';
-
-final _logger = Logger('frontend.custom_api');
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -273,19 +269,9 @@ Future<shelf.Response> getPackageOptionsHandler(
 /// Handles PUT /api/packages/<package>/options
 Future<shelf.Response> putPackageOptionsHandler(
     shelf.Request request, String package) async {
-  try {
-    final body = await request.readAsString();
-    final options =
-        PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
-    await backend.updateOptions(package, options);
-    return jsonResponse({'success': true});
-  } on UnauthorizedAccessException catch (_) {
-    return jsonResponse({'error': 'Not Authorized.'}, status: 403);
-  } on NotFoundException catch (e) {
-    return jsonResponse({'error': e.message}, status: 404);
-  } catch (e, st) {
-    _logger.warning('Error processing flag update.', e, st);
-    return jsonResponse({'error': 'Error while processing request.'},
-        status: 500);
-  }
+  final body = await request.readAsString();
+  final options =
+      PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
+  await backend.updateOptions(package, options);
+  return jsonResponse({'success': true});
 }

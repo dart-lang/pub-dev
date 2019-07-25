@@ -36,7 +36,7 @@ class PublisherBackend {
 
   /// Checks whether the current authenticated user has admin role of the
   /// publisher, and executes [fn] if it does.
-  /// Otherwise, it throws [UnauthorizedAccessException].
+  /// Otherwise, it throws [AuthorizationException].
   Future<R> _withPublisherAdmin<R>(
       String publisherId, Future<R> fn(Publisher p)) async {
     return await withAuthenticatedUser((user) async {
@@ -51,7 +51,7 @@ class PublisherBackend {
       if (member == null || member.role != PublisherMemberRole.admin) {
         _logger.info(
             'Unauthorized access of Publisher($publisherId) from ${user.email}.');
-        throw UnauthorizedAccessException('User is not an admin.');
+        throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
       }
       return await fn(p);
     });
