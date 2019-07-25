@@ -12,7 +12,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
-import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
@@ -22,8 +21,6 @@ import '../../shared/search_service.dart';
 import '../backend.dart';
 import '../models.dart';
 import '../name_tracker.dart';
-
-final _logger = Logger('frontend.custom_api');
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
