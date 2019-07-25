@@ -89,6 +89,15 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   final int pageSize = 100;
   final int page = extractPageFromUrlParameters(request.url);
 
+  // Check that we're not at last page (abuse -1 as special index in cache)
+  final lastPageCacheEntry = cache.apiPackagesListPage(-1);
+  final lastPage = await lastPageCacheEntry.get();
+  if (lastPage != null) {
+    if (page > (lastPage['page'] as num)) {
+      return jsonResponse({'message': 'no content'}, status: 400);
+    }
+  }
+
   final data = await cache.apiPackagesListPage(page).get(() async {
     final packages = await backend.latestPackages(
         offset: pageSize * (page - 1), limit: pageSize + 1);
@@ -151,6 +160,17 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     }
     return json;
   });
+
+  // Return 400, if there is no packages on this page.
+  if (data['packages'].length == 0) {
+    // Set the last page in cache, if not already there with a lower number.
+    final lastPage = await lastPageCacheEntry.get();
+    if (lastPage == null || lastPage['page'] as int > page) {
+      await lastPageCacheEntry.set({'page': page});
+    }
+    return jsonResponse({'message': 'no content'}, status: 400);
+  }
+
   return jsonResponse(data);
 }
 
