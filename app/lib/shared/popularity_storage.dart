@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:meta/meta.dart';
 import 'package:_popularity/popularity.dart';
 
 import '../shared/storage.dart';
@@ -86,6 +87,12 @@ class PopularityStorage {
     _dateRange = '${popularity.dateFirst?.toIso8601String()} - '
         '${popularity.dateLast?.toIso8601String()}';
     _logger.info('Popularity updated for ${popularity.items.length} packages.');
+  }
+
+  // Updates popularity scores to fixed values, useful for testing.
+  @visibleForTesting
+  void updateValues(Map<String, double> values) {
+    _values.addAll(values);
   }
 }
 

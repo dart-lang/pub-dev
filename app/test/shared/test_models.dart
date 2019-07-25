@@ -9,9 +9,10 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/frontend/model_properties.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/publisher/models.dart';
+import 'package:pub_dartlang_org/scorecard/models.dart';
 
 // regular package
 final hydrogen = generateBundle('hydrogen', generateVersions(13, increment: 9));
@@ -239,6 +240,7 @@ PkgBundle generateBundle(
   String homepage,
   List<User> uploaders,
   String publisherId,
+  String sdkConstraint = '>=2.4.0 <3.0.0',
   String pubspecExtraContent,
 }) {
   description ??= '$name is a Dart package';
@@ -265,6 +267,8 @@ PkgBundle generateBundle(
         'description: ${json.encode(description)}\n'
         'author: ${uploader.email}\n'
         'homepage: $homepage\n'
+        'environment:\n'
+        '  sdk: "$sdkConstraint"\n'
         '${pubspecExtraContent ?? ''}';
 
     final readme = (hash % 99 == 0) ? null : '# $name\n\n$description\n\n';
@@ -299,4 +303,21 @@ PkgBundle generateBundle(
   }
 
   return PkgBundle(package, versions);
+}
+
+PanaReport generatePanaReport({List<String> platformTags}) {
+  return PanaReport(
+      timestamp: DateTime.now(),
+      panaRuntimeInfo: PanaRuntimeInfo(),
+      reportStatus: ReportStatus.success,
+      healthScore: 1.0,
+      maintenanceScore: 0.6,
+      platformTags: platformTags,
+      platformReason: 'Set by test.',
+      pkgDependencies: null,
+      licenses: null,
+      panaSuggestions: null,
+      healthSuggestions: null,
+      maintenanceSuggestions: null,
+      flags: null);
 }
