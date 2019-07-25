@@ -7,11 +7,19 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:gcloud/service_scope.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart' as http_testing;
+import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
+import 'package:pub_dartlang_org/search/backend.dart';
+import 'package:pub_dartlang_org/search/handlers.dart';
+import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
 
 import '../shared/utils.dart';
@@ -46,12 +54,52 @@ void testWithServices(String name, Future fn()) {
       registerStorageService(MemStorage());
 
       await withPubServices(() async {
+        popularityStorage.updateValues({
+          hydrogen.package.name: 0.8,
+          helium.package.name: 1.0,
+          lithium.package.name: 0.7,
+        });
+
         await fork(() async {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
-          return await fn();
+
+          registerPackageIndex(SimplePackageIndex());
+          packageIndex.addPackage(
+              await searchBackend.loadDocument(hydrogen.package.name));
+          packageIndex.addPackage(
+              await searchBackend.loadDocument(helium.package.name));
+          packageIndex.addPackage(
+              await searchBackend.loadDocument(lithium.package.name));
+          await packageIndex.merge();
+
+          registerSearchClient(SearchClient(http_testing.MockClient(
+              _wrapShelfHandler(searchServiceHandler))));
+
+          registerScopeExitCallback(searchClient.close);
+
+          await fork(() async {
+            await fn();
+          });
         });
       });
     });
   });
+}
+
+http_testing.MockClientHandler _wrapShelfHandler(shelf.Handler handler) {
+  return (rq) async {
+    final shelfRq = shelf.Request(
+      rq.method,
+      rq.url,
+      body: rq.body,
+      headers: rq.headers,
+    );
+    final rs = await handler(shelfRq);
+    return http.Response(
+      await rs.readAsString(),
+      rs.statusCode,
+      headers: rs.headers,
+    );
+  };
 }

@@ -26,7 +26,9 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 /// indexed data.
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
-  final http.Client _httpClient = http.Client();
+  final http.Client _httpClient;
+
+  SearchClient([http.Client client]) : _httpClient = client ?? http.Client();
 
   Future<PackageSearchResult> search(SearchQuery query) async {
     final String httpHostPort = activeConfiguration.searchServicePrefix;

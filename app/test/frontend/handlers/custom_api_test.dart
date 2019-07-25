@@ -40,6 +40,7 @@ void main() {
                 'version': '5.8.6',
                 'pubspec': {
                   'homepage': 'https://example.com/lithium',
+                  'environment': {'sdk': '>=2.4.0 <3.0.0'},
                   'version': '5.8.6',
                   'name': 'lithium',
                   'author': 'hans@juergen.com',
@@ -58,6 +59,7 @@ void main() {
                 'version': '2.0.5',
                 'pubspec': {
                   'homepage': 'https://example.com/helium',
+                  'environment': {'sdk': '>=2.4.0 <3.0.0'},
                   'version': '2.0.5',
                   'name': 'helium',
                   'author': 'hans@juergen.com',
@@ -79,6 +81,7 @@ void main() {
                 'version': '2.0.8',
                 'pubspec': {
                   'homepage': 'https://example.com/hydrogen',
+                  'environment': {'sdk': '>=2.4.0 <3.0.0'},
                   'version': '2.0.8',
                   'name': 'hydrogen',
                   'author': 'hans@juergen.com',

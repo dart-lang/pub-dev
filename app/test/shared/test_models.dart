@@ -239,6 +239,7 @@ PkgBundle generateBundle(
   String homepage,
   List<User> uploaders,
   String publisherId,
+  String sdkConstraint = '>=2.4.0 <3.0.0',
   String pubspecExtraContent,
 }) {
   description ??= '$name is a Dart package';
@@ -265,6 +266,8 @@ PkgBundle generateBundle(
         'description: ${json.encode(description)}\n'
         'author: ${uploader.email}\n'
         'homepage: $homepage\n'
+        'environment:\n'
+        '  sdk: "$sdkConstraint"\n'
         '${pubspecExtraContent ?? ''}';
 
     final readme = (hash % 99 == 0) ? null : '# $name\n\n$description\n\n';
