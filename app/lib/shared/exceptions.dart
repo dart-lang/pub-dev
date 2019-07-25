@@ -9,9 +9,9 @@ library exceptions;
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
 import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
 
-/// Base class for all exceptions in this library.
-abstract class _BaseResponseException extends ApiResponseException {
-  _BaseResponseException(int status, String code, String message)
+/// Base class for all exceptions that are intercepted by HTTP handler wrappers.
+abstract class ResponseException extends ApiResponseException {
+  ResponseException._(int status, String code, String message)
       : super(status: status, code: code, message: message);
 
   @override
@@ -19,16 +19,16 @@ abstract class _BaseResponseException extends ApiResponseException {
 }
 
 /// Thrown when resource does not exist.
-class NotFoundException extends _BaseResponseException {
-  NotFoundException(String message) : super(404, 'NotFound', message);
+class NotFoundException extends ResponseException {
+  NotFoundException(String message) : super._(404, 'NotFound', message);
   NotFoundException.resource(String resource)
-      : super(404, 'NotFound', 'Could not find `$resource`.');
+      : super._(404, 'NotFound', 'Could not find `$resource`.');
 }
 
 /// Thrown when request input is invalid, bad payload, wrong querystring, etc.
-class InvalidInputException extends _BaseResponseException {
+class InvalidInputException extends ResponseException {
   InvalidInputException(String message)
-      : super(
+      : super._(
           400,
           'InvalidInput', // also duplicated in api_builder.dart
           message,
@@ -127,10 +127,10 @@ class InvalidInputException extends _BaseResponseException {
 }
 
 /// Thrown when authentication failed, credentials is missing or invalid.
-class AuthenticationException extends _BaseResponseException
+class AuthenticationException extends ResponseException
     implements UnauthorizedAccessException {
   AuthenticationException(String message)
-      : super(401, 'MissingAuthentication', message);
+      : super._(401, 'MissingAuthentication', message);
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
@@ -145,10 +145,10 @@ class AuthenticationException extends _BaseResponseException
 /// Example:
 ///  * Modifying a package for which the user doesn't have permissions,
 ///  * Creating a package without domain validation.
-class AuthorizationException extends _BaseResponseException
+class AuthorizationException extends ResponseException
     implements UnauthorizedAccessException {
   AuthorizationException(String message)
-      : super(403, 'InsufficientPermissions', message);
+      : super._(403, 'InsufficientPermissions', message);
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
@@ -161,10 +161,10 @@ class AuthorizationException extends _BaseResponseException
 ///  * Conflict when running datastore transaction to change a property,
 ///
 /// See: https://tools.ietf.org/html/rfc2616#section-10.4.10
-class ConflictException extends _BaseResponseException {
+class ConflictException extends ResponseException {
   /// Create a [ConflictException] with a [message] explaining what the conflict
   /// is and how to resolve it.
-  ConflictException(String message) : super(409, 'RequestConflict', message);
+  ConflictException(String message) : super._(409, 'RequestConflict', message);
 }
 
 /// Thrown when the analysis for a package is not done yet.

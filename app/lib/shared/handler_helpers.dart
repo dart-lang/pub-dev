@@ -56,12 +56,12 @@ shelf.Handler wrapHandler(
   bool sanitize = false,
 }) {
   handler = _uriValidationRequestWrapper(handler);
-  handler = _userAuthWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
   }
   handler = _httpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
+  handler = _userAuthWrapper(handler);
   handler = _cspHeaderWrapper(handler);
   handler = _requestContextWrapper(handler);
   return handler;
@@ -125,6 +125,16 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
     }
     try {
       return await handler(request);
+    } on ResponseException catch (e) {
+      if (shouldLog) {
+        logger.info('Caught response exception: $e');
+      }
+      final content =
+          markdownToHtml('# Error `${e.code}`\n\n${e.message}\n', null);
+      return htmlResponse(
+        renderLayoutPage(PageType.package, content, title: 'Error ${e.code}'),
+        status: e.status,
+      );
     } catch (error, st) {
       logger.severe('Request handler failed', error, Trace.from(st));
 
@@ -188,13 +198,7 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
 shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     await registerLoggedInUserIfPossible(request);
-    try {
-      return await handler(request);
-    } on AuthenticationException catch (e) {
-      return e.asApiResponse();
-    } on AuthorizationException catch (e) {
-      return e.asApiResponse();
-    }
+    return await handler(request);
   };
 }
 

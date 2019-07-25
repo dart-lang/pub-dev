@@ -253,21 +253,9 @@ Future<shelf.Response> getPackageOptionsHandler(
 /// Handles PUT /api/packages/<package>/options
 Future<shelf.Response> putPackageOptionsHandler(
     shelf.Request request, String package) async {
-  try {
-    final body = await request.readAsString();
-    final options =
-        PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
-    await backend.updateOptions(package, options);
-    return jsonResponse({'success': true});
-  } on AuthenticationException catch (_) {
-    return jsonResponse({'error': 'Not Authorized.'}, status: 403);
-  } on AuthorizationException catch (_) {
-    return jsonResponse({'error': 'Not Authorized.'}, status: 403);
-  } on NotFoundException catch (e) {
-    return jsonResponse({'error': e.message}, status: 404);
-  } catch (e, st) {
-    _logger.warning('Error processing flag update.', e, st);
-    return jsonResponse({'error': 'Error while processing request.'},
-        status: 500);
-  }
+  final body = await request.readAsString();
+  final options =
+      PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
+  await backend.updateOptions(package, options);
+  return jsonResponse({'success': true});
 }
