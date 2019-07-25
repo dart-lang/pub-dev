@@ -289,9 +289,7 @@ class Backend {
         }
         latestVersion = p.latestVersion;
         if (!p.hasUploader(user.userId)) {
-          throw AuthorizationException(
-            'Insufficient permissions to perform adminstrative tasks on package "$package"',
-          );
+          throw AuthorizationException.userIsNotAdminForPackage(package);
         }
         p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
         _logger.info('Updating $package options: '
@@ -518,9 +516,7 @@ class GCloudPackageRepository extends PackageRepository {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
-        throw AuthorizationException(
-          'Insufficient permissions to upload new versions of package "${package.name}"',
-        );
+        throw AuthorizationException.userCannotUploadNewVersion(package.name);
       }
 
       // Update the date when the package was last updated.
@@ -760,9 +756,7 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Fail if calling user doesn't have permission to change uploaders.
     if (!package.hasUploader(userId)) {
-      throw AuthorizationException(
-        'Unsufficient permissions to change uploaders for "$package"',
-      );
+      throw AuthorizationException.userCannotChangeUploaders(package.name);
     }
   }
 
@@ -783,8 +777,7 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if calling user doesn't have permission to change uploaders.
         if (!package.hasUploader(user.userId)) {
           await T.rollback();
-          throw AuthorizationException(
-              'insufficient permissions to change uploaders');
+          throw AuthorizationException.userCannotChangeUploaders(package.name);
         }
 
         final uploader =

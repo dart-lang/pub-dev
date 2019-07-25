@@ -46,7 +46,7 @@ AuthenticatedUser get authenticatedUser =>
 /// `AuthenticationException` exception.
 Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
   if (authenticatedUser == null) {
-    throw AuthenticationException('authentication required');
+    throw AuthenticationException.authenticationRequired();
   }
   return await fn(authenticatedUser);
 }

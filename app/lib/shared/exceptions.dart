@@ -4,6 +4,13 @@
 
 /// This library defines all exceptions that can be handled gracefully when
 /// thrown in HTTP handlers in this application.
+///
+/// As a rule of thumb, all exception message templates should be embedded in
+/// constructors located in this file, they should be documented and
+/// constructors accepting a generic message should not be exposed.
+///
+/// All messages may contain markdown, and should be sensible for human
+/// consumption.
 library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
@@ -27,7 +34,7 @@ class NotFoundException extends ResponseException {
 
 /// Thrown when request input is invalid, bad payload, wrong querystring, etc.
 class InvalidInputException extends ResponseException {
-  InvalidInputException(String message)
+  InvalidInputException._(String message)
       : super._(
           400,
           'InvalidInput', // also duplicated in api_builder.dart
@@ -39,7 +46,7 @@ class InvalidInputException extends ResponseException {
   static void check(bool condition, String message) {
     assert(message != null, '"message" must not be `null`');
     if (!condition) {
-      throw InvalidInputException(message);
+      throw InvalidInputException._(message);
     }
   }
 
@@ -48,7 +55,7 @@ class InvalidInputException extends ResponseException {
     assert(message != null, '"message" creator must not be `null`');
     assert(message() != null, '"message()" creator must not return `null`');
     if (!condition) {
-      throw InvalidInputException(message());
+      throw InvalidInputException._(message());
     }
   }
 
@@ -129,8 +136,14 @@ class InvalidInputException extends ResponseException {
 /// Thrown when authentication failed, credentials is missing or invalid.
 class AuthenticationException extends ResponseException
     implements UnauthorizedAccessException {
-  AuthenticationException(String message)
+  AuthenticationException._(String message)
       : super._(401, 'MissingAuthentication', message);
+
+  /// Signaling that `authorization` header was missing.
+  factory AuthenticationException.authenticationRequired() =>
+      AuthenticationException._(
+        'authenication is required, please add `authorization` header.',
+      );
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
@@ -147,8 +160,38 @@ class AuthenticationException extends ResponseException
 ///  * Creating a package without domain validation.
 class AuthorizationException extends ResponseException
     implements UnauthorizedAccessException {
-  AuthorizationException(String message)
+  AuthorizationException._(String message)
       : super._(403, 'InsufficientPermissions', message);
+
+  /// Signaling that the user is not an administrator for the given [package]
+  /// and, thus, unable to execute administrative actions.
+  factory AuthorizationException.userIsNotAdminForPackage(String package) =>
+      AuthorizationException._(
+        'Insufficient permissions to perform administrative actions on '
+        'package `$package`.',
+      );
+
+  /// Signaling that the user does not have permissions to upload a new version
+  /// of [package].
+  factory AuthorizationException.userCannotUploadNewVersion(String package) =>
+      AuthorizationException._(
+        'Insufficient permissions to upload new versions of package `$package`',
+      );
+
+  /// Signaling that the user does not have permissions to change uploaders for
+  /// given [package].
+  factory AuthorizationException.userCannotChangeUploaders(String package) =>
+      AuthorizationException._(
+        'Unsufficient permissions to change uploaders for `$package`',
+      );
+
+  /// Signaling that the user is not an administrator for the given [publisher]
+  /// and, thus, unable to execute administrative actions.
+  factory AuthorizationException.userIsNotAdminForPublisher(String publisher) =>
+      AuthorizationException._(
+        'Insufficient permissions to perform administrative actions on '
+        'package `$publisher`.',
+      );
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server
@@ -164,7 +207,8 @@ class AuthorizationException extends ResponseException
 class ConflictException extends ResponseException {
   /// Create a [ConflictException] with a [message] explaining what the conflict
   /// is and how to resolve it.
-  ConflictException(String message) : super._(409, 'RequestConflict', message);
+  ConflictException._(String message)
+      : super._(409, 'RequestConflict', message);
 }
 
 /// Thrown when the analysis for a package is not done yet.

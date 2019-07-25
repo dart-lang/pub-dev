@@ -51,9 +51,7 @@ class PublisherBackend {
       if (member == null || member.role != PublisherMemberRole.admin) {
         _logger.info(
             'Unauthorized access of Publisher($publisherId) from ${user.email}.');
-        throw AuthorizationException(
-          'Insufficient permissions to perform administrative tasks',
-        );
+        throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
       }
       return await fn(p);
     });
