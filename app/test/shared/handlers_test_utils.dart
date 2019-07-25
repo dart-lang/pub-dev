@@ -13,6 +13,9 @@ import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
+/// Send an API request for [method] and [uri] with an optional [jsonBody].
+/// The request will use the wrapped frontend handler and will not use real HTTP
+/// requests.
 Future<shelf.Response> httpRequest(
   String method,
   dynamic uri, {
