@@ -26,8 +26,12 @@ void main() {
         await expectJsonResponse(
           await update('example.com',
               jsonBody: {'description': 'new description'}),
-          status: 403,
-          body: {'code': 'UnauthorizedAccess', 'message': 'No active user.'},
+          status: 401,
+          body: {
+            'code': 'MissingAuthentication',
+            'message':
+                'authenication is required, please add `authorization` header.',
+          },
         );
       });
 
@@ -52,8 +56,9 @@ void main() {
               authToken: hansAuthenticated.userId),
           status: 403,
           body: {
-            'code': 'UnauthorizedAccess',
-            'message': 'User is not an admin.',
+            'code': 'InsufficientPermissions',
+            'message':
+                'Insufficient permissions to perform administrative actions on package `example.com`.',
           },
         );
       });
@@ -69,8 +74,9 @@ void main() {
               authToken: hansAuthenticated.userId),
           status: 403,
           body: {
-            'code': 'UnauthorizedAccess',
-            'message': 'User is not an admin.',
+            'code': 'InsufficientPermissions',
+            'message':
+                'Insufficient permissions to perform administrative actions on package `example.com`.',
           },
         );
       });
