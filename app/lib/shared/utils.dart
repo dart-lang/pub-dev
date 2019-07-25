@@ -238,8 +238,6 @@ Future<http.Response> getUrlWithRetry(http.Client client, String url,
         return result;
       }
     } catch (e, st) {
-      print(e);
-      print(st);
       _logger.warning(
           'HTTP GET failed on $url (${retryCount - i} retry left)', e, st);
       if (i == retryCount) rethrow;
