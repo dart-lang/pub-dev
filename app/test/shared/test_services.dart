@@ -140,6 +140,8 @@ http_testing.MockClientHandler _wrapShelfHandler(
       },
     );
     shelf.Response rs;
+    // Need to fork a service scope to create a separate RequestContext in the
+    // search service handler.
     await fork(() async {
       rs = await handler(shelfRq);
     });
