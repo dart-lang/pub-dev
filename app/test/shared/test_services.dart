@@ -86,7 +86,7 @@ void testWithServices(String name, Future fn()) {
           await packageIndex.merge();
 
           registerSearchClient(
-              SearchClient(httpClient(handler: searchServiceHandler)));
+              SearchClient(_httpClient(handler: searchServiceHandler)));
 
           registerScopeExitCallback(searchClient.close);
 
@@ -102,13 +102,13 @@ void testWithServices(String name, Future fn()) {
 /// Creates local, non-HTTP-based API client with [authToken].
 PubApiClient createPubApiClient({String authToken}) =>
     PubApiClient('http://localhost:0/',
-        client: httpClient(authToken: authToken));
+        client: _httpClient(authToken: authToken));
 
 /// Returns a HTTP client that bridges HTTP requests and shelf handlers without
 /// the actual HTTP transport layer.
 ///
 /// If [handler] is not specified, it will use the default frontend handler.
-http_testing.MockClient httpClient({
+http_testing.MockClient _httpClient({
   shelf.Handler handler,
   String authToken,
 }) {
