@@ -15,6 +15,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -97,6 +98,11 @@ void testWithServices(String name, Future fn()) {
     });
   });
 }
+
+/// Creates local, non-HTTP-based API client with [authToken].
+PubApiClient createPubApiClient({String authToken}) =>
+    PubApiClient('http://localhost:0/',
+        client: httpClient(authToken: authToken));
 
 /// Returns a HTTP client that bridges HTTP requests and shelf handlers without
 /// the actual HTTP transport layer.
