@@ -14,6 +14,11 @@ class RequestException implements Exception {
 
   RequestException(this.status, this.headers, [this.body]);
 
+  String bodyAsString() => utf8.decode(body);
+
+  Map<String, dynamic> bodyAsJson() =>
+      json.decode(bodyAsString()) as Map<String, dynamic>;
+
   @override
   String toString() => 'RequestException(status = $status)';
 }
