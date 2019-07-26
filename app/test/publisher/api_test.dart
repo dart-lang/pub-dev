@@ -21,8 +21,10 @@ void main() {
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
         );
-        await expectApiException(rs, 401, 'MissingAuthentication',
-            'authenication is required, please add `authorization` header.');
+        await expectApiException(rs,
+            status: 401,
+            code: 'MissingAuthentication',
+            message: 'please add `authorization` header');
       });
 
       testWithServices('No publisher with given id', () async {
@@ -31,8 +33,7 @@ void main() {
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
         );
-        await expectApiException(
-            rs, 404, 'NotFound', 'Publisher example.com does not exists.');
+        await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
       testWithServices('Not a member', () async {
@@ -42,8 +43,8 @@ void main() {
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
         );
-        await expectApiException(rs, 403, 'InsufficientPermissions',
-            'Insufficient permissions to perform administrative actions on package `example.com`.');
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
       });
 
       testWithServices('Not an admin yet', () async {
@@ -56,8 +57,8 @@ void main() {
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
         );
-        await expectApiException(rs, 403, 'InsufficientPermissions',
-            'Insufficient permissions to perform administrative actions on package `example.com`.');
+        await expectApiException(rs,
+            status: 403, code: 'InsufficientPermissions');
       });
 
       testWithServices('OK', () async {
