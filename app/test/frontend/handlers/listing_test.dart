@@ -4,8 +4,6 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
@@ -17,8 +15,7 @@ import 'package:pub_dartlang_org/shared/search_service.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_models.dart';
-import '../../shared/utils.dart';
-import '../backend_test_utils.dart';
+import '../../shared/test_services.dart';
 import '../mocks.dart';
 
 import '_utils.dart';
@@ -27,38 +24,19 @@ void main() {
   setUpAll(() => updateLocalBuiltFiles());
 
   group('old api', () {
-    scopedTest('/packages.json', () async {
-      final backend =
-          BackendMock(latestPackagesFun: ({offset, limit, detectedType}) {
-        expect(offset, 0);
-        expect(limit, greaterThan(pageSize));
-        return [foobarPackage];
-      }, lookupLatestVersionsFun: (List<Package> packages) {
-        expect(packages.length, 1);
-        expect(packages.first, foobarPackage);
-        return [foobarStablePV];
-      });
-      registerBackend(backend);
+    testWithServices('/packages.json', () async {
       await expectJsonResponse(await issueGet('/packages.json'), body: {
-        'packages': ['https://pub.dev/packages/foobar_pkg.json'],
+        'packages': [
+          'https://pub.dev/packages/foobar_pkg.json',
+          'https://pub.dev/packages/lithium.json',
+          'https://pub.dev/packages/helium.json',
+          'https://pub.dev/packages/hydrogen.json',
+        ],
         'next': null
       });
     });
 
-    tScopedTest('/packages/foobar_pkg.json', () async {
-      final backend = BackendMock(lookupPackageFun: (String package) {
-        expect(package, 'foobar_pkg');
-        return foobarPackage;
-      }, versionsOfPackageFun: (String package) {
-        expect(package, 'foobar_pkg');
-        return [foobarStablePV];
-      });
-      registerAccountBackend(AccountBackendMock(users: [
-        User()
-          ..id = 'hans-at-juergen-dot-com'
-          ..email = 'hans@juergen.com',
-      ]));
-      registerBackend(backend);
+    testWithServices('/packages/foobar_pkg.json', () async {
       await expectJsonResponse(await issueGet('/packages/foobar_pkg.json'),
           body: {
             'name': 'foobar_pkg',
@@ -69,34 +47,20 @@ void main() {
   });
 
   group('ui', () {
-    tScopedTest('/packages', () async {
-      registerSearchService(SearchServiceMock(
-        (SearchQuery query) {
-          expect(query.offset, 0);
-          expect(query.limit, pageSize);
-          expect(query.platform, isNull);
-          expect(query.isAd, isFalse);
-          return SearchResultPage(query, 1, [
-            PackageView.fromModel(
-                package: foobarPackage,
-                version: foobarStablePV,
-                scoreCard: null)
-          ]);
-        },
-      ));
-      final backend = BackendMock(
-        lookupPackageFun: (packageName) {
-          return packageName == foobarPackage.name ? foobarPackage : null;
-        },
-        lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, foobarPackage);
-          return [foobarStablePV];
-        },
+    testWithServices('/packages', () async {
+      await expectHtmlResponse(
+        await issueGet('/packages'),
+        present: [
+          '/packages/helium',
+          '/packages/hydrogen',
+          'hydrogen is a Dart package',
+        ],
+        absent: [
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
       );
-      registerBackend(backend);
-      registerAnalyzerClient(AnalyzerClientMock());
-      await expectHtmlResponse(await issueGet('/packages'));
     });
 
     tScopedTest('/packages?q=foobar', () async {
@@ -183,34 +147,20 @@ void main() {
       await expectHtmlResponse(await issueGet('/packages?page=2'));
     });
 
-    tScopedTest('/flutter/packages', () async {
-      registerSearchService(SearchServiceMock(
-        (SearchQuery query) {
-          expect(query.offset, 0);
-          expect(query.limit, pageSize);
-          expect(query.platform, 'flutter');
-          expect(query.isAd, isFalse);
-          return SearchResultPage(query, 1, [
-            PackageView.fromModel(
-                package: foobarPackage,
-                version: foobarStablePV,
-                scoreCard: null)
-          ]);
-        },
-      ));
-      final backend = BackendMock(
-        lookupPackageFun: (packageName) {
-          return packageName == foobarPackage.name ? foobarPackage : null;
-        },
-        lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, foobarPackage);
-          return [foobarStablePV];
-        },
+    testWithServices('/flutter/packages', () async {
+      await expectHtmlResponse(
+        await issueGet('/flutter/packages'),
+        present: [
+          '/packages/helium',
+        ],
+        absent: [
+          '/packages/hydrogen',
+          'hydrogen is a Dart package',
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
       );
-      registerBackend(backend);
-      registerAnalyzerClient(AnalyzerClientMock());
-      await expectHtmlResponse(await issueGet('/flutter/packages'));
     });
 
     tScopedTest('/flutter/packages&page=2', () async {
