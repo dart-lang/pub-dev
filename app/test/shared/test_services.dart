@@ -76,6 +76,9 @@ void testWithServices(String name, Future fn()) {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
 
+          registerDartSdkIndex(SimplePackageIndex());
+          await dartSdkIndex.merge();
+
           registerPackageIndex(SimplePackageIndex());
           packageIndex.addPackage(
               await searchBackend.loadDocument(hydrogen.package.name));
@@ -136,7 +139,10 @@ http_testing.MockClientHandler _wrapShelfHandler(
         ...rq.headers,
       },
     );
-    final rs = await handler(shelfRq);
+    shelf.Response rs;
+    await fork(() async {
+      rs = await handler(shelfRq);
+    });
     return http.Response(
       await rs.readAsString(),
       rs.statusCode,
