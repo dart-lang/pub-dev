@@ -15,6 +15,8 @@ import 'package:pub_dartlang_org/shared/redis_cache.dart' show cache;
 import 'package:pub_dartlang_org/frontend/backend.dart';
 
 final _argParser = ArgParser(allowTrailingOptions: true)
+  ..addFlag('help',
+      abbr: 'h', defaultsTo: false, negatable: false, help: 'show help message')
   ..addOption('discontinued',
       help: 'Set or clear the discontinued flag', allowed: ['set', 'clear'])
   ..addOption('do-not-advertise',
@@ -27,7 +29,7 @@ void _printUsage() {
 
 Future main(List<String> arguments) async {
   final argv = _argParser.parse(arguments);
-  if (argv.rest.isEmpty) {
+  if (argv.rest.isEmpty || argv['help'] == true) {
     _printUsage();
     exit(1);
   }
