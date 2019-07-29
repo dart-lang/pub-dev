@@ -156,10 +156,15 @@ dependencies:
 ''';
 
 final exampleComPublisher = Publisher()
+  ..parentKey = Key.emptyKey(Partition(null))
   ..id = 'example.com'
   ..description = 'This is us!'
+  ..contactEmail = 'contact@example.com'
   ..created = DateTime(2019, 07, 15)
   ..updated = DateTime(2019, 07, 16);
+
+final exampleComHansAdmin =
+    publisherMember(hansUser.userId, PublisherMemberRole.admin);
 
 PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
     PublisherMember()

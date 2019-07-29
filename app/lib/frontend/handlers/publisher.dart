@@ -21,13 +21,6 @@ Future<shelf.Response> createPublisherApiHandler(
   return notFoundHandler(request);
 }
 
-/// Handles requests for GET /api/publisher/<publisherId>
-Future<shelf.Response> getPublisherApiHandler(
-    shelf.Request request, String publisherId) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}
-
 /// Handles requests for POST /api/publisher/<publisherId>/invite-member
 Future<shelf.Response> invitePublisherMemberHandler(
     shelf.Request request, String publisherId) async {

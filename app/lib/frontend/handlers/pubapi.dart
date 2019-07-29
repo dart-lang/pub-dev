@@ -103,8 +103,8 @@ class PubApi {
 
   /// Returns publisher data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>')
-  Future<Response> publisherInfo(Request request, String publisherId) =>
-      getPublisherApiHandler(request, publisherId);
+  Future<PublisherInfo> publisherInfo(Request request, String publisherId) =>
+      publisherBackend.getPublisher(publisherId);
 
   /// Updates publisher data.
   @EndPoint.put('/api/publishers/<publisherId>')

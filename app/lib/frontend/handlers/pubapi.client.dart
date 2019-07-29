@@ -79,11 +79,11 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> publisherInfo(String publisherId) async {
-    return await _client.requestBytes(
+  Future<_i3.PublisherInfo> publisherInfo(String publisherId) async {
+    return _i3.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/publishers/$publisherId',
-    );
+    ));
   }
 
   Future<_i3.PublisherInfo> updatePublisher(

@@ -14,6 +14,23 @@ import '../shared/test_services.dart';
 
 void main() {
   group('Publisher API', () {
+    group('Get publisher info', () {
+      testWithServices('No publisher with given id', () async {
+        final client = createPubApiClient();
+        final rs = client.publisherInfo('example.net');
+        await expectApiException(rs, status: 404, code: 'NotFound');
+      });
+
+      testWithServices('OK', () async {
+        final client = createPubApiClient();
+        final rs = await client.publisherInfo('example.com');
+        expect(rs.toJson(), {
+          'description': 'This is us!',
+          'contact': 'contact@example.com',
+        });
+      });
+    });
+
     group('Update description', () {
       testWithServices('No active user', () async {
         final client = createPubApiClient();
@@ -30,14 +47,14 @@ void main() {
       testWithServices('No publisher with given id', () async {
         final client = createPubApiClient(authToken: hansAuthenticated.userId);
         final rs = client.updatePublisher(
-          'example.com',
+          'example.net',
           UpdatePublisherRequest(description: 'new description'),
         );
         await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
       testWithServices('Not a member', () async {
-        await dbService.commit(inserts: [exampleComPublisher]);
+        await dbService.commit(deletes: [exampleComHansAdmin.key]);
         final client = createPubApiClient(authToken: hansAuthenticated.userId);
         final rs = client.updatePublisher(
           'example.com',
@@ -49,7 +66,6 @@ void main() {
 
       testWithServices('Not an admin yet', () async {
         await dbService.commit(inserts: [
-          exampleComPublisher,
           publisherMember(hansUser.userId, PublisherMemberRole.pending),
         ]);
         final client = createPubApiClient(authToken: hansAuthenticated.userId);
@@ -62,10 +78,6 @@ void main() {
       });
 
       testWithServices('OK', () async {
-        await dbService.commit(inserts: [
-          exampleComPublisher,
-          publisherMember(hansUser.userId, PublisherMemberRole.admin),
-        ]);
         final client = createPubApiClient(authToken: hansAuthenticated.userId);
         final rs = await client.updatePublisher(
           'example.com',
@@ -73,8 +85,11 @@ void main() {
         );
         expect(rs.toJson(), {
           'description': 'new description',
-          'contact': null,
+          'contact': 'contact@example.com',
         });
+        // Info request should return with the same content.
+        final info = await client.publisherInfo('example.com');
+        expect(info.toJson(), rs.toJson());
       });
     });
   });

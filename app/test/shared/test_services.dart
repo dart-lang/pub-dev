@@ -54,6 +54,8 @@ void testWithServices(String name, Future fn()) {
         ...helium.versions,
         lithium.package,
         ...lithium.versions,
+        exampleComPublisher,
+        exampleComHansAdmin,
       ]);
       registerDbService(db);
       registerStorageService(MemStorage());
