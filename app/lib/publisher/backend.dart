@@ -91,6 +91,23 @@ class PublisherBackend {
     return _asPublisherInfo(p);
   }
 
+  /// List the members of a publishers
+  Future<api.PublisherMembers> listPublisherMembers(String publisherId) async {
+    return await _withPublisherAdmin(publisherId, (p) async {
+      final query = _db.query<PublisherMember>(ancestorKey: p.key);
+      final members = <api.PublisherMember>[];
+      await for (final pm in query.run()) {
+        final member = api.PublisherMember(
+          userId: pm.userId,
+          email: await accountBackend.getEmailOfUserId(pm.userId),
+          role: pm.role,
+        );
+        members.add(member);
+      }
+      return api.PublisherMembers(members: members);
+    });
+  }
+
   api.PublisherInfo _asPublisherInfo(Publisher p) =>
       api.PublisherInfo(description: p.description, contact: p.contactEmail);
 }

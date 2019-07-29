@@ -119,8 +119,9 @@ class PubApi {
 
   /// Returns publisher members data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>/members')
-  Future<Response> listPublisherMembers(Request request, String publisherId) =>
-      getPublisherMembersApiHandler(request, publisherId);
+  Future<PublisherMembers> listPublisherMembers(
+          Request request, String publisherId) =>
+      publisherBackend.listPublisherMembers(publisherId);
 
   /// Returns a publisher's member data and role in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>/members/<userId>')

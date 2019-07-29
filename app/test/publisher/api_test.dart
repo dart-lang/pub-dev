@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:client_data/publisher_api.dart';
+import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -15,11 +18,7 @@ import '../shared/test_services.dart';
 void main() {
   group('Publisher API', () {
     group('Get publisher info', () {
-      testWithServices('No publisher with given id', () async {
-        final client = createPubApiClient();
-        final rs = client.publisherInfo('example.net');
-        await expectApiException(rs, status: 404, code: 'NotFound');
-      });
+      _testNoPublisher((client) => client.publisherInfo('no-domain.net'));
 
       testWithServices('OK', () async {
         final client = createPubApiClient();
@@ -32,50 +31,19 @@ void main() {
     });
 
     group('Update description', () {
-      testWithServices('No active user', () async {
-        final client = createPubApiClient();
-        final rs = client.updatePublisher(
+      _testAdminAuthIssues(
+        (client) => client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
-        );
-        await expectApiException(rs,
-            status: 401,
-            code: 'MissingAuthentication',
-            message: 'please add `authorization` header');
-      });
+        ),
+      );
 
-      testWithServices('No publisher with given id', () async {
-        final client = createPubApiClient(authToken: hansAuthenticated.userId);
-        final rs = client.updatePublisher(
+      _testNoPublisher(
+        (client) => client.updatePublisher(
           'example.net',
           UpdatePublisherRequest(description: 'new description'),
-        );
-        await expectApiException(rs, status: 404, code: 'NotFound');
-      });
-
-      testWithServices('Not a member', () async {
-        await dbService.commit(deletes: [exampleComHansAdmin.key]);
-        final client = createPubApiClient(authToken: hansAuthenticated.userId);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(description: 'new description'),
-        );
-        await expectApiException(rs,
-            status: 403, code: 'InsufficientPermissions');
-      });
-
-      testWithServices('Not an admin yet', () async {
-        await dbService.commit(inserts: [
-          publisherMember(hansUser.userId, PublisherMemberRole.pending),
-        ]);
-        final client = createPubApiClient(authToken: hansAuthenticated.userId);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(description: 'new description'),
-        );
-        await expectApiException(rs,
-            status: 403, code: 'InsufficientPermissions');
-      });
+        ),
+      );
 
       testWithServices('OK', () async {
         final client = createPubApiClient(authToken: hansAuthenticated.userId);
@@ -92,5 +60,66 @@ void main() {
         expect(info.toJson(), rs.toJson());
       });
     });
+
+    group('List members', () {
+      _testAdminAuthIssues(
+        (client) => client.listPublisherMembers('example.com'),
+      );
+
+      _testNoPublisher(
+        (client) => client.listPublisherMembers('no-domain.net'),
+      );
+
+      testWithServices('OK', () async {
+        final client = createPubApiClient(authToken: hansAuthenticated.userId);
+        final rs = await client.listPublisherMembers('example.com');
+        expect(_json(rs.toJson()), {
+          'members': [
+            {
+              'userId': 'hans-at-juergen-dot-com',
+              'email': 'hans@juergen.com',
+              'role': 'admin',
+            },
+          ],
+        });
+      });
+    });
+  });
+}
+
+dynamic _json(value) => json.decode(json.encode(value));
+
+void _testAdminAuthIssues(Future fn(PubApiClient client)) {
+  testWithServices('No active user', () async {
+    final client = createPubApiClient();
+    final rs = fn(client);
+    await expectApiException(rs,
+        status: 401,
+        code: 'MissingAuthentication',
+        message: 'please add `authorization` header');
+  });
+
+  testWithServices('Not a member', () async {
+    await dbService.commit(deletes: [exampleComHansAdmin.key]);
+    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final rs = fn(client);
+    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
+  });
+
+  testWithServices('Not an admin yet', () async {
+    await dbService.commit(inserts: [
+      publisherMember(hansUser.userId, PublisherMemberRole.pending),
+    ]);
+    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final rs = fn(client);
+    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
+  });
+}
+
+void _testNoPublisher(Future fn(PubApiClient client)) {
+  testWithServices('No publisher with given id', () async {
+    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final rs = fn(client);
+    await expectApiException(rs, status: 404, code: 'NotFound');
   });
 }
