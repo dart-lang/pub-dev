@@ -170,18 +170,6 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   return jsonResponse(data);
 }
 
-/// Whether [requestedUri] matches /api/packages/<package>/metrics
-bool isHandlerForApiPackageMetrics(Uri requestedUri) {
-  final requestedPath = requestedUri.path;
-  final parts = requestedPath.split('/');
-  return parts.length == 5 &&
-      parts[0] == '' &&
-      parts[1] == 'api' &&
-      parts[2] == 'packages' &&
-      parts[3].isNotEmpty &&
-      parts[4] == 'metrics';
-}
-
 /// Handles requests for
 /// - /api/packages/<package>/metrics
 Future<shelf.Response> apiPackageMetricsHandler(
