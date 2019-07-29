@@ -84,6 +84,34 @@ void main() {
         });
       });
     });
+
+    group('Get member detail', () {
+      _testAdminAuthIssues(
+        (client) => client.publisherMemberInfo('example.com', hansUser.userId),
+      );
+
+      _testNoPublisher(
+        (client) =>
+            client.publisherMemberInfo('no-domain.net', hansUser.userId),
+      );
+
+      testWithServices('User is not a member', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.publisherMemberInfo('example.com', 'not-a-user-id');
+        await expectApiException(rs, status: 404, code: 'NotFound');
+      });
+
+      testWithServices('OK', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs =
+            await client.publisherMemberInfo('example.com', hansUser.userId);
+        expect(rs.toJson(), {
+          'userId': 'hans-at-juergen-dot-com',
+          'email': 'hans@juergen.com',
+          'role': 'admin',
+        });
+      });
+    });
   });
 }
 
@@ -99,14 +127,14 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
         message: 'please add `authorization` header');
   });
 
-  testWithServices('Not a member', () async {
+  testWithServices('Active user is not a member', () async {
     await dbService.commit(deletes: [exampleComHansAdmin.key]);
     final client = createPubApiClient(authToken: hansAuthenticated.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
 
-  testWithServices('Not an admin yet', () async {
+  testWithServices('Active user is not an admin yet', () async {
     await dbService.commit(inserts: [
       publisherMember(hansUser.userId, PublisherMemberRole.pending),
     ]);

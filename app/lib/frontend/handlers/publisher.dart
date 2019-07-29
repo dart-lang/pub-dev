@@ -28,13 +28,6 @@ Future<shelf.Response> invitePublisherMemberHandler(
   return notFoundHandler(request);
 }
 
-/// Handles requests for GET /api/publisher/<publisherId>/members/<userId>
-Future<shelf.Response> getPublisherMemberDataApiHandler(
-    shelf.Request request, String publisherId, String userId) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}
-
 /// Handles requests for PUT /api/publisher/<publisherId>/members/<userId>
 Future<shelf.Response> putPublisherMemberDataApiHandler(
     shelf.Request request, String publisherId, String userId) async {

@@ -109,12 +109,12 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> publisherMemberInfo(
+  Future<_i3.PublisherMember> publisherMemberInfo(
       String publisherId, String userId) async {
-    return await _client.requestBytes(
+    return _i3.PublisherMember.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/publishers/$publisherId/members/$userId',
-    );
+    ));
   }
 
   Future<List<int>> updatePublisherMember(

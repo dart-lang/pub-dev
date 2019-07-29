@@ -108,6 +108,23 @@ class PublisherBackend {
     });
   }
 
+  /// Returns the membership info of a user.
+  Future<api.PublisherMember> publisherMemberInfo(
+      String publisherId, String userId) async {
+    return await _withPublisherAdmin(publisherId, (p) async {
+      final key = p.key.append(PublisherMember, id: userId);
+      final pm = (await _db.lookup<PublisherMember>([key])).single;
+      if (pm == null) {
+        throw NotFoundException.resource('member: $userId');
+      }
+      return api.PublisherMember(
+        userId: pm.userId,
+        role: pm.role,
+        email: await accountBackend.getEmailOfUserId(pm.userId),
+      );
+    });
+  }
+
   api.PublisherInfo _asPublisherInfo(Publisher p) =>
       api.PublisherInfo(description: p.description, contact: p.contactEmail);
 }

@@ -162,7 +162,7 @@ Router _$PubApiRouter(PubApi service) {
     try {
       final _$result =
           await service.publisherMemberInfo(request, publisherId, userId);
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {
