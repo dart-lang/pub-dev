@@ -148,8 +148,10 @@ class PubApi {
     Request request,
     String publisherId,
     String userId,
-  ) =>
-      deletePublisherMemberDataApiHandler(request, publisherId, userId);
+  ) async {
+    await publisherBackend.deletePublisherMember(publisherId, userId);
+    return jsonResponse({'status': 'OK'});
+  }
 
   // ****
   // **** Account, authentication and user administration API

@@ -152,6 +152,21 @@ class PublisherBackend {
     });
   }
 
+  /// Deletes a publisher's member.
+  Future deletePublisherMember(String publisherId, String userId) async {
+    if (userId == authenticatedUser?.userId) {
+      throw ConflictException.cantUpdateSelf();
+    }
+    return await _withPublisherAdmin(publisherId, (p) async {
+      final key = p.key.append(PublisherMember, id: userId);
+      final pm = (await _db.lookup<PublisherMember>([key])).single;
+      if (pm == null) {
+        throw NotFoundException.resource('member: $userId');
+      }
+      await _db.commit(deletes: [pm.key]);
+    });
+  }
+
   api.PublisherInfo _asPublisherInfo(Publisher p) =>
       api.PublisherInfo(description: p.description, contact: p.contactEmail);
 

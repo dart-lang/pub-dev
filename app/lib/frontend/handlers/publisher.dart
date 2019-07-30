@@ -27,10 +27,3 @@ Future<shelf.Response> invitePublisherMemberHandler(
   // TODO: implement
   return notFoundHandler(request);
 }
-
-/// Handles requests for DELETE /api/publisher/<publisherId>/members/<userId>
-Future<shelf.Response> deletePublisherMemberDataApiHandler(
-    shelf.Request request, String publisherId, String userId) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}

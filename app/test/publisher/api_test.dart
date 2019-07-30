@@ -180,6 +180,45 @@ void main() {
         expect(updated.toJson(), rs.toJson());
       });
     });
+
+    group('Delete member', () {
+      _testAdminAuthIssues(
+        (client) =>
+            client.removePublisherMember('example.com', testUserA.userId),
+      );
+
+      _testNoPublisher(
+        (client) =>
+            client.removePublisherMember('no-domain.net', testUserA.userId),
+      );
+
+      testWithServices('Modification of self is blocked', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.removePublisherMember('example.com', hansUser.userId);
+        await expectApiException(rs, status: 409, code: 'RequestConflict');
+      });
+
+      testWithServices('Modification of unrelated user is blocked', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs =
+            client.removePublisherMember('example.com', testUserA.userId);
+        await expectApiException(rs, status: 404, code: 'NotFound');
+      });
+
+      testWithServices('OK', () async {
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, PublisherMemberRole.admin),
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs =
+            await client.removePublisherMember('example.com', testUserA.userId);
+        expect(json.fuse(utf8).decode(rs), {'status': 'OK'});
+        // Info request should return with NotFound exception.
+        final updated =
+            client.publisherMemberInfo('example.com', testUserA.userId);
+        await expectApiException(updated, status: 404, code: 'NotFound');
+      });
+    });
   });
 }
 
