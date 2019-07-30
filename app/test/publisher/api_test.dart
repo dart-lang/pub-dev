@@ -112,6 +112,74 @@ void main() {
         });
       });
     });
+
+    group('Update member detail', () {
+      _testAdminAuthIssues(
+        (client) => client.updatePublisherMember(
+          'example.com',
+          testUserA.userId,
+          UpdatePublisherMemberRequest(role: 'admin'),
+        ),
+      );
+
+      _testNoPublisher(
+        (client) => client.updatePublisherMember(
+          'no-domain.net',
+          testUserA.userId,
+          UpdatePublisherMemberRequest(role: 'admin'),
+        ),
+      );
+
+      testWithServices('Modification of self is blocked', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisherMember(
+            'example.com', hansUser.userId, UpdatePublisherMemberRequest());
+        await expectApiException(rs, status: 409, code: 'RequestConflict');
+      });
+
+      testWithServices('Modification of unrelated user is blocked', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisherMember(
+            'example.com', testUserA.userId, UpdatePublisherMemberRequest());
+        await expectApiException(rs, status: 404, code: 'NotFound');
+      });
+
+      testWithServices('Pending invite upgrade is blocked', () async {
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, PublisherMemberRole.pending),
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisherMember(
+            'example.com',
+            testUserA.userId,
+            UpdatePublisherMemberRequest(
+              role: PublisherMemberRole.admin,
+            ));
+        await expectApiException(rs, status: 409, code: 'RequestConflict');
+      });
+
+      testWithServices('OK', () async {
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, PublisherMemberRole.member),
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.updatePublisherMember(
+            'example.com',
+            testUserA.userId,
+            UpdatePublisherMemberRequest(
+              role: PublisherMemberRole.admin,
+            ));
+        expect(rs.toJson(), {
+          'userId': 'a-example-com',
+          'role': 'admin',
+          'email': 'a@example.com',
+        });
+        // Info request should return with the same content.
+        final updated =
+            await client.publisherMemberInfo('example.com', testUserA.userId);
+        expect(updated.toJson(), rs.toJson());
+      });
+    });
   });
 }
 

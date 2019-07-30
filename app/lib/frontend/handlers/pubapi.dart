@@ -134,12 +134,13 @@ class PubApi {
 
   /// Updates a publisher's member data and role.
   @EndPoint.put('/api/publishers/<publisherId>/members/<userId>')
-  Future<Response> updatePublisherMember(
+  Future<PublisherMember> updatePublisherMember(
     Request request,
     String publisherId,
     String userId,
+    UpdatePublisherMemberRequest update,
   ) =>
-      putPublisherMemberDataApiHandler(request, publisherId, userId);
+      publisherBackend.updatePublisherMember(publisherId, userId, update);
 
   /// Deletes a publisher's member.
   @EndPoint.delete('/api/publishers/<publisherId>/members/<userId>')

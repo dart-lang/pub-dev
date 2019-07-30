@@ -117,14 +117,49 @@ class PublisherBackend {
       if (pm == null) {
         throw NotFoundException.resource('member: $userId');
       }
-      return api.PublisherMember(
-        userId: pm.userId,
-        role: pm.role,
-        email: await accountBackend.getEmailOfUserId(pm.userId),
-      );
+      return await _asPublisherMember(pm);
+    });
+  }
+
+  /// Updates the membership info of a user.
+  Future<api.PublisherMember> updatePublisherMember(
+    String publisherId,
+    String userId,
+    api.UpdatePublisherMemberRequest update,
+  ) async {
+    if (userId == authenticatedUser?.userId) {
+      throw ConflictException.cantUpdateSelf();
+    }
+    return await _withPublisherAdmin(publisherId, (p) async {
+      final key = p.key.append(PublisherMember, id: userId);
+      final pm = (await _db.lookup<PublisherMember>([key])).single;
+      if (pm == null) {
+        throw NotFoundException.resource('member: $userId');
+      }
+      if (update.role != null && update.role != pm.role) {
+        if (pm.role == PublisherMemberRole.pending) {
+          throw ConflictException.invitePending();
+        }
+        await _db.withTransaction((tx) async {
+          final current = (await tx.lookup<PublisherMember>([key])).single;
+          current.role = update.role;
+          tx.queueMutations(inserts: [current]);
+          await tx.commit();
+        });
+      }
+      final updated = (await _db.lookup<PublisherMember>([key])).single;
+      return await _asPublisherMember(updated);
     });
   }
 
   api.PublisherInfo _asPublisherInfo(Publisher p) =>
       api.PublisherInfo(description: p.description, contact: p.contactEmail);
+
+  Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
+    return api.PublisherMember(
+      userId: pm.userId,
+      role: pm.role,
+      email: await accountBackend.getEmailOfUserId(pm.userId),
+    );
+  }
 }

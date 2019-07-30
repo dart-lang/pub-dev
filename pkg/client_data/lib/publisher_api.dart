@@ -109,7 +109,7 @@ class UpdatePublisherMemberRequest {
   /// The role or access-level of for this user in the given publisher.
   ///
   /// Allowed values are:
-  ///  * `'owner'`, can perform any operation.
+  ///  * `'admin'`, can perform any operation.
   ///
   /// If left `null` the server will ignore this field and leave it unchanged.
   final String role;

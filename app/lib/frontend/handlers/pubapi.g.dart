@@ -172,9 +172,15 @@ Router _$PubApiRouter(PubApi service) {
   router.add('PUT', r'/api/publishers/<publisherId>/members/<userId>',
       (Request request, String publisherId, String userId) async {
     try {
-      final _$result =
-          await service.updatePublisherMember(request, publisherId, userId);
-      return _$result;
+      final _$result = await service.updatePublisherMember(
+          request,
+          publisherId,
+          userId,
+          await $utilities.decodeJson<UpdatePublisherMemberRequest>(request,
+              (o) {
+            return UpdatePublisherMemberRequest.fromJson(o);
+          }));
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

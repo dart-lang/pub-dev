@@ -117,12 +117,13 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> updatePublisherMember(
-      String publisherId, String userId) async {
-    return await _client.requestBytes(
+  Future<_i3.PublisherMember> updatePublisherMember(String publisherId,
+      String userId, _i3.UpdatePublisherMemberRequest payload) async {
+    return _i3.PublisherMember.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/publishers/$publisherId/members/$userId',
-    );
+      body: payload.toJson(),
+    ));
   }
 
   Future<List<int>> removePublisherMember(
