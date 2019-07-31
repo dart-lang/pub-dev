@@ -203,7 +203,7 @@ Router _$PubApiRouter(PubApi service) {
       (Request request, String consentId) async {
     try {
       final _$result = await service.consentInfo(request, consentId);
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {
@@ -213,8 +213,13 @@ Router _$PubApiRouter(PubApi service) {
   router.add('PUT', r'/api/account/consent/<consentId>',
       (Request request, String consentId) async {
     try {
-      final _$result = await service.resolveConsent(request, consentId);
-      return _$result;
+      final _$result = await service.resolveConsent(
+          request,
+          consentId,
+          await $utilities.decodeJson<ConsentResult>(request, (o) {
+            return ConsentResult.fromJson(o);
+          }));
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

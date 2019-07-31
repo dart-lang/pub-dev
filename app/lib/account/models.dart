@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart' as db;
+import 'package:meta/meta.dart';
+import 'package:ulid/ulid.dart';
 
 /// User data model with a random UUID id.
 @db.Kind(name: 'User', idType: db.IdType.String)
@@ -47,3 +49,79 @@ class UserInfo extends db.ExpandoModel {
   @db.DateTimeProperty()
   DateTime updated;
 }
+
+/// An active consent request sent to the recipient [User] (the parent entity).
+@db.Kind(name: 'Consent', idType: db.IdType.String)
+class Consent extends db.Model {
+  /// The consent id.
+  String get consentId => id as String;
+
+  /// The user that this consent is for.
+  String get userId => parentKey.id as String;
+
+  /// A [Uri.path]-like concatenation of identifiers from [type] and [args].
+  /// It should be used to query the Datastore for duplicate detection.
+  @db.StringProperty()
+  String dedupId;
+
+  @db.StringProperty()
+  String type;
+
+  @db.StringListProperty()
+  List<String> args;
+
+  @db.StringProperty()
+  String fromUserId;
+
+  @db.DateTimeProperty()
+  DateTime created;
+
+  @db.DateTimeProperty()
+  DateTime expires;
+
+  @db.DateTimeProperty()
+  DateTime lastNotified;
+
+  @db.IntProperty()
+  int notificationCount;
+
+  @db.StringProperty(indexed: false)
+  String descriptionText;
+
+  @db.StringProperty(indexed: false)
+  String descriptionHtml;
+
+  Consent();
+
+  Consent.init({
+    @required db.Key parentKey,
+    @required this.type,
+    @required this.args,
+    @required this.fromUserId,
+    @required this.descriptionText,
+    @required this.descriptionHtml,
+    Duration timeout = const Duration(days: 7),
+  }) {
+    this.parentKey = parentKey;
+    this.id = Ulid().toString();
+    dedupId = consentDedupId(type, args);
+    created = DateTime.now().toUtc();
+    notificationCount = 0;
+    expires = created.add(timeout);
+  }
+
+  bool isExpired() => DateTime.now().toUtc().isAfter(expires);
+
+  /// The timestamp when the next notification could be sent out.
+  DateTime get nextNotification =>
+      (lastNotified ?? created).add(Duration(minutes: 1 << notificationCount));
+
+  /// Whether a new notification should be sent.
+  bool shouldNotify() =>
+      notificationCount == 0 ||
+      DateTime.now().toUtc().isAfter(nextNotification);
+}
+
+/// Calculates the dedupId of a consent request.
+String consentDedupId(String type, List<String> args) =>
+    Uri(pathSegments: [type, ...args]).toString();

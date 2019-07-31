@@ -17,6 +17,16 @@ Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
       'isUploader': instance.isUploader,
     };
 
+Consent _$ConsentFromJson(Map<String, dynamic> json) {
+  return Consent(
+    html: json['html'] as String,
+  );
+}
+
+Map<String, dynamic> _$ConsentToJson(Consent instance) => <String, dynamic>{
+      'html': instance.html,
+    };
+
 ConsentResult _$ConsentResultFromJson(Map<String, dynamic> json) {
   return ConsentResult(
     granted: json['granted'] as bool,

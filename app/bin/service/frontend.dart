@@ -12,6 +12,7 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import 'package:pub_dartlang_org/account/consent_backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
@@ -51,8 +52,10 @@ Future _main(FrontendEntryMessage message) async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
     // Add randomization to reduce race conditions.
-    Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)), (_) {
-      backend.deleteObsoleteInvites();
+    Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
+        (_) async {
+      await backend.deleteObsoleteInvites();
+      await consentBackend.deleteObsoleteConsents();
     });
 
     final cron = CronJobs(await getOrCreateBucket(

@@ -1,7 +1,9 @@
 import 'package:api_builder/api_builder.dart';
+import 'package:client_data/account_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
+import '../../account/consent_backend.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
@@ -159,13 +161,14 @@ class PubApi {
 
   /// Returns the consent request details.
   @EndPoint.get('/api/account/consent/<consentId>')
-  Future<Response> consentInfo(Request request, String consentId) =>
-      getAccountConsentHandler(request, consentId);
+  Future<Consent> consentInfo(Request request, String consentId) =>
+      consentBackend.getConsent(consentId);
 
   /// Accepts or declines the consent.
   @EndPoint.put('/api/account/consent/<consentId>')
-  Future<Response> resolveConsent(Request request, String consentId) =>
-      putAccountConsentHandler(request, consentId);
+  Future<ConsentResult> resolveConsent(
+          Request request, String consentId, ConsentResult result) =>
+      consentBackend.resolveConsent(consentId, result);
 
   // ****
   // **** Custom API
