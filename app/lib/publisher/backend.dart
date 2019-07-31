@@ -48,7 +48,9 @@ class PublisherBackend {
       final member = (await _db.lookup<PublisherMember>(
               [p.key.append(PublisherMember, id: user.userId)]))
           .single;
-      if (member == null || member.role != PublisherMemberRole.admin) {
+      if (member == null ||
+          member.role != PublisherMemberRole.admin ||
+          member.isPending) {
         _logger.info(
             'Unauthorized access of Publisher($publisherId) from ${user.email}.');
         throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
@@ -97,12 +99,7 @@ class PublisherBackend {
       final query = _db.query<PublisherMember>(ancestorKey: p.key);
       final members = <api.PublisherMember>[];
       await for (final pm in query.run()) {
-        final member = api.PublisherMember(
-          userId: pm.userId,
-          email: await accountBackend.getEmailOfUserId(pm.userId),
-          role: pm.role,
-        );
-        members.add(member);
+        members.add(await _asPublisherMember(pm));
       }
       return api.PublisherMembers(members: members);
     });
@@ -130,6 +127,11 @@ class PublisherBackend {
     if (userId == authenticatedUser?.userId) {
       throw ConflictException.cantUpdateSelf();
     }
+    if (update.role != null) {
+      InvalidInputException.check(
+          PublisherMemberRole.values.contains(update.role),
+          'Role `${update.role}` is not an allowed value.');
+    }
     return await _withPublisherAdmin(publisherId, (p) async {
       final key = p.key.append(PublisherMember, id: userId);
       final pm = (await _db.lookup<PublisherMember>([key])).single;
@@ -137,7 +139,7 @@ class PublisherBackend {
         throw NotFoundException.resource('member: $userId');
       }
       if (update.role != null && update.role != pm.role) {
-        if (pm.role == PublisherMemberRole.pending) {
+        if (pm.isPending) {
           throw ConflictException.invitePending();
         }
         await _db.withTransaction((tx) async {
@@ -173,6 +175,7 @@ class PublisherBackend {
   Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
     return api.PublisherMember(
       userId: pm.userId,
+      isPending: pm.isPending,
       role: pm.role,
       email: await accountBackend.getEmailOfUserId(pm.userId),
     );

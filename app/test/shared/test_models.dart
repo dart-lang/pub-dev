@@ -166,10 +166,14 @@ final exampleComPublisher = Publisher()
 final exampleComHansAdmin =
     publisherMember(hansUser.userId, PublisherMemberRole.admin);
 
-PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
+PublisherMember publisherMember(String userId, String role,
+        {bool isPending = false, Key parentKey}) =>
     PublisherMember()
       ..parentKey = parentKey ?? exampleComPublisher.key
       ..id = userId
+      ..invited = DateTime(2019, 07, 16)
+      ..accepted = isPending ? DateTime(2019, 07, 31) : null
+      ..isPending = isPending
       ..role = role;
 
 class PkgBundle {
