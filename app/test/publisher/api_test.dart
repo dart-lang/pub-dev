@@ -7,7 +7,9 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
+import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart';
+import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 
@@ -58,6 +60,241 @@ void main() {
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
         expect(info.toJson(), rs.toJson());
+      });
+    });
+
+    group('Invite a new member', () {
+      Future queryConstents(String userId) async {
+        final ancestorKey = dbService.emptyKey.append(User, id: userId);
+        final query = dbService.query<Consent>(ancestorKey: ancestorKey);
+        return await query
+            .run()
+            .map((c) => {
+                  'id': c.consentId,
+                  'type': c.type,
+                  'args': c.args,
+                  'notificationCount': c.notificationCount,
+                  'descriptionText': c.descriptionText,
+                  'descriptionHtml': c.descriptionHtml,
+                })
+            .toList();
+      }
+
+      _testAdminAuthIssues(
+        (client) => client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+              email: testUserA.email,
+              reason: 'Need more admin.',
+            )),
+      );
+
+      _testNoPublisher((client) => client.invitePublisherMember(
+          'no-domain.net',
+          InviteMemberRequest(
+            email: testUserA.email,
+            reason: 'Need more admin.',
+          )));
+
+      testWithServices('Invalid e-mail', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: 'not an e-mail'));
+        await expectApiException(rs, status: 400, code: 'InvalidInput');
+      });
+
+      testWithServices('User is already a member', () async {
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, PublisherMemberRole.admin),
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: testUserA.email));
+        await expectApiException(rs, status: 400, code: 'InvalidInput');
+      });
+
+      testWithServices('Pending without Content entry, sending new e-mail',
+          () async {
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, PublisherMemberRole.admin,
+              isPending: true),
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: testUserA.email));
+        expect(rs.emailSent, isTrue);
+        expect(await queryConstents(testUserA.userId), [
+          {
+            'id': isNotNull,
+            'type': 'PublisherMember',
+            'args': ['example.com'],
+            'notificationCount': 1,
+            'descriptionText': 'be a member of publisher example.com.',
+            'descriptionHtml': 'Be a member of publisher example.com.',
+          }
+        ]);
+        final info =
+            await client.publisherMemberInfo('example.com', testUserA.userId);
+        expect(info.toJson(), {
+          'userId': 'a-example-com',
+          'isPending': true,
+          'role': 'admin',
+          'email': 'a@example.com',
+        });
+      });
+
+      testWithServices('Pending with Consent, sending new e-mail', () async {
+        final consent = Consent.init(
+          parentKey: testUserA.key,
+          fromUserId: hansUser.userId,
+          type: 'PublisherMember',
+          args: ['example.com'],
+          descriptionText: 'text',
+          descriptionHtml: 'html',
+        );
+        consent.created = consent.created.subtract(Duration(hours: 1));
+        consent.notificationCount++;
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, PublisherMemberRole.admin,
+              isPending: true),
+          consent,
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: testUserA.email));
+        expect(rs.emailSent, isTrue);
+        expect(await queryConstents(testUserA.userId), [
+          {
+            'id': isNotNull,
+            'type': 'PublisherMember',
+            'args': ['example.com'],
+            'notificationCount': 2,
+            'descriptionText': 'text',
+            'descriptionHtml': 'html',
+          }
+        ]);
+        final info =
+            await client.publisherMemberInfo('example.com', testUserA.userId);
+        expect(info.toJson(), {
+          'userId': 'a-example-com',
+          'isPending': true,
+          'role': 'admin',
+          'email': 'a@example.com'
+        });
+      });
+
+      testWithServices('Invite new account', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: 'newuser@example.com'));
+        expect(rs.emailSent, isTrue);
+        final list = await client.listPublisherMembers('example.com');
+        final m =
+            list.members.firstWhere((m) => m.email == 'newuser@example.com');
+        expect(m.toJson(), {
+          'userId':
+              matches(RegExp('[0-f]{8}-[0-f]{4}-[0-f]{4}-[0-f]{4}-[0-f]{12}')),
+          'isPending': true,
+          'role': 'admin',
+          'email': 'newuser@example.com'
+        });
+        expect(await queryConstents(m.userId), [
+          {
+            'id': isNotNull,
+            'type': 'PublisherMember',
+            'args': ['example.com'],
+            'notificationCount': 1,
+            'descriptionText': 'be a member of publisher example.com.',
+            'descriptionHtml': 'Be a member of publisher example.com.',
+          }
+        ]);
+      });
+
+      testWithServices('Invite existing account', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: testUserA.email));
+        expect(rs.emailSent, isTrue);
+        expect(await queryConstents(testUserA.userId), [
+          {
+            'id': isNotNull,
+            'type': 'PublisherMember',
+            'args': ['example.com'],
+            'notificationCount': 1,
+            'descriptionText': 'be a member of publisher example.com.',
+            'descriptionHtml': 'Be a member of publisher example.com.',
+          }
+        ]);
+      });
+
+      testWithServices('Don not send e-mail twice in a row', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs1 = await client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: testUserA.email));
+        expect(rs1.emailSent, isTrue);
+        final rs2 = await client.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: testUserA.email));
+        expect(rs2.emailSent, isFalse);
+      });
+
+      testWithServices('Accept invite', () async {
+        final client1 = createPubApiClient(authToken: hansUser.userId);
+        await client1.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: joeUser.email));
+        final consents = await dbService
+            .query<Consent>(ancestorKey: joeUser.key)
+            .run()
+            .toList();
+        final consentId = consents.single.consentId;
+        final client2 = createPubApiClient(authToken: joeUser.userId);
+        final rs2 = await client2.resolveConsent(
+            consentId, account_api.ConsentResult(granted: true));
+        expect(rs2.granted, isTrue);
+        final m =
+            await client1.publisherMemberInfo('example.com', joeUser.userId);
+        expect(m.toJson(), {
+          'userId': 'joe-at-example-dot-com',
+          'isPending': false, // must not be pending!
+          'role': 'admin',
+          'email': 'joe@example.com',
+        });
+      });
+
+      testWithServices('Decline invite', () async {
+        final client1 = createPubApiClient(authToken: hansUser.userId);
+        await client1.invitePublisherMember(
+            'example.com',
+            InviteMemberRequest(
+                reason: 'Need more admin.', email: joeUser.email));
+        final consents = await dbService
+            .query<Consent>(ancestorKey: joeUser.key)
+            .run()
+            .toList();
+        final consentId = consents.single.consentId;
+        final client2 = createPubApiClient(authToken: joeUser.userId);
+        final rs2 = await client2.resolveConsent(
+            consentId, account_api.ConsentResult(granted: false));
+        expect(rs2.granted, isFalse);
+        final rs3 = client1.publisherMemberInfo('example.com', joeUser.userId);
+        await expectApiException(rs3, status: 404, code: 'NotFound');
       });
     });
 

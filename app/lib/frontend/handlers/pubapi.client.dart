@@ -96,11 +96,13 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> invitePublisherMember(String publisherId) async {
-    return await _client.requestBytes(
+  Future<_i4.InviteStatus> invitePublisherMember(
+      String publisherId, _i3.InviteMemberRequest payload) async {
+    return _i4.InviteStatus.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/publishers/$publisherId/invite-member',
-    );
+      body: payload.toJson(),
+    ));
   }
 
   Future<_i3.PublisherMembers> listPublisherMembers(String publisherId) async {

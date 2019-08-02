@@ -45,3 +45,19 @@ class ConsentResult {
 
   Map<String, dynamic> toJson() => _$ConsentResultToJson(this);
 }
+
+/// The status of the current member invitation.
+@JsonSerializable()
+class InviteStatus {
+  /// Whether a new notification e-mail was sent with the current request.
+  final bool emailSent;
+
+  /// On a repeated request we throttle the sending of the e-mails, we won't
+  /// send a new message before this timestamp.
+  final DateTime nextNotification;
+
+  InviteStatus({@required this.emailSent, @required this.nextNotification});
+  factory InviteStatus.fromJson(Map<String, dynamic> json) =>
+      _$InviteStatusFromJson(json);
+  Map<String, dynamic> toJson() => _$InviteStatusToJson(this);
+}

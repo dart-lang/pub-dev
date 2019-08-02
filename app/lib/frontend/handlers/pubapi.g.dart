@@ -137,9 +137,13 @@ Router _$PubApiRouter(PubApi service) {
   router.add('POST', r'/api/publishers/<publisherId>/invite-member',
       (Request request, String publisherId) async {
     try {
-      final _$result =
-          await service.invitePublisherMember(request, publisherId);
-      return _$result;
+      final _$result = await service.invitePublisherMember(
+          request,
+          publisherId,
+          await $utilities.decodeJson<InviteMemberRequest>(request, (o) {
+            return InviteMemberRequest.fromJson(o);
+          }));
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

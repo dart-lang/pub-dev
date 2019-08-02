@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../account/backend.dart';
+import '../account/consent_backend.dart';
+import '../shared/email.dart';
 import '../shared/exceptions.dart';
 
 import 'models.dart';
@@ -93,6 +96,40 @@ class PublisherBackend {
     return _asPublisherInfo(p);
   }
 
+  /// Invites a user to become a publisher admin.
+  Future<account_api.InviteStatus> invitePublisherMember(
+      String publisherId, api.InviteMemberRequest invite) async {
+    return await _withPublisherAdmin(publisherId, (p) async {
+      InvalidInputException.check(
+          isValidEmail(invite.email), 'Invalid e-mail: `${invite.email}`');
+      final user = await accountBackend.lookupOrCreateUserByEmail(invite.email);
+
+      final userId = user.userId;
+      final key = p.key.append(PublisherMember, id: userId);
+      final pm = (await _db.lookup<PublisherMember>([key])).single;
+      if (pm != null) {
+        InvalidInputException.check(pm.isPending, 'User is already a member.');
+      } else {
+        await _db.commit(inserts: [
+          PublisherMember()
+            ..parentKey = p.key
+            ..id = userId
+            ..invited = DateTime.now().toUtc()
+            ..isPending = true
+            ..role = PublisherMemberRole.admin
+        ]);
+      }
+
+      return await consentBackend.invite(
+        userId: userId,
+        type: 'PublisherMember',
+        args: [p.publisherId],
+        descriptionText: 'be a member of publisher $publisherId.',
+        descriptionHtml: 'Be a member of publisher $publisherId.',
+      );
+    });
+  }
+
   /// List the members of a publishers
   Future<api.PublisherMembers> listPublisherMembers(String publisherId) async {
     return await _withPublisherAdmin(publisherId, (p) async {
@@ -166,6 +203,41 @@ class PublisherBackend {
         throw NotFoundException.resource('member: $userId');
       }
       await _db.commit(deletes: [pm.key]);
+    });
+  }
+
+  /// A callback from consent backend, when a consent is granted.
+  Future inviteConsentGranted(String publisherId, String userId) async {
+    await _db.withTransaction((tx) async {
+      final key = _db.emptyKey
+          .append(Publisher, id: publisherId)
+          .append(PublisherMember, id: userId);
+      final list = await tx.lookup<PublisherMember>([key]);
+      final member = list.single;
+      if (member == null) {
+        throw NotFoundException('Membership invite was deleted.');
+      }
+      if (member.isPending) {
+        member.isPending = false;
+        tx.queueMutations(inserts: [member]);
+        await tx.commit();
+      }
+    });
+  }
+
+  /// A callback from consent backend, when a consent is not granted, or expired.
+  Future inviteDeleted(String publisherId, String userId) async {
+    await _db.withTransaction((tx) async {
+      final key = _db.emptyKey
+          .append(Publisher, id: publisherId)
+          .append(PublisherMember, id: userId);
+      final list = await tx.lookup<PublisherMember>([key]);
+      final member = list.single;
+      if (member == null) return;
+      if (member.isPending) {
+        tx.queueMutations(deletes: [member.key]);
+        await tx.commit();
+      }
     });
   }
 

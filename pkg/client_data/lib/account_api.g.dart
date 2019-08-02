@@ -37,3 +37,18 @@ Map<String, dynamic> _$ConsentResultToJson(ConsentResult instance) =>
     <String, dynamic>{
       'granted': instance.granted,
     };
+
+InviteStatus _$InviteStatusFromJson(Map<String, dynamic> json) {
+  return InviteStatus(
+    emailSent: json['emailSent'] as bool,
+    nextNotification: json['nextNotification'] == null
+        ? null
+        : DateTime.parse(json['nextNotification'] as String),
+  );
+}
+
+Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
+    <String, dynamic>{
+      'emailSent': instance.emailSent,
+      'nextNotification': instance.nextNotification?.toIso8601String(),
+    };

@@ -177,7 +177,7 @@ EmailMessage createInviteEmail({
   final subject = 'You have a new invitation to confirm on $primaryHost';
   final bodyText = '''Dear Dart developer,
 
-$activeAccountEmail has sent your the following invite: $message
+$activeAccountEmail has invited you to $message.
 
 To accept this invitation, visit the following URL:
 $consentUrl

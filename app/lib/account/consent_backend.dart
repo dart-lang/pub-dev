@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
+import '../publisher/backend.dart';
 import '../shared/email.dart' show createInviteEmail;
 import '../shared/exceptions.dart';
 import '../shared/urls.dart';
@@ -30,7 +31,9 @@ ConsentBackend get consentBackend =>
 /// Represents the backend for the consent handling and authentication.
 class ConsentBackend {
   final DatastoreDB _db;
-  final _actions = <String, ConsentAction>{};
+  final _actions = <String, ConsentAction>{
+    'PublisherMember': _PublisherMemberAction(),
+  };
 
   ConsentBackend(this._db);
 
@@ -72,7 +75,7 @@ class ConsentBackend {
   /// Create a new invitation, or
   /// - if it already exists, re-send the notification, or
   /// - if it was sent recently, do nothing.
-  Future<InviteStatus> invite({
+  Future<api.InviteStatus> invite({
     @required String userId,
     @required String type,
     @required List<String> args,
@@ -96,7 +99,8 @@ class ConsentBackend {
             // non-expired entries just re-send the notification
             return await _sendNotification(old);
           } else {
-            return InviteStatus(false, old.nextNotification);
+            return api.InviteStatus(
+                emailSent: false, nextNotification: old.nextNotification);
           }
         }
         // Create a new entry.
@@ -114,7 +118,7 @@ class ConsentBackend {
     });
   }
 
-  Future<InviteStatus> _sendNotification(Consent consent) async {
+  Future<api.InviteStatus> _sendNotification(Consent consent) async {
     final invitedEmail = await accountBackend.getEmailOfUserId(consent.userId);
     await emailSender.sendMessage(createInviteEmail(
       activeAccountEmail: authenticatedUser.email,
@@ -128,8 +132,9 @@ class ConsentBackend {
       c.lastNotified = DateTime.now().toUtc();
       tx.queueMutations(inserts: [c]);
       await tx.commit();
-      return InviteStatus(true, c.nextNotification);
-    }) as InviteStatus;
+      return api.InviteStatus(
+          emailSent: true, nextNotification: c.nextNotification);
+    }) as api.InviteStatus;
   }
 
   /// Removes obsolete/expired [Consent] entries from Datastore.
@@ -159,13 +164,6 @@ class ConsentBackend {
   }
 }
 
-class InviteStatus {
-  final bool notificationSent;
-  final DateTime nextNotification;
-
-  InviteStatus(this.notificationSent, this.nextNotification);
-}
-
 /// Callback that will be called on consent actions.
 abstract class ConsentAction {
   /// Callback on accepting the consent.
@@ -173,4 +171,17 @@ abstract class ConsentAction {
 
   /// Callback on rejecting the consent or timeout.
   Future onDelete(String userId, List<String> args);
+}
+
+/// Callbacks for publisher member consents.
+class _PublisherMemberAction implements ConsentAction {
+  @override
+  Future onAccept(String userId, List<String> args) async {
+    await publisherBackend.inviteConsentGranted(args.single, userId);
+  }
+
+  @override
+  Future onDelete(String userId, List<String> args) async {
+    await publisherBackend.inviteDeleted(args.single, userId);
+  }
 }

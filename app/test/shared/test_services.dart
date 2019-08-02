@@ -48,6 +48,7 @@ void testWithServices(String name, Future fn()) {
         foobarDevPV,
         testUserA,
         hansUser,
+        joeUser,
         hydrogen.package,
         ...hydrogen.versions,
         helium.package,

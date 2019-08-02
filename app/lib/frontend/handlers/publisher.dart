@@ -20,10 +20,3 @@ Future<shelf.Response> createPublisherApiHandler(
   // TODO: implement
   return notFoundHandler(request);
 }
-
-/// Handles requests for POST /api/publisher/<publisherId>/invite-member
-Future<shelf.Response> invitePublisherMemberHandler(
-    shelf.Request request, String publisherId) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}
