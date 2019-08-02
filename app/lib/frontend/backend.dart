@@ -771,7 +771,8 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if package doesn't exist.
         if (package == null) {
           await T.rollback();
-          throw GenericProcessingException('Package "$package" does not exist');
+          throw GenericProcessingException(
+              'Package "$packageName" does not exist');
         }
 
         // Fail if calling user doesn't have permission to change uploaders.
