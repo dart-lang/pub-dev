@@ -199,10 +199,9 @@ class PublisherBackend {
     return await _withPublisherAdmin(publisherId, (p) async {
       final key = p.key.append(PublisherMember, id: userId);
       final pm = (await _db.lookup<PublisherMember>([key])).single;
-      if (pm == null) {
-        throw NotFoundException.resource('member: $userId');
+      if (pm != null) {
+        await _db.commit(deletes: [pm.key]);
       }
-      await _db.commit(deletes: [pm.key]);
     });
   }
 

@@ -472,11 +472,11 @@ void main() {
         await expectApiException(rs, status: 409, code: 'RequestConflict');
       });
 
-      testWithServices('Modification of unrelated user is blocked', () async {
+      testWithServices('Remove of non-member is idempotent', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs =
-            client.removePublisherMember('example.com', testUserA.userId);
-        await expectApiException(rs, status: 404, code: 'NotFound');
+            await client.removePublisherMember('example.com', testUserA.userId);
+        expect(json.fuse(utf8).decode(rs), {'status': 'OK'});
       });
 
       testWithServices('OK', () async {
