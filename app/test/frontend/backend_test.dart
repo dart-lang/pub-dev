@@ -376,159 +376,95 @@ void main() {
     });
 
     group('GCloudRepository.removeUploader', () {
-      testWithCache('not logged in', () async {
-        final db = DatastoreDBMock();
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = foobarPackage.name;
-        final f = repo.removeUploader(pkg, 'a@b.com');
-        await f.catchError(expectAsync2((e, _) {
-          expect(e is pub_server.UnauthorizedAccessException, isTrue);
-        }));
+      testWithServices('not logged in', () async {
+        final rs =
+            backend.repository.removeUploader('hydrogen', hansUser.email);
+        await expectLater(
+            rs,
+            throwsA(isException.having(
+                (e) => '$e', 'toString', contains('MissingAuthentication'))));
       });
 
-      testWithCache('not authorized', () async {
-        final transactionMock = TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, foobarPackage.key);
-              return [foobarPackage];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
+      testWithServices('not authorized', () async {
+        // replace uploader for the scope of this test
+        final pkg =
+            (await dbService.lookup<Package>([hydrogen.package.key])).single;
+        pkg.addUploader(testUserA.userId);
+        pkg.removeUploader(hansUser.userId);
+        await dbService.commit(inserts: [pkg]);
 
-        final pkg = foobarPackage.name;
-        registerAuthenticatedUser(
-            AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
-        final f = repo.removeUploader(pkg, 'a@b.com');
-        await f.catchError(expectAsync2((e, _) {
-          expect(e is pub_server.UnauthorizedAccessException, isTrue);
-        }));
-      });
-
-      testWithCache('package does not exist', () async {
-        final transactionMock = TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, foobarPackage.key);
-              return [null];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = foobarPackage.name;
         registerAuthenticatedUser(hansAuthenticated);
-        final f = repo.removeUploader(pkg, 'a@b.com');
-        await f.catchError(expectAsync2((e, _) {
-          expect('$e', equals('Package "null" does not exist'));
-        }));
+        final rs =
+            backend.repository.removeUploader('hydrogen', hansUser.email);
+        await expectLater(
+            rs,
+            throwsA(isException.having(
+                (e) => '$e', 'toString', contains('InsufficientPermissions'))));
       });
 
-      testWithCache('cannot remove last uploader', () async {
-        final testPackage = createFoobarPackage();
-        final transactionMock = TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [testPackage];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = testPackage.name;
+      testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        registerAccountBackend(
-            AccountBackendMock(authenticatedUsers: [hansAuthenticated]));
-        await repo
-            .removeUploader(pkg, hansAuthenticated.email)
-            .catchError(expectAsync2((e, _) {
-          expect(e is pub_server.LastUploaderRemoveException, isTrue);
-        }));
+        final rs =
+            backend.repository.removeUploader('non_hydrogen', hansUser.email);
+        await expectLater(
+            rs,
+            throwsA(isException.having((e) => '$e', 'toString',
+                'Package "non_hydrogen" does not exist')));
       });
 
-      testWithCache('cannot remove non-existent uploader', () async {
-        final transactionMock = TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, foobarPackage.key);
-              return [foobarPackage];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = foobarPackage.name;
+      testWithServices('cannot remove last uploader', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        registerAccountBackend(AccountBackendMock());
-        await repo
-            .removeUploader(pkg, 'foo2@bar.com')
-            .catchError(expectAsync2((e, _) {
-          expect('$e', 'The uploader to remove does not exist.');
-        }));
+        final rs =
+            backend.repository.removeUploader('hydrogen', hansUser.email);
+        await expectLater(
+            rs,
+            throwsA(isException.having((e) => '$e', 'toString',
+                'LastUploaderRemoved: Cannot remove last uploader of a package.')));
       });
 
-      testWithCache('cannot remove self', () async {
-        final foo1 = AuthenticatedUser('uuid-foo1', 'foo1@bar.com');
-        final foo2 = AuthenticatedUser('uuid-foo2', 'foo2@bar.com');
-        final testPackage = createFoobarPackage(uploaders: [foo1, foo2]);
-        final transactionMock = TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [testPackage];
-            }),
-            rollbackFun: expectAsync0(() {}));
-        final db = DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = testPackage.name;
-        registerAuthenticatedUser(foo1);
-        registerAccountBackend(AccountBackendMock(authenticatedUsers: [foo1]));
-        await repo
-            .removeUploader(pkg, 'foo1@bar.com')
-            .catchError(expectAsync2((e, _) {
-          expect('$e',
-              'Self-removal is not allowed. Use another account to remove this e-mail address.');
-        }));
+      testWithServices('cannot remove non-existent uploader', () async {
+        registerAuthenticatedUser(hansAuthenticated);
+        final rs =
+            backend.repository.removeUploader('hydrogen', 'foo2@bar.com');
+        await expectLater(
+            rs,
+            throwsA(isException.having((e) => '$e', 'toString',
+                'The uploader to remove does not exist.')));
       });
 
-      testWithCache('successful', () async {
-        final userA = AuthenticatedUser('uuid-a', 'a@x.com');
-        final userB = AuthenticatedUser('uuid-b', 'b@x.com');
-        final testPackage = createFoobarPackage(uploaders: [userA, userB]);
-        registerHistoryBackend(HistoryBackendMock());
-        final completion = TestDelayCompletion();
-        final transactionMock = TransactionMock(
-            lookupFun: expectAsync1((keys) {
-              expect(keys, hasLength(1));
-              expect(keys.first, testPackage.key);
-              return [testPackage];
-            }),
-            queueMutationFun: ({inserts, deletes}) {
-              expect(inserts, hasLength(2));
-              expect(inserts.first.uploaders.contains('uuid-b'), isFalse);
-              expect(inserts[1] is History, isTrue);
-              completion.complete();
-            },
-            commitFun: expectAsync0(() {}));
-        final db = DatastoreDBMock(transactionMock: transactionMock);
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
+      testWithServices('cannot remove self', () async {
+        // adding extra uploader for the scope of this test
+        final pkg =
+            (await dbService.lookup<Package>([hydrogen.package.key])).single;
+        pkg.addUploader(testUserA.userId);
+        await dbService.commit(inserts: [pkg]);
 
-        final pkg = testPackage.name;
-        registerAuthenticatedUser(userA);
-        registerAccountBackend(
-            AccountBackendMock(authenticatedUsers: [userA, userB]));
-        await repo.removeUploader(pkg, 'b@x.com');
+        registerAuthenticatedUser(hansAuthenticated);
+        final rs =
+            backend.repository.removeUploader('hydrogen', hansUser.email);
+        await expectLater(
+            rs,
+            throwsA(isException.having((e) => '$e', 'toString',
+                'Self-removal is not allowed. Use another account to remove this e-mail address.')));
+      });
+
+      testWithServices('successful1', () async {
+        // adding extra uploader for the scope of this test
+        final key = hydrogen.package.key;
+        final pkg1 = (await dbService.lookup<Package>([key])).single;
+        pkg1.addUploader(testUserA.userId);
+        await dbService.commit(inserts: [pkg1]);
+
+        // verify before change
+        final pkg2 = (await dbService.lookup<Package>([key])).single;
+        expect(pkg2.uploaders, [hansUser.userId, testUserA.userId]);
+
+        registerAuthenticatedUser(hansAuthenticated);
+        await backend.repository.removeUploader('hydrogen', testUserA.email);
+
+        // verify after change
+        final pkg3 = (await dbService.lookup<Package>([key])).single;
+        expect(pkg3.uploaders, [hansUser.userId]);
       });
     });
 
@@ -549,78 +485,42 @@ void main() {
     });
 
     group('GCloudRepository.lookupVersion', () {
-      test('not found', () async {
-        final db = DatastoreDBMock(lookupFun: expectAsync1((keys) {
-          expect(keys, hasLength(1));
-          expect(keys.first, foobarStablePVKey);
-          return [null];
-        }));
-        final repo = GCloudPackageRepository(db, null);
-        final version = await repo.lookupVersion(
-            foobarStablePV.package, foobarStablePV.version);
+      testWithServices('package not found', () async {
+        final version =
+            await backend.repository.lookupVersion('not_hydrogen', '1.0.0');
         expect(version, isNull);
       });
 
-      test('successful', () async {
-        final db = DatastoreDBMock(lookupFun: expectAsync1((keys) {
-          expect(keys, hasLength(1));
-          expect(keys.first, foobarStablePVKey);
-          return [foobarStablePV];
-        }));
-        final repo = GCloudPackageRepository(db, null);
-        final version = await repo.lookupVersion(
-            foobarStablePV.package, foobarStablePV.version);
+      testWithServices('version not found', () async {
+        final version =
+            await backend.repository.lookupVersion('hydrogen', '0.3.0');
+        expect(version, isNull);
+      });
+
+      testWithServices('successful', () async {
+        final version =
+            await backend.repository.lookupVersion('hydrogen', '1.0.0');
         expect(version, isNotNull);
-        expect(version.packageName, foobarStablePV.package);
-        expect(version.versionString, foobarStablePV.version);
+        expect(version.packageName, 'hydrogen');
+        expect(version.versionString, '1.0.0');
       });
     });
 
     group('GCloudRepository.versions', () {
-      test('not found', () async {
-        final completion = TestDelayCompletion();
-        Stream<PackageVersion> queryRunFun(
-            {partition,
-            ancestorKey,
-            filters,
-            filterComparisonObjects,
-            offset,
-            limit,
-            orders}) {
-          completion.complete();
-          expect(ancestorKey, foobarPkgKey);
-          return Stream.fromIterable(<PackageVersion>[]);
-        }
-
-        final queryMock = QueryMock(queryRunFun);
-        final db = DatastoreDBMock(queryMock: queryMock);
-        final repo = GCloudPackageRepository(db, null);
-        final version = await repo.versions(foobarStablePV.package).toList();
-        expect(version, isEmpty);
+      testWithServices('not found', () async {
+        final versions =
+            await backend.repository.versions('non_hydrogen').toList();
+        expect(versions, isEmpty);
       });
 
-      test('found', () async {
-        final completion = TestDelayCompletion();
-        Stream<PackageVersion> queryRunFun(
-            {partition,
-            ancestorKey,
-            filters,
-            filterComparisonObjects,
-            offset,
-            limit,
-            orders}) {
-          completion.complete();
-          expect(ancestorKey, foobarPkgKey);
-          return Stream.fromIterable([foobarStablePV]);
-        }
-
-        final queryMock = QueryMock(queryRunFun);
-        final db = DatastoreDBMock(queryMock: queryMock);
-        final repo = GCloudPackageRepository(db, null);
-        final version = await repo.versions(foobarStablePV.package).toList();
-        expect(version, hasLength(1));
-        expect(version.first.packageName, foobarStablePV.package);
-        expect(version.first.versionString, foobarStablePV.version);
+      testWithServices('found', () async {
+        final versions = await backend.repository.versions('hydrogen').toList();
+        expect(versions, isNotEmpty);
+        expect(versions, hasLength(13));
+        expect(versions.first.packageName, 'hydrogen');
+        expect(versions.first.versionString, '1.0.0');
+        expect(versions.last.packageName, 'hydrogen');
+        expect(versions.last.versionString, '2.0.8');
       });
     });
 
