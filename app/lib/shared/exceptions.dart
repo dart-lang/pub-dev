@@ -214,6 +214,10 @@ class ConflictException extends ResponseException {
   factory ConflictException.cantUpdateSelf() =>
       ConflictException._('Can\'t update self.');
 
+  /// The active user can't update their own role.
+  factory ConflictException.cantUpdateOwnRole() =>
+      ConflictException._('User can\'t update their own role.');
+
   /// Can't update or modify an entity, because a related invite is pending.
   factory ConflictException.invitePending() =>
       ConflictException._('Invite is pending.');

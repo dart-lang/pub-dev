@@ -372,7 +372,11 @@ void main() {
       testWithServices('Modification of self is blocked', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = client.updatePublisherMember(
-            'example.com', hansUser.userId, UpdatePublisherMemberRequest());
+            'example.com',
+            hansUser.userId,
+            UpdatePublisherMemberRequest(
+              role: 'x',
+            ));
         await expectApiException(rs, status: 409, code: 'RequestConflict');
       });
 

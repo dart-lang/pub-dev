@@ -162,13 +162,6 @@ class PublisherBackend {
     String userId,
     api.UpdatePublisherMemberRequest update,
   ) async {
-    if (userId == authenticatedUser?.userId) {
-      throw ConflictException.cantUpdateSelf();
-    }
-    if (update.role != null) {
-      InvalidInputException.checkAnyOf(
-          update.role, 'role', PublisherMemberRole.values);
-    }
     return await _withPublisherAdmin(publisherId, (p) async {
       final key = p.key.append(PublisherMember, id: userId);
       final pm = (await _db.lookup<PublisherMember>([key])).single;
@@ -176,12 +169,20 @@ class PublisherBackend {
         throw NotFoundException.resource('member: $userId');
       }
       if (update.role != null && update.role != pm.role) {
+        // user is not allowed to update their own role
+        if (userId == authenticatedUser?.userId) {
+          throw ConflictException.cantUpdateOwnRole();
+        }
+        // role needs to be from the allowed set of values
+        InvalidInputException.checkAnyOf(
+            update.role, 'role', PublisherMemberRole.values);
         if (pm.isPending) {
           throw ConflictException.invitePending();
         }
         await _db.withTransaction((tx) async {
           final current = (await tx.lookup<PublisherMember>([key])).single;
-          current.role = update.role;
+          // fall back to current role if role is not updated
+          current.role = update.role ?? current.role;
           tx.queueMutations(inserts: [current]);
           await tx.commit();
         });
