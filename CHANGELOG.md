@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
  * Upgraded dartdoc to `0.28.4` (upgraded analyzer).
  * Bumped runtimeVersion to `2019.07.15`.
+ * Increased HSTS duration to a year.
 
 ## `20190711t114908-all`
  

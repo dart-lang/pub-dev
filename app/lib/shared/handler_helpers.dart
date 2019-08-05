@@ -23,6 +23,11 @@ import 'markdown.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 
+// The .dev top-level domain is included on the HSTS preload list, making HTTPS
+// required on all connections to .dev websites and pages without needing
+// individual HSTS registration or configuration.
+// https://get.dev/#benefits
+// However, we should still emit it on other domains e.g. on pub.dartlang.org.
 const _hstsDuration = Duration(days: 365);
 
 Future<void> runHandler(
