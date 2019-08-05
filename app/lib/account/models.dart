@@ -85,12 +85,6 @@ class Consent extends db.Model {
   @db.IntProperty()
   int notificationCount;
 
-  @db.StringProperty(indexed: false)
-  String descriptionText;
-
-  @db.StringProperty(indexed: false)
-  String descriptionHtml;
-
   Consent();
 
   Consent.init({
@@ -98,8 +92,6 @@ class Consent extends db.Model {
     @required this.kind,
     @required this.args,
     @required this.fromUserId,
-    @required this.descriptionText,
-    @required this.descriptionHtml,
     Duration timeout = const Duration(days: 7),
   }) {
     this.parentKey = parentKey;

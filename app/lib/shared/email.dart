@@ -169,15 +169,14 @@ With appreciation, the Dart package site admin
 /// Creates the [EmailMessage] that will be sent to users about new invitations
 /// they need to confirm.
 EmailMessage createInviteEmail({
-  @required String activeAccountEmail,
   @required String invitedEmail,
-  @required String message,
+  @required String subject,
+  @required String inviteText,
   @required String consentUrl,
 }) {
-  final subject = 'You have a new invitation to confirm on $primaryHost';
   final bodyText = '''Dear Dart developer,
 
-$activeAccountEmail has invited you to $message.
+$inviteText
 
 To accept this invitation, visit the following URL:
 $consentUrl

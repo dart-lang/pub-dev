@@ -124,8 +124,6 @@ class PublisherBackend {
         userId: userId,
         kind: 'PublisherMember',
         args: [p.publisherId],
-        descriptionText: 'be a member of publisher $publisherId.',
-        descriptionHtml: 'Be a member of publisher $publisherId.',
       );
     });
   }

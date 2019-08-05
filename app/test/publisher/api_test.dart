@@ -74,8 +74,6 @@ void main() {
                   'kind': c.kind,
                   'args': c.args,
                   'notificationCount': c.notificationCount,
-                  'descriptionText': c.descriptionText,
-                  'descriptionHtml': c.descriptionHtml,
                 })
             .toList();
       }
@@ -135,8 +133,6 @@ void main() {
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
-            'descriptionText': 'be a member of publisher example.com.',
-            'descriptionHtml': 'Be a member of publisher example.com.',
           }
         ]);
         final info =
@@ -155,8 +151,6 @@ void main() {
           fromUserId: hansUser.userId,
           kind: 'PublisherMember',
           args: ['example.com'],
-          descriptionText: 'text',
-          descriptionHtml: 'html',
         );
         consent.created = consent.created.subtract(Duration(hours: 1));
         consent.notificationCount++;
@@ -177,8 +171,6 @@ void main() {
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 2,
-            'descriptionText': 'text',
-            'descriptionHtml': 'html',
           }
         ]);
         final info =
@@ -214,8 +206,6 @@ void main() {
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
-            'descriptionText': 'be a member of publisher example.com.',
-            'descriptionHtml': 'Be a member of publisher example.com.',
           }
         ]);
       });
@@ -233,8 +223,6 @@ void main() {
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
-            'descriptionText': 'be a member of publisher example.com.',
-            'descriptionHtml': 'Be a member of publisher example.com.',
           }
         ]);
       });

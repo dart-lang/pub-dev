@@ -47,7 +47,11 @@ class ConsentBackend {
       if (c == null) {
         throw NotFoundException.resource('consent: $consentId');
       }
-      return api.Consent(descriptionHtml: c.descriptionHtml);
+      final action = _actions[c.kind];
+      final activeAccountEmail =
+          await accountBackend.getEmailOfUserId(c.fromUserId);
+      return api.Consent(
+          descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args));
     });
   }
 
@@ -80,8 +84,6 @@ class ConsentBackend {
     @required String userId,
     @required String kind,
     @required List<String> args,
-    @required String descriptionText,
-    @required String descriptionHtml,
   }) async {
     return retry(() async {
       return await withAuthenticatedUser((activeUser) async {
@@ -110,8 +112,6 @@ class ConsentBackend {
           kind: kind,
           args: args,
           fromUserId: authenticatedUser.userId,
-          descriptionText: descriptionText,
-          descriptionHtml: descriptionHtml,
         );
         await _db.commit(inserts: [consent]);
         return await _sendNotification(consent);
@@ -121,10 +121,12 @@ class ConsentBackend {
 
   Future<api.InviteStatus> _sendNotification(Consent consent) async {
     final invitedEmail = await accountBackend.getEmailOfUserId(consent.userId);
+    final action = _actions[consent.kind];
     await emailSender.sendMessage(createInviteEmail(
-      activeAccountEmail: authenticatedUser.email,
       invitedEmail: invitedEmail,
-      message: consent.descriptionText,
+      subject: action.renderEmailSubject(consent.args),
+      inviteText:
+          action.renderInviteText(authenticatedUser.email, consent.args),
       consentUrl: consentUrl(consent.consentId),
     ));
     return await _db.withTransaction((tx) async {
@@ -172,10 +174,20 @@ abstract class ConsentAction {
 
   /// Callback on rejecting the consent or timeout.
   Future onDelete(String userId, List<String> args);
+
+  /// The subject of the notification e-mail sent.
+  String renderEmailSubject(List<String> args) =>
+      'You have a new invitation to confirm on $primaryHost';
+
+  /// The body of the notification e-mail sent.
+  String renderInviteText(String activeAccountEmail, List<String> args);
+
+  /// The HTML-formatted notification message.
+  String renderInviteHtml(String activeAccountEmail, List<String> args);
 }
 
 /// Callbacks for publisher member consents.
-class _PublisherMemberAction implements ConsentAction {
+class _PublisherMemberAction extends ConsentAction {
   @override
   Future onAccept(String userId, List<String> args) async {
     await publisherBackend.inviteConsentGranted(args.single, userId);
@@ -184,5 +196,17 @@ class _PublisherMemberAction implements ConsentAction {
   @override
   Future onDelete(String userId, List<String> args) async {
     await publisherBackend.inviteDeleted(args.single, userId);
+  }
+
+  @override
+  String renderInviteText(String activeAccountEmail, List<String> args) {
+    final publisherId = args[0];
+    return '$activeAccountEmail has invited you to be a member of publisher $publisherId.';
+  }
+
+  @override
+  String renderInviteHtml(String activeAccountEmail, List<String> args) {
+    final publisherId = args[0];
+    return '<code>$activeAccountEmail</code> has invited you to be a member of publisher <code>$publisherId</code>.';
   }
 }
