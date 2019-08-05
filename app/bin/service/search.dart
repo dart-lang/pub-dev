@@ -14,13 +14,10 @@ import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
-import 'package:pub_dartlang_org/shared/versions.dart';
-import 'package:pub_dartlang_org/shared/urls.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
-import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 
 final Logger _logger = Logger('pub.search');
@@ -44,9 +41,6 @@ Future _main(FrontendEntryMessage message) async {
     snapshotStorage.scheduleOldDataGC();
 
     final ReceivePort taskReceivePort = ReceivePort();
-    registerDartSdkIndex(
-        SimplePackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerPackageIndex(SimplePackageIndex());
     registerTaskSendPort(taskReceivePort.sendPort);
 
     indexUpdater.initDartSdkIndex();

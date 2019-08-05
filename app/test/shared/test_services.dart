@@ -76,10 +76,8 @@ void testWithServices(String name, Future fn()) {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
 
-          registerDartSdkIndex(SimplePackageIndex());
           await dartSdkIndex.merge();
 
-          registerPackageIndex(SimplePackageIndex());
           packageIndex.addPackage(
               await searchBackend.loadDocument(hydrogen.package.name));
           packageIndex.addPackage(
