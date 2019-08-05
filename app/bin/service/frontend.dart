@@ -52,6 +52,7 @@ Future _main(FrontendEntryMessage message) async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
     // Add randomization to reduce race conditions.
+    // TODO: use package:neat_periodic_task
     Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
         (_) async {
       await backend.deleteObsoleteInvites();
