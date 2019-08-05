@@ -205,6 +205,7 @@ class PublisherBackend {
   }
 
   /// A callback from consent backend, when a consent is granted.
+  /// Note: this will be retried when transaction fails due race conditions.
   Future inviteConsentGranted(String publisherId, String userId) async {
     await _db.withTransaction((tx) async {
       final key = _db.emptyKey
@@ -224,6 +225,7 @@ class PublisherBackend {
   }
 
   /// A callback from consent backend, when a consent is not granted, or expired.
+  /// Note: this will be retried when transaction fails due race conditions.
   Future inviteDeleted(String publisherId, String userId) async {
     await _db.withTransaction((tx) async {
       final key = _db.emptyKey

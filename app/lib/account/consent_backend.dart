@@ -158,14 +158,34 @@ class ConsentBackend {
 
   Future _accept(Consent consent) async {
     final action = _actions[consent.kind];
-    await action?.onAccept(consent.userId, consent.args);
-    await _db.commit(deletes: [consent.key]);
+    await retry(
+      () async {
+        await action?.onAccept(consent.userId, consent.args);
+        await _db.withTransaction((tx) async {
+          final c = (await tx.lookup<Consent>([consent.key])).single;
+          if (c == null) return;
+          tx.queueMutations(deletes: [c.key]);
+          await tx.commit();
+        });
+      },
+      maxAttempts: 3,
+    );
   }
 
   Future _delete(Consent consent) async {
     final action = _actions[consent.kind];
-    await action?.onDelete(consent.userId, consent.args);
-    await _db.commit(deletes: [consent.key]);
+    await retry(
+      () async {
+        await action?.onDelete(consent.userId, consent.args);
+        await _db.withTransaction((tx) async {
+          final c = (await tx.lookup<Consent>([consent.key])).single;
+          if (c == null) return;
+          tx.queueMutations(deletes: [c.key]);
+          await tx.commit();
+        });
+      },
+      maxAttempts: 3,
+    );
   }
 }
 
