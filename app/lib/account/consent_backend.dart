@@ -62,7 +62,8 @@ class ConsentBackend {
       if (c == null) {
         throw NotFoundException.resource('consent: $consentId');
       }
-      if (result.granted ?? false) {
+      InvalidInputException.checkNotNull(result.granted, 'granted');
+      if (result.granted) {
         await _accept(c);
         return api.ConsentResult(granted: true);
       } else {
