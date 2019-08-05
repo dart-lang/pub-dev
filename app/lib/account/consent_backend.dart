@@ -63,15 +63,17 @@ class ConsentBackend {
           .append(User, id: user.userId)
           .append(Consent, id: consentId);
       final c = (await _db.lookup<Consent>([key])).single;
-      if (c == null) {
-        throw NotFoundException.resource('consent: $consentId');
-      }
       InvalidInputException.checkNotNull(result.granted, 'granted');
       if (result.granted) {
+        if (c == null) {
+          throw NotFoundException.resource('consent: $consentId');
+        }
         await _accept(c);
         return api.ConsentResult(granted: true);
       } else {
-        await _delete(c);
+        if (c != null) {
+          await _delete(c);
+        }
         return api.ConsentResult(granted: false);
       }
     });
@@ -148,7 +150,7 @@ class ConsentBackend {
       try {
         await _delete(entry);
       } catch (e) {
-        _logger.info(
+        _logger.shout(
             'Delete failed: ${entry.userId} ${entry.kind} ${entry.args}', e);
       }
     }

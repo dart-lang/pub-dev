@@ -281,8 +281,11 @@ void main() {
         final rs2 = await client2.resolveConsent(
             consentId, account_api.ConsentResult(granted: false));
         expect(rs2.granted, isFalse);
-        final rs3 = client1.publisherMemberInfo('example.com', joeUser.userId);
-        await expectApiException(rs3, status: 404, code: 'NotFound');
+        final rs3 = await client2.resolveConsent(
+            consentId, account_api.ConsentResult(granted: false));
+        expect(rs3.granted, isFalse);
+        final rs4 = client1.publisherMemberInfo('example.com', joeUser.userId);
+        await expectApiException(rs4, status: 404, code: 'NotFound');
       });
     });
 
