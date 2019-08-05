@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../shared/exceptions.dart';
@@ -16,18 +17,25 @@ import 'index_simple.dart';
 
 final Logger _logger = Logger('pub.search.updater');
 
+/// Sets the index updater.
+void registerIndexUpdater(IndexUpdater updater) =>
+    ss.register(#_indexUpdater, updater);
+
+/// The active index updater.
+IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
+
 class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
-  final BatchIndexUpdater _batchIndexUpdater;
-  IndexUpdateTaskSource(DatastoreDB db, this._batchIndexUpdater)
+  final IndexUpdater _indexUpdater;
+  IndexUpdateTaskSource(DatastoreDB db, this._indexUpdater)
       : super(db, TaskSourceModel.package, sleep: const Duration(minutes: 30));
 
   @override
   Future dbScanComplete(int count) async {
-    _batchIndexUpdater.reportScanCount(count);
+    _indexUpdater.reportScanCount(count);
   }
 }
 
-class BatchIndexUpdater implements TaskRunner {
+class IndexUpdater implements TaskRunner {
   int _taskCount = 0;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = DateTime.now();

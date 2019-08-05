@@ -15,6 +15,7 @@ import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
+import '../search/updater.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
@@ -55,6 +56,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerEmailSender(
         EmailSender(dbService, activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
+    registerIndexUpdater(IndexUpdater());
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPopularityStorage(

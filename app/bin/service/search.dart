@@ -58,28 +58,27 @@ Future _main(FrontendEntryMessage message) async {
     // the dartdoc service produces the required output.
     _updateDartSdkIndex().whenComplete(() {});
 
-    final BatchIndexUpdater batchIndexUpdater = BatchIndexUpdater();
     // Don't block on init, we need to serve liveliness and readiness checks.
     scheduleMicrotask(() async {
       try {
-        await batchIndexUpdater.init();
+        await indexUpdater.init();
       } catch (e, st) {
         _logger.shout('Error initializing search service.', e, st);
         exit(1);
       }
 
       final scheduler = TaskScheduler(
-        batchIndexUpdater,
+        indexUpdater,
         [
           ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-          IndexUpdateTaskSource(db.dbService, batchIndexUpdater),
+          IndexUpdateTaskSource(db.dbService, indexUpdater),
           DatastoreHeadTaskSource(
             db.dbService,
             TaskSourceModel.scorecard,
             sleep: const Duration(minutes: 10),
             skipHistory: true,
           ),
-          batchIndexUpdater.periodicUpdateTaskSource,
+          indexUpdater.periodicUpdateTaskSource,
         ],
       );
       scheduler.run();
