@@ -100,6 +100,9 @@ class PublisherBackend {
   Future<account_api.InviteStatus> invitePublisherMember(
       String publisherId, api.InviteMemberRequest invite) async {
     return await _withPublisherAdmin(publisherId, (p) async {
+      InvalidInputException.checkNotNull(invite.email, 'email');
+      InvalidInputException.checkStringLength(invite.email, 'email',
+          maximum: 4096);
       InvalidInputException.check(
           isValidEmail(invite.email), 'Invalid e-mail: `${invite.email}`');
       final user = await accountBackend.lookupOrCreateUserByEmail(invite.email);
