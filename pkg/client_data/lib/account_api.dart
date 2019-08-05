@@ -24,9 +24,10 @@ class AccountPkgOptions {
 
 @JsonSerializable(nullable: false)
 class Consent {
-  final String html;
+  /// The description of the consent request, in HTML format.
+  final String descriptionHtml;
 
-  Consent({@required this.html});
+  Consent({@required this.descriptionHtml});
 
   factory Consent.fromJson(Map<String, dynamic> json) =>
       _$ConsentFromJson(json);

@@ -19,12 +19,12 @@ Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
 
 Consent _$ConsentFromJson(Map<String, dynamic> json) {
   return Consent(
-    html: json['html'] as String,
+    descriptionHtml: json['descriptionHtml'] as String,
   );
 }
 
 Map<String, dynamic> _$ConsentToJson(Consent instance) => <String, dynamic>{
-      'html': instance.html,
+      'descriptionHtml': instance.descriptionHtml,
     };
 
 ConsentResult _$ConsentResultFromJson(Map<String, dynamic> json) {

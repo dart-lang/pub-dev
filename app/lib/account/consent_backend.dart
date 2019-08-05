@@ -47,7 +47,7 @@ class ConsentBackend {
       if (c == null) {
         throw NotFoundException.resource('consent: $consentId');
       }
-      return api.Consent(html: c.descriptionHtml);
+      return api.Consent(descriptionHtml: c.descriptionHtml);
     });
   }
 
