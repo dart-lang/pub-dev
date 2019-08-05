@@ -133,6 +133,7 @@ class PublisherBackend {
   /// List the members of a publishers
   Future<api.PublisherMembers> listPublisherMembers(String publisherId) async {
     return await _withPublisherAdmin(publisherId, (p) async {
+      // TODO: add caching
       final query = _db.query<PublisherMember>(ancestorKey: p.key);
       final members = <api.PublisherMember>[];
       await for (final pm in query.run()) {
