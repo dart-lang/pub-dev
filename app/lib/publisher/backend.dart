@@ -241,9 +241,6 @@ class PublisherBackend {
     });
   }
 
-  api.PublisherInfo _asPublisherInfo(Publisher p) =>
-      api.PublisherInfo(description: p.description, contact: p.contactEmail);
-
   Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
     return api.PublisherMember(
       userId: pm.userId,
@@ -253,3 +250,6 @@ class PublisherBackend {
     );
   }
 }
+
+api.PublisherInfo _asPublisherInfo(Publisher p) =>
+    api.PublisherInfo(description: p.description, contact: p.contactEmail);
