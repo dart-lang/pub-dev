@@ -28,26 +28,14 @@ void registerIndexUpdater(IndexUpdater updater) =>
 IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
 class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
-  final IndexUpdater _indexUpdater;
-  IndexUpdateTaskSource(DatastoreDB db, this._indexUpdater)
+  IndexUpdateTaskSource(DatastoreDB db)
       : super(db, TaskSourceModel.package, sleep: const Duration(minutes: 30));
-
-  @override
-  Future dbScanComplete(int count) async {
-    _indexUpdater.reportScanCount(count);
-  }
 }
 
 class IndexUpdater implements TaskRunner {
   int _taskCount = 0;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = DateTime.now();
-
-  // Used by [IndexUpdateTaskSource] to indicating how many packages were
-  // yielded in the first run of the index update.
-  // When [BatchIndexUpdater] processes more than this number of tasks, it will
-  // start do the index merges, making sure that the index is marked as ready.
-  int _firstScanCount;
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
@@ -74,11 +62,6 @@ class IndexUpdater implements TaskRunner {
     return _PeriodicUpdateTaskSource(_snapshot);
   }
 
-  void reportScanCount(int count) {
-    if (_firstScanCount != null) return;
-    _firstScanCount = count;
-  }
-
   Future _initSnapshot() async {
     if (_snapshot != null) return;
     try {
@@ -95,8 +78,6 @@ class IndexUpdater implements TaskRunner {
           _logger.info('Merging index after snapshot.');
           await packageIndex.merge();
           _logger.info('Snapshot load completed.');
-          // the first scan is no longer relevant, enabling frequent index merges
-          _firstScanCount = 0;
         }
       }
     } catch (e, st) {
@@ -135,12 +116,10 @@ class IndexUpdater implements TaskRunner {
     } on MissingAnalysisException catch (_) {
       // Nothing to do yet, keeping old version if it exists.
     }
-    if (_firstScanCount != null && _taskCount >= _firstScanCount) {
-      _logger.info('Merging index after $_taskCount updates.');
-      await packageIndex.merge();
-      _logger.info('Merge completed.');
-      await _updateSnapshotIfNeeded();
-    }
+    _logger.info('Merging index after $_taskCount updates.');
+    await packageIndex.merge();
+    _logger.info('Merge completed.');
+    await _updateSnapshotIfNeeded();
   }
 
   Future _updateSnapshotIfNeeded() async {

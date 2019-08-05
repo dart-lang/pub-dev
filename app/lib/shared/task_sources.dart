@@ -71,15 +71,12 @@ class DatastoreHeadTaskSource implements TaskSource {
     }
   }
 
-  Future dbScanComplete(int count) async {}
-
   Stream<Task> _poll<M extends Model>(
       String field, Task modelToTask(M model)) async* {
     final Query q = _db.query<M>();
     if (_lastTs != null) {
       q.filter('$field >=', _lastTs);
     }
-    int count = 0;
     Timer timer;
     await for (M model in q.run().cast<M>()) {
       timer?.cancel();
@@ -89,12 +86,10 @@ class DatastoreHeadTaskSource implements TaskSource {
       });
       final Task task = modelToTask(model);
       if (task != null) {
-        count++;
         yield task;
       }
     }
     timer?.cancel();
-    await dbScanComplete(count);
   }
 
   Task _packageToTask(Package p) =>

@@ -66,7 +66,7 @@ Future _main(FrontendEntryMessage message) async {
         indexUpdater,
         [
           ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-          IndexUpdateTaskSource(db.dbService, indexUpdater),
+          IndexUpdateTaskSource(db.dbService),
           DatastoreHeadTaskSource(
             db.dbService,
             TaskSourceModel.scorecard,
