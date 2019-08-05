@@ -4,10 +4,13 @@
 
 import 'dart:async';
 
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show DetailedApiRequestError;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
+import '../dartdoc/backend.dart';
 import '../shared/exceptions.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
@@ -151,6 +154,43 @@ class IndexUpdater implements TaskRunner {
       } catch (e, st) {
         _logger.warning('Unable to update search snapshot.', e, st);
       }
+    }
+  }
+
+  /// Triggers the load of the SDK index from the dartdoc storage bucket.
+  void initDartSdkIndex() {
+    // Don't block on SDK index updates, as it may take several minutes before
+    // the dartdoc service produces the required output.
+    _updateDartSdkIndex().whenComplete(() {});
+  }
+
+  Future _updateDartSdkIndex() async {
+    for (int i = 0;; i++) {
+      try {
+        _logger.info('Trying to load SDK index.');
+        final data = await dartdocBackend.getDartSdkDartdocData();
+        if (data != null) {
+          final docs = splitLibraries(data)
+              .map((lib) => createSdkDocument(lib))
+              .toList();
+          await dartSdkIndex.addPackages(docs);
+          await dartSdkIndex.merge();
+          _logger.info('Dart SDK index loaded successfully.');
+          return;
+        }
+      } on DetailedApiRequestError catch (e, st) {
+        if (e.status == 404) {
+          _logger.info('Error loading Dart SDK index.', e, st);
+        } else {
+          _logger.warning('Error loading Dart SDK index.', e, st);
+        }
+      } catch (e, st) {
+        _logger.warning('Error loading Dart SDK index.', e, st);
+      }
+      if (i % 10 == 0) {
+        _logger.warning('Unable to load Dart SDK index. Attempt: $i');
+      }
+      await Future.delayed(const Duration(minutes: 1));
     }
   }
 }
