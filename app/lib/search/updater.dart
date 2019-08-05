@@ -4,10 +4,15 @@
 
 import 'dart:async';
 
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show DetailedApiRequestError;
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
+import '../dartdoc/backend.dart';
 import '../shared/exceptions.dart';
+import '../shared/scheduler_stats.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
@@ -16,27 +21,21 @@ import 'index_simple.dart';
 
 final Logger _logger = Logger('pub.search.updater');
 
-class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
-  final BatchIndexUpdater _batchIndexUpdater;
-  IndexUpdateTaskSource(DatastoreDB db, this._batchIndexUpdater)
-      : super(db, TaskSourceModel.package, sleep: const Duration(minutes: 30));
+/// Sets the index updater.
+void registerIndexUpdater(IndexUpdater updater) =>
+    ss.register(#_indexUpdater, updater);
 
-  @override
-  Future dbScanComplete(int count) async {
-    _batchIndexUpdater.reportScanCount(count);
-  }
-}
+/// The active index updater.
+IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
-class BatchIndexUpdater implements TaskRunner {
+class IndexUpdater implements TaskRunner {
+  final DatastoreDB _db;
   int _taskCount = 0;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = DateTime.now();
+  Timer _statsTimer;
 
-  // Used by [IndexUpdateTaskSource] to indicating how many packages were
-  // yielded in the first run of the index update.
-  // When [BatchIndexUpdater] processes more than this number of tasks, it will
-  // start do the index merges, making sure that the index is marked as ready.
-  int _firstScanCount;
+  IndexUpdater(this._db);
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
@@ -58,16 +57,6 @@ class BatchIndexUpdater implements TaskRunner {
     }
   }
 
-  TaskSource get periodicUpdateTaskSource {
-    assert(_snapshot != null);
-    return _PeriodicUpdateTaskSource(_snapshot);
-  }
-
-  void reportScanCount(int count) {
-    if (_firstScanCount != null) return;
-    _firstScanCount = count;
-  }
-
   Future _initSnapshot() async {
     if (_snapshot != null) return;
     try {
@@ -84,8 +73,6 @@ class BatchIndexUpdater implements TaskRunner {
           _logger.info('Merging index after snapshot.');
           await packageIndex.merge();
           _logger.info('Snapshot load completed.');
-          // the first scan is no longer relevant, enabling frequent index merges
-          _firstScanCount = 0;
         }
       }
     } catch (e, st) {
@@ -94,6 +81,40 @@ class BatchIndexUpdater implements TaskRunner {
     // Create an empty snapshot if the above failed. This will be populated with
     // package data via a separate update process.
     _snapshot ??= SearchSnapshot();
+  }
+
+  /// Starts the scheduler to update the package index.
+  void runScheduler({Stream<Task> manualTriggerTasks}) {
+    manualTriggerTasks ??= Stream<Task>.empty();
+    final scheduler = TaskScheduler(
+      this,
+      [
+        ManualTriggerTaskSource(manualTriggerTasks),
+        DatastoreHeadTaskSource(
+          _db,
+          TaskSourceModel.package,
+          sleep: const Duration(minutes: 30),
+        ),
+        DatastoreHeadTaskSource(
+          _db,
+          TaskSourceModel.scorecard,
+          sleep: const Duration(minutes: 10),
+          skipHistory: true,
+        ),
+        _PeriodicUpdateTaskSource(_snapshot),
+      ],
+    );
+    scheduler.run();
+
+    _statsTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      updateLatestStats(scheduler.stats());
+    });
+  }
+
+  Future close() async {
+    _statsTimer?.cancel();
+    _statsTimer = null;
+    // TODO: close scheduler
   }
 
   @override
@@ -124,12 +145,10 @@ class BatchIndexUpdater implements TaskRunner {
     } on MissingAnalysisException catch (_) {
       // Nothing to do yet, keeping old version if it exists.
     }
-    if (_firstScanCount != null && _taskCount >= _firstScanCount) {
-      _logger.info('Merging index after $_taskCount updates.');
-      await packageIndex.merge();
-      _logger.info('Merge completed.');
-      await _updateSnapshotIfNeeded();
-    }
+    _logger.info('Merging index after $_taskCount updates.');
+    await packageIndex.merge();
+    _logger.info('Merge completed.');
+    await _updateSnapshotIfNeeded();
   }
 
   Future _updateSnapshotIfNeeded() async {
@@ -145,6 +164,43 @@ class BatchIndexUpdater implements TaskRunner {
       }
     }
   }
+
+  /// Triggers the load of the SDK index from the dartdoc storage bucket.
+  void initDartSdkIndex() {
+    // Don't block on SDK index updates, as it may take several minutes before
+    // the dartdoc service produces the required output.
+    _updateDartSdkIndex().whenComplete(() {});
+  }
+
+  Future _updateDartSdkIndex() async {
+    for (int i = 0;; i++) {
+      try {
+        _logger.info('Trying to load SDK index.');
+        final data = await dartdocBackend.getDartSdkDartdocData();
+        if (data != null) {
+          final docs = splitLibraries(data)
+              .map((lib) => createSdkDocument(lib))
+              .toList();
+          await dartSdkIndex.addPackages(docs);
+          await dartSdkIndex.merge();
+          _logger.info('Dart SDK index loaded successfully.');
+          return;
+        }
+      } on DetailedApiRequestError catch (e, st) {
+        if (e.status == 404) {
+          _logger.info('Error loading Dart SDK index.', e, st);
+        } else {
+          _logger.warning('Error loading Dart SDK index.', e, st);
+        }
+      } catch (e, st) {
+        _logger.warning('Error loading Dart SDK index.', e, st);
+      }
+      if (i % 10 == 0) {
+        _logger.warning('Unable to load Dart SDK index. Attempt: $i');
+      }
+      await Future.delayed(const Duration(minutes: 1));
+    }
+  }
 }
 
 /// A task source that generates an update task for stale documents.
@@ -153,7 +209,9 @@ class BatchIndexUpdater implements TaskRunner {
 /// packages that have not been updated in the last 24 hours.
 class _PeriodicUpdateTaskSource implements TaskSource {
   final SearchSnapshot _snapshot;
-  _PeriodicUpdateTaskSource(this._snapshot);
+  _PeriodicUpdateTaskSource(this._snapshot) {
+    assert(_snapshot != null);
+  }
 
   @override
   Stream<Task> startStreaming() async* {

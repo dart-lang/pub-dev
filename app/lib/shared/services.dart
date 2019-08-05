@@ -15,12 +15,16 @@ import '../job/backend.dart';
 import '../publisher/backend.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
+import '../search/index_simple.dart';
+import '../search/updater.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/search_client.dart';
 import '../shared/storage.dart';
+import '../shared/urls.dart';
+import '../shared/versions.dart';
 
 import 'redis_cache.dart' show withAppEngineAndCache;
 import 'storage_retry.dart' show withStorageRetry;
@@ -52,11 +56,15 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
       ),
     );
     registerDartdocClient(DartdocClient());
+    registerDartSdkIndex(
+        SimplePackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
     registerEmailSender(
         EmailSender(dbService, activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
+    registerIndexUpdater(IndexUpdater(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
+    registerPackageIndex(SimplePackageIndex());
     registerPopularityStorage(
       PopularityStorage(await getOrCreateBucket(
           storageService, activeConfiguration.popularityDumpBucketName)),
@@ -66,6 +74,8 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerSearchBackend(SearchBackend(dbService));
     registerSearchClient(SearchClient());
     registerSearchService(SearchService());
+    registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
+        storageService, activeConfiguration.searchSnapshotBucketName)));
     registerTarballStorage(
       TarballStorage(
           storageService,
@@ -77,6 +87,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     // depends on previously registered services
     registerBackend(Backend(dbService, tarballStorage));
 
+    registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(accountBackend.close);
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
