@@ -56,7 +56,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerEmailSender(
         EmailSender(dbService, activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
-    registerIndexUpdater(IndexUpdater());
+    registerIndexUpdater(IndexUpdater(dbService));
     registerJobBackend(JobBackend(dbService));
     registerNameTracker(NameTracker(dbService));
     registerPopularityStorage(
@@ -81,6 +81,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     // depends on previously registered services
     registerBackend(Backend(dbService, tarballStorage));
 
+    registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(accountBackend.close);
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);

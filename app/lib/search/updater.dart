@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 
 import '../dartdoc/backend.dart';
 import '../shared/exceptions.dart';
+import '../shared/scheduler_stats.dart';
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 
@@ -27,15 +28,14 @@ void registerIndexUpdater(IndexUpdater updater) =>
 /// The active index updater.
 IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
-class IndexUpdateTaskSource extends DatastoreHeadTaskSource {
-  IndexUpdateTaskSource(DatastoreDB db)
-      : super(db, TaskSourceModel.package, sleep: const Duration(minutes: 30));
-}
-
 class IndexUpdater implements TaskRunner {
+  final DatastoreDB _db;
   int _taskCount = 0;
   SearchSnapshot _snapshot;
   DateTime _lastSnapshotWrite = DateTime.now();
+  Timer _statsTimer;
+
+  IndexUpdater(this._db);
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
@@ -55,11 +55,6 @@ class IndexUpdater implements TaskRunner {
       await packageIndex.merge();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
-  }
-
-  TaskSource get periodicUpdateTaskSource {
-    assert(_snapshot != null);
-    return _PeriodicUpdateTaskSource(_snapshot);
   }
 
   Future _initSnapshot() async {
@@ -86,6 +81,40 @@ class IndexUpdater implements TaskRunner {
     // Create an empty snapshot if the above failed. This will be populated with
     // package data via a separate update process.
     _snapshot ??= SearchSnapshot();
+  }
+
+  /// Starts the scheduler to update the package index.
+  void runScheduler({Stream<Task> manualTriggerTasks}) {
+    manualTriggerTasks ??= Stream<Task>.empty();
+    final scheduler = TaskScheduler(
+      this,
+      [
+        ManualTriggerTaskSource(manualTriggerTasks),
+        DatastoreHeadTaskSource(
+          _db,
+          TaskSourceModel.package,
+          sleep: const Duration(minutes: 30),
+        ),
+        DatastoreHeadTaskSource(
+          _db,
+          TaskSourceModel.scorecard,
+          sleep: const Duration(minutes: 10),
+          skipHistory: true,
+        ),
+        _PeriodicUpdateTaskSource(_snapshot),
+      ],
+    );
+    scheduler.run();
+
+    _statsTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      updateLatestStats(scheduler.stats());
+    });
+  }
+
+  Future close() async {
+    _statsTimer?.cancel();
+    _statsTimer = null;
+    // TODO: close scheduler
   }
 
   @override
@@ -180,7 +209,9 @@ class IndexUpdater implements TaskRunner {
 /// packages that have not been updated in the last 24 hours.
 class _PeriodicUpdateTaskSource implements TaskSource {
   final SearchSnapshot _snapshot;
-  _PeriodicUpdateTaskSource(this._snapshot);
+  _PeriodicUpdateTaskSource(this._snapshot) {
+    assert(_snapshot != null);
+  }
 
   @override
   Stream<Task> startStreaming() async* {

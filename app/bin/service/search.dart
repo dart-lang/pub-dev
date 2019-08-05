@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
@@ -15,7 +14,6 @@ import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
-import 'package:pub_dartlang_org/shared/task_sources.dart';
 import 'package:pub_dartlang_org/shared/versions.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 import 'package:pub_dartlang_org/shared/services.dart';
@@ -62,25 +60,8 @@ Future _main(FrontendEntryMessage message) async {
         exit(1);
       }
 
-      final scheduler = TaskScheduler(
-        indexUpdater,
-        [
-          ManualTriggerTaskSource(taskReceivePort.cast<Task>()),
-          IndexUpdateTaskSource(db.dbService),
-          DatastoreHeadTaskSource(
-            db.dbService,
-            TaskSourceModel.scorecard,
-            sleep: const Duration(minutes: 10),
-            skipHistory: true,
-          ),
-          indexUpdater.periodicUpdateTaskSource,
-        ],
-      );
-      scheduler.run();
-
-      Timer.periodic(const Duration(minutes: 5), (_) {
-        updateLatestStats(scheduler.stats());
-      });
+      indexUpdater.runScheduler(
+          manualTriggerTasks: taskReceivePort.cast<Task>());
     });
 
     await runHandler(_logger, searchServiceHandler);
