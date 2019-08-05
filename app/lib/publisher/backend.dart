@@ -166,9 +166,8 @@ class PublisherBackend {
       throw ConflictException.cantUpdateSelf();
     }
     if (update.role != null) {
-      InvalidInputException.check(
-          PublisherMemberRole.values.contains(update.role),
-          'Role `${update.role}` is not an allowed value.');
+      InvalidInputException.checkAnyOf(
+          update.role, 'role', PublisherMemberRole.values);
     }
     return await _withPublisherAdmin(publisherId, (p) async {
       final key = p.key.append(PublisherMember, id: userId);
