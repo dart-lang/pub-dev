@@ -17,6 +17,16 @@ Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
       'isUploader': instance.isUploader,
     };
 
+Consent _$ConsentFromJson(Map<String, dynamic> json) {
+  return Consent(
+    descriptionHtml: json['descriptionHtml'] as String,
+  );
+}
+
+Map<String, dynamic> _$ConsentToJson(Consent instance) => <String, dynamic>{
+      'descriptionHtml': instance.descriptionHtml,
+    };
+
 ConsentResult _$ConsentResultFromJson(Map<String, dynamic> json) {
   return ConsentResult(
     granted: json['granted'] as bool,
@@ -26,4 +36,19 @@ ConsentResult _$ConsentResultFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$ConsentResultToJson(ConsentResult instance) =>
     <String, dynamic>{
       'granted': instance.granted,
+    };
+
+InviteStatus _$InviteStatusFromJson(Map<String, dynamic> json) {
+  return InviteStatus(
+    emailSent: json['emailSent'] as bool,
+    nextNotification: json['nextNotification'] == null
+        ? null
+        : DateTime.parse(json['nextNotification'] as String),
+  );
+}
+
+Map<String, dynamic> _$InviteStatusToJson(InviteStatus instance) =>
+    <String, dynamic>{
+      'emailSent': instance.emailSent,
+      'nextNotification': instance.nextNotification?.toIso8601String(),
     };

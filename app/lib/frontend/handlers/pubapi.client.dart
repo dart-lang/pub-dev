@@ -5,6 +5,7 @@
 // **************************************************************************
 
 import 'package:api_builder/_client_utils.dart' as _i2;
+import 'package:client_data/account_api.dart' as _i4;
 import 'package:client_data/publisher_api.dart' as _i3;
 import 'package:http/http.dart' as _i1;
 
@@ -79,11 +80,11 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> publisherInfo(String publisherId) async {
-    return await _client.requestBytes(
+  Future<_i3.PublisherInfo> publisherInfo(String publisherId) async {
+    return _i3.PublisherInfo.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/publishers/$publisherId',
-    );
+    ));
   }
 
   Future<_i3.PublisherInfo> updatePublisher(
@@ -95,34 +96,37 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> invitePublisherMember(String publisherId) async {
-    return await _client.requestBytes(
+  Future<_i4.InviteStatus> invitePublisherMember(
+      String publisherId, _i3.InviteMemberRequest payload) async {
+    return _i4.InviteStatus.fromJson(await _client.requestJson(
       verb: 'post',
       path: '/api/publishers/$publisherId/invite-member',
-    );
+      body: payload.toJson(),
+    ));
   }
 
-  Future<List<int>> listPublisherMembers(String publisherId) async {
-    return await _client.requestBytes(
+  Future<_i3.PublisherMembers> listPublisherMembers(String publisherId) async {
+    return _i3.PublisherMembers.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/publishers/$publisherId/members',
-    );
+    ));
   }
 
-  Future<List<int>> publisherMemberInfo(
+  Future<_i3.PublisherMember> publisherMemberInfo(
       String publisherId, String userId) async {
-    return await _client.requestBytes(
+    return _i3.PublisherMember.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/publishers/$publisherId/members/$userId',
-    );
+    ));
   }
 
-  Future<List<int>> updatePublisherMember(
-      String publisherId, String userId) async {
-    return await _client.requestBytes(
+  Future<_i3.PublisherMember> updatePublisherMember(String publisherId,
+      String userId, _i3.UpdatePublisherMemberRequest payload) async {
+    return _i3.PublisherMember.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/publishers/$publisherId/members/$userId',
-    );
+      body: payload.toJson(),
+    ));
   }
 
   Future<List<int>> removePublisherMember(
@@ -133,18 +137,20 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> consentInfo(String consentId) async {
-    return await _client.requestBytes(
+  Future<_i4.Consent> consentInfo(String consentId) async {
+    return _i4.Consent.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/account/consent/$consentId',
-    );
+    ));
   }
 
-  Future<List<int>> resolveConsent(String consentId) async {
-    return await _client.requestBytes(
+  Future<_i4.ConsentResult> resolveConsent(
+      String consentId, _i4.ConsentResult payload) async {
+    return _i4.ConsentResult.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/account/consent/$consentId',
-    );
+      body: payload.toJson(),
+    ));
   }
 
   Future<List<int>> accountPackageOptions(String package) async {

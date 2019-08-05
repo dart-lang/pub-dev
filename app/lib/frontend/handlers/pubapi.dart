@@ -1,7 +1,9 @@
 import 'package:api_builder/api_builder.dart';
+import 'package:client_data/account_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
+import '../../account/consent_backend.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
@@ -103,8 +105,8 @@ class PubApi {
 
   /// Returns publisher data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>')
-  Future<Response> publisherInfo(Request request, String publisherId) =>
-      getPublisherApiHandler(request, publisherId);
+  Future<PublisherInfo> publisherInfo(Request request, String publisherId) =>
+      publisherBackend.getPublisher(publisherId);
 
   /// Updates publisher data.
   @EndPoint.put('/api/publishers/<publisherId>')
@@ -114,31 +116,34 @@ class PubApi {
 
   /// Returns a publisher's member data and role in a JSON form.
   @EndPoint.post('/api/publishers/<publisherId>/invite-member')
-  Future<Response> invitePublisherMember(Request request, String publisherId) =>
-      invitePublisherMemberHandler(request, publisherId);
+  Future<InviteStatus> invitePublisherMember(
+          Request request, String publisherId, InviteMemberRequest invite) =>
+      publisherBackend.invitePublisherMember(publisherId, invite);
 
   /// Returns publisher members data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>/members')
-  Future<Response> listPublisherMembers(Request request, String publisherId) =>
-      getPublisherMembersApiHandler(request, publisherId);
+  Future<PublisherMembers> listPublisherMembers(
+          Request request, String publisherId) =>
+      publisherBackend.listPublisherMembers(publisherId);
 
   /// Returns a publisher's member data and role in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>/members/<userId>')
-  Future<Response> publisherMemberInfo(
+  Future<PublisherMember> publisherMemberInfo(
     Request request,
     String publisherId,
     String userId,
   ) =>
-      getPublisherMemberDataApiHandler(request, publisherId, userId);
+      publisherBackend.publisherMemberInfo(publisherId, userId);
 
   /// Updates a publisher's member data and role.
   @EndPoint.put('/api/publishers/<publisherId>/members/<userId>')
-  Future<Response> updatePublisherMember(
+  Future<PublisherMember> updatePublisherMember(
     Request request,
     String publisherId,
     String userId,
+    UpdatePublisherMemberRequest update,
   ) =>
-      putPublisherMemberDataApiHandler(request, publisherId, userId);
+      publisherBackend.updatePublisherMember(publisherId, userId, update);
 
   /// Deletes a publisher's member.
   @EndPoint.delete('/api/publishers/<publisherId>/members/<userId>')
@@ -146,8 +151,10 @@ class PubApi {
     Request request,
     String publisherId,
     String userId,
-  ) =>
-      deletePublisherMemberDataApiHandler(request, publisherId, userId);
+  ) async {
+    await publisherBackend.deletePublisherMember(publisherId, userId);
+    return jsonResponse({'status': 'OK'});
+  }
 
   // ****
   // **** Account, authentication and user administration API
@@ -155,13 +162,14 @@ class PubApi {
 
   /// Returns the consent request details.
   @EndPoint.get('/api/account/consent/<consentId>')
-  Future<Response> consentInfo(Request request, String consentId) =>
-      getAccountConsentHandler(request, consentId);
+  Future<Consent> consentInfo(Request request, String consentId) =>
+      consentBackend.getConsent(consentId);
 
   /// Accepts or declines the consent.
   @EndPoint.put('/api/account/consent/<consentId>')
-  Future<Response> resolveConsent(Request request, String consentId) =>
-      putAccountConsentHandler(request, consentId);
+  Future<ConsentResult> resolveConsent(
+          Request request, String consentId, ConsentResult result) =>
+      consentBackend.resolveConsent(consentId, result);
 
   // ****
   // **** Custom API

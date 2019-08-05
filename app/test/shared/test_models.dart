@@ -43,6 +43,10 @@ final hansUser = User()
   ..id = 'hans-at-juergen-dot-com'
   ..email = 'hans@juergen.com'
   ..created = DateTime.utc(2014);
+final joeUser = User()
+  ..id = 'joe-at-example-dot-com'
+  ..email = 'joe@example.com'
+  ..created = DateTime(2019, 01, 01);
 final testUserA = User()
   ..id = 'a-example-com'
   ..email = 'a@example.com'
@@ -156,15 +160,24 @@ dependencies:
 ''';
 
 final exampleComPublisher = Publisher()
+  ..parentKey = Key.emptyKey(Partition(null))
   ..id = 'example.com'
   ..description = 'This is us!'
+  ..contactEmail = 'contact@example.com'
   ..created = DateTime(2019, 07, 15)
   ..updated = DateTime(2019, 07, 16);
 
-PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
+final exampleComHansAdmin =
+    publisherMember(hansUser.userId, PublisherMemberRole.admin);
+
+PublisherMember publisherMember(String userId, String role,
+        {bool isPending = false, Key parentKey}) =>
     PublisherMember()
       ..parentKey = parentKey ?? exampleComPublisher.key
       ..id = userId
+      ..invited = DateTime(2019, 07, 16)
+      ..accepted = isPending ? DateTime(2019, 07, 31) : null
+      ..isPending = isPending
       ..role = role;
 
 class PkgBundle {

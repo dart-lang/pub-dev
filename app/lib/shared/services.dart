@@ -5,6 +5,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 
 import '../account/backend.dart';
+import '../account/consent_backend.dart';
 import '../dartdoc/backend.dart';
 import '../frontend/backend.dart';
 import '../frontend/email_sender.dart';
@@ -48,6 +49,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
     registerAccountBackend(AccountBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
+    registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(
       DartdocBackend(
         dbService,

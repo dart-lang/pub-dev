@@ -15,13 +15,6 @@ Future<shelf.Response> consentPageHandler(shelf.Request request) async {
   return notFoundHandler(request);
 }
 
-/// Handles GET /api/account/consent/<consentId>
-Future<shelf.Response> getAccountConsentHandler(
-    shelf.Request request, String consentId) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}
-
 /// Handles PUT /api/account/consent/<consentId>
 Future<shelf.Response> putAccountConsentHandler(
     shelf.Request request, String consentId) async {

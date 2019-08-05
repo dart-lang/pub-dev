@@ -165,3 +165,30 @@ With appreciation, the Dart package site admin
   return EmailMessage(_defaultFrom, [EmailAddress(null, addedUploaderEmail)],
       subject, bodyText);
 }
+
+/// Creates the [EmailMessage] that will be sent to users about new invitations
+/// they need to confirm.
+EmailMessage createInviteEmail({
+  @required String invitedEmail,
+  @required String subject,
+  @required String inviteText,
+  @required String consentUrl,
+}) {
+  final bodyText = '''Dear Dart developer,
+
+$inviteText
+
+To accept this invitation, visit the following URL:
+$consentUrl
+
+If you don’t want to accept it, simply ignore this email.
+
+If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues.
+
+Thanks for your contributions to the Dart community!
+
+With appreciation, the Dart package site admin
+''';
+  return EmailMessage(
+      _defaultFrom, [EmailAddress(null, invitedEmail)], subject, bodyText);
+}

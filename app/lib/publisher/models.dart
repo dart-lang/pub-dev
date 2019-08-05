@@ -58,11 +58,8 @@ abstract class PublisherMemberRole {
   /// Administrator of the publisher.
   static const String admin = 'admin';
 
-  /// Accepted membership.
-  static const String member = 'member';
-
-  /// Invited but not accepted.
-  static const String pending = 'pending';
+  /// All the allowed values.
+  static const values = <String>[admin];
 }
 
 /// Stores the membership information of a single user.
@@ -82,6 +79,9 @@ class PublisherMember extends db.ExpandoModel {
 
   @db.DateTimeProperty()
   DateTime accepted;
+
+  @db.BoolProperty(required: true)
+  bool isPending;
 
   /// One of [PublisherMemberRole].
   @db.StringProperty()

@@ -209,6 +209,18 @@ class ConflictException extends ResponseException {
   /// is and how to resolve it.
   ConflictException._(String message)
       : super._(409, 'RequestConflict', message);
+
+  /// The active user can't change the resource because it affects itself.
+  factory ConflictException.cantUpdateSelf() =>
+      ConflictException._('Can\'t update self.');
+
+  /// The active user can't update their own role.
+  factory ConflictException.cantUpdateOwnRole() =>
+      ConflictException._('User can\'t update their own role.');
+
+  /// Can't update or modify an entity, because a related invite is pending.
+  factory ConflictException.invitePending() =>
+      ConflictException._('Invite is pending.');
 }
 
 /// Thrown when the analysis for a package is not done yet.

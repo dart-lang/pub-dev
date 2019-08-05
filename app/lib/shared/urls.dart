@@ -185,6 +185,9 @@ String panaMaintenanceUrl() {
   return '$siteRoot/documentation/pana/$panaVersion/#maintenance-score';
 }
 
+/// Returns the consent URL that will be sent to the invited user.
+String consentUrl(String consentId) => '$siteRoot/consent?id=$consentId';
+
 /// Return true if the user-provided `documentation` URL should not be shown.
 bool hideUserProvidedDocUrl(String url) {
   if (url == null || url.isEmpty) return true;

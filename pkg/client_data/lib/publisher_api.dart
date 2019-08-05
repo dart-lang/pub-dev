@@ -84,10 +84,13 @@ class PublisherMember {
   /// Unqiue user identifier, specific to `pub.dev`.
   final String userId;
 
+  /// Whether the role is still pending and the user needs to confirm it.
+  final bool isPending;
+
   /// The role or access-level of for this user in the given publisher.
   ///
   /// Allowed values are:
-  ///  * `'owner'`, can perform any operation.
+  ///  * `'admin'`, can perform any operation.
   final String role;
 
   /// Verified email address of the user.
@@ -96,8 +99,13 @@ class PublisherMember {
   final String email;
 
   // json_serializable boiler-plate
-  PublisherMember(
-      {@required this.userId, @required this.role, @required this.email});
+  PublisherMember({
+    @required this.userId,
+    @required this.isPending,
+    @required this.role,
+    @required this.email,
+  });
+
   factory PublisherMember.fromJson(Map<String, dynamic> json) =>
       _$PublisherMemberFromJson(json);
   Map<String, dynamic> toJson() => _$PublisherMemberToJson(this);
@@ -109,7 +117,7 @@ class UpdatePublisherMemberRequest {
   /// The role or access-level of for this user in the given publisher.
   ///
   /// Allowed values are:
-  ///  * `'owner'`, can perform any operation.
+  ///  * `'admin'`, can perform any operation.
   ///
   /// If left `null` the server will ignore this field and leave it unchanged.
   final String role;
