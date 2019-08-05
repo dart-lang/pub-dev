@@ -78,7 +78,7 @@ class ConsentBackend {
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> invite({
     @required String userId,
-    @required String type,
+    @required String kind,
     @required List<String> args,
     @required String descriptionText,
     @required String descriptionHtml,
@@ -86,7 +86,7 @@ class ConsentBackend {
     return retry(() async {
       return await withAuthenticatedUser((activeUser) async {
         // First check for existing consents with identical dedupId.
-        final dedupId = consentDedupId(type, args);
+        final dedupId = consentDedupId(kind, args);
         final userKey = _db.emptyKey.append(User, id: userId);
         final query = _db.query<Consent>(ancestorKey: userKey)
           ..filter('dedupId =', dedupId);
@@ -107,7 +107,7 @@ class ConsentBackend {
         // Create a new entry.
         final consent = Consent.init(
           parentKey: userKey,
-          type: type,
+          kind: kind,
           args: args,
           fromUserId: authenticatedUser.userId,
           descriptionText: descriptionText,
@@ -147,19 +147,19 @@ class ConsentBackend {
         await _delete(entry);
       } catch (e) {
         _logger.info(
-            'Delete failed: ${entry.userId} ${entry.type} ${entry.args}', e);
+            'Delete failed: ${entry.userId} ${entry.kind} ${entry.args}', e);
       }
     }
   }
 
   Future _accept(Consent consent) async {
-    final action = _actions[consent.type];
+    final action = _actions[consent.kind];
     await action?.onAccept(consent.userId, consent.args);
     await _db.commit(deletes: [consent.key]);
   }
 
   Future _delete(Consent consent) async {
-    final action = _actions[consent.type];
+    final action = _actions[consent.kind];
     await action?.onDelete(consent.userId, consent.args);
     await _db.commit(deletes: [consent.key]);
   }

@@ -59,13 +59,13 @@ class Consent extends db.Model {
   /// The user that this consent is for.
   String get userId => parentKey.id as String;
 
-  /// A [Uri.path]-like concatenation of identifiers from [type] and [args].
+  /// A [Uri.path]-like concatenation of identifiers from [kind] and [args].
   /// It should be used to query the Datastore for duplicate detection.
   @db.StringProperty()
   String dedupId;
 
   @db.StringProperty()
-  String type;
+  String kind;
 
   @db.StringListProperty()
   List<String> args;
@@ -95,7 +95,7 @@ class Consent extends db.Model {
 
   Consent.init({
     @required db.Key parentKey,
-    @required this.type,
+    @required this.kind,
     @required this.args,
     @required this.fromUserId,
     @required this.descriptionText,
@@ -104,7 +104,7 @@ class Consent extends db.Model {
   }) {
     this.parentKey = parentKey;
     this.id = Ulid().toString();
-    dedupId = consentDedupId(type, args);
+    dedupId = consentDedupId(kind, args);
     created = DateTime.now().toUtc();
     notificationCount = 0;
     expires = created.add(timeout);
@@ -123,5 +123,5 @@ class Consent extends db.Model {
 }
 
 /// Calculates the dedupId of a consent request.
-String consentDedupId(String type, List<String> args) =>
-    Uri(pathSegments: [type, ...args]).toString();
+String consentDedupId(String kind, List<String> args) =>
+    [kind, ...args].map(Uri.encodeComponent).join('/');

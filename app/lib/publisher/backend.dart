@@ -122,7 +122,7 @@ class PublisherBackend {
 
       return await consentBackend.invite(
         userId: userId,
-        type: 'PublisherMember',
+        kind: 'PublisherMember',
         args: [p.publisherId],
         descriptionText: 'be a member of publisher $publisherId.',
         descriptionHtml: 'Be a member of publisher $publisherId.',

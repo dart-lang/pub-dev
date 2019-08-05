@@ -71,7 +71,7 @@ void main() {
             .run()
             .map((c) => {
                   'id': c.consentId,
-                  'type': c.type,
+                  'kind': c.kind,
                   'args': c.args,
                   'notificationCount': c.notificationCount,
                   'descriptionText': c.descriptionText,
@@ -132,7 +132,7 @@ void main() {
         expect(await queryConstents(testUserA.userId), [
           {
             'id': isNotNull,
-            'type': 'PublisherMember',
+            'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
             'descriptionText': 'be a member of publisher example.com.',
@@ -153,7 +153,7 @@ void main() {
         final consent = Consent.init(
           parentKey: testUserA.key,
           fromUserId: hansUser.userId,
-          type: 'PublisherMember',
+          kind: 'PublisherMember',
           args: ['example.com'],
           descriptionText: 'text',
           descriptionHtml: 'html',
@@ -174,7 +174,7 @@ void main() {
         expect(await queryConstents(testUserA.userId), [
           {
             'id': isNotNull,
-            'type': 'PublisherMember',
+            'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 2,
             'descriptionText': 'text',
@@ -211,7 +211,7 @@ void main() {
         expect(await queryConstents(m.userId), [
           {
             'id': isNotNull,
-            'type': 'PublisherMember',
+            'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
             'descriptionText': 'be a member of publisher example.com.',
@@ -230,7 +230,7 @@ void main() {
         expect(await queryConstents(testUserA.userId), [
           {
             'id': isNotNull,
-            'type': 'PublisherMember',
+            'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
             'descriptionText': 'be a member of publisher example.com.',
