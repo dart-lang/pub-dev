@@ -9,16 +9,13 @@ import 'dart:isolate';
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
     show DetailedApiRequestError;
 import 'package:gcloud/db.dart' as db;
-import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
 import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
 import 'package:pub_dartlang_org/shared/task_client.dart';
 import 'package:pub_dartlang_org/shared/task_scheduler.dart';
 import 'package:pub_dartlang_org/shared/task_sources.dart';
@@ -49,9 +46,6 @@ Future _main(FrontendEntryMessage message) async {
   await withServices(() async {
     await popularityStorage.init();
 
-    final Bucket snapshotBucket = await getOrCreateBucket(
-        storageService, activeConfiguration.searchSnapshotBucketName);
-    registerSnapshotStorage(SnapshotStorage(snapshotBucket));
     snapshotStorage.scheduleOldDataGC();
 
     final ReceivePort taskReceivePort = ReceivePort();

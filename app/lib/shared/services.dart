@@ -66,6 +66,8 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerSearchBackend(SearchBackend(dbService));
     registerSearchClient(SearchClient());
     registerSearchService(SearchService());
+    registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
+        storageService, activeConfiguration.searchSnapshotBucketName)));
     registerTarballStorage(
       TarballStorage(
           storageService,
