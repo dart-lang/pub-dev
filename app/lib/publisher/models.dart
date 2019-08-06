@@ -75,13 +75,10 @@ class PublisherMember extends db.ExpandoModel {
   String get userId => id as String;
 
   @db.DateTimeProperty()
-  DateTime invited;
+  DateTime created;
 
   @db.DateTimeProperty()
-  DateTime accepted;
-
-  @db.BoolProperty(required: true)
-  bool isPending;
+  DateTime updated;
 
   /// One of [PublisherMemberRole].
   @db.StringProperty()

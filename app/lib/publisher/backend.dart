@@ -51,9 +51,7 @@ class PublisherBackend {
       final member = (await _db.lookup<PublisherMember>(
               [p.key.append(PublisherMember, id: user.userId)]))
           .single;
-      if (member == null ||
-          member.role != PublisherMemberRole.admin ||
-          member.isPending) {
+      if (member == null || member.role != PublisherMemberRole.admin) {
         _logger.info(
             'Unauthorized access of Publisher($publisherId) from ${user.email}.');
         throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
@@ -110,18 +108,7 @@ class PublisherBackend {
       final userId = user.userId;
       final key = p.key.append(PublisherMember, id: userId);
       final pm = (await _db.lookup<PublisherMember>([key])).single;
-      if (pm != null) {
-        InvalidInputException.check(pm.isPending, 'User is already a member.');
-      } else {
-        await _db.commit(inserts: [
-          PublisherMember()
-            ..parentKey = p.key
-            ..id = userId
-            ..invited = DateTime.now().toUtc()
-            ..isPending = true
-            ..role = PublisherMemberRole.admin
-        ]);
-      }
+      InvalidInputException.checkNull(pm, 'User is already a member.');
 
       return await consentBackend.invite(
         userId: userId,
@@ -177,13 +164,11 @@ class PublisherBackend {
         // role needs to be from the allowed set of values
         InvalidInputException.checkAnyOf(
             update.role, 'role', PublisherMemberRole.values);
-        if (pm.isPending) {
-          throw ConflictException.invitePending();
-        }
         await _db.withTransaction((tx) async {
           final current = (await tx.lookup<PublisherMember>([key])).single;
           // fall back to current role if role is not updated
           current.role = update.role ?? current.role;
+          current.updated = DateTime.now().toUtc();
           tx.queueMutations(inserts: [current]);
           await tx.commit();
         });
@@ -216,38 +201,29 @@ class PublisherBackend {
           .append(PublisherMember, id: userId);
       final list = await tx.lookup<PublisherMember>([key]);
       final member = list.single;
-      if (member == null) {
-        throw NotFoundException('Membership invite was deleted.');
-      }
-      if (member.isPending) {
-        member.isPending = false;
-        tx.queueMutations(inserts: [member]);
-        await tx.commit();
-      }
+      if (member != null) return;
+      final now = DateTime.now().toUtc();
+      tx.queueMutations(inserts: [
+        PublisherMember()
+          ..parentKey = key.parent
+          ..id = userId
+          ..created = now
+          ..updated = now
+          ..role = PublisherMemberRole.admin
+      ]);
+      await tx.commit();
     });
   }
 
   /// A callback from consent backend, when a consent is not granted, or expired.
   /// Note: this will be retried when transaction fails due race conditions.
   Future inviteDeleted(String publisherId, String userId) async {
-    await _db.withTransaction((tx) async {
-      final key = _db.emptyKey
-          .append(Publisher, id: publisherId)
-          .append(PublisherMember, id: userId);
-      final list = await tx.lookup<PublisherMember>([key]);
-      final member = list.single;
-      if (member == null) return;
-      if (member.isPending) {
-        tx.queueMutations(deletes: [member.key]);
-        await tx.commit();
-      }
-    });
+    // nothing to do
   }
 
   Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
     return api.PublisherMember(
       userId: pm.userId,
-      isPending: pm.isPending,
       role: pm.role,
       email: await accountBackend.getEmailOfUserId(pm.userId),
     );

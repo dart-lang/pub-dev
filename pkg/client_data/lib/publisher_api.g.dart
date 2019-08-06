@@ -65,7 +65,6 @@ Map<String, dynamic> _$PublisherMembersToJson(PublisherMembers instance) =>
 PublisherMember _$PublisherMemberFromJson(Map<String, dynamic> json) {
   return PublisherMember(
     userId: json['userId'] as String,
-    isPending: json['isPending'] as bool,
     role: json['role'] as String,
     email: json['email'] as String,
   );
@@ -74,7 +73,6 @@ PublisherMember _$PublisherMemberFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$PublisherMemberToJson(PublisherMember instance) =>
     <String, dynamic>{
       'userId': instance.userId,
-      'isPending': instance.isPending,
       'role': instance.role,
       'email': instance.email,
     };
