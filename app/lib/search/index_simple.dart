@@ -725,12 +725,13 @@ class TokenIndex {
     final intersection = a.intersection(b);
     if (intersection.isEmpty) return 0.0;
 
-    int sumFn(int sum, String str) =>
-        sum + math.min<int>(100, str.length * str.length);
+    double sumFn(double sum, String str) =>
+        sum + math.min<double>(100.0, math.pow(str.length, 1.5).toDouble());
 
-    final intersectionWeight = intersection.fold<int>(0, sumFn);
-    final supersetWeight =
-        a.fold<int>(0, sumFn) + b.fold<int>(0, sumFn) - intersectionWeight;
+    final intersectionWeight = intersection.fold<double>(0, sumFn);
+    final supersetWeight = a.fold<double>(0, sumFn) +
+        b.fold<double>(0, sumFn) -
+        intersectionWeight;
     return intersectionWeight / supersetWeight;
   }
 
