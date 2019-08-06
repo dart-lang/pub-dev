@@ -128,17 +128,6 @@ class UpdatePublisherMemberRequest {
 /// Request payload for inviting a new user to become member of a publisher.
 @JsonSerializable()
 class InviteMemberRequest {
-  /// Human readable markdown string explaining why this invitation is being
-  /// extended.
-  ///
-  /// This reason will:
-  ///  * be stored in audit logs, and,
-  ///  * displayed in the email sent to the invited user.
-  ///
-  /// In the future, this could also be sent in an email notifying other members
-  /// about the new member being invited.
-  final String reason;
-
   /// Email to which the invitation will be sent.
   ///
   /// This must be the primary email associated with the invited users Google
@@ -147,7 +136,7 @@ class InviteMemberRequest {
   final String email;
 
   // json_serializable boiler-plate
-  InviteMemberRequest({@required this.reason, @required this.email});
+  InviteMemberRequest({@required this.email});
   factory InviteMemberRequest.fromJson(Map<String, dynamic> json) =>
       _$InviteMemberRequestFromJson(json);
   Map<String, dynamic> toJson() => _$InviteMemberRequestToJson(this);

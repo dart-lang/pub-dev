@@ -81,26 +81,16 @@ void main() {
 
       _testAdminAuthIssues(
         (client) => client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-              email: testUserA.email,
-              reason: 'Need more admin.',
-            )),
+            'example.com', InviteMemberRequest(email: testUserA.email)),
       );
 
       _testNoPublisher((client) => client.invitePublisherMember(
-          'no-domain.net',
-          InviteMemberRequest(
-            email: testUserA.email,
-            reason: 'Need more admin.',
-          )));
+          'no-domain.net', InviteMemberRequest(email: testUserA.email)));
 
       testWithServices('Invalid e-mail', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: 'not an e-mail'));
+            'example.com', InviteMemberRequest(email: 'not an e-mail'));
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
@@ -110,9 +100,7 @@ void main() {
         ]);
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: testUserA.email));
+            'example.com', InviteMemberRequest(email: testUserA.email));
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
@@ -128,9 +116,7 @@ void main() {
         await dbService.commit(inserts: [consent]);
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: testUserA.email));
+            'example.com', InviteMemberRequest(email: testUserA.email));
         expect(rs.emailSent, isTrue);
         expect(await queryConstents(testUserA.userId), [
           {
@@ -151,9 +137,7 @@ void main() {
       testWithServices('Invite new account', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: 'newuser@example.com'));
+            'example.com', InviteMemberRequest(email: 'newuser@example.com'));
         expect(rs.emailSent, isTrue);
         final list = await client.listPublisherMembers('example.com');
         expect(list.members, hasLength(1));
@@ -174,9 +158,7 @@ void main() {
       testWithServices('Invite existing account', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: testUserA.email));
+            'example.com', InviteMemberRequest(email: testUserA.email));
         expect(rs.emailSent, isTrue);
         expect(await queryConstents(testUserA.userId), [
           {
@@ -191,23 +173,17 @@ void main() {
       testWithServices('Don not send e-mail twice in a row', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs1 = await client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: testUserA.email));
+            'example.com', InviteMemberRequest(email: testUserA.email));
         expect(rs1.emailSent, isTrue);
         final rs2 = await client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: testUserA.email));
+            'example.com', InviteMemberRequest(email: testUserA.email));
         expect(rs2.emailSent, isFalse);
       });
 
       testWithServices('Accept invite', () async {
         final client1 = createPubApiClient(authToken: hansUser.userId);
         await client1.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: joeUser.email));
+            'example.com', InviteMemberRequest(email: joeUser.email));
         final consents = await dbService
             .query<Consent>(ancestorKey: joeUser.key)
             .run()
@@ -229,9 +205,7 @@ void main() {
       testWithServices('Decline invite', () async {
         final client1 = createPubApiClient(authToken: hansUser.userId);
         await client1.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: joeUser.email));
+            'example.com', InviteMemberRequest(email: joeUser.email));
         final consents = await dbService
             .query<Consent>(ancestorKey: joeUser.key)
             .run()
