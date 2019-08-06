@@ -99,8 +99,13 @@ Router _$PubApiRouter(PubApi service) {
   router.add('POST', r'/api/publishers/<publisherId>',
       (Request request, String publisherId) async {
     try {
-      final _$result = await service.createPublisher(request, publisherId);
-      return _$result;
+      final _$result = await service.createPublisher(
+          request,
+          publisherId,
+          await $utilities.decodeJson<CreatePublisherRequest>(request, (o) {
+            return CreatePublisherRequest.fromJson(o);
+          }));
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

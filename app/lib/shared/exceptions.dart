@@ -165,7 +165,7 @@ class AuthenticationException extends ResponseException
 ///
 /// Example:
 ///  * Modifying a package for which the user doesn't have permissions,
-///  * Creating a package without domain validation.
+///  * Creating a publisher without domain validation.
 class AuthorizationException extends ResponseException
     implements UnauthorizedAccessException {
   AuthorizationException._(String message)
@@ -201,6 +201,39 @@ class AuthorizationException extends ResponseException
         'package `$publisher`.',
       );
 
+  static final _domainVerificationUrl =
+      Uri.parse('https://www.google.com/webmasters/verification/verification');
+
+  /// Signaling that the user is not a verified owner of the [domain] for which
+  /// the user is trying to create a publisher.
+  factory AuthorizationException.userIsNotDomainOwner(String domain) =>
+      AuthorizationException._([
+        'Insufficient permissions to create publisher `$domain`, to create ',
+        'this publisher the domain `$domain` must be _verified_ in the ',
+        '[search console](https://search.google.com/search-console/welcome).',
+        '',
+        'It is not sufficient to be granted access to the domain, the domain ',
+        'must be verified with the Google account used to created the ',
+        'publisher. It is also insufficient to verify a URL or URL prefix,',
+        'the domain must be verified with a **DNS record**.',
+        '',
+        '<b><a href="${_domainVerificationUrl.replace(queryParameters: {
+          "domain": domain
+        })}" target="_blank">Open domain verification flow.</a></b>',
+        '',
+        'Note, once the publisher is created the domain verification need not',
+        'remain in place. This is only required for publisher creation.',
+      ].join('\n'));
+
+  /// Signaling that the user did not grant read-only access to the
+  /// search console, making it impossible for the server to verify the users
+  /// domain ownership.
+  factory AuthorizationException.missingSearchConsoleReadAccess() =>
+      AuthorizationException._([
+        'Read-only access to Search Console data was not granted, preventing',
+        '`pub.dev` from verifying that you own the domain.',
+      ].join('\n'));
+
   @override
   String toString() => '$code: $message'; // used by package:pub_server
 }
@@ -225,6 +258,11 @@ class ConflictException extends ResponseException {
   /// The active user can't update their own role.
   factory ConflictException.cantUpdateOwnRole() =>
       ConflictException._('User can\'t update their own role.');
+
+  /// The user is trying to create a publisher that already exists.
+  factory ConflictException.publisherAlreadyExists(String domain) =>
+      ConflictException._(
+          'A publisher with the domain `$domain` already exists');
 }
 
 /// Thrown when the analysis for a package is not done yet.

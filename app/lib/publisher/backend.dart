@@ -6,7 +6,11 @@ import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:googleapis_auth/auth.dart' as auth;
+import 'package:googleapis/webmasters/v3.dart' as wmx;
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:retry/retry.dart' show retry;
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -58,6 +62,113 @@ class PublisherBackend {
       }
       return await fn(p);
     });
+  }
+
+  /// Create publisher.
+  Future<api.PublisherInfo> createPublisher(
+    String publisherId,
+    api.CreatePublisherRequest body,
+  ) async {
+    // Sanity check that domains are:
+    //  - lowercase (because we want that in pub.dev)
+    //  - consist of a-z, 0-9 and dashes
+    // We do not care if they end in dash, as such domains can't be verified.
+    InvalidInputException.checkMatchPattern(
+      publisherId,
+      'publisherId',
+      RegExp(r'^[a-z0-9-]{1,63}\.[a-z0-9-]{1,63}$'),
+    );
+    InvalidInputException.checkStringLength(
+      publisherId,
+      'publisherId',
+      maximum: 255, // Some upper limit for sanity.
+    );
+    InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
+    InvalidInputException.checkStringLength(
+      body.accessToken,
+      'accessToken',
+      minimum: 1,
+      maximum: 4096,
+    );
+
+    // Create client for talking to Webmasters API:
+    // https://developers.google.com/webmaster-tools/search-console-api-original/v3/parameters
+    final client = auth.authenticatedClient(
+      http.Client(),
+      auth.AccessCredentials(
+        auth.AccessToken(
+          'Bearer',
+          body.accessToken,
+          DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+        ),
+        null,
+        [wmx.WebmastersApi.WebmastersReadonlyScope],
+      ),
+    );
+    try {
+      final sites = await retry(
+        () => wmx.WebmastersApi(client).sites.list(),
+        maxAttempts: 3,
+        maxDelay: Duration(milliseconds: 500),
+        retryIf: (e) => e is! auth.AccessDeniedException,
+      );
+      // Determine if the user is in fact owner of the domain in question.
+      final isOwner = sites.siteEntry.any(
+        (s) =>
+            s.siteUrl.toLowerCase() == 'sc-domain:$publisherId' &&
+            s.permissionLevel == 'siteOwner', // must be 'siteOwner'!
+      );
+      if (!isOwner) {
+        throw AuthorizationException.userIsNotDomainOwner(publisherId);
+      }
+    } on auth.AccessDeniedException {
+      throw AuthorizationException.missingSearchConsoleReadAccess();
+    } finally {
+      client.close();
+    }
+
+    // Create the publisher
+    final now = DateTime.now().toUtc();
+    await _db.withTransaction((tx) async {
+      final key = _db.emptyKey.append(Publisher, id: publisherId);
+      final p = (await tx.lookup<Publisher>([key])).single;
+      if (p != null) {
+        // Check that publisher is the same as what we would create.
+        if (p.created.isBefore(now.subtract(Duration(minutes: 10))) ||
+            p.updated.isBefore(now.subtract(Duration(minutes: 10))) ||
+            p.contactEmail != authenticatedUser.email ||
+            p.description != '' ||
+            p.websiteUrl != 'https://$publisherId') {
+          throw ConflictException.publisherAlreadyExists(publisherId);
+        }
+        // Avoid creating the same publisher again, this end-point is idempotent
+        // if we just do nothing here.
+        return;
+      }
+
+      // Create publisher
+      tx.queueMutations(inserts: [
+        Publisher()
+          ..parentKey = _db.emptyKey
+          ..id = publisherId
+          ..created = now
+          ..description = ''
+          ..contactEmail = authenticatedUser.email
+          ..updated = now
+          ..websiteUrl = 'https://$publisherId',
+        PublisherMember()
+          ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
+          ..id = authenticatedUser.userId
+          ..created = now
+          ..updated = now
+          ..role = PublisherMemberRole.admin
+      ]);
+    });
+
+    // Return publisher as it was created
+    final key = _db.emptyKey.append(Publisher, id: publisherId);
+    final p = (await _db.lookup<Publisher>([key])).single;
+    return _asPublisherInfo(p);
   }
 
   /// Gets the publisher data
