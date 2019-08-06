@@ -172,7 +172,7 @@ class PublisherBackend {
       }
       if (update.role != null && update.role != pm.role) {
         // user is not allowed to update their own role
-        if (userId == authenticatedUser?.userId) {
+        if (userId == authenticatedUser.userId) {
           throw ConflictException.cantUpdateOwnRole();
         }
         // role needs to be from the allowed set of values
@@ -194,10 +194,11 @@ class PublisherBackend {
 
   /// Deletes a publisher's member.
   Future deletePublisherMember(String publisherId, String userId) async {
-    if (userId == authenticatedUser?.userId) {
-      throw ConflictException.cantUpdateSelf();
-    }
     return await _withPublisherAdmin(publisherId, (p) async {
+      if (userId == authenticatedUser.userId) {
+        throw ConflictException.cantUpdateSelf();
+      }
+
       final key = p.key.append(PublisherMember, id: userId);
       final pm = (await _db.lookup<PublisherMember>([key])).single;
       if (pm != null) {
