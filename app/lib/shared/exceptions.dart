@@ -59,6 +59,12 @@ class InvalidInputException extends ResponseException {
     }
   }
 
+  /// Throw [InvalidInputException] if [value] is not `null`.
+  static void checkNull(dynamic value, String name) {
+    assert(name != null, '"name" must not be `null`');
+    _check(value == null, () => '"$name" cannot be `null`');
+  }
+
   /// Throw [InvalidInputException] if [value] is `null`.
   static void checkNotNull(dynamic value, String name) {
     assert(name != null, '"name" must not be `null`');
@@ -217,10 +223,6 @@ class ConflictException extends ResponseException {
   /// The active user can't update their own role.
   factory ConflictException.cantUpdateOwnRole() =>
       ConflictException._('User can\'t update their own role.');
-
-  /// Can't update or modify an entity, because a related invite is pending.
-  factory ConflictException.invitePending() =>
-      ConflictException._('Invite is pending.');
 }
 
 /// Thrown when the analysis for a package is not done yet.

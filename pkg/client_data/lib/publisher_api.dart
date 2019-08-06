@@ -84,9 +84,6 @@ class PublisherMember {
   /// Unqiue user identifier, specific to `pub.dev`.
   final String userId;
 
-  /// Whether the role is still pending and the user needs to confirm it.
-  final bool isPending;
-
   /// The role or access-level of for this user in the given publisher.
   ///
   /// Allowed values are:
@@ -101,7 +98,6 @@ class PublisherMember {
   // json_serializable boiler-plate
   PublisherMember({
     @required this.userId,
-    @required this.isPending,
     @required this.role,
     @required this.email,
   });

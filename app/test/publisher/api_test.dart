@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart';
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
@@ -115,36 +116,6 @@ void main() {
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       });
 
-      testWithServices('Pending without Content entry, sending new e-mail',
-          () async {
-        await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, PublisherMemberRole.admin,
-              isPending: true),
-        ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = await client.invitePublisherMember(
-            'example.com',
-            InviteMemberRequest(
-                reason: 'Need more admin.', email: testUserA.email));
-        expect(rs.emailSent, isTrue);
-        expect(await queryConstents(testUserA.userId), [
-          {
-            'id': isNotNull,
-            'kind': 'PublisherMember',
-            'args': ['example.com'],
-            'notificationCount': 1,
-          }
-        ]);
-        final info =
-            await client.publisherMemberInfo('example.com', testUserA.userId);
-        expect(info.toJson(), {
-          'userId': 'a-example-com',
-          'isPending': true,
-          'role': 'admin',
-          'email': 'a@example.com',
-        });
-      });
-
       testWithServices('Pending with Consent, sending new e-mail', () async {
         final consent = Consent.init(
           parentKey: testUserA.key,
@@ -154,11 +125,7 @@ void main() {
         );
         consent.created = consent.created.subtract(Duration(hours: 1));
         consent.notificationCount++;
-        await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, PublisherMemberRole.admin,
-              isPending: true),
-          consent,
-        ]);
+        await dbService.commit(inserts: [consent]);
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.invitePublisherMember(
             'example.com',
@@ -173,14 +140,12 @@ void main() {
             'notificationCount': 2,
           }
         ]);
-        final info =
-            await client.publisherMemberInfo('example.com', testUserA.userId);
-        expect(info.toJson(), {
-          'userId': 'a-example-com',
-          'isPending': true,
-          'role': 'admin',
-          'email': 'a@example.com'
-        });
+
+        await expectApiException(
+          client.publisherMemberInfo('example.com', testUserA.userId),
+          status: 404,
+          code: 'NotFound',
+        );
       });
 
       testWithServices('Invite new account', () async {
@@ -191,16 +156,12 @@ void main() {
                 reason: 'Need more admin.', email: 'newuser@example.com'));
         expect(rs.emailSent, isTrue);
         final list = await client.listPublisherMembers('example.com');
-        final m =
-            list.members.firstWhere((m) => m.email == 'newuser@example.com');
-        expect(m.toJson(), {
-          'userId':
-              matches(RegExp('[0-f]{8}-[0-f]{4}-[0-f]{4}-[0-f]{4}-[0-f]{12}')),
-          'isPending': true,
-          'role': 'admin',
-          'email': 'newuser@example.com'
-        });
-        expect(await queryConstents(m.userId), [
+        expect(list.members, hasLength(1));
+        expect(list.members.where((m) => m.email == 'newuser@example.com'),
+            isEmpty);
+        final user =
+            await accountBackend.lookupUserByEmail('newuser@example.com');
+        expect(await queryConstents(user.userId), [
           {
             'id': isNotNull,
             'kind': 'PublisherMember',
@@ -260,7 +221,6 @@ void main() {
             await client1.publisherMemberInfo('example.com', joeUser.userId);
         expect(m.toJson(), {
           'userId': 'joe-at-example-dot-com',
-          'isPending': false, // must not be pending!
           'role': 'admin',
           'email': 'joe@example.com',
         });
@@ -306,7 +266,6 @@ void main() {
             {
               'userId': 'hans-at-juergen-dot-com',
               'email': 'hans@juergen.com',
-              'isPending': false,
               'role': 'admin',
             },
           ],
@@ -337,7 +296,6 @@ void main() {
         expect(rs.toJson(), {
           'userId': 'hans-at-juergen-dot-com',
           'email': 'hans@juergen.com',
-          'isPending': false,
           'role': 'admin',
         });
       });
@@ -378,40 +336,6 @@ void main() {
         await expectApiException(rs, status: 404, code: 'NotFound');
       });
 
-      testWithServices('Role upgrade with pending invite is blocked', () async {
-        await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, 'someotherrole', isPending: true),
-        ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = client.updatePublisherMember(
-            'example.com',
-            testUserA.userId,
-            UpdatePublisherMemberRequest(
-              role: PublisherMemberRole.admin,
-            ));
-        await expectApiException(rs, status: 409, code: 'RequestConflict');
-      });
-
-      testWithServices('Pending invite is not finalized', () async {
-        await dbService.commit(inserts: [
-          publisherMember(testUserA.userId, PublisherMemberRole.admin,
-              isPending: true),
-        ]);
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = await client.updatePublisherMember(
-            'example.com',
-            testUserA.userId,
-            UpdatePublisherMemberRequest(
-              role: PublisherMemberRole.admin,
-            ));
-        expect(rs.toJson(), {
-          'userId': 'a-example-com',
-          'email': 'a@example.com',
-          'isPending': true, // should remain pending
-          'role': 'admin',
-        });
-      });
-
       testWithServices('Role value is not allowed', () async {
         await dbService.commit(inserts: [
           publisherMember(testUserA.userId, PublisherMemberRole.admin),
@@ -439,7 +363,6 @@ void main() {
             ));
         expect(rs.toJson(), {
           'userId': 'a-example-com',
-          'isPending': false,
           'role': 'admin',
           'email': 'a@example.com',
         });
@@ -512,8 +435,7 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
 
   testWithServices('Active user is not an admin yet', () async {
     await dbService.commit(inserts: [
-      publisherMember(hansUser.userId, PublisherMemberRole.admin,
-          isPending: true),
+      publisherMember(hansUser.userId, 'non-admin'),
     ]);
     final client = createPubApiClient(authToken: hansAuthenticated.userId);
     final rs = fn(client);
