@@ -92,7 +92,6 @@ Map<String, dynamic> _$UpdatePublisherMemberRequestToJson(
 
 InviteMemberRequest _$InviteMemberRequestFromJson(Map<String, dynamic> json) {
   return InviteMemberRequest(
-    reason: json['reason'] as String,
     email: json['email'] as String,
   );
 }
@@ -100,6 +99,5 @@ InviteMemberRequest _$InviteMemberRequestFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$InviteMemberRequestToJson(
         InviteMemberRequest instance) =>
     <String, dynamic>{
-      'reason': instance.reason,
       'email': instance.email,
     };
