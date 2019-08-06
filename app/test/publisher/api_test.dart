@@ -28,7 +28,7 @@ void main() {
         final rs = await client.publisherInfo('example.com');
         expect(rs.toJson(), {
           'description': 'This is us!',
-          'contact': 'contact@example.com',
+          'contactEmail': 'contact@example.com',
         });
       });
     });
@@ -56,7 +56,86 @@ void main() {
         );
         expect(rs.toJson(), {
           'description': 'new description',
-          'contact': 'contact@example.com',
+          'contactEmail': 'contact@example.com',
+        });
+        // Info request should return with the same content.
+        final info = await client.publisherInfo('example.com');
+        expect(info.toJson(), rs.toJson());
+      });
+    });
+
+    group('Update contactEmail', () {
+      _testAdminAuthIssues(
+        (client) => client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(contactEmail: hansUser.email),
+        ),
+      );
+
+      _testNoPublisher(
+        (client) => client.updatePublisher(
+          'example.net',
+          UpdatePublisherRequest(contactEmail: hansUser.email),
+        ),
+      );
+
+      testWithServices('Not registered user e-amil', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(contactEmail: 'not-registered@example.com'),
+        );
+        await expectApiException(rs, status: 400, code: 'InvalidInput');
+      });
+
+      testWithServices('User is not a member', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(contactEmail: testUserA.userId),
+        );
+        await expectApiException(rs, status: 400, code: 'InvalidInput');
+      });
+
+      testWithServices('User is not admin', () async {
+        await dbService.commit(inserts: [
+          publisherMember(testUserA.userId, 'not-admin'),
+        ]);
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(contactEmail: testUserA.userId),
+        );
+        await expectApiException(rs, status: 400, code: 'InvalidInput');
+      });
+
+      testWithServices('OK', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(contactEmail: hansUser.email),
+        );
+        expect(rs.toJson(), {
+          'description': 'This is us!',
+          'contactEmail': 'hans@juergen.com',
+        });
+        // Info request should return with the same content.
+        final info = await client.publisherInfo('example.com');
+        expect(info.toJson(), rs.toJson());
+      });
+    });
+
+    group('Update all publisher detail', () {
+      testWithServices('OK', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(
+              description: 'new description', contactEmail: hansUser.email),
+        );
+        expect(rs.toJson(), {
+          'description': 'new description',
+          'contactEmail': 'hans@juergen.com',
         });
         // Info request should return with the same content.
         final info = await client.publisherInfo('example.com');
