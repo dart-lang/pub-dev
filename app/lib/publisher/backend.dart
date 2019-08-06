@@ -78,14 +78,28 @@ class PublisherBackend {
         throw ArgumentError('Description too long.');
       }
     }
-    if (update.contact != null) {
-      throw ArgumentError('Contact change is not implemented.');
-    }
     final p = await _withPublisherAdmin(publisherId, (_) async {
       return await _db.withTransaction((tx) async {
         final key = _db.emptyKey.append(Publisher, id: publisherId);
         final p = (await tx.lookup<Publisher>([key])).single;
+
+        if (update.contactEmail != null &&
+            p.contactEmail != update.contactEmail) {
+          final user =
+              await accountBackend.lookupUserByEmail(update.contactEmail);
+          InvalidInputException.check(user != null,
+              'Only administrator e-mail can be used as contact e-mail.');
+          final members = await tx.lookup<PublisherMember>(
+              [p.key.append(PublisherMember, id: user.userId)]);
+          final member = members.single;
+          InvalidInputException.check(member?.role == PublisherMemberRole.admin,
+              'Only administrator e-mail can be used as contact e-mail.');
+        }
+
         p.description = update.description ?? p.description;
+        p.contactEmail = update.contactEmail ?? p.contactEmail;
+        p.updated = DateTime.now().toUtc();
+
         tx.queueMutations(inserts: [p]);
         await tx.commit();
         return p;
@@ -231,4 +245,4 @@ class PublisherBackend {
 }
 
 api.PublisherInfo _asPublisherInfo(Publisher p) =>
-    api.PublisherInfo(description: p.description, contact: p.contactEmail);
+    api.PublisherInfo(description: p.description, contactEmail: p.contactEmail);

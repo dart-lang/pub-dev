@@ -40,10 +40,10 @@ class UpdatePublisherRequest {
   /// If left as `null` this field will be ignored.
   /// If changed, the change will not take effect until the confirmation email
   /// have been confirmed by the user.
-  final String contact;
+  final String contactEmail;
 
   // json_serializable boiler-plate
-  UpdatePublisherRequest({this.description, this.contact});
+  UpdatePublisherRequest({this.description, this.contactEmail});
   factory UpdatePublisherRequest.fromJson(Map<String, dynamic> json) =>
       _$UpdatePublisherRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdatePublisherRequestToJson(this);
@@ -56,10 +56,10 @@ class PublisherInfo {
   final String description;
 
   /// The currently verified contact email for the publisher.
-  final String contact;
+  final String contactEmail;
 
   // json_serializable boiler-plate
-  PublisherInfo({@required this.description, @required this.contact});
+  PublisherInfo({@required this.description, @required this.contactEmail});
   factory PublisherInfo.fromJson(Map<String, dynamic> json) =>
       _$PublisherInfoFromJson(json);
   Map<String, dynamic> toJson() => _$PublisherInfoToJson(this);

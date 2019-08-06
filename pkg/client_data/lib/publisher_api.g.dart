@@ -23,7 +23,7 @@ UpdatePublisherRequest _$UpdatePublisherRequestFromJson(
     Map<String, dynamic> json) {
   return UpdatePublisherRequest(
     description: json['description'] as String,
-    contact: json['contact'] as String,
+    contactEmail: json['contactEmail'] as String,
   );
 }
 
@@ -31,20 +31,20 @@ Map<String, dynamic> _$UpdatePublisherRequestToJson(
         UpdatePublisherRequest instance) =>
     <String, dynamic>{
       'description': instance.description,
-      'contact': instance.contact,
+      'contactEmail': instance.contactEmail,
     };
 
 PublisherInfo _$PublisherInfoFromJson(Map<String, dynamic> json) {
   return PublisherInfo(
     description: json['description'] as String,
-    contact: json['contact'] as String,
+    contactEmail: json['contactEmail'] as String,
   );
 }
 
 Map<String, dynamic> _$PublisherInfoToJson(PublisherInfo instance) =>
     <String, dynamic>{
       'description': instance.description,
-      'contact': instance.contact,
+      'contactEmail': instance.contactEmail,
     };
 
 PublisherMembers _$PublisherMembersFromJson(Map<String, dynamic> json) {
