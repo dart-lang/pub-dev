@@ -98,7 +98,7 @@ void main() {
       // location should be the top value, everything else should be lower
       expect(match.tokenWeights, {
         'location': 1.0,
-        'geolocation': closeTo(0.578, 0.001),
+        'geolocation': closeTo(0.588, 0.001),
       });
     });
   });
