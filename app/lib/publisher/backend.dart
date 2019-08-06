@@ -6,16 +6,13 @@ import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis_auth/auth.dart' as auth;
-import 'package:googleapis/webmasters/v3.dart' as wmx;
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:retry/retry.dart' show retry;
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import 'domain_verifier.dart' show domainVerifier;
 
 import 'models.dart';
 
@@ -91,40 +88,13 @@ class PublisherBackend {
       maximum: 4096,
     );
 
-    // Create client for talking to Webmasters API:
-    // https://developers.google.com/webmaster-tools/search-console-api-original/v3/parameters
-    final client = auth.authenticatedClient(
-      http.Client(),
-      auth.AccessCredentials(
-        auth.AccessToken(
-          'Bearer',
-          body.accessToken,
-          DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
-        ),
-        null,
-        [wmx.WebmastersApi.WebmastersReadonlyScope],
-      ),
+    // Verify ownership of domain.
+    final isOwner = await domainVerifier.verifyDomainOwnership(
+      publisherId,
+      body.accessToken,
     );
-    try {
-      final sites = await retry(
-        () => wmx.WebmastersApi(client).sites.list(),
-        maxAttempts: 3,
-        maxDelay: Duration(milliseconds: 500),
-        retryIf: (e) => e is! auth.AccessDeniedException,
-      );
-      // Determine if the user is in fact owner of the domain in question.
-      final isOwner = sites.siteEntry.any(
-        (s) =>
-            s.siteUrl.toLowerCase() == 'sc-domain:$publisherId' &&
-            s.permissionLevel == 'siteOwner', // must be 'siteOwner'!
-      );
-      if (!isOwner) {
-        throw AuthorizationException.userIsNotDomainOwner(publisherId);
-      }
-    } on auth.AccessDeniedException {
-      throw AuthorizationException.missingSearchConsoleReadAccess();
-    } finally {
-      client.close();
+    if (!isOwner) {
+      throw AuthorizationException.userIsNotDomainOwner(publisherId);
     }
 
     // Create the publisher
@@ -163,6 +133,7 @@ class PublisherBackend {
           ..updated = now
           ..role = PublisherMemberRole.admin
       ]);
+      await tx.commit();
     });
 
     // Return publisher as it was created
