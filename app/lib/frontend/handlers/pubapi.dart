@@ -1,5 +1,6 @@
 import 'package:api_builder/api_builder.dart';
 import 'package:client_data/account_api.dart';
+import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
@@ -210,6 +211,25 @@ class PubApi {
   @EndPoint.put('/api/packages/<package>/options')
   Future<Response> setPackageOptions(Request request, String package) =>
       putPackageOptionsHandler(request, package);
+
+  @EndPoint.get('/api/packages/<package>/publisher')
+  Future<PackagePublisherInfo> getPackagePublisher(
+    Request request,
+    String package,
+  ) =>
+      throw UnimplementedError('getPackagePublisher not implemented');
+
+  @EndPoint.put('/api/packages/<package>/publisher')
+  Future<PackagePublisherInfo> setPackagePublisher(
+    Request request,
+    String package,
+    PackagePublisherInfo body,
+  ) =>
+      throw UnimplementedError('setPackagePublisher not implemented');
+
+  @EndPoint.delete('/api/packages/<package>/publisher')
+  Future<Response> removePackagePublisher(Request request, String package) =>
+      throw UnimplementedError('removePackagePublisher not implemented');
 
   @EndPoint.get('/api/search')
   Future<Response> search(Request request) => apiSearchHandler(request);
