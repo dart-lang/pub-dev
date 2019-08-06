@@ -20,3 +20,20 @@ class PkgOptions {
 
   Map<String, dynamic> toJson() => _$PkgOptionsToJson(this);
 }
+
+/// Publisher ownership to get/set on a package.
+@JsonSerializable()
+class PackagePublisherInfo {
+  /// Domain name of the publisher that owns this package, `null` if package
+  /// is not owned by a publisher.
+  final String publisherId;
+
+  PackagePublisherInfo({
+    this.publisherId,
+  });
+
+  factory PackagePublisherInfo.fromJson(Map<String, dynamic> json) =>
+      _$PackagePublisherInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackagePublisherInfoToJson(this);
+}
