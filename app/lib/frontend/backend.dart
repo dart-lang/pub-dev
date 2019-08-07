@@ -106,9 +106,9 @@ class Backend {
 
   /// Retrieves package versions ordered by their latest version date.
   Future<List<models.PackageVersion>> latestPackageVersions(
-      {int offset, int limit, bool devVersions = false}) async {
+      {int offset, int limit}) async {
     final packages = await latestPackages(offset: offset, limit: limit);
-    return lookupLatestVersions(packages, devVersions: devVersions);
+    return lookupLatestVersions(packages);
   }
 
   /// Looks up a package by name.

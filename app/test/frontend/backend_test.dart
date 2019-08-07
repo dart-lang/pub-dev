@@ -100,70 +100,15 @@ void main() {
     });
 
     group('Backend.latestPackageVersions', () {
-      test('one package', () async {
-        final completion = TestDelayCompletion();
-        Stream<Package> queryRunFun(
-            {partition,
-            ancestorKey,
-            filters,
-            filterComparisonObjects,
-            offset,
-            limit,
-            orders}) {
-          completion.complete();
-          expect(offset, 4);
-          expect(limit, 9);
-          expect(orders, ['-updated']);
-          return Stream.fromIterable([foobarPackage]);
-        }
-
-        List<PackageVersion> lookupFun(keys) {
-          expect(keys, hasLength(1));
-          expect(keys.first, foobarPackage.latestVersionKey);
-          return [foobarStablePV];
-        }
-
-        final db = DatastoreDBMock(
-            queryMock: QueryMock(queryRunFun),
-            lookupFun: expectAsync1(lookupFun));
-        final backend = Backend(db, null);
-
-        final versions =
-            await backend.latestPackageVersions(offset: 4, limit: 9);
-        expect(versions, hasLength(1));
-        expect(versions.first, equals(foobarStablePV));
+      testWithServices('one package', () async {
+        final list = await backend.latestPackageVersions(offset: 2, limit: 1);
+        expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
+            ['helium-2.0.5']);
       });
 
-      test('empty', () async {
-        final completion = TestDelayCompletion();
-        Stream<Package> queryRunFun(
-            {partition,
-            ancestorKey,
-            filters,
-            filterComparisonObjects,
-            offset,
-            limit,
-            orders}) {
-          completion.complete();
-          expect(offset, 4);
-          expect(limit, 9);
-          expect(orders, ['-updated']);
-          return Stream.fromIterable(<Package>[]);
-        }
-
-        List lookupFun(keys) {
-          expect(keys, hasLength(0));
-          return [];
-        }
-
-        final db = DatastoreDBMock(
-            queryMock: QueryMock(queryRunFun),
-            lookupFun: expectAsync1(lookupFun));
-        final backend = Backend(db, null);
-
-        final versions =
-            await backend.latestPackageVersions(offset: 4, limit: 9);
-        expect(versions, hasLength(0));
+      testWithServices('empty', () async {
+        final list = await backend.latestPackageVersions(offset: 200, limit: 1);
+        expect(list, isEmpty);
       });
     });
 

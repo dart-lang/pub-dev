@@ -66,7 +66,7 @@ class BackendMock implements Backend {
 
   @override
   Future<List<PackageVersion>> latestPackageVersions(
-      {int offset, int limit, bool devVersions = false}) async {
+      {int offset, int limit}) async {
     if (latestPackageVersionsFun == null) {
       throw Exception('no latestPackageVersionsFun');
     }
