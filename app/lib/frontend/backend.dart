@@ -106,9 +106,9 @@ class Backend {
 
   /// Retrieves package versions ordered by their latest version date.
   Future<List<models.PackageVersion>> latestPackageVersions(
-      {int offset, int limit, bool devVersions = false}) async {
+      {int offset, int limit}) async {
     final packages = await latestPackages(offset: offset, limit: limit);
-    return lookupLatestVersions(packages, devVersions: devVersions);
+    return lookupLatestVersions(packages);
   }
 
   /// Looks up a package by name.
@@ -139,14 +139,9 @@ class Backend {
 
   /// Looks up the latest versions of a list of packages.
   Future<List<models.PackageVersion>> lookupLatestVersions(
-      List<models.Package> packages,
-      {bool devVersions = false}) async {
-    final keys = packages.map((models.Package p) {
-      if (devVersions) {
-        return p.latestDevVersionKey ?? p.latestVersionKey;
-      }
-      return p.latestVersionKey;
-    }).toList();
+      List<models.Package> packages) async {
+    final keys =
+        packages.map((models.Package p) => p.latestVersionKey).toList();
     return (await db.lookup(keys)).cast();
   }
 
