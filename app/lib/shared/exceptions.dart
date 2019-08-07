@@ -141,6 +141,14 @@ class InvalidInputException extends ResponseException {
   }
 }
 
+/// Throws when a resource size exceeded a given limit.
+class LimitExceededException extends ResponseException
+    implements GenericProcessingException {
+  LimitExceededException(String resource, int limitBytes)
+      : super._(
+            400, 'LimitExceeded', '"$resource" exceeded $limitBytes bytes.');
+}
+
 /// Thrown when authentication failed, credentials is missing or invalid.
 class AuthenticationException extends ResponseException
     implements UnauthorizedAccessException {
