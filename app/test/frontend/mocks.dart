@@ -87,8 +87,8 @@ class BackendMock implements Backend {
   }
 
   @override
-  Future<List<PackageVersion>> lookupLatestVersions(List<Package> packages,
-      {bool devVersions = false}) async {
+  Future<List<PackageVersion>> lookupLatestVersions(
+      List<Package> packages) async {
     if (lookupLatestVersionsFun == null) {
       throw Exception('no lookupLatestVersionsFun');
     }

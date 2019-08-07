@@ -139,14 +139,9 @@ class Backend {
 
   /// Looks up the latest versions of a list of packages.
   Future<List<models.PackageVersion>> lookupLatestVersions(
-      List<models.Package> packages,
-      {bool devVersions = false}) async {
-    final keys = packages.map((models.Package p) {
-      if (devVersions) {
-        return p.latestDevVersionKey ?? p.latestVersionKey;
-      }
-      return p.latestVersionKey;
-    }).toList();
+      List<models.Package> packages) async {
+    final keys =
+        packages.map((models.Package p) => p.latestVersionKey).toList();
     return (await db.lookup(keys)).cast();
   }
 
