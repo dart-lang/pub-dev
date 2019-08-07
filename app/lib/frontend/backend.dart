@@ -649,7 +649,7 @@ class GCloudPackageRepository extends PackageRepository {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
 
-      _validatePackageUploader(package, user.userId, user.email);
+      _validatePackageUploader(packageName, package, user.userId);
 
       if (!isValidEmail(uploaderEmail)) {
         throw GenericProcessingException(
@@ -709,7 +709,7 @@ class GCloudPackageRepository extends PackageRepository {
       final package = (await tx.lookup([packageKey])).first as models.Package;
 
       try {
-        _validatePackageUploader(package, fromUserId, fromUserEmail);
+        _validatePackageUploader(packageName, package, fromUserId);
       } catch (_) {
         await tx.rollback();
         rethrow;
@@ -743,10 +743,10 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   void _validatePackageUploader(
-      models.Package package, String userId, String userEmail) {
+      String packageName, models.Package package, String userId) {
     // Fail if package doesn't exist.
     if (package == null) {
-      throw GenericProcessingException('Package "$package" does not exist');
+      throw NotFoundException.resource(packageName);
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
@@ -766,8 +766,7 @@ class GCloudPackageRepository extends PackageRepository {
         // Fail if package doesn't exist.
         if (package == null) {
           await T.rollback();
-          throw GenericProcessingException(
-              'Package "$packageName" does not exist');
+          throw NotFoundException.resource(packageName);
         }
 
         // Fail if calling user doesn't have permission to change uploaders.

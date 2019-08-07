@@ -14,7 +14,8 @@
 library exceptions;
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
-import 'package:pub_server/repository.dart' show UnauthorizedAccessException;
+import 'package:pub_server/repository.dart'
+    show GenericProcessingException, UnauthorizedAccessException;
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
@@ -26,7 +27,8 @@ abstract class ResponseException extends ApiResponseException {
 }
 
 /// Thrown when resource does not exist.
-class NotFoundException extends ResponseException {
+class NotFoundException extends ResponseException
+    implements GenericProcessingException {
   NotFoundException(String message) : super._(404, 'NotFound', message);
   NotFoundException.resource(String resource)
       : super._(404, 'NotFound', 'Could not find `$resource`.');
