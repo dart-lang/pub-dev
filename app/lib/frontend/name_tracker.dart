@@ -68,9 +68,12 @@ class NameTracker {
     return _names.toList()..sort();
   }
 
-  /// Should be used in tests, indicates that the first scan is completed.
+  /// Scans the Datastore and populates the tracker.
   @visibleForTesting
-  void markReady() {
+  Future scanDatastore() async {
+    await for (final p in _db.query<Package>().run()) {
+      add(p.name);
+    }
     if (!_firstScanCompleter.isCompleted) {
       _firstScanCompleter.complete();
     }

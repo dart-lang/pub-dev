@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
@@ -9,9 +10,9 @@ import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
+import 'package:pub_dartlang_org/shared/search_client.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_models.dart';
@@ -79,27 +80,13 @@ void main() {
       );
     });
 
-    tScopedTest('/packages?q=foo without working search', () async {
-      registerSearchService(SearchService());
-      registerNameTracker(NameTracker(null));
-      nameTracker.add('foobar_pkg');
-      nameTracker.markReady();
-      final backend = BackendMock(
-        lookupPackageFun: (packageName) {
-          return packageName == foobarPackage.name ? foobarPackage : null;
-        },
-        lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, foobarPackage);
-          return [foobarStablePV];
-        },
-      );
-      registerBackend(backend);
-      registerAnalyzerClient(AnalyzerClientMock());
-      registerScoreCardBackend(ScoreCardBackendMock());
+    testWithServices('/packages?q=heliu without working search', () async {
+      registerSearchClient(
+          SearchClient(MockClient((_) async => throw Exception())));
+      await nameTracker.scanDatastore();
       final content =
-          await expectHtmlResponse(await issueGet('/packages?q=foo'));
-      expect(content, contains('my package description'));
+          await expectHtmlResponse(await issueGet('/packages?q=heliu'));
+      expect(content, contains('helium is a Dart package'));
     });
 
     tScopedTest('/packages?page=2', () async {
