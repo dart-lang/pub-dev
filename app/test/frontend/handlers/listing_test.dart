@@ -2,22 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:gcloud/db.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
-import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/search/updater.dart';
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
-import '../mocks.dart';
 
 import '_utils.dart';
 
@@ -89,34 +86,21 @@ void main() {
       expect(content, contains('helium is a Dart package'));
     });
 
-    tScopedTest('/packages?page=2', () async {
-      registerSearchService(SearchServiceMock(
-        (SearchQuery query) {
-          expect(query.offset, 10);
-          expect(query.limit, pageSize);
-          expect(query.platform, isNull);
-          expect(query.isAd, isFalse);
-          return SearchResultPage(query, 1, [
-            PackageView.fromModel(
-                package: foobarPackage,
-                version: foobarStablePV,
-                scoreCard: null)
-          ]);
-        },
-      ));
-      final backend = BackendMock(
-        lookupPackageFun: (packageName) {
-          return packageName == foobarPackage.name ? foobarPackage : null;
-        },
-        lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, foobarPackage);
-          return [foobarStablePV];
-        },
+    testWithServices('/packages?page=2', () async {
+      for (int i = 0; i < 15; i++) {
+        final bundle = generateBundle('pkg$i', ['1.0.0']);
+        await dbService.commit(inserts: [bundle.package, ...bundle.versions]);
+      }
+      await indexUpdater.updateAllPackages();
+
+      final names = ['pkg0', 'pkg3', 'pkg10'];
+      final list = await backend.latestPackageVersions(offset: 10);
+      expect(list.map((p) => p.package).toList(), containsAll(names));
+
+      await expectHtmlResponse(
+        await issueGet('/packages?page=2'),
+        present: names.map((name) => '/packages/$name').toList(),
       );
-      registerBackend(backend);
-      registerAnalyzerClient(AnalyzerClientMock());
-      await expectHtmlResponse(await issueGet('/packages?page=2'));
     });
 
     testWithServices('/flutter/packages', () async {
@@ -135,34 +119,29 @@ void main() {
       );
     });
 
-    tScopedTest('/flutter/packages&page=2', () async {
-      registerSearchService(SearchServiceMock(
-        (SearchQuery query) {
-          expect(query.offset, 10);
-          expect(query.limit, pageSize);
-          expect(query.platform, 'flutter');
-          expect(query.isAd, isFalse);
-          return SearchResultPage(query, 1, [
-            PackageView.fromModel(
-                package: foobarPackage,
-                version: foobarStablePV,
-                scoreCard: null)
-          ]);
-        },
+    testWithServices('/flutter/packages&page=2', () async {
+      for (int i = 0; i < 15; i++) {
+        final bundle = generateBundle(
+          'pkg$i',
+          ['1.0.0'],
+          pubspecExtraContent: '''
+flutter:
+  plugin:
+    class: SomeClass
+''',
+        );
+        await dbService.commit(inserts: [bundle.package, ...bundle.versions]);
+      }
+      await indexUpdater.updateAllPackages();
+
+      final names = ['pkg0', 'pkg3', 'pkg10'];
+      final list = await backend.latestPackageVersions(offset: 10);
+      expect(list.map((p) => p.package).toList(), containsAll(names));
+
+      print(await expectHtmlResponse(
+        await issueGet('/packages?page=2'),
+        present: names.map((name) => '/packages/$name').toList(),
       ));
-      final backend = BackendMock(
-        lookupPackageFun: (packageName) {
-          return packageName == foobarPackage.name ? foobarPackage : null;
-        },
-        lookupLatestVersionsFun: (List<Package> packages) {
-          expect(packages.length, 1);
-          expect(packages.first, foobarPackage);
-          return [foobarStablePV];
-        },
-      );
-      registerBackend(backend);
-      registerAnalyzerClient(AnalyzerClientMock());
-      await expectHtmlResponse(await issueGet('/flutter/packages?page=2'));
     });
   });
 }

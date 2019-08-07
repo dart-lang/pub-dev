@@ -17,9 +17,9 @@ import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
+import 'package:pub_dartlang_org/search/updater.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
@@ -80,14 +80,7 @@ void testWithServices(String name, Future fn()) {
               AccountBackend(db, authProvider: FakeAuthProvider()));
 
           await dartSdkIndex.merge();
-
-          packageIndex.addPackage(
-              await searchBackend.loadDocument(hydrogen.package.name));
-          packageIndex.addPackage(
-              await searchBackend.loadDocument(helium.package.name));
-          packageIndex.addPackage(
-              await searchBackend.loadDocument(lithium.package.name));
-          await packageIndex.merge();
+          await indexUpdater.updateAllPackages();
 
           registerSearchClient(
               SearchClient(_httpClient(handler: searchServiceHandler)));

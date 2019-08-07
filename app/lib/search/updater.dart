@@ -9,8 +9,10 @@ import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../dartdoc/backend.dart';
+import '../frontend/models.dart' show Package;
 import '../shared/exceptions.dart';
 import '../shared/scheduler_stats.dart';
 import '../shared/task_scheduler.dart';
@@ -55,6 +57,18 @@ class IndexUpdater implements TaskRunner {
       await packageIndex.merge();
       _logger.info('Minimum package index loaded with $cnt packages.');
     }
+  }
+
+  /// Updates all packages in the index.
+  /// It is slower than searchBackend.loadMinimumPackageIndex, but provides a
+  /// complete document for the index.
+  @visibleForTesting
+  Future updateAllPackages() async {
+    await for (final p in _db.query<Package>().run()) {
+      final doc = await searchBackend.loadDocument(p.name);
+      await packageIndex.addPackage(doc);
+    }
+    await packageIndex.merge();
   }
 
   Future _initSnapshot() async {
