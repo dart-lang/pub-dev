@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
+import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
@@ -22,6 +23,7 @@ import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/shared/exceptions.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart' show withCache;
 
 import '../shared/test_models.dart';
@@ -197,126 +199,69 @@ void main() {
 
   group('backend.repository', () {
     group('GCloudRepository.addUploader', () {
-      testWithCache('not logged in', () async {
-        final db = DatastoreDBMock();
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
+      testWithServices('not logged in', () async {
         final pkg = foobarPackage.name;
-        await repo.addUploader(pkg, 'a@b.com').catchError(expectAsync2((e, _) {
-          expect(e is pub_server.UnauthorizedAccessException, isTrue);
-        }));
+        final rs = backend.repository.addUploader(pkg, 'a@b.com');
+        expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
-      testWithCache('not authorized', () async {
-        final lookupFn = (keys) async {
-          expect(keys, hasLength(1));
-          expect(keys.first, foobarPackage.key);
-          return [foobarPackage];
-        };
-        final db = DatastoreDBMock(
-          lookupFun: lookupFn,
-        );
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
+      testWithServices('not authorized', () async {
         final pkg = foobarPackage.name;
         registerAuthenticatedUser(
             AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
-        final Future f = repo.addUploader(pkg, 'a@b.com');
-        await f.catchError(expectAsync2((e, _) {
-          expect(e.toString(),
-              'InsufficientPermissions: Unsufficient permissions to change uploaders for `foobar_pkg`.');
-        }));
+        final rs = backend.repository.addUploader(pkg, 'a@b.com');
+        expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
-      testWithCache('package does not exist', () async {
-        final lookupFn = (keys) async {
-          expect(keys, hasLength(1));
-          expect(keys.first, foobarPackage.key);
-          return [null];
-        };
-        final db = DatastoreDBMock(
-          lookupFun: lookupFn,
-        );
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = foobarPackage.name;
+      testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        final f = repo.addUploader(pkg, 'a@b.com');
-        await f.catchError(expectAsync2((e, _) {
-          expect(e.toString(), 'Package "null" does not exist');
-        }));
+        final rs = backend.repository.addUploader('no_package', 'a@b.com');
+        expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
-      Future testAlreadyExists(AuthenticatedUser user,
-          List<AuthenticatedUser> uploaders, String newUploader) async {
-        final testPackage = createFoobarPackage(uploaders: uploaders);
-        final db = DatastoreDBMock(
-          lookupFun: expectAsync1((keys) async {
-            expect(keys, hasLength(1));
-            expect(keys.first, testPackage.key);
-            return [testPackage];
-          }),
-        );
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-
-        final pkg = testPackage.name;
-        registerAuthenticatedUser(user);
-        registerAccountBackend(
-            AccountBackendMock(authenticatedUsers: uploaders));
-        await repo.addUploader(pkg, newUploader);
+      Future testAlreadyExists(
+          String pkg, List<User> uploaders, String newUploader) async {
+        final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
+        await dbService.commit(inserts: [
+          bundle.package,
+          ...bundle.versions,
+        ]);
+        await backend.repository.addUploader(pkg, newUploader);
+        final list = await dbService.lookup<Package>([bundle.package.key]);
+        final p = list.single;
+        expect(p.uploaders, uploaders.map((u) => u.userId));
       }
 
-      test('already exists', () async {
-        final foo = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
-        final bar = AuthenticatedUser('uuid-bar-at-b-com', 'bar@b.com');
-        await scoped(() => testAlreadyExists(foo, [foo], 'foo@b.com'));
-        await scoped(() => testAlreadyExists(foo, [foo], 'foo@B.com'));
-        await scoped(() => testAlreadyExists(foo, [foo, bar], 'foo@B.com'));
-        await scoped(() => testAlreadyExists(foo, [bar, foo], 'foo@B.com'));
+      testWithServices('already exists', () async {
+        registerAuthenticatedUser(hansAuthenticated);
+        final ucEmail = 'Hans@Juergen.Com';
+        await testAlreadyExists('p1', [hansUser], hansUser.email);
+        await testAlreadyExists('p2', [hansUser], ucEmail);
+        await testAlreadyExists('p3', [hansUser, joeUser], ucEmail);
+        await testAlreadyExists('p4', [joeUser, hansUser], ucEmail);
       });
 
-      Future testSuccessful(AuthenticatedUser user,
-          List<AuthenticatedUser> uploaders, String newUploader) async {
-        final testPackage = createFoobarPackage(uploaders: uploaders);
-        registerHistoryBackend(HistoryBackendMock());
-        final db = DatastoreDBMock(
-          lookupFun: expectAsync1((keys) {
-            expect(keys, hasLength(1));
-            expect(keys.first, testPackage.key);
-            return [testPackage];
-          }),
-        );
-        final tarballStorage = TarballStorageMock();
-        final repo = GCloudPackageRepository(db, tarballStorage);
-        registerAccountBackend(
-            AccountBackendMock(authenticatedUsers: uploaders));
+      testWithServices('successful', () async {
+        registerAuthenticatedUser(hansAuthenticated);
 
-        registerBackend(BackendMock(updatePackageInviteFn: (
-            {packageName, type, recipientEmail, fromUserId, fromEmail}) async {
-          return InviteStatus(urlNonce: 'abc1234');
-        }));
-        registerEmailSender(EmailSenderMock());
+        final newUploader = 'somebody@example.com';
+        final rs =
+            backend.repository.addUploader(hydrogen.package.name, newUploader);
+        await expectLater(
+            rs,
+            throwsA(isException.having(
+                (e) => '$e',
+                'text',
+                'We have sent an invitation to $newUploader, '
+                    'they will be added as uploader after they confirm it.')));
 
-        final pkg = testPackage.name;
-        registerAuthenticatedUser(user);
-        final f = repo.addUploader(pkg, newUploader);
-        await f.catchError(expectAsync2((e, _) {
-          expect(
-              e.toString(),
-              'We have sent an invitation to $newUploader, '
-              'they will be added as uploader after they confirm it.');
-        }));
-      }
+        // uploaders do not change yet
+        final list = await dbService.lookup<Package>([hydrogen.package.key]);
+        final p = list.single;
+        expect(p.uploaders, [hansUser.userId]);
 
-      test('successful', () async {
-        final foo = AuthenticatedUser('uuid-foo-at-b-com', 'foo@b.com');
-        final bar = AuthenticatedUser('uuid-bar-at-b-com', 'bar@b.com');
-        await scoped(() => testSuccessful(foo, [foo], 'bar@b.com'));
-        await scoped(() => testSuccessful(foo, [foo, bar], 'baz@b.com'));
+        // TODO: check sent e-mail
+        // TODO: check consent (after migrating to consent API)
       });
     });
 
@@ -324,10 +269,7 @@ void main() {
       testWithServices('not logged in', () async {
         final rs =
             backend.repository.removeUploader('hydrogen', hansUser.email);
-        await expectLater(
-            rs,
-            throwsA(isException.having(
-                (e) => '$e', 'toString', contains('MissingAuthentication'))));
+        expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
       testWithServices('not authorized', () async {
@@ -341,20 +283,14 @@ void main() {
         registerAuthenticatedUser(hansAuthenticated);
         final rs =
             backend.repository.removeUploader('hydrogen', hansUser.email);
-        await expectLater(
-            rs,
-            throwsA(isException.having(
-                (e) => '$e', 'toString', contains('InsufficientPermissions'))));
+        expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
         final rs =
             backend.repository.removeUploader('non_hydrogen', hansUser.email);
-        await expectLater(
-            rs,
-            throwsA(isException.having((e) => '$e', 'toString',
-                'Package "non_hydrogen" does not exist')));
+        expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('cannot remove last uploader', () async {
