@@ -335,22 +335,6 @@ void main() {
       });
     });
 
-    group('GCloudRepository.download', () {
-      test('successful', () async {
-        final tarballStorage =
-            TarballStorageMock(downloadFun: expectAsync2((package, version) {
-          return Stream.fromIterable([
-            [1, 2, 3]
-          ]);
-        }));
-        final repo = GCloudPackageRepository(null, tarballStorage);
-
-        final stream = await repo.download('foo', '0.1.0');
-        final data = await stream.fold([], (b, d) => b..addAll(d));
-        expect(data, [1, 2, 3]);
-      });
-    });
-
     group('GCloudRepository.lookupVersion', () {
       testWithServices('package not found', () async {
         final version =
@@ -670,10 +654,12 @@ void main() {
           await expectLater(rs, throwsA(isA<PackageRejectedException>()));
         });
 
-        testWithServices('successful', () async {
+        testWithServices('successful upload + download', () async {
           registerAuthenticatedUser(hansAuthenticated);
+          List<int> uploaded;
           await withTestPackage(
             (List<int> tarball) async {
+              uploaded = tarball;
               final version = await backend.repository
                   .upload(Stream.fromIterable([tarball]));
               expect(version.packageName, foobarPackage.name);
@@ -685,6 +671,13 @@ void main() {
           final packages = await backend.latestPackages();
           expect(packages.first.name, foobarPackage.name);
           expect(packages.first.latestVersion, '1.2.3');
+
+          final stream =
+              await backend.repository.download(foobarPackage.name, '1.2.3');
+          final chunks = await stream.toList();
+          final bytes = chunks.fold<List<int>>(
+              <int>[], (buffer, chunk) => buffer..addAll(chunk));
+          expect(bytes, uploaded);
         });
       });
     });
