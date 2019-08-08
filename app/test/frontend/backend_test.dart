@@ -413,13 +413,8 @@ void main() {
 
           final dateBeforeTest = DateTime.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
-          await withTestPackage(
-            (bytes) async {
-              await backend.repository.storage.bucket
-                  .writeBytes('tmp/my-uuid', bytes);
-            },
-            pubspecContent: pubspecContent,
-          );
+          await backend.repository.storage.bucket.writeBytes('tmp/my-uuid',
+              await packageArchiveBytes(pubspecContent: pubspecContent));
 
           final version =
               await backend.repository.finishAsyncUpload(redirectUri);
@@ -457,41 +452,33 @@ void main() {
 
       group('GCloudRepository.upload', () {
         testWithServices('not logged in', () async {
-          return withTestPackage((List<int> tarball) async {
-            final rs =
-                backend.repository.upload(Stream.fromIterable([tarball]));
-            await expectLater(rs, throwsA(isA<AuthenticationException>()));
-          });
+          final tarball = await packageArchiveBytes();
+          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
         testWithServices('not authorized', () async {
-          return withTestPackage(
-            (List<int> tarball) async {
-              registerAuthenticatedUser(
-                  AuthenticatedUser(joeUser.userId, joeUser.email));
-              final rs =
-                  backend.repository.upload(Stream.fromIterable([tarball]));
-              await expectLater(rs, throwsA(isA<AuthorizationException>()));
-            },
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'),
-          );
+          registerAuthenticatedUser(
+              AuthenticatedUser(joeUser.userId, joeUser.email));
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'));
+          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
         });
 
         testWithServices('versions already exist', () async {
-          return withTestPackage((List<int> tarball) async {
-            registerAuthenticatedUser(
-                AuthenticatedUser(joeUser.userId, joeUser.email));
-            final rs =
-                backend.repository.upload(Stream.fromIterable([tarball]));
-            await expectLater(
-                rs,
-                throwsA(isA<Exception>().having(
-                  (e) => '$e',
-                  'text',
-                  contains(
-                      'Version 0.1.1+5 of package foobar_pkg already exists'),
-                )));
-          });
+          registerAuthenticatedUser(
+              AuthenticatedUser(joeUser.userId, joeUser.email));
+          final tarball = await packageArchiveBytes();
+          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(
+              rs,
+              throwsA(isA<Exception>().having(
+                (e) => '$e',
+                'text',
+                contains(
+                    'Version 0.1.1+5 of package foobar_pkg already exists'),
+              )));
         });
 
         testWithServices('bad package names are rejected', () async {
@@ -502,9 +489,9 @@ void main() {
           Future<String> fn(String name) async {
             final pubspecContent = generatePubspecYaml(name, '0.2.0');
             try {
-              await withTestPackage((List<int> tarball) async {
-                await backend.repository.upload(Stream.fromIterable([tarball]));
-              }, pubspecContent: pubspecContent);
+              final tarball =
+                  await packageArchiveBytes(pubspecContent: pubspecContent);
+              await backend.repository.upload(Stream.fromIterable([tarball]));
             } catch (e) {
               return e.toString();
             }
@@ -545,18 +532,14 @@ void main() {
 
         testWithServices('successful upload + download', () async {
           registerAuthenticatedUser(hansAuthenticated);
-          List<int> uploaded;
-          await withTestPackage(
-            (List<int> tarball) async {
-              uploaded = tarball;
-              final version = await backend.repository
-                  .upload(Stream.fromIterable([tarball]));
-              expect(version.packageName, foobarPackage.name);
-              expect(version.versionString, '1.2.3');
-              // TODO: check sent e-mail
-            },
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'),
-          );
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+          final version =
+              await backend.repository.upload(Stream.fromIterable([tarball]));
+          expect(version.packageName, foobarPackage.name);
+          expect(version.versionString, '1.2.3');
+          // TODO: check sent e-mail
+
           final packages = await backend.latestPackages();
           expect(packages.first.name, foobarPackage.name);
           expect(packages.first.latestVersion, '1.2.3');
@@ -566,7 +549,7 @@ void main() {
           final chunks = await stream.toList();
           final bytes = chunks.fold<List<int>>(
               <int>[], (buffer, chunk) => buffer..addAll(chunk));
-          expect(bytes, uploaded);
+          expect(bytes, tarball);
         });
       });
     });

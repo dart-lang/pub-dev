@@ -23,9 +23,8 @@ Future<T> withTempDirectory<T>(Future<T> func(String temp)) async {
   }
 }
 
-Future withTestPackage(Future func(List<int> tarball),
-    {String pubspecContent}) {
-  return withTempDirectory((String tmp) async {
+Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
+  return await withTempDirectory((String tmp) async {
     final readme = File('$tmp/README.md');
     final changelog = File('$tmp/CHANGELOG.md');
     final pubspec = File('$tmp/pubspec.yaml');
@@ -53,7 +52,7 @@ Future withTestPackage(Future func(List<int> tarball),
     if (exitCode != 0) {
       throw Exception('Failed to make tarball of test package.');
     }
-    return func(bytes);
+    return bytes;
   });
 }
 
