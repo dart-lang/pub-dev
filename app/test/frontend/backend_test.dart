@@ -670,85 +670,23 @@ void main() {
           await expectLater(rs, throwsA(isA<PackageRejectedException>()));
         });
 
-        testWithCache('successful', () async {
-          return withTestPackage((List<int> tarball) async {
-            final completion = TestDelayCompletion(count: 2);
-            final tarballStorage = TarballStorageMock(uploadFun:
-                (String package, String version,
-                    Stream<List<int>> uploadTarball) async {
-              expect(package, foobarPackage.name);
-              expect(version, foobarStablePV.version);
-
-              final bytes =
-                  await uploadTarball.fold([], (b, d) => b..addAll(d));
-
-              expect(bytes, tarball);
-            });
-
-            // NOTE: There will be two transactions:
-            //  a) for inserting a new Package + PackageVersion
-            //  b) for inserting a new PackageVersions sorted by `sort_order`.
-            int queueMutationCallNr = 0;
-            final queryMock = QueryMock(sortOrderUpdateQueryMock);
-            final transactionMock = TransactionMock(
-                lookupFun: expectAsync1((keys) {
-                  expect(queueMutationCallNr, 0);
-
-                  expect(keys, hasLength(2));
-                  expect(keys.first, foobarStablePV.key);
-                  expect(keys.last, foobarPackage.key);
-                  return [null, null];
-                }),
-                queueMutationFun: ({List<Model> inserts, deletes}) {
-                  if (queueMutationCallNr == 0) {
-                    validateSuccessfullUpdate(inserts);
-                  } else {
-                    expect(queueMutationCallNr, 1);
-                    expect(inserts, [foobarStablePV]);
-                    validateSuccessfullSortOrderUpdate(
-                        inserts.first as PackageVersion);
-                  }
-                  queueMutationCallNr++;
-                  completion.complete();
-                },
-                commitFun: expectAsync0(() {}, count: 2),
-                queryMock: queryMock);
-
-            final db = DatastoreDBMock(transactionMock: transactionMock);
-            final repo = GCloudPackageRepository(db, tarballStorage);
-            registerAuthenticatedUser(hansAuthenticated);
-            registerAnalyzerClient(AnalyzerClientMock());
-            registerDartdocClient(DartdocClientMock());
-            registerAccountBackend(
-                AccountBackendMock(authenticatedUsers: [hansAuthenticated]));
-            registerHistoryBackend(HistoryBackendMock());
-            final emailSenderMock = EmailSenderMock();
-            registerEmailSender(emailSenderMock);
-            registerNameTracker(NameTracker(null));
-            final version = await repo.upload(Stream.fromIterable([tarball]));
-            expect(version.packageName, foobarPackage.name);
-            expect(version.versionString, foobarStablePV.version);
-            expect(emailSenderMock.sentMessages, hasLength(1));
-            final email = emailSenderMock.sentMessages.single;
-            expect(email.subject, contains('foobar_pkg'));
-            expect(email.subject, contains('0.1.1+5'));
-            expect(email.recipients.join(', '), 'hans@juergen.com');
-          });
+        testWithServices('successful', () async {
+          registerAuthenticatedUser(hansAuthenticated);
+          await withTestPackage(
+            (List<int> tarball) async {
+              final version = await backend.repository
+                  .upload(Stream.fromIterable([tarball]));
+              expect(version.packageName, foobarPackage.name);
+              expect(version.versionString, '1.2.3');
+              // TODO: check sent e-mail
+            },
+            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'),
+          );
+          final packages = await backend.latestPackages();
+          expect(packages.first.name, foobarPackage.name);
+          expect(packages.first.latestVersion, '1.2.3');
         });
       });
-    }, timeout: Timeout.factor(2));
+    });
   });
-}
-
-class TestDelayCompletion {
-  final int count;
-  final Function _complete = expectAsync0(() {});
-  int _got = 0;
-
-  TestDelayCompletion({this.count = 1});
-
-  void complete() {
-    _got++;
-    if (_got == count) _complete();
-  }
 }
