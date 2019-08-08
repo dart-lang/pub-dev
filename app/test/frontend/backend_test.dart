@@ -525,7 +525,7 @@ void main() {
           final historyBackendMock = HistoryBackendMock();
           registerHistoryBackend(historyBackendMock);
           final result = repo.finishAsyncUpload(redirectUri);
-          expectLater(result, throwsA(isA<LimitExceededException>()));
+          expectLater(result, throwsA(isA<PackageRejectedException>()));
           expect(historyBackendMock.storedHistories, hasLength(0));
         }, timeout: Timeout.factor(2));
 
@@ -667,7 +667,7 @@ void main() {
           bigTarball.add([1]);
 
           final rs = backend.repository.upload(Stream.fromIterable(bigTarball));
-          await expectLater(rs, throwsA(isA<LimitExceededException>()));
+          await expectLater(rs, throwsA(isA<PackageRejectedException>()));
         });
 
         testWithCache('successful', () async {

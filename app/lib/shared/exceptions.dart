@@ -141,12 +141,13 @@ class InvalidInputException extends ResponseException {
   }
 }
 
-/// Throws when a resource size exceeded a given limit.
-class LimitExceededException extends ResponseException
+/// Throws when a package upload is rejected for a reason.
+class PackageRejectedException extends ResponseException
     implements GenericProcessingException {
-  LimitExceededException(String resource, int limitBytes)
+  /// The package archive tar.gz file is above [limit] bytes.
+  PackageRejectedException.archiveTooLarge(int limit)
       : super._(
-            400, 'LimitExceeded', '"$resource" exceeded $limitBytes bytes.');
+            400, 'PackageRejected', 'Package archive exceeded $limit bytes.');
 }
 
 /// Thrown when authentication failed, credentials is missing or invalid.
