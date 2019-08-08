@@ -8,39 +8,22 @@ library pub_dartlang_org.backend_test;
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
-import 'package:pub_server/repository.dart' as pub_server;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
-import 'package:pub_dartlang_org/history/backend.dart';
-import 'package:pub_dartlang_org/history/models.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/exceptions.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart' show withCache;
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
-import '../shared/utils.dart';
 
 import 'backend_test_utils.dart';
-import 'mocks.dart';
 
-void testWithCache(String name, Function fn, {Timeout timeout}) =>
-    scopedTest(name, () async {
-      await withCache(() async {
-        await fn();
-      });
-    }, timeout: timeout);
-
-// TODO: Add missing tests when a query returns more than one result.
 void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
@@ -376,118 +359,33 @@ void main() {
     });
 
     group('uploading', () {
-      final dateBeforeTest = DateTime.now().toUtc();
-
-      void validateSuccessfullUpdate(List<Model> inserts) {
-        expect(inserts, hasLength(5));
-        final package = inserts[0] as Package;
-        final version = inserts[1] as PackageVersion;
-        final versionPubspec = inserts[2] as PackageVersionPubspec;
-        final versionInfo = inserts[3] as PackageVersionInfo;
-        final history = inserts[4] as History;
-
-        expect(package.key, foobarPackage.key);
-        expect(package.name, foobarPackage.name);
-        expect(package.latestVersionKey, foobarStablePV.key);
-        expect(package.uploaders, ['hans-at-juergen-dot-com']);
-        expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
-
-        expect(version.key, foobarStablePV.key);
-        expect(version.packageKey, foobarPackage.key);
-        expect(version.created.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(version.readmeFilename, 'README.md');
-        expect(version.readmeContent, foobarReadmeContent);
-        expect(version.changelogFilename, 'CHANGELOG.md');
-        expect(version.changelogContent, foobarChangelogContent);
-        expect(version.pubspec.asJson, loadYaml(foobarStablePubspec));
-        expect(version.libraries, ['test_library.dart']);
-        expect(version.uploader, 'hans-at-juergen-dot-com');
-        expect(version.downloads, 0);
-        expect(version.sortOrder, 1);
-
-        expect(versionPubspec.id, 'foobar_pkg-0.1.1+5');
-        expect(versionPubspec.package, foobarPackage.name);
-        expect(versionPubspec.version, foobarStablePV.version);
-        expect(versionPubspec.updated.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(versionPubspec.pubspec.asJson, loadYaml(foobarStablePubspec));
-
-        expect(versionInfo.id, 'foobar_pkg-0.1.1+5');
-        expect(versionInfo.package, foobarPackage.name);
-        expect(versionInfo.version, foobarStablePV.version);
-        expect(versionInfo.updated.compareTo(dateBeforeTest) >= 0, isTrue);
-        expect(versionInfo.libraries, ['test_library.dart']);
-        expect(versionInfo.libraryCount, 1);
-
-        expect(history.packageName, foobarPackage.name);
-        expect(history.packageVersion, foobarStablePV.version);
-        expect(history.source, HistorySource.account);
-        expect(history.eventType, 'packageUploaded');
-        expect(history.historyEvent is PackageUploaded, isTrue);
-        expect((history.historyEvent as PackageUploaded).uploaderEmail,
-            'hans@juergen.com');
-      }
-
-      void validateSuccessfullSortOrderUpdate(PackageVersion model) {
-        expect(model.sortOrder, 0);
-      }
-
-      Stream<PackageVersion> sortOrderUpdateQueryMock(
-          {Partition partition,
-          Key ancestorKey,
-          List<String> filters,
-          List filterComparisonObjects,
-          int offset,
-          int limit,
-          List<String> orders}) {
-        expect(orders, []);
-        expect(filters, []);
-        expect(offset, isNull);
-        expect(limit, isNull);
-        expect(ancestorKey, foobarPackage.key);
-        foobarStablePV.sortOrder = 50;
-        return Stream.fromIterable([foobarStablePV]);
-      }
-
       group('GCloudRepository.startAsyncUpload', () {
-        final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
-
         testWithServices('no active user', () async {
           final rs = backend.repository
               .startAsyncUpload(Uri.parse('http://example.com/'));
           expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
-        testWithCache('successful', () async {
-          final uri = Uri.parse('http://foobar.com');
-          final expectedUploadInfo =
-              pub_server.AsyncUploadInfo(uri, {'a': 'b'});
-          final bucketMock = BucketMock('mbucket');
-          final tarballStorage = TarballStorageMock(
-              tmpObjectNameFun: expectAsync1((guid) {
-                return 'obj/$guid';
-              }),
-              bucketMock: bucketMock);
-          final db = DatastoreDBMock();
-          final repo = GCloudPackageRepository(db, tarballStorage);
-          final uploadSignerMock = UploadSignerServiceMock(
-              (bucket, object, lifetime, successRedirectUrl,
-                  {predefinedAcl, maxUploadSize}) {
-            expect(bucket, 'mbucket');
-            return expectedUploadInfo;
-          });
-          registerUploadSigner(uploadSignerMock);
+        testWithServices('successful', () async {
+          final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
           registerAuthenticatedUser(hansAuthenticated);
-          final uploadInfo = await repo.startAsyncUpload(redirectUri);
-          expect(identical(uploadInfo, expectedUploadInfo), isTrue);
+          final info = await backend.repository.startAsyncUpload(redirectUri);
+          expect(info.uri.toString(),
+              startsWith('https://storage.url/fake-bucket-pub/tmp/'));
+          expect(info.fields, {
+            'key': startsWith('fake-bucket-pub/tmp/'),
+            'success_action_redirect': startsWith('$redirectUri?upload_id='),
+          });
         });
       });
 
       group('GCloudRepository.finishAsyncUpload', () {
         final Uri redirectUri =
-            Uri.parse('http://blobstore.com/upload?upload_id=myguid');
+            Uri.parse('http://blobstore.com/upload?upload_id=my-uuid');
 
-        testWithCache('upload-too-big', () async {
+        testWithServices('upload-too-big', () async {
+          registerAuthenticatedUser(hansAuthenticated);
+
           final oneKB = List.filled(1024, 42);
           final bigTarball = <List<int>>[];
           for (int i = 0; i < UploadSignerService.maxUploadSize ~/ 1024; i++) {
@@ -496,119 +394,91 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final tarballStorage = TarballStorageMock(readTempObjectFun: (guid) {
-            expect(guid, 'myguid');
-            return Stream.fromIterable(bigTarball);
-          }, removeTempObjectFun: (guid) {
-            expect(guid, 'myguid');
-          });
-          final transactionMock = TransactionMock();
-          final db = DatastoreDBMock(transactionMock: transactionMock);
-          final repo = GCloudPackageRepository(db, tarballStorage);
-          registerAuthenticatedUser(hansAuthenticated);
-          final historyBackendMock = HistoryBackendMock();
-          registerHistoryBackend(historyBackendMock);
-          final result = repo.finishAsyncUpload(redirectUri);
-          expectLater(result, throwsA(isA<PackageRejectedException>()));
-          expect(historyBackendMock.storedHistories, hasLength(0));
-        }, timeout: Timeout.factor(2));
+          final sink = backend.repository.storage.bucket.write('tmp/my-uuid');
+          bigTarball.forEach(sink.add);
+          await sink.close();
 
-        testWithCache('successful', () async {
-          return withTestPackage((List<int> tarball) async {
-            final tarballStorage = TarballStorageMock(
-                readTempObjectFun: (guid) {
-              expect(guid, 'myguid');
-              return Stream.fromIterable([tarball]);
-            }, uploadViaTempObjectFun:
-                    (String guid, String package, String version) {
-              expect(guid, 'myguid');
-              expect(package, foobarPackage.name);
-              expect(version, foobarStablePV.version);
-            }, removeTempObjectFun: (guid) {
-              expect(guid, 'myguid');
-            });
-            final queryMock = QueryMock(sortOrderUpdateQueryMock);
-            int queueMutationCallNr = 0;
-            final transactionMock = TransactionMock(
-                lookupFun: (keys) {
-                  expect(keys, hasLength(2));
-                  expect(keys.first, foobarStablePV.key);
-                  expect(keys.last, foobarPackage.key);
-                  return [null, null];
-                },
-                queueMutationFun: ({List<Model> inserts, deletes}) {
-                  if (queueMutationCallNr == 0) {
-                    validateSuccessfullUpdate(inserts);
-                  } else {
-                    expect(queueMutationCallNr, 1);
-                    expect(inserts, [foobarStablePV]);
-                    validateSuccessfullSortOrderUpdate(
-                        inserts.first as PackageVersion);
-                  }
-                  queueMutationCallNr++;
-                },
-                commitFun: expectAsync0(() {}, count: 2),
-                queryMock: queryMock);
-            final db = DatastoreDBMock(transactionMock: transactionMock);
-            final repo = GCloudPackageRepository(db, tarballStorage);
-            registerAuthenticatedUser(hansAuthenticated);
-            registerAccountBackend(
-                AccountBackendMock(authenticatedUsers: [hansAuthenticated]));
-            final emailSenderMock = EmailSenderMock();
-            registerEmailSender(emailSenderMock);
-            registerHistoryBackend(HistoryBackendMock());
-            registerAnalyzerClient(AnalyzerClientMock());
-            registerDartdocClient(DartdocClientMock());
-            registerNameTracker(NameTracker(null));
-            final version = await repo.finishAsyncUpload(redirectUri);
-            expect(version.packageName, foobarPackage.name);
-            expect(version.versionString, foobarStablePV.version);
-            expect(emailSenderMock.sentMessages, hasLength(1));
-            final email = emailSenderMock.sentMessages.single;
-            expect(email.subject, contains('foobar_pkg'));
-            expect(email.subject, contains('0.1.1+5'));
-            expect(email.recipients.join(', '), 'hans@juergen.com');
-          });
+          final rs = backend.repository.finishAsyncUpload(redirectUri);
+          await expectLater(
+            rs,
+            throwsA(
+              isA<PackageRejectedException>().having(
+                  (e) => '$e', 'text', contains('Package archive exceeded ')),
+            ),
+          );
+        });
+
+        testWithServices('successful', () async {
+          registerAuthenticatedUser(hansAuthenticated);
+
+          final dateBeforeTest = DateTime.now().toUtc();
+          final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
+          await backend.repository.storage.bucket.writeBytes('tmp/my-uuid',
+              await packageArchiveBytes(pubspecContent: pubspecContent));
+
+          final version =
+              await backend.repository.finishAsyncUpload(redirectUri);
+          expect(version.packageName, 'new_package');
+          expect(version.versionString, '1.2.3');
+
+          final pkgKey =
+              dbService.emptyKey.append(Package, id: version.packageName);
+          final package = (await dbService.lookup<Package>([pkgKey])).single;
+          expect(package.name, 'new_package');
+          expect(package.latestVersion, '1.2.3');
+          expect(package.uploaders, ['hans-at-juergen-dot-com']);
+          expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+
+          final pvKey = package.latestVersionKey;
+          final pv = (await dbService.lookup<PackageVersion>([pvKey])).single;
+          expect(pv.packageKey, package.key);
+          expect(pv.created.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(pv.readmeFilename, 'README.md');
+          expect(pv.readmeContent, foobarReadmeContent);
+          expect(pv.changelogFilename, 'CHANGELOG.md');
+          expect(pv.changelogContent, foobarChangelogContent);
+          expect(pv.pubspec.asJson, loadYaml(pubspecContent));
+          expect(pv.libraries, ['test_library.dart']);
+          expect(pv.uploader, 'hans-at-juergen-dot-com');
+          expect(pv.downloads, 0);
+          expect(pv.sortOrder, 0);
+
+          // TODO: check sent e-mail
+          // TODO: check history
+          // TODO: check assets
         });
       });
 
       group('GCloudRepository.upload', () {
         testWithServices('not logged in', () async {
-          return withTestPackage((List<int> tarball) async {
-            final rs =
-                backend.repository.upload(Stream.fromIterable([tarball]));
-            await expectLater(rs, throwsA(isA<AuthenticationException>()));
-          });
+          final tarball = await packageArchiveBytes();
+          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
         testWithServices('not authorized', () async {
-          return withTestPackage(
-            (List<int> tarball) async {
-              registerAuthenticatedUser(
-                  AuthenticatedUser(joeUser.userId, joeUser.email));
-              final rs =
-                  backend.repository.upload(Stream.fromIterable([tarball]));
-              await expectLater(rs, throwsA(isA<AuthorizationException>()));
-            },
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'),
-          );
+          registerAuthenticatedUser(
+              AuthenticatedUser(joeUser.userId, joeUser.email));
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'));
+          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(rs, throwsA(isA<AuthorizationException>()));
         });
 
         testWithServices('versions already exist', () async {
-          return withTestPackage((List<int> tarball) async {
-            registerAuthenticatedUser(
-                AuthenticatedUser(joeUser.userId, joeUser.email));
-            final rs =
-                backend.repository.upload(Stream.fromIterable([tarball]));
-            await expectLater(
-                rs,
-                throwsA(isA<Exception>().having(
-                  (e) => '$e',
-                  'text',
-                  contains(
-                      'Version 0.1.1+5 of package foobar_pkg already exists'),
-                )));
-          });
+          registerAuthenticatedUser(
+              AuthenticatedUser(joeUser.userId, joeUser.email));
+          final tarball = await packageArchiveBytes();
+          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          await expectLater(
+              rs,
+              throwsA(isA<Exception>().having(
+                (e) => '$e',
+                'text',
+                contains(
+                    'Version 0.1.1+5 of package foobar_pkg already exists'),
+              )));
         });
 
         testWithServices('bad package names are rejected', () async {
@@ -619,9 +489,9 @@ void main() {
           Future<String> fn(String name) async {
             final pubspecContent = generatePubspecYaml(name, '0.2.0');
             try {
-              await withTestPackage((List<int> tarball) async {
-                await backend.repository.upload(Stream.fromIterable([tarball]));
-              }, pubspecContent: pubspecContent);
+              final tarball =
+                  await packageArchiveBytes(pubspecContent: pubspecContent);
+              await backend.repository.upload(Stream.fromIterable([tarball]));
             } catch (e) {
               return e.toString();
             }
@@ -651,23 +521,25 @@ void main() {
           bigTarball.add([1]);
 
           final rs = backend.repository.upload(Stream.fromIterable(bigTarball));
-          await expectLater(rs, throwsA(isA<PackageRejectedException>()));
+          await expectLater(
+            rs,
+            throwsA(
+              isA<PackageRejectedException>().having(
+                  (e) => '$e', 'text', contains('Package archive exceeded ')),
+            ),
+          );
         });
 
         testWithServices('successful upload + download', () async {
           registerAuthenticatedUser(hansAuthenticated);
-          List<int> uploaded;
-          await withTestPackage(
-            (List<int> tarball) async {
-              uploaded = tarball;
-              final version = await backend.repository
-                  .upload(Stream.fromIterable([tarball]));
-              expect(version.packageName, foobarPackage.name);
-              expect(version.versionString, '1.2.3');
-              // TODO: check sent e-mail
-            },
-            pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'),
-          );
+          final tarball = await packageArchiveBytes(
+              pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
+          final version =
+              await backend.repository.upload(Stream.fromIterable([tarball]));
+          expect(version.packageName, foobarPackage.name);
+          expect(version.versionString, '1.2.3');
+          // TODO: check sent e-mail
+
           final packages = await backend.latestPackages();
           expect(packages.first.name, foobarPackage.name);
           expect(packages.first.latestVersion, '1.2.3');
@@ -677,7 +549,7 @@ void main() {
           final chunks = await stream.toList();
           final bytes = chunks.fold<List<int>>(
               <int>[], (buffer, chunk) => buffer..addAll(chunk));
-          expect(bytes, uploaded);
+          expect(bytes, tarball);
         });
       });
     });
