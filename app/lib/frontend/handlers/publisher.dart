@@ -13,10 +13,3 @@ Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
   // TODO: implement
   return notFoundHandler(request);
 }
-
-/// Handles requests for POST /api/publisher/<publisherId>
-Future<shelf.Response> createPublisherApiHandler(
-    shelf.Request request, String publisherId) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}

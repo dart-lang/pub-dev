@@ -11,7 +11,6 @@ import 'account.dart';
 import 'custom_api.dart';
 import 'listing.dart';
 import 'package.dart';
-import 'publisher.dart';
 
 part 'pubapi.g.dart';
 
@@ -101,8 +100,12 @@ class PubApi {
 
   /// Starts publisher creation flow.
   @EndPoint.post('/api/publishers/<publisherId>')
-  Future<Response> createPublisher(Request request, String publisherId) =>
-      createPublisherApiHandler(request, publisherId);
+  Future<PublisherInfo> createPublisher(
+    Request request,
+    String publisherId,
+    CreatePublisherRequest body,
+  ) =>
+      publisherBackend.createPublisher(publisherId, body);
 
   /// Returns publisher data in a JSON form.
   @EndPoint.get('/api/publishers/<publisherId>')

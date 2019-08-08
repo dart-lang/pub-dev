@@ -14,6 +14,7 @@ import '../frontend/search_service.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
 import '../publisher/backend.dart';
+import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
 import '../search/backend.dart';
 import '../search/index_simple.dart';
@@ -71,6 +72,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
       PopularityStorage(await getOrCreateBucket(
           storageService, activeConfiguration.popularityDumpBucketName)),
     );
+    registerDomainVerifier(DomainVerifier());
     registerPublisherBackend(PublisherBackend(dbService));
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));

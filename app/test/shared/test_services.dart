@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
@@ -16,11 +18,14 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dartlang_org/publisher/domain_verifier.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/exceptions.dart'
+    show AuthorizationException;
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
@@ -34,6 +39,8 @@ import 'test_models.dart';
 /// and fake storage) for tests.
 void testWithServices(String name, Future fn()) {
   scopedTest(name, () async {
+    _setupLogging();
+
     // registering config with bad ports, as we won't access them via network
     registerActiveConfiguration(Configuration.fakePubServer(
       port: 0,
@@ -78,6 +85,7 @@ void testWithServices(String name, Future fn()) {
         await fork(() async {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
+          registerDomainVerifier(_FakeDomainVerifier());
 
           await dartSdkIndex.merge();
           await indexUpdater.updateAllPackages();
@@ -145,4 +153,38 @@ http_testing.MockClientHandler _wrapShelfHandler(
       headers: rs.headers,
     );
   };
+}
+
+/// Fake implementation of [DomainVerifier] for testing.
+class _FakeDomainVerifier implements DomainVerifier {
+  @override
+  Future<bool> verifyDomainOwnership(String domain, String accessToken) async {
+    if (domain == 'verified.com') {
+      return true;
+    }
+    if (domain == 'notverified.net') {
+      return false;
+    }
+    throw AuthorizationException.missingSearchConsoleReadAccess();
+  }
+}
+
+bool _loggingDone = false;
+
+/// Setup logging if environment variable `DEBUG` is defined.
+void _setupLogging() {
+  if (_loggingDone) {
+    return;
+  }
+  _loggingDone = true;
+  if ((Platform.environment['DEBUG'] ?? '') == '') {
+    return;
+  }
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+    if (rec.error != null) {
+      print('ERROR: ${rec.error}, ${rec.stackTrace}');
+    }
+  });
 }

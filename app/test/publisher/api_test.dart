@@ -33,6 +33,55 @@ void main() {
       });
     });
 
+    group('Create publisher', () {
+      testWithServices('verified.com', () async {
+        final api = createPubApiClient(authToken: hansAuthenticated.userId);
+
+        // Check that we can create the publisher
+        final r1 = await api.createPublisher(
+          'verified.com',
+          CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
+        );
+        expect(r1.contactEmail, hansAuthenticated.email);
+
+        // Check that creating again idempotently works too
+        final r2 = await api.createPublisher(
+          'verified.com',
+          CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
+        );
+        expect(r2.contactEmail, hansAuthenticated.email);
+
+        // Check that we can update the description
+        final r3 = await api.updatePublisher(
+          'verified.com',
+          UpdatePublisherRequest(description: 'hello-world'),
+        );
+        expect(r3.description, 'hello-world');
+
+        // Check that we get a sane result from publisherInfo
+        final r4 = await api.publisherInfo('verified.com');
+        expect(r4.toJson(), {
+          'description': 'hello-world',
+          'contactEmail': hansAuthenticated.email,
+        });
+      });
+
+      testWithServices('notverified.com', () async {
+        final api = createPubApiClient(authToken: hansAuthenticated.userId);
+
+        // Check that we can create the publisher
+        final rs = api.createPublisher(
+          'notverified.com',
+          CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
+        );
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+        );
+      });
+    });
+
     group('Update description', () {
       _testAdminAuthIssues(
         (client) => client.updatePublisher(

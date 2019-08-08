@@ -12,6 +12,7 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import 'domain_verifier.dart' show domainVerifier;
 
 import 'models.dart';
 
@@ -58,6 +59,87 @@ class PublisherBackend {
       }
       return await fn(p);
     });
+  }
+
+  /// Create publisher.
+  Future<api.PublisherInfo> createPublisher(
+    String publisherId,
+    api.CreatePublisherRequest body,
+  ) async {
+    // Sanity check that domains are:
+    //  - lowercase (because we want that in pub.dev)
+    //  - consist of a-z, 0-9 and dashes
+    // We do not care if they end in dash, as such domains can't be verified.
+    InvalidInputException.checkMatchPattern(
+      publisherId,
+      'publisherId',
+      RegExp(r'^[a-z0-9-]{1,63}\.[a-z0-9-]{1,63}$'),
+    );
+    InvalidInputException.checkStringLength(
+      publisherId,
+      'publisherId',
+      maximum: 255, // Some upper limit for sanity.
+    );
+    InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
+    InvalidInputException.checkStringLength(
+      body.accessToken,
+      'accessToken',
+      minimum: 1,
+      maximum: 4096,
+    );
+
+    // Verify ownership of domain.
+    final isOwner = await domainVerifier.verifyDomainOwnership(
+      publisherId,
+      body.accessToken,
+    );
+    if (!isOwner) {
+      throw AuthorizationException.userIsNotDomainOwner(publisherId);
+    }
+
+    // Create the publisher
+    final now = DateTime.now().toUtc();
+    await _db.withTransaction((tx) async {
+      final key = _db.emptyKey.append(Publisher, id: publisherId);
+      final p = (await tx.lookup<Publisher>([key])).single;
+      if (p != null) {
+        // Check that publisher is the same as what we would create.
+        if (p.created.isBefore(now.subtract(Duration(minutes: 10))) ||
+            p.updated.isBefore(now.subtract(Duration(minutes: 10))) ||
+            p.contactEmail != authenticatedUser.email ||
+            p.description != '' ||
+            p.websiteUrl != 'https://$publisherId') {
+          throw ConflictException.publisherAlreadyExists(publisherId);
+        }
+        // Avoid creating the same publisher again, this end-point is idempotent
+        // if we just do nothing here.
+        return;
+      }
+
+      // Create publisher
+      tx.queueMutations(inserts: [
+        Publisher()
+          ..parentKey = _db.emptyKey
+          ..id = publisherId
+          ..created = now
+          ..description = ''
+          ..contactEmail = authenticatedUser.email
+          ..updated = now
+          ..websiteUrl = 'https://$publisherId',
+        PublisherMember()
+          ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
+          ..id = authenticatedUser.userId
+          ..created = now
+          ..updated = now
+          ..role = PublisherMemberRole.admin
+      ]);
+      await tx.commit();
+    });
+
+    // Return publisher as it was created
+    final key = _db.emptyKey.append(Publisher, id: publisherId);
+    final p = (await _db.lookup<Publisher>([key])).single;
+    return _asPublisherInfo(p);
   }
 
   /// Gets the publisher data
