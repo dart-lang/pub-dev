@@ -18,6 +18,8 @@ import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dart';
+import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/publisher/domain_verifier.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
@@ -86,6 +88,7 @@ void testWithServices(String name, Future fn()) {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
           registerDomainVerifier(_FakeDomainVerifier());
+          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
           await dartSdkIndex.merge();
           await indexUpdater.updateAllPackages();

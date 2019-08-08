@@ -8,7 +8,6 @@ library pub_dartlang_org.backend_test;
 import 'dart:async';
 
 import 'package:gcloud/db.dart';
-import 'package:pub_server/repository.dart' as pub_server;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -450,36 +449,22 @@ void main() {
       }
 
       group('GCloudRepository.startAsyncUpload', () {
-        final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
-
         testWithServices('no active user', () async {
           final rs = backend.repository
               .startAsyncUpload(Uri.parse('http://example.com/'));
           expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
-        testWithCache('successful', () async {
-          final uri = Uri.parse('http://foobar.com');
-          final expectedUploadInfo =
-              pub_server.AsyncUploadInfo(uri, {'a': 'b'});
-          final bucketMock = BucketMock('mbucket');
-          final tarballStorage = TarballStorageMock(
-              tmpObjectNameFun: expectAsync1((guid) {
-                return 'obj/$guid';
-              }),
-              bucketMock: bucketMock);
-          final db = DatastoreDBMock();
-          final repo = GCloudPackageRepository(db, tarballStorage);
-          final uploadSignerMock = UploadSignerServiceMock(
-              (bucket, object, lifetime, successRedirectUrl,
-                  {predefinedAcl, maxUploadSize}) {
-            expect(bucket, 'mbucket');
-            return expectedUploadInfo;
-          });
-          registerUploadSigner(uploadSignerMock);
+        testWithServices('successful', () async {
+          final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
           registerAuthenticatedUser(hansAuthenticated);
-          final uploadInfo = await repo.startAsyncUpload(redirectUri);
-          expect(identical(uploadInfo, expectedUploadInfo), isTrue);
+          final info = await backend.repository.startAsyncUpload(redirectUri);
+          expect(info.uri.toString(),
+              startsWith('https://storage.url/fake-bucket-pub/tmp/'));
+          expect(info.fields, {
+            'key': startsWith('fake-bucket-pub/tmp/'),
+            'success_action_redirect': startsWith('$redirectUri?upload_id='),
+          });
         });
       });
 

@@ -8,7 +8,6 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
-import 'package:pub_server/repository.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -18,6 +17,7 @@ import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
+import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dart';
 import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
@@ -52,7 +52,7 @@ class FakePubServer {
           await ss.fork(() async {
             registerAccountBackend(
                 AccountBackend(db, authProvider: FakeAuthProvider(port)));
-            registerUploadSigner(FakeUploaderSignerService(storageBaseUrl));
+            registerUploadSigner(FakeUploadSignerService(storageBaseUrl));
             registerSearchClient(MockSearchClient());
 
             nameTracker.startTracking();
@@ -80,31 +80,6 @@ class FakePubServer {
         });
       });
     });
-  }
-}
-
-class FakeUploaderSignerService implements UploadSignerService {
-  final String _storagePrefix;
-  FakeUploaderSignerService(this._storagePrefix);
-
-  @override
-  Future<AsyncUploadInfo> buildUpload(
-    String bucket,
-    String object,
-    Duration lifetime,
-    String successRedirectUrl, {
-    String predefinedAcl = 'project-private',
-    int maxUploadSize = UploadSignerService.maxUploadSize,
-  }) async {
-    return AsyncUploadInfo(Uri.parse('$_storagePrefix/$bucket/$object'), {
-      'key': '$bucket/$object',
-      'success_action_redirect': successRedirectUrl,
-    });
-  }
-
-  @override
-  Future<SigningResult> sign(List<int> bytes) async {
-    return SigningResult('google-access-id', [1, 2, 3, 4]);
   }
 }
 
