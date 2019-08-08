@@ -837,9 +837,8 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
           if (receivedBytes <= UploadSignerService.maxUploadSize) {
             sink.add(chunk);
           } else {
-            final error = 'Invalid upload: Exceeded '
-                '${UploadSignerService.maxUploadSize} upload size.';
-            sink.addError(error);
+            sink.addError(PackageRejectedException.archiveTooLarge(
+                UploadSignerService.maxUploadSize));
           }
         },
       ),

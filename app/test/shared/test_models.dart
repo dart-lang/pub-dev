@@ -148,9 +148,11 @@ main() {
 }
 ''';
 
-final String foobarStablePubspec = '''
-name: foobar_pkg
-version: 0.1.1+5
+final foobarStablePubspec = generatePubspecYaml('foobar_pkg', '0.1.1+5');
+
+String generatePubspecYaml(String name, String version) => '''
+name: $name
+version: $version
 author: Hans Juergen <hans@juergen.com>
 homepage: http://hans.juergen.com
 description: 'my package description'
