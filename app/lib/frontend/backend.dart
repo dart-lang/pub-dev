@@ -1052,9 +1052,7 @@ class TarballStorageNamer {
             (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
 
   /// The GCS object name of a tarball object - excluding leading '/'.
-  String tarballObjectName(String package, String version)
-      // TODO: Do we need some kind of escaping here?
-      =>
+  String tarballObjectName(String package, String version) =>
       '${prefix}packages/$package-$version.tar.gz';
 
   /// The GCS object name of an temporary object [guid] - excluding leading '/'.
@@ -1062,7 +1060,7 @@ class TarballStorageNamer {
 
   /// The http URL of a publicly accessable GCS object.
   String tarballObjectUrl(String package, String version) {
-    final object = tarballObjectName(package, version);
+    final object = tarballObjectName(package, Uri.encodeComponent(version));
     return '$storageBaseUrl/$bucket/$object';
   }
 }
