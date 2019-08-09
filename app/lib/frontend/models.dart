@@ -91,7 +91,8 @@ class Package extends db.ExpandoModel {
   /// Add the [userId] to the list of [uploaders].
   void addUploader(String userId) {
     if (publisherId != null) {
-      throw StateException.publisherOwnedPackageNoUploader(name, publisherId);
+      throw OperationForbiddenException.publisherOwnedPackageNoUploader(
+          name, publisherId);
     }
     if (userId != null && !uploaders.contains(userId)) {
       uploaders.add(userId);
@@ -101,7 +102,8 @@ class Package extends db.ExpandoModel {
   // Remove the [userId] from the list of [uploaders].
   void removeUploader(String userId) {
     if (publisherId != null) {
-      throw StateException.publisherOwnedPackageNoUploader(name, publisherId);
+      throw OperationForbiddenException.publisherOwnedPackageNoUploader(
+          name, publisherId);
     }
     uploaders.remove(userId);
   }

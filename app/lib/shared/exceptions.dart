@@ -151,15 +151,15 @@ class PackageRejectedException extends ResponseException
 }
 
 /// Thrown when the operation is rejected because of the internal state of a resource.
-class StateException extends ResponseException
+class OperationForbiddenException extends ResponseException
     implements GenericProcessingException {
   /// The operation tried to update the list of uploaders, but it can't be done
   /// while the package is owned by a publisher.
-  StateException.publisherOwnedPackageNoUploader(
+  OperationForbiddenException.publisherOwnedPackageNoUploader(
       String packageName, String publisherId)
       : super._(
             400,
-            'UpdateRejected',
+            'OperationForbidden',
             'Package "$packageName" is owned by publisher "$publisherId". '
                 'Updating the uploaders is not permitted.');
 }
