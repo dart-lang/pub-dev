@@ -158,7 +158,7 @@ class OperationForbiddenException extends ResponseException
   OperationForbiddenException.publisherOwnedPackageNoUploader(
       String packageName, String publisherId)
       : super._(
-            400,
+            403,
             'OperationForbidden',
             'Package "$packageName" is owned by publisher "$publisherId". '
                 'Updating the uploaders is not permitted.');
