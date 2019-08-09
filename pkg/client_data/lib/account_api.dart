@@ -10,10 +10,10 @@ part 'account_api.g.dart';
 /// Account-specific information about a package.
 @JsonSerializable()
 class AccountPkgOptions {
-  final bool isUploader;
+  final bool isAdmin;
 
   AccountPkgOptions({
-    @required this.isUploader,
+    @required this.isAdmin,
   });
 
   factory AccountPkgOptions.fromJson(Map<String, dynamic> json) =>

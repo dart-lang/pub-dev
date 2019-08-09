@@ -87,7 +87,7 @@ Future _updateOnCredChange() async {
             .get('/api/account/options/packages/${pageData.pkgData.package}');
         final map = json.decode(rs.body) as Map<String, dynamic>;
         final options = AccountPkgOptions.fromJson(map);
-        _isPkgUploader = options.isUploader ?? false;
+        _isPkgUploader = options.isAdmin ?? false;
         _updateUi();
       }
     } catch (e) {

@@ -72,7 +72,7 @@ Future addUploader(String packageName, String uploaderEmail) async {
         await accountBackend.getEmailsOfUserIds(package.uploaders);
     print('Current uploaders: $uploaderEmails');
     final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-    if (package.hasUploader(user.userId)) {
+    if (package.containsUploader(user.userId)) {
       throw Exception('Uploader $uploaderEmail already exists');
     }
     package.addUploader(user.userId);
@@ -104,7 +104,7 @@ Future removeUploader(String packageName, String uploaderEmail) async {
         await accountBackend.getEmailsOfUserIds(package.uploaders);
     print('Current uploaders: $uploaderEmails');
     final user = await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-    if (!package.hasUploader(user.userId)) {
+    if (!package.containsUploader(user.userId)) {
       throw Exception('Uploader $uploaderEmail does not exist');
     }
     if (package.uploaderCount <= 1) {
