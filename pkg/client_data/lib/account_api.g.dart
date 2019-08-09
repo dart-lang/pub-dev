@@ -8,13 +8,13 @@ part of 'account_api.dart';
 
 AccountPkgOptions _$AccountPkgOptionsFromJson(Map<String, dynamic> json) {
   return AccountPkgOptions(
-    isUploader: json['isUploader'] as bool,
+    isAdmin: json['isAdmin'] as bool,
   );
 }
 
 Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
     <String, dynamic>{
-      'isUploader': instance.isUploader,
+      'isAdmin': instance.isAdmin,
     };
 
 Consent _$ConsentFromJson(Map<String, dynamic> json) {

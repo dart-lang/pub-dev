@@ -29,6 +29,6 @@ Future<shelf.Response> accountPkgOptionsHandler(
     return notFoundHandler(request);
   }
   final options =
-      AccountPkgOptions(isUploader: await backend.isPackageAdmin(p));
+      AccountPkgOptions(isAdmin: await backend.isPackageAdmin(p));
   return jsonResponse(options.toJson());
 }
