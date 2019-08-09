@@ -16,6 +16,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
+import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dart';
@@ -26,6 +27,7 @@ import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
+import 'package:pub_dartlang_org/shared/email.dart';
 import 'package:pub_dartlang_org/shared/exceptions.dart'
     show AuthorizationException;
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
@@ -88,6 +90,7 @@ void testWithServices(String name, Future fn()) {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider()));
           registerDomainVerifier(_FakeDomainVerifier());
+          registerEmailSender(FakeEmailSender());
           registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
           await dartSdkIndex.merge();
@@ -190,4 +193,16 @@ void _setupLogging() {
       print('ERROR: ${rec.error}, ${rec.stackTrace}');
     }
   });
+}
+
+FakeEmailSender get fakeEmailSender => emailSender as FakeEmailSender;
+
+class FakeEmailSender implements EmailSender {
+  final sentMessages = <EmailMessage>[];
+
+  @override
+  Future sendMessage(EmailMessage message) async {
+    sentMessages.add(message);
+    return;
+  }
 }

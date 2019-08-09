@@ -126,9 +126,9 @@ EmailMessage createPackageUploadedEmail({
 
 $uploaderEmail has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).
 
-For details, go to $url.
+For details, go to $url
 
-If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dev/issues.
+If you have any concerns about this package, file an issue at https://github.com/dart-lang/pub-dev/issues
 
 Thanks for your contributions to the Dart community!
 
@@ -145,10 +145,11 @@ EmailMessage createUploaderConfirmationEmail({
   @required String addedUploaderEmail,
   @required String confirmationUrl,
 }) {
+  final pkgUrl = pkgPageUrl(packageName, includeHost: true);
   final subject = 'Uploader invitation for package: $packageName';
   final bodyText = '''Dear package maintainer,
 
-$activeAccountEmail has invited you to become an uploader of the $packageName package. If you accept this invitation, you’ll be able to upload new versions of the package to the Dart package site ($primaryHost), and you’ll be listed as an uploader at $siteRoot/packages/$packageName.
+$activeAccountEmail has invited you to become an uploader of the $packageName package. If you accept this invitation, you’ll be able to upload new versions of the package to the Dart package site ($primaryHost), and you’ll be listed as an uploader at $pkgUrl
 
 To accept this invitation, visit the following URL:
 $confirmationUrl
@@ -156,7 +157,7 @@ $confirmationUrl
 
 If you don’t want to be an uploader, simply ignore this email.
 
-If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues.
+If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues
 
 Thanks for your contributions to the Dart community!
 
@@ -183,7 +184,7 @@ $consentUrl
 
 If you don’t want to accept it, simply ignore this email.
 
-If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues.
+If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues
 
 Thanks for your contributions to the Dart community!
 

@@ -229,7 +229,13 @@ void main() {
         final p = list.single;
         expect(p.uploaders, [hansUser.userId]);
 
-        // TODO: check sent e-mail
+        expect(fakeEmailSender.sentMessages, hasLength(1));
+        final email = fakeEmailSender.sentMessages.single;
+        expect(email.recipients.single.email, 'somebody@example.com');
+        expect(email.subject, 'Uploader invitation for package: hydrogen');
+        expect(
+            email.bodyText, contains('https://pub.dev/packages/hydrogen.\n'));
+
         // TODO: check consent (after migrating to consent API)
       });
     });
@@ -444,7 +450,15 @@ void main() {
           expect(pv.downloads, 0);
           expect(pv.sortOrder, 0);
 
-          // TODO: check sent e-mail
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.recipients.single.email, hansUser.email);
+          expect(email.subject, 'Package uploaded: new_package 1.2.3');
+          expect(
+              email.bodyText,
+              contains(
+                  'https://pub.dev/packages/new_package/versions/1.2.3\n'));
+
           // TODO: check history
           // TODO: check assets
         });
@@ -538,7 +552,13 @@ void main() {
               await backend.repository.upload(Stream.fromIterable([tarball]));
           expect(version.packageName, foobarPackage.name);
           expect(version.versionString, '1.2.3');
-          // TODO: check sent e-mail
+
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.recipients.single.email, hansUser.email);
+          expect(email.subject, 'Package uploaded: foobar_pkg 1.2.3');
+          expect(email.bodyText,
+              contains('https://pub.dev/packages/foobar_pkg/versions/1.2.3\n'));
 
           final packages = await backend.latestPackages();
           expect(packages.first.name, foobarPackage.name);
