@@ -138,10 +138,10 @@ flutter:
       final list = await backend.latestPackageVersions(offset: 10);
       expect(list.map((p) => p.package).toList(), containsAll(names));
 
-      print(await expectHtmlResponse(
+      await expectHtmlResponse(
         await issueGet('/packages?page=2'),
         present: names.map((name) => '/packages/$name').toList(),
-      ));
+      );
     });
   });
 }
