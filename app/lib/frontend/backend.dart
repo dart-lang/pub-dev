@@ -23,6 +23,7 @@ import 'package:uuid/uuid.dart';
 import '../account/backend.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
+import '../publisher/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
@@ -283,9 +284,7 @@ class Backend {
           throw NotFoundException('Package $package does not exists.');
         }
         latestVersion = p.latestVersion;
-        if (!p.hasUploader(user.userId)) {
-          throw AuthorizationException.userIsNotAdminForPackage(package);
-        }
+        await checkPackageAdmin(p);
         p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
         _logger.info('Updating $package options: '
             'isDiscontinued: ${p.isDiscontinued} '
@@ -296,6 +295,38 @@ class Backend {
       await invalidatePackageCache(cache, package);
       await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
     });
+  }
+
+  /// Whether the current authenticated user (or [userId] if provided) is a
+  /// package admin (through direct uploaders list or publisher admin).
+  ///
+  /// Returns false if the user is not an admin.
+  Future<bool> isPackageAdmin(models.Package p, {String userId}) async {
+    userId ??= authenticatedUser?.userId;
+    if (userId == null) {
+      return false;
+    }
+    if (p.publisherId == null) {
+      return p.containsUploader(userId);
+    } else {
+      final memberKey = db.emptyKey
+          .append(Publisher, id: p.publisherId)
+          .append(PublisherMember, id: userId);
+      final list = await db.lookup<PublisherMember>([memberKey]);
+      final member = list.single;
+      return member?.role == PublisherMemberRole.admin;
+    }
+  }
+
+  /// Whether the current authenticated user (or [userId] if provided) is a
+  /// package admin (through direct uploaders list or publisher admin).
+  ///
+  /// Throws exception if the user is not an admin.
+  Future checkPackageAdmin(models.Package package, {String userId}) async {
+    // Fail if calling user doesn't have permission to admin package.
+    if (!await isPackageAdmin(package, userId: userId)) {
+      throw AuthorizationException.userIsNotAdminForPackage(package.name);
+    }
   }
 }
 
@@ -503,11 +534,7 @@ class GCloudPackageRepository extends PackageRepository {
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = _newPackageFromVersion(db, newVersion);
-      }
-
-      // Check if the uploader of the new version is allowed to upload to
-      // the package.
-      if (!package.hasUploader(user.userId)) {
+      } else if (!await backend.isPackageAdmin(package, userId: user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
@@ -649,7 +676,7 @@ class GCloudPackageRepository extends PackageRepository {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
 
-      _validatePackageUploader(packageName, package, user.userId);
+      await _validatePackageUploader(packageName, package, user.userId);
 
       if (!isValidEmail(uploaderEmail)) {
         throw GenericProcessingException(
@@ -657,7 +684,7 @@ class GCloudPackageRepository extends PackageRepository {
       }
 
       final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
-      if (uploader != null && package.hasUploader(uploader.userId)) {
+      if (uploader != null && package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         return;
       }
@@ -709,13 +736,13 @@ class GCloudPackageRepository extends PackageRepository {
       final package = (await tx.lookup([packageKey])).first as models.Package;
 
       try {
-        _validatePackageUploader(packageName, package, fromUserId);
+        await _validatePackageUploader(packageName, package, fromUserId);
       } catch (_) {
         await tx.rollback();
         rethrow;
       }
 
-      if (package.hasUploader(uploader.userId)) {
+      if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
         await tx.rollback();
         return;
@@ -742,15 +769,15 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  void _validatePackageUploader(
-      String packageName, models.Package package, String userId) {
+  Future _validatePackageUploader(
+      String packageName, models.Package package, String userId) async {
     // Fail if package doesn't exist.
     if (package == null) {
       throw NotFoundException.resource(packageName);
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
-    if (!package.hasUploader(userId)) {
+    if (!await backend.isPackageAdmin(package, userId: userId)) {
       throw AuthorizationException.userCannotChangeUploaders(package.name);
     }
   }
@@ -763,22 +790,12 @@ class GCloudPackageRepository extends PackageRepository {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
         final package = (await T.lookup([packageKey])).first as models.Package;
 
-        // Fail if package doesn't exist.
-        if (package == null) {
-          await T.rollback();
-          throw NotFoundException.resource(packageName);
-        }
-
-        // Fail if calling user doesn't have permission to change uploaders.
-        if (!package.hasUploader(user.userId)) {
-          await T.rollback();
-          throw AuthorizationException.userCannotChangeUploaders(package.name);
-        }
+        await _validatePackageUploader(packageName, package, user.userId);
 
         final uploader =
             await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
         // Fail if the uploader we want to remove does not exist.
-        if (!package.hasUploader(uploader.userId)) {
+        if (!package.containsUploader(uploader.userId)) {
           await T.rollback();
           throw GenericProcessingException(
               'The uploader to remove does not exist.');

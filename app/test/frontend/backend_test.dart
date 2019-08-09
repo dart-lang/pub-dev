@@ -171,7 +171,7 @@ void main() {
       testWithServices('not logged in', () async {
         final pkg = foobarPackage.name;
         final rs = backend.repository.addUploader(pkg, 'a@b.com');
-        expectLater(rs, throwsA(isA<AuthenticationException>()));
+        await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
       testWithServices('not authorized', () async {
@@ -179,13 +179,13 @@ void main() {
         registerAuthenticatedUser(
             AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
         final rs = backend.repository.addUploader(pkg, 'a@b.com');
-        expectLater(rs, throwsA(isA<AuthorizationException>()));
+        await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
         final rs = backend.repository.addUploader('no_package', 'a@b.com');
-        expectLater(rs, throwsA(isA<NotFoundException>()));
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       Future testAlreadyExists(
@@ -238,7 +238,7 @@ void main() {
       testWithServices('not logged in', () async {
         final rs =
             backend.repository.removeUploader('hydrogen', hansUser.email);
-        expectLater(rs, throwsA(isA<AuthenticationException>()));
+        await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
       testWithServices('not authorized', () async {
@@ -252,14 +252,14 @@ void main() {
         registerAuthenticatedUser(hansAuthenticated);
         final rs =
             backend.repository.removeUploader('hydrogen', hansUser.email);
-        expectLater(rs, throwsA(isA<AuthorizationException>()));
+        await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
         final rs =
             backend.repository.removeUploader('non_hydrogen', hansUser.email);
-        expectLater(rs, throwsA(isA<NotFoundException>()));
+        await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('cannot remove last uploader', () async {
@@ -363,7 +363,7 @@ void main() {
         testWithServices('no active user', () async {
           final rs = backend.repository
               .startAsyncUpload(Uri.parse('http://example.com/'));
-          expectLater(rs, throwsA(isA<AuthenticationException>()));
+          await expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
         testWithServices('successful', () async {

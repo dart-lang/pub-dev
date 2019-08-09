@@ -150,6 +150,20 @@ class PackageRejectedException extends ResponseException
             400, 'PackageRejected', 'Package archive exceeded $limit bytes.');
 }
 
+/// Thrown when the operation is rejected because of the internal state of a resource.
+class StateException extends ResponseException
+    implements GenericProcessingException {
+  /// The operation tried to update the list of uploaders, but it can't be done
+  /// while the package is owned by a publisher.
+  StateException.publisherOwnedPackageNoUploader(
+      String packageName, String publisherId)
+      : super._(
+            400,
+            'UpdateRejected',
+            'Package "$packageName" is owned by publisher "$publisherId". '
+                'Updating the uploaders is not permitted.');
+}
+
 /// Thrown when authentication failed, credentials is missing or invalid.
 class AuthenticationException extends ResponseException
     implements UnauthorizedAccessException {

@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../scorecard/models.dart';
+import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
 import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/urls.dart' as urls;
@@ -80,23 +81,29 @@ class Package extends db.ExpandoModel {
     return shortDateFormat.format(updated);
   }
 
-  // Check if a user is an uploader for a package.
-  bool hasUploader(String uploaderId) {
-    return uploaderId != null && uploaders.contains(uploaderId);
+  // Check if a [userId] is in the list of [uploaders].
+  bool containsUploader(String userId) {
+    return userId != null && uploaders.contains(userId);
   }
 
   int get uploaderCount => uploaders.length;
 
-  /// Add the id to the list of uploaders.
-  void addUploader(String uploaderId) {
-    if (uploaderId != null && !uploaders.contains(uploaderId)) {
-      uploaders.add(uploaderId);
+  /// Add the [userId] to the list of [uploaders].
+  void addUploader(String userId) {
+    if (publisherId != null) {
+      throw StateException.publisherOwnedPackageNoUploader(name, publisherId);
+    }
+    if (userId != null && !uploaders.contains(userId)) {
+      uploaders.add(userId);
     }
   }
 
-  // Remove the id from the list of uploaders.
-  void removeUploader(String uploaderId) {
-    uploaders.removeWhere((s) => s == uploaderId);
+  // Remove the [userId] from the list of [uploaders].
+  void removeUploader(String userId) {
+    if (publisherId != null) {
+      throw StateException.publisherOwnedPackageNoUploader(name, publisherId);
+    }
+    uploaders.remove(userId);
   }
 
   /// Updates latest stable and dev version keys with the new version.

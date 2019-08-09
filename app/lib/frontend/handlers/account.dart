@@ -5,7 +5,6 @@
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../account/backend.dart';
 import '../../frontend/backend.dart';
 import '../../shared/handlers.dart';
 
@@ -30,6 +29,6 @@ Future<shelf.Response> accountPkgOptionsHandler(
     return notFoundHandler(request);
   }
   final options =
-      AccountPkgOptions(isUploader: p.hasUploader(authenticatedUser.userId));
+      AccountPkgOptions(isUploader: await backend.isPackageAdmin(p));
   return jsonResponse(options.toJson());
 }
