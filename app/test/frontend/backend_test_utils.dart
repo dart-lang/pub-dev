@@ -7,10 +7,6 @@ library pub_dartlang_org.backend_test_utils;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:pub_dartlang_org/shared/email.dart';
-
-import 'package:pub_dartlang_org/frontend/email_sender.dart';
-
 import '../shared/test_models.dart';
 
 Future<T> withTempDirectory<T>(Future<T> func(String temp)) async {
@@ -54,14 +50,4 @@ Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
     }
     return bytes;
   });
-}
-
-class EmailSenderMock implements EmailSender {
-  final sentMessages = <EmailMessage>[];
-
-  @override
-  Future sendMessage(EmailMessage message) async {
-    sentMessages.add(message);
-    return;
-  }
 }
