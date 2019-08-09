@@ -284,7 +284,7 @@ class Backend {
           throw NotFoundException('Package $package does not exists.');
         }
         latestVersion = p.latestVersion;
-        await checkPackageAdmin(p);
+        await checkPackageAdmin(p, user.userId);
         p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
         _logger.info('Updating $package options: '
             'isDiscontinued: ${p.isDiscontinued} '
@@ -297,12 +297,11 @@ class Backend {
     });
   }
 
-  /// Whether the current authenticated user (or [userId] if provided) is a
-  /// package admin (through direct uploaders list or publisher admin).
+  /// Whether [userId] is a package admin (through direct uploaders list or
+  /// publisher admin).
   ///
   /// Returns false if the user is not an admin.
-  Future<bool> isPackageAdmin(models.Package p, {String userId}) async {
-    userId ??= authenticatedUser?.userId;
+  Future<bool> isPackageAdmin(models.Package p, String userId) async {
     if (userId == null) {
       return false;
     }
@@ -318,13 +317,16 @@ class Backend {
     }
   }
 
-  /// Whether the current authenticated user (or [userId] if provided) is a
-  /// package admin (through direct uploaders list or publisher admin).
+  /// Whether the [userId] is a package admin (through direct uploaders list or
+  /// publisher admin).
   ///
-  /// Throws exception if the user is not an admin.
-  Future checkPackageAdmin(models.Package package, {String userId}) async {
-    // Fail if calling user doesn't have permission to admin package.
-    if (!await isPackageAdmin(package, userId: userId)) {
+  /// Throws AuthenticationException if the user is provided.
+  /// Throws AuthorizationException if the user is not an admin for the package.
+  Future checkPackageAdmin(models.Package package, String userId) async {
+    if (userId == null) {
+      throw AuthenticationException.authenticationRequired();
+    }
+    if (!await isPackageAdmin(package, userId)) {
       throw AuthorizationException.userIsNotAdminForPackage(package.name);
     }
   }
@@ -534,7 +536,7 @@ class GCloudPackageRepository extends PackageRepository {
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = _newPackageFromVersion(db, newVersion);
-      } else if (!await backend.isPackageAdmin(package, userId: user.userId)) {
+      } else if (!await backend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
@@ -777,7 +779,7 @@ class GCloudPackageRepository extends PackageRepository {
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
-    if (!await backend.isPackageAdmin(package, userId: userId)) {
+    if (!await backend.isPackageAdmin(package, userId)) {
       throw AuthorizationException.userCannotChangeUploaders(package.name);
     }
   }

@@ -5,6 +5,7 @@
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/backend.dart';
 import '../../frontend/backend.dart';
 import '../../shared/handlers.dart';
 
@@ -24,11 +25,13 @@ Future<shelf.Response> putAccountConsentHandler(
 /// Handles /api/account/options/packages/<package>
 Future<shelf.Response> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
-  final p = await backend.lookupPackage(package);
-  if (p == null) {
-    return notFoundHandler(request);
-  }
-  final options =
-      AccountPkgOptions(isAdmin: await backend.isPackageAdmin(p));
-  return jsonResponse(options.toJson());
+  return await withAuthenticatedUser((user) async {
+    final p = await backend.lookupPackage(package);
+    if (p == null) {
+      return notFoundHandler(request);
+    }
+    final options = AccountPkgOptions(
+        isAdmin: await backend.isPackageAdmin(p, user.userId));
+    return jsonResponse(options.toJson());
+  });
 }
