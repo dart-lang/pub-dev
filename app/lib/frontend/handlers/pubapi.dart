@@ -7,6 +7,7 @@ import 'package:shelf/shelf.dart';
 import '../../account/consent_backend.dart';
 import '../../frontend/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
+import '../../shared/configuration.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
 import 'custom_api.dart';
@@ -31,7 +32,7 @@ class PubApi {
   /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L28-L49
   @EndPoint.get('/api/packages/<package>')
   Future<Response> listPackageVersions(Request request, String package) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   /// Getting information about a specific (package, version) pair.
   ///
@@ -44,7 +45,7 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   /// Downloading package.
   ///
@@ -57,7 +58,7 @@ class PubApi {
     String package,
     String version,
   ) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   /// Start async upload.
   ///
@@ -65,7 +66,7 @@ class PubApi {
   /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
   @EndPoint.get('/api/packages/versions/new')
   Future<Response> getPackageUploadUrl(Request request) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   /// Finish async upload.
   ///
@@ -73,7 +74,7 @@ class PubApi {
   /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
   @EndPoint.get('/api/packages/versions/newUploadFinish')
   Future<Response> packageUploadCallback(Request request) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   /// Adding a new uploader
   ///
@@ -81,7 +82,7 @@ class PubApi {
   /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L109-L116
   @EndPoint.post('/api/packages/<package>/uploaders')
   Future<Response> addUploader(Request request, String package) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   /// Removing an existing uploader.
   ///
@@ -93,7 +94,7 @@ class PubApi {
     String package,
     String email,
   ) async =>
-      _pubServerHandler(request);
+      _pubServerHandler(_normalizeHost(request));
 
   // ****
   // **** Publisher API
@@ -251,4 +252,24 @@ class PubApi {
   @EndPoint.get('/packages/<package>.json')
   Future<Response> packageJson(Request request, String package) =>
       packageShowHandlerJson(request, package);
+}
+
+Request _normalizeHost(Request request) {
+  final requestedUri = activeConfiguration.primaryApiUri.replace(
+    path: request.requestedUri.path,
+    queryParameters: request.requestedUri.queryParameters.isEmpty
+        ? null
+        : request.requestedUri.queryParametersAll,
+  );
+  return Request(
+    request.method,
+    requestedUri,
+    url: request.url,
+    body: request.read(),
+    headers: request.headers,
+    context: request.context,
+    encoding: request.encoding,
+    handlerPath: request.handlerPath,
+    protocolVersion: request.protocolVersion,
+  );
 }
