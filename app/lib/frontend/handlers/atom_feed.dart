@@ -11,6 +11,7 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:uuid/uuid.dart';
 
+import '../../shared/configuration.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../backend.dart';
@@ -141,7 +142,8 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
 
   final entries = versions.map((PackageVersion version) {
     final pkgPage = urls.pkgPageUrl(version.package);
-    final alternateUrl = requestedUri.replace(path: pkgPage).toString();
+    final alternateUrl =
+        activeConfiguration.primarySiteUri.replace(path: pkgPage).toString();
     final alternateTitle = version.package;
 
     // TODO: use only qualifiedVersion as seed after the domain migration
@@ -169,12 +171,14 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
         alternateUrl, alternateTitle);
   }).toList();
 
-  final id = requestedUri.resolve('/feed.atom').toString();
+  final id =
+      activeConfiguration.primarySiteUri.resolve('/feed.atom').toString();
   final selfUrl = id;
 
   final title = 'Pub Packages for Dart';
   final subTitle = 'Last Updated Packages';
-  final alternateUrl = requestedUri.resolve('/').toString();
+  final alternateUrl =
+      activeConfiguration.primarySiteUri.resolve('/').toString();
   final author = 'Dart Team';
   final updated = DateTime.now().toUtc();
 
