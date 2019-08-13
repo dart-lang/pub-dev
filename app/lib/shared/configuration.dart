@@ -173,7 +173,7 @@ class Configuration {
     }
   }
 
-  /// Configuration for pkg/fake_pub_server and tests.
+  /// Configuration for pkg/fake_pub_server.
   factory Configuration.fakePubServer({
     @required int port,
     @required String storageBaseUrl,
@@ -195,6 +195,28 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$port/'),
       primarySiteUri: Uri.parse('http://localhost:$port/'),
+    );
+  }
+
+  /// Configuration for tests.
+  factory Configuration.test() {
+    return Configuration(
+      projectId: 'dartlang-pub-test',
+      packageBucketName: 'fake-bucket-pub',
+      dartdocStorageBucketName: 'fake-bucket-dartdoc',
+      popularityDumpBucketName: 'fake-bucket-popularity',
+      searchSnapshotBucketName: 'fake-bucket-search',
+      backupSnapshotBucketName: 'fake-bucket-backup',
+      searchServicePrefix: 'http://localhost:0',
+      storageBaseUrl: 'http://localhost:0',
+      pubClientAudience: null,
+      pubSiteAudience: null,
+      credentials: null,
+      blockEmails: true,
+      blockRobots: true,
+      productionHosts: ['localhost'],
+      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
+      primarySiteUri: Uri.parse('https://pub.dev/'),
     );
   }
 }
