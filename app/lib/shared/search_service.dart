@@ -538,30 +538,26 @@ class ApiPageRef {
   Map<String, dynamic> toJson() => _$ApiPageRefToJson(this);
 }
 
-/// Extracts the 'page' query parameter from [url].
+/// Extracts the 'page' query parameter from requested URL's [queryParameters].
 ///
 /// Returns a valid positive integer.
-int extractPageFromUrlParameters(Uri url) {
-  final pageAsString = url.queryParameters['page'];
-  int pageAsInt = 1;
-  if (pageAsString != null) {
-    try {
-      pageAsInt = max(int.parse(pageAsString), 1);
-    } catch (_, __) {}
-  }
-  return pageAsInt;
+int extractPageFromUrlParameters(Map<String, String> queryParameters) {
+  final pageAsString = queryParameters['page'];
+  final pageAsInt = int.tryParse(pageAsString ?? '1') ?? 1;
+  return max(pageAsInt, 1);
 }
 
-/// Parses the search query URL with the parameters we expose on the frontend.
-/// The parameters and the values may be different from the ones we use in the
-/// search service backend.
-SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
-  final int page = extractPageFromUrlParameters(url);
+/// Parses the search query URL queryParameters for the parameters we expose on
+/// the frontend. The parameters and the values may be different from the ones
+/// we use in the search service backend.
+SearchQuery parseFrontendSearchQuery(
+    Map<String, String> queryParameters, String platform) {
+  final int page = extractPageFromUrlParameters(queryParameters);
   final int offset = resultsPerPage * (page - 1);
-  final String queryText = url.queryParameters['q'] ?? '';
-  final String sortParam = url.queryParameters['sort'];
+  final String queryText = queryParameters['q'] ?? '';
+  final String sortParam = queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
-  final isApiEnabled = url.queryParameters['api'] != '0';
+  final isApiEnabled = queryParameters['api'] != '0';
   return SearchQuery.parse(
     query: queryText,
     platform: platform,
@@ -569,6 +565,6 @@ SearchQuery parseFrontendSearchQuery(Uri url, String platform) {
     offset: offset,
     limit: resultsPerPage,
     apiEnabled: isApiEnabled,
-    includeLegacy: url.queryParameters['legacy'] == '1',
+    includeLegacy: queryParameters['legacy'] == '1',
   );
 }

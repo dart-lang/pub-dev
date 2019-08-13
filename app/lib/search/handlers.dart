@@ -63,7 +63,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
         status: searchIndexNotReadyCode);
   }
   final Stopwatch sw = Stopwatch()..start();
-  final SearchQuery query = SearchQuery.fromServiceUrl(request.url);
+  final SearchQuery query = SearchQuery.fromServiceUrl(request.requestedUri);
   final combiner = SearchResultCombiner(
       primaryIndex: packageIndex, dartSdkIndex: dartSdkIndex);
   final result = await combiner.search(query);
