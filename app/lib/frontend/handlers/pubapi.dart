@@ -254,6 +254,11 @@ class PubApi {
       packageShowHandlerJson(request, package);
 }
 
+/// Replaces the requested uri with the primary API uri.
+///
+/// A few API endpoint use the requested uri as a base to generate further URLs
+/// that we return in the response. Such generated URLs may end up in our cache,
+/// and it is critical that we only cache the values with the proper URLs.
 Request _normalizeHost(Request request) {
   final requestedUri = activeConfiguration.primaryApiUri.replace(
     path: request.requestedUri.path,
