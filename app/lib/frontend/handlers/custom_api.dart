@@ -84,7 +84,8 @@ Future<shelf.Response> apiPackagesCompactListHandler(
 /// Handles request for /api/packages?page=<num>
 Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   final int pageSize = 100;
-  final int page = extractPageFromUrlParameters(request.url);
+  final int page =
+      extractPageFromUrlParameters(request.requestedUri.queryParameters);
 
   // Check that we're not at last page (abuse -1 as special index in cache)
   final lastPageCacheEntry = cache.apiPackagesListPage(-1);
@@ -224,7 +225,8 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
 
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
-  final searchQuery = parseFrontendSearchQuery(request.requestedUri, null);
+  final searchQuery =
+      parseFrontendSearchQuery(request.requestedUri.queryParameters, null);
   final sr = await searchClient.search(searchQuery);
   final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;

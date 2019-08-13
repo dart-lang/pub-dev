@@ -45,7 +45,8 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) =>
 Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
-  final searchQuery = parseFrontendSearchQuery(request.requestedUri, platform);
+  final searchQuery =
+      parseFrontendSearchQuery(request.requestedUri.queryParameters, platform);
   final sw = Stopwatch()..start();
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;
@@ -65,11 +66,12 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
 
 /// Handles requests for /packages - multiplexes to JSON/HTML handler.
 Future<shelf.Response> packagesHandler(shelf.Request request) async {
-  final int page = extractPageFromUrlParameters(request.url);
+  final int page =
+      extractPageFromUrlParameters(request.requestedUri.queryParameters);
   final path = request.requestedUri.path;
   if (path.endsWith('.json')) {
     return _packagesHandlerJson(request, page, true);
-  } else if (request.url.queryParameters['format'] == 'json') {
+  } else if (request.requestedUri.queryParameters['format'] == 'json') {
     return _packagesHandlerJson(request, page, false);
   } else {
     return packagesHandlerHtml(request);
