@@ -622,6 +622,9 @@ class GCloudPackageRepository extends PackageRepository {
         throw AuthorizationException.userCannotUploadNewVersion(package.name);
       }
 
+      // Store the publisher of the package at the time of the upload.
+      newVersion.publisherId = package.publisherId;
+
       // Update the date when the package was last updated.
       package.updated = newVersion.created;
 
