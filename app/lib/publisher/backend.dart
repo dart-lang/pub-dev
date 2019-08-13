@@ -327,9 +327,7 @@ api.PublisherInfo _asPublisherInfo(Publisher p) =>
 /// Throws AuthorizationException if the user is not an admin for the publisher.
 Future<R> withPublisherAdmin<R>(
     String publisherId, String userId, FutureOr<R> fn(Publisher p)) async {
-  if (userId == null) {
-    throw AuthenticationException.authenticationRequired();
-  }
+  ArgumentError.checkNotNull(userId, 'userId');
   final p = await publisherBackend._getPublisher(publisherId);
   if (p == null) {
     throw NotFoundException('Publisher $publisherId does not exists.');
