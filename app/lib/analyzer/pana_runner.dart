@@ -75,7 +75,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           version: job.packageVersion,
           options: InspectOptions(
             isInternal: isInternal,
-            pubHostedUrl: activeConfiguration.pubHostedUrl,
+            pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
           ),
           logger:
               Logger.detached('pana/${job.packageName}/${job.packageVersion}'),

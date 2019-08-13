@@ -9,8 +9,6 @@ import 'package:googleapis_auth/auth.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
-import 'urls.dart' as urls;
-
 final _logger = Logger('configuration');
 
 final _configurationKey = #_active_configuration;
@@ -62,9 +60,6 @@ class Configuration {
   /// The name of the Cloud Storage bucket to use for datastore backup snapshots.
   final String backupSnapshotBucketName;
 
-  /// The PUB_HOSTED_URL to use in analyzer and dartdoc.
-  final String pubHostedUrl;
-
   // The scheme://host:port prefix for storage URLs.
   final String storageBaseUrl;
 
@@ -89,6 +84,13 @@ class Configuration {
   /// are not limited in the cache use).
   final List<String> productionHosts;
 
+  /// The base URI to use for API endpoints.
+  /// Also used as PUB_HOSTED_URL in analyzer and dartdoc.
+  final Uri primaryApiUri;
+
+  /// The base URI to use for HTML content.
+  final Uri primarySiteUri;
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -104,7 +106,6 @@ class Configuration {
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      pubHostedUrl: urls.siteRoot,
       storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
@@ -113,6 +114,8 @@ class Configuration {
       blockEmails: false,
       blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
+      primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
+      primarySiteUri: Uri.parse('https://pub.dev/'),
     );
   }
 
@@ -127,7 +130,6 @@ class Configuration {
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
-      pubHostedUrl: 'https://dartlang-pub-dev.appspot.com',
       storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
@@ -136,6 +138,8 @@ class Configuration {
       blockEmails: true,
       blockRobots: true,
       productionHosts: const ['dartlang-pub-dev.appspot.com'],
+      primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
+      primarySiteUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
     );
   }
 
@@ -147,7 +151,6 @@ class Configuration {
     @required this.searchSnapshotBucketName,
     @required this.backupSnapshotBucketName,
     @required this.searchServicePrefix,
-    @required this.pubHostedUrl,
     @required this.storageBaseUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
@@ -155,6 +158,8 @@ class Configuration {
     @required this.blockEmails,
     @required this.blockRobots,
     @required this.productionHosts,
+    @required this.primaryApiUri,
+    @required this.primarySiteUri,
   });
 
   /// Create a configuration based on the environment variables.
@@ -181,7 +186,6 @@ class Configuration {
       searchSnapshotBucketName: 'fake-bucket-search',
       backupSnapshotBucketName: 'fake-bucket-backup',
       searchServicePrefix: 'http://localhost:$port',
-      pubHostedUrl: 'http://localhost:$port',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
       pubSiteAudience: null,
@@ -189,6 +193,8 @@ class Configuration {
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
+      primaryApiUri: Uri.parse('http://localhost:$port/'),
+      primarySiteUri: Uri.parse('http://localhost:$port/'),
     );
   }
 }
