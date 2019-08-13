@@ -264,7 +264,6 @@ Request _normalizeHost(Request request) {
   return Request(
     request.method,
     requestedUri,
-    url: request.url,
     body: request.read(),
     headers: request.headers,
     context: request.context,
