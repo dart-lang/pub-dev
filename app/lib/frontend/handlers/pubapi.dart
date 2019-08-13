@@ -5,6 +5,7 @@ import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../account/consent_backend.dart';
+import '../../frontend/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import 'account.dart';
@@ -220,7 +221,7 @@ class PubApi {
     Request request,
     String package,
   ) =>
-      throw UnimplementedError('getPackagePublisher not implemented');
+      backend.getPublisherInfo(package);
 
   @EndPoint.put('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> setPackagePublisher(
@@ -228,11 +229,12 @@ class PubApi {
     String package,
     PackagePublisherInfo body,
   ) =>
-      throw UnimplementedError('setPackagePublisher not implemented');
+      backend.setPublisher(package, body);
 
   @EndPoint.delete('/api/packages/<package>/publisher')
-  Future<Response> removePackagePublisher(Request request, String package) =>
-      throw UnimplementedError('removePackagePublisher not implemented');
+  Future<PackagePublisherInfo> removePackagePublisher(
+          Request request, String package) =>
+      backend.removePublisher(package);
 
   @EndPoint.get('/api/search')
   Future<Response> search(Request request) => apiSearchHandler(request);

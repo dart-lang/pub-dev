@@ -161,11 +161,13 @@ dependencies:
   gcloud: any
 ''';
 
-final exampleComPublisher = Publisher()
+final exampleComPublisher = publisher('example.com');
+
+Publisher publisher(String domain) => Publisher()
   ..parentKey = Key.emptyKey(Partition(null))
-  ..id = 'example.com'
+  ..id = domain
   ..description = 'This is us!'
-  ..contactEmail = 'contact@example.com'
+  ..contactEmail = 'contact@$domain'
   ..created = DateTime(2019, 07, 15)
   ..updated = DateTime(2019, 07, 16);
 

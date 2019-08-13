@@ -341,7 +341,7 @@ Router _$PubApiRouter(PubApi service) {
       (Request request, String package) async {
     try {
       final _$result = await service.removePackagePublisher(request, package);
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

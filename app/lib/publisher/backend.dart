@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart' as api;
 import 'package:gcloud/db.dart';
@@ -41,23 +43,11 @@ class PublisherBackend {
   /// Checks whether the current authenticated user has admin role of the
   /// publisher, and executes [fn] if it does.
   /// Otherwise, it throws [AuthorizationException].
+  /// TODO: remove this and migrate to use withPublisherAdmin
   Future<R> _withPublisherAdmin<R>(
       String publisherId, Future<R> fn(Publisher p)) async {
     return await withAuthenticatedUser((user) async {
-      final p = await _getPublisher(publisherId);
-      if (p == null) {
-        throw NotFoundException('Publisher $publisherId does not exists.');
-      }
-
-      final member = (await _db.lookup<PublisherMember>(
-              [p.key.append(PublisherMember, id: user.userId)]))
-          .single;
-      if (member == null || member.role != PublisherMemberRole.admin) {
-        _logger.info(
-            'Unauthorized access of Publisher($publisherId) from ${user.email}.');
-        throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
-      }
-      return await fn(p);
+      return await withPublisherAdmin(publisherId, user.userId, fn);
     });
   }
 
@@ -329,3 +319,29 @@ class PublisherBackend {
 
 api.PublisherInfo _asPublisherInfo(Publisher p) =>
     api.PublisherInfo(description: p.description, contactEmail: p.contactEmail);
+
+/// Loads [publisherId] and checks if [userId] is an admin of the publisher, and
+/// runs the callback [fn] with it.
+///
+/// Throws AuthenticationException if the user is provided.
+/// Throws AuthorizationException if the user is not an admin for the publisher.
+Future<R> withPublisherAdmin<R>(
+    String publisherId, String userId, FutureOr<R> fn(Publisher p)) async {
+  if (userId == null) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  final p = await publisherBackend._getPublisher(publisherId);
+  if (p == null) {
+    throw NotFoundException('Publisher $publisherId does not exists.');
+  }
+
+  final member = (await publisherBackend._db
+          .lookup<PublisherMember>([p.key.append(PublisherMember, id: userId)]))
+      .single;
+  if (member == null || member.role != PublisherMemberRole.admin) {
+    _logger.info(
+        'Unauthorized access of Publisher($publisherId) from User($userId).');
+    throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
+  }
+  return await fn(p);
+}
