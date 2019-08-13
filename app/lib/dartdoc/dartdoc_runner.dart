@@ -366,7 +366,7 @@ class DartdocJobProcessor extends JobProcessor {
         args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
       }
       final environment = <String, String>{
-        'PUB_HOSTED_URL': activeConfiguration.pubHostedUrl,
+        'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
       };
       environment.removeWhere((k, v) => v == null);
       final pr = await runProc(
