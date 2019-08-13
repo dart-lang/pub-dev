@@ -11,6 +11,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/configuration.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
@@ -110,7 +111,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 
     final packagesJson = [];
 
-    final uri = request.requestedUri;
+    final uri = activeConfiguration.primaryApiUri;
     for (var version in pageVersions) {
       final versionString = Uri.encodeComponent(version.version);
       final packageString = Uri.encodeComponent(version.package);
@@ -151,8 +152,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     };
 
     if (!lastPage) {
-      json['next_url'] =
-          '${request.requestedUri.resolve('/api/packages?page=${page + 1}')}';
+      json['next_url'] = '${uri.resolve('/api/packages?page=${page + 1}')}';
     }
     return json;
   });
@@ -236,8 +236,9 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
         Map<String, dynamic>.from(request.requestedUri.queryParameters);
     final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
     newParams['page'] = nextPageIndex.toString();
-    final nextPageUrl =
-        request.requestedUri.replace(queryParameters: newParams).toString();
+    final nextPageUrl = activeConfiguration.primaryApiUri
+        .replace(queryParameters: newParams)
+        .toString();
     result['next'] = nextPageUrl;
   }
   return jsonResponse(result);

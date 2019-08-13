@@ -44,12 +44,7 @@ import 'test_models.dart';
 void testWithServices(String name, Future fn()) {
   scopedTest(name, () async {
     _setupLogging();
-
-    // registering config with bad ports, as we won't access them via network
-    registerActiveConfiguration(Configuration.fakePubServer(
-      port: 0,
-      storageBaseUrl: 'http://localhost:0',
-    ));
+    registerActiveConfiguration(Configuration.test());
 
     await withCache(() async {
       final db = DatastoreDB(MemDatastore());
