@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:client_data/package_api.dart';
+import 'package:client_data/package_api.dart' as api;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
@@ -23,6 +23,7 @@ import 'package:uuid/uuid.dart';
 import '../account/backend.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
+import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
@@ -274,7 +275,7 @@ class Backend {
   }
 
   /// Updates [options] on [package].
-  Future updateOptions(String package, PkgOptions options) async {
+  Future updateOptions(String package, api.PkgOptions options) async {
     final pkgKey = db.emptyKey.append(models.Package, id: package);
     await withAuthenticatedUser((user) async {
       String latestVersion;
@@ -330,7 +331,85 @@ class Backend {
       throw AuthorizationException.userIsNotAdminForPackage(package.name);
     }
   }
+
+  /// Returns the publisher info of a given package.
+  Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
+    final key = db.emptyKey.append(models.Package, id: packageName);
+    final package = (await db.lookup<models.Package>([key])).single;
+    if (package == null) {
+      throw NotFoundException.resource('package "$packageName"');
+    }
+    return _asPackagePublisherInfo(package);
+  }
+
+  /// Sets/updates the publisher of a package.
+  Future<api.PackagePublisherInfo> setPublisher(
+      String packageName, api.PackagePublisherInfo request) async {
+    InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
+    return await withAuthenticatedUser((user) async {
+      final key = db.emptyKey.append(models.Package, id: packageName);
+      return await withPackageAdmin(packageName, user.userId, (_) async {
+        return await withPublisherAdmin(request.publisherId, user.userId,
+            (_) async {
+          final rs = await db.withTransaction((tx) async {
+            final package = (await db.lookup<models.Package>([key])).single;
+            package.publisherId = request.publisherId;
+            package.uploaders.clear();
+            tx.queueMutations(inserts: [package]);
+            await tx.commit();
+            return _asPackagePublisherInfo(package);
+          });
+          return rs as api.PackagePublisherInfo;
+        });
+      });
+    });
+  }
+
+  /// Moves the package out of its current publisher.
+  Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
+    return await withAuthenticatedUser((user) async {
+      final key = db.emptyKey.append(models.Package, id: packageName);
+      return await withPackageAdmin(packageName, user.userId, (package) async {
+        if (package.publisherId == null) {
+          return _asPackagePublisherInfo(package);
+        }
+        return await withPublisherAdmin(package.publisherId, user.userId,
+            (_) async {
+          final rs = await db.withTransaction((tx) async {
+            final package = (await db.lookup<models.Package>([key])).single;
+            package.publisherId = null;
+            package.uploaders = [user.userId];
+            tx.queueMutations(inserts: [package]);
+            await tx.commit();
+            return _asPackagePublisherInfo(package);
+          });
+          return rs as api.PackagePublisherInfo;
+        });
+      });
+    });
+  }
 }
+
+/// Loads [package] and checks if [userId] is an admin of the package, and
+/// runs the callback [fn] with it.
+///
+/// Throws AuthenticationException if the user is provided.
+/// Throws AuthorizationException if the user is not an admin for the package.
+Future<R> withPackageAdmin<R>(
+    String package, String userId, FutureOr<R> fn(models.Package p)) async {
+  if (userId == null) {
+    throw AuthenticationException.authenticationRequired();
+  }
+  final p = await backend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource('package "$package"');
+  }
+  await backend.checkPackageAdmin(p, userId);
+  return await fn(p);
+}
+
+api.PackagePublisherInfo _asPackagePublisherInfo(models.Package p) =>
+    api.PackagePublisherInfo(publisherId: p.publisherId);
 
 /// Invalidate [cache] entries for given [package].
 Future<void> invalidatePackageCache(CachePatterns cache, String package) async {

@@ -221,11 +221,12 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> removePackagePublisher(String package) async {
-    return await _client.requestBytes(
+  Future<_i5.PackagePublisherInfo> removePackagePublisher(
+      String package) async {
+    return _i5.PackagePublisherInfo.fromJson(await _client.requestJson(
       verb: 'delete',
       path: '/api/packages/$package/publisher',
-    );
+    ));
   }
 
   Future<List<int>> search() async {
