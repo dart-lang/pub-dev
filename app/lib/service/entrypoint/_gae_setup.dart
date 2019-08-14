@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' show runProc;
 
-import '../shared/configuration.dart';
-import '../shared/versions.dart';
+import '../../shared/configuration.dart';
+import '../../shared/versions.dart';
 
 /// Runs the setup-flutter.sh script in a GAE machine.
 Future initFlutterSdk(Logger logger) async {

@@ -28,8 +28,9 @@ import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/storage.dart';
 
-import '../isolate.dart';
 import '../services.dart';
+
+import '_isolate.dart';
 
 final Logger _logger = Logger('pub');
 final _random = Random.secure();
