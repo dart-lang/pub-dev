@@ -9,15 +9,14 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'package:pub_dartlang_org/shared/configuration.dart';
-
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/model.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
+import 'package:pub_dartlang_org/shared/configuration.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||

@@ -8,17 +8,17 @@ import 'dart:isolate';
 
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/task_client.dart';
-import 'package:pub_dartlang_org/shared/task_scheduler.dart';
-import 'package:pub_dartlang_org/shared/services.dart';
+import '../../search/backend.dart';
+import '../../search/handlers.dart';
+import '../../search/updater.dart';
+import '../../shared/handler_helpers.dart';
+import '../../shared/popularity_storage.dart';
+import '../../shared/scheduler_stats.dart';
+import '../../shared/task_client.dart';
+import '../../shared/task_scheduler.dart';
 
-import 'package:pub_dartlang_org/search/backend.dart';
-import 'package:pub_dartlang_org/search/handlers.dart';
-import 'package:pub_dartlang_org/search/updater.dart';
+import '../isolate.dart';
+import '../services.dart';
 
 final Logger _logger = Logger('pub.search');
 

@@ -9,17 +9,18 @@ import 'dart:math' as math;
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/job/backend.dart';
-import 'package:pub_dartlang_org/job/job.dart';
-import 'package:pub_dartlang_org/scorecard/backend.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/services.dart';
+import '../../analyzer/handlers.dart';
+import '../../analyzer/pana_runner.dart';
+import '../../job/backend.dart';
+import '../../job/job.dart';
+import '../../scorecard/backend.dart';
+import '../../shared/handler_helpers.dart';
+import '../../shared/popularity_storage.dart';
+import '../../shared/scheduler_stats.dart';
 
-import 'package:pub_dartlang_org/analyzer/handlers.dart';
-import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
+import '../gae_setup.dart';
+import '../isolate.dart';
+import '../services.dart';
 
 final Logger logger = Logger('pub.analyzer');
 final _random = math.Random.secure();

@@ -15,8 +15,8 @@ import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 
 Future main(List<String> args) async {
