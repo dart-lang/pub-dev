@@ -10,11 +10,11 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
-import '../shared/search_service.dart';
 import '../shared/utils.dart' show boundedList, StringInternPool;
 
 import 'platform_specificity.dart';
 import 'scoring.dart';
+import 'search_service.dart';
 import 'text_utils.dart';
 
 /// The [PackageIndex] for Dart SDK API.

@@ -6,10 +6,10 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/platform.dart';
-import '../../shared/search_service.dart';
 import '../../shared/utils.dart' show DurationTracker;
 
 import '../backend.dart';

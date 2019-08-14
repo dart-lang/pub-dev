@@ -9,11 +9,11 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:http/http.dart' as http;
 
 import '../scorecard/backend.dart';
+import '../shared/configuration.dart';
+import '../shared/redis_cache.dart' show cache;
+import '../shared/utils.dart';
 
-import 'configuration.dart';
-import 'redis_cache.dart' show cache;
 import 'search_service.dart';
-import 'utils.dart';
 
 /// Sets the search client.
 void registerSearchClient(SearchClient client) =>

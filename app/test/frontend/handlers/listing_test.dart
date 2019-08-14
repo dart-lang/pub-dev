@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/search/search_client.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 
 import '../../shared/handlers_test_utils.dart';

@@ -7,9 +7,9 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
+import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/platform.dart' show KnownPlatforms;
-import '../../shared/search_service.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../request_context.dart';

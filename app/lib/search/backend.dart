@@ -21,9 +21,10 @@ import '../shared/email.dart' show EmailAddress;
 import '../shared/exceptions.dart';
 import '../shared/packages_overrides.dart';
 import '../shared/popularity_storage.dart';
-import '../shared/search_service.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart' as versions;
+
+import 'search_service.dart';
 import 'text_utils.dart';
 
 part 'backend.g.dart';

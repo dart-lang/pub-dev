@@ -7,7 +7,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dartlang_org/shared/search_service.dart';
+import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -22,7 +22,7 @@ import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/search/search_client.dart';
 import 'package:pub_dartlang_org/service/services.dart';
 
 final _logger = Logger('fake_server');

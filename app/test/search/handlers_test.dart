@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
-import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/backend.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
+import 'package:pub_dartlang_org/search/search_service.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/utils.dart';

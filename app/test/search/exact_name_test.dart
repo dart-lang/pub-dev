@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/index_simple.dart';
+import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:pub_dartlang_org/search/text_utils.dart';
-import 'package:pub_dartlang_org/shared/search_service.dart';
 
 void main() {
   group('exact name match', () {
