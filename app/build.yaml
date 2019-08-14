@@ -9,5 +9,6 @@ targets:
       - 'lib/frontend/handlers/redirects.dart'
       - 'lib/scorecard/models.dart'
       - 'lib/shared/*.dart'
-      - 'lib/search/backend*.dart'
+      - 'lib/search/backend.dart'
+      - 'lib/search/search_service.dart'
       - 'lib/frontend/handlers/pubapi.dart'
