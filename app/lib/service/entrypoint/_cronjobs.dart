@@ -8,7 +8,7 @@ import 'package:ulid/ulid.dart' show Ulid;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:stack_trace/stack_trace.dart' show Trace;
 
-import '../shared/configuration.dart' show activeConfiguration;
+import '../../shared/configuration.dart' show activeConfiguration;
 
 final _log = Logger('pub.cronjobs');
 

@@ -27,9 +27,9 @@ import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/storage.dart';
 
-import '../cronjobs.dart' show CronJobs;
 import '../services.dart';
 
+import '_cronjobs.dart' show CronJobs;
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub');
