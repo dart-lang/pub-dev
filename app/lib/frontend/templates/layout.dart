@@ -91,7 +91,7 @@ String renderLayoutPage(
     'listing_banner': type == PageType.listing,
     'package_banner': type == PageType.package,
     'schema_org_searchaction_json':
-        isRoot ? json.encode(_schemaOrgSearchAction) : null,
+        isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_json': pageDataJson,
   };
   return templateCache.renderTemplate('layout', values);
