@@ -4,9 +4,7 @@
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
-
-import 'package:pub_dartlang_org/package/models.dart' show Secret, SecretKey;
+import 'package:pub_dartlang_org/service/secret/backend.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 
 void _printHelp() {
@@ -30,21 +28,6 @@ Future main(List<String> args) async {
   }
 
   await withProdServices(() async {
-    await dbService.withTransaction((Transaction t) async {
-      final secret =
-          (await t.lookup([dbService.emptyKey.append(Secret, id: id)])).single
-              as Secret;
-      if (secret == null) {
-        t.queueMutations(inserts: [
-          Secret()
-            ..parentKey = dbService.emptyKey
-            ..id = id
-            ..value = value,
-        ]);
-      } else {
-        t.queueMutations(inserts: [secret..value = value]);
-      }
-      await t.commit();
-    });
+    await secretBackend.update(id, value);
   });
 }

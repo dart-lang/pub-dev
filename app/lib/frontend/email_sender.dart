@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:gcloud/db.dart';
+
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
-import '../package/models.dart' show Secret, SecretKey;
+import '../service/secret/backend.dart';
 import '../shared/email.dart';
 
 final _logger = Logger('pub.email');
@@ -23,11 +23,10 @@ EmailSender get emailSender => ss.lookup(#_email_sender) as EmailSender;
 
 /// Sends emails using credentials periodically fetched from Datastore.
 class EmailSender {
-  final DatastoreDB _db;
   final bool _blockEmails;
   SmtpServer _server;
   DateTime _lastUpdated;
-  EmailSender(this._db, this._blockEmails);
+  EmailSender(this._blockEmails);
 
   /// Sends a [message] and returns when the operation completed.
   /// Errors are only logged, they do not block the processing.
@@ -61,21 +60,15 @@ class EmailSender {
     if (_lastUpdated != null && now.difference(_lastUpdated).inMinutes < 10) {
       return;
     }
-    final list = await _db.lookup([
-      _db.emptyKey.append(Secret, id: SecretKey.smtpUsername),
-      _db.emptyKey.append(Secret, id: SecretKey.smtpPassword),
-    ]);
-    final username = list[0] as Secret;
-    final password = list[1] as Secret;
+    final username = await secretBackend.lookup(SecretKey.smtpUsername);
+    final password = await secretBackend.lookup(SecretKey.smtpPassword);
     if (username == null ||
-        username.value == null ||
-        username.value.isEmpty ||
+        username.isEmpty ||
         password == null ||
-        password.value == null ||
-        password.value.isEmpty) {
+        password.isEmpty) {
       _server = null;
     } else {
-      _server = gmail(username.value, password.value);
+      _server = gmail(username, password);
     }
     _lastUpdated = now;
   }

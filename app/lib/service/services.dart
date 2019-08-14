@@ -30,6 +30,8 @@ import '../shared/storage_retry.dart' show withStorageRetry;
 import '../shared/urls.dart';
 import '../shared/versions.dart';
 
+import 'secret/backend.dart';
+
 /// Run [fn] with services;
 ///
 ///  * AppEngine: storage and datastore,
@@ -60,8 +62,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerDartdocClient(DartdocClient());
     registerDartSdkIndex(
         SimplePackageIndex.sdk(urlPrefix: dartSdkMainUrl(toolEnvSdkVersion)));
-    registerEmailSender(
-        EmailSender(dbService, activeConfiguration.blockEmails));
+    registerEmailSender(EmailSender(activeConfiguration.blockEmails));
     registerHistoryBackend(HistoryBackend(dbService));
     registerIndexUpdater(IndexUpdater(dbService));
     registerJobBackend(JobBackend(dbService));
@@ -77,6 +78,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerSearchBackend(SearchBackend(dbService));
     registerSearchClient(SearchClient());
     registerSearchService(SearchService());
+    registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName)));
     registerTarballStorage(

@@ -349,31 +349,6 @@ class QualifiedVersionKey {
   String toString() => qualifiedVersion;
 }
 
-/// A secret value stored in Datastore, typically an access credential used by
-/// the application.
-@db.Kind(name: 'Secret', idType: db.IdType.String)
-class Secret extends db.Model {
-  @db.StringProperty(required: true)
-  String value;
-}
-
-/// Identifiers of the [Secret] keys.
-abstract class SecretKey {
-  static const String smtpUsername = 'smtp.username';
-  static const String smtpPassword = 'smtp.password';
-  static const String redisConnectionString = 'redis.connectionString';
-
-  /// OAuth audiences have separate secrets for each audience.
-  static const String oauthPrefix = 'oauth.secret-';
-
-  /// List of all keys.
-  static const values = [
-    smtpUsername,
-    smtpPassword,
-    redisConnectionString,
-  ];
-}
-
 /// An active invitation sent to a recipient.
 /// The parent entity is a [Package] the id is the concatenation of '[type]/[recipientEmail]'.
 ///
