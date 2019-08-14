@@ -10,11 +10,11 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import '../shared/configuration.dart';
-import '../shared/scheduler_stats.dart';
-import '../shared/utils.dart' show trackEventLoopLatency;
+import '../../shared/configuration.dart';
+import '../../shared/scheduler_stats.dart';
+import '../../shared/utils.dart' show trackEventLoopLatency;
 
-import 'services.dart';
+import '../services.dart';
 
 class FrontendEntryMessage {
   final int frontendIndex;

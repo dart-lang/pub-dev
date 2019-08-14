@@ -17,8 +17,9 @@ import '../../shared/scheduler_stats.dart';
 import '../../shared/task_client.dart';
 import '../../shared/task_scheduler.dart';
 
-import '../isolate.dart';
 import '../services.dart';
+
+import '_isolate.dart';
 
 final Logger _logger = Logger('pub.search');
 

@@ -18,9 +18,10 @@ import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
 
-import '../gae_setup.dart';
-import '../isolate.dart';
 import '../services.dart';
+
+import '_gae_setup.dart';
+import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
 final _random = math.Random.secure();
