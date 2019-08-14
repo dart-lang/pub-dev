@@ -6,9 +6,8 @@ import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 
+import '../../package/model_properties.dart' show FileObject;
 import '../../shared/markdown.dart';
-
-import '../model_properties.dart' show FileObject;
 
 const HtmlEscape htmlAttrEscape = HtmlEscape(HtmlEscapeMode.attribute);
 

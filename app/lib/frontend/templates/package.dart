@@ -8,13 +8,13 @@ import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../analyzer/analyzer_client.dart';
+import '../../package/models.dart';
 import '../../scorecard/models.dart';
 import '../../search/search_service.dart';
 import '../../shared/email.dart' show EmailAddress;
 import '../../shared/platform.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../models.dart';
 import '../static_files.dart';
 
 import '_cache.dart';

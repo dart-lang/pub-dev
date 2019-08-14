@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dartlang_org/analyzer/analyzer_client.dart';
+import '../../analyzer/analyzer_client.dart';
+import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../models.dart';
 import '../static_files.dart';
 
 import '_cache.dart';

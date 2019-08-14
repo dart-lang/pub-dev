@@ -5,7 +5,7 @@
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'packages_overrides.dart';
+import 'package:pub_dartlang_org/package/overrides.dart';
 import 'versions.dart';
 
 const primaryHost = 'pub.dev';

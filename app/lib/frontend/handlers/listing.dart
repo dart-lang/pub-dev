@@ -6,15 +6,15 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../package/backend.dart';
+import '../../package/models.dart';
+import '../../package/overrides.dart';
+import '../../package/search_service.dart';
 import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
-import '../../shared/packages_overrides.dart';
 import '../../shared/platform.dart';
 import '../../shared/utils.dart' show DurationTracker;
 
-import '../backend.dart';
-import '../models.dart';
-import '../search_service.dart';
 import '../templates/listing.dart';
 
 final _searchOverallLatencyTracker = DurationTracker();
@@ -86,7 +86,8 @@ Future<shelf.Response> _packagesHandlerJson(
   final offset = pageSize * (page - 1);
   final limit = pageSize + 1;
 
-  final packages = await backend.latestPackages(offset: offset, limit: limit);
+  final packages =
+      await packageBackend.latestPackages(offset: offset, limit: limit);
   packages.removeWhere((p) => isSoftRemoved(p.name));
   final bool lastPage = packages.length < limit;
 

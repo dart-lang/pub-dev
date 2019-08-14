@@ -13,7 +13,7 @@ import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
-import '../frontend/models.dart' show Secret, SecretKey;
+import '../package/models.dart' show Secret, SecretKey;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import 'convert.dart';

@@ -8,7 +8,7 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:client_data/package_api.dart';
-import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 
@@ -47,7 +47,7 @@ void main() {
     );
 
     testWithServices('User is not an uploader', () async {
-      final p = await backend.lookupPackage('hydrogen');
+      final p = await packageBackend.lookupPackage('hydrogen');
       p.uploaders = [joeUser.userId];
       await dbService.commit(inserts: [p]);
 
@@ -68,7 +68,7 @@ void main() {
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = await backend.lookupPackage('hydrogen');
+      final p = await packageBackend.lookupPackage('hydrogen');
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
 
@@ -80,7 +80,7 @@ void main() {
   group('Move between publishers', () {
     final otherComPublisher = publisher('other.com');
     Future _setup({bool addMember = true}) async {
-      final p = await backend.lookupPackage(hydrogen.package.name);
+      final p = await packageBackend.lookupPackage(hydrogen.package.name);
       p.publisherId = otherComPublisher.publisherId;
       p.uploaders = [];
       final member = publisherMember(hansUser.userId, 'admin',
@@ -133,7 +133,7 @@ void main() {
       );
       expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = await backend.lookupPackage('hydrogen');
+      final p = await packageBackend.lookupPackage('hydrogen');
       expect(p.publisherId, 'example.com');
       expect(p.uploaders, []);
 
@@ -144,7 +144,7 @@ void main() {
 
   group('Delete publisher', () {
     Future _setupPackage() async {
-      final p = await backend.lookupPackage(hydrogen.package.name);
+      final p = await packageBackend.lookupPackage(hydrogen.package.name);
       p.publisherId = 'example.com';
       p.uploaders = [];
       await dbService.commit(inserts: [p]);
@@ -166,7 +166,7 @@ void main() {
       final rs = await client.removePackagePublisher(hydrogen.package.name);
       expect(_json(rs.toJson()), {'publisherId': null});
 
-      final p = await backend.lookupPackage('hydrogen');
+      final p = await packageBackend.lookupPackage('hydrogen');
       expect(p.publisherId, isNull);
       expect(p.uploaders, [hansUser.userId]);
 

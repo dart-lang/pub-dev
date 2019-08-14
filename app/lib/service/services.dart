@@ -9,12 +9,12 @@ import '../account/consent_backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/backend.dart';
 import '../dartdoc/dartdoc_client.dart';
-import '../frontend/backend.dart';
 import '../frontend/email_sender.dart';
-import '../frontend/name_tracker.dart';
-import '../frontend/search_service.dart';
 import '../history/backend.dart';
 import '../job/backend.dart';
+import '../package/backend.dart';
+import '../package/name_tracker.dart';
+import '../package/search_service.dart';
 import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
@@ -88,7 +88,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     );
 
     // depends on previously registered services
-    registerBackend(Backend(dbService, tarballStorage));
+    registerPackageBackend(PackageBackend(dbService, tarballStorage));
 
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(accountBackend.close);

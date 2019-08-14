@@ -14,7 +14,7 @@ import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 
-import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_client.dart';

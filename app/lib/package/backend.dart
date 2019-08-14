@@ -23,6 +23,7 @@ import 'package:uuid/uuid.dart';
 import '../account/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
+import '../frontend/email_sender.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
 import '../publisher/backend.dart';
@@ -34,7 +35,6 @@ import '../shared/platform.dart' show KnownPlatforms;
 import '../shared/redis_cache.dart' show cache, CachePatterns;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-import 'email_sender.dart';
 import 'model_properties.dart';
 import 'models.dart' as models;
 import 'name_tracker.dart';
@@ -51,18 +51,20 @@ void registerTarballStorage(TarballStorage ts) =>
 TarballStorage get tarballStorage =>
     ss.lookup(#_tarball_storage) as TarballStorage;
 
-/// Sets the backend service.
-void registerBackend(Backend backend) => ss.register(#_backend, backend);
+/// Sets the package backend service.
+void registerPackageBackend(PackageBackend backend) =>
+    ss.register(#_packageBackend, backend);
 
-/// The active backend service.
-Backend get backend => ss.lookup(#_backend) as Backend;
+/// The active package backend service.
+PackageBackend get packageBackend =>
+    ss.lookup(#_packageBackend) as PackageBackend;
 
 /// Represents the backend for the pub site.
-class Backend {
+class PackageBackend {
   final DatastoreDB db;
   final GCloudPackageRepository repository;
 
-  Backend(DatastoreDB db, TarballStorage storage)
+  PackageBackend(DatastoreDB db, TarballStorage storage)
       : db = db,
         repository = GCloudPackageRepository(db, storage);
 
@@ -400,11 +402,11 @@ Future<R> withPackageAdmin<R>(
   if (userId == null) {
     throw AuthenticationException.authenticationRequired();
   }
-  final p = await backend.lookupPackage(package);
+  final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     throw NotFoundException.resource('package "$package"');
   }
-  await backend.checkPackageAdmin(p, userId);
+  await packageBackend.checkPackageAdmin(p, userId);
   return await fn(p);
 }
 
@@ -615,7 +617,7 @@ class GCloudPackageRepository extends PackageRepository {
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
         package = _newPackageFromVersion(db, newVersion);
-      } else if (!await backend.isPackageAdmin(package, user.userId)) {
+      } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
         await T.rollback();
@@ -773,7 +775,7 @@ class GCloudPackageRepository extends PackageRepository {
         return;
       }
 
-      final status = await backend.updatePackageInvite(
+      final status = await packageBackend.updatePackageInvite(
         packageName: packageName,
         type: models.PackageInviteType.newUploader,
         recipientEmail: uploaderEmail,
@@ -861,7 +863,7 @@ class GCloudPackageRepository extends PackageRepository {
     }
 
     // Fail if calling user doesn't have permission to change uploaders.
-    if (!await backend.isPackageAdmin(package, userId)) {
+    if (!await packageBackend.isPackageAdmin(package, userId)) {
       throw AuthorizationException.userCannotChangeUploaders(package.name);
     }
   }

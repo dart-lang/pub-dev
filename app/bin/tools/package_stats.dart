@@ -13,8 +13,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/model_properties.dart';
+import 'package:pub_dartlang_org/package/models.dart';
+import 'package:pub_dartlang_org/package/model_properties.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 
 Future main(List<String> args) async {

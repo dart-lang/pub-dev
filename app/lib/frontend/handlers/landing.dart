@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../package/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/platform.dart';
 import '../../shared/redis_cache.dart' show cache;
 
 import '../request_context.dart';
-import '../search_service.dart';
 import '../templates/landing.dart';
 import '../templates/misc.dart';
 

@@ -10,15 +10,15 @@ import 'package:gcloud/db.dart' as db;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-import 'model_properties.dart';
 
-export 'model_properties.dart' show FileObject;
+export '../package/model_properties.dart' show FileObject;
 
 /// Pub package metdata.
 ///

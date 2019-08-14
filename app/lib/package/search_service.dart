@@ -77,7 +77,7 @@ class SearchService {
 
   Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
       int totalCount, List<PackageScore> packageScores) async {
-    final packageEntries = await backend.lookupPackages(
+    final packageEntries = await packageBackend.lookupPackages(
         packageScores.where((ps) => !ps.isExternal).map((ps) => ps.package));
     packageEntries.removeWhere((p) => p == null);
 
@@ -90,7 +90,7 @@ class SearchService {
           packageEntries.map((p) =>
               scoreCardBackend.getScoreCardData(p.name, p.latestVersion)));
       final Future<List<PackageVersion>> allVersionsFuture =
-          backend.lookupLatestVersions(packageEntries);
+          packageBackend.lookupLatestVersions(packageEntries);
 
       final List batchResults =
           await Future.wait([analysisExtractsFuture, allVersionsFuture]);

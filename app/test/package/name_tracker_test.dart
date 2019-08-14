@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/frontend/name_tracker.dart';
+import 'package:pub_dartlang_org/package/name_tracker.dart';
 
 void main() {
   final nameTracker = NameTracker(null);

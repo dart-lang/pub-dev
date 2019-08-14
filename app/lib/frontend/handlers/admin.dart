@@ -9,11 +9,11 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
+import '../../package/backend.dart';
+import '../../package/models.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../backend.dart';
-import '../models.dart';
 import '../templates/admin.dart';
 import '../templates/misc.dart';
 
@@ -49,7 +49,7 @@ Future<shelf.Response> confirmNewUploaderHandler(shelf.Request request,
   }
 
   // Check if invite exists and is still valid.
-  final invite = await backend.getPackageInvite(
+  final invite = await packageBackend.getPackageInvite(
     packageName: packageName,
     type: type,
     recipientEmail: recipientEmail,
@@ -95,9 +95,9 @@ Future<shelf.Response> confirmNewUploaderHandler(shelf.Request request,
         title: 'Authorization error', description: authErrorMessage);
   }
 
-  await backend.repository
+  await packageBackend.repository
       .confirmUploader(invite.fromUserId, invite.fromEmail, packageName, user);
-  await backend.confirmPackageInvite(invite);
+  await packageBackend.confirmPackageInvite(invite);
   return redirectResponse(urls.pkgPageUrl(invite.packageName));
 }
 

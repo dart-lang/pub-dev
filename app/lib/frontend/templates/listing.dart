@@ -4,10 +4,9 @@
 
 import 'dart:math';
 
-import 'package:pub_dartlang_org/search/search_service.dart';
+import '../../package/models.dart';
+import '../../search/search_service.dart';
 import '../../shared/urls.dart' as urls;
-
-import '../models.dart';
 
 import '_cache.dart';
 import '_consts.dart';

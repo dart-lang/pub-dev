@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../dartdoc/backend.dart';
-import '../frontend/models.dart' show Package;
+import '../package/models.dart' show Package;
 import '../shared/exceptions.dart';
 import '../shared/scheduler_stats.dart';
 import '../shared/task_scheduler.dart';

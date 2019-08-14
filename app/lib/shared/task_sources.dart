@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import '../frontend/models.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 import '../scorecard/models.dart';
 
 import 'task_scheduler.dart';

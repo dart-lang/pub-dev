@@ -13,10 +13,10 @@ import 'package:yaml/yaml.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/name_tracker.dart';
-import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
+import 'package:pub_dartlang_org/package/models.dart';
+import 'package:pub_dartlang_org/package/name_tracker.dart';
+import 'package:pub_dartlang_org/package/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/exceptions.dart';
 
 import '../shared/test_models.dart';
@@ -34,11 +34,11 @@ void main() {
           helium.package.key,
           lithium.package.key,
         ]);
-        expect(await backend.latestPackages(), []);
+        expect(await packageBackend.latestPackages(), []);
       });
 
       testWithServices('default packages', () async {
-        final list = await backend.latestPackages();
+        final list = await packageBackend.latestPackages();
         expect(list.map((p) => p.name), [
           'foobar_pkg',
           'lithium',
@@ -50,7 +50,7 @@ void main() {
       testWithServices('default packages, extra earlier', () async {
         final p = createFoobarPackage(name: 'other')..updated = DateTime(2010);
         await dbService.commit(inserts: [p]);
-        final list = await backend.latestPackages();
+        final list = await packageBackend.latestPackages();
         expect(list.map((p) => p.name), [
           'foobar_pkg',
           'lithium',
@@ -63,7 +63,7 @@ void main() {
       testWithServices('default packages, extra later', () async {
         final p = createFoobarPackage(name: 'other')..updated = DateTime(2018);
         await dbService.commit(inserts: [p]);
-        final list = await backend.latestPackages();
+        final list = await packageBackend.latestPackages();
         expect(list.map((p) => p.name), [
           'other',
           'foobar_pkg',
@@ -74,68 +74,71 @@ void main() {
       });
 
       testWithServices('default packages, offset: 2', () async {
-        final list = await backend.latestPackages(offset: 2);
+        final list = await packageBackend.latestPackages(offset: 2);
         expect(list.map((p) => p.name), ['helium', 'hydrogen']);
       });
 
       testWithServices('default packages, offset: 1, limit: 1', () async {
-        final list = await backend.latestPackages(offset: 1, limit: 1);
+        final list = await packageBackend.latestPackages(offset: 1, limit: 1);
         expect(list.map((p) => p.name), ['lithium']);
       });
     });
 
     group('Backend.latestPackageVersions', () {
       testWithServices('one package', () async {
-        final list = await backend.latestPackageVersions(offset: 2, limit: 1);
+        final list =
+            await packageBackend.latestPackageVersions(offset: 2, limit: 1);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
             ['helium-2.0.5']);
       });
 
       testWithServices('empty', () async {
-        final list = await backend.latestPackageVersions(offset: 200, limit: 1);
+        final list =
+            await packageBackend.latestPackageVersions(offset: 200, limit: 1);
         expect(list, isEmpty);
       });
     });
 
     group('Backend.lookupPackage', () {
       testWithServices('exists', () async {
-        final p = await backend.lookupPackage('hydrogen');
+        final p = await packageBackend.lookupPackage('hydrogen');
         expect(p, isNotNull);
         expect(p.name, 'hydrogen');
         expect(p.latestVersion, isNotNull);
       });
 
       testWithServices('does not exists', () async {
-        final p = await backend.lookupPackage('not_yet_a_package');
+        final p = await packageBackend.lookupPackage('not_yet_a_package');
         expect(p, isNull);
       });
     });
 
     group('Backend.lookupPackageVersion', () {
       testWithServices('exists', () async {
-        final p = await backend.lookupPackage('hydrogen');
-        final pv =
-            await backend.lookupPackageVersion('hydrogen', p.latestVersion);
+        final p = await packageBackend.lookupPackage('hydrogen');
+        final pv = await packageBackend.lookupPackageVersion(
+            'hydrogen', p.latestVersion);
         expect(pv, isNotNull);
         expect(pv.package, 'hydrogen');
         expect(pv.version, p.latestVersion);
       });
 
       testWithServices('package does not exists', () async {
-        final pv =
-            await backend.lookupPackageVersion('not_yet_a_package', '1.0.0');
+        final pv = await packageBackend.lookupPackageVersion(
+            'not_yet_a_package', '1.0.0');
         expect(pv, isNull);
       });
 
       testWithServices('version does not exists', () async {
-        final pv = await backend.lookupPackageVersion('hydrogen', '0.0.0-dev');
+        final pv =
+            await packageBackend.lookupPackageVersion('hydrogen', '0.0.0-dev');
         expect(pv, isNull);
       });
     });
 
     group('Backend.lookupLatestVersions', () {
       testWithServices('two packages', () async {
-        final list = await backend
+        final list = await packageBackend
             .lookupLatestVersions([hydrogen.package, helium.package]);
         expect(list.map((pv) => pv.qualifiedVersionKey.toString()),
             ['hydrogen-2.0.8', 'helium-2.0.5']);
@@ -144,7 +147,7 @@ void main() {
 
     group('Backend.versionsOfPackage', () {
       testWithServices('exists', () async {
-        final list = await backend.versionsOfPackage('hydrogen');
+        final list = await packageBackend.versionsOfPackage('hydrogen');
         final values = list.map((pv) => pv.version).toList();
         values.sort();
         expect(values, hasLength(13));
@@ -154,20 +157,21 @@ void main() {
       });
 
       testWithServices('package does not exists', () async {
-        final list = await backend.versionsOfPackage('not_yet_a_package');
+        final list =
+            await packageBackend.versionsOfPackage('not_yet_a_package');
         expect(list, isEmpty);
       });
     });
 
     group('Backend.downloadUrl', () {
       testWithServices('no escape needed', () async {
-        final url = await backend.downloadUrl('hydrogen', '2.0.8');
+        final url = await packageBackend.downloadUrl('hydrogen', '2.0.8');
         expect(url.toString(),
             'http://localhost:0/fake-bucket-pub/packages/hydrogen-2.0.8.tar.gz');
       });
 
       testWithServices('version escape needed', () async {
-        final url = await backend.downloadUrl('hydrogen', '2.0.8+5');
+        final url = await packageBackend.downloadUrl('hydrogen', '2.0.8+5');
         expect(url.toString(),
             'http://localhost:0/fake-bucket-pub/packages/hydrogen-2.0.8%2B5.tar.gz');
       });
@@ -178,7 +182,7 @@ void main() {
     group('GCloudRepository.addUploader', () {
       testWithServices('not logged in', () async {
         final pkg = foobarPackage.name;
-        final rs = backend.repository.addUploader(pkg, 'a@b.com');
+        final rs = packageBackend.repository.addUploader(pkg, 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
@@ -186,13 +190,14 @@ void main() {
         final pkg = foobarPackage.name;
         registerAuthenticatedUser(
             AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
-        final rs = backend.repository.addUploader(pkg, 'a@b.com');
+        final rs = packageBackend.repository.addUploader(pkg, 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        final rs = backend.repository.addUploader('no_package', 'a@b.com');
+        final rs =
+            packageBackend.repository.addUploader('no_package', 'a@b.com');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
@@ -203,7 +208,7 @@ void main() {
           bundle.package,
           ...bundle.versions,
         ]);
-        await backend.repository.addUploader(pkg, newUploader);
+        await packageBackend.repository.addUploader(pkg, newUploader);
         final list = await dbService.lookup<Package>([bundle.package.key]);
         final p = list.single;
         expect(p.uploaders, uploaders.map((u) => u.userId));
@@ -222,8 +227,8 @@ void main() {
         registerAuthenticatedUser(hansAuthenticated);
 
         final newUploader = 'somebody@example.com';
-        final rs =
-            backend.repository.addUploader(hydrogen.package.name, newUploader);
+        final rs = packageBackend.repository
+            .addUploader(hydrogen.package.name, newUploader);
         await expectLater(
             rs,
             throwsA(isException.having(
@@ -249,8 +254,8 @@ void main() {
 
     group('GCloudRepository.removeUploader', () {
       testWithServices('not logged in', () async {
-        final rs =
-            backend.repository.removeUploader('hydrogen', hansUser.email);
+        final rs = packageBackend.repository
+            .removeUploader('hydrogen', hansUser.email);
         await expectLater(rs, throwsA(isA<AuthenticationException>()));
       });
 
@@ -263,22 +268,22 @@ void main() {
         await dbService.commit(inserts: [pkg]);
 
         registerAuthenticatedUser(hansAuthenticated);
-        final rs =
-            backend.repository.removeUploader('hydrogen', hansUser.email);
+        final rs = packageBackend.repository
+            .removeUploader('hydrogen', hansUser.email);
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        final rs =
-            backend.repository.removeUploader('non_hydrogen', hansUser.email);
+        final rs = packageBackend.repository
+            .removeUploader('non_hydrogen', hansUser.email);
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('cannot remove last uploader', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        final rs =
-            backend.repository.removeUploader('hydrogen', hansUser.email);
+        final rs = packageBackend.repository
+            .removeUploader('hydrogen', hansUser.email);
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
@@ -287,8 +292,8 @@ void main() {
 
       testWithServices('cannot remove non-existent uploader', () async {
         registerAuthenticatedUser(hansAuthenticated);
-        final rs =
-            backend.repository.removeUploader('hydrogen', 'foo2@bar.com');
+        final rs = packageBackend.repository
+            .removeUploader('hydrogen', 'foo2@bar.com');
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
@@ -303,8 +308,8 @@ void main() {
         await dbService.commit(inserts: [pkg]);
 
         registerAuthenticatedUser(hansAuthenticated);
-        final rs =
-            backend.repository.removeUploader('hydrogen', hansUser.email);
+        final rs = packageBackend.repository
+            .removeUploader('hydrogen', hansUser.email);
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
@@ -323,7 +328,8 @@ void main() {
         expect(pkg2.uploaders, [hansUser.userId, testUserA.userId]);
 
         registerAuthenticatedUser(hansAuthenticated);
-        await backend.repository.removeUploader('hydrogen', testUserA.email);
+        await packageBackend.repository
+            .removeUploader('hydrogen', testUserA.email);
 
         // verify after change
         final pkg3 = (await dbService.lookup<Package>([key])).single;
@@ -333,20 +339,20 @@ void main() {
 
     group('GCloudRepository.lookupVersion', () {
       testWithServices('package not found', () async {
-        final version =
-            await backend.repository.lookupVersion('not_hydrogen', '1.0.0');
+        final version = await packageBackend.repository
+            .lookupVersion('not_hydrogen', '1.0.0');
         expect(version, isNull);
       });
 
       testWithServices('version not found', () async {
         final version =
-            await backend.repository.lookupVersion('hydrogen', '0.3.0');
+            await packageBackend.repository.lookupVersion('hydrogen', '0.3.0');
         expect(version, isNull);
       });
 
       testWithServices('successful', () async {
         final version =
-            await backend.repository.lookupVersion('hydrogen', '1.0.0');
+            await packageBackend.repository.lookupVersion('hydrogen', '1.0.0');
         expect(version, isNotNull);
         expect(version.packageName, 'hydrogen');
         expect(version.versionString, '1.0.0');
@@ -356,12 +362,13 @@ void main() {
     group('GCloudRepository.versions', () {
       testWithServices('not found', () async {
         final versions =
-            await backend.repository.versions('non_hydrogen').toList();
+            await packageBackend.repository.versions('non_hydrogen').toList();
         expect(versions, isEmpty);
       });
 
       testWithServices('found', () async {
-        final versions = await backend.repository.versions('hydrogen').toList();
+        final versions =
+            await packageBackend.repository.versions('hydrogen').toList();
         expect(versions, isNotEmpty);
         expect(versions, hasLength(13));
         expect(versions.first.packageName, 'hydrogen');
@@ -374,7 +381,7 @@ void main() {
     group('uploading', () {
       group('GCloudRepository.startAsyncUpload', () {
         testWithServices('no active user', () async {
-          final rs = backend.repository
+          final rs = packageBackend.repository
               .startAsyncUpload(Uri.parse('http://example.com/'));
           await expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
@@ -382,7 +389,8 @@ void main() {
         testWithServices('successful', () async {
           final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
           registerAuthenticatedUser(hansAuthenticated);
-          final info = await backend.repository.startAsyncUpload(redirectUri);
+          final info =
+              await packageBackend.repository.startAsyncUpload(redirectUri);
           expect(info.uri.toString(),
               startsWith('https://storage.url/fake-bucket-pub/tmp/'));
           expect(info.fields, {
@@ -407,11 +415,12 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final sink = backend.repository.storage.bucket.write('tmp/my-uuid');
+          final sink =
+              packageBackend.repository.storage.bucket.write('tmp/my-uuid');
           bigTarball.forEach(sink.add);
           await sink.close();
 
-          final rs = backend.repository.finishAsyncUpload(redirectUri);
+          final rs = packageBackend.repository.finishAsyncUpload(redirectUri);
           await expectLater(
             rs,
             throwsA(
@@ -426,11 +435,12 @@ void main() {
 
           final dateBeforeTest = DateTime.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
-          await backend.repository.storage.bucket.writeBytes('tmp/my-uuid',
+          await packageBackend.repository.storage.bucket.writeBytes(
+              'tmp/my-uuid',
               await packageArchiveBytes(pubspecContent: pubspecContent));
 
           final version =
-              await backend.repository.finishAsyncUpload(redirectUri);
+              await packageBackend.repository.finishAsyncUpload(redirectUri);
           expect(version.packageName, 'new_package');
           expect(version.versionString, '1.2.3');
 
@@ -474,7 +484,8 @@ void main() {
       group('GCloudRepository.upload', () {
         testWithServices('not logged in', () async {
           final tarball = await packageArchiveBytes();
-          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          final rs =
+              packageBackend.repository.upload(Stream.fromIterable([tarball]));
           await expectLater(rs, throwsA(isA<AuthenticationException>()));
         });
 
@@ -483,7 +494,8 @@ void main() {
               AuthenticatedUser(joeUser.userId, joeUser.email));
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'));
-          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          final rs =
+              packageBackend.repository.upload(Stream.fromIterable([tarball]));
           await expectLater(rs, throwsA(isA<AuthorizationException>()));
         });
 
@@ -491,7 +503,8 @@ void main() {
           registerAuthenticatedUser(
               AuthenticatedUser(joeUser.userId, joeUser.email));
           final tarball = await packageArchiveBytes();
-          final rs = backend.repository.upload(Stream.fromIterable([tarball]));
+          final rs =
+              packageBackend.repository.upload(Stream.fromIterable([tarball]));
           await expectLater(
               rs,
               throwsA(isA<Exception>().having(
@@ -512,7 +525,8 @@ void main() {
             try {
               final tarball =
                   await packageArchiveBytes(pubspecContent: pubspecContent);
-              await backend.repository.upload(Stream.fromIterable([tarball]));
+              await packageBackend.repository
+                  .upload(Stream.fromIterable([tarball]));
             } catch (e) {
               return e.toString();
             }
@@ -541,7 +555,8 @@ void main() {
           // Add one more byte than allowed.
           bigTarball.add([1]);
 
-          final rs = backend.repository.upload(Stream.fromIterable(bigTarball));
+          final rs =
+              packageBackend.repository.upload(Stream.fromIterable(bigTarball));
           await expectLater(
             rs,
             throwsA(
@@ -555,8 +570,8 @@ void main() {
           registerAuthenticatedUser(hansAuthenticated);
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
-          final version =
-              await backend.repository.upload(Stream.fromIterable([tarball]));
+          final version = await packageBackend.repository
+              .upload(Stream.fromIterable([tarball]));
           expect(version.packageName, foobarPackage.name);
           expect(version.versionString, '1.2.3');
 
@@ -567,12 +582,12 @@ void main() {
           expect(email.bodyText,
               contains('https://pub.dev/packages/foobar_pkg/versions/1.2.3\n'));
 
-          final packages = await backend.latestPackages();
+          final packages = await packageBackend.latestPackages();
           expect(packages.first.name, foobarPackage.name);
           expect(packages.first.latestVersion, '1.2.3');
 
-          final stream =
-              await backend.repository.download(foobarPackage.name, '1.2.3');
+          final stream = await packageBackend.repository
+              .download(foobarPackage.name, '1.2.3');
           final chunks = await stream.toList();
           final bytes = chunks.fold<List<int>>(
               <int>[], (buffer, chunk) => buffer..addAll(chunk));

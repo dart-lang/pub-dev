@@ -10,17 +10,16 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
+import '../../package/backend.dart';
+import '../../package/models.dart';
+import '../../package/name_tracker.dart';
+import '../../package/overrides.dart';
 import '../../scorecard/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/handlers.dart';
-import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
-
-import '../backend.dart';
-import '../models.dart';
-import '../name_tracker.dart';
 
 /// Handles requests for /api/documentation/<package>
 Future<shelf.Response> apiDocumentationHandler(
@@ -34,7 +33,7 @@ Future<shelf.Response> apiDocumentationHandler(
     return jsonResponse(cachedData);
   }
 
-  final versions = await backend.versionsOfPackage(package);
+  final versions = await packageBackend.versionsOfPackage(package);
   if (versions.isEmpty) {
     return jsonResponse({}, status: 404);
   }
@@ -97,7 +96,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
   }
 
   final data = await cache.apiPackagesListPage(page).get(() async {
-    final packages = await backend.latestPackages(
+    final packages = await packageBackend.latestPackages(
         offset: pageSize * (page - 1), limit: pageSize + 1);
 
     // NOTE: We queried for `PageSize+1` packages, if we get less than that, we
@@ -106,7 +105,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
     final List<Package> pagePackages = packages.take(pageSize).toList();
     pagePackages.removeWhere((p) => isSoftRemoved(p.name));
     final List<PackageVersion> pageVersions =
-        await backend.lookupLatestVersions(pagePackages);
+        await packageBackend.lookupLatestVersions(pagePackages);
 
     final lastPage = packages.length == pagePackages.length;
 
@@ -249,7 +248,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
 /// Handles GET /api/packages/<package>/options
 Future<shelf.Response> getPackageOptionsHandler(
     shelf.Request request, String package) async {
-  final p = await backend.lookupPackage(package);
+  final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     return notFoundHandler(request);
   }
@@ -263,6 +262,6 @@ Future<shelf.Response> putPackageOptionsHandler(
   final body = await request.readAsString();
   final options =
       PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
-  await backend.updateOptions(package, options);
+  await packageBackend.updateOptions(package, options);
   return jsonResponse({'success': true});
 }

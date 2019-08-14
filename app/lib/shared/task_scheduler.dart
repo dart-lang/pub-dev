@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 
-import 'packages_overrides.dart';
+import 'package:pub_dartlang_org/package/overrides.dart';
 import 'utils.dart';
 
 final Logger _logger = Logger('pub.scheduler');
