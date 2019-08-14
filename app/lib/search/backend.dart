@@ -14,9 +14,9 @@ import 'package:logging/logging.dart';
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 import '../account/backend.dart';
+import '../analyzer/analyzer_client.dart';
+import '../dartdoc/dartdoc_client.dart';
 import '../frontend/models.dart';
-import '../shared/analyzer_client.dart';
-import '../shared/dartdoc_client.dart';
 import '../shared/email.dart' show EmailAddress;
 import '../shared/exceptions.dart';
 import '../shared/packages_overrides.dart';

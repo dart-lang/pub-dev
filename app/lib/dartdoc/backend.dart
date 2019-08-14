@@ -18,8 +18,8 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
+import '../dartdoc/models.dart' show DartdocEntry;
 import '../frontend/models.dart' show Package, PackageVersion;
-
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/versions.dart' as shared_versions;

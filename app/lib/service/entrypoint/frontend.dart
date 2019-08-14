@@ -14,15 +14,15 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/consent_backend.dart';
+import '../../analyzer/analyzer_client.dart';
+import '../../dartdoc/dartdoc_client.dart';
 import '../../frontend/backend.dart';
 import '../../frontend/cronjobs.dart' show CronJobs;
 import '../../frontend/handlers.dart';
 import '../../frontend/name_tracker.dart';
 import '../../frontend/static_files.dart';
 import '../../frontend/upload_signer_service.dart';
-import '../../shared/analyzer_client.dart';
 import '../../shared/configuration.dart';
-import '../../shared/dartdoc_client.dart';
 import '../../shared/deps_graph.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';

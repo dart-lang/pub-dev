@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
+import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart';
-import '../../shared/analyzer_client.dart';
 import '../../shared/email.dart' show EmailAddress;
 import '../../shared/platform.dart';
 import '../../shared/search_service.dart';
