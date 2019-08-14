@@ -16,7 +16,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../account/consent_backend.dart';
 import '../../analyzer/analyzer_client.dart';
 import '../../dartdoc/dartdoc_client.dart';
-import '../../frontend/cronjobs.dart' show CronJobs;
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
 import '../../package/backend.dart';
@@ -30,6 +29,7 @@ import '../../shared/storage.dart';
 
 import '../services.dart';
 
+import '_cronjobs.dart' show CronJobs;
 import '_isolate.dart';
 
 final Logger _logger = Logger('pub');
