@@ -66,7 +66,10 @@ class PubApi {
   /// https://github.com/dart-lang/pub_server/blob/master/lib/shelf_pubserver.dart#L77-L107
   @EndPoint.get('/api/packages/versions/new')
   Future<Response> getPackageUploadUrl(Request request) async =>
-      _pubServerHandler(_normalizeHost(request));
+      // Note: we do not _normalizeHost here as we wish to be redirected to
+      // packageUploadCallback on the same host. Otherwise, we can't do
+      // integration tests before we switch traffic.
+      _pubServerHandler(request);
 
   /// Finish async upload.
   ///
