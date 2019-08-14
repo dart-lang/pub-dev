@@ -11,7 +11,7 @@ import 'package:gcloud/db.dart';
 import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
+import 'package:pub_dartlang_org/analyzer/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart' show cache;
 
 final _argParser = ArgParser(allowTrailingOptions: true)

@@ -4,8 +4,8 @@
 
 import 'package:pana/models.dart' show SuggestionLevel;
 
+import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart';
-import '../../shared/analyzer_client.dart';
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';

@@ -7,13 +7,10 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../job/backend.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
-
-import 'urls.dart' as urls;
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 
@@ -130,33 +127,4 @@ class AnalysisView {
         ..sort();
 
   double get maintenanceScore => _card?.maintenanceScore ?? 0.0;
-}
-
-Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
-  return Summary(
-      runtimeInfo: PanaRuntimeInfo(),
-      packageName: packageName,
-      packageVersion: Version.parse(packageVersion),
-      pubspec: null,
-      pkgResolution: null,
-      dartFiles: null,
-      platform: null,
-      licenses: null,
-      health: null,
-      maintenance: null,
-      suggestions: <Suggestion>[
-        Suggestion.error(
-          'pubspec.sdk.legacy',
-          'Support Dart 2 in `pubspec.yaml`.',
-          'The SDK constraint in `pubspec.yaml` doesn\'t allow the Dart 2.0.0 release. '
-              'For information about upgrading it to be Dart 2 compatible, please see '
-              '[${urls.dartSiteRoot}/dart-2#migration](${urls.dartSiteRoot}/dart-2#migration).',
-        ),
-      ],
-      stats: Stats(
-        analyzeProcessElapsed: 0,
-        formatProcessElapsed: 0,
-        resolveProcessElapsed: 0,
-        totalElapsed: 0,
-      ));
 }

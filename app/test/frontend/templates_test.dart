@@ -11,10 +11,9 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
-import 'package:pub_dartlang_org/analyzer/pana_runner.dart'
-    show panaReportFromSummary;
+import 'package:pub_dartlang_org/analyzer/analyzer_client.dart';
+import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';

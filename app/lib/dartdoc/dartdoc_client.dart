@@ -12,8 +12,6 @@ import '../dartdoc/backend.dart';
 import '../dartdoc/models.dart' show DartdocEntry;
 import '../job/backend.dart';
 
-export '../dartdoc/models.dart' show DartdocEntry;
-
 final Logger _logger = Logger('dartdoc.client');
 
 /// Sets the dartdoc client.

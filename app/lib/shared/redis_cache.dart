@@ -11,12 +11,11 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/db.dart' as db;
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dartlang_org/dartdoc/models.dart' show FileInfo;
 
+import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../frontend/models.dart' show Secret, SecretKey;
 import '../scorecard/models.dart' show ScoreCardData;
 import 'convert.dart';
-import 'dartdoc_client.dart' show DartdocEntry;
 import 'search_service.dart' show PackageSearchResult;
 import 'versions.dart';
 

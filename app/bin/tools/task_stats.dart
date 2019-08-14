@@ -17,7 +17,7 @@ import 'package:pool/pool.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
+import 'package:pub_dartlang_org/dartdoc/dartdoc_client.dart';
 
 Future main(List<String> args) async {
   final ArgParser parser = ArgParser()

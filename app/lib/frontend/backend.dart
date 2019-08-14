@@ -21,13 +21,13 @@ import 'package:pub_server/shelf_pubserver.dart'
 import 'package:uuid/uuid.dart';
 
 import '../account/backend.dart';
+import '../analyzer/analyzer_client.dart';
+import '../dartdoc/dartdoc_client.dart';
 import '../history/backend.dart';
 import '../history/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
-import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
-import '../shared/dartdoc_client.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/platform.dart' show KnownPlatforms;

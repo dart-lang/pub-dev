@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
-import '../../shared/analyzer_client.dart';
+import '../../analyzer/analyzer_client.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
