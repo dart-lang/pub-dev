@@ -16,14 +16,14 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../account/consent_backend.dart';
 import '../../analyzer/analyzer_client.dart';
 import '../../dartdoc/dartdoc_client.dart';
-import '../../frontend/backend.dart';
 import '../../frontend/cronjobs.dart' show CronJobs;
 import '../../frontend/handlers.dart';
-import '../../frontend/name_tracker.dart';
 import '../../frontend/static_files.dart';
-import '../../frontend/upload_signer_service.dart';
+import '../../package/backend.dart';
+import '../../package/deps_graph.dart';
+import '../../package/name_tracker.dart';
+import '../../package/upload_signer_service.dart';
 import '../../shared/configuration.dart';
-import '../../shared/deps_graph.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/storage.dart';
@@ -55,7 +55,7 @@ Future _main(FrontendEntryMessage message) async {
     // TODO: use package:neat_periodic_task
     Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
         (_) async {
-      await backend.deleteObsoleteInvites();
+      await packageBackend.deleteObsoleteInvites();
       await consentBackend.deleteObsoleteConsents();
     });
 
@@ -86,7 +86,7 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   }
   registerUploadSigner(uploadSigner);
 
-  return backend.pubServer.requestHandler;
+  return packageBackend.pubServer.requestHandler;
 }
 
 Future _worker(WorkerEntryMessage message) async {

@@ -9,10 +9,10 @@ import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../job/job.dart';
+import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
-import '../shared/packages_overrides.dart';
 import '../shared/platform.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart' as urls;

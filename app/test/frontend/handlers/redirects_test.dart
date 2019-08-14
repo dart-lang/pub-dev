@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers/redirects.dart';
-import 'package:pub_dartlang_org/frontend/search_service.dart';
+import 'package:pub_dartlang_org/package/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';

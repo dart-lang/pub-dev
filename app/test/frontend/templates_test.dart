@@ -16,7 +16,7 @@ import 'package:pub_dartlang_org/analyzer/pana_runner.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
-import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates/admin.dart';
 import 'package:pub_dartlang_org/frontend/templates/landing.dart';

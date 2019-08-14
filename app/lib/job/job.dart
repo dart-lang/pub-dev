@@ -12,7 +12,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 
-import '../frontend/models.dart' show Package, PackageVersion;
+import 'package:pub_dartlang_org/package/models.dart'
+    show Package, PackageVersion;
 import '../shared/task_scheduler.dart';
 import '../shared/task_sources.dart';
 import '../shared/utils.dart' show randomizeStream;

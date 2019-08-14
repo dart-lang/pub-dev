@@ -9,15 +9,15 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../package/backend.dart';
+import '../../package/name_tracker.dart';
+import '../../package/overrides.dart';
+import '../../package/search_service.dart';
 import '../../shared/handlers.dart';
-import '../../shared/packages_overrides.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
-import '../backend.dart';
-import '../name_tracker.dart';
 import '../request_context.dart';
-import '../search_service.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
 
@@ -66,7 +66,7 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   final pages = ['/', '/help', '/web', '/flutter'];
   items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
-  final stream = backend.allPackageNames(
+  final stream = packageBackend.allPackageNames(
       updatedSince: twoYearsAgo, excludeDiscontinued: true);
   await for (var package in stream) {
     if (isSoftRemoved(package)) continue;

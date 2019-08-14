@@ -14,7 +14,7 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
-import '../frontend/models.dart' show Secret, SecretKey;
+import 'package:pub_dartlang_org/package/models.dart' show Secret, SecretKey;
 import '../shared/configuration.dart';
 import '../shared/email.dart' show isValidEmail;
 import '../shared/exceptions.dart';

@@ -4,10 +4,9 @@
 
 import 'package:meta/meta.dart';
 
+import '../../package/models.dart';
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
-
-import '../models.dart';
 
 import '_cache.dart';
 import '_consts.dart';

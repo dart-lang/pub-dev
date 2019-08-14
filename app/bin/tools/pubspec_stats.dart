@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 
 Future main(List<String> args) async {

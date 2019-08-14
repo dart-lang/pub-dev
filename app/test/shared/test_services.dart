@@ -20,7 +20,7 @@ import 'package:pub_dartlang_org/frontend/email_sender.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dart';
-import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
+import 'package:pub_dartlang_org/package/upload_signer_service.dart';
 import 'package:pub_dartlang_org/publisher/domain_verifier.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';

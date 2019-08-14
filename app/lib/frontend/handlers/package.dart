@@ -8,14 +8,14 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../analyzer/analyzer_client.dart';
+import '../../package/backend.dart';
+import '../../package/models.dart';
+import '../../package/overrides.dart';
 import '../../shared/handlers.dart';
-import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
-import '../backend.dart';
-import '../models.dart';
 import '../request_context.dart';
 import '../templates/package.dart';
 import '../templates/package_admin.dart';
@@ -41,10 +41,10 @@ Map packageDebugStats() {
 /// Handles requests for /packages/<package> - JSON
 Future<shelf.Response> packageShowHandlerJson(
     shelf.Request request, String packageName) async {
-  final Package package = await backend.lookupPackage(packageName);
+  final Package package = await packageBackend.lookupPackage(packageName);
   if (package == null) return formattedNotFoundHandler(request);
 
-  final versions = await backend.versionsOfPackage(packageName);
+  final versions = await packageBackend.versionsOfPackage(packageName);
   sortPackageVersionsDesc(versions, decreasing: false);
 
   final uploaderEmails =
@@ -62,10 +62,10 @@ Future<shelf.Response> packageShowHandlerJson(
 /// Handles requests for /packages/<package>/versions
 Future<shelf.Response> packageVersionsListHandler(
     shelf.Request request, String packageName) async {
-  final package = await backend.lookupPackage(packageName);
+  final package = await packageBackend.lookupPackage(packageName);
   if (package == null) return redirectToSearch(packageName);
 
-  final versions = await backend.versionsOfPackage(packageName);
+  final versions = await packageBackend.versionsOfPackage(packageName);
   if (versions.isEmpty) {
     return redirectToSearch(packageName);
   }
@@ -81,7 +81,7 @@ Future<shelf.Response> packageVersionsListHandler(
 
   final versionDownloadUrls =
       await Future.wait(versions.map((PackageVersion version) {
-    return backend.downloadUrl(packageName, version.version);
+    return packageBackend.downloadUrl(packageName, version.version);
   }).toList());
 
   final analysis = await analyzerClient.getAnalysisView(
@@ -110,12 +110,12 @@ Future<shelf.Response> packageVersionHandlerHtml(
   }
 
   if (cachedPage == null) {
-    final Package package = await backend.lookupPackage(packageName);
+    final Package package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       return redirectToSearch(packageName);
     }
 
-    final selectedVersion = await backend.lookupPackageVersion(
+    final selectedVersion = await packageBackend.lookupPackageVersion(
         packageName, versionName ?? package.latestVersion);
     if (selectedVersion == null) {
       return redirectResponse(urls.pkgVersionsUrl(packageName));
@@ -150,11 +150,11 @@ Future<shelf.Response> packageAdminHandler(
   if (redirectPackagePages.containsKey(packageName)) {
     return redirectResponse(redirectPackagePages[packageName]);
   }
-  final package = await backend.lookupPackage(packageName);
+  final package = await packageBackend.lookupPackage(packageName);
   if (package == null) return redirectToSearch(packageName);
 
-  final version =
-      await backend.lookupPackageVersion(packageName, package.latestVersion);
+  final version = await packageBackend.lookupPackageVersion(
+      packageName, package.latestVersion);
   if (version == null) {
     return redirectResponse(urls.pkgVersionsUrl(packageName));
   }

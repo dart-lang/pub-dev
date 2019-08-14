@@ -4,7 +4,7 @@
 
 import 'package:pub_server/repository.dart';
 
-import '../upload_signer_service.dart';
+import 'package:pub_dartlang_org/package/upload_signer_service.dart';
 
 /// Returns an upload URL with no signed signature.
 class FakeUploadSignerService implements UploadSignerService {

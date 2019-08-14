@@ -5,7 +5,7 @@ import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../account/consent_backend.dart';
-import '../../frontend/backend.dart' hide InviteStatus;
+import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
 import '../../shared/configuration.dart';
 import '../../shared/handlers.dart';
@@ -222,7 +222,7 @@ class PubApi {
     Request request,
     String package,
   ) =>
-      backend.getPublisherInfo(package);
+      packageBackend.getPublisherInfo(package);
 
   @EndPoint.put('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> setPackagePublisher(
@@ -230,12 +230,12 @@ class PubApi {
     String package,
     PackagePublisherInfo body,
   ) =>
-      backend.setPublisher(package, body);
+      packageBackend.setPublisher(package, body);
 
   @EndPoint.delete('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> removePackagePublisher(
           Request request, String package) =>
-      backend.removePublisher(package);
+      packageBackend.removePublisher(package);
 
   @EndPoint.get('/api/search')
   Future<Response> search(Request request) => apiSearchHandler(request);

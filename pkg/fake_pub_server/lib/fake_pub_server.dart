@@ -13,12 +13,12 @@ import 'package:shelf/shelf_io.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/testing/fake_auth_provider.dart';
-import 'package:pub_dartlang_org/frontend/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers.dart';
-import 'package:pub_dartlang_org/frontend/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dart';
-import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
+import 'package:pub_dartlang_org/package/name_tracker.dart';
+import 'package:pub_dartlang_org/package/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
@@ -57,7 +57,7 @@ class FakePubServer {
 
             nameTracker.startTracking();
 
-            final apiHandler = backend.pubServer.requestHandler;
+            final apiHandler = packageBackend.pubServer.requestHandler;
 
             final appHandler = createAppHandler(apiHandler);
             final handler = wrapHandler(_logger, appHandler, sanitize: true);

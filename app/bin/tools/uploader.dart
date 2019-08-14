@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/backend.dart';
+import 'package:pub_dartlang_org/package/models.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
 import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';

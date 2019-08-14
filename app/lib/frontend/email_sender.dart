@@ -9,8 +9,8 @@ import 'package:logging/logging.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
+import '../package/models.dart' show Secret, SecretKey;
 import '../shared/email.dart';
-import 'models.dart' show Secret, SecretKey;
 
 final _logger = Logger('pub.email');
 

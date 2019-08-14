@@ -6,8 +6,8 @@ import 'package:gcloud/db.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/name_tracker.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
+import 'package:pub_dartlang_org/package/name_tracker.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/search/search_client.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
@@ -94,7 +94,7 @@ void main() {
       await indexUpdater.updateAllPackages();
 
       final names = ['pkg0', 'pkg3', 'pkg10'];
-      final list = await backend.latestPackageVersions(offset: 10);
+      final list = await packageBackend.latestPackageVersions(offset: 10);
       expect(list.map((p) => p.package).toList(), containsAll(names));
 
       await expectHtmlResponse(
@@ -135,7 +135,7 @@ flutter:
       await indexUpdater.updateAllPackages();
 
       final names = ['pkg0', 'pkg3', 'pkg10'];
-      final list = await backend.latestPackageVersions(offset: 10);
+      final list = await packageBackend.latestPackageVersions(offset: 10);
       expect(list.map((p) => p.package).toList(), containsAll(names));
 
       await expectHtmlResponse(

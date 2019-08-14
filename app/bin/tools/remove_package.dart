@@ -10,8 +10,8 @@ import 'package:gcloud/storage.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/models.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/job/model.dart';
 import 'package:pub_dartlang_org/scorecard/models.dart';

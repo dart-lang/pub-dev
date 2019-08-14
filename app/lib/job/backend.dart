@@ -10,7 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
-import '../frontend/models.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
