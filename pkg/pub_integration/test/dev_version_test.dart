@@ -5,7 +5,7 @@
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import 'package:pub_integration/src/dev_version_script.dart';
+import 'package:pub_integration/script/dev_version.dart';
 import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 

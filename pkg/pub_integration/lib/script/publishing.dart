@@ -8,9 +8,9 @@ import 'dart:math';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'pub_http_client.dart';
-import 'pub_tool_client.dart';
-import 'test_data.dart';
+import '../src/pub_http_client.dart';
+import '../src/pub_tool_client.dart';
+import '../src/test_data.dart';
 
 final _random = Random.secure();
 
@@ -18,7 +18,7 @@ typedef InviteCompleterFn = Future Function();
 
 /// A single object to execute integration script and verification tests with the
 /// `pub` tool on the pub.dev site (or on a test site).
-class PubToolScript {
+class PublishingScript {
   final String pubHostedUrl;
   final String credentialsFileContent;
   final String invitedEmail;
@@ -34,7 +34,7 @@ class PubToolScript {
   Directory _dummyExampleDir;
   Directory _retryDir;
 
-  PubToolScript(
+  PublishingScript(
     this.pubHostedUrl,
     this.credentialsFileContent,
     this.invitedEmail,
@@ -55,29 +55,30 @@ class PubToolScript {
 
       if (!_hasRetry) {
         await _createFakeRetryPkg();
-        await _pubGet(_retryDir);
-        await _upload(_retryDir);
+        await _pubToolClient.getDependencies(_retryDir.path);
+        await _pubToolClient.publish(_retryDir.path);
       }
       // upload package
       await _createDummyPkg();
-      await _pubGet(_dummyDir);
-      await _upload(_dummyDir);
+      await _pubToolClient.getDependencies(_dummyDir.path);
+      await _pubToolClient.publish(_dummyDir.path);
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg();
 
       // upload the same version again
-      await _upload(_dummyDir,
+      await _pubToolClient.publish(_dummyDir.path,
           expectedError:
               'Version $_newDummyVersion of package _dummy_pkg already exists..');
 
       // run example
-      await _pubGet(_dummyExampleDir);
+      await _pubToolClient.getDependencies(_dummyExampleDir.path);
       await _run(_dummyExampleDir, 'bin/main.dart');
 
       // add/remove uploader
-      await _addUploader();
+      await _pubToolClient.addUploader(_dummyDir.path, invitedEmail);
+      await inviteCompleterFn();
       await _verifyDummyPkg(matchInvited: true);
-      await _removeUploader();
+      await _pubToolClient.removeUploader(_dummyDir.path, invitedEmail);
       await _verifyDummyPkg(matchInvited: false);
     } finally {
       await _temp.delete(recursive: true);
@@ -111,19 +112,6 @@ class PubToolScript {
     await createFakeRetryPkg(_retryDir.path);
   }
 
-  Future _pubGet(Directory dir) async {
-    await _pubToolClient.runProc('pub', ['get'], workingDirectory: dir.path);
-  }
-
-  Future _upload(Directory dir, {String expectedError}) async {
-    await _pubToolClient.runProc(
-      'pub',
-      ['publish', '--force'],
-      workingDirectory: dir.path,
-      expectedError: expectedError,
-    );
-  }
-
   Future _run(Directory dir, String file) async {
     await _pubToolClient.runProc('dart', [file], workingDirectory: dir.path);
   }
@@ -152,24 +140,5 @@ class PubToolScript {
         throw Exception('Invited email is still to be found on package page.');
       }
     }
-  }
-
-  Future _addUploader() async {
-    await _pubToolClient.runProc(
-      'pub',
-      ['uploader', 'add', invitedEmail],
-      workingDirectory: _dummyDir.path,
-      expectedError:
-          'We have sent an invitation to $invitedEmail, they will be added as uploader after they confirm it.',
-    );
-    await inviteCompleterFn();
-  }
-
-  Future _removeUploader() async {
-    await _pubToolClient.runProc(
-      'pub',
-      ['uploader', 'remove', invitedEmail],
-      workingDirectory: _dummyDir.path,
-    );
   }
 }

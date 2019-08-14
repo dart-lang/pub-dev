@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'pub_http_client.dart';
+import '../src/pub_http_client.dart';
 
 /// A single object to execute integration script and verification tests querying
 /// public pages on the pub.dev site (or on a test site).
