@@ -4,8 +4,8 @@
 
 import 'package:meta/meta.dart';
 
-import 'src/pub_tool_script.dart';
-import 'src/public_pages_script.dart';
+import 'script/public_pages.dart';
+import 'script/publishing.dart';
 
 /// Runs the integration tests on the [pubHostedUrl].
 Future verifyPub({
@@ -14,7 +14,7 @@ Future verifyPub({
   @required String invitedEmail,
   @required InviteCompleterFn inviteCompleterFn,
 }) async {
-  final pubToolScript = PubToolScript(
+  final pubToolScript = PublishingScript(
     pubHostedUrl,
     credentialsFileContent,
     invitedEmail,

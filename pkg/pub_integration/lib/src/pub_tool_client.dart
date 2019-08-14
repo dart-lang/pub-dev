@@ -59,4 +59,35 @@ class PubToolClient {
         'STDOUT: ${pr.stdout}\n'
         'STDERR: ${pr.stderr}');
   }
+
+  Future<ProcessResult> getDependencies(String pkgDir) async {
+    return await runProc('pub', ['get'], workingDirectory: pkgDir);
+  }
+
+  Future<ProcessResult> publish(String pkgDir, {String expectedError}) async {
+    return await runProc(
+      'pub',
+      ['publish', '--force'],
+      workingDirectory: pkgDir,
+      expectedError: expectedError,
+    );
+  }
+
+  Future<ProcessResult> addUploader(String pkgDir, String email) async {
+    return await runProc(
+      'pub',
+      ['uploader', 'add', email],
+      workingDirectory: pkgDir,
+      expectedError:
+          'We have sent an invitation to $email, they will be added as uploader after they confirm it.',
+    );
+  }
+
+  Future<ProcessResult> removeUploader(String pkgDir, String email) async {
+    return await runProc(
+      'pub',
+      ['uploader', 'remove', email],
+      workingDirectory: pkgDir,
+    );
+  }
 }

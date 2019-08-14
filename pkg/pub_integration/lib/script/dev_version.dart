@@ -7,9 +7,9 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'pub_http_client.dart';
-import 'pub_tool_client.dart';
-import 'test_data.dart';
+import '../src/pub_http_client.dart';
+import '../src/pub_tool_client.dart';
+import '../src/test_data.dart';
 
 /// A single object to execute integration script and verification tests
 /// publishing dev and stable version of a package.
@@ -172,11 +172,7 @@ class DevVersionScript {
   Future _publishVersion(String version) async {
     final dir = await _temp.createTemp();
     await createDummyPkg(dir.path, version);
-    await _pubToolClient.runProc(
-      'pub',
-      ['publish', '--force'],
-      workingDirectory: dir.path,
-    );
+    await _pubToolClient.publish(dir.path);
     await dir.delete(recursive: true);
   }
 
