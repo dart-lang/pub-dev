@@ -45,3 +45,12 @@ String _renderDartCode(String text) =>
 
 String _renderPlainText(String text) =>
     '<div class="highlight"><pre>${_escapeAngleBrackets(text)}</pre></div>';
+
+/// Encode [value] as JSON in a `<script>` safe format.
+///
+/// This allows embedding in `<script>` tags, typically used for
+/// `<script type='application/json'>` or `<script type='ld+json'>`.
+String encodeScriptSafeJson(Object value) => json
+    .encode(value)
+    .replaceAll(r'<!--', r'<\!--') // escape <!-- to prevent HTML comments
+    .replaceAll(r'</', r'<\/'); // escape </ to prevent </script> tags
