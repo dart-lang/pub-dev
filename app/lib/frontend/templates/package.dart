@@ -9,9 +9,9 @@ import 'package:meta/meta.dart';
 
 import '../../analyzer/analyzer_client.dart';
 import '../../scorecard/models.dart';
+import '../../search/search_service.dart';
 import '../../shared/email.dart' show EmailAddress;
 import '../../shared/platform.dart';
-import '../../shared/search_service.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../models.dart';

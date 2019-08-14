@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/analyzer/analyzer_client.dart';
 import 'package:pub_dartlang_org/dartdoc/dartdoc_client.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/search/search_client.dart';
 
 void _printHelp() {
   print('Notifies the auxilliary services about a new package or version.');

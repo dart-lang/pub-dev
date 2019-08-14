@@ -6,8 +6,9 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../shared/search_service.dart';
 import '../shared/utils.dart' show boundedList;
+
+import 'search_service.dart';
 
 /// Combines the results from the primary package index and the optional Dart
 /// SDK index.

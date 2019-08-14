@@ -11,12 +11,12 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../dartdoc/backend.dart';
 import '../../history/backend.dart';
 import '../../scorecard/backend.dart';
+import '../../search/search_client.dart';
+import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/handlers.dart';
 import '../../shared/packages_overrides.dart';
 import '../../shared/redis_cache.dart' show cache;
-import '../../shared/search_client.dart';
-import '../../shared/search_service.dart';
 
 import '../backend.dart';
 import '../models.dart';

@@ -11,9 +11,9 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../scorecard/models.dart';
+import '../search/search_service.dart' show ApiPageRef;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
-import '../shared/search_service.dart' show ApiPageRef;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import 'model_properties.dart';

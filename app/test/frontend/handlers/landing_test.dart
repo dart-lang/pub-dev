@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/static_files.dart';
-import 'package:pub_dartlang_org/shared/search_client.dart';
+import 'package:pub_dartlang_org/search/search_client.dart';
 
 import '../../shared/test_services.dart';
 

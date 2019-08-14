@@ -8,10 +8,10 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../shared/handlers.dart';
-import '../shared/search_service.dart';
 
 import 'index_simple.dart';
 import 'result_combiner.dart';
+import 'search_service.dart';
 
 final Logger _logger = Logger('pub.search.handlers');
 final Duration _slowSearchThreshold = const Duration(milliseconds: 200);

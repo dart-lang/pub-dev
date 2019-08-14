@@ -8,8 +8,8 @@ import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/platform_specificity.dart';
+import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
-import 'package:pub_dartlang_org/shared/search_service.dart';
 
 void main() {
   group('specificity score', () {

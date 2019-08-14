@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dartlang_org/shared/search_service.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers/redirects.dart';
 import 'package:pub_dartlang_org/frontend/search_service.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
+import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../../shared/handlers_test_utils.dart';

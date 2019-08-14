@@ -12,9 +12,9 @@ import 'package:logging/logging.dart';
 
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
+import '../search/search_client.dart';
+import '../search/search_service.dart';
 import '../shared/platform.dart';
-import '../shared/search_client.dart';
-import '../shared/search_service.dart';
 
 import 'backend.dart';
 import 'models.dart';
