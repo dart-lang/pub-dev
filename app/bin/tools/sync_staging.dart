@@ -8,7 +8,7 @@ import 'package:pool/pool.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart';
 import 'package:pub_dartlang_org/frontend/pub_client.dart';
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 
 void main() async {
   await withProdServices(() async {

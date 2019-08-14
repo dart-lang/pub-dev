@@ -4,10 +4,10 @@
 
 import 'package:pub_dartlang_org/shared/configuration.dart';
 
-import 'service/analyzer.dart' as analyzer;
-import 'service/dartdoc.dart' as dartdoc;
-import 'service/frontend.dart' as frontend;
-import 'service/search.dart' as search;
+import 'package:pub_dartlang_org/service/entrypoint/analyzer.dart' as analyzer;
+import 'package:pub_dartlang_org/service/entrypoint/dartdoc.dart' as dartdoc;
+import 'package:pub_dartlang_org/service/entrypoint/frontend.dart' as frontend;
+import 'package:pub_dartlang_org/service/entrypoint/search.dart' as search;
 
 void main() {
   switch (envConfig.gaeService) {

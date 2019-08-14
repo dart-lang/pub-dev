@@ -8,17 +8,18 @@ import 'dart:isolate';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/job/backend.dart';
-import 'package:pub_dartlang_org/job/job.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/scheduler_stats.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/services.dart';
+import '../../dartdoc/backend.dart';
+import '../../dartdoc/dartdoc_runner.dart';
+import '../../dartdoc/handlers.dart';
+import '../../job/backend.dart';
+import '../../job/job.dart';
+import '../../shared/handler_helpers.dart';
+import '../../shared/popularity_storage.dart';
+import '../../shared/scheduler_stats.dart';
 
-import 'package:pub_dartlang_org/dartdoc/backend.dart';
-import 'package:pub_dartlang_org/dartdoc/dartdoc_runner.dart';
-import 'package:pub_dartlang_org/dartdoc/handlers.dart';
+import '../gae_setup.dart';
+import '../isolate.dart';
+import '../services.dart';
 
 final Logger logger = Logger('pub.dartdoc');
 

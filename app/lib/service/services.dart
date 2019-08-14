@@ -23,13 +23,12 @@ import '../shared/analyzer_client.dart';
 import '../shared/configuration.dart';
 import '../shared/dartdoc_client.dart';
 import '../shared/popularity_storage.dart';
+import '../shared/redis_cache.dart' show withAppEngineAndCache;
 import '../shared/search_client.dart';
 import '../shared/storage.dart';
+import '../shared/storage_retry.dart' show withStorageRetry;
 import '../shared/urls.dart';
 import '../shared/versions.dart';
-
-import 'redis_cache.dart' show withAppEngineAndCache;
-import 'storage_retry.dart' show withStorageRetry;
 
 /// Run [fn] with services;
 ///

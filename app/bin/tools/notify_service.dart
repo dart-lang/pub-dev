@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/shared/analyzer_client.dart';
 import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';

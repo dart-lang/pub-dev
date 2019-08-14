@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:http/http.dart' as http;
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
@@ -12,24 +13,23 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dartlang_org/account/consent_backend.dart';
-import 'package:pub_dartlang_org/shared/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/configuration.dart';
-import 'package:pub_dartlang_org/shared/dartdoc_client.dart';
-import 'package:pub_dartlang_org/shared/deps_graph.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/service_utils.dart';
-import 'package:pub_dartlang_org/shared/storage.dart';
-import 'package:pub_dartlang_org/shared/services.dart';
+import '../../account/consent_backend.dart';
+import '../../frontend/backend.dart';
+import '../../frontend/cronjobs.dart' show CronJobs;
+import '../../frontend/handlers.dart';
+import '../../frontend/name_tracker.dart';
+import '../../frontend/static_files.dart';
+import '../../frontend/upload_signer_service.dart';
+import '../../shared/analyzer_client.dart';
+import '../../shared/configuration.dart';
+import '../../shared/dartdoc_client.dart';
+import '../../shared/deps_graph.dart';
+import '../../shared/handler_helpers.dart';
+import '../../shared/popularity_storage.dart';
+import '../../shared/storage.dart';
 
-import 'package:pub_dartlang_org/frontend/backend.dart';
-import 'package:pub_dartlang_org/frontend/cronjobs.dart' show CronJobs;
-import 'package:pub_dartlang_org/frontend/handlers.dart';
-import 'package:pub_dartlang_org/frontend/name_tracker.dart';
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
-import 'package:pub_dartlang_org/frontend/static_files.dart';
-import 'package:pub_dartlang_org/frontend/upload_signer_service.dart';
+import '../isolate.dart';
+import '../services.dart';
 
 final Logger _logger = Logger('pub');
 final _random = Random.secure();
@@ -105,4 +105,12 @@ Future _worker(WorkerEntryMessage message) async {
         db.dbService, triggerDependentAnalysis);
     await pdb.monitorInBackground(); // never returns
   });
+}
+
+Future<String> obtainServiceAccountEmail() async {
+  final http.Response response = await http.get(
+      'http://metadata/computeMetadata/'
+      'v1/instance/service-accounts/default/email',
+      headers: const {'Metadata-Flavor': 'Google'});
+  return response.body.trim();
 }

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/frontend/models.dart' show Secret, SecretKey;
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 
 void _printHelp() {
   print('Sets the Secret value.');

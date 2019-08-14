@@ -34,7 +34,7 @@ import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
 import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/shared/search_client.dart';
-import 'package:pub_dartlang_org/shared/services.dart';
+import 'package:pub_dartlang_org/service/services.dart';
 
 import '../shared/utils.dart';
 import 'test_models.dart';

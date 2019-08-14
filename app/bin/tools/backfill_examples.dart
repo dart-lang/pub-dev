@@ -11,7 +11,7 @@ import 'package:gcloud/datastore.dart' as ds;
 import 'package:http/http.dart' as http;
 
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/shared/utils.dart';
 
 http.Client _httpClient;

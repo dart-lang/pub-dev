@@ -12,8 +12,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
+import '../account/backend.dart';
 import '../frontend/request_context.dart';
-import '../frontend/service_utils.dart';
 import '../frontend/templates/layout.dart';
 
 import 'configuration.dart';
@@ -200,9 +200,23 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
   };
 }
 
+/// Looks at request and if the 'Authorization' header was set tries to get
+/// the user email address and registers it.
 shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    await registerLoggedInUserIfPossible(request);
+    final authorization = request.headers['authorization'];
+    if (authorization != null) {
+      final parts = authorization.split(' ');
+      if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
+        final accessToken = parts.last.trim();
+
+        final user =
+            await accountBackend.authenticateWithAccessToken(accessToken);
+        if (user != null) {
+          registerAuthenticatedUser(user);
+        }
+      }
+    }
     return await handler(request);
   };
 }

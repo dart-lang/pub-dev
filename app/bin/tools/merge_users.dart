@@ -10,8 +10,8 @@ import 'package:gcloud/db.dart';
 
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/models.dart';
-import 'package:pub_dartlang_org/frontend/service_utils.dart';
 import 'package:pub_dartlang_org/history/models.dart';
+import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 
 final _argParser = ArgParser()
   ..addOption('source-user-id',
