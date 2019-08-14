@@ -29,7 +29,7 @@ Future initFlutterSdk(Logger logger) async {
       if (result.exitCode != 0) {
         throw Exception(
             'Failed to checkout flutter (exited with ${result.exitCode})\n'
-                'stdout: ${result.stdout}\nstderr: ${result.stderr}');
+            'stdout: ${result.stdout}\nstderr: ${result.stderr}');
       }
       final flutterBin = File('${envConfig.flutterSdkDir}/bin/flutter');
       if (!(await flutterBin.exists())) {

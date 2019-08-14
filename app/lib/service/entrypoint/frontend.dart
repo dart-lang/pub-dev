@@ -110,7 +110,7 @@ Future _worker(WorkerEntryMessage message) async {
 Future<String> obtainServiceAccountEmail() async {
   final http.Response response = await http.get(
       'http://metadata/computeMetadata/'
-          'v1/instance/service-accounts/default/email',
+      'v1/instance/service-accounts/default/email',
       headers: const {'Metadata-Flavor': 'Google'});
   return response.body.trim();
 }
