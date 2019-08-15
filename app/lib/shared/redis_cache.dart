@@ -8,14 +8,13 @@ import 'dart:io';
 
 import 'package:neat_cache/neat_cache.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:gcloud/db.dart' as db;
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
-import '../package/models.dart' show Secret, SecretKey;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
+import '../service/secret/backend.dart';
 import 'convert.dart';
 import 'versions.dart';
 
@@ -134,14 +133,12 @@ Future withCache(FutureOr Function() fn) async {
 /// Run [fn] with [cache] connected to a redis cache.
 Future _withRedisCache(FutureOr Function() fn) async {
   // TODO: use in-memory if GAE_VERSION is not set...
-  final s = await db.dbService.lookup([
-    db.dbService.emptyKey.append(Secret, id: SecretKey.redisConnectionString),
-  ]);
+  final connectionString =
+      await secretBackend.lookup(SecretKey.redisConnectionString);
   // Validate that we got a connection string
-  if (s.isEmpty || !(s[0] is Secret) || (s[0] as Secret).value.isEmpty) {
+  if (connectionString == null || connectionString.isEmpty) {
     throw Exception('Secret ${SecretKey.redisConnectionString} is missing');
   }
-  final connectionString = (s[0] as Secret).value;
 
   // Create and register a cache
   final cacheProvider = Cache.redisCacheProvider(connectionString);
