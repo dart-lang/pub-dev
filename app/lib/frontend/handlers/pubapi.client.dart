@@ -6,6 +6,7 @@
 
 import 'package:api_builder/_client_utils.dart' as _i2;
 import 'package:client_data/account_api.dart' as _i4;
+import 'package:client_data/admin_api.dart' as _i6;
 import 'package:client_data/package_api.dart' as _i5;
 import 'package:client_data/publisher_api.dart' as _i3;
 import 'package:http/http.dart' as _i1;
@@ -254,6 +255,20 @@ class PubApiClient {
     return await _client.requestBytes(
       verb: 'get',
       path: '/packages/$package.json',
+    );
+  }
+
+  Future<_i6.AdminListUsersResponse> adminListUsers() async {
+    return _i6.AdminListUsersResponse.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/admin/users',
+    ));
+  }
+
+  Future<List<int>> adminRemoveUser(String userId) async {
+    return await _client.requestBytes(
+      verb: 'delete',
+      path: '/api/admin/users/$userId',
     );
   }
 }
