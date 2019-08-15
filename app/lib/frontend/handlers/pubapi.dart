@@ -1,5 +1,6 @@
 import 'package:api_builder/api_builder.dart';
 import 'package:client_data/account_api.dart';
+import 'package:client_data/admin_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
@@ -255,6 +256,17 @@ class PubApi {
   @EndPoint.get('/packages/<package>.json')
   Future<Response> packageJson(Request request, String package) =>
       packageShowHandlerJson(request, package);
+
+  // ****
+  // **** Admin API
+  // ****
+
+  @EndPoint.get('/api/admin/users')
+  Future<AdminListUsersResponse> adminListUsers(Request request) async => null;
+
+  @EndPoint.delete('/api/admin/users/<userId>')
+  Future<Response> adminRemoveUser(Request request, String userId) async =>
+      Response.notFound('no such thing');
 }
 
 /// Replaces the requested uri with the primary API uri.

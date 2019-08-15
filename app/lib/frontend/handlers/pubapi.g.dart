@@ -389,5 +389,26 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/admin/users', (Request request) async {
+    try {
+      final _$result = await service.adminListUsers(request);
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('DELETE', r'/api/admin/users/<userId>',
+      (Request request, String userId) async {
+    try {
+      final _$result = await service.adminRemoveUser(request, userId);
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   return router;
 }
