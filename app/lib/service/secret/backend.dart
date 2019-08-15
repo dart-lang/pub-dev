@@ -5,8 +5,6 @@
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
-import '../../shared/exceptions.dart';
-
 import 'models.dart';
 
 export 'models.dart' show SecretKey;
@@ -28,7 +26,9 @@ class SecretBackend {
   /// Returns null if no Secret entity is found.
   /// Throws InvalidInputException if the [id] is no valid.
   Future<String> lookup(String id) async {
-    InvalidInputException.check(SecretKey.isValid(id), '$id is not valid');
+    if (!SecretKey.isValid(id)) {
+      throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
+    }
     final key = _db.emptyKey.append(Secret, id: id);
     final secret = (await _db.lookup<Secret>([key])).single;
     return secret?.value;
@@ -37,7 +37,9 @@ class SecretBackend {
   /// Updates a Secret value.
   /// Throws InvalidInputException if the [id] is no valid.
   Future update(String id, String value) async {
-    InvalidInputException.check(SecretKey.isValid(id), '$id is not valid');
+    if (!SecretKey.isValid(id)) {
+      throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
+    }
     final key = _db.emptyKey.append(Secret, id: id);
     await _db.withTransaction((tx) async {
       final secret = (await tx.lookup<Secret>([key])).single;
