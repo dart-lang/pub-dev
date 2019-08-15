@@ -8,13 +8,17 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:client_data/package_api.dart';
-import 'package:pub_dartlang_org/package/backend.dart';
+import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dartlang_org/package/backend.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
+import 'package:pub_dartlang_org/shared/exceptions.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
+
+import 'backend_test_utils.dart';
 
 void main() {
   group('Get publisher info', () {
@@ -74,6 +78,42 @@ void main() {
 
       final info = await client.getPackagePublisher('hydrogen');
       expect(_json(info.toJson()), _json(rs.toJson()));
+    });
+  });
+
+  group('Upload with a publisher', () {
+    testWithServices('not an admin', () async {
+      final client = createPubApiClient(authToken: hansUser.userId);
+      await client.setPackagePublisher(
+        hydrogen.package.name,
+        PackagePublisherInfo(publisherId: 'example.com'),
+      );
+      await dbService.commit(inserts: [
+        publisherMember(hansUser.userId, 'non-admin'),
+      ]);
+      registerAuthenticatedUser(hansAuthenticated);
+      final tarball = await packageArchiveBytes(
+          pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
+      final rs =
+          packageBackend.repository.upload(Stream.fromIterable([tarball]));
+      await expectLater(
+          rs,
+          throwsA(isA<AuthorizationException>()
+              .having((a) => a.code, 'code', 'InsufficientPermissions')));
+    });
+
+    testWithServices('successful', () async {
+      final client = createPubApiClient(authToken: hansUser.userId);
+      await client.setPackagePublisher(
+        hydrogen.package.name,
+        PackagePublisherInfo(publisherId: 'example.com'),
+      );
+      registerAuthenticatedUser(hansAuthenticated);
+      final tarball = await packageArchiveBytes(
+          pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
+      final pv = await packageBackend.repository
+          .upload(Stream.fromIterable([tarball]));
+      expect(pv.version.toString(), '3.0.0');
     });
   });
 
