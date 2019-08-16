@@ -6,6 +6,7 @@ import 'package:client_data/publisher_api.dart';
 import 'package:shelf/shelf.dart';
 
 import '../../account/consent_backend.dart';
+import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
 import '../../shared/configuration.dart';
@@ -262,11 +263,17 @@ class PubApi {
   // ****
 
   @EndPoint.get('/api/admin/users')
-  Future<AdminListUsersResponse> adminListUsers(Request request) async => null;
+  Future<AdminListUsersResponse> adminListUsers(Request request) async =>
+      adminBackend.listUsers(
+        continuationToken:
+            request.requestedUri.queryParameters['continuationToken'],
+      );
 
   @EndPoint.delete('/api/admin/users/<userId>')
-  Future<Response> adminRemoveUser(Request request, String userId) async =>
-      Response.notFound('no such thing');
+  Future<Response> adminRemoveUser(Request request, String userId) async {
+    await adminBackend.removeUser(userId);
+    return jsonResponse({'status': 'OK'});
+  }
 }
 
 /// Replaces the requested uri with the primary API uri.

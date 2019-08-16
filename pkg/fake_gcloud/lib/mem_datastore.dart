@@ -50,6 +50,26 @@ class MemDatastore implements Datastore {
     return keys.map((key) => _entities[key]).toList();
   }
 
+  dynamic _getValue(Entity entity, String property) {
+    if (property == '__key__') return entity.key;
+    return entity.properties[property];
+  }
+
+  int _compare(dynamic a, dynamic b) {
+    if (a is Key && b is Key) {
+      if (a.elements.length != 1) {
+        throw UnimplementedError();
+      }
+      if (b.elements.length != 1) {
+        throw UnimplementedError();
+      }
+      return Comparable.compare(a.elements.single.id as Comparable,
+          b.elements.single.id as Comparable);
+    } else {
+      return Comparable.compare(a as Comparable, b as Comparable);
+    }
+  }
+
   @override
   Future<Page<Entity>> query(Query query,
       {Partition partition, Transaction transaction}) async {
@@ -79,9 +99,9 @@ class MemDatastore implements Datastore {
           return true;
         }
         return query.filters.every((f) {
-          final v = e.properties[f.name];
+          final v = _getValue(e, f.name);
           if (v == null) return false;
-          final c = Comparable.compare(v as Comparable, f.value as Comparable);
+          final c = _compare(v, f.value);
           switch (f.relation) {
             case FilterRelation.Equal:
               return c == 0;
@@ -102,9 +122,9 @@ class MemDatastore implements Datastore {
     if (query.orders != null && query.orders.isNotEmpty) {
       items.sort((a, b) {
         for (Order o in query.orders) {
-          final ap = a.properties[o.propertyName];
-          final bp = b.properties[o.propertyName];
-          final c = Comparable.compare(ap as Comparable, bp as Comparable);
+          final ap = _getValue(a, o.propertyName);
+          final bp = _getValue(b, o.propertyName);
+          final c = _compare(ap, bp);
           if (c == 0) continue;
           if (o.direction == OrderDirection.Ascending) {
             return c;

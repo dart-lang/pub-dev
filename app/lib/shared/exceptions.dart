@@ -43,6 +43,10 @@ class InvalidInputException extends ResponseException {
           message,
         );
 
+  /// Thrown when the parsing and/or validating of the continuation token failed.
+  InvalidInputException.continuationParseError()
+      : this._('Parsing the continuation token failed.');
+
   /// Check [condition] and throw [InvalidInputException] with [message] if
   /// [condition] is `false`.
   static void check(bool condition, String message) {
@@ -193,6 +197,13 @@ class AuthorizationException extends ResponseException
     implements UnauthorizedAccessException {
   AuthorizationException._(String message)
       : super._(403, 'InsufficientPermissions', message);
+
+  /// Signaling that the user is not an administrator for the pub site,
+  /// and, thus, unable to execute administrative actions.
+  factory AuthorizationException.userIsNotAdminForPubSite() =>
+      AuthorizationException._(
+        'Insufficient permissions to perform administrative actions on the pub site.',
+      );
 
   /// Signaling that the user is not an administrator for the given [package]
   /// and, thus, unable to execute administrative actions.

@@ -72,15 +72,16 @@ class PublisherMember extends db.ExpandoModel {
   String get publisherId => publisherKey.id as String;
 
   /// The userId of the member.
-  String get userId => id as String;
+  @db.StringProperty(required: true)
+  String userId;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime created;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   /// One of [PublisherMemberRole].
-  @db.StringProperty()
+  @db.StringProperty(required: true)
   String role;
 }
