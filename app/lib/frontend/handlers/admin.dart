@@ -80,7 +80,7 @@ Future<shelf.Response> confirmNewUploaderHandler(shelf.Request request,
     authErrorMessage ??= 'Unable to verify auth code.';
   }
 
-  final user = await accountBackend.authenticateWithAccessToken(accessToken);
+  final user = await accountBackend.authenticateWithBearerToken(accessToken);
   if (user == null) {
     authErrorMessage ??= 'Unable to verify access token.';
   }
