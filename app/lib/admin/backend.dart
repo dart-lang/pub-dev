@@ -43,6 +43,7 @@ class AdminBackend {
   /// List users.
   Future<api.AdminListUsersResponse> listUsers(
       {String continuationToken, int limit = 1000}) async {
+    InvalidInputException.checkRange(limit, 'limit', minimum: 1, maximum: 1000);
     return await _withAdmin((user) async {
       final query = _db.query<User>()
         ..order('__key__')
