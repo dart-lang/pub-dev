@@ -16,6 +16,7 @@ import '../shared/configuration.dart';
 import '../shared/exceptions.dart';
 
 final _logger = Logger('pub.admin.backend');
+final _continuationCodec = stringContinuationCodec();
 
 /// Sets the admin backend service.
 void registerAdminBackend(AdminBackend backend) =>
@@ -52,7 +53,7 @@ class AdminBackend {
       if (continuationToken != null) {
         String lastId;
         try {
-          lastId = _decodeContinuation(user.userId, continuationToken);
+          lastId = _continuationCodec.decode(continuationToken);
         } on FormatException catch (_) {
           throw InvalidInputException.continuationParseError();
         }
@@ -72,7 +73,7 @@ class AdminBackend {
       // set the continuation token to the correct value.
       final newContinuationToken = users.length < limit
           ? null
-          : _encodeContinuation(user.userId, users.last.userId);
+          : _continuationCodec.encode(users.last.userId);
       users.removeWhere((u) => u.isDeleted);
 
       return api.AdminListUsersResponse(
@@ -196,12 +197,4 @@ class AdminBackend {
       await tx.commit();
     });
   }
-}
-
-String _decodeContinuation(String userId, String token) {
-  return stringContinuationCodec(secret: userId).decode(token);
-}
-
-String _encodeContinuation(String userId, String value) {
-  return stringContinuationCodec(secret: userId).encode(value);
 }
