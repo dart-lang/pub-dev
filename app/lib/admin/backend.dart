@@ -175,6 +175,11 @@ class AdminBackend {
     });
   }
 
+  /// Returns the member of the publisher that (a) is not removed,
+  /// (b) preferably is an admin, and (c) is member of the publisher for the
+  /// longest time.
+  ///
+  /// If there are no more admins left, the "oldest" non-admin member is returned.
   Future<PublisherMember> _remainingSeniorMember(
       Key publisherKey, String excludeUserId) async {
     final otherMembers = await _db
