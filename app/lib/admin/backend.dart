@@ -67,27 +67,21 @@ class AdminBackend {
         }
       }
 
-      try {
-        final users = await query.run().toList();
-        return api.AdminListUsersResponse(
-          users: users
-              .map(
-                (u) => api.AdminUserEntry(
-                  userId: u.userId,
-                  email: u.email,
-                  oauthUserId: u.oauthUserId,
-                ),
-              )
-              .toList(),
-          continuationToken: users.length < limit
-              ? null
-              : _encodeContinuation(user.userId, {'id': users.last.userId}),
-        );
-      } catch (e, st) {
-        print(e);
-        print(st);
-        rethrow;
-      }
+      final users = await query.run().toList();
+      return api.AdminListUsersResponse(
+        users: users
+            .map(
+              (u) => api.AdminUserEntry(
+                userId: u.userId,
+                email: u.email,
+                oauthUserId: u.oauthUserId,
+              ),
+            )
+            .toList(),
+        continuationToken: users.length < limit
+            ? null
+            : _encodeContinuation(user.userId, {'id': users.last.userId}),
+      );
     });
   }
 
