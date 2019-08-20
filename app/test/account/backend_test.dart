@@ -55,7 +55,7 @@ void main() {
           .run()
           .map((u) => u.oauthUserId)
           .toList();
-      expect(ids1, isEmpty);
+      expect(ids1, ['admin-pub-dev']);
 
       final u1 = await accountBackend
           .authenticateWithBearerToken('a-at-example-dot-com');
@@ -71,7 +71,7 @@ void main() {
           .run()
           .map((u) => u.oauthUserId)
           .toList();
-      expect(ids2, ['a-example-com']);
+      expect(ids2, ['admin-pub-dev', 'a-example-com']);
     });
 
     testWithServices('Authenticate: new user', () async {
@@ -80,7 +80,7 @@ void main() {
           .run()
           .map((u) => u.oauthUserId)
           .toList();
-      expect(ids1, []);
+      expect(ids1, ['admin-pub-dev']);
 
       final u1 = await accountBackend
           .authenticateWithBearerToken('c-at-example-dot-com');
@@ -97,7 +97,7 @@ void main() {
           .map((u) => u.oauthUserId)
           .toList();
       ids2.sort();
-      expect(ids2, ['c-example-com']);
+      expect(ids2, ['admin-pub-dev', 'c-example-com']);
     });
   });
 }
