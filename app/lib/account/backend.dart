@@ -7,21 +7,18 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
-import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
+
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
-import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
-import '../shared/email.dart' show isValidEmail;
 import '../shared/exceptions.dart';
 
+import 'auth_provider.dart';
+import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
-final _logger = Logger('pub.account.backend');
 final _uuid = Uuid();
 
 /// Sets the account backend service.
@@ -67,7 +64,6 @@ class AccountBackend {
                 activeConfiguration.pubClientAudience,
                 activeConfiguration.pubSiteAudience,
               ],
-              _db,
             );
 
   Future close() async {
@@ -166,16 +162,19 @@ class AccountBackend {
   Future<String> siteAuthCodeToAccessToken(String redirectUrl, String code) =>
       _authProvider.authCodeToAccessToken(redirectUrl, code);
 
-  /// Authenticates [accessToken] and returns an `AuthenticatedUser` object.
+  /// Authenticates with bearer [token] and returns an `AuthenticatedUser`
+  /// object.
   ///
-  /// The method returns null if the access token is invalid.
+  /// The method returns null if [token] is invalid.
+  ///
+  /// The [token] may be an oauth2 `access_token` or an openid-connect
+  /// `id_token` (signed JWT).
   ///
   /// When no associated User entry exists in Datastore, this method will create
   /// a new one. When the authenticated e-mail of the user changes, the email
   /// field will be updated to the latest one.
-  Future<AuthenticatedUser> authenticateWithAccessToken(
-      String accessToken) async {
-    final auth = await _authProvider.tryAuthenticate(accessToken);
+  Future<AuthenticatedUser> authenticateWithBearerToken(String token) async {
+    final auth = await _authProvider.tryAuthenticate(token);
     if (auth == null) {
       return null;
     }
@@ -264,138 +263,4 @@ class AuthenticatedUser {
   final String email;
 
   AuthenticatedUser(this.userId, this.email);
-}
-
-class AuthResult {
-  final String oauthUserId;
-  final String email;
-
-  AuthResult(this.oauthUserId, this.email);
-}
-
-/// Authenticates access tokens.
-abstract class AuthProvider {
-  /// Returns the URL of the authorization endpoint.
-  String authorizationUrl(String redirectUrl, String state);
-
-  /// Validates the authorization [code], and returns the access token.
-  ///
-  /// Returns null on any error, or if the token is expired, or the code is not
-  /// verified.
-  Future<String> authCodeToAccessToken(String redirectUrl, String code);
-
-  /// Checks the [accessToken] and returns a verified user information.
-  ///
-  /// Returns null on any error, or if the token is expired, or the user is not
-  /// verified.
-  Future<AuthResult> tryAuthenticate(String accessToken);
-
-  /// Close resources.
-  Future close();
-}
-
-/// Provides OAuth2-based authentication through Google accounts.
-class GoogleOauth2AuthProvider extends AuthProvider {
-  final String _siteAudience;
-  final List<String> _trustedAudiences;
-  final DatastoreDB _db;
-  http.Client _httpClient;
-  oauth2_v2.Oauth2Api _oauthApi;
-  bool _secretLoaded = false;
-  String _secret;
-
-  GoogleOauth2AuthProvider(
-      this._siteAudience, this._trustedAudiences, this._db) {
-    _httpClient = http.Client();
-    _oauthApi = oauth2_v2.Oauth2Api(_httpClient);
-  }
-
-  @override
-  String authorizationUrl(String redirectUrl, String state) {
-    return Uri.parse('https://accounts.google.com/o/oauth2/v2/auth').replace(
-      queryParameters: {
-        'client_id': _siteAudience,
-        'redirect_uri': redirectUrl,
-        'scope': 'openid profile email',
-        'response_type': 'code',
-        'access_type': 'online',
-        'state': state,
-      },
-    ).toString();
-  }
-
-  @override
-  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
-    try {
-      await _loadSecret();
-      final rs = await _httpClient
-          .post('https://www.googleapis.com/oauth2/v4/token', body: {
-        'code': code,
-        'client_id': _siteAudience,
-        'client_secret': _secret,
-        'redirect_uri': redirectUrl,
-        'grant_type': 'authorization_code',
-      });
-      if (rs.statusCode >= 400) {
-        _logger.info('Bad authorization token: $code for $redirectUrl');
-        return null;
-      }
-      final tokenMap = json.decode(rs.body) as Map<String, dynamic>;
-      return tokenMap['access_token'] as String;
-    } catch (e) {
-      _logger.info('Bad authorization token: $code for $redirectUrl', e);
-    }
-    return null;
-  }
-
-  @override
-  Future<AuthResult> tryAuthenticate(String accessToken) async {
-    if (accessToken == null) {
-      return null;
-    }
-    oauth2_v2.Tokeninfo info;
-    try {
-      info = await _oauthApi.tokeninfo(accessToken: accessToken);
-      if (info == null) {
-        return null;
-      }
-
-      if (!_trustedAudiences.contains(info.audience)) {
-        _logger.warning('OAuth2 access attempted with invalid audience, '
-            'for email: "${info.email}", audience: "${info.audience}"');
-        return null;
-      }
-
-      if (info.expiresIn == null ||
-          info.expiresIn <= 0 ||
-          info.userId == null ||
-          info.userId.isEmpty ||
-          info.verifiedEmail != true ||
-          info.email == null ||
-          info.email.isEmpty ||
-          !isValidEmail(info.email)) {
-        _logger.warning('OAuth2 token info invalid: ${info.toJson()}');
-        return null;
-      }
-
-      return AuthResult(info.userId, info.email.toLowerCase());
-    } on oauth2_v2.ApiRequestError catch (e) {
-      _logger.info('Access denied for OAuth2 access token.', e);
-    } catch (e, st) {
-      _logger.warning('OAuth2 access token lookup failed.', e, st);
-    }
-    return null;
-  }
-
-  @override
-  Future close() async {
-    _httpClient.close();
-  }
-
-  Future _loadSecret() async {
-    if (_secretLoaded) return;
-    _secret =
-        await secretBackend.lookup('${SecretKey.oauthPrefix}$_siteAudience');
-    _secretLoaded = true;
-  }
 }

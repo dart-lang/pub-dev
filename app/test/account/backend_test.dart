@@ -45,7 +45,7 @@ void main() {
     });
 
     testWithServices('Authenticate: token failure', () async {
-      final u = await accountBackend.authenticateWithAccessToken('x');
+      final u = await accountBackend.authenticateWithBearerToken('x');
       expect(u, isNull);
     });
 
@@ -58,7 +58,7 @@ void main() {
       expect(ids1, isEmpty);
 
       final u1 = await accountBackend
-          .authenticateWithAccessToken('a-at-example-dot-com');
+          .authenticateWithBearerToken('a-at-example-dot-com');
       expect(u1.userId, 'a-example-com');
       expect(u1.email, 'a@example.com');
 
@@ -83,7 +83,7 @@ void main() {
       expect(ids1, []);
 
       final u1 = await accountBackend
-          .authenticateWithAccessToken('c-at-example-dot-com');
+          .authenticateWithBearerToken('c-at-example-dot-com');
       expect(u1.userId, hasLength(36));
       expect(u1.email, 'c@example.com');
 

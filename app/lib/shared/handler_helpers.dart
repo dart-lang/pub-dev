@@ -211,7 +211,7 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
         final accessToken = parts.last.trim();
 
         final user =
-            await accountBackend.authenticateWithAccessToken(accessToken);
+            await accountBackend.authenticateWithBearerToken(accessToken);
         if (user != null) {
           registerAuthenticatedUser(user);
         }
