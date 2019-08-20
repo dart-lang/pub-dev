@@ -118,17 +118,22 @@ class AdminBackend {
         await _removeMember(user, m);
       }
 
+      // Bulk remove remaining entries.
+      final removeEntries = <Key>[];
+
       // OAuthUserID
       if (user.oauthUserId != null) {
         final key = _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
         final mapping = (await _db.lookup<OAuthUserID>([key])).single;
         if (mapping != null) {
-          await _db.commit(deletes: [mapping.key]);
+          removeEntries.add(mapping.key);
         }
       }
 
       // User
-      await _db.commit(deletes: [user.key]);
+      removeEntries.add(user.key);
+
+      await _db.commit(deletes: removeEntries);
     });
   }
 
