@@ -168,7 +168,7 @@ packages:
       name: continuation_token
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "2.0.0"
   convert:
     dependency: transitive
     description:

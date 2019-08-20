@@ -59,7 +59,7 @@ void main() {
         registerAuthenticatedUser(
             AuthenticatedUser(adminUser.userId, adminUser.email));
 
-        final page1 = await adminBackend.listUsers(limit: 2);
+        final page1 = await adminBackend.listUsers(limit: 3);
         expect(
           _json(page1.toJson()),
           {
@@ -73,9 +73,14 @@ void main() {
                 'userId': 'admin-at-pub-dot-dev',
                 'oauthUserId': 'admin-pub-dev',
                 'email': 'admin@pub.dev',
-              }
+              },
+              {
+                'userId': 'hans-at-juergen-dot-com',
+                'oauthUserId': null,
+                'email': 'hans@juergen.com',
+              },
             ],
-            'continuationToken': 'GkYEDUwXQxVJHRwMAAUbWV0RB1sFCxlECkgXVlA',
+            'continuationToken': 'CQUDGkNMFVlHBRAQSgEBWUkLEVsCCwA',
           },
         );
 
@@ -85,11 +90,6 @@ void main() {
           _json(page2.toJson()),
           {
             'users': [
-              {
-                'userId': 'hans-at-juergen-dot-com',
-                'oauthUserId': null,
-                'email': 'hans@juergen.com',
-              },
               {
                 'userId': 'joe-at-example-dot-com',
                 'oauthUserId': null,

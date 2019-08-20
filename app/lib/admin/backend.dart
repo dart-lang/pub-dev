@@ -50,20 +50,19 @@ class AdminBackend {
         ..limit(limit);
 
       if (continuationToken != null) {
-        Map<String, dynamic> map;
+        String lastId;
         try {
-          map = _decodeContinuation(user.userId, continuationToken);
+          lastId = _decodeContinuation(user.userId, continuationToken);
         } on FormatException catch (_) {
           throw InvalidInputException.continuationParseError();
         }
-        InvalidInputException.checkNotNull(map, 'continuationToken');
+        InvalidInputException.checkNotNull(lastId, 'continuationToken');
 
-        final id = map['id'] as String;
         // NOTE: we should fix https://github.com/dart-lang/gcloud/issues/23
         //       and remove the toDatastoreKey conversion here.
         final key =
-            _db.modelDB.toDatastoreKey(_db.emptyKey.append(User, id: id));
-        if (id != null) {
+            _db.modelDB.toDatastoreKey(_db.emptyKey.append(User, id: lastId));
+        if (lastId != null) {
           query.filter('__key__ >', key);
         }
       }
@@ -81,7 +80,7 @@ class AdminBackend {
             .toList(),
         continuationToken: users.length < limit
             ? null
-            : _encodeContinuation(user.userId, {'id': users.last.userId}),
+            : _encodeContinuation(user.userId, users.last.userId),
       );
     });
   }
@@ -202,10 +201,10 @@ class AdminBackend {
   }
 }
 
-Map<String, dynamic> _decodeContinuation(String userId, String token) {
-  return ContinuationTokenDecoder(secret: userId).convert(token);
+String _decodeContinuation(String userId, String token) {
+  return stringContinuationCodec(secret: userId).decode(token);
 }
 
-String _encodeContinuation(String userId, Map<String, dynamic> map) {
-  return ContinuationTokenEncoder(secret: userId).convert(map);
+String _encodeContinuation(String userId, String value) {
+  return stringContinuationCodec(secret: userId).encode(value);
 }
