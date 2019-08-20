@@ -234,7 +234,7 @@ void _testPublisherAdminAuthIssues(
       () async {
     await dbService.commit(
         deletes: [publisherKey.append(PublisherMember, id: hansUser.userId)]);
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -245,7 +245,7 @@ void _testPublisherAdminAuthIssues(
     await dbService.commit(inserts: [
       publisherMember(hansUser.userId, 'non-admin', parentKey: publisherKey),
     ]);
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -253,7 +253,7 @@ void _testPublisherAdminAuthIssues(
 
 void _testNoPackage(Future fn(PubApiClient client)) {
   testWithServices('No puackage with given name', () async {
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
@@ -261,7 +261,7 @@ void _testNoPackage(Future fn(PubApiClient client)) {
 
 void _testNoPublisher(Future fn(PubApiClient client)) {
   testWithServices('No publisher with given id', () async {
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });

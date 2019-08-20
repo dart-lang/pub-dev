@@ -55,9 +55,9 @@ final testUserA = User()
 final hansAuthenticated =
     AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
 
-Package createFoobarPackage({String name, List<AuthenticatedUser> uploaders}) {
+Package createFoobarPackage({String name, List<User> uploaders}) {
   name ??= foobarPkgKey.id as String;
-  uploaders ??= [hansAuthenticated];
+  uploaders ??= [hansUser];
   return Package()
     ..parentKey = foobarPkgKey.parent
     ..id = name
@@ -72,7 +72,7 @@ Package createFoobarPackage({String name, List<AuthenticatedUser> uploaders}) {
 
 final Package foobarPackage = createFoobarPackage()
   ..latestDevVersionKey = foobarDevPVKey;
-final foobarUploaderEmails = [hansAuthenticated.email];
+final foobarUploaderEmails = [hansUser.email];
 
 final Package discontinuedPackage = createFoobarPackage()
   ..isDiscontinued = true;
