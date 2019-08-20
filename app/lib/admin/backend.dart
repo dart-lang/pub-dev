@@ -68,6 +68,13 @@ class AdminBackend {
       }
 
       final users = await query.run().toList();
+      // We may return a page with users less then a limit, but we always
+      // set the continuation token to the correct value.
+      final newContinuationToken = users.length < limit
+          ? null
+          : _encodeContinuation(user.userId, users.last.userId);
+      users.removeWhere((u) => u.isDeleted);
+
       return api.AdminListUsersResponse(
         users: users
             .map(
@@ -78,9 +85,7 @@ class AdminBackend {
               ),
             )
             .toList(),
-        continuationToken: users.length < limit
-            ? null
-            : _encodeContinuation(user.userId, users.last.userId),
+        continuationToken: newContinuationToken,
       );
     });
   }
@@ -92,6 +97,7 @@ class AdminBackend {
       // TODO: remove once [withAuthenticatedUser] is using [User]
       final user = await accountBackend.lookupUserById(userId);
       if (user == null) return;
+      if (user.isDeleted) return;
 
       _logger.info(
           '${u.userId} (${u.email}) initiated the delete of ${user.userId} (${user.email})');
@@ -102,13 +108,6 @@ class AdminBackend {
         await _removeUploaderFromPackage(p.key, user.userId);
       }
 
-      // PackageVersion.uploader
-      final pvQuery = _db.query<PackageVersion>()
-        ..filter('uploader =', user.userId);
-      await for (final pv in pvQuery.run()) {
-        await _removeUploaderFromVersion(pv.key, user.userId);
-      }
-
       // PublisherMember
       // Publisher.contactEmail
       final memberQuery = _db.query<PublisherMember>()
@@ -117,22 +116,17 @@ class AdminBackend {
         await _removeMember(user, m);
       }
 
-      // Bulk remove remaining entries.
-      final removeEntries = <Key>[];
-
       // OAuthUserID
       if (user.oauthUserId != null) {
         final key = _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
         final mapping = (await _db.lookup<OAuthUserID>([key])).single;
         if (mapping != null) {
-          removeEntries.add(mapping.key);
+          await _db.commit(deletes: [mapping.key]);
         }
       }
 
       // User
-      removeEntries.add(user.key);
-
-      await _db.commit(deletes: removeEntries);
+      await _markUserDeleted(user);
     });
   }
 
@@ -144,15 +138,6 @@ class AdminBackend {
         p.isDiscontinued = true;
       }
       tx.queueMutations(inserts: [p]);
-      await tx.commit();
-    });
-  }
-
-  Future _removeUploaderFromVersion(Key pvKey, String userId) async {
-    await _db.withTransaction((tx) async {
-      final pv = (await tx.lookup<PackageVersion>([pvKey])).single;
-      pv.uploader = null;
-      tx.queueMutations(inserts: [pv]);
       await tx.commit();
     });
   }
@@ -198,6 +183,18 @@ class AdminBackend {
     });
 
     return otherMembers.first;
+  }
+
+  Future _markUserDeleted(User user) async {
+    await _db.withTransaction((tx) async {
+      final u = (await tx.lookup<User>([user.key])).single;
+      u
+        ..oauthUserId = null
+        ..created = null
+        ..deletedFlag = true;
+      tx.queueMutations(inserts: [u]);
+      await tx.commit();
+    });
   }
 }
 

@@ -21,6 +21,11 @@ class User extends db.ExpandoModel {
 
   @db.DateTimeProperty()
   DateTime created;
+
+  @db.BoolProperty()
+  bool deletedFlag;
+
+  bool get isDeleted => deletedFlag == true;
 }
 
 /// Maps Oauth user_id to User.id

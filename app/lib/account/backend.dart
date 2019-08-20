@@ -177,7 +177,11 @@ class AccountBackend {
     if (auth == null) {
       return null;
     }
-    return await _lookupOrCreateUserByOauthUserId(auth);
+    final user = await _lookupOrCreateUserByOauthUserId(auth);
+    if (user.isDeleted) {
+      return null;
+    }
+    return user;
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
