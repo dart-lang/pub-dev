@@ -35,21 +35,21 @@ void main() {
 
     group('Create publisher', () {
       testWithServices('verified.com', () async {
-        final api = createPubApiClient(authToken: hansAuthenticated.userId);
+        final api = createPubApiClient(authToken: hansUser.userId);
 
         // Check that we can create the publisher
         final r1 = await api.createPublisher(
           'verified.com',
           CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
         );
-        expect(r1.contactEmail, hansAuthenticated.email);
+        expect(r1.contactEmail, hansUser.email);
 
         // Check that creating again idempotently works too
         final r2 = await api.createPublisher(
           'verified.com',
           CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
         );
-        expect(r2.contactEmail, hansAuthenticated.email);
+        expect(r2.contactEmail, hansUser.email);
 
         // Check that we can update the description
         final r3 = await api.updatePublisher(
@@ -62,12 +62,12 @@ void main() {
         final r4 = await api.publisherInfo('verified.com');
         expect(r4.toJson(), {
           'description': 'hello-world',
-          'contactEmail': hansAuthenticated.email,
+          'contactEmail': hansUser.email,
         });
       });
 
       testWithServices('notverified.com', () async {
-        final api = createPubApiClient(authToken: hansAuthenticated.userId);
+        final api = createPubApiClient(authToken: hansUser.userId);
 
         // Check that we can create the publisher
         final rs = api.createPublisher(
@@ -98,7 +98,7 @@ void main() {
       );
 
       testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansAuthenticated.userId);
+        final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(description: 'new description'),
@@ -361,7 +361,7 @@ void main() {
       );
 
       testWithServices('OK', () async {
-        final client = createPubApiClient(authToken: hansAuthenticated.userId);
+        final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.listPublisherMembers('example.com');
         expect(_json(rs.toJson()), {
           'members': [
@@ -530,7 +530,7 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
 
   testWithServices('Active user is not a member', () async {
     await dbService.commit(deletes: [exampleComHansAdmin.key]);
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -539,7 +539,7 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
     await dbService.commit(inserts: [
       publisherMember(hansUser.userId, 'non-admin'),
     ]);
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
   });
@@ -547,7 +547,7 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
 
 void _testNoPublisher(Future fn(PubApiClient client)) {
   testWithServices('No publisher with given id', () async {
-    final client = createPubApiClient(authToken: hansAuthenticated.userId);
+    final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 404, code: 'NotFound');
   });
