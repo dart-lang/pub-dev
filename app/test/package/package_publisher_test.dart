@@ -91,7 +91,7 @@ void main() {
       await dbService.commit(inserts: [
         publisherMember(hansUser.userId, 'non-admin'),
       ]);
-      registerAuthenticatedUser(hansAuthenticated);
+      registerAuthenticatedUser(hansUser);
       final tarball = await packageArchiveBytes(
           pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
       final rs =
@@ -108,7 +108,7 @@ void main() {
         hydrogen.package.name,
         PackagePublisherInfo(publisherId: 'example.com'),
       );
-      registerAuthenticatedUser(hansAuthenticated);
+      registerAuthenticatedUser(hansUser);
       final tarball = await packageArchiveBytes(
           pubspecContent: generatePubspecYaml('hydrogen', '3.0.0'));
       final pv = await packageBackend.repository
