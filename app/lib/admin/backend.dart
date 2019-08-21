@@ -191,7 +191,7 @@ class AdminBackend {
       u
         ..oauthUserId = null
         ..created = null
-        ..deletedFlag = true;
+        ..isDeleted = true;
       tx.queueMutations(inserts: [u]);
       await tx.commit();
     });
