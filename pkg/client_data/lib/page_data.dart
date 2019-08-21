@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 part 'page_data.g.dart';
+
+/// Codec to serialize the [PageData] JSON content on the HTML page.
+final pageDataJsonCodec = json.fuse(utf8).fuse(base64);
 
 /// The server-provided config/data for the current page.
 ///

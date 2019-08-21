@@ -54,9 +54,9 @@ String renderLayoutPage(
       : serializeSearchOrder(searchQuery.order);
   final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
-  final pageDataJson = pageData == null
+  final pageDataEncoded = pageData == null
       ? null
-      : json.encode({'@context': 'https://pub.dev', 'data': pageData.toJson()});
+      : htmlAttrEscape.convert(pageDataJsonCodec.encode(pageData.toJson()));
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
@@ -92,7 +92,7 @@ String renderLayoutPage(
     'package_banner': type == PageType.package,
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
-    'page_data_json': pageDataJson,
+    'page_data_encoded': pageDataEncoded,
   };
   return templateCache.renderTemplate('layout', values);
 }
