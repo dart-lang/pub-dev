@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:html';
 
 import 'package:client_data/page_data.dart';
@@ -11,24 +10,20 @@ PageData _data;
 
 /// The server-provided config/data for the current page.
 ///
-/// This is the `application/ld+json` data embedded in the page with
-/// `"@context":"https://pub.dev"`.
+/// This is the <meta name="pub-page-data" content="[json-data]"> embedded in
+/// the `head` section of the HTML page.
 PageData get pageData {
   return _data ??= _extractData() ?? PageData();
 }
 
 PageData _extractData() {
-  final scripts = document.body.children
-      .where((e) => e.tagName.toLowerCase() == 'script')
-      .where((e) => e.attributes['type'] == 'application/ld+json');
-  for (final script in scripts) {
+  final meta = document.head.querySelector('meta[name="pub-page-data"]');
+  if (meta != null) {
     try {
-      final map = json.decode(script.text) as Map<String, dynamic>;
+      final text = meta.attributes['content'];
+      final map = pageDataJsonCodec.decode(text) as Map<String, dynamic>;
       print(map);
-      if (map['@context'] == 'https://pub.dev') {
-        final json = map['data'] as Map<String, dynamic>;
-        return PageData.fromJson(json);
-      }
+      return PageData.fromJson(map);
     } catch (_) {
       // ignore exception
     }
