@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:logging/logging.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
@@ -19,7 +18,6 @@ import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
-final _logger = Logger('pub.account.backend');
 final _uuid = Uuid();
 
 /// Sets the account backend service.
@@ -178,16 +176,7 @@ class AccountBackend {
     if (auth == null) {
       return null;
     }
-    final user = await _lookupOrCreateUserByOauthUserId(auth);
-    if (user.isDeleted) {
-      // We don't expect this to happen, but it might, e.g. when an account was
-      // created with a non-Google e-mail address, and later deleted, then
-      // re-created.
-      _logger.severe(
-          'Authentication attempt with a deleted User: ${user.userId} ${user.email}');
-      return null;
-    }
-    return user;
+    return await _lookupOrCreateUserByOauthUserId(auth);
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
@@ -216,9 +205,10 @@ class AccountBackend {
           .toList();
       // TODO: trigger consistency mitigation if more than one email exists
       if (usersWithEmail.length == 1 &&
-          usersWithEmail.single.oauthUserId == null) {
-        // We've found a single pre-migrated User with empty oauthUserId: need
-        // to create OAuthUserID for it.
+          usersWithEmail.single.oauthUserId == null &&
+          !usersWithEmail.single.isDeleted) {
+        // We've found a single pre-migrated, non-deleted User with empty
+        // `oauthUserId` field: need to create OAuthUserID for it.
         final updatedUser = await _db.withTransaction((tx) async {
           final user =
               (await tx.lookup<User>([usersWithEmail.single.key])).single;
