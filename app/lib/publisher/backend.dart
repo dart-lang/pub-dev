@@ -119,6 +119,7 @@ class PublisherBackend {
         PublisherMember()
           ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
           ..id = authenticatedUser.userId
+          ..userId = authenticatedUser.userId
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin
@@ -294,6 +295,7 @@ class PublisherBackend {
         PublisherMember()
           ..parentKey = key.parent
           ..id = userId
+          ..userId = userId
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin

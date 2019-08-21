@@ -6,6 +6,7 @@ import 'package:gcloud/storage.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../admin/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/backend.dart';
 import '../dartdoc/dartdoc_client.dart';
@@ -50,6 +51,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 Future<void> withPubServices(FutureOr<void> Function() fn) async {
   return fork(() async {
     registerAccountBackend(AccountBackend(dbService));
+    registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(

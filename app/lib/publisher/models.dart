@@ -19,6 +19,10 @@ class Publisher extends db.ExpandoModel {
   @db.StringProperty()
   String websiteUrl;
 
+  /// The e-mail address which other users can use to contact the publisher.
+  ///
+  /// This may be `null` if the publisher [isAbandoned] and the [Publisher]
+  /// entity is retained for audit purposes.
   @db.StringProperty()
   String contactEmail;
 
@@ -27,6 +31,25 @@ class Publisher extends db.ExpandoModel {
 
   @db.DateTimeProperty()
   DateTime updated;
+
+  /// Set to `true` if [Publisher] is abandoned, may otherwise be `null` or `false`.
+  ///
+  /// Use [isAbandoned] to avoid `null` checking.
+  @db.BoolProperty(propertyName: 'isAbandoned')
+  bool isAbandonedFlag;
+
+  /// [isAbandoned] is set when a [Publisher] is abandoned (all of its members left).
+  /// When this happens possible user-data such as [contactEmail] are purged.
+  ///
+  /// However, we retain the [Publisher] entity if and only if their members have
+  /// uploaded packages or appears in the history by other means. This is to
+  /// ensure that we can see:
+  /// (A) who uploaded a package, and,
+  /// (B) who granted the permissions that allowed said package to be uploaded.
+  bool get isAbandoned => isAbandoned == true;
+  set isAbandoned(bool value) {
+    isAbandonedFlag = value;
+  }
 }
 
 /// Derived publisher data.
@@ -72,15 +95,16 @@ class PublisherMember extends db.ExpandoModel {
   String get publisherId => publisherKey.id as String;
 
   /// The userId of the member.
-  String get userId => id as String;
+  @db.StringProperty(required: true)
+  String userId;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime created;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   /// One of [PublisherMemberRole].
-  @db.StringProperty()
+  @db.StringProperty(required: true)
   String role;
 }

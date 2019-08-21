@@ -13,14 +13,42 @@ class User extends db.ExpandoModel {
   /// A random UUID id.
   String get userId => id as String;
 
+  /// The Google OAuth2 ID of the [User].
+  ///
+  /// This may be `null` for users that never logged in since we've started
+  /// tracking authentications, or if the user [isDeleted] and the [User] entity
+  /// is retained for audit purposes.
   @db.StringProperty()
   String oauthUserId;
 
   @db.StringProperty()
   String email;
 
+  /// [DateTime] the [User] entity was created.
+  ///
+  /// This may be `null` if the user [isDeleted] and the [User] entity is
+  /// retained for audit purposes.
   @db.DateTimeProperty()
   DateTime created;
+
+  /// Set to `true` if user is deleted, may otherwise be `null` or `false`.
+  ///
+  /// Use [isDeleted] to avoid `null` checking.
+  @db.BoolProperty(propertyName: 'isDeleted')
+  bool isDeletedFlag;
+
+  /// [isDeleted] is set when a user account is deleted.
+  /// When this happens user-data such as preferences are purged.
+  ///
+  /// However, we retain the user entity if and only if the user has uploaded
+  /// packages or appears in the history by other means. This is to ensure that
+  /// we can see:
+  /// (A) who uploaded a package, and,
+  /// (B) who granted the permissions that allowed said package to be uploaded.
+  bool get isDeleted => isDeletedFlag == true;
+  set isDeleted(bool value) {
+    isDeletedFlag = value;
+  }
 }
 
 /// Maps Oauth user_id to User.id

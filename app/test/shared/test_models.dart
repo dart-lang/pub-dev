@@ -50,6 +50,15 @@ final testUserA = User()
   ..id = 'a-example-com'
   ..email = 'a@example.com'
   ..created = DateTime(2019, 01, 01);
+final adminUser = User()
+  ..id = 'admin-at-pub-dot-dev'
+  ..oauthUserId = 'admin-pub-dev'
+  ..email = 'admin@pub.dev'
+  ..created = DateTime(2019, 08, 01);
+final adminOAuthUserID = OAuthUserID()
+  ..id = 'admin-pub-dev'
+  ..userIdKey =
+      Key.emptyKey(Partition(null)).append(User, id: 'admin-at-pub-dot-dev');
 
 Package createFoobarPackage({String name, List<User> uploaders}) {
   name ??= foobarPkgKey.id as String;
@@ -174,6 +183,7 @@ PublisherMember publisherMember(String userId, String role, {Key parentKey}) =>
     PublisherMember()
       ..parentKey = parentKey ?? exampleComPublisher.key
       ..id = userId
+      ..userId = userId
       ..created = DateTime(2019, 07, 16)
       ..updated = DateTime(2019, 07, 16)
       ..role = role;

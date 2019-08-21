@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
@@ -206,9 +205,10 @@ class AccountBackend {
           .toList();
       // TODO: trigger consistency mitigation if more than one email exists
       if (usersWithEmail.length == 1 &&
-          usersWithEmail.single.oauthUserId == null) {
-        // We've found a single pre-migrated User with empty oauthUserId: need
-        // to create OAuthUserID for it.
+          usersWithEmail.single.oauthUserId == null &&
+          !usersWithEmail.single.isDeleted) {
+        // We've found a single pre-migrated, non-deleted User with empty
+        // `oauthUserId` field: need to create OAuthUserID for it.
         final updatedUser = await _db.withTransaction((tx) async {
           final user =
               (await tx.lookup<User>([usersWithEmail.single.key])).single;

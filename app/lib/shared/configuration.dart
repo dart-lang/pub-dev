@@ -91,6 +91,9 @@ class Configuration {
   /// The base URI to use for HTML content.
   final Uri primarySiteUri;
 
+  /// The OAuth user ids of the admins.
+  final List<String> admins;
+
   /// Create a configuration for production deployment.
   ///
   /// This will use the Datastore from the cloud project and the Cloud Storage
@@ -116,6 +119,7 @@ class Configuration {
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
+      admins: [],
     );
   }
 
@@ -140,6 +144,9 @@ class Configuration {
       productionHosts: const ['dartlang-pub-dev.appspot.com'],
       primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
       primarySiteUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
+      admins: [
+        '111042304059633250784', // isoos
+      ],
     );
   }
 
@@ -160,6 +167,7 @@ class Configuration {
     @required this.productionHosts,
     @required this.primaryApiUri,
     @required this.primarySiteUri,
+    @required this.admins,
   });
 
   /// Create a configuration based on the environment variables.
@@ -195,6 +203,7 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$port/'),
       primarySiteUri: Uri.parse('http://localhost:$port/'),
+      admins: ['admin-pub-dev'],
     );
   }
 
@@ -217,6 +226,7 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
+      admins: ['admin-pub-dev'],
     );
   }
 }

@@ -55,6 +55,8 @@ void testWithServices(String name, Future fn()) {
         testUserA,
         hansUser,
         joeUser,
+        adminUser,
+        adminOAuthUserID,
         hydrogen.package,
         ...hydrogen.versions,
         helium.package,
