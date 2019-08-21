@@ -133,6 +133,7 @@ class AdminBackend {
       }
 
       // User
+      // TODO: consider deleting User if there are no other references to it
       await _markUserDeleted(user);
     });
   }
@@ -157,6 +158,7 @@ class AdminBackend {
       if (seniorMember == null) {
         p.isAbandoned = true;
         p.contactEmail = null;
+        // TODO: consider deleting Publisher if there are no other references to it
       } else if (p.contactEmail == user.email) {
         final seniorUser =
             await accountBackend.lookupUserById(seniorMember.userId);
