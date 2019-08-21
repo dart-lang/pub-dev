@@ -220,15 +220,10 @@ class PublisherBackend {
   /// The list of e-mail addresses of the members with admin roles. The list
   /// should be used to notify admins on upload events.
   Future<List<String>> getAdminMemberEmails(String publisherId) async {
-    final result = <String>[];
     final key = _db.emptyKey.append(Publisher, id: publisherId);
-    final query = _db.query<PublisherMember>(ancestorKey: key)
-      ..filter('role =', PublisherMemberRole.admin);
-    await for (final m in query.run()) {
-      final email = await accountBackend.getEmailOfUserId(m.userId);
-      result.add(email);
-    }
-    return result;
+    final query = _db.query<PublisherMember>(ancestorKey: key);
+    final userIds = await query.run().map((m) => m.userId).toList();
+    return await accountBackend.getEmailsOfUserIds(userIds);
   }
 
   /// Returns the membership info of a user.
