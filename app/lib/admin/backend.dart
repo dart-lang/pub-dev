@@ -155,6 +155,7 @@ class AdminBackend {
     await _db.withTransaction((tx) async {
       final p = (await tx.lookup<Publisher>([member.publisherKey])).single;
       if (seniorMember == null) {
+        p.isAbandoned = true;
         p.contactEmail = null;
       } else if (p.contactEmail == user.email) {
         final seniorUser =
