@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:client_data/admin_api.dart' as api;
-import 'package:continuation_token/continuation_token.dart';
+import 'package:convert/convert.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -17,7 +19,7 @@ import '../shared/configuration.dart';
 import '../shared/exceptions.dart';
 
 final _logger = Logger('pub.admin.backend');
-final _continuationCodec = stringContinuationCodec();
+final _continuationCodec = utf8.fuse(hex);
 
 /// Sets the admin backend service.
 void registerAdminBackend(AdminBackend backend) =>

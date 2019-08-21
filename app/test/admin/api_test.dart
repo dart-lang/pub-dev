@@ -80,7 +80,8 @@ void main() {
                 'email': 'hans@juergen.com',
               },
             ],
-            'continuationToken': 'aGFucy1hdC1qdWVyZ2VuLWRvdC1jb20',
+            'continuationToken':
+                '68616e732d61742d6a75657267656e2d646f742d636f6d',
           },
         );
 
