@@ -123,16 +123,8 @@ class AdminBackend {
         await _removeMember(user, m);
       }
 
-      // OAuthUserID
-      if (user.oauthUserId != null) {
-        final key = _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
-        final mapping = (await _db.lookup<OAuthUserID>([key])).single;
-        if (mapping != null) {
-          await _db.commit(deletes: [mapping.key]);
-        }
-      }
-
       // User
+      // OAuthUserID
       // TODO: consider deleting User if there are no other references to it
       await _markUserDeleted(user);
     });
@@ -198,11 +190,21 @@ class AdminBackend {
   Future _markUserDeleted(User user) async {
     await _db.withTransaction((tx) async {
       final u = (await tx.lookup<User>([user.key])).single;
+      final deleteKeys = <Key>[];
+      if (user.oauthUserId != null) {
+        final mappingKey =
+            _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
+        final mapping = (await tx.lookup<OAuthUserID>([mappingKey])).single;
+        if (mapping != null) {
+          deleteKeys.add(mappingKey);
+        }
+      }
+
       u
         ..oauthUserId = null
         ..created = null
         ..isDeleted = true;
-      tx.queueMutations(inserts: [u]);
+      tx.queueMutations(inserts: [u], deletes: deleteKeys);
       await tx.commit();
     });
   }
