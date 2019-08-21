@@ -188,14 +188,15 @@ void main() {
 
       testWithServices('not authorized', () async {
         final pkg = foobarPackage.name;
-        registerAuthenticatedUser(
-            AuthenticatedUser('uuid-foo-at-bar-dot-com', 'foo@bar.com'));
+        registerAuthenticatedUser(User()
+          ..id = 'uuid-foo-at-bar-dot-com'
+          ..email = 'foo@bar.com');
         final rs = packageBackend.repository.addUploader(pkg, 'a@b.com');
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final rs =
             packageBackend.repository.addUploader('no_package', 'a@b.com');
         await expectLater(rs, throwsA(isA<NotFoundException>()));
@@ -215,7 +216,7 @@ void main() {
       }
 
       testWithServices('already exists', () async {
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final ucEmail = 'Hans@Juergen.Com';
         await testAlreadyExists('p1', [hansUser], hansUser.email);
         await testAlreadyExists('p2', [hansUser], ucEmail);
@@ -224,7 +225,7 @@ void main() {
       });
 
       testWithServices('successful', () async {
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
 
         final newUploader = 'somebody@example.com';
         final rs = packageBackend.repository
@@ -267,21 +268,21 @@ void main() {
         pkg.removeUploader(hansUser.userId);
         await dbService.commit(inserts: [pkg]);
 
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final rs = packageBackend.repository
             .removeUploader('hydrogen', hansUser.email);
         await expectLater(rs, throwsA(isA<AuthorizationException>()));
       });
 
       testWithServices('package does not exist', () async {
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final rs = packageBackend.repository
             .removeUploader('non_hydrogen', hansUser.email);
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
       testWithServices('cannot remove last uploader', () async {
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final rs = packageBackend.repository
             .removeUploader('hydrogen', hansUser.email);
         await expectLater(
@@ -291,7 +292,7 @@ void main() {
       });
 
       testWithServices('cannot remove non-existent uploader', () async {
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final rs = packageBackend.repository
             .removeUploader('hydrogen', 'foo2@bar.com');
         await expectLater(
@@ -307,7 +308,7 @@ void main() {
         pkg.addUploader(testUserA.userId);
         await dbService.commit(inserts: [pkg]);
 
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         final rs = packageBackend.repository
             .removeUploader('hydrogen', hansUser.email);
         await expectLater(
@@ -327,7 +328,7 @@ void main() {
         final pkg2 = (await dbService.lookup<Package>([key])).single;
         expect(pkg2.uploaders, [hansUser.userId, testUserA.userId]);
 
-        registerAuthenticatedUser(hansAuthenticated);
+        registerAuthenticatedUser(hansUser);
         await packageBackend.repository
             .removeUploader('hydrogen', testUserA.email);
 
@@ -388,7 +389,7 @@ void main() {
 
         testWithServices('successful', () async {
           final Uri redirectUri = Uri.parse('http://blobstore.com/upload');
-          registerAuthenticatedUser(hansAuthenticated);
+          registerAuthenticatedUser(hansUser);
           final info =
               await packageBackend.repository.startAsyncUpload(redirectUri);
           expect(info.uri.toString(),
@@ -405,7 +406,7 @@ void main() {
             Uri.parse('http://blobstore.com/upload?upload_id=my-uuid');
 
         testWithServices('upload-too-big', () async {
-          registerAuthenticatedUser(hansAuthenticated);
+          registerAuthenticatedUser(hansUser);
 
           final oneKB = List.filled(1024, 42);
           final bigTarball = <List<int>>[];
@@ -431,7 +432,7 @@ void main() {
         });
 
         testWithServices('successful', () async {
-          registerAuthenticatedUser(hansAuthenticated);
+          registerAuthenticatedUser(hansUser);
 
           final dateBeforeTest = DateTime.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
@@ -490,8 +491,7 @@ void main() {
         });
 
         testWithServices('not authorized', () async {
-          registerAuthenticatedUser(
-              AuthenticatedUser(joeUser.userId, joeUser.email));
+          registerAuthenticatedUser(joeUser);
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml(foobarPackage.name, '0.2.0'));
           final rs =
@@ -500,8 +500,7 @@ void main() {
         });
 
         testWithServices('versions already exist', () async {
-          registerAuthenticatedUser(
-              AuthenticatedUser(joeUser.userId, joeUser.email));
+          registerAuthenticatedUser(joeUser);
           final tarball = await packageArchiveBytes();
           final rs =
               packageBackend.repository.upload(Stream.fromIterable([tarball]));
@@ -517,7 +516,7 @@ void main() {
 
         testWithServices('bad package names are rejected', () async {
           await nameTracker.scanDatastore();
-          registerAuthenticatedUser(hansAuthenticated);
+          registerAuthenticatedUser(hansUser);
 
           // Returns the error message as String or null if it succeeded.
           Future<String> fn(String name) async {
@@ -545,7 +544,7 @@ void main() {
         });
 
         testWithServices('upload-too-big', () async {
-          registerAuthenticatedUser(hansAuthenticated);
+          registerAuthenticatedUser(hansUser);
 
           final oneKB = List.filled(1024, 42);
           final List<List<int>> bigTarball = [];
@@ -567,7 +566,7 @@ void main() {
         });
 
         testWithServices('successful upload + download', () async {
-          registerAuthenticatedUser(hansAuthenticated);
+          registerAuthenticatedUser(hansUser);
           final tarball = await packageArchiveBytes(
               pubspecContent: generatePubspecYaml(foobarPackage.name, '1.2.3'));
           final version = await packageBackend.repository

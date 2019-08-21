@@ -30,18 +30,17 @@ AccountBackend get accountBackend =>
     ss.lookup(#_accountBackend) as AccountBackend;
 
 /// Sets the active authenticated user.
-void registerAuthenticatedUser(AuthenticatedUser user) =>
+void registerAuthenticatedUser(User user) =>
     ss.register(#_authenticated_user, user);
 
 /// The active authenticated user.
-AuthenticatedUser get authenticatedUser =>
-    ss.lookup(#_authenticated_user) as AuthenticatedUser;
+User get authenticatedUser => ss.lookup(#_authenticated_user) as User;
 
 /// Calls [fn] with the currently authenticated user as an argument.
 ///
 /// If no user is currently authenticated, this will throw an
 /// `AuthenticationException` exception.
-Future<R> withAuthenticatedUser<R>(Future<R> fn(AuthenticatedUser user)) async {
+Future<R> withAuthenticatedUser<R>(Future<R> fn(User user)) async {
   if (authenticatedUser == null) {
     throw AuthenticationException.authenticationRequired();
   }
@@ -173,13 +172,12 @@ class AccountBackend {
   /// When no associated User entry exists in Datastore, this method will create
   /// a new one. When the authenticated e-mail of the user changes, the email
   /// field will be updated to the latest one.
-  Future<AuthenticatedUser> authenticateWithBearerToken(String token) async {
+  Future<User> authenticateWithBearerToken(String token) async {
     final auth = await _authProvider.tryAuthenticate(token);
     if (auth == null) {
       return null;
     }
-    final user = await _lookupOrCreateUserByOauthUserId(auth);
-    return AuthenticatedUser(user.userId, user.email);
+    return await _lookupOrCreateUserByOauthUserId(auth);
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
@@ -256,11 +254,4 @@ class AccountBackend {
 
     return user;
   }
-}
-
-class AuthenticatedUser {
-  final String userId;
-  final String email;
-
-  AuthenticatedUser(this.userId, this.email);
 }

@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/package/model_properties.dart';
 import 'package:pub_dartlang_org/package/models.dart';
@@ -51,9 +50,6 @@ final testUserA = User()
   ..id = 'a-example-com'
   ..email = 'a@example.com'
   ..created = DateTime(2019, 01, 01);
-
-final hansAuthenticated =
-    AuthenticatedUser('hans-at-juergen-dot-com', 'hans@juergen.com');
 
 Package createFoobarPackage({String name, List<User> uploaders}) {
   name ??= foobarPkgKey.id as String;

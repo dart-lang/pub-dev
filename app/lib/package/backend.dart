@@ -21,6 +21,7 @@ import 'package:pub_server/shelf_pubserver.dart'
 import 'package:uuid/uuid.dart';
 
 import '../account/backend.dart';
+import '../account/models.dart' show User;
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../frontend/email_sender.dart';
@@ -513,7 +514,7 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future<PackageVersion> upload(Stream<List<int>> data) {
     _logger.info('Starting upload.');
-    return withAuthenticatedUser((AuthenticatedUser user) {
+    return withAuthenticatedUser((user) {
       _logger.info('User: ${user.userId} / ${user.email}.');
 
       return withTempDirectory((Directory dir) async {
@@ -536,7 +537,7 @@ class GCloudPackageRepository extends PackageRepository {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    return withAuthenticatedUser((AuthenticatedUser user) {
+    return withAuthenticatedUser((user) {
       _logger.info('User: ${user.email}.');
 
       final guid = uuid.v4().toString();
@@ -555,7 +556,7 @@ class GCloudPackageRepository extends PackageRepository {
   /// Finishes the upload of a package.
   @override
   Future<PackageVersion> finishAsyncUpload(Uri uri) {
-    return withAuthenticatedUser((AuthenticatedUser user) async {
+    return withAuthenticatedUser((user) async {
       final guid = uri.queryParameters['upload_id'];
       _logger.info('Finishing async upload (uuid: $guid)');
       _logger.info('Reading tarball from cloud storage.');
@@ -573,9 +574,7 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future<PackageVersion> _performTarballUpload(
-      AuthenticatedUser user,
-      String filename,
+  Future<PackageVersion> _performTarballUpload(User user, String filename,
       Future tarballUpload(String name, String version)) async {
     _logger.info('Examining tarball content.');
 
@@ -758,7 +757,7 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    await withAuthenticatedUser((AuthenticatedUser user) async {
+    await withAuthenticatedUser((user) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await db.lookup([packageKey])).first as models.Package;
 
@@ -810,7 +809,7 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   Future confirmUploader(String fromUserId, String fromUserEmail,
-      String packageName, AuthenticatedUser uploader) async {
+      String packageName, User uploader) async {
     if (fromUserId == null) {
       final user =
           await accountBackend.lookupOrCreateUserByEmail(fromUserEmail);
@@ -871,7 +870,7 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    return withAuthenticatedUser((AuthenticatedUser user) {
+    return withAuthenticatedUser((user) {
       return db.withTransaction((Transaction T) async {
         final packageKey = db.emptyKey.append(models.Package, id: packageName);
         final package = (await T.lookup([packageKey])).first as models.Package;
@@ -990,7 +989,7 @@ class _ValidatedUpload {
 ///   * reads readme, changelog and pubspec files
 ///   * creates a [models.PackageVersion] and populates it with all metadata
 Future<_ValidatedUpload> _parseAndValidateUpload(
-    DatastoreDB db, String filename, AuthenticatedUser user) async {
+    DatastoreDB db, String filename, User user) async {
   assert(user != null);
 
   final archive = await summarizePackageArchive(filename);
