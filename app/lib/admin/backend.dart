@@ -7,6 +7,7 @@ import 'package:continuation_token/continuation_token.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pool/pool.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
@@ -103,10 +104,16 @@ class AdminBackend {
           '${u.userId} (${u.email}) initiated the delete of ${user.userId} (${user.email})');
 
       // Package.uploaders
+      final pool = Pool(10);
+      final futures = <Future>[];
       final pkgQuery = _db.query<Package>()..filter('uploaders =', user.userId);
       await for (final p in pkgQuery.run()) {
-        await _removeUploaderFromPackage(p.key, user.userId);
+        final f = pool
+            .withResource(() => _removeUploaderFromPackage(p.key, user.userId));
+        futures.add(f);
       }
+      await Future.wait(futures);
+      await pool.close();
 
       // PublisherMember
       // Publisher.contactEmail
