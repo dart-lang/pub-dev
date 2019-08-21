@@ -33,14 +33,12 @@ class AdminBackend {
   final DatastoreDB _db;
   AdminBackend(this._db);
 
-  Future<R> _withAdmin<R>(Future<R> fn(AuthenticatedUser user)) async {
-    return await withAuthenticatedUser((u) async {
-      // TODO: remove once [withAuthenticatedUser] is using [User]
-      final user = await accountBackend.lookupUserById(u.userId);
+  Future<R> _withAdmin<R>(Future<R> fn(User user)) async {
+    return await withAuthenticatedUser((user) async {
       if (!activeConfiguration.admins.contains(user.oauthUserId)) {
         throw AuthorizationException.userIsNotAdminForPubSite();
       }
-      return await fn(u);
+      return await fn(user);
     });
   }
 

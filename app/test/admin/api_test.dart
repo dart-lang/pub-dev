@@ -56,8 +56,7 @@ void main() {
       });
 
       testWithServices('pagination', () async {
-        registerAuthenticatedUser(
-            AuthenticatedUser(adminUser.userId, adminUser.email));
+        registerAuthenticatedUser(adminUser);
 
         final page1 = await adminBackend.listUsers(limit: 3);
         expect(
