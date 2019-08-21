@@ -29,7 +29,10 @@ flutter:
 
 // Regular package with dev releases.
 final lithium = generateBundle(
-    'lithium', generateVersions(19, increment: 27, devOffset: 5));
+  'lithium',
+  generateVersions(19, increment: 27, devOffset: 5),
+  publisherId: exampleComPublisher.publisherId,
+);
 
 final Key foobarPkgKey =
     Key.emptyKey(Partition(null)).append(Package, id: 'foobar_pkg');
@@ -263,7 +266,9 @@ PkgBundle generateBundle(
     ..id = name
     ..name = name
     ..downloads = 0
-    ..uploaders = uploaders.map((u) => u.userId).toList();
+    ..publisherId = publisherId
+    ..uploaders =
+        publisherId != null ? [] : uploaders.map((u) => u.userId).toList();
 
   DateTime ts = DateTime(2014);
   final versions = <PackageVersion>[];

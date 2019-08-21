@@ -451,6 +451,7 @@ void main() {
           expect(package.name, 'new_package');
           expect(package.latestVersion, '1.2.3');
           expect(package.uploaders, ['hans-at-juergen-dot-com']);
+          expect(package.publisherId, isNull);
           expect(package.created.compareTo(dateBeforeTest) >= 0, isTrue);
           expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
 
@@ -465,6 +466,7 @@ void main() {
           expect(pv.pubspec.asJson, loadYaml(pubspecContent));
           expect(pv.libraries, ['test_library.dart']);
           expect(pv.uploader, 'hans-at-juergen-dot-com');
+          expect(pv.publisherId, isNull);
           expect(pv.downloads, 0);
           expect(pv.sortOrder, 0);
 
@@ -476,6 +478,56 @@ void main() {
               email.bodyText,
               contains(
                   'https://pub.dev/packages/new_package/versions/1.2.3\n'));
+
+          // TODO: check history
+          // TODO: check assets
+        });
+
+        testWithServices('package under publisher', () async {
+          registerAuthenticatedUser(hansUser);
+
+          final dateBeforeTest = DateTime.now().toUtc();
+          final pubspecContent = generatePubspecYaml('lithium', '7.0.0');
+          await packageBackend.repository.storage.bucket.writeBytes(
+              'tmp/my-uuid',
+              await packageArchiveBytes(pubspecContent: pubspecContent));
+
+          final version =
+              await packageBackend.repository.finishAsyncUpload(redirectUri);
+          expect(version.packageName, 'lithium');
+          expect(version.versionString, '7.0.0');
+
+          final pkgKey =
+              dbService.emptyKey.append(Package, id: version.packageName);
+          final package = (await dbService.lookup<Package>([pkgKey])).single;
+          expect(package.name, 'lithium');
+          expect(package.latestVersion, '7.0.0');
+          expect(package.publisherId, 'example.com');
+          expect(package.uploaders, []);
+          expect(package.created.compareTo(dateBeforeTest) < 0, isTrue);
+          expect(package.updated.compareTo(dateBeforeTest) >= 0, isTrue);
+
+          final pvKey = package.latestVersionKey;
+          final pv = (await dbService.lookup<PackageVersion>([pvKey])).single;
+          expect(pv.packageKey, package.key);
+          expect(pv.created.compareTo(dateBeforeTest) >= 0, isTrue);
+          expect(pv.readmeFilename, 'README.md');
+          expect(pv.readmeContent, foobarReadmeContent);
+          expect(pv.changelogFilename, 'CHANGELOG.md');
+          expect(pv.changelogContent, foobarChangelogContent);
+          expect(pv.pubspec.asJson, loadYaml(pubspecContent));
+          expect(pv.libraries, ['test_library.dart']);
+          expect(pv.uploader, 'hans-at-juergen-dot-com');
+          expect(pv.publisherId, 'example.com');
+          expect(pv.downloads, 0);
+          expect(pv.sortOrder, 19);
+
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.recipients.single.email, hansUser.email);
+          expect(email.subject, 'Package uploaded: lithium 7.0.0');
+          expect(email.bodyText,
+              contains('https://pub.dev/packages/lithium/versions/7.0.0\n'));
 
           // TODO: check history
           // TODO: check assets

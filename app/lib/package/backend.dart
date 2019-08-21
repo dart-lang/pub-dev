@@ -683,8 +683,9 @@ class GCloudPackageRepository extends PackageRepository {
     });
 
     try {
-      final uploaderEmails =
-          await accountBackend.getEmailsOfUserIds(package.uploaders);
+      final uploaderEmails = package.publisherId == null
+          ? await accountBackend.getEmailsOfUserIds(package.uploaders)
+          : await publisherBackend.getAdminMemberEmails(package.publisherId);
 
       // Notify uploaders via e-mail that a new version has been published.
       final email = emailSender.sendMessage(
