@@ -513,17 +513,16 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future<PackageVersion> upload(Stream<List<int>> data) {
-    _logger.info('Starting upload.');
-    return withAuthenticatedUser((user) {
-      _logger.info('User: ${user.userId} / ${user.email}.');
-
-      return withTempDirectory((Directory dir) async {
-        final filename = '${dir.absolute.path}/tarball.tar.gz';
-        await _saveTarballToFS(data, filename);
-        return _performTarballUpload(user, filename, (package, version) {
-          return storage.upload(package, version, File(filename).openRead());
-        });
-      });
+    return withAuthenticatedUser((user) async {
+      final guid = uuid.v4().toString();
+      _logger.info('Starting semi-async upload (uuid: $guid)');
+      final object = storage.tempObjectName(guid);
+      await data.pipe(storage.bucket.write(object));
+      final finishUri = Uri(
+        path: '/api/packages/versions/newUploadFinish',
+        queryParameters: {'upload_id': guid},
+      );
+      return await finishAsyncUpload(finishUri);
     });
   }
 
