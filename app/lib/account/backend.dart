@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-
+import 'package:logging/logging.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
@@ -19,6 +19,7 @@ import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
+final _logger = Logger('pub.account.backend');
 final _uuid = Uuid();
 
 /// Sets the account backend service.
@@ -179,6 +180,11 @@ class AccountBackend {
     }
     final user = await _lookupOrCreateUserByOauthUserId(auth);
     if (user.isDeleted) {
+      // We don't expect this to happen, but it might, e.g. when an account was
+      // created with a non-Google e-mail address, and later deleted, then
+      // re-created.
+      _logger.severe(
+          'Authentication attempt with a deleted User: ${user.userId} ${user.email}');
       return null;
     }
     return user;
