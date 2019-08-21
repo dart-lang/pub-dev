@@ -13,12 +13,21 @@ class User extends db.ExpandoModel {
   /// A random UUID id.
   String get userId => id as String;
 
+  /// The Google OAuth2 ID of the [User].
+  ///
+  /// This may be `null` for users that never logged in since we've started
+  /// tracking authentications, or if the user [isDeleted] and the [User] entity
+  /// is retained for audit purposes.
   @db.StringProperty()
   String oauthUserId;
 
   @db.StringProperty()
   String email;
 
+  /// [DateTime] the [User] entity was created.
+  ///
+  /// This may be `null` if the user [isDeleted] and the [User] entity is
+  /// retained for audit purposes.
   @db.DateTimeProperty()
   DateTime created;
 
