@@ -54,6 +54,8 @@ Future main(List<String> args) async {
       if (user.email != null && user.email.isNotEmpty) {
         _emailToUser.putIfAbsent(user.email, () => []).add(user.userId);
       }
+      // TODO: check if deleted user has no OAuthUserID entry
+      // TODO: check if deleted user has only the minimal set of attributes
     }
     int badEmailToUserMappingCount = 0;
     _emailToUser.forEach((email, userIds) {
@@ -135,6 +137,8 @@ Future main(List<String> args) async {
     });
   });
 
+  // TODO: check publishers
+
   print('\nProblems detected: ${_problems.length}\n');
   for (String line in _problems) {
     print(line);
@@ -147,6 +151,9 @@ Future main(List<String> args) async {
 Future _checkPackage(Package p) async {
   _packages.add(p.name);
   if (p.uploaders == null || p.uploaders.isEmpty) {
+    // TODO: empty uploaders with Publisher is fine
+    // TODO: empty uploaders without Publisher must mark it as discontinued
+    // TODO: empty uploaders with abandoned Publisher must mark it as discontinued
     _problems.add('Package(${p.name}) has no uploaders.');
   }
   for (String userId in p.uploaders) {

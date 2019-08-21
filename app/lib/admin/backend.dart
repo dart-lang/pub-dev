@@ -95,7 +95,6 @@ class AdminBackend {
   /// entities they may have controlled.
   Future removeUser(String userId) async {
     await _withAdmin((u) async {
-      // TODO: remove once [withAuthenticatedUser] is using [User]
       final user = await accountBackend.lookupUserById(userId);
       if (user == null) return;
       if (user.isDeleted) return;
