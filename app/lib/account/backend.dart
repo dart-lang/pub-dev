@@ -142,7 +142,8 @@ class AccountBackend {
       ..parentKey = _db.emptyKey
       ..id = id
       ..email = email
-      ..created = DateTime.now().toUtc();
+      ..created = DateTime.now().toUtc()
+      ..isDeletedFlag = false;
 
     await _db.commit(inserts: [user]);
     return user;
@@ -230,7 +231,8 @@ class AccountBackend {
         ..id = _uuid.v4().toString()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
-        ..created = DateTime.now().toUtc();
+        ..created = DateTime.now().toUtc()
+        ..isDeletedFlag = false;
 
       final newMapping = OAuthUserID()
         ..parentKey = _db.emptyKey
