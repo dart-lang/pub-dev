@@ -182,10 +182,7 @@ class AccountBackend {
     }
     final user = await _lookupOrCreateUserByOauthUserId(auth);
     if (user.isDeleted) {
-      // This can only happen if the Google account had been deleted and then
-      // later re-enabled. We don't automatically re-enable such User accounts,
-      // as the new account might be a new owner on the same e-mail address
-      // (e.g. non-Google e-mails on GSuite).
+      // This can only happen if we have a data inconsistency in the datastore.
       _logger
           .severe('Login on deleted account: ${user.userId} / ${user.email}');
       throw StateError('Account had been deleted, login is not allowed.');
