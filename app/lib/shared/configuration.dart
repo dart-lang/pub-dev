@@ -69,6 +69,9 @@ class Configuration {
   /// The OAuth audience (`client_id`) that the pub site uses.
   final String pubSiteAudience;
 
+  /// The OAuth audience (`client_id`) that admin accounts use.
+  final String adminAudience;
+
   /// Credentials to use for API calls if not reading the credentials from
   /// the Datastore.
   final auth.ServiceAccountCredentials credentials;
@@ -91,8 +94,8 @@ class Configuration {
   /// The base URI to use for HTML content.
   final Uri primarySiteUri;
 
-  /// The OAuth user ids of the admins.
-  final List<String> admins;
+  /// The user ids of the admins.
+  final List<String> adminUserIds;
 
   /// Create a configuration for production deployment.
   ///
@@ -113,13 +116,14 @@ class Configuration {
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
+      adminAudience: 'https://pub.dev',
       credentials: _loadCredentials(),
       blockEmails: false,
       blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: [],
+      adminUserIds: [],
     );
   }
 
@@ -138,13 +142,14 @@ class Configuration {
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
+      adminAudience: 'https://pub.dev',
       credentials: _loadCredentials(),
       blockEmails: true,
       blockRobots: true,
       productionHosts: const ['dartlang-pub-dev.appspot.com'],
       primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
       primarySiteUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
-      admins: [
+      adminUserIds: [
         '111042304059633250784', // isoos
       ],
     );
@@ -161,13 +166,14 @@ class Configuration {
     @required this.storageBaseUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
+    @required this.adminAudience,
     @required this.credentials,
     @required this.blockEmails,
     @required this.blockRobots,
     @required this.productionHosts,
     @required this.primaryApiUri,
     @required this.primarySiteUri,
-    @required this.admins,
+    @required this.adminUserIds,
   });
 
   /// Create a configuration based on the environment variables.
@@ -197,13 +203,14 @@ class Configuration {
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
       pubSiteAudience: null,
+      adminAudience: null,
       credentials: null,
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$port/'),
       primarySiteUri: Uri.parse('http://localhost:$port/'),
-      admins: ['admin-pub-dev'],
+      adminUserIds: ['admin-pub-dev'],
     );
   }
 
@@ -220,13 +227,14 @@ class Configuration {
       storageBaseUrl: 'http://localhost:0',
       pubClientAudience: null,
       pubSiteAudience: null,
+      adminAudience: null,
       credentials: null,
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: ['admin-pub-dev'],
+      adminUserIds: ['admin-at-pub-dot-dev'],
     );
   }
 }

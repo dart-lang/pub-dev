@@ -35,7 +35,9 @@ class AdminBackend {
 
   Future<R> _withAdmin<R>(Future<R> fn(User user)) async {
     return await withAuthenticatedUser((user) async {
-      if (!activeConfiguration.admins.contains(user.oauthUserId)) {
+      if (!activeConfiguration.adminUserIds.contains(user.userId)) {
+        _logger.warning(
+            'User (${user.userId} / ${user.email}) is trying to access admin APIs.');
         throw AuthorizationException.userIsNotAdminForPubSite();
       }
       return await fn(user);

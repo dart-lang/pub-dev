@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
@@ -18,6 +19,7 @@ import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
+final _logger = Logger('account.backend');
 final _uuid = Uuid();
 
 /// Sets the account backend service.
@@ -61,6 +63,7 @@ class AccountBackend {
               <String>[
                 activeConfiguration.pubClientAudience,
                 activeConfiguration.pubSiteAudience,
+                activeConfiguration.adminAudience,
               ],
             );
 
@@ -177,7 +180,17 @@ class AccountBackend {
     if (auth == null) {
       return null;
     }
-    return await _lookupOrCreateUserByOauthUserId(auth);
+    final user = await _lookupOrCreateUserByOauthUserId(auth);
+    if (user.isDeleted) {
+      // This can only happen if the Google account had been deleted and then
+      // later re-enabled. We don't automatically re-enable such User accounts,
+      // as the new account might be a new owner on the same e-mail address
+      // (e.g. non-Google e-mails on GSuite).
+      _logger
+          .severe('Login on deleted account: ${user.userId} / ${user.email}');
+      throw StateError('Account had been deleted, login is not allowed.');
+    }
+    return user;
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
@@ -193,7 +206,7 @@ class AccountBackend {
         final user = (await _db.lookup<User>([mapping.userIdKey])).single;
         // TODO: we should probably have some kind of consistency mitigation
         if (user == null) {
-          throw Exception('Incomplete OAuth userId mapping: '
+          throw StateError('Incomplete OAuth userId mapping: '
               'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
         }
         return user;
@@ -204,7 +217,6 @@ class AccountBackend {
             ..filter('email =', auth.email))
           .run()
           .toList();
-      // TODO: trigger consistency mitigation if more than one email exists
       if (usersWithEmail.length == 1 &&
           usersWithEmail.single.oauthUserId == null &&
           !usersWithEmail.single.isDeleted) {
@@ -223,6 +235,16 @@ class AccountBackend {
           return user;
         }) as User;
         return updatedUser;
+      }
+
+      // We've probably found a non-valid User state, it is better to fail the
+      // authentication. Let's investigate it before allowing the creation of
+      // the new User.
+      if (usersWithEmail.isNotEmpty) {
+        final userIds = usersWithEmail.map((u) => u.userId).join(', ');
+        _logger.severe(
+            'Probably User state violation while looking for ${auth.email}: $userIds');
+        throw StateError('User state violation: $userIds');
       }
 
       // Create new user with oauth2 user_id mapping
