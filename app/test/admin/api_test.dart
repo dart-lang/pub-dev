@@ -12,6 +12,7 @@ import 'package:pub_dartlang_org/admin/backend.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
+import 'package:pub_dartlang_org/shared/exceptions.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -99,6 +100,62 @@ void main() {
             'continuationToken': null,
           },
         );
+      });
+
+      testWithServices('lookup by email - not found', () async {
+        registerAuthenticatedUser(adminUser);
+        final page = await adminBackend.listUsers(email: 'no@such.email');
+        expect(_json(page.toJson()), {
+          'users': [],
+          'continuationToken': null,
+        });
+      });
+
+      testWithServices('lookup by email - found', () async {
+        registerAuthenticatedUser(adminUser);
+        final page = await adminBackend.listUsers(email: joeUser.email);
+        expect(_json(page.toJson()), {
+          'users': [
+            {
+              'userId': 'joe-at-example-dot-com',
+              'oauthUserId': null,
+              'email': 'joe@example.com',
+            },
+          ],
+          'continuationToken': null,
+        });
+      });
+
+      testWithServices('lookup by oauthUserId - not found', () async {
+        registerAuthenticatedUser(adminUser);
+        final page = await adminBackend.listUsers(oauthUserId: 'no-such-id');
+        expect(_json(page.toJson()), {
+          'users': [],
+          'continuationToken': null,
+        });
+      });
+
+      testWithServices('lookup by oauthUserId - found', () async {
+        registerAuthenticatedUser(adminUser);
+        final page =
+            await adminBackend.listUsers(oauthUserId: adminUser.oauthUserId);
+        expect(_json(page.toJson()), {
+          'users': [
+            {
+              'userId': 'admin-at-pub-dot-dev',
+              'oauthUserId': 'admin-pub-dev',
+              'email': 'admin@pub.dev',
+            },
+          ],
+          'continuationToken': null,
+        });
+      });
+
+      testWithServices('lookup by multiple attribute', () async {
+        registerAuthenticatedUser(adminUser);
+        final rs =
+            adminBackend.listUsers(email: 'x', oauthUserId: 'no-such-id');
+        await expectLater(rs, throwsA(isA<InvalidInputException>()));
       });
     });
 
