@@ -94,8 +94,8 @@ class Configuration {
   /// The base URI to use for HTML content.
   final Uri primarySiteUri;
 
-  /// The user ids of the admins.
-  final List<String> adminUserIds;
+  /// The identifier of admins.
+  final List<AdminId> admins;
 
   /// Create a configuration for production deployment.
   ///
@@ -123,7 +123,7 @@ class Configuration {
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      adminUserIds: [],
+      admins: [],
     );
   }
 
@@ -149,8 +149,11 @@ class Configuration {
       productionHosts: const ['dartlang-pub-dev.appspot.com'],
       primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
       primarySiteUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
-      adminUserIds: [
-        '111042304059633250784', // isoos
+      admins: [
+        AdminId(
+          oauthUserId: '111042304059633250784',
+          email: 'istvan.soos@gmail.com',
+        ), // isoos
       ],
     );
   }
@@ -173,7 +176,7 @@ class Configuration {
     @required this.productionHosts,
     @required this.primaryApiUri,
     @required this.primarySiteUri,
-    @required this.adminUserIds,
+    @required this.admins,
   });
 
   /// Create a configuration based on the environment variables.
@@ -210,7 +213,7 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$port/'),
       primarySiteUri: Uri.parse('http://localhost:$port/'),
-      adminUserIds: ['admin-pub-dev'],
+      admins: [AdminId(oauthUserId: 'admin-pub-dev', email: 'admin@pub.dev')],
     );
   }
 
@@ -234,7 +237,7 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      adminUserIds: ['admin-at-pub-dot-dev'],
+      admins: [AdminId(oauthUserId: 'admin-pub-dev', email: 'admin@pub.dev')],
     );
   }
 }
@@ -295,4 +298,15 @@ auth.ServiceAccountCredentials _loadCredentials() {
         'Missing GCLOUD_PROJECT and/or GCLOUD_KEY, service account credentials are not loaded.');
     return null;
   }
+}
+
+/// Data structure to describe an admin user.
+class AdminId {
+  final String oauthUserId;
+  final String email;
+
+  AdminId({
+    @required this.oauthUserId,
+    @required this.email,
+  });
 }
