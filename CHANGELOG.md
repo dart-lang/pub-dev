@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+ * Run `app/bin/tools/backfill_users.dart` to backfill `User`
+   entities in datastore (populates `isDeleted` flag).
+
 ## `20190814t134432-all`
 
  * Upgraded dartdoc to `0.28.4` (upgraded analyzer).
