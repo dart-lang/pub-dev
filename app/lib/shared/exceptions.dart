@@ -67,8 +67,8 @@ class InvalidInputException extends ResponseException {
 
   /// Throw [InvalidInputException] if [value] is not `null`.
   static void checkNull(dynamic value, String name) {
-    assert(name != null, '"name" must not be `null`');
-    _check(value == null, () => '"$name" cannot be `null`');
+    assert(name != null, '"name" must be `null`');
+    _check(value == null, () => '"$name" must be `null`');
   }
 
   /// Throw [InvalidInputException] if [value] is `null`.

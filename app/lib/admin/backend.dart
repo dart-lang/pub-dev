@@ -43,15 +43,26 @@ class AdminBackend {
   }
 
   /// List users.
-  Future<api.AdminListUsersResponse> listUsers(
-      {String continuationToken, int limit = 1000}) async {
+  ///
+  ///
+  Future<api.AdminListUsersResponse> listUsers({
+    String email,
+    String oauthUserId,
+    String continuationToken,
+    int limit = 1000,
+  }) async {
     InvalidInputException.checkRange(limit, 'limit', minimum: 1, maximum: 1000);
     return await _withAdmin((user) async {
-      final query = _db.query<User>()
-        ..order('__key__')
-        ..limit(limit);
+      final query = _db.query<User>()..limit(limit);
 
-      if (continuationToken != null) {
+      if (email != null) {
+        InvalidInputException.checkNull(oauthUserId, 'oauthUserId');
+        InvalidInputException.checkNull(continuationToken, 'continuationToken');
+        query.filter('email =', email);
+      } else if (oauthUserId != null) {
+        InvalidInputException.checkNull(continuationToken, 'continuationToken');
+        query.filter('oauthUserId =', oauthUserId);
+      } else if (continuationToken != null) {
         String lastId;
         try {
           lastId = _continuationCodec.decode(continuationToken);
@@ -67,6 +78,9 @@ class AdminBackend {
         if (lastId != null) {
           query.filter('__key__ >', key);
         }
+        query.order('__key__');
+      } else {
+        query.order('__key__');
       }
 
       final users = await query.run().toList();

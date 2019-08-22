@@ -20,6 +20,7 @@ part 'pubapi.g.dart';
 
 class PubApi {
   final Handler _pubServerHandler;
+
   PubApi(this._pubServerHandler);
 
   Router get router => _$PubApiRouter(this);
@@ -263,11 +264,14 @@ class PubApi {
   // ****
 
   @EndPoint.get('/api/admin/users')
-  Future<AdminListUsersResponse> adminListUsers(Request request) async =>
-      adminBackend.listUsers(
-        continuationToken:
-            request.requestedUri.queryParameters['continuationToken'],
-      );
+  Future<AdminListUsersResponse> adminListUsers(Request request) {
+    final params = request.requestedUri.queryParameters;
+    return adminBackend.listUsers(
+      email: params['email'],
+      oauthUserId: params['oauthUserId'],
+      continuationToken: params['continuationToken'],
+    );
+  }
 
   @EndPoint.delete('/api/admin/users/<userId>')
   Future<Response> adminRemoveUser(Request request, String userId) async {
