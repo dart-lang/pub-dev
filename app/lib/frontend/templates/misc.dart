@@ -24,6 +24,13 @@ String renderHelpPage() {
       title: 'Help | Dart packages');
 }
 
+/// Renders the `views/security.mustache` template.
+String renderSecurityPage() {
+  final String content = templateCache.renderTemplate('security', {});
+  return renderLayoutPage(PageType.package, content,
+      title: 'Security | Pub site');
+}
+
 /// Renders the `views/index.mustache` template.
 String renderErrorPage(
     String title, String message, List<PackageView> topPackages) {
