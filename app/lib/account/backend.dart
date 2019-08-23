@@ -234,16 +234,6 @@ class AccountBackend {
         return updatedUser;
       }
 
-      // We've probably found a non-valid User state, it is better to fail the
-      // authentication. Let's investigate it before allowing the creation of
-      // the new User.
-      if (usersWithEmail.isNotEmpty) {
-        final userIds = usersWithEmail.map((u) => u.userId).join(', ');
-        _logger.severe(
-            'Probably User state violation while looking for ${auth.email}: $userIds');
-        throw StateError('User state violation: $userIds');
-      }
-
       // Create new user with oauth2 user_id mapping
       final newUser = User()
         ..parentKey = _db.emptyKey
