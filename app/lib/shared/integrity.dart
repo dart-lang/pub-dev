@@ -32,13 +32,11 @@ class IntegrityChecker {
       : _concurrency = concurrency ?? 1;
 
   /// Runs integrity checks, and reports the list of problems.
-  Future<List<String>> check({bool ignorePackages = false}) async {
+  Future<List<String>> check() async {
     await _checkUsers();
     await _checkOAuthUserIDs();
-    if (!ignorePackages) {
-      await _checkPackages();
-      await _checkVersions();
-    }
+    await _checkPackages();
+    await _checkVersions();
     // TODO: check Publishers, PublisherMembers
     return _problems;
   }
@@ -129,11 +127,16 @@ class IntegrityChecker {
 
   Future _checkPackage(Package p) async {
     _packages.add(p.name);
+    // empty uploaders
     if (p.uploaders == null || p.uploaders.isEmpty) {
+      // no publisher
+      if (p.publisherId == null && p.isDiscontinued != true) {
+        _problems.add(
+            'Package(${p.name}) has no uploaders, must be marked discontinued.');
+      }
+
       // TODO: empty uploaders with Publisher is fine
-      // TODO: empty uploaders without Publisher must mark it as discontinued
       // TODO: empty uploaders with abandoned Publisher must mark it as discontinued
-      _problems.add('Package(${p.name}) has no uploaders.');
     }
     for (String userId in p.uploaders) {
       if (!_userToOauth.containsKey(userId)) {

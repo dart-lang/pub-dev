@@ -89,7 +89,10 @@ void main() {
     testWithServices('/packages?page=2', () async {
       for (int i = 0; i < 15; i++) {
         final bundle = generateBundle('pkg$i', ['1.0.0']);
-        await dbService.commit(inserts: [bundle.package, ...bundle.versions]);
+        await dbService.commit(inserts: [
+          bundle.package,
+          ...bundle.versions.map(pvModels).expand((m) => m),
+        ]);
       }
       await indexUpdater.updateAllPackages();
 
@@ -130,7 +133,10 @@ flutter:
     class: SomeClass
 ''',
         );
-        await dbService.commit(inserts: [bundle.package, ...bundle.versions]);
+        await dbService.commit(inserts: [
+          bundle.package,
+          ...bundle.versions.map(pvModels).expand((m) => m),
+        ]);
       }
       await indexUpdater.updateAllPackages();
 

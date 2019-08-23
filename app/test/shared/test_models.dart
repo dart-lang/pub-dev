@@ -175,6 +175,29 @@ dependencies:
   gcloud: any
 ''';
 
+Iterable<Model> pvModels(PackageVersion pv) sync* {
+  yield pv;
+  yield _pvPubspec(pv);
+  yield _pvInfo(pv);
+}
+
+PackageVersionPubspec _pvPubspec(PackageVersion pv) {
+  return PackageVersionPubspec()
+    ..parentKey = pv.parentKey.parent
+    ..initFromKey(pv.qualifiedVersionKey)
+    ..updated = pv.created
+    ..pubspec = pv.pubspec;
+}
+
+PackageVersionInfo _pvInfo(PackageVersion pv) {
+  return PackageVersionInfo()
+    ..parentKey = pv.parentKey.parent
+    ..initFromKey(pv.qualifiedVersionKey)
+    ..updated = pv.created
+    ..libraries = pv.libraries
+    ..libraryCount = pv.libraries.length;
+}
+
 final exampleComPublisher = publisher('example.com');
 
 Publisher publisher(String domain) => Publisher()
