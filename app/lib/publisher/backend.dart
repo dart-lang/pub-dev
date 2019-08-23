@@ -115,7 +115,8 @@ class PublisherBackend {
           ..description = ''
           ..contactEmail = authenticatedUser.email
           ..updated = now
-          ..websiteUrl = 'https://$publisherId',
+          ..websiteUrl = 'https://$publisherId'
+          ..isAbandoned = false,
         PublisherMember()
           ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
           ..id = authenticatedUser.userId

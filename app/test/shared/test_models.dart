@@ -206,7 +206,8 @@ Publisher publisher(String domain) => Publisher()
   ..description = 'This is us!'
   ..contactEmail = 'contact@$domain'
   ..created = DateTime(2019, 07, 15)
-  ..updated = DateTime(2019, 07, 16);
+  ..updated = DateTime(2019, 07, 16)
+  ..isAbandoned = false;
 
 final exampleComHansAdmin =
     publisherMember(hansUser.userId, PublisherMemberRole.admin);

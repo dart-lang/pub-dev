@@ -8,6 +8,7 @@ import 'package:pool/pool.dart';
 
 import '../account/models.dart';
 import '../package/models.dart';
+import '../publisher/models.dart';
 
 import 'email.dart' show isValidEmail;
 
@@ -25,6 +26,8 @@ class IntegrityChecker {
   final _invalidUsers = Set<String>();
   final _packages = <String>{};
   final _packagesWithVersion = <String>{};
+  final _publishers = <String>{};
+  final _publishersAbandoned = <String>{};
   int _packageChecked = 0;
   int _versionChecked = 0;
 
@@ -35,9 +38,10 @@ class IntegrityChecker {
   Future<List<String>> check() async {
     await _checkUsers();
     await _checkOAuthUserIDs();
+    await _checkPublishers();
+    await _checkPublisherMembers();
     await _checkPackages();
     await _checkVersions();
-    // TODO: check Publishers, PublisherMembers
     return _problems;
   }
 
@@ -54,8 +58,17 @@ class IntegrityChecker {
       if (user.email != null && user.email.isNotEmpty) {
         _emailToUser.putIfAbsent(user.email, () => []).add(user.userId);
       }
-      // TODO: check if deleted user has no OAuthUserID entry
-      // TODO: check if deleted user has only the minimal set of attributes
+
+      if (user.isDeleted) {
+        if (user.oauthUserId != null) {
+          _problems.add(
+              'User(${user.userId}) is deleted, but oauthUserId is still set.');
+        }
+        if (user.created != null) {
+          _problems.add(
+              'User(${user.userId}) is deleted, but created time is still set.');
+        }
+      }
     }
     int badEmailToUserMappingCount = 0;
     _emailToUser.forEach((email, userIds) {
@@ -113,6 +126,42 @@ class IntegrityChecker {
     }
   }
 
+  Future _checkPublishers() async {
+    _logger.info('Scanning Publishers...');
+    await for (final p in _db.query<Publisher>().run()) {
+      _publishers.add(p.publisherId);
+      final members =
+          await _db.query<PublisherMember>(ancestorKey: p.key).run().toList();
+      if (p.isAbandoned) {
+        _publishersAbandoned.add(p.publisherId);
+        if (members.isNotEmpty) {
+          _problems.add('Publisher(${p.publisherId}) is marked as abandoned, '
+              'but has members (first: ${members.first.userId}).');
+        }
+        if (members.isEmpty && p.contactEmail != null) {
+          _problems.add(
+              'Publisher(${p.publisherId}) is marked as abandoned, has no members, '
+              'but still has contact email (${p.contactEmail}).');
+        }
+      } else {
+        if (members.isEmpty) {
+          _problems.add(
+              'Publisher(${p.publisherId}) is not marked as abandoned, but has no members.');
+        }
+      }
+    }
+  }
+
+  Future _checkPublisherMembers() async {
+    _logger.info('Scanning PublisherMemberss...');
+    await for (final pm in _db.query<PublisherMember>().run()) {
+      if (!_publishers.contains(pm.publisherId)) {
+        _problems.add(
+            'PublisherMember(${pm.userId}) references a non-existing publisher: ${pm.publisherId}.');
+      }
+    }
+  }
+
   Future _checkPackages() async {
     _logger.info('Scanning Packages...');
     final pool = Pool(_concurrency);
@@ -135,8 +184,12 @@ class IntegrityChecker {
             'Package(${p.name}) has no uploaders, must be marked discontinued.');
       }
 
-      // TODO: empty uploaders with Publisher is fine
-      // TODO: empty uploaders with abandoned Publisher must mark it as discontinued
+      if (p.publisherId != null &&
+          _publishersAbandoned.contains(p.publisherId) &&
+          p.isDiscontinued != true) {
+        _problems.add(
+            'Package(${p.name}) has an anandoned publisher, must be marked discontinued.');
+      }
     }
     for (String userId in p.uploaders) {
       if (!_userToOauth.containsKey(userId)) {

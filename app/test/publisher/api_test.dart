@@ -529,7 +529,9 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
   });
 
   testWithServices('Active user is not a member', () async {
-    await dbService.commit(deletes: [exampleComHansAdmin.key]);
+    await dbService.commit(
+        inserts: [publisherMember(joeUser.userId, 'admin')],
+        deletes: [exampleComHansAdmin.key]);
     final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');

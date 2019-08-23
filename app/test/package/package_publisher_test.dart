@@ -119,16 +119,19 @@ void main() {
 
   group('Move between publishers', () {
     final otherComPublisher = publisher('other.com');
-    Future _setup({bool addMember = true}) async {
+    Future _setup({bool addHans = true}) async {
       final p = await packageBackend.lookupPackage(hydrogen.package.name);
       p.publisherId = otherComPublisher.publisherId;
       p.uploaders = [];
-      final member = publisherMember(hansUser.userId, 'admin',
+      final hansMember = publisherMember(hansUser.userId, 'admin',
+          parentKey: otherComPublisher.key);
+      final otherMember = publisherMember(testUserA.userId, 'admin',
           parentKey: otherComPublisher.key);
       await dbService.commit(inserts: [
         p,
         otherComPublisher,
-        if (addMember) member,
+        if (addHans) hansMember,
+        otherMember,
       ]);
     }
 
@@ -157,7 +160,7 @@ void main() {
     });
 
     _testPublisherAdminAuthIssues(otherComPublisher.key, (client) async {
-      await _setup(addMember: false);
+      await _setup(addHans: false);
       return client.setPackagePublisher(
         hydrogen.package.name,
         PackagePublisherInfo(publisherId: 'example.com'),
@@ -232,8 +235,11 @@ void _testPublisherAdminAuthIssues(
   testWithServices(
       'Active user is not a member of publisher (${publisherKey.id})',
       () async {
-    await dbService.commit(
-        deletes: [publisherKey.append(PublisherMember, id: hansUser.userId)]);
+    await dbService.commit(inserts: [
+      publisherMember(joeUser.userId, 'admin', parentKey: publisherKey)
+    ], deletes: [
+      publisherKey.append(PublisherMember, id: hansUser.userId)
+    ]);
     final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);
     await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
