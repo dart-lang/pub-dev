@@ -78,12 +78,11 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..updated = DateTime.utc(2015)
     ..uploaders = uploaders.map((user) => user.userId).toList()
     ..latestVersionKey = foobarStablePVKey
-    ..latestDevVersionKey = foobarStablePVKey
+    ..latestDevVersionKey = foobarDevPVKey
     ..downloads = 0;
 }
 
-final Package foobarPackage = createFoobarPackage()
-  ..latestDevVersionKey = foobarDevPVKey;
+final Package foobarPackage = createFoobarPackage();
 final foobarUploaderEmails = [hansUser.email];
 
 final Package discontinuedPackage = createFoobarPackage()
@@ -95,6 +94,7 @@ final PackageVersion foobarStablePV = PackageVersion()
   ..version = foobarStablePVKey.id as String
   ..packageKey = foobarPkgKey
   ..created = DateTime.utc(2014)
+  ..uploader = hansUser.userId
   ..libraries = ['foolib.dart']
   ..pubspec = Pubspec.fromYaml(foobarStablePubspec)
   ..readmeFilename = 'README.md'
@@ -120,11 +120,13 @@ final PackageVersion foobarDevPV = clonePackageVersion(foobarStablePV)
   ..version = foobarDevPVKey.id as String;
 
 PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
-  ..packageKey = original.parentKey
+  ..parentKey = original.parentKey
   ..id = original.id
   ..version = original.version
   ..packageKey = original.packageKey
   ..created = original.created
+  ..publisherId = original.publisherId
+  ..uploader = original.uploader
   ..libraries = original.libraries
   ..pubspec = original.pubspec
   ..readmeFilename = original.readmeFilename
