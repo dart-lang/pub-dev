@@ -148,6 +148,11 @@ class PubSiteService {
   @Route.get('/robots.txt')
   Future<Response> robotsTxt(Request request) => robotsTxtHandler(request);
 
+  /// Renders the security page
+  @Route.get('/security')
+  Future<Response> securityPage(Request request) =>
+      securityPageHandler(request);
+
   /// Renders the /sitemap.txt page
   @Route.get('/sitemap.txt')
   Future<Response> sitemapTxt(Request request) => siteMapTxtHandler(request);

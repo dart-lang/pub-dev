@@ -26,6 +26,11 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
 }
 
+/// Handles requests for /security
+Future<shelf.Response> securityPageHandler(shelf.Request request) async {
+  return htmlResponse(renderSecurityPage());
+}
+
 /// Handles requests for /readiness_check
 Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   if (nameTracker.isReady) {

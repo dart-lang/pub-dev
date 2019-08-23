@@ -35,6 +35,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/feed.atom', service.atomFeed);
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);
+  router.add('GET', '/security', service.securityPage);
   router.add('GET', '/sitemap.txt', service.sitemapTxt);
   router.add('GET', '/favicon.ico', service.staticAsset);
   router.add('GET', '/static/<path|[^]*>', service.staticAsset);

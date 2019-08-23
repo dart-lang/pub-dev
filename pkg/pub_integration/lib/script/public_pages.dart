@@ -20,6 +20,7 @@ class PublicPagesScript {
       await _landingPage();
       await _flutterLandingPage();
       await _helpPage();
+      await _securityPage();
       await _atomFeed();
       await _searchPage();
     } finally {
@@ -43,6 +44,11 @@ class PublicPagesScript {
     final html = await _pubClient.getContent('/help');
     _contains(html,
         'The overall score is a weighted average of the individual scores');
+  }
+
+  Future _securityPage() async {
+    final html = await _pubClient.getContent('/security');
+    _contains(html, 'vulnerabilities you may find');
   }
 
   Future _atomFeed() async {
