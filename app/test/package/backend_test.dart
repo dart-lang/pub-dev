@@ -27,16 +27,6 @@ import 'backend_test_utils.dart';
 void main() {
   group('backend', () {
     group('Backend.latestPackages', () {
-      testWithServices('empty', () async {
-        await dbService.commit(deletes: [
-          foobarPackage.key,
-          hydrogen.package.key,
-          helium.package.key,
-          lithium.package.key,
-        ]);
-        expect(await packageBackend.latestPackages(), []);
-      });
-
       testWithServices('default packages', () async {
         final list = await packageBackend.latestPackages();
         expect(list.map((p) => p.name), [
@@ -48,29 +38,21 @@ void main() {
       });
 
       testWithServices('default packages, extra earlier', () async {
-        final p = createFoobarPackage(name: 'other')..updated = DateTime(2010);
-        await dbService.commit(inserts: [p]);
+        final h =
+            (await dbService.lookup<Package>([helium.package.key])).single;
+        h.updated = DateTime(2010);
+        await dbService.commit(inserts: [h]);
         final list = await packageBackend.latestPackages();
-        expect(list.map((p) => p.name), [
-          'foobar_pkg',
-          'lithium',
-          'helium',
-          'hydrogen',
-          'other',
-        ]);
+        expect(list.last.name, 'helium');
       });
 
       testWithServices('default packages, extra later', () async {
-        final p = createFoobarPackage(name: 'other')..updated = DateTime(2018);
-        await dbService.commit(inserts: [p]);
+        final h =
+            (await dbService.lookup<Package>([helium.package.key])).single;
+        h.updated = DateTime(2030);
+        await dbService.commit(inserts: [h]);
         final list = await packageBackend.latestPackages();
-        expect(list.map((p) => p.name), [
-          'other',
-          'foobar_pkg',
-          'lithium',
-          'helium',
-          'hydrogen',
-        ]);
+        expect(list.first.name, 'helium');
       });
 
       testWithServices('default packages, offset: 2', () async {
@@ -207,7 +189,7 @@ void main() {
         final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
         await dbService.commit(inserts: [
           bundle.package,
-          ...bundle.versions,
+          ...bundle.versions.map(pvModels).expand((m) => m),
         ]);
         await packageBackend.repository.addUploader(pkg, newUploader);
         final list = await dbService.lookup<Package>([bundle.package.key]);

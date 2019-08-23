@@ -53,17 +53,19 @@ void testWithServices(String name, Future fn()) {
         foobarPackage,
         foobarStablePV,
         foobarDevPV,
+        ...pvModels(foobarStablePV),
+        ...pvModels(foobarDevPV),
         testUserA,
         hansUser,
         joeUser,
         adminUser,
         adminOAuthUserID,
         hydrogen.package,
-        ...hydrogen.versions,
+        ...hydrogen.versions.map(pvModels).expand((m) => m),
         helium.package,
-        ...helium.versions,
+        ...helium.versions.map(pvModels).expand((m) => m),
         lithium.package,
-        ...lithium.versions,
+        ...lithium.versions.map(pvModels).expand((m) => m),
         exampleComPublisher,
         exampleComHansAdmin,
       ]);
@@ -102,8 +104,7 @@ void testWithServices(String name, Future fn()) {
           await fork(() async {
             await fn();
             // post-test integrity check
-            final problems =
-                await IntegrityChecker(dbService).check(ignorePackages: true);
+            final problems = await IntegrityChecker(dbService).check();
             if (problems.isNotEmpty) {
               throw Exception(
                   '${problems.length} integrity problems detected. First: ${problems.first}');
