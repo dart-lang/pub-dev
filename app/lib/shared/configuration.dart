@@ -69,6 +69,9 @@ class Configuration {
   /// The OAuth audience (`client_id`) that the pub site uses.
   final String pubSiteAudience;
 
+  /// The OAuth audience (`client_id`) that admin accounts use.
+  final String adminAudience;
+
   /// Credentials to use for API calls if not reading the credentials from
   /// the Datastore.
   final auth.ServiceAccountCredentials credentials;
@@ -91,8 +94,8 @@ class Configuration {
   /// The base URI to use for HTML content.
   final Uri primarySiteUri;
 
-  /// The OAuth user ids of the admins.
-  final List<String> admins;
+  /// The identifier of admins.
+  final List<AdminId> admins;
 
   /// Create a configuration for production deployment.
   ///
@@ -113,6 +116,7 @@ class Configuration {
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
+      adminAudience: 'https://pub.dev',
       credentials: _loadCredentials(),
       blockEmails: false,
       blockRobots: false,
@@ -138,6 +142,7 @@ class Configuration {
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
+      adminAudience: 'https://pub.dev',
       credentials: _loadCredentials(),
       blockEmails: true,
       blockRobots: true,
@@ -145,7 +150,10 @@ class Configuration {
       primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
       primarySiteUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
       admins: [
-        '111042304059633250784', // isoos
+        AdminId(
+          oauthUserId: '111042304059633250784',
+          email: 'istvan.soos@gmail.com',
+        ), // isoos
       ],
     );
   }
@@ -161,6 +169,7 @@ class Configuration {
     @required this.storageBaseUrl,
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
+    @required this.adminAudience,
     @required this.credentials,
     @required this.blockEmails,
     @required this.blockRobots,
@@ -197,13 +206,14 @@ class Configuration {
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
       pubSiteAudience: null,
+      adminAudience: null,
       credentials: null,
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$port/'),
       primarySiteUri: Uri.parse('http://localhost:$port/'),
-      admins: ['admin-pub-dev'],
+      admins: [AdminId(oauthUserId: 'admin-pub-dev', email: 'admin@pub.dev')],
     );
   }
 
@@ -220,13 +230,14 @@ class Configuration {
       storageBaseUrl: 'http://localhost:0',
       pubClientAudience: null,
       pubSiteAudience: null,
+      adminAudience: null,
       credentials: null,
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: ['admin-pub-dev'],
+      admins: [AdminId(oauthUserId: 'admin-pub-dev', email: 'admin@pub.dev')],
     );
   }
 }
@@ -287,4 +298,15 @@ auth.ServiceAccountCredentials _loadCredentials() {
         'Missing GCLOUD_PROJECT and/or GCLOUD_KEY, service account credentials are not loaded.');
     return null;
   }
+}
+
+/// Data structure to describe an admin user.
+class AdminId {
+  final String oauthUserId;
+  final String email;
+
+  AdminId({
+    @required this.oauthUserId,
+    @required this.email,
+  });
 }

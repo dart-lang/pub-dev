@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
@@ -18,6 +19,7 @@ import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
+final _logger = Logger('account.backend');
 final _uuid = Uuid();
 
 /// Sets the account backend service.
@@ -61,6 +63,7 @@ class AccountBackend {
               <String>[
                 activeConfiguration.pubClientAudience,
                 activeConfiguration.pubSiteAudience,
+                activeConfiguration.adminAudience,
               ],
             );
 
@@ -177,7 +180,14 @@ class AccountBackend {
     if (auth == null) {
       return null;
     }
-    return await _lookupOrCreateUserByOauthUserId(auth);
+    final user = await _lookupOrCreateUserByOauthUserId(auth);
+    if (user.isDeleted) {
+      // This can only happen if we have a data inconsistency in the datastore.
+      _logger
+          .severe('Login on deleted account: ${user.userId} / ${user.email}');
+      throw StateError('Account had been deleted, login is not allowed.');
+    }
+    return user;
   }
 
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
@@ -193,7 +203,7 @@ class AccountBackend {
         final user = (await _db.lookup<User>([mapping.userIdKey])).single;
         // TODO: we should probably have some kind of consistency mitigation
         if (user == null) {
-          throw Exception('Incomplete OAuth userId mapping: '
+          throw StateError('Incomplete OAuth userId mapping: '
               'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
         }
         return user;
@@ -204,7 +214,6 @@ class AccountBackend {
             ..filter('email =', auth.email))
           .run()
           .toList();
-      // TODO: trigger consistency mitigation if more than one email exists
       if (usersWithEmail.length == 1 &&
           usersWithEmail.single.oauthUserId == null &&
           !usersWithEmail.single.isDeleted) {
