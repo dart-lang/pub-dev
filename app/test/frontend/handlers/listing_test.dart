@@ -39,7 +39,7 @@ void main() {
           body: {
             'name': 'foobar_pkg',
             'uploaders': ['hans@juergen.com'],
-            'versions': ['0.1.1+5'],
+            'versions': ['0.2.0-dev', '0.1.1+5'],
           });
     });
   });
