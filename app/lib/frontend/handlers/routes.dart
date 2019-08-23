@@ -150,7 +150,8 @@ class PubSiteService {
 
   /// Renders the security page
   @Route.get('/security')
-  Future<Response> securityPage(Request request) => securityPageHandler(request);
+  Future<Response> securityPage(Request request) =>
+      securityPageHandler(request);
 
   /// Renders the /sitemap.txt page
   @Route.get('/sitemap.txt')
