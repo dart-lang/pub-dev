@@ -38,7 +38,7 @@ class PublisherScript {
           pubHostedUrl: pubHostedUrl,
           credentialsFileContent: credentialsFileContent);
 
-      await _publishVersion('1.0.0');
+      await _publishDummyPkg('1.0.0');
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg(version: '1.0.0');
 
@@ -60,7 +60,7 @@ class PublisherScript {
       }
       // TODO: check package page that publisherId is displayed
 
-      await _publishVersion('2.0.0');
+      await _publishDummyPkg('2.0.0');
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg(version: '2.0.0');
     } finally {
@@ -70,7 +70,7 @@ class PublisherScript {
     }
   }
 
-  Future _publishVersion(String version) async {
+  Future _publishDummyPkg(String version) async {
     final dir = await _temp.createTemp();
     await createDummyPkg(dir.path, version);
     await _pubToolClient.publish(dir.path);
