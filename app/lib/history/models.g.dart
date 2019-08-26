@@ -8,22 +8,23 @@ part of 'models.dart';
 
 HistoryUnion _$HistoryUnionFromJson(Map<String, dynamic> json) {
   return HistoryUnion(
-      packageUploaded: json['packageUploaded'] == null
-          ? null
-          : PackageUploaded.fromJson(
-              json['packageUploaded'] as Map<String, dynamic>),
-      uploaderChanged: json['uploaderChanged'] == null
-          ? null
-          : UploaderChanged.fromJson(
-              json['uploaderChanged'] as Map<String, dynamic>),
-      uploaderInvited: json['uploaderInvited'] == null
-          ? null
-          : UploaderInvited.fromJson(
-              json['uploaderInvited'] as Map<String, dynamic>),
-      analysisCompleted: json['analysisCompleted'] == null
-          ? null
-          : AnalysisCompleted.fromJson(
-              json['analysisCompleted'] as Map<String, dynamic>));
+    packageUploaded: json['packageUploaded'] == null
+        ? null
+        : PackageUploaded.fromJson(
+            json['packageUploaded'] as Map<String, dynamic>),
+    uploaderChanged: json['uploaderChanged'] == null
+        ? null
+        : UploaderChanged.fromJson(
+            json['uploaderChanged'] as Map<String, dynamic>),
+    uploaderInvited: json['uploaderInvited'] == null
+        ? null
+        : UploaderInvited.fromJson(
+            json['uploaderInvited'] as Map<String, dynamic>),
+    analysisCompleted: json['analysisCompleted'] == null
+        ? null
+        : AnalysisCompleted.fromJson(
+            json['analysisCompleted'] as Map<String, dynamic>),
+  );
 }
 
 Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
@@ -44,13 +45,14 @@ Map<String, dynamic> _$HistoryUnionToJson(HistoryUnion instance) {
 
 PackageUploaded _$PackageUploadedFromJson(Map<String, dynamic> json) {
   return PackageUploaded(
-      packageName: json['packageName'] as String,
-      packageVersion: json['packageVersion'] as String,
-      uploaderId: json['uploaderId'] as String,
-      uploaderEmail: json['uploaderEmail'] as String,
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String));
+    packageName: json['packageName'] as String,
+    packageVersion: json['packageVersion'] as String,
+    uploaderId: json['uploaderId'] as String,
+    uploaderEmail: json['uploaderEmail'] as String,
+    timestamp: json['timestamp'] == null
+        ? null
+        : DateTime.parse(json['timestamp'] as String),
+  );
 }
 
 Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
@@ -59,28 +61,28 @@ Map<String, dynamic> _$PackageUploadedToJson(PackageUploaded instance) =>
       'packageVersion': instance.packageVersion,
       'uploaderId': instance.uploaderId,
       'uploaderEmail': instance.uploaderEmail,
-      'timestamp': instance.timestamp?.toIso8601String()
+      'timestamp': instance.timestamp?.toIso8601String(),
     };
 
 UploaderChanged _$UploaderChangedFromJson(Map<String, dynamic> json) {
   return UploaderChanged(
-      packageName: json['packageName'] as String,
-      currentUserId: json['currentUserId'] as String,
-      currentUserEmail: json['currentUserEmail'] as String,
-      addedUploaderIds:
-          (json['addedUploaderIds'] as List)?.map((e) => e as String)?.toList(),
-      addedUploaderEmails: (json['addedUploaderEmails'] as List)
-          ?.map((e) => e as String)
-          ?.toList(),
-      removedUploaderIds: (json['removedUploaderIds'] as List)
-          ?.map((e) => e as String)
-          ?.toList(),
-      removedUploaderEmails: (json['removedUploaderEmails'] as List)
-          ?.map((e) => e as String)
-          ?.toList(),
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String));
+    packageName: json['packageName'] as String,
+    currentUserId: json['currentUserId'] as String,
+    currentUserEmail: json['currentUserEmail'] as String,
+    addedUploaderIds:
+        (json['addedUploaderIds'] as List)?.map((e) => e as String)?.toList(),
+    addedUploaderEmails: (json['addedUploaderEmails'] as List)
+        ?.map((e) => e as String)
+        ?.toList(),
+    removedUploaderIds:
+        (json['removedUploaderIds'] as List)?.map((e) => e as String)?.toList(),
+    removedUploaderEmails: (json['removedUploaderEmails'] as List)
+        ?.map((e) => e as String)
+        ?.toList(),
+    timestamp: json['timestamp'] == null
+        ? null
+        : DateTime.parse(json['timestamp'] as String),
+  );
 }
 
 Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
@@ -105,13 +107,14 @@ Map<String, dynamic> _$UploaderChangedToJson(UploaderChanged instance) {
 
 UploaderInvited _$UploaderInvitedFromJson(Map<String, dynamic> json) {
   return UploaderInvited(
-      packageName: json['packageName'] as String,
-      currentUserId: json['currentUserId'] as String,
-      currentUserEmail: json['currentUserEmail'] as String,
-      uploaderUserEmail: json['uploaderUserEmail'] as String,
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String));
+    packageName: json['packageName'] as String,
+    currentUserId: json['currentUserId'] as String,
+    currentUserEmail: json['currentUserEmail'] as String,
+    uploaderUserEmail: json['uploaderUserEmail'] as String,
+    timestamp: json['timestamp'] == null
+        ? null
+        : DateTime.parse(json['timestamp'] as String),
+  );
 }
 
 Map<String, dynamic> _$UploaderInvitedToJson(UploaderInvited instance) {
@@ -133,13 +136,14 @@ Map<String, dynamic> _$UploaderInvitedToJson(UploaderInvited instance) {
 
 AnalysisCompleted _$AnalysisCompletedFromJson(Map<String, dynamic> json) {
   return AnalysisCompleted(
-      packageName: json['packageName'] as String,
-      packageVersion: json['packageVersion'] as String,
-      hasErrors: json['hasErrors'] as bool,
-      hasPlatforms: json['hasPlatforms'] as bool,
-      timestamp: json['timestamp'] == null
-          ? null
-          : DateTime.parse(json['timestamp'] as String));
+    packageName: json['packageName'] as String,
+    packageVersion: json['packageVersion'] as String,
+    hasErrors: json['hasErrors'] as bool,
+    hasPlatforms: json['hasPlatforms'] as bool,
+    timestamp: json['timestamp'] == null
+        ? null
+        : DateTime.parse(json['timestamp'] as String),
+  );
 }
 
 Map<String, dynamic> _$AnalysisCompletedToJson(AnalysisCompleted instance) =>
@@ -148,5 +152,5 @@ Map<String, dynamic> _$AnalysisCompletedToJson(AnalysisCompleted instance) =>
       'packageVersion': instance.packageVersion,
       'hasErrors': instance.hasErrors,
       'hasPlatforms': instance.hasPlatforms,
-      'timestamp': instance.timestamp?.toIso8601String()
+      'timestamp': instance.timestamp?.toIso8601String(),
     };

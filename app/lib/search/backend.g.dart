@@ -18,5 +18,5 @@ SearchSnapshot _$SearchSnapshotFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$SearchSnapshotToJson(SearchSnapshot instance) =>
     <String, dynamic>{
       'updated': instance.updated.toIso8601String(),
-      'documents': instance.documents
+      'documents': instance.documents,
     };
