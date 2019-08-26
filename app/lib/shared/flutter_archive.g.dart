@@ -8,16 +8,17 @@ part of 'flutter_archive.dart';
 
 FlutterArchive _$FlutterArchiveFromJson(Map<String, dynamic> json) {
   return FlutterArchive(
-      baseUrl: json['baseUrl'] as String,
-      currentRelease: json['current_release'] == null
-          ? null
-          : FlutterCurrentRelease.fromJson(
-              json['current_release'] as Map<String, dynamic>),
-      releases: (json['releases'] as List)
-          ?.map((e) => e == null
-              ? null
-              : FlutterRelease.fromJson(e as Map<String, dynamic>))
-          ?.toList());
+    baseUrl: json['baseUrl'] as String,
+    currentRelease: json['current_release'] == null
+        ? null
+        : FlutterCurrentRelease.fromJson(
+            json['current_release'] as Map<String, dynamic>),
+    releases: (json['releases'] as List)
+        ?.map((e) => e == null
+            ? null
+            : FlutterRelease.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
 }
 
 Map<String, dynamic> _$FlutterArchiveToJson(FlutterArchive instance) {
@@ -39,9 +40,10 @@ Map<String, dynamic> _$FlutterArchiveToJson(FlutterArchive instance) {
 FlutterCurrentRelease _$FlutterCurrentReleaseFromJson(
     Map<String, dynamic> json) {
   return FlutterCurrentRelease(
-      beta: json['beta'] as String,
-      dev: json['dev'] as String,
-      stable: json['stable'] as String);
+    beta: json['beta'] as String,
+    dev: json['dev'] as String,
+    stable: json['stable'] as String,
+  );
 }
 
 Map<String, dynamic> _$FlutterCurrentReleaseToJson(
@@ -62,14 +64,15 @@ Map<String, dynamic> _$FlutterCurrentReleaseToJson(
 
 FlutterRelease _$FlutterReleaseFromJson(Map<String, dynamic> json) {
   return FlutterRelease(
-      hash: json['hash'] as String,
-      channel: json['channel'] as String,
-      version: json['version'] as String,
-      releaseDate: json['release_date'] == null
-          ? null
-          : DateTime.parse(json['release_date'] as String),
-      archive: json['archive'] as String,
-      sha256: json['sha256'] as String);
+    hash: json['hash'] as String,
+    channel: json['channel'] as String,
+    version: json['version'] as String,
+    releaseDate: json['release_date'] == null
+        ? null
+        : DateTime.parse(json['release_date'] as String),
+    archive: json['archive'] as String,
+    sha256: json['sha256'] as String,
+  );
 }
 
 Map<String, dynamic> _$FlutterReleaseToJson(FlutterRelease instance) {
