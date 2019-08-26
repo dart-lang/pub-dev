@@ -264,12 +264,16 @@ class PubApi {
   // ****
 
   @EndPoint.get('/api/admin/users')
-  Future<AdminListUsersResponse> adminListUsers(Request request) {
-    final params = request.requestedUri.queryParameters;
+  Future<AdminListUsersResponse> adminListUsers(
+    Request request, {
+    String email, // Filter by email
+    String ouid, // Filter by OAuthUserID
+    String ct, // continuationToken
+  }) {
     return adminBackend.listUsers(
-      email: params['email'],
-      oauthUserId: params['ouid'],
-      continuationToken: params['ct'],
+      email: email,
+      oauthUserId: ouid,
+      continuationToken: ct,
     );
   }
 

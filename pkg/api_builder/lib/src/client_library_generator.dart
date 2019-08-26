@@ -131,6 +131,16 @@ code.Method _buildClientMethod(
     returnTypeRef = code.refer('List<int>');
   }
 
+  // Serialized code mapping query names to query parameters in a
+  // Map<String,String> (used later in the generated code)
+  final queryMap =
+      h.queryParameters.map((p) => '${p.name} != null').join(' || ') +
+          ' ? <String,String>{' +
+          h.queryParameters
+              .map((p) => 'if (${p.name} != null) \'${p.name}\': ${p.name}')
+              .join(', ') +
+          '} : null';
+
   return code.Method(
     (b) => b
       ..name = h.element.name
@@ -151,17 +161,28 @@ code.Method _buildClientMethod(
               ..type = _referToType(h.payloadType),
           )
       ])
+      ..optionalParameters.addAll([
+        for (final param in h.queryParameters)
+          code.Parameter(
+            (b) => b
+              ..name = param.name
+              ..type = code.refer('String')
+              ..named = true,
+          )
+      ])
       ..modifier = code.MethodModifier.async
       ..body = returnsResponse ? Code.scope((r) => '''
         return await _client.requestBytes(
           verb: '${h.verb.toLowerCase()}',
           path: '$urlPattern',
+          ${h.queryParameters.isEmpty ? '' : 'query: ' + queryMap + ','}
           ${h.hasPayload ? 'body: payload.toJson(),' : ''}
         );
       ''') : Code.scope((r) => '''
         return ${r(returnTypeRef)}.fromJson(await _client.requestJson(
           verb: '${h.verb.toLowerCase()}',
           path: '$urlPattern',
+          ${h.queryParameters.isEmpty ? '' : 'query: ' + queryMap + ','}
           ${h.hasPayload ? 'body: payload.toJson(),' : ''}
         ));
       '''),
