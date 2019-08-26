@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
@@ -53,10 +54,11 @@ class PublisherScript {
         publisherId: 'example.com',
       );
 
-      final publisherInfo =
+      final infoBody =
           await _pubHttpClient.getContent('/api/packages/_dummy_pkg/publisher');
-      if (publisherInfo != '{"publisherId":"example.com"}') {
-        throw Exception('Unexpected publisher info: $publisherInfo');
+      final info = json.decode(infoBody) as Map<String, dynamic>;
+      if (info['publisherId'] != 'example.com') {
+        throw Exception('Unexpected publisher info: $infoBody');
       }
       // TODO: check package page that publisherId is displayed
 
