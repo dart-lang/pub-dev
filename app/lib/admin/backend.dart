@@ -178,6 +178,27 @@ class AdminBackend {
       tx.queueMutations(inserts: [p], deletes: [member.key]);
       await tx.commit();
     });
+    if (seniorMember == null) {
+      // mark packages under the publisher discontinued
+      final query = _db.query<Package>()
+        ..filter('publisherId =', member.publisherId);
+      final pool = Pool(4);
+      final futures = <Future>[];
+      await for (final package in query.run()) {
+        if (package.isDiscontinued == true) continue;
+        final f = pool.withResource(
+          () => _db.withTransaction((tx) async {
+            final p = (await tx.lookup<Package>([package.key])).single;
+            p.isDiscontinued = true;
+            tx.queueMutations(inserts: [p]);
+            await tx.commit();
+          }),
+        );
+        futures.add(f);
+      }
+      await Future.wait(futures);
+      await pool.close();
+    }
   }
 
   /// Returns the member of the publisher that (a) is not removed,

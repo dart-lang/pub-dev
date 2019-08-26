@@ -177,6 +177,7 @@ void main() {
             (await dbService.lookup<Publisher>([exampleComPublisher.key]))
                 .single;
         expect(publisher.contactEmail, isNull);
+        expect(publisher.isAbandoned, isTrue);
 
         final members = await dbService
             .query<PublisherMember>(ancestorKey: exampleComPublisher.key)

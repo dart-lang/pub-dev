@@ -26,17 +26,11 @@ class Publisher extends db.ExpandoModel {
   @db.StringProperty()
   String contactEmail;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime created;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
-
-  /// Set to `true` if [Publisher] is abandoned, may otherwise be `null` or `false`.
-  ///
-  /// Use [isAbandoned] to avoid `null` checking.
-  @db.BoolProperty(propertyName: 'isAbandoned')
-  bool isAbandonedFlag;
 
   /// [isAbandoned] is set when a [Publisher] is abandoned (all of its members left).
   /// When this happens possible user-data such as [contactEmail] are purged.
@@ -46,10 +40,8 @@ class Publisher extends db.ExpandoModel {
   /// ensure that we can see:
   /// (A) who uploaded a package, and,
   /// (B) who granted the permissions that allowed said package to be uploaded.
-  bool get isAbandoned => isAbandoned == true;
-  set isAbandoned(bool value) {
-    isAbandonedFlag = value;
-  }
+  @db.BoolProperty(required: true)
+  bool isAbandoned;
 }
 
 /// Derived publisher data.
