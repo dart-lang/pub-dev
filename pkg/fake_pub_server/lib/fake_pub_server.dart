@@ -21,7 +21,6 @@ import 'package:pub_dartlang_org/package/name_tracker.dart';
 import 'package:pub_dartlang_org/package/upload_signer_service.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/search/search_client.dart';
 import 'package:pub_dartlang_org/service/services.dart';
 
@@ -47,36 +46,34 @@ class FakePubServer {
         storageBaseUrl: storageBaseUrl,
       ));
 
-      await withCache(() async {
-        await withPubServices(() async {
-          await ss.fork(() async {
-            registerAccountBackend(
-                AccountBackend(db, authProvider: FakeAuthProvider(port)));
-            registerUploadSigner(FakeUploadSignerService(storageBaseUrl));
-            registerSearchClient(MockSearchClient());
+      await withPubServices(() async {
+        await ss.fork(() async {
+          registerAccountBackend(
+              AccountBackend(db, authProvider: FakeAuthProvider(port)));
+          registerUploadSigner(FakeUploadSignerService(storageBaseUrl));
+          registerSearchClient(MockSearchClient());
 
-            nameTracker.startTracking();
+          nameTracker.startTracking();
 
-            final apiHandler = packageBackend.pubServer.requestHandler;
+          final apiHandler = packageBackend.pubServer.requestHandler;
 
-            final appHandler = createAppHandler(apiHandler);
-            final handler = wrapHandler(_logger, appHandler, sanitize: true);
+          final appHandler = createAppHandler(apiHandler);
+          final handler = wrapHandler(_logger, appHandler, sanitize: true);
 
-            final server = await IOServer.bind('localhost', port);
-            serveRequests(server.server, (request) async {
-              return await ss.fork(() async {
-                return await handler(request);
-              }) as shelf.Response;
-            });
-            _logger.info('fake_pub_server running on port $port');
-
-            await ProcessSignal.sigterm.watch().first;
-
-            _logger.info('fake_pub_server shutting down');
-            await server.close();
-            nameTracker.stopTracking();
-            _logger.info('closing');
+          final server = await IOServer.bind('localhost', port);
+          serveRequests(server.server, (request) async {
+            return await ss.fork(() async {
+              return await handler(request);
+            }) as shelf.Response;
           });
+          _logger.info('fake_pub_server running on port $port');
+
+          await ProcessSignal.sigterm.watch().first;
+
+          _logger.info('fake_pub_server shutting down');
+          await server.close();
+          nameTracker.stopTracking();
+          _logger.info('closing');
         });
       });
     });
