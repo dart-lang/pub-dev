@@ -61,11 +61,11 @@ class AdminBackend {
       final query = _db.query<User>()..limit(limit);
 
       if (email != null) {
-        InvalidInputException.checkNull(oauthUserId, 'oauthUserId');
-        InvalidInputException.checkNull(continuationToken, 'continuationToken');
+        InvalidInputException.checkNull(oauthUserId, '?ouid=');
+        InvalidInputException.checkNull(continuationToken, '?ct=');
         query.filter('email =', email);
       } else if (oauthUserId != null) {
-        InvalidInputException.checkNull(continuationToken, 'continuationToken');
+        InvalidInputException.checkNull(continuationToken, '?ct=');
         query.filter('oauthUserId =', oauthUserId);
       } else if (continuationToken != null) {
         String lastId;
@@ -74,7 +74,7 @@ class AdminBackend {
         } on FormatException catch (_) {
           throw InvalidInputException.continuationParseError();
         }
-        InvalidInputException.checkNotNull(lastId, 'continuationToken');
+        InvalidInputException.checkNotNull(lastId, '?ct=');
 
         // NOTE: we should fix https://github.com/dart-lang/gcloud/issues/23
         //       and remove the toDatastoreKey conversion here.

@@ -268,8 +268,8 @@ class PubApi {
     final params = request.requestedUri.queryParameters;
     return adminBackend.listUsers(
       email: params['email'],
-      oauthUserId: params['oauthUserId'],
-      continuationToken: params['continuationToken'],
+      oauthUserId: params['ouid'],
+      continuationToken: params['ct'],
     );
   }
 

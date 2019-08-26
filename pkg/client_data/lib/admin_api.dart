@@ -20,7 +20,7 @@ class AdminListUsersResponse {
   ///
   /// If the list of [users] is incomplete, because there is more users than a
   /// single request body can include, the [continuationToken] can be provided
-  /// as query-string parameter `continuationToken=`, in another request.
+  /// as query-string parameter `?ct=`, in another request.
   /// If [continuationToken] is `null` no further `users` can be returned.
   final String continuationToken;
 
