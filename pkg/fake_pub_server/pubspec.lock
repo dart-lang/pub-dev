@@ -21,7 +21,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.36.3"
+    version: "0.37.0"
   api_builder:
     dependency: transitive
     description:
@@ -196,7 +196,7 @@ packages:
       name: front_end
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.18"
+    version: "0.1.20"
   gcloud:
     dependency: transitive
     description:
@@ -309,20 +309,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
-  json_rpc_2:
-    dependency: transitive
-    description:
-      name: json_rpc_2
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.10"
   kernel:
     dependency: transitive
     description:
       name: kernel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.18"
+    version: "0.3.20"
   logging:
     dependency: "direct main"
     description:
@@ -413,7 +406,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.19"
+    version: "0.12.20"
   path:
     dependency: transitive
     description:
@@ -616,21 +609,21 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.1"
+    version: "1.6.8"
   test_api:
     dependency: transitive
     description:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.4"
+    version: "0.2.7"
   test_core:
     dependency: transitive
     description:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.3"
+    version: "0.2.9"
   typed_data:
     dependency: transitive
     description:
@@ -659,13 +652,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.3"
-  vm_service_client:
+  vm_service:
     dependency: transitive
     description:
-      name: vm_service_client
+      name: vm_service
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.6+1"
+    version: "1.1.1"
   watcher:
     dependency: transitive
     description:
