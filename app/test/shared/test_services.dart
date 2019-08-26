@@ -33,7 +33,6 @@ import 'package:pub_dartlang_org/shared/exceptions.dart'
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/integrity.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/search/search_client.dart';
 import 'package:pub_dartlang_org/service/services.dart';
 
