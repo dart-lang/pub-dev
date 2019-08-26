@@ -1,5 +1,6 @@
 import 'dart:async' show FutureOr;
 
+import 'package:appengine/appengine.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
@@ -25,7 +26,7 @@ import '../search/search_client.dart';
 import '../search/updater.dart';
 import '../shared/configuration.dart';
 import '../shared/popularity_storage.dart';
-import '../shared/redis_cache.dart' show withAppEngineAndCache;
+import '../shared/redis_cache.dart' show withCache;
 import '../shared/storage.dart';
 import '../shared/storage_retry.dart' show withStorageRetry;
 import '../shared/urls.dart';
@@ -39,7 +40,7 @@ import 'secret/backend.dart';
 ///  * Redis cache, and,
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
-  return await withAppEngineAndCache(() async {
+  return withAppEngineServices(() async {
     return await withStorageRetry(() async {
       return await withPubServices(fn);
     });
@@ -100,6 +101,6 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(searchClient.close);
     registerScopeExitCallback(searchService.close);
 
-    return await fn();
+    return await withCache(fn);
   });
 }
