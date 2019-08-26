@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 
 /// Simple pub client library.
 class PubHttpClient {
@@ -51,6 +53,46 @@ class PubHttpClient {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
     return rs.body;
+  }
+
+  /// Creates a publisher.
+  Future createPublisher({
+    @required String authToken,
+    @required String publisherId,
+    @required String accessToken,
+  }) async {
+    final rs = await _http.post(
+      '$pubHostedUrl/api/publishers/$publisherId',
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $authToken',
+      },
+      body: json.encode({
+        'accessToken': accessToken,
+      }),
+    );
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+  }
+
+  /// Move a package under a publisher.
+  Future setPackagePublisher({
+    @required String authToken,
+    @required String package,
+    @required String publisherId,
+  }) async {
+    final rs = await _http.put(
+      '$pubHostedUrl/api/packages/$package/publisher',
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $authToken',
+      },
+      body: json.encode({
+        'publisherId': publisherId,
+      }),
+    );
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
   }
 
   /// Free resources.

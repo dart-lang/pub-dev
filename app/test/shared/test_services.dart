@@ -22,14 +22,13 @@ import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dart';
 import 'package:pub_dartlang_org/package/upload_signer_service.dart';
 import 'package:pub_dartlang_org/publisher/domain_verifier.dart';
+import 'package:pub_dartlang_org/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dartlang_org/scorecard/backend.dart';
 import 'package:pub_dartlang_org/search/handlers.dart';
 import 'package:pub_dartlang_org/search/index_simple.dart';
 import 'package:pub_dartlang_org/search/updater.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/email.dart';
-import 'package:pub_dartlang_org/shared/exceptions.dart'
-    show AuthorizationException;
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/integrity.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
@@ -87,7 +86,7 @@ void testWithServices(String name, Future fn()) {
       await fork(() async {
         registerAccountBackend(
             AccountBackend(db, authProvider: FakeAuthProvider()));
-        registerDomainVerifier(_FakeDomainVerifier());
+        registerDomainVerifier(FakeDomainVerifier());
         registerEmailSender(FakeEmailSender());
         registerUploadSigner(FakeUploadSignerService('https://storage.url'));
 
@@ -100,13 +99,29 @@ void testWithServices(String name, Future fn()) {
         registerScopeExitCallback(searchClient.close);
 
         await fork(() async {
-          await fn();
-          // post-test integrity check
-          final problems = await IntegrityChecker(dbService).check();
-          if (problems.isNotEmpty) {
-            throw Exception(
-                '${problems.length} integrity problems detected. First: ${problems.first}');
-          }
+          registerAccountBackend(
+              AccountBackend(db, authProvider: FakeAuthProvider()));
+          registerDomainVerifier(FakeDomainVerifier());
+          registerEmailSender(FakeEmailSender());
+          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
+
+          await dartSdkIndex.merge();
+          await indexUpdater.updateAllPackages();
+
+          registerSearchClient(
+              SearchClient(_httpClient(handler: searchServiceHandler)));
+
+          registerScopeExitCallback(searchClient.close);
+
+          await fork(() async {
+            await fn();
+            // post-test integrity check
+            final problems = await IntegrityChecker(dbService).check();
+            if (problems.isNotEmpty) {
+              throw Exception(
+                  '${problems.length} integrity problems detected. First: ${problems.first}');
+            }
+          });
         });
       });
     });
@@ -162,20 +177,6 @@ http_testing.MockClientHandler _wrapShelfHandler(
       headers: rs.headers,
     );
   };
-}
-
-/// Fake implementation of [DomainVerifier] for testing.
-class _FakeDomainVerifier implements DomainVerifier {
-  @override
-  Future<bool> verifyDomainOwnership(String domain, String accessToken) async {
-    if (domain == 'verified.com') {
-      return true;
-    }
-    if (domain == 'notverified.net') {
-      return false;
-    }
-    throw AuthorizationException.missingSearchConsoleReadAccess();
-  }
 }
 
 bool _loggingDone = false;
