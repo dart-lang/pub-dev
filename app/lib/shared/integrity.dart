@@ -155,7 +155,7 @@ class IntegrityChecker {
   }
 
   Future _checkPublisherMembers() async {
-    _logger.info('Scanning PublisherMemberss...');
+    _logger.info('Scanning PublisherMembers...');
     await for (final pm in _db.query<PublisherMember>().run()) {
       if (!_publishers.contains(pm.publisherId)) {
         _problems.add(
