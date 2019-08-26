@@ -23,6 +23,7 @@ class IntegrityChecker {
   final _userToOauth = <String, String>{};
   final _oauthToUser = <String, String>{};
   final _emailToUser = <String, List<String>>{};
+  final _deletedUsers = <String>{};
   final _invalidUsers = Set<String>();
   final _packages = <String>{};
   final _packagesWithVersion = <String>{};
@@ -60,6 +61,7 @@ class IntegrityChecker {
       }
 
       if (user.isDeleted) {
+        _deletedUsers.add(user.userId);
         if (user.oauthUserId != null) {
           _problems.add(
               'User(${user.userId}) is deleted, but oauthUserId is still set.');
@@ -158,6 +160,14 @@ class IntegrityChecker {
       if (!_publishers.contains(pm.publisherId)) {
         _problems.add(
             'PublisherMember(${pm.userId}) references a non-existing publisher: ${pm.publisherId}.');
+      }
+      if (_deletedUsers.contains(pm.userId)) {
+        _problems.add(
+            'PublisherMember(${pm.publisherId} / ${pm.userId}) references a deleted User.');
+      }
+      if (!_userToOauth.containsKey(pm.userId)) {
+        _problems.add(
+            'PublisherMember(${pm.publisherId} / ${pm.userId}) references a non-existing User.');
       }
     }
   }
