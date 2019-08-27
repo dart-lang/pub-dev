@@ -132,6 +132,9 @@ class PackageBackend {
   }
 
   /// Looks up a specific package version.
+  ///
+  /// Returns null if the version is not a semantic version or if the version
+  /// entity does not exists in the datastore.
   Future<models.PackageVersion> lookupPackageVersion(
       String package, String version) async {
     version = canonicalizeVersion(version);
@@ -474,6 +477,8 @@ class GCloudPackageRepository extends PackageRepository {
         PackageVersion(package, model.version, model.pubspec.jsonString));
   }
 
+  /// Returns null if the version is not a semantic version or if the version
+  /// entity does not exists in the datastore.
   @override
   Future<PackageVersion> lookupVersion(String package, String version) async {
     version = canonicalizeVersion(version);
