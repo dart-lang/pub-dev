@@ -99,29 +99,13 @@ void testWithServices(String name, Future fn()) {
         registerScopeExitCallback(searchClient.close);
 
         await fork(() async {
-          registerAccountBackend(
-              AccountBackend(db, authProvider: FakeAuthProvider()));
-          registerDomainVerifier(FakeDomainVerifier());
-          registerEmailSender(FakeEmailSender());
-          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
-
-          await dartSdkIndex.merge();
-          await indexUpdater.updateAllPackages();
-
-          registerSearchClient(
-              SearchClient(_httpClient(handler: searchServiceHandler)));
-
-          registerScopeExitCallback(searchClient.close);
-
-          await fork(() async {
-            await fn();
-            // post-test integrity check
-            final problems = await IntegrityChecker(dbService).check();
-            if (problems.isNotEmpty) {
-              throw Exception(
-                  '${problems.length} integrity problems detected. First: ${problems.first}');
-            }
-          });
+          await fn();
+          // post-test integrity check
+          final problems = await IntegrityChecker(dbService).check();
+          if (problems.isNotEmpty) {
+            throw Exception(
+                '${problems.length} integrity problems detected. First: ${problems.first}');
+          }
         });
       });
     });
