@@ -135,6 +135,7 @@ class PackageBackend {
   Future<models.PackageVersion> lookupPackageVersion(
       String package, String version) async {
     version = canonicalizeVersion(version);
+    if (version == null) return null;
     final packageVersionKey = db.emptyKey
         .append(models.Package, id: package)
         .append(models.PackageVersion, id: version);
@@ -476,6 +477,7 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future<PackageVersion> lookupVersion(String package, String version) async {
     version = canonicalizeVersion(version);
+    if (version == null) return null;
 
     final packageVersionKey = db.emptyKey
         .append(models.Package, id: package)

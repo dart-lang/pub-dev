@@ -55,9 +55,20 @@ void main() {
       },
     );
 
-    testWithServices('/packages/foobar_pkg/versions/0.1.1 - found', () async {
+    testWithServices('/packages/foobar_pkg/versions/0.1.1+5 - found', () async {
       await expectHtmlResponse(
         await issueGet('/packages/foobar_pkg/versions/0.1.1+5'),
+        present: [
+          '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
+          '<a href="/packages/foobar_pkg">0.1.1+5</a>',
+          '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
+        ],
+      );
+    });
+
+    testWithServices('/packages/foobar_pkg/versions/0.1.1%2B5 - found', () async {
+      await expectHtmlResponse(
+        await issueGet('/packages/foobar_pkg/versions/0.1.1%2B5'),
         present: [
           '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
