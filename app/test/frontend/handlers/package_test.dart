@@ -66,7 +66,8 @@ void main() {
       );
     });
 
-    testWithServices('/packages/foobar_pkg/versions/0.1.1%2B5 - found', () async {
+    testWithServices('/packages/foobar_pkg/versions/0.1.1%2B5 - found',
+        () async {
       await expectHtmlResponse(
         await issueGet('/packages/foobar_pkg/versions/0.1.1%2B5'),
         present: [
