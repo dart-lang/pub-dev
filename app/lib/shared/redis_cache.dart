@@ -132,7 +132,6 @@ Future withCache(FutureOr Function() fn) async {
 
 /// Run [fn] with [cache] connected to a redis cache.
 Future _withRedisCache(FutureOr Function() fn) async {
-  // TODO: use in-memory if GAE_VERSION is not set...
   final connectionString =
       await secretBackend.lookup(SecretKey.redisConnectionString);
   // Validate that we got a connection string

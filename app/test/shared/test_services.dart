@@ -33,7 +33,6 @@ import 'package:pub_dartlang_org/shared/exceptions.dart'
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/integrity.dart';
 import 'package:pub_dartlang_org/shared/popularity_storage.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart';
 import 'package:pub_dartlang_org/search/search_client.dart';
 import 'package:pub_dartlang_org/service/services.dart';
 
@@ -47,69 +46,67 @@ void testWithServices(String name, Future fn()) {
     _setupLogging();
     registerActiveConfiguration(Configuration.test());
 
-    await withCache(() async {
-      final db = DatastoreDB(MemDatastore());
-      await db.commit(inserts: [
-        foobarPackage,
-        foobarStablePV,
-        foobarDevPV,
-        ...pvModels(foobarStablePV),
-        ...pvModels(foobarDevPV),
-        testUserA,
-        hansUser,
-        joeUser,
-        adminUser,
-        adminOAuthUserID,
-        hydrogen.package,
-        ...hydrogen.versions.map(pvModels).expand((m) => m),
-        helium.package,
-        ...helium.versions.map(pvModels).expand((m) => m),
-        lithium.package,
-        ...lithium.versions.map(pvModels).expand((m) => m),
-        exampleComPublisher,
-        exampleComHansAdmin,
-      ]);
-      registerDbService(db);
-      registerStorageService(MemStorage());
+    final db = DatastoreDB(MemDatastore());
+    await db.commit(inserts: [
+      foobarPackage,
+      foobarStablePV,
+      foobarDevPV,
+      ...pvModels(foobarStablePV),
+      ...pvModels(foobarDevPV),
+      testUserA,
+      hansUser,
+      joeUser,
+      adminUser,
+      adminOAuthUserID,
+      hydrogen.package,
+      ...hydrogen.versions.map(pvModels).expand((m) => m),
+      helium.package,
+      ...helium.versions.map(pvModels).expand((m) => m),
+      lithium.package,
+      ...lithium.versions.map(pvModels).expand((m) => m),
+      exampleComPublisher,
+      exampleComHansAdmin,
+    ]);
+    registerDbService(db);
+    registerStorageService(MemStorage());
 
-      await withPubServices(() async {
-        popularityStorage.updateValues({
-          hydrogen.package.name: 0.8,
-          helium.package.name: 1.0,
-          lithium.package.name: 0.7,
-        });
+    await withPubServices(() async {
+      popularityStorage.updateValues({
+        hydrogen.package.name: 0.8,
+        helium.package.name: 1.0,
+        lithium.package.name: 0.7,
+      });
 
-        await scoreCardBackend.updateReport(
-            helium.package.name,
-            helium.package.latestVersion,
-            generatePanaReport(platformTags: ['flutter']));
-        await scoreCardBackend.updateScoreCard(
-            helium.package.name, helium.package.latestVersion);
+      await scoreCardBackend.updateReport(
+          helium.package.name,
+          helium.package.latestVersion,
+          generatePanaReport(platformTags: ['flutter']));
+      await scoreCardBackend.updateScoreCard(
+          helium.package.name, helium.package.latestVersion);
+
+      await fork(() async {
+        registerAccountBackend(
+            AccountBackend(db, authProvider: FakeAuthProvider()));
+        registerDomainVerifier(_FakeDomainVerifier());
+        registerEmailSender(FakeEmailSender());
+        registerUploadSigner(FakeUploadSignerService('https://storage.url'));
+
+        await dartSdkIndex.merge();
+        await indexUpdater.updateAllPackages();
+
+        registerSearchClient(
+            SearchClient(_httpClient(handler: searchServiceHandler)));
+
+        registerScopeExitCallback(searchClient.close);
 
         await fork(() async {
-          registerAccountBackend(
-              AccountBackend(db, authProvider: FakeAuthProvider()));
-          registerDomainVerifier(_FakeDomainVerifier());
-          registerEmailSender(FakeEmailSender());
-          registerUploadSigner(FakeUploadSignerService('https://storage.url'));
-
-          await dartSdkIndex.merge();
-          await indexUpdater.updateAllPackages();
-
-          registerSearchClient(
-              SearchClient(_httpClient(handler: searchServiceHandler)));
-
-          registerScopeExitCallback(searchClient.close);
-
-          await fork(() async {
-            await fn();
-            // post-test integrity check
-            final problems = await IntegrityChecker(dbService).check();
-            if (problems.isNotEmpty) {
-              throw Exception(
-                  '${problems.length} integrity problems detected. First: ${problems.first}');
-            }
-          });
+          await fn();
+          // post-test integrity check
+          final problems = await IntegrityChecker(dbService).check();
+          if (problems.isNotEmpty) {
+            throw Exception(
+                '${problems.length} integrity problems detected. First: ${problems.first}');
+          }
         });
       });
     });
