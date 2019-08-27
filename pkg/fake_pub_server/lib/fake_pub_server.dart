@@ -19,6 +19,8 @@ import 'package:pub_dartlang_org/frontend/testing/fake_upload_signer_service.dar
 import 'package:pub_dartlang_org/package/backend.dart';
 import 'package:pub_dartlang_org/package/name_tracker.dart';
 import 'package:pub_dartlang_org/package/upload_signer_service.dart';
+import 'package:pub_dartlang_org/publisher/domain_verifier.dart';
+import 'package:pub_dartlang_org/publisher/testing/fake_domain_verifier.dart';
 import 'package:pub_dartlang_org/shared/configuration.dart';
 import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/search/search_client.dart';
@@ -50,6 +52,7 @@ class FakePubServer {
         await ss.fork(() async {
           registerAccountBackend(
               AccountBackend(db, authProvider: FakeAuthProvider(port)));
+          registerDomainVerifier(FakeDomainVerifier());
           registerUploadSigner(FakeUploadSignerService(storageBaseUrl));
           registerSearchClient(MockSearchClient());
 

@@ -34,9 +34,13 @@ for PKG in ${PKGS}; do
       echo 'dartfmt -n --set-exit-if-changed .'
       dartfmt -n --set-exit-if-changed . || EXIT_CODE=$?
       ;;
-    test)
+    test_0)
       echo 'pub run test --run-skipped'
       pub run test --run-skipped || EXIT_CODE=$?
+      ;;
+    test_1)
+      echo 'pub run test --run-skipped --concurrency=1'
+      pub run test --run-skipped --concurrency=1 || EXIT_CODE=$?
       ;;
     *)
       echo -e "\033[31mNot expecting TASK '${TASK}'. Error!\033[0m"
