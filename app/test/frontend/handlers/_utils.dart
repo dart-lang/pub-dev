@@ -6,10 +6,13 @@ library pub_dartlang_org.frontend.handlers_test;
 
 import 'dart:async';
 
+import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/frontend/handlers.dart';
+import 'package:pub_dartlang_org/shared/handler_helpers.dart';
 import 'package:pub_dartlang_org/shared/urls.dart';
 
 import '../../shared/utils.dart';
@@ -27,7 +30,10 @@ Future<shelf.Response> issueGet(String path, {String host}) async {
   final uri = host == null ? '$siteRoot$path' : 'https://$host$path';
   final request = shelf.Request('GET', Uri.parse(uri));
   final handler = createAppHandler(null);
-  return await handler(request);
+  final wrapped = wrapHandler(Logger('test'), handler, sanitize: true);
+  return await ss.fork(() async {
+    return await wrapped(request);
+  }) as shelf.Response;
 }
 
 Future<String> expectHtmlResponse(

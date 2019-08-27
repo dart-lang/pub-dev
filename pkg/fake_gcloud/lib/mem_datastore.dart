@@ -47,6 +47,9 @@ class MemDatastore implements Datastore {
 
   @override
   Future<List<Entity>> lookup(List<Key> keys, {Transaction transaction}) async {
+    if (keys.any((k) => k.elements.any((e) => e.id == null))) {
+      throw ArgumentError('Key contains null.');
+    }
     return keys.map((key) => _entities[key]).toList();
   }
 

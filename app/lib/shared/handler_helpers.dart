@@ -246,10 +246,10 @@ shelf.Handler _httpsWrapper(shelf.Handler handler) {
 
 shelf.Request _sanitizeRequestedUri(shelf.Request request) {
   final uri = request.requestedUri;
-  final resource = uri.path;
+  final resource = Uri.decodeFull(uri.path);
   final normalizedResource = path.normalize(resource);
 
-  if (resource == normalizedResource) {
+  if (uri.path == normalizedResource) {
     return request;
   } else {
     // With the new flex VMs we can get requests from the load balancer which
