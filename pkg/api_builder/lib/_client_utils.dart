@@ -48,10 +48,12 @@ class Client {
   Future<Map<String, dynamic>> requestJson({
     @required String verb,
     @required String path,
+    Map<String, String> query,
     Map<String, dynamic> body,
   }) =>
       _withClient((client) async {
-        final req = http.Request(verb, Uri.parse(_baseUrl + path));
+        final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
+        final req = http.Request(verb, u);
         if (body != null) {
           req.bodyBytes = json.fuse(utf8).encode(body);
           req.headers['content-type'] = 'application/json; charset="utf-8"';
@@ -66,10 +68,12 @@ class Client {
   Future<List<int>> requestBytes({
     @required String verb,
     @required String path,
+    Map<String, String> query,
     Map<String, dynamic> body,
   }) =>
       _withClient((client) async {
-        final req = http.Request(verb, Uri.parse(_baseUrl + path));
+        final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
+        final req = http.Request(verb, u);
         if (body != null) {
           req.bodyBytes = json.fuse(utf8).encode(body);
           req.headers['content-type'] = 'application/json; charset="utf-8"';

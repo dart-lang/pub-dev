@@ -2,7 +2,7 @@ import 'package:build/build.dart' show BuildStep, log;
 import 'package:http_methods/http_methods.dart' show isHttpMethod;
 import 'package:source_gen/source_gen.dart' as g;
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, ExecutableElement;
+    show ClassElement, ExecutableElement, ParameterElement;
 import 'package:analyzer/dart/element/type.dart' show DartType;
 
 import '../api_builder.dart' show EndPoint;
@@ -18,11 +18,27 @@ class Handler {
   Handler(this.verb, this.route, this.element);
 
   /// If this handler has a payload
-  bool get hasPayload =>
-      element.parameters.length > 1 &&
-      !element.parameters.last.type.isDartCoreString;
+  bool get hasPayload => payloadType != null;
 
-  DartType get payloadType => element.parameters.last.type;
+  DartType get payloadType => element.parameters
+      .skip(1)
+      .lastWhere(
+        (p) => p.isPositional && !p.type.isDartCoreString,
+        orElse: () => null,
+      )
+      ?.type;
+
+  /// List of parameters from the route.
+  List<String> get routeParameters => element.parameters
+      .skip(1)
+      .takeWhile((p) => p.type.isDartCoreString && p.isPositional)
+      .map((p) => p.displayName)
+      .toList();
+
+  /// Any optional named string parameters are query string parameters.
+  List<ParameterElement> get queryParameters => element.parameters
+      .where((p) => p.isNamed && p.type.isDartCoreString)
+      .toList();
 }
 
 /// Find members of a class annotated with [EndPoint].

@@ -59,12 +59,6 @@ code.Code _buildAddHandlerCode({
   @required code.Reference service,
   @required Handler handler,
 }) {
-  // Find the route parameters
-  final routeParams = handler.element.parameters
-      .skip(1)
-      .takeWhile((p) => p.type.isDartCoreString)
-      .map((p) => p.displayName);
-
   // Check the return value of the method.
   var returnType = handler.element.returnType;
   // Unpack Future<T> and FutureOr<T> wrapping of responseType
@@ -87,7 +81,7 @@ code.Code _buildAddHandlerCode({
               ..type = code.refer('Request'),
           ),
           // Followed a number of string parameters from the router
-          for (final param in routeParams)
+          for (final param in handler.routeParameters)
             code.Parameter(
               (b) => b
                 ..name = param
@@ -97,32 +91,23 @@ code.Code _buildAddHandlerCode({
         ..returns = code.refer('Response')
         ..body = code.Block.of([
           Code('try {'),
-          service
-              .property(handler.element.name)
-              .call([
-                code.refer('request'),
-                for (final param in routeParams) code.refer(param),
-                if (handler.hasPayload)
-                  code.refer('\$utilities').property('decodeJson').call([
-                    code.refer('request'),
-                    code.Method(
-                      (b) => b
-                        ..requiredParameters
-                            .add(code.Parameter((b) => b.name = 'o'))
-                        ..body = code
-                            .refer(handler.payloadType.displayName)
-                            .property('fromJson')
-                            .call([code.refer('o')])
-                            .returned
-                            .statement,
-                    ).closure,
-                  ], {}, [
-                    code.refer(handler.payloadType.displayName),
-                  ]).awaited,
-              ])
-              .awaited
-              .assignFinal('_\$result')
-              .statement,
+          Code(
+              'final _\$result = await ${service.symbol}.${handler.element.name}('),
+          Code('request,'),
+          for (final param in handler.routeParameters) Code('$param,'),
+          if (handler.hasPayload)
+            Code(
+                'await \$utilities.decodeJson<${handler.payloadType.name}>(request, (o) => ${handler.payloadType.name}.fromJson(o)),'),
+          for (final param in handler.queryParameters)
+            Code(
+              '${param.name}: ' +
+                  'request.requestedUri.queryParameters[\'${param.name}\'] ' +
+                  (param.defaultValueCode != null
+                      ? ' ?? ${param.defaultValueCode}'
+                      : '') +
+                  ',',
+            ),
+          Code(');'),
           (returnsResponse
               ? Code('return _\$result;')
               : Code('return \$utilities.jsonResponse(_\$result.toJson());')),

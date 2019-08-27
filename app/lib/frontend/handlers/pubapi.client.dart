@@ -258,10 +258,18 @@ class PubApiClient {
     );
   }
 
-  Future<_i6.AdminListUsersResponse> adminListUsers() async {
+  Future<_i6.AdminListUsersResponse> adminListUsers(
+      {String email, String ouid, String ct}) async {
     return _i6.AdminListUsersResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/admin/users',
+      query: email != null || ouid != null || ct != null
+          ? <String, String>{
+              if (email != null) 'email': email,
+              if (ouid != null) 'ouid': ouid,
+              if (ct != null) 'ct': ct
+            }
+          : null,
     ));
   }
 
