@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190828t095814-all`
+
  * Run `app/bin/tools/backfill_users.dart` to backfill `User`
    entities in datastore (populates `isDeleted` flag).
  * Upgraded pana to `0.12.20` (upgraded analyzer).
