@@ -8,6 +8,7 @@ import 'dart:js';
 
 import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
+import 'package:client_data/publisher_api.dart';
 import 'package:http/http.dart';
 
 import '_authenticated_client.dart';
@@ -31,6 +32,7 @@ GoogleUser get currentUser => _currentUser;
 Client _client;
 final _navWidget = _AccountNavWidget();
 final _pkgAdminWidget = _PkgAdminWidget();
+final _createPublisherWidget = _CreatePublisherWidget();
 
 /// The HTTP Client to use with account credentials.
 Client get client {
@@ -58,6 +60,7 @@ void _init() {
   _initialized = true;
   _navWidget.init();
   _pkgAdminWidget.init();
+  _createPublisherWidget.init();
   _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
@@ -104,6 +107,7 @@ void _updateUi() {
   }
   _navWidget.update();
   _pkgAdminWidget.update();
+  _createPublisherWidget.update();
 }
 
 class _AccountNavWidget {
@@ -172,7 +176,7 @@ class _PkgAdminWidget {
   }
 
   void update() {
-    if (isAdminPage) {
+    if (isActive) {
       final unauthenticated = !isSignedIn;
       final unauthorized = isSignedIn && !_isPkgUploader;
       final authorized = isSignedIn && _isPkgUploader;
@@ -207,8 +211,78 @@ class _PkgAdminWidget {
     }
   }
 
-  bool get isAdminPage =>
+  bool get isActive =>
       _unauthenticatedRoot != null &&
       _unauthorizedRoot != null &&
       _authorizedRoot != null;
+}
+
+class _CreatePublisherWidget {
+  Element _unauthenticatedRoot;
+  Element _authenticatedRoot;
+  Element _publisherIdInput;
+  Element _createButton;
+
+  void init() {
+    _unauthenticatedRoot = document.getElementById('-admin-unauthenticated');
+    _authenticatedRoot = document.getElementById('-admin-authenticated');
+    _publisherIdInput = document.getElementById('-publisher-id');
+    _createButton = document.getElementById('-admin-create-publisher');
+    if (isActive) {
+      update();
+      _createButton.onClick.listen((_) {
+        final publisherId = (_publisherIdInput as InputElement).value.trim();
+        _triggerCreate(publisherId);
+      });
+    }
+  }
+
+  void update() {
+    if (!isActive) return;
+    updateDisplay(_unauthenticatedRoot, !isSignedIn);
+    updateDisplay(_authenticatedRoot, isSignedIn, display: 'block');
+  }
+
+  void _triggerCreate(String publisherId) async {
+    if (publisherId.isEmpty || !publisherId.contains('.')) {
+      window.alert('Please use a domain name as publisher id.');
+      return;
+    }
+    if (!window.confirm(
+        'Are you sure you want to create publisher for "$publisherId"?')) {
+      return;
+    }
+    GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
+    final extraScope = 'https://www.googleapis.com/auth/webmasters.readonly';
+
+    if (!currentUser.hasGrantedScopes(extraScope)) {
+      // We don't have the extract scope, so let's ask for it
+      currentUser = await promiseAsFuture(currentUser.grant(GrantOptions(
+        scope: extraScope,
+      )));
+    }
+    final rs = await client.post(
+      '/api/publishers/$publisherId',
+      body: json.encode(
+        CreatePublisherRequest(
+          accessToken: currentUser.getAuthResponse(true).access_token,
+        ),
+      ),
+    );
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    if (rs.statusCode == 200) {
+      final uri = Uri.parse(window.location.href);
+      final newUri = uri.replace(path: '/publishers/$publisherId');
+      window.location.href = newUri.toString();
+    } else {
+      // TODO: render this message as HTML on the page.
+      window.alert(map['error'] as String ?? map['message'] as String);
+    }
+  }
+
+  bool get isActive =>
+      _unauthenticatedRoot != null &&
+      _authenticatedRoot != null &&
+      _publisherIdInput != null &&
+      _createButton != null;
 }

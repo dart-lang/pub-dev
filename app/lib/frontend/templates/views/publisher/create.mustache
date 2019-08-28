@@ -1,0 +1,28 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div style="max-width: 600px">
+  <h1>Create a publisher</h1>
+
+  <div id="-admin-unauthenticated">
+    <p>
+      Only signed-in users can create a publisher. Please sign in to continue.
+    </p>
+  </div>
+
+  <div id="-admin-authenticated">
+    <div>
+      <p>
+        Publishers are identified by a domain name. To create a publisher,
+        you need to be a site administrator in
+        <a href="https://www.google.com/webmasters/tools">Google Search Console</a>
+        (formerly: Google Webmaster Tools).
+      </p>
+      <p>
+        <input type="text" id="-publisher-id" class="pub-input" placeholder="your domain name" />
+        <button id="-admin-create-publisher" class="pub-button">Create publisher</button>
+      </p>
+    </div>
+  </div>
+</div>
