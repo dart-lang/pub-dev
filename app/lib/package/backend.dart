@@ -1005,7 +1005,7 @@ Future<_ValidatedUpload> _parseAndValidateUpload(
   }
 
   final pubspec = Pubspec.fromYaml(archive.pubspecContent);
-  if (!nameTracker.accept(pubspec.name)) {
+  if (!await nameTracker.accept(pubspec.name)) {
     throw GenericProcessingException(
         'Package name is too similar to another package.');
   }

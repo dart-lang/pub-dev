@@ -11,22 +11,22 @@ void main() {
   nameTracker.add('json');
   nameTracker.add('j_son');
 
-  test('new package', () {
-    expect(nameTracker.accept('new_package'), isTrue);
+  test('new package', () async {
+    expect(await nameTracker.accept('new_package'), isTrue);
   });
 
-  test('existing package', () {
-    expect(nameTracker.accept('json'), isTrue);
-    expect(nameTracker.accept('j_son'), isTrue);
+  test('existing package', () async {
+    expect(await nameTracker.accept('json'), isTrue);
+    expect(await nameTracker.accept('j_son'), isTrue);
   });
 
-  test('conflicting package', () {
-    expect(nameTracker.accept('j_s_o_n'), isFalse);
-    expect(nameTracker.accept('js_on'), isFalse);
-    expect(nameTracker.accept('jso_n'), isFalse);
-    expect(nameTracker.accept('json_'), isFalse);
-    expect(nameTracker.accept('_json'), isFalse);
-    expect(nameTracker.accept('_json_'), isFalse);
-    expect(nameTracker.accept('_j_s_o_n_'), isFalse);
+  test('conflicting package', () async {
+    expect(await nameTracker.accept('j_s_o_n'), isFalse);
+    expect(await nameTracker.accept('js_on'), isFalse);
+    expect(await nameTracker.accept('jso_n'), isFalse);
+    expect(await nameTracker.accept('json_'), isFalse);
+    expect(await nameTracker.accept('_json'), isFalse);
+    expect(await nameTracker.accept('_json_'), isFalse);
+    expect(await nameTracker.accept('_j_s_o_n_'), isFalse);
   });
 }

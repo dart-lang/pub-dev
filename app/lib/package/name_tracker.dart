@@ -44,16 +44,17 @@ class NameTracker {
   }
 
   /// Whether the package was already added to the tracker.
-  bool hasPackage(String name) => _names.contains(name);
+  bool _hasPackage(String name) => _names.contains(name);
 
   /// Whether the [name] has a conflicting package that already exists.
-  bool hasConflict(String name) =>
+  bool _hasConflict(String name) =>
       _reducedNames.contains(reducePackageName(name));
 
   /// Whether to accept the upload attempt of a given package [name].
-  bool accept(String name) => hasPackage(name) || !hasConflict(name);
+  Future<bool> accept(String name) async =>
+      _hasPackage(name) || !_hasConflict(name);
 
-  int get length => _names.length;
+  int get _length => _names.length;
 
   /// Whether the first scan was already completed.
   bool get isReady => _firstScanCompleter.isCompleted;
@@ -122,7 +123,7 @@ class _NameTrackerUpdater {
     }
     nameTracker._firstScanCompleter.complete();
     _logger.info(
-        'Scanned initial package names (${nameTracker.length}) in ${sw.elapsed}.');
+        'Scanned initial package names (${nameTracker._length}) in ${sw.elapsed}.');
 
     await _sleep();
 
