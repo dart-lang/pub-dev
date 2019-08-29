@@ -725,8 +725,14 @@ class TokenIndex {
     final intersection = a.intersection(b);
     if (intersection.isEmpty) return 0.0;
 
-    double sumFn(double sum, String str) =>
-        sum + math.min<double>(100.0, math.pow(str.length, 1.5).toDouble());
+    double sumFn(double sum, String str) {
+      final len = str.length;
+      if (len < _ngramSimilarityWeights.length) {
+        return sum + _ngramSimilarityWeights[len];
+      } else {
+        return sum + _ngramSimilarityWeights.last;
+      }
+    }
 
     final intersectionWeight = intersection.fold<double>(0, sumFn);
     final supersetWeight = a.fold<double>(0, sumFn) +
@@ -773,3 +779,7 @@ class TokenIndex {
     return scoreDocs(lookupTokens(text));
   }
 }
+
+/// Pre-calculated weight list for ngram similarity.
+final _ngramSimilarityWeights =
+    List<double>.generate(20, (i) => math.pow(i, 1.5).toDouble());
