@@ -23,6 +23,8 @@ enum PageType {
   landing,
   listing,
   package,
+  error,
+  standalone,
 }
 
 /// Renders the `views/layout.mustache` template.
@@ -57,12 +59,16 @@ String renderLayoutPage(
   final pageDataEncoded = pageData == null
       ? null
       : htmlAttrEscape.convert(pageDataJsonCodec.encode(pageData.toJson()));
+  final bodyClasses = [
+    if (type == PageType.standalone) 'page-standalone',
+    if (requestContext.isExperimental) 'experimental',
+  ];
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
         ? activeConfiguration.pubSiteAudience
         : null,
-    'body_class': requestContext.isExperimental ? 'experimental' : '',
+    'body_class': bodyClasses.join(' '),
     'no_index': noIndex,
     'static_assets': staticUrls.assets,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
@@ -88,8 +94,8 @@ String renderLayoutPage(
     'landing_banner_image': _landingBannerImage(platform == 'flutter'),
     'landing_banner_alt':
         platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
-    'listing_banner': type == PageType.listing,
-    'package_banner': type == PageType.package,
+    'medium_banner': type == PageType.listing,
+    'small_banner': type != PageType.listing && type != PageType.landing,
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,

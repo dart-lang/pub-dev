@@ -29,7 +29,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -65,261 +65,265 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="package-banner">
-        <form class="search-bar" action="/packages">
-          <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-        </form>
-      </main>
-    </div>
-    <main>
-      <div class="package-header">
-        <h2 class="title">foobar_pkg 0.1.1+5</h2>
-        <div class="metadata">
-    Published 
-          <span>Jan 1, 2014</span>
-          <!-- &bull; Downloads: X -->
-      • Updated:
-      
-          <span>
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
-          </span>
-        /
-        
-          <span>
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
-          </span>
-          <div class="tags">
-            <span class="package-tag missing" title="Package version too old, check latest stable.">[outdated]</span>
-          </div>
+      <div class="container">
+        <div class="small-banner">
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+          </form>
         </div>
       </div>
-      <div class="package-container">
-        <ul class="package-tabs-header">
-          <li class="tab-button -active" data-name="-readme-tab-" role="button">Readme</li>
-          <li class="tab-button" data-name="-changelog-tab-" role="button">Changelog</li>
-          <li class="tab-button" data-name="-example-tab-" role="button">Example</li>
-          <li class="tab-button" data-name="-installing-tab-" role="button">Installing</li>
-          <li class="tab-link" data-name="-versions-tab-" role="button">
-            <a href="/packages/foobar_pkg/versions">Versions</a>
-          </li>
-          <li class="tab-button" data-name="-analysis-tab-" role="button">
-            <div class="score-box">
-              <span class="number -rotten" title="Analysis and more details.">0</span>
+    </div>
+    <div class="container">
+      <main>
+        <div class="package-header">
+          <h2 class="title">foobar_pkg 0.1.1+5</h2>
+          <div class="metadata">
+    Published 
+            <span>Jan 1, 2014</span>
+            <!-- &bull; Downloads: X -->
+      • Updated:
+      
+            <span>
+              <a href="/packages/foobar_pkg">0.1.1+5</a>
+            </span>
+        /
+        
+            <span>
+              <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+            </span>
+            <div class="tags">
+              <span class="package-tag missing" title="Package version too old, check latest stable.">[outdated]</span>
             </div>
-          </li>
-          <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
-            <a href="/packages/foobar_pkg/admin">Admin</a>
-          </li>
-        </ul>
-        <div class="main package-tabs-content">
-          <section class="tab-content -active markdown-body" data-name="-readme-tab-">
-            <h1 class="hash-header" id="test-package">Test Package 
-              <a href="#test-package" class="hash-link">#</a>
-            </h1>
-            <p>This is a readme file.</p>
-            <pre>
-              <code class="language-dart">void main() {
+          </div>
+        </div>
+        <div class="package-container">
+          <ul class="package-tabs-header">
+            <li class="tab-button -active" data-name="-readme-tab-" role="button">Readme</li>
+            <li class="tab-button" data-name="-changelog-tab-" role="button">Changelog</li>
+            <li class="tab-button" data-name="-example-tab-" role="button">Example</li>
+            <li class="tab-button" data-name="-installing-tab-" role="button">Installing</li>
+            <li class="tab-link" data-name="-versions-tab-" role="button">
+              <a href="/packages/foobar_pkg/versions">Versions</a>
+            </li>
+            <li class="tab-button" data-name="-analysis-tab-" role="button">
+              <div class="score-box">
+                <span class="number -rotten" title="Analysis and more details.">0</span>
+              </div>
+            </li>
+            <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
+              <a href="/packages/foobar_pkg/admin">Admin</a>
+            </li>
+          </ul>
+          <div class="main package-tabs-content">
+            <section class="tab-content -active markdown-body" data-name="-readme-tab-">
+              <h1 class="hash-header" id="test-package">Test Package 
+                <a href="#test-package" class="hash-link">#</a>
+              </h1>
+              <p>This is a readme file.</p>
+              <pre>
+                <code class="language-dart">void main() {
 }
 </code>
-            </pre>
-          </section>
-          <section class="tab-content markdown-body" data-name="-changelog-tab-">
-            <h1 class="hash-header" id="changelog">Changelog 
-              <a href="#changelog" class="hash-link">#</a>
-            </h1>
-            <p>0.1.1 - test package</p>
-          </section>
-          <section class="tab-content markdown-body" data-name="-example-tab-">
-            <p style="font-family: monospace">
-              <b>example/lib/main.dart</b>
-            </p>
-            <pre>
-              <code class="language-dart">main() {
+              </pre>
+            </section>
+            <section class="tab-content markdown-body" data-name="-changelog-tab-">
+              <h1 class="hash-header" id="changelog">Changelog 
+                <a href="#changelog" class="hash-link">#</a>
+              </h1>
+              <p>0.1.1 - test package</p>
+            </section>
+            <section class="tab-content markdown-body" data-name="-example-tab-">
+              <p style="font-family: monospace">
+                <b>example/lib/main.dart</b>
+              </p>
+              <pre>
+                <code class="language-dart">main() {
   print('Hello world!');
 }
 </code>
-            </pre>
-          </section>
-          <section class="tab-content" data-name="-installing-tab-">
-            <h2>Use this package as a library</h2>
-            <h3>1. Depend on it</h3>
-            <p>Add this to your package's pubspec.yaml file:</p>
-            <pre>
-              <code class="language-yaml">
+              </pre>
+            </section>
+            <section class="tab-content" data-name="-installing-tab-">
+              <h2>Use this package as a library</h2>
+              <h3>1. Depend on it</h3>
+              <p>Add this to your package's pubspec.yaml file:</p>
+              <pre>
+                <code class="language-yaml">
 dependencies:
   
-                <strong>foobar_pkg: ^0.1.1+5</strong>
-              </code>
-            </pre>
-            <h3>2. Install it</h3>
-            <p>You can install packages from the command line:</p>
-            <p>with pub:</p>
-            <pre>
-              <code class="language-shell">
+                  <strong>foobar_pkg: ^0.1.1+5</strong>
+                </code>
+              </pre>
+              <h3>2. Install it</h3>
+              <p>You can install packages from the command line:</p>
+              <p>with pub:</p>
+              <pre>
+                <code class="language-shell">
 $ 
-                <strong>pub get</strong>
-              </code>
-            </pre>
-            <p>Alternatively, your editor might support 
-              <code>pub get</code>.
+                  <strong>pub get</strong>
+                </code>
+              </pre>
+              <p>Alternatively, your editor might support 
+                <code>pub get</code>.
   Check the docs for your editor to learn more.
-            </p>
-            <h3>3. Import it</h3>
-            <p>Now in your Dart code, you can use:
+              </p>
+              <h3>3. Import it</h3>
+              <p>Now in your Dart code, you can use:
   </p>
-            <pre>
-              <code class="language-dart">
+              <pre>
+                <code class="language-dart">
 import 'package:foobar_pkg/foolib.dart';
   </code>
-            </pre>
-          </section>
-          <section class="tab-content" data-name="-analysis-tab-">
-            <table id='scores-table'>
-              <tr>
-                <td class="score-name">
-                  <div class="tooltip-base hoverable">
-                    <span class="tooltip-dotted">Popularity:</span>
-                    <div class="tooltip-content">
+              </pre>
+            </section>
+            <section class="tab-content" data-name="-analysis-tab-">
+              <table id='scores-table'>
+                <tr>
+                  <td class="score-name">
+                    <div class="tooltip-base hoverable">
+                      <span class="tooltip-dotted">Popularity:</span>
+                      <div class="tooltip-content">
           Describes how popular the package is relative to other packages.
           
-                      <a href="/help#popularity">[more]</a>
+                        <a href="/help#popularity">[more]</a>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="score-value">
-                  <div class="score-percent-row">
-                    <div class="score-percent" style="left: 0%;">--</div>
-                  </div>
-                  <div class="score-progress-row">
-                    <div class="score-progress-frame">
-                      <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+                  </td>
+                  <td class="score-value">
+                    <div class="score-percent-row">
+                      <div class="score-percent" style="left: 0%;">--</div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="score-name">
-                  <div class="tooltip-base hoverable">
-                    <span class="tooltip-dotted">Health:</span>
-                    <div class="tooltip-content">
+                    <div class="score-progress-row">
+                      <div class="score-progress-frame">
+                        <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="score-name">
+                    <div class="tooltip-base hoverable">
+                      <span class="tooltip-dotted">Health:</span>
+                      <div class="tooltip-content">
           Code health derived from static analysis.
           
-                      <a href="/help#health">[more]</a>
+                        <a href="/help#health">[more]</a>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="score-value">
-                  <div class="score-percent-row">
-                    <div class="score-percent" style="left: 0%;">--</div>
-                  </div>
-                  <div class="score-progress-row">
-                    <div class="score-progress-frame">
-                      <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+                  </td>
+                  <td class="score-value">
+                    <div class="score-percent-row">
+                      <div class="score-percent" style="left: 0%;">--</div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="score-name">
-                  <div class="tooltip-base hoverable">
-                    <span class="tooltip-dotted">Maintenance:</span>
-                    <div class="tooltip-content">
+                    <div class="score-progress-row">
+                      <div class="score-progress-frame">
+                        <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="score-name">
+                    <div class="tooltip-base hoverable">
+                      <span class="tooltip-dotted">Maintenance:</span>
+                      <div class="tooltip-content">
           Reflects how tidy and up-to-date the package is.
           
-                      <a href="/help#maintenance">[more]</a>
+                        <a href="/help#maintenance">[more]</a>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="score-value">
-                  <div class="score-percent-row">
-                    <div class="score-percent" style="left: 0%;">--</div>
-                  </div>
-                  <div class="score-progress-row">
-                    <div class="score-progress-frame">
-                      <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+                  </td>
+                  <td class="score-value">
+                    <div class="score-percent-row">
+                      <div class="score-percent" style="left: 0%;">--</div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="score-name">
-                  <div class="tooltip-base hoverable">
-                    <span class="tooltip-dotted">
-                      <b>Overall:</b>
-                    </span>
-                    <div class="tooltip-content">
+                    <div class="score-progress-row">
+                      <div class="score-progress-frame">
+                        <div class="score-progress" style="width: 0%; background: rgb(204, 204, 204);"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="score-name">
+                    <div class="tooltip-base hoverable">
+                      <span class="tooltip-dotted">
+                        <b>Overall:</b>
+                      </span>
+                      <div class="tooltip-content">
           Weighted score of the above.
           
-                      <a href="/help#overall-score">[more]</a>
+                        <a href="/help#overall-score">[more]</a>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="score-percent-row">
-                    <div class="score-percent" style="left: 0%;">0</div>
-                  </div>
-                  <div class="score-progress-row">
-                    <div class="score-progress-frame">
-                      <div class="score-progress" style="width: 0%; background: rgb(187, 36, 0);"></div>
+                  </td>
+                  <td>
+                    <div class="score-percent-row">
+                      <div class="score-percent" style="left: 0%;">0</div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-            </table>
-            <div style="text-align: right; font-size: 10pt;">Learn more about 
-              <a href="/help#scoring">scoring</a>.
-            </div>
-            <hr/>
-            <p>
+                    <div class="score-progress-row">
+                      <div class="score-progress-frame">
+                        <div class="score-progress" style="width: 0%; background: rgb(187, 36, 0);"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              <div style="text-align: right; font-size: 10pt;">Learn more about 
+                <a href="/help#scoring">scoring</a>.
+              </div>
+              <hr/>
+              <p>
   This package version is not analyzed, because it is more than two years old.
   Check the 
-              <a href="/packages/foobar_pkg#-analysis-tab-">latest stable version</a> for its analysis.
+                <a href="/packages/foobar_pkg#-analysis-tab-">latest stable version</a> for its analysis.
 
-            </p>
-          </section>
-        </div>
-        <aside class="sidebar sidebar-content">
-          <h3 class="title">About</h3>
-          <p>my package description</p>
-          <p>
-            <a class="link" href="http://hans.juergen.com">Homepage</a>
-            <br/>
-            <a class="link" href="/documentation/foobar_pkg/latest/">API reference</a>
-            <br/>
-          </p>
-          <h3 class="title">Author</h3>
-          <div>
-            <span class="author">
-              <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
-                <i class="email-icon"></i>
-              </a>
-              <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
-                <i class="search-icon"></i>
-              </a> Hans Juergen
-            </span>
+              </p>
+            </section>
           </div>
-          <h3 class="title">Uploader</h3>
-          <p>
-            <span class="author">
-              <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
-                <i class="email-icon"></i>
-              </a>
-              <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
-                <i class="search-icon"></i>
-              </a> hans@juergen.com
-            </span>
-          </p>
-          <h3 class="title">More</h3>
-          <p>
-            <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
-          </p>
-        </aside>
-      </div>
-      <script type="application/ld+json">
+          <aside class="sidebar sidebar-content">
+            <h3 class="title">About</h3>
+            <p>my package description</p>
+            <p>
+              <a class="link" href="http://hans.juergen.com">Homepage</a>
+              <br/>
+              <a class="link" href="/documentation/foobar_pkg/latest/">API reference</a>
+              <br/>
+            </p>
+            <h3 class="title">Author</h3>
+            <div>
+              <span class="author">
+                <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
+                  <i class="email-icon"></i>
+                </a>
+                <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
+                  <i class="search-icon"></i>
+                </a> Hans Juergen
+              </span>
+            </div>
+            <h3 class="title">Uploader</h3>
+            <p>
+              <span class="author">
+                <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
+                  <i class="email-icon"></i>
+                </a>
+                <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
+                  <i class="search-icon"></i>
+                </a> hans@juergen.com
+              </span>
+            </p>
+            <h3 class="title">More</h3>
+            <p>
+              <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
+            </p>
+          </aside>
+        </div>
+        <script type="application/ld+json">
 {"@context":"http://schema.org","@type":"SoftwareSourceCode","name":"foobar_pkg","version":"0.1.1+5","description":"foobar_pkg - my package description","url":"https://pub.dev/packages/foobar_pkg","dateCreated":"2014-01-01T00:00:00.000Z","dateModified":"2014-01-01T00:00:00.000Z","programmingLanguage":"Dart","image":"https://pub.dev/static/img/dart-logo-400x400.png"}
 </script>
-    </main>
+      </main>
+    </div>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>

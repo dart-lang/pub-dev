@@ -28,7 +28,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -64,101 +64,105 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="package-banner">
-        <form class="search-bar" action="/packages">
-          <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-          <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
-          <input id="search-api-field" type="hidden" name="api" value="0" disabled="disabled"/>
-        </form>
-        <div class="search-bar-details">
-          <div class="list-filters">
-            <a class="filter " href="/flutter/packages">Flutter</a>
-            <a class="filter " href="/web/packages">Web</a>
-            <a class="filter -active" href="/packages">All</a>
-          </div>
-          <div class="search-bar-options">
-            <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1"/>
-            <label for="search-legacy-checkbox">Include Dart 1.x results</label>
-            <input id="search-api-checkbox" type="checkbox" name="api" checked="checked"/>
-            <label for="search-api-checkbox"> Include API results</label>
-          </div>
-        </div>
-      </main>
-    </div>
-    <main>
-      <div class="listing-sort-header">
-        <div class="tooltip-base hoverable">
-          <span class="tooltip-dotted">Sorted by:</span>
-          <span id="sort-control" data-sort="listing_relevance">listing relevance</span>
-          <div class="tooltip-content tooltip-bottom-left">
-      Packages are sorted by the combination of their overall score and their specificity to the selected platform. More information on 
-            <a href="/help#ranking">ranking</a>.
-    
+      <div class="container">
+        <div class="medium-banner">
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+            <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
+            <input id="search-api-field" type="hidden" name="api" value="0" disabled="disabled"/>
+          </form>
+          <div class="search-bar-details">
+            <div class="list-filters">
+              <a class="filter " href="/flutter/packages">Flutter</a>
+              <a class="filter " href="/web/packages">Web</a>
+              <a class="filter -active" href="/packages">All</a>
+            </div>
+            <div class="search-bar-options">
+              <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1"/>
+              <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+              <input id="search-api-checkbox" type="checkbox" name="api" checked="checked"/>
+              <label for="search-api-checkbox"> Include API results</label>
+            </div>
           </div>
         </div>
       </div>
-      <h2 class="listing-page-title">Top Dart packages</h2>
-      <ul class="package-list">
-        <li class="list-item -full">
-          <a href="/packages/foobar_pkg#-analysis-tab-">
-            <div class="score-box">
-              <span class="number -rotten" title="Analysis and more details.">0</span>
+    </div>
+    <div class="container">
+      <main>
+        <div class="listing-sort-header">
+          <div class="tooltip-base hoverable">
+            <span class="tooltip-dotted">Sorted by:</span>
+            <span id="sort-control" data-sort="listing_relevance">listing relevance</span>
+            <div class="tooltip-content tooltip-bottom-left">
+      Packages are sorted by the combination of their overall score and their specificity to the selected platform. More information on 
+              <a href="/help#ranking">ranking</a>.
+    
             </div>
-          </a>
-          <h3 class="title">
-            <a href="/packages/foobar_pkg">foobar_pkg</a>
-          </h3>
-          <p class="description">my package description</p>
-          <p class="metadata">
+          </div>
+        </div>
+        <h2 class="listing-page-title">Top Dart packages</h2>
+        <ul class="package-list">
+          <li class="list-item -full">
+            <a href="/packages/foobar_pkg#-analysis-tab-">
+              <div class="score-box">
+                <span class="number -rotten" title="Analysis and more details.">0</span>
+              </div>
+            </a>
+            <h3 class="title">
+              <a href="/packages/foobar_pkg">foobar_pkg</a>
+            </h3>
+            <p class="description">my package description</p>
+            <p class="metadata">
         v 
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
+              <a href="/packages/foobar_pkg">0.1.1+5</a>
          / 
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+              <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
         • Updated: 
-            <span>Jan 1, 2014</span>
-            <span class="package-tag missing" title="Analysis should be ready soon.">[awaiting]</span>
-          </p>
-        </li>
-        <li class="list-item -full">
-          <a href="/packages/foobar_pkg#-analysis-tab-">
-            <div class="score-box">
-              <span class="number -rotten" title="Analysis and more details.">0</span>
-            </div>
-          </a>
-          <h3 class="title">
-            <a href="/packages/foobar_pkg">foobar_pkg</a>
-          </h3>
-          <p class="description">my package description</p>
-          <p class="metadata">
+              <span>Jan 1, 2014</span>
+              <span class="package-tag missing" title="Analysis should be ready soon.">[awaiting]</span>
+            </p>
+          </li>
+          <li class="list-item -full">
+            <a href="/packages/foobar_pkg#-analysis-tab-">
+              <div class="score-box">
+                <span class="number -rotten" title="Analysis and more details.">0</span>
+              </div>
+            </a>
+            <h3 class="title">
+              <a href="/packages/foobar_pkg">foobar_pkg</a>
+            </h3>
+            <p class="description">my package description</p>
+            <p class="metadata">
         v 
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
+              <a href="/packages/foobar_pkg">0.1.1+5</a>
          / 
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+              <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
         • Updated: 
-            <span>Jan 1, 2015</span>
-            <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
-          </p>
-        </li>
-      </ul>
-      <ul class="pagination">
-        <li class="-disabled">
-          <a href="">
-            <span>«</span>
-          </a>
-        </li>
-        <li class="-active">
-          <a href="">
-            <span>1</span>
-          </a>
-        </li>
-        <li class="-disabled">
-          <a href="">
-            <span>»</span>
-          </a>
-        </li>
-      </ul>
-    </main>
+              <span>Jan 1, 2015</span>
+              <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
+            </p>
+          </li>
+        </ul>
+        <ul class="pagination">
+          <li class="-disabled">
+            <a href="">
+              <span>«</span>
+            </a>
+          </li>
+          <li class="-active">
+            <a href="">
+              <span>1</span>
+            </a>
+          </li>
+          <li class="-disabled">
+            <a href="">
+              <span>»</span>
+            </a>
+          </li>
+        </ul>
+      </main>
+    </div>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>

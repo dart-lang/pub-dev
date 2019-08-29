@@ -20,14 +20,14 @@ String renderHelpPage() {
     'pana_url': urls.panaUrl(),
     'pana_maintenance_url': urls.panaMaintenanceUrl(),
   });
-  return renderLayoutPage(PageType.package, content,
+  return renderLayoutPage(PageType.standalone, content,
       title: 'Help | Dart packages');
 }
 
 /// Renders the `views/security.mustache` template.
 String renderSecurityPage() {
   final String content = templateCache.renderTemplate('security', {});
-  return renderLayoutPage(PageType.package, content,
+  return renderLayoutPage(PageType.standalone, content,
       title: 'Security | Pub site');
 }
 
@@ -43,8 +43,12 @@ String renderErrorPage(
     'top_packages_html': topPackagesHtml,
   };
   final String content = templateCache.renderTemplate('error', values);
-  return renderLayoutPage(PageType.package, content,
-      title: title, includeSurvey: false);
+  return renderLayoutPage(
+    PageType.error,
+    content,
+    title: title,
+    includeSurvey: false,
+  );
 }
 
 /// Renders the `views/mini_list.mustache` template.

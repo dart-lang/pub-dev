@@ -26,7 +26,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -62,33 +62,37 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="package-banner">
-        <form class="search-bar" action="/packages">
-          <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-        </form>
+      <div class="container">
+        <div class="small-banner">
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <main>
+        <h2>error_title</h2>
+        <p>error_message</p>
+        <h2>Top packages</h2>
+        <div class="home-lists-container">
+          <ul class="package-list">
+            <li class="list-item -simple">
+              <h3 class="title">
+                <a href="/packages/popular_pkg">popular_pkg</a>
+              </h3>
+              <p class="metadata">
+                <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
+                <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
+                <span class="package-tag" title="Compatible with other platforms (terminal, server, etc.).">other</span>
+              </p>
+              <p class="description">Some popular package that is shown on the error page.</p>
+            </li>
+          </ul>
+        </div>
       </main>
     </div>
-    <main>
-      <h2>error_title</h2>
-      <p>error_message</p>
-      <h2>Top packages</h2>
-      <div class="home-lists-container">
-        <ul class="package-list">
-          <li class="list-item -simple">
-            <h3 class="title">
-              <a href="/packages/popular_pkg">popular_pkg</a>
-            </h3>
-            <p class="metadata">
-              <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
-              <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
-              <span class="package-tag" title="Compatible with other platforms (terminal, server, etc.).">other</span>
-            </p>
-            <p class="description">Some popular package that is shown on the error page.</p>
-          </li>
-        </ul>
-      </div>
-    </main>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>
@@ -100,7 +104,5 @@
       </a>
       <a class="link github_issue" href="https://github.com/dart-lang/pub-dev/issues/new">Report an issue with this site</a>
     </footer>
-    <script src="/static/highlight/highlight.pack.js?hash=mocked_hash_252154265"></script>
-    <script src="/static/highlight/init.js?hash=mocked_hash_180963889"></script>
   </body>
 </html>

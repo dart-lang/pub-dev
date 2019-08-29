@@ -30,7 +30,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -66,168 +66,172 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="package-banner">
-        <form class="search-bar" action="/packages">
-          <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-        </form>
-      </main>
+      <div class="container">
+        <div class="small-banner">
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+          </form>
+        </div>
+      </div>
     </div>
-    <main>
-      <div class="package-header">
-        <h2 class="title">foobar_pkg 0.1.1+5</h2>
-        <div class="metadata">
+    <div class="container">
+      <main>
+        <div class="package-header">
+          <h2 class="title">foobar_pkg 0.1.1+5</h2>
+          <div class="metadata">
     Published 
-          <span>Jan 1, 2014</span>
-          <!-- &bull; Downloads: X -->
+            <span>Jan 1, 2014</span>
+            <!-- &bull; Downloads: X -->
       • Updated:
       
-          <span>
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
-          </span>
+            <span>
+              <a href="/packages/foobar_pkg">0.1.1+5</a>
+            </span>
         /
         
-          <span>
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
-          </span>
-          <div class="tags">
-            <span class="package-tag missing" title="Analysis should be ready soon.">[awaiting]</span>
+            <span>
+              <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+            </span>
+            <div class="tags">
+              <span class="package-tag missing" title="Analysis should be ready soon.">[awaiting]</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="package-container">
-        <ul class="package-tabs-header">
-          <li class="tab-link" data-name="-readme-tab-" role="button">
-            <a href="/packages/foobar_pkg#-readme-tab-">Readme</a>
-          </li>
-          <li class="tab-link" data-name="-changelog-tab-" role="button">
-            <a href="/packages/foobar_pkg#-changelog-tab-">Changelog</a>
-          </li>
-          <li class="tab-link" data-name="-example-tab-" role="button">
-            <a href="/packages/foobar_pkg#-example-tab-">Example</a>
-          </li>
-          <li class="tab-link" data-name="-installing-tab-" role="button">
-            <a href="/packages/foobar_pkg#-installing-tab-">Installing</a>
-          </li>
-          <li class="tab-button -active" data-name="-versions-tab-" role="button">Versions</li>
-          <li class="tab-link" data-name="-analysis-tab-" role="button">
-            <a href="/packages/foobar_pkg#-analysis-tab-">
-              <div class="score-box">
-                <span class="number -good" title="Analysis and more details.">55</span>
-              </div>
-            </a>
-          </li>
-          <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
-            <a href="/packages/foobar_pkg/admin">Admin</a>
-          </li>
-        </ul>
-        <div class="main package-tabs-content">
-          <section class="tab-content -active" data-name="-versions-tab-">
-            <p>The latest dev release was 
-              <a href="#dev">0.2.0-dev</a> on Jan 1, 2014.
+        <div class="package-container">
+          <ul class="package-tabs-header">
+            <li class="tab-link" data-name="-readme-tab-" role="button">
+              <a href="/packages/foobar_pkg#-readme-tab-">Readme</a>
+            </li>
+            <li class="tab-link" data-name="-changelog-tab-" role="button">
+              <a href="/packages/foobar_pkg#-changelog-tab-">Changelog</a>
+            </li>
+            <li class="tab-link" data-name="-example-tab-" role="button">
+              <a href="/packages/foobar_pkg#-example-tab-">Example</a>
+            </li>
+            <li class="tab-link" data-name="-installing-tab-" role="button">
+              <a href="/packages/foobar_pkg#-installing-tab-">Installing</a>
+            </li>
+            <li class="tab-button -active" data-name="-versions-tab-" role="button">Versions</li>
+            <li class="tab-link" data-name="-analysis-tab-" role="button">
+              <a href="/packages/foobar_pkg#-analysis-tab-">
+                <div class="score-box">
+                  <span class="number -good" title="Analysis and more details.">55</span>
+                </div>
+              </a>
+            </li>
+            <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
+              <a href="/packages/foobar_pkg/admin">Admin</a>
+            </li>
+          </ul>
+          <div class="main package-tabs-content">
+            <section class="tab-content -active" data-name="-versions-tab-">
+              <p>The latest dev release was 
+                <a href="#dev">0.2.0-dev</a> on Jan 1, 2014.
+              </p>
+              <h2 id="stable">Stable versions of foobar_pkg</h2>
+              <table class="version-table" data-package="foobar_pkg">
+                <thead>
+                  <tr>
+                    <th>Version</th>
+                    <th>Uploaded</th>
+                    <th class="documentation" width="80">Documentation</th>
+                    <th class="archive" width="80">Archive</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-version="0.1.1+5">
+                    <td>
+                      <strong>
+                        <a href="/packages/foobar_pkg/versions/0.1.1+5">0.1.1+5</a>
+                      </strong>
+                    </td>
+                    <td>Jan 1, 2014</td>
+                    <td class="documentation">
+                      <a href="/documentation/foobar_pkg/0.1.1+5/" rel="nofollow" title="Go to the documentation of foobar_pkg 0.1.1+5">
+                        <img src="/static/img/ic_drive_document_black_24dp.svg?hash=mocked_hash_663394799" alt="Go to the documentation of foobar_pkg 0.1.1+5"/>
+                      </a>
+                    </td>
+                    <td class="archive">
+                      <a href="https://pub.dartlang.org/mock-download-uri.tar.gz" title="Download foobar_pkg 0.1.1+5 archive">
+                        <img src="/static/img/ic_get_app_black_24dp.svg?hash=mocked_hash_341543596" alt="Download foobar_pkg 0.1.1+5 archive"/>
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <h2 id="dev">Dev versions of foobar_pkg</h2>
+              <table class="version-table" data-package="foobar_pkg">
+                <thead>
+                  <tr>
+                    <th>Version</th>
+                    <th>Uploaded</th>
+                    <th class="documentation" width="80">Documentation</th>
+                    <th class="archive" width="80">Archive</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-version="0.2.0-dev">
+                    <td>
+                      <strong>
+                        <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+                      </strong>
+                    </td>
+                    <td>Jan 1, 2014</td>
+                    <td class="documentation">
+                      <a href="/documentation/foobar_pkg/0.2.0-dev/" rel="nofollow" title="Go to the documentation of foobar_pkg 0.2.0-dev">
+                        <img src="/static/img/ic_drive_document_black_24dp.svg?hash=mocked_hash_663394799" alt="Go to the documentation of foobar_pkg 0.2.0-dev"/>
+                      </a>
+                    </td>
+                    <td class="archive">
+                      <a href="https://pub.dartlang.org/mock-download-uri.tar.gz" title="Download foobar_pkg 0.2.0-dev archive">
+                        <img src="/static/img/ic_get_app_black_24dp.svg?hash=mocked_hash_341543596" alt="Download foobar_pkg 0.2.0-dev archive"/>
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+          <aside class="sidebar sidebar-content">
+            <h3 class="title">About</h3>
+            <p>my package description</p>
+            <p>
+              <a class="link" href="http://hans.juergen.com">Homepage</a>
+              <br/>
+              <a class="link" href="/documentation/foobar_pkg/latest/">API reference</a>
+              <br/>
             </p>
-            <h2 id="stable">Stable versions of foobar_pkg</h2>
-            <table class="version-table" data-package="foobar_pkg">
-              <thead>
-                <tr>
-                  <th>Version</th>
-                  <th>Uploaded</th>
-                  <th class="documentation" width="80">Documentation</th>
-                  <th class="archive" width="80">Archive</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr data-version="0.1.1+5">
-                  <td>
-                    <strong>
-                      <a href="/packages/foobar_pkg/versions/0.1.1+5">0.1.1+5</a>
-                    </strong>
-                  </td>
-                  <td>Jan 1, 2014</td>
-                  <td class="documentation">
-                    <a href="/documentation/foobar_pkg/0.1.1+5/" rel="nofollow" title="Go to the documentation of foobar_pkg 0.1.1+5">
-                      <img src="/static/img/ic_drive_document_black_24dp.svg?hash=mocked_hash_663394799" alt="Go to the documentation of foobar_pkg 0.1.1+5"/>
-                    </a>
-                  </td>
-                  <td class="archive">
-                    <a href="https://pub.dartlang.org/mock-download-uri.tar.gz" title="Download foobar_pkg 0.1.1+5 archive">
-                      <img src="/static/img/ic_get_app_black_24dp.svg?hash=mocked_hash_341543596" alt="Download foobar_pkg 0.1.1+5 archive"/>
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <h2 id="dev">Dev versions of foobar_pkg</h2>
-            <table class="version-table" data-package="foobar_pkg">
-              <thead>
-                <tr>
-                  <th>Version</th>
-                  <th>Uploaded</th>
-                  <th class="documentation" width="80">Documentation</th>
-                  <th class="archive" width="80">Archive</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr data-version="0.2.0-dev">
-                  <td>
-                    <strong>
-                      <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
-                    </strong>
-                  </td>
-                  <td>Jan 1, 2014</td>
-                  <td class="documentation">
-                    <a href="/documentation/foobar_pkg/0.2.0-dev/" rel="nofollow" title="Go to the documentation of foobar_pkg 0.2.0-dev">
-                      <img src="/static/img/ic_drive_document_black_24dp.svg?hash=mocked_hash_663394799" alt="Go to the documentation of foobar_pkg 0.2.0-dev"/>
-                    </a>
-                  </td>
-                  <td class="archive">
-                    <a href="https://pub.dartlang.org/mock-download-uri.tar.gz" title="Download foobar_pkg 0.2.0-dev archive">
-                      <img src="/static/img/ic_get_app_black_24dp.svg?hash=mocked_hash_341543596" alt="Download foobar_pkg 0.2.0-dev archive"/>
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+            <h3 class="title">Author</h3>
+            <div>
+              <span class="author">
+                <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
+                  <i class="email-icon"></i>
+                </a>
+                <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
+                  <i class="search-icon"></i>
+                </a> Hans Juergen
+              </span>
+            </div>
+            <h3 class="title">Uploader</h3>
+            <p>
+              <span class="author">
+                <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
+                  <i class="email-icon"></i>
+                </a>
+                <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
+                  <i class="search-icon"></i>
+                </a> hans@juergen.com
+              </span>
+            </p>
+            <h3 class="title">More</h3>
+            <p>
+              <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
+            </p>
+          </aside>
         </div>
-        <aside class="sidebar sidebar-content">
-          <h3 class="title">About</h3>
-          <p>my package description</p>
-          <p>
-            <a class="link" href="http://hans.juergen.com">Homepage</a>
-            <br/>
-            <a class="link" href="/documentation/foobar_pkg/latest/">API reference</a>
-            <br/>
-          </p>
-          <h3 class="title">Author</h3>
-          <div>
-            <span class="author">
-              <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
-                <i class="email-icon"></i>
-              </a>
-              <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
-                <i class="search-icon"></i>
-              </a> Hans Juergen
-            </span>
-          </div>
-          <h3 class="title">Uploader</h3>
-          <p>
-            <span class="author">
-              <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
-                <i class="email-icon"></i>
-              </a>
-              <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
-                <i class="search-icon"></i>
-              </a> hans@juergen.com
-            </span>
-          </p>
-          <h3 class="title">More</h3>
-          <p>
-            <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
-          </p>
-        </aside>
-      </div>
-    </main>
+      </main>
+    </div>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>
