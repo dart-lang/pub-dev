@@ -722,9 +722,6 @@ class TokenIndex {
 
   // Weighted Jaccard-similarity metric of sets of strings.
   double _ngramSimilarity(Set<String> a, Set<String> b) {
-    final intersection = a.intersection(b);
-    if (intersection.isEmpty) return 0.0;
-
     double sumFn(double sum, String str) {
       final len = str.length;
       if (len < _ngramSimilarityWeights.length) {
@@ -734,7 +731,11 @@ class TokenIndex {
       }
     }
 
-    final intersectionWeight = intersection.fold<double>(0, sumFn);
+    // We are not calling `Set.intersection()` here, because that will also build a
+    // new `Set`, which we don't need.
+    final intersectionWeight = a.where((b.contains)).fold<double>(0, sumFn);
+    if (intersectionWeight == 0.0) return 0.0;
+
     final supersetWeight = a.fold<double>(0, sumFn) +
         b.fold<double>(0, sumFn) -
         intersectionWeight;
