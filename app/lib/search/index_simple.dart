@@ -695,6 +695,7 @@ class TokenIndex {
         }
       }
       final tokenNgrams = ngrams(token, _minLength, 6);
+      double tokenWeightSum;
       for (String candidate in candidates) {
         double candidateWeight = 0.0;
         if (token == candidate) {
@@ -703,7 +704,9 @@ class TokenIndex {
           candidateWeight = candidate.length / token.length;
         } else {
           final candidateNgrams = ngrams(candidate, _minLength, 6);
-          candidateWeight = _ngramSimilarity(tokenNgrams, candidateNgrams);
+          tokenWeightSum ??= tokenNgrams.fold<double>(0.0, _ngramWeightSum);
+          candidateWeight =
+              _ngramSimilarity(tokenNgrams, candidateNgrams, tokenWeightSum);
         }
         candidateWeight *= tokens[token];
         if (candidateWeight > 0.3) {
@@ -720,25 +723,26 @@ class TokenIndex {
     return tokenMatch;
   }
 
-  // Weighted Jaccard-similarity metric of sets of strings.
-  double _ngramSimilarity(Set<String> a, Set<String> b) {
-    double sumFn(double sum, String str) {
-      final len = str.length;
-      if (len < _ngramSimilarityWeights.length) {
-        return sum + _ngramSimilarityWeights[len];
-      } else {
-        return sum + _ngramSimilarityWeights.last;
-      }
+  // Function to aggregate the N-gram set's weight based on the length of the tokens.
+  double _ngramWeightSum(double sum, String str) {
+    final len = str.length;
+    if (len < _ngramSimilarityWeights.length) {
+      return sum + _ngramSimilarityWeights[len];
+    } else {
+      return sum + _ngramSimilarityWeights.last;
     }
+  }
 
+  // Weighted Jaccard-similarity metric of sets of strings.
+  double _ngramSimilarity(Set<String> a, Set<String> b, double aWeightSum) {
     // We are not calling `Set.intersection()` here, because that will also build a
     // new `Set`, which we don't need.
-    final intersectionWeight = a.where((b.contains)).fold<double>(0, sumFn);
+    final intersectionWeight =
+        a.where((b.contains)).fold<double>(0, _ngramWeightSum);
     if (intersectionWeight == 0.0) return 0.0;
 
-    final supersetWeight = a.fold<double>(0, sumFn) +
-        b.fold<double>(0, sumFn) -
-        intersectionWeight;
+    final supersetWeight =
+        aWeightSum + b.fold<double>(0, _ngramWeightSum) - intersectionWeight;
     return intersectionWeight / supersetWeight;
   }
 
