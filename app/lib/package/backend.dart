@@ -712,7 +712,11 @@ class GCloudPackageRepository extends PackageRepository {
       final triggerDartdoc = dartdocClient
           .triggerDartdoc(newVersion.package, newVersion.version, <String>{});
 
-      await Future.wait([email, triggerAnalysis, triggerDartdoc]);
+      // Let's not block the upload response on these. In case of a timeout, the
+      // underlying operations still go ahead, but the `Future.wait` call below
+      // is not blocked on it.
+      await Future.wait([email, triggerAnalysis, triggerDartdoc])
+          .timeout(Duration(seconds: 10));
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);

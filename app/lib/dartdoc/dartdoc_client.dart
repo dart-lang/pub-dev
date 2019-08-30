@@ -36,10 +36,6 @@ class DartdocClient {
 
   Future triggerDartdoc(
       String package, String version, Set<String> dependentPackages) async {
-    if (jobBackend == null) {
-      _logger.warning('Job backend is not initialized!');
-      return;
-    }
     await jobBackend.trigger(JobService.dartdoc, package, version);
     for (final String package in dependentPackages) {
       await jobBackend.trigger(JobService.dartdoc, package);
