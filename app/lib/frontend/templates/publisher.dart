@@ -8,5 +8,6 @@ import 'layout.dart';
 /// Renders the `views/publisher/create.mustache` template.
 String renderCreatePublisherPage() {
   final String content = templateCache.renderTemplate('publisher/create', {});
-  return renderLayoutPage(PageType.package, content, title: 'Create publisher');
+  return renderLayoutPage(PageType.standalone, content,
+      title: 'Create publisher');
 }
