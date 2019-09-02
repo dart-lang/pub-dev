@@ -87,59 +87,57 @@ class JobBackend {
     DateTime packageVersionUpdated,
     bool shouldProcess,
   ) async {
-    await retry(() async {
-      final id = _id(service, package, version);
-      final state = shouldProcess ? JobState.available : JobState.idle;
-      final lockedUntil =
-          shouldProcess ? null : DateTime.now().add(_extendDuration);
-      await _db.withTransaction((tx) async {
-        final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
-        final current = list.single as Job;
-        if (current != null) {
-          final hasNotChanged = current.isLatestStable == isLatestStable &&
-              current.packageVersionUpdated == packageVersionUpdated;
-          if (hasNotChanged) {
-            if (!shouldProcess) {
-              // no reason to re-schedule the job
-              return;
-            }
-            if (current.state == JobState.available &&
-                current.lockedUntil == null) {
-              // already scheduled for processing
-              return;
-            }
+    final id = _id(service, package, version);
+    final state = shouldProcess ? JobState.available : JobState.idle;
+    final lockedUntil =
+        shouldProcess ? null : DateTime.now().add(_extendDuration);
+    await _retryWithTransaction((tx) async {
+      final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
+      final current = list.single as Job;
+      if (current != null) {
+        final hasNotChanged = current.isLatestStable == isLatestStable &&
+            current.packageVersionUpdated == packageVersionUpdated;
+        if (hasNotChanged) {
+          if (!shouldProcess) {
+            // no reason to re-schedule the job
+            return;
           }
-          _logger.info('Updating job: $id ($state, $lockedUntil)');
-          current
-            ..isLatestStable = isLatestStable
-            ..packageVersionUpdated = packageVersionUpdated
-            ..state = state
-            ..lockedUntil = lockedUntil
-            ..processingKey = null // drops ongoing processing
-            ..updatePriority();
-          tx.queueMutations(inserts: [current]);
-          await tx.commit();
-          return;
-        } else {
-          _logger.info('Creating job: $id');
-          final job = Job()
-            ..id = id
-            ..service = service
-            ..packageName = package
-            ..packageVersion = version
-            ..isLatestStable = isLatestStable
-            ..packageVersionUpdated = packageVersionUpdated
-            ..state = state
-            ..lockedUntil = lockedUntil
-            ..lastStatus = JobStatus.none
-            ..runtimeVersion = versions.runtimeVersion
-            ..errorCount = 0
-            ..updatePriority();
-          tx.queueMutations(inserts: [job]);
-          await tx.commit();
-          return;
+          if (current.state == JobState.available &&
+              current.lockedUntil == null) {
+            // already scheduled for processing
+            return;
+          }
         }
-      });
+        _logger.info('Updating job: $id ($state, $lockedUntil)');
+        current
+          ..isLatestStable = isLatestStable
+          ..packageVersionUpdated = packageVersionUpdated
+          ..state = state
+          ..lockedUntil = lockedUntil
+          ..processingKey = null // drops ongoing processing
+          ..updatePriority();
+        tx.queueMutations(inserts: [current]);
+        await tx.commit();
+        return;
+      } else {
+        _logger.info('Creating job: $id');
+        final job = Job()
+          ..id = id
+          ..service = service
+          ..packageName = package
+          ..packageVersion = version
+          ..isLatestStable = isLatestStable
+          ..packageVersionUpdated = packageVersionUpdated
+          ..state = state
+          ..lockedUntil = lockedUntil
+          ..lastStatus = JobStatus.none
+          ..runtimeVersion = versions.runtimeVersion
+          ..errorCount = 0
+          ..updatePriority();
+        tx.queueMutations(inserts: [job]);
+        await tx.commit();
+        return;
+      }
     });
   }
 
@@ -162,46 +160,40 @@ class JobBackend {
     list.removeWhere((job) => !isApplicable(job));
     if (list.isEmpty) return null;
 
-    return await retry(() async {
+    return await _retryWithTransaction((tx) async {
       final selectedId = list[_random.nextInt(list.length)].id;
-      final result = await _db.withTransaction((tx) async {
-        final items =
-            await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
-        final selected = items.single as Job;
-        if (!isApplicable(selected)) return null;
-        final now = DateTime.now().toUtc();
-        selected
-          ..state = JobState.processing
-          ..processingKey = _uuid.v4().toString()
-          ..lockedUntil = now.add(lockDuration ?? _defaultLockDuration);
-        tx.queueMutations(inserts: [selected]);
-        await tx.commit();
-        return selected;
-      });
-      return result as Job;
+      final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
+      final selected = items.single as Job;
+      if (!isApplicable(selected)) return null;
+      final now = DateTime.now().toUtc();
+      selected
+        ..state = JobState.processing
+        ..processingKey = _uuid.v4().toString()
+        ..lockedUntil = now.add(lockDuration ?? _defaultLockDuration);
+      tx.queueMutations(inserts: [selected]);
+      await tx.commit();
+      return selected;
     });
   }
 
   Future unlockStaleProcessing(JobService service) async {
     Future _unlock(Job job) async {
-      await retry(() async {
-        await _db.withTransaction((tx) async {
-          final list = await tx.lookup([job.key]);
-          final current = list.single as Job;
-          if (current.state == JobState.processing &&
-              current.lockedUntil == job.lockedUntil) {
-            final errorCount = current.errorCount + 1;
-            current
-              ..state = JobState.idle
-              ..processingKey = null
-              ..errorCount = errorCount
-              ..lastStatus = JobStatus.aborted
-              ..lockedUntil = _extendLock(errorCount)
-              ..updatePriority();
-            tx.queueMutations(inserts: [current]);
-            await tx.commit();
-          }
-        });
+      await _retryWithTransaction((tx) async {
+        final list = await tx.lookup([job.key]);
+        final current = list.single as Job;
+        if (current.state == JobState.processing &&
+            current.lockedUntil == job.lockedUntil) {
+          final errorCount = current.errorCount + 1;
+          current
+            ..state = JobState.idle
+            ..processingKey = null
+            ..errorCount = errorCount
+            ..lastStatus = JobStatus.aborted
+            ..lockedUntil = _extendLock(errorCount)
+            ..updatePriority();
+          tx.queueMutations(inserts: [current]);
+          await tx.commit();
+        }
       });
     }
 
@@ -221,37 +213,33 @@ class JobBackend {
 
   Future checkIdle(JobService service, ShouldProcess shouldProcess) async {
     Future _schedule(Job job) async {
-      await retry(() async {
-        await _db.withTransaction((tx) async {
-          final list = await tx.lookup([job.key]);
-          final current = list.single as Job;
-          if (current.state == JobState.idle &&
-              current.lockedUntil == job.lockedUntil) {
-            current
-              ..state = JobState.available
-              ..processingKey = null
-              ..lockedUntil = null;
-            tx.queueMutations(inserts: [current]);
-            await tx.commit();
-          }
-        });
+      await _retryWithTransaction((tx) async {
+        final list = await tx.lookup([job.key]);
+        final current = list.single as Job;
+        if (current.state == JobState.idle &&
+            current.lockedUntil == job.lockedUntil) {
+          current
+            ..state = JobState.available
+            ..processingKey = null
+            ..lockedUntil = null;
+          tx.queueMutations(inserts: [current]);
+          await tx.commit();
+        }
       });
     }
 
     Future _extend(Job job) async {
-      await retry(() async {
-        await _db.withTransaction((tx) async {
-          final list = await tx.lookup([job.key]);
-          final current = list.single as Job;
-          if (current.state == JobState.idle &&
-              current.lockedUntil == job.lockedUntil) {
-            current
-              ..processingKey = null
-              ..lockedUntil = DateTime.now().toUtc().add(_extendDuration);
-            tx.queueMutations(inserts: [current]);
-            await tx.commit();
-          }
-        });
+      await _retryWithTransaction((tx) async {
+        final list = await tx.lookup([job.key]);
+        final current = list.single as Job;
+        if (current.state == JobState.idle &&
+            current.lockedUntil == job.lockedUntil) {
+          current
+            ..processingKey = null
+            ..lockedUntil = DateTime.now().toUtc().add(_extendDuration);
+          tx.queueMutations(inserts: [current]);
+          await tx.commit();
+        }
       });
     }
 
@@ -277,29 +265,27 @@ class JobBackend {
   }
 
   Future complete(Job job, JobStatus status, {Duration extendDuration}) async {
-    await retry(() async {
-      await _db.withTransaction((tx) async {
-        final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
-        final selected = items.single as Job;
-        if (selected != null && selected.processingKey == job.processingKey) {
-          _logger.info('Updating $job with $status');
-          final isError =
-              (status == JobStatus.failed) || (status == JobStatus.aborted);
-          final errorCount = isError ? selected.errorCount + 1 : 0;
-          selected
-            ..state = JobState.idle
-            ..lastStatus = status
-            ..processingKey = null
-            ..errorCount = errorCount
-            ..lockedUntil = _extendLock(errorCount, duration: extendDuration)
-            ..updatePriority();
-          tx.queueMutations(inserts: [selected]);
-          await tx.commit();
-        } else {
-          _logger
-              .info('Job $job completion aborted. isNull: ${selected == null}');
-        }
-      });
+    await _retryWithTransaction((tx) async {
+      final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
+      final selected = items.single as Job;
+      if (selected != null && selected.processingKey == job.processingKey) {
+        _logger.info('Updating $job with $status');
+        final isError =
+            (status == JobStatus.failed) || (status == JobStatus.aborted);
+        final errorCount = isError ? selected.errorCount + 1 : 0;
+        selected
+          ..state = JobState.idle
+          ..lastStatus = status
+          ..processingKey = null
+          ..errorCount = errorCount
+          ..lockedUntil = _extendLock(errorCount, duration: extendDuration)
+          ..updatePriority();
+        tx.queueMutations(inserts: [selected]);
+        await tx.commit();
+      } else {
+        _logger
+            .info('Job $job completion aborted. isNull: ${selected == null}');
+      }
     });
   }
 
@@ -330,6 +316,17 @@ class JobBackend {
         .toUtc()
         .add(duration ?? _extendDuration)
         .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
+  }
+
+  Future<R> _retryWithTransaction<R>(Future<R> fn(db.Transaction tx)) async {
+    return await retry(
+      () async {
+        final r = await _db.withTransaction(fn);
+        return r as R;
+      },
+      maxDelay: const Duration(seconds: 2),
+      retryIf: (ex) => ex is! FormatException,
+    );
   }
 
   void scheduleOldDataGC() {
