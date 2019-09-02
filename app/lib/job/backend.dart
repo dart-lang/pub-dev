@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:gcloud/datastore.dart' show DatastoreError;
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:pub_dartlang_org/package/models.dart';
@@ -90,7 +92,7 @@ class JobBackend {
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
         shouldProcess ? null : DateTime.now().add(_extendDuration);
-    await _db.withTransaction((tx) async {
+    await _retryWithTransaction((tx) async {
       final list = await tx.lookup([_db.emptyKey.append(Job, id: id)]);
       final current = list.single as Job;
       if (current != null) {
@@ -159,8 +161,8 @@ class JobBackend {
     list.removeWhere((job) => !isApplicable(job));
     if (list.isEmpty) return null;
 
-    final selectedId = list[_random.nextInt(list.length)].id;
-    final result = await _db.withTransaction((tx) async {
+    return await _retryWithTransaction((tx) async {
+      final selectedId = list[_random.nextInt(list.length)].id;
       final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
       final selected = items.single as Job;
       if (!isApplicable(selected)) return null;
@@ -173,12 +175,11 @@ class JobBackend {
       await tx.commit();
       return selected;
     });
-    return result as Job;
   }
 
   Future unlockStaleProcessing(JobService service) async {
-    Future _unlock(Job job) {
-      return _db.withTransaction((tx) async {
+    Future _unlock(Job job) async {
+      await _retryWithTransaction((tx) async {
         final list = await tx.lookup([job.key]);
         final current = list.single as Job;
         if (current.state == JobState.processing &&
@@ -213,7 +214,7 @@ class JobBackend {
 
   Future checkIdle(JobService service, ShouldProcess shouldProcess) async {
     Future _schedule(Job job) async {
-      return _db.withTransaction((tx) async {
+      await _retryWithTransaction((tx) async {
         final list = await tx.lookup([job.key]);
         final current = list.single as Job;
         if (current.state == JobState.idle &&
@@ -229,7 +230,7 @@ class JobBackend {
     }
 
     Future _extend(Job job) async {
-      return _db.withTransaction((tx) async {
+      await _retryWithTransaction((tx) async {
         final list = await tx.lookup([job.key]);
         final current = list.single as Job;
         if (current.state == JobState.idle &&
@@ -265,7 +266,7 @@ class JobBackend {
   }
 
   Future complete(Job job, JobStatus status, {Duration extendDuration}) async {
-    return _db.withTransaction((tx) async {
+    await _retryWithTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
       final selected = items.single as Job;
       if (selected != null && selected.processingKey == job.processingKey) {
@@ -316,6 +317,17 @@ class JobBackend {
         .toUtc()
         .add(duration ?? _extendDuration)
         .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
+  }
+
+  Future<R> _retryWithTransaction<R>(Future<R> fn(db.Transaction tx)) async {
+    return await retry(
+      () async {
+        final r = await _db.withTransaction(fn);
+        return r as R;
+      },
+      maxDelay: const Duration(seconds: 2),
+      retryIf: (ex) => ex is DatastoreError,
+    );
   }
 
   void scheduleOldDataGC() {
