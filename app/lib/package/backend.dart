@@ -365,6 +365,7 @@ class PackageBackend {
       await tx.commit();
       return _asPackagePublisherInfo(package);
     });
+    await purgePublisherCache(request.publisherId);
     return rs as api.PackagePublisherInfo;
   }
 
@@ -385,6 +386,7 @@ class PackageBackend {
       await tx.commit();
       return _asPackagePublisherInfo(package);
     });
+    await purgePublisherCache(package.publisherId);
     return rs as api.PackagePublisherInfo;
   }
 }
