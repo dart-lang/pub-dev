@@ -11,12 +11,25 @@ PageData _$PageDataFromJson(Map<String, dynamic> json) {
     pkgData: json['pkgData'] == null
         ? null
         : PkgData.fromJson(json['pkgData'] as Map<String, dynamic>),
+    publisher: json['publisher'] == null
+        ? null
+        : PublisherData.fromJson(json['publisher'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$PageDataToJson(PageData instance) => <String, dynamic>{
-      'pkgData': instance.pkgData,
-    };
+Map<String, dynamic> _$PageDataToJson(PageData instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('pkgData', instance.pkgData);
+  writeNotNull('publisher', instance.publisher);
+  return val;
+}
 
 PkgData _$PkgDataFromJson(Map<String, dynamic> json) {
   return PkgData(
@@ -30,4 +43,15 @@ Map<String, dynamic> _$PkgDataToJson(PkgData instance) => <String, dynamic>{
       'package': instance.package,
       'version': instance.version,
       'isDiscontinued': instance.isDiscontinued,
+    };
+
+PublisherData _$PublisherDataFromJson(Map<String, dynamic> json) {
+  return PublisherData(
+    publisherId: json['publisherId'] as String,
+  );
+}
+
+Map<String, dynamic> _$PublisherDataToJson(PublisherData instance) =>
+    <String, dynamic>{
+      'publisherId': instance.publisherId,
     };

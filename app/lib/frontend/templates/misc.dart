@@ -31,7 +31,7 @@ String renderSecurityPage() {
       title: 'Security | Pub site');
 }
 
-/// Renders the `views/index.mustache` template.
+/// Renders the `views/show.mustache` template.
 String renderErrorPage(
     String title, String message, List<PackageView> topPackages) {
   final hasTopPackages = topPackages != null && topPackages.isNotEmpty;

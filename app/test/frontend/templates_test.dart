@@ -17,6 +17,7 @@ import 'package:pub_dartlang_org/scorecard/models.dart';
 import 'package:pub_dartlang_org/search/search_service.dart';
 import 'package:pub_dartlang_org/shared/platform.dart';
 import 'package:pub_dartlang_org/package/models.dart';
+import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/frontend/static_files.dart';
 import 'package:pub_dartlang_org/frontend/templates/admin.dart';
 import 'package:pub_dartlang_org/frontend/templates/landing.dart';
@@ -27,6 +28,7 @@ import 'package:pub_dartlang_org/frontend/templates/package.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_admin.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_analysis.dart';
 import 'package:pub_dartlang_org/frontend/templates/package_versions.dart';
+import 'package:pub_dartlang_org/frontend/templates/publisher.dart';
 
 import '../shared/html_validation.dart';
 import '../shared/test_models.dart';
@@ -529,6 +531,16 @@ void main() {
         ),
       );
       expectGoldenFile(html, 'pkg_versions_page.html');
+    });
+
+    scopedTest('publisher show page', () {
+      final html = renderPublisherPage(Publisher()
+        ..id = 'example.com'
+        ..contactEmail = 'hello@example.com'
+        ..description = 'This is our little software developer shop.\n\n'
+            'We develop full-stack in Dart, and happy about it.'
+        ..websiteUrl = 'https://example.com/');
+      expectGoldenFile(html, 'publisher_show_page.html');
     });
 
     scopedTest('authorized page', () {
