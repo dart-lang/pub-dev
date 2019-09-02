@@ -21,7 +21,7 @@ import 'tabs.dart';
 
 bool _initialized = false;
 GoogleUser _currentUser;
-bool _isPkgUploader = false;
+bool _isAdmin = false;
 
 /// Returns whether the user is currently signed-in.
 bool get isSignedIn => _initialized && _currentUser != null;
@@ -31,7 +31,9 @@ GoogleUser get currentUser => _currentUser;
 
 Client _client;
 final _navWidget = _AccountNavWidget();
+final _authorizationWidget = _AuthorizationWidget();
 final _pkgAdminWidget = _PkgAdminWidget();
+final _publisherAdminWidget = _PublisherAdminWidget();
 final _createPublisherWidget = _CreatePublisherWidget();
 
 /// The HTTP Client to use with account credentials.
@@ -59,8 +61,10 @@ void setupAccount() {
 void _init() {
   _initialized = true;
   _navWidget.init();
+  _authorizationWidget.init();
   _pkgAdminWidget.init();
   _createPublisherWidget.init();
+  _publisherAdminWidget.init();
   _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
@@ -90,7 +94,15 @@ Future _updateOnCredChange() async {
             .get('/api/account/options/packages/${pageData.pkgData.package}');
         final map = json.decode(rs.body) as Map<String, dynamic>;
         final options = AccountPkgOptions.fromJson(map);
-        _isPkgUploader = options.isAdmin ?? false;
+        _isAdmin = options.isAdmin ?? false;
+        _updateUi();
+      } else if (pageData.isPublisherPage) {
+        // This is a temporary solution for checking if the current use is the
+        // admin of the package.
+        // TODO: introduce a special service endpoint for this
+        final rs = await client
+            .get('/api/publishers/${pageData.publisher.publisherId}/members');
+        _isAdmin = rs.statusCode == 200;
         _updateUi();
       }
     } catch (e) {
@@ -106,8 +118,10 @@ void _updateUi() {
     print('No active user');
   }
   _navWidget.update();
+  _authorizationWidget.update();
   _pkgAdminWidget.update();
   _createPublisherWidget.update();
+  _publisherAdminWidget.update();
 }
 
 class _AccountNavWidget {
@@ -143,16 +157,57 @@ class _AccountNavWidget {
   }
 }
 
-class _PkgAdminWidget {
+class _AuthorizationWidget {
   Element _unauthenticatedRoot;
   Element _unauthorizedRoot;
+  Element _authenticatedRoot;
   Element _authorizedRoot;
 
   void init() {
-    if (!pageData.isPackagePage) return;
     _unauthenticatedRoot = document.getElementById('-admin-unauthenticated');
     _unauthorizedRoot = document.getElementById('-admin-unauthorized');
+    _authenticatedRoot = document.getElementById('-admin-authenticated');
     _authorizedRoot = document.getElementById('-admin-authorized');
+    update();
+  }
+
+  void update() {
+    final authorized = _authorizedRoot != null && isSignedIn && _isAdmin;
+    final unauthorized =
+        !authorized && _unauthorizedRoot != null && isSignedIn && !_isAdmin;
+    final authenticated = !authorized &&
+        !unauthorized &&
+        _authenticatedRoot != null &&
+        isSignedIn;
+    final unauthenticated = !authorized &&
+        !unauthorized &&
+        !authenticated &&
+        _unauthenticatedRoot != null;
+    if (_unauthenticatedRoot != null) {
+      updateDisplay(_unauthenticatedRoot, unauthenticated, display: 'block');
+    }
+    if (_unauthorizedRoot != null) {
+      updateDisplay(_unauthorizedRoot, unauthorized, display: 'block');
+    }
+    if (_authenticatedRoot != null) {
+      updateDisplay(_authenticatedRoot, authenticated, display: 'block');
+    }
+    if (_authorizedRoot != null) {
+      updateDisplay(_authorizedRoot, authorized, display: 'block');
+    }
+  }
+}
+
+class _PkgAdminWidget {
+  Element _toggleDiscontinuedButton;
+
+  void init() {
+    if (!pageData.isPackagePage) return;
+    _toggleDiscontinuedButton =
+        document.querySelector('.-admin-is-discontinued-toggle');
+    if (isActive) {
+      _toggleDiscontinuedButton.onClick.listen((_) => _toogleDiscontinued());
+    }
     update();
   }
 
@@ -176,27 +231,9 @@ class _PkgAdminWidget {
   }
 
   void update() {
-    if (isActive) {
-      final unauthenticated = !isSignedIn;
-      final unauthorized = isSignedIn && !_isPkgUploader;
-      final authorized = isSignedIn && _isPkgUploader;
-      updateDisplay(_unauthenticatedRoot, unauthenticated);
-      updateDisplay(_unauthorizedRoot, unauthorized, display: 'block');
-      updateDisplay(_authorizedRoot, authorized, display: 'block');
-
-      // initialize only once
-      if (authorized && _authorizedRoot.dataset['initialized'] != '1') {
-        document
-            .querySelector('.-admin-is-discontinued-toggle')
-            .onClick
-            .listen((_) => _toogleDiscontinued());
-        _authorizedRoot.dataset['initialized'] = '1';
-      }
-    }
-
     final adminTab = getTabElement('-admin-tab-');
     if (adminTab != null) {
-      if (_initialized && _isPkgUploader) {
+      if (_initialized && _isAdmin) {
         final removed = adminTab.classes.remove('-hidden');
         // If this was the first change since the page load or login, and the
         // active hash is pointing to the tab, let's change it.
@@ -211,21 +248,14 @@ class _PkgAdminWidget {
     }
   }
 
-  bool get isActive =>
-      _unauthenticatedRoot != null &&
-      _unauthorizedRoot != null &&
-      _authorizedRoot != null;
+  bool get isActive => _toggleDiscontinuedButton != null;
 }
 
 class _CreatePublisherWidget {
-  Element _unauthenticatedRoot;
-  Element _authenticatedRoot;
   Element _publisherIdInput;
   Element _createButton;
 
   void init() {
-    _unauthenticatedRoot = document.getElementById('-admin-unauthenticated');
-    _authenticatedRoot = document.getElementById('-admin-authenticated');
     _publisherIdInput = document.getElementById('-publisher-id');
     _createButton = document.getElementById('-admin-create-publisher');
     if (isActive) {
@@ -239,8 +269,6 @@ class _CreatePublisherWidget {
 
   void update() {
     if (!isActive) return;
-    updateDisplay(_unauthenticatedRoot, !isSignedIn);
-    updateDisplay(_authenticatedRoot, isSignedIn, display: 'block');
   }
 
   void _triggerCreate(String publisherId) async {
@@ -280,9 +308,43 @@ class _CreatePublisherWidget {
     }
   }
 
-  bool get isActive =>
-      _unauthenticatedRoot != null &&
-      _authenticatedRoot != null &&
-      _publisherIdInput != null &&
-      _createButton != null;
+  bool get isActive => _publisherIdInput != null && _createButton != null;
+}
+
+class _PublisherAdminWidget {
+  Element _updateButton;
+  TextAreaElement _descriptionTextArea;
+
+  void init() {
+    if (!pageData.isPublisherPage) return;
+    _updateButton = document.getElementById('-publisher-update-button');
+    _descriptionTextArea =
+        document.getElementById('-publisher-description') as TextAreaElement;
+    if (isActive) {
+      _updateButton.onClick.listen((_) => _updatePublisher());
+    }
+    update();
+  }
+
+  Future _updatePublisher() async {
+    final update =
+        UpdatePublisherRequest(description: _descriptionTextArea.value);
+    final rs = await client.put(
+      '/api/publishers/${pageData.publisher.publisherId}',
+      body: json.encode(update.toJson()),
+    );
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    if (rs.statusCode == 200) {
+      window.location.pathname =
+          '/publishers/${pageData.publisher.publisherId}';
+    } else {
+      window.alert(map['error'] as String);
+    }
+  }
+
+  void update() {
+    // nothing to do
+  }
+
+  bool get isActive => _descriptionTextArea != null && _updateButton != null;
 }

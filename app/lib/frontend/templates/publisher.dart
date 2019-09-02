@@ -33,3 +33,21 @@ String renderPublisherPage(Publisher publisher) {
     )),
   );
 }
+
+/// Renders the `views/publisher/admin_page.mustache` template.
+String renderPublisherAdminPage(Publisher publisher) {
+  final String content = templateCache.renderTemplate('publisher/admin_page', {
+    'publisher_id': publisher.publisherId,
+    'description': publisher.description,
+  });
+  return renderLayoutPage(
+    PageType.publisher,
+    content,
+    title: 'Publisher: ${publisher.publisherId}',
+    pageData: PageData(
+      publisher: PublisherData(
+        publisherId: publisher.publisherId,
+      ),
+    ),
+  );
+}
