@@ -15,6 +15,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
+import 'package:retry/retry.dart';
 
 import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
@@ -227,16 +228,21 @@ class DartdocBackend {
   /// Returns the file's header from the storage bucket
   Future<FileInfo> getFileInfo(DartdocEntry entry, String relativePath) async {
     final objectName = entry.objectName(relativePath);
-    return cache.dartdocFileInfo(objectName).get(() async {
-      try {
-        final info = await _storage.info(objectName);
-        return FileInfo(lastModified: info.updated, etag: info.etag);
-      } catch (e) {
-        // TODO: Handle exceptions / errors
-        _logger.info('Requested path $objectName does not exists.');
-        return null;
-      }
-    });
+    return cache.dartdocFileInfo(objectName).get(
+          () async => retry(
+            () async {
+              try {
+                final info = await _storage.info(objectName);
+                return FileInfo(lastModified: info.updated, etag: info.etag);
+              } catch (e) {
+                // TODO: Handle exceptions / errors
+                _logger.info('Requested path $objectName does not exists.');
+                return null;
+              }
+            },
+            maxAttempts: 2,
+          ),
+        );
   }
 
   /// Returns a file's content from the storage bucket.
@@ -333,22 +339,27 @@ class DartdocBackend {
   }
 
   Future<List<DartdocEntry>> _listEntries(String prefix) async {
-    final List<DartdocEntry> list = [];
-    await for (final entry in _storage.list(prefix: prefix)) {
-      if (entry.isDirectory) continue;
-      if (!entry.name.endsWith('.json')) continue;
+    return retry(
+      () async {
+        final List<DartdocEntry> list = [];
+        await for (final entry in _storage.list(prefix: prefix)) {
+          if (entry.isDirectory) continue;
+          if (!entry.name.endsWith('.json')) continue;
 
-      try {
-        list.add(await DartdocEntry.fromStream(_storage.read(entry.name)));
-      } catch (e, st) {
-        if (e is DetailedApiRequestError && e.status == 404) {
-          // ignore exception: entry was removed by another cleanup process during the listing
-        } else {
-          _logger.warning('Unable to read entry: ${entry.name}.', e, st);
+          try {
+            list.add(await DartdocEntry.fromStream(_storage.read(entry.name)));
+          } catch (e, st) {
+            if (e is DetailedApiRequestError && e.status == 404) {
+              // ignore exception: entry was removed by another cleanup process during the listing
+            } else {
+              _logger.warning('Unable to read entry: ${entry.name}.', e, st);
+            }
+          }
         }
-      }
-    }
-    return list;
+        return list;
+      },
+      maxAttempts: 2,
+    );
   }
 
   Future _deleteAll(DartdocEntry entry) async {
