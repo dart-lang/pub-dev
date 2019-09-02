@@ -29,7 +29,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -65,124 +65,128 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="package-banner">
-        <form class="search-bar" action="/packages">
-          <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-        </form>
-      </main>
-    </div>
-    <main>
-      <div class="package-header">
-        <h2 class="title">foobar_pkg 0.1.1+5</h2>
-        <div class="metadata">
-    Published 
-          <span>Jan 1, 2014</span>
-          <!-- &bull; Downloads: X -->
-      • Updated:
-      
-          <span>
-            <a href="/packages/foobar_pkg">0.1.1+5</a>
-          </span>
-        /
-        
-          <span>
-            <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
-          </span>
-          <div class="tags">
-            <span class="package-tag missing" title="Package version too old, check latest stable.">[outdated]</span>
-          </div>
+      <div class="container">
+        <div class="small-banner">
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+          </form>
         </div>
       </div>
-      <div class="package-container">
-        <ul class="package-tabs-header">
-          <li class="tab-link" data-name="-readme-tab-" role="button">
-            <a href="/packages/foobar_pkg#-readme-tab-">Readme</a>
-          </li>
-          <li class="tab-link" data-name="-changelog-tab-" role="button">
-            <a href="/packages/foobar_pkg#-changelog-tab-">Changelog</a>
-          </li>
-          <li class="tab-link" data-name="-example-tab-" role="button">
-            <a href="/packages/foobar_pkg#-example-tab-">Example</a>
-          </li>
-          <li class="tab-link" data-name="-installing-tab-" role="button">
-            <a href="/packages/foobar_pkg#-installing-tab-">Installing</a>
-          </li>
-          <li class="tab-link" data-name="-versions-tab-" role="button">
-            <a href="/packages/foobar_pkg/versions">Versions</a>
-          </li>
-          <li class="tab-link" data-name="-analysis-tab-" role="button">
-            <a href="/packages/foobar_pkg#-analysis-tab-">
-              <div class="score-box">
-                <span class="number -rotten" title="Analysis and more details.">0</span>
-              </div>
-            </a>
-          </li>
-          <li class="tab-button -active" data-name="-admin-tab-" role="button">Admin</li>
-        </ul>
-        <div class="main package-tabs-content">
-          <section class="tab-content -active" data-name="-admin-tab-">
-            <div id="-admin-unauthenticated">
-              <p>
+    </div>
+    <div class="container">
+      <main>
+        <div class="package-header">
+          <h2 class="title">foobar_pkg 0.1.1+5</h2>
+          <div class="metadata">
+    Published 
+            <span>Jan 1, 2014</span>
+            <!-- &bull; Downloads: X -->
+      • Updated:
+      
+            <span>
+              <a href="/packages/foobar_pkg">0.1.1+5</a>
+            </span>
+        /
+        
+            <span>
+              <a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>
+            </span>
+            <div class="tags">
+              <span class="package-tag missing" title="Package version too old, check latest stable.">[outdated]</span>
+            </div>
+          </div>
+        </div>
+        <div class="package-container">
+          <ul class="package-tabs-header">
+            <li class="tab-link" data-name="-readme-tab-" role="button">
+              <a href="/packages/foobar_pkg#-readme-tab-">Readme</a>
+            </li>
+            <li class="tab-link" data-name="-changelog-tab-" role="button">
+              <a href="/packages/foobar_pkg#-changelog-tab-">Changelog</a>
+            </li>
+            <li class="tab-link" data-name="-example-tab-" role="button">
+              <a href="/packages/foobar_pkg#-example-tab-">Example</a>
+            </li>
+            <li class="tab-link" data-name="-installing-tab-" role="button">
+              <a href="/packages/foobar_pkg#-installing-tab-">Installing</a>
+            </li>
+            <li class="tab-link" data-name="-versions-tab-" role="button">
+              <a href="/packages/foobar_pkg/versions">Versions</a>
+            </li>
+            <li class="tab-link" data-name="-analysis-tab-" role="button">
+              <a href="/packages/foobar_pkg#-analysis-tab-">
+                <div class="score-box">
+                  <span class="number -rotten" title="Analysis and more details.">0</span>
+                </div>
+              </a>
+            </li>
+            <li class="tab-button -active" data-name="-admin-tab-" role="button">Admin</li>
+          </ul>
+          <div class="main package-tabs-content">
+            <section class="tab-content -active" data-name="-admin-tab-">
+              <div id="-admin-unauthenticated">
+                <p>
     Package administration is for signed-in users only.
   </p>
-            </div>
-            <div id="-admin-unauthorized">
-              <p>You are not admin of this package.</p>
-            </div>
-            <div id="-admin-authorized">
-              <h2>Admin package</h2>
-              <div>
-                <p>
+              </div>
+              <div id="-admin-unauthorized">
+                <p>You are not admin of this package.</p>
+              </div>
+              <div id="-admin-authorized">
+                <h2>Admin package</h2>
+                <div>
+                  <p>
         If you are no longer developing the package, you can mark it as discontinued.
         The package will still remain available, but pub site won't run analysis on it,
         and we won't display it in search results.
       </p>
-                <p>
-                  <button class="-admin-is-discontinued-toggle pub-button">Mark as "discontinued".</button>
-                </p>
+                  <p>
+                    <button class="-admin-is-discontinued-toggle pub-button">Mark as "discontinued".</button>
+                  </p>
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
-        <aside class="sidebar sidebar-content">
-          <h3 class="title">About</h3>
-          <p>my package description</p>
-          <p>
-            <a class="link" href="http://hans.juergen.com">Homepage</a>
-            <br/>
-            <a class="link" href="/documentation/foobar_pkg/latest/">API reference</a>
-            <br/>
-          </p>
-          <h3 class="title">Author</h3>
-          <div>
-            <span class="author">
-              <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
-                <i class="email-icon"></i>
-              </a>
-              <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
-                <i class="search-icon"></i>
-              </a> Hans Juergen
-            </span>
+            </section>
           </div>
-          <h3 class="title">Uploader</h3>
-          <p>
-            <span class="author">
-              <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
-                <i class="email-icon"></i>
-              </a>
-              <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
-                <i class="search-icon"></i>
-              </a> hans@juergen.com
-            </span>
-          </p>
-          <h3 class="title">More</h3>
-          <p>
-            <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
-          </p>
-        </aside>
-      </div>
-    </main>
+          <aside class="sidebar sidebar-content">
+            <h3 class="title">About</h3>
+            <p>my package description</p>
+            <p>
+              <a class="link" href="http://hans.juergen.com">Homepage</a>
+              <br/>
+              <a class="link" href="/documentation/foobar_pkg/latest/">API reference</a>
+              <br/>
+            </p>
+            <h3 class="title">Author</h3>
+            <div>
+              <span class="author">
+                <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
+                  <i class="email-icon"></i>
+                </a>
+                <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
+                  <i class="search-icon"></i>
+                </a> Hans Juergen
+              </span>
+            </div>
+            <h3 class="title">Uploader</h3>
+            <p>
+              <span class="author">
+                <a href="mailto:hans@juergen.com" title="Email hans@juergen.com">
+                  <i class="email-icon"></i>
+                </a>
+                <a href="/packages?q=email%3Ahans%40juergen.com" title="Search packages with hans@juergen.com" rel="nofollow">
+                  <i class="search-icon"></i>
+                </a> hans@juergen.com
+              </span>
+            </p>
+            <h3 class="title">More</h3>
+            <p>
+              <a href="/packages?q=dependency%3Afoobar_pkg" rel="nofollow">Packages that depend on foobar_pkg</a>
+            </p>
+          </aside>
+        </div>
+      </main>
+    </div>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>

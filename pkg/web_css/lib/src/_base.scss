@@ -56,13 +56,18 @@ a {
 }
 
 main {
+  min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
+
+   body.page-standalone & {
+    max-width: 600px;
+  }
+}
+
+/* Useful for synchronizing the alignment of different page blocks. */
+.container {
   max-width: $site-max-width;
   margin: 0 auto;
   padding: 0 20px;
-}
-// TODO: replace searchbar's 'main' element with something non-main
-body > main {
-  min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
 }
 
 code {
@@ -83,6 +88,11 @@ pre > code {
   -webkit-box-flex: 1;
   -ms-flex: 1;
   flex: 1;
+}
+
+.small-banner,
+.medium-banner {
+  padding: 10px 0px;
 }
 
 ._banner-bg {
@@ -140,9 +150,6 @@ pre > code {
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-
-  max-width: $site-max-width;
-  margin: 0 auto;
 }
 
 .site-header > .hamburger {
@@ -202,7 +209,6 @@ pre > code {
 
 .nav-header > .logo img {
   height: 27px;
-  margin-left: 16px;
   vertical-align: middle;
 }
 

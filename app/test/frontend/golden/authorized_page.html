@@ -26,7 +26,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -62,22 +62,26 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="package-banner">
-        <form class="search-bar" action="/packages">
-          <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-        </form>
-      </main>
+      <div class="container">
+        <div class="small-banner">
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+          </form>
+        </div>
+      </div>
     </div>
-    <main>
-      <h1>Pub Authorized Successfully</h1>
-      <p>
+    <div class="container">
+      <main>
+        <h1>Pub Authorized Successfully</h1>
+        <p>
   The 
-        <code>pub</code> client has been successfully authorized. You may now
+          <code>pub</code> client has been successfully authorized. You may now
   use it to upload packages and perform other tasks.
 
-      </p>
-    </main>
+        </p>
+      </main>
+    </div>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>

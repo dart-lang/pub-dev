@@ -48,7 +48,7 @@
 </head>
 <body class="{{& body_class}}">
 <header class="site-header-row">
-  <div class="site-header">
+  <div class="container site-header">
     <h1 class="_visuallyhidden">Dart pub</h1>
     <button class="hamburger"></button>
     <div class="mask"></div>
@@ -93,58 +93,66 @@
   </div>
 </header>
 
-{{#package_banner}}
+{{#small_banner}}
   <div class="_banner-bg">
-    <main class="package-banner">
-      <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
-        <button class="icon"></button>
-      </form>
-    </main>
+    <div class="container">
+      <div class="small-banner">
+        <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+          <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
+          <button class="icon"></button>
+        </form>
+      </div>
+    </div>
   </div>
-{{/package_banner}}
+{{/small_banner}}
 
-{{#listing_banner}}
+{{#medium_banner}}
   <div class="_banner-bg">
-    <main class="package-banner">
-      <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
-        <button class="icon"></button>
-        {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
-        <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
-        <input id="search-api-field" type="hidden" name="api" value="0"{{#api_search_enabled}} disabled="disabled"{{/api_search_enabled}} />
-      </form>
-      <div class="search-bar-details">
-        {{& platform_tabs_html }}
-        <div class="search-bar-options">
+    <div class="container">
+      <div class="medium-banner">
+        <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+          <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
+          <button class="icon"></button>
+          {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
+          <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
+          <input id="search-api-field" type="hidden" name="api" value="0"{{#api_search_enabled}} disabled="disabled"{{/api_search_enabled}} />
+        </form>
+        <div class="search-bar-details">
+          {{& platform_tabs_html }}
+          <div class="search-bar-options">
             <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
             <label for="search-legacy-checkbox">Include Dart 1.x results</label>
             <input id="search-api-checkbox" type="checkbox" name="api"{{#api_search_enabled}} checked="checked"{{/api_search_enabled}} />
             <label for="search-api-checkbox"> Include API results</label>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
-{{/listing_banner}}
+{{/medium_banner}}
 
 {{#landing_banner}}
   <div class="_banner-bg">
-    <main class="home-banner">
-      <h2 class="_visuallyhidden">Dart package manager</h2>
-      <img class="logo" src="{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
-      <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
-        <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
-        <button class="icon"></button>
-      </form>
-      {{& platform_tabs_html }}
-      {{& landing_blurb_html }}
-    </main>
+    <div class="container">
+      <div class="home-banner">
+        <h2 class="_visuallyhidden">Dart package manager</h2>
+        <img class="logo" src="{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
+        <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+          <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
+          <button class="icon"></button>
+        </form>
+        {{& platform_tabs_html }}
+        {{& landing_blurb_html }}
+      </div>
+    </div>
   </div>
 {{/landing_banner}}
 
-<main>
-  {{& content_html}}
-</main>
+<div class="container">
+  <main>
+    {{& content_html}}
+  </main>
+</div>
 
 <footer class="site-footer">
   <a class="link" href="{{& dart_site_root}}/">Dart language</a>

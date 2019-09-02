@@ -1,81 +1,82 @@
 {{! Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
-<div style="max-width: 600px">
-  <h2>Publishing a Package</h2>
-  <p>
-      <a href="{{& dart_site_root}}/tools/pub">Pub</a> isn't just for using
-      other people's packages. It also allows you to share your packages with the world.
-      If you have a useful project and you want others to be able to use it, use the
-      <a href="{{& dart_site_root}}/tools/pub/publishing">pub publish</a> command.
-  </p>
 
-  <h2 id="search">Search</h2>
-  <p>We support the following search expressions:</p>
-  <ul>
-    <li><code>"exact phrase"</code>: By default, when you perform a search,
-    the results include packages with similar phrases. When a phrase is inside
-    quotes, you'll see only those packages that contain exactly the specified
+<h2>Publishing a Package</h2>
+<p>
+    <a href="{{& dart_site_root}}/tools/pub">Pub</a> isn't just for using
+    other people's packages. It also allows you to share your packages with the world.
+    If you have a useful project and you want others to be able to use it, use the
+    <a href="{{& dart_site_root}}/tools/pub/publishing">pub publish</a> command.
+</p>
+
+<h2 id="search">Search</h2>
+<p>We support the following search expressions:</p>
+<ul>
+  <li><code>"exact phrase"</code>: By default, when you perform a search,
+  the results include packages with similar phrases. When a phrase is inside
+  quotes, you'll see only those packages that contain exactly the specified
     phrase.</li>
-    <li><code>package:prefix</code>: Searches for packages that begin with
-    <code>prefix</code>. Use this feature to find packages in the same framework.
-    </li>
-    <li><code>dependency:package_name</code>: Searches for packages that reference
-    <code>package_name</code> in their pubspec.</li>
-    <li><code>dependency*:package_name</code>: Searches for packages that depend
-    on <code>package_name</code> (as direct, dev, or transitive dependencies).
-    </li>
-    <li><code>email:user@example.com</code>: Search for packages where either the
-      author or the uploader has the specified e-mail address.</li>
-  </ul>
-  <h2 id="scoring">Scoring</h2>
-  <p><i>NOTE: The Pub scoring model is under development, and is subject to change.</i></p>
-  <p>
-    For each package, this site displays an <b>overall score</b>, calculated
-    from scores for the package's <a href="#popularity">popularity</a>,
-    <a href="#health">health</a>, and <a href="#maintenance">maintenance</a>.
-  </p>
+  <li><code>package:prefix</code>: Searches for packages that begin with
+  <code>prefix</code>. Use this feature to find packages in the same framework.
+  </li>
+  <li><code>dependency:package_name</code>: Searches for packages that reference
+  <code>package_name</code> in their pubspec.</li>
+  <li><code>dependency*:package_name</code>: Searches for packages that depend
+  on <code>package_name</code> (as direct, dev, or transitive dependencies).
+  </li>
+  <li><code>email:user@example.com</code>: Search for packages where either the
+    author or the uploader has the specified e-mail address.</li>
+</ul>
+<h2 id="scoring">Scoring</h2>
+<p><i>NOTE: The Pub scoring model is under development, and is subject to change.</i></p>
+<p>
+  For each package, this site displays an <b>overall score</b>, calculated
+  from scores for the package's <a href="#popularity">popularity</a>,
+  <a href="#health">health</a>, and <a href="#maintenance">maintenance</a>.
+</p>
 
-  <h3 id="popularity">Popularity</h3>
-  <p>
-    The popularity score—representing how often a package is used—is derived
-    from download statistics. Although this score is based on actual download
-    counts, it compensates for automated tools such as continuous builds that
-    fetch the package on each change request.
-  </p>
+<h3 id="popularity">Popularity</h3>
+<p>
+  The popularity score—representing how often a package is used—is derived
+  from download statistics. Although this score is based on actual download
+  counts, it compensates for automated tools such as continuous builds that
+  fetch the package on each change request.
+</p>
 
-  <p><i>How can you improve your popularity score?</i></p>
-  <p>Create useful packages that others need and love to use.</p>
+<p><i>How can you improve your popularity score?</i></p>
+<p>Create useful packages that others need and love to use.</p>
 
-  <h3 id="health">Health</h3>
-  <p>
-    The health score is based on static analysis of the package with
-    <code>dartanalyzer</code>:
-  </p>
-  <ul>
-      <li>Each <i>error</i> reduces the health score by 25% <sup>(*)</sup>.</li>
-      <li>Each <i>warning</i> reduces the health score by 5% <sup>(*)</sup>.</li>
-      <li>Each <i>hint</i> reduces the health score by 0.5% <sup>(*)</sup>.</li>
-      <li>Each <i>platform conflict</i> reduces the health score by 25 points.</li>
-  </ul>
-  <p>
-      <sup>(*)</sup> Percents are applied with cumulative multiplication.
-      For example: 2 errors and 1 warning will get a score of 53, because:
-      <code>(0.75^2 * 0.95 = 0.534375)</code>.
-  </p>
-  <p><i>How can you improve your health score?</i></p>
-  <p>
-    Run <code>dartanalyzer</code> (or <code>flutter analyze</code> in case of Flutter),
-    and fix the items it returns (especially errors and warnings, hints barely
-    decrease the health score).
-  </p>
-  <p>
-      Use <a href="{{& dart_site_root}}/guides/language/analysis-options"><code>analysis_options.yaml</code></a>
-      to specify further linter rules,
-      <a href="{{& dart_site_root}}/guides/language/analysis-options#default-google-rules-pedantic">enable default rules Google uses</a>,
-      and make sure you fix all warnings and errors before publishing.
-      Here's an example <code>analysis_options.yaml</code>:</p>
-  <pre><code class="language-yaml"># Defines a default set of lint rules enforced for
+<h3 id="health">Health</h3>
+<p>
+  The health score is based on static analysis of the package with
+  <code>dartanalyzer</code>:
+</p>
+<ul>
+  <li>Each <i>error</i> reduces the health score by 25% <sup>(*)</sup>.</li>
+  <li>Each <i>warning</i> reduces the health score by 5% <sup>(*)</sup>.</li>
+  <li>Each <i>hint</i> reduces the health score by 0.5% <sup>(*)</sup>.</li>
+  <li>Each <i>platform conflict</i> reduces the health score by 25 points.</li>
+</ul>
+<p>
+  <sup>(*)</sup> Percents are applied with cumulative multiplication.
+  For example: 2 errors and 1 warning will get a score of 53, because:
+  <code>(0.75^2 * 0.95 = 0.534375)</code>.
+</p>
+<p><i>How can you improve your health score?</i></p>
+<p>
+  Run <code>dartanalyzer</code> (or <code>flutter analyze</code> in case of Flutter),
+  and fix the items it returns (especially errors and warnings, hints barely
+  decrease the health score).
+</p>
+<p>
+  Use <a href="{{& dart_site_root}}/guides/language/analysis-options"><code>analysis_options.yaml</code></a>
+  to specify further linter rules,
+  <a href="{{& dart_site_root}}/guides/language/analysis-options#default-google-rules-pedantic">enable default rules Google uses</a>,
+  and make sure you fix all warnings and errors before publishing.
+  Here's an example <code>analysis_options.yaml</code>:
+</p>
+<pre><code class="language-yaml"># Defines a default set of lint rules enforced for
 # projects at Google. For details and rationale,
 # see https://github.com/dart-lang/pedantic#enabled-lints.
 include: package:pedantic/analysis_options.yaml
@@ -91,63 +92,61 @@ include: package:pedantic/analysis_options.yaml
 #     - path/to/excluded/files/**
   </code></pre>
 
-  <h3 id="maintenance">Maintenance</h3>
+<h3 id="maintenance">Maintenance</h3>
 
-  <p>
-    The maintenance score reflects how tidy and up-to-date a package is.
-    Here are some of the factors that influence this score:
-  </p>
-  <ul>
-    <li>Last publish date: Best if the package has been published within one year.
-    </li>
-    <li>Up-to-date dependencies: Best if all of the package's dependencies are on
-    the latest version.</li>
-    <li>README, CHANGELOG, and example files: Best if all are present. For
-    information on how to provide these files, see the
-    <a href="{{& dart_site_root}}/tools/pub/package-layout">pub package layout
-    conventions</a>.</li>
-    <li><code>analysis_options.yaml</code>: Best if this file is present. For more information, see
-    <a href="{{& dart_site_root}}/guides/language/analysis-options">Customize
-    Static Analysis</a>.</li>
-  </ul>
+<p>
+  The maintenance score reflects how tidy and up-to-date a package is.
+  Here are some of the factors that influence this score:
+</p>
+<ul>
+  <li>Last publish date: Best if the package has been published within one year.
+  </li>
+  <li>Up-to-date dependencies: Best if all of the package's dependencies are on
+  the latest version.</li>
+  <li>README, CHANGELOG, and example files: Best if all are present. For
+  information on how to provide these files, see the
+  <a href="{{& dart_site_root}}/tools/pub/package-layout">pub package layout
+  conventions</a>.</li>
+  <li><code>analysis_options.yaml</code>: Best if this file is present. For more information, see
+  <a href="{{& dart_site_root}}/guides/language/analysis-options">Customize
+  Static Analysis</a>.</li>
+</ul>
 
-  <p><i>How can you improve your maintenance score?</i></p>
-  <p>
-    Click your package's overall score to see the Analysis page, which has
-    suggestions for improving the package's score. Fix them, and release
-    at least one new version every year to keep your maintenance score up.
-  </p>
-  <p>
-    Pub site uses <a href="{{& pana_url}}">pana</a>
-    to create maintenance suggestions. To get suggestions before publishing,
-    run <code>pana</code> locally (using <code>--source path</code>), or
-    validate your package against the
-    <a href="{{& pana_maintenance_url}}">list of checks</a> manually.
-  </p>
+<p><i>How can you improve your maintenance score?</i></p>
+<p>
+  Click your package's overall score to see the Analysis page, which has
+  suggestions for improving the package's score. Fix them, and release
+  at least one new version every year to keep your maintenance score up.
+</p>
+<p>
+  Pub site uses <a href="{{& pana_url}}">pana</a>
+  to create maintenance suggestions. To get suggestions before publishing,
+  run <code>pana</code> locally (using <code>--source path</code>), or
+  validate your package against the
+  <a href="{{& pana_maintenance_url}}">list of checks</a> manually.
+</p>
 
-  <h3 id="overall-score">Overall score</h3>
-  <p>
-    The overall score is a weighted average of the individual scores:
-  </p>
-  <ul>
-      <li>50% popularity,</li>
-      <li>30% code health,</li>
-      <li>20% maintenance.</li>
-  </ul>
-  <p>
-    You can find the overall score either near the top of the package's page or to
-    the right of your package in any listing on this site.
-  </p>
+<h3 id="overall-score">Overall score</h3>
+<p>
+  The overall score is a weighted average of the individual scores:
+</p>
+<ul>
+  <li>50% popularity,</li>
+  <li>30% code health,</li>
+  <li>20% maintenance.</li>
+</ul>
+<p>
+  You can find the overall score either near the top of the package's page or to
+  the right of your package in any listing on this site.
+</p>
 
-
-  <h2 id="ranking">Ranking</h2>
-  <p>
-    Default listings use composite scoring to sort packages. The score is
-    based on the overall score, and if applicable, the platform specificity
-    and the text match score is also factored in.
-  </p>
-  <p>
-    Each package's overall score is visible at the side of the results,
-    regardless of the sort order.
-  </p>
-</div>
+<h2 id="ranking">Ranking</h2>
+<p>
+  Default listings use composite scoring to sort packages. The score is
+  based on the overall score, and if applicable, the platform specificity
+  and the text match score is also factored in.
+</p>
+<p>
+  Each package's overall score is visible at the side of the results,
+  regardless of the sort order.
+</p>

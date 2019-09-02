@@ -27,7 +27,7 @@
   </head>
   <body class="">
     <header class="site-header-row">
-      <div class="site-header">
+      <div class="container site-header">
         <h1 class="_visuallyhidden">Dart pub</h1>
         <button class="hamburger"></button>
         <div class="mask"></div>
@@ -63,56 +63,60 @@
       </div>
     </header>
     <div class="_banner-bg">
-      <main class="home-banner">
-        <h2 class="_visuallyhidden">Dart package manager</h2>
-        <img class="logo" src="/static/img/dart-packages-white.png?hash=mocked_hash_308431268" alt="Dart packages"/>
-        <form class="search-bar" action="/web/packages">
-          <input class="input" name="q" placeholder="Search web-compatible packages" autocomplete="on" autofocus="autofocus"/>
-          <button class="icon"></button>
-        </form>
-        <div class="list-filters">
-          <a class="filter " href="/flutter">Flutter</a>
-          <a class="filter -active" href="/web">Web</a>
-          <a class="filter " href="/">All</a>
-        </div>
-        <p class="text">Use Dart to create web applications that run on any modern browser.
-          <br/> Start with 
-          <a target="_blank" rel="noopener" href="https://webdev.dartlang.org/angular">AngularDart
-            <sup>
-              <small>↗</small>
-            </sup>
-          </a>.
-        </p>
-      </main>
-    </div>
-    <main>
-      <div class="home-lists-container">
-        <div class="landing-page-title-block">
-          <div class="tooltip-base hoverable">
-            <h2 class="center landing-page-title tooltip-dotted">Top web-compatible packages</h2>
-            <div class="tooltip-content">
-        Packages are sorted by the overall score. More information on 
-              <a href="/help#ranking">ranking</a>.
-      
-            </div>
+      <div class="container">
+        <div class="home-banner">
+          <h2 class="_visuallyhidden">Dart package manager</h2>
+          <img class="logo" src="/static/img/dart-packages-white.png?hash=mocked_hash_308431268" alt="Dart packages"/>
+          <form class="search-bar" action="/web/packages">
+            <input class="input" name="q" placeholder="Search web-compatible packages" autocomplete="on" autofocus="autofocus"/>
+            <button class="icon"></button>
+          </form>
+          <div class="list-filters">
+            <a class="filter " href="/flutter">Flutter</a>
+            <a class="filter -active" href="/web">Web</a>
+            <a class="filter " href="/">All</a>
           </div>
-        </div>
-        <ul class="package-list">
-          <li class="list-item -simple">
-            <h3 class="title">
-              <a href="/packages/foobar_pkg">foobar_pkg</a>
-            </h3>
-            <p class="metadata">
-              <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
-            </p>
-            <p class="description">my package description</p>
-          </li>
-        </ul>
-        <div class="more">
-          <a href="/web/packages">More web-compatible packages...</a>
+          <p class="text">Use Dart to create web applications that run on any modern browser.
+            <br/> Start with 
+            <a target="_blank" rel="noopener" href="https://webdev.dartlang.org/angular">AngularDart
+              <sup>
+                <small>↗</small>
+              </sup>
+            </a>.
+          </p>
         </div>
       </div>
-    </main>
+    </div>
+    <div class="container">
+      <main>
+        <div class="home-lists-container">
+          <div class="landing-page-title-block">
+            <div class="tooltip-base hoverable">
+              <h2 class="center landing-page-title tooltip-dotted">Top web-compatible packages</h2>
+              <div class="tooltip-content">
+        Packages are sorted by the overall score. More information on 
+                <a href="/help#ranking">ranking</a>.
+      
+              </div>
+            </div>
+          </div>
+          <ul class="package-list">
+            <li class="list-item -simple">
+              <h3 class="title">
+                <a href="/packages/foobar_pkg">foobar_pkg</a>
+              </h3>
+              <p class="metadata">
+                <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
+              </p>
+              <p class="description">my package description</p>
+            </li>
+          </ul>
+          <div class="more">
+            <a href="/web/packages">More web-compatible packages...</a>
+          </div>
+        </div>
+      </main>
+    </div>
     <footer class="site-footer">
       <a class="link" href="https://dart.dev/">Dart language</a>
       <a class="link" href="https://www.google.com/intl/en/policies/terms/">Terms</a>
