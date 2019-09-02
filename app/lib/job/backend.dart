@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:gcloud/datastore.dart' show DatastoreError;
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -325,7 +326,7 @@ class JobBackend {
         return r as R;
       },
       maxDelay: const Duration(seconds: 2),
-      retryIf: (ex) => ex is! FormatException,
+      retryIf: (ex) => ex is DatastoreError,
     );
   }
 
