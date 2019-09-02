@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../shared/handlers.dart';
+import '../templates/publisher.dart';
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
-  // TODO: implement
-  return notFoundHandler(request);
+  return htmlResponse(renderCreatePublisherPage());
 }

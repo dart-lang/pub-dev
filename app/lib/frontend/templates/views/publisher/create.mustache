@@ -1,0 +1,33 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<h1>Create a publisher</h1>
+
+<div id="-admin-unauthenticated">
+  <p>
+    Only signed-in users can create a publisher. Please sign in to continue.
+  </p>
+</div>
+
+<div id="-admin-authenticated">
+  <div>
+    <p>
+      Publishers are identified by a domain name. To create a publisher,
+      you need to be a <i>verified domain property</i> owner in
+      <a href="https://search.google.com/search-console/welcome" target="_blank" rel="noreferrer">Google Search Console</a>.
+      For help see <a href="https://support.google.com/webmasters/answer/34592?hl=en" target="_blank" rel="noreferrer">Add a website property</a>.
+      <br /><br />
+      Note: It is not sufficient to verify a <i>URL prefix property</i>, or to be added as a collaborator on a property
+      somebody else verified. The user account used to create a publisher must have verified the <i>domain property</i>.
+      Once verified and a publisher has been created on pub.dev continued domain verification is not a requirement.
+      you need to be a site administrator in
+      <a href="https://www.google.com/webmasters/tools" target="_blank" rel="noreferrer">Google Search Console</a>
+      (formerly: Google Webmaster Tools).
+    </p>
+    <p>
+      <input type="text" id="-publisher-id" class="pub-input" placeholder="your domain name" />
+      <button id="-admin-create-publisher" class="pub-button">Create publisher</button>
+    </p>
+  </div>
+</div>
