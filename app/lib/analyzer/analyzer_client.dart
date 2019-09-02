@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:logging/logging.dart';
 import 'package:pana/pana.dart';
 
 import '../job/backend.dart';
@@ -21,8 +20,6 @@ void registerAnalyzerClient(AnalyzerClient client) =>
 /// The active analyzer client.
 AnalyzerClient get analyzerClient =>
     ss.lookup(#_analyzerClient) as AnalyzerClient;
-
-final Logger _logger = Logger('pub.analyzer_client');
 
 /// Client methods that access the analyzer service and the internals of the
 /// analysis data. This keeps the interface narrow over the raw analysis data.
@@ -44,10 +41,6 @@ class AnalyzerClient {
 
   Future triggerAnalysis(
       String package, String version, Set<String> dependentPackages) async {
-    if (jobBackend == null) {
-      _logger.warning('Job backend is not initialized!');
-      return;
-    }
     await jobBackend.trigger(JobService.analyzer, package, version);
     for (final String package in dependentPackages) {
       await jobBackend.trigger(JobService.analyzer, package);
