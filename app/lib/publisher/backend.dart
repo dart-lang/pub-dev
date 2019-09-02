@@ -35,7 +35,7 @@ class PublisherBackend {
   PublisherBackend(this._db);
 
   /// Loads a publisher (or returns null if it does not exists).
-  Future<Publisher> _getPublisher(String publisherId) async {
+  Future<Publisher> getPublisher(String publisherId) async {
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
     return (await _db.lookup<Publisher>([pKey])).single;
   }
@@ -135,8 +135,8 @@ class PublisherBackend {
   }
 
   /// Gets the publisher data
-  Future<api.PublisherInfo> getPublisher(String publisherId) async {
-    final p = await _getPublisher(publisherId);
+  Future<api.PublisherInfo> getPublisherInfo(String publisherId) async {
+    final p = await getPublisher(publisherId);
     if (p == null) {
       throw NotFoundException('Publisher $publisherId does not exists.');
     }
@@ -340,7 +340,7 @@ api.PublisherInfo _asPublisherInfo(Publisher p) =>
 Future<R> withPublisherAdmin<R>(
     String publisherId, String userId, FutureOr<R> fn(Publisher p)) async {
   ArgumentError.checkNotNull(userId, 'userId');
-  final p = await publisherBackend._getPublisher(publisherId);
+  final p = await publisherBackend.getPublisher(publisherId);
   if (p == null) {
     throw NotFoundException('Publisher $publisherId does not exists.');
   }

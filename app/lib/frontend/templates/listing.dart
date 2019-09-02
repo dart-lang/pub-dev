@@ -22,7 +22,7 @@ String renderPagination(PageLinks pageLinks) {
   return templateCache.renderTemplate('pagination', values);
 }
 
-/// Renders the `views/pkg/index.mustache` template.
+/// Renders the `views/pkg/show.mustache` template.
 String renderPkgIndexPage(
     List<PackageView> packages, PageLinks links, String currentPlatform,
     {SearchQuery searchQuery, int totalCount}) {

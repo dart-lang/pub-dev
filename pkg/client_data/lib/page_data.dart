@@ -16,11 +16,12 @@ final pageDataJsonCodec = json.fuse(utf8).fuse(base64);
 ///
 /// This is the `application/ld+json` data embedded in the page with
 /// `"@context":"https://pub.dev"`.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PageData {
   final PkgData pkgData;
+  final PublisherData publisher;
 
-  PageData({this.pkgData});
+  PageData({this.pkgData, this.publisher});
 
   factory PageData.fromJson(Map<String, dynamic> json) =>
       _$PageDataFromJson(json);
@@ -28,9 +29,10 @@ class PageData {
   Map<String, dynamic> toJson() => _$PageDataToJson(this);
 
   bool get isPackagePage => pkgData != null;
+  bool get isPublisherPage => publisher != null;
 }
 
-/// The server-providerd data about the current package.
+/// The server-provided data about the current package.
 @JsonSerializable()
 class PkgData {
   final String package;
@@ -47,4 +49,19 @@ class PkgData {
       _$PkgDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$PkgDataToJson(this);
+}
+
+/// The server-provided data about the current publisher.
+@JsonSerializable()
+class PublisherData {
+  final String publisherId;
+
+  PublisherData({
+    @required this.publisherId,
+  });
+
+  factory PublisherData.fromJson(Map<String, dynamic> json) =>
+      _$PublisherDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PublisherDataToJson(this);
 }

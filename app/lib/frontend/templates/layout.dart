@@ -20,10 +20,11 @@ import '_consts.dart';
 import '_utils.dart';
 
 enum PageType {
+  error,
   landing,
   listing,
   package,
-  error,
+  publisher,
   standalone,
 }
 
