@@ -40,16 +40,6 @@ class PublisherBackend {
     return (await _db.lookup<Publisher>([pKey])).single;
   }
 
-  /// Checks whether the current authenticated user has admin role of the
-  /// publisher, and executes [fn] if it does.
-  /// Otherwise, it throws [AuthorizationException].
-  /// TODO: remove this and migrate to use withPublisherAdmin
-  Future<R> _withPublisherAdmin<R>(
-      String publisherId, Future<R> fn(Publisher p)) async {
-    final user = await requireAuthenticatedUser();
-    return await withPublisherAdmin(publisherId, user.userId, fn);
-  }
-
   /// Create publisher.
   Future<api.PublisherInfo> createPublisher(
     String publisherId,
@@ -151,71 +141,72 @@ class PublisherBackend {
         throw ArgumentError('Description too long.');
       }
     }
-    final p = await _withPublisherAdmin(publisherId, (_) async {
-      return await _db.withTransaction((tx) async {
-        final key = _db.emptyKey.append(Publisher, id: publisherId);
-        final p = (await tx.lookup<Publisher>([key])).single;
+    final user = await requireAuthenticatedUser();
+    await requirePublisherAdmin(publisherId, user.userId);
+    final p = await _db.withTransaction((tx) async {
+      final key = _db.emptyKey.append(Publisher, id: publisherId);
+      final p = (await tx.lookup<Publisher>([key])).single;
 
-        if (update.contactEmail != null &&
-            p.contactEmail != update.contactEmail) {
-          final user =
-              await accountBackend.lookupUserByEmail(update.contactEmail);
-          InvalidInputException.check(user != null,
-              'Only administrator e-mail can be used as contact e-mail.');
-          final members = await tx.lookup<PublisherMember>(
-              [p.key.append(PublisherMember, id: user.userId)]);
-          final member = members.single;
-          InvalidInputException.check(member?.role == PublisherMemberRole.admin,
-              'Only administrator e-mail can be used as contact e-mail.');
-        }
+      if (update.contactEmail != null &&
+          p.contactEmail != update.contactEmail) {
+        final user =
+            await accountBackend.lookupUserByEmail(update.contactEmail);
+        InvalidInputException.check(user != null,
+            'Only administrator e-mail can be used as contact e-mail.');
+        final members = await tx.lookup<PublisherMember>(
+            [p.key.append(PublisherMember, id: user.userId)]);
+        final member = members.single;
+        InvalidInputException.check(member?.role == PublisherMemberRole.admin,
+            'Only administrator e-mail can be used as contact e-mail.');
+      }
 
-        p.description = update.description ?? p.description;
-        p.contactEmail = update.contactEmail ?? p.contactEmail;
-        p.updated = DateTime.now().toUtc();
+      p.description = update.description ?? p.description;
+      p.contactEmail = update.contactEmail ?? p.contactEmail;
+      p.updated = DateTime.now().toUtc();
 
-        tx.queueMutations(inserts: [p]);
-        await tx.commit();
-        return p;
-      }) as Publisher;
-    });
+      tx.queueMutations(inserts: [p]);
+      await tx.commit();
+      return p;
+    }) as Publisher;
+
     return _asPublisherInfo(p);
   }
 
   /// Invites a user to become a publisher admin.
   Future<account_api.InviteStatus> invitePublisherMember(
       String publisherId, api.InviteMemberRequest invite) async {
-    return await _withPublisherAdmin(publisherId, (p) async {
-      InvalidInputException.checkNotNull(invite.email, 'email');
-      InvalidInputException.checkStringLength(invite.email, 'email',
-          maximum: 4096);
-      InvalidInputException.check(
-          isValidEmail(invite.email), 'Invalid e-mail: `${invite.email}`');
-      final user = await accountBackend.lookupOrCreateUserByEmail(invite.email);
+    final activeUser = await requireAuthenticatedUser();
+    final p = await requirePublisherAdmin(publisherId, activeUser.userId);
+    InvalidInputException.checkNotNull(invite.email, 'email');
+    InvalidInputException.checkStringLength(invite.email, 'email',
+        maximum: 4096);
+    InvalidInputException.check(
+        isValidEmail(invite.email), 'Invalid e-mail: `${invite.email}`');
+    final invitedUser =
+        await accountBackend.lookupOrCreateUserByEmail(invite.email);
+    final userId = invitedUser.userId;
+    final key = p.key.append(PublisherMember, id: userId);
+    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    InvalidInputException.checkNull(pm, 'User is already a member.');
 
-      final userId = user.userId;
-      final key = p.key.append(PublisherMember, id: userId);
-      final pm = (await _db.lookup<PublisherMember>([key])).single;
-      InvalidInputException.checkNull(pm, 'User is already a member.');
-
-      return await consentBackend.invite(
-        userId: userId,
-        kind: 'PublisherMember',
-        args: [p.publisherId],
-      );
-    });
+    return await consentBackend.invite(
+      userId: userId,
+      kind: 'PublisherMember',
+      args: [p.publisherId],
+    );
   }
 
   /// List the members of a publishers
   Future<api.PublisherMembers> listPublisherMembers(String publisherId) async {
-    return await _withPublisherAdmin(publisherId, (p) async {
-      // TODO: add caching
-      final query = _db.query<PublisherMember>(ancestorKey: p.key);
-      final members = <api.PublisherMember>[];
-      await for (final pm in query.run()) {
-        members.add(await _asPublisherMember(pm));
-      }
-      return api.PublisherMembers(members: members);
-    });
+    final user = await requireAuthenticatedUser();
+    final p = await requirePublisherAdmin(publisherId, user.userId);
+    // TODO: add caching
+    final query = _db.query<PublisherMember>(ancestorKey: p.key);
+    final members = <api.PublisherMember>[];
+    await for (final pm in query.run()) {
+      members.add(await _asPublisherMember(pm));
+    }
+    return api.PublisherMembers(members: members);
   }
 
   /// The list of e-mail addresses of the members with admin roles. The list
@@ -230,14 +221,14 @@ class PublisherBackend {
   /// Returns the membership info of a user.
   Future<api.PublisherMember> publisherMemberInfo(
       String publisherId, String userId) async {
-    return await _withPublisherAdmin(publisherId, (p) async {
-      final key = p.key.append(PublisherMember, id: userId);
-      final pm = (await _db.lookup<PublisherMember>([key])).single;
-      if (pm == null) {
-        throw NotFoundException.resource('member: $userId');
-      }
-      return await _asPublisherMember(pm);
-    });
+    final user = await requireAuthenticatedUser();
+    final p = await requirePublisherAdmin(publisherId, user.userId);
+    final key = p.key.append(PublisherMember, id: userId);
+    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    if (pm == null) {
+      throw NotFoundException.resource('member: $userId');
+    }
+    return await _asPublisherMember(pm);
   }
 
   /// Updates the membership info of a user.
@@ -246,47 +237,47 @@ class PublisherBackend {
     String userId,
     api.UpdatePublisherMemberRequest update,
   ) async {
-    return await _withPublisherAdmin(publisherId, (p) async {
-      final key = p.key.append(PublisherMember, id: userId);
-      final pm = (await _db.lookup<PublisherMember>([key])).single;
-      if (pm == null) {
-        throw NotFoundException.resource('member: $userId');
+    final user = await requireAuthenticatedUser();
+    final p = await requirePublisherAdmin(publisherId, user.userId);
+    final key = p.key.append(PublisherMember, id: userId);
+    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    if (pm == null) {
+      throw NotFoundException.resource('member: $userId');
+    }
+    if (update.role != null && update.role != pm.role) {
+      // user is not allowed to update their own role
+      if (userId == authenticatedUser.userId) {
+        throw ConflictException.cantUpdateOwnRole();
       }
-      if (update.role != null && update.role != pm.role) {
-        // user is not allowed to update their own role
-        if (userId == authenticatedUser.userId) {
-          throw ConflictException.cantUpdateOwnRole();
-        }
-        // role needs to be from the allowed set of values
-        InvalidInputException.checkAnyOf(
-            update.role, 'role', PublisherMemberRole.values);
-        await _db.withTransaction((tx) async {
-          final current = (await tx.lookup<PublisherMember>([key])).single;
-          // fall back to current role if role is not updated
-          current.role = update.role ?? current.role;
-          current.updated = DateTime.now().toUtc();
-          tx.queueMutations(inserts: [current]);
-          await tx.commit();
-        });
-      }
-      final updated = (await _db.lookup<PublisherMember>([key])).single;
-      return await _asPublisherMember(updated);
-    });
+      // role needs to be from the allowed set of values
+      InvalidInputException.checkAnyOf(
+          update.role, 'role', PublisherMemberRole.values);
+      await _db.withTransaction((tx) async {
+        final current = (await tx.lookup<PublisherMember>([key])).single;
+        // fall back to current role if role is not updated
+        current.role = update.role ?? current.role;
+        current.updated = DateTime.now().toUtc();
+        tx.queueMutations(inserts: [current]);
+        await tx.commit();
+      });
+    }
+    final updated = (await _db.lookup<PublisherMember>([key])).single;
+    return await _asPublisherMember(updated);
   }
 
   /// Deletes a publisher's member.
   Future deletePublisherMember(String publisherId, String userId) async {
-    return await _withPublisherAdmin(publisherId, (p) async {
-      if (userId == authenticatedUser.userId) {
-        throw ConflictException.cantUpdateSelf();
-      }
+    final user = await requireAuthenticatedUser();
+    final p = await requirePublisherAdmin(publisherId, user.userId);
+    if (userId == authenticatedUser.userId) {
+      throw ConflictException.cantUpdateSelf();
+    }
 
-      final key = p.key.append(PublisherMember, id: userId);
-      final pm = (await _db.lookup<PublisherMember>([key])).single;
-      if (pm != null) {
-        await _db.commit(deletes: [pm.key]);
-      }
-    });
+    final key = p.key.append(PublisherMember, id: userId);
+    final pm = (await _db.lookup<PublisherMember>([key])).single;
+    if (pm != null) {
+      await _db.commit(deletes: [pm.key]);
+    }
   }
 
   /// A callback from consent backend, when a consent is granted.
@@ -331,13 +322,13 @@ class PublisherBackend {
 api.PublisherInfo _asPublisherInfo(Publisher p) =>
     api.PublisherInfo(description: p.description, contactEmail: p.contactEmail);
 
-/// Loads [publisherId] and checks if [userId] is an admin of the publisher, and
-/// runs the callback [fn] with it.
+/// Loads [publisherId], returns its [Publisher] instance, and also checks if
+/// [userId] is an admin of the publisher.
 ///
 /// Throws AuthenticationException if the user is provided.
 /// Throws AuthorizationException if the user is not an admin for the publisher.
-Future<R> withPublisherAdmin<R>(
-    String publisherId, String userId, FutureOr<R> fn(Publisher p)) async {
+Future<Publisher> requirePublisherAdmin(
+    String publisherId, String userId) async {
   ArgumentError.checkNotNull(userId, 'userId');
   final p = await publisherBackend.getPublisher(publisherId);
   if (p == null) {
@@ -352,5 +343,5 @@ Future<R> withPublisherAdmin<R>(
         'Unauthorized access of Publisher($publisherId) from User($userId).');
     throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
   }
-  return await fn(p);
+  return p;
 }
