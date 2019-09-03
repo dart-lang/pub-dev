@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:args/command_runner.dart';
 import 'package:http/http.dart' as http;
 import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart';
@@ -35,12 +36,30 @@ import '_isolate.dart';
 final Logger _logger = Logger('pub');
 final _random = Random.secure();
 
-Future main() async {
-  await startIsolates(
-    logger: _logger,
-    frontendEntryPoint: _main,
-    workerEntryPoint: _worker,
-  );
+class DefaultCommand extends Command {
+  @override
+  String get name => 'default';
+
+  @override
+  String get description => 'The default frontend service entrypoint.';
+
+  DefaultCommand() {
+    argParser.addFlag(
+      'local-dev',
+      defaultsTo: false,
+      help: 'Reduce the number of background services that are started.',
+    );
+  }
+
+  @override
+  Future run() async {
+    final isLocalDev = argResults['local-dev'] as bool;
+    await startIsolates(
+      logger: _logger,
+      frontendEntryPoint: _main,
+      workerEntryPoint: isLocalDev ? null : _worker,
+    );
+  }
 }
 
 Future _main(FrontendEntryMessage message) async {

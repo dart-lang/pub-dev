@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:args/command_runner.dart';
 import 'package:logging/logging.dart';
 
 import '../../search/backend.dart';
@@ -23,8 +24,17 @@ import '_isolate.dart';
 
 final Logger _logger = Logger('pub.search');
 
-Future main() async {
-  await startIsolates(logger: _logger, frontendEntryPoint: _main);
+class SearchCommand extends Command {
+  @override
+  String get name => 'search';
+
+  @override
+  String get description => 'The search service entrypoint.';
+
+  @override
+  Future run() async {
+    await startIsolates(logger: _logger, frontendEntryPoint: _main);
+  }
 }
 
 Future _main(FrontendEntryMessage message) async {
