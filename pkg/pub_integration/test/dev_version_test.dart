@@ -31,7 +31,7 @@ void main() {
       );
       await script.verify(false);
     });
-  });
+  }, timeout: Timeout.factor(2));
 
   group('devVersion - stable first', () {
     FakePubServerProcess fakePubServerProcess;
@@ -54,5 +54,5 @@ void main() {
       );
       await script.verify(true);
     });
-  });
+  }, timeout: Timeout.factor(2));
 }
