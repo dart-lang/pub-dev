@@ -124,6 +124,7 @@ void _updateUi() {
   _publisherAdminWidget.update();
 }
 
+/// Active on all pages.
 class _AccountNavWidget {
   Element _login;
   Element _profile;
@@ -157,6 +158,7 @@ class _AccountNavWidget {
   }
 }
 
+/// Active on multiple pages, including package and publisher admin pages.
 class _AuthorizationWidget {
   Element _unauthenticatedRoot;
   Element _unauthorizedRoot;
@@ -198,6 +200,7 @@ class _AuthorizationWidget {
   }
 }
 
+/// Active on /packages/<package>/admin page.
 class _PkgAdminWidget {
   Element _toggleDiscontinuedButton;
 
@@ -251,6 +254,7 @@ class _PkgAdminWidget {
   bool get isActive => _toggleDiscontinuedButton != null;
 }
 
+/// Active on the /create-publisher page.
 class _CreatePublisherWidget {
   Element _publisherIdInput;
   Element _createButton;
@@ -311,6 +315,7 @@ class _CreatePublisherWidget {
   bool get isActive => _publisherIdInput != null && _createButton != null;
 }
 
+/// Active on the /publishers/<publisherId>/admin page.
 class _PublisherAdminWidget {
   Element _updateButton;
   TextAreaElement _descriptionTextArea;
