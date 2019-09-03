@@ -13,7 +13,7 @@ import 'package:pub_package_reader/pub_package_reader.dart';
 import 'models.dart';
 
 final _logger = Logger('pub.name_tracker');
-const _pollingInterval = Duration(minutes: 1);
+const _pollingInterval = Duration(minutes: 15);
 
 /// Sets the active [NameTracker].
 void registerNameTracker(NameTracker value) =>
@@ -51,8 +51,19 @@ class NameTracker {
       _reducedNames.contains(reducePackageName(name));
 
   /// Whether to accept the upload attempt of a given package [name].
-  Future<bool> accept(String name) async =>
-      _hasPackage(name) || !_hasConflict(name);
+  ///
+  /// Either the package [name] should exists, or it should be different enough
+  /// from already existing package names. An example for the rejection:
+  /// `long_name` will be rejected, if package `longname` or `lon_gname` exists.
+  Future<bool> accept(String name) async {
+    // fast track:
+    if (_hasPackage(name)) return true;
+    // Trigger a new scan (if updater is active) to get the packages that may
+    // have been uploaded recently.
+    await _updater?._scan();
+    // normal checks:
+    return _hasPackage(name) || !_hasConflict(name);
+  }
 
   int get _length => _names.length;
 
@@ -153,6 +164,7 @@ class _NameTrackerUpdater {
   }
 
   Future _scan() async {
+    final now = DateTime.now().toUtc();
     final query = _db.query<Package>()..order('created');
     if (_lastTs != null) {
       query.filter('created >', _lastTs);
@@ -160,8 +172,8 @@ class _NameTrackerUpdater {
     await for (Package p in query.run()) {
       if (_stopped) return;
       nameTracker.add(p.name);
-      _lastTs = p.created;
     }
+    _lastTs = now.subtract(const Duration(hours: 1));
   }
 
   void stop() {
