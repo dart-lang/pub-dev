@@ -47,7 +47,8 @@ class DefaultCommand extends Command {
     argParser.addFlag(
       'local-dev',
       defaultsTo: false,
-      help: 'Reduce the number of background services that are started.',
+      help: 'Reduce the number of background services that are started.'
+          ' (Useful for local development.)',
     );
   }
 
