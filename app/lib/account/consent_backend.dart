@@ -39,7 +39,7 @@ class ConsentBackend {
 
   /// Returns the consent details.
   Future<api.Consent> getConsent(String consentId) async {
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     final key = _db.emptyKey
         .append(User, id: user.userId)
         .append(Consent, id: consentId);
@@ -57,7 +57,7 @@ class ConsentBackend {
   /// Resolves the consent.
   Future<api.ConsentResult> resolveConsent(
       String consentId, api.ConsentResult result) async {
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
 
     final key = _db.emptyKey
         .append(User, id: user.userId)
@@ -87,7 +87,7 @@ class ConsentBackend {
     @required List<String> args,
   }) async {
     return retry(() async {
-      await ensureAuthenticatedUser();
+      await requireAuthenticatedUser();
       // First check for existing consents with identical dedupId.
       final dedupId = consentDedupId(kind, args);
       final userKey = _db.emptyKey.append(User, id: userId);

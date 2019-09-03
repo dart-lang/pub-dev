@@ -25,7 +25,7 @@ Future<shelf.Response> putAccountConsentHandler(
 /// Handles /api/account/options/packages/<package>
 Future<shelf.Response> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
-  final user = await ensureAuthenticatedUser();
+  final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
     return notFoundHandler(request);

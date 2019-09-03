@@ -284,7 +284,7 @@ class PackageBackend {
   /// Updates [options] on [package].
   Future updateOptions(String package, api.PkgOptions options) async {
     final pkgKey = db.emptyKey.append(models.Package, id: package);
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     String latestVersion;
     await db.withTransaction((tx) async {
       final p = (await tx.lookup<models.Package>([pkgKey])).single;
@@ -352,7 +352,7 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> setPublisher(
       String packageName, api.PackagePublisherInfo request) async {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
 
     final key = db.emptyKey.append(models.Package, id: packageName);
     return await withPackageAdmin(packageName, user.userId, (_) async {
@@ -373,7 +373,7 @@ class PackageBackend {
 
   /// Moves the package out of its current publisher.
   Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     final key = db.emptyKey.append(models.Package, id: packageName);
     return await withPackageAdmin(packageName, user.userId, (package) async {
       if (package.publisherId == null) {
@@ -518,7 +518,7 @@ class GCloudPackageRepository extends PackageRepository {
 
   @override
   Future<PackageVersion> upload(Stream<List<int>> data) async {
-    await ensureAuthenticatedUser();
+    await requireAuthenticatedUser();
     final guid = uuid.v4().toString();
     _logger.info('Starting semi-async upload (uuid: $guid)');
     final object = storage.tempObjectName(guid);
@@ -540,7 +540,7 @@ class GCloudPackageRepository extends PackageRepository {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     _logger.info('User: ${user.email}.');
 
     final guid = uuid.v4().toString();
@@ -558,7 +558,7 @@ class GCloudPackageRepository extends PackageRepository {
   /// Finishes the upload of a package.
   @override
   Future<PackageVersion> finishAsyncUpload(Uri uri) async {
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     final guid = uri.queryParameters['upload_id'];
     _logger.info('Finishing async upload (uuid: $guid)');
     _logger.info('Reading tarball from cloud storage.');
@@ -763,7 +763,7 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
     final package = (await db.lookup([packageKey])).first as models.Package;
 
@@ -874,7 +874,7 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     return db.withTransaction((Transaction T) async {
       final packageKey = db.emptyKey.append(models.Package, id: packageName);
       final package = (await T.lookup([packageKey])).first as models.Package;

@@ -41,7 +41,7 @@ User get authenticatedUser => ss.lookup(#_authenticated_user) as User;
 ///
 /// If no user is currently authenticated, this will throw an
 /// `AuthenticationException` exception.
-Future<User> ensureAuthenticatedUser() async {
+Future<User> requireAuthenticatedUser() async {
   if (authenticatedUser == null) {
     throw AuthenticationException.authenticationRequired();
   }

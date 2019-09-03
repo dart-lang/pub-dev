@@ -34,7 +34,7 @@ class AdminBackend {
   AdminBackend(this._db);
 
   Future<R> _withAdmin<R>(Future<R> fn(User user)) async {
-    final user = await ensureAuthenticatedUser();
+    final user = await requireAuthenticatedUser();
     final admin = activeConfiguration.admins.firstWhere(
         (a) => a.oauthUserId == user.oauthUserId && a.email == user.email,
         orElse: () => null);
