@@ -284,25 +284,24 @@ class PackageBackend {
   /// Updates [options] on [package].
   Future updateOptions(String package, api.PkgOptions options) async {
     final pkgKey = db.emptyKey.append(models.Package, id: package);
-    await withAuthenticatedUser((user) async {
-      String latestVersion;
-      await db.withTransaction((tx) async {
-        final p = (await tx.lookup<models.Package>([pkgKey])).single;
-        if (p == null) {
-          throw NotFoundException('Package $package does not exists.');
-        }
-        latestVersion = p.latestVersion;
-        await checkPackageAdmin(p, user.userId);
-        p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
-        _logger.info('Updating $package options: '
-            'isDiscontinued: ${p.isDiscontinued} '
-            'doNotAdvertise: ${p.doNotAdvertise}');
-        tx.queueMutations(inserts: [p]);
-        await tx.commit();
-      });
-      await invalidatePackageCache(cache, package);
-      await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
+    final user = await ensureAuthenticatedUser();
+    String latestVersion;
+    await db.withTransaction((tx) async {
+      final p = (await tx.lookup<models.Package>([pkgKey])).single;
+      if (p == null) {
+        throw NotFoundException('Package $package does not exists.');
+      }
+      latestVersion = p.latestVersion;
+      await checkPackageAdmin(p, user.userId);
+      p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
+      _logger.info('Updating $package options: '
+          'isDiscontinued: ${p.isDiscontinued} '
+          'doNotAdvertise: ${p.doNotAdvertise}');
+      tx.queueMutations(inserts: [p]);
+      await tx.commit();
     });
+    await invalidatePackageCache(cache, package);
+    await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
@@ -353,45 +352,44 @@ class PackageBackend {
   Future<api.PackagePublisherInfo> setPublisher(
       String packageName, api.PackagePublisherInfo request) async {
     InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
-    return await withAuthenticatedUser((user) async {
-      final key = db.emptyKey.append(models.Package, id: packageName);
-      return await withPackageAdmin(packageName, user.userId, (_) async {
-        return await withPublisherAdmin(request.publisherId, user.userId,
-            (_) async {
-          final rs = await db.withTransaction((tx) async {
-            final package = (await db.lookup<models.Package>([key])).single;
-            package.publisherId = request.publisherId;
-            package.uploaders.clear();
-            tx.queueMutations(inserts: [package]);
-            await tx.commit();
-            return _asPackagePublisherInfo(package);
-          });
-          return rs as api.PackagePublisherInfo;
+    final user = await ensureAuthenticatedUser();
+
+    final key = db.emptyKey.append(models.Package, id: packageName);
+    return await withPackageAdmin(packageName, user.userId, (_) async {
+      return await withPublisherAdmin(request.publisherId, user.userId,
+          (_) async {
+        final rs = await db.withTransaction((tx) async {
+          final package = (await db.lookup<models.Package>([key])).single;
+          package.publisherId = request.publisherId;
+          package.uploaders.clear();
+          tx.queueMutations(inserts: [package]);
+          await tx.commit();
+          return _asPackagePublisherInfo(package);
         });
+        return rs as api.PackagePublisherInfo;
       });
     });
   }
 
   /// Moves the package out of its current publisher.
   Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
-    return await withAuthenticatedUser((user) async {
-      final key = db.emptyKey.append(models.Package, id: packageName);
-      return await withPackageAdmin(packageName, user.userId, (package) async {
-        if (package.publisherId == null) {
+    final user = await ensureAuthenticatedUser();
+    final key = db.emptyKey.append(models.Package, id: packageName);
+    return await withPackageAdmin(packageName, user.userId, (package) async {
+      if (package.publisherId == null) {
+        return _asPackagePublisherInfo(package);
+      }
+      return await withPublisherAdmin(package.publisherId, user.userId,
+          (_) async {
+        final rs = await db.withTransaction((tx) async {
+          final package = (await db.lookup<models.Package>([key])).single;
+          package.publisherId = null;
+          package.uploaders = [user.userId];
+          tx.queueMutations(inserts: [package]);
+          await tx.commit();
           return _asPackagePublisherInfo(package);
-        }
-        return await withPublisherAdmin(package.publisherId, user.userId,
-            (_) async {
-          final rs = await db.withTransaction((tx) async {
-            final package = (await db.lookup<models.Package>([key])).single;
-            package.publisherId = null;
-            package.uploaders = [user.userId];
-            tx.queueMutations(inserts: [package]);
-            await tx.commit();
-            return _asPackagePublisherInfo(package);
-          });
-          return rs as api.PackagePublisherInfo;
         });
+        return rs as api.PackagePublisherInfo;
       });
     });
   }
@@ -519,18 +517,17 @@ class GCloudPackageRepository extends PackageRepository {
   bool get supportsUpload => true;
 
   @override
-  Future<PackageVersion> upload(Stream<List<int>> data) {
-    return withAuthenticatedUser((user) async {
-      final guid = uuid.v4().toString();
-      _logger.info('Starting semi-async upload (uuid: $guid)');
-      final object = storage.tempObjectName(guid);
-      await data.pipe(storage.bucket.write(object));
-      final finishUri = Uri(
-        path: '/api/packages/versions/newUploadFinish',
-        queryParameters: {'upload_id': guid},
-      );
-      return await finishAsyncUpload(finishUri);
-    });
+  Future<PackageVersion> upload(Stream<List<int>> data) async {
+    await ensureAuthenticatedUser();
+    final guid = uuid.v4().toString();
+    _logger.info('Starting semi-async upload (uuid: $guid)');
+    final object = storage.tempObjectName(guid);
+    await data.pipe(storage.bucket.write(object));
+    final finishUri = Uri(
+      path: '/api/packages/versions/newUploadFinish',
+      queryParameters: {'upload_id': guid},
+    );
+    return await finishAsyncUpload(finishUri);
   }
 
   @override
@@ -543,39 +540,37 @@ class GCloudPackageRepository extends PackageRepository {
     // user is authenticated. But we're not validating anything at this point
     // because we don't even know which package or version is going to be
     // uploaded.
-    return withAuthenticatedUser((user) {
-      _logger.info('User: ${user.email}.');
+    final user = await ensureAuthenticatedUser();
+    _logger.info('User: ${user.email}.');
 
-      final guid = uuid.v4().toString();
-      final String object = storage.tempObjectName(guid);
-      final String bucket = storage.bucket.bucketName;
-      final Duration lifetime = const Duration(minutes: 10);
+    final guid = uuid.v4().toString();
+    final String object = storage.tempObjectName(guid);
+    final String bucket = storage.bucket.bucketName;
+    final Duration lifetime = const Duration(minutes: 10);
 
-      final url = redirectUrl.resolve('?upload_id=$guid');
+    final url = redirectUrl.resolve('?upload_id=$guid');
 
-      _logger
-          .info('Redirecting pub client to google cloud storage (uuid: $guid)');
-      return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
-    });
+    _logger
+        .info('Redirecting pub client to google cloud storage (uuid: $guid)');
+    return uploadSigner.buildUpload(bucket, object, lifetime, '$url');
   }
 
   /// Finishes the upload of a package.
   @override
-  Future<PackageVersion> finishAsyncUpload(Uri uri) {
-    return withAuthenticatedUser((user) async {
-      final guid = uri.queryParameters['upload_id'];
-      _logger.info('Finishing async upload (uuid: $guid)');
-      _logger.info('Reading tarball from cloud storage.');
+  Future<PackageVersion> finishAsyncUpload(Uri uri) async {
+    final user = await ensureAuthenticatedUser();
+    final guid = uri.queryParameters['upload_id'];
+    _logger.info('Finishing async upload (uuid: $guid)');
+    _logger.info('Reading tarball from cloud storage.');
 
-      return withTempDirectory((Directory dir) async {
-        final filename = '${dir.absolute.path}/tarball.tar.gz';
-        await _saveTarballToFS(storage.readTempObject(guid), filename);
-        return _performTarballUpload(user, filename, (package, version) {
-          return storage.uploadViaTempObject(guid, package, version);
-        }).whenComplete(() async {
-          _logger.info('Removing temporary object $guid.');
-          await storage.removeTempObject(guid);
-        });
+    return withTempDirectory((Directory dir) async {
+      final filename = '${dir.absolute.path}/tarball.tar.gz';
+      await _saveTarballToFS(storage.readTempObject(guid), filename);
+      return _performTarballUpload(user, filename, (package, version) {
+        return storage.uploadViaTempObject(guid, package, version);
+      }).whenComplete(() async {
+        _logger.info('Removing temporary object $guid.');
+        await storage.removeTempObject(guid);
       });
     });
   }
@@ -768,55 +763,53 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future addUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    await withAuthenticatedUser((user) async {
-      final packageKey = db.emptyKey.append(models.Package, id: packageName);
-      final package = (await db.lookup([packageKey])).first as models.Package;
+    final user = await ensureAuthenticatedUser();
+    final packageKey = db.emptyKey.append(models.Package, id: packageName);
+    final package = (await db.lookup([packageKey])).first as models.Package;
 
-      await _validatePackageUploader(packageName, package, user.userId);
+    await _validatePackageUploader(packageName, package, user.userId);
 
-      if (!isValidEmail(uploaderEmail)) {
-        throw GenericProcessingException(
-            'Not a valid e-mail: `$uploaderEmail`.');
-      }
+    if (!isValidEmail(uploaderEmail)) {
+      throw GenericProcessingException('Not a valid e-mail: `$uploaderEmail`.');
+    }
 
-      final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
-      if (uploader != null && package.containsUploader(uploader.userId)) {
-        // The requested uploaderEmail is already part of the uploaders.
-        return;
-      }
+    final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
+    if (uploader != null && package.containsUploader(uploader.userId)) {
+      // The requested uploaderEmail is already part of the uploaders.
+      return;
+    }
 
-      final status = await packageBackend.updatePackageInvite(
-        packageName: packageName,
-        type: models.PackageInviteType.newUploader,
-        recipientEmail: uploaderEmail,
-        fromUserId: user.userId,
-        fromEmail: user.email,
-      );
+    final status = await packageBackend.updatePackageInvite(
+      packageName: packageName,
+      type: models.PackageInviteType.newUploader,
+      recipientEmail: uploaderEmail,
+      fromUserId: user.userId,
+      fromEmail: user.email,
+    );
 
-      if (status.isDelayed) {
-        throw GenericProcessingException(
-            'Previous invite is still active, next notification can be sent '
-            'on ${status.nextNotification.toIso8601String()}.');
-      }
-
-      final confirmationUrl = urls.pkgInviteUrl(
-        type: models.PackageInviteType.newUploader,
-        package: packageName,
-        email: uploaderEmail,
-        urlNonce: status.urlNonce,
-      );
-      final message = createUploaderConfirmationEmail(
-        packageName: packageName,
-        activeAccountEmail: user.email,
-        addedUploaderEmail: uploaderEmail,
-        confirmationUrl: confirmationUrl,
-      );
-      await emailSender.sendMessage(message);
-
+    if (status.isDelayed) {
       throw GenericProcessingException(
-          'We have sent an invitation to $uploaderEmail, '
-          'they will be added as uploader after they confirm it.');
-    });
+          'Previous invite is still active, next notification can be sent '
+          'on ${status.nextNotification.toIso8601String()}.');
+    }
+
+    final confirmationUrl = urls.pkgInviteUrl(
+      type: models.PackageInviteType.newUploader,
+      package: packageName,
+      email: uploaderEmail,
+      urlNonce: status.urlNonce,
+    );
+    final message = createUploaderConfirmationEmail(
+      packageName: packageName,
+      activeAccountEmail: user.email,
+      addedUploaderEmail: uploaderEmail,
+      confirmationUrl: confirmationUrl,
+    );
+    await emailSender.sendMessage(message);
+
+    throw GenericProcessingException(
+        'We have sent an invitation to $uploaderEmail, '
+        'they will be added as uploader after they confirm it.');
   }
 
   Future confirmUploader(String fromUserId, String fromUserEmail,
@@ -881,57 +874,56 @@ class GCloudPackageRepository extends PackageRepository {
   @override
   Future removeUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
-    return withAuthenticatedUser((user) {
-      return db.withTransaction((Transaction T) async {
-        final packageKey = db.emptyKey.append(models.Package, id: packageName);
-        final package = (await T.lookup([packageKey])).first as models.Package;
+    final user = await ensureAuthenticatedUser();
+    return db.withTransaction((Transaction T) async {
+      final packageKey = db.emptyKey.append(models.Package, id: packageName);
+      final package = (await T.lookup([packageKey])).first as models.Package;
 
-        await _validatePackageUploader(packageName, package, user.userId);
+      await _validatePackageUploader(packageName, package, user.userId);
 
-        final uploader =
-            await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-        // Fail if the uploader we want to remove does not exist.
-        if (!package.containsUploader(uploader.userId)) {
-          await T.rollback();
-          throw GenericProcessingException(
-              'The uploader to remove does not exist.');
-        }
+      final uploader =
+          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+      // Fail if the uploader we want to remove does not exist.
+      if (!package.containsUploader(uploader.userId)) {
+        await T.rollback();
+        throw GenericProcessingException(
+            'The uploader to remove does not exist.');
+      }
 
-        // We cannot have 0 uploaders, if we would remove the last one, we
-        // fail with an error.
-        if (package.uploaderCount <= 1) {
-          await T.rollback();
-          throw LastUploaderRemoveException();
-        }
+      // We cannot have 0 uploaders, if we would remove the last one, we
+      // fail with an error.
+      if (package.uploaderCount <= 1) {
+        await T.rollback();
+        throw LastUploaderRemoveException();
+      }
 
-        // At the moment we don't validate whether the other e-mail addresses
-        // are able to authenticate. To prevent accidentally losing the control
-        // of a package, we don't allow self-removal.
-        if (user.email == uploader.email || user.userId == uploader.userId) {
-          await T.rollback();
-          throw GenericProcessingException('Self-removal is not allowed. '
-              'Use another account to remove this e-mail address.');
-        }
+      // At the moment we don't validate whether the other e-mail addresses
+      // are able to authenticate. To prevent accidentally losing the control
+      // of a package, we don't allow self-removal.
+      if (user.email == uploader.email || user.userId == uploader.userId) {
+        await T.rollback();
+        throw GenericProcessingException('Self-removal is not allowed. '
+            'Use another account to remove this e-mail address.');
+      }
 
-        // Remove the uploader from the list.
-        package.removeUploader(uploader.userId);
+      // Remove the uploader from the list.
+      package.removeUploader(uploader.userId);
 
-        final inserts = <Model>[package];
-        if (historyBackend.isEnabled) {
-          final history = History.entry(UploaderChanged(
-            packageName: packageName,
-            currentUserId: user.userId,
-            currentUserEmail: user.email,
-            removedUploaderIds: [uploader.userId],
-            removedUploaderEmails: [uploader.email],
-          ));
-          inserts.add(history);
-        }
+      final inserts = <Model>[package];
+      if (historyBackend.isEnabled) {
+        final history = History.entry(UploaderChanged(
+          packageName: packageName,
+          currentUserId: user.userId,
+          currentUserEmail: user.email,
+          removedUploaderIds: [uploader.userId],
+          removedUploaderEmails: [uploader.email],
+        ));
+        inserts.add(history);
+      }
 
-        T.queueMutations(inserts: inserts);
-        await T.commit();
-        await invalidatePackageCache(cache, package.name);
-      });
+      T.queueMutations(inserts: inserts);
+      await T.commit();
+      await invalidatePackageCache(cache, package.name);
     });
   }
 }

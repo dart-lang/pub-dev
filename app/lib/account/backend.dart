@@ -37,15 +37,15 @@ void registerAuthenticatedUser(User user) =>
 /// The active authenticated user.
 User get authenticatedUser => ss.lookup(#_authenticated_user) as User;
 
-/// Calls [fn] with the currently authenticated user as an argument.
+/// Returns the current authenticated user.
 ///
 /// If no user is currently authenticated, this will throw an
 /// `AuthenticationException` exception.
-Future<R> withAuthenticatedUser<R>(Future<R> fn(User user)) async {
+Future<User> ensureAuthenticatedUser() async {
   if (authenticatedUser == null) {
     throw AuthenticationException.authenticationRequired();
   }
-  return await fn(authenticatedUser);
+  return authenticatedUser;
 }
 
 /// Represents the backend for the account handling and authentication.

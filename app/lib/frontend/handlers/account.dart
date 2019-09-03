@@ -25,13 +25,12 @@ Future<shelf.Response> putAccountConsentHandler(
 /// Handles /api/account/options/packages/<package>
 Future<shelf.Response> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
-  return await withAuthenticatedUser((user) async {
-    final p = await packageBackend.lookupPackage(package);
-    if (p == null) {
-      return notFoundHandler(request);
-    }
-    final options = AccountPkgOptions(
-        isAdmin: await packageBackend.isPackageAdmin(p, user.userId));
-    return jsonResponse(options.toJson());
-  });
+  final user = await ensureAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    return notFoundHandler(request);
+  }
+  final options = AccountPkgOptions(
+      isAdmin: await packageBackend.isPackageAdmin(p, user.userId));
+  return jsonResponse(options.toJson());
 }
