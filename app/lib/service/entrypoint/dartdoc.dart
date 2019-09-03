@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:args/command_runner.dart';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
@@ -24,17 +25,26 @@ import '_isolate.dart';
 
 final Logger logger = Logger('pub.dartdoc');
 
-Future main() async {
-  Future workerSetup() async {
-    await initFlutterSdk(logger);
-  }
+class DartdocCommand extends Command {
+  @override
+  String get name => 'dartdoc';
 
-  await startIsolates(
-    logger: logger,
-    frontendEntryPoint: _frontendMain,
-    workerSetup: workerSetup,
-    workerEntryPoint: _workerMain,
-  );
+  @override
+  String get description => 'The dartdoc service entrypoint.';
+
+  @override
+  Future run() async {
+    Future workerSetup() async {
+      await initFlutterSdk(logger);
+    }
+
+    await startIsolates(
+      logger: logger,
+      frontendEntryPoint: _frontendMain,
+      workerSetup: workerSetup,
+      workerEntryPoint: _workerMain,
+    );
+  }
 }
 
 Future _frontendMain(FrontendEntryMessage message) async {

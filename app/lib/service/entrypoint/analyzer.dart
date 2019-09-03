@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:math' as math;
 
+import 'package:args/command_runner.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 
@@ -26,17 +27,26 @@ import '_isolate.dart';
 final Logger logger = Logger('pub.analyzer');
 final _random = math.Random.secure();
 
-Future main() async {
-  Future workerSetup() async {
-    await initFlutterSdk(logger);
-  }
+class AnalyzerCommand extends Command {
+  @override
+  String get name => 'analyzer';
 
-  await startIsolates(
-    logger: logger,
-    frontendEntryPoint: _frontendMain,
-    workerSetup: workerSetup,
-    workerEntryPoint: _workerMain,
-  );
+  @override
+  String get description => 'The analyzer service entrypoint.';
+
+  @override
+  Future run() async {
+    Future workerSetup() async {
+      await initFlutterSdk(logger);
+    }
+
+    await startIsolates(
+      logger: logger,
+      frontendEntryPoint: _frontendMain,
+      workerSetup: workerSetup,
+      workerEntryPoint: _workerMain,
+    );
+  }
 }
 
 Future _frontendMain(FrontendEntryMessage message) async {

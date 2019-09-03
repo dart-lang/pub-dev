@@ -2,29 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:args/command_runner.dart';
+
 import 'package:pub_dartlang_org/shared/configuration.dart';
 
-import 'package:pub_dartlang_org/service/entrypoint/analyzer.dart' as analyzer;
-import 'package:pub_dartlang_org/service/entrypoint/dartdoc.dart' as dartdoc;
-import 'package:pub_dartlang_org/service/entrypoint/frontend.dart' as frontend;
-import 'package:pub_dartlang_org/service/entrypoint/search.dart' as search;
+import 'package:pub_dartlang_org/service/entrypoint/analyzer.dart';
+import 'package:pub_dartlang_org/service/entrypoint/dartdoc.dart';
+import 'package:pub_dartlang_org/service/entrypoint/frontend.dart';
+import 'package:pub_dartlang_org/service/entrypoint/search.dart';
 
-void main() {
-  switch (envConfig.gaeService) {
-    case 'analyzer':
-      analyzer.main();
-      break;
-    case 'dartdoc':
-      dartdoc.main();
-      break;
-    case 'default':
-      frontend.main();
-      break;
-    case 'search':
-      search.main();
-      break;
-    default:
-      throw StateError(
-          'Uknown GAE_SERVICE environment: ${envConfig.gaeService}');
-  }
+void main(List<String> originalArgs) async {
+  // Insert GAE_SERVICE as the primary command (only applied on appengine)
+  final args = <String>[
+    if (envConfig.gaeService != null) envConfig.gaeService,
+    ...originalArgs
+  ];
+  final runner = CommandRunner('pub_dev', 'pub.dev services')
+    ..addCommand(AnalyzerCommand())
+    ..addCommand(DartdocCommand())
+    ..addCommand(DefaultCommand())
+    ..addCommand(SearchCommand());
+  await runner.run(args);
 }
