@@ -64,6 +64,8 @@ String renderPkgAdminPage(
     id: 'admin',
     title: 'Admin',
     contentHtml: templateCache.renderTemplate('pkg/admin_page', {
+      'has_publisher': package.publisherId != null,
+      'publisher_id': package.publisherId,
       'is_discontinued': package.isDiscontinued == true,
     }),
   ));

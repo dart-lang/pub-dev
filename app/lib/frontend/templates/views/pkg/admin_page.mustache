@@ -15,6 +15,34 @@
 <div id="-admin-authorized">
   <h2>Admin package</h2>
 
+    <h3>Publisher</h3>
+    {{^has_publisher}}
+    <div>
+      <p>
+        You can transfer your package to a publisher (if you are also an admin of the given publisher).
+        The current uploaders will lose access over the package, and only the publisher's administrators
+        will be able to upload new versions.
+      </p>
+      <p>
+        <input id="-admin-set-publisher-input" class="pub-input" placeholder="publisher e.g. example.com"/>
+        <button id="-admin-set-publisher-button" class="pub-button">Transfer to publisher</button>
+      </p>
+    </div>
+    {{/has_publisher}}
+    {{#has_publisher}}
+    <div>
+      <p>
+        You can transfer your package away from the current publisher (<code>{{publisher_id}}</code>).
+        The publisher's current administrators will lose access over the package, and you will become
+        the single authorized uploader.
+      </p>
+      <p>
+        <button id="-admin-remove-publisher-button" class="pub-button">Remove from publisher</button>
+      </p>
+    </div>
+    {{/has_publisher}}
+
+    <h3>Discontinued</h3>
     {{^is_discontinued}}
     <div>
       <p>

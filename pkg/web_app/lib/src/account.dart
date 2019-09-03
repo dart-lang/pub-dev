@@ -203,13 +203,24 @@ class _AuthorizationWidget {
 /// Active on /packages/<package>/admin page.
 class _PkgAdminWidget {
   Element _toggleDiscontinuedButton;
+  InputElement _setPublisherInput;
+  Element _setPublisherButton;
+  Element _removePublisherButton;
 
   void init() {
     if (!pageData.isPackagePage) return;
     _toggleDiscontinuedButton =
         document.querySelector('.-admin-is-discontinued-toggle');
+    _setPublisherInput =
+        document.getElementById('-admin-set-publisher-input') as InputElement;
+    _setPublisherButton =
+        document.getElementById('-admin-set-publisher-button');
+    _removePublisherButton =
+        document.getElementById('-admin-remove-publisher-button');
     if (isActive) {
       _toggleDiscontinuedButton.onClick.listen((_) => _toogleDiscontinued());
+      _setPublisherButton?.onClick?.listen((_) => _setPublisher());
+      _removePublisherButton?.onClick?.listen((_) => _removePublisher());
     }
     update();
   }
@@ -233,6 +244,45 @@ class _PkgAdminWidget {
     }
   }
 
+  Future _setPublisher() async {
+    final publisherId = _setPublisherInput.value.trim();
+    if (publisherId.isEmpty) {
+      window.alert('Please specify a publisher.');
+      return;
+    }
+    if (!window.confirm('Are you sure you want to transfer the package to '
+        'publisher "$publisherId"?')) {
+      return;
+    }
+    final options = PackagePublisherInfo(publisherId: publisherId);
+    final rs = await client.put(
+      '/api/packages/${pageData.pkgData.package}/publisher',
+      body: json.encode(options.toJson()),
+    );
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    if (rs.statusCode == 200) {
+      window.location.reload();
+    } else {
+      window.alert(map['message'] as String);
+    }
+  }
+
+  Future _removePublisher() async {
+    final publisherId = pageData.pkgData.publisherId;
+    if (!window.confirm('Are you sure you want to remove the package from '
+        'publisher "$publisherId"?')) {
+      return;
+    }
+    final rs = await client
+        .delete('/api/packages/${pageData.pkgData.package}/publisher');
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    if (rs.statusCode == 200) {
+      window.location.reload();
+    } else {
+      window.alert(map['message'] as String);
+    }
+  }
+
   void update() {
     final adminTab = getTabElement('-admin-tab-');
     if (adminTab != null) {
@@ -251,7 +301,9 @@ class _PkgAdminWidget {
     }
   }
 
-  bool get isActive => _toggleDiscontinuedButton != null;
+  bool get isActive =>
+      _toggleDiscontinuedButton != null &&
+      (_setPublisherButton != null || _removePublisherButton != null);
 }
 
 /// Active on the /create-publisher page.

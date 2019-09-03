@@ -33,15 +33,17 @@ class PageData {
 }
 
 /// The server-provided data about the current package.
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PkgData {
   final String package;
   final String version;
+  final String publisherId;
   final bool isDiscontinued;
 
   PkgData({
     @required this.package,
     @required this.version,
+    @required this.publisherId,
     @required this.isDiscontinued,
   });
 

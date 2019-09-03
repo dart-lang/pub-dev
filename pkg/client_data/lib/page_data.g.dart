@@ -35,15 +35,26 @@ PkgData _$PkgDataFromJson(Map<String, dynamic> json) {
   return PkgData(
     package: json['package'] as String,
     version: json['version'] as String,
+    publisherId: json['publisherId'] as String,
     isDiscontinued: json['isDiscontinued'] as bool,
   );
 }
 
-Map<String, dynamic> _$PkgDataToJson(PkgData instance) => <String, dynamic>{
-      'package': instance.package,
-      'version': instance.version,
-      'isDiscontinued': instance.isDiscontinued,
-    };
+Map<String, dynamic> _$PkgDataToJson(PkgData instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('package', instance.package);
+  writeNotNull('version', instance.version);
+  writeNotNull('publisherId', instance.publisherId);
+  writeNotNull('isDiscontinued', instance.isDiscontinued);
+  return val;
+}
 
 PublisherData _$PublisherDataFromJson(Map<String, dynamic> json) {
   return PublisherData(
