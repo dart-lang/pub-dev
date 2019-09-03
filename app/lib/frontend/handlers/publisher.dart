@@ -8,6 +8,8 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
+import '../../shared/redis_cache.dart' show cache;
+import '../request_context.dart';
 import '../templates/publisher.dart';
 
 import 'misc.dart' show formattedNotFoundHandler;
@@ -20,13 +22,21 @@ Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
 /// Handles requests for GET /publishers/<publisherId>
 Future<shelf.Response> publisherPageHandler(
     shelf.Request request, String publisherId) async {
-  final publisher = await publisherBackend.getPublisher(publisherId);
-  if (publisher == null) {
-    // We may introduce search for publishers (e.g. somebody just mistyped a
-    // domain name), but now we just have a formatted error page.
-    return formattedNotFoundHandler(request);
+  String pageHtml;
+  if (requestContext.uiCacheEnabled) {
+    pageHtml = await cache.uiPublisherPage(publisherId).get();
   }
-  return htmlResponse(renderPublisherPage(publisher));
+  if (pageHtml == null) {
+    final publisher = await publisherBackend.getPublisher(publisherId);
+    if (publisher == null) {
+      // We may introduce search for publishers (e.g. somebody just mistyped a
+      // domain name), but now we just have a formatted error page.
+      return formattedNotFoundHandler(request);
+    }
+    // Render publisher page.
+    pageHtml = renderPublisherPage(publisher);
+  }
+  return htmlResponse(pageHtml);
 }
 
 /// Handles requests for GET /publishers/<publisherId>/admin

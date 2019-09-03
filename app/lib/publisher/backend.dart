@@ -14,6 +14,7 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
+import '../shared/redis_cache.dart' show cache;
 import 'domain_verifier.dart' show domainVerifier;
 
 import 'models.dart';
@@ -169,6 +170,7 @@ class PublisherBackend {
       return p;
     }) as Publisher;
 
+    await purgePublisherCache(publisherId);
     return _asPublisherInfo(p);
   }
 
@@ -262,6 +264,7 @@ class PublisherBackend {
       });
     }
     final updated = (await _db.lookup<PublisherMember>([key])).single;
+    await purgePublisherCache(publisherId);
     return await _asPublisherMember(updated);
   }
 
@@ -278,6 +281,7 @@ class PublisherBackend {
     if (pm != null) {
       await _db.commit(deletes: [pm.key]);
     }
+    await purgePublisherCache(publisherId);
   }
 
   /// A callback from consent backend, when a consent is granted.
@@ -302,6 +306,7 @@ class PublisherBackend {
       ]);
       await tx.commit();
     });
+    await purgePublisherCache(publisherId);
   }
 
   /// A callback from consent backend, when a consent is not granted, or expired.
@@ -344,4 +349,9 @@ Future<Publisher> requirePublisherAdmin(
     throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
   }
   return p;
+}
+
+/// Purge [cache] entries for given [publisherId].
+Future purgePublisherCache(String publisherId) async {
+  await cache.uiPublisherPage(publisherId).purge();
 }
