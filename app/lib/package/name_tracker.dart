@@ -51,6 +51,10 @@ class NameTracker {
       _reducedNames.contains(reducePackageName(name));
 
   /// Whether to accept the upload attempt of a given package [name].
+  ///
+  /// Either the package [name] should exists, or it should be different enough
+  /// from already existing package names. An example for the rejection:
+  /// `long_name` will be rejected, if package `longname` or `lon_gname` exists.
   Future<bool> accept(String name) async {
     // fast track:
     if (_hasPackage(name)) return true;
