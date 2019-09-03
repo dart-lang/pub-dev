@@ -33,6 +33,8 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', '/documentation/<package>/', service.documentationLatest);
   router.add('GET', '/create-publisher', service.createPublisherPage);
   router.add('GET', '/publishers/<publisherId>', service.publisherPage);
+  router.add(
+      'GET', '/publishers/<publisherId>/admin', service.publisherAdminPage);
   router.add('GET', '/feed.atom', service.atomFeed);
   router.add('GET', '/help', service.helpPage);
   router.add('GET', '/robots.txt', service.robotsTxt);

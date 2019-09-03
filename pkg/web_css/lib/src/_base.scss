@@ -49,6 +49,13 @@ input.pub-input {
   padding: 12px 24px;
 }
 
+textarea.pub-input {
+  width: 100%;
+  font-size: 13px;
+  margin: 20px 0px;
+  padding: 12px;
+}
+
 a {
   text-decoration: none;
   color: $color-link;
