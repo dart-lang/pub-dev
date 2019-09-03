@@ -355,53 +355,47 @@ class PackageBackend {
     final user = await requireAuthenticatedUser();
 
     final key = db.emptyKey.append(models.Package, id: packageName);
-    return await withPackageAdmin(packageName, user.userId, (_) async {
-      return await withPublisherAdmin(request.publisherId, user.userId,
-          (_) async {
-        final rs = await db.withTransaction((tx) async {
-          final package = (await db.lookup<models.Package>([key])).single;
-          package.publisherId = request.publisherId;
-          package.uploaders.clear();
-          tx.queueMutations(inserts: [package]);
-          await tx.commit();
-          return _asPackagePublisherInfo(package);
-        });
-        return rs as api.PackagePublisherInfo;
-      });
+    await requirePackageAdmin(packageName, user.userId);
+    await requirePublisherAdmin(request.publisherId, user.userId);
+    final rs = await db.withTransaction((tx) async {
+      final package = (await db.lookup<models.Package>([key])).single;
+      package.publisherId = request.publisherId;
+      package.uploaders.clear();
+      tx.queueMutations(inserts: [package]);
+      await tx.commit();
+      return _asPackagePublisherInfo(package);
     });
+    return rs as api.PackagePublisherInfo;
   }
 
   /// Moves the package out of its current publisher.
   Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
     final user = await requireAuthenticatedUser();
     final key = db.emptyKey.append(models.Package, id: packageName);
-    return await withPackageAdmin(packageName, user.userId, (package) async {
-      if (package.publisherId == null) {
-        return _asPackagePublisherInfo(package);
-      }
-      return await withPublisherAdmin(package.publisherId, user.userId,
-          (_) async {
-        final rs = await db.withTransaction((tx) async {
-          final package = (await db.lookup<models.Package>([key])).single;
-          package.publisherId = null;
-          package.uploaders = [user.userId];
-          tx.queueMutations(inserts: [package]);
-          await tx.commit();
-          return _asPackagePublisherInfo(package);
-        });
-        return rs as api.PackagePublisherInfo;
-      });
+    final package = await requirePackageAdmin(packageName, user.userId);
+    if (package.publisherId == null) {
+      return _asPackagePublisherInfo(package);
+    }
+    await requirePublisherAdmin(package.publisherId, user.userId);
+    final rs = await db.withTransaction((tx) async {
+      final package = (await db.lookup<models.Package>([key])).single;
+      package.publisherId = null;
+      package.uploaders = [user.userId];
+      tx.queueMutations(inserts: [package]);
+      await tx.commit();
+      return _asPackagePublisherInfo(package);
     });
+    return rs as api.PackagePublisherInfo;
   }
 }
 
-/// Loads [package] and checks if [userId] is an admin of the package, and
-/// runs the callback [fn] with it.
+/// Loads [package], returns its [models.Package] instance, and also checks if
+/// [userId] is an admin of the package.
 ///
 /// Throws AuthenticationException if the user is provided.
 /// Throws AuthorizationException if the user is not an admin for the package.
-Future<R> withPackageAdmin<R>(
-    String package, String userId, FutureOr<R> fn(models.Package p)) async {
+Future<models.Package> requirePackageAdmin(
+    String package, String userId) async {
   if (userId == null) {
     throw AuthenticationException.authenticationRequired();
   }
@@ -410,7 +404,7 @@ Future<R> withPackageAdmin<R>(
     throw NotFoundException.resource('package "$package"');
   }
   await packageBackend.checkPackageAdmin(p, userId);
-  return await fn(p);
+  return p;
 }
 
 api.PackagePublisherInfo _asPackagePublisherInfo(models.Package p) =>
