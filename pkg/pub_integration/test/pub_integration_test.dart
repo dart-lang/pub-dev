@@ -55,5 +55,5 @@ void main() {
         inviteCompleterFn: inviteCompleterFn,
       );
     });
-  });
+  }, timeout: Timeout.factor(2));
 }
