@@ -39,44 +39,43 @@ class ConsentBackend {
 
   /// Returns the consent details.
   Future<api.Consent> getConsent(String consentId) async {
-    return await withAuthenticatedUser((user) async {
-      final key = _db.emptyKey
-          .append(User, id: user.userId)
-          .append(Consent, id: consentId);
-      final c = (await _db.lookup<Consent>([key])).single;
-      if (c == null) {
-        throw NotFoundException.resource('consent: $consentId');
-      }
-      final action = _actions[c.kind];
-      final activeAccountEmail =
-          await accountBackend.getEmailOfUserId(c.fromUserId);
-      return api.Consent(
-          descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args));
-    });
+    final user = await requireAuthenticatedUser();
+    final key = _db.emptyKey
+        .append(User, id: user.userId)
+        .append(Consent, id: consentId);
+    final c = (await _db.lookup<Consent>([key])).single;
+    if (c == null) {
+      throw NotFoundException.resource('consent: $consentId');
+    }
+    final action = _actions[c.kind];
+    final activeAccountEmail =
+        await accountBackend.getEmailOfUserId(c.fromUserId);
+    return api.Consent(
+        descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args));
   }
 
   /// Resolves the consent.
   Future<api.ConsentResult> resolveConsent(
       String consentId, api.ConsentResult result) async {
-    return await withAuthenticatedUser((user) async {
-      final key = _db.emptyKey
-          .append(User, id: user.userId)
-          .append(Consent, id: consentId);
-      final c = (await _db.lookup<Consent>([key])).single;
-      InvalidInputException.checkNotNull(result.granted, 'granted');
-      if (result.granted) {
-        if (c == null) {
-          throw NotFoundException.resource('consent: $consentId');
-        }
-        await _accept(c);
-        return api.ConsentResult(granted: true);
-      } else {
-        if (c != null) {
-          await _delete(c);
-        }
-        return api.ConsentResult(granted: false);
+    final user = await requireAuthenticatedUser();
+
+    final key = _db.emptyKey
+        .append(User, id: user.userId)
+        .append(Consent, id: consentId);
+    final c = (await _db.lookup<Consent>([key])).single;
+    InvalidInputException.checkNotNull(result.granted, 'granted');
+    if (result.granted) {
+      if (c == null) {
+        throw NotFoundException.resource('consent: $consentId');
       }
-    });
+      await _accept(c);
+      return api.ConsentResult(granted: true);
+    } else {
+      if (c != null) {
+        await _delete(c);
+      }
+      return api.ConsentResult(granted: false);
+    }
   }
 
   /// Create a new invitation, or
@@ -88,36 +87,35 @@ class ConsentBackend {
     @required List<String> args,
   }) async {
     return retry(() async {
-      return await withAuthenticatedUser((activeUser) async {
-        // First check for existing consents with identical dedupId.
-        final dedupId = consentDedupId(kind, args);
-        final userKey = _db.emptyKey.append(User, id: userId);
-        final query = _db.query<Consent>(ancestorKey: userKey)
-          ..filter('dedupId =', dedupId);
-        final list = await query.run().toList();
-        if (list.isNotEmpty) {
-          final old = list.first;
-          if (old.isExpired()) {
-            // expired entries should be deleted
-            await _delete(old);
-          } else if (old.shouldNotify()) {
-            // non-expired entries just re-send the notification
-            return await _sendNotification(old);
-          } else {
-            return api.InviteStatus(
-                emailSent: false, nextNotification: old.nextNotification);
-          }
+      await requireAuthenticatedUser();
+      // First check for existing consents with identical dedupId.
+      final dedupId = consentDedupId(kind, args);
+      final userKey = _db.emptyKey.append(User, id: userId);
+      final query = _db.query<Consent>(ancestorKey: userKey)
+        ..filter('dedupId =', dedupId);
+      final list = await query.run().toList();
+      if (list.isNotEmpty) {
+        final old = list.first;
+        if (old.isExpired()) {
+          // expired entries should be deleted
+          await _delete(old);
+        } else if (old.shouldNotify()) {
+          // non-expired entries just re-send the notification
+          return await _sendNotification(old);
+        } else {
+          return api.InviteStatus(
+              emailSent: false, nextNotification: old.nextNotification);
         }
-        // Create a new entry.
-        final consent = Consent.init(
-          parentKey: userKey,
-          kind: kind,
-          args: args,
-          fromUserId: authenticatedUser.userId,
-        );
-        await _db.commit(inserts: [consent]);
-        return await _sendNotification(consent);
-      });
+      }
+      // Create a new entry.
+      final consent = Consent.init(
+        parentKey: userKey,
+        kind: kind,
+        args: args,
+        fromUserId: authenticatedUser.userId,
+      );
+      await _db.commit(inserts: [consent]);
+      return await _sendNotification(consent);
     });
   }
 

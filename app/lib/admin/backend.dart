@@ -34,17 +34,16 @@ class AdminBackend {
   AdminBackend(this._db);
 
   Future<R> _withAdmin<R>(Future<R> fn(User user)) async {
-    return await withAuthenticatedUser((user) async {
-      final admin = activeConfiguration.admins.firstWhere(
-          (a) => a.oauthUserId == user.oauthUserId && a.email == user.email,
-          orElse: () => null);
-      if (admin == null) {
-        _logger.warning(
-            'User (${user.userId} / ${user.email}) is trying to access admin APIs.');
-        throw AuthorizationException.userIsNotAdminForPubSite();
-      }
-      return await fn(user);
-    });
+    final user = await requireAuthenticatedUser();
+    final admin = activeConfiguration.admins.firstWhere(
+        (a) => a.oauthUserId == user.oauthUserId && a.email == user.email,
+        orElse: () => null);
+    if (admin == null) {
+      _logger.warning(
+          'User (${user.userId} / ${user.email}) is trying to access admin APIs.');
+      throw AuthorizationException.userIsNotAdminForPubSite();
+    }
+    return await fn(user);
   }
 
   /// List users.

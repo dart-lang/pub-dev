@@ -46,9 +46,8 @@ class PublisherBackend {
   /// TODO: remove this and migrate to use withPublisherAdmin
   Future<R> _withPublisherAdmin<R>(
       String publisherId, Future<R> fn(Publisher p)) async {
-    return await withAuthenticatedUser((user) async {
-      return await withPublisherAdmin(publisherId, user.userId, fn);
-    });
+    final user = await requireAuthenticatedUser();
+    return await withPublisherAdmin(publisherId, user.userId, fn);
   }
 
   /// Create publisher.
