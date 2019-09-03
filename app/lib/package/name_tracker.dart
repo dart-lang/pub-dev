@@ -169,7 +169,7 @@ class _NameTrackerUpdater {
       if (_stopped) return;
       nameTracker.add(p.name);
     }
-    _lastTs = now.subtract(const Duration(minutes: 5));
+    _lastTs = now.subtract(const Duration(hours: 1));
   }
 
   void stop() {
