@@ -92,7 +92,7 @@ pub-dartlang-dart $ cd app
 pub-dartlang-dart/app $ pub get
 pub-dartlang-dart/app $ export GCLOUD_PROJECT=<gcloud-project>
 pub-dartlang-dart/app $ export GCLOUD_KEY=<path-to-service-account-key.json>
-pub-dartlang-dart/app $ GAE_SERVICE="default" dart bin/server.dart
+pub-dartlang-dart/app $ dart bin/server.dart default
 ```
 
 The server will be available via at [localhost:8080](http://localhost:8080)
@@ -100,7 +100,7 @@ The server will be available via at [localhost:8080](http://localhost:8080)
 To run the `analyzer` service locally:
 
 ```
-pub-dartlang-dart/app $ GAE_SERVICE="analyzer" dart bin/server.dart
+pub-dartlang-dart/app $ dart bin/server.dart analyzer
 ```
 
 #### Variant b) Running locally With Docker
