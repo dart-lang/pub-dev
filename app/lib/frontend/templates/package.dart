@@ -267,6 +267,7 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
     pkgData: PkgData(
       package: package.name,
       version: selectedVersion.version,
+      publisherId: package.publisherId,
       isDiscontinued: package.isDiscontinued == true,
     ),
   );
