@@ -157,11 +157,19 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> accountPackageOptions(String package) async {
-    return await _client.requestBytes(
+  Future<_i4.AccountPkgOptions> accountPackageOptions(String package) async {
+    return _i4.AccountPkgOptions.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/account/options/packages/$package',
-    );
+    ));
+  }
+
+  Future<_i4.AccountPublisherOptions> accountPublisherOptions(
+      String publisherId) async {
+    return _i4.AccountPublisherOptions.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/account/options/publishers/$publisherId',
+    ));
   }
 
   Future<List<int>> documentation(String package) async {

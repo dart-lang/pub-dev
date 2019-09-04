@@ -22,6 +22,21 @@ class AccountPkgOptions {
   Map<String, dynamic> toJson() => _$AccountPkgOptionsToJson(this);
 }
 
+/// Account-specific information about a publisher.
+@JsonSerializable()
+class AccountPublisherOptions {
+  final bool isAdmin;
+
+  AccountPublisherOptions({
+    @required this.isAdmin,
+  });
+
+  factory AccountPublisherOptions.fromJson(Map<String, dynamic> json) =>
+      _$AccountPublisherOptionsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AccountPublisherOptionsToJson(this);
+}
+
 @JsonSerializable(nullable: false)
 class Consent {
   /// The description of the consent request, in HTML format.

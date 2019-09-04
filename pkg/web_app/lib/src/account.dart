@@ -97,12 +97,11 @@ Future _updateOnCredChange() async {
         _isAdmin = options.isAdmin ?? false;
         _updateUi();
       } else if (pageData.isPublisherPage) {
-        // This is a temporary solution for checking if the current use is the
-        // admin of the package.
-        // TODO: introduce a special service endpoint for this
-        final rs = await client
-            .get('/api/publishers/${pageData.publisher.publisherId}/members');
-        _isAdmin = rs.statusCode == 200;
+        final rs = await client.get(
+            '/api/account/options/publishers/${pageData.publisher.publisherId}');
+        final map = json.decode(rs.body) as Map<String, dynamic>;
+        final options = AccountPublisherOptions.fromJson(map);
+        _isAdmin = options.isAdmin ?? false;
         _updateUi();
       }
     } catch (e) {
