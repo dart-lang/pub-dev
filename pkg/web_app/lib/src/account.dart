@@ -205,7 +205,6 @@ class _PkgAdminWidget {
   Element _toggleDiscontinuedButton;
   InputElement _setPublisherInput;
   Element _setPublisherButton;
-  Element _removePublisherButton;
 
   void init() {
     if (!pageData.isPackagePage) return;
@@ -215,12 +214,9 @@ class _PkgAdminWidget {
         document.getElementById('-admin-set-publisher-input') as InputElement;
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
-    _removePublisherButton =
-        document.getElementById('-admin-remove-publisher-button');
     if (isActive) {
       _toggleDiscontinuedButton.onClick.listen((_) => _toogleDiscontinued());
       _setPublisherButton?.onClick?.listen((_) => _setPublisher());
-      _removePublisherButton?.onClick?.listen((_) => _removePublisher());
     }
     update();
   }
@@ -267,22 +263,6 @@ class _PkgAdminWidget {
     }
   }
 
-  Future _removePublisher() async {
-    final publisherId = pageData.pkgData.publisherId;
-    if (!window.confirm('Are you sure you want to remove the package from '
-        'publisher "$publisherId"?')) {
-      return;
-    }
-    final rs = await client
-        .delete('/api/packages/${pageData.pkgData.package}/publisher');
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    if (rs.statusCode == 200) {
-      window.location.reload();
-    } else {
-      window.alert(map['message'] as String);
-    }
-  }
-
   void update() {
     final adminTab = getTabElement('-admin-tab-');
     if (adminTab != null) {
@@ -303,7 +283,8 @@ class _PkgAdminWidget {
 
   bool get isActive =>
       _toggleDiscontinuedButton != null &&
-      (_setPublisherButton != null || _removePublisherButton != null);
+      _setPublisherButton != null &&
+      _setPublisherInput != null;
 }
 
 /// Active on the /create-publisher page.
