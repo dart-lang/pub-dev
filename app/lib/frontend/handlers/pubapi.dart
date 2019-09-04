@@ -188,8 +188,14 @@ class PubApi {
   // ****
 
   @EndPoint.get('/api/account/options/packages/<package>')
-  Future<Response> accountPackageOptions(Request request, String package) =>
+  Future<AccountPkgOptions> accountPackageOptions(
+          Request request, String package) =>
       accountPkgOptionsHandler(request, package);
+
+  @EndPoint.get('/api/account/options/publishers/<publisherId>')
+  Future<AccountPublisherOptions> accountPublisherOptions(
+          Request request, String publisherId) =>
+      accountPublisherOptionsHandler(request, publisherId);
 
   @EndPoint.get('/api/documentation/<package>')
   Future<Response> documentation(Request request, String package) =>

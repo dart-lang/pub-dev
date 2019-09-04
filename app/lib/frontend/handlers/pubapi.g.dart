@@ -281,7 +281,21 @@ Router _$PubApiRouter(PubApi service) {
         request,
         package,
       );
-      return _$result;
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('GET', r'/api/account/options/publishers/<publisherId>',
+      (Request request, String publisherId) async {
+    try {
+      final _$result = await service.accountPublisherOptions(
+        request,
+        publisherId,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
     } on ApiResponseException catch (e) {
       return e.asApiResponse();
     } catch (e, st) {

@@ -17,6 +17,19 @@ Map<String, dynamic> _$AccountPkgOptionsToJson(AccountPkgOptions instance) =>
       'isAdmin': instance.isAdmin,
     };
 
+AccountPublisherOptions _$AccountPublisherOptionsFromJson(
+    Map<String, dynamic> json) {
+  return AccountPublisherOptions(
+    isAdmin: json['isAdmin'] as bool,
+  );
+}
+
+Map<String, dynamic> _$AccountPublisherOptionsToJson(
+        AccountPublisherOptions instance) =>
+    <String, dynamic>{
+      'isAdmin': instance.isAdmin,
+    };
+
 Consent _$ConsentFromJson(Map<String, dynamic> json) {
   return Consent(
     descriptionHtml: json['descriptionHtml'] as String,

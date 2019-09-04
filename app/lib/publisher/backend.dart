@@ -37,8 +37,20 @@ class PublisherBackend {
 
   /// Loads a publisher (or returns null if it does not exists).
   Future<Publisher> getPublisher(String publisherId) async {
+    ArgumentError.checkNotNull(publisherId, 'publisherId');
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
     return (await _db.lookup<Publisher>([pKey])).single;
+  }
+
+  /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
+  Future<PublisherMember> getPublisherMember(
+      String publisherId, String userId) async {
+    ArgumentError.checkNotNull(publisherId, 'publisherId');
+    ArgumentError.checkNotNull(userId, 'userId');
+    final mKey = _db.emptyKey
+        .append(Publisher, id: publisherId)
+        .append(PublisherMember, id: userId);
+    return (await _db.lookup<PublisherMember>([mKey])).single;
   }
 
   /// Create publisher.

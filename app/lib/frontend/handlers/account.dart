@@ -7,6 +7,9 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../package/backend.dart';
+import '../../publisher/backend.dart';
+import '../../publisher/models.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
 /// Handles GET /consent
@@ -23,14 +26,23 @@ Future<shelf.Response> putAccountConsentHandler(
 }
 
 /// Handles /api/account/options/packages/<package>
-Future<shelf.Response> accountPkgOptionsHandler(
+Future<AccountPkgOptions> accountPkgOptionsHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
-    return notFoundHandler(request);
+    throw NotFoundException.resource(package);
   }
-  final options = AccountPkgOptions(
+  return AccountPkgOptions(
       isAdmin: await packageBackend.isPackageAdmin(p, user.userId));
-  return jsonResponse(options.toJson());
+}
+
+/// Handles /api/account/options/publishers/<publisherId>
+Future<AccountPublisherOptions> accountPublisherOptionsHandler(
+    shelf.Request request, String publisherId) async {
+  final user = await requireAuthenticatedUser();
+  final member =
+      await publisherBackend.getPublisherMember(publisherId, user.userId);
+  final isAdmin = member != null && member.role == PublisherMemberRole.admin;
+  return AccountPublisherOptions(isAdmin: isAdmin);
 }
