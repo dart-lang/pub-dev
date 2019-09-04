@@ -372,22 +372,26 @@ class PackageBackend {
   /// Moves the package out of its current publisher.
   Future<api.PackagePublisherInfo> removePublisher(String packageName) async {
     final user = await requireAuthenticatedUser();
-    final key = db.emptyKey.append(models.Package, id: packageName);
     final package = await requirePackageAdmin(packageName, user.userId);
     if (package.publisherId == null) {
       return _asPackagePublisherInfo(package);
     }
     await requirePublisherAdmin(package.publisherId, user.userId);
-    final rs = await db.withTransaction((tx) async {
-      final package = (await db.lookup<models.Package>([key])).single;
-      package.publisherId = null;
-      package.uploaders = [user.userId];
-      tx.queueMutations(inserts: [package]);
-      await tx.commit();
-      return _asPackagePublisherInfo(package);
-    });
-    await purgePublisherCache(package.publisherId);
-    return rs as api.PackagePublisherInfo;
+//  Code commented out while we decide if this feature is something we want to
+//  support going forward.
+//
+//    final key = db.emptyKey.append(models.Package, id: packageName);
+//    final rs = await db.withTransaction((tx) async {
+//      final package = (await db.lookup<models.Package>([key])).single;
+//      package.publisherId = null;
+//      package.uploaders = [user.userId];
+//      tx.queueMutations(inserts: [package]);
+//      await tx.commit();
+//      return _asPackagePublisherInfo(package);
+//    });
+//    await purgePublisherCache(package.publisherId);
+//    return rs as api.PackagePublisherInfo;
+    throw NotImplementedException();
   }
 }
 

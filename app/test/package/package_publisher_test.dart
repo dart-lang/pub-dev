@@ -206,15 +206,20 @@ void main() {
     testWithServices('successful', () async {
       await _setupPackage();
       final client = createPubApiClient(authToken: hansUser.userId);
-      final rs = await client.removePackagePublisher(hydrogen.package.name);
-      expect(_json(rs.toJson()), {'publisherId': null});
-
-      final p = await packageBackend.lookupPackage('hydrogen');
-      expect(p.publisherId, isNull);
-      expect(p.uploaders, [hansUser.userId]);
-
-      final info = await client.getPackagePublisher('hydrogen');
-      expect(_json(info.toJson()), _json(rs.toJson()));
+      final rs = client.removePackagePublisher(hydrogen.package.name);
+      await expectApiException(rs, status: 501);
+//  Code commented out while we decide if this feature is something we want to
+//  support going forward.
+//
+//      final rs = await client.removePackagePublisher(hydrogen.package.name);
+//      expect(_json(rs.toJson()), {'publisherId': null});
+//
+//      final p = await packageBackend.lookupPackage('hydrogen');
+//      expect(p.publisherId, isNull);
+//      expect(p.uploaders, [hansUser.userId]);
+//
+//      final info = await client.getPackagePublisher('hydrogen');
+//      expect(_json(info.toJson()), _json(rs.toJson()));
     });
   });
 }
