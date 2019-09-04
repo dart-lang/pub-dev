@@ -15,8 +15,17 @@
   <h3 class="title">{{authors_title}}</h3>
   <div>{{& authors_html}}</div>
 
-  <h3 class="title">{{uploaders_title}}</h3>
-  <p>{{& uploaders_html}}</p>
+  {{#publisher_id}}
+    <h3 class="title">Publisher</h3>
+    <p>
+      <a href="{{& publisher_link}}">{{publisher_id}}</a>
+    </p>
+  {{/publisher_id}}
+
+  {{#uploaders_html}}
+    <h3 class="title">{{uploaders_title}}</h3>
+    <p>{{& uploaders_html}}</p>
+  {{/uploaders_html}}
 
   {{#license_html}}
     <h3 class="title">License</h3>

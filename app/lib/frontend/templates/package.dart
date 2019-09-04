@@ -169,9 +169,13 @@ String renderPkgSidebar(
     // TODO: make this 'Authors' if PackageVersion.authors is a list?!
     'authors_title': 'Author',
     'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
-    // TODO: make this 'Uploaders' if Package.uploaders is > 1?!
-    'uploaders_title': 'Uploader',
-    'uploaders_html': _getAuthorsHtml(uploaderEmails),
+    'publisher_id': package.publisherId,
+    'publisher_link': package.publisherId == null
+        ? null
+        : urls.publisherUrl(package.publisherId),
+    'uploaders_title': uploaderEmails.length > 1 ? 'Uploaders' : 'Uploader',
+    'uploaders_html':
+        uploaderEmails.isEmpty ? null : _getAuthorsHtml(uploaderEmails),
     'license_html': _renderLicenses(baseUrl, analysis?.licenses),
     'dependencies_html': _renderDependencyList(analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
