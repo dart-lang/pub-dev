@@ -37,6 +37,9 @@ class PageData {
 class PkgData {
   final String package;
   final String version;
+
+  /// PublisherId of publisher that owns this package, `null` if the package
+  /// isn't owned by a publisher.
   final String publisherId;
   final bool isDiscontinued;
 
