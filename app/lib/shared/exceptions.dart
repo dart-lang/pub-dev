@@ -310,3 +310,10 @@ class MissingAnalysisException extends NotFoundException {
 class RemovedPackageException extends NotFoundException {
   RemovedPackageException() : super('Package has been removed.');
 }
+
+/// Thrown when API endpoint is not implemented.
+class NotImplementedException extends ResponseException {
+  NotImplementedException([String message])
+      : super._(
+            501, 'NotImplemented', message ?? 'API endpoint not implemented.');
+}
