@@ -290,7 +290,10 @@ void main() {
           foobarStablePV.package, foobarStablePV.version);
       final String html = renderPkgShowPage(
           foobarPackage,
-          foobarUploaderEmails,
+          <String>[
+            hansUser.email,
+            joeUser.email,
+          ],
           foobarStablePV,
           AnalysisView(
             card: ScoreCardData(
@@ -301,6 +304,20 @@ void main() {
           ));
 
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
+    });
+
+    scopedTest('package show page with publisher', () {
+      final String html = renderPkgShowPage(
+          lithium.package,
+          <String>[],
+          lithium.versions.last,
+          AnalysisView(
+            card: ScoreCardData(
+              updated: DateTime(2018, 02, 05),
+            ),
+          ));
+
+      expectGoldenFile(html, 'pkg_show_page_publisher.html');
     });
 
     scopedTest('no content for analysis tab', () async {

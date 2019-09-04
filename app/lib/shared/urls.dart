@@ -70,6 +70,8 @@ String analysisTabUrl(String package) {
       : pkgPageUrl(package, fragment: fragment);
 }
 
+String publisherUrl(String publisherId) => '/publishers/$publisherId';
+
 String searchUrl({String platform, String q, int page}) {
   final packagesPath = platform == null ? '/packages' : '/$platform/packages';
   final params = <String, String>{};
