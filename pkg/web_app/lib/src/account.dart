@@ -351,14 +351,21 @@ class _CreatePublisherWidget {
 class _PublisherAdminWidget {
   Element _updateButton;
   TextAreaElement _descriptionTextArea;
+  InputElement _inviteMemberInput;
+  Element _inviteMemberButton;
 
   void init() {
     if (!pageData.isPublisherPage) return;
     _updateButton = document.getElementById('-publisher-update-button');
     _descriptionTextArea =
         document.getElementById('-publisher-description') as TextAreaElement;
+    _inviteMemberInput =
+        document.getElementById('-admin-invite-member-input') as InputElement;
+    _inviteMemberButton =
+        document.getElementById('-admin-invite-member-button');
     if (isActive) {
       _updateButton.onClick.listen((_) => _updatePublisher());
+      _inviteMemberButton.onClick.listen((_) => _inviteMember());
     }
     update();
   }
@@ -379,9 +386,36 @@ class _PublisherAdminWidget {
     }
   }
 
+  Future _inviteMember() async {
+    final email = _inviteMemberInput.value.trim();
+    if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
+      window.alert('Please specify a valid e-mail.');
+      return;
+    }
+    if (!window.confirm('Are you sure you want to invite "$email" as an '
+        'administrator member to this publisher?')) {
+      return;
+    }
+    final rq = InviteMemberRequest(email: email);
+    final rs = await client.post(
+      '/api/publishers/${pageData.publisher.publisherId}/invite-member',
+      body: json.encode(rq.toJson()),
+    );
+    final map = json.decode(rs.body) as Map<String, dynamic>;
+    if (rs.statusCode == 200) {
+      window.location.reload();
+    } else {
+      window.alert(map['message'] as String);
+    }
+  }
+
   void update() {
     // nothing to do
   }
 
-  bool get isActive => _descriptionTextArea != null && _updateButton != null;
+  bool get isActive =>
+      _descriptionTextArea != null &&
+      _updateButton != null &&
+      _inviteMemberInput != null &&
+      _inviteMemberButton != null;
 }
