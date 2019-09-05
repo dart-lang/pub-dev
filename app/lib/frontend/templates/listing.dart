@@ -22,10 +22,8 @@ String renderPagination(PageLinks pageLinks) {
   return templateCache.renderTemplate('pagination', values);
 }
 
-/// Renders the `views/pkg/show.mustache` template.
-String renderPkgIndexPage(
-    List<PackageView> packages, PageLinks links, String currentPlatform,
-    {SearchQuery searchQuery, int totalCount}) {
+/// Renders the `views/pkg/package_list.mustache` template.
+String renderPackageList(List<PackageView> packages) {
   final packagesJson = [];
   for (int i = 0; i < packages.length; i++) {
     final view = packages[i];
@@ -77,7 +75,15 @@ String renderPkgIndexPage(
           ?.toList(),
     });
   }
+  return templateCache.renderTemplate('pkg/package_list', {
+    'packages': packagesJson,
+  });
+}
 
+/// Renders the `views/pkg/index.mustache` template.
+String renderPkgIndexPage(
+    List<PackageView> packages, PageLinks links, String currentPlatform,
+    {SearchQuery searchQuery, int totalCount}) {
   final PlatformDict platformDict = getPlatformDict(currentPlatform);
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final unsupportedQualifier =
@@ -92,7 +98,7 @@ String renderPkgIndexPage(
     'is_search': isSearch,
     'unsupported_qualifier': unsupportedQualifier,
     'title': platformDict.topPlatformPackages,
-    'packages': packagesJson,
+    'package_list_html': renderPackageList(packages),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
     'search_query': searchQuery?.query,
