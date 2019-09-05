@@ -93,16 +93,19 @@ class SearchService {
 
   /// Returns the [PackageView] instance for each package in [packages], using
   /// the latest stable version.
-  Future<List<PackageView>> getPackageViews(Iterable<String> packages) async {
+  Future<List<PackageView>> getPackageViews(List<String> packages) async {
     // TODO: consider a cache-check first and batch-load the rest of the packages
     return await Future.wait(packages.map((p) => getPackageView(p)));
   }
 
   Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
       int totalCount, List<PackageScore> packageScores) async {
+    final packageNames = packageScores
+        .where((ps) => !ps.isExternal)
+        .map((ps) => ps.package)
+        .toList();
     final pubPackages = <String, PackageView>{};
-    for (final view
-        in await getPackageViews(packageScores.map((ps) => ps.package))) {
+    for (final view in await getPackageViews(packageNames)) {
       pubPackages[view.name] = view;
     }
 
