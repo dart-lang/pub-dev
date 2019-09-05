@@ -6,12 +6,10 @@ library pub_dartlang_org.search_service;
 
 import 'dart:async';
 
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
 import '../scorecard/backend.dart';
-import '../scorecard/models.dart';
 import '../search/search_client.dart';
 import '../search/search_service.dart';
 import '../shared/platform.dart';
@@ -75,48 +73,41 @@ class SearchService {
 
   Future close() async {}
 
+  /// Returns the [PackageView] instance for [package] on its latest stable version.
+  Future<PackageView> getPackageView(String package) async {
+    final p = await packageBackend.lookupPackage(package);
+    if (p == null) return null;
+
+    final version = p.latestVersion;
+    final pvFuture = packageBackend.lookupPackageVersion(package, version);
+    final cardFuture = scoreCardBackend.getScoreCardData(package, version);
+    await Future.wait([pvFuture, cardFuture]);
+
+    final pv = await pvFuture;
+    final card = await cardFuture;
+    return PackageView.fromModel(package: p, version: pv, scoreCard: card);
+  }
+
+  /// Returns the [PackageView] instance for each package in [packages], using
+  /// the latest stable version.
+  Future<List<PackageView>> getPackageViews(Iterable<String> packages) async {
+    // TODO: consider a cache-check first and batch-load the rest of the packages
+    return await Future.wait(packages.map((p) => getPackageView(p)));
+  }
+
   Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
       int totalCount, List<PackageScore> packageScores) async {
-    final packageEntries = await packageBackend.lookupPackages(
-        packageScores.where((ps) => !ps.isExternal).map((ps) => ps.package));
-    packageEntries.removeWhere((p) => p == null);
-
     final pubPackages = <String, PackageView>{};
-    final List<Key> versionKeys =
-        packageEntries.map((p) => p.latestVersionKey).toList();
-    if (versionKeys.isNotEmpty) {
-      // Analysis data fetched concurrently to reduce overall latency.
-      final Future<List<ScoreCardData>> analysisExtractsFuture = Future.wait(
-          packageEntries.map((p) =>
-              scoreCardBackend.getScoreCardData(p.name, p.latestVersion)));
-      final Future<List<PackageVersion>> allVersionsFuture =
-          packageBackend.lookupLatestVersions(packageEntries);
-
-      final List batchResults =
-          await Future.wait([analysisExtractsFuture, allVersionsFuture]);
-      final scoreCards =
-          ((await batchResults[0]) as List).cast<ScoreCardData>();
-      final versions = ((await batchResults[1]) as List).cast<PackageVersion>();
-
-      for (int i = 0; i < versions.length; i++) {
-        final package = packageEntries[i];
-        final apiPages = packageScores
-            .firstWhere((ps) => ps.package == package.name)
-            .apiPages;
-        final pv = PackageView.fromModel(
-          package: package,
-          version: versions[i],
-          scoreCard: scoreCards[i],
-          apiPages: apiPages,
-        );
-        pubPackages[pv.name] = pv;
-      }
+    for (final view
+        in await getPackageViews(packageScores.map((ps) => ps.package))) {
+      pubPackages[view.name] = view;
     }
 
     final resultPackages = packageScores
         .map((ps) {
           if (pubPackages.containsKey(ps.package)) {
-            return pubPackages[ps.package];
+            final view = pubPackages[ps.package];
+            return view.change(apiPages: ps.apiPages);
           }
           if (ps.isExternal) {
             return PackageView(

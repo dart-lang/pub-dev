@@ -477,6 +477,25 @@ class PackageView extends Object with FlagMixin {
       apiPages: apiPages,
     );
   }
+
+  PackageView change({List<ApiPageRef> apiPages}) {
+    return PackageView(
+      isExternal: isExternal,
+      url: url,
+      name: name,
+      version: version,
+      devVersion: devVersion,
+      ellipsizedDescription: ellipsizedDescription,
+      shortUpdated: shortUpdated,
+      authors: authors,
+      flags: flags,
+      isAwaiting: isAwaiting,
+      overallScore: overallScore,
+      platforms: platforms,
+      isNewPackage: isNewPackage,
+      apiPages: apiPages ?? this.apiPages,
+    );
+  }
 }
 
 /// Sorts [versions] according to the semantic versioning specification.
