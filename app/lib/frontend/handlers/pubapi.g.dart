@@ -374,6 +374,8 @@ Router _$PubApiRouter(PubApi service) {
       final _$result = await service.setPackageOptions(
         request,
         package,
+        await $utilities.decodeJson<PkgOptions>(
+            request, (o) => PkgOptions.fromJson(o)),
       );
       return _$result;
     } on ApiResponseException catch (e) {

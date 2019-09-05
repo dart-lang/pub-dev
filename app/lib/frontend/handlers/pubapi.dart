@@ -226,8 +226,9 @@ class PubApi {
       getPackageOptionsHandler(request, package);
 
   @EndPoint.put('/api/packages/<package>/options')
-  Future<Response> setPackageOptions(Request request, String package) =>
-      putPackageOptionsHandler(request, package);
+  Future<Response> setPackageOptions(
+          Request request, String package, PkgOptions body) =>
+      putPackageOptionsHandler(request, package, body);
 
   @EndPoint.get('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> getPackagePublisher(
