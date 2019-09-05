@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:client_data/package_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -258,10 +257,7 @@ Future<shelf.Response> getPackageOptionsHandler(
 
 /// Handles PUT /api/packages/<package>/options
 Future<shelf.Response> putPackageOptionsHandler(
-    shelf.Request request, String package) async {
-  final body = await request.readAsString();
-  final options =
-      PkgOptions.fromJson(json.decode(body) as Map<String, dynamic>);
+    shelf.Request request, String package, PkgOptions options) async {
   await packageBackend.updateOptions(package, options);
   return jsonResponse({'success': true});
 }

@@ -5,6 +5,8 @@ environment:
   sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
+  api_builder:
+    path: ../api_builder
   client_data:
     path: ../client_data
   http: ^0.12.0

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
 
-import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 import '_authenticated_client.dart';
 import '_dom_helper.dart';
@@ -17,6 +15,7 @@ import 'google_auth_js.dart';
 import 'google_js.dart';
 import 'hoverable.dart';
 import 'page_data.dart';
+import 'pubapi.client.dart';
 import 'tabs.dart';
 
 bool _initialized = false;
@@ -29,17 +28,23 @@ bool get isSignedIn => _initialized && _currentUser != null;
 /// Returns the currently signed-in user or null.
 GoogleUser get currentUser => _currentUser;
 
-Client _client;
+PubApiClient _client;
+http.Client _httpClient;
 final _navWidget = _AccountNavWidget();
 final _authorizationWidget = _AuthorizationWidget();
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
 final _createPublisherWidget = _CreatePublisherWidget();
 
-/// The HTTP Client to use with account credentials.
-Client get client {
-  return _client ??=
-      getAuthenticatedClient(currentUser.getAuthResponse(true)?.access_token);
+/// The pub API client to use with account credentials.
+PubApiClient get client {
+  if (_client == null) {
+    _httpClient ??=
+        getAuthenticatedClient(currentUser.getAuthResponse(true)?.access_token);
+    final uri = Uri.parse(window.location.href);
+    _client = PubApiClient(uri.resolve('/').toString(), client: _httpClient);
+  }
+  return _client;
 }
 
 void setupAccount() {
@@ -79,7 +84,8 @@ void _updateUser(GoogleUser user) {
   _currentUser = user;
 
   // reset credentials used in the HTTP Client
-  _client?.close();
+  _httpClient?.close();
+  _httpClient = null;
   _client = null;
 
   _updateOnCredChange();
@@ -90,18 +96,13 @@ Future _updateOnCredChange() async {
   if (isSignedIn) {
     try {
       if (pageData.isPackagePage) {
-        final rs = await client
-            .get('/api/account/options/packages/${pageData.pkgData.package}');
-        final map = json.decode(rs.body) as Map<String, dynamic>;
-        final options = AccountPkgOptions.fromJson(map);
-        _isAdmin = options.isAdmin ?? false;
+        final rs = await client.accountPackageOptions(pageData.pkgData.package);
+        _isAdmin = rs.isAdmin ?? false;
         _updateUi();
       } else if (pageData.isPublisherPage) {
-        final rs = await client.get(
-            '/api/account/options/publishers/${pageData.publisher.publisherId}');
-        final map = json.decode(rs.body) as Map<String, dynamic>;
-        final options = AccountPublisherOptions.fromJson(map);
-        _isAdmin = options.isAdmin ?? false;
+        final rs = await client
+            .accountPublisherOptions(pageData.publisher.publisherId);
+        _isAdmin = rs.isAdmin ?? false;
         _updateUi();
       }
     } catch (e) {
@@ -227,15 +228,12 @@ class _PkgAdminWidget {
     }
     final options =
         PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
-    final rs = await client.put(
-      '/api/packages/${pageData.pkgData.package}/options',
-      body: json.encode(options.toJson()),
-    );
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    if (rs.statusCode == 200) {
+    try {
+      await client.setPackageOptions(pageData.pkgData.package, options);
       window.location.reload();
-    } else {
-      window.alert(map['error'] as String);
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
+      window.alert(map['message'] as String);
     }
   }
 
@@ -249,15 +247,12 @@ class _PkgAdminWidget {
         'publisher "$publisherId"?')) {
       return;
     }
-    final options = PackagePublisherInfo(publisherId: publisherId);
-    final rs = await client.put(
-      '/api/packages/${pageData.pkgData.package}/publisher',
-      body: json.encode(options.toJson()),
-    );
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    if (rs.statusCode == 200) {
+    final payload = PackagePublisherInfo(publisherId: publisherId);
+    try {
+      await client.setPackagePublisher(pageData.pkgData.package, payload);
       window.location.reload();
-    } else {
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
       window.alert(map['message'] as String);
     }
   }
@@ -325,22 +320,16 @@ class _CreatePublisherWidget {
         scope: extraScope,
       )));
     }
-    final rs = await client.post(
-      '/api/publishers/$publisherId',
-      body: json.encode(
-        CreatePublisherRequest(
-          accessToken: currentUser.getAuthResponse(true).access_token,
-        ),
-      ),
+    final payload = CreatePublisherRequest(
+      accessToken: currentUser.getAuthResponse(true).access_token,
     );
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    if (rs.statusCode == 200) {
-      final uri = Uri.parse(window.location.href);
-      final newUri = uri.replace(path: '/publishers/$publisherId');
-      window.location.href = newUri.toString();
-    } else {
+    try {
+      await client.createPublisher(publisherId, payload);
+      window.location.pathname = '/publishers/$publisherId';
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
       // TODO: render this message as HTML on the page.
-      window.alert(map['error'] as String ?? map['message'] as String);
+      window.alert(map['message'] as String);
     }
   }
 
@@ -371,18 +360,15 @@ class _PublisherAdminWidget {
   }
 
   Future _updatePublisher() async {
-    final update =
+    final payload =
         UpdatePublisherRequest(description: _descriptionTextArea.value);
-    final rs = await client.put(
-      '/api/publishers/${pageData.publisher.publisherId}',
-      body: json.encode(update.toJson()),
-    );
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    if (rs.statusCode == 200) {
+    try {
+      await client.updatePublisher(pageData.publisher.publisherId, payload);
       window.location.pathname =
           '/publishers/${pageData.publisher.publisherId}';
-    } else {
-      window.alert(map['error'] as String);
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
+      window.alert(map['message'] as String);
     }
   }
 
@@ -396,15 +382,12 @@ class _PublisherAdminWidget {
         'administrator member to this publisher?')) {
       return;
     }
-    final rq = InviteMemberRequest(email: email);
-    final rs = await client.post(
-      '/api/publishers/${pageData.publisher.publisherId}/invite-member',
-      body: json.encode(rq.toJson()),
-    );
-    final map = json.decode(rs.body) as Map<String, dynamic>;
-    if (rs.statusCode == 200) {
-      window.location.reload();
-    } else {
+    final payload = InviteMemberRequest(email: email);
+    try {
+      await client.invitePublisherMember(
+          pageData.publisher.publisherId, payload);
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
       window.alert(map['message'] as String);
     }
   }

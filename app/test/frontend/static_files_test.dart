@@ -5,6 +5,7 @@
 @Tags(['presubmit-only'])
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
@@ -37,6 +38,16 @@ void main() {
         () => checkAsset(
             'https://github.com/dart-lang/dartdoc/raw/master/lib/resources/highlight.pack.js',
             '/static/highlight/highlight.pack.js'));
+  });
+
+  group('Manual copy of files', () {
+    test('pubapi.client.dart', () async {
+      final f1 = File('lib/frontend/handlers/pubapi.client.dart');
+      final c1 = await f1.readAsString();
+      final f2 = File('../pkg/web_app/lib/src/pubapi.client.dart');
+      final c2 = await f2.readAsString();
+      expect(c2, c1);
+    });
   });
 
   group('default content', () {
