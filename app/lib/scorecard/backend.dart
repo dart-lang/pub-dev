@@ -225,7 +225,6 @@ class ScoreCardBackend {
       if (isLatest) cache.uiPackagePage(packageName, null).purge(),
       if (isLatest) cache.packageView(packageName).purge(),
     ]);
-    ;
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
