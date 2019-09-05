@@ -420,6 +420,7 @@ api.PackagePublisherInfo _asPackagePublisherInfo(models.Package p) =>
 Future<void> invalidatePackageCache(CachePatterns cache, String package) async {
   await Future.wait([
     cache.packageData(package).purge(),
+    cache.packageView(package).purge(),
     cache.uiPackagePage(package, null).purge(),
     cache.uiIndexPage(null).purge(),
     ...KnownPlatforms.all.map((p) => cache.uiIndexPage(p).purge()),
