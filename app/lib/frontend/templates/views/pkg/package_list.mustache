@@ -1,0 +1,34 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<ul class="package-list">
+  {{#packages}}
+    <li class="list-item -full">
+      {{& score_box_html }}
+      <h3 class="title"><a href="{{& url}}">{{name}}</a></h3>
+      <p class="description">{{desc}}</p>
+      {{#is_external}}
+        <p class="metadata">v {{version}} • {{external_type}}</p>
+      {{/is_external}}
+      {{#show_metadata}}
+      <p class="metadata">
+        v <a href="{{& url}}">{{version}}</a>
+        {{#show_dev_version}} / <a href="{{& dev_version_url}}">{{dev_version}}</a>{{/show_dev_version}}
+        • Updated: <span>{{last_uploaded}}</span>
+        {{& tags_html}}
+      </p>
+      {{/show_metadata}}
+      {{#has_api_pages}}
+      <div class="api_pages">
+        API results:
+        <ul>
+        {{#api_pages}}
+          <li><a href="{{& href}}">{{title}}</a></li>
+        {{/api_pages}}
+        </ul>
+      </div>
+      {{/has_api_pages}}
+    </li>
+  {{/packages}}
+</ul>
