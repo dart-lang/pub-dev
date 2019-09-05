@@ -7,6 +7,7 @@ library pub_dartlang_org.appengine_repository.models;
 import 'dart:math';
 
 import 'package:gcloud/db.dart' as db;
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -19,6 +20,8 @@ import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
 export '../package/model_properties.dart' show FileObject;
+
+part 'models.g.dart';
 
 /// Pub package metdata.
 ///
@@ -412,6 +415,7 @@ abstract class PackageInviteType {
 
 /// An extract of [Package] and [PackageVersion], for
 /// display-only uses.
+@JsonSerializable(includeIfNull: false)
 class PackageView extends Object with FlagMixin {
   final bool isExternal;
   final String url;
@@ -447,6 +451,9 @@ class PackageView extends Object with FlagMixin {
     this.isNewPackage,
     this.apiPages,
   });
+
+  factory PackageView.fromJson(Map<String, dynamic> json) =>
+      _$PackageViewFromJson(json);
 
   factory PackageView.fromModel({
     Package package,
@@ -496,6 +503,8 @@ class PackageView extends Object with FlagMixin {
       apiPages: apiPages ?? this.apiPages,
     );
   }
+
+  Map<String, dynamic> toJson() => _$PackageViewToJson(this);
 }
 
 /// Sorts [versions] according to the semantic versioning specification.

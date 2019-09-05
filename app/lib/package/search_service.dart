@@ -13,6 +13,7 @@ import '../scorecard/backend.dart';
 import '../search/search_client.dart';
 import '../search/search_service.dart';
 import '../shared/platform.dart';
+import '../shared/redis_cache.dart' show cache;
 
 import 'backend.dart';
 import 'models.dart';
@@ -75,17 +76,19 @@ class SearchService {
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   Future<PackageView> getPackageView(String package) async {
-    final p = await packageBackend.lookupPackage(package);
-    if (p == null) return null;
+    return await cache.packageView(package).get(() async {
+      final p = await packageBackend.lookupPackage(package);
+      if (p == null) return null;
 
-    final version = p.latestVersion;
-    final pvFuture = packageBackend.lookupPackageVersion(package, version);
-    final cardFuture = scoreCardBackend.getScoreCardData(package, version);
-    await Future.wait([pvFuture, cardFuture]);
+      final version = p.latestVersion;
+      final pvFuture = packageBackend.lookupPackageVersion(package, version);
+      final cardFuture = scoreCardBackend.getScoreCardData(package, version);
+      await Future.wait([pvFuture, cardFuture]);
 
-    final pv = await pvFuture;
-    final card = await cardFuture;
-    return PackageView.fromModel(package: p, version: pv, scoreCard: card);
+      final pv = await pvFuture;
+      final card = await cardFuture;
+      return PackageView.fromModel(package: p, version: pv, scoreCard: card);
+    });
   }
 
   /// Returns the [PackageView] instance for each package in [packages], using
