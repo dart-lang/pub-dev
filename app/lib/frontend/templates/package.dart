@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
-import 'package:meta/meta.dart';
 
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
@@ -22,6 +21,7 @@ import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
+import 'tabs.dart';
 
 String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
   if (licenses == null || licenses.isEmpty) return null;
@@ -233,7 +233,7 @@ String renderPkgShowPage(Package package, List<String> uploaderEmails,
 
   final values = {
     'header_html': renderPkgHeader(package, selectedVersion, analysis),
-    'tabs_html': renderPkgTabs(tabs),
+    'tabs_html': renderTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
         renderPkgSidebar(package, selectedVersion, uploaderEmails, analysis),
@@ -275,70 +275,6 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
       isDiscontinued: package.isDiscontinued == true,
     ),
   );
-}
-
-/// Renders the `views/pkg/tabs.mustache` template.
-String renderPkgTabs(List<Tab> tabs) {
-  // active: the first one with content
-  for (Tab tab in tabs) {
-    if (tab.contentHtml != null) {
-      tab.isActive = true;
-      break;
-    }
-  }
-  final values = {'tabs': tabs.map((t) => t.toMustacheData()).toList()};
-  return templateCache.renderTemplate('pkg/tabs', values);
-}
-
-/// Defines the header and content part of a tab.
-class Tab {
-  final String id;
-  final String titleHtml;
-  final String contentHtml;
-  final bool isMarkdown;
-  final bool isHidden;
-  bool isActive = false;
-
-  Tab.withContent({
-    @required this.id,
-    String title,
-    String titleHtml,
-    @required this.contentHtml,
-    this.isMarkdown = false,
-    this.isHidden = false,
-  }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
-
-  Tab.withLink({
-    @required this.id,
-    String title,
-    String titleHtml,
-    @required String href,
-    this.isHidden = false,
-  })  : titleHtml =
-            '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
-        contentHtml = null,
-        isMarkdown = false;
-
-  Map toMustacheData() {
-    final titleClasses = <String>[
-      contentHtml == null ? 'tab-link' : 'tab-button',
-      if (isActive) '-active',
-      if (isHidden) '-hidden',
-    ];
-    final contentClasses = <String>[
-      'tab-content',
-      if (isActive) '-active',
-      if (isMarkdown) 'markdown-body',
-    ];
-    return <String, dynamic>{
-      'id': id,
-      'title_classes': titleClasses.join(' '),
-      'title_html': titleHtml,
-      'content_classes': contentClasses.join(' '),
-      'content_html': contentHtml,
-      'has_content': contentHtml != null,
-    };
-  }
 }
 
 List<Tab> _pkgTabs(

@@ -13,6 +13,7 @@ import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package.dart';
+import 'tabs.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
@@ -107,7 +108,7 @@ String renderPkgVersionsPage(
 
   final values = {
     'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),
-    'tabs_html': renderPkgTabs(tabs),
+    'tabs_html': renderTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html': renderPkgSidebar(
         package, latestVersion, uploaderEmails, latestAnalysis),
