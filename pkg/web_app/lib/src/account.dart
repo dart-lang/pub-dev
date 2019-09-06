@@ -428,9 +428,7 @@ class _PublisherAdminWidget {
               ];
           }).toList();
 
-        document
-            .getElementById('-admin-members-loading')
-            .replaceWith(table);
+        document.getElementById('-admin-members-loading').replaceWith(table);
       });
     }
   }
