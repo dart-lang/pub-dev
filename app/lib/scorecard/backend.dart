@@ -222,6 +222,7 @@ class ScoreCardBackend {
     final isLatest = package.latestVersion == version.version;
     await Future.wait([
       cache.scoreCardData(packageName, packageVersion).purge(),
+      cache.uiPackagePage(packageName, packageVersion).purge(),
       if (isLatest) cache.uiPackagePage(packageName, null).purge(),
       if (isLatest) cache.packageView(packageName).purge(),
     ]);
