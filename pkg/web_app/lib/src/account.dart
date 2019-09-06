@@ -5,6 +5,7 @@
 import 'dart:html';
 import 'dart:js';
 
+import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:http/http.dart' as http;
@@ -35,6 +36,7 @@ final _authorizationWidget = _AuthorizationWidget();
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
 final _createPublisherWidget = _CreatePublisherWidget();
+final _consentWidget = _ConsentWidget();
 
 /// The pub API client to use with account credentials.
 PubApiClient get client {
@@ -70,6 +72,7 @@ void _init() {
   _pkgAdminWidget.init();
   _createPublisherWidget.init();
   _publisherAdminWidget.init();
+  _consentWidget.init();
   _updateUser(getAuthInstance()?.currentUser?.get());
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
@@ -122,6 +125,7 @@ void _updateUi() {
   _pkgAdminWidget.update();
   _createPublisherWidget.update();
   _publisherAdminWidget.update();
+  _consentWidget.update();
 }
 
 /// Active on all pages.
@@ -401,4 +405,88 @@ class _PublisherAdminWidget {
       _updateButton != null &&
       _inviteMemberInput != null &&
       _inviteMemberButton != null;
+}
+
+class _ConsentWidget {
+  Element _loading;
+  Element _buttons;
+  Future<Consent> _consentFuture;
+  bool _loaded = false;
+
+  void init() {
+    if (!pageData.isConsentPage) return;
+    _loading = document.getElementById('-admin-consent-loading');
+    _buttons = document.getElementById('-admin-consent-buttons');
+    document
+        .getElementById('-admin-consent-accept-button')
+        .onClick
+        .listen((_) => _accept());
+    document
+        .getElementById('-admin-consent-reject-button')
+        .onClick
+        .listen((_) => _reject());
+  }
+
+  void update() {
+    if (!pageData.isConsentPage) return;
+
+    updateDisplay(_buttons, _loaded);
+
+    if (isSignedIn && _consentFuture == null) {
+      _consentFuture = client.consentInfo(pageData.consentId);
+      _consentFuture.then((consent) {
+        _loading.replaceWith(Element.div()
+          ..children = [
+            Element.div()..innerHtml = consent.descriptionHtml,
+          ]);
+        _loaded = true;
+        update();
+      }).catchError((e) {
+        String text = 'Error: $e';
+        if (e is RequestException) {
+          if (e.status == 404) {
+            text = 'Consent request `${pageData.consentId}` has expired.';
+          } else {
+            text = (e.bodyAsJson()['message'] as String) ?? text;
+          }
+        }
+        _loading.replaceWith(Element.div()..text = text);
+      });
+    }
+  }
+
+  void _updateButtons(bool granted) {
+    final text = granted ? 'Consent accepted.' : 'Consent rejected.';
+    _buttons.replaceWith(Element.p()..text = text);
+  }
+
+  Future _accept() async {
+    if (!window.confirm('Are you sure you want to accept?')) {
+      return;
+    }
+    try {
+      final rs = await client.resolveConsent(
+          pageData.consentId, ConsentResult(granted: true));
+      _updateButtons(rs.granted);
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
+      window.alert(map['message'] as String);
+    }
+  }
+
+  Future _reject() async {
+    if (!window.confirm('Are you sure you want to reject?')) {
+      return;
+    }
+    try {
+      final rs = await client.resolveConsent(
+          pageData.consentId, ConsentResult(granted: false));
+      _updateButtons(rs.granted);
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
+      window.alert(map['message'] as String);
+    }
+  }
+
+  bool get isActive => _loading != null && _buttons != null;
 }

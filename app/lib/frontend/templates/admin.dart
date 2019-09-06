@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:client_data/page_data.dart';
+
 import '../../shared/urls.dart';
 
 import '_cache.dart';
@@ -27,4 +29,16 @@ String renderUploaderApprovalPage(
   });
   return renderLayoutPage(PageType.package, content,
       title: 'Uploader invitation', includeSurvey: false);
+}
+
+/// Renders the `views/consent.mustache` template.
+String renderConsentPage(String consentId) {
+  final content = templateCache.renderTemplate('consent', {});
+  return renderLayoutPage(
+    PageType.standalone,
+    content,
+    title: 'Consent',
+    pageData: PageData(consentId: consentId),
+    includeSurvey: false,
+  );
 }
