@@ -342,6 +342,7 @@ class _PublisherAdminWidget {
   TextAreaElement _descriptionTextArea;
   InputElement _inviteMemberInput;
   Element _inviteMemberButton;
+  Future<PublisherMembers> membersFuture;
 
   void init() {
     if (!pageData.isPublisherPage) return;
@@ -392,8 +393,44 @@ class _PublisherAdminWidget {
     }
   }
 
+  Future _removeMember(PublisherMember pm) async {
+    if (!window.confirm(
+        'Are you sure you want to remove "${pm.email}" from this publisher?')) {
+      return;
+    }
+    try {
+      await client.removePublisherMember(
+          pageData.publisher.publisherId, pm.userId);
+      window.location.reload();
+    } on RequestException catch (e) {
+      final map = e.bodyAsJson();
+      window.alert(map['message'] as String);
+    }
+  }
+
   void update() {
-    // nothing to do
+    // only load trigger the loading of the members list once
+    if (_isAdmin && membersFuture == null) {
+      final publisherId = pageData.publisher.publisherId;
+      membersFuture = client.listPublisherMembers(publisherId);
+      membersFuture.then((pms) async {
+        final table = Element.table()
+          ..children = pms.members.map((pm) {
+            final button = Element.tag('button')
+              ..className = 'pub-button'
+              ..text = 'Remove member'
+              ..onClick.listen((_) => _removeMember(pm));
+
+            return Element.tr()
+              ..children = [
+                Element.td()..text = pm.email,
+                Element.td()..children = [button],
+              ];
+          }).toList();
+
+        document.getElementById('-admin-members-loading').replaceWith(table);
+      });
+    }
   }
 
   bool get isActive =>
