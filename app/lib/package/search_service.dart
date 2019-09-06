@@ -75,7 +75,7 @@ class SearchService {
   Future close() async {}
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
-  Future<PackageView> getPackageView(String package) async {
+  Future<PackageView> _getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
       final p = await packageBackend.lookupPackage(package);
       if (p == null) return null;
@@ -95,7 +95,7 @@ class SearchService {
   /// the latest stable version.
   Future<List<PackageView>> getPackageViews(List<String> packages) async {
     // TODO: consider a cache-check first and batch-load the rest of the packages
-    return await Future.wait(packages.map((p) => getPackageView(p)));
+    return await Future.wait(packages.map((p) => _getPackageView(p)));
   }
 
   Future<SearchResultPage> _loadResultForPackages(SearchQuery query,
