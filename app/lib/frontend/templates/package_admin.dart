@@ -73,7 +73,7 @@ String renderPkgAdminPage(
 
   final values = {
     'header_html': renderPkgHeader(package, version, analysis),
-    'tabs_html': renderPkgTabs(tabs),
+    'tabs_html': renderTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
         renderPkgSidebar(package, version, uploaderEmails, analysis),

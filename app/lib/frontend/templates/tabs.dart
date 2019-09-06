@@ -8,8 +8,8 @@ import 'package:meta/meta.dart';
 
 import '_cache.dart';
 
-/// Renders the `views/pkg/tabs.mustache` template.
-String renderPkgTabs(List<Tab> tabs) {
+/// Renders the `views/shared/tabs.mustache` template.
+String renderTabs(List<Tab> tabs) {
   // active: the first one with content
   for (Tab tab in tabs) {
     if (tab.contentHtml != null) {
@@ -17,7 +17,7 @@ String renderPkgTabs(List<Tab> tabs) {
       break;
     }
   }
-  final values = {'tabs': tabs.map((t) => t.toMustacheData()).toList()};
+  final values = {'tabs': tabs.map((t) => t._toMustacheData()).toList()};
   return templateCache.renderTemplate('shared/tabs', values);
 }
 
@@ -50,7 +50,7 @@ class Tab {
         contentHtml = null,
         isMarkdown = false;
 
-  Map toMustacheData() {
+  Map _toMustacheData() {
     final titleClasses = <String>[
       contentHtml == null ? 'tab-link' : 'tab-button',
       if (isActive) '-active',

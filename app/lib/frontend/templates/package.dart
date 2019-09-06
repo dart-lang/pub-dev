@@ -233,7 +233,7 @@ String renderPkgShowPage(Package package, List<String> uploaderEmails,
 
   final values = {
     'header_html': renderPkgHeader(package, selectedVersion, analysis),
-    'tabs_html': renderPkgTabs(tabs),
+    'tabs_html': renderTabs(tabs),
     'icons': staticUrls.versionsTableIcons,
     'sidebar_html':
         renderPkgSidebar(package, selectedVersion, uploaderEmails, analysis),
