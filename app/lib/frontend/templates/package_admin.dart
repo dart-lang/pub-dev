@@ -12,6 +12,7 @@ import '_cache.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package.dart';
+import 'tabs.dart';
 
 /// Renders the `views/pkg/admin_page` template.
 String renderPkgAdminPage(

@@ -13,6 +13,7 @@ import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package.dart';
+import 'tabs.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
