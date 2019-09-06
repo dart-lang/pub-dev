@@ -12,6 +12,7 @@ import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
+import '../package/models.dart' show PackageView;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/secret/backend.dart';
@@ -77,6 +78,16 @@ class CachePatterns {
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('package-data')
       .withTTL(Duration(minutes: 10))['$package'];
+
+  Entry<PackageView> packageView(String package) => _cache
+      .withPrefix('package-view')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (PackageView pv) => pv.toJson(),
+        decode: (d) => PackageView.fromJson(d as Map<String, dynamic>),
+      ))[package];
 
   Entry<Map<String, dynamic>> apiPackagesListPage(int page) => _cache
       .withPrefix('api-packages-list')
