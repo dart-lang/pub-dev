@@ -199,5 +199,6 @@ class PubSiteService {
 
   /// Renders the page where an user can accept their invites/consents.
   @Route.get('/consent')
-  Future<Response> consentPage(Request request) => consentPageHandler(request);
+  Future<Response> consentPage(Request request) =>
+      consentPageHandler(request, request.requestedUri.queryParameters['id']);
 }

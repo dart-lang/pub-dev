@@ -18,16 +18,22 @@ final pageDataJsonCodec = json.fuse(utf8).fuse(base64);
 /// `"@context":"https://pub.dev"`.
 @JsonSerializable(includeIfNull: false)
 class PageData {
+  final String consentId;
   final PkgData pkgData;
   final PublisherData publisher;
 
-  PageData({this.pkgData, this.publisher});
+  PageData({
+    this.consentId,
+    this.pkgData,
+    this.publisher,
+  });
 
   factory PageData.fromJson(Map<String, dynamic> json) =>
       _$PageDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$PageDataToJson(this);
 
+  bool get isConsentPage => consentId != null;
   bool get isPackagePage => pkgData != null;
   bool get isPublisherPage => publisher != null;
 }

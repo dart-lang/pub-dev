@@ -12,17 +12,13 @@ import '../../publisher/models.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
-/// Handles GET /consent
-Future<shelf.Response> consentPageHandler(shelf.Request request) async {
-  // TODO: implement
-  return notFoundHandler(request);
-}
+import '../templates/admin.dart';
 
-/// Handles PUT /api/account/consent/<consentId>
-Future<shelf.Response> putAccountConsentHandler(
+/// Handles GET /consent?id=<consentId>
+Future<shelf.Response> consentPageHandler(
     shelf.Request request, String consentId) async {
-  // TODO: implement
-  return notFoundHandler(request);
+  // TODO: if no consentId is given, render the listing of user consents page
+  return htmlResponse(renderConsentPage(consentId));
 }
 
 /// Handles /api/account/options/packages/<package>

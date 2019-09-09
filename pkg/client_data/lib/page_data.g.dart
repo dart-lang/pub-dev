@@ -8,6 +8,7 @@ part of 'page_data.dart';
 
 PageData _$PageDataFromJson(Map<String, dynamic> json) {
   return PageData(
+    consentId: json['consentId'] as String,
     pkgData: json['pkgData'] == null
         ? null
         : PkgData.fromJson(json['pkgData'] as Map<String, dynamic>),
@@ -26,6 +27,7 @@ Map<String, dynamic> _$PageDataToJson(PageData instance) {
     }
   }
 
+  writeNotNull('consentId', instance.consentId);
   writeNotNull('pkgData', instance.pkgData);
   writeNotNull('publisher', instance.publisher);
   return val;
