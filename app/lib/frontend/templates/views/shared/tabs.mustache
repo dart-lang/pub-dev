@@ -1,12 +1,12 @@
 {{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
-<ul class="package-tabs-header">
+<ul class="pub-tabs-header">
   {{#tabs}}
     <li class="{{title_classes}}" data-name="-{{id}}-tab-" role="button">{{& title_html}}</li>
   {{/tabs}}
 </ul>
-<div class="main package-tabs-content">
+<div class="main pub-tabs-content">
   {{#tabs}}
     {{#has_content}}
     <section class="{{content_classes}}" data-name="-{{id}}-tab-">
