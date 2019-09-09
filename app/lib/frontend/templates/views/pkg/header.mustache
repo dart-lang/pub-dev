@@ -1,19 +1,14 @@
 {{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
-<div class="package-header">
-  <h2 class="title">{{name}} {{version}}</h2>
-  <div class="metadata">
-    Published <span>{{short_created}}</span>
-    <!-- &bull; Downloads: X -->
-    {{#latest.show_updated}}
-      &bull; Updated:
-      <span><a href="{{& latest.stable_url}}">{{latest.stable_version}}</a></span>
-      {{#latest.show_dev_version}}
-        /
-        <span><a href="{{& latest.dev_url}}">{{latest.dev_version}}</a></span>
-      {{/latest.show_dev_version}}
-    {{/latest.show_updated}}
-    <div class="tags">{{& tags_html}}</div>
-  </div>
-</div>
+
+Published <span>{{short_created}}</span>
+<!-- &bull; Downloads: X -->
+{{#latest.show_updated}}
+  &bull; Updated:
+  <span><a href="{{& latest.stable_url}}">{{latest.stable_version}}</a></span>
+  {{#latest.show_dev_version}}
+    /
+    <span><a href="{{& latest.dev_url}}">{{latest.dev_version}}</a></span>
+  {{/latest.show_dev_version}}
+{{/latest.show_updated}}

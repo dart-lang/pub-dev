@@ -182,7 +182,8 @@ String renderPkgSidebar(
   });
 }
 
-/// Renders the `views/pkg/header.mustache` template.
+/// Renders the `views/pkg/header.mustache` template for header metadata and
+/// wraps it with content-header.
 String renderPkgHeader(
     Package package, PackageVersion selectedVersion, AnalysisView analysis) {
   final card = analysis?.card;
@@ -202,8 +203,6 @@ String renderPkgHeader(
           (!card.isSkipped && !analysis.hasPanaSummary);
 
   final values = {
-    'name': package.name,
-    'version': selectedVersion.id,
     'latest': {
       'show_updated': showUpdated,
       'show_dev_version': showDevVersion,
@@ -213,16 +212,20 @@ String renderPkgHeader(
           urls.pkgPageUrl(package.name, version: package.latestDevVersion),
       'dev_version': package.latestDevVersion,
     },
-    'tags_html': renderTags(
+    'short_created': selectedVersion.shortCreated,
+  };
+  final metadataHtml = templateCache.renderTemplate('pkg/header', values);
+  return renderContentHeader(
+    title: '${package.name} ${selectedVersion.version}',
+    metadataHtml: metadataHtml,
+    tagsHtml: renderTags(
       analysis?.platforms,
       isAwaiting: isAwaiting,
       isDiscontinued: package.isDiscontinued ?? false,
       isLegacy: card?.isLegacy ?? false,
       isObsolete: card?.isObsolete ?? false,
     ),
-    'short_created': selectedVersion.shortCreated,
-  };
-  return templateCache.renderTemplate('pkg/header', values);
+  );
 }
 
 /// Renders the `views/pkg/show.mustache` template.
