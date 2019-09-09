@@ -14,8 +14,8 @@ final pageDataJsonCodec = json.fuse(utf8).fuse(base64);
 
 /// The server-provided config/data for the current page.
 ///
-/// This is the `application/ld+json` data embedded in the page with
-/// `"@context":"https://pub.dev"`.
+/// This is embedded in the page's `<meta name="pub-page-data" />` head element
+/// using [pageDataJsonCodec].
 @JsonSerializable(includeIfNull: false)
 class PageData {
   final String consentId;
