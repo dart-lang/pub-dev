@@ -122,6 +122,7 @@ String renderPkgVersionsPage(
     title: '${package.name} package - All Versions',
     canonicalUrl: urls.pkgPageUrl(package.name, includeHost: true),
     pageData: pkgPageData(package, latestVersion),
+    noIndex: package.isDiscontinued ?? false,
   );
 }
 
