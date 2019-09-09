@@ -35,6 +35,12 @@ class UpdatePublisherRequest {
   /// publisher will not be changed.
   final String description;
 
+  /// A valid URL that points to the publisher's website.
+  ///
+  /// If left as `null` this field will be ignored, and the website URL of the
+  /// publisher will not be changed.
+  final String websiteUrl;
+
   /// Email to be set as contact email for the publisher.
   ///
   /// If left as `null` this field will be ignored.
@@ -43,7 +49,12 @@ class UpdatePublisherRequest {
   final String contactEmail;
 
   // json_serializable boiler-plate
-  UpdatePublisherRequest({this.description, this.contactEmail});
+  UpdatePublisherRequest({
+    this.description,
+    this.websiteUrl,
+    this.contactEmail,
+  });
+
   factory UpdatePublisherRequest.fromJson(Map<String, dynamic> json) =>
       _$UpdatePublisherRequestFromJson(json);
   Map<String, dynamic> toJson() => _$UpdatePublisherRequestToJson(this);
@@ -55,11 +66,19 @@ class PublisherInfo {
   /// A human readable description in markdown.
   final String description;
 
+  /// The website URL of the publisher.
+  final String websiteUrl;
+
   /// The currently verified contact email for the publisher.
   final String contactEmail;
 
   // json_serializable boiler-plate
-  PublisherInfo({@required this.description, @required this.contactEmail});
+  PublisherInfo({
+    @required this.description,
+    @required this.websiteUrl,
+    @required this.contactEmail,
+  });
+
   factory PublisherInfo.fromJson(Map<String, dynamic> json) =>
       _$PublisherInfoFromJson(json);
   Map<String, dynamic> toJson() => _$PublisherInfoToJson(this);

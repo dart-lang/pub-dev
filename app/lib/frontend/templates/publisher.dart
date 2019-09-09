@@ -39,6 +39,8 @@ String renderPublisherAdminPage(Publisher publisher) {
   final String content = templateCache.renderTemplate('publisher/admin_page', {
     'publisher_id': publisher.publisherId,
     'description': publisher.description,
+    'website_url': publisher.websiteUrl,
+    'contact_email': publisher.contactEmail,
   });
   return renderLayoutPage(
     PageType.publisher,
