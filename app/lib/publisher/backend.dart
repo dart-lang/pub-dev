@@ -160,18 +160,23 @@ class PublisherBackend {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = (await tx.lookup<Publisher>([key])).single;
 
+      // If websiteUrl has changed, check that it's under the [publisherId] domain.
       if (update.websiteUrl != null && p.websiteUrl != update.websiteUrl) {
         final parsedUrl = Uri.tryParse(update.websiteUrl);
-        final isValid = parsedUrl != null &&
-            parsedUrl.isAbsolute &&
-            parsedUrl.toString() == update.websiteUrl;
+        final isValid = parsedUrl != null && parsedUrl.isAbsolute;
         InvalidInputException.check(isValid, 'Not a valid URL.');
+        InvalidInputException.check(
+            parsedUrl.scheme == 'https', 'The URL must use https.');
+        InvalidInputException.check(parsedUrl.host == publisherId,
+            'The URL host must be "$publisherId".');
+        InvalidInputException.check(
+            parsedUrl.port == 443, 'The URL must not set port.');
 
-        final pw = _publisherWebsite(publisherId);
-        InvalidInputException.check(update.websiteUrl.startsWith(pw),
-            'Only pages under "$pw" are accepted.');
+        InvalidInputException.check(parsedUrl.toString() == update.websiteUrl,
+            'The parsed URL does not match its original form.');
       }
 
+      // If contactEmail has changed, check that it's one of the admin's.
       if (update.contactEmail != null &&
           p.contactEmail != update.contactEmail) {
         final user =

@@ -131,23 +131,65 @@ void main() {
         ),
       );
 
-      testWithServices('bad URL', () async {
+      testWithServices('bad URL: relative link', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'example.com/'),
+        );
+        await expectApiException(rs, status: 400, message: 'Not a valid URL.');
+      });
+
+      testWithServices('bad URL with escapes', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(websiteUrl: 'https://example.com/  /%%%%'),
         );
-        await expectApiException(rs, status: 400, message: 'Not a valid URL.');
+        await expectApiException(rs,
+            status: 400,
+            message: 'The parsed URL does not match its original form.');
       });
 
-      testWithServices('bad prefix', () async {
+      testWithServices('bad URL scheme', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'http://example.com/'),
+        );
+        await expectApiException(rs,
+            status: 400, message: 'URL must use https.');
+      });
+
+      testWithServices('bad URL hostname', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(websiteUrl: 'https://other-domain.com/'),
         );
         await expectApiException(rs,
-            status: 400, message: '"https://example.com/"');
+            status: 400, message: 'URL host must be "example.com".');
+      });
+
+      testWithServices('different URL port', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com:999/'),
+        );
+        await expectApiException(rs,
+            status: 400, message: 'URL must not set port.');
+      });
+
+      testWithServices('overspecified URL port', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com:443/'),
+        );
+        await expectApiException(rs,
+            status: 400,
+            message: 'The parsed URL does not match its original form.');
       });
 
       testWithServices('OK', () async {
