@@ -28,6 +28,7 @@ void main() {
         final rs = await client.publisherInfo('example.com');
         expect(rs.toJson(), {
           'description': 'This is us!',
+          'websiteUrl': 'https://example.com/',
           'contactEmail': 'contact@example.com',
         });
       });
@@ -62,6 +63,7 @@ void main() {
         final r4 = await api.publisherInfo('verified.com');
         expect(r4.toJson(), {
           'description': 'hello-world',
+          'websiteUrl': 'https://verified.com/',
           'contactEmail': hansUser.email,
         });
       });
@@ -105,6 +107,100 @@ void main() {
         );
         expect(rs.toJson(), {
           'description': 'new description',
+          'websiteUrl': 'https://example.com/',
+          'contactEmail': 'contact@example.com',
+        });
+        // Info request should return with the same content.
+        final info = await client.publisherInfo('example.com');
+        expect(info.toJson(), rs.toJson());
+      });
+    });
+
+    group('Update websiteUrl', () {
+      _testAdminAuthIssues(
+        (client) => client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com/about'),
+        ),
+      );
+
+      _testNoPublisher(
+        (client) => client.updatePublisher(
+          'example.net',
+          UpdatePublisherRequest(websiteUrl: 'https://example.net/about'),
+        ),
+      );
+
+      testWithServices('bad URL: relative link', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'example.com/'),
+        );
+        await expectApiException(rs, status: 400, message: 'Not a valid URL.');
+      });
+
+      testWithServices('bad URL with escapes', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com/  /%%%%'),
+        );
+        await expectApiException(rs,
+            status: 400,
+            message: 'The parsed URL does not match its original form.');
+      });
+
+      testWithServices('bad URL scheme', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'http://example.com/'),
+        );
+        await expectApiException(rs,
+            status: 400, message: 'URL must use https.');
+      });
+
+      testWithServices('bad URL hostname', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://other-domain.com/'),
+        );
+        await expectApiException(rs,
+            status: 400, message: 'URL host must be "example.com".');
+      });
+
+      testWithServices('different URL port', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com:999/'),
+        );
+        await expectApiException(rs,
+            status: 400, message: 'URL must not set port.');
+      });
+
+      testWithServices('overspecified URL port', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com:443/'),
+        );
+        await expectApiException(rs,
+            status: 400,
+            message: 'The parsed URL does not match its original form.');
+      });
+
+      testWithServices('OK', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(websiteUrl: 'https://example.com/about'),
+        );
+        expect(rs.toJson(), {
+          'description': 'This is us!',
+          'websiteUrl': 'https://example.com/about',
           'contactEmail': 'contact@example.com',
         });
         // Info request should return with the same content.
@@ -166,6 +262,7 @@ void main() {
         );
         expect(rs.toJson(), {
           'description': 'This is us!',
+          'websiteUrl': 'https://example.com/',
           'contactEmail': 'hans@juergen.com',
         });
         // Info request should return with the same content.
@@ -180,10 +277,13 @@ void main() {
         final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(
-              description: 'new description', contactEmail: hansUser.email),
+              description: 'new description',
+              websiteUrl: 'https://example.com/about',
+              contactEmail: hansUser.email),
         );
         expect(rs.toJson(), {
           'description': 'new description',
+          'websiteUrl': 'https://example.com/about',
           'contactEmail': 'hans@juergen.com',
         });
         // Info request should return with the same content.

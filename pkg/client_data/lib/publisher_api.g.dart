@@ -23,6 +23,7 @@ UpdatePublisherRequest _$UpdatePublisherRequestFromJson(
     Map<String, dynamic> json) {
   return UpdatePublisherRequest(
     description: json['description'] as String,
+    websiteUrl: json['websiteUrl'] as String,
     contactEmail: json['contactEmail'] as String,
   );
 }
@@ -31,12 +32,14 @@ Map<String, dynamic> _$UpdatePublisherRequestToJson(
         UpdatePublisherRequest instance) =>
     <String, dynamic>{
       'description': instance.description,
+      'websiteUrl': instance.websiteUrl,
       'contactEmail': instance.contactEmail,
     };
 
 PublisherInfo _$PublisherInfoFromJson(Map<String, dynamic> json) {
   return PublisherInfo(
     description: json['description'] as String,
+    websiteUrl: json['websiteUrl'] as String,
     contactEmail: json['contactEmail'] as String,
   );
 }
@@ -44,6 +47,7 @@ PublisherInfo _$PublisherInfoFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$PublisherInfoToJson(PublisherInfo instance) =>
     <String, dynamic>{
       'description': instance.description,
+      'websiteUrl': instance.websiteUrl,
       'contactEmail': instance.contactEmail,
     };
 

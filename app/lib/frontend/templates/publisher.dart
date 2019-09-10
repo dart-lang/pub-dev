@@ -42,6 +42,8 @@ String renderPublisherAdminPage(Publisher publisher) {
     'header_html': renderContentHeader(title: publisher.publisherId),
     'publisher_id': publisher.publisherId,
     'description': publisher.description,
+    'website_url': publisher.websiteUrl,
+    'contact_email': publisher.contactEmail,
   });
   return renderLayoutPage(
     PageType.publisher,

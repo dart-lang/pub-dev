@@ -204,6 +204,7 @@ Publisher publisher(String domain) => Publisher()
   ..parentKey = Key.emptyKey(Partition(null))
   ..id = domain
   ..description = 'This is us!'
+  ..websiteUrl = 'https://$domain/'
   ..contactEmail = 'contact@$domain'
   ..created = DateTime(2019, 07, 15)
   ..updated = DateTime(2019, 07, 16)

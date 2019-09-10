@@ -344,6 +344,8 @@ class _CreatePublisherWidget {
 class _PublisherAdminWidget {
   Element _updateButton;
   TextAreaElement _descriptionTextArea;
+  InputElement _websiteUrlInput;
+  InputElement _contactEmailInput;
   InputElement _inviteMemberInput;
   Element _inviteMemberButton;
   Future<PublisherMembers> membersFuture;
@@ -353,6 +355,10 @@ class _PublisherAdminWidget {
     _updateButton = document.getElementById('-publisher-update-button');
     _descriptionTextArea =
         document.getElementById('-publisher-description') as TextAreaElement;
+    _websiteUrlInput =
+        document.getElementById('-publisher-website-url') as InputElement;
+    _contactEmailInput =
+        document.getElementById('-publisher-contact-email') as InputElement;
     _inviteMemberInput =
         document.getElementById('-admin-invite-member-input') as InputElement;
     _inviteMemberButton =
@@ -365,8 +371,11 @@ class _PublisherAdminWidget {
   }
 
   Future _updatePublisher() async {
-    final payload =
-        UpdatePublisherRequest(description: _descriptionTextArea.value);
+    final payload = UpdatePublisherRequest(
+      description: _descriptionTextArea.value,
+      websiteUrl: _websiteUrlInput.value,
+      contactEmail: _contactEmailInput.value,
+    );
     try {
       await client.updatePublisher(pageData.publisher.publisherId, payload);
       window.location.pathname =
@@ -439,6 +448,8 @@ class _PublisherAdminWidget {
 
   bool get isActive =>
       _descriptionTextArea != null &&
+      _websiteUrlInput != null &&
+      _contactEmailInput != null &&
       _updateButton != null &&
       _inviteMemberInput != null &&
       _inviteMemberButton != null;

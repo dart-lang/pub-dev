@@ -100,7 +100,7 @@ class PublisherBackend {
             p.updated.isBefore(now.subtract(Duration(minutes: 10))) ||
             p.contactEmail != authenticatedUser.email ||
             p.description != '' ||
-            p.websiteUrl != 'https://$publisherId') {
+            p.websiteUrl != _publisherWebsite(publisherId)) {
           throw ConflictException.publisherAlreadyExists(publisherId);
         }
         // Avoid creating the same publisher again, this end-point is idempotent
@@ -117,7 +117,7 @@ class PublisherBackend {
           ..description = ''
           ..contactEmail = authenticatedUser.email
           ..updated = now
-          ..websiteUrl = 'https://$publisherId'
+          ..websiteUrl = _publisherWebsite(publisherId)
           ..isAbandoned = false,
         PublisherMember()
           ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
@@ -160,6 +160,23 @@ class PublisherBackend {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = (await tx.lookup<Publisher>([key])).single;
 
+      // If websiteUrl has changed, check that it's under the [publisherId] domain.
+      if (update.websiteUrl != null && p.websiteUrl != update.websiteUrl) {
+        final parsedUrl = Uri.tryParse(update.websiteUrl);
+        final isValid = parsedUrl != null && parsedUrl.isAbsolute;
+        InvalidInputException.check(isValid, 'Not a valid URL.');
+        InvalidInputException.check(
+            parsedUrl.scheme == 'https', 'The URL must use https.');
+        InvalidInputException.check(parsedUrl.host == publisherId,
+            'The URL host must be "$publisherId".');
+        InvalidInputException.check(
+            parsedUrl.port == 443, 'The URL must not set port.');
+
+        InvalidInputException.check(parsedUrl.toString() == update.websiteUrl,
+            'The parsed URL does not match its original form.');
+      }
+
+      // If contactEmail has changed, check that it's one of the admin's.
       if (update.contactEmail != null &&
           p.contactEmail != update.contactEmail) {
         final user =
@@ -174,6 +191,7 @@ class PublisherBackend {
       }
 
       p.description = update.description ?? p.description;
+      p.websiteUrl = update.websiteUrl ?? p.websiteUrl;
       p.contactEmail = update.contactEmail ?? p.contactEmail;
       p.updated = DateTime.now().toUtc();
 
@@ -336,8 +354,11 @@ class PublisherBackend {
   }
 }
 
-api.PublisherInfo _asPublisherInfo(Publisher p) =>
-    api.PublisherInfo(description: p.description, contactEmail: p.contactEmail);
+api.PublisherInfo _asPublisherInfo(Publisher p) => api.PublisherInfo(
+      description: p.description,
+      websiteUrl: p.websiteUrl,
+      contactEmail: p.contactEmail,
+    );
 
 /// Loads [publisherId], returns its [Publisher] instance, and also checks if
 /// [userId] is an admin of the publisher.
@@ -367,3 +388,5 @@ Future<Publisher> requirePublisherAdmin(
 Future purgePublisherCache(String publisherId) async {
   await cache.uiPublisherPage(publisherId).purge();
 }
+
+String _publisherWebsite(String domain) => 'https://$domain/';
