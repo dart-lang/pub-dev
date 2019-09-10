@@ -16,7 +16,7 @@ packages:
     source: path
     version: "0.0.0"
   analyzer:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
@@ -77,7 +77,7 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.5"
+    version: "1.1.6"
   build_config:
     dependency: transitive
     description:
@@ -175,7 +175,7 @@ packages:
       name: dart_style
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.9"
+    version: "1.2.10"
   dartis:
     dependency: transitive
     description:
@@ -553,7 +553,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.4+3"
+    version: "0.9.4+4"
   source_map_stack_trace:
     dependency: transitive
     description:
