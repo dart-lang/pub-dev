@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20190910t122708-all`
+
  * Upgraded tool SDK to Dart `2.5.0`.
  * Upgraded Flutter SDK to `1.9.1+hotfix.2`.
  * Upgraded pana to `0.12.21` (upgraded analyzer).
