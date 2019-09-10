@@ -2,6 +2,8 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
+{{& header_html}}
+
 <div id="-admin-unauthenticated">
   <p>
     Publisher administration is for signed-in users only.
@@ -13,7 +15,6 @@
 </div>
 
 <div id="-admin-authorized">
-  <h2>Admin publisher: {{publisher_id}}</h2>
   <h4>Description</h4>
   <p>
     <textarea id="-publisher-description" class="pub-input" rows="16">{{description}}</textarea>
