@@ -61,7 +61,6 @@ void main() {
         'pub_data_generator/pub_data_generator-library.html',
         'static-assets/URI.js',
         'static-assets/css/bootstrap.css',
-        'static-assets/css/bootstrap.css.map',
         'static-assets/css/bootstrap.min.css',
         'static-assets/favicon.png',
         'static-assets/github.css',
