@@ -31,7 +31,7 @@ final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 final String gcBeforeRuntimeVersion = '2019.08.13';
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
-final String runtimeSdkVersion = '2.4.0';
+final String runtimeSdkVersion = '2.5.0';
 final String toolEnvSdkVersion = '2.5.0';
 
 // keep in-sync with app/pubspec.yaml
