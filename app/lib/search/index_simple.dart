@@ -168,6 +168,14 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on publisher
+    if (query.parsedQuery.publisher != null) {
+      packages.removeWhere((package) {
+        final doc = _packages[package];
+        return doc.publisherId != query.parsedQuery.publisher;
+      });
+    }
+
     // filter on email
     if (query.parsedQuery.emails.isNotEmpty) {
       packages.removeWhere((package) {

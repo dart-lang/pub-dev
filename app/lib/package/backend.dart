@@ -294,6 +294,7 @@ class PackageBackend {
       latestVersion = p.latestVersion;
       await checkPackageAdmin(p, user.userId);
       p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
+      p.updated = DateTime.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
           'doNotAdvertise: ${p.doNotAdvertise}');
@@ -361,6 +362,7 @@ class PackageBackend {
       final package = (await db.lookup<models.Package>([key])).single;
       package.publisherId = request.publisherId;
       package.uploaders.clear();
+      package.updated = DateTime.now().toUtc();
       tx.queueMutations(inserts: [package]);
       await tx.commit();
       return _asPackagePublisherInfo(package);
@@ -385,6 +387,7 @@ class PackageBackend {
 //      final package = (await db.lookup<models.Package>([key])).single;
 //      package.publisherId = null;
 //      package.uploaders = [user.userId];
+//      package.updated = DateTime.now().toUtc();
 //      tx.queueMutations(inserts: [package]);
 //      await tx.commit();
 //      return _asPackagePublisherInfo(package);
@@ -628,11 +631,9 @@ class GCloudPackageRepository extends PackageRepository {
       // Store the publisher of the package at the time of the upload.
       newVersion.publisherId = package.publisherId;
 
-      // Update the date when the package was last updated.
-      package.updated = newVersion.created;
-
       // Keep the latest version in the package object up-to-date.
       package.updateVersion(newVersion);
+      package.updated = DateTime.now().toUtc();
 
       try {
         _logger.info('Trying to upload tarball to cloud storage.');
@@ -840,6 +841,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Add [uploaderEmail] to uploaders and commit.
       package.addUploader(uploader.userId);
+      package.updated = DateTime.now().toUtc();
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {
@@ -909,6 +911,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       // Remove the uploader from the list.
       package.removeUploader(uploader.userId);
+      package.updated = DateTime.now().toUtc();
 
       final inserts = <Model>[package];
       if (historyBackend.isEnabled) {

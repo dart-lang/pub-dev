@@ -112,6 +112,7 @@ class SearchBackend {
       popularity: popularity,
       maintenance: analysisView.maintenanceScore,
       dependencies: _buildDependencies(analysisView),
+      publisherId: p.publisherId,
       emails: await _buildEmails(p, pv),
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
@@ -160,6 +161,7 @@ class SearchBackend {
         health: 0.0,
         popularity: popularity,
         maintenance: 0.0,
+        publisherId: p.publisherId,
         emails: await _buildEmails(p, null),
         timestamp: DateTime.now().toUtc(),
       );

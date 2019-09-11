@@ -166,6 +166,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         health: 1.0,
         maintenance: 1.0,
         dependencies: {'test': 'dev'},
+        publisherId: 'dart.dev',
         emails: ['user1@example.com'],
       ));
       await index.addPackage(PackageDocument(
@@ -485,6 +486,28 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'packages': [
           {'package': 'http', 'score': closeTo(0.895, 0.001)},
+        ],
+      });
+    });
+
+    test('no results via publisher', () async {
+      final PackageSearchResult result = await index
+          .search(SearchQuery.parse(query: 'publisher:other-domain.com'));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 0,
+        'packages': [],
+      });
+    });
+
+    test('filter by publisher', () async {
+      final PackageSearchResult result =
+          await index.search(SearchQuery.parse(query: 'publisher:dart.dev'));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
         ],
       });
     });

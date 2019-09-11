@@ -58,6 +58,7 @@ class PackageDocument {
   final double maintenance;
 
   final Map<String, String> dependencies;
+  final String publisherId;
   final List<String> emails;
 
   final List<ApiDocPage> apiDocPages;
@@ -81,6 +82,7 @@ class PackageDocument {
     this.popularity = 0,
     this.maintenance = 0,
     this.dependencies = const {},
+    this.publisherId,
     this.emails = const [],
     this.apiDocPages = const [],
     DateTime timestamp,
@@ -112,6 +114,7 @@ class PackageDocument {
               key: (key) => internFn(key as String),
               value: (key) => internFn(dependencies[key]),
             ),
+      publisherId: internFn(publisherId),
       emails: emails?.map(internFn)?.toList(),
       apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
       timestamp: timestamp,
@@ -202,6 +205,8 @@ String serializeSearchOrder(SearchOrder order) {
 final RegExp _whitespacesRegExp = RegExp(r'\s+');
 final RegExp _packageRegexp =
     RegExp('package:([_a-z0-9]+)', caseSensitive: false);
+final RegExp _publisherRegexp =
+    RegExp(r'publisher:([_a-z0-9\.]+)', caseSensitive: false);
 final RegExp _emailRegexp =
     RegExp(r'email:([_a-z0-9\@\-\.\+]+)', caseSensitive: false);
 final RegExp _refDependencyRegExp =
@@ -374,6 +379,9 @@ class ParsedQuery {
   /// Dependency match for all dependencies, including transitive ones.
   final List<String> allDependencies;
 
+  /// Match the publisher of the package.
+  final String publisher;
+
   /// Match authors and uploaders.
   final List<String> emails;
 
@@ -385,6 +393,7 @@ class ParsedQuery {
     this.packagePrefix,
     this.refDependencies,
     this.allDependencies,
+    this.publisher,
     this.emails,
     this.isApiEnabled,
   );
@@ -411,6 +420,8 @@ class ParsedQuery {
     final List<String> dependencies = extractRegExp(_refDependencyRegExp);
     final List<String> allDependencies = extractRegExp(_allDependencyRegExp);
     final List<String> emails = extractRegExp(_emailRegexp);
+    final allPublishers = extractRegExp(_publisherRegexp);
+    final publisher = allPublishers.isEmpty ? null : allPublishers.first;
 
     final bool isApiEnabled = queryText.contains(' !!api ');
     if (isApiEnabled) {
@@ -427,6 +438,7 @@ class ParsedQuery {
       packagePrefix,
       dependencies,
       allDependencies,
+      publisher,
       emails,
       isApiEnabled,
     );

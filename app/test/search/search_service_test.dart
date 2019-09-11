@@ -82,18 +82,26 @@ void main() {
       expect(query.parsedQuery.hasAnyDependency, isTrue);
     });
 
+    test('only publisher', () {
+      final query = SearchQuery.parse(query: 'publisher:example.com');
+      expect(query.parsedQuery.text, isNull);
+      expect(query.parsedQuery.publisher, 'example.com');
+    });
+
     test('only email', () {
       final query = SearchQuery.parse(query: 'email:user@domain.com');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.emails, ['user@domain.com']);
     });
 
-    test('email + text + dependency', () {
+    test('publisher + email + text + dependency', () {
       final query = SearchQuery.parse(
-          query: 'email:user@domain.com text dependency:pkg1');
+          query:
+              'publisher:example.com email:user@domain.com text dependency:pkg1');
       expect(query.parsedQuery.text, 'text');
       expect(query.parsedQuery.refDependencies, ['pkg1']);
       expect(query.parsedQuery.allDependencies, []);
+      expect(query.parsedQuery.publisher, 'example.com');
       expect(query.parsedQuery.emails, ['user@domain.com']);
     });
   });
