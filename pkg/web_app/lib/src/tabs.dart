@@ -8,8 +8,8 @@ Element _headerRoot;
 Element _contentRoot;
 
 void setupTabs() {
-  _headerRoot = document.querySelector('ul.pub-tabs-header');
-  _contentRoot = document.querySelector('div.pub-tabs-content');
+  _headerRoot = document.querySelector('ul.detail-tabs-header');
+  _contentRoot = document.querySelector('div.detail-tabs-content');
   _setEventsForTabs();
 
   window.onHashChange.listen((_) {
