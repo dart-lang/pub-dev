@@ -6,8 +6,6 @@ import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../static_files.dart';
-
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
