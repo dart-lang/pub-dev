@@ -71,6 +71,8 @@ String analysisTabUrl(String package) {
 }
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
+String publisherAdminUrl(String publisherId) =>
+    '/publishers/$publisherId/admin';
 
 String searchUrl({String platform, String q, int page}) {
   final packagesPath = platform == null ? '/packages' : '/$platform/packages';

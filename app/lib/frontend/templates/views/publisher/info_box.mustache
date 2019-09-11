@@ -1,0 +1,22 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+{{#description}}
+<h3 class="title">About</h3>
+<p>{{description}}</p>
+{{/description}}
+
+{{#website_url}}
+<h3 class="title">Website</h3>
+<p>
+  <a href="{{& website_url}}">{{publisher_id}}</a>
+</p>
+{{/website_url}}
+
+{{#contact_email}}
+<h3 class="title">Contact</h3>
+<p>
+  <a href="mailto:{{& contact_email}}">{{contact_email}}</a>
+</p>
+{{/contact_email}}

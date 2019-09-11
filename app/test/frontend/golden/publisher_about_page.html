@@ -81,9 +81,31 @@
             <div class="tags"></div>
           </div>
         </div>
-        <div class="publisher-container">
-          <p>This is our little software developer shop.</p>
-          <p>We develop full-stack in Dart, and happy about it.</p>
+        <div class="detail-container">
+          <ul class="detail-tabs-header">
+            <li class="tab-button -active" data-name="-about-tab-" role="button">About</li>
+            <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
+              <a href="/publishers/example.com/admin">Admin</a>
+            </li>
+          </ul>
+          <div class="main detail-tabs-content">
+            <section class="tab-content -active markdown-body" data-name="-about-tab-">
+              <p>This is our little software developer shop.</p>
+              <p>We develop full-stack in Dart, and happy about it.</p>
+            </section>
+          </div>
+          <aside class="detail-info-box">
+            <h3 class="title">About</h3>
+            <p>This is our little software developer shop. We develop full-stack in Dart, and happy about it.</p>
+            <h3 class="title">Website</h3>
+            <p>
+              <a href="https://example.com/">example.com</a>
+            </p>
+            <h3 class="title">Contact</h3>
+            <p>
+              <a href="mailto:hello@example.com">hello@example.com</a>
+            </p>
+          </aside>
         </div>
       </main>
     </div>
