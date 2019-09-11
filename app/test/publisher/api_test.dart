@@ -278,12 +278,12 @@ void main() {
           'example.com',
           UpdatePublisherRequest(
               description: 'new description',
-              websiteUrl: 'https://example.com/about',
+              websiteUrl: 'https://www.example.com/about',
               contactEmail: hansUser.email),
         );
         expect(rs.toJson(), {
           'description': 'new description',
-          'websiteUrl': 'https://example.com/about',
+          'websiteUrl': 'https://www.example.com/about',
           'contactEmail': 'hans@juergen.com',
         });
         // Info request should return with the same content.

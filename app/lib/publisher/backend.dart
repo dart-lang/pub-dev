@@ -167,7 +167,9 @@ class PublisherBackend {
         InvalidInputException.check(isValid, 'Not a valid URL.');
         InvalidInputException.check(
             parsedUrl.scheme == 'https', 'The URL must use https.');
-        InvalidInputException.check(parsedUrl.host == publisherId,
+        InvalidInputException.check(
+            parsedUrl.host == publisherId ||
+                parsedUrl.host == 'www.$publisherId',
             'The URL host must be "$publisherId".');
         InvalidInputException.check(
             parsedUrl.port == 443, 'The URL must not set port.');
