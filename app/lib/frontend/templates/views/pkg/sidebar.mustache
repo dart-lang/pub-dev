@@ -1,42 +1,41 @@
 {{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
-<aside class="sidebar sidebar-content">
-  <h3 class="title">About</h3>
-  {{#description}}
-    <p>{{description}}</p>
-  {{/description}}
-  <p>
-    {{#links}}
-    <a class="link" href="{{& href}}">{{label}}</a><br/>
-    {{/links}}
-  </p>
 
-  <h3 class="title">{{authors_title}}</h3>
-  <div>{{& authors_html}}</div>
+<h3 class="title">About</h3>
+{{#description}}
+  <p>{{description}}</p>
+{{/description}}
+<p>
+  {{#links}}
+  <a class="link" href="{{& href}}">{{label}}</a><br/>
+  {{/links}}
+</p>
 
-  {{#publisher_id}}
-    <h3 class="title">Publisher</h3>
-    <p>
-      <a href="{{& publisher_link}}">{{publisher_id}}</a>
-    </p>
-  {{/publisher_id}}
+<h3 class="title">{{authors_title}}</h3>
+<div>{{& authors_html}}</div>
 
-  {{#uploaders_html}}
-    <h3 class="title">{{uploaders_title}}</h3>
-    <p>{{& uploaders_html}}</p>
-  {{/uploaders_html}}
+{{#publisher_id}}
+<h3 class="title">Publisher</h3>
+<p>
+  <a href="{{& publisher_link}}">{{publisher_id}}</a>
+</p>
+{{/publisher_id}}
 
-  {{#license_html}}
-    <h3 class="title">License</h3>
-    <p>{{& license_html}}</p>
-  {{/license_html}}
+{{#uploaders_html}}
+<h3 class="title">{{uploaders_title}}</h3>
+<p>{{& uploaders_html}}</p>
+{{/uploaders_html}}
 
-  {{#dependencies_html}}
-    <h3 class="title">Dependencies</h3>
-    <p>{{& dependencies_html}}</p>
-  {{/dependencies_html}}
+{{#license_html}}
+<h3 class="title">License</h3>
+<p>{{& license_html}}</p>
+{{/license_html}}
 
-  <h3 class="title">More</h3>
-  <p><a href="{{{search_deps_link}}}" rel="nofollow">Packages that depend on {{name}}</a></p>
-</aside>
+{{#dependencies_html}}
+<h3 class="title">Dependencies</h3>
+<p>{{& dependencies_html}}</p>
+{{/dependencies_html}}
+
+<h3 class="title">More</h3>
+<p><a href="{{{search_deps_link}}}" rel="nofollow">Packages that depend on {{name}}</a></p>

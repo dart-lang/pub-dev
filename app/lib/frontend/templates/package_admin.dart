@@ -6,13 +6,11 @@ import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
 
-import '../static_files.dart';
-
 import '_cache.dart';
+import 'detail_page.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package.dart';
-import 'tabs.dart';
 
 /// Renders the `views/pkg/admin_page` template.
 String renderPkgAdminPage(
@@ -71,15 +69,11 @@ String renderPkgAdminPage(
     }),
   ));
 
-  final values = {
-    'header_html': renderPkgHeader(package, version, analysis),
-    'tabs_html': renderTabs(tabs),
-    'icons': staticUrls.versionsTableIcons,
-    'sidebar_html':
-        renderPkgSidebar(package, version, uploaderEmails, analysis),
-    // TODO: render schema_org_pkgmeta_json
-  };
-  final content = templateCache.renderTemplate('pkg/show', values);
+  final content = renderDetailPage(
+    headerHtml: renderPkgHeader(package, version, analysis),
+    tabs: tabs,
+    infoBoxHtml: renderPkgSidebar(package, version, uploaderEmails, analysis),
+  );
 
   return renderLayoutPage(
     PageType.package,

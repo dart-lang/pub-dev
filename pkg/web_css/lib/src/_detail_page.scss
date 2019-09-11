@@ -1,0 +1,146 @@
+.detail-container {
+  > .main {
+    display: inline-block;
+    width: calc(100% - 300px);
+    vertical-align: top;
+  }
+
+  > .detail-info-box {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 20px;
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 270px;
+    flex: 0 0 270px;
+    width: 270px;
+    padding: 20px;
+    background: #F8F8F8;
+    border: 1px solid #DDD;
+    position: relative;
+  }
+}
+
+@media screen and (max-width: 920px) {
+  .detail-container {
+    > .main {
+      display: block;
+      width: 100%;
+      vertical-align: top;
+    }
+
+    > .detail-info-box {
+      display: block;
+      width: 100%;
+      margin: 60px 0 0;
+    }
+  }
+}
+
+.detail-header {
+  margin: 30px 0 10px;
+
+  > .title {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  > .metadata {
+    font-size: 14px;
+    color: #555;
+
+    > .tags {
+      display: inline-block;
+      margin-left: 20px;
+    }
+  }
+}
+
+.detail-tabs-header {
+  margin: 10px 0 20px;
+  padding: 0;
+  border-bottom: 1px solid #f0f0f0;
+  list-style: none;
+
+  > .tab-button,
+  > .tab-link {
+    display: inline-block;
+    margin-right: 35px;
+    vertical-align: bottom;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &.-hidden {
+      display: none;
+    }
+  }
+
+  > .tab-button,
+  > .tab-link > a {
+    color: #666666;
+    padding: 10px 2px;
+    border-bottom: 4px solid;
+    border-bottom-color: transparent;
+    cursor: pointer;
+
+    &:hover {
+      border-bottom-color: #dddddd;
+    }
+
+    > .score-box {
+      float: none;
+      margin: 0;
+      position: inherit;
+    }
+  }
+
+  > .tab-button {
+    &.-active {
+      color: black;
+      border-bottom-color: black;
+    }
+  }
+
+  > .tab-link > a {
+    display: block;
+    font-weight: 400;
+  }
+}
+
+.detail-tabs-content {
+  > .tab-content {
+    display: none;
+
+    &.-active {
+      display: block;
+    }
+  }
+}
+
+.detail-info-box {
+  font-size: 14px;
+
+  > .title {
+    font-size: 14px;
+    margin: 12px 0 0 0;
+  }
+
+  &:not(:first-child) {
+    margin-top: 12px;
+  }
+
+  > p {
+    margin: 0;
+  }
+
+  > .link {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
+    line-height: 1.2em;
+  }
+}

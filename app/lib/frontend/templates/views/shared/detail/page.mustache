@@ -2,10 +2,13 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<div class="content-header">
-  <h2 class="title">{{title}}</h2>
-  <div class="metadata">
-    {{& metadata_html}}
-    <div class="tags">{{& tags_html}}</div>
-  </div>
+{{& header_html}}
+
+<div class="detail-container">
+  {{& tabs_html}}
+  <aside class="detail-info-box">
+  {{& info_box_html}}
+  </aside>
 </div>
+
+{{& footer_html}}
