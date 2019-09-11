@@ -18,10 +18,10 @@ import '../static_files.dart';
 
 import '_cache.dart';
 import '_utils.dart';
+import 'detail_page.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package_analysis.dart';
-import 'tabs.dart';
 
 String _renderLicenses(String baseUrl, List<LicenseFile> licenses) {
   if (licenses == null || licenses.isEmpty) return null;
@@ -215,7 +215,7 @@ String renderPkgHeader(
     'short_created': selectedVersion.shortCreated,
   };
   final metadataHtml = templateCache.renderTemplate('pkg/header', values);
-  return renderContentHeader(
+  return renderDetailHeader(
     title: '${package.name} ${selectedVersion.version}',
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
@@ -232,18 +232,15 @@ String renderPkgHeader(
 String renderPkgShowPage(Package package, List<String> uploaderEmails,
     PackageVersion selectedVersion, AnalysisView analysis) {
   final card = analysis?.card;
-  final tabs = _pkgTabs(package, selectedVersion, analysis);
 
-  final values = {
-    'header_html': renderPkgHeader(package, selectedVersion, analysis),
-    'tabs_html': renderTabs(tabs),
-    'icons': staticUrls.versionsTableIcons,
-    'sidebar_html':
+  final content = renderDetailPage(
+    headerHtml: renderPkgHeader(package, selectedVersion, analysis),
+    tabs: _pkgTabs(package, selectedVersion, analysis),
+    infoBoxHtml:
         renderPkgSidebar(package, selectedVersion, uploaderEmails, analysis),
-    'schema_org_pkgmeta_json':
-        json.encode(_schemaOrgPkgMeta(package, selectedVersion, analysis)),
-  };
-  final content = templateCache.renderTemplate('pkg/show', values);
+    footerHtml: renderPackageSchemaOrgHtml(package, selectedVersion, analysis),
+  );
+
   final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
   final isVersionPage = package.latestVersion != selectedVersion.version;
   final packageAndVersion = isVersionPage
@@ -370,7 +367,8 @@ String _getAuthorsHtml(List<String> authors) {
   }).join('<br/>');
 }
 
-Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
+String renderPackageSchemaOrgHtml(
+    Package p, PackageVersion pv, AnalysisView analysis) {
   final Map map = {
     '@context': 'http://schema.org',
     '@type': 'SoftwareSourceCode',
@@ -391,5 +389,5 @@ Map _schemaOrgPkgMeta(Package p, PackageVersion pv, AnalysisView analysis) {
     map['license'] = firstUrl;
   }
   // TODO: add http://schema.org/codeRepository for github and gitlab links
-  return map;
+  return '<script type="application/ld+json">\n${json.encode(map)}\n</script>\n';
 }

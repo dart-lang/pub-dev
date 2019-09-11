@@ -10,10 +10,10 @@ import '../static_files.dart';
 
 import '_cache.dart';
 import '_utils.dart';
+import 'detail_page.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package.dart';
-import 'tabs.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
@@ -106,15 +106,14 @@ String renderPkgVersionsPage(
     isHidden: true,
   ));
 
-  final values = {
-    'header_html': renderPkgHeader(package, latestVersion, latestAnalysis),
-    'tabs_html': renderTabs(tabs),
-    'icons': staticUrls.versionsTableIcons,
-    'sidebar_html': renderPkgSidebar(
+  final content = renderDetailPage(
+    headerHtml: renderPkgHeader(package, latestVersion, latestAnalysis),
+    tabs: tabs,
+    infoBoxHtml: renderPkgSidebar(
         package, latestVersion, uploaderEmails, latestAnalysis),
-    // TODO: render schema_org_pkgmeta_json
-  };
-  final content = templateCache.renderTemplate('pkg/show', values);
+    footerHtml:
+        renderPackageSchemaOrgHtml(package, latestVersion, latestAnalysis),
+  );
 
   return renderLayoutPage(
     PageType.package,

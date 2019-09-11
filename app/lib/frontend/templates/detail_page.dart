@@ -8,8 +8,36 @@ import 'package:meta/meta.dart';
 
 import '_cache.dart';
 
-/// Renders the `views/shared/tabs.mustache` template.
-String renderTabs(List<Tab> tabs) {
+/// Renders the `shared/detail/header.mustache` template
+String renderDetailHeader({
+  @required String title,
+  String metadataHtml,
+  String tagsHtml,
+}) {
+  return templateCache.renderTemplate('shared/detail/header', {
+    'title': title,
+    'metadata_html': metadataHtml,
+    'tags_html': tagsHtml,
+  });
+}
+
+/// Renders the `shared/detail/page.mustache` template
+String renderDetailPage({
+  @required String headerHtml,
+  @required List<Tab> tabs,
+  @required String infoBoxHtml,
+  String footerHtml,
+}) {
+  return templateCache.renderTemplate('shared/detail/page', {
+    'header_html': headerHtml,
+    'tabs_html': renderDetailTabs(tabs),
+    'info_box_html': infoBoxHtml,
+    'footer_html': footerHtml,
+  });
+}
+
+/// Renders the `views/shared/detail/tabs.mustache` template.
+String renderDetailTabs(List<Tab> tabs) {
   // active: the first one with content
   for (Tab tab in tabs) {
     if (tab.contentHtml != null) {
@@ -18,7 +46,7 @@ String renderTabs(List<Tab> tabs) {
     }
   }
   final values = {'tabs': tabs.map((t) => t._toMustacheData()).toList()};
-  return templateCache.renderTemplate('shared/tabs', values);
+  return templateCache.renderTemplate('shared/detail/tabs', values);
 }
 
 /// Defines the header and content part of a tab.

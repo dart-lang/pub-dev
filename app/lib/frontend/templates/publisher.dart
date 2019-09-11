@@ -8,8 +8,8 @@ import '../../publisher/models.dart' show Publisher;
 import '../../shared/markdown.dart';
 
 import '_cache.dart';
+import 'detail_page.dart';
 import 'layout.dart';
-import 'misc.dart' show renderContentHeader;
 
 /// Renders the `views/publisher/create.mustache` template.
 String renderCreatePublisherPage() {
@@ -21,7 +21,7 @@ String renderCreatePublisherPage() {
 /// Renders the `views/publisher/show.mustache` template.
 String renderPublisherPage(Publisher publisher) {
   final String content = templateCache.renderTemplate('publisher/show', {
-    'header_html': renderContentHeader(title: publisher.publisherId),
+    'header_html': renderDetailHeader(title: publisher.publisherId),
     'publisher_id': publisher.publisherId,
     'description_html': markdownToHtml(publisher.description, null),
   });
@@ -39,7 +39,7 @@ String renderPublisherPage(Publisher publisher) {
 /// Renders the `views/publisher/admin_page.mustache` template.
 String renderPublisherAdminPage(Publisher publisher) {
   final String content = templateCache.renderTemplate('publisher/admin_page', {
-    'header_html': renderContentHeader(title: publisher.publisherId),
+    'header_html': renderDetailHeader(title: publisher.publisherId),
     'publisher_id': publisher.publisherId,
     'description': publisher.description,
     'website_url': publisher.websiteUrl,

@@ -178,16 +178,3 @@ String _classifyScore(double value) {
   if (value <= 0.7) return 'good';
   return 'solid';
 }
-
-/// Renders the `shared/content_header.mustache` template
-String renderContentHeader({
-  @required String title,
-  String metadataHtml,
-  String tagsHtml,
-}) {
-  return templateCache.renderTemplate('shared/content_header', {
-    'title': title,
-    'metadata_html': metadataHtml,
-    'tags_html': tagsHtml,
-  });
-}
