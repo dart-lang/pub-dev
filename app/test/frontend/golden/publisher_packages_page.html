@@ -83,18 +83,57 @@
         </div>
         <div class="detail-container">
           <ul class="detail-tabs-header">
-            <li class="tab-link" data-name="-packages-tab-" role="button">
-              <a href="/publishers/example.com">Top Packages</a>
+            <li class="tab-button -active" data-name="-packages-tab-" role="button">Top Packages</li>
+            <li class="tab-link" data-name="-about-tab-" role="button">
+              <a href="/publishers/example.com/about">About</a>
             </li>
-            <li class="tab-button -active" data-name="-about-tab-" role="button">About</li>
             <li class="tab-link -hidden" data-name="-admin-tab-" role="button">
               <a href="/publishers/example.com/admin">Admin</a>
             </li>
           </ul>
           <div class="main detail-tabs-content">
-            <section class="tab-content -active markdown-body" data-name="-about-tab-">
-              <p>This is our little software developer shop.</p>
-              <p>We develop full-stack in Dart, and happy about it.</p>
+            <section class="tab-content -active" data-name="-packages-tab-">
+              <ul class="package-list">
+                <li class="list-item -full">
+                  <a href="/packages/super_package#-analysis-tab-">
+                    <div class="score-box">
+                      <span class="number -solid" title="Analysis and more details.">97</span>
+                    </div>
+                  </a>
+                  <h3 class="title">
+                    <a href="/packages/super_package">super_package</a>
+                  </h3>
+                  <p class="description">A great web UI library.</p>
+                  <p class="metadata">
+        v 
+                    <a href="/packages/super_package">1.0.0</a>
+        
+        • Updated: 
+                    <span>3 Jan 2019</span>
+                    <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
+                  </p>
+                </li>
+                <li class="list-item -full">
+                  <a href="/packages/another_package#-analysis-tab-">
+                    <div class="score-box">
+                      <span class="number -solid" title="Analysis and more details.">90</span>
+                    </div>
+                  </a>
+                  <h3 class="title">
+                    <a href="/packages/another_package">another_package</a>
+                  </h3>
+                  <p class="description">Camera plugin.</p>
+                  <p class="metadata">
+        v 
+                    <a href="/packages/another_package">2.0.0</a>
+         / 
+                    <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
+        • Updated: 
+                    <span>30 Mar 2019</span>
+                    <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
+                  </p>
+                </li>
+              </ul>
             </section>
           </div>
           <aside class="detail-info-box">
