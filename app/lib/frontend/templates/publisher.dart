@@ -19,6 +19,7 @@ String renderCreatePublisherPage() {
     PageType.standalone,
     content,
     title: 'Create publisher',
+    // TODO: enable indexing after we have launched publishers.
     noIndex: true,
   );
 }
