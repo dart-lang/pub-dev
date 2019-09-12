@@ -21,8 +21,13 @@ void setupTabs() {
 void _setEventsForTabs() {
   if (_headerRoot != null && _contentRoot != null) {
     _headerRoot.onClick.listen((e) {
-      // locate the <li> tag
       Element target = e.target as Element;
+      // If a tab link has been clicked, do not change the window location.
+      if (target.tagName.toLowerCase() == 'a' &&
+          target.attributes.containsKey('href')) {
+        return;
+      }
+      // locate the <li> tag to get the tab name
       while (target != null &&
           target.tagName.toLowerCase() != 'li' &&
           target.tagName.toLowerCase() != 'body') {
