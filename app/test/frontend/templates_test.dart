@@ -550,14 +550,14 @@ void main() {
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
 
-    scopedTest('publisher show page', () {
+    scopedTest('publisher about page', () {
       final html = renderPublisherPage(Publisher()
         ..id = 'example.com'
         ..contactEmail = 'hello@example.com'
         ..description = 'This is our little software developer shop.\n\n'
             'We develop full-stack in Dart, and happy about it.'
         ..websiteUrl = 'https://example.com/');
-      expectGoldenFile(html, 'publisher_show_page.html');
+      expectGoldenFile(html, 'publisher_about_page.html');
     });
 
     scopedTest('authorized page', () {
