@@ -41,12 +41,7 @@ class EmailSender {
     } else {
       _logger.info('Sending e-mail: $debugHeader...');
       try {
-        final result = await send(_toMessage(message), _server);
-        for (var sendReport in result) {
-          sendReport?.validationProblems?.forEach((p) {
-            _logger.info('E-mail problem: ${p.code} ${p.msg}.');
-          });
-        }
+        await send(_toMessage(message), _server);
       } catch (e, st) {
         _logger.severe('Sending e-mail failed: $debugHeader.', e, st);
       }
