@@ -29,6 +29,7 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
     dependencies: (json['dependencies'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(k, e as String),
     ),
+    publisherId: json['publisherId'] as String,
     emails: (json['emails'] as List)?.map((e) => e as String)?.toList(),
     apiDocPages: (json['apiDocPages'] as List)
         ?.map((e) =>
@@ -57,6 +58,7 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'popularity': instance.popularity,
       'maintenance': instance.maintenance,
       'dependencies': instance.dependencies,
+      'publisherId': instance.publisherId,
       'emails': instance.emails,
       'apiDocPages': instance.apiDocPages,
       'timestamp': instance.timestamp?.toIso8601String(),
