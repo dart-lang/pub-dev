@@ -67,13 +67,15 @@
     display: inline-block;
     margin-right: 35px;
     vertical-align: bottom;
+    transition: opacity 200ms; // allow tabs to fade-in, if -hidden is removed.
 
     &:last-child {
       margin-right: 0;
     }
 
     &.-hidden {
-      display: none;
+      visibility: hidden;
+      opacity: 0;
     }
   }
 
