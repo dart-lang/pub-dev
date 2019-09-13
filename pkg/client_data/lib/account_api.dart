@@ -39,10 +39,16 @@ class AccountPublisherOptions {
 
 @JsonSerializable(nullable: false)
 class Consent {
+  /// Title for this consent request.
+  final String titleText;
+
   /// The description of the consent request, in HTML format.
   final String descriptionHtml;
 
-  Consent({@required this.descriptionHtml});
+  Consent({
+    @required this.titleText,
+    @required this.descriptionHtml,
+  });
 
   factory Consent.fromJson(Map<String, dynamic> json) =>
       _$ConsentFromJson(json);

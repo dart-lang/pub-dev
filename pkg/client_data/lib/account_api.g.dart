@@ -32,11 +32,13 @@ Map<String, dynamic> _$AccountPublisherOptionsToJson(
 
 Consent _$ConsentFromJson(Map<String, dynamic> json) {
   return Consent(
+    titleText: json['titleText'] as String,
     descriptionHtml: json['descriptionHtml'] as String,
   );
 }
 
 Map<String, dynamic> _$ConsentToJson(Consent instance) => <String, dynamic>{
+      'titleText': instance.titleText,
       'descriptionHtml': instance.descriptionHtml,
     };
 
