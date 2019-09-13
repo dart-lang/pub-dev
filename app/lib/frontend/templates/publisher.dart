@@ -4,6 +4,7 @@
 
 import 'package:client_data/page_data.dart';
 
+import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
@@ -11,6 +12,7 @@ import '../../shared/urls.dart' as urls;
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
+import 'listing.dart';
 
 /// Renders the `views/publisher/create.mustache` template.
 String renderCreatePublisherPage() {
@@ -24,21 +26,51 @@ String renderCreatePublisherPage() {
   );
 }
 
-/// Renders the publisher page with the main description as tab content.
-String renderPublisherPage(Publisher publisher) {
+/// Renders the publisher page with the top packages as tab content.
+String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
+  final tabContent = packages.isEmpty
+      ? 'The publisher has no packages.'
+      : renderPackageList(packages);
+
   final tabs = <Tab>[
+    Tab.withContent(
+      id: 'packages',
+      title: 'Top Packages',
+      contentHtml: tabContent,
+    ),
+    _aboutLinkTab(publisher.publisherId),
+    _adminLinkTab(publisher.publisherId),
+  ];
+
+  final content = renderDetailPage(
+    headerHtml: renderDetailHeader(title: publisher.publisherId),
+    tabs: tabs,
+    infoBoxHtml: _renderPublisherInfoBox(publisher),
+  );
+
+  return renderLayoutPage(
+    PageType.publisher,
+    content,
+    title: 'Publisher: ${publisher.publisherId}',
+    pageData: PageData(
+      publisher: PublisherData(
+        publisherId: publisher.publisherId,
+      ),
+    ),
+  );
+}
+
+/// Renders the publisher page with the main description as tab content.
+String renderPublisherAboutPage(Publisher publisher) {
+  final tabs = <Tab>[
+    _packagesLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'about',
       title: 'About',
       contentHtml: markdownToHtml(publisher.description, null),
       isMarkdown: true,
     ),
-    Tab.withLink(
-      id: 'admin',
-      title: 'Admin',
-      href: urls.publisherAdminUrl(publisher.publisherId),
-      isHidden: true,
-    ),
+    _adminLinkTab(publisher.publisherId),
   ];
 
   final content = renderDetailPage(
@@ -102,11 +134,8 @@ String renderPublisherAdminPage(Publisher publisher) {
     'contact_email': publisher.contactEmail,
   });
   final tabs = <Tab>[
-    Tab.withLink(
-      id: 'about',
-      title: 'About',
-      href: urls.publisherUrl(publisher.publisherId),
-    ),
+    _packagesLinkTab(publisher.publisherId),
+    _aboutLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'admin',
       title: 'Admin',
@@ -132,3 +161,22 @@ String renderPublisherAdminPage(Publisher publisher) {
     noIndex: true,
   );
 }
+
+Tab _packagesLinkTab(String publisherId) => Tab.withLink(
+      id: 'packages',
+      title: 'Top Packages',
+      href: urls.publisherUrl(publisherId),
+    );
+
+Tab _aboutLinkTab(String publisherId) => Tab.withLink(
+      id: 'about',
+      title: 'About',
+      href: urls.publisherAboutUrl(publisherId),
+    );
+
+Tab _adminLinkTab(String publisherId) => Tab.withLink(
+      id: 'admin',
+      title: 'Admin',
+      href: urls.publisherAdminUrl(publisherId),
+      isHidden: true,
+    );

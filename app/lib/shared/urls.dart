@@ -71,6 +71,8 @@ String analysisTabUrl(String package) {
 }
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
+String publisherAboutUrl(String publisherId) =>
+    '/publishers/$publisherId/about';
 String publisherAdminUrl(String publisherId) =>
     '/publishers/$publisherId/admin';
 
