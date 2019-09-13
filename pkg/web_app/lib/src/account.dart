@@ -422,6 +422,7 @@ class _PublisherAdminWidget {
   }
 
   void update() {
+    if (!isActive) return;
     // only load trigger the loading of the members list once
     if (_isAdmin && membersFuture == null) {
       final publisherId = pageData.publisher.publisherId;
