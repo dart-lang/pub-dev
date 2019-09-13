@@ -51,7 +51,9 @@ class ConsentBackend {
     final activeAccountEmail =
         await accountBackend.getEmailOfUserId(c.fromUserId);
     return api.Consent(
-        descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args));
+      titleText: action.renderInviteTitleText(activeAccountEmail, c.args),
+      descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args),
+    );
   }
 
   /// Resolves the consent.
@@ -202,7 +204,15 @@ abstract class ConsentAction {
   /// The body of the notification e-mail sent.
   String renderInviteText(String activeAccountEmail, List<String> args);
 
-  /// The HTML-formatted notification message.
+  /// The title of the invite for use in list of invites, and headline when
+  /// viewing a specific invite.
+  String renderInviteTitleText(String activeAccountEmail, List<String> args);
+
+  /// The HTML-formatted invitation message.
+  ///
+  /// This message should explain what accepting this invite implies. Who can
+  /// see the user, what gets shared, how will user figure in permission
+  /// history, and what permissions will the user be granted.
   String renderInviteHtml(String activeAccountEmail, List<String> args);
 }
 
@@ -222,6 +232,12 @@ class _PublisherMemberAction extends ConsentAction {
   String renderInviteText(String activeAccountEmail, List<String> args) {
     final publisherId = args[0];
     return '$activeAccountEmail has invited you to be a member of publisher $publisherId.';
+  }
+
+  @override
+  String renderInviteTitleText(String activeAccountEmail, List<String> args) {
+    final publisherId = args[0];
+    return 'Invitation for publisher: $publisherId';
   }
 
   @override

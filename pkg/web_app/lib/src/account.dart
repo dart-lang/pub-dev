@@ -456,14 +456,16 @@ class _PublisherAdminWidget {
 }
 
 class _ConsentWidget {
-  Element _loading;
+  Element _title;
+  Element _content;
   Element _buttons;
   Future<Consent> _consentFuture;
   bool _loaded = false;
 
   void init() {
     if (!pageData.isConsentPage) return;
-    _loading = document.getElementById('-admin-consent-loading');
+    _title = document.getElementById('-admin-consent-title');
+    _content = document.getElementById('-admin-consent-content');
     _buttons = document.getElementById('-admin-consent-buttons');
     document
         .getElementById('-admin-consent-accept-button')
@@ -483,7 +485,8 @@ class _ConsentWidget {
     if (isSignedIn && _consentFuture == null) {
       _consentFuture = client.consentInfo(pageData.consentId);
       _consentFuture.then((consent) {
-        _loading.replaceWith(Element.div()
+        _title.innerText = consent.titleText;
+        _content.replaceWith(Element.div()
           ..children = [
             Element.div()..innerHtml = consent.descriptionHtml,
           ]);
@@ -498,7 +501,7 @@ class _ConsentWidget {
             text = (e.bodyAsJson()['message'] as String) ?? text;
           }
         }
-        _loading.replaceWith(Element.div()..text = text);
+        _content.replaceWith(Element.div()..text = text);
       });
     }
   }
@@ -536,5 +539,5 @@ class _ConsentWidget {
     }
   }
 
-  bool get isActive => _loading != null && _buttons != null;
+  bool get isActive => _content != null && _buttons != null;
 }
