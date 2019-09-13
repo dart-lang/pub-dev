@@ -116,7 +116,7 @@ String _renderInstallTab(
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
 /// from pubspec.yaml).
-String renderPkgSidebar(
+String renderPkgInfoBox(
   Package package,
   PackageVersion selectedVersion,
   List<String> uploaderEmails,
@@ -162,12 +162,13 @@ String renderPkgSidebar(
   addLink(documentationUrl, 'Documentation');
   addLink(dartdocsUrl, 'API reference');
 
-  return templateCache.renderTemplate('pkg/sidebar', {
+  final authorsCount = selectedVersion.pubspec.authors.length;
+
+  return templateCache.renderTemplate('pkg/info_box', {
     'name': package.name,
     'description': selectedVersion.pubspec.description,
     'links': links,
-    // TODO: make this 'Authors' if PackageVersion.authors is a list?!
-    'authors_title': 'Author',
+    'authors_title': authorsCount > 1 ? 'Authors' : 'Author',
     'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
     'publisher_id': package.publisherId,
     'publisher_link': package.publisherId == null
@@ -237,7 +238,7 @@ String renderPkgShowPage(Package package, List<String> uploaderEmails,
     headerHtml: renderPkgHeader(package, selectedVersion, analysis),
     tabs: _pkgTabs(package, selectedVersion, analysis),
     infoBoxHtml:
-        renderPkgSidebar(package, selectedVersion, uploaderEmails, analysis),
+        renderPkgInfoBox(package, selectedVersion, uploaderEmails, analysis),
     footerHtml: renderPackageSchemaOrgHtml(package, selectedVersion, analysis),
   );
 

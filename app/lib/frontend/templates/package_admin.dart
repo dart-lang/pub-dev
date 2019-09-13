@@ -72,7 +72,7 @@ String renderPkgAdminPage(
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, version, analysis),
     tabs: tabs,
-    infoBoxHtml: renderPkgSidebar(package, version, uploaderEmails, analysis),
+    infoBoxHtml: renderPkgInfoBox(package, version, uploaderEmails, analysis),
   );
 
   return renderLayoutPage(
