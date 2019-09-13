@@ -369,6 +369,7 @@ class DartdocJobProcessor extends JobProcessor {
         'PUB_HOSTED_URL': activeConfiguration.primaryApiUri.toString(),
       };
       environment.removeWhere((k, v) => v == null);
+      logFileOutput.writeln('Running: pub_dartdoc ${args.join(' ')}');
       final pr = await runProc(
         'dart',
         ['bin/pub_dartdoc.dart']..addAll(args),
