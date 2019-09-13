@@ -109,7 +109,7 @@ String renderPkgVersionsPage(
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, latestVersion, latestAnalysis),
     tabs: tabs,
-    infoBoxHtml: renderPkgSidebar(
+    infoBoxHtml: renderPkgInfoBox(
         package, latestVersion, uploaderEmails, latestAnalysis),
     footerHtml:
         renderPackageSchemaOrgHtml(package, latestVersion, latestAnalysis),
