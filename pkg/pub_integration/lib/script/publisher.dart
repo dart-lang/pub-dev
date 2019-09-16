@@ -41,7 +41,8 @@ class PublisherScript {
 
       await _publishDummyPkg('1.0.0');
       await Future.delayed(Duration(seconds: 1));
-      await _verifyDummyPkg(version: '1.0.0');
+      await _verifyDummyPkg(
+          version: '1.0.0', uploaderEmail: 'user@example.com');
 
       await _pubHttpClient.createPublisher(
         authToken: 'user-at-example-dot-com',
@@ -60,11 +61,12 @@ class PublisherScript {
       if (info['publisherId'] != 'example.com') {
         throw Exception('Unexpected publisher info: $infoBody');
       }
-      // TODO: check package page that publisherId is displayed
 
       await _publishDummyPkg('2.0.0');
       await Future.delayed(Duration(seconds: 1));
-      await _verifyDummyPkg(version: '2.0.0');
+      await _verifyDummyPkg(version: '2.0.0', publisherId: 'example.com');
+
+      // TODO: verify publisher page (after the search index picks up the package)
     } finally {
       await _temp.delete(recursive: true);
       _pubHttpClient.close();
@@ -79,7 +81,8 @@ class PublisherScript {
     await dir.delete(recursive: true);
   }
 
-  Future _verifyDummyPkg({String version}) async {
+  Future _verifyDummyPkg(
+      {String version, String uploaderEmail, String publisherId}) async {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != version) {
       throw Exception('Expected version does not match: $dv != $version');
@@ -92,6 +95,34 @@ class PublisherScript {
     if (!pageHtml.contains('developer@example.com')) {
       throw Exception(
           'pubspec author field is not to be found on package page.');
+    }
+
+    if (uploaderEmail != null) {
+      if (publisherId != null) throw ArgumentError();
+
+      // uploader must be present
+      if (!pageHtml.contains('Uploader') ||
+          !pageHtml.contains('user@example.com')) {
+        throw Exception('Uploader not found on the package page.');
+      }
+      // publisher most not be present
+      if (pageHtml.contains('href="/publishers/')) {
+        throw Exception('Publisher link found on the package page.');
+      }
+    }
+
+    if (publisherId != null) {
+      if (uploaderEmail != null) throw ArgumentError();
+
+      // uploader must not be present
+      if (pageHtml.contains('Uploader') ||
+          pageHtml.contains('user@example.com')) {
+        throw Exception('Uploader found on the package page.');
+      }
+      // publisher must be present
+      if (!pageHtml.contains('href="/publishers/$publisherId"')) {
+        throw Exception('Publisher link not found on the package page.');
+      }
     }
   }
 }

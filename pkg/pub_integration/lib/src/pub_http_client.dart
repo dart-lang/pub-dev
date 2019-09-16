@@ -34,9 +34,22 @@ class PubHttpClient {
     }
   }
 
-  /// Get the content of the latest version page of a package.
+  /// Get the content of the latest version page of a package or null if it does
+  /// not exists.
   Future<String> getLatestVersionPage(String package) async {
     final rs = await _http.get('$pubHostedUrl/packages/$package');
+    if (rs.statusCode == 404) {
+      return null;
+    } else if (rs.statusCode == 200) {
+      return rs.body;
+    } else {
+      throw Exception('Unexpected result: ${rs.statusCode} ${rs.reasonPhrase}');
+    }
+  }
+
+  /// Get the content of the publisher page or null if it does not exists.
+  Future<String> getPublisherPage(String publisherId) async {
+    final rs = await _http.get('$pubHostedUrl/publishers/$publisherId');
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {
