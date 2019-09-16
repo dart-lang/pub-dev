@@ -98,6 +98,7 @@ String _renderPublisherInfoBox(Publisher publisher) {
     'publisher_id': publisher.publisherId,
     'website_url': publisher.websiteUrl,
     'contact_email': publisher.contactEmail,
+    'search_link': urls.searchUrl(q: 'publisher:${publisher.publisherId}'),
   });
 }
 
