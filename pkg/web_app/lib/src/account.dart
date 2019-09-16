@@ -519,7 +519,7 @@ class _ConsentWidget {
 }
 
 Future<R> _rpc<R>(Future<R> fn()) async {
-  // Disable only the selected Elements that are not disabled at the moment.
+  // Disable input and button Elements that are not disabled at the moment.
   final inputs = document
       .querySelectorAll('input')
       .cast<InputElement>()
@@ -539,6 +539,11 @@ Future<R> _rpc<R>(Future<R> fn()) async {
     final message = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
     // TODO: render as a modal alert window
     // TODO: render as HTML
+    window.alert(message);
+    rethrow;
+  } catch (e) {
+    final message = 'Unexpected error: $e';
+    // TODO: render as a modal alert window
     window.alert(message);
     rethrow;
   } finally {
