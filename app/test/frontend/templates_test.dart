@@ -557,7 +557,8 @@ void main() {
             ..contactEmail = 'hello@example.com'
             ..description = 'This is our little software developer shop.\n\n'
                 'We develop full-stack in Dart, and happy about it.'
-            ..websiteUrl = 'https://example.com/',
+            ..websiteUrl = 'https://example.com/'
+            ..created = DateTime(2019, 09, 13),
           [
             PackageView(
               name: 'super_package',
@@ -586,7 +587,8 @@ void main() {
         ..contactEmail = 'hello@example.com'
         ..description = 'This is our little software developer shop.\n\n'
             'We develop full-stack in Dart, and happy about it.'
-        ..websiteUrl = 'https://example.com/');
+        ..websiteUrl = 'https://example.com/'
+        ..created = DateTime(2019, 09, 13));
       expectGoldenFile(html, 'publisher_about_page.html');
     });
 

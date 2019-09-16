@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:client_data/page_data.dart';
 
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart' show shortDateFormat;
 
 import '_cache.dart';
 import 'detail_page.dart';
@@ -43,7 +46,7 @@ String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
   ];
 
   final content = renderDetailPage(
-    headerHtml: renderDetailHeader(title: publisher.publisherId),
+    headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
     infoBoxHtml: _renderPublisherInfoBox(publisher),
   );
@@ -74,7 +77,7 @@ String renderPublisherAboutPage(Publisher publisher) {
   ];
 
   final content = renderDetailPage(
-    headerHtml: renderDetailHeader(title: publisher.publisherId),
+    headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
     infoBoxHtml: _renderPublisherInfoBox(publisher),
   );
@@ -145,7 +148,7 @@ String renderPublisherAdminPage(Publisher publisher) {
   ];
 
   final content = renderDetailPage(
-    headerHtml: renderDetailHeader(title: publisher.publisherId),
+    headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
     infoBoxHtml: _renderPublisherInfoBox(publisher),
   );
@@ -159,6 +162,14 @@ String renderPublisherAdminPage(Publisher publisher) {
       ),
     ),
     noIndex: true,
+  );
+}
+
+String _renderDetailHeader(Publisher publisher) {
+  final shortCreated = shortDateFormat.format(publisher.created);
+  return renderDetailHeader(
+    title: publisher.publisherId,
+    metadataHtml: htmlEscape.convert('Publisher registered on $shortCreated.'),
   );
 }
 
