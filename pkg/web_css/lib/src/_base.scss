@@ -29,7 +29,7 @@ button {
 
 button.pub-button {
   font-size: 13px;
-  margin: 20px;
+  margin: 20px 20px 20px 0px;
   padding: 12px 24px;
   font-weight: 500;
   color: white;
@@ -43,17 +43,12 @@ button.pub-button {
   }
 }
 
-input.pub-input {
-  font-size: 13px;
-  margin: 20px;
-  padding: 12px 24px;
-}
-
+input.pub-input,
 textarea.pub-input {
-  width: 100%;
   font-size: 13px;
-  margin: 20px 0px;
   padding: 12px;
+  margin: 0 -24px 0 0;
+  width: 100%;
 }
 
 a {

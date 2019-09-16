@@ -13,10 +13,29 @@
     -ms-flex: 0 0 270px;
     flex: 0 0 270px;
     width: 270px;
-    padding: 20px;
+    padding: 10px 20px 22px 20px;
     background: #F8F8F8;
     border: 1px solid #DDD;
     position: relative;
+    font-size: 14px;
+
+    > .title {
+      font-size: 14px;
+      margin: 12px 0 0 0;
+    }
+
+    > p {
+      margin: 0;
+    }
+
+    > .link {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 100%;
+      display: inline-block;
+      line-height: 1.2em;
+    }
   }
 }
 
@@ -118,31 +137,5 @@
     &.-active {
       display: block;
     }
-  }
-}
-
-.detail-info-box {
-  font-size: 14px;
-
-  > .title {
-    font-size: 14px;
-    margin: 12px 0 0 0;
-  }
-
-  &:not(:first-child) {
-    margin-top: 12px;
-  }
-
-  > p {
-    margin: 0;
-  }
-
-  > .link {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    max-width: 100%;
-    display: inline-block;
-    line-height: 1.2em;
   }
 }
