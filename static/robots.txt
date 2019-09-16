@@ -1,3 +1,3 @@
 User-agent: *
 Disallow: /experimental/
-sitemap: https://pub.dartlang.org/sitemap.txt
+Sitemap: https://pub.dev/sitemap.txt
