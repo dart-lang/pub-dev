@@ -26,9 +26,16 @@ Future<bool> modalConfirm(String question) async {
 /// Returns true if "OK" was pressed, false otherwise.
 Future<bool> _modalWindow(String title, String contentHtml, bool isQuestion) {
   final completer = Completer<bool>();
-  final cancelButton = Element.tag('button')
+  final cancelButton = ButtonElement()
     ..className = 'pub-button secondary'
     ..text = 'Cancel';
+  final okButton = ButtonElement()
+    ..className = 'pub-button'
+    ..text = 'OK'
+    ..onClick.listen((e) {
+      completer.complete(true);
+      e.stopPropagation();
+    });
   final elem = Element.div()
     ..className = 'pub-modal'
     ..children = [
@@ -43,13 +50,7 @@ Future<bool> _modalWindow(String title, String contentHtml, bool isQuestion) {
             ..className = 'pub-modal-buttons'
             ..children = [
               if (isQuestion) cancelButton,
-              Element.tag('button')
-                ..className = 'pub-button'
-                ..text = 'OK'
-                ..onClick.listen((e) {
-                  completer.complete(true);
-                  e.stopPropagation();
-                }),
+              okButton,
             ]
         ],
     ];
@@ -59,6 +60,7 @@ Future<bool> _modalWindow(String title, String contentHtml, bool isQuestion) {
     }
   });
   document.body.append(elem);
+  okButton.focus();
   completer.future.then((_) {
     elem.remove();
   });
