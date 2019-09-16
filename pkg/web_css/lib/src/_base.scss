@@ -48,6 +48,11 @@ button.pub-button {
     color: #aaa;
     cursor: not-allowed;
   }
+
+  &.secondary {
+    background-color: lighten($color-input-primary, 50%);
+    color: black;
+  }
 }
 
 input.pub-input,
@@ -484,4 +489,40 @@ pre > code {
 }
 .center {
   text-align: center;
+}
+
+.pub-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: rgba(0, 0, 0, 0.7);
+
+  >.pub-modal-panel {
+    background: white;
+    border: 1px solid #666;
+    border-radius: 24px;
+    padding: 24px;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 300px;
+    max-width: 600px;
+
+    >.pub-modal-content {
+      margin-bottom: 24px;
+    }
+
+    >.pub-modal-buttons {
+      text-align: center;
+
+      .pub-button {
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+    }
+  }
 }
