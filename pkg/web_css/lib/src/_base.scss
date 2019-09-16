@@ -41,6 +41,13 @@ button.pub-button {
   &:hover {
     background-color: darken($color-input-primary, 10%);
   }
+
+  &:disabled {
+    background-color: lighten($color-input-primary, 66%);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+    color: #aaa;
+    cursor: not-allowed;
+  }
 }
 
 input.pub-input,
@@ -49,6 +56,10 @@ textarea.pub-input {
   padding: 12px;
   margin: 0 -24px 0 0;
   width: 100%;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 }
 
 a {

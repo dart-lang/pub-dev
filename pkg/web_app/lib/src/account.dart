@@ -232,13 +232,10 @@ class _PkgAdminWidget {
     }
     final options =
         PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
-    try {
+    await _rpc(() async {
       await client.setPackageOptions(pageData.pkgData.package, options);
       window.location.reload();
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   Future _setPublisher() async {
@@ -252,13 +249,10 @@ class _PkgAdminWidget {
       return;
     }
     final payload = PackagePublisherInfo(publisherId: publisherId);
-    try {
+    await _rpc(() async {
       await client.setPackagePublisher(pageData.pkgData.package, payload);
       window.location.reload();
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   void update() {
@@ -327,14 +321,10 @@ class _CreatePublisherWidget {
     final payload = CreatePublisherRequest(
       accessToken: currentUser.getAuthResponse(true).access_token,
     );
-    try {
+    await _rpc(() async {
       await client.createPublisher(publisherId, payload);
       window.location.pathname = '/publishers/$publisherId';
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      // TODO: render this message as HTML on the page.
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   bool get isActive => _publisherIdInput != null && _createButton != null;
@@ -376,14 +366,11 @@ class _PublisherAdminWidget {
       websiteUrl: _websiteUrlInput.value,
       contactEmail: _contactEmailInput.value,
     );
-    try {
+    await _rpc(() async {
       await client.updatePublisher(pageData.publisher.publisherId, payload);
       window.location.pathname =
           '/publishers/${pageData.publisher.publisherId}';
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   Future _inviteMember() async {
@@ -397,13 +384,10 @@ class _PublisherAdminWidget {
       return;
     }
     final payload = InviteMemberRequest(email: email);
-    try {
+    await _rpc(() async {
       await client.invitePublisherMember(
           pageData.publisher.publisherId, payload);
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   Future _removeMember(PublisherMember pm) async {
@@ -411,14 +395,11 @@ class _PublisherAdminWidget {
         'Are you sure you want to remove "${pm.email}" from this publisher?')) {
       return;
     }
-    try {
+    await _rpc(() async {
       await client.removePublisherMember(
           pageData.publisher.publisherId, pm.userId);
       window.location.reload();
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   void update() {
@@ -516,29 +497,67 @@ class _ConsentWidget {
     if (!window.confirm('Are you sure you want to accept?')) {
       return;
     }
-    try {
+    await _rpc(() async {
       final rs = await client.resolveConsent(
           pageData.consentId, ConsentResult(granted: true));
       _updateButtons(rs.granted);
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   Future _reject() async {
     if (!window.confirm('Are you sure you want to reject?')) {
       return;
     }
-    try {
+    await _rpc(() async {
       final rs = await client.resolveConsent(
           pageData.consentId, ConsentResult(granted: false));
       _updateButtons(rs.granted);
-    } on RequestException catch (e) {
-      final map = e.bodyAsJson();
-      window.alert(map['message'] as String);
-    }
+    });
   }
 
   bool get isActive => _content != null && _buttons != null;
+}
+
+Future<R> _rpc<R>(Future<R> fn()) async {
+  // Disable input and button Elements that are not disabled at the moment.
+  final inputs = document
+      .querySelectorAll('input')
+      .cast<InputElement>()
+      .where((e) => !e.disabled)
+      .toList();
+  final buttons = document
+      .querySelectorAll('button.pub-button')
+      .cast<ButtonElement>()
+      .where((e) => !e.disabled)
+      .toList();
+
+  buttons.forEach((e) => e.disabled = true);
+  inputs.forEach((e) => e.disabled = true);
+  try {
+    return await fn();
+  } on RequestException catch (e) {
+    final message = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
+    // TODO: render as a modal alert window
+    // TODO: render as HTML
+    window.alert(message);
+    rethrow;
+  } catch (e) {
+    final message = 'Unexpected error: $e';
+    // TODO: render as a modal alert window
+    window.alert(message);
+    rethrow;
+  } finally {
+    buttons.forEach((e) => e.disabled = false);
+    inputs.forEach((e) => e.disabled = false);
+  }
+}
+
+String _requestExceptionMessage(RequestException e) {
+  try {
+    final map = e.bodyAsJson();
+    return (map['message'] as String) ?? (map['error'] as String);
+  } on FormatException catch (_) {
+    // ignore bad body
+  }
+  return null;
 }
