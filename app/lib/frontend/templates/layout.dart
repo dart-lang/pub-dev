@@ -100,7 +100,7 @@ String renderLayoutPage(
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,
-    'show_publiser_nav_menu': requestContext.isExperimental,
+    'show_publisher_nav_menu': requestContext.isExperimental,
   };
   return templateCache.renderTemplate('layout', values);
 }
