@@ -9,6 +9,7 @@ import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:http/http.dart' as http;
+import 'package:markdown/markdown.dart' as markdown;
 
 import '_authenticated_client.dart';
 import '_dom_helper.dart';
@@ -226,10 +227,10 @@ class _PkgAdminWidget {
   }
 
   Future _toogleDiscontinued() async {
-    if (!window.confirm(
-        'Are you sure you want change the "discontinued" status of the package?')) {
-      return;
-    }
+    final confirmed = await modalConfirm(
+        'Are you sure you want change the "discontinued" status of the package?');
+    if (!confirmed) return;
+
     final options =
         PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
     await _rpc(() async {
@@ -241,13 +242,16 @@ class _PkgAdminWidget {
   Future _setPublisher() async {
     final publisherId = _setPublisherInput.value.trim();
     if (publisherId.isEmpty) {
-      window.alert('Please specify a publisher.');
+      await modalMessage(
+        'Input validation',
+        'Please specify a publisher.',
+      );
       return;
     }
-    if (!window.confirm('Are you sure you want to transfer the package to '
-        'publisher "$publisherId"?')) {
-      return;
-    }
+    final confirmed = await modalConfirm(
+        'Are you sure you want to transfer the package to publisher <code>$publisherId</code>?');
+    if (!confirmed) return;
+
     final payload = PackagePublisherInfo(publisherId: publisherId);
     await _rpc(() async {
       await client.setPackagePublisher(pageData.pkgData.package, payload);
@@ -302,13 +306,14 @@ class _CreatePublisherWidget {
 
   void _triggerCreate(String publisherId) async {
     if (publisherId.isEmpty || !publisherId.contains('.')) {
-      window.alert('Please use a domain name as publisher id.');
+      await modalMessage(
+          'Input validation', 'Please use a domain name as publisher id.');
       return;
     }
-    if (!window.confirm(
-        'Are you sure you want to create publisher for "$publisherId"?')) {
-      return;
-    }
+    final confirmed = await modalConfirm(
+        'Are you sure you want to create publisher for <code>$publisherId</code>?');
+    if (!confirmed) return;
+
     GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
     final extraScope = 'https://www.googleapis.com/auth/webmasters.readonly';
 
@@ -376,13 +381,14 @@ class _PublisherAdminWidget {
   Future _inviteMember() async {
     final email = _inviteMemberInput.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
-      window.alert('Please specify a valid e-mail.');
+      await modalMessage('Input validation', 'Please specify a valid e-mail.');
       return;
     }
-    if (!window.confirm('Are you sure you want to invite "$email" as an '
-        'administrator member to this publisher?')) {
-      return;
-    }
+    final confirmed = await modalConfirm(
+        'Are you sure you want to invite <code>$email</code> '
+        'as an administrator member to this publisher?');
+    if (!confirmed) return;
+
     final payload = InviteMemberRequest(email: email);
     await _rpc(() async {
       await client.invitePublisherMember(
@@ -391,10 +397,10 @@ class _PublisherAdminWidget {
   }
 
   Future _removeMember(PublisherMember pm) async {
-    if (!window.confirm(
-        'Are you sure you want to remove "${pm.email}" from this publisher?')) {
-      return;
-    }
+    final confirmed = await modalConfirm(
+        'Are you sure you want to remove <code>${pm.email}</code> from this publisher?');
+    if (!confirmed) return;
+
     await _rpc(() async {
       await client.removePublisherMember(
           pageData.publisher.publisherId, pm.userId);
@@ -494,9 +500,9 @@ class _ConsentWidget {
   }
 
   Future _accept() async {
-    if (!window.confirm('Are you sure you want to accept?')) {
-      return;
-    }
+    final confirmed = await modalConfirm('Are you sure you want to accept?');
+    if (!confirmed) return;
+
     await _rpc(() async {
       final rs = await client.resolveConsent(
           pageData.consentId, ConsentResult(granted: true));
@@ -505,9 +511,9 @@ class _ConsentWidget {
   }
 
   Future _reject() async {
-    if (!window.confirm('Are you sure you want to reject?')) {
-      return;
-    }
+    final confirmed = await modalConfirm('Are you sure you want to reject?');
+    if (!confirmed) return;
+
     await _rpc(() async {
       final rs = await client.resolveConsent(
           pageData.consentId, ConsentResult(granted: false));
@@ -536,15 +542,13 @@ Future<R> _rpc<R>(Future<R> fn()) async {
   try {
     return await fn();
   } on RequestException catch (e) {
-    final message = _requestExceptionMessage(e) ?? 'Unexpected error: $e';
-    // TODO: render as a modal alert window
-    // TODO: render as HTML
-    window.alert(message);
+    final message = markdown
+        .markdownToHtml(_requestExceptionMessage(e) ?? 'Unexpected error: $e');
+    await modalMessage('Error', message);
     rethrow;
   } catch (e) {
-    final message = 'Unexpected error: $e';
-    // TODO: render as a modal alert window
-    window.alert(message);
+    final message = markdown.markdownToHtml('Unexpected error: $e');
+    await modalMessage('Error', message);
     rethrow;
   } finally {
     buttons.forEach((e) => e.disabled = false);
