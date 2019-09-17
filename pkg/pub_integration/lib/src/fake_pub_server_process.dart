@@ -73,7 +73,7 @@ class FakePubServerProcess {
         }
       },
     );
-    Timer(Duration(seconds: 30), () {
+    Timer(Duration(seconds: 60), () {
       if (!_startedCompleter.isCompleted) {
         _startedCompleter.completeError('Timout starting fake_pub_server');
       }
