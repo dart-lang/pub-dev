@@ -22,6 +22,15 @@ Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
   return htmlResponse(renderCreatePublisherPage());
 }
 
+/// Handles requests for GET /publishers
+Future<shelf.Response> publisherListHandler(shelf.Request request) async {
+  final content = await cache.uiPublisherListPage().get(() async {
+    final publishers = await publisherBackend.listPublishers(limit: 1000);
+    return renderPublisherListPage(publishers);
+  });
+  return htmlResponse(content);
+}
+
 /// Handles requests for GET /publishers/<publisherId>
 Future<shelf.Response> publisherPageHandler(
     shelf.Request request, String publisherId) async {

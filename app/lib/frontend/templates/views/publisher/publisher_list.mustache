@@ -1,0 +1,28 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<h2>Publishers</h2>
+
+{{#has_publishers}}
+<ul class="package-list">
+  {{#publishers}}
+  <li class="list-item">
+    <h3 class="title"><a href="{{& url}}">{{publisher_id}}</a></h3>
+    <p class="metadata">
+      Registered on {{short_created}}.
+    </p>
+  </li>
+  {{/publishers}}
+</ul>
+{{/has_publishers}}
+
+{{^has_publishers}}
+<p>No publisher has been registered.</p>
+{{/has_publishers}}
+
+<h3>How to create a new publisher?</h3>
+<p>
+  Visit the <a href="/create-publisher">create publisher</a> page and you
+  will be able to register your own.
+</p>

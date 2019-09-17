@@ -29,6 +29,27 @@ String renderCreatePublisherPage() {
   );
 }
 
+/// Renders the `views/publisher/publisher_list.mustache` template
+String renderPublisherListPage(List<Publisher> publishers) {
+  final content = templateCache.renderTemplate('publisher/publisher_list', {
+    'has_publishers': publishers.isNotEmpty,
+    'publishers': publishers
+        .map(
+          (p) => {
+            'publisher_id': p.publisherId,
+            'url': urls.publisherUrl(p.publisherId),
+            'short_created': shortDateFormat.format(p.created),
+          },
+        )
+        .toList(),
+  });
+  return renderLayoutPage(
+    PageType.listing,
+    content,
+    title: 'Publishers',
+  );
+}
+
 /// Renders the publisher page with the top packages as tab content.
 String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
   final tabContent = packages.isEmpty

@@ -67,6 +67,8 @@ class PublisherScript {
       await _verifyDummyPkg(version: '2.0.0', publisherId: 'example.com');
 
       // TODO: verify publisher page (after the search index picks up the package)
+
+      await _verifyPublisherListPage();
     } finally {
       await _temp.delete(recursive: true);
       _pubHttpClient.close();
@@ -123,6 +125,13 @@ class PublisherScript {
       if (!pageHtml.contains('href="/publishers/$publisherId"')) {
         throw Exception('Publisher link not found on the package page.');
       }
+    }
+  }
+
+  Future _verifyPublisherListPage() async {
+    final html = await _pubHttpClient.getPublisherListPage();
+    if (!html.contains('href="/publishers/example.com"')) {
+      throw Exception('Does not contain link to publisher.');
     }
   }
 }

@@ -42,6 +42,13 @@ class PublisherBackend {
     return (await _db.lookup<Publisher>([pKey])).single;
   }
 
+  /// List publishers (in no specific order, it will be listed by their
+  /// `publisherId` alphabetically).
+  Future<List<Publisher>> listPublishers({int limit = 100}) async {
+    final query = _db.query<Publisher>()..limit(limit);
+    return await query.run().toList();
+  }
+
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
   Future<PublisherMember> getPublisherMember(
       String publisherId, String userId) async {
