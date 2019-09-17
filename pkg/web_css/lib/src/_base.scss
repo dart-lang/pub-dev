@@ -83,7 +83,7 @@ main {
   min-height: calc(100vh - 360px); // top nav + search banner + footer margin + footer padding
 
    body.page-standalone & {
-    max-width: 600px;
+    max-width: 800px;
   }
 }
 
