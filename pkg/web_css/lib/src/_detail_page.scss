@@ -128,6 +128,21 @@
     display: block;
     font-weight: 400;
   }
+
+  /* Render admin tab with red. */
+  $admin-tab-color: #990000;
+
+  > .tab-button[data-name="-admin-tab-"],
+  > .tab-link[data-name="-admin-tab-"] > a {
+    color: $admin-tab-color;
+
+    &:hover {
+      border-bottom-color: $admin-tab-color;
+    }
+  }
+  > .tab-button.-active[data-name="-admin-tab-"] {
+    border-bottom-color: $admin-tab-color;
+  }
 }
 
 .detail-tabs-content {
