@@ -293,12 +293,30 @@ class PackageBackend {
       }
       latestVersion = p.latestVersion;
       await checkPackageAdmin(p, user.userId);
+
+      final hasFlagChange = options.isDiscontinued != p.isDiscontinued;
+
       p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
       p.updated = DateTime.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
           'doNotAdvertise: ${p.doNotAdvertise}');
-      tx.queueMutations(inserts: [p]);
+
+      final history = History.entry(
+        PackageOptionsChanged(
+          packageName: p.name,
+          userId: user.userId,
+          userEmail: user.email,
+          isDiscontinued: options.isDiscontinued,
+        ),
+      );
+
+      tx.queueMutations(
+        inserts: [
+          if (hasFlagChange) history,
+          p,
+        ],
+      );
       await tx.commit();
     });
     await invalidatePackageCache(cache, package);
@@ -360,10 +378,22 @@ class PackageBackend {
     await requirePublisherAdmin(request.publisherId, user.userId);
     final rs = await db.withTransaction((tx) async {
       final package = (await db.lookup<models.Package>([key])).single;
+      final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
       package.uploaders.clear();
       package.updated = DateTime.now().toUtc();
-      tx.queueMutations(inserts: [package]);
+
+      final history = History.entry(
+        PackageTransferred(
+          packageName: package.name,
+          fromPublisherId: fromPublisherId,
+          toPublisherId: package.publisherId,
+          userId: user.userId,
+          userEmail: user.email,
+        ),
+      );
+
+      tx.queueMutations(inserts: [package, history]);
       await tx.commit();
       return _asPackagePublisherInfo(package);
     });
@@ -388,6 +418,7 @@ class PackageBackend {
 //      package.publisherId = null;
 //      package.uploaders = [user.userId];
 //      package.updated = DateTime.now().toUtc();
+//      // TODO: store PackageTransferred History entry.
 //      tx.queueMutations(inserts: [package]);
 //      await tx.commit();
 //      return _asPackagePublisherInfo(package);

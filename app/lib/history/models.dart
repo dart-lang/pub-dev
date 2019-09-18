@@ -24,6 +24,7 @@ class History extends db.ExpandoModel {
   History();
 
   History._({
+    this.publisherId,
     this.packageName,
     this.packageVersion,
     this.timestamp,
@@ -36,16 +37,23 @@ class History extends db.ExpandoModel {
   }
 
   factory History.entry(HistoryEvent event) {
+    final pkgEvent = event is PackageHistoryEvent ? event : null;
+    final publisherEvent = event is PublisherHistoryEvent ? event : null;
     return History._(
-      packageName: event.packageName,
-      packageVersion: event.packageVersion ?? '*',
+      publisherId: publisherEvent?.publisherId,
+      packageName: pkgEvent?.packageName,
+      packageVersion:
+          pkgEvent == null ? null : (pkgEvent.packageVersion ?? '*'),
       timestamp: event.timestamp,
       source: event.source,
       event: event,
     );
   }
 
-  @db.StringProperty(required: true)
+  @db.StringProperty()
+  String publisherId;
+
+  @db.StringProperty()
   String packageName;
 
   @db.StringProperty()
@@ -86,30 +94,55 @@ class History extends db.ExpandoModel {
 
 abstract class HistoryEvent {
   String get source;
-  String get packageName;
-  String get packageVersion;
   DateTime get timestamp;
   String formatMarkdown();
 }
 
+/// A history event specific to a package (optionally to a package version).
+abstract class PackageHistoryEvent extends HistoryEvent {
+  String get packageName;
+  String get packageVersion;
+}
+
+/// A history event specific to a publisher.
+abstract class PublisherHistoryEvent extends HistoryEvent {
+  String get publisherId;
+}
+
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class HistoryUnion {
+  final PackageOptionsChanged packageOptionsChanged;
+  final PackageTransferred packageTransferred;
   final PackageUploaded packageUploaded;
   final UploaderChanged uploaderChanged;
   final UploaderInvited uploaderInvited;
   final AnalysisCompleted analysisCompleted;
+  final PublisherCreated publisherCreated;
+  final MemberInvited memberInvited;
+  final MemberJoined memberJoined;
+  final MemberRemoved memberRemoved;
 
   HistoryUnion({
+    this.packageOptionsChanged,
+    this.packageTransferred,
     this.packageUploaded,
     this.uploaderChanged,
     this.uploaderInvited,
     this.analysisCompleted,
+    this.publisherCreated,
+    this.memberInvited,
+    this.memberJoined,
+    this.memberRemoved,
   }) {
     assert(_items.where((x) => x != null).length == 1);
   }
 
   factory HistoryUnion.ofEvent(HistoryEvent event) {
-    if (event is PackageUploaded) {
+    if (event is PackageOptionsChanged) {
+      return HistoryUnion(packageOptionsChanged: event);
+    } else if (event is PackageTransferred) {
+      return HistoryUnion(packageTransferred: event);
+    } else if (event is PackageUploaded) {
       return HistoryUnion(packageUploaded: event);
     } else if (event is UploaderChanged) {
       return HistoryUnion(uploaderChanged: event);
@@ -117,6 +150,14 @@ class HistoryUnion {
       return HistoryUnion(uploaderInvited: event);
     } else if (event is AnalysisCompleted) {
       return HistoryUnion(analysisCompleted: event);
+    } else if (event is PublisherCreated) {
+      return HistoryUnion(publisherCreated: event);
+    } else if (event is MemberInvited) {
+      return HistoryUnion(memberInvited: event);
+    } else if (event is MemberJoined) {
+      return HistoryUnion(memberJoined: event);
+    } else if (event is MemberRemoved) {
+      return HistoryUnion(memberRemoved: event);
     } else {
       throw ArgumentError('Unknown type: ${event.runtimeType}');
     }
@@ -127,10 +168,16 @@ class HistoryUnion {
 
   List<HistoryEvent> get _items {
     return <HistoryEvent>[
+      packageOptionsChanged,
+      packageTransferred,
       packageUploaded,
       uploaderChanged,
       uploaderInvited,
       analysisCompleted,
+      publisherCreated,
+      memberInvited,
+      memberJoined,
+      memberRemoved,
     ];
   }
 
@@ -139,8 +186,88 @@ class HistoryUnion {
   Map<String, dynamic> toJson() => _$HistoryUnionToJson(this);
 }
 
+/// An event that describes when package options has been changed.
+@JsonSerializable(includeIfNull: false)
+class PackageOptionsChanged implements PackageHistoryEvent {
+  @override
+  final String packageName;
+  final String userId;
+  final String userEmail;
+  final bool isDiscontinued;
+  @override
+  final DateTime timestamp;
+
+  PackageOptionsChanged({
+    @required this.packageName,
+    @required this.userId,
+    @required this.userEmail,
+    @required this.isDiscontinued,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+
+  factory PackageOptionsChanged.fromJson(Map<String, dynamic> json) =>
+      _$PackageOptionsChangedFromJson(json);
+
+  @override
+  String get packageVersion => null;
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    final flags = <String>[
+      if (isDiscontinued != null) '`isDiscontinued = $isDiscontinued`',
+    ];
+    return '`$userEmail` changed the following flag(s): ${flags.join(', ')}.';
+  }
+
+  Map<String, dynamic> toJson() => _$PackageOptionsChangedToJson(this);
+}
+
+/// An event that describes when a package is transferred from/to publishers.
 @JsonSerializable()
-class PackageUploaded implements HistoryEvent {
+class PackageTransferred implements PackageHistoryEvent {
+  @override
+  final String packageName;
+  final String fromPublisherId;
+  final String toPublisherId;
+  final String userId;
+  final String userEmail;
+  @override
+  final DateTime timestamp;
+
+  PackageTransferred({
+    @required this.packageName,
+    @required this.fromPublisherId,
+    @required this.toPublisherId,
+    @required this.userId,
+    @required this.userEmail,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+
+  factory PackageTransferred.fromJson(Map<String, dynamic> json) =>
+      _$PackageTransferredFromJson(json);
+
+  @override
+  String get packageVersion => null;
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    final from = fromPublisherId == null ? '' : 'from `$fromPublisherId` ';
+    final to = toPublisherId == null ? '' : 'to `$toPublisherId` ';
+    return 'Package `$packageName` was transferred $from${to}by `$userEmail`.';
+  }
+
+  Map<String, dynamic> toJson() => _$PackageTransferredToJson(this);
+}
+
+/// An event that describes when a new package version was uploaded.
+@JsonSerializable()
+class PackageUploaded implements PackageHistoryEvent {
   @override
   final String packageName;
   @override
@@ -172,8 +299,9 @@ class PackageUploaded implements HistoryEvent {
   Map<String, dynamic> toJson() => _$PackageUploadedToJson(this);
 }
 
+/// An event that describes when uploaders of the package changed.
 @JsonSerializable(includeIfNull: false)
-class UploaderChanged implements HistoryEvent {
+class UploaderChanged implements PackageHistoryEvent {
   @override
   final String packageName;
   final String currentUserId;
@@ -225,8 +353,9 @@ class UploaderChanged implements HistoryEvent {
   Map<String, dynamic> toJson() => _$UploaderChangedToJson(this);
 }
 
+/// An event that describes when a new uploader was invited to a package.
 @JsonSerializable(includeIfNull: false)
-class UploaderInvited implements HistoryEvent {
+class UploaderInvited implements PackageHistoryEvent {
   @override
   final String packageName;
   final String currentUserId;
@@ -260,8 +389,9 @@ class UploaderInvited implements HistoryEvent {
   Map<String, dynamic> toJson() => _$UploaderInvitedToJson(this);
 }
 
+/// An event that describes when an analysis has been completed.
 @JsonSerializable()
-class AnalysisCompleted implements HistoryEvent {
+class AnalysisCompleted implements PackageHistoryEvent {
   @override
   final String packageName;
   @override
@@ -297,4 +427,138 @@ class AnalysisCompleted implements HistoryEvent {
   }
 
   Map<String, dynamic> toJson() => _$AnalysisCompletedToJson(this);
+}
+
+/// An event that describes when a publisher has been created.
+@JsonSerializable()
+class PublisherCreated implements PublisherHistoryEvent {
+  @override
+  final String publisherId;
+  final String userId;
+  final String userEmail;
+  @override
+  final DateTime timestamp;
+
+  PublisherCreated({
+    @required this.publisherId,
+    @required this.userId,
+    @required this.userEmail,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+
+  factory PublisherCreated.fromJson(Map<String, dynamic> json) =>
+      _$PublisherCreatedFromJson(json);
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    return 'Publisher `$publisherId` was created by `$userEmail`.';
+  }
+
+  Map<String, dynamic> toJson() => _$PublisherCreatedToJson(this);
+}
+
+/// An event that describes when a new member was invited to a publisher.
+@JsonSerializable(includeIfNull: false)
+class MemberInvited implements PublisherHistoryEvent {
+  @override
+  final String publisherId;
+  final String currentUserId;
+  final String currentUserEmail;
+  final String invitedUserId;
+  final String invitedUserEmail;
+  @override
+  final DateTime timestamp;
+
+  MemberInvited({
+    @required this.publisherId,
+    @required this.currentUserId,
+    @required this.currentUserEmail,
+    @required this.invitedUserId,
+    @required this.invitedUserEmail,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+
+  factory MemberInvited.fromJson(Map<String, dynamic> json) =>
+      _$MemberInvitedFromJson(json);
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    return '`$currentUserEmail` invited `$invitedUserEmail` to be a member.';
+  }
+
+  Map<String, dynamic> toJson() => _$MemberInvitedToJson(this);
+}
+
+/// An event that describes when a new member joined to a publisher.
+@JsonSerializable(includeIfNull: false)
+class MemberJoined implements PublisherHistoryEvent {
+  @override
+  final String publisherId;
+  final String userId;
+  final String userEmail;
+  final String role;
+  @override
+  final DateTime timestamp;
+
+  MemberJoined({
+    @required this.publisherId,
+    @required this.userId,
+    @required this.userEmail,
+    @required this.role,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+
+  factory MemberJoined.fromJson(Map<String, dynamic> json) =>
+      _$MemberJoinedFromJson(json);
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    return '`$userEmail` joined as member in role `$role`.';
+  }
+
+  Map<String, dynamic> toJson() => _$MemberJoinedToJson(this);
+}
+
+/// An event that describes when a member was removed from a publisher.
+@JsonSerializable(includeIfNull: false)
+class MemberRemoved implements PublisherHistoryEvent {
+  @override
+  final String publisherId;
+  final String currentUserId;
+  final String currentUserEmail;
+  final String removedUserId;
+  final String removedUserEmail;
+  @override
+  final DateTime timestamp;
+
+  MemberRemoved({
+    @required this.publisherId,
+    @required this.currentUserId,
+    @required this.currentUserEmail,
+    @required this.removedUserId,
+    @required this.removedUserEmail,
+    DateTime timestamp,
+  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+
+  factory MemberRemoved.fromJson(Map<String, dynamic> json) =>
+      _$MemberRemovedFromJson(json);
+
+  @override
+  String get source => HistorySource.account;
+
+  @override
+  String formatMarkdown() {
+    return '`$currentUserEmail` removed member `$removedUserEmail`.';
+  }
+
+  Map<String, dynamic> toJson() => _$MemberRemovedToJson(this);
 }

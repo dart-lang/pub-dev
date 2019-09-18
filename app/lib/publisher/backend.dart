@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../history/models.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
@@ -132,7 +133,22 @@ class PublisherBackend {
           ..userId = authenticatedUser.userId
           ..created = now
           ..updated = now
-          ..role = PublisherMemberRole.admin
+          ..role = PublisherMemberRole.admin,
+        History.entry(
+          PublisherCreated(
+            publisherId: publisherId,
+            userId: authenticatedUser.userId,
+            userEmail: authenticatedUser.email,
+          ),
+        ),
+        History.entry(
+          MemberJoined(
+            publisherId: publisherId,
+            userId: authenticatedUser.userId,
+            userEmail: authenticatedUser.email,
+            role: PublisherMemberRole.admin,
+          ),
+        ),
       ]);
       await tx.commit();
     });
@@ -230,6 +246,18 @@ class PublisherBackend {
     final pm = (await _db.lookup<PublisherMember>([key])).single;
     InvalidInputException.checkNull(pm, 'User is already a member.');
 
+    await _db.commit(inserts: [
+      History.entry(
+        MemberInvited(
+          publisherId: p.publisherId,
+          currentUserId: activeUser.userId,
+          currentUserEmail: activeUser.email,
+          invitedUserId: invitedUser.userId,
+          invitedUserEmail: invitedUser.email,
+        ),
+      ),
+    ]);
+
     return await consentBackend.invite(
       userId: userId,
       kind: 'PublisherMember',
@@ -318,7 +346,17 @@ class PublisherBackend {
     final key = p.key.append(PublisherMember, id: userId);
     final pm = (await _db.lookup<PublisherMember>([key])).single;
     if (pm != null) {
-      await _db.commit(deletes: [pm.key]);
+      final userEmail = await accountBackend.getEmailOfUserId(userId);
+      final history = History.entry(
+        MemberRemoved(
+          publisherId: publisherId,
+          currentUserId: user.userId,
+          currentUserEmail: user.email,
+          removedUserId: userId,
+          removedUserEmail: userEmail,
+        ),
+      );
+      await _db.commit(inserts: [history], deletes: [pm.key]);
     }
     await purgePublisherCache(publisherId: publisherId);
   }
@@ -326,6 +364,7 @@ class PublisherBackend {
   /// A callback from consent backend, when a consent is granted.
   /// Note: this will be retried when transaction fails due race conditions.
   Future inviteConsentGranted(String publisherId, String userId) async {
+    final userEmail = await accountBackend.getEmailOfUserId(userId);
     await _db.withTransaction((tx) async {
       final key = _db.emptyKey
           .append(Publisher, id: publisherId)
@@ -341,7 +380,15 @@ class PublisherBackend {
           ..userId = userId
           ..created = now
           ..updated = now
-          ..role = PublisherMemberRole.admin
+          ..role = PublisherMemberRole.admin,
+        History.entry(
+          MemberJoined(
+            publisherId: publisherId,
+            userId: userId,
+            userEmail: userEmail,
+            role: PublisherMemberRole.admin,
+          ),
+        ),
       ]);
       await tx.commit();
     });
