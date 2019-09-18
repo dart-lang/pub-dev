@@ -46,6 +46,8 @@ Future<shelf.Response> publisherPageHandler(
       return formattedNotFoundHandler(request);
     }
 
+    final aggregate = await publisherBackend.getPublisherAggregate(publisherId);
+
     final result = await searchClient.search(
       SearchQuery.parse(
         query: 'publisher:$publisherId',
@@ -58,7 +60,7 @@ Future<shelf.Response> publisherPageHandler(
     final packages = await searchService
         .getPackageViews(result.packages.map((p) => p.package).toList());
 
-    pageHtml = renderPublisherPage(publisher, packages);
+    pageHtml = renderPublisherPage(publisher, aggregate, packages);
   }
   return htmlResponse(pageHtml);
 }
@@ -77,8 +79,9 @@ Future<shelf.Response> publisherAboutPageHandler(
       // domain name), but now we just have a formatted error page.
       return formattedNotFoundHandler(request);
     }
+    final aggregate = await publisherBackend.getPublisherAggregate(publisherId);
     // Render publisher page.
-    pageHtml = renderPublisherAboutPage(publisher);
+    pageHtml = renderPublisherAboutPage(publisher, aggregate);
   }
   return htmlResponse(pageHtml);
 }
@@ -92,5 +95,6 @@ Future<shelf.Response> publisherAdminPageHandler(
     // domain name), but now we just have a formatted error page.
     return formattedNotFoundHandler(request);
   }
-  return htmlResponse(renderPublisherAdminPage(publisher));
+  final aggregate = await publisherBackend.getPublisherAggregate(publisherId);
+  return htmlResponse(renderPublisherAdminPage(publisher, aggregate));
 }

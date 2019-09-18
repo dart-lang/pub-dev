@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 
 import '../../package/models.dart' show PackageView;
-import '../../publisher/models.dart' show Publisher;
+import '../../publisher/models.dart' show Publisher, PublisherAggregate;
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
@@ -51,7 +51,8 @@ String renderPublisherListPage(List<Publisher> publishers) {
 }
 
 /// Renders the publisher page with the top packages as tab content.
-String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
+String renderPublisherPage(Publisher publisher, PublisherAggregate aggregate,
+    List<PackageView> packages) {
   final tabContent = packages.isEmpty
       ? 'The publisher has no packages.'
       : renderPackageList(packages);
@@ -69,7 +70,7 @@ String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
   final content = renderDetailPage(
     headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
+    infoBoxHtml: _renderPublisherInfoBox(publisher, aggregate),
   );
 
   return renderLayoutPage(
@@ -85,7 +86,8 @@ String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
 }
 
 /// Renders the publisher page with the main description as tab content.
-String renderPublisherAboutPage(Publisher publisher) {
+String renderPublisherAboutPage(
+    Publisher publisher, PublisherAggregate aggregate) {
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),
     Tab.withContent(
@@ -100,7 +102,7 @@ String renderPublisherAboutPage(Publisher publisher) {
   final content = renderDetailPage(
     headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
+    infoBoxHtml: _renderPublisherInfoBox(publisher, aggregate),
   );
 
   return renderLayoutPage(
@@ -116,8 +118,13 @@ String renderPublisherAboutPage(Publisher publisher) {
 }
 
 /// Renders the `views/publisher/info_box.mustache` template.
-String _renderPublisherInfoBox(Publisher publisher) {
+String _renderPublisherInfoBox(
+    Publisher publisher, PublisherAggregate aggregate) {
   return templateCache.renderTemplate('publisher/info_box', {
+    'member_count': aggregate.memberCount,
+    'member_label': aggregate.memberCount < 2 ? 'member' : 'members',
+    'package_count': aggregate.packageCount,
+    'package_label': aggregate.packageCount < 2 ? 'package' : 'packages',
     'description': _extractDescription(publisher.description),
     'publisher_id': publisher.publisherId,
     'website_url': publisher.websiteUrl,
@@ -151,7 +158,8 @@ String _extractDescription(String text) {
 }
 
 /// Renders the `views/publisher/admin_page.mustache` template.
-String renderPublisherAdminPage(Publisher publisher) {
+String renderPublisherAdminPage(
+    Publisher publisher, PublisherAggregate aggregate) {
   final String adminContent =
       templateCache.renderTemplate('publisher/admin_page', {
     'publisher_id': publisher.publisherId,
@@ -173,7 +181,7 @@ String renderPublisherAdminPage(Publisher publisher) {
   final content = renderDetailPage(
     headerHtml: _renderDetailHeader(publisher),
     tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
+    infoBoxHtml: _renderPublisherInfoBox(publisher, aggregate),
   );
   return renderLayoutPage(
     PageType.publisher,

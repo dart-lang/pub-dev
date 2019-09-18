@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart' as db;
+import 'package:meta/meta.dart';
 
 /// Canonical publisher data.
 @db.Kind(name: 'Publisher', idType: db.IdType.String)
@@ -44,28 +45,18 @@ class Publisher extends db.ExpandoModel {
   bool isAbandoned;
 }
 
-/// Derived publisher data.
-@db.Kind(name: 'PublisherInfo', idType: db.IdType.String)
-class PublisherInfo extends db.ExpandoModel {
-  /// The associated domain name of the publisher.
-  String get publisherId => id as String;
+/// Aggregated publisher data.
+class PublisherAggregate {
+  /// The number of members of this publisher.
+  final int memberCount;
 
-  @db.DateTimeProperty()
-  DateTime updated;
+  /// The number of packages of this publisher.
+  final int packageCount;
 
-  /// List of packages that are associated with this publisher.
-  @db.StringListProperty()
-  List<String> packages;
-
-  /// List of userIds that are administrators of this publisher.
-  /// (their e-mail address is public information)
-  @db.StringListProperty()
-  List<String> admins;
-
-  /// List of userIds that are public members of this publisher.
-  /// (their e-mail address is public information)
-  @db.StringListProperty()
-  List<String> publicMembers;
+  PublisherAggregate({
+    @required this.memberCount,
+    @required this.packageCount,
+  });
 }
 
 /// Values for [PublisherMember.role]

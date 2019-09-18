@@ -578,6 +578,7 @@ void main() {
                 'We develop full-stack in Dart, and happy about it.'
             ..websiteUrl = 'https://example.com/'
             ..created = DateTime(2019, 09, 13),
+          PublisherAggregate(memberCount: 1, packageCount: 2),
           [
             PackageView(
               name: 'super_package',
@@ -601,13 +602,16 @@ void main() {
     });
 
     scopedTest('publisher about page', () {
-      final html = renderPublisherAboutPage(Publisher()
-        ..id = 'example.com'
-        ..contactEmail = 'hello@example.com'
-        ..description = 'This is our little software developer shop.\n\n'
-            'We develop full-stack in Dart, and happy about it.'
-        ..websiteUrl = 'https://example.com/'
-        ..created = DateTime(2019, 09, 13));
+      final html = renderPublisherAboutPage(
+        Publisher()
+          ..id = 'example.com'
+          ..contactEmail = 'hello@example.com'
+          ..description = 'This is our little software developer shop.\n\n'
+              'We develop full-stack in Dart, and happy about it.'
+          ..websiteUrl = 'https://example.com/'
+          ..created = DateTime(2019, 09, 13),
+        PublisherAggregate(memberCount: 1, packageCount: 2),
+      );
       expectGoldenFile(html, 'publisher_about_page.html');
     });
 

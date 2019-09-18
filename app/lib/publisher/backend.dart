@@ -12,6 +12,8 @@ import 'package:logging/logging.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../search/search_client.dart';
+import '../search/search_service.dart' show SearchQuery;
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
@@ -40,6 +42,23 @@ class PublisherBackend {
     ArgumentError.checkNotNull(publisherId, 'publisherId');
     final pKey = _db.emptyKey.append(Publisher, id: publisherId);
     return (await _db.lookup<Publisher>([pKey])).single;
+  }
+
+  /// Loads the aggregated information about [publisherId].
+  Future<PublisherAggregate> getPublisherAggregate(String publisherId) async {
+    // TODO: use cache
+    final query = _db.query<PublisherMember>(
+        ancestorKey: _db.emptyKey.append(Publisher, id: publisherId));
+    final members = await query.run().toList();
+    final memberCount = members.length;
+
+    // TODO: use cache
+    final packagesRs = await searchClient
+        .search(SearchQuery.parse(query: 'publisher:$publisherId'));
+    final packageCount = packagesRs.totalCount;
+
+    return PublisherAggregate(
+        memberCount: memberCount, packageCount: packageCount);
   }
 
   /// List publishers (in no specific order, it will be listed by their
@@ -398,6 +417,7 @@ Future purgePublisherCache({String publisherId}) async {
   await Future.wait([
     if (publisherId != null) cache.uiPublisherPage(publisherId).purge(),
     cache.uiPublisherListPage().purge(),
+    // TODO: invalidate aggregate caches
   ]);
 }
 
