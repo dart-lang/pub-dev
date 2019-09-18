@@ -42,6 +42,13 @@ class PublisherBackend {
     return (await _db.lookup<Publisher>([pKey])).single;
   }
 
+  /// List publishers (in no specific order, it will be listed by their
+  /// `publisherId` alphabetically).
+  Future<List<Publisher>> listPublishers({int limit = 100}) async {
+    final query = _db.query<Publisher>()..limit(limit);
+    return await query.run().toList();
+  }
+
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
   Future<PublisherMember> getPublisherMember(
       String publisherId, String userId) async {
@@ -202,7 +209,7 @@ class PublisherBackend {
       return p;
     }) as Publisher;
 
-    await purgePublisherCache(publisherId);
+    await purgePublisherCache(publisherId: publisherId);
     return _asPublisherInfo(p);
   }
 
@@ -296,7 +303,7 @@ class PublisherBackend {
       });
     }
     final updated = (await _db.lookup<PublisherMember>([key])).single;
-    await purgePublisherCache(publisherId);
+    await purgePublisherCache(publisherId: publisherId);
     return await _asPublisherMember(updated);
   }
 
@@ -313,7 +320,7 @@ class PublisherBackend {
     if (pm != null) {
       await _db.commit(deletes: [pm.key]);
     }
-    await purgePublisherCache(publisherId);
+    await purgePublisherCache(publisherId: publisherId);
   }
 
   /// A callback from consent backend, when a consent is granted.
@@ -338,7 +345,7 @@ class PublisherBackend {
       ]);
       await tx.commit();
     });
-    await purgePublisherCache(publisherId);
+    await purgePublisherCache(publisherId: publisherId);
   }
 
   /// A callback from consent backend, when a consent is not granted, or expired.
@@ -387,8 +394,11 @@ Future<Publisher> requirePublisherAdmin(
 }
 
 /// Purge [cache] entries for given [publisherId].
-Future purgePublisherCache(String publisherId) async {
-  await cache.uiPublisherPage(publisherId).purge();
+Future purgePublisherCache({String publisherId}) async {
+  await Future.wait([
+    if (publisherId != null) cache.uiPublisherPage(publisherId).purge(),
+    cache.uiPublisherListPage().purge(),
+  ]);
 }
 
 String _publisherWebsite(String domain) => 'https://$domain/';

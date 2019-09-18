@@ -47,6 +47,16 @@ class PubHttpClient {
     }
   }
 
+  /// Get the content of the publisher list page.
+  Future<String> getPublisherListPage() async {
+    final rs = await _http.get('$pubHostedUrl/publishers');
+    if (rs.statusCode == 200) {
+      return rs.body;
+    } else {
+      throw Exception('Unexpected result: ${rs.statusCode} ${rs.reasonPhrase}');
+    }
+  }
+
   /// Get the content of the publisher page or null if it does not exists.
   Future<String> getPublisherPage(String publisherId) async {
     final rs = await _http.get('$pubHostedUrl/publishers/$publisherId');

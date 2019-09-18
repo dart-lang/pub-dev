@@ -132,6 +132,11 @@ class PubSiteService {
   Future<Response> createPublisherPage(Request request) =>
       createPublisherPageHandler(request);
 
+  /// Renders the list of publishers page.
+  @Route.get('/publishers')
+  Future<Response> publisherList(Request request) =>
+      publisherListHandler(request);
+
   /// Renders the publisher page.
   @Route.get('/publishers/<publisherId>')
   Future<Response> publisherPage(Request request, String publisherId) =>
