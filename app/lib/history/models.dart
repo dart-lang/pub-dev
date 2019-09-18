@@ -90,8 +90,6 @@ abstract class HistoryEvent {
   String get packageVersion;
   DateTime get timestamp;
   String formatMarkdown();
-  HistoryEvent migrateUser(
-      String fromUserId, String fromEmail, String toUserId, String toEmail);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
@@ -172,18 +170,6 @@ class PackageUploaded implements HistoryEvent {
   }
 
   Map<String, dynamic> toJson() => _$PackageUploadedToJson(this);
-
-  @override
-  HistoryEvent migrateUser(
-      String fromUserId, String fromEmail, String toUserId, String toEmail) {
-    return PackageUploaded(
-      packageName: packageName,
-      packageVersion: packageVersion,
-      uploaderId: _changeValue(uploaderId, fromUserId, toUserId),
-      uploaderEmail: _changeValue(uploaderEmail, fromEmail, toEmail),
-      timestamp: timestamp,
-    );
-  }
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -237,24 +223,6 @@ class UploaderChanged implements HistoryEvent {
   }
 
   Map<String, dynamic> toJson() => _$UploaderChangedToJson(this);
-
-  @override
-  HistoryEvent migrateUser(
-      String fromUserId, String fromEmail, String toUserId, String toEmail) {
-    List<String> mapUserIds(List<String> list) =>
-        list?.map((s) => _changeValue(s, fromUserId, toUserId))?.toList();
-    List<String> mapEmails(List<String> list) =>
-        list?.map((s) => _changeValue(s, fromEmail, toEmail))?.toList();
-    return UploaderChanged(
-      packageName: packageName,
-      currentUserId: _changeValue(currentUserId, fromUserId, toUserId),
-      currentUserEmail: _changeValue(currentUserEmail, fromEmail, toEmail),
-      addedUploaderIds: mapUserIds(addedUploaderIds),
-      addedUploaderEmails: mapEmails(addedUploaderEmails),
-      removedUploaderIds: mapUserIds(removedUploaderIds),
-      removedUploaderEmails: mapEmails(removedUploaderIds),
-    );
-  }
 }
 
 @JsonSerializable(includeIfNull: false)
@@ -290,18 +258,6 @@ class UploaderInvited implements HistoryEvent {
   }
 
   Map<String, dynamic> toJson() => _$UploaderInvitedToJson(this);
-
-  @override
-  HistoryEvent migrateUser(
-      String fromUserId, String fromEmail, String toUserId, String toEmail) {
-    return UploaderInvited(
-      packageName: packageName,
-      currentUserId: _changeValue(currentUserId, fromUserId, toUserId),
-      currentUserEmail: _changeValue(currentUserEmail, fromEmail, toEmail),
-      uploaderUserEmail: _changeValue(uploaderUserEmail, fromEmail, toEmail),
-      timestamp: timestamp,
-    );
-  }
 }
 
 @JsonSerializable()
@@ -341,14 +297,4 @@ class AnalysisCompleted implements HistoryEvent {
   }
 
   Map<String, dynamic> toJson() => _$AnalysisCompletedToJson(this);
-
-  @override
-  HistoryEvent migrateUser(
-      String fromUserId, String fromEmail, String toUserId, String toEmail) {
-    return this;
-  }
-}
-
-String _changeValue(String value, String from, String to) {
-  return value == from ? to : value;
 }
