@@ -211,6 +211,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.5"
+  mdc_web:
+    dependency: "direct main"
+    description:
+      name: mdc_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.1+1"
   meta:
     dependency: transitive
     description:

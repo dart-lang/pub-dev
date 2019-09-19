@@ -5,6 +5,7 @@ environment:
   sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
+  mdc_web: ^0.4.1+1
   api_builder:
     path: ../api_builder
   client_data:
