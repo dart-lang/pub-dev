@@ -30,7 +30,7 @@ String renderPackageList(List<PackageView> packages) {
     final overallScore = view.overallScore;
     String externalType;
     bool isSdk = false;
-    if (view.isExternal && view.url.startsWith('https://api.dartlang.org/')) {
+    if (view.isExternal && view.url.startsWith(urls.httpsApiDartDev)) {
       externalType = 'Dart core library';
       isSdk = true;
     }
@@ -55,6 +55,9 @@ String renderPackageList(List<PackageView> packages) {
       'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
       'last_uploaded': view.shortUpdated,
       'desc': view.ellipsizedDescription,
+      'publisher_id': view.publisherId,
+      'publisher_url':
+          view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
       'tags_html': renderTags(
         view.platforms,
         isAwaiting: view.isAwaiting,

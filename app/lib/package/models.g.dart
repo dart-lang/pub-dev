@@ -17,6 +17,7 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
     shortUpdated: json['shortUpdated'] as String,
     authors: (json['authors'] as List)?.map((e) => e as String)?.toList(),
     flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
+    publisherId: json['publisherId'] as String,
     isAwaiting: json['isAwaiting'] as bool,
     overallScore: (json['overallScore'] as num)?.toDouble(),
     platforms: (json['platforms'] as List)?.map((e) => e as String)?.toList(),
@@ -46,6 +47,7 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('shortUpdated', instance.shortUpdated);
   writeNotNull('authors', instance.authors);
   writeNotNull('flags', instance.flags);
+  writeNotNull('publisherId', instance.publisherId);
   writeNotNull('isAwaiting', instance.isAwaiting);
   writeNotNull('overallScore', instance.overallScore);
   writeNotNull('platforms', instance.platforms);
