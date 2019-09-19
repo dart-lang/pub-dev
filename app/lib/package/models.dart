@@ -429,6 +429,7 @@ class PackageView extends Object with FlagMixin {
   final List<String> authors;
   @override
   final List<String> flags;
+  final String publisherId;
   final bool isAwaiting;
   final double overallScore;
   final List<String> platforms;
@@ -445,6 +446,7 @@ class PackageView extends Object with FlagMixin {
     this.shortUpdated,
     this.authors,
     this.flags,
+    this.publisherId,
     this.isAwaiting = false,
     this.overallScore,
     this.platforms,
@@ -477,6 +479,7 @@ class PackageView extends Object with FlagMixin {
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
       authors: version?.pubspec?.authors,
       flags: scoreCard?.flags,
+      publisherId: package.publisherId,
       isAwaiting: isAwaiting,
       overallScore: scoreCard?.overallScore,
       platforms: scoreCard?.platformTags,
@@ -496,6 +499,7 @@ class PackageView extends Object with FlagMixin {
       shortUpdated: shortUpdated,
       authors: authors,
       flags: flags,
+      publisherId: publisherId,
       isAwaiting: isAwaiting,
       overallScore: overallScore,
       platforms: platforms,

@@ -13,7 +13,7 @@ const legacyHost = 'pub.dartlang.org';
 const fullSiteUrl = 'https://$primaryHost/';
 const siteRoot = 'https://$primaryHost';
 const dartSiteRoot = 'https://dart.dev';
-const _apiDartlangOrg = 'https://api.dart.dev/';
+const httpsApiDartDev = 'https://api.dart.dev/';
 
 String pkgPageUrl(String package,
     {String version, bool includeHost = false, String fragment}) {
@@ -107,7 +107,7 @@ String pkgInviteUrl({
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');
   final channel = isDev ? 'dev' : 'stable';
-  final url = p.join(_apiDartlangOrg, channel, version);
+  final url = p.join(httpsApiDartDev, channel, version);
   return '$url/';
 }
 

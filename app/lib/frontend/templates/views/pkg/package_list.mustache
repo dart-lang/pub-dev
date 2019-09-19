@@ -15,7 +15,8 @@
       <p class="metadata">
         v <a href="{{& url}}">{{version}}</a>
         {{#show_dev_version}} / <a href="{{& dev_version_url}}">{{dev_version}}</a>{{/show_dev_version}}
-        • Updated: <span>{{last_uploaded}}</span>
+        • updated: <span>{{last_uploaded}}</span>
+        {{#publisher_id}}• publisher: <a href="{{& publisher_url}}">{{publisher_id}}</a>{{/publisher_id}}
         {{& tags_html}}
       </p>
       {{/show_metadata}}
