@@ -45,8 +45,10 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) =>
 Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
-  final searchQuery =
-      parseFrontendSearchQuery(request.requestedUri.queryParameters, platform);
+  final searchQuery = parseFrontendSearchQuery(
+    request.requestedUri.queryParameters,
+    platform: platform,
+  );
   final sw = Stopwatch()..start();
   final searchResult = await searchService.search(searchQuery);
   final int totalCount = searchResult.totalCount;

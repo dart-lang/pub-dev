@@ -218,6 +218,7 @@ class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
   final String platform;
+  final String publisherId;
   final SearchOrder order;
   final int offset;
   final int limit;
@@ -230,6 +231,7 @@ class SearchQuery {
   SearchQuery._({
     this.query,
     String platform,
+    String publisherId,
     this.order,
     this.offset,
     this.limit,
@@ -237,11 +239,14 @@ class SearchQuery {
     this.isApiEnabled,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
-        platform = (platform == null || platform.isEmpty) ? null : platform;
+        platform = (platform == null || platform.isEmpty) ? null : platform,
+        publisherId =
+            (publisherId == null || publisherId.isEmpty) ? null : publisherId;
 
   factory SearchQuery.parse({
     String query,
     String platform,
+    String publisherId,
     SearchOrder order,
     int offset = 0,
     int limit = 10,
@@ -254,6 +259,7 @@ class SearchQuery {
     return SearchQuery._(
       query: q,
       platform: platform,
+      publisherId: publisherId,
       order: order,
       offset: offset,
       limit: limit,
@@ -267,6 +273,7 @@ class SearchQuery {
     final String q = uri.queryParameters['q'];
     final String platform =
         uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
+    final publisherId = uri.queryParameters['publisherId'];
     final String orderValue = uri.queryParameters['order'];
     final SearchOrder order = parseSearchOrder(orderValue);
 
@@ -276,6 +283,7 @@ class SearchQuery {
     return SearchQuery.parse(
       query: q,
       platform: platform,
+      publisherId: publisherId,
       order: order,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
@@ -288,6 +296,7 @@ class SearchQuery {
   SearchQuery change({
     String query,
     String platform,
+    String publisherId,
     SearchOrder order,
     int offset,
     int limit,
@@ -298,6 +307,7 @@ class SearchQuery {
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
+      publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
@@ -311,6 +321,7 @@ class SearchQuery {
     final Map<String, String> map = <String, String>{
       'q': query,
       'platform': platform,
+      'publisherId': publisherId,
       'offset': offset?.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
@@ -348,6 +359,9 @@ class SearchQuery {
     if (platform != null && platform.isNotEmpty) {
       path = '/$platform/packages';
     }
+    if (publisherId != null && publisherId.isNotEmpty) {
+      path = '/publishers/$publisherId/packages';
+    }
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
@@ -358,7 +372,7 @@ class SearchQuery {
     if (includeLegacy) {
       params['legacy'] = '1';
     }
-    if (page != null) {
+    if (page != null && page > 1) {
       params['page'] = page.toString();
     }
     if (params.isEmpty) {
@@ -563,7 +577,10 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 /// the frontend. The parameters and the values may be different from the ones
 /// we use in the search service backend.
 SearchQuery parseFrontendSearchQuery(
-    Map<String, String> queryParameters, String platform) {
+  Map<String, String> queryParameters, {
+  String platform,
+  String publisherId,
+}) {
   final int page = extractPageFromUrlParameters(queryParameters);
   final int offset = resultsPerPage * (page - 1);
   final String queryText = queryParameters['q'] ?? '';
