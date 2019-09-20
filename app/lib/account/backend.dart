@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
@@ -267,25 +268,28 @@ class AccountBackend {
   }
 
   /// Creates a new session for the current authenticated user.
-  Future<String> createNewSession() async {
+  Future<String> createNewSession({@required String imageUrl}) async {
     final user = await requireAuthenticatedUser();
     final now = DateTime.now().toUtc();
     final sessionId = _uuid.v4().toString();
     await _db.commit(inserts: [
-      SessionUserId()
+      UserSession()
         ..id = sessionId
         ..userIdKey = user.key
+        ..email = user.email
+        ..imageUrl = imageUrl
         ..created = now
         ..expires = now.add(Duration(days: 7)),
     ]);
+    return sessionId;
   }
 
-  /// Returns the userId associated with the [sessionId] or null if it does not
-  /// exists.
-  Future<String> lookupSessionOwner(String sessionId) async {
+  /// Returns the user session associated with the [sessionId] or null if it
+  /// does not exists.
+  Future<UserSession> lookupSession(String sessionId) async {
     /// TODO: use local or redis cache
-    final key = _db.emptyKey.append(SessionUserId, id: sessionId);
-    final list = await _db.lookup<SessionUserId>([key]);
+    final key = _db.emptyKey.append(UserSession, id: sessionId);
+    final list = await _db.lookup<UserSession>([key]);
     final session = list.single;
     if (session == null) {
       return null;
@@ -298,7 +302,7 @@ class AccountBackend {
     }
 
     // TODO: decide about extending the expiration time (maybe asynchronously)
-    return session.userId;
+    return session;
   }
 
   // TODO: periodically remove expired sessions from datastore and cache

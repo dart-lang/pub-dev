@@ -63,15 +63,22 @@ class OAuthUserID extends db.ExpandoModel {
   String get userId => userIdKey.id as String;
 }
 
-/// Maps the session id (from cookie) to User.id
-class SessionUserId extends db.ExpandoModel {
+/// Maps the session id (from cookie) to User.id and cached profile properties.
+class UserSession extends db.ExpandoModel {
   /// Same as [id].
+  /// This is a v4 (random) UUID String.
   String get sessionId => id as String;
 
   @db.ModelKeyProperty(required: true)
   db.Key userIdKey;
 
   String get userId => userIdKey.id as String;
+
+  @db.StringProperty(required: true)
+  String email;
+
+  @db.StringProperty()
+  String imageUrl;
 
   @db.DateTimeProperty(required: true)
   DateTime created;
