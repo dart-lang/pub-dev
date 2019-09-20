@@ -64,6 +64,7 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     if (requestContext.isExperimental) 'experimental',
   ];
+  final searchFormUrl = SearchQuery.parse(platform: platform).toSearchLink();
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
@@ -79,7 +80,7 @@ String renderLayoutPage(
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
     'site_logo_url': staticUrls.pubDevLogo2xPng,
-    'search_platform': platform,
+    'search_form_url': searchFormUrl,
     'search_query_html': escapedSearchQuery,
     'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
     'search_sort_param': searchSort,
