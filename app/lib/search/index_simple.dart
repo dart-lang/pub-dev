@@ -169,10 +169,11 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // filter on publisher
-    if (query.parsedQuery.publisher != null) {
+    if (query.publisherId != null || query.parsedQuery.publisher != null) {
+      final publisherId = query.publisherId ?? query.parsedQuery.publisher;
       packages.removeWhere((package) {
         final doc = _packages[package];
-        return doc.publisherId != query.parsedQuery.publisher;
+        return doc.publisherId != publisherId;
       });
     }
 
