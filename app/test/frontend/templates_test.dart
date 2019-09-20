@@ -752,7 +752,7 @@ void main() {
     scopedTest('PageLinks defaults', () {
       final query = SearchQuery.parse(query: 'web framework');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);
-      expect(links.formatHref(1), '/packages?q=web+framework&page=1');
+      expect(links.formatHref(1), '/packages?q=web+framework');
       expect(links.formatHref(2), '/packages?q=web+framework&page=2');
     });
 
@@ -760,7 +760,7 @@ void main() {
       final query =
           SearchQuery.parse(query: 'some framework', platform: 'flutter');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);
-      expect(links.formatHref(1), '/flutter/packages?q=some+framework&page=1');
+      expect(links.formatHref(1), '/flutter/packages?q=some+framework');
       expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');
     });
   });
