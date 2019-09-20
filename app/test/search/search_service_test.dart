@@ -163,6 +163,21 @@ void main() {
       expect(query.toSearchLink(), '/flutter/packages');
     });
 
+    test('publisher: example.com', () {
+      final query = SearchQuery.parse(publisherId: 'example.com');
+      expect(query.toSearchLink(), '/publishers/example.com/packages');
+      expect(query.toSearchLink(page: 2),
+          '/publishers/example.com/packages?page=2');
+    });
+
+    test('publisher: example.com with query', () {
+      final query =
+          SearchQuery.parse(publisherId: 'example.com', query: 'json');
+      expect(query.toSearchLink(), '/publishers/example.com/packages?q=json');
+      expect(query.toSearchLink(page: 2),
+          '/publishers/example.com/packages?q=json&page=2');
+    });
+
     test('package prefix: angular', () {
       final query = SearchQuery.parse(query: 'package:angular');
       expect(query.parsedQuery.text, isNull);
