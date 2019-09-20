@@ -63,6 +63,25 @@ class OAuthUserID extends db.ExpandoModel {
   String get userId => userIdKey.id as String;
 }
 
+/// Maps the session id (from cookie) to User.id
+class SessionUserId extends db.ExpandoModel {
+  /// Same as [id].
+  String get sessionId => id as String;
+
+  @db.ModelKeyProperty(required: true)
+  db.Key userIdKey;
+
+  String get userId => userIdKey.id as String;
+
+  @db.DateTimeProperty(required: true)
+  DateTime created;
+
+  @db.DateTimeProperty(required: true)
+  DateTime expires;
+
+  bool isExpired() => DateTime.now().isAfter(expires);
+}
+
 /// Derived data for [User] for fast lookup.
 @db.Kind(name: 'UserInfo', idType: db.IdType.String)
 class UserInfo extends db.ExpandoModel {

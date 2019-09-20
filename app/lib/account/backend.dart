@@ -265,4 +265,42 @@ class AccountBackend {
 
     return user;
   }
+
+  /// Creates a new session for the current authenticated user.
+  Future<String> createNewSession() async {
+    final user = await requireAuthenticatedUser();
+    final now = DateTime.now().toUtc();
+    final sessionId = _uuid.v4().toString();
+    await _db.commit(inserts: [
+      SessionUserId()
+        ..id = sessionId
+        ..userIdKey = user.key
+        ..created = now
+        ..expires = now.add(Duration(days: 7)),
+    ]);
+  }
+
+  /// Returns the userId associated with the [sessionId] or null if it does not
+  /// exists.
+  Future<String> lookupSessionOwner(String sessionId) async {
+    /// TODO: use local or redis cache
+    final key = _db.emptyKey.append(SessionUserId, id: sessionId);
+    final list = await _db.lookup<SessionUserId>([key]);
+    final session = list.single;
+    if (session == null) {
+      return null;
+    }
+
+    if (session.isExpired()) {
+      await _db.commit(deletes: [key]);
+      // TODO: clear cache (if used)
+      return null;
+    }
+
+    // TODO: decide about extending the expiration time (maybe asynchronously)
+    return session.userId;
+  }
+
+  // TODO: periodically remove expired sessions from datastore and cache
+  // TODO: expire all sessions of a given user from datastore and cache
 }
