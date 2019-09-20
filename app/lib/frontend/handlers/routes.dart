@@ -177,6 +177,11 @@ class PubSiteService {
   @Route.get('/sitemap.txt')
   Future<Response> sitemapTxt(Request request) => siteMapTxtHandler(request);
 
+  /// Renders the /sitemap.txt page
+  @Route.get('/sitemap/publishers.txt')
+  Future<Response> sitemapPublishersTxt(Request request) =>
+      sitemapPublishersTxtHandler(request);
+
   /// Renders static assets
   @Route.get('/favicon.ico')
   @Route.get('/static/<path|[^]*>')

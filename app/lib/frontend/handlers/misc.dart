@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -13,6 +14,7 @@ import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
 import '../../package/search_service.dart';
+import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
@@ -20,6 +22,8 @@ import '../../shared/utils.dart';
 import '../request_context.dart';
 import '../static_files.dart';
 import '../templates/misc.dart';
+
+final _logger = Logger('handlers.misc');
 
 /// Handles requests for /help
 Future<shelf.Response> helpPageHandler(shelf.Request request) async {
@@ -68,7 +72,14 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
 
   final twoYearsAgo = DateTime.now().subtract(twoYears);
   final items = <String>[];
-  final pages = ['/', '/help', '/web', '/flutter'];
+  final pages = [
+    '/',
+    '/help',
+    '/web',
+    '/flutter',
+    if (requestContext.isExperimental) '/publishers',
+    if (requestContext.isExperimental) '/create-publisher',
+  ];
   items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
   final stream = packageBackend.allPackageNames(
@@ -86,6 +97,29 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   items.sort();
 
   return shelf.Response.ok(items.join('\n'));
+}
+
+/// Handles requests for /sitemap/publishers.txt
+Future<shelf.Response> sitemapPublishersTxtHandler(
+    shelf.Request request) async {
+  if (requestContext.blockRobots) {
+    return notFoundHandler(request);
+  }
+
+  final uri = request.requestedUri;
+
+  final list = await publisherBackend.listPublishers(limit: 1000);
+  if (list.length == 1000) {
+    _logger.shout(
+        'Number of publishers reached backend query limit, do implement paging.');
+  }
+
+  final content = list
+      .map((p) => urls.publisherUrl(p.publisherId))
+      .map((s) => uri.replace(path: s).toString())
+      .join('\n');
+
+  return shelf.Response.ok(content);
 }
 
 /// Handles requests for /static/* content
