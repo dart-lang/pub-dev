@@ -106,7 +106,7 @@
   <div class="_banner-bg">
     <div class="container">
       <div class="small-banner">
-        <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+        <form class="search-bar" action="{{& search_form_url}}">
           <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
           <button class="icon"></button>
         </form>
@@ -119,7 +119,7 @@
   <div class="_banner-bg">
     <div class="container">
       <div class="medium-banner">
-        <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+        <form class="search-bar" action="{{& search_form_url}}">
           <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
           <button class="icon"></button>
           {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
@@ -146,7 +146,7 @@
       <div class="home-banner">
         <h2 class="_visuallyhidden">Dart package manager</h2>
         <img class="logo" src="{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
-        <form class="search-bar" action="/{{#search_platform}}{{search_platform}}/{{/search_platform}}packages">
+        <form class="search-bar" action="{{& search_form_url}}">
           <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
           <button class="icon"></button>
         </form>
