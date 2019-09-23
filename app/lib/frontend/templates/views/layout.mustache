@@ -107,7 +107,7 @@
     <div class="container">
       <div class="small-banner">
         <form class="search-bar" action="{{& search_form_url}}">
-          <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus" />
+          <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
           <button class="icon"></button>
         </form>
       </div>

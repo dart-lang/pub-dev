@@ -590,6 +590,7 @@ SearchQuery parseFrontendSearchQuery(
   return SearchQuery.parse(
     query: queryText,
     platform: platform,
+    publisherId: publisherId,
     order: sortOrder,
     offset: offset,
     limit: resultsPerPage,

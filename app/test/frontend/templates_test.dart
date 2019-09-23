@@ -569,7 +569,7 @@ void main() {
       expectGoldenFile(html, 'publisher_list_page.html');
     });
 
-    scopedTest('publisher packages page', () {
+    scopedTest('publisher landing page', () {
       final html = renderPublisherPage(
           Publisher()
             ..id = 'example.com'
@@ -597,6 +597,42 @@ void main() {
               overallScore: 0.90,
             ),
           ]);
+      expectGoldenFile(html, 'publisher_landing_page.html');
+    });
+
+    scopedTest('publisher packages page', () {
+      final searchQuery = SearchQuery.parse(publisherId: 'example.com');
+      final html = renderPublisherPackagesPage(
+        publisher: Publisher()
+          ..id = 'example.com'
+          ..contactEmail = 'hello@example.com'
+          ..description = 'This is our little software developer shop.\n\n'
+              'We develop full-stack in Dart, and happy about it.'
+          ..websiteUrl = 'https://example.com/'
+          ..created = DateTime(2019, 09, 13),
+        packages: [
+          PackageView(
+            name: 'super_package',
+            version: '1.0.0',
+            ellipsizedDescription: 'A great web UI library.',
+            shortUpdated: '3 Jan 2019',
+            platforms: ['web'],
+            overallScore: 0.97,
+          ),
+          PackageView(
+            name: 'another_package',
+            version: '2.0.0',
+            devVersion: '3.0.0-beta2',
+            ellipsizedDescription: 'Camera plugin.',
+            shortUpdated: '30 Mar 2019',
+            platforms: ['flutter'],
+            overallScore: 0.90,
+          ),
+        ],
+        totalCount: 2,
+        searchQuery: searchQuery,
+        pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
+      );
       expectGoldenFile(html, 'publisher_packages_page.html');
     });
 

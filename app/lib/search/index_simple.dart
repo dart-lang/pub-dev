@@ -241,7 +241,8 @@ class SimplePackageIndex implements PackageIndex {
             : (_packages[queryText] ?? _packages[queryText.toLowerCase()]);
         if (matchingPackage != null &&
             matchingPackage.maintenance != null &&
-            matchingPackage.maintenance > 0.0) {
+            matchingPackage.maintenance > 0.0 &&
+            packages.contains(matchingPackage.package)) {
           final double maxValue = overallScore.getMaxValue();
           final map = Map<String, double>.from(
               overallScore.map((key, value) => value * 0.99)._values);

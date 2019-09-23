@@ -9,10 +9,11 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/search_service.dart';
 import '../../publisher/backend.dart';
 import '../../search/search_client.dart';
-import '../../search/search_service.dart' show SearchQuery, SearchOrder;
+import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../request_context.dart';
+import '../templates/listing.dart' show PageLinks;
 import '../templates/publisher.dart';
 
 import 'misc.dart' show formattedNotFoundHandler;
@@ -81,6 +82,39 @@ Future<shelf.Response> publisherAboutPageHandler(
     pageHtml = renderPublisherAboutPage(publisher);
   }
   return htmlResponse(pageHtml);
+}
+
+/// Handles requests for GET /publishers/<publisherId>/packages [?q=...]
+Future<shelf.Response> publisherPackagesPageHandler(
+    shelf.Request request, String publisherId) async {
+  final searchQuery = parseFrontendSearchQuery(
+    request.requestedUri.queryParameters,
+    publisherId: publisherId,
+  );
+  // Redirect in case of empty search query.
+  if (request.requestedUri.query == 'q=') {
+    return redirectResponse(request.requestedUri.path);
+  }
+
+  final publisher = await publisherBackend.getPublisher(publisherId);
+  if (publisher == null) {
+    // We may introduce search for publishers (e.g. somebody just mistyped a
+    // domain name), but now we just have a formatted error page.
+    return formattedNotFoundHandler(request);
+  }
+
+  final searchResult = await searchService.search(searchQuery);
+  final int totalCount = searchResult.totalCount;
+
+  final links =
+      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+  return htmlResponse(renderPublisherPackagesPage(
+    publisher: publisher,
+    packages: searchResult.packages,
+    pageLinks: links,
+    searchQuery: searchQuery,
+    totalCount: totalCount,
+  ));
 }
 
 /// Handles requests for GET /publishers/<publisherId>/admin
