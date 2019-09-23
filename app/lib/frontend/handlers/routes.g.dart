@@ -43,7 +43,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/robots.txt', service.robotsTxt);
   router.add('GET', r'/security', service.securityPage);
   router.add('GET', r'/sitemap.txt', service.sitemapTxt);
-  router.add('GET', r'/sitemap/publishers.txt', service.sitemapPublishersTxt);
+  router.add('GET', r'/sitemap-2.txt', service.sitemapPublishersTxt);
   router.add('GET', r'/favicon.ico', service.staticAsset);
   router.add('GET', r'/static/<path|[^]*>', service.staticAsset);
   router.add('GET', r'/experimental', service.experimental);
