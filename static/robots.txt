@@ -1,5 +1,3 @@
 User-agent: *
 Disallow: /experimental/
 Sitemap: https://pub.dev/sitemap.txt
-# TODO: enable this after publishers are launched
-# Sitemap: https://pub.dev/sitemap/publishers.txt

@@ -99,10 +99,15 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
   return shelf.Response.ok(items.join('\n'));
 }
 
-/// Handles requests for /sitemap/publishers.txt
+/// Handles requests for /sitemap-2.txt
 Future<shelf.Response> sitemapPublishersTxtHandler(
     shelf.Request request) async {
   if (requestContext.blockRobots) {
+    return notFoundHandler(request);
+  }
+  if (!requestContext.isExperimental) {
+    // TODO: add the following line to robots.txt
+    // Sitemap: https://pub.dev/sitemap-2.txt
     return notFoundHandler(request);
   }
 
