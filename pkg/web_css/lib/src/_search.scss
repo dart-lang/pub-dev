@@ -24,6 +24,10 @@
   flex-grow: 1;
   background: $color-searchbar-dark-input-bg;
   color: $color-searchbar-dark-input-fg;
+
+  &::placeholder {
+    color: #888;
+  }
 }
 
 .search-bar > .icon {
