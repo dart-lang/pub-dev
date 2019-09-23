@@ -5,9 +5,11 @@
 import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
+import 'package:meta/meta.dart';
 
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
+import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
@@ -87,7 +89,7 @@ String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
 /// Renders the publisher page with the main description as tab content.
 String renderPublisherAboutPage(Publisher publisher) {
   final tabs = <Tab>[
-    _packagesLinkTab(publisher.publisherId),
+    _landingLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'about',
       title: 'About',
@@ -150,6 +152,67 @@ String _extractDescription(String text) {
   return allText.length < 220 ? allText : allText.substring(0, 200) + '[...]';
 }
 
+/// Renders the search results on the publisher's packages page.
+String renderPublisherPackagesPage({
+  @required Publisher publisher,
+  @required List<PackageView> packages,
+  @required PageLinks pageLinks,
+  @required SearchQuery searchQuery,
+  @required int totalCount,
+}) {
+  final isSearch = searchQuery.hasQuery;
+  String title = 'Packages of publisher ${publisher.publisherId}';
+  if (isSearch && pageLinks.currentPage > 1) {
+    title += ' | Page ${pageLinks.currentPage}';
+  }
+
+  String resultCountHtml;
+  if (isSearch) {
+    resultCountHtml =
+        '$totalCount <code>${publisher.publisherId}</code> packages for '
+        '<code>${htmlEscape.convert(searchQuery.query)}</code>';
+  } else {
+    resultCountHtml = totalCount > 0
+        ? '$totalCount <code>${publisher.publisherId}</code> packages.'
+        : '<code>${publisher.publisherId}</code> has no packages.';
+  }
+
+  final packageListHtml = packages.isEmpty ? '' : renderPackageList(packages);
+  final paginationHtml = renderPagination(pageLinks);
+
+  final tabContent =
+      [resultCountHtml, packageListHtml, paginationHtml].join('\n');
+
+  final tabs = <Tab>[
+    Tab.withContent(
+      id: 'packages',
+      title: 'Packages',
+      contentHtml: tabContent,
+    ),
+    _adminLinkTab(publisher.publisherId),
+  ];
+
+  final mainContent = renderDetailPage(
+    headerHtml: _renderDetailHeader(publisher),
+    tabs: tabs,
+    infoBoxHtml: _renderPublisherInfoBox(publisher),
+  );
+
+  return renderLayoutPage(
+    PageType.publisher, mainContent,
+    title: title,
+    pageData: PageData(
+      publisher: PublisherData(
+        publisherId: publisher.publisherId,
+      ),
+    ),
+    publisherId: publisher.publisherId,
+    searchQuery: searchQuery,
+    // only index the first page, and if search query is not active
+    noIndex: isSearch || pageLinks.currentPage > 1,
+  );
+}
+
 /// Renders the `views/publisher/admin_page.mustache` template.
 String renderPublisherAdminPage(Publisher publisher) {
   final String adminContent =
@@ -160,8 +223,8 @@ String renderPublisherAdminPage(Publisher publisher) {
     'contact_email': publisher.contactEmail,
   });
   final tabs = <Tab>[
+    _landingLinkTab(publisher.publisherId),
     _packagesLinkTab(publisher.publisherId),
-    _aboutLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'admin',
       title: 'Admin',
@@ -196,7 +259,7 @@ String _renderDetailHeader(Publisher publisher) {
   );
 }
 
-Tab _packagesLinkTab(String publisherId) => Tab.withLink(
+Tab _landingLinkTab(String publisherId) => Tab.withLink(
       id: 'packages',
       title: 'Top Packages',
       href: urls.publisherUrl(publisherId),
@@ -206,6 +269,12 @@ Tab _aboutLinkTab(String publisherId) => Tab.withLink(
       id: 'about',
       title: 'About',
       href: urls.publisherAboutUrl(publisherId),
+    );
+
+Tab _packagesLinkTab(String publisherId) => Tab.withLink(
+      id: 'packages',
+      title: 'Packages',
+      href: urls.publisherUrl(publisherId),
     );
 
 Tab _adminLinkTab(String publisherId) => Tab.withLink(

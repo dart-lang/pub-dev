@@ -37,6 +37,7 @@ String renderLayoutPage(
   String faviconUrl,
   String canonicalUrl,
   String platform,
+  String publisherId,
   SearchQuery searchQuery,
   bool includeSurvey = true,
   bool noIndex = false,
@@ -64,7 +65,12 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     if (requestContext.isExperimental) 'experimental',
   ];
-  final searchFormUrl = SearchQuery.parse(platform: platform).toSearchLink();
+  final searchFormUrl =
+      SearchQuery.parse(platform: platform, publisherId: publisherId)
+          .toSearchLink();
+  final searchPlaceholder = publisherId != null
+      ? 'Search $publisherId packages'
+      : platformDict.searchPlatformPackagesLabel;
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
@@ -82,7 +88,7 @@ String renderLayoutPage(
     'site_logo_url': staticUrls.pubDevLogo2xPng,
     'search_form_url': searchFormUrl,
     'search_query_html': escapedSearchQuery,
-    'search_query_placeholder': platformDict.searchPlatformPackagesLabel,
+    'search_query_placeholder': searchPlaceholder,
     'search_sort_param': searchSort,
     'platform_tabs_html': platformTabs,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
