@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
-import '../../shared/markdown.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
@@ -52,104 +51,20 @@ String renderPublisherListPage(List<Publisher> publishers) {
   );
 }
 
-/// Renders the publisher page with the top packages as tab content.
-String renderPublisherPage(Publisher publisher, List<PackageView> packages) {
-  final tabContent = packages.isEmpty
-      ? 'The publisher has no packages.'
-      : renderPackageList(packages);
-
-  final tabs = <Tab>[
-    Tab.withContent(
-      id: 'packages',
-      title: 'Top Packages',
-      contentHtml: tabContent,
-    ),
-    _aboutLinkTab(publisher.publisherId),
-    _adminLinkTab(publisher.publisherId),
-  ];
-
-  final content = renderDetailPage(
-    headerHtml: _renderDetailHeader(publisher),
-    tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
-  );
-
-  return renderLayoutPage(
-    PageType.publisher,
-    content,
-    title: 'Publisher: ${publisher.publisherId}',
-    pageData: PageData(
-      publisher: PublisherData(
-        publisherId: publisher.publisherId,
-      ),
-    ),
-  );
-}
-
-/// Renders the publisher page with the main description as tab content.
-String renderPublisherAboutPage(Publisher publisher) {
-  final tabs = <Tab>[
-    _landingLinkTab(publisher.publisherId),
-    Tab.withContent(
-      id: 'about',
-      title: 'About',
-      contentHtml: markdownToHtml(publisher.description, null),
-      isMarkdown: true,
-    ),
-    _adminLinkTab(publisher.publisherId),
-  ];
-
-  final content = renderDetailPage(
-    headerHtml: _renderDetailHeader(publisher),
-    tabs: tabs,
-    infoBoxHtml: _renderPublisherInfoBox(publisher),
-  );
-
-  return renderLayoutPage(
-    PageType.publisher,
-    content,
-    title: 'Publisher: ${publisher.publisherId}',
-    pageData: PageData(
-      publisher: PublisherData(
-        publisherId: publisher.publisherId,
-      ),
-    ),
-  );
-}
-
 /// Renders the `views/publisher/info_box.mustache` template.
 String _renderPublisherInfoBox(Publisher publisher) {
+  String description = publisher.description;
+  if (description != null && description.length > 210) {
+    description = description.substring(0, 200) + '[...]';
+  }
   return templateCache.renderTemplate('publisher/info_box', {
-    'description': _extractDescription(publisher.description),
+    'description': description,
     'publisher_id': publisher.publisherId,
     'website_url': publisher.websiteUrl,
     'contact_email': publisher.contactEmail,
     'list_packages_search_link':
         urls.searchUrl(q: 'publisher:${publisher.publisherId}'),
   });
-}
-
-/// Extracts the first larger text block(s) from the markdown description of the
-/// publisher.
-String _extractDescription(String text) {
-  if (text == null) return null;
-
-  final blocks = text
-      .trim()
-      .split('\n\n')
-      .map((s) => s.trim())
-      .where(
-        (s) =>
-            s.isNotEmpty &&
-            !s.startsWith('#') &&
-            !s.startsWith('=') &&
-            !s.startsWith('-'),
-      )
-      .toList();
-  if (blocks.isEmpty) return null;
-
-  final allText = blocks.join(' ');
-  return allText.length < 220 ? allText : allText.substring(0, 200) + '[...]';
 }
 
 /// Renders the search results on the publisher's packages page.
@@ -223,7 +138,6 @@ String renderPublisherAdminPage(Publisher publisher) {
     'contact_email': publisher.contactEmail,
   });
   final tabs = <Tab>[
-    _landingLinkTab(publisher.publisherId),
     _packagesLinkTab(publisher.publisherId),
     Tab.withContent(
       id: 'admin',
@@ -259,22 +173,10 @@ String _renderDetailHeader(Publisher publisher) {
   );
 }
 
-Tab _landingLinkTab(String publisherId) => Tab.withLink(
-      id: 'packages',
-      title: 'Top Packages',
-      href: urls.publisherUrl(publisherId),
-    );
-
-Tab _aboutLinkTab(String publisherId) => Tab.withLink(
-      id: 'about',
-      title: 'About',
-      href: urls.publisherAboutUrl(publisherId),
-    );
-
 Tab _packagesLinkTab(String publisherId) => Tab.withLink(
       id: 'packages',
       title: 'Packages',
-      href: urls.publisherUrl(publisherId),
+      href: urls.publisherPackagesUrl(publisherId),
     );
 
 Tab _adminLinkTab(String publisherId) => Tab.withLink(

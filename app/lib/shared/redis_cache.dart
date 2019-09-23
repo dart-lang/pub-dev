@@ -75,7 +75,8 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)['/publishers'];
 
-  Entry<String> uiPublisherPage(String publisherId) => _cache
+  /// The first, non-search page for publisher's packages.
+  Entry<String> uiPublisherPackagesPage(String publisherId) => _cache
       .withPrefix('ui-publisherpage')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)[publisherId];

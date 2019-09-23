@@ -443,7 +443,7 @@ Future<Publisher> requirePublisherAdmin(
 /// Purge [cache] entries for given [publisherId].
 Future purgePublisherCache({String publisherId}) async {
   await Future.wait([
-    if (publisherId != null) cache.uiPublisherPage(publisherId).purge(),
+    if (publisherId != null) cache.uiPublisherPackagesPage(publisherId).purge(),
     cache.uiPublisherListPage().purge(),
   ]);
 }

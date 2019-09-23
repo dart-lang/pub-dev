@@ -142,11 +142,6 @@ class PubSiteService {
   Future<Response> publisherPage(Request request, String publisherId) =>
       publisherPageHandler(request, publisherId);
 
-  /// Renders the publisher's about page.
-  @Route.get('/publishers/<publisherId>/about')
-  Future<Response> publisherAboutPage(Request request, String publisherId) =>
-      publisherAboutPageHandler(request, publisherId);
-
   /// Renders the publisher's packages page.
   @Route.get('/publishers/<publisherId>/packages')
   Future<Response> publisherPackagesPage(Request request, String publisherId) =>
