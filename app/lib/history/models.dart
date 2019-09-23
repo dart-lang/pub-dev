@@ -50,12 +50,15 @@ class History extends db.ExpandoModel {
     );
   }
 
+  /// This is null if it's not publisher related (ie. package related).
   @db.StringProperty()
   String publisherId;
 
+  /// This is null if it's not package related (ie. publisher related).
   @db.StringProperty()
   String packageName;
 
+  /// This is null if it's not package related (ie. publisher related).
   @db.StringProperty()
   String packageVersion;
 
