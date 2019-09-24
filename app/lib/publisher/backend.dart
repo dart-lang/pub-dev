@@ -223,7 +223,7 @@ class PublisherBackend {
       tx.queueMutations(inserts: [p]);
       await tx.commit();
       return p;
-    }) as Publisher;
+    });
 
     await purgePublisherCache(publisherId: publisherId);
     return _asPublisherInfo(p);

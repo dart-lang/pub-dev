@@ -234,7 +234,7 @@ class PackageBackend {
       tx.queueMutations(inserts: inserts);
       await tx.commit();
       return InviteStatus(urlNonce: invite.urlNonce);
-    }) as InviteStatus;
+    });
   }
 
   /// Get the invite or return null if it does not exist or is not valid anymore.
@@ -398,7 +398,7 @@ class PackageBackend {
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
-    return rs as api.PackagePublisherInfo;
+    return rs;
   }
 
   /// Moves the package out of its current publisher.
@@ -749,7 +749,7 @@ class GCloudPackageRepository extends PackageRepository {
       final v = newVersion.qualifiedVersionKey;
       _logger.severe('Error post-processing package upload $v', e, st);
     }
-    return pv as PackageVersion;
+    return pv;
   }
 
   Future _updatePackageSortIndex(Key packageKey) async {

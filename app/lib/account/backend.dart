@@ -219,7 +219,7 @@ class AccountBackend {
           !usersWithEmail.single.isDeleted) {
         // We've found a single pre-migrated, non-deleted User with empty
         // `oauthUserId` field: need to create OAuthUserID for it.
-        final updatedUser = await _db.withTransaction((tx) async {
+        return await _db.withTransaction((tx) async {
           final user =
               (await tx.lookup<User>([usersWithEmail.single.key])).single;
           final newMapping = OAuthUserID()
@@ -230,8 +230,7 @@ class AccountBackend {
           tx.queueMutations(inserts: [user, newMapping]);
           await tx.commit();
           return user;
-        }) as User;
-        return updatedUser;
+        });
       }
 
       // Create new user with oauth2 user_id mapping
@@ -260,7 +259,7 @@ class AccountBackend {
         tx.queueMutations(inserts: [u]);
         await tx.commit();
         return u;
-      }) as User;
+      });
     }
 
     return user;
