@@ -16,7 +16,6 @@ import '../../package/overrides.dart';
 import '../../package/search_service.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
-import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
