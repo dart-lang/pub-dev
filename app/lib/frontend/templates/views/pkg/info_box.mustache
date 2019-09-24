@@ -2,6 +2,13 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
+{{#publisher_id}}
+<h3 class="title">Publisher</h3>
+<p>
+  <a href="{{& publisher_link}}">{{publisher_id}}</a>
+</p>
+{{/publisher_id}}
+
 <h3 class="title">About</h3>
 {{#description}}
   <p>{{description}}</p>
@@ -12,15 +19,10 @@
   {{/links}}
 </p>
 
+{{#has_authors}}
 <h3 class="title">{{authors_title}}</h3>
 <div>{{& authors_html}}</div>
-
-{{#publisher_id}}
-<h3 class="title">Publisher</h3>
-<p>
-  <a href="{{& publisher_link}}">{{publisher_id}}</a>
-</p>
-{{/publisher_id}}
+{{/has_authors}}
 
 {{#uploaders_html}}
 <h3 class="title">{{uploaders_title}}</h3>
