@@ -94,14 +94,15 @@ class PublisherScript {
     if (!pageHtml.contains(version)) {
       throw Exception('New version is not to be found on package page.');
     }
-    if (!pageHtml.contains('developer@example.com')) {
-      throw Exception(
-          'pubspec author field is not to be found on package page.');
-    }
 
     if (uploaderEmail != null) {
       if (publisherId != null) throw ArgumentError();
 
+      // author must be present
+      if (!pageHtml.contains('developer@example.com')) {
+        throw Exception(
+            'pubspec author field is not to be found on package page.');
+      }
       // uploader must be present
       if (!pageHtml.contains('Uploader') ||
           !pageHtml.contains('user@example.com')) {
@@ -116,6 +117,10 @@ class PublisherScript {
     if (publisherId != null) {
       if (uploaderEmail != null) throw ArgumentError();
 
+      // author must not be present
+      if (pageHtml.contains('developer@example.com')) {
+        throw Exception('pubspec author field found on package page.');
+      }
       // uploader must not be present
       if (pageHtml.contains('Uploader') ||
           pageHtml.contains('user@example.com')) {
