@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 
+import '../account/models.dart' show UserSessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
 import '../scorecard/models.dart' show ScoreCardData;
@@ -30,6 +31,17 @@ class CachePatterns {
 
   // NOTE: This class should only contain methods that return Entry<T>, as well
   //       configuration options like prefix and TTL.
+
+  /// Cache for [UserSessionData].
+  Entry<UserSessionData> userSessionData(String sessionId) => _cache
+      .withPrefix('account-usersession')
+      .withTTL(Duration(hours: 1))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (UserSessionData data) => data.toJson(),
+        decode: (d) => UserSessionData.fromJson(d as Map<String, dynamic>),
+      ))[sessionId];
 
   /// Cache for [DartdocEntry] objects.
   Entry<DartdocEntry> dartdocEntry(String package, String version) => _cache

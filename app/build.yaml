@@ -3,13 +3,14 @@
 targets:
   pub_dartlang_org:
     sources:
-      - 'lib/history/models.dart'
+      - 'lib/account/models.dart'
       - 'lib/dartdoc/models.dart'
+      - 'lib/frontend/handlers/pubapi.dart'
       - 'lib/frontend/handlers/routes.dart'
       - 'lib/frontend/handlers/redirects.dart'
+      - 'lib/history/models.dart'
       - 'lib/package/models.dart'
       - 'lib/scorecard/models.dart'
-      - 'lib/shared/*.dart'
       - 'lib/search/backend.dart'
       - 'lib/search/search_service.dart'
-      - 'lib/frontend/handlers/pubapi.dart'
+      - 'lib/shared/*.dart'

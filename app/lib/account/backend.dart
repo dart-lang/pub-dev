@@ -15,6 +15,7 @@ import 'package:uuid/uuid.dart';
 
 import '../shared/configuration.dart';
 import '../shared/exceptions.dart';
+import '../shared/redis_cache.dart' show cache;
 
 import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
@@ -286,8 +287,11 @@ class AccountBackend {
 
   /// Returns the user session associated with the [sessionId] or null if it
   /// does not exists.
-  Future<UserSession> lookupSession(String sessionId) async {
-    /// TODO: use local or redis cache
+  Future<UserSessionData> lookupSession(String sessionId) async {
+    final cacheEntry = cache.userSessionData(sessionId);
+    final cached = await cacheEntry.get();
+    if (cached != null) return cached;
+
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     final list = await _db.lookup<UserSession>([key]);
     final session = list.single;
@@ -297,12 +301,15 @@ class AccountBackend {
 
     if (session.isExpired()) {
       await _db.commit(deletes: [key]);
-      // TODO: clear cache (if used)
+      await cacheEntry.purge();
       return null;
     }
 
     // TODO: decide about extending the expiration time (maybe asynchronously)
-    return session;
+
+    final data = UserSessionData.fromModel(session);
+    cacheEntry.set(data);
+    return data;
   }
 
   // TODO: periodically remove expired sessions from datastore and cache

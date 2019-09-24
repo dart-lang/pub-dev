@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:json_annotation/json_annotation.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:meta/meta.dart';
 import 'package:ulid/ulid.dart';
+
+part 'models.g.dart';
 
 /// User data model with a random UUID id.
 @db.Kind(name: 'User', idType: db.IdType.String)
@@ -87,6 +90,42 @@ class UserSession extends db.ExpandoModel {
   DateTime expires;
 
   bool isExpired() => DateTime.now().isAfter(expires);
+}
+
+/// The cacheable version of [UserSession].
+@JsonSerializable()
+class UserSessionData {
+  final String sessionId;
+  final String userId;
+  final String email;
+  final String imageUrl;
+  final DateTime created;
+  final DateTime expires;
+
+  UserSessionData({
+    this.sessionId,
+    this.userId,
+    this.email,
+    this.imageUrl,
+    this.created,
+    this.expires,
+  });
+
+  factory UserSessionData.fromModel(UserSession session) {
+    return UserSessionData(
+      sessionId: session.sessionId,
+      userId: session.userId,
+      email: session.email,
+      imageUrl: session.imageUrl,
+      created: session.created,
+      expires: session.expires,
+    );
+  }
+
+  factory UserSessionData.fromJson(Map<String, dynamic> json) =>
+      _$UserSessionDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
 }
 
 /// Derived data for [User] for fast lookup.
