@@ -168,6 +168,8 @@ String renderPkgInfoBox(
     'name': package.name,
     'description': selectedVersion.pubspec.description,
     'links': links,
+    'has_authors': package.publisherId == null &&
+        selectedVersion.pubspec.authors.isNotEmpty,
     'authors_title': authorsCount > 1 ? 'Authors' : 'Author',
     'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
     'publisher_id': package.publisherId,
@@ -204,6 +206,10 @@ String renderPkgHeader(
           (!card.isSkipped && !analysis.hasPanaSummary);
 
   final values = {
+    'publisher_id': package.publisherId,
+    'publisher_url': package.publisherId == null
+        ? null
+        : urls.publisherUrl(package.publisherId),
     'latest': {
       'show_updated': showUpdated,
       'show_dev_version': showDevVersion,
