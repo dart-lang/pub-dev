@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
 
  * Upgraded to Dart `2.5.0`.
+ * Upgraded `package:markdown` to `2.1.0`.
 
 ## `20190910t122708-all`
 
