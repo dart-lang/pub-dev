@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
 
  * Upgraded to Dart `2.5.0`.
+ * Upgraded `package:analyzer` to `0.38.3`, `package:markdown` to `2.1.0` (and other dependencies).
 
 ## `20190910t122708-all`
 
