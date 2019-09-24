@@ -16,6 +16,7 @@ import '../../package/overrides.dart';
 import '../../package/search_service.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
+import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
@@ -51,9 +52,13 @@ Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
   }
   final uri = request.requestedUri;
   final sitemapUri = uri.replace(path: 'sitemap.txt');
-  return shelf.Response(200, body: '''User-agent: *
-sitemap: $sitemapUri
-''');
+  final sitemap2Uri = uri.replace(path: 'sitemap-2.txt');
+  return shelf.Response(200,
+      body: [
+        'User-agent: *',
+        'Sitemap: $sitemapUri',
+        if (requestContext.isExperimental) 'Sitemap: $sitemap2Uri',
+      ].join('\n'));
 }
 
 /// Handles requests for /sitemap.txt
@@ -106,8 +111,6 @@ Future<shelf.Response> sitemapPublishersTxtHandler(
     return notFoundHandler(request);
   }
   if (!requestContext.isExperimental) {
-    // TODO: add the following line to robots.txt
-    // Sitemap: https://pub.dev/sitemap-2.txt
     return notFoundHandler(request);
   }
 
