@@ -651,7 +651,7 @@ class GCloudPackageRepository extends PackageRepository {
       // If the package does not exist, then we create a new package.
       if (package == null) {
         _logger.info('New package uploaded. [new-package-uploaded]');
-        package = _newPackageFromVersion(db, newVersion);
+        package = _newPackageFromVersion(db, newVersion, user.userId);
       } else if (!await packageBackend.isPackageAdmin(package, user.userId)) {
         _logger.info('User ${user.userId} (${user.email}) is not an uploader '
             'for package ${package.name}, rolling transaction back.');
@@ -993,7 +993,7 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
 
 /// Creates a new `Package` and populates all of it's fields.
 models.Package _newPackageFromVersion(
-    DatastoreDB db, models.PackageVersion version) {
+    DatastoreDB db, models.PackageVersion version, String userId) {
   final now = DateTime.now().toUtc();
   return models.Package()
     ..parentKey = db.emptyKey
@@ -1004,7 +1004,7 @@ models.Package _newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
-    ..uploaders = [authenticatedUser.userId];
+    ..uploaders = [userId];
 }
 
 class _ValidatedUpload {

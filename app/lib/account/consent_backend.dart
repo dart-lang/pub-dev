@@ -89,7 +89,7 @@ class ConsentBackend {
     @required List<String> args,
   }) async {
     return retry(() async {
-      await requireAuthenticatedUser();
+      final activeUser = await requireAuthenticatedUser();
       // First check for existing consents with identical dedupId.
       final dedupId = consentDedupId(kind, args);
       final userKey = _db.emptyKey.append(User, id: userId);
@@ -103,7 +103,7 @@ class ConsentBackend {
           await _delete(old);
         } else if (old.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(old);
+          return await _sendNotification(activeUser.email, old);
         } else {
           return api.InviteStatus(
               emailSent: false, nextNotification: old.nextNotification);
@@ -114,21 +114,21 @@ class ConsentBackend {
         parentKey: userKey,
         kind: kind,
         args: args,
-        fromUserId: authenticatedUser.userId,
+        fromUserId: activeUser.userId,
       );
       await _db.commit(inserts: [consent]);
-      return await _sendNotification(consent);
+      return await _sendNotification(activeUser.email, consent);
     });
   }
 
-  Future<api.InviteStatus> _sendNotification(Consent consent) async {
+  Future<api.InviteStatus> _sendNotification(
+      String activeUserEmail, Consent consent) async {
     final invitedEmail = await accountBackend.getEmailOfUserId(consent.userId);
     final action = _actions[consent.kind];
     await emailSender.sendMessage(createInviteEmail(
       invitedEmail: invitedEmail,
       subject: action.renderEmailSubject(consent.args),
-      inviteText:
-          action.renderInviteText(authenticatedUser.email, consent.args),
+      inviteText: action.renderInviteText(activeUserEmail, consent.args),
       consentUrl: consentUrl(consent.consentId),
     ));
     return await _db.withTransaction((tx) async {

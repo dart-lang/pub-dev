@@ -37,17 +37,17 @@ void registerAuthenticatedUser(User user) =>
     ss.register(#_authenticated_user, user);
 
 /// The active authenticated user.
-User get authenticatedUser => ss.lookup(#_authenticated_user) as User;
+User get _authenticatedUser => ss.lookup(#_authenticated_user) as User;
 
 /// Returns the current authenticated user.
 ///
 /// If no user is currently authenticated, this will throw an
 /// `AuthenticationException` exception.
 Future<User> requireAuthenticatedUser() async {
-  if (authenticatedUser == null) {
+  if (_authenticatedUser == null) {
     throw AuthenticationException.authenticationRequired();
   }
-  return authenticatedUser;
+  return _authenticatedUser;
 }
 
 /// Represents the backend for the account handling and authentication.

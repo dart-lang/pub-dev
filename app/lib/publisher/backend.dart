@@ -66,6 +66,7 @@ class PublisherBackend {
     String publisherId,
     api.CreatePublisherRequest body,
   ) async {
+    final user = await requireAuthenticatedUser();
     // Sanity check that domains are:
     //  - lowercase (because we want that in pub.dev)
     //  - consist of a-z, 0-9 and dashes
@@ -106,7 +107,7 @@ class PublisherBackend {
         // Check that publisher is the same as what we would create.
         if (p.created.isBefore(now.subtract(Duration(minutes: 10))) ||
             p.updated.isBefore(now.subtract(Duration(minutes: 10))) ||
-            p.contactEmail != authenticatedUser.email ||
+            p.contactEmail != user.email ||
             p.description != '' ||
             p.websiteUrl != _publisherWebsite(publisherId)) {
           throw ConflictException.publisherAlreadyExists(publisherId);
@@ -123,29 +124,29 @@ class PublisherBackend {
           ..id = publisherId
           ..created = now
           ..description = ''
-          ..contactEmail = authenticatedUser.email
+          ..contactEmail = user.email
           ..updated = now
           ..websiteUrl = _publisherWebsite(publisherId)
           ..isAbandoned = false,
         PublisherMember()
           ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
-          ..id = authenticatedUser.userId
-          ..userId = authenticatedUser.userId
+          ..id = user.userId
+          ..userId = user.userId
           ..created = now
           ..updated = now
           ..role = PublisherMemberRole.admin,
         History.entry(
           PublisherCreated(
             publisherId: publisherId,
-            userId: authenticatedUser.userId,
-            userEmail: authenticatedUser.email,
+            userId: user.userId,
+            userEmail: user.email,
           ),
         ),
         History.entry(
           MemberJoined(
             publisherId: publisherId,
-            userId: authenticatedUser.userId,
-            userEmail: authenticatedUser.email,
+            userId: user.userId,
+            userEmail: user.email,
             role: PublisherMemberRole.admin,
           ),
         ),
@@ -315,7 +316,7 @@ class PublisherBackend {
     }
     if (update.role != null && update.role != pm.role) {
       // user is not allowed to update their own role
-      if (userId == authenticatedUser.userId) {
+      if (userId == user.userId) {
         throw ConflictException.cantUpdateOwnRole();
       }
       // role needs to be from the allowed set of values
@@ -339,7 +340,7 @@ class PublisherBackend {
   Future deletePublisherMember(String publisherId, String userId) async {
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
-    if (userId == authenticatedUser.userId) {
+    if (userId == user.userId) {
       throw ConflictException.cantUpdateSelf();
     }
 
