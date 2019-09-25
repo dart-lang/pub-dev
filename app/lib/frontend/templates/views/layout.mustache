@@ -81,9 +81,9 @@
       <div id="account-nav">
         <a id="-account-login" class="link">Login</a>
         <div id="-account-profile" class="sub-wrap hoverable">
-          <img class="profile-img" id="-account-profile-img" />
+          <img class="profile-img" id="-account-profile-img" src="{{& user_session.image_url}}" />
           <div class="sub-nav sub-nav-right">
-            <div class="account-nav-info"><span id="-account-profile-email"></span></div>
+            <div class="account-nav-info"><span id="-account-profile-email">{{user_session.email}}</span></div>
             <div class="account-nav-divider"></div>
             <div class="account-nav-link"><a href="/account/packages">My packages</a></div>
             <div class="account-nav-link"><a href="/account/publishers">My publishers</a></div>
