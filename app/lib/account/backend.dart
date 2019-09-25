@@ -8,12 +8,14 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
 import '../shared/configuration.dart';
 import '../shared/exceptions.dart';
+import '../shared/redis_cache.dart' show cache;
 
 import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
@@ -265,4 +267,61 @@ class AccountBackend {
 
     return user;
   }
+
+  /// Creates a new session for the current authenticated user and returns the
+  /// new `sessionId`.
+  ///
+  /// The `sessionId` is a secret that will be stored in a secure cookie.
+  /// Presence of this `sessionId` in a cookie, can only be used to authorize
+  /// user specific content to be embedded in HTML pages (such pages must have
+  /// `Cache-Control: private`, and may not be cached in server-side).
+  /// JSON APIs whether fetching data or updating data cannot be authorized with
+  /// a cookie carrying the `sessionId`.
+  Future<String> createNewSession({@required String imageUrl}) async {
+    final user = await requireAuthenticatedUser();
+    final now = DateTime.now().toUtc();
+    final sessionId = _uuid.v4().toString();
+    await _db.commit(inserts: [
+      UserSession()
+        ..id = sessionId
+        ..userIdKey = user.key
+        ..email = user.email
+        ..imageUrl = imageUrl
+        ..created = now
+        ..expires = now.add(Duration(days: 14)),
+    ]);
+    return sessionId;
+  }
+
+  /// Returns the user session associated with the [sessionId] or null if it
+  /// does not exists.
+  Future<UserSessionData> lookupSession(String sessionId) async {
+    ArgumentError.checkNotNull(sessionId, 'sessionId');
+
+    final cacheEntry = cache.userSessionData(sessionId);
+    final cached = await cacheEntry.get();
+    if (cached != null) return cached;
+
+    final key = _db.emptyKey.append(UserSession, id: sessionId);
+    final list = await _db.lookup<UserSession>([key]);
+    final session = list.single;
+    if (session == null) {
+      return null;
+    }
+
+    if (session.isExpired()) {
+      await _db.commit(deletes: [key]);
+      await cacheEntry.purge();
+      return null;
+    }
+
+    // TODO: decide about extending the expiration time (maybe asynchronously)
+
+    final data = UserSessionData.fromModel(session);
+    cacheEntry.set(data);
+    return data;
+  }
+
+  // TODO: periodically remove expired sessions from datastore and cache
+  // TODO: expire all sessions of a given user from datastore and cache
 }

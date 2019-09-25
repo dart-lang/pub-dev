@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:json_annotation/json_annotation.dart';
 import 'package:gcloud/db.dart' as db;
 import 'package:meta/meta.dart';
 import 'package:ulid/ulid.dart';
+
+part 'models.g.dart';
 
 /// User data model with a random UUID id.
 @db.Kind(name: 'User', idType: db.IdType.String)
@@ -61,6 +64,79 @@ class OAuthUserID extends db.ExpandoModel {
   db.Key userIdKey;
 
   String get userId => userIdKey.id as String;
+}
+
+/// Maps the session id (from cookie) to User.id and cached profile properties.
+class UserSession extends db.ExpandoModel {
+  /// Same as [id].
+  /// This is a v4 (random) UUID String.
+  String get sessionId => id as String;
+
+  @db.ModelKeyProperty(required: true)
+  db.Key userIdKey;
+
+  String get userId => userIdKey.id as String;
+
+  @db.StringProperty(required: true)
+  String email;
+
+  @db.StringProperty()
+  String imageUrl;
+
+  @db.DateTimeProperty(required: true)
+  DateTime created;
+
+  @db.DateTimeProperty(required: true)
+  DateTime expires;
+
+  bool isExpired() => DateTime.now().isAfter(expires);
+}
+
+/// The cacheable version of [UserSession].
+@JsonSerializable()
+class UserSessionData {
+  /// This is a v4 (random) UUID String that is set as a http cookie.
+  final String sessionId;
+
+  /// The v4 (random) UUID String of the [User] that has this session.
+  final String userId;
+
+  /// The e-mail address of the [User].
+  final String email;
+
+  /// The image URL of the user's profile picture (may be null).
+  final String imageUrl;
+
+  /// The time when the session was created.
+  final DateTime created;
+
+  /// The time when the session will expire.
+  final DateTime expires;
+
+  UserSessionData({
+    this.sessionId,
+    this.userId,
+    this.email,
+    this.imageUrl,
+    this.created,
+    this.expires,
+  });
+
+  factory UserSessionData.fromModel(UserSession session) {
+    return UserSessionData(
+      sessionId: session.sessionId,
+      userId: session.userId,
+      email: session.email,
+      imageUrl: session.imageUrl,
+      created: session.created,
+      expires: session.expires,
+    );
+  }
+
+  factory UserSessionData.fromJson(Map<String, dynamic> json) =>
+      _$UserSessionDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserSessionDataToJson(this);
 }
 
 /// Derived data for [User] for fast lookup.
