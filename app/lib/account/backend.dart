@@ -308,7 +308,9 @@ class AccountBackend {
 
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
-    if (cached != null) return cached;
+    if (cached != null && DateTime.now().isBefore(cached.expires)) {
+      return cached;
+    }
 
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     final list = await _db.lookup<UserSession>([key]);
