@@ -13,7 +13,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
-import '../account/models.dart' show User, UserSessionData;
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 
@@ -30,8 +29,6 @@ import 'utils.dart' show fileAnIssueContent, parseCookieHeader;
 // https://get.dev/#benefits
 // However, we should still emit it on other domains e.g. on pub.dartlang.org.
 const _hstsDuration = Duration(days: 365);
-
-final _logger = Logger('handlers');
 
 Future<void> runHandler(
   Logger logger,
@@ -70,6 +67,7 @@ shelf.Handler wrapHandler(
   handler = _httpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   handler = _userAuthWrapper(handler);
+  handler = _userSessionWrapper(handler);
   handler = _cspHeaderWrapper(handler);
   handler = _requestContextWrapper(handler);
   return handler;
@@ -203,42 +201,40 @@ shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
   };
 }
 
-/// Processes `Authorization` header and the session cookie, and on successful
-/// verification it will set the authenticated user and the user session data.
+/// Looks at request and if the 'Authorization' header was set tries to get
+/// the user email address and registers it.
 shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    User user;
     final authorization = request.headers['authorization'];
     if (authorization != null) {
       final parts = authorization.split(' ');
       if (parts.length == 2 && parts.first.trim().toLowerCase() == 'bearer') {
         final accessToken = parts.last.trim();
 
-        user = await accountBackend.authenticateWithBearerToken(accessToken);
+        final user =
+            await accountBackend.authenticateWithBearerToken(accessToken);
+        if (user != null) {
+          registerAuthenticatedUser(user);
+        }
       }
     }
+    return await handler(request);
+  };
+}
 
-    UserSessionData userSessionData;
+/// Processes the session cookie, and on successful verification it will set the
+/// user session data.
+shelf.Handler _userSessionWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
     final sessionId = cookies['pub_sid'];
     if (sessionId != null) {
-      userSessionData = await accountBackend.lookupSession(sessionId);
+      final sessionData = await accountBackend.lookupSession(sessionId);
+      if (sessionData != null) {
+        registerUserSessionData(sessionData);
+      }
     }
-
-    // verify if the ids match
-    if (user != null &&
-        userSessionData != null &&
-        user.userId != userSessionData.userId) {
-      _logger.shout('Authentication missmatch: bearer token resolved '
-          '${user.userId} while cookie resolved ${userSessionData.userId}');
-      userSessionData = null;
-      await accountBackend.invalidateSession(sessionId);
-    }
-
-    if (user != null) registerAuthenticatedUser(user);
-    if (userSessionData != null) registerUserSessionData(userSessionData);
-
     return await handler(request);
   };
 }
