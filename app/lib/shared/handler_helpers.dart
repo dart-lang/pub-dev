@@ -67,6 +67,7 @@ shelf.Handler wrapHandler(
   handler = _httpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
   handler = _userAuthWrapper(handler);
+  handler = _userSessionWrapper(handler);
   handler = _cspHeaderWrapper(handler);
   handler = _requestContextWrapper(handler);
   return handler;
@@ -215,6 +216,23 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
         if (user != null) {
           registerAuthenticatedUser(user);
         }
+      }
+    }
+    return await handler(request);
+  };
+}
+
+/// Processes the session cookie, and on successful verification it will set the
+/// user session data.
+shelf.Handler _userSessionWrapper(shelf.Handler handler) {
+  return (shelf.Request request) async {
+    final cookies =
+        parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
+    final sessionId = cookies['pub_sid'];
+    if (sessionId != null) {
+      final sessionData = await accountBackend.lookupSession(sessionId);
+      if (sessionData != null) {
+        registerUserSessionData(sessionData);
       }
     }
     return await handler(request);

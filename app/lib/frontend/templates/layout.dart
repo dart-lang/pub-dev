@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
+import '../../account/backend.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/platform.dart' show KnownPlatforms;
@@ -71,11 +72,18 @@ String renderLayoutPage(
   final searchPlaceholder = publisherId != null
       ? 'Search $publisherId packages'
       : platformDict.searchPlatformPackagesLabel;
+  final userSession = userSessionData == null
+      ? null
+      : {
+          'email': userSessionData.email,
+          'image_url': userSessionData.imageUrl,
+        };
   final values = {
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
         ? activeConfiguration.pubSiteAudience
         : null,
+    'user_session': userSession,
     'body_class': bodyClasses.join(' '),
     'no_index': noIndex,
     'static_assets': staticUrls.assets,

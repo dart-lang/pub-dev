@@ -39,6 +39,14 @@ void registerAuthenticatedUser(User user) =>
 /// The active authenticated user.
 User get _authenticatedUser => ss.lookup(#_authenticated_user) as User;
 
+/// Sets the active user's session data object.
+void registerUserSessionData(UserSessionData value) =>
+    ss.register(#_userSessionData, value);
+
+/// The active user's session data.
+UserSessionData get userSessionData =>
+    ss.lookup(#_userSessionData) as UserSessionData;
+
 /// Returns the current authenticated user.
 ///
 /// If no user is currently authenticated, this will throw an
@@ -300,7 +308,9 @@ class AccountBackend {
 
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
-    if (cached != null) return cached;
+    if (cached != null && DateTime.now().isBefore(cached.expires)) {
+      return cached;
+    }
 
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     final list = await _db.lookup<UserSession>([key]);
@@ -320,6 +330,13 @@ class AccountBackend {
     final data = UserSessionData.fromModel(session);
     cacheEntry.set(data);
     return data;
+  }
+
+  /// Removes the session data from the Datastore and from cache.
+  Future invalidateSession(String sessionId) async {
+    final key = _db.emptyKey.append(UserSession, id: sessionId);
+    await _db.commit(deletes: [key]);
+    await cache.userSessionData(sessionId).purge();
   }
 
   // TODO: periodically remove expired sessions from datastore and cache
