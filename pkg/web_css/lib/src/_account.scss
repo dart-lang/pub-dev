@@ -2,6 +2,7 @@
   color: #000;
   min-width: 140px;
   text-align: right;
+  margin: 0px -8px;
 
   > a.link {
     color: white;
@@ -13,8 +14,29 @@
   }
 
   .profile-img {
+    border-radius: 50%;
     width: auto;
     max-height: 30px;
+  }
+
+  .account-nav-info,
+  .account-nav-link > a {
+    display: block;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+
+  .account-nav-info {
+    color: #666;
+  }
+
+  .account-nav-link:hover {
+    background: #f8f8f8;
+  }
+
+  .account-nav-divider {
+    border-bottom: 1px solid #eee;
+    margin: 4px 0px;
   }
 }
 

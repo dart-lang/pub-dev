@@ -76,15 +76,6 @@
             <a class="link" target="_blank" rel="noopener" href="{{& dart_site_root}}/tools/pub">Pub tool</a>
           </div>
         </div>
-        {{#show_publisher_nav_menu}}
-        <div class="sub-wrap hoverable">
-          <button class="button">Publishers</button>
-          <div class="sub-nav">
-              <a class="link" href="/publishers">Browse publishers</a>
-              <a class="link" href="/create-publisher">Create publisher</a>
-          </div>
-        </div>
-        {{/show_publisher_nav_menu}}
       </nav>
       {{#oauth_client_id}}
       <div id="account-nav">
@@ -92,8 +83,13 @@
         <div id="-account-profile" class="sub-wrap hoverable">
           <img class="profile-img" id="-account-profile-img" />
           <div class="sub-nav sub-nav-right">
-            <div id="-account-profile-email"></div>
-            <a id="-account-logout" class="link">Logout</a>
+            <div class="account-nav-info"><span id="-account-profile-email"></span></div>
+            <div class="account-nav-divider"></div>
+            <div class="account-nav-link"><a href="/account/packages">My packages</a></div>
+            <div class="account-nav-link"><a href="/account/publishers">My publishers</a></div>
+            <div class="account-nav-link"><a href="/create-publisher">Create publisher</a></div>
+            <div class="account-nav-divider"></div>
+            <div class="account-nav-link"><a id="-account-logout" class="link">Logout</a></div>
           </div>
         </div>
       </div>
