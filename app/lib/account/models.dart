@@ -95,11 +95,22 @@ class UserSession extends db.ExpandoModel {
 /// The cacheable version of [UserSession].
 @JsonSerializable()
 class UserSessionData {
+  /// This is a v4 (random) UUID String that is set as a http cookie.
   final String sessionId;
+
+  /// The v4 (random) UUID String of the [User] that has this session.
   final String userId;
+
+  /// The e-mail address of the [User].
   final String email;
+
+  /// The image URL of the user's profile picture (may be null).
   final String imageUrl;
+
+  /// The time when the session was created.
   final DateTime created;
+
+  /// The time when the session will expire.
   final DateTime expires;
 
   UserSessionData({

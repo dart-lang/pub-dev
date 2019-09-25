@@ -268,7 +268,15 @@ class AccountBackend {
     return user;
   }
 
-  /// Creates a new session for the current authenticated user.
+  /// Creates a new session for the current authenticated user and returns the
+  /// new `sessionId`.
+  ///
+  /// The `sessionId` is a secret that will be stored in a secure cookie.
+  /// Presence of this `sessionId` in a cookie, can only be used to authorize
+  /// user specific content to be embedded in HTML pages (such pages must have
+  /// `Cache-Control: private`, and may not be cached in server-side).
+  /// JSON APIs whether fetching data or updating data cannot be authorized with
+  /// a cookie carrying the `sessionId`.
   Future<String> createNewSession({@required String imageUrl}) async {
     final user = await requireAuthenticatedUser();
     final now = DateTime.now().toUtc();
@@ -280,7 +288,7 @@ class AccountBackend {
         ..email = user.email
         ..imageUrl = imageUrl
         ..created = now
-        ..expires = now.add(Duration(days: 7)),
+        ..expires = now.add(Duration(days: 14)),
     ]);
     return sessionId;
   }
@@ -288,6 +296,8 @@ class AccountBackend {
   /// Returns the user session associated with the [sessionId] or null if it
   /// does not exists.
   Future<UserSessionData> lookupSession(String sessionId) async {
+    ArgumentError.checkNotNull(sessionId, 'sessionId');
+
     final cacheEntry = cache.userSessionData(sessionId);
     final cached = await cacheEntry.get();
     if (cached != null) return cached;

@@ -35,7 +35,7 @@ class CachePatterns {
   /// Cache for [UserSessionData].
   Entry<UserSessionData> userSessionData(String sessionId) => _cache
       .withPrefix('account-usersession')
-      .withTTL(Duration(hours: 1))
+      .withTTL(Duration(hours: 24))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(wrapAsCodec(
