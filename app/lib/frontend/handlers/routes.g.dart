@@ -34,8 +34,6 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/create-publisher', service.createPublisherPage);
   router.add('GET', r'/publishers', service.publisherList);
   router.add('GET', r'/publishers/<publisherId>', service.publisherPage);
-  router.add(
-      'GET', r'/publishers/<publisherId>/about', service.publisherAboutPage);
   router.add('GET', r'/publishers/<publisherId>/packages',
       service.publisherPackagesPage);
   router.add(
