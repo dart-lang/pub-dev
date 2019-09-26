@@ -6,6 +6,33 @@ part of 'account_api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+ClientSessionData _$ClientSessionDataFromJson(Map<String, dynamic> json) {
+  return ClientSessionData(
+    imageUrl: json['imageUrl'] as String,
+  );
+}
+
+Map<String, dynamic> _$ClientSessionDataToJson(ClientSessionData instance) =>
+    <String, dynamic>{
+      'imageUrl': instance.imageUrl,
+    };
+
+ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) {
+  return ClientSessionStatus(
+    changed: json['changed'] as bool,
+    expires: json['expires'] == null
+        ? null
+        : DateTime.parse(json['expires'] as String),
+  );
+}
+
+Map<String, dynamic> _$ClientSessionStatusToJson(
+        ClientSessionStatus instance) =>
+    <String, dynamic>{
+      'changed': instance.changed,
+      'expires': instance.expires?.toIso8601String(),
+    };
+
 AccountPkgOptions _$AccountPkgOptionsFromJson(Map<String, dynamic> json) {
   return AccountPkgOptions(
     isAdmin: json['isAdmin'] as bool,

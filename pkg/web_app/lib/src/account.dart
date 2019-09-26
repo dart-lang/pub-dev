@@ -42,8 +42,8 @@ final _consentWidget = _ConsentWidget();
 /// The pub API client to use with account credentials.
 PubApiClient get client {
   if (_client == null) {
-    _httpClient ??=
-        getAuthenticatedClient(currentUser.getAuthResponse(true)?.access_token);
+    _httpClient ??= getAuthenticatedClient(
+        currentUser?.getAuthResponse(true)?.access_token);
     final uri = Uri.parse(window.location.href);
     _client = PubApiClient(uri.resolve('/').toString(), client: _httpClient);
   }
@@ -78,7 +78,7 @@ void _init() {
   getAuthInstance().currentUser.listen(allowInterop(_updateUser));
 }
 
-void _updateUser(GoogleUser user) {
+Future _updateUser(GoogleUser user) async {
   if (_initialized && !getAuthInstance().isSignedIn.get()) {
     user = null;
   }
@@ -91,6 +91,24 @@ void _updateUser(GoogleUser user) {
   _httpClient?.close();
   _httpClient = null;
   _client = null;
+
+  // update or delete session
+  List<int> statusRs;
+  if (user == null) {
+    statusRs = await client.invalidateSession();
+  } else {
+    statusRs = await client.updateSession(
+      ClientSessionData(
+        imageUrl: user.getBasicProfile().getImageUrl(),
+      ),
+    );
+  }
+  final status = ClientSessionStatus.fromBytes(statusRs);
+  // if the server indicates that the cookie has been changed, then reload page
+  if (status.changed) {
+    window.location.reload();
+    return;
+  }
 
   _updateOnCredChange();
   _updateUi();

@@ -228,7 +228,7 @@ shelf.Handler _userSessionWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     final cookies =
         parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-    final sessionId = cookies['pub_sid'];
+    final sessionId = cookies[pubSessionCookieName];
     if (sessionId != null) {
       final sessionData = await accountBackend.lookupSession(sessionId);
       if (sessionData != null) {

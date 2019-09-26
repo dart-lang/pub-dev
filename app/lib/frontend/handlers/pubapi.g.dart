@@ -274,6 +274,32 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('POST', r'/api/account/session', (Request request) async {
+    try {
+      final _$result = await service.updateSession(
+        request,
+        await $utilities.decodeJson<ClientSessionData>(
+            request, (o) => ClientSessionData.fromJson(o)),
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('DELETE', r'/api/account/session', (Request request) async {
+    try {
+      final _$result = await service.invalidateSession(
+        request,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/account/options/packages/<package>',
       (Request request, String package) async {
     try {

@@ -67,6 +67,7 @@ class OAuthUserID extends db.ExpandoModel {
 }
 
 /// Maps the session id (from cookie) to User.id and cached profile properties.
+@db.Kind(name: 'UserSession', idType: db.IdType.String)
 class UserSession extends db.ExpandoModel {
   /// Same as [id].
   /// This is a v4 (random) UUID String.

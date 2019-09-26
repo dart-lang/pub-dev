@@ -35,19 +35,19 @@ shelf.Response redirectToSearch(String query) {
   return redirectResponse(urls.searchUrl(q: query));
 }
 
-shelf.Response jsonResponse(Map map,
-    {int status = 200, bool indentJson = false}) {
+shelf.Response jsonResponse(
+  Map map, {
+  int status = 200,
+  bool indentJson = false,
+  Map<String, String> headers,
+}) {
   final String body = (indentJson || requestContext.indentJson)
       ? _prettyJson.convert(map)
       : json.encode(map);
-  return shelf.Response(
-    status,
-    body: body,
-    headers: {
-      'content-type': 'application/json; charset="utf-8"',
-      'x-content-type-options': 'nosniff',
-    },
-  );
+  headers ??= <String, String>{};
+  headers['content-type'] = 'application/json; charset="utf-8"';
+  headers['x-content-type-options'] = 'nosniff';
+  return shelf.Response(status, body: body, headers: headers);
 }
 
 final _none = <String>["'none'"];
