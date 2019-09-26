@@ -551,21 +551,24 @@ void main() {
     });
 
     scopedTest('publisher list page', () {
-      final html = renderPublisherListPage([
-        Publisher()
-          ..id = 'example.com'
-          ..contactEmail = 'hello@example.com'
-          ..description = 'This is our little software developer shop.\n\n'
-              'We develop full-stack in Dart, and happy about it.'
-          ..websiteUrl = 'https://example.com/'
-          ..created = DateTime(2019, 09, 13),
-        Publisher()
-          ..id = 'other-domain.com'
-          ..contactEmail = 'hello@other-domain.com'
-          ..description = 'We do software.'
-          ..websiteUrl = 'https://other-domain.com/'
-          ..created = DateTime(2019, 09, 19),
-      ]);
+      final html = renderPublisherListPage(
+        [
+          Publisher()
+            ..id = 'example.com'
+            ..contactEmail = 'hello@example.com'
+            ..description = 'This is our little software developer shop.\n\n'
+                'We develop full-stack in Dart, and happy about it.'
+            ..websiteUrl = 'https://example.com/'
+            ..created = DateTime(2019, 09, 13),
+          Publisher()
+            ..id = 'other-domain.com'
+            ..contactEmail = 'hello@other-domain.com'
+            ..description = 'We do software.'
+            ..websiteUrl = 'https://other-domain.com/'
+            ..created = DateTime(2019, 09, 19),
+        ],
+        isGlobal: true,
+      );
       expectGoldenFile(html, 'publisher_list_page.html');
     });
 

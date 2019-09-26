@@ -69,6 +69,8 @@ class PublisherScript {
       // TODO: verify publisher page (after the search index picks up the package)
 
       await _verifyPublisherListPage();
+
+      // TODO: verify my publishers page
     } finally {
       await _temp.delete(recursive: true);
       _pubHttpClient.close();

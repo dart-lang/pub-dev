@@ -201,6 +201,11 @@ class PubSiteService {
   Future<Response> oauthCallback(Request request) async =>
       oauthCallbackHandler(request);
 
+  /// List of the current user's publishers.
+  @Route.get('/account/publishers')
+  Future<Response> accountPublishersPage(Request request) async =>
+      accountPublishersPageHandler(request);
+
   /// Renders the authorization confirmed page.
   @Route.get('/authorized')
   Future<Response> authorizationConfirmed(Request request) async =>

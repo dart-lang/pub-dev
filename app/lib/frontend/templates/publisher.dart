@@ -31,8 +31,13 @@ String renderCreatePublisherPage() {
 }
 
 /// Renders the `views/publisher/publisher_list.mustache` template
-String renderPublisherListPage(List<Publisher> publishers) {
+String renderPublisherListPage(List<Publisher> publishers,
+    {@required bool isGlobal}) {
   final content = templateCache.renderTemplate('publisher/publisher_list', {
+    'title': isGlobal ? 'Publishers' : 'My publishers',
+    'no_publisher_message': isGlobal
+        ? 'No publisher has been registered.'
+        : 'You have no publisher',
     'has_publishers': publishers.isNotEmpty,
     'publishers': publishers
         .map(

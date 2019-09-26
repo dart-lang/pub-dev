@@ -13,6 +13,19 @@ import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
 
+/// Renders a page where the real content is only provided for logged-in users.
+String renderUnauthenticatedPage() {
+  // TODO: add custom message
+  // TODO: add header and more content to explain how to log in
+  final content = 'You need to be logged in to view this page.';
+  return renderLayoutPage(
+    PageType.standalone,
+    content,
+    title: 'Authentication required',
+    noIndex: true,
+  );
+}
+
 /// Renders the `views/help.mustache` template.
 String renderHelpPage() {
   final String content = templateCache.renderTemplate('help', {
