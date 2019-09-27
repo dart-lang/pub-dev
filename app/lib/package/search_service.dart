@@ -75,6 +75,8 @@ class SearchService {
   Future close() async {}
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
+  ///
+  /// Returns null if the package does not exists.
   Future<PackageView> _getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
       final p = await packageBackend.lookupPackage(package);
