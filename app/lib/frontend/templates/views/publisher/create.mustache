@@ -32,8 +32,20 @@
       (formerly: Google Webmaster Tools).
     </p>
     <p>
-      <input type="text" id="-publisher-id" class="pub-input" placeholder="your domain name" />
-      <button id="-admin-create-publisher" class="pub-button">Create publisher</button>
+      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+        <input type="text" id="-publisher-id" class="mdc-text-field__input">
+        <div class="mdc-notched-outline">
+          <div class="mdc-notched-outline__leading"></div>
+          <div class="mdc-notched-outline__notch">
+            <label for="-publisher-id" class="mdc-floating-label">Domain Name</label>
+          </div>
+          <div class="mdc-notched-outline__trailing"></div>
+        </div>
+      </div>
+      <button
+        id="-admin-create-publisher"
+        class="mdc-button mdc-button--raised"
+        data-mdc-auto-init="MDCRipple">Create publisher</button>
     </p>
   </div>
 </div>

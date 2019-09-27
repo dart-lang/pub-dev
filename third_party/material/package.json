@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "cp node_modules/material-components-web/dist/material-components-web.min.* ."
+  },
+  "devDependencies": {
+    "material-components-web": "^3.2.0"
+  }
+}

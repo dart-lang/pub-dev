@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'package:mdc_web/mdc_web.dart' show MDCDialog;
 
 /// Show/hide an element.
 void updateDisplay(Element elem, bool show, {String display}) {
@@ -24,45 +25,85 @@ Future<bool> modalConfirm(String question) async {
 /// false, it will omit the "Cancel" button.
 ///
 /// Returns true if "OK" was pressed, false otherwise.
-Future<bool> _modalWindow(String title, String contentHtml, bool isQuestion) {
-  final completer = Completer<bool>();
-  final cancelButton = ButtonElement()
-    ..className = 'pub-button secondary'
-    ..text = 'Cancel';
-  final okButton = ButtonElement()
-    ..className = 'pub-button'
-    ..text = 'OK'
-    ..onClick.listen((e) {
-      completer.complete(true);
-      e.stopPropagation();
-    });
-  final elem = Element.div()
-    ..className = 'pub-modal'
-    ..children = [
-      Element.div()
-        ..className = 'pub-modal-panel'
-        ..children = [
-          Element.tag('h2')..text = title,
-          Element.div()
-            ..className = 'pub-modal-content'
-            ..innerHtml = contentHtml,
-          Element.div()
-            ..className = 'pub-modal-buttons'
-            ..children = [
-              if (isQuestion) cancelButton,
-              okButton,
-            ]
-        ],
-    ];
-  elem.onClick.listen((_) {
-    if (!completer.isCompleted) {
-      completer.complete(false);
-    }
-  });
-  document.body.append(elem);
-  okButton.focus();
-  completer.future.then((_) {
-    elem.remove();
-  });
-  return completer.future;
+Future<bool> _modalWindow(
+  String titleText,
+  String contentHtml,
+  bool isQuestion,
+) async {
+  final c = Completer<bool>();
+  final root = _buildDialog(titleText, contentHtml, isQuestion, c.complete);
+  document.body.append(root);
+  final dialog = MDCDialog(root);
+  try {
+    dialog.open();
+    dialog.listen('MDCDialog:closed', (e) => c.complete(false));
+    await c.future;
+  } finally {
+    dialog.destroy();
+    root.remove();
+  }
+  return await c.future;
 }
+
+Element _buildDialog(
+  String titleText,
+  String contentHtml,
+  bool isQuestion,
+  void Function(bool) close,
+) =>
+    Element.div()
+      ..classes.add('mdc-dialog')
+      ..attributes.addAll({
+        'role': 'alertdialog',
+        'aria-model': 'true',
+        'aria-labelledby': 'pub-dialog-title',
+        'aria-describedby': 'pub-dialog-content',
+      })
+      ..children = [
+        Element.div()
+          ..classes.add('mdc-dialog__container')
+          ..children = [
+            Element.div()
+              ..classes.add('mdc-dialog__surface')
+              ..children = [
+                Element.tag('h2')
+                  ..classes.add('mdc-dialog__title')
+                  ..id = 'pub-dialog-title'
+                  ..innerText = titleText,
+                Element.div()
+                  ..classes.add('mdc-dialog__content')
+                  ..id = 'pub-dialog-content'
+                  ..innerHtml = contentHtml,
+                Element.footer()
+                  ..classes.add('mdc-dialog__actions')
+                  ..children = [
+                    if (isQuestion)
+                      Element.tag('button')
+                        ..classes.addAll([
+                          'mdc-button',
+                          'mdc-dialog__button',
+                        ])
+                        ..tabIndex = 2
+                        ..onClick.first.whenComplete(() => close(false))
+                        ..children = [
+                          Element.span()
+                            ..classes.add('mdc-button__label')
+                            ..innerText = 'Cancel',
+                        ],
+                    Element.tag('button')
+                      ..classes.addAll([
+                        'mdc-button',
+                        'mdc-dialog__button',
+                      ])
+                      ..tabIndex = 1
+                      ..onClick.first.whenComplete(() => close(true))
+                      ..children = [
+                        Element.span()
+                          ..classes.add('mdc-button__label')
+                          ..innerText = 'Ok',
+                      ],
+                  ],
+              ],
+          ],
+        Element.div()..classes.add('mdc-dialog__scrim'),
+      ];

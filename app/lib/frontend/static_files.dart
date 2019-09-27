@@ -75,6 +75,7 @@ class StaticFileCache {
     final thirdPartyDir = _resolveDir('third_party');
     _addDirectory(_resolveDir('third_party/highlight'), baseDir: thirdPartyDir);
     _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
+    _addDirectory(_resolveDir('third_party/material'), baseDir: thirdPartyDir);
   }
 
   /// Returns the keys that are accepted as requests paths.

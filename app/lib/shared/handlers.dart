@@ -82,9 +82,11 @@ final _contentSecurityPolicyMap = <String, List<String>>{
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
     'https://apis.google.com/',
+    'https://unpkg.com/',
   ],
   'style-src': <String>[
     "'self'",
+    'https://unpkg.com/',
     'https://pub.dartlang.org/static/', // older dartdoc content requires it
     "'unsafe-inline'", // package page (esp. analysis tab) required is
     'https://fonts.googleapis.com/',
