@@ -75,10 +75,15 @@ class SearchService {
   Future close() async {}
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
+  ///
+  /// Returns null if the package does not exists.
   Future<PackageView> _getPackageView(String package) async {
     return await cache.packageView(package).get(() async {
       final p = await packageBackend.lookupPackage(package);
-      if (p == null) return null;
+      if (p == null) {
+        _logger.warning('Package lookup failed for "$package".');
+        return null;
+      }
 
       final version = p.latestVersion;
       final pvFuture = packageBackend.lookupPackageVersion(package, version);
@@ -93,6 +98,8 @@ class SearchService {
 
   /// Returns the [PackageView] instance for each package in [packages], using
   /// the latest stable version.
+  ///
+  /// If the package does not exist, it will return null in the given index.
   Future<List<PackageView>> getPackageViews(List<String> packages) async {
     // TODO: consider a cache-check first and batch-load the rest of the packages
     return await Future.wait(packages.map((p) => _getPackageView(p)));
@@ -106,6 +113,8 @@ class SearchService {
         .toList();
     final pubPackages = <String, PackageView>{};
     for (final view in await getPackageViews(packageNames)) {
+      // The package may have been deleted, but the index still has it.
+      if (view == null) continue;
       pubPackages[view.name] = view;
     }
 
