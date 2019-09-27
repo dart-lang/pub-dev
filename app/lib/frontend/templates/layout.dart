@@ -79,6 +79,7 @@ String renderLayoutPage(
           'image_url': userSessionData.imageUrl,
         };
   final values = {
+    'is_experimental': requestContext.isExperimental,
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
         ? activeConfiguration.pubSiteAudience
