@@ -1,0 +1,16 @@
+# Configuration for Google Cloud Build
+#
+# Triggers in the staging project kicks off a cloud build task based on the
+# configuration in this file. Permissions granted to this task is configured
+# by granting permissions to the service account:
+#   <project-id>@cloudbuild.gserviceaccount.com
+#
+# Reference: https://cloud.google.com/cloud-build/docs/build-config
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: '/bin/bash'
+  args: ['tool/.deploy-staging.sh']
+  env:
+    - 'PROJECT_ID=$PROJECT_ID'
+    - 'BRANCH_NAME=$BRANCH_NAME'
+timeout: '1600s'
