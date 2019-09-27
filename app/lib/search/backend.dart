@@ -238,7 +238,10 @@ List<PubDartdocData> splitLibraries(PubDartdocData data) {
     librariesMap.putIfAbsent(library, () => <ApiElement>[]).add(elem);
   });
   return librariesMap.values
-      .map((list) => PubDartdocData(apiElements: list))
+      .map((list) => PubDartdocData(
+            coverage: Coverage(total: list.length, documented: list.length),
+            apiElements: list,
+          ))
       .toList();
 }
 

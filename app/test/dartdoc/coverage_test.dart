@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/dartdoc/coverage.dart';
+import 'package:pub_dartdoc_data/pub_dartdoc_data.dart';
 
 void main() {
   group('Score', () {
