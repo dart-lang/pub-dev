@@ -166,7 +166,7 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       return null;
     }
     // Validate the issuer.
-    if (r['iss'] != 'https://accounts.google.com') {
+    if (r['iss'] != 'accounts.google.com') {
       return null;
     }
     // Validate create time
@@ -190,9 +190,12 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     if (r['sub'] is! String) {
       return null; // missing subject (probably missing 'openid' scope)
     }
-    // Validate email is present and verified
-    if (r['email_verified'] != true || r['email'] is! String) {
-      return null; // Missing the 'email' scope
+    // Validate email is present
+    if (r['email'] is! String) {
+      return null; // missing email (probably missing 'email' scope)
+    }
+    if (r['email_verified'] != true && r['email_verified'] != 'true') {
+      return null; // missing email (probably missing 'email' scope)
     }
     return AuthResult(r['sub'] as String, r['email'] as String);
   }
