@@ -46,12 +46,25 @@ Future<shelf.Response> updateSessionHandler(shelf.Request request,
 
   final newSession = await accountBackend.createNewSession(
       imageUrl: clientSessionData.imageUrl);
-  final cookie = Cookie(pubSessionCookieName, newSession.sessionId)
-    ..expires = newSession.expires
-    ..httpOnly = true
-    ..path = '/';
   final headers = <String, String>{
-    HttpHeaders.setCookieHeader: cookie.toString(),
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+    HttpHeaders.setCookieHeader: [
+      // Cookies prefixed '__Host-' must:
+      //  * be set by a HTTPS response,
+      //  * not feature a 'Domain' directive, and,
+      //  * have 'Path=/' directive.
+      // Hence, such a cookie cannot have been set by another website or an
+      // HTTP proxy for this website.
+      '$pubSessionCookieName=${newSession.sessionId}',
+      // Send cookie to anything under '/' required by '__Host-' prefix.
+      'Path=/',
+      // Do not include the cookie in CORS requests, unless the request is a
+      // top-level navigation to the site, as recommended in:
+      // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
+      'SameSite=Lax',
+      'Secure', // Only allow this cookie to be sent when making HTTPS requests.
+      'HttpOnly', // Do not allow Javascript access to this cookie.
+    ].join('; '),
   };
   final status = ClientSessionStatus(
     changed: true,

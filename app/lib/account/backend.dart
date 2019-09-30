@@ -22,7 +22,14 @@ import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
 /// The name of the session cookie.
-const pubSessionCookieName = 'pub_sid';
+///
+/// Cookies prefixed '__Host-' must:
+///  * be set by a HTTPS response,
+///  * not feature a 'Domain' directive, and,
+///  * have 'Path=/' directive.
+/// Hence, such a cookie cannot have been set by another website or an
+/// HTTP proxy for this website.
+const pubSessionCookieName = '__Host-pub-sid';
 final _logger = Logger('account.backend');
 final _uuid = Uuid();
 
