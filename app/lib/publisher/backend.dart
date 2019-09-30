@@ -50,6 +50,19 @@ class PublisherBackend {
     return await query.run().toList();
   }
 
+  /// List all publishers where the [userId] is a member.
+  Future<List<Publisher>> listPublishersForUser(String userId,
+      {int limit = 100}) async {
+    final query = _db.query<PublisherMember>()
+      ..filter('userId =', userId)
+      ..limit(limit);
+    final members = await query.run().toList();
+    final publisherKeys = members.map((pm) => pm.publisherKey).toList();
+    final publishers = await _db.lookup<Publisher>(publisherKeys);
+    publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
+    return publishers;
+  }
+
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
   Future<PublisherMember> getPublisherMember(
       String publisherId, String userId) async {
