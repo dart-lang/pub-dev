@@ -43,7 +43,7 @@ final _consentWidget = _ConsentWidget();
 PubApiClient get client {
   if (_client == null) {
     _httpClient ??= getAuthenticatedClient(
-        currentUser?.getAuthResponse(true)?.access_token);
+        currentUser?.getAuthResponse(true)?.id_token);
     final uri = Uri.parse(window.location.href);
     _client = PubApiClient(uri.resolve('/').toString(), client: _httpClient);
   }
