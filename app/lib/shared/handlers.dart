@@ -35,8 +35,12 @@ shelf.Response redirectToSearch(String query) {
   return redirectResponse(urls.searchUrl(q: query));
 }
 
-shelf.Response jsonResponse(Map map,
-    {int status = 200, bool indentJson = false}) {
+shelf.Response jsonResponse(
+  Map map, {
+  int status = 200,
+  bool indentJson = false,
+  Map<String, String> headers,
+}) {
   final String body = (indentJson || requestContext.indentJson)
       ? _prettyJson.convert(map)
       : json.encode(map);
@@ -44,6 +48,7 @@ shelf.Response jsonResponse(Map map,
     status,
     body: body,
     headers: {
+      if (headers != null) ...headers,
       'content-type': 'application/json; charset="utf-8"',
       'x-content-type-options': 'nosniff',
     },

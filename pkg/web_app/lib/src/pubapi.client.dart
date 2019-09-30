@@ -157,6 +157,21 @@ class PubApiClient {
     ));
   }
 
+  Future<List<int>> updateSession(_i4.ClientSessionData payload) async {
+    return await _client.requestBytes(
+      verb: 'post',
+      path: '/api/account/session',
+      body: payload.toJson(),
+    );
+  }
+
+  Future<List<int>> invalidateSession() async {
+    return await _client.requestBytes(
+      verb: 'delete',
+      path: '/api/account/session',
+    );
+  }
+
   Future<_i4.AccountPkgOptions> accountPackageOptions(String package) async {
     return _i4.AccountPkgOptions.fromJson(await _client.requestJson(
       verb: 'get',

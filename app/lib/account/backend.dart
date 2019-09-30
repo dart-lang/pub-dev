@@ -21,6 +21,8 @@ import 'auth_provider.dart';
 import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
+/// The name of the session cookie.
+const pubSessionCookieName = 'pub_sid';
 final _logger = Logger('account.backend');
 final _uuid = Uuid();
 
@@ -277,28 +279,27 @@ class AccountBackend {
   }
 
   /// Creates a new session for the current authenticated user and returns the
-  /// new `sessionId`.
+  /// new session data.
   ///
-  /// The `sessionId` is a secret that will be stored in a secure cookie.
-  /// Presence of this `sessionId` in a cookie, can only be used to authorize
-  /// user specific content to be embedded in HTML pages (such pages must have
-  /// `Cache-Control: private`, and may not be cached in server-side).
+  /// The [UserSessionData.sessionId] is a secret that will be stored in a
+  /// secure cookie. Presence of this `sessionId` in a cookie, can only be used
+  /// to authorize user specific content to be embedded in HTML pages (such pages
+  /// must have `Cache-Control: private`, and may not be cached in server-side).
   /// JSON APIs whether fetching data or updating data cannot be authorized with
   /// a cookie carrying the `sessionId`.
-  Future<String> createNewSession({@required String imageUrl}) async {
+  Future<UserSessionData> createNewSession({@required String imageUrl}) async {
     final user = await requireAuthenticatedUser();
     final now = DateTime.now().toUtc();
     final sessionId = _uuid.v4().toString();
-    await _db.commit(inserts: [
-      UserSession()
-        ..id = sessionId
-        ..userIdKey = user.key
-        ..email = user.email
-        ..imageUrl = imageUrl
-        ..created = now
-        ..expires = now.add(Duration(days: 14)),
-    ]);
-    return sessionId;
+    final session = UserSession()
+      ..id = sessionId
+      ..userIdKey = user.key
+      ..email = user.email
+      ..imageUrl = imageUrl
+      ..created = now
+      ..expires = now.add(Duration(days: 14));
+    await _db.commit(inserts: [session]);
+    return UserSessionData.fromModel(session);
   }
 
   /// Returns the user session associated with the [sessionId] or null if it

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+import 'dart:io' show Cookie, HttpHeaders;
+
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -13,6 +16,62 @@ import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
 import '../templates/admin.dart';
+
+/// Handles POST /api/account/session
+Future<shelf.Response> updateSessionHandler(shelf.Request request,
+    {ClientSessionData clientSessionData}) async {
+  final user = await requireAuthenticatedUser();
+
+  if (clientSessionData == null) {
+    final body = await request.readAsString();
+    final map = json.decode(body) as Map<String, dynamic>;
+    clientSessionData = ClientSessionData.fromJson(map);
+  }
+
+  // check if the session data is the same
+  if (userSessionData != null &&
+      userSessionData.userId == user.userId &&
+      userSessionData.email == user.email &&
+      userSessionData.imageUrl == clientSessionData.imageUrl) {
+    final status = ClientSessionStatus(
+      changed: false,
+      expires: userSessionData.expires,
+    );
+    return jsonResponse(status.toJson());
+  }
+
+  final newSession = await accountBackend.createNewSession(
+      imageUrl: clientSessionData.imageUrl);
+  final cookie = Cookie(pubSessionCookieName, newSession.sessionId)
+    ..expires = newSession.expires
+    ..httpOnly = true
+    ..path = '/';
+  final headers = <String, String>{
+    HttpHeaders.setCookieHeader: cookie.toString(),
+  };
+  final status = ClientSessionStatus(
+    changed: true,
+    expires: newSession.expires,
+  );
+  return jsonResponse(status.toJson(), headers: headers);
+}
+
+/// Handles DELETE /api/account/session
+Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
+  final changed = userSessionData != null;
+  final headers = <String, String>{};
+  if (userSessionData != null) {
+    final cookie = Cookie(pubSessionCookieName, '')
+      ..maxAge = 0
+      ..path = '/';
+    headers[HttpHeaders.setCookieHeader] = cookie.toString();
+  }
+  final status = ClientSessionStatus(
+    changed: changed,
+    expires: null,
+  );
+  return jsonResponse(status.toJson(), headers: headers);
+}
 
 /// Handles GET /consent?id=<consentId>
 Future<shelf.Response> consentPageHandler(
