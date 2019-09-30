@@ -85,7 +85,10 @@
       </nav>
       {{#oauth_client_id}}
       <div id="account-nav">
+        {{^is_logged_in}}
         <a id="-account-login" class="link">Login</a>
+        {{/is_logged_in}}
+        {{#is_logged_in}}
         <div id="-account-profile" class="sub-wrap hoverable">
           <img class="profile-img" id="-account-profile-img" src="{{& user_session.image_url}}" />
           <div class="sub-nav sub-nav-right">
@@ -98,6 +101,7 @@
             <div class="account-nav-link"><a id="-account-logout" class="link">Logout</a></div>
           </div>
         </div>
+        {{/is_logged_in}}
       </div>
       {{/oauth_client_id}}
     </div>

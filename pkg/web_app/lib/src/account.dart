@@ -15,7 +15,6 @@ import '_authenticated_client.dart';
 import '_dom_helper.dart';
 import 'google_auth_js.dart';
 import 'google_js.dart';
-import 'hoverable.dart';
 import 'page_data.dart';
 import 'pubapi.client.dart';
 import 'tabs.dart';
@@ -32,7 +31,6 @@ GoogleUser get currentUser => _currentUser;
 
 PubApiClient _client;
 http.Client _httpClient;
-final _navWidget = _AccountNavWidget();
 final _authorizationWidget = _AuthorizationWidget();
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
@@ -68,7 +66,14 @@ void setupAccount() {
 
 void _init() {
   _initialized = true;
-  _navWidget.init();
+  document
+      .getElementById('-account-login')
+      ?.onClick
+      ?.listen((_) => getAuthInstance().signIn());
+  document
+      .getElementById('-account-logout')
+      ?.onClick
+      ?.listen((_) => getAuthInstance().signOut());
   _authorizationWidget.init();
   _pkgAdminWidget.init();
   _createPublisherWidget.init();
@@ -139,46 +144,11 @@ void _updateUi() {
   } else {
     print('No active user');
   }
-  _navWidget.update();
   _authorizationWidget.update();
   _pkgAdminWidget.update();
   _createPublisherWidget.update();
   _publisherAdminWidget.update();
   _consentWidget.update();
-}
-
-/// Active on all pages.
-class _AccountNavWidget {
-  Element _login;
-  Element _profile;
-  Element _image;
-  Element _email;
-
-  void init() {
-    final navRoot = document.getElementById('account-nav');
-    if (navRoot == null) return;
-    _login = document.getElementById('-account-login');
-    _profile = document.getElementById('-account-profile');
-    _image = document.getElementById('-account-profile-img');
-    _email = document.getElementById('-account-profile-email');
-    final logout = document.getElementById('-account-logout');
-    _login.onClick.listen((_) => getAuthInstance().signIn());
-    logout.onClick.listen((_) => getAuthInstance().signOut());
-    registerHoverable(_profile);
-    update();
-  }
-
-  void update() {
-    if (!_initialized) {
-      return;
-    }
-    updateDisplay(_login, !isSignedIn, display: 'block');
-    updateDisplay(_profile, isSignedIn, display: 'inline-block');
-    if (isSignedIn) {
-      _image.attributes['src'] = _currentUser.getBasicProfile().getImageUrl();
-      _email.text = _currentUser.getBasicProfile().getEmail();
-    }
-  }
 }
 
 /// Active on multiple pages, including package and publisher admin pages.
