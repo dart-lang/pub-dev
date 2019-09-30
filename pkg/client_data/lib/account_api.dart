@@ -27,6 +27,8 @@ class ClientSessionData {
 /// The server-provided status of the current session.
 @JsonSerializable()
 class ClientSessionStatus {
+  /// True, if the user session has been updated and the current page should be
+  /// reloaded.
   final bool changed;
   final DateTime expires;
 

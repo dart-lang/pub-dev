@@ -44,10 +44,15 @@ shelf.Response jsonResponse(
   final String body = (indentJson || requestContext.indentJson)
       ? _prettyJson.convert(map)
       : json.encode(map);
-  headers ??= <String, String>{};
-  headers['content-type'] = 'application/json; charset="utf-8"';
-  headers['x-content-type-options'] = 'nosniff';
-  return shelf.Response(status, body: body, headers: headers);
+  return shelf.Response(
+    status,
+    body: body,
+    headers: {
+      if (headers != null) ...headers,
+      'content-type': 'application/json; charset="utf-8"',
+      'x-content-type-options': 'nosniff',
+    },
+  );
 }
 
 final _none = <String>["'none'"];

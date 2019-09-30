@@ -196,13 +196,13 @@ class PubApi {
           Request request, ClientSessionData sessionData) =>
       updateSessionHandler(request, clientSessionData: sessionData);
 
-  /// Registers (or extends) a user session.
+  /// Removes the user session.
   ///
   /// This endpoint should be called after an explicit logout action or when the
   /// client-side auth library logs out the current session.
   ///
   /// The response header will contain the session cookie with an immediate
-  /// expiration, and the body is a [ClientSessionStatus].
+  /// expiration (clearing the cookie), and the body is a [ClientSessionStatus].
   @EndPoint.delete('/api/account/session')
   Future<Response> invalidateSession(Request request) =>
       invalidateSessionHandler(request);

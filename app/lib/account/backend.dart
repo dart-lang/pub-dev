@@ -279,12 +279,12 @@ class AccountBackend {
   }
 
   /// Creates a new session for the current authenticated user and returns the
-  /// new `sessionId`.
+  /// new session data.
   ///
-  /// The `sessionId` is a secret that will be stored in a secure cookie.
-  /// Presence of this `sessionId` in a cookie, can only be used to authorize
-  /// user specific content to be embedded in HTML pages (such pages must have
-  /// `Cache-Control: private`, and may not be cached in server-side).
+  /// The [UserSessionData.sessionId] is a secret that will be stored in a
+  /// secure cookie. Presence of this `sessionId` in a cookie, can only be used
+  /// to authorize user specific content to be embedded in HTML pages (such pages
+  /// must have `Cache-Control: private`, and may not be cached in server-side).
   /// JSON APIs whether fetching data or updating data cannot be authorized with
   /// a cookie carrying the `sessionId`.
   Future<UserSessionData> createNewSession({@required String imageUrl}) async {
