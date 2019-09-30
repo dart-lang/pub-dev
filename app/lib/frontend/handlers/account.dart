@@ -45,9 +45,11 @@ Future<shelf.Response> updateSessionHandler(shelf.Request request,
   final cookie = Cookie(pubSessionCookieName, newSession.sessionId)
     ..expires = newSession.expires
     ..httpOnly = true
+    ..secure = request.requestedUri.scheme != 'http'
+    ..domain = request.requestedUri.host
     ..path = '/';
   final headers = <String, String>{
-    HttpHeaders.setCookieHeader: cookie.toString(),
+    HttpHeaders.setCookieHeader: '$cookie; SameSite=strict',
   };
   final status = ClientSessionStatus(
     changed: true,
