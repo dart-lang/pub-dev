@@ -80,6 +80,7 @@ String renderLayoutPage(
         };
   final values = {
     'is_experimental': requestContext.isExperimental,
+    'is_logged_in': userSession != null,
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': requestContext.isExperimental
         ? activeConfiguration.pubSiteAudience
