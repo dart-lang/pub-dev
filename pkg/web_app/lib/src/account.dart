@@ -42,8 +42,8 @@ final _consentWidget = _ConsentWidget();
 /// The pub API client to use with account credentials.
 PubApiClient get client {
   if (_client == null) {
-    _httpClient ??= getAuthenticatedClient(
-        currentUser?.getAuthResponse(true)?.id_token);
+    _httpClient ??=
+        getAuthenticatedClient(currentUser?.getAuthResponse(true)?.id_token);
     final uri = Uri.parse(window.location.href);
     _client = PubApiClient(uri.resolve('/').toString(), client: _httpClient);
   }
