@@ -16,7 +16,7 @@ final RegExp runtimeVersionPattern = RegExp(r'\d{4}\.\d{2}\.\d{2}');
 /// Increment the version when a change is significant enough to trigger
 /// reprocessing, including: version change in pana, dartdoc, or the SDKs,
 /// or when an feature or bugfix should be picked up by the analysis ASAP.
-const String runtimeVersion = '2019.09.10';
+const String runtimeVersion = '2019.09.30';
 final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
 /// The version which marks the earliest version of the data which we'd like to
@@ -25,6 +25,7 @@ final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens:
+/// - 2019.09.30
 /// - 2019.09.10
 /// - 2019.08.26
 /// - 2019.08.13
@@ -32,7 +33,7 @@ final String gcBeforeRuntimeVersion = '2019.08.13';
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
 final String runtimeSdkVersion = '2.5.0';
-final String toolEnvSdkVersion = '2.5.0';
+final String toolEnvSdkVersion = '2.5.1';
 
 // keep in-sync with app/pubspec.yaml
 final String panaVersion = '0.12.21';
