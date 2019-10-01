@@ -608,6 +608,36 @@ void main() {
       expectGoldenFile(html, 'publisher_packages_page.html');
     });
 
+    scopedTest('account packages page', () {
+      final searchQuery =
+          SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
+      final String html = renderAccountPackagesPage(
+        packages: [
+          PackageView(
+            name: 'super_package',
+            version: '1.0.0',
+            ellipsizedDescription: 'A great web UI library.',
+            shortUpdated: '3 Jan 2019',
+            platforms: ['web'],
+            overallScore: 0.97,
+          ),
+          PackageView(
+            name: 'another_package',
+            version: '2.0.0',
+            devVersion: '3.0.0-beta2',
+            ellipsizedDescription: 'Camera plugin.',
+            shortUpdated: '30 Mar 2019',
+            platforms: ['flutter'],
+            overallScore: 0.90,
+          ),
+        ],
+        pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
+        searchQuery: searchQuery,
+        totalCount: 2,
+      );
+      expectGoldenFile(html, 'account_packages.html');
+    });
+
     scopedTest('authorized page', () {
       final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');

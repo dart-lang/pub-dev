@@ -5,6 +5,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
  * Upgraded to Dart `2.5.0`.
  * Upgraded `package:markdown` to `2.1.0`.
+ * Search index contains `publisherId` and `owners` fields, the first startup
+   needs to have a 1-2 hours before all the packages get re-indexed with them.
+   After that they will be part of the index snapshot, and will be available
+   as other parts of the index.
 
 ## `20190910t122708-all`
 

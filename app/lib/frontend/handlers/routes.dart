@@ -201,6 +201,11 @@ class PubSiteService {
   Future<Response> oauthCallback(Request request) async =>
       oauthCallbackHandler(request);
 
+  /// List of the current user's packages.
+  @Route.get('/account/packages')
+  Future<Response> accountPackagesPage(Request request) async =>
+      accountPackagesPageHandler(request);
+
   /// List of the current user's publishers.
   @Route.get('/account/publishers')
   Future<Response> accountPublishersPage(Request request) async =>

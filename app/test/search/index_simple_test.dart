@@ -146,6 +146,7 @@ void main() {
         maintenance: 1.0,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
         emails: ['user1@example.com'],
+        uploaderEmails: ['user1@example.com'],
       ));
       await index.addPackage(PackageDocument(
         package: 'async',
@@ -508,6 +509,44 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'packages': [
           {'package': 'async', 'score': closeTo(0.930, 0.001)},
+        ],
+      });
+    });
+
+    test('no results via owners', () async {
+      final PackageSearchResult result = await index.search(
+          SearchQuery.parse(uploaderOrPublishers: ['other-domain.com']));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 0,
+        'packages': [],
+      });
+    });
+
+    test('filter by a single owner', () async {
+      final PackageSearchResult result = await index
+          .search(SearchQuery.parse(uploaderOrPublishers: ['dart.dev']));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by multiple owners', () async {
+      final PackageSearchResult result =
+          await index.search(SearchQuery.parse(uploaderOrPublishers: [
+        'dart.dev',
+        'user1@example.com',
+      ]));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+          {'package': 'http', 'score': closeTo(0.895, 0.001)},
         ],
       });
     });

@@ -58,8 +58,16 @@ class PackageDocument {
   final double maintenance;
 
   final Map<String, String> dependencies;
+
+  /// The publisher id of the package
   final String publisherId;
+
+  /// The current uploaders of the package, the uploader of the latest stable
+  /// release, and the e-mail addresses in the `pubspec.authors` block.
   final List<String> emails;
+
+  /// The current uploader emails of the package.
+  final List<String> uploaderEmails;
 
   final List<ApiDocPage> apiDocPages;
 
@@ -84,6 +92,7 @@ class PackageDocument {
     this.dependencies = const {},
     this.publisherId,
     this.emails = const [],
+    this.uploaderEmails = const [],
     this.apiDocPages = const [],
     DateTime timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
@@ -116,6 +125,7 @@ class PackageDocument {
             ),
       publisherId: internFn(publisherId),
       emails: emails?.map(internFn)?.toList(),
+      uploaderEmails: uploaderEmails?.map(internFn)?.toList(),
       apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
       timestamp: timestamp,
     );
@@ -218,6 +228,14 @@ class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
   final String platform;
+
+  /// The query will match packages where the owners of the package have
+  /// non-empty intersection with the provided list of owners.
+  ///
+  /// Values of this list can be email addresses (usually a single on) or
+  /// publisher ids (may be multiple).
+  final List<String> uploaderOrPublishers;
+
   final String publisherId;
   final SearchOrder order;
   final int offset;
@@ -231,6 +249,7 @@ class SearchQuery {
   SearchQuery._({
     this.query,
     String platform,
+    List<String> uploaderOrPublishers,
     String publisherId,
     this.order,
     this.offset,
@@ -240,12 +259,17 @@ class SearchQuery {
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform,
+        uploaderOrPublishers =
+            (uploaderOrPublishers == null || uploaderOrPublishers.isEmpty)
+                ? null
+                : uploaderOrPublishers,
         publisherId =
             (publisherId == null || publisherId.isEmpty) ? null : publisherId;
 
   factory SearchQuery.parse({
     String query,
     String platform,
+    List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
     int offset = 0,
@@ -259,6 +283,7 @@ class SearchQuery {
     return SearchQuery._(
       query: q,
       platform: platform,
+      uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
       offset: offset,
@@ -273,6 +298,7 @@ class SearchQuery {
     final String q = uri.queryParameters['q'];
     final String platform =
         uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
+    final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
     final publisherId = uri.queryParameters['publisherId'];
     final String orderValue = uri.queryParameters['order'];
     final SearchOrder order = parseSearchOrder(orderValue);
@@ -283,6 +309,7 @@ class SearchQuery {
     return SearchQuery.parse(
       query: q,
       platform: platform,
+      uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
       offset: max(0, offset),
@@ -296,6 +323,7 @@ class SearchQuery {
   SearchQuery change({
     String query,
     String platform,
+    List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
     int offset,
@@ -307,6 +335,7 @@ class SearchQuery {
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
+      uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
       offset: offset ?? this.offset,
@@ -317,10 +346,11 @@ class SearchQuery {
     );
   }
 
-  Map<String, String> toServiceQueryParameters() {
-    final Map<String, String> map = <String, String>{
+  Map<String, dynamic> toServiceQueryParameters() {
+    final map = <String, dynamic>{
       'q': query,
       'platform': platform,
+      'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
       'limit': limit?.toString(),
@@ -350,17 +380,29 @@ class SearchQuery {
   }
 
   // TODO: move this to shared/urls.dart after simplifying platformPredicate
-  String toSearchLink({int page}) {
+  /// Converts the query to a user-facing link that the search form can use as
+  /// the base path of its `action` parameter.
+  String toSearchFormPath() {
     String path = '/packages';
-    final Map<String, String> params = {};
-    if (query != null && query.isNotEmpty) {
-      params['q'] = query;
-    }
     if (platform != null && platform.isNotEmpty) {
       path = '/$platform/packages';
     }
     if (publisherId != null && publisherId.isNotEmpty) {
       path = '/publishers/$publisherId/packages';
+    }
+    if (uploaderOrPublishers != null && uploaderOrPublishers.isNotEmpty) {
+      path = '/account/packages';
+    }
+    return path;
+  }
+
+  // TODO: move this to shared/urls.dart after simplifying platformPredicate
+  /// Converts the query to a user-facing link that (after frontend parsing) will
+  /// re-create an identical search query object.
+  String toSearchLink({int page}) {
+    final Map<String, String> params = {};
+    if (query != null && query.isNotEmpty) {
+      params['q'] = query;
     }
     if (order != null) {
       final String paramName = 'sort';
@@ -375,6 +417,7 @@ class SearchQuery {
     if (page != null && page > 1) {
       params['page'] = page.toString();
     }
+    final path = toSearchFormPath();
     if (params.isEmpty) {
       return path;
     } else {
@@ -579,6 +622,7 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 SearchQuery parseFrontendSearchQuery(
   Map<String, String> queryParameters, {
   String platform,
+  List<String> uploaderOrPublishers,
   String publisherId,
 }) {
   final int page = extractPageFromUrlParameters(queryParameters);
@@ -590,6 +634,7 @@ SearchQuery parseFrontendSearchQuery(
   return SearchQuery.parse(
     query: queryText,
     platform: platform,
+    uploaderOrPublishers: uploaderOrPublishers,
     publisherId: publisherId,
     order: sortOrder,
     offset: offset,
