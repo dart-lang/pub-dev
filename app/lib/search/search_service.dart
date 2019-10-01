@@ -66,8 +66,8 @@ class PackageDocument {
   /// release, and the e-mail addresses in the `pubspec.authors` block.
   final List<String> emails;
 
-  /// The publisher id, or the current uploader emails of the package.
-  final List<String> owners;
+  /// The current uploader emails of the package.
+  final List<String> uploaderEmails;
 
   final List<ApiDocPage> apiDocPages;
 
@@ -92,7 +92,7 @@ class PackageDocument {
     this.dependencies = const {},
     this.publisherId,
     this.emails = const [],
-    this.owners = const [],
+    this.uploaderEmails = const [],
     this.apiDocPages = const [],
     DateTime timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
@@ -125,7 +125,7 @@ class PackageDocument {
             ),
       publisherId: internFn(publisherId),
       emails: emails?.map(internFn)?.toList(),
-      owners: owners?.map(internFn)?.toList(),
+      uploaderEmails: uploaderEmails?.map(internFn)?.toList(),
       apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
       timestamp: timestamp,
     );

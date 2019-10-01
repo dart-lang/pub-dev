@@ -173,7 +173,13 @@ class SimplePackageIndex implements PackageIndex {
       packages.removeWhere((package) {
         final doc = _packages[package];
         for (String owner in query.owners) {
-          if (doc.owners.contains(owner)) return false;
+          if (doc.publisherId == owner) {
+            return false;
+          }
+          if (doc.uploaderEmails != null &&
+              doc.uploaderEmails.contains(owner)) {
+            return false;
+          }
         }
         return true;
       });

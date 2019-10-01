@@ -146,7 +146,7 @@ void main() {
         maintenance: 1.0,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
         emails: ['user1@example.com'],
-        owners: ['user1@example.com'],
+        uploaderEmails: ['user1@example.com'],
       ));
       await index.addPackage(PackageDocument(
         package: 'async',
@@ -169,7 +169,6 @@ The delegating wrapper classes allow users to easily add functionality on top of
         dependencies: {'test': 'dev'},
         publisherId: 'dart.dev',
         emails: ['user1@example.com'],
-        owners: ['dart.dev'],
       ));
       await index.addPackage(PackageDocument(
         package: 'chrome_net',
