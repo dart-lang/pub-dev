@@ -228,7 +228,13 @@ class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
   final String platform;
+
+  /// The query will match packages where the owners of the package have
+  /// non-empty intersection with the provided list of owners.
+  ///
+  /// Values of this list can be email addresses or publisher ids.
   final List<String> owners;
+
   final String publisherId;
   final SearchOrder order;
   final int offset;
