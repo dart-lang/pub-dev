@@ -131,6 +131,20 @@ class PackageBackend {
         .cast();
   }
 
+  /// List packages for the specified uploader (user id).
+  Future<List<models.Package>> listPackagesByUploaderId(String userId) async {
+    final query = db.query<models.Package>()..filter('uploaders =', userId);
+    return await query.run().toList();
+  }
+
+  /// List packages for the specified [publisherId].
+  Future<List<models.Package>> listPackagesByPublisherId(
+      String publisherId) async {
+    final query = db.query<models.Package>()
+      ..filter('publisherId =', publisherId);
+    return await query.run().toList();
+  }
+
   /// Looks up a specific package version.
   ///
   /// Returns null if the version is not a semantic version or if the version

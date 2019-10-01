@@ -146,6 +146,7 @@ void main() {
         maintenance: 1.0,
         dependencies: {'async': 'direct', 'test': 'dev', 'foo': 'transitive'},
         emails: ['user1@example.com'],
+        owners: ['user1@example.com'],
       ));
       await index.addPackage(PackageDocument(
         package: 'async',
@@ -168,6 +169,7 @@ The delegating wrapper classes allow users to easily add functionality on top of
         dependencies: {'test': 'dev'},
         publisherId: 'dart.dev',
         emails: ['user1@example.com'],
+        owners: ['dart.dev'],
       ));
       await index.addPackage(PackageDocument(
         package: 'chrome_net',
@@ -508,6 +510,44 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'packages': [
           {'package': 'async', 'score': closeTo(0.930, 0.001)},
+        ],
+      });
+    });
+
+    test('no results via owners', () async {
+      final PackageSearchResult result =
+          await index.search(SearchQuery.parse(owners: ['other-domain.com']));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 0,
+        'packages': [],
+      });
+    });
+
+    test('filter by a single owner', () async {
+      final PackageSearchResult result =
+          await index.search(SearchQuery.parse(owners: ['dart.dev']));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+        ],
+      });
+    });
+
+    test('filter by multiple owners', () async {
+      final PackageSearchResult result =
+          await index.search(SearchQuery.parse(owners: [
+        'dart.dev',
+        'user1@example.com',
+      ]));
+      expect(json.decode(json.encode(result)), {
+        'indexUpdated': isNotNull,
+        'totalCount': 2,
+        'packages': [
+          {'package': 'async', 'score': closeTo(0.930, 0.001)},
+          {'package': 'http', 'score': closeTo(0.895, 0.001)},
         ],
       });
     });

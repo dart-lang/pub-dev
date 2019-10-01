@@ -48,6 +48,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/static/<path|[^]*>', service.staticAsset);
   router.add('GET', r'/experimental', service.experimental);
   router.add('GET', r'/oauth/callback', service.oauthCallback);
+  router.add('GET', r'/account/packages', service.accountPackagesPage);
   router.add('GET', r'/account/publishers', service.accountPublishersPage);
   router.add('GET', r'/authorized', service.authorizationConfirmed);
   router.add('GET', r'/admin/confirm/new-uploader/<package>/<email>/<nonce>',

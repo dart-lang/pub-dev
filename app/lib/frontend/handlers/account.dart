@@ -10,12 +10,16 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../package/backend.dart';
+import '../../package/search_service.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
+import '../../search/search_service.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
 import '../templates/admin.dart';
+import '../templates/listing.dart';
+import '../templates/misc.dart' show renderUnauthenticatedPage;
 
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(shelf.Request request,
@@ -100,4 +104,39 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
       await publisherBackend.getPublisherMember(publisherId, user.userId);
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;
   return AccountPublisherOptions(isAdmin: isAdmin);
+}
+
+/// Handles requests for GET /account/packages [?q=...]
+Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+
+  // Redirect in case of empty search query.
+  if (request.requestedUri.query == 'q=') {
+    return redirectResponse(request.requestedUri.path);
+  }
+
+  final publishers =
+      await publisherBackend.listPublishersForUser(userSessionData.userId);
+  final searchQuery = parseFrontendSearchQuery(
+    request.requestedUri.queryParameters,
+    owners: [
+      userSessionData.email,
+      ...publishers.map((p) => p.publisherId),
+    ],
+  );
+
+  final searchResult = await searchService.search(searchQuery);
+  final int totalCount = searchResult.totalCount;
+  final links =
+      PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
+
+  final html = renderAccountPackagesPage(
+    packages: searchResult.packages,
+    pageLinks: links,
+    searchQuery: searchQuery,
+    totalCount: totalCount,
+  );
+  return htmlResponse(html);
 }

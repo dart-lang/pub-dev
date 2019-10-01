@@ -168,6 +168,17 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on owners
+    if (query.owners != null && query.owners.isNotEmpty) {
+      packages.removeWhere((package) {
+        final doc = _packages[package];
+        for (String owner in query.owners) {
+          if (doc.owners.contains(owner)) return false;
+        }
+        return true;
+      });
+    }
+
     // filter on publisher
     if (query.publisherId != null || query.parsedQuery.publisher != null) {
       final publisherId = query.publisherId ?? query.parsedQuery.publisher;

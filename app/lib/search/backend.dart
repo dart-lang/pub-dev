@@ -114,6 +114,7 @@ class SearchBackend {
       dependencies: _buildDependencies(analysisView),
       publisherId: p.publisherId,
       emails: await _buildEmails(p, pv),
+      owners: await _buildOwners(p),
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
     );
@@ -137,6 +138,16 @@ class SearchBackend {
       emails.add(author.email);
     }
     return emails.toList()..sort();
+  }
+
+  Future<List<String>> _buildOwners(Package p) async {
+    if (p.publisherId != null) {
+      return [p.publisherId];
+    } else {
+      final owners = await accountBackend.getEmailsOfUserIds(p.uploaders);
+      owners.sort();
+      return owners;
+    }
   }
 
   List<ApiDocPage> _apiDocPagesFromPubDataText(String text) {
@@ -163,6 +174,7 @@ class SearchBackend {
         maintenance: 0.0,
         publisherId: p.publisherId,
         emails: await _buildEmails(p, null),
+        owners: await _buildOwners(p),
         timestamp: DateTime.now().toUtc(),
       );
     }

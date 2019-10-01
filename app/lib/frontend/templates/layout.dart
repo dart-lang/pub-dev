@@ -66,7 +66,7 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     if (requestContext.isExperimental) 'experimental',
   ];
-  final searchFormUrl =
+  final searchFormUrl = searchQuery?.toSearchFormPath() ??
       SearchQuery.parse(platform: platform, publisherId: publisherId)
           .toSearchLink();
   final searchPlaceholder = publisherId != null
