@@ -58,8 +58,15 @@ class PackageDocument {
   final double maintenance;
 
   final Map<String, String> dependencies;
+
+  /// The publisher id of the package
   final String publisherId;
+
+  /// The current uploaders of the package, the uploader of the latest stable
+  /// release, and the e-mail addresses in the `pubspec.authors` block.
   final List<String> emails;
+
+  /// The publisher id, or the current uploader emails of the package.
   final List<String> owners;
 
   final List<ApiDocPage> apiDocPages;
@@ -363,6 +370,8 @@ class SearchQuery {
   }
 
   // TODO: move this to shared/urls.dart after simplifying platformPredicate
+  /// Converts the query to a user-facing link that the search form can use as
+  /// the base path of its `action` parameter.
   String toSearchFormPath() {
     String path = '/packages';
     if (platform != null && platform.isNotEmpty) {
@@ -377,6 +386,9 @@ class SearchQuery {
     return path;
   }
 
+  // TODO: move this to shared/urls.dart after simplifying platformPredicate
+  /// Converts the query to a user-facing link that (after frontend parsing) will
+  /// re-create an identical search query object.
   String toSearchLink({int page}) {
     final Map<String, String> params = {};
     if (query != null && query.isNotEmpty) {
