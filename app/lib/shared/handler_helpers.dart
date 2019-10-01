@@ -235,7 +235,13 @@ shelf.Handler _userSessionWrapper(shelf.Handler handler) {
         registerUserSessionData(sessionData);
       }
     }
-    return await handler(request);
+    shelf.Response rs = await handler(request);
+    if (userSessionData != null) {
+      // Indicates that the response is intended for a single user and must not
+      // be stored by a shared cache. A private cache may store the response.
+      rs = rs.change(headers: {HttpHeaders.cacheControlHeader: 'private'});
+    }
+    return rs;
   };
 }
 
