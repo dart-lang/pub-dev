@@ -58,6 +58,9 @@ Future<shelf.Response> updateSessionHandler(shelf.Request request,
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
+  if (userSessionData != null) {
+    await accountBackend.invalidateSession(userSessionData.sessionId);
+  }
   final changed = userSessionData != null;
   final headers = <String, String>{};
   if (userSessionData != null) {
