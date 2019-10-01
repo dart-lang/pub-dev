@@ -141,13 +141,12 @@ class SearchBackend {
   }
 
   Future<List<String>> _buildUploaderEmails(Package p) async {
-    if (p.publisherId == null) {
-      final owners = await accountBackend.getEmailsOfUserIds(p.uploaders);
-      owners.sort();
-      return owners;
-    } else {
+    if (p.publisherId != null) {
       return <String>[];
     }
+    final uploaders = await accountBackend.getEmailsOfUserIds(p.uploaders);
+    uploaders.sort();
+    return uploaders;
   }
 
   List<ApiDocPage> _apiDocPagesFromPubDataText(String text) {
