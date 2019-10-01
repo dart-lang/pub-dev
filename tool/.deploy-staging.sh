@@ -21,7 +21,7 @@ APP_VERSION="${BRANCH_NAME#staging-}"
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
 # This script will build image:
-IMAGE="gcr.io/dartlang-pub-dev/staging-$BRANCH_NAME-image"
+IMAGE="gcr.io/dartlang-pub-dev/staging-$APP_VERSION-image"
 
 echo "### Building docker image: $IMAGE"
 time -p gcloud --project "$PROJECT_ID" builds submit -t "$IMAGE"
