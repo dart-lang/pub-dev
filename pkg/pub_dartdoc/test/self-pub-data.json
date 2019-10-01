@@ -1,4 +1,8 @@
 {
+  "coverage": {
+    "total": 7,
+    "documented": 4
+  },
   "apiElements": [
     {
       "name": "pub_data_generator",

@@ -23,7 +23,6 @@ import '../shared/urls.dart';
 import '../shared/versions.dart' as versions;
 
 import 'backend.dart';
-import 'coverage.dart';
 import 'customization.dart';
 import 'models.dart';
 
@@ -244,8 +243,7 @@ class DartdocJobProcessor extends JobProcessor {
       await toolEnvRef.release();
     }
 
-    final coverage = calculateCoverage(dartdocData);
-
+    final coverage = dartdocData.coverage;
     if (hasContent && dartdocData != null) {
       if (coverage.penalty > 0) {
         final level = coverage.percent < 0.2

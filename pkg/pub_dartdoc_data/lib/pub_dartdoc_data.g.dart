@@ -8,6 +8,9 @@ part of 'pub_dartdoc_data.dart';
 
 PubDartdocData _$PubDartdocDataFromJson(Map<String, dynamic> json) {
   return PubDartdocData(
+    coverage: json['coverage'] == null
+        ? null
+        : Coverage.fromJson(json['coverage'] as Map<String, dynamic>),
     apiElements: (json['apiElements'] as List)
         ?.map((e) =>
             e == null ? null : ApiElement.fromJson(e as Map<String, dynamic>))
@@ -17,6 +20,7 @@ PubDartdocData _$PubDartdocDataFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$PubDartdocDataToJson(PubDartdocData instance) =>
     <String, dynamic>{
+      'coverage': instance.coverage,
       'apiElements': instance.apiElements,
     };
 
@@ -48,3 +52,15 @@ Map<String, dynamic> _$ApiElementToJson(ApiElement instance) {
   writeNotNull('documentation', instance.documentation);
   return val;
 }
+
+Coverage _$CoverageFromJson(Map<String, dynamic> json) {
+  return Coverage(
+    total: json['total'] as int,
+    documented: json['documented'] as int,
+  );
+}
+
+Map<String, dynamic> _$CoverageToJson(Coverage instance) => <String, dynamic>{
+      'total': instance.total,
+      'documented': instance.documented,
+    };

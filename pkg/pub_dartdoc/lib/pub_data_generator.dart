@@ -74,7 +74,18 @@ class PubDataGenerator implements Generator {
       return a.name.compareTo(b.name);
     });
 
-    final extract = PubDartdocData(apiElements: apiElements);
+    final coverage = _calculateCoverage(apiElements);
+
+    if (coverage.documented > 1000) {
+      // Too much content, removing the documentation from everything except
+      // libraries and classes.
+      apiElements
+          .where((e) => e.kind != 'library' && e.kind != 'class')
+          .forEach((e) => e.documentation = null);
+    }
+
+    final extract =
+        PubDartdocData(coverage: coverage, apiElements: apiElements);
 
     final fileName = 'pub-data.json';
     final outputFile = File(p.join(outputDirectoryPath, fileName));
@@ -97,4 +108,18 @@ class PubDataGenerator implements Generator {
 String _trimToNull(String text) {
   text = text?.trim();
   return (text != null && text.isEmpty) ? null : text;
+}
+
+/// Calculate coverage for the extracted API elements.
+Coverage _calculateCoverage(List<ApiElement> apiElements) {
+  final total = apiElements.length;
+
+  final documented = apiElements
+      .where((elem) =>
+          elem.documentation != null &&
+          elem.documentation.isNotEmpty &&
+          elem.documentation.trim().length >= 5)
+      .length;
+
+  return Coverage(total: total, documented: documented);
 }
