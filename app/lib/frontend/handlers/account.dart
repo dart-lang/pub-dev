@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show Cookie, HttpHeaders;
+import 'dart:io' show Cookie, HttpDate, HttpHeaders;
 
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -58,6 +58,8 @@ Future<shelf.Response> updateSessionHandler(shelf.Request request,
       '$pubSessionCookieName=${newSession.sessionId}',
       // Send cookie to anything under '/' required by '__Host-' prefix.
       'Path=/',
+      // Cookie expires when the session expires.
+      'Expires=${HttpDate.format(newSession.expires)}',
       // Do not include the cookie in CORS requests, unless the request is a
       // top-level navigation to the site, as recommended in:
       // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
