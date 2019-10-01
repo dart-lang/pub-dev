@@ -1,0 +1,77 @@
+/// Logic to do with session cookie parsing and reading.
+library session_cookie;
+
+import 'dart:io' show HttpDate, HttpHeaders;
+import 'models.dart';
+
+/// The name of the session cookie.
+///
+/// Cookies prefixed '__Host-' must:
+///  * be set by a HTTPS response,
+///  * not feature a 'Domain' directive, and,
+///  * have 'Path=/' directive.
+/// Hence, such a cookie cannot have been set by another website or an
+/// HTTP proxy for this website.
+const _pubSessionCookieName = '__Host-pub-sid';
+
+/// Create a set of HTTP headers that store a session cookie.
+Map<String, String> createSessionCookie(UserSessionData session) {
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+  return {
+    HttpHeaders.setCookieHeader: [
+      // Cookies prefixed '__Host-' must:
+      //  * be set by a HTTPS response,
+      //  * not feature a 'Domain' directive, and,
+      //  * have 'Path=/' directive.
+      // Hence, such a cookie cannot have been set by another website or an
+      // HTTP proxy for this website.
+      '$_pubSessionCookieName=${session.sessionId}',
+      // Send cookie to anything under '/' required by '__Host-' prefix.
+      'Path=/',
+      // Cookie expires when the session expires.
+      'Expires=${HttpDate.format(session.expires)}',
+      // Do not include the cookie in CORS requests, unless the request is a
+      // top-level navigation to the site, as recommended in:
+      // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
+      'SameSite=Lax',
+      'Secure', // Only allow this cookie to be sent when making HTTPS requests.
+      'HttpOnly', // Do not allow Javascript access to this cookie.
+    ].join('; '),
+  };
+}
+
+/// Parse [cookieString] and return `sessionId` or `null`.
+///
+/// The [cookieString] is the value of the `cookie:` request header.
+String parseSessionCookie(String cookieString) {
+  // The cookieString is separated by '; ', and contains 'name=value'
+  // See: https://tools.ietf.org/html/rfc6265#section-5.4
+  final cookie = cookieString.split('; ').firstWhere(
+        (s) => s.startsWith('$_pubSessionCookieName='),
+        orElse: () => null,
+      );
+  return cookie?.split('=')?.last;
+}
+
+/// Create a set of HTTP headers that clears a session cookie.
+///
+/// If clearing the session cookie, remember that the most important part is to
+/// invalidate the serverside session. The user might be logging out because
+/// the local session store was compromised.
+Map<String, String> clearSessionCookie() {
+  return {
+    HttpHeaders.setCookieHeader: [
+      // Same cookie name as when it was set.
+      '$_pubSessionCookieName=""',
+      // Send cookie to anything under '/' required by '__Host-' prefix.
+      'Path=/',
+      // Cookie expires when the session expires, expire the session immediately
+      // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-5.3.2
+      'Max-Age=0',
+      // Keep attributes from when cookie was set.
+      'SameSite=Lax',
+      'Secure',
+      'HttpOnly',
+    ].join('; '),
+  };
+}

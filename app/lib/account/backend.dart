@@ -53,6 +53,15 @@ void registerUserSessionData(UserSessionData value) =>
     ss.register(#_userSessionData, value);
 
 /// The active user's session data.
+///
+/// **Warning:** the existence of a session MAY ONLY be used for authenticating
+/// a user for the purpose of generating HTML output served from a GET request.
+///
+/// This may **NOT** to authenticate mutations, API interactions, not even GET
+/// APIs that return JSON. Whenever possible we require the OpenID-Connect
+/// `id_token` be present as `Authentication: Bearer <id_token>` header instead.
+/// Such scheme does not work for `GET` requests that serve content to the
+/// browser, and hence, we employ session cookies for this purpose.
 UserSessionData get userSessionData =>
     ss.lookup(#_userSessionData) as UserSessionData;
 

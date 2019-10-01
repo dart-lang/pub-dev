@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show Cookie, HttpDate, HttpHeaders;
 
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
+import '../../account/session_cookie.dart' as session_cookie;
+import '../../shared/configuration.dart' show activeConfiguration;
 import '../../package/backend.dart';
 import '../../package/search_service.dart';
 import '../../publisher/backend.dart';
@@ -22,14 +23,19 @@ import '../templates/listing.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 
 /// Handles POST /api/account/session
-Future<shelf.Response> updateSessionHandler(shelf.Request request,
-    {ClientSessionData clientSessionData}) async {
+Future<shelf.Response> updateSessionHandler(
+  shelf.Request request, {
+  ClientSessionData clientSessionData,
+}) async {
   final user = await requireAuthenticatedUser();
 
-  if (clientSessionData == null) {
-    final body = await request.readAsString();
-    final map = json.decode(body) as Map<String, dynamic>;
-    clientSessionData = ClientSessionData.fromJson(map);
+  // Only allow creation of sessions on the primary site host.
+  // Exposing session on other domains is a security concern.
+  // Note: staging sites may have a different primary host.
+  if (request.requestedUri.host != activeConfiguration.primarySiteUri.host ||
+      request.requestedUri.scheme != 'https') {
+    // The resource simply doesn't exist on this host.
+    throw NotFoundException.resource('no such url');
   }
 
   // check if the session data is the same
@@ -46,50 +52,30 @@ Future<shelf.Response> updateSessionHandler(shelf.Request request,
 
   final newSession = await accountBackend.createNewSession(
       imageUrl: clientSessionData.imageUrl);
-  final headers = <String, String>{
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-    HttpHeaders.setCookieHeader: [
-      // Cookies prefixed '__Host-' must:
-      //  * be set by a HTTPS response,
-      //  * not feature a 'Domain' directive, and,
-      //  * have 'Path=/' directive.
-      // Hence, such a cookie cannot have been set by another website or an
-      // HTTP proxy for this website.
-      '$pubSessionCookieName=${newSession.sessionId}',
-      // Send cookie to anything under '/' required by '__Host-' prefix.
-      'Path=/',
-      // Cookie expires when the session expires.
-      'Expires=${HttpDate.format(newSession.expires)}',
-      // Do not include the cookie in CORS requests, unless the request is a
-      // top-level navigation to the site, as recommended in:
-      // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
-      'SameSite=Lax',
-      'Secure', // Only allow this cookie to be sent when making HTTPS requests.
-      'HttpOnly', // Do not allow Javascript access to this cookie.
-    ].join('; '),
-  };
-  final status = ClientSessionStatus(
-    changed: true,
-    expires: newSession.expires,
+
+  return jsonResponse(
+    ClientSessionStatus(
+      changed: true,
+      expires: newSession.expires,
+    ).toJson(),
+    headers: session_cookie.createSessionCookie(newSession),
   );
-  return jsonResponse(status.toJson(), headers: headers);
 }
 
 /// Handles DELETE /api/account/session
 Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
-  final changed = userSessionData != null;
-  final headers = <String, String>{};
-  if (userSessionData != null) {
-    final cookie = Cookie(pubSessionCookieName, '')
-      ..maxAge = 0
-      ..path = '/';
-    headers[HttpHeaders.setCookieHeader] = cookie.toString();
-  }
-  final status = ClientSessionStatus(
-    changed: changed,
-    expires: null,
+  final hasUserSession = userSessionData != null;
+  // Invalidate the server-side sessionId, in case the user signed out because
+  // the local cookie store was compromised.
+  await accountBackend.invalidateSession(userSessionData.sessionId);
+  return jsonResponse(
+    ClientSessionStatus(
+      changed: hasUserSession,
+      expires: null,
+    ).toJson(),
+    // Clear cookie, so we don't have to lookup an invalid sessionId.
+    headers: session_cookie.clearSessionCookie(),
   );
-  return jsonResponse(status.toJson(), headers: headers);
 }
 
 /// Handles GET /consent?id=<consentId>
