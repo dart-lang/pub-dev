@@ -609,7 +609,8 @@ void main() {
     });
 
     scopedTest('account packages page', () {
-      final searchQuery = SearchQuery.parse(owners: [hansUser.email]);
+      final searchQuery =
+          SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
         packages: [
           PackageView(

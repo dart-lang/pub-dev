@@ -169,10 +169,11 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // filter on owners
-    if (query.owners != null && query.owners.isNotEmpty) {
+    if (query.uploaderOrPublishers != null &&
+        query.uploaderOrPublishers.isNotEmpty) {
       packages.removeWhere((package) {
         final doc = _packages[package];
-        for (String owner in query.owners) {
+        for (String owner in query.uploaderOrPublishers) {
           if (doc.publisherId == owner) {
             return false;
           }

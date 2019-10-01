@@ -514,8 +514,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('no results via owners', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(owners: ['other-domain.com']));
+      final PackageSearchResult result = await index.search(
+          SearchQuery.parse(uploaderOrPublishers: ['other-domain.com']));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 0,
@@ -524,8 +524,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
     });
 
     test('filter by a single owner', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(owners: ['dart.dev']));
+      final PackageSearchResult result = await index
+          .search(SearchQuery.parse(uploaderOrPublishers: ['dart.dev']));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
         'totalCount': 1,
@@ -537,7 +537,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('filter by multiple owners', () async {
       final PackageSearchResult result =
-          await index.search(SearchQuery.parse(owners: [
+          await index.search(SearchQuery.parse(uploaderOrPublishers: [
         'dart.dev',
         'user1@example.com',
       ]));

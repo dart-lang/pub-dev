@@ -232,8 +232,9 @@ class SearchQuery {
   /// The query will match packages where the owners of the package have
   /// non-empty intersection with the provided list of owners.
   ///
-  /// Values of this list can be email addresses or publisher ids.
-  final List<String> owners;
+  /// Values of this list can be email addresses (usually a single on) or
+  /// publisher ids (may be multiple).
+  final List<String> uploaderOrPublishers;
 
   final String publisherId;
   final SearchOrder order;
@@ -248,7 +249,7 @@ class SearchQuery {
   SearchQuery._({
     this.query,
     String platform,
-    List<String> owners,
+    List<String> uploaderOrPublishers,
     String publisherId,
     this.order,
     this.offset,
@@ -258,14 +259,17 @@ class SearchQuery {
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform,
-        owners = (owners == null || owners.isEmpty) ? null : owners,
+        uploaderOrPublishers =
+            (uploaderOrPublishers == null || uploaderOrPublishers.isEmpty)
+                ? null
+                : uploaderOrPublishers,
         publisherId =
             (publisherId == null || publisherId.isEmpty) ? null : publisherId;
 
   factory SearchQuery.parse({
     String query,
     String platform,
-    List<String> owners,
+    List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
     int offset = 0,
@@ -279,7 +283,7 @@ class SearchQuery {
     return SearchQuery._(
       query: q,
       platform: platform,
-      owners: owners,
+      uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
       offset: offset,
@@ -294,7 +298,7 @@ class SearchQuery {
     final String q = uri.queryParameters['q'];
     final String platform =
         uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
-    final owners = uri.queryParametersAll['owners'];
+    final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
     final publisherId = uri.queryParameters['publisherId'];
     final String orderValue = uri.queryParameters['order'];
     final SearchOrder order = parseSearchOrder(orderValue);
@@ -305,7 +309,7 @@ class SearchQuery {
     return SearchQuery.parse(
       query: q,
       platform: platform,
-      owners: owners,
+      uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
       offset: max(0, offset),
@@ -319,7 +323,7 @@ class SearchQuery {
   SearchQuery change({
     String query,
     String platform,
-    List<String> owners,
+    List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
     int offset,
@@ -331,7 +335,7 @@ class SearchQuery {
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
-      owners: owners ?? this.owners,
+      uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
       offset: offset ?? this.offset,
@@ -346,7 +350,7 @@ class SearchQuery {
     final map = <String, dynamic>{
       'q': query,
       'platform': platform,
-      'owners': owners,
+      'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
       'limit': limit?.toString(),
@@ -386,7 +390,7 @@ class SearchQuery {
     if (publisherId != null && publisherId.isNotEmpty) {
       path = '/publishers/$publisherId/packages';
     }
-    if (owners != null && owners.isNotEmpty) {
+    if (uploaderOrPublishers != null && uploaderOrPublishers.isNotEmpty) {
       path = '/account/packages';
     }
     return path;
@@ -618,7 +622,7 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 SearchQuery parseFrontendSearchQuery(
   Map<String, String> queryParameters, {
   String platform,
-  List<String> owners,
+  List<String> uploaderOrPublishers,
   String publisherId,
 }) {
   final int page = extractPageFromUrlParameters(queryParameters);
@@ -630,7 +634,7 @@ SearchQuery parseFrontendSearchQuery(
   return SearchQuery.parse(
     query: queryText,
     platform: platform,
-    owners: owners,
+    uploaderOrPublishers: uploaderOrPublishers,
     publisherId: publisherId,
     order: sortOrder,
     offset: offset,

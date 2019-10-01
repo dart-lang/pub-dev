@@ -121,7 +121,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       await publisherBackend.listPublishersForUser(userSessionData.userId);
   final searchQuery = parseFrontendSearchQuery(
     request.requestedUri.queryParameters,
-    owners: [
+    uploaderOrPublishers: [
       userSessionData.email,
       ...publishers.map((p) => p.publisherId),
     ],
