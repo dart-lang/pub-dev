@@ -340,6 +340,14 @@ class AccountBackend {
     await cache.userSessionData(sessionId).purge();
   }
 
-  // TODO: periodically remove expired sessions from datastore and cache
+  /// Removes the expired sessions from Datastore and Redis cache.
+  Future deleteObsoleteSessions() async {
+    final query = _db.query<UserSession>()
+      ..filter('expires <', DateTime.now().toUtc());
+    await for (final s in query.run()) {
+      await invalidateSession(s.sessionId);
+    }
+  }
+
   // TODO: expire all sessions of a given user from datastore and cache
 }
