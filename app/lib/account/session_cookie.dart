@@ -37,7 +37,7 @@ Map<String, String> createSessionCookie(UserSessionData session) {
       'Path=/',
       // Max-Age takes precedence over 'Expires', this also has the benefit of
       // not being corrupted by client-side clock skew.
-      'Max-Age=${DateTime.now().difference(expiration).inSeconds}',
+      'Max-Age=${expiration.difference(DateTime.now()).inSeconds}',
       // Cookie expires when the session expires.
       'Expires=${HttpDate.format(expiration)}',
       // Do not include the cookie in CORS requests, unless the request is a

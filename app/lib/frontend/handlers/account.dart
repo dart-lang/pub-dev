@@ -33,7 +33,8 @@ Future<shelf.Response> updateSessionHandler(
   // Exposing session on other domains is a security concern.
   // Note: staging sites may have a different primary host.
   if (request.requestedUri.host != activeConfiguration.primarySiteUri.host ||
-      request.requestedUri.scheme != 'https') {
+      request.requestedUri.scheme !=
+          activeConfiguration.primarySiteUri.scheme) {
     // The resource simply doesn't exist on this host.
     throw NotFoundException.resource('no such url');
   }
@@ -67,7 +68,9 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
   final hasUserSession = userSessionData != null;
   // Invalidate the server-side sessionId, in case the user signed out because
   // the local cookie store was compromised.
-  await accountBackend.invalidateSession(userSessionData.sessionId);
+  if (hasUserSession) {
+    await accountBackend.invalidateSession(userSessionData.sessionId);
+  }
   return jsonResponse(
     ClientSessionStatus(
       changed: hasUserSession,
