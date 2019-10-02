@@ -158,7 +158,8 @@ class Configuration {
       primarySiteUri: envConfig.isRunningLocally
           ? Uri.parse('http://localhost:8080')
           : Uri.parse(
-              'https://${envConfig.gaeVersion}-dot-${envConfig.gaeService}-dot-dartlang-pub-dev.appspot.com'),
+              'https://${envConfig.gaeVersion}-dot-dartlang-pub-dev.appspot.com',
+            ),
       admins: [
         AdminId(
           oauthUserId: '111042304059633250784',
