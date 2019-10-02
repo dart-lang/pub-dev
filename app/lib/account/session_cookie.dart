@@ -55,6 +55,8 @@ Map<String, String> createSessionCookie(UserSessionData session) {
 ///
 /// The [cookieString] is the value of the `cookie:` request header.
 String parseSessionCookie(String cookieString) {
+  ArgumentError.checkNotNull(cookieString, 'cookieString');
+
   // The cookieString is separated by '; ', and contains 'name=value'
   // See: https://tools.ietf.org/html/rfc6265#section-5.4
   final cookie = cookieString.split('; ').firstWhere(

@@ -229,7 +229,8 @@ shelf.Handler _userSessionWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
     // Never read or look for the session cookie on hosts other than the
     // primary site. Who knows how it got there or what it means.
-    if (request.requestedUri.host == activeConfiguration.primarySiteUri.host) {
+    if (request.requestedUri.host == activeConfiguration.primarySiteUri.host &&
+        request.headers.containsKey(HttpHeaders.cookieHeader)) {
       final sessionId = session_cookie.parseSessionCookie(
         request.headers[HttpHeaders.cookieHeader],
       );
