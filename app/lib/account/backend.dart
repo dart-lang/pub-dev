@@ -342,8 +342,10 @@ class AccountBackend {
 
   /// Removes the expired sessions from Datastore and Redis cache.
   Future deleteObsoleteSessions() async {
-    final query = _db.query<UserSession>()
-      ..filter('expires <', DateTime.now().toUtc());
+    final now = DateTime.now().toUtc();
+    // account for possible clock skew
+    final ts = now.subtract(Duration(minutes: 15));
+    final query = _db.query<UserSession>()..filter('expires <', ts);
     await for (final s in query.run()) {
       await invalidateSession(s.sessionId);
     }
