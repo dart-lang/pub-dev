@@ -2,49 +2,37 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<div id="-admin-unauthenticated">
-  <p>
-    Publisher administration is for signed-in users only.
-  </p>
+<h4>Description</h4>
+<div>
+  <textarea id="-publisher-description" class="pub-input" rows="3">{{description}}</textarea>
 </div>
-
-<div id="-admin-unauthorized">
-  <p>You are not admin of this publisher.</p>
+<h4>Website URL</h4>
+<div>
+  <input id="-publisher-website-url" class="pub-input" value="{{website_url}}" />
 </div>
-
-<div id="-admin-authorized">
-  <h4>Description</h4>
-  <div>
-    <textarea id="-publisher-description" class="pub-input" rows="3">{{description}}</textarea>
-  </div>
-  <h4>Website URL</h4>
-  <div>
-    <input id="-publisher-website-url" class="pub-input" value="{{website_url}}" />
-  </div>
-  <h4>Contact e-mail</h4>
-  <div>
-    <input id="-publisher-contact-email" class="pub-input" value="{{contact_email}}" />
-  </div>
-  <p>
-      <button id="-publisher-update-button" class="pub-button">Update</button>
-  </p>
-  <h3>Members</h3>
-  <div id="-admin-members-loading">
-    <p>Loading the list of members...</p>
-  </div>
-  <h3>Invite new member</h3>
-  <p>
-    You can invite new administrator members to this publisher.
-    They will have equal administration rights, and they will be
-    able to:
-  </p>
-  <ul>
-    <li>transfer package to/from this publisher</li>
-    <li>upload new versions to packages under this publisher</li>
-    <li>add/remove new members (with similar rights)</li>
-  </ul>
-  <p>
-    <input id="-admin-invite-member-input" class="pub-input" placeholder="e-mail address"/>
-    <button id="-admin-invite-member-button" class="pub-button">Invite member</button>
-  </p>
+<h4>Contact e-mail</h4>
+<div>
+  <input id="-publisher-contact-email" class="pub-input" value="{{contact_email}}" />
 </div>
+<p>
+  <button id="-publisher-update-button" class="pub-button">Update</button>
+</p>
+<h3>Members</h3>
+<div id="-admin-members-loading">
+  <p>Loading the list of members...</p>
+</div>
+<h3>Invite new member</h3>
+<p>
+  You can invite new administrator members to this publisher.
+  They will have equal administration rights, and they will be
+  able to:
+</p>
+<ul>
+  <li>transfer package to/from this publisher</li>
+  <li>upload new versions to packages under this publisher</li>
+  <li>add/remove new members (with similar rights)</li>
+</ul>
+<p>
+  <input id="-admin-invite-member-input" class="pub-input" placeholder="e-mail address"/>
+  <button id="-admin-invite-member-button" class="pub-button">Invite member</button>
+</p>

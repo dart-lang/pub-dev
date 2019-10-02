@@ -55,7 +55,6 @@ class Tab {
   final String titleHtml;
   final String contentHtml;
   final bool isMarkdown;
-  final bool isHidden;
   bool isActive = false;
 
   Tab.withContent({
@@ -64,7 +63,6 @@ class Tab {
     String titleHtml,
     @required this.contentHtml,
     this.isMarkdown = false,
-    this.isHidden = false,
   }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
 
   Tab.withLink({
@@ -72,7 +70,6 @@ class Tab {
     String title,
     String titleHtml,
     @required String href,
-    this.isHidden = false,
   })  : titleHtml =
             '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
         contentHtml = null,
@@ -82,7 +79,6 @@ class Tab {
     final titleClasses = <String>[
       contentHtml == null ? 'tab-link' : 'tab-button',
       if (isActive) '-active',
-      if (isHidden) '-hidden',
     ];
     final contentClasses = <String>[
       'tab-content',

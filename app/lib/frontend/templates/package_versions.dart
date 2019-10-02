@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
@@ -17,13 +19,13 @@ import 'package.dart';
 
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
-  Package package,
-  List<String> uploaderEmails,
-  PackageVersion latestVersion,
-  List<PackageVersion> versions,
-  List<Uri> versionDownloadUrls,
-  AnalysisView latestAnalysis,
-) {
+    Package package,
+    List<String> uploaderEmails,
+    PackageVersion latestVersion,
+    List<PackageVersion> versions,
+    List<Uri> versionDownloadUrls,
+    AnalysisView latestAnalysis,
+    {@required bool isAdmin}) {
   assert(versions.length == versionDownloadUrls.length);
   final card = latestAnalysis?.card;
 
@@ -99,12 +101,13 @@ String renderPkgVersionsPage(
           isSkipped: card?.isSkipped ?? false,
           isNewPackage: package.isNewPackage()),
       href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
-  tabs.add(Tab.withLink(
-    id: 'admin',
-    title: 'Admin',
-    href: urls.pkgAdminUrl(package.name),
-    isHidden: true,
-  ));
+  if (isAdmin) {
+    tabs.add(Tab.withLink(
+      id: 'admin',
+      title: 'Admin',
+      href: urls.pkgAdminUrl(package.name),
+    ));
+  }
 
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, latestVersion, latestAnalysis),

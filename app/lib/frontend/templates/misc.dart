@@ -26,6 +26,19 @@ String renderUnauthenticatedPage() {
   );
 }
 
+/// Renders a page where the real content is only provided for authorized users.
+String renderUnauthorizedPage() {
+  // TODO: add custom message
+  // TODO: add header and more content to explain why the page is shown
+  final content = 'You have insufficient permissions to view this page.';
+  return renderLayoutPage(
+    PageType.standalone,
+    content,
+    title: 'Authorization required',
+    noIndex: true,
+  );
+}
+
 /// Renders the `views/help.mustache` template.
 String renderHelpPage() {
   final String content = templateCache.renderTemplate('help', {

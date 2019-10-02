@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
+import 'package:meta/meta.dart';
 
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
@@ -236,13 +237,18 @@ String renderPkgHeader(
 }
 
 /// Renders the `views/pkg/show.mustache` template.
-String renderPkgShowPage(Package package, List<String> uploaderEmails,
-    PackageVersion selectedVersion, AnalysisView analysis) {
+String renderPkgShowPage(
+  Package package,
+  List<String> uploaderEmails,
+  PackageVersion selectedVersion,
+  AnalysisView analysis, {
+  @required bool isAdmin,
+}) {
   final card = analysis?.card;
 
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, selectedVersion, analysis),
-    tabs: _pkgTabs(package, selectedVersion, analysis),
+    tabs: _pkgTabs(package, selectedVersion, analysis, isAdmin),
     infoBoxHtml:
         renderPkgInfoBox(package, selectedVersion, uploaderEmails, analysis),
     footerHtml: renderPackageSchemaOrgHtml(package, selectedVersion, analysis),
@@ -288,6 +294,7 @@ List<Tab> _pkgTabs(
   Package package,
   PackageVersion selectedVersion,
   AnalysisView analysis,
+  bool isAdmin,
 ) {
   final card = analysis?.card;
 
@@ -344,12 +351,13 @@ List<Tab> _pkgTabs(
     contentHtml: renderAnalysisTab(selectedVersion.package,
         selectedVersion.pubspec.sdkConstraint, card, analysis),
   ));
-  tabs.add(Tab.withLink(
-    id: 'admin',
-    title: 'Admin',
-    href: urls.pkgAdminUrl(selectedVersion.package),
-    isHidden: true,
-  ));
+  if (isAdmin) {
+    tabs.add(Tab.withLink(
+      id: 'admin',
+      title: 'Admin',
+      href: urls.pkgAdminUrl(selectedVersion.package),
+    ));
+  }
   return tabs;
 }
 

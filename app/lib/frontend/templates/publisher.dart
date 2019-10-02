@@ -80,6 +80,7 @@ String renderPublisherPackagesPage({
   @required PageLinks pageLinks,
   @required SearchQuery searchQuery,
   @required int totalCount,
+  @required bool isAdmin,
 }) {
   final isSearch = searchQuery.hasQuery;
   String title = 'Packages of publisher ${publisher.publisherId}';
@@ -110,7 +111,7 @@ String renderPublisherPackagesPage({
       title: 'Packages',
       contentHtml: tabContent,
     ),
-    _adminLinkTab(publisher.publisherId),
+    if (isAdmin) _adminLinkTab(publisher.publisherId),
   ];
 
   final mainContent = renderDetailPage(
@@ -189,5 +190,4 @@ Tab _adminLinkTab(String publisherId) => Tab.withLink(
       id: 'admin',
       title: 'Admin',
       href: urls.publisherAdminUrl(publisherId),
-      isHidden: true,
     );

@@ -17,11 +17,9 @@ import 'google_auth_js.dart';
 import 'google_js.dart';
 import 'page_data.dart';
 import 'pubapi.client.dart';
-import 'tabs.dart';
 
 bool _initialized = false;
 GoogleUser _currentUser;
-bool _isAdmin = false;
 
 /// Returns whether the user is currently signed-in.
 bool get isSignedIn => _initialized && _currentUser != null;
@@ -31,7 +29,6 @@ GoogleUser get currentUser => _currentUser;
 
 PubApiClient _client;
 http.Client _httpClient;
-final _authorizationWidget = _AuthorizationWidget();
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
 final _createPublisherWidget = _CreatePublisherWidget();
@@ -74,7 +71,6 @@ void _init() {
       .getElementById('-account-logout')
       ?.onClick
       ?.listen((_) => getAuthInstance().signOut());
-  _authorizationWidget.init();
   _pkgAdminWidget.init();
   _createPublisherWidget.init();
   _publisherAdminWidget.init();
@@ -115,27 +111,7 @@ Future _updateUser(GoogleUser user) async {
     return;
   }
 
-  _updateOnCredChange();
   _updateUi();
-}
-
-Future _updateOnCredChange() async {
-  if (isSignedIn) {
-    try {
-      if (pageData.isPackagePage) {
-        final rs = await client.accountPackageOptions(pageData.pkgData.package);
-        _isAdmin = rs.isAdmin ?? false;
-        _updateUi();
-      } else if (pageData.isPublisherPage) {
-        final rs = await client
-            .accountPublisherOptions(pageData.publisher.publisherId);
-        _isAdmin = rs.isAdmin ?? false;
-        _updateUi();
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
 }
 
 void _updateUi() {
@@ -144,53 +120,10 @@ void _updateUi() {
   } else {
     print('No active user');
   }
-  _authorizationWidget.update();
   _pkgAdminWidget.update();
   _createPublisherWidget.update();
   _publisherAdminWidget.update();
   _consentWidget.update();
-}
-
-/// Active on multiple pages, including package and publisher admin pages.
-class _AuthorizationWidget {
-  Element _unauthenticatedRoot;
-  Element _unauthorizedRoot;
-  Element _authenticatedRoot;
-  Element _authorizedRoot;
-
-  void init() {
-    _unauthenticatedRoot = document.getElementById('-admin-unauthenticated');
-    _unauthorizedRoot = document.getElementById('-admin-unauthorized');
-    _authenticatedRoot = document.getElementById('-admin-authenticated');
-    _authorizedRoot = document.getElementById('-admin-authorized');
-    update();
-  }
-
-  void update() {
-    final authorized = _authorizedRoot != null && isSignedIn && _isAdmin;
-    final unauthorized =
-        !authorized && _unauthorizedRoot != null && isSignedIn && !_isAdmin;
-    final authenticated = !authorized &&
-        !unauthorized &&
-        _authenticatedRoot != null &&
-        isSignedIn;
-    final unauthenticated = !authorized &&
-        !unauthorized &&
-        !authenticated &&
-        _unauthenticatedRoot != null;
-    if (_unauthenticatedRoot != null) {
-      updateDisplay(_unauthenticatedRoot, unauthenticated, display: 'block');
-    }
-    if (_unauthorizedRoot != null) {
-      updateDisplay(_unauthorizedRoot, unauthorized, display: 'block');
-    }
-    if (_authenticatedRoot != null) {
-      updateDisplay(_authenticatedRoot, authenticated, display: 'block');
-    }
-    if (_authorizedRoot != null) {
-      updateDisplay(_authorizedRoot, authorized, display: 'block');
-    }
-  }
 }
 
 /// Active on /packages/<package>/admin page.
@@ -248,21 +181,7 @@ class _PkgAdminWidget {
   }
 
   void update() {
-    final adminTab = getTabElement('-admin-tab-');
-    if (adminTab != null) {
-      if (_initialized && _isAdmin) {
-        final removed = adminTab.classes.remove('-hidden');
-        // If this was the first change since the page load or login, and the
-        // active hash is pointing to the tab, let's change it.
-        if (removed && window.location.hash == '#-admin-tab-') {
-          changeTab('-admin-tab-');
-        }
-      } else {
-        if (!hasContentTab('-admin-tab-')) {
-          adminTab.classes.add('-hidden');
-        }
-      }
-    }
+    // nothing to do
   }
 
   bool get isActive =>
@@ -398,8 +317,8 @@ class _PublisherAdminWidget {
 
   void update() {
     if (!isActive) return;
-    // only load trigger the loading of the members list once
-    if (_isAdmin && membersFuture == null) {
+    // only trigger the loading of the members list once
+    if (membersFuture == null) {
       final publisherId = pageData.publisher.publisherId;
       membersFuture = client.listPublisherMembers(publisherId);
       membersFuture.then((pms) async {

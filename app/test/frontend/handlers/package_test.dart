@@ -22,10 +22,9 @@ void main() {
           '<h2 class="title">foobar_pkg 0.1.1+5</h2>',
           '<a href="/packages/foobar_pkg">0.1.1+5</a>',
           '<a href="/packages/foobar_pkg/versions/0.2.0-dev">0.2.0-dev</a>',
-          '<li class="tab-link -hidden" data-name="-admin-tab-" role="button">',
         ],
         absent: [
-          '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
+          'data-name="-admin-tab-"',
         ],
       );
     });
@@ -97,15 +96,13 @@ void main() {
     );
 
     testWithServices(
-      '/packages/foobar_pkg/admin',
+      '/packages/foobar_pkg/admin - without session',
       () async {
         await expectHtmlResponse(
           await issueGet('/packages/foobar_pkg/admin'),
-          present: [
-            '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
-          ],
+          present: [],
           absent: [
-            '<li class="tab-link -hidden" data-name="-admin-tab-" role="button">',
+            '<li class="tab-button -active" data-name="-admin-tab-" role="button">',
           ],
         );
       },

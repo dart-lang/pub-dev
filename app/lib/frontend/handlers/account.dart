@@ -80,6 +80,9 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
 /// Handles GET /consent?id=<consentId>
 Future<shelf.Response> consentPageHandler(
     shelf.Request request, String consentId) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
   // TODO: if no consentId is given, render the listing of user consents page
   return htmlResponse(renderConsentPage(consentId));
 }

@@ -82,8 +82,7 @@ String getTabName(Element elem) {
 void changeTab(String name) {
   final tabOrContentElem = getTabElement(name);
   if (tabOrContentElem != null &&
-      tabOrContentElem.classes.contains('tab-button') &&
-      !tabOrContentElem.classes.contains('-hidden')) {
+      tabOrContentElem.classes.contains('tab-button')) {
     _headerRoot.children.forEach((node) => _toggle(node, name));
     _contentRoot.children.forEach((node) => _toggle(node, name));
   }
