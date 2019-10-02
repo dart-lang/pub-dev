@@ -2,39 +2,50 @@
 library session_cookie;
 
 import 'dart:io' show HttpDate, HttpHeaders;
+
+import '../shared/configuration.dart' show envConfig;
 import 'models.dart';
 
 /// The name of the session cookie.
 ///
-/// Cookies prefixed '__Host-' must:
-///  * be set by a HTTPS response,
-///  * not feature a 'Domain' directive, and,
-///  * have 'Path=/' directive.
-/// Hence, such a cookie cannot have been set by another website or an
-/// HTTP proxy for this website.
-const _pubSessionCookieName = '__Host-pub-sid';
+/// Depends on whether we're running locally.
+String get _pubSessionCookieName {
+  if (envConfig.isRunningLocally) {
+    return 'pub-sid-insecure'; // Note. this should only happen on localhost.
+  }
+
+  // Cookies prefixed '__Host-' must:
+  //  * be set by a HTTPS response,
+  //  * not feature a 'Domain' directive, and,
+  //  * have 'Path=/' directive.
+  // Hence, such a cookie cannot have been set by another website or an
+  // HTTP proxy for this website.
+  return '__Host-pub-sid';
+}
 
 /// Create a set of HTTP headers that store a session cookie.
 Map<String, String> createSessionCookie(UserSessionData session) {
+  // Always create a cookie that expires 25 minutes before the session.
+  // This way clock skew on the client is less likely to cause us to receive
+  // an invalid cookie. Not that getting an expired cookie should be a problem.
+  final expiration = session.expires.subtract(Duration(minutes: 25));
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
   return {
     HttpHeaders.setCookieHeader: [
-      // Cookies prefixed '__Host-' must:
-      //  * be set by a HTTPS response,
-      //  * not feature a 'Domain' directive, and,
-      //  * have 'Path=/' directive.
-      // Hence, such a cookie cannot have been set by another website or an
-      // HTTP proxy for this website.
       '$_pubSessionCookieName=${session.sessionId}',
       // Send cookie to anything under '/' required by '__Host-' prefix.
       'Path=/',
+      // Max-Age takes precedence over 'Expires', this also has the benefit of
+      // not being corrupted by client-side clock skew.
+      'Max-Age=${DateTime.now().difference(expiration).inSeconds}',
       // Cookie expires when the session expires.
-      'Expires=${HttpDate.format(session.expires)}',
+      'Expires=${HttpDate.format(expiration)}',
       // Do not include the cookie in CORS requests, unless the request is a
       // top-level navigation to the site, as recommended in:
       // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
       'SameSite=Lax',
-      'Secure', // Only allow this cookie to be sent when making HTTPS requests.
+      if (!envConfig.isRunningLocally)
+        'Secure', // Only allow this cookie to be sent when making HTTPS requests.
       'HttpOnly', // Do not allow Javascript access to this cookie.
     ].join('; '),
   };
@@ -70,7 +81,8 @@ Map<String, String> clearSessionCookie() {
       'Max-Age=0',
       // Keep attributes from when cookie was set.
       'SameSite=Lax',
-      'Secure',
+      if (!envConfig.isRunningLocally)
+        'Secure',
       'HttpOnly',
     ].join('; '),
   };

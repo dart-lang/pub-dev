@@ -28,7 +28,6 @@ import '../../shared/configuration.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/storage.dart';
-
 import '../services.dart';
 
 import '_cronjobs.dart' show CronJobs;
@@ -44,22 +43,19 @@ class DefaultCommand extends Command {
   @override
   String get description => 'The default frontend service entrypoint.';
 
-  DefaultCommand() {
-    argParser.addFlag(
-      'local-dev',
-      defaultsTo: false,
-      help: 'Reduce the number of background services that are started.'
-          ' (Useful for local development.)',
-    );
-  }
-
   @override
   Future run() async {
-    final isLocalDev = argResults['local-dev'] as bool;
+    // Ensure that we're running in the right environment, or is running locally
+    if (envConfig.gaeService != null && envConfig.gaeService != name) {
+      throw StateError(
+        'Cannot start "$name" in "${envConfig.gaeService}" environment',
+      );
+    }
+
     await startIsolates(
       logger: _logger,
       frontendEntryPoint: _main,
-      workerEntryPoint: isLocalDev ? null : _worker,
+      workerEntryPoint: envConfig.isRunningLocally ? null : _worker,
     );
   }
 }

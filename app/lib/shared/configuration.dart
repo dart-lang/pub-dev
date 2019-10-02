@@ -137,6 +137,8 @@ class Configuration {
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
+      // TODO: Support finding search on localhost when envConfig.isRunningLocally
+      //       is true, this also requires running search on localhost.
       searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
       storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
@@ -146,9 +148,17 @@ class Configuration {
       credentials: _loadCredentials(),
       blockEmails: true,
       blockRobots: true,
-      productionHosts: const ['dartlang-pub-dev.appspot.com'],
+      productionHosts: envConfig.isRunningLocally
+          ? ['localhost']
+          : [
+              'dartlang-pub-dev.appspot.com',
+              '${envConfig.gaeService}-dot-dartlang-pub-dev.appspot.com',
+            ],
       primaryApiUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
-      primarySiteUri: Uri.parse('https://dartlang-pub-dev.appspot.com'),
+      primarySiteUri: envConfig.isRunningLocally
+          ? Uri.parse('http://localhost:8080')
+          : Uri.parse(
+              'https://${envConfig.gaeVersion}-dot-${envConfig.gaeService}-dot-dartlang-pub-dev.appspot.com'),
       admins: [
         AdminId(
           oauthUserId: '111042304059633250784',
@@ -244,7 +254,14 @@ class Configuration {
 
 /// Configuration from the environment variables.
 class EnvConfig {
+  /// Service in AppEngine that this process is running in, `null` if running
+  /// locally.
   final String gaeService;
+
+  /// Version of this service in AppEngine, `null` if running locally.
+  ///
+  /// Can be used to construct URLs for the given service.
+  final String gaeVersion;
   final String gcloudKey;
   final String gcloudProject;
   final String toolEnvDartSdkDir;
@@ -254,6 +271,7 @@ class EnvConfig {
 
   EnvConfig._(
     this.gaeService,
+    this.gaeVersion,
     this.gcloudProject,
     this.gcloudKey,
     this.toolEnvDartSdkDir,
@@ -273,6 +291,7 @@ class EnvConfig {
         int.tryParse(Platform.environment['WORKER_COUNT'] ?? '1') ?? 1;
     return EnvConfig._(
       Platform.environment['GAE_SERVICE'],
+      Platform.environment['GAE_VERSION'],
       Platform.environment['GCLOUD_PROJECT'],
       Platform.environment['GCLOUD_KEY'],
       Platform.environment['TOOL_ENV_DART_SDK'],
@@ -282,6 +301,8 @@ class EnvConfig {
     );
   }
 
+  /// True, if running locally and not inside AppEngine.
+  bool get isRunningLocally => gaeService == null || gaeVersion == null;
   bool get hasCredentials => gcloudProject != null && gcloudKey != null;
 }
 

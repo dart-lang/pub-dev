@@ -47,7 +47,6 @@ RUN cd / && \
   unzip -q /dartsdk.zip && \
   rm -f /dartsdk.zip
 
-# Clear out any arguments the base images might have set and ensure we start
-# memcached and wait for it to come up before running the Dart app.
+# Clear out any arguments the base images might have set
 CMD []
-ENTRYPOINT /bin/bash /dart_runtime/dart_run.sh
+ENTRYPOINT /usr/bin/dart bin/server.dart "$GAE_SERVICE"
