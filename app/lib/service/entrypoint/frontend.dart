@@ -14,6 +14,7 @@ import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../analyzer/analyzer_client.dart';
 import '../../dartdoc/dartdoc_client.dart';
@@ -72,14 +73,6 @@ Future _main(FrontendEntryMessage message) async {
   await withServices(() async {
     final shelf.Handler apiHandler = await setupServices(activeConfiguration);
 
-    // Add randomization to reduce race conditions.
-    // TODO: use package:neat_periodic_task
-    Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
-        (_) async {
-      await packageBackend.deleteObsoleteInvites();
-      await consentBackend.deleteObsoleteConsents();
-    });
-
     final cron = CronJobs(await getOrCreateBucket(
       storageService,
       activeConfiguration.backupSnapshotBucketName,
@@ -115,6 +108,15 @@ Future _worker(WorkerEntryMessage message) async {
   message.protocolSendPort.send(WorkerProtocolMessage());
 
   await withServices(() async {
+    // TODO: use package:neat_periodic_task
+    // Randomization reduces race conditions.
+    Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
+        (_) async {
+      await packageBackend.deleteObsoleteInvites();
+      await consentBackend.deleteObsoleteConsents();
+      await accountBackend.deleteObsoleteSessions();
+    });
+
     // Updates job entries for analyzer and dartdoc.
     Future triggerDependentAnalysis(
         String package, String version, Set<String> affected) async {
