@@ -15,13 +15,16 @@ import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../templates/listing.dart' show PageLinks;
-import '../templates/misc.dart' show renderUnauthenticatedPage;
+import '../templates/misc.dart';
 import '../templates/publisher.dart';
 
 import 'misc.dart' show formattedNotFoundHandler;
 
 /// Handles requests for GET /create-publisher
 Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
   return htmlResponse(renderCreatePublisherPage());
 }
 
@@ -91,6 +94,8 @@ Future<shelf.Response> publisherPackagesPageHandler(
     pageLinks: links,
     searchQuery: searchQuery,
     totalCount: totalCount,
+    isAdmin: await publisherBackend.isMemberAdmin(
+        publisherId, userSessionData?.userId),
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);
@@ -107,5 +112,15 @@ Future<shelf.Response> publisherAdminPageHandler(
     // domain name), but now we just have a formatted error page.
     return formattedNotFoundHandler(request);
   }
+
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+  final isAdmin =
+      await publisherBackend.isMemberAdmin(publisherId, userSessionData.userId);
+  if (!isAdmin) {
+    return htmlResponse(renderUnauthorizedPage());
+  }
+
   return htmlResponse(renderPublisherAdminPage(publisher));
 }

@@ -74,6 +74,15 @@ class PublisherBackend {
     return (await _db.lookup<PublisherMember>([mKey])).single;
   }
 
+  /// Whether the User [userId] has admin permissions on the publisher.
+  Future<bool> isMemberAdmin(String publisherId, String userId) async {
+    ArgumentError.checkNotNull(publisherId, 'publisherId');
+    if (userId == null) return false;
+    final member = await getPublisherMember(publisherId, userId);
+    if (member == null) return false;
+    return member.role == PublisherMemberRole.admin;
+  }
+
   /// Create publisher.
   Future<api.PublisherInfo> createPublisher(
     String publisherId,

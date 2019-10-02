@@ -17,6 +17,7 @@ import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart';
 
 import '../request_context.dart';
+import '../templates/misc.dart';
 import '../templates/package.dart';
 import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
@@ -90,8 +91,18 @@ Future<shelf.Response> packageVersionsListHandler(
   final uploaderEmails =
       await accountBackend.getEmailsOfUserIds(package.uploaders);
 
-  return htmlResponse(renderPkgVersionsPage(package, uploaderEmails,
-      latestVersion, versions, versionDownloadUrls, analysis));
+  final isAdmin =
+      await packageBackend.isPackageAdmin(package, userSessionData?.userId);
+
+  return htmlResponse(renderPkgVersionsPage(
+    package,
+    uploaderEmails,
+    latestVersion,
+    versions,
+    versionDownloadUrls,
+    analysis,
+    isAdmin: isAdmin,
+  ));
 }
 
 /// Handles requests for /packages/<package>
@@ -104,7 +115,8 @@ Future<shelf.Response> packageVersionHandlerHtml(
   }
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
-  final bool useCache = requestContext.uiCacheEnabled;
+  final bool useCache =
+      requestContext.uiCacheEnabled && userSessionData == null;
   if (useCache) {
     cachedPage = await cache.uiPackagePage(packageName, versionName).get();
   }
@@ -130,8 +142,16 @@ Future<shelf.Response> packageVersionHandlerHtml(
         await accountBackend.getEmailsOfUserIds(package.uploaders);
     _packagePreRenderLatencyTracker.add(serviceSw.elapsed);
 
+    final isAdmin =
+        await packageBackend.isPackageAdmin(package, userSessionData?.userId);
+
     cachedPage = renderPkgShowPage(
-        package, uploaderEmails, selectedVersion, analysisView);
+      package,
+      uploaderEmails,
+      selectedVersion,
+      analysisView,
+      isAdmin: isAdmin,
+    );
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
     if (useCache) {
@@ -157,6 +177,16 @@ Future<shelf.Response> packageAdminHandler(
       packageName, package.latestVersion);
   if (version == null) {
     return redirectResponse(urls.pkgVersionsUrl(packageName));
+  }
+
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+
+  final isAdmin =
+      await packageBackend.isPackageAdmin(package, userSessionData?.userId);
+  if (!isAdmin) {
+    return htmlResponse(renderUnauthorizedPage());
   }
 
   final uploaderEmails =

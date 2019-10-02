@@ -4,48 +4,38 @@
 
 <h2>Create a publisher</h2>
 
-<div id="-admin-unauthenticated">
-  <p>
-    Only signed-in users can create a publisher. Please sign in to continue.
-  </p>
-</div>
-
-<div id="-admin-authenticated">
-  <div>
-    <p>
-      A publisher consists of a group of users who collectively owns a set of
-      packages. A publisher is identified by a verified domain name. This lends
-      further credibility to packages owned by the publisher, as such packages
-      can be said to be published by the owner of the given domain.
-    </p>
-    <p>
-      To create a publisher,
-      you need to be a <i>verified domain property</i> owner in
-      <a href="https://search.google.com/search-console/welcome" target="_blank" rel="noreferrer">Google Search Console</a>.
-      For help see <a href="https://support.google.com/webmasters/answer/34592?hl=en" target="_blank" rel="noreferrer">Add a website property</a>.
-      <br /><br />
-      Note: It is not sufficient to verify a <i>URL prefix property</i>, or to be added as a collaborator on a property
-      somebody else verified. The user account used to create a publisher must have verified the <i>domain property</i>.
-      Once verified and a publisher has been created on pub.dev continued domain verification is not a requirement.
-      you need to be a site administrator in
-      <a href="https://www.google.com/webmasters/tools" target="_blank" rel="noreferrer">Google Search Console</a>
-      (formerly: Google Webmaster Tools).
-    </p>
-    <p>
-      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-        <input type="text" id="-publisher-id" class="mdc-text-field__input">
-        <div class="mdc-notched-outline">
-          <div class="mdc-notched-outline__leading"></div>
-          <div class="mdc-notched-outline__notch">
-            <label for="-publisher-id" class="mdc-floating-label">Domain Name</label>
-          </div>
-          <div class="mdc-notched-outline__trailing"></div>
-        </div>
+<p>
+  A publisher consists of a group of users who collectively owns a set of
+  packages. A publisher is identified by a verified domain name. This lends
+  further credibility to packages owned by the publisher, as such packages
+  can be said to be published by the owner of the given domain.
+</p>
+<p>
+  To create a publisher,
+  you need to be a <i>verified domain property</i> owner in
+  <a href="https://search.google.com/search-console/welcome" target="_blank" rel="noreferrer">Google Search Console</a>.
+  For help see <a href="https://support.google.com/webmasters/answer/34592?hl=en" target="_blank" rel="noreferrer">Add a website property</a>.
+  <br /><br />
+  Note: It is not sufficient to verify a <i>URL prefix property</i>, or to be added as a collaborator on a property
+  somebody else verified. The user account used to create a publisher must have verified the <i>domain property</i>.
+  Once verified and a publisher has been created on pub.dev continued domain verification is not a requirement.
+  you need to be a site administrator in
+  <a href="https://www.google.com/webmasters/tools" target="_blank" rel="noreferrer">Google Search Console</a>
+  (formerly: Google Webmaster Tools).
+</p>
+<p>
+  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+    <input type="text" id="-publisher-id" class="mdc-text-field__input">
+    <div class="mdc-notched-outline">
+      <div class="mdc-notched-outline__leading"></div>
+      <div class="mdc-notched-outline__notch">
+        <label for="-publisher-id" class="mdc-floating-label">Domain Name</label>
       </div>
-      <button
-        id="-admin-create-publisher"
-        class="mdc-button mdc-button--raised"
-        data-mdc-auto-init="MDCRipple">Create publisher</button>
-    </p>
+      <div class="mdc-notched-outline__trailing"></div>
+    </div>
   </div>
-</div>
+  <button
+    id="-admin-create-publisher"
+    class="mdc-button mdc-button--raised"
+    data-mdc-auto-init="MDCRipple">Create publisher</button>
+</p>

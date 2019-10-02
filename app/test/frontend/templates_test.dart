@@ -133,92 +133,96 @@ void main() {
 
     scopedTest('package show page', () {
       final String html = renderPkgShowPage(
-          foobarPackage,
-          foobarUploaderEmails,
-          foobarStablePV,
-          AnalysisView(
-            card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
-            panaReport: PanaReport(
-                timestamp: DateTime(2018, 02, 05),
-                panaRuntimeInfo: _panaRuntimeInfo,
-                reportStatus: ReportStatus.success,
-                healthScore: null,
-                maintenanceScore: null,
-                platformTags: null,
-                platformReason: null,
-                pkgDependencies: [
-                  PkgDependency(
-                    package: 'quiver',
-                    dependencyType: 'direct',
-                    constraintType: 'normal',
-                    constraint: VersionConstraint.parse('^1.0.0'),
-                    resolved: Version.parse('1.0.0'),
-                    available: null,
-                    errors: null,
-                  ),
-                  PkgDependency(
-                    package: 'http',
-                    dependencyType: 'direct',
-                    constraintType: 'normal',
-                    constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                    resolved: Version.parse('1.2.0'),
-                    available: Version.parse('1.3.0'),
-                    errors: null,
-                  )
-                ],
-                licenses: [LicenseFile('LICENSE.txt', 'BSD')],
-                panaSuggestions: null,
-                healthSuggestions: null,
-                maintenanceSuggestions: null,
-                flags: null),
-            dartdocReport: null,
-          ));
+        foobarPackage,
+        foobarUploaderEmails,
+        foobarStablePV,
+        AnalysisView(
+          card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
+          panaReport: PanaReport(
+              timestamp: DateTime(2018, 02, 05),
+              panaRuntimeInfo: _panaRuntimeInfo,
+              reportStatus: ReportStatus.success,
+              healthScore: null,
+              maintenanceScore: null,
+              platformTags: null,
+              platformReason: null,
+              pkgDependencies: [
+                PkgDependency(
+                  package: 'quiver',
+                  dependencyType: 'direct',
+                  constraintType: 'normal',
+                  constraint: VersionConstraint.parse('^1.0.0'),
+                  resolved: Version.parse('1.0.0'),
+                  available: null,
+                  errors: null,
+                ),
+                PkgDependency(
+                  package: 'http',
+                  dependencyType: 'direct',
+                  constraintType: 'normal',
+                  constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                  resolved: Version.parse('1.2.0'),
+                  available: Version.parse('1.3.0'),
+                  errors: null,
+                )
+              ],
+              licenses: [LicenseFile('LICENSE.txt', 'BSD')],
+              panaSuggestions: null,
+              healthSuggestions: null,
+              maintenanceSuggestions: null,
+              flags: null),
+          dartdocReport: null,
+        ),
+        isAdmin: true,
+      );
 
       expectGoldenFile(html, 'pkg_show_page.html');
     });
 
     scopedTest('package show page - with version', () {
       final String html = renderPkgShowPage(
-          foobarPackage,
-          foobarUploaderEmails,
-          foobarDevPV,
-          AnalysisView(
-            card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
-            panaReport: PanaReport(
-                timestamp: DateTime(2018, 02, 05),
-                panaRuntimeInfo: _panaRuntimeInfo,
-                reportStatus: ReportStatus.success,
-                healthScore: null,
-                maintenanceScore: null,
-                platformTags: null,
-                platformReason: null,
-                pkgDependencies: [
-                  PkgDependency(
-                    package: 'quiver',
-                    dependencyType: 'direct',
-                    constraintType: 'normal',
-                    constraint: VersionConstraint.parse('^1.0.0'),
-                    resolved: Version.parse('1.0.0'),
-                    available: null,
-                    errors: null,
-                  ),
-                  PkgDependency(
-                    package: 'http',
-                    dependencyType: 'direct',
-                    constraintType: 'normal',
-                    constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
-                    resolved: Version.parse('1.2.0'),
-                    available: Version.parse('1.3.0'),
-                    errors: null,
-                  )
-                ],
-                licenses: [LicenseFile('LICENSE.txt', 'BSD')],
-                panaSuggestions: null,
-                healthSuggestions: null,
-                maintenanceSuggestions: null,
-                flags: null),
-            dartdocReport: null,
-          ));
+        foobarPackage,
+        foobarUploaderEmails,
+        foobarDevPV,
+        AnalysisView(
+          card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
+          panaReport: PanaReport(
+              timestamp: DateTime(2018, 02, 05),
+              panaRuntimeInfo: _panaRuntimeInfo,
+              reportStatus: ReportStatus.success,
+              healthScore: null,
+              maintenanceScore: null,
+              platformTags: null,
+              platformReason: null,
+              pkgDependencies: [
+                PkgDependency(
+                  package: 'quiver',
+                  dependencyType: 'direct',
+                  constraintType: 'normal',
+                  constraint: VersionConstraint.parse('^1.0.0'),
+                  resolved: Version.parse('1.0.0'),
+                  available: null,
+                  errors: null,
+                ),
+                PkgDependency(
+                  package: 'http',
+                  dependencyType: 'direct',
+                  constraintType: 'normal',
+                  constraint: VersionConstraint.parse('>=1.0.0 <1.2.0'),
+                  resolved: Version.parse('1.2.0'),
+                  available: Version.parse('1.3.0'),
+                  errors: null,
+                )
+              ],
+              licenses: [LicenseFile('LICENSE.txt', 'BSD')],
+              panaSuggestions: null,
+              healthSuggestions: null,
+              maintenanceSuggestions: null,
+              flags: null),
+          dartdocReport: null,
+        ),
+        isAdmin: true,
+      );
       expectGoldenFile(html, 'pkg_show_version_page.html');
     });
 
@@ -251,36 +255,41 @@ void main() {
               maintenanceSuggestions: null,
               flags: null),
         ),
+        isAdmin: true,
       );
       expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html');
     });
 
     scopedTest('package show page with outdated version', () {
       final String html = renderPkgShowPage(
-          foobarPackage,
-          foobarUploaderEmails,
-          foobarStablePV,
-          AnalysisView(
-            card: ScoreCardData(
-              flags: [PackageFlags.isObsolete],
-              updated: DateTime(2018, 02, 05),
-            ),
-          ));
+        foobarPackage,
+        foobarUploaderEmails,
+        foobarStablePV,
+        AnalysisView(
+          card: ScoreCardData(
+            flags: [PackageFlags.isObsolete],
+            updated: DateTime(2018, 02, 05),
+          ),
+        ),
+        isAdmin: false,
+      );
 
       expectGoldenFile(html, 'pkg_show_page_outdated.html');
     });
 
     scopedTest('package show page with discontinued version', () {
       final String html = renderPkgShowPage(
-          discontinuedPackage,
-          foobarUploaderEmails,
-          foobarStablePV,
-          AnalysisView(
-            card: ScoreCardData(
-              flags: [PackageFlags.isDiscontinued],
-              updated: DateTime(2018, 02, 05),
-            ),
-          ));
+        discontinuedPackage,
+        foobarUploaderEmails,
+        foobarStablePV,
+        AnalysisView(
+          card: ScoreCardData(
+            flags: [PackageFlags.isDiscontinued],
+            updated: DateTime(2018, 02, 05),
+          ),
+        ),
+        isAdmin: false,
+      );
 
       expectGoldenFile(html, 'pkg_show_page_discontinued.html');
     });
@@ -289,33 +298,37 @@ void main() {
       final summary = createPanaSummaryForLegacy(
           foobarStablePV.package, foobarStablePV.version);
       final String html = renderPkgShowPage(
-          foobarPackage,
-          <String>[
-            hansUser.email,
-            joeUser.email,
-          ],
-          foobarStablePV,
-          AnalysisView(
-            card: ScoreCardData(
-              popularityScore: 0.5,
-              flags: [PackageFlags.isLegacy],
-            ),
-            panaReport: panaReportFromSummary(summary),
-          ));
+        foobarPackage,
+        <String>[
+          hansUser.email,
+          joeUser.email,
+        ],
+        foobarStablePV,
+        AnalysisView(
+          card: ScoreCardData(
+            popularityScore: 0.5,
+            flags: [PackageFlags.isLegacy],
+          ),
+          panaReport: panaReportFromSummary(summary),
+        ),
+        isAdmin: false,
+      );
 
       expectGoldenFile(html, 'pkg_show_page_legacy.html');
     });
 
     scopedTest('package show page with publisher', () {
       final String html = renderPkgShowPage(
-          lithium.package,
-          <String>[],
-          lithium.versions.last,
-          AnalysisView(
-            card: ScoreCardData(
-              updated: DateTime(2018, 02, 05),
-            ),
-          ));
+        lithium.package,
+        <String>[],
+        lithium.versions.last,
+        AnalysisView(
+          card: ScoreCardData(
+            updated: DateTime(2018, 02, 05),
+          ),
+        ),
+        isAdmin: false,
+      );
 
       expectGoldenFile(html, 'pkg_show_page_publisher.html');
     });
@@ -546,6 +559,7 @@ void main() {
             popularityScore: 0.2,
           ),
         ),
+        isAdmin: false,
       );
       expectGoldenFile(html, 'pkg_versions_page.html');
     });
@@ -604,6 +618,7 @@ void main() {
         totalCount: 2,
         searchQuery: searchQuery,
         pageLinks: PageLinks(0, 10, searchQuery: searchQuery),
+        isAdmin: true,
       );
       expectGoldenFile(html, 'publisher_packages_page.html');
     });
