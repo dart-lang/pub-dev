@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
-import '../../shared/configuration.dart' show activeConfiguration;
 import '../../package/backend.dart';
 import '../../package/search_service.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../search/search_service.dart';
+import '../../shared/configuration.dart' show activeConfiguration;
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 
