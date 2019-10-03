@@ -5,26 +5,26 @@
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 
-/// Returns a HTTP Client that if a [token] is present, will send it as a `Bearer`
-/// token in the `Authorization` header for each request. If [token] is null,
-/// it returns a regular Client.
-Client getAuthenticatedClient(String token) {
-  return token == null ? BrowserClient() : _AuthenticatedClient(token);
+/// Creates an authenticated [Client] that calls [getToken] to obtain an
+/// bearer-token to use in the `Authorization: Bearer <token>` header.
+Client createAuthenticatedClient(Future<String> Function() getToken) {
+  return _AuthenticatedClient(getToken);
 }
 
 /// An [Client] which sends a `Bearer` token as `Authorization` header for each request.
 class _AuthenticatedClient extends BrowserClient {
-  final String _token;
+  final Future<String> Function() _getToken;
   final _client = BrowserClient();
-  _AuthenticatedClient(this._token);
+  _AuthenticatedClient(this._getToken);
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {
+    final token = await _getToken();
     // Make new request object and perform the authenticated request.
     final modifiedRequest =
         _RequestImpl(request.method, request.url, request.finalize());
     modifiedRequest.headers.addAll(request.headers);
-    modifiedRequest.headers['Authorization'] = 'Bearer $_token';
+    modifiedRequest.headers['Authorization'] = 'Bearer $token';
     final response = await _client.send(modifiedRequest);
     final wwwAuthenticate = response.headers['www-authenticate'];
     if (wwwAuthenticate != null) {
