@@ -653,6 +653,16 @@ void main() {
       expectGoldenFile(html, 'my_packages.html');
     });
 
+    scopedTest('/my-publishers page', () {
+      final String html = renderAccountPublishersPage(
+        user: hansUser,
+        publishers: [
+          exampleComPublisher,
+        ],
+      );
+      expectGoldenFile(html, 'my_publishers.html');
+    });
+
     scopedTest('authorized page', () {
       final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
