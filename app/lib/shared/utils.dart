@@ -341,12 +341,12 @@ Map<String, String> parseCookieHeader(String cookieHeader) {
     final r = <String, String>{};
     // The cookieString is separated by '; ', and contains 'name=value'
     // See: https://tools.ietf.org/html/rfc6265#section-5.4
-    cookieHeader.split('; ').forEach((s) {
-      final parts = s.split('=');
-      if (parts.length != 2) {
-        r[parts[0]] = parts[1];
+    for (final s in cookieHeader.split('; ')) {
+      final i = s.indexOf('=');
+      if (i != -1) {
+        r[s.substring(0, i)] = s.substring(i + 1);
       }
-    });
+    }
     return r;
   } catch (_) {
     // Ignore broken cookies, we could throw a ResponseException instead, and
