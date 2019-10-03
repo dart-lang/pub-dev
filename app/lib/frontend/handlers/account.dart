@@ -111,7 +111,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
   return AccountPublisherOptions(isAdmin: isAdmin);
 }
 
-/// Handles requests for GET /account/packages [?q=...]
+/// Handles requests for GET /my-packages [?q=...]
 Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
@@ -138,10 +138,27 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
 
   final html = renderAccountPackagesPage(
+    user: await accountBackend.lookupUserById(userSessionData.userId),
     packages: searchResult.packages,
     pageLinks: links,
     searchQuery: searchQuery,
     totalCount: totalCount,
   );
   return htmlResponse(html);
+}
+
+/// Handles requests for GET /my-publishers
+Future<shelf.Response> accountPublishersPageHandler(
+    shelf.Request request) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+
+  final publishers =
+      await publisherBackend.listPublishersForUser(userSessionData.userId);
+  final content = renderAccountPublishersPage(
+    user: await accountBackend.lookupUserById(userSessionData.userId),
+    publishers: publishers,
+  );
+  return htmlResponse(content);
 }

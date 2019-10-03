@@ -581,7 +581,6 @@ void main() {
             ..websiteUrl = 'https://other-domain.com/'
             ..created = DateTime(2019, 09, 19),
         ],
-        isGlobal: true,
       );
       expectGoldenFile(html, 'publisher_list_page.html');
     });
@@ -623,10 +622,11 @@ void main() {
       expectGoldenFile(html, 'publisher_packages_page.html');
     });
 
-    scopedTest('account packages page', () {
+    scopedTest('/my-packages page', () {
       final searchQuery =
           SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
+        user: hansUser,
         packages: [
           PackageView(
             name: 'super_package',
@@ -650,7 +650,17 @@ void main() {
         searchQuery: searchQuery,
         totalCount: 2,
       );
-      expectGoldenFile(html, 'account_packages.html');
+      expectGoldenFile(html, 'my_packages.html');
+    });
+
+    scopedTest('/my-publishers page', () {
+      final String html = renderAccountPublishersPage(
+        user: hansUser,
+        publishers: [
+          exampleComPublisher,
+        ],
+      );
+      expectGoldenFile(html, 'my_publishers.html');
     });
 
     scopedTest('authorized page', () {

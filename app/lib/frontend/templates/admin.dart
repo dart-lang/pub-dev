@@ -7,13 +7,18 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
+import '../../account/models.dart' show User;
 import '../../package/models.dart' show PackageView;
+import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart';
+import '../../shared/utils.dart' show shortDateFormat;
 
 import '_cache.dart';
+import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'publisher.dart' show renderPublisherList;
 
 /// Renders the `views/authorized.mustache` template.
 String renderAuthorizedPage() {
@@ -51,6 +56,7 @@ String renderConsentPage(String consentId) {
 
 /// Renders the search results on the current user's packages page.
 String renderAccountPackagesPage({
+  @required User user,
   @required List<PackageView> packages,
   @required PageLinks pageLinks,
   @required SearchQuery searchQuery,
@@ -74,13 +80,72 @@ String renderAccountPackagesPage({
   final packageListHtml = packages.isEmpty ? '' : renderPackageList(packages);
   final paginationHtml = renderPagination(pageLinks);
 
-  final content = [resultCountHtml, packageListHtml, paginationHtml].join('\n');
+  final tabContent =
+      [resultCountHtml, packageListHtml, paginationHtml].join('\n');
+  final content = renderDetailPage(
+    headerHtml: _accountDetailHeader(user),
+    tabs: [
+      Tab.withContent(
+          id: 'packages', title: 'My packages', contentHtml: tabContent),
+      _myPublishersLink(),
+    ],
+    infoBoxHtml: _accountInfoBox(user),
+  );
 
   return renderLayoutPage(
-    PageType.listing,
+    PageType.account,
     content,
     title: title,
     searchQuery: searchQuery,
     noIndex: true,
   );
+}
+
+/// Renders the current user's publishers page.
+String renderAccountPublishersPage({
+  @required User user,
+  @required List<Publisher> publishers,
+}) {
+  final packageListHtml = renderPublisherList(publishers, isGlobal: false);
+
+  final content = renderDetailPage(
+    headerHtml: _accountDetailHeader(user),
+    tabs: [
+      _myPackagesLink(),
+      Tab.withContent(
+          id: 'publishers',
+          title: 'My publishers',
+          contentHtml: packageListHtml),
+    ],
+    infoBoxHtml: _accountInfoBox(user),
+  );
+
+  return renderLayoutPage(
+    PageType.account,
+    content,
+    title: 'My publishers',
+    noIndex: true,
+  );
+}
+
+Tab _myPackagesLink() =>
+    Tab.withLink(id: 'packages', title: 'My packages', href: '/my-packages');
+
+Tab _myPublishersLink() => Tab.withLink(
+    id: 'publishers', title: 'My publishers', href: '/my-publishers');
+
+String _accountDetailHeader(User user) {
+  final shortJoined = shortDateFormat.format(user.created);
+  return renderDetailHeader(
+    title: user.email,
+    metadataHtml: htmlEscape.convert('Joined on $shortJoined'),
+  );
+}
+
+String _accountInfoBox(User user) {
+  final shortJoined = shortDateFormat.format(user.created);
+  return templateCache.renderTemplate('account/info_box', {
+    'email': user.email,
+    'joined_short': shortJoined,
+  });
 }

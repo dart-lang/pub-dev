@@ -32,22 +32,9 @@ Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
 Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   final content = await cache.uiPublisherListPage().get(() async {
     final publishers = await publisherBackend.listPublishers(limit: 1000);
-    return renderPublisherListPage(publishers, isGlobal: true);
+    return renderPublisherListPage(publishers);
   });
   return htmlResponse(content);
-}
-
-/// Handles requests for GET /account/publishers
-Future<shelf.Response> accountPublishersPageHandler(
-    shelf.Request request) async {
-  if (userSessionData == null) {
-    return htmlResponse(renderUnauthenticatedPage());
-  } else {
-    final publishers =
-        await publisherBackend.listPublishersForUser(userSessionData.userId);
-    final content = renderPublisherListPage(publishers, isGlobal: false);
-    return htmlResponse(content);
-  }
 }
 
 /// Handles requests for GET /publishers/<publisherId>

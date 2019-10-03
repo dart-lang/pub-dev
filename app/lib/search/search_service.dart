@@ -391,7 +391,7 @@ class SearchQuery {
       path = '/publishers/$publisherId/packages';
     }
     if (uploaderOrPublishers != null && uploaderOrPublishers.isNotEmpty) {
-      path = '/account/packages';
+      path = '/my-packages';
     }
     return path;
   }
