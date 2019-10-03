@@ -2,21 +2,50 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<h4>Description</h4>
-<div>
-  <textarea id="-publisher-description" class="pub-input" rows="3">{{description}}</textarea>
+<h3>About Publisher</h3>
+<div class="-pub-form-row">
+  <div class="mdc-text-field mdc-text-field--textarea" data-mdc-auto-init="MDCTextField">
+    <div class="mdc-text-field-character-counter">0 / 4096</div>
+    <textarea id="-publisher-description" class="mdc-text-field__input" rows="5" cols="60" maxlength="4096">{{description}}</textarea>
+    <div class="mdc-notched-outline">
+      <div class="mdc-notched-outline__leading"></div>
+      <div class="mdc-notched-outline__notch">
+        <label for="-publisher-description" class="mdc-floating-label">Description</label>
+      </div>
+      <div class="mdc-notched-outline__trailing"></div>
+    </div>
+  </div>
 </div>
-<h4>Website URL</h4>
-<div>
-  <input id="-publisher-website-url" class="pub-input" value="{{website_url}}" />
+<div class="-pub-form-row">
+  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+    <input type="text" id="-publisher-website-url" class="mdc-text-field__input" value="{{website_url}}" />
+    <div class="mdc-notched-outline">
+      <div class="mdc-notched-outline__leading"></div>
+      <div class="mdc-notched-outline__notch">
+        <label for="-publisher-website-url" class="mdc-floating-label">Website</label>
+      </div>
+      <div class="mdc-notched-outline__trailing"></div>
+    </div>
+  </div>
 </div>
-<h4>Contact e-mail</h4>
-<div>
-  <input id="-publisher-contact-email" class="pub-input" value="{{contact_email}}" />
+<div class="-pub-form-row">
+  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+    <input type="text" id="-publisher-contact-email" class="mdc-text-field__input" value="{{contact_email}}" />
+    <div class="mdc-notched-outline">
+      <div class="mdc-notched-outline__leading"></div>
+      <div class="mdc-notched-outline__notch">
+        <label for="-publisher-contact-email" class="mdc-floating-label">Contact e-mail</label>
+      </div>
+      <div class="mdc-notched-outline__trailing"></div>
+    </div>
+  </div>
 </div>
-<p>
-  <button id="-publisher-update-button" class="pub-button">Update</button>
-</p>
+<div class="-pub-form-row">
+  <button
+    id="-publisher-update-button"
+    class="mdc-button mdc-button--raised"
+    data-mdc-auto-init="MDCRipple">Update</button>
+</div>
 <h3>Members</h3>
 <div id="-admin-members-loading">
   <p>Loading the list of members...</p>
@@ -33,6 +62,18 @@
   <li>add/remove new members (with similar rights)</li>
 </ul>
 <p>
-  <input id="-admin-invite-member-input" class="pub-input" placeholder="e-mail address"/>
-  <button id="-admin-invite-member-button" class="pub-button">Invite member</button>
+  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+    <input type="text" id="-admin-invite-member-input" class="mdc-text-field__input" />
+    <div class="mdc-notched-outline">
+      <div class="mdc-notched-outline__leading"></div>
+      <div class="mdc-notched-outline__notch">
+        <label for="-admin-invite-member-input" class="mdc-floating-label">e-mail address</label>
+      </div>
+      <div class="mdc-notched-outline__trailing"></div>
+    </div>
+  </div>
+  <button
+    id="-admin-invite-member-button"
+    class="mdc-button mdc-button--raised"
+    data-mdc-auto-init="MDCRipple">Invite member</button>
 </p>

@@ -40,6 +40,16 @@
   }
 }
 
-#-admin-create-publisher, #-admin-set-publisher-button {
+.-pub-form-row {
+  margin: 20px;
+  
+  input[type=text] {
+    min-width: 40ex;
+  }
+}
+
+#-admin-create-publisher,
+#-admin-set-publisher-button,
+#-admin-invite-member-button {
   margin-left: 20px;
 }
