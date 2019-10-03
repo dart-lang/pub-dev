@@ -13,11 +13,13 @@ import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
 
-/// Renders a page where the real content is only provided for logged-in users.
-String renderUnauthenticatedPage() {
-  // TODO: add custom message
-  // TODO: add header and more content to explain how to log in
-  final content = 'You need to be logged in to view this page.';
+/// Renders the `views/account/unauthenticated.mustache` template for the pages
+/// where the real content is only provided for logged-in users.
+String renderUnauthenticatedPage({String messageMarkdown}) {
+  messageMarkdown ??= 'You need to be logged in to view this page.';
+  final content = templateCache.renderTemplate('account/unauthenticated', {
+    'message_html': markdownToHtml(messageMarkdown, null),
+  });
   return renderLayoutPage(
     PageType.standalone,
     content,
@@ -26,11 +28,13 @@ String renderUnauthenticatedPage() {
   );
 }
 
-/// Renders a page where the real content is only provided for authorized users.
-String renderUnauthorizedPage() {
-  // TODO: add custom message
-  // TODO: add header and more content to explain why the page is shown
-  final content = 'You have insufficient permissions to view this page.';
+/// Renders the `views/account/unauthorized.mustache` template for the pages
+/// where the real content is only provided for authorized users.
+String renderUnauthorizedPage({String messageMarkdown}) {
+  messageMarkdown ??= 'You have insufficient permissions to view this page.';
+  final content = templateCache.renderTemplate('account/unauthorized', {
+    'message_html': markdownToHtml(messageMarkdown, null),
+  });
   return renderLayoutPage(
     PageType.standalone,
     content,
