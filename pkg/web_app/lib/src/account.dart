@@ -94,21 +94,45 @@ Future _updateUser(GoogleUser user) async {
   _client = null;
 
   // update or delete session
-  List<int> statusRs;
   if (user == null) {
-    statusRs = await client.invalidateSession();
+    final st1 = ClientSessionStatus.fromBytes(await client.invalidateSession());
+    if (st1.changed) {
+      final st2 = ClientSessionStatus.fromBytes(
+        await client.invalidateSession(),
+      );
+      // Only reload if signing out again, didn't change anything.
+      // If signing out a second time changes something, then clearly sign-out
+      // isn't clearing the cookie and session correctly. We should not reload
+      // to avoid degrading into a reload loop.
+      if (!st2.changed) {
+        window.location.reload();
+        return;
+      }
+    }
   } else {
-    statusRs = await client.updateSession(
+    final st1 = ClientSessionStatus.fromBytes(await client.updateSession(
       ClientSessionData(
         imageUrl: user.getBasicProfile().getImageUrl(),
       ),
-    );
-  }
-  final status = ClientSessionStatus.fromBytes(statusRs);
-  // if the server indicates that the cookie has been changed, then reload page
-  if (status.changed) {
-    window.location.reload();
-    return;
+    ));
+    if (st1.changed) {
+      final st2 = ClientSessionStatus.fromBytes(await client.updateSession(
+        ClientSessionData(
+          imageUrl: user.getBasicProfile().getImageUrl(),
+        ),
+      ));
+      // If creating the session a second time changed anything then maybe the
+      // client has disabled cookies. We should NOT reload to avoid degrading
+      // into an infinite reload loop. We could show a message, but we have no
+      // way of preventing this message from poping up on all pages, so it's
+      // probably best to ignore this case.
+      if (!st2.changed) {
+        window.location.reload();
+        return;
+      } else {
+        print('Sign-in will not work without session cookies');
+      }
+    }
   }
 
   _updateUi();

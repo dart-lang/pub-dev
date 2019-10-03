@@ -15,6 +15,7 @@ import '../../analyzer/pana_runner.dart';
 import '../../job/backend.dart';
 import '../../job/job.dart';
 import '../../scorecard/backend.dart';
+import '../../shared/configuration.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
@@ -36,6 +37,13 @@ class AnalyzerCommand extends Command {
 
   @override
   Future run() async {
+    // Ensure that we're running in the right environment, or is running locally
+    if (envConfig.gaeService != null && envConfig.gaeService != name) {
+      throw StateError(
+        'Cannot start "$name" in "${envConfig.gaeService}" environment',
+      );
+    }
+
     Future workerSetup() async {
       await initFlutterSdk(logger);
     }

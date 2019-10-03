@@ -13,6 +13,7 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../account/backend.dart';
+import '../account/session_cookie.dart' as session_cookie;
 import '../frontend/request_context.dart';
 import '../frontend/templates/layout.dart';
 
@@ -226,13 +227,18 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
 /// user session data.
 shelf.Handler _userSessionWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    final cookies =
-        parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-    final sessionId = cookies[pubSessionCookieName];
-    if (sessionId != null && sessionId.isNotEmpty) {
-      final sessionData = await accountBackend.lookupSession(sessionId);
-      if (sessionData != null) {
-        registerUserSessionData(sessionData);
+    // Never read or look for the session cookie on hosts other than the
+    // primary site. Who knows how it got there or what it means.
+    if (request.requestedUri.host == activeConfiguration.primarySiteUri.host &&
+        request.headers.containsKey(HttpHeaders.cookieHeader)) {
+      final sessionId = session_cookie.parseSessionCookie(
+        request.headers[HttpHeaders.cookieHeader],
+      );
+      if (sessionId != null && sessionId.isNotEmpty) {
+        final sessionData = await accountBackend.lookupSession(sessionId);
+        if (sessionData != null) {
+          registerUserSessionData(sessionData);
+        }
       }
     }
     shelf.Response rs = await handler(request);

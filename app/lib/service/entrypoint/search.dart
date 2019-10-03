@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import '../../search/backend.dart';
 import '../../search/handlers.dart';
 import '../../search/updater.dart';
+import '../../shared/configuration.dart';
 import '../../shared/handler_helpers.dart';
 import '../../shared/popularity_storage.dart';
 import '../../shared/scheduler_stats.dart';
@@ -33,6 +34,13 @@ class SearchCommand extends Command {
 
   @override
   Future run() async {
+    // Ensure that we're running in the right environment, or is running locally
+    if (envConfig.gaeService != null && envConfig.gaeService != name) {
+      throw StateError(
+        'Cannot start "$name" in "${envConfig.gaeService}" environment',
+      );
+    }
+
     await startIsolates(logger: _logger, frontendEntryPoint: _main);
   }
 }
