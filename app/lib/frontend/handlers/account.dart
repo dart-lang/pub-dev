@@ -109,7 +109,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
   return AccountPublisherOptions(isAdmin: isAdmin);
 }
 
-/// Handles requests for GET /account/packages [?q=...]
+/// Handles requests for GET /my-packages [?q=...]
 Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());

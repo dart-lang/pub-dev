@@ -37,7 +37,7 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   return htmlResponse(content);
 }
 
-/// Handles requests for GET /account/publishers
+/// Handles requests for GET /my-publishers
 Future<shelf.Response> accountPublishersPageHandler(
     shelf.Request request) async {
   if (userSessionData == null) {
