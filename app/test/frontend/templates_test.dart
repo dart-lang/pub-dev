@@ -622,7 +622,7 @@ void main() {
       expectGoldenFile(html, 'publisher_packages_page.html');
     });
 
-    scopedTest('account packages page', () {
+    scopedTest('/my-packages page', () {
       final searchQuery =
           SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
@@ -650,7 +650,7 @@ void main() {
         searchQuery: searchQuery,
         totalCount: 2,
       );
-      expectGoldenFile(html, 'account_packages.html');
+      expectGoldenFile(html, 'my_packages.html');
     });
 
     scopedTest('authorized page', () {
