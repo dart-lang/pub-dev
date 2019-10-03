@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
 import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/browser_client.dart' as http;
 import 'package:markdown/markdown.dart' as markdown;
 
 import '_authenticated_client.dart';
@@ -18,31 +19,53 @@ import 'google_js.dart';
 import 'page_data.dart';
 import 'pubapi.client.dart';
 
-bool _initialized = false;
+final _initialized = Completer<void>();
 GoogleUser _currentUser;
 
 /// Returns whether the user is currently signed-in.
-bool get isSignedIn => _initialized && _currentUser != null;
+bool get isSignedIn => _initialized.isCompleted && _currentUser != null;
 
 /// Returns the currently signed-in user or null.
 GoogleUser get currentUser => _currentUser;
 
-PubApiClient _client;
-http.Client _httpClient;
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
 final _createPublisherWidget = _CreatePublisherWidget();
 final _consentWidget = _ConsentWidget();
 
+String get _baseUrl {
+  final location = Uri.parse(window.location.href);
+  return Uri(
+    scheme: location.scheme,
+    host: location.host,
+    port: location.port,
+  ).toString();
+}
+
+/// The pub API client to use without credentials.
+PubApiClient get unauthenticatedClient =>
+    PubApiClient(_baseUrl, client: http.BrowserClient());
+
 /// The pub API client to use with account credentials.
 PubApiClient get client {
-  if (_client == null) {
-    _httpClient ??=
-        getAuthenticatedClient(currentUser?.getAuthResponse(true)?.id_token);
-    final uri = Uri.parse(window.location.href);
-    _client = PubApiClient(uri.resolve('/').toString(), client: _httpClient);
-  }
-  return _client;
+  return PubApiClient(_baseUrl, client: createAuthenticatedClient(() async {
+    // Wait until we're initialized
+    await _initialized.future;
+
+    var user = getAuthInstance().currentUser.get();
+    if (user == null) {
+      // Attempt a login flow
+      await getAuthInstance().signIn();
+      user = getAuthInstance().currentUser.get();
+    }
+    if (user == null) {
+      print('Login failed');
+      throw StateError('User not logged in');
+    }
+
+    // Return the id_token
+    return user.getAuthResponse(true).id_token;
+  }));
 }
 
 void setupAccount() {
@@ -62,7 +85,7 @@ void setupAccount() {
 }
 
 void _init() {
-  _initialized = true;
+  _initialized.complete();
   document
       .getElementById('-account-login')
       ?.onClick
@@ -80,7 +103,7 @@ void _init() {
 }
 
 Future _updateUser(GoogleUser user) async {
-  if (_initialized && !getAuthInstance().isSignedIn.get()) {
+  if (!getAuthInstance().isSignedIn.get()) {
     user = null;
   }
   if (user?.getId() == null) {
@@ -88,17 +111,13 @@ Future _updateUser(GoogleUser user) async {
   }
   _currentUser = user;
 
-  // reset credentials used in the HTTP Client
-  _httpClient?.close();
-  _httpClient = null;
-  _client = null;
-
   // update or delete session
   if (user == null) {
-    final st1 = ClientSessionStatus.fromBytes(await client.invalidateSession());
+    final st1 = ClientSessionStatus.fromBytes(
+        await unauthenticatedClient.invalidateSession());
     if (st1.changed) {
       final st2 = ClientSessionStatus.fromBytes(
-        await client.invalidateSession(),
+        await unauthenticatedClient.invalidateSession(),
       );
       // Only reload if signing out again, didn't change anything.
       // If signing out a second time changes something, then clearly sign-out
@@ -111,15 +130,11 @@ Future _updateUser(GoogleUser user) async {
     }
   } else {
     final st1 = ClientSessionStatus.fromBytes(await client.updateSession(
-      ClientSessionData(
-        imageUrl: user.getBasicProfile().getImageUrl(),
-      ),
+      ClientSessionData(imageUrl: user.getBasicProfile().getImageUrl()),
     ));
     if (st1.changed) {
       final st2 = ClientSessionStatus.fromBytes(await client.updateSession(
-        ClientSessionData(
-          imageUrl: user.getBasicProfile().getImageUrl(),
-        ),
+        ClientSessionData(imageUrl: user.getBasicProfile().getImageUrl()),
       ));
       // If creating the session a second time changed anything then maybe the
       // client has disabled cookies. We should NOT reload to avoid degrading
