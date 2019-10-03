@@ -20,6 +20,7 @@ import '../../shared/handlers.dart';
 import '../templates/admin.dart';
 import '../templates/listing.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
+import '../templates/publisher.dart';
 
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(shelf.Request request,
@@ -143,4 +144,17 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     totalCount: totalCount,
   );
   return htmlResponse(html);
+}
+
+/// Handles requests for GET /my-publishers
+Future<shelf.Response> accountPublishersPageHandler(
+    shelf.Request request) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  } else {
+    final publishers =
+        await publisherBackend.listPublishersForUser(userSessionData.userId);
+    final content = renderPublisherListPage(publishers, isGlobal: false);
+    return htmlResponse(content);
+  }
 }

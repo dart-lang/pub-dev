@@ -37,19 +37,6 @@ Future<shelf.Response> publisherListHandler(shelf.Request request) async {
   return htmlResponse(content);
 }
 
-/// Handles requests for GET /my-publishers
-Future<shelf.Response> accountPublishersPageHandler(
-    shelf.Request request) async {
-  if (userSessionData == null) {
-    return htmlResponse(renderUnauthenticatedPage());
-  } else {
-    final publishers =
-        await publisherBackend.listPublishersForUser(userSessionData.userId);
-    final content = renderPublisherListPage(publishers, isGlobal: false);
-    return htmlResponse(content);
-  }
-}
-
 /// Handles requests for GET /publishers/<publisherId>
 Future<shelf.Response> publisherPageHandler(
     shelf.Request request, String publisherId) async {
