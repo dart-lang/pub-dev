@@ -581,7 +581,6 @@ void main() {
             ..websiteUrl = 'https://other-domain.com/'
             ..created = DateTime(2019, 09, 19),
         ],
-        isGlobal: true,
       );
       expectGoldenFile(html, 'publisher_list_page.html');
     });

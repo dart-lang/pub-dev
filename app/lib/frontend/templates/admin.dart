@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 
 import '../../account/models.dart' show User;
 import '../../package/models.dart' show PackageView;
+import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart';
 import '../../shared/utils.dart' show shortDateFormat;
@@ -17,6 +18,7 @@ import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'publisher.dart' show renderPublisherList;
 
 /// Renders the `views/authorized.mustache` template.
 String renderAuthorizedPage() {
@@ -98,6 +100,36 @@ String renderAccountPackagesPage({
     noIndex: true,
   );
 }
+
+/// Renders the current user's publishers page.
+String renderAccountPublishersPage({
+  @required User user,
+  @required List<Publisher> publishers,
+}) {
+  final packageListHtml = renderPublisherList(publishers, isGlobal: false);
+
+  final content = renderDetailPage(
+    headerHtml: _accountDetailHeader(user),
+    tabs: [
+      _myPackagesLink(),
+      Tab.withContent(
+          id: 'publishers',
+          title: 'My publishers',
+          contentHtml: packageListHtml),
+    ],
+    infoBoxHtml: _accountInfoBox(user),
+  );
+
+  return renderLayoutPage(
+    PageType.account,
+    content,
+    title: 'My publishers',
+    noIndex: true,
+  );
+}
+
+Tab _myPackagesLink() =>
+    Tab.withLink(id: 'packages', title: 'My packages', href: '/my-packages');
 
 Tab _myPublishersLink() => Tab.withLink(
     id: 'publishers', title: 'My publishers', href: '/my-publishers');

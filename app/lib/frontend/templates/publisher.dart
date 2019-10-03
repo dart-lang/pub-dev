@@ -31,10 +31,10 @@ String renderCreatePublisherPage() {
 }
 
 /// Renders the `views/publisher/publisher_list.mustache` template
-String renderPublisherListPage(List<Publisher> publishers,
+String renderPublisherList(List<Publisher> publishers,
     {@required bool isGlobal}) {
-  final content = templateCache.renderTemplate('publisher/publisher_list', {
-    'title': isGlobal ? 'Publishers' : 'My publishers',
+  return templateCache.renderTemplate('publisher/publisher_list', {
+    'title': isGlobal ? 'Publishers' : null,
     'no_publisher_message': isGlobal
         ? 'No publisher has been registered.'
         : 'You have no publisher',
@@ -49,6 +49,12 @@ String renderPublisherListPage(List<Publisher> publishers,
         )
         .toList(),
   });
+}
+
+/// Renders the `views/publisher/publisher_list.mustache` template on a standard
+/// layout.
+String renderPublisherListPage(List<Publisher> publishers) {
+  final content = renderPublisherList(publishers, isGlobal: true);
   return renderLayoutPage(
     PageType.listing,
     content,
