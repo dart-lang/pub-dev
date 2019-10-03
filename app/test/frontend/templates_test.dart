@@ -460,7 +460,6 @@ void main() {
               updated: DateTime(2018, 02, 05),
             ),
           ));
-
       expectGoldenFile(html, 'pkg_admin_page_outdated.html');
     });
 

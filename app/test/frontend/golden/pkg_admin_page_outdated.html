@@ -142,10 +142,17 @@ Published
     be converted back to legacy-ownership per-package uploaders.
   
                 </p>
-                <p>
-                  <input id="-admin-set-publisher-input" class="pub-input" placeholder="publisher e.g. example.com"/>
-                  <button id="-admin-set-publisher-button" class="pub-button">Transfer to publisher</button>
-                </p>
+                <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                  <input type="text" id="-admin-set-publisher-input" class="mdc-text-field__input"/>
+                  <div class="mdc-notched-outline">
+                    <div class="mdc-notched-outline__leading"></div>
+                    <div class="mdc-notched-outline__notch">
+                      <label for="-admin-set-publisher-input" class="mdc-floating-label">Publisher Name</label>
+                    </div>
+                    <div class="mdc-notched-outline__trailing"></div>
+                  </div>
+                </div>
+                <button id="-admin-set-publisher-button" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
               </div>
               <h3>Discontinued</h3>
               <div>
@@ -155,7 +162,7 @@ Published
     and we won't display it in search results.
   </p>
                 <p>
-                  <button class="-admin-is-discontinued-toggle pub-button">Mark as "discontinued".</button>
+                  <button id="-admin-is-discontinued-toggle" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Mark as "discontinued"</button>
                 </p>
               </div>
             </section>
