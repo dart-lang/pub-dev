@@ -627,6 +627,7 @@ void main() {
       final searchQuery =
           SearchQuery.parse(uploaderOrPublishers: [hansUser.email]);
       final String html = renderAccountPackagesPage(
+        user: hansUser,
         packages: [
           PackageView(
             name: 'super_package',

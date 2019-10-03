@@ -65,92 +65,103 @@
     </header>
     <div class="_banner-bg">
       <div class="container">
-        <div class="medium-banner">
+        <div class="small-banner">
           <form class="search-bar" action="/my-packages">
-            <input class="input" name="q" placeholder="Search Dart packages" autocomplete="on" autofocus="autofocus"/>
+            <input class="input" name="q" placeholder="Search your packages" autocomplete="on" autofocus="autofocus"/>
             <button class="icon"></button>
-            <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
-            <input id="search-api-field" type="hidden" name="api" value="0" disabled="disabled"/>
           </form>
-          <div class="search-bar-details">
-            <div class="list-filters">
-              <a class="filter " href="/my-packages">Flutter</a>
-              <a class="filter " href="/my-packages">Web</a>
-              <a class="filter -active" href="/my-packages">All</a>
-            </div>
-            <div class="search-bar-options">
-              <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1"/>
-              <label for="search-legacy-checkbox">Include Dart 1.x results</label>
-              <input id="search-api-checkbox" type="checkbox" name="api" checked="checked"/>
-              <label for="search-api-checkbox"> Include API results</label>
-            </div>
-          </div>
         </div>
       </div>
     </div>
     <div class="container">
       <main>
-    2 packages.
+        <div class="detail-header">
+          <h2 class="title">hans@juergen.com</h2>
+          <div class="metadata">
+    Joined on Jan 1, 2014
+    
+            <div class="tags"></div>
+          </div>
+        </div>
+        <div class="detail-container">
+          <ul class="detail-tabs-header">
+            <li class="tab-button -active" data-name="-packages-tab-" role="button">My packages</li>
+            <li class="tab-link" data-name="-publishers-tab-" role="button">
+              <a href="/my-publishers">My publishers</a>
+            </li>
+          </ul>
+          <div class="main detail-tabs-content">
+            <section class="tab-content -active" data-name="-packages-tab-">
+      2 packages.
 
 
-        <ul class="package-list">
-          <li class="list-item -full">
-            <a href="/packages/super_package#-analysis-tab-">
-              <div class="score-box">
-                <span class="number -solid" title="Analysis and more details.">97</span>
-              </div>
-            </a>
-            <h3 class="title">
-              <a href="/packages/super_package">super_package</a>
-            </h3>
-            <p class="description">A great web UI library.</p>
-            <p class="metadata">
+              <ul class="package-list">
+                <li class="list-item -full">
+                  <a href="/packages/super_package#-analysis-tab-">
+                    <div class="score-box">
+                      <span class="number -solid" title="Analysis and more details.">97</span>
+                    </div>
+                  </a>
+                  <h3 class="title">
+                    <a href="/packages/super_package">super_package</a>
+                  </h3>
+                  <p class="description">A great web UI library.</p>
+                  <p class="metadata">
         v 
-              <a href="/packages/super_package">1.0.0</a>
+                    <a href="/packages/super_package">1.0.0</a>
         
         • updated: 
-              <span>3 Jan 2019</span>
-              <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
-            </p>
-          </li>
-          <li class="list-item -full">
-            <a href="/packages/another_package#-analysis-tab-">
-              <div class="score-box">
-                <span class="number -solid" title="Analysis and more details.">90</span>
-              </div>
-            </a>
-            <h3 class="title">
-              <a href="/packages/another_package">another_package</a>
-            </h3>
-            <p class="description">Camera plugin.</p>
-            <p class="metadata">
+                    <span>3 Jan 2019</span>
+                    <a class="package-tag" href="/web/packages" title="Compatible with the web platform.">web</a>
+                  </p>
+                </li>
+                <li class="list-item -full">
+                  <a href="/packages/another_package#-analysis-tab-">
+                    <div class="score-box">
+                      <span class="number -solid" title="Analysis and more details.">90</span>
+                    </div>
+                  </a>
+                  <h3 class="title">
+                    <a href="/packages/another_package">another_package</a>
+                  </h3>
+                  <p class="description">Camera plugin.</p>
+                  <p class="metadata">
         v 
-              <a href="/packages/another_package">2.0.0</a>
+                    <a href="/packages/another_package">2.0.0</a>
          / 
-              <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
+                    <a href="/packages/another_package/versions/3.0.0-beta2">3.0.0-beta2</a>
         • updated: 
-              <span>30 Mar 2019</span>
-              <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
-            </p>
-          </li>
-        </ul>
-        <ul class="pagination">
-          <li class="-disabled">
-            <a href="">
-              <span>«</span>
-            </a>
-          </li>
-          <li class="-active">
-            <a href="">
-              <span>1</span>
-            </a>
-          </li>
-          <li class="-disabled">
-            <a href="">
-              <span>»</span>
-            </a>
-          </li>
-        </ul>
+                    <span>30 Mar 2019</span>
+                    <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
+                  </p>
+                </li>
+              </ul>
+              <ul class="pagination">
+                <li class="-disabled">
+                  <a href="">
+                    <span>«</span>
+                  </a>
+                </li>
+                <li class="-active">
+                  <a href="">
+                    <span>1</span>
+                  </a>
+                </li>
+                <li class="-disabled">
+                  <a href="">
+                    <span>»</span>
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </div>
+          <aside class="detail-info-box">
+            <h3 class="title">E-mail</h3>
+            <p>hans@juergen.com</p>
+            <h3 class="title">Joined</h3>
+            <p>Jan 1, 2014</p>
+          </aside>
+        </div>
       </main>
     </div>
     <footer class="site-footer">

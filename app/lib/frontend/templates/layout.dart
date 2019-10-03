@@ -22,6 +22,7 @@ import '_utils.dart';
 
 enum PageType {
   error,
+  account,
   landing,
   listing,
   package,
@@ -69,9 +70,14 @@ String renderLayoutPage(
   final searchFormUrl = searchQuery?.toSearchFormPath() ??
       SearchQuery.parse(platform: platform, publisherId: publisherId)
           .toSearchLink();
-  final searchPlaceholder = publisherId != null
-      ? 'Search $publisherId packages'
-      : platformDict.searchPlatformPackagesLabel;
+  String searchPlaceholder;
+  if (publisherId != null) {
+    searchPlaceholder = 'Search $publisherId packages';
+  } else if (type == PageType.account) {
+    searchPlaceholder = 'Search your packages';
+  } else {
+    searchPlaceholder = platformDict.searchPlatformPackagesLabel;
+  }
   final userSession = userSessionData == null
       ? null
       : {

@@ -136,6 +136,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
 
   final html = renderAccountPackagesPage(
+    user: await accountBackend.lookupUserById(userSessionData.userId),
     packages: searchResult.packages,
     pageLinks: links,
     searchQuery: searchQuery,
