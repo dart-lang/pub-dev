@@ -159,7 +159,7 @@ class _PkgAdminWidget {
   void init() {
     if (!pageData.isPackagePage) return;
     _toggleDiscontinuedButton =
-        document.querySelector('.-admin-is-discontinued-toggle');
+        document.getElementById('-admin-is-discontinued-toggle');
     _setPublisherInput =
         document.getElementById('-admin-set-publisher-input') as InputElement;
     _setPublisherButton =
