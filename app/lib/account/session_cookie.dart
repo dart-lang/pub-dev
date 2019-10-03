@@ -4,6 +4,7 @@ library session_cookie;
 import 'dart:io' show HttpDate, HttpHeaders;
 
 import '../shared/configuration.dart' show envConfig;
+import '../shared/utils.dart' show parseCookieHeader;
 import 'models.dart';
 
 /// The name of the session cookie.
@@ -57,13 +58,13 @@ Map<String, String> createSessionCookie(UserSessionData session) {
 String parseSessionCookie(String cookieString) {
   ArgumentError.checkNotNull(cookieString, 'cookieString');
 
-  // The cookieString is separated by '; ', and contains 'name=value'
-  // See: https://tools.ietf.org/html/rfc6265#section-5.4
-  final cookie = cookieString.split('; ').firstWhere(
-        (s) => s.startsWith('$_pubSessionCookieName='),
-        orElse: () => null,
-      );
-  return cookie?.split('=')?.last;
+  final sessionId = parseCookieHeader(cookieString)['$_pubSessionCookieName'];
+  // An empty sessionId cookie is the result of reseting the cookie.
+  // Browser usually won't send this, but let's make sure we handle the case.
+  if (sessionId != null && sessionId.isEmpty) {
+    return null;
+  }
+  return sessionId;
 }
 
 /// Create a set of HTTP headers that clears a session cookie.

@@ -331,29 +331,28 @@ Future<R> retryAsync<R>(
 }
 
 /// Parses the Cookie HTTP header and returns a map of the values.
+///
+/// This always return a non-null [Map], even if the [cookieHeader] is empty.
 Map<String, String> parseCookieHeader(String cookieHeader) {
-  if (cookieHeader == null) {
-    return const <String, String>{};
+  if (cookieHeader == null || cookieHeader.isEmpty) {
+    return <String, String>{};
   }
-  final r = <String, String>{};
-  cookieHeader
-      .split(';')
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .map(
-        (s) {
-          try {
-            return Cookie.fromSetCookieValue(s);
-          } catch (_) {
-            return null;
-          }
-        },
-      )
-      .where((c) => c != null)
-      .forEach(
-        (c) {
-          r[c.name] = c.value;
-        },
-      );
-  return r;
+  try {
+    final r = <String, String>{};
+    // The cookieString is separated by '; ', and contains 'name=value'
+    // See: https://tools.ietf.org/html/rfc6265#section-5.4
+    cookieHeader.split('; ').forEach((s) {
+      final parts = s.split('=');
+      if (parts.length != 2) {
+        r[parts[0]] = parts[1];
+      }
+    });
+    return r;
+  } catch (_) {
+    // Ignore broken cookies, we could throw a ResponseException instead, and
+    // send the use a 400 error, this would be more correct. But unfortunately
+    // it wouldn't help the user if the browser is sending a malformed 'cookie'
+    // header. It would only serve to persistently break the site for the user.
+    return <String, String>{};
+  }
 }
