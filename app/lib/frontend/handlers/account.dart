@@ -150,13 +150,13 @@ Future<shelf.Response> accountPublishersPageHandler(
     shelf.Request request) async {
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
-  } else {
-    final publishers =
-        await publisherBackend.listPublishersForUser(userSessionData.userId);
-    final content = renderAccountPublishersPage(
-      user: await accountBackend.lookupUserById(userSessionData.userId),
-      publishers: publishers,
-    );
-    return htmlResponse(content);
   }
+
+  final publishers =
+      await publisherBackend.listPublishersForUser(userSessionData.userId);
+  final content = renderAccountPublishersPage(
+    user: await accountBackend.lookupUserById(userSessionData.userId),
+    publishers: publishers,
+  );
+  return htmlResponse(content);
 }
