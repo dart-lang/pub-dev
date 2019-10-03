@@ -192,13 +192,17 @@ class PublisherBackend {
   }
 
   /// Updates the publisher data.
+  ///
+  /// Handles: `PUT /api/publishers/<publisherId>`
   Future<api.PublisherInfo> updatePublisher(
       String publisherId, api.UpdatePublisherRequest update) async {
     if (update.description != null) {
-      ArgumentError.checkNotNull(update.description, 'description');
-      if (update.description.length > 64 * 1024) {
-        throw ArgumentError('Description too long.');
-      }
+      // limit length, if not null
+      InvalidInputException.checkStringLength(
+        update.description,
+        'description',
+        maximum: 4096,
+      );
     }
     final user = await requireAuthenticatedUser();
     await requirePublisherAdmin(publisherId, user.userId);

@@ -111,6 +111,8 @@ class InvalidInputException extends ResponseException {
 
   /// Throw [InvalidInputException] if [value] is shorter than [minimum] or
   /// longer than [maximum].
+  ///
+  /// This also throws if [value] is `null`.
   static void checkStringLength(
     String value,
     String name, {
