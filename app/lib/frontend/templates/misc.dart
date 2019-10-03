@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:meta/meta.dart';
 
 import '../../package/models.dart';
@@ -13,11 +15,13 @@ import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
 
-/// Renders a page where the real content is only provided for logged-in users.
-String renderUnauthenticatedPage() {
-  // TODO: add custom message
-  // TODO: add header and more content to explain how to log in
-  final content = 'You need to be logged in to view this page.';
+/// Renders the `views/account/unauthenticated.mustache` template for the pages
+/// where the real content is only provided for logged-in users.
+String renderUnauthenticatedPage({String message}) {
+  message ??= 'You need to be logged in to view this page.';
+  final content = templateCache.renderTemplate('account/unauthenticated', {
+    'message_html': htmlEscape.convert(message),
+  });
   return renderLayoutPage(
     PageType.standalone,
     content,
@@ -26,11 +30,13 @@ String renderUnauthenticatedPage() {
   );
 }
 
-/// Renders a page where the real content is only provided for authorized users.
-String renderUnauthorizedPage() {
-  // TODO: add custom message
-  // TODO: add header and more content to explain why the page is shown
-  final content = 'You have insufficient permissions to view this page.';
+/// Renders the `views/account/unauthorized.mustache` template for the pages
+/// where the real content is only provided for authorized users.
+String renderUnauthorizedPage({String message}) {
+  message ??= 'You have insufficient permissions to view this page.';
+  final content = templateCache.renderTemplate('account/unauthorized', {
+    'message_html': htmlEscape.convert(message),
+  });
   return renderLayoutPage(
     PageType.standalone,
     content,
