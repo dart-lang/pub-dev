@@ -186,9 +186,11 @@ class _PkgAdminWidget {
       confirmQuestion:
           'Are you sure you want change the "discontinued" status of the package?',
       fn: () async {
-        final options =
-            PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
-        await client.setPackageOptions(pageData.pkgData.package, options);
+        await client.setPackageOptions(
+            pageData.pkgData.package,
+            PkgOptions(
+              isDiscontinued: !pageData.pkgData.isDiscontinued,
+            ));
       },
       successMessage: '"discontinued" status changed. The page will reload.',
       onSuccess: (_) => window.location.reload(),
