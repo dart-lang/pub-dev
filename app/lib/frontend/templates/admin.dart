@@ -43,8 +43,15 @@ String renderUploaderApprovalPage(
 }
 
 /// Renders the `views/consent.mustache` template.
-String renderConsentPage(String consentId) {
-  final content = templateCache.renderTemplate('consent', {});
+String renderConsentPage({
+  @required String consentId,
+  @required String title,
+  @required String descriptionHtml,
+}) {
+  final content = templateCache.renderTemplate('consent', {
+    'title': title,
+    'description_html': descriptionHtml,
+  });
   return renderLayoutPage(
     PageType.standalone,
     content,

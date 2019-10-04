@@ -162,7 +162,6 @@ void _updateUi() {
   _pkgAdminWidget.update();
   _createPublisherWidget.update();
   _publisherAdminWidget.update();
-  _consentWidget.update();
 }
 
 /// Active on /packages/<package>/admin page.
@@ -390,16 +389,10 @@ class _PublisherAdminWidget {
 }
 
 class _ConsentWidget {
-  Element _title;
-  Element _content;
   Element _buttons;
-  Future<Consent> _consentFuture;
-  bool _loaded = false;
 
   void init() {
     if (!pageData.isConsentPage) return;
-    _title = document.getElementById('-admin-consent-title');
-    _content = document.getElementById('-admin-consent-content');
     _buttons = document.getElementById('-admin-consent-buttons');
     document
         .getElementById('-admin-consent-accept-button')
@@ -409,35 +402,6 @@ class _ConsentWidget {
         .getElementById('-admin-consent-reject-button')
         .onClick
         .listen((_) => _reject());
-  }
-
-  void update() {
-    if (!pageData.isConsentPage) return;
-
-    updateDisplay(_buttons, _loaded);
-
-    if (isSignedIn && _consentFuture == null) {
-      _consentFuture = client.consentInfo(pageData.consentId);
-      _consentFuture.then((consent) {
-        _title.innerText = consent.titleText;
-        _content.replaceWith(Element.div()
-          ..children = [
-            Element.div()..innerHtml = consent.descriptionHtml,
-          ]);
-        _loaded = true;
-        update();
-      }).catchError((e) {
-        String text = 'Error: $e';
-        if (e is RequestException) {
-          if (e.status == 404) {
-            text = 'Consent request `${pageData.consentId}` has expired.';
-          } else {
-            text = (e.bodyAsJson()['message'] as String) ?? text;
-          }
-        }
-        _content.replaceWith(Element.div()..text = text);
-      });
-    }
   }
 
   void _updateButtons(bool granted) {
@@ -466,8 +430,6 @@ class _ConsentWidget {
       _updateButtons(rs.granted);
     });
   }
-
-  bool get isActive => _content != null && _buttons != null;
 }
 
 Future<R> _rpc<R>(Future<R> fn()) async {

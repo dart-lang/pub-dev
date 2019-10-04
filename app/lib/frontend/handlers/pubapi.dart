@@ -175,7 +175,7 @@ class PubApi {
   /// Returns the consent request details.
   @EndPoint.get('/api/account/consent/<consentId>')
   Future<Consent> consentInfo(Request request, String consentId) =>
-      consentBackend.getConsent(consentId);
+      consentBackend.handleGetConsent(consentId);
 
   /// Accepts or declines the consent.
   @EndPoint.put('/api/account/consent/<consentId>')
