@@ -10,7 +10,6 @@ import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart';
 import 'package:client_data/publisher_api.dart';
 import 'package:http/browser_client.dart' as http;
-import 'package:markdown/markdown.dart' as markdown;
 
 import '_authenticated_client.dart';
 import '_dom_helper.dart';
@@ -159,8 +158,6 @@ void _updateUi() {
   } else {
     print('No active user');
   }
-  _pkgAdminWidget.update();
-  _createPublisherWidget.update();
   _publisherAdminWidget.update();
 }
 
@@ -182,20 +179,22 @@ class _PkgAdminWidget {
       _toggleDiscontinuedButton.onClick.listen((_) => _toogleDiscontinued());
       _setPublisherButton?.onClick?.listen((_) => _setPublisher());
     }
-    update();
   }
 
   Future _toogleDiscontinued() async {
-    final confirmed = await modalConfirm(
-        'Are you sure you want change the "discontinued" status of the package?');
-    if (!confirmed) return;
-
-    final options =
-        PkgOptions(isDiscontinued: !pageData.pkgData.isDiscontinued);
-    await _rpc(() async {
-      await client.setPackageOptions(pageData.pkgData.package, options);
-      window.location.reload();
-    });
+    await rpc(
+      confirmQuestion:
+          'Are you sure you want change the "discontinued" status of the package?',
+      fn: () async {
+        await client.setPackageOptions(
+            pageData.pkgData.package,
+            PkgOptions(
+              isDiscontinued: !pageData.pkgData.isDiscontinued,
+            ));
+      },
+      successMessage: '"discontinued" status changed. The page will reload.',
+      onSuccess: (_) => window.location.reload(),
+    );
   }
 
   Future _setPublisher() async {
@@ -207,19 +206,17 @@ class _PkgAdminWidget {
       );
       return;
     }
-    final confirmed = await modalConfirm(
-        'Are you sure you want to transfer the package to publisher <code>$publisherId</code>?');
-    if (!confirmed) return;
 
-    final payload = PackagePublisherInfo(publisherId: publisherId);
-    await _rpc(() async {
-      await client.setPackagePublisher(pageData.pkgData.package, payload);
-      window.location.reload();
-    });
-  }
-
-  void update() {
-    // nothing to do
+    await rpc(
+      confirmQuestion:
+          'Are you sure you want to transfer the package to publisher <code>$publisherId</code>?',
+      fn: () async {
+        final payload = PackagePublisherInfo(publisherId: publisherId);
+        await client.setPackagePublisher(pageData.pkgData.package, payload);
+      },
+      successMessage: 'Transfer completed. The page will reload.',
+      onSuccess: (_) => window.location.reload(),
+    );
   }
 
   bool get isActive =>
@@ -237,16 +234,11 @@ class _CreatePublisherWidget {
     _publisherIdInput = document.getElementById('-publisher-id');
     _createButton = document.getElementById('-admin-create-publisher');
     if (isActive) {
-      update();
       _createButton.onClick.listen((_) {
         final publisherId = (_publisherIdInput as InputElement).value.trim();
         _triggerCreate(publisherId);
       });
     }
-  }
-
-  void update() {
-    if (!isActive) return;
   }
 
   void _triggerCreate(String publisherId) async {
@@ -255,26 +247,31 @@ class _CreatePublisherWidget {
           'Input validation', 'Please use a domain name as publisher id.');
       return;
     }
-    final confirmed = await modalConfirm(
-        'Are you sure you want to create publisher for <code>$publisherId</code>?');
-    if (!confirmed) return;
 
-    GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
-    final extraScope = 'https://www.googleapis.com/auth/webmasters.readonly';
+    await rpc(
+      confirmQuestion:
+          'Are you sure you want to create publisher for <code>$publisherId</code>?',
+      fn: () async {
+        GoogleUser currentUser = getAuthInstance()?.currentUser?.get();
+        final extraScope =
+            'https://www.googleapis.com/auth/webmasters.readonly';
 
-    if (!currentUser.hasGrantedScopes(extraScope)) {
-      // We don't have the extract scope, so let's ask for it
-      currentUser = await promiseAsFuture(currentUser.grant(GrantOptions(
-        scope: extraScope,
-      )));
-    }
-    final payload = CreatePublisherRequest(
-      accessToken: currentUser.getAuthResponse(true).access_token,
+        if (!currentUser.hasGrantedScopes(extraScope)) {
+          // We don't have the extract scope, so let's ask for it
+          currentUser = await promiseAsFuture(currentUser.grant(GrantOptions(
+            scope: extraScope,
+          )));
+        }
+        final payload = CreatePublisherRequest(
+          accessToken: currentUser.getAuthResponse(true).access_token,
+        );
+        await client.createPublisher(publisherId, payload);
+      },
+      successMessage: 'Publisher created. The page will reload.',
+      onSuccess: (_) {
+        window.location.pathname = '/publishers/$publisherId';
+      },
     );
-    await _rpc(() async {
-      await client.createPublisher(publisherId, payload);
-      window.location.pathname = '/publishers/$publisherId';
-    });
   }
 
   bool get isActive => _publisherIdInput != null && _createButton != null;
@@ -311,16 +308,18 @@ class _PublisherAdminWidget {
   }
 
   Future _updatePublisher() async {
-    final payload = UpdatePublisherRequest(
-      description: _descriptionTextArea.value,
-      websiteUrl: _websiteUrlInput.value,
-      contactEmail: _contactEmailInput.value,
+    await rpc(
+      fn: () async {
+        final payload = UpdatePublisherRequest(
+          description: _descriptionTextArea.value,
+          websiteUrl: _websiteUrlInput.value,
+          contactEmail: _contactEmailInput.value,
+        );
+        await client.updatePublisher(pageData.publisher.publisherId, payload);
+      },
+      successMessage: 'Publisher was updated. The page will reload.',
+      onSuccess: (_) => window.location.reload(),
     );
-    await _rpc(() async {
-      await client.updatePublisher(pageData.publisher.publisherId, payload);
-      window.location.pathname =
-          '/publishers/${pageData.publisher.publisherId}';
-    });
   }
 
   Future _inviteMember() async {
@@ -329,28 +328,33 @@ class _PublisherAdminWidget {
       await modalMessage('Input validation', 'Please specify a valid e-mail.');
       return;
     }
-    final confirmed = await modalConfirm(
-        'Are you sure you want to invite <code>$email</code> '
-        'as an administrator member to this publisher?');
-    if (!confirmed) return;
 
-    final payload = InviteMemberRequest(email: email);
-    await _rpc(() async {
-      await client.invitePublisherMember(
-          pageData.publisher.publisherId, payload);
-    });
+    await rpc(
+      confirmQuestion: 'Are you sure you want to invite <code>$email</code> '
+          'as an administrator member to this publisher?',
+      fn: () async {
+        await client.invitePublisherMember(
+            pageData.publisher.publisherId, InviteMemberRequest(email: email));
+      },
+      successMessage: '<code>$email</code> was invited.',
+      onSuccess: (_) {
+        _inviteMemberInput.value = '';
+      },
+    );
   }
 
   Future _removeMember(PublisherMember pm) async {
-    final confirmed = await modalConfirm(
-        'Are you sure you want to remove <code>${pm.email}</code> from this publisher?');
-    if (!confirmed) return;
-
-    await _rpc(() async {
-      await client.removePublisherMember(
-          pageData.publisher.publisherId, pm.userId);
-      window.location.reload();
-    });
+    await rpc(
+      confirmQuestion:
+          'Are you sure you want to remove <code>${pm.email}</code> from this publisher?',
+      fn: () async {
+        await client.removePublisherMember(
+            pageData.publisher.publisherId, pm.userId);
+      },
+      successMessage:
+          '<code>${pm.email}</code> removed from this publisher. The page will reload.',
+      onSuccess: (_) => window.location.reload(),
+    );
   }
 
   void update() {
@@ -410,66 +414,28 @@ class _ConsentWidget {
   }
 
   Future _accept() async {
-    final confirmed = await modalConfirm('Are you sure you want to accept?');
-    if (!confirmed) return;
-
-    await _rpc(() async {
-      final rs = await client.resolveConsent(
-          pageData.consentId, ConsentResult(granted: true));
-      _updateButtons(rs.granted);
-    });
+    await rpc(
+      confirmQuestion: 'Are you sure you want to accept?',
+      fn: () async {
+        final rs = await client.resolveConsent(
+            pageData.consentId, ConsentResult(granted: true));
+        return rs.granted;
+      },
+      successMessage: 'Consent accepted.',
+      onSuccess: _updateButtons,
+    );
   }
 
   Future _reject() async {
-    final confirmed = await modalConfirm('Are you sure you want to reject?');
-    if (!confirmed) return;
-
-    await _rpc(() async {
-      final rs = await client.resolveConsent(
-          pageData.consentId, ConsentResult(granted: false));
-      _updateButtons(rs.granted);
-    });
+    await rpc(
+      confirmQuestion: 'Are you sure you want to reject?',
+      fn: () async {
+        final rs = await client.resolveConsent(
+            pageData.consentId, ConsentResult(granted: false));
+        return rs.granted;
+      },
+      successMessage: 'Consent rejected.',
+      onSuccess: _updateButtons,
+    );
   }
-}
-
-Future<R> _rpc<R>(Future<R> fn()) async {
-  // Disable input and button Elements that are not disabled at the moment.
-  final inputs = document
-      .querySelectorAll('input')
-      .cast<InputElement>()
-      .where((e) => !e.disabled)
-      .toList();
-  final buttons = document
-      .querySelectorAll('button.pub-button')
-      .cast<ButtonElement>()
-      .where((e) => !e.disabled)
-      .toList();
-
-  buttons.forEach((e) => e.disabled = true);
-  inputs.forEach((e) => e.disabled = true);
-  try {
-    return await fn();
-  } on RequestException catch (e) {
-    final message = markdown
-        .markdownToHtml(_requestExceptionMessage(e) ?? 'Unexpected error: $e');
-    await modalMessage('Error', message);
-    rethrow;
-  } catch (e) {
-    final message = markdown.markdownToHtml('Unexpected error: $e');
-    await modalMessage('Error', message);
-    rethrow;
-  } finally {
-    buttons.forEach((e) => e.disabled = false);
-    inputs.forEach((e) => e.disabled = false);
-  }
-}
-
-String _requestExceptionMessage(RequestException e) {
-  try {
-    final map = e.bodyAsJson();
-    return (map['message'] as String) ?? (map['error'] as String);
-  } on FormatException catch (_) {
-    // ignore bad body
-  }
-  return null;
 }

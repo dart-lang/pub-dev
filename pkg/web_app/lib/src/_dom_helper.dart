@@ -4,11 +4,94 @@
 
 import 'dart:async';
 import 'dart:html';
-import 'package:mdc_web/mdc_web.dart' show MDCDialog;
 
-/// Show/hide an element.
-void updateDisplay(Element elem, bool show, {String display}) {
-  elem.style.display = show ? display : 'none';
+import 'package:markdown/markdown.dart' as markdown;
+import 'package:mdc_web/mdc_web.dart' show MDCDialog;
+import 'package:meta/meta.dart';
+
+import 'pubapi.client.dart';
+
+/// Wraps asynchronous server calls with an optional confirm window, a spinner,
+/// error- and success handling.
+Future<R> rpc<R>({
+  /// The optional confirmation question to ask before initiating the RPC.
+  String confirmQuestion,
+
+  /// The async RPC call. If this throws, the error will be displayed as a modal
+  /// popup, and then it will be re-thrown.
+  @required Future<R> fn(),
+
+  /// Message to show when the RPC returns without exceptions.
+  @required String successMessage,
+
+  /// Callback that will be called with the value of the RPC call, when it was
+  /// successful.
+  FutureOr onSuccess(R value),
+}) async {
+  if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
+    return null;
+  }
+
+  // capture keys
+  final keyDownSubscription = window.onKeyDown.listen((event) {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  // disable inputs and buttons that are not already disabled
+  final inputs = document
+      .querySelectorAll('input')
+      .cast<InputElement>()
+      .where((e) => !e.disabled)
+      .toList();
+  final buttons = document
+      .querySelectorAll('button')
+      .cast<ButtonElement>()
+      .where((e) => !e.disabled)
+      .toList();
+  buttons.forEach((e) => e.disabled = true);
+  inputs.forEach((e) => e.disabled = true);
+
+  final spinner = _createSpinner();
+  document.body.append(spinner);
+  R result;
+  dynamic error;
+  String errorMessage;
+  try {
+    result = await fn();
+  } on RequestException catch (e) {
+    error = e;
+    errorMessage = markdown
+        .markdownToHtml(_requestExceptionMessage(e) ?? 'Unexpected error: $e');
+  } catch (e) {
+    error = e;
+    errorMessage = markdown.markdownToHtml('Unexpected error: $e');
+  } finally {
+    spinner.remove();
+    await keyDownSubscription.cancel();
+    buttons.forEach((e) => e.disabled = false);
+    inputs.forEach((e) => e.disabled = false);
+  }
+
+  if (error != null) {
+    await modalMessage('Error', errorMessage);
+    throw error;
+  }
+
+  await modalMessage('Success', successMessage);
+  if (onSuccess != null) {
+    await onSuccess(result);
+  }
+  return result;
+}
+
+String _requestExceptionMessage(RequestException e) {
+  try {
+    final map = e.bodyAsJson();
+    return (map['message'] as String) ?? (map['error'] as String);
+  } on FormatException catch (_) {
+    // ignore bad body
+  }
+  return null;
 }
 
 /// Displays a message via the modal window.
@@ -107,3 +190,9 @@ Element _buildDialog(
           ],
         Element.div()..classes.add('mdc-dialog__scrim'),
       ];
+
+Element _createSpinner() => Element.div()
+  ..className = 'spinner-frame'
+  ..children = [
+    Element.div()..className = 'spinner',
+  ];
