@@ -33,7 +33,7 @@ import '../shared/configuration.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/platform.dart' show KnownPlatforms;
-import '../shared/redis_cache.dart' show cache, CachePatterns;
+import '../shared/redis_cache.dart' show cache;
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import 'model_properties.dart';
@@ -72,7 +72,7 @@ class PackageBackend {
   /// Get [ShelfPubServer] for handling the HTTP interface.
   ShelfPubServer get pubServer => ShelfPubServer(
         repository,
-        cache: _PackageCache(cache),
+        cache: _PackageCache(),
       );
 
   /// Retrieves packages ordered by their created date.
@@ -262,7 +262,7 @@ class PackageBackend {
   /// Delete the invite and clear package cache.
   Future confirmPackageInvite(models.PackageInvite invite) async {
     await db.commit(deletes: [invite.key]);
-    await invalidatePackageCache(cache, invite.packageName);
+    await purgePackageCache(invite.packageName);
   }
 
   /// Removes obsolete/expired invites from Datastore.
@@ -319,7 +319,7 @@ class PackageBackend {
       );
       await tx.commit();
     });
-    await invalidatePackageCache(cache, package);
+    await purgePackageCache(package);
     await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
   }
 
@@ -398,6 +398,7 @@ class PackageBackend {
       return _asPackagePublisherInfo(package);
     });
     await purgePublisherCache(publisherId: request.publisherId);
+    await purgePackageCache(packageName);
     return rs as api.PackagePublisherInfo;
   }
 
@@ -424,6 +425,7 @@ class PackageBackend {
 //      return _asPackagePublisherInfo(package);
 //    });
 //    await purgePublisherCache(package.publisherId);
+//    await invalidatePackageCache(packageName);
 //    return rs as api.PackagePublisherInfo;
     throw NotImplementedException();
   }
@@ -450,8 +452,8 @@ Future<models.Package> requirePackageAdmin(
 api.PackagePublisherInfo _asPackagePublisherInfo(models.Package p) =>
     api.PackagePublisherInfo(publisherId: p.publisherId);
 
-/// Invalidate [cache] entries for given [package].
-Future<void> invalidatePackageCache(CachePatterns cache, String package) async {
+/// Purge [cache] entries for given [package] and also global page caches.
+Future<void> purgePackageCache(String package) async {
   await Future.wait([
     cache.packageData(package).purge(),
     cache.packageView(package).purge(),
@@ -463,20 +465,16 @@ Future<void> invalidatePackageCache(CachePatterns cache, String package) async {
 
 /// Implementation of [PackageCache] using given cache and backend.
 class _PackageCache implements PackageCache {
-  final CachePatterns _cache;
-  _PackageCache(this._cache);
-
   @override
   Future<List<int>> getPackageData(String package) =>
-      _cache.packageData(package).get();
+      cache.packageData(package).get();
 
   @override
   Future setPackageData(String package, List<int> data) =>
-      _cache.packageData(package).set(data);
+      cache.packageData(package).set(data);
 
   @override
-  Future invalidatePackageData(String package) =>
-      invalidatePackageCache(_cache, package);
+  Future invalidatePackageData(String package) => purgePackageCache(package);
 }
 
 /// The status of an invite after being created or updated.
@@ -888,7 +886,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       tx.queueMutations(inserts: inserts);
       await tx.commit();
-      await invalidatePackageCache(cache, package.name);
+      await purgePackageCache(package.name);
     });
   }
 
@@ -958,7 +956,7 @@ class GCloudPackageRepository extends PackageRepository {
 
       T.queueMutations(inserts: inserts);
       await T.commit();
-      await invalidatePackageCache(cache, package.name);
+      await purgePackageCache(package.name);
     });
   }
 }
