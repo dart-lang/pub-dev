@@ -14,9 +14,18 @@ import 'pubapi.client.dart';
 /// Wraps asynchronous server calls with an optional confirm window, a spinner,
 /// error- and success handling.
 Future<R> rpc<R>({
+  /// The optional confirmation question to ask before initiating the RPC.
   String confirmQuestion,
+
+  /// The async RPC call. If this throws, the error will be displayed as a modal
+  /// popup, and then it will be re-thrown.
   @required Future<R> fn(),
+
+  /// Message to show when the RPC returns without exceptions.
   @required String successMessage,
+
+  /// Callback that will be called with the value of the RPC call, when it was
+  /// successful.
   FutureOr onSuccess(R value),
 }) async {
   if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
