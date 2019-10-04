@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:client_data/publisher_api.dart' as api;
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
@@ -142,13 +143,21 @@ String renderPublisherPackagesPage({
 }
 
 /// Renders the `views/publisher/admin_page.mustache` template.
-String renderPublisherAdminPage(Publisher publisher) {
+String renderPublisherAdminPage({
+  @required Publisher publisher,
+  @required List<api.PublisherMember> members,
+}) {
   final String adminContent =
       templateCache.renderTemplate('publisher/admin_page', {
     'publisher_id': publisher.publisherId,
     'description': publisher.description,
     'website_url': publisher.websiteUrl,
     'contact_email': publisher.contactEmail,
+    'member_list': members.map((m) => {
+          'user_id': m.userId,
+          'email': m.email,
+          'role': m.role,
+        }),
   });
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),

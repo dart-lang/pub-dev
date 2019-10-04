@@ -47,9 +47,35 @@
     data-mdc-auto-init="MDCRipple">Update</button>
 </div>
 <h3>Members</h3>
-<div id="-admin-members-loading">
-  <p>Loading the list of members...</p>
+
+<div class="mdc-data-table">
+  <table class="mdc-data-table__table" aria-label="Members of publisher">
+    <thead>
+      <tr class="mdc-data-table__header-row">
+        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">E-mail</th>
+        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Role</th>
+        <th class="mdc-data-table__header-cell" role="columnheader" scope="col"></th>
+      </tr>
+    </thead>
+    <tbody class="mdc-data-table__content">
+{{#member_list}}
+      <tr class="mdc-data-table__row">
+        <td class="mdc-data-table__cell">{{email}}</td>
+        <td class="mdc-data-table__cell">{{role}}</td>
+        <td class="mdc-data-table__cell">
+          <button
+            class="-pub-remove-user-button mdc-button mdc-button--raised"
+            data-user-id="{{user_id}}"
+            data-email="{{email}}"
+            data-mdc-auto-init="MDCRipple">Remove</button>
+        </td>
+      </tr>
+{{/member_list}}
+    </tbody>
+  </table>
 </div>
+
+
 <h3>Invite new member</h3>
 <p>
   You can invite new administrator members to this publisher.

@@ -103,11 +103,16 @@ Future<shelf.Response> publisherAdminPageHandler(
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
-  final isAdmin =
-      await publisherBackend.isMemberAdmin(publisherId, userSessionData.userId);
+  final isAdmin = await publisherBackend.isMemberAdmin(
+    publisherId,
+    userSessionData.userId,
+  );
   if (!isAdmin) {
     return htmlResponse(renderUnauthorizedPage());
   }
 
-  return htmlResponse(renderPublisherAdminPage(publisher));
+  return htmlResponse(renderPublisherAdminPage(
+    publisher: publisher,
+    members: await publisherBackend.listPublisherMembers(publisherId),
+  ));
 }

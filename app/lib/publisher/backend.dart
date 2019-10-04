@@ -292,17 +292,31 @@ class PublisherBackend {
     );
   }
 
-  /// List the members of a publishers
-  Future<api.PublisherMembers> listPublisherMembers(String publisherId) async {
-    final user = await requireAuthenticatedUser();
-    final p = await requirePublisherAdmin(publisherId, user.userId);
+  /// List the members of a publishers.
+  Future<List<api.PublisherMember>> listPublisherMembers(
+    String publisherId,
+  ) async {
+    final key = _db.emptyKey.append(Publisher, id: publisherId);
     // TODO: add caching
-    final query = _db.query<PublisherMember>(ancestorKey: p.key);
+    final query = _db.query<PublisherMember>(ancestorKey: key);
     final members = <api.PublisherMember>[];
     await for (final pm in query.run()) {
       members.add(await _asPublisherMember(pm));
     }
-    return api.PublisherMembers(members: members);
+    return members;
+  }
+
+  /// List the members of a publishers
+  ///
+  /// Handles: `GET /api/publishers/<publisherId>/members`
+  Future<api.PublisherMembers> handleListPublisherMembers(
+    String publisherId,
+  ) async {
+    final user = await requireAuthenticatedUser();
+    await requirePublisherAdmin(publisherId, user.userId);
+    return api.PublisherMembers(
+      members: await listPublisherMembers(publisherId),
+    );
   }
 
   /// The list of e-mail addresses of the members with admin roles. The list
