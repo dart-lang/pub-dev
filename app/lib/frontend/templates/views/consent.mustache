@@ -2,12 +2,18 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<h1 id="-admin-consent-title">Consent request</h1>
+<h1 id="-admin-consent-title">{{title}}</h1>
 
 <div id="-admin-consent-content">
-  <p>Loading consent details...</p>
+{{& description_html}}
 </div>
 <p id="-admin-consent-buttons">
-  <button id="-admin-consent-reject-button" class="pub-button">Reject</button>
-  <button id="-admin-consent-accept-button" class="pub-button">Accept</button>
+  <button
+    id="-admin-consent-reject-button"
+    class="mdc-button mdc-button--raised"
+    data-mdc-auto-init="MDCRipple">Reject</button>
+  <button
+    id="-admin-consent-accept-button"
+    class="mdc-button mdc-button--raised"
+    data-mdc-auto-init="MDCRipple">Accept</button>
 </p>

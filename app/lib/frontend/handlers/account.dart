@@ -6,6 +6,7 @@ import 'package:client_data/account_api.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
+import '../../account/consent_backend.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../package/backend.dart';
 import '../../package/search_service.dart';
@@ -85,8 +86,23 @@ Future<shelf.Response> consentPageHandler(
   if (userSessionData == null) {
     return htmlResponse(renderUnauthenticatedPage());
   }
-  // TODO: if no consentId is given, render the listing of user consents page
-  return htmlResponse(renderConsentPage(consentId));
+
+  if (consentId == null || consentId.isEmpty) {
+    // TODO: if no consentId is given, render the listing of user consents page
+    throw NotFoundException('Missing consent id.');
+  }
+
+  final user = await accountBackend.lookupUserById(userSessionData.userId);
+  final consent = await consentBackend.getConsent(consentId, user: user);
+  // If consent does not exists (or does not belong to the user), the `getConsent`
+  // call above will throw, and the generic error page will be shown.
+  // TODO: handle missing/expired consent gracefully
+
+  return htmlResponse(renderConsentPage(
+    consentId: consentId,
+    title: consent.titleText,
+    descriptionHtml: consent.descriptionHtml,
+  ));
 }
 
 /// Handles /api/account/options/packages/<package>

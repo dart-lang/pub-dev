@@ -38,8 +38,8 @@ class ConsentBackend {
   ConsentBackend(this._db);
 
   /// Returns the consent details.
-  Future<api.Consent> getConsent(String consentId) async {
-    final user = await requireAuthenticatedUser();
+  Future<api.Consent> getConsent(String consentId, {User user}) async {
+    user ??= await requireAuthenticatedUser();
     final key = _db.emptyKey
         .append(User, id: user.userId)
         .append(Consent, id: consentId);
