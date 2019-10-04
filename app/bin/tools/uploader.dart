@@ -14,7 +14,6 @@ import 'package:pub_dartlang_org/history/backend.dart';
 import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/shared/email.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart';
 
 Future main(List<String> arguments) async {
   if (arguments.length < 2 ||
@@ -36,10 +35,10 @@ Future main(List<String> arguments) async {
       await listUploaders(package);
     } else if (command == 'add') {
       await addUploader(package, uploader);
-      await invalidatePackageCache(cache, package);
+      await purgePackageCache(package);
     } else if (command == 'remove') {
       await removeUploader(package, uploader);
-      await invalidatePackageCache(cache, package);
+      await purgePackageCache(package);
     }
   });
 

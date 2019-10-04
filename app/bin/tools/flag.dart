@@ -12,7 +12,6 @@ import 'package:pub_dartlang_org/package/backend.dart';
 import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
 import 'package:pub_dartlang_org/analyzer/analyzer_client.dart';
-import 'package:pub_dartlang_org/shared/redis_cache.dart' show cache;
 
 final _argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('help',
@@ -48,7 +47,7 @@ Future main(List<String> arguments) async {
         discontinued: discontinued,
         doNotAdvertise: doNotAdvertise,
       );
-      await invalidatePackageCache(cache, package);
+      await purgePackageCache(package);
     }
     // TODO: figure out why the services do not exit.
     exit(0);
