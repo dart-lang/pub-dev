@@ -191,9 +191,7 @@ class _PkgAdminWidget {
         await client.setPackageOptions(pageData.pkgData.package, options);
       },
       successMessage: '"discontinued" status changed. The page will reload.',
-      onSuccess: (_) {
-        window.location.reload();
-      },
+      onSuccess: (_) => window.location.reload(),
     );
   }
 
@@ -215,9 +213,7 @@ class _PkgAdminWidget {
         await client.setPackagePublisher(pageData.pkgData.package, payload);
       },
       successMessage: 'Transfer completed. The page will reload.',
-      onSuccess: (_) {
-        window.location.reload();
-      },
+      onSuccess: (_) => window.location.reload(),
     );
   }
 
@@ -320,9 +316,7 @@ class _PublisherAdminWidget {
         await client.updatePublisher(pageData.publisher.publisherId, payload);
       },
       successMessage: 'Publisher was updated. The page will reload.',
-      onSuccess: (_) {
-        window.location.reload();
-      },
+      onSuccess: (_) => window.location.reload(),
     );
   }
 
@@ -357,9 +351,7 @@ class _PublisherAdminWidget {
       },
       successMessage:
           '<code>${pm.email}</code> removed from this publisher. The page will reload.',
-      onSuccess: (_) {
-        window.location.reload();
-      },
+      onSuccess: (_) => window.location.reload(),
     );
   }
 
