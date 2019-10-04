@@ -38,11 +38,9 @@ class ConsentBackend {
   ConsentBackend(this._db);
 
   /// Returns the consent details.
-  Future<api.Consent> getConsent(String consentId, {User user}) async {
-    user ??= await requireAuthenticatedUser();
-    final key = _db.emptyKey
-        .append(User, id: user.userId)
-        .append(Consent, id: consentId);
+  Future<api.Consent> getConsent(String userId, String consentId) async {
+    final key =
+        _db.emptyKey.append(User, id: userId).append(Consent, id: consentId);
     final c = (await _db.lookup<Consent>([key])).single;
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
@@ -54,6 +52,12 @@ class ConsentBackend {
       titleText: action.renderInviteTitleText(activeAccountEmail, c.args),
       descriptionHtml: action.renderInviteHtml(activeAccountEmail, c.args),
     );
+  }
+
+  /// Returns the consent details for API calls.
+  Future<api.Consent> handleGetConsent(String consentId) async {
+    final user = await requireAuthenticatedUser();
+    return getConsent(user.userId, consentId);
   }
 
   /// Resolves the consent.
