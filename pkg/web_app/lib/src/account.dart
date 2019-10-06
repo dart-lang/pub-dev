@@ -158,7 +158,6 @@ void _updateUi() {
   } else {
     print('No active user');
   }
-  _publisherAdminWidget.update();
 }
 
 /// Active on /packages/<package>/admin page.
@@ -285,7 +284,6 @@ class _PublisherAdminWidget {
   InputElement _contactEmailInput;
   InputElement _inviteMemberInput;
   Element _inviteMemberButton;
-  Future<PublisherMembers> membersFuture;
 
   void init() {
     if (!pageData.isPublisherPage) return;
@@ -303,8 +301,13 @@ class _PublisherAdminWidget {
     if (isActive) {
       _updateButton.onClick.listen((_) => _updatePublisher());
       _inviteMemberButton.onClick.listen((_) => _inviteMember());
+      for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
+        btn.onClick.listen((_) => _removeMember(
+              btn.dataset['user-id'],
+              btn.dataset['email'],
+            ));
+      }
     }
-    update();
   }
 
   Future _updatePublisher() async {
@@ -343,44 +346,18 @@ class _PublisherAdminWidget {
     );
   }
 
-  Future _removeMember(PublisherMember pm) async {
+  Future _removeMember(String userId, String email) async {
     await rpc(
       confirmQuestion:
-          'Are you sure you want to remove <code>${pm.email}</code> from this publisher?',
+          'Are you sure you want to remove <code>$email</code> from this publisher?',
       fn: () async {
         await client.removePublisherMember(
-            pageData.publisher.publisherId, pm.userId);
+            pageData.publisher.publisherId, userId);
       },
       successMessage:
-          '<code>${pm.email}</code> removed from this publisher. The page will reload.',
+          '<code>$email</code> removed from this publisher. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
-  }
-
-  void update() {
-    if (!isActive) return;
-    // only trigger the loading of the members list once
-    if (membersFuture == null) {
-      final publisherId = pageData.publisher.publisherId;
-      membersFuture = client.listPublisherMembers(publisherId);
-      membersFuture.then((pms) async {
-        final table = Element.table()
-          ..children = pms.members.map((pm) {
-            final button = Element.tag('button')
-              ..className = 'pub-button'
-              ..text = 'Remove member'
-              ..onClick.listen((_) => _removeMember(pm));
-
-            return Element.tr()
-              ..children = [
-                Element.td()..text = pm.email,
-                Element.td()..children = [button],
-              ];
-          }).toList();
-
-        document.getElementById('-admin-members-loading').replaceWith(table);
-      });
-    }
   }
 
   bool get isActive =>
