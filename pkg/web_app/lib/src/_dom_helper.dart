@@ -95,13 +95,17 @@ String _requestExceptionMessage(RequestException e) {
 }
 
 /// Displays a message via the modal window.
+///
+/// Note: [messageHtml] must be trusted HTML.
 Future modalMessage(String title, String messageHtml) async {
   await _modalWindow(title, messageHtml, false);
 }
 
-/// Ask [question] to user, return true if 'OK' was selected.
-Future<bool> modalConfirm(String question) async {
-  return await _modalWindow('Confirm', question, true);
+/// Ask [questionHtml] to user, return true if 'OK' was selected.
+///
+/// Note: [questionHtml] must be trusted HTML.
+Future<bool> modalConfirm(String questionHtml) async {
+  return await _modalWindow('Confirm', questionHtml, true);
 }
 
 /// Displays a modal window with "OK" and "Cancel" buttons. If [isQuestion] is
@@ -156,7 +160,10 @@ Element _buildDialog(
                 Element.div()
                   ..classes.add('mdc-dialog__content')
                   ..id = 'pub-dialog-content'
-                  ..innerHtml = contentHtml,
+                  ..setInnerHtml(
+                    contentHtml,
+                    validator: NodeValidator(uriPolicy: _UnsafeUriPolicy()),
+                  ),
                 Element.footer()
                   ..classes.add('mdc-dialog__actions')
                   ..children = [
@@ -190,6 +197,16 @@ Element _buildDialog(
           ],
         Element.div()..classes.add('mdc-dialog__scrim'),
       ];
+
+/// Allows any [Uri].
+///
+/// This shouldn't be a problem as we only render HTML we trust.
+class _UnsafeUriPolicy implements UriPolicy {
+  @override
+  bool allowsUri(String uri) {
+    return true;
+  }
+}
 
 Element _createSpinner() => Element.div()
   ..className = 'spinner-frame'

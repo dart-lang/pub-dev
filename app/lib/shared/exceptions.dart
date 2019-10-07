@@ -237,9 +237,6 @@ class AuthorizationException extends ResponseException
         'package `$publisher`.',
       );
 
-  static final _domainVerificationUrl =
-      Uri.parse('https://www.google.com/webmasters/verification/verification');
-
   /// Signaling that the user is not a verified owner of the [domain] for which
   /// the user is trying to create a publisher.
   factory AuthorizationException.userIsNotDomainOwner(String domain) =>
@@ -253,9 +250,8 @@ class AuthorizationException extends ResponseException
         'publisher. It is also insufficient to verify a URL or URL prefix,',
         'the domain must be verified with a **DNS record**.',
         '',
-        '<b><a href="${_domainVerificationUrl.replace(queryParameters: {
-          "domain": domain
-        })}" target="_blank">Open domain verification flow.</a></b>',
+        '<b><a href="https://search.google.com/search-console/welcome" ' +
+            'target="_blank">Open domain verification flow.</a></b>',
         '',
         'Note, once the publisher is created the domain verification need not',
         'remain in place. This is only required for publisher creation.',
