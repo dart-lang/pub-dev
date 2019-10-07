@@ -189,10 +189,10 @@ String renderPublisherAdminPage({
 
 String _renderDetailHeader(Publisher publisher) {
   final shortCreated = shortDateFormat.format(publisher.created);
-  return renderDetailHeader(
-    title: 'Publisher ${publisher.publisherId}',
-    metadataHtml: htmlEscape.convert('Publisher registered on $shortCreated.'),
-  );
+  return templateCache.renderTemplate('publisher/header', {
+    'title': publisher.publisherId,
+    'metadata': 'Publisher registered on $shortCreated.',
+  });
 }
 
 Tab _packagesLinkTab(String publisherId) => Tab.withLink(

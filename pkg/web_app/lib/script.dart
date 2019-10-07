@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:html';
 import 'package:mdc_web/mdc_web.dart' as mdc;
 import 'src/account.dart';
 import 'src/dartdoc_status.dart';
@@ -13,7 +14,7 @@ import 'src/search.dart';
 import 'src/tabs.dart';
 
 void main() {
-  mdc.autoInit();
+  window.onContentLoaded.listen((_) => mdc.autoInit());
   setupTabs();
   setupSearch();
   setupScroll();

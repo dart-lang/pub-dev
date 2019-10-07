@@ -16,7 +16,11 @@
         v <a href="{{& url}}">{{version}}</a>
         {{#show_dev_version}} / <a href="{{& dev_version_url}}">{{dev_version}}</a>{{/show_dev_version}}
         • updated: <span>{{last_uploaded}}</span>
-        {{#publisher_id}}• publisher: <a href="{{& publisher_url}}">{{publisher_id}}</a>{{/publisher_id}}
+        {{#publisher_id}}• <a href="{{& publisher_url}}"><img
+          class="-pub-publisher-shield"
+          height="20" width="20"
+          title="Published by a pub.dev verified publisher"
+          src="/static/img/verified-publisher-blue.svg" />{{publisher_id}}</a>{{/publisher_id}}
         {{& tags_html}}
       </p>
       {{/show_metadata}}
