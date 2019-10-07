@@ -243,8 +243,8 @@ class DartdocJobProcessor extends JobProcessor {
       await toolEnvRef.release();
     }
 
-    final coverage = dartdocData.coverage;
-    if (hasContent && dartdocData != null) {
+    final coverage = dartdocData?.coverage;
+    if (hasContent && coverage != null) {
       if (coverage.penalty > 0) {
         final level = coverage.percent < 0.2
             ? SuggestionLevel.warning
