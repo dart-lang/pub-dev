@@ -156,7 +156,7 @@ Element _buildDialog(
                 Element.div()
                   ..classes.add('mdc-dialog__content')
                   ..id = 'pub-dialog-content'
-                  ..innerHtml = contentHtml,
+                  ..setInnerHtml(contentHtml),
                 Element.footer()
                   ..classes.add('mdc-dialog__actions')
                   ..children = [
