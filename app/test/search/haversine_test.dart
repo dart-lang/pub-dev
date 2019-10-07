@@ -391,12 +391,12 @@ MIT'''),
           {
             // should be present
             'package': 'great_circle_distance',
-            'score': closeTo(0.86, 0.01),
+            'score': closeTo(0.72, 0.01),
           },
           {
             // should be present
             'package': 'latlong',
-            'score': closeTo(0.86, 0.01),
+            'score': closeTo(0.71, 0.01),
           },
         ]
       });
@@ -415,11 +415,11 @@ MIT'''),
           },
           {
             'package': 'great_circle_distance',
-            'score': closeTo(0.86, 0.01),
+            'score': closeTo(0.72, 0.01),
           },
           {
             'package': 'latlong',
-            'score': closeTo(0.86, 0.01),
+            'score': closeTo(0.71, 0.01),
           },
         ]
       });
