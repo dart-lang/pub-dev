@@ -715,9 +715,7 @@ class GCloudPackageRepository extends PackageRepository {
     });
 
     try {
-      final uploaderEmails = package.publisherId == null
-          ? await accountBackend.getEmailsOfUserIds(package.uploaders)
-          : await publisherBackend.getAdminMemberEmails(package.publisherId);
+      final uploaderEmails = await _notificationEmails(package);
 
       // Notify uploaders via e-mail that a new version has been published.
       final email = emailSender.sendMessage(
@@ -748,6 +746,14 @@ class GCloudPackageRepository extends PackageRepository {
       _logger.severe('Error post-processing package upload $v', e, st);
     }
     return pv as PackageVersion;
+  }
+
+  Future<List<String>> _notificationEmails(models.Package package) async {
+    if (package.publisherId == null) {
+      return await accountBackend.getEmailsOfUserIds(package.uploaders);
+    }
+    return await publisherBackend
+        .getUploadNotificationEmails(package.publisherId);
   }
 
   Future _updatePackageSortIndex(Key packageKey) async {
