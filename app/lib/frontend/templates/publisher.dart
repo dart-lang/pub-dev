@@ -98,11 +98,11 @@ String renderPublisherPackagesPage({
   String resultCountHtml;
   if (isSearch) {
     resultCountHtml =
-        '$totalCount <code>${publisher.publisherId}</code> packages for '
+        '$totalCount package(s) owned by <code>${publisher.publisherId}</code> for search query '
         '<code>${htmlEscape.convert(searchQuery.query)}</code>';
   } else {
     resultCountHtml = totalCount > 0
-        ? '$totalCount <code>${publisher.publisherId}</code> packages.'
+        ? '$totalCount package(s) owned by <code>${publisher.publisherId}</code>.'
         : '<code>${publisher.publisherId}</code> has no packages.';
   }
 
@@ -190,7 +190,7 @@ String renderPublisherAdminPage({
 String _renderDetailHeader(Publisher publisher) {
   final shortCreated = shortDateFormat.format(publisher.created);
   return renderDetailHeader(
-    title: publisher.publisherId,
+    title: 'Publisher ${publisher.publisherId}',
     metadataHtml: htmlEscape.convert('Publisher registered on $shortCreated.'),
   );
 }
