@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+
+## `20191007t110314-all`
+
  * Upgraded to Dart `2.5.0`.
  * Upgraded `package:markdown` to `2.1.0`.
  * Search index contains `publisherId` and `owners` fields, the first startup
