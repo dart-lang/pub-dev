@@ -25,8 +25,43 @@ img {
 button {
   cursor: pointer;
   border: none;
+
+  &.mdc-button--raised {
+    background-color: $color-input-primary !important;
+
+    &:hover {
+      background-color: darken($color-input-primary, 10%) !important;
+    }
+
+    &.pub-button-danger {
+      background-color: $color-input-danger !important;
+
+      &:hover {
+        background-color: darken($color-input-danger, 10%) !important;
+      }
+    }
+  }
+
+  &.mdc-dialog__button {
+    &:hover {
+      background-color: lighten($color-input-primary, 70%) !important;
+    }
+
+    &.mdc-ripple-upgraded--background-focused {
+      background-color: lighten($color-input-primary, 50%) !important;
+    }
+
+    &.mdc-ripple-upgraded--foreground-activation {
+      background-color: lighten($color-input-primary, 50%) !important;
+    }
+
+    .mdc-button__label {
+      color: $color-input-primary;
+    }
+  }
 }
 
+/* TODO: remove this after MDC button is properly styled. */
 button.pub-button {
   font-size: 13px;
   margin: 20px 20px 20px 0px;
