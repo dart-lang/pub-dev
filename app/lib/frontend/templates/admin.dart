@@ -78,10 +78,12 @@ String renderAccountPackagesPage({
   String resultCountHtml;
   if (isSearch) {
     resultCountHtml =
-        '$totalCount packages for <code>${htmlEscape.convert(searchQuery.query)}</code>';
+        '$totalCount owned package(s) for <code>${htmlEscape.convert(searchQuery.query)}</code>';
   } else {
-    resultCountHtml =
-        totalCount > 0 ? '$totalCount packages.' : 'You have no packages.';
+    resultCountHtml = totalCount > 0
+        ? 'You own $totalCount package(s).'
+        : 'You have not published any package yet. Learn more about '
+            '<a href="https://dart.dev/tools/pub/publishing">publishing packages</a>.';
   }
 
   final packageListHtml = packages.isEmpty ? '' : renderPackageList(packages);
@@ -144,7 +146,7 @@ Tab _myPublishersLink() => Tab.withLink(
 String _accountDetailHeader(User user) {
   final shortJoined = shortDateFormat.format(user.created);
   return renderDetailHeader(
-    title: user.email,
+    title: 'User ${user.email}',
     metadataHtml: htmlEscape.convert('Joined on $shortJoined'),
   );
 }
