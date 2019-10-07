@@ -9,6 +9,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    needs to have a 1-2 hours before all the packages get re-indexed with them.
    After that they will be part of the index snapshot, and will be available
    as other parts of the index.
+ * Upgraded Flutter SDK to `1.9.1+hotfix.4`.
+ * Bumped runtimeVersion to `2019.10.07`.
 
 ## `20190910t122708-all`
 
