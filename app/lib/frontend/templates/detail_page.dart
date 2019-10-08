@@ -13,11 +13,13 @@ String renderDetailHeader({
   @required String title,
   String metadataHtml,
   String tagsHtml,
+  bool isPublisher = false,
 }) {
   return templateCache.renderTemplate('shared/detail/header', {
     'title': title,
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
+    'is_publisher': isPublisher,
   });
 }
 

@@ -4,7 +4,11 @@
 
 Published <span>{{short_created}}</span>
 {{#publisher_id}}
-&bull; Publisher: <a href="{{& publisher_url}}">{{publisher_id}}</a>
+&bull; <a href="{{& publisher_url}}"><img
+          class="-pub-publisher-shield"
+          height="22" width="22"
+          title="Published by a pub.dev verified publisher"
+          src="/static/img/verified-publisher-blue.svg" />{{publisher_id}}</a>
 {{/publisher_id}}
 <!-- &bull; Downloads: X -->
 {{#latest.show_updated}}

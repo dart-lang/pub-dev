@@ -94,7 +94,6 @@ String renderLayoutPage(
     'user_session': userSession,
     'body_class': bodyClasses.join(' '),
     'no_index': noIndex,
-    'static_assets': staticUrls.assets,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
     'canonicalUrl': canonicalUrl,
     'pageDescription': pageDescription == null

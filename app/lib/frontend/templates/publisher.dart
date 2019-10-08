@@ -190,8 +190,9 @@ String renderPublisherAdminPage({
 String _renderDetailHeader(Publisher publisher) {
   final shortCreated = shortDateFormat.format(publisher.created);
   return renderDetailHeader(
-    title: 'Publisher ${publisher.publisherId}',
+    title: publisher.publisherId,
     metadataHtml: htmlEscape.convert('Publisher registered on $shortCreated.'),
+    isPublisher: true,
   );
 }
 

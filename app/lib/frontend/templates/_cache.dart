@@ -8,7 +8,7 @@ import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
 import '../request_context.dart';
-import '../static_files.dart' show resolveAppDir;
+import '../static_files.dart' show resolveAppDir, staticUrls;
 
 final templateCache = TemplateCache();
 
@@ -37,7 +37,7 @@ class TemplateCache {
   }
 
   /// Renders [template] with given [values].
-  String renderTemplate(String template, values) {
+  String renderTemplate(String template, Map<String, Object> values) {
     mustache.Template parsedTemplate;
     if (requestContext.isExperimental) {
       final dirName = path.dirname(template);
@@ -50,6 +50,9 @@ class TemplateCache {
     if (parsedTemplate == null) {
       throw ArgumentError('Template $template was not found.');
     }
-    return parsedTemplate.renderString(values);
+    return parsedTemplate.renderString({
+      'static_assets': staticUrls.assets,
+      ...values,
+    });
   }
 }
