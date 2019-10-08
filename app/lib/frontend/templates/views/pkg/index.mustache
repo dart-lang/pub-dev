@@ -2,15 +2,7 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<div class="listing-sort-header">
-  <div class="tooltip-base hoverable">
-    <span class="tooltip-dotted">Sorted by:</span>
-    <span id="sort-control" data-sort="{{sort_value}}">{{sort_name}}</span>
-    <div class="tooltip-content tooltip-bottom-left">
-      {{& ranking_tooltip_html }}
-    </div>
-  </div>
-</div>
+{{& sort_control_html}}
 
 {{^is_search}}
 <h2 class="listing-page-title">{{title}}</h2>

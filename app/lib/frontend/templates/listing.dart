@@ -91,13 +91,8 @@ String renderPkgIndexPage(
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final unsupportedQualifier =
       isSearch && (searchQuery.parsedQuery.text?.contains(':') ?? false);
-  final String sortValue = serializeSearchOrder(searchQuery?.order) ??
-      (isSearch ? 'search_relevance' : 'listing_relevance');
-  final SortDict sortDict = getSortDict(sortValue);
   final values = {
-    'sort_value': sortValue,
-    'sort_name': sortDict.label,
-    'ranking_tooltip_html': sortDict.tooltip,
+    'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
     'unsupported_qualifier': unsupportedQualifier,
     'title': platformDict.topPlatformPackages,
@@ -125,6 +120,19 @@ String renderPkgIndexPage(
     searchQuery: searchQuery,
     noIndex: true,
   );
+}
+
+/// Renders the `views/shared/sort_control.mustache` template.
+String renderSortControl(SearchQuery query) {
+  final isSearch = query != null && query.hasQuery;
+  final sortValue = serializeSearchOrder(query?.order) ??
+      (isSearch ? 'search_relevance' : 'listing_relevance');
+  final sortDict = getSortDict(sortValue);
+  return templateCache.renderTemplate('shared/sort_control', {
+    'sort_value': sortValue,
+    'sort_name': sortDict.label,
+    'ranking_tooltip_html': sortDict.tooltip,
+  });
 }
 
 class PageLinks {
