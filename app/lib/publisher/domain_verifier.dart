@@ -49,11 +49,16 @@ class DomainVerifier {
         maxDelay: Duration(milliseconds: 500),
         retryIf: (e) => e is! auth.AccessDeniedException,
       );
+      if (sites == null || sites.siteEntry == null) {
+        return false;
+      }
       // Determine if the user is in fact owner of the domain in question.
       // Note. domains are prefixed 'sc-domain:' and 'siteOwner' is the only
       //       permission that ensures the user actually did DNS verification.
       return sites.siteEntry.any(
         (s) =>
+            s != null &&
+            s.siteUrl != null &&
             s.siteUrl.toLowerCase() == 'sc-domain:$domain' &&
             s.permissionLevel == 'siteOwner', // must be 'siteOwner'!
       );
