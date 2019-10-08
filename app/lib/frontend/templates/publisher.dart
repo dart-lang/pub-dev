@@ -109,8 +109,12 @@ String renderPublisherPackagesPage({
   final packageListHtml = packages.isEmpty ? '' : renderPackageList(packages);
   final paginationHtml = renderPagination(pageLinks);
 
-  final tabContent =
-      [resultCountHtml, packageListHtml, paginationHtml].join('\n');
+  final tabContent = [
+    renderSortControl(searchQuery),
+    resultCountHtml,
+    packageListHtml,
+    paginationHtml,
+  ].join('\n');
 
   final tabs = <Tab>[
     Tab.withContent(
