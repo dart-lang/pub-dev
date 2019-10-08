@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191008t163533-all`
+ * Minor NPE fixes in dartdoc process.
+
 ## `20191008t123347-all`
  * Minor fixes of JS when experimental flag is not on.
 
