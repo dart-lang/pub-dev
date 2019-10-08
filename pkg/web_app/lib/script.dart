@@ -14,7 +14,7 @@ import 'src/search.dart';
 import 'src/tabs.dart';
 
 void main() {
-  window.onContentLoaded.listen((_) => mdc.autoInit());
+  window.onLoad.listen((_) => mdc.autoInit());
   setupTabs();
   setupSearch();
   setupScroll();
