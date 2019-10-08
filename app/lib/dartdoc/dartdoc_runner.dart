@@ -279,8 +279,8 @@ class DartdocJobProcessor extends JobProcessor {
         job.packageVersion,
         DartdocReport(
           reportStatus: reportStatus,
-          coverage: coverage.percent,
-          coverageScore: coverage.score,
+          coverage: coverage?.percent ?? 0.0,
+          coverageScore: coverage?.score ?? 0.0,
           healthSuggestions:
               healthSuggestions.isEmpty ? null : healthSuggestions,
           maintenanceSuggestions:
