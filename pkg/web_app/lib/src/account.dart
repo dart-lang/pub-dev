@@ -213,7 +213,8 @@ class _PkgAdminWidget {
         final payload = PackagePublisherInfo(publisherId: publisherId);
         await client.setPackagePublisher(pageData.pkgData.package, payload);
       },
-      successMessage: 'Transfer completed. The page will reload.',
+      successMessage:
+          'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
