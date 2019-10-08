@@ -3,7 +3,11 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <div class="detail-header">
-  <h2 class="title">{{title}}</h2>
+  <h2 class="title">{{#is_publisher}}<img
+    class="-pub-publisher-shield"
+    height="48" width="48"
+    title="Domain ownership verifed by pub.dev"
+    src="{{{static_assets.img__verified-publisher_svg}}}" />{{/is_publisher}}{{title}}</h2>
   <div class="metadata">
     {{& metadata_html}}
     <div class="tags">{{& tags_html}}</div>
