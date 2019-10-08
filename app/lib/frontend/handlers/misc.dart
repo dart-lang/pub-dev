@@ -56,7 +56,7 @@ Future<shelf.Response> robotsTxtHandler(shelf.Request request) async {
       body: [
         'User-agent: *',
         'Sitemap: $sitemapUri',
-        if (requestContext.isExperimental) 'Sitemap: $sitemap2Uri',
+        'Sitemap: $sitemap2Uri',
       ].join('\n'));
 }
 
@@ -81,8 +81,6 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
     '/help',
     '/web',
     '/flutter',
-    if (requestContext.isExperimental) '/publishers',
-    if (requestContext.isExperimental) '/create-publisher',
   ];
   items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
@@ -107,9 +105,6 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
 Future<shelf.Response> sitemapPublishersTxtHandler(
     shelf.Request request) async {
   if (requestContext.blockRobots) {
-    return notFoundHandler(request);
-  }
-  if (!requestContext.isExperimental) {
     return notFoundHandler(request);
   }
 

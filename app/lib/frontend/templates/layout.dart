@@ -88,9 +88,7 @@ String renderLayoutPage(
     'is_experimental': requestContext.isExperimental,
     'is_logged_in': userSession != null,
     'dart_site_root': urls.dartSiteRoot,
-    'oauth_client_id': requestContext.isExperimental
-        ? activeConfiguration.pubSiteAudience
-        : null,
+    'oauth_client_id': activeConfiguration.pubSiteAudience,
     'user_session': userSession,
     'body_class': bodyClasses.join(' '),
     'no_index': noIndex,
