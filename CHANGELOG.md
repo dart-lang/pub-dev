@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191008t123347-all`
+ * Minor fixes of JS when experimental flag is not on.
 
 ## `20191007t110314-all`
 
