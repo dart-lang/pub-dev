@@ -40,10 +40,8 @@
   {{#include_survey}}
   <script async="async" defer="defer" src="//www.google.com/insights/consumersurveys/async_survey?site=5wdvu4vc5lhop3xbatxof6lzcm"></script>
   {{/include_survey}}
-  {{#is_experimental}}
   <meta name="google-signin-client_id" content="{{oauth_client_id}}" />
   <script src="https://apis.google.com/js/platform.js?onload=pubAuthInit" defer="defer"></script>
-  {{/is_experimental}}
   {{#page_data_encoded}}
   <meta name="pub-page-data" content="{{& page_data_encoded}}"/>
   {{/page_data_encoded}}

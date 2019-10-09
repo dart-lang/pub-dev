@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:gcloud/service_scope.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_dartlang_org/shared/configuration.dart';
+
 Future scoped(func()) {
   return fork(() async {
     return func();
@@ -16,7 +18,9 @@ Future scoped(func()) {
 void scopedTest(String name, func(), {Timeout timeout}) {
   test(name, () {
     return fork(() async {
-      return func();
+      // double fork to allow further override
+      registerActiveConfiguration(Configuration.test());
+      return await fork(() async => func());
     });
   }, timeout: timeout);
 }
