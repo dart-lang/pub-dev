@@ -5,7 +5,18 @@
 <ul class="package-list">
   {{#packages}}
     <li class="list-item -simple">
-      <h3 class="title"><a href="{{& package_url}}">{{name}}</a></h3>
+      <h3 class="title"><a href="{{& package_url}}">{{name}}</a>
+        {{#publisher_id}}
+          <a
+            href="/publishers/{{publisher_id}}"
+            class="-pub-mini-list-publisher-badge">
+            <img 
+              src="{{{static_assets.img__verified-publisher-blue_svg}}}"
+              title="Published by a pub.dev verified publisher"
+              height="16"
+              width="16" />{{publisher_id}}</a>
+        {{/publisher_id}}
+      </h3>
       <p class="metadata">
         {{& tags_html}}
       </p>

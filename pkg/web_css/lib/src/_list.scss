@@ -42,6 +42,19 @@
   margin-left: 0;
 }
 
+.-pub-mini-list-publisher-badge {
+  font-size: 12px;
+  float: right;
+  display: block;
+  margin-top: 4px;
+}
+
+.-pub-mini-list-publisher-badge > img {
+  vertical-align: top;
+}
+
+
+
 .list-item > .api_pages {
   font-size: 12px;
 }
