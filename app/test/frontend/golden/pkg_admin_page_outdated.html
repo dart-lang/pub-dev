@@ -131,16 +131,12 @@ Published
               <h3>Package ownership</h3>
               <div>
                 <p>
-    You can transfer your package to a publisher
-    (if you are also an admin of the given publisher).
-    The current uploaders will lose access over the package,
-    and only the publisher's members  will be able to upload
-    new versions.
+    You can transfer this package to a verified publisher if you are a member of the given publisher.
+    Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.
   </p>
                 <p>
-                  <strong>This is an irreversible operation.</strong>
-    Packages can be transferred between publishers, but can't
-    be converted back to legacy-ownership per-package uploaders.
+                  <strong>Upgrading to verified publishers is an irreversible operation.</strong>
+    Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
   
                 </p>
                 <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
@@ -158,9 +154,8 @@ Published
               <h3>Discontinued</h3>
               <div>
                 <p>
-    If you are no longer developing the package, you can mark it as discontinued.
-    The package will still remain available, but pub site won't run analysis on it,
-    and we won't display it in search results.
+    If no one is still developing this package, you can mark it as discontinued.
+    Discontinued packages remain available, but pub.dev doesn’t display them in search results.
   </p>
                 <p>
                   <button id="-admin-is-discontinued-toggle" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Mark as "discontinued"</button>
