@@ -246,7 +246,7 @@ class _CreatePublisherWidget {
       await modalMessage(
         'Input validation',
         'Please use a second-level domain name as publisher identifier.<br />'
-            'Third-level domains names like <code>example.co.uk</code> is '
+            'Third-level domain names like <code>example.co.uk</code> are '
             'not allowed.',
       );
       return;
