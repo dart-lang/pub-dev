@@ -115,9 +115,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
   }
   final Stopwatch sw = Stopwatch()..start();
   String cachedPage;
-  final bool useCache =
-      requestContext.uiCacheEnabled && userSessionData == null;
-  if (useCache) {
+  if (requestContext.uiCacheEnabled) {
     cachedPage = await cache.uiPackagePage(packageName, versionName).get();
   }
 
@@ -154,7 +152,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     );
     _packageDoneLatencyTracker.add(serviceSw.elapsed);
 
-    if (useCache) {
+    if (requestContext.uiCacheEnabled) {
       await cache.uiPackagePage(packageName, versionName).set(cachedPage);
     }
     _packageOverallLatencyTracker.add(sw.elapsed);

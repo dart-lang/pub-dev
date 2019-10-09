@@ -67,10 +67,11 @@ shelf.Handler wrapHandler(
   }
   handler = _httpsWrapper(handler);
   handler = _logRequestWrapper(logger, handler);
+  handler =
+      _requestContextWrapper(handler); // need to run after session wrapper
   handler = _userAuthWrapper(handler);
   handler = _userSessionWrapper(handler);
   handler = _cspHeaderWrapper(handler);
-  handler = _requestContextWrapper(handler);
   return handler;
 }
 
@@ -91,7 +92,10 @@ shelf.Handler _requestContextWrapper(shelf.Handler handler) {
 
     final enableRobots = hasExperimentalCookie ||
         (!activeConfiguration.blockRobots && isProductionHost);
-    final uiCacheEnabled = isPrimaryHost && !hasExperimentalCookie;
+    final uiCacheEnabled = //
+        isPrimaryHost && // don't cache on non-primary domains
+            !hasExperimentalCookie && // don't cache if experimental cookie is enabled
+            userSessionData == null; // don't cache if a user session is active
 
     registerRequestContext(RequestContext(
       indentJson: indentJson,
