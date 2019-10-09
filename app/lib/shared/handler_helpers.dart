@@ -61,6 +61,9 @@ shelf.Handler wrapHandler(
   shelf.Handler handler, {
   bool sanitize = false,
 }) {
+  // Handlers wrap other handlers, and they are called in the revers order of
+  // their wrapping. Read this list from the bottom and go up to get the real
+  // execution order.
   handler = _uriValidationRequestWrapper(handler);
   if (sanitize) {
     handler = _sanitizeRequestWrapper(handler);
