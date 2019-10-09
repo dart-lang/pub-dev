@@ -45,6 +45,7 @@ class PublisherBackend {
 
   /// List publishers (in no specific order, it will be listed by their
   /// `publisherId` alphabetically).
+  /// TODO: support paging (+ allow only paged requests)
   Future<List<Publisher>> listPublishers({int limit = 100}) async {
     final query = _db.query<Publisher>()..limit(limit);
     return await query.run().toList();
