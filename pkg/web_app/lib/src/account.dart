@@ -242,9 +242,13 @@ class _CreatePublisherWidget {
   }
 
   void _triggerCreate(String publisherId) async {
-    if (publisherId.isEmpty || !publisherId.contains('.')) {
+    if (publisherId.isEmpty || publisherId.split('.').length != 2) {
       await modalMessage(
-          'Input validation', 'Please use a domain name as publisher id.');
+        'Input validation',
+        'Please use a second-level domain name as publisher identifier.<br />'
+            'Third-level domain names like <code>example.co.uk</code> are '
+            'not allowed.',
+      );
       return;
     }
 
