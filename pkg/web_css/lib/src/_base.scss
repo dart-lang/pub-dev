@@ -61,6 +61,18 @@ button {
   }
 }
 
+/* Override MDC theme colors for input outlines. */
+.mdc-text-field--focused {
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__trailing {
+    border-color: $color-input-primary !important;
+  }
+
+  .mdc-floating-label--float-above {
+    color: $color-input-primary !important;
+  }
+}
+
 /* TODO: remove this after MDC button is properly styled. */
 button.pub-button {
   font-size: 13px;
