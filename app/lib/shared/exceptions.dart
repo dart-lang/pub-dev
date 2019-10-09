@@ -241,20 +241,20 @@ class AuthorizationException extends ResponseException
   /// the user is trying to create a publisher.
   factory AuthorizationException.userIsNotDomainOwner(String domain) =>
       AuthorizationException._([
-        'Insufficient permissions to create publisher `$domain`, to create ',
-        'this publisher the domain `$domain` must be _verified_ in the ',
-        '[search console](https://search.google.com/search-console/welcome).',
+        'Verification unsuccessful. To create the verified publisher $domain, ',
+        'you must verify ownership of the domain $domain in the ',
+        '[Google Search Console](https://search.google.com/search-console/welcome).',
         '',
-        'It is not sufficient to be granted access to the domain, the domain ',
-        'must be verified with the Google account used to created the ',
-        'publisher. It is also insufficient to verify a URL or URL prefix,',
-        'the domain must be verified with a **DNS record**.',
+        'You must verify the domain property with a **DNS record**',
+        ' — verifying a _URL prefix property_ or being a collaborator on a ',
+        'property that someone else has verified is not sufficient. ',
         '',
         '<b><a href="https://search.google.com/search-console/welcome" ' +
-            'target="_blank">Open domain verification flow.</a></b>',
+            'target="_blank">Open Google Search Console.</a></b>',
         '',
-        'Note, once the publisher is created the domain verification need not',
-        'remain in place. This is only required for publisher creation.',
+        'Once you have completed the verification step in ',
+        'Google Search Console, close this dialog and re-initiate the ',
+        'publisher creation step by clicking **create publisher** again.',
       ].join('\n'));
 
   /// Signaling that the user did not grant read-only access to the
