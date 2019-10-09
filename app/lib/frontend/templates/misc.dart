@@ -87,6 +87,7 @@ String renderMiniList(List<PackageView> packages) {
     'packages': packages.map((package) {
       return {
         'name': package.name,
+        'publisher_id': package.publisherId,
         'package_url': urls.pkgPageUrl(package.name),
         'ellipsized_description': package.ellipsizedDescription,
         'tags_html': renderTags(
