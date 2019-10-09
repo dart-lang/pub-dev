@@ -2,26 +2,31 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<h2>Create a publisher</h2>
-
+<h2>Create a verified publisher</h2>
 <p>
-  A publisher consists of a group of users who collectively owns a set of
-  packages. A publisher is identified by a verified domain name. This lends
-  further credibility to packages owned by the publisher, as such packages
-  can be said to be published by the owner of the given domain.
+  A <i>verified publisher</i> is one or more users who own a set of packages.
+  Each publisher is identified by a verified domain name. This domain lends
+  credibility to packages owned by the publisher. For example, the Dart team at
+  Google uses the <a href="/publishers/dart.dev" target="_blank">dart.dev</a>
+  domain as the verified publisher of the packages that the team supported.
 </p>
 <p>
-  To create a publisher,
-  you need to be a <i>verified domain property</i> owner in
+  To create a verified publisher, you must be a <i>verified domain property</i>
+  owner in
   <a href="https://search.google.com/search-console/welcome" target="_blank" rel="noreferrer">Google Search Console</a>.
-  For help see <a href="https://support.google.com/webmasters/answer/34592?hl=en" target="_blank" rel="noreferrer">Add a website property</a>.
-  <br /><br />
-  Note: It is not sufficient to verify a <i>URL prefix property</i>, or to be added as a collaborator on a property
-  somebody else verified. The user account used to create a publisher must have verified the <i>domain property</i>.
-  Once verified and a publisher has been created on pub.dev continued domain verification is not a requirement.
-  you need to be a site administrator in
-  <a href="https://www.google.com/webmasters/tools" target="_blank" rel="noreferrer">Google Search Console</a>
-  (formerly: Google Webmaster Tools).
+  For help see
+  <a href="https://support.google.com/webmasters/answer/34592?hl=en" target="_blank" rel="noreferrer">Add a website property</a>.
+</p>
+<p>
+  The user account creating a publisher must be the verifier of the
+  <i>domain property</I> &ndash; not just a verifier of a <i>URL prefix property</i>
+  or a collaborator on a property that someone else has verified. 
+</p>
+<p>
+  After a verified publisher has been created, the <i>publisher admin page</i>
+  can be used to invite other users to become members of the publisher.
+  Members of the publisher can transfer existing packages to the publisher using
+  the <i>package admin page</i>.
 </p>
 <p>
   <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
