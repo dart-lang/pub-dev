@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191009t181835-all`
+ * Releasing publishers.
+
 ## `20191009t104315-all`
  * Fixed UI page cache issue.
  * Updated confirmation message about cache updates.
