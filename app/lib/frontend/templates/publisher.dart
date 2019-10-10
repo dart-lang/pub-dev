@@ -66,8 +66,8 @@ String renderPublisherListPage(List<Publisher> publishers) {
 /// Renders the `views/publisher/info_box.mustache` template.
 String _renderPublisherInfoBox(Publisher publisher) {
   String description = publisher.description ?? '';
-  if (description != null && description.length > 210) {
-    description = description.substring(0, 200) + '[...]';
+  if (description != null && description.length > 1010) {
+    description = description.substring(0, 1000) + '[...]';
   }
   return templateCache.renderTemplate('publisher/info_box', {
     'has_description': description != null && description.isNotEmpty,
