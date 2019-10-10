@@ -248,7 +248,7 @@ class _PublisherMemberAction extends ConsentAction {
   String renderInviteHtml(String activeAccountEmail, List<String> args) {
     final publisherId = args[0];
     final url = publisherUrl(publisherId);
-    return '<code>$activeAccountEmail</code> has invited you to be a member of '
-        'publisher <a href="$url"><code>$publisherId</code></a>.';
+    return '<code>$activeAccountEmail</code> has invited you to be a member of publisher '
+        '<a href="$url" target="_blank" rel="noreferrer"><code>$publisherId</code></a>.';
   }
 }
