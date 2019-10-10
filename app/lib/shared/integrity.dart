@@ -53,7 +53,7 @@ class IntegrityChecker {
       if (user.email == null ||
           user.email.isEmpty ||
           !isValidEmail(user.email)) {
-        _problems.add('User(${user.userId}) has invalid e-mail: ${user.email}');
+        _problems.add('User(${user.userId}) has invalid email: ${user.email}');
         _invalidUsers.add(user.userId);
       }
       if (user.email != null && user.email.isNotEmpty) {
@@ -77,12 +77,12 @@ class IntegrityChecker {
       if (userIds.length > 1) {
         badEmailToUserMappingCount++;
         _problems.add(
-            'E-mail address $email is present at ${userIds.length} User: ${userIds.join(', ')}');
+            'Email address $email is present at ${userIds.length} User: ${userIds.join(', ')}');
       }
     });
     if (badEmailToUserMappingCount > 0) {
       _problems.add(
-          '$badEmailToUserMappingCount e-mail addresses have more than one User entity.');
+          '$badEmailToUserMappingCount email addresses have more than one User entity.');
     }
   }
 

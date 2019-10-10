@@ -201,11 +201,11 @@ abstract class ConsentAction {
   /// Callback on rejecting the consent or timeout.
   Future onDelete(String userId, List<String> args);
 
-  /// The subject of the notification e-mail sent.
+  /// The subject of the notification email sent.
   String renderEmailSubject(List<String> args) =>
       'You have a new invitation to confirm on $primaryHost';
 
-  /// The body of the notification e-mail sent.
+  /// The body of the notification email sent.
   String renderInviteText(String activeAccountEmail, List<String> args);
 
   /// The title of the invite for use in list of invites, and headline when

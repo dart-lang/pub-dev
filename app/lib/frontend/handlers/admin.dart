@@ -87,7 +87,7 @@ Future<shelf.Response> confirmNewUploaderHandler(shelf.Request request,
 
   final matchesEmail = user?.email == recipientEmail;
   if (!matchesEmail) {
-    authErrorMessage ??= 'E-mail address does not match invite.';
+    authErrorMessage ??= 'Email address does not match invite.';
   }
 
   if (!matchesEmail) {

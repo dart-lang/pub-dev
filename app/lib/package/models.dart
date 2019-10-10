@@ -355,7 +355,7 @@ class QualifiedVersionKey {
 /// An active invitation sent to a recipient.
 /// The parent entity is a [Package] the id is the concatenation of '[type]/[recipientEmail]'.
 ///
-/// The invitation secret ([urlNonce]) is sent via e-mail to the recipient and
+/// The invitation secret ([urlNonce]) is sent via email to the recipient and
 /// they need to open a URL to accept the invitation.
 @db.Kind(name: 'PackageInvite', idType: db.IdType.String)
 class PackageInvite extends db.Model {

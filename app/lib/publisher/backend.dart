@@ -270,7 +270,7 @@ class PublisherBackend {
     InvalidInputException.checkStringLength(invite.email, 'email',
         maximum: 4096);
     InvalidInputException.check(
-        isValidEmail(invite.email), 'Invalid e-mail: `${invite.email}`');
+        isValidEmail(invite.email), 'Invalid email: `${invite.email}`');
     final invitedUser =
         await accountBackend.lookupOrCreateUserByEmail(invite.email);
     final userId = invitedUser.userId;
@@ -324,7 +324,7 @@ class PublisherBackend {
     );
   }
 
-  /// The list of e-mail addresses of the members with admin roles. The list
+  /// The list of email addresses of the members with admin roles. The list
   /// should be used to notify admins on upload events.
   Future<List<String>> getAdminMemberEmails(String publisherId) async {
     final key = _db.emptyKey.append(Publisher, id: publisherId);
