@@ -296,7 +296,7 @@ void main() {
         await expectLater(
             rs,
             throwsA(isException.having((e) => '$e', 'toString',
-                'Self-removal is not allowed. Use another account to remove this e-mail address.')));
+                'Self-removal is not allowed. Use another account to remove this email address.')));
       });
 
       testWithServices('successful1', () async {
