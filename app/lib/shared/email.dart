@@ -14,7 +14,7 @@ final _defaultFrom = EmailAddress(
   pubDartlangOrgEmail,
 );
 
-/// Represents a parsed e-mail address.
+/// Represents a parsed email address.
 class EmailAddress {
   final String name;
   final String email;

@@ -102,7 +102,7 @@ class UserSessionData {
   /// The v4 (random) UUID String of the [User] that has this session.
   final String userId;
 
-  /// The e-mail address of the [User].
+  /// The email address of the [User].
   final String email;
 
   /// The image URL of the user's profile picture (may be null).

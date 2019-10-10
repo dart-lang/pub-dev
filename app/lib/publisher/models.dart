@@ -19,7 +19,7 @@ class Publisher extends db.ExpandoModel {
   @db.StringProperty()
   String websiteUrl;
 
-  /// The e-mail address which other users can use to contact the publisher.
+  /// The email address which other users can use to contact the publisher.
   ///
   /// This may be `null` if the publisher [isAbandoned] and the [Publisher]
   /// entity is retained for audit purposes.
@@ -58,12 +58,12 @@ class PublisherInfo extends db.ExpandoModel {
   List<String> packages;
 
   /// List of userIds that are administrators of this publisher.
-  /// (their e-mail address is public information)
+  /// (their email address is public information)
   @db.StringListProperty()
   List<String> admins;
 
   /// List of userIds that are public members of this publisher.
-  /// (their e-mail address is public information)
+  /// (their email address is public information)
   @db.StringListProperty()
   List<String> publicMembers;
 }

@@ -113,7 +113,7 @@ class AccountBackend {
     return await _db.lookup<User>(keys);
   }
 
-  /// Returns the e-mail address of the [userId].
+  /// Returns the email address of the [userId].
   ///
   /// Uses in-memory cache to store entries locally for up to 10 minutes.
   Future<String> getEmailOfUserId(String userId) async {
@@ -129,7 +129,7 @@ class AccountBackend {
     return email;
   }
 
-  /// Return the e-mail addresses of the [userIds].
+  /// Return the email addresses of the [userIds].
   ///
   /// Returns null in the positions where a [User] entry was missing.
   ///
@@ -150,7 +150,7 @@ class AccountBackend {
     final query = _db.query<User>()..filter('email =', email);
     final list = await query.run().toList();
     if (list.length > 1) {
-      throw Exception('More than one User exists for e-mail: $email');
+      throw Exception('More than one User exists for email: $email');
     }
     if (list.length == 1) {
       return list.single;
@@ -201,7 +201,7 @@ class AccountBackend {
   /// `id_token` (signed JWT).
   ///
   /// When no associated User entry exists in Datastore, this method will create
-  /// a new one. When the authenticated e-mail of the user changes, the email
+  /// a new one. When the authenticated email of the user changes, the email
   /// field will be updated to the latest one.
   Future<User> authenticateWithBearerToken(String token) async {
     final auth = await _authProvider.tryAuthenticate(token);
@@ -280,7 +280,7 @@ class AccountBackend {
       return newUser;
     });
 
-    // update user if e-mail has been changed
+    // update user if email has been changed
     if (user.email != auth.email) {
       return await _db.withTransaction((tx) async {
         final u = (await _db.lookup<User>([user.key])).single;

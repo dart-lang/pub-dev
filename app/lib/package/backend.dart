@@ -171,7 +171,7 @@ class PackageBackend {
 
   /// Stores a [models.PackageInvite] entry in the Datastore and returns its
   /// current status. When set, the status.urlNonce can be used in
-  /// client-communication, e.g. sending via e-mail.
+  /// client-communication, e.g. sending via email.
   Future<InviteStatus> updatePackageInvite({
     @required String packageName,
     @required String type,
@@ -719,7 +719,7 @@ class GCloudPackageRepository extends PackageRepository {
           ? await accountBackend.getEmailsOfUserIds(package.uploaders)
           : await publisherBackend.getAdminMemberEmails(package.publisherId);
 
-      // Notify uploaders via e-mail that a new version has been published.
+      // Notify uploaders via email that a new version has been published.
       final email = emailSender.sendMessage(
         createPackageUploadedEmail(
           packageName: newVersion.package,
@@ -801,7 +801,7 @@ class GCloudPackageRepository extends PackageRepository {
     await _validatePackageUploader(packageName, package, user.userId);
 
     if (!isValidEmail(uploaderEmail)) {
-      throw GenericProcessingException('Not a valid e-mail: `$uploaderEmail`.');
+      throw GenericProcessingException('Not a valid email: `$uploaderEmail`.');
     }
 
     final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
@@ -929,13 +929,13 @@ class GCloudPackageRepository extends PackageRepository {
         throw LastUploaderRemoveException();
       }
 
-      // At the moment we don't validate whether the other e-mail addresses
+      // At the moment we don't validate whether the other email addresses
       // are able to authenticate. To prevent accidentally losing the control
       // of a package, we don't allow self-removal.
       if (user.email == uploader.email || user.userId == uploader.userId) {
         await T.rollback();
         throw GenericProcessingException('Self-removal is not allowed. '
-            'Use another account to remove this e-mail address.');
+            'Use another account to remove this email address.');
       }
 
       // Remove the uploader from the list.

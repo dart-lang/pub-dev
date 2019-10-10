@@ -63,7 +63,7 @@ class PackageDocument {
   final String publisherId;
 
   /// The current uploaders of the package, the uploader of the latest stable
-  /// release, and the e-mail addresses in the `pubspec.authors` block.
+  /// release, and the email addresses in the `pubspec.authors` block.
   final List<String> emails;
 
   /// The current uploader emails of the package.

@@ -36,14 +36,14 @@ class EmailSender {
         'from ${message.from} '
         'to ${message.recipients.join(', ')}';
     if (_blockEmails || _server == null) {
-      _logger.info('Not sending e-mail (SMTP not configured): '
+      _logger.info('Not sending email (SMTP not configured): '
           '$debugHeader\n${message.bodyText}.');
     } else {
-      _logger.info('Sending e-mail: $debugHeader...');
+      _logger.info('Sending email: $debugHeader...');
       try {
         await send(_toMessage(message), _server);
       } catch (e, st) {
-        _logger.severe('Sending e-mail failed: $debugHeader.', e, st);
+        _logger.severe('Sending email failed: $debugHeader.', e, st);
       }
     }
   }

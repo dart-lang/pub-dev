@@ -76,7 +76,7 @@ class Configuration {
   /// the Datastore.
   final auth.ServiceAccountCredentials credentials;
 
-  /// Whether the email sender should send out e-mails even if credentials are
+  /// Whether the email sender should send out emails even if credentials are
   /// provided.
   final bool blockEmails;
 
