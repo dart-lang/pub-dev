@@ -234,13 +234,17 @@ class PublisherBackend {
           p.contactEmail != update.contactEmail) {
         final user =
             await accountBackend.lookupUserByEmail(update.contactEmail);
-        InvalidInputException.check(user != null,
-            'Only administrator e-mail can be used as contact e-mail.');
+        InvalidInputException.check(
+          user != null,
+          'The contact email must match one of the current publisher members',
+        );
         final members = await tx.lookup<PublisherMember>(
             [p.key.append(PublisherMember, id: user.userId)]);
         final member = members.single;
-        InvalidInputException.check(member?.role == PublisherMemberRole.admin,
-            'Only administrator e-mail can be used as contact e-mail.');
+        InvalidInputException.check(
+          member?.role == PublisherMemberRole.admin,
+          'The contact email must match one of the current publisher members',
+        );
       }
 
       p.description = update.description ?? p.description;
