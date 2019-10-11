@@ -6,7 +6,7 @@
 <div>
   {{^has_publisher}}
   <p>
-    You can transfer this package to a verified publisher if you are a member of the given publisher.
+    You can transfer this package to a verified publisher if you are a member of the publisher.
     Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.
   </p>
   <p>
@@ -17,7 +17,7 @@
   {{#has_publisher}}
   <p>
     You can transfer your package to a <strong>different publisher</strong>
-    if you’re also a member of the given publisher.
+    if you’re also a member of the publisher.
   </p>
   {{/has_publisher}}
   <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
@@ -25,7 +25,7 @@
     <div class="mdc-notched-outline">
       <div class="mdc-notched-outline__leading"></div>
       <div class="mdc-notched-outline__notch">
-        <label for="-admin-set-publisher-input" class="mdc-floating-label">Publisher Name</label>
+        <label for="-admin-set-publisher-input" class="mdc-floating-label">Publisher name</label>
       </div>
       <div class="mdc-notched-outline__trailing"></div>
     </div>
@@ -40,7 +40,7 @@
 {{^is_discontinued}}
 <div>
   <p>
-    If no one is still developing this package, you can mark it as discontinued.
+    If no one is maintaining this package, you can mark it as discontinued.
     Discontinued packages remain available, but pub.dev doesn’t display them in search results.
   </p>
   <p>
