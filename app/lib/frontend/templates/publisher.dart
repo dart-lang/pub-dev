@@ -34,11 +34,12 @@ String renderCreatePublisherPage() {
 /// Renders the `views/publisher/publisher_list.mustache` template
 String renderPublisherList(List<Publisher> publishers,
     {@required bool isGlobal}) {
+  final noPublisherHtml = isGlobal
+      ? 'No publisher has been registered.'
+      : 'You are not a member of any <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publishers</a>.';
   return templateCache.renderTemplate('publisher/publisher_list', {
     'title': isGlobal ? 'Publishers' : null,
-    'no_publisher_message': isGlobal
-        ? 'No publisher has been registered.'
-        : 'You have no publisher',
+    'no_publisher_message_html': noPublisherHtml,
     'has_publishers': publishers.isNotEmpty,
     'publishers': publishers
         .map(
