@@ -56,7 +56,7 @@ Recent versions (0.3.x and 0.4.x) of this plugin require [extensible codec funct
         'packages': [
           {
             'package': 'currency_cloud',
-            'score': closeTo(0.879, 0.001),
+            'score': closeTo(0.79, 0.01),
           },
           // cloud_firestore should not show up
         ],

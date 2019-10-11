@@ -395,18 +395,18 @@ class SimplePackageIndex implements PackageIndex {
         final name = Score(_nameIndex.scoreDocs(nameTokens,
             weight: 1.00, wordCount: wordCount));
         final descr = Score(_descrIndex.scoreDocs(descrTokens,
-            weight: 0.95, wordCount: wordCount));
-        final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
             weight: 0.90, wordCount: wordCount));
+        final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
+            weight: 0.75, wordCount: wordCount));
 
         Score apiScore;
         if (isExperimental) {
           final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
           final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
           final symbolPages = Score(_apiSymbolIndex.scoreDocs(apiSymbolTokens,
-              weight: 0.95, wordCount: wordCount));
+              weight: 0.80, wordCount: wordCount));
           final dartdocPages = Score(_apiDartdocIndex
-              .scoreDocs(apiDartdocTokens, weight: 0.90, wordCount: wordCount));
+              .scoreDocs(apiDartdocTokens, weight: 0.60, wordCount: wordCount));
           final apiPages = Score.max([symbolPages, dartdocPages]);
           apiPagesScores.add(apiPages);
 
