@@ -52,7 +52,7 @@ abstract class GoogleAuth {
 
   /// Triggers a sign-in, and returns a Promise that will complete when the
   /// sign-in is finalized.
-  external dynamic signIn();
+  external dynamic signIn([SignInOptions options]);
 
   /// Triggers a sign-out, and returns a Promise that will complete when the
   /// sign-out is finalized.
@@ -154,5 +154,18 @@ abstract class GrantOptions {
 
   external factory GrantOptions({
     String scope,
+  });
+}
+
+/// https://developers.google.com/identity/sign-in/web/reference#gapiauth2signinoptions
+@JS()
+@anonymous
+abstract class SignInOptions {
+  /// `consent`, `select_account`, `none`
+  external String get prompt;
+
+  external factory SignInOptions({
+    /// `consent`, `select_account`, `none`
+    String prompt,
   });
 }
