@@ -49,6 +49,32 @@ class ClientSessionStatus {
   bool get isValid => expires != null && DateTime.now().isBefore(expires);
 }
 
+/// Account-specific information about a likes.
+@JsonSerializable()
+class PackageLikes {
+  List<PackageLike> likedPackages;
+  PackageLikes(this.likedPackages);
+
+  factory PackageLikes.fromJson(Map<String, dynamic> json) =>
+      _$PackageLikesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageLikesToJson(this);
+}
+
+@JsonSerializable()
+class PackageLike {
+  String package;
+  bool liked;
+
+  PackageLike({@required this.package, @required this.liked});
+
+  factory PackageLike.fromJson(Map<String, dynamic> json) =>
+      _$PackageLikeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageLikeToJson(this);
+}
+
+
 /// Account-specific information about a package.
 @JsonSerializable()
 class AccountPkgOptions {

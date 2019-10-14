@@ -328,6 +328,60 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/account/likes', (Request request) async {
+    try {
+      final _$result = await service.getLikes(
+        request,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('GET', r'/api/account/likes/<package>',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.getLikePackage(
+        request,
+        package,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('PUT', r'/api/account/likes/<package>',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.likePackage(
+        request,
+        package,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('DELETE', r'/api/account/likes/<package>',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.accountDeletePackageLike(
+        request,
+        package,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/documentation/<package>',
       (Request request, String package) async {
     try {

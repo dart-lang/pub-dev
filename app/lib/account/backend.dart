@@ -180,6 +180,47 @@ class AccountBackend {
     return user;
   }
 
+  /// Returns `true` if the given [user] likes the package named [package].
+  /// Otherwise returns `false`.
+  Future<bool> getPackageLikeStatus(User user, String package) async {
+    final key =
+        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+    try {
+      await _db.lookup([key]);
+    } on KeyNotFoundException {
+      return false;
+    }
+    return true;
+  }
+
+  /// Return an iterable with the names of all the packages that the given [user] likes.
+  Future<Iterable<String>> listPackagesLikes(User user) async {
+    final likes = await _db.query<Like>(ancestorKey: user.key).run().toList();
+    return likes.map((Like l) => l.package);
+  }
+
+  /// Creates an a package like entry for the given [user] and [package].
+  Future<void> putPackageLike(User user, String package) async {
+    final newLike = Like()
+      ..parentKey = user.key
+      ..id = package;
+    newLike.created = DateTime.now().toUtc();
+    await _db.commit(inserts: [newLike]);
+  }
+
+  /// Delete a package like entry for the given [user] and [package] if it exists.
+  Future<void> deletePackageLike(User user, String package) async {
+    final key =
+        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+    try {
+      await _db.lookupValue(key);
+    } on KeyNotFoundException {
+      return;
+    }
+
+    await _db.commit(deletes: [key]);
+  }
+
   /// Returns the URL of the authorization endpoint used by pub site.
   String siteAuthorizationUrl(String redirectUrl, String state) {
     return _authProvider.authorizationUrl(redirectUrl, state);

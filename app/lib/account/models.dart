@@ -9,6 +9,18 @@ import 'package:ulid/ulid.dart';
 
 part 'models.g.dart';
 
+/// Like data model
+@db.Kind(name: 'Like', idType: db.IdType.String)
+class Like extends db.ExpandoModel {
+
+  String get userId => parentKey.id as String;
+
+  String get package => id as String;
+
+  @db.DateTimeProperty()
+  DateTime created;
+}
+
 /// User data model with a random UUID id.
 @db.Kind(name: 'User', idType: db.IdType.String)
 class User extends db.ExpandoModel {

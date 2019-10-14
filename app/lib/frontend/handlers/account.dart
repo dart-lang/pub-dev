@@ -117,6 +117,55 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
       isAdmin: await packageBackend.isPackageAdmin(p, user.userId));
 }
 
+/// Handles GET /api/account/likes
+Future<PackageLikes> packageLikesHandler(shelf.Request request) async {
+  final user = await requireAuthenticatedUser();
+  final packages = await accountBackend.listPackagesLikes(user);
+  final List<PackageLike> packageLikes = List.from(
+      packages.map((String p) => PackageLike(liked: true, package: p)));
+  return PackageLikes(packageLikes);
+}
+
+/// Handles GET /api/account/likes/<package>
+Future<PackageLike> getPackageLikeStatusHandler(
+    shelf.Request request, String package) async {
+  final user = await requireAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  final userLikesPackage =
+      await accountBackend.getPackageLikeStatus(user, package);
+  return PackageLike(liked: userLikesPackage, package: package);
+}
+
+/// Handles PUT /api/account/likes/<package>
+Future<PackageLike> putPackageLikeHandler(
+    shelf.Request request, String package) async {
+  final user = await requireAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  await accountBackend.putPackageLike(user, package);
+  return PackageLike(liked: true, package: package);
+}
+
+/// Handles DELETE /api/account/likes/<package>
+Future<shelf.Response> deletePackageLikeHandler(
+    shelf.Request request, String package) async {
+  final user = await requireAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  await accountBackend.deletePackageLike(user, package);
+  return shelf.Response(204);
+}
+
 /// Handles /api/account/options/publishers/<publisherId>
 Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {
