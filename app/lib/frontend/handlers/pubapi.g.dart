@@ -330,7 +330,7 @@ Router _$PubApiRouter(PubApi service) {
   });
   router.add('GET', r'/api/account/likes', (Request request) async {
     try {
-      final _$result = await service.getLikes(
+      final _$result = await service.listPackageLikes(
         request,
       );
       return $utilities.jsonResponse(_$result.toJson());
@@ -371,7 +371,7 @@ Router _$PubApiRouter(PubApi service) {
   router.add('DELETE', r'/api/account/likes/<package>',
       (Request request, String package) async {
     try {
-      final _$result = await service.accountDeletePackageLike(
+      final _$result = await service.unlikePackage(
         request,
         package,
       );

@@ -66,7 +66,6 @@ class OAuthUserID extends db.ExpandoModel {
   String get userId => userIdKey.id as String;
 }
 
-
 /// Data model for [Like] entities.
 ///
 /// Key properties:
@@ -77,7 +76,6 @@ class OAuthUserID extends db.ExpandoModel {
 /// When a user unlikes a package the [Like] entity is deleted
 @db.Kind(name: 'Like', idType: db.IdType.String)
 class Like extends db.ExpandoModel {
-
   String get userId => parentKey.id as String;
   String get package => id as String;
 

@@ -200,12 +200,13 @@ class AccountBackend {
   }
 
   /// Creates an a package like entry for the given [user] and [package].
-  Future<void> likePackage(User user, String package) async {
+  Future<Like> likePackage(User user, String package) async {
     final newLike = Like()
       ..parentKey = user.key
-      ..id = package;
-    newLike.created = DateTime.now().toUtc();
+      ..id = package
+      ..created = DateTime.now().toUtc();
     await _db.commit(inserts: [newLike]);
+    return newLike;
   }
 
   /// Delete a package like entry for the given [user] and [package] if it exists.

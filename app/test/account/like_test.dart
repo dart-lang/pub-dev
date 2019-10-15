@@ -30,7 +30,7 @@ void main() {
 
     testWithServices('List package likes', () async {
       final client = createPubApiClient(authToken: hansUser.userId);
-      final rs = await client.getLikes();
+      final rs = await client.listPackageLikes();
       expect(rs.likedPackages.isEmpty, true);
 
       final rs2 = await client.likePackage('hydrogen');
@@ -41,7 +41,7 @@ void main() {
       expect(rs3.package, 'helium');
       expect(rs3.liked, true);
 
-      final rs4 = await client.getLikes();
+      final rs4 = await client.listPackageLikes();
       expect(rs4.likedPackages.length, 2);
       expect(rs4.likedPackages[0].liked, true);
       expect(rs4.likedPackages[1].liked, true);
@@ -49,7 +49,7 @@ void main() {
 
     testWithServices('Delete package like', () async {
       final client = createPubApiClient(authToken: hansUser.userId);
-      final rs = await client.getLikes();
+      final rs = await client.listPackageLikes();
       expect(rs.likedPackages.isEmpty, true);
 
       final rs2 = await client.likePackage('hydrogen');
@@ -60,18 +60,18 @@ void main() {
       expect(rs3.package, 'helium');
       expect(rs3.liked, true);
 
-      final rs4 = await client.getLikes();
+      final rs4 = await client.listPackageLikes();
       expect(rs4.likedPackages.length, 2);
       expect(rs4.likedPackages[0].liked, true);
       expect(rs4.likedPackages[1].liked, true);
 
-      await client.accountDeletePackageLike('hydrogen');
+      await client.unlikePackage('hydrogen');
 
       final rs5 = await client.getLikePackage('hydrogen');
       expect(rs5.package, 'hydrogen');
       expect(rs5.liked, false);
 
-      final rs6 = await client.getLikes();
+      final rs6 = await client.listPackageLikes();
       expect(rs6.likedPackages.length, 1);
       expect(rs6.likedPackages[0].package, 'helium');
     });
@@ -81,18 +81,18 @@ void main() {
       final client = createPubApiClient(authToken: hansUser.userId);
       final client2 = createPubApiClient(authToken: joeUser.userId);
 
-      final rs = await client.getLikes();
+      final rs = await client.listPackageLikes();
       expect(rs.likedPackages.isEmpty, true);
 
-      final rs1 = await client2.getLikes();
+      final rs1 = await client2.listPackageLikes();
       expect(rs1.likedPackages.isEmpty, true);
 
       final rs2 = await client.likePackage('hydrogen');
       expect(rs2.package, 'hydrogen');
       expect(rs2.liked, true);
 
-      final rs3 = await client2.getLikes();
-      expect(rs1.likedPackages.isEmpty, true);
+      final rs3 = await client2.listPackageLikes();
+      expect(rs3.likedPackages.isEmpty, true);
     });
   });
 }

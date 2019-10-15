@@ -187,7 +187,7 @@ class PubApiClient {
     ));
   }
 
-  Future<_i4.LikedPackagesRepsonse> getLikes() async {
+  Future<_i4.LikedPackagesRepsonse> listPackageLikes() async {
     return _i4.LikedPackagesRepsonse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/account/likes',
@@ -208,7 +208,7 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> accountDeletePackageLike(String package) async {
+  Future<List<int>> unlikePackage(String package) async {
     return await _client.requestBytes(
       verb: 'delete',
       path: '/api/account/likes/$package',

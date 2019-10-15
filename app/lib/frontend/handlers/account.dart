@@ -118,7 +118,8 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
 }
 
 /// Handles GET /api/account/likes
-Future<LikedPackagesRepsonse> packageLikesHandler(shelf.Request request) async {
+Future<LikedPackagesRepsonse> listPackageLikesHandler(
+    shelf.Request request) async {
   final user = await requireAuthenticatedUser();
   final packages = await accountBackend.listPackageLikes(user);
   final List<PackageLikeResponse> packageLikes = List.from(
@@ -127,7 +128,7 @@ Future<LikedPackagesRepsonse> packageLikesHandler(shelf.Request request) async {
 }
 
 /// Handles GET /api/account/likes/<package>
-Future<PackageLikeResponse> getPackageLikeStatusHandler(
+Future<PackageLikeResponse> getLikePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
@@ -144,7 +145,7 @@ Future<PackageLikeResponse> getPackageLikeStatusHandler(
 }
 
 /// Handles PUT /api/account/likes/<package>
-Future<PackageLikeResponse> putPackageLikeHandler(
+Future<PackageLikeResponse> likePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
@@ -152,12 +153,12 @@ Future<PackageLikeResponse> putPackageLikeHandler(
     throw NotFoundException.resource(package);
   }
 
-  await accountBackend.likePackage(user, package);
-  return PackageLikeResponse(liked: true, package: package);
+  final l = await accountBackend.likePackage(user, package);
+  return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
 
 /// Handles DELETE /api/account/likes/<package>
-Future<shelf.Response> deletePackageLikeHandler(
+Future<shelf.Response> unlikePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
   final p = await packageBackend.lookupPackage(package);
