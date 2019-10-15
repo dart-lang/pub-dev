@@ -180,8 +180,7 @@ class AccountBackend {
     return user;
   }
 
-  /// Returns `true` if the given [user] likes the package named [package].
-  /// Otherwise returns `false`.
+  /// Returns [Like] if [user] likes [package], otherwise returns `null`.
   Future<Like> getPackageLikeStatus(User user, String package) async {
     final key =
         _db.emptyKey.append(User, id: user.id).append(Like, id: package);
