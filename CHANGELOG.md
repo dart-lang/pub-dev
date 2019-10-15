@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191015t141342-all`
+ * Minor fixes to publisher texts.
+
 ## `20191010t103137-all`
  * Minor template adjustments.
 
