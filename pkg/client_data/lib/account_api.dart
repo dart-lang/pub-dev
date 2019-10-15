@@ -49,31 +49,35 @@ class ClientSessionStatus {
   bool get isValid => expires != null && DateTime.now().isBefore(expires);
 }
 
-/// Account-specific information about a likes.
+/// Response from listing of likes.
 @JsonSerializable()
-class PackageLikes {
-  List<PackageLike> likedPackages;
-  PackageLikes(this.likedPackages);
+class LikedPackagesRepsonse {
+  List<PackageLikeResponse> likedPackages;
+  LikedPackagesRepsonse({@required this.likedPackages});
 
-  factory PackageLikes.fromJson(Map<String, dynamic> json) =>
-      _$PackageLikesFromJson(json);
+  factory LikedPackagesRepsonse.fromJson(Map<String, dynamic> json) =>
+      _$LikedPackagesRepsonseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PackageLikesToJson(this);
+  Map<String, dynamic> toJson() => _$LikedPackagesRepsonseToJson(this);
 }
 
+/// Response from quering or putting a package like.
+///
+/// [created] might be null when [liked] is `false`.
 @JsonSerializable()
-class PackageLike {
+class PackageLikeResponse {
   String package;
   bool liked;
+  DateTime created;
 
-  PackageLike({@required this.package, @required this.liked});
+  PackageLikeResponse(
+      {@required this.package, @required this.liked, this.created});
 
-  factory PackageLike.fromJson(Map<String, dynamic> json) =>
-      _$PackageLikeFromJson(json);
+  factory PackageLikeResponse.fromJson(Map<String, dynamic> json) =>
+      _$PackageLikeResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PackageLikeToJson(this);
+  Map<String, dynamic> toJson() => _$PackageLikeResponseToJson(this);
 }
-
 
 /// Account-specific information about a package.
 @JsonSerializable()

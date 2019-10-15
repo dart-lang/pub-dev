@@ -182,25 +182,26 @@ class AccountBackend {
 
   /// Returns `true` if the given [user] likes the package named [package].
   /// Otherwise returns `false`.
-  Future<bool> getPackageLikeStatus(User user, String package) async {
+  Future<Like> getPackageLikeStatus(User user, String package) async {
     final key =
         _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+    Like like;
     try {
-      await _db.lookup([key]);
+      like = await _db.lookupValue(key);
     } on KeyNotFoundException {
-      return false;
+      return null;
     }
-    return true;
+    return like;
   }
 
   /// Return an iterable with the names of all the packages that the given [user] likes.
-  Future<Iterable<String>> listPackagesLikes(User user) async {
+  Future<List<String>> listPackageLikes(User user) async {
     final likes = await _db.query<Like>(ancestorKey: user.key).run().toList();
-    return likes.map((Like l) => l.package);
+    return likes.map((Like l) => l.package).toList();
   }
 
   /// Creates an a package like entry for the given [user] and [package].
-  Future<void> putPackageLike(User user, String package) async {
+  Future<void> likePackage(User user, String package) async {
     final newLike = Like()
       ..parentKey = user.key
       ..id = package;
@@ -209,7 +210,7 @@ class AccountBackend {
   }
 
   /// Delete a package like entry for the given [user] and [package] if it exists.
-  Future<void> deletePackageLike(User user, String package) async {
+  Future<void> unlikePackage(User user, String package) async {
     final key =
         _db.emptyKey.append(User, id: user.id).append(Like, id: package);
     try {
@@ -217,7 +218,6 @@ class AccountBackend {
     } on KeyNotFoundException {
       return;
     }
-
     await _db.commit(deletes: [key]);
   }
 

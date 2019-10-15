@@ -187,22 +187,22 @@ class PubApiClient {
     ));
   }
 
-  Future<_i4.PackageLikes> getLikes() async {
-    return _i4.PackageLikes.fromJson(await _client.requestJson(
+  Future<_i4.LikedPackagesRepsonse> getLikes() async {
+    return _i4.LikedPackagesRepsonse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/account/likes',
     ));
   }
 
-  Future<_i4.PackageLike> getLikePackage(String package) async {
-    return _i4.PackageLike.fromJson(await _client.requestJson(
+  Future<_i4.PackageLikeResponse> getLikePackage(String package) async {
+    return _i4.PackageLikeResponse.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/account/likes/$package',
     ));
   }
 
-  Future<_i4.PackageLike> likePackage(String package) async {
-    return _i4.PackageLike.fromJson(await _client.requestJson(
+  Future<_i4.PackageLikeResponse> likePackage(String package) async {
+    return _i4.PackageLikeResponse.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/account/likes/$package',
     ));
