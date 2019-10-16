@@ -135,7 +135,7 @@ class ConsentBackend {
       inviteText: action.renderInviteText(activeUserEmail, consent.args),
       consentUrl: consentUrl(consent.consentId),
     ));
-    return await _db.withTransaction((tx) async {
+    return (await _db.withTransaction((tx) async {
       final c = (await tx.lookup<Consent>([consent.key])).single;
       c.notificationCount++;
       c.lastNotified = DateTime.now().toUtc();
@@ -143,7 +143,7 @@ class ConsentBackend {
       await tx.commit();
       return api.InviteStatus(
           emailSent: true, nextNotification: c.nextNotification);
-    }) as api.InviteStatus;
+    })) as api.InviteStatus;
   }
 
   /// Removes obsolete/expired [Consent] entries from Datastore.
