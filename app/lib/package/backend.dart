@@ -620,8 +620,7 @@ class GCloudPackageRepository extends PackageRepository {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
-    final pv =
-        await db.withTransaction<models.PackageVersion>((Transaction T) async {
+    final pv = await db.withTransaction<PackageVersion>((Transaction T) async {
       _logger.info('Starting datastore transaction.') as PackageVersion;
 
       final tuple = (await T.lookup([newVersion.key, newVersion.packageKey]));

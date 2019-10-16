@@ -143,7 +143,7 @@ class ConsentBackend {
       await tx.commit();
       return api.InviteStatus(
           emailSent: true, nextNotification: c.nextNotification);
-    }) ;
+    });
   }
 
   /// Removes obsolete/expired [Consent] entries from Datastore.
