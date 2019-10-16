@@ -48,6 +48,9 @@ class Package extends db.ExpandoModel {
   @db.IntProperty()
   int downloads;
 
+  @db.IntProperty()
+  int likes;
+
   @db.ModelKeyProperty(propertyName: 'latest_version')
   db.Key latestVersionKey;
 

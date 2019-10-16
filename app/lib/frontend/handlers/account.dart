@@ -148,11 +148,6 @@ Future<PackageLikeResponse> getLikePackageHandler(
 Future<PackageLikeResponse> likePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
-  final p = await packageBackend.lookupPackage(package);
-  if (p == null) {
-    throw NotFoundException.resource(package);
-  }
-
   final l = await accountBackend.likePackage(user, package);
   return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
@@ -161,10 +156,6 @@ Future<PackageLikeResponse> likePackageHandler(
 Future<shelf.Response> unlikePackageHandler(
     shelf.Request request, String package) async {
   final user = await requireAuthenticatedUser();
-  final p = await packageBackend.lookupPackage(package);
-  if (p == null) {
-    throw NotFoundException.resource(package);
-  }
 
   await accountBackend.unlikePackage(user, package);
   return shelf.Response(204);

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart' as api;
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -365,6 +366,16 @@ class PackageBackend {
       throw NotFoundException.resource('package "$packageName"');
     }
     return _asPackagePublisherInfo(package);
+  }
+
+  /// Returns the number of likes of a given package.
+  Future<PackageLikesCount> getPackageLikesCount(String packageName) async {
+    final key = db.emptyKey.append(models.Package, id: packageName);
+    final package = (await db.lookup<models.Package>([key])).single;
+    if (package == null) {
+      throw NotFoundException.resource('package "$packageName"');
+    }
+    return PackageLikesCount(package: packageName, likes: package.likes);
   }
 
   /// Sets/updates the publisher of a package.
@@ -1002,7 +1013,8 @@ models.Package _newPackageFromVersion(
     ..downloads = 0
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
-    ..uploaders = [userId];
+    ..uploaders = [userId]
+    ..likes = 0;
 }
 
 class _ValidatedUpload {
