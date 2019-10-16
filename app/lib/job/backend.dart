@@ -322,7 +322,7 @@ class JobBackend {
   Future<R> _retryWithTransaction<R>(Future<R> fn(db.Transaction tx)) async {
     return await retry(
       () async {
-        final r = (await _db.withTransaction(fn)) as R;
+        final r = await _db.withTransaction<R>(fn);
         return r;
       },
       maxDelay: const Duration(seconds: 2),

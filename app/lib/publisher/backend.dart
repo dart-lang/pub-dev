@@ -207,7 +207,7 @@ class PublisherBackend {
     }
     final user = await requireAuthenticatedUser();
     await requirePublisherAdmin(publisherId, user.userId);
-    final p = (await _db.withTransaction((tx) async {
+    final p = await _db.withTransaction<Publisher>((tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = (await tx.lookup<Publisher>([key])).single;
 
@@ -255,7 +255,7 @@ class PublisherBackend {
       tx.queueMutations(inserts: [p]);
       await tx.commit();
       return p;
-    })) as Publisher;
+    });
 
     await purgePublisherCache(publisherId: publisherId);
     return _asPublisherInfo(p);
