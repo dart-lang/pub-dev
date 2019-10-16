@@ -183,7 +183,7 @@ class PackageBackend {
     final inviteId = models.PackageInvite.createId(type, recipientEmail);
     final pkgKey = db.emptyKey.append(models.Package, id: packageName);
     final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
-    return await db.withTransaction((tx) async {
+    return (await db.withTransaction((tx) async {
       final list = await tx.lookup([inviteKey]);
       models.PackageInvite invite = list.single as models.PackageInvite;
 
@@ -234,7 +234,7 @@ class PackageBackend {
       tx.queueMutations(inserts: inserts);
       await tx.commit();
       return InviteStatus(urlNonce: invite.urlNonce);
-    }) as InviteStatus;
+    })) as InviteStatus;
   }
 
   /// Get the invite or return null if it does not exist or is not valid anymore.
@@ -376,7 +376,7 @@ class PackageBackend {
     final key = db.emptyKey.append(models.Package, id: packageName);
     await requirePackageAdmin(packageName, user.userId);
     await requirePublisherAdmin(request.publisherId, user.userId);
-    final rs = await db.withTransaction((tx) async {
+    final rs = (await db.withTransaction((tx) async {
       final package = (await db.lookup<models.Package>([key])).single;
       final fromPublisherId = package.publisherId;
       package.publisherId = request.publisherId;
@@ -396,10 +396,10 @@ class PackageBackend {
       tx.queueMutations(inserts: [package, history]);
       await tx.commit();
       return _asPackagePublisherInfo(package);
-    });
+    })) as api.PackagePublisherInfo;
     await purgePublisherCache(publisherId: request.publisherId);
     await purgePackageCache(packageName);
-    return rs as api.PackagePublisherInfo;
+    return rs;
   }
 
   /// Moves the package out of its current publisher.

@@ -282,13 +282,13 @@ class AccountBackend {
 
     // update user if email has been changed
     if (user.email != auth.email) {
-      return await _db.withTransaction((tx) async {
+      return (await _db.withTransaction((tx) async {
         final u = (await _db.lookup<User>([user.key])).single;
         u.email = auth.email;
         tx.queueMutations(inserts: [u]);
         await tx.commit();
         return u;
-      }) as User;
+      })) as User;
     }
 
     return user;

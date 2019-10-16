@@ -322,8 +322,8 @@ class JobBackend {
   Future<R> _retryWithTransaction<R>(Future<R> fn(db.Transaction tx)) async {
     return await retry(
       () async {
-        final r = await _db.withTransaction(fn);
-        return r as R;
+        final r = (await _db.withTransaction(fn)) as R;
+        return r;
       },
       maxDelay: const Duration(seconds: 2),
       retryIf: (ex) => ex is DatastoreError,
