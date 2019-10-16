@@ -221,6 +221,22 @@ class PubApi {
           Request request, String publisherId) =>
       accountPublisherOptionsHandler(request, publisherId);
 
+  @EndPoint.get('/api/account/likes')
+  Future<LikedPackagesRepsonse> listPackageLikes(Request request) =>
+      listPackageLikesHandler(request);
+
+  @EndPoint.get('/api/account/likes/<package>')
+  Future<PackageLikeResponse> getLikePackage(Request request, String package) =>
+      getLikePackageHandler(request, package);
+
+  @EndPoint.put('/api/account/likes/<package>')
+  Future<PackageLikeResponse> likePackage(Request request, String package) =>
+      likePackageHandler(request, package);
+
+  @EndPoint.delete('/api/account/likes/<package>')
+  Future<Response> unlikePackage(Request request, String package) =>
+      unlikePackageHandler(request, package);
+
   @EndPoint.get('/api/documentation/<package>')
   Future<Response> documentation(Request request, String package) =>
       apiDocumentationHandler(request, package);

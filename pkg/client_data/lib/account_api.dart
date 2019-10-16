@@ -49,6 +49,36 @@ class ClientSessionStatus {
   bool get isValid => expires != null && DateTime.now().isBefore(expires);
 }
 
+/// Response from listing of likes.
+@JsonSerializable()
+class LikedPackagesRepsonse {
+  List<PackageLikeResponse> likedPackages;
+  LikedPackagesRepsonse({@required this.likedPackages});
+
+  factory LikedPackagesRepsonse.fromJson(Map<String, dynamic> json) =>
+      _$LikedPackagesRepsonseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LikedPackagesRepsonseToJson(this);
+}
+
+/// Response from quering or putting a package like.
+///
+/// [created] might be null when [liked] is `false`.
+@JsonSerializable()
+class PackageLikeResponse {
+  String package;
+  bool liked;
+  DateTime created;
+
+  PackageLikeResponse(
+      {@required this.package, @required this.liked, this.created});
+
+  factory PackageLikeResponse.fromJson(Map<String, dynamic> json) =>
+      _$PackageLikeResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageLikeResponseToJson(this);
+}
+
 /// Account-specific information about a package.
 @JsonSerializable()
 class AccountPkgOptions {

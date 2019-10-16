@@ -117,6 +117,59 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
       isAdmin: await packageBackend.isPackageAdmin(p, user.userId));
 }
 
+/// Handles GET /api/account/likes
+Future<LikedPackagesRepsonse> listPackageLikesHandler(
+    shelf.Request request) async {
+  final user = await requireAuthenticatedUser();
+  final packages = await accountBackend.listPackageLikes(user);
+  final List<PackageLikeResponse> packageLikes = List.from(
+      packages.map((String p) => PackageLikeResponse(liked: true, package: p)));
+  return LikedPackagesRepsonse(likedPackages: packageLikes);
+}
+
+/// Handles GET /api/account/likes/<package>
+Future<PackageLikeResponse> getLikePackageHandler(
+    shelf.Request request, String package) async {
+  final user = await requireAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  final like = await accountBackend.getPackageLikeStatus(user, package);
+  return PackageLikeResponse(
+    liked: like != null,
+    package: package,
+    created: like?.created,
+  );
+}
+
+/// Handles PUT /api/account/likes/<package>
+Future<PackageLikeResponse> likePackageHandler(
+    shelf.Request request, String package) async {
+  final user = await requireAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  final l = await accountBackend.likePackage(user, package);
+  return PackageLikeResponse(liked: true, package: package, created: l.created);
+}
+
+/// Handles DELETE /api/account/likes/<package>
+Future<shelf.Response> unlikePackageHandler(
+    shelf.Request request, String package) async {
+  final user = await requireAuthenticatedUser();
+  final p = await packageBackend.lookupPackage(package);
+  if (p == null) {
+    throw NotFoundException.resource(package);
+  }
+
+  await accountBackend.unlikePackage(user, package);
+  return shelf.Response(204);
+}
+
 /// Handles /api/account/options/publishers/<publisherId>
 Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     shelf.Request request, String publisherId) async {

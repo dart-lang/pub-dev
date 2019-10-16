@@ -33,6 +33,41 @@ Map<String, dynamic> _$ClientSessionStatusToJson(
       'expires': instance.expires?.toIso8601String(),
     };
 
+LikedPackagesRepsonse _$LikedPackagesRepsonseFromJson(
+    Map<String, dynamic> json) {
+  return LikedPackagesRepsonse(
+    likedPackages: (json['likedPackages'] as List)
+        ?.map((e) => e == null
+            ? null
+            : PackageLikeResponse.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$LikedPackagesRepsonseToJson(
+        LikedPackagesRepsonse instance) =>
+    <String, dynamic>{
+      'likedPackages': instance.likedPackages,
+    };
+
+PackageLikeResponse _$PackageLikeResponseFromJson(Map<String, dynamic> json) {
+  return PackageLikeResponse(
+    package: json['package'] as String,
+    liked: json['liked'] as bool,
+    created: json['created'] == null
+        ? null
+        : DateTime.parse(json['created'] as String),
+  );
+}
+
+Map<String, dynamic> _$PackageLikeResponseToJson(
+        PackageLikeResponse instance) =>
+    <String, dynamic>{
+      'package': instance.package,
+      'liked': instance.liked,
+      'created': instance.created?.toIso8601String(),
+    };
+
 AccountPkgOptions _$AccountPkgOptionsFromJson(Map<String, dynamic> json) {
   return AccountPkgOptions(
     isAdmin: json['isAdmin'] as bool,

@@ -180,6 +180,47 @@ class AccountBackend {
     return user;
   }
 
+  /// Returns [Like] if [user] likes [package], otherwise returns `null`.
+  Future<Like> getPackageLikeStatus(User user, String package) async {
+    final key =
+        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+    Like like;
+    try {
+      like = await _db.lookupValue(key);
+    } on KeyNotFoundException {
+      return null;
+    }
+    return like;
+  }
+
+  /// Return an iterable with the names of all the packages that the given [user] likes.
+  Future<List<String>> listPackageLikes(User user) async {
+    final likes = await _db.query<Like>(ancestorKey: user.key).run().toList();
+    return likes.map((Like l) => l.package).toList();
+  }
+
+  /// Creates an a package like entry for the given [user] and [package].
+  Future<Like> likePackage(User user, String package) async {
+    final newLike = Like()
+      ..parentKey = user.key
+      ..id = package
+      ..created = DateTime.now().toUtc();
+    await _db.commit(inserts: [newLike]);
+    return newLike;
+  }
+
+  /// Delete a package like entry for the given [user] and [package] if it exists.
+  Future<void> unlikePackage(User user, String package) async {
+    final key =
+        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+    try {
+      await _db.lookupValue(key);
+    } on KeyNotFoundException {
+      return;
+    }
+    await _db.commit(deletes: [key]);
+  }
+
   /// Returns the URL of the authorization endpoint used by pub site.
   String siteAuthorizationUrl(String redirectUrl, String state) {
     return _authProvider.authorizationUrl(redirectUrl, state);
@@ -247,7 +288,7 @@ class AccountBackend {
           !usersWithEmail.single.isDeleted) {
         // We've found a single pre-migrated, non-deleted User with empty
         // `oauthUserId` field: need to create OAuthUserID for it.
-        final updatedUser = await _db.withTransaction((tx) async {
+        final updatedUser = await _db.withTransaction<User>((tx) async {
           final user =
               (await tx.lookup<User>([usersWithEmail.single.key])).single;
           final newMapping = OAuthUserID()
@@ -258,7 +299,7 @@ class AccountBackend {
           tx.queueMutations(inserts: [user, newMapping]);
           await tx.commit();
           return user;
-        }) as User;
+        });
         return updatedUser;
       }
 
@@ -282,13 +323,13 @@ class AccountBackend {
 
     // update user if email has been changed
     if (user.email != auth.email) {
-      return (await _db.withTransaction((tx) async {
+      return await _db.withTransaction<User>((tx) async {
         final u = (await _db.lookup<User>([user.key])).single;
         u.email = auth.email;
         tx.queueMutations(inserts: [u]);
         await tx.commit();
         return u;
-      })) as User;
+      });
     }
 
     return user;

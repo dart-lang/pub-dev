@@ -66,6 +66,23 @@ class OAuthUserID extends db.ExpandoModel {
   String get userId => userIdKey.id as String;
 }
 
+/// Data model for [Like] entities.
+///
+/// Key properties:
+///  * `id`: name of the package that is liked.
+///  * `parentKey`: key of the user that liked the package.
+///
+/// A [Like] entity is created when [userId] likes [package].
+/// When a user unlikes a package the [Like] entity is deleted
+@db.Kind(name: 'Like', idType: db.IdType.String)
+class Like extends db.ExpandoModel {
+  String get userId => parentKey.id as String;
+  String get package => id as String;
+
+  @db.DateTimeProperty()
+  DateTime created;
+}
+
 /// Maps the session id (from cookie) to User.id and cached profile properties.
 @db.Kind(name: 'UserSession', idType: db.IdType.String)
 class UserSession extends db.ExpandoModel {
