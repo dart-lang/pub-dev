@@ -1,11 +1,21 @@
 /******************************************************
   package list
 ******************************************************/
-.package-list {
+.package-list, .publisher-list {
   clear: both;
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+.publisher-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.publisher-list > li {
+  /* Ensures 3 items per row */
+  flex: 1 1 26%;
 }
 
 .list-item {
