@@ -434,7 +434,6 @@ class PackageView extends Object with FlagMixin {
   final String devVersion;
   final String ellipsizedDescription;
   final String shortUpdated;
-  final List<String> authors;
   @override
   final List<String> flags;
   final String publisherId;
@@ -452,7 +451,6 @@ class PackageView extends Object with FlagMixin {
     this.devVersion,
     this.ellipsizedDescription,
     this.shortUpdated,
-    this.authors,
     this.flags,
     this.publisherId,
     this.isAwaiting = false,
@@ -485,7 +483,6 @@ class PackageView extends Object with FlagMixin {
       devVersion: devVersion,
       ellipsizedDescription: version?.ellipsizedDescription,
       shortUpdated: version?.shortCreated ?? package?.shortUpdated,
-      authors: version?.pubspec?.authors,
       flags: scoreCard?.flags,
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
@@ -505,7 +502,6 @@ class PackageView extends Object with FlagMixin {
       devVersion: devVersion,
       ellipsizedDescription: ellipsizedDescription,
       shortUpdated: shortUpdated,
-      authors: authors,
       flags: flags,
       publisherId: publisherId,
       isAwaiting: isAwaiting,

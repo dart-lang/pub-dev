@@ -44,23 +44,21 @@ class FeedEntry {
   final String id;
   final String title;
   final DateTime updated;
-  final List<String> authors;
+  final String publisherId;
   final String content;
   final String alternateUrl;
   final String alternateTitle;
 
-  FeedEntry(this.id, this.title, this.updated, this.authors, this.content,
+  FeedEntry(this.id, this.title, this.updated, this.publisherId, this.content,
       this.alternateUrl, this.alternateTitle);
 
   void writeToXmlBuffer(StringBuffer buffer) {
     final escape = htmlEscape.convert;
 
     var authorTags = '';
-    if (authors.isNotEmpty) {
-      final escapedAuthors = authors.map(escape);
-      authorTags = '<author><name>'
-          '${escapedAuthors.join('</name></author><author><name>')}'
-          '</name></author>';
+    if (publisherId != null) {
+      final escapedAuthors = escape(publisherId);
+      authorTags = '<author><name>$escapedAuthors</name></author>';
     }
 
     buffer.writeln('''
@@ -154,9 +152,6 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
     final id = uuid.v5(Uuid.NAMESPACE_URL, seed);
     final title = 'v${version.version} of ${version.package}';
 
-    // NOTE: A pubspec.yaml file can have "author: ..." or "authors: ...".
-    final List<String> authors = version.pubspec.authors;
-
     var content = 'No README Found';
     if (version.readme != null) {
       final filename = version.readme.filename;
@@ -166,8 +161,8 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
       }
     }
 
-    return FeedEntry(id as String, title, version.created, authors, content,
-        alternateUrl, alternateTitle);
+    return FeedEntry(id as String, title, version.created, version.publisherId,
+        content, alternateUrl, alternateTitle);
   }).toList();
 
   final id =

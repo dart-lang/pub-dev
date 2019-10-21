@@ -163,16 +163,10 @@ String renderPkgInfoBox(
   addLink(documentationUrl, 'Documentation');
   addLink(dartdocsUrl, 'API reference');
 
-  final authorsCount = selectedVersion.pubspec.authors.length;
-
   return templateCache.renderTemplate('pkg/info_box', {
     'name': package.name,
     'description': selectedVersion.pubspec.description,
     'links': links,
-    'has_authors': package.publisherId == null &&
-        selectedVersion.pubspec.authors.isNotEmpty,
-    'authors_title': authorsCount > 1 ? 'Authors' : 'Author',
-    'authors_html': _getAuthorsHtml(selectedVersion.pubspec.authors),
     'publisher_id': package.publisherId,
     'publisher_link': package.publisherId == null
         ? null

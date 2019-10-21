@@ -18,7 +18,6 @@ import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
 import '../package/models.dart';
 import '../package/overrides.dart';
-import '../shared/email.dart' show EmailAddress;
 import '../shared/exceptions.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/storage.dart';
@@ -132,11 +131,6 @@ class SearchBackend {
     final Set<String> emails = Set<String>();
     final uploaderEmails = await accountBackend.getEmailsOfUserIds(p.uploaders);
     emails.addAll(uploaderEmails.where((email) => email != null));
-    for (String value in pv?.pubspec?.authors ?? []) {
-      final EmailAddress author = EmailAddress.parse(value);
-      if (author.email == null) continue;
-      emails.add(author.email);
-    }
     return emails.toList()..sort();
   }
 
