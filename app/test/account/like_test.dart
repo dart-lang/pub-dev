@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -22,10 +23,28 @@ void main() {
       final rs3 = await client.getLikePackage(hydrogen.package.name);
       expect(rs3.package, hydrogen.package.name);
       expect(rs3.liked, true);
+    });
 
-      final rs4 = await client.getLikePackage(hydrogen.package.name);
-      expect(rs4.package, hydrogen.package.name);
-      expect(rs4.liked, true);
+    testWithServices('Like already liked package', () async {
+      final client = createPubApiClient(authToken: hansUser.userId);
+
+      final rs = await client.likePackage(hydrogen.package.name);
+      expect(rs.package, hydrogen.package.name);
+      expect(rs.liked, true);
+
+      final rs2 = await client.likePackage(hydrogen.package.name);
+      expect(rs2.package, hydrogen.package.name);
+      expect(rs2.liked, true);
+
+      final rs3 = await client.getLikePackage(hydrogen.package.name);
+      expect(rs3.package, hydrogen.package.name);
+      expect(rs3.liked, true);
+    });
+
+    testWithServices('Like non-existing package', () async {
+      final client = createPubApiClient(authToken: hansUser.userId);
+      await expectApiException(client.likePackage('non-existing_package'),
+          status: 404);
     });
 
     testWithServices('List package likes', () async {
@@ -43,11 +62,15 @@ void main() {
 
       final rs4 = await client.listPackageLikes();
       expect(rs4.likedPackages.length, 2);
+      expect(rs4.likedPackages.map((e) => e.package),
+          contains(hydrogen.package.name));
+      expect(rs4.likedPackages.map((e) => e.package),
+          contains(helium.package.name));
       expect(rs4.likedPackages[0].liked, true);
       expect(rs4.likedPackages[1].liked, true);
     });
 
-    testWithServices('Delete package like', () async {
+    testWithServices('Unlike package', () async {
       final client = createPubApiClient(authToken: hansUser.userId);
       final rs = await client.listPackageLikes();
       expect(rs.likedPackages.isEmpty, true);
@@ -74,6 +97,12 @@ void main() {
       final rs6 = await client.listPackageLikes();
       expect(rs6.likedPackages.length, 1);
       expect(rs6.likedPackages[0].package, helium.package.name);
+    });
+
+    testWithServices('Unlike non-existing package', () async {
+      final client = createPubApiClient(authToken: hansUser.userId);
+      await expectApiException(client.unlikePackage('non-existing_package'),
+          status: 404);
     });
 
     testWithServices('Two users don\'t affect each other\'s package likes.',
@@ -126,12 +155,40 @@ void main() {
       final rs8 = await client2.getPackageLikes(hydrogen.package.name);
       expect(rs8.likes, 1);
 
-      await client2.unlikePackage(hydrogen.package.name);
+      /// Unliking already unliked package doesn't cause decrement
+      await client.unlikePackage(hydrogen.package.name);
 
       final rs9 = await client.getPackageLikes(hydrogen.package.name);
-      expect(rs9.likes, 0);
+      expect(rs9.likes, 1);
       final rs10 = await client2.getPackageLikes(hydrogen.package.name);
-      expect(rs10.likes, 0);
+      expect(rs10.likes, 1);
+
+      await client2.unlikePackage(hydrogen.package.name);
+
+      final rs11 = await client.getPackageLikes(hydrogen.package.name);
+      expect(rs11.likes, 0);
+      final rs12 = await client2.getPackageLikes(hydrogen.package.name);
+      expect(rs12.likes, 0);
+    });
+
+    testWithServices('Get number of likes for non-existing package.', () async {
+      final client = createPubApiClient(authToken: hansUser.userId);
+      await expectApiException(client.getPackageLikes('non-existing_package'),
+          status: 404);
+    });
+
+    testWithServices(
+        'Get number of likes for client without authorization header.',
+        () async {
+      final client = createPubApiClient();
+      final rs = await client.getPackageLikes(hydrogen.package.name);
+      expect(rs.likes, 0);
+
+      final authenticatedClient = createPubApiClient(authToken: hansUser.userId);
+      await authenticatedClient.likePackage(hydrogen.package.name);
+
+      final rs1 = await client.getPackageLikes(hydrogen.package.name);
+      expect(rs1.likes, 1);
     });
   });
 }

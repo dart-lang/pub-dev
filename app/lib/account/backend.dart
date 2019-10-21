@@ -185,13 +185,8 @@ class AccountBackend {
   Future<Like> getPackageLikeStatus(User user, String package) async {
     final key =
         _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-    Like like;
-    try {
-      like = await _db.lookupValue(key);
-    } on KeyNotFoundException {
-      return null;
-    }
-    return like;
+
+    return await _db.lookupValue<Like>(key, orElse: () => null);
   }
 
   /// Return an iterable with the names of all the packages that the given [user] likes.
@@ -203,9 +198,9 @@ class AccountBackend {
   /// Creates and returns a package like entry for the given [user] and
   /// [package], and increments the 'likes' property on [package].
   Future<Like> likePackage(User user, String package) async {
-    final like = await _db.withTransaction<Like>((tx) async {
+    return await _db.withTransaction<Like>((tx) async {
       final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupValue<Package>(packageKey);
+      final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
       if (p == null) {
         throw NotFoundException.resource(package);
       }
@@ -229,8 +224,6 @@ class AccountBackend {
       tx.commit();
       return newLike;
     });
-
-    return like;
   }
 
   /// Delete a package like entry for the given [user] and [package] if it
@@ -238,7 +231,7 @@ class AccountBackend {
   Future<void> unlikePackage(User user, String package) async {
     await _db.withTransaction<void>((tx) async {
       final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupValue<Package>(packageKey);
+      final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
       if (p == null) {
         throw NotFoundException.resource(package);
       }

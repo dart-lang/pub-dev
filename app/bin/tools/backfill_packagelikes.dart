@@ -43,10 +43,12 @@ Future main(List<String> args) async {
 Future<void> _backfillPackageLikes(Package p) async {
   if (p.likes != null) return;
   print('Backfilling like property on package ${p.name}');
-
   try {
     await dbService.withTransaction((Transaction tx) async {
-      final package = await tx.lookupValue<Package>(p.key);
+      final package = await tx.lookupValue<Package>(p.key, orElse: () => null);
+      if (package == null) {
+        return;
+      }
       package.likes = 0;
       tx.queueMutations(inserts: [package]);
       await tx.commit();

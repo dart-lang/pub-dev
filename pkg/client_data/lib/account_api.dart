@@ -79,9 +79,13 @@ class PackageLikeResponse {
   Map<String, dynamic> toJson() => _$PackageLikeResponseToJson(this);
 }
 
+/// Response from querying a package to see how many likes it has.
 @JsonSerializable()
 class PackageLikesCount {
+  /// Package that was liked.
   String package;
+
+  /// Number of users who have liked [package].
   int likes;
 
   PackageLikesCount({@required this.package, @required this.likes});

@@ -371,7 +371,8 @@ class PackageBackend {
   /// Returns the number of likes of a given package.
   Future<PackageLikesCount> getPackageLikesCount(String packageName) async {
     final key = db.emptyKey.append(models.Package, id: packageName);
-    final package = (await db.lookup<models.Package>([key])).single;
+    final package =
+        await db.lookupValue<models.Package>(key, orElse: () => null);
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }

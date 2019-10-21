@@ -201,9 +201,9 @@ class IntegrityChecker {
             'Package(${p.name}) has an anandoned publisher, must be marked discontinued.');
       }
     }
-    if (p.likes == null || p.likes is! int) {
+    if (p.likes == null || p.likes is! int || p.likes < 0) {
       _problems.add(
-          'Package(${p.name}) has a `likes` property which is not an integer.');
+          'Package(${p.name}) has a `likes` property which is not a non-negative integer.');
     }
     for (String userId in p.uploaders) {
       if (!_userToOauth.containsKey(userId)) {
