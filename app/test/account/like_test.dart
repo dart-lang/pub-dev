@@ -184,7 +184,8 @@ void main() {
       final rs = await client.getPackageLikes(hydrogen.package.name);
       expect(rs.likes, 0);
 
-      final authenticatedClient = createPubApiClient(authToken: hansUser.userId);
+      final authenticatedClient =
+          createPubApiClient(authToken: hansUser.userId);
       await authenticatedClient.likePackage(hydrogen.package.name);
 
       final rs1 = await client.getPackageLikes(hydrogen.package.name);
