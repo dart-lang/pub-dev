@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Run `app/bin/tools/backfill_packagelikes.dart` to backfill `Package`
    entities by populating the `likes` property.
  * Added API endpoints and backend implementation for package likes.
+ * Force account selection on login.
 
 ## `20191015t141342-all`
  * Minor fixes to publisher texts.
