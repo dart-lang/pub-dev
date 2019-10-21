@@ -68,6 +68,19 @@ Map<String, dynamic> _$PackageLikeResponseToJson(
       'created': instance.created?.toIso8601String(),
     };
 
+PackageLikesCount _$PackageLikesCountFromJson(Map<String, dynamic> json) {
+  return PackageLikesCount(
+    package: json['package'] as String,
+    likes: json['likes'] as int,
+  );
+}
+
+Map<String, dynamic> _$PackageLikesCountToJson(PackageLikesCount instance) =>
+    <String, dynamic>{
+      'package': instance.package,
+      'likes': instance.likes,
+    };
+
 AccountPkgOptions _$AccountPkgOptionsFromJson(Map<String, dynamic> json) {
   return AccountPkgOptions(
     isAdmin: json['isAdmin'] as bool,

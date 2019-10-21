@@ -2,6 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Run `app/bin/tools/backfill_packagelikes.dart` to backfill `Package`
+   entities by populating the `likes` property.
+ * Added API endpoints and backend implementation for package likes.
 
 ## `20191015t141342-all`
  * Minor fixes to publisher texts.

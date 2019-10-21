@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dartlang_org/package/models.dart';
 import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
@@ -184,13 +185,8 @@ class AccountBackend {
   Future<Like> getPackageLikeStatus(User user, String package) async {
     final key =
         _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-    Like like;
-    try {
-      like = await _db.lookupValue(key);
-    } on KeyNotFoundException {
-      return null;
-    }
-    return like;
+
+    return await _db.lookupValue<Like>(key, orElse: () => null);
   }
 
   /// Return an iterable with the names of all the packages that the given [user] likes.
@@ -199,26 +195,60 @@ class AccountBackend {
     return likes.map((Like l) => l.package).toList();
   }
 
-  /// Creates an a package like entry for the given [user] and [package].
+  /// Creates and returns a package like entry for the given [user] and
+  /// [package], and increments the 'likes' property on [package].
   Future<Like> likePackage(User user, String package) async {
-    final newLike = Like()
-      ..parentKey = user.key
-      ..id = package
-      ..created = DateTime.now().toUtc();
-    await _db.commit(inserts: [newLike]);
-    return newLike;
+    return await _db.withTransaction<Like>((tx) async {
+      final packageKey = _db.emptyKey.append(Package, id: package);
+      final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+
+      final key =
+          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+      final oldLike = await tx.lookupValue<Like>(key, orElse: () => null);
+
+      if (oldLike != null) {
+        tx.rollback();
+        return oldLike;
+      }
+
+      p.likes++;
+      final newLike = Like()
+        ..parentKey = user.key
+        ..id = p.id
+        ..created = DateTime.now().toUtc();
+
+      tx.queueMutations(inserts: [p, newLike]);
+      tx.commit();
+      return newLike;
+    });
   }
 
-  /// Delete a package like entry for the given [user] and [package] if it exists.
+  /// Delete a package like entry for the given [user] and [package] if it
+  /// exists, and decrements the 'likes' property on [package].
   Future<void> unlikePackage(User user, String package) async {
-    final key =
-        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
-    try {
-      await _db.lookupValue(key);
-    } on KeyNotFoundException {
-      return;
-    }
-    await _db.commit(deletes: [key]);
+    await _db.withTransaction<void>((tx) async {
+      final packageKey = _db.emptyKey.append(Package, id: package);
+      final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
+      if (p == null) {
+        throw NotFoundException.resource(package);
+      }
+
+      final likeKey =
+          _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+      final like = await tx.lookupValue<Like>(likeKey, orElse: () => null);
+
+      if (like == null) {
+        tx.rollback();
+        return;
+      }
+
+      p.likes--;
+      tx.queueMutations(inserts: [p], deletes: [likeKey]);
+      tx.commit();
+    });
   }
 
   /// Returns the URL of the authorization endpoint used by pub site.

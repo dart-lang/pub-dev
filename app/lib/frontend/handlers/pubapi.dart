@@ -277,6 +277,13 @@ class PubApi {
   ) =>
       packageBackend.getPublisherInfo(package);
 
+  @EndPoint.get('/api/packages/<package>/likes')
+  Future<PackageLikesCount> getPackageLikes(
+    Request request,
+    String package,
+  ) =>
+      packageBackend.getPackageLikesCount(package);
+
   @EndPoint.put('/api/packages/<package>/publisher')
   Future<PackagePublisherInfo> setPackagePublisher(
     Request request,

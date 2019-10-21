@@ -79,7 +79,8 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..uploaders = uploaders.map((user) => user.userId).toList()
     ..latestVersionKey = foobarStablePVKey
     ..latestDevVersionKey = foobarDevPVKey
-    ..downloads = 0;
+    ..downloads = 0
+    ..likes = 0;
 }
 
 final Package foobarPackage = createFoobarPackage();
@@ -307,6 +308,7 @@ PkgBundle generateBundle(
     ..id = name
     ..name = name
     ..downloads = 0
+    ..likes = 0
     ..publisherId = publisherId
     ..uploaders =
         publisherId != null ? [] : uploaders.map((u) => u.userId).toList();

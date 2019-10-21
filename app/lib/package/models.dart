@@ -48,6 +48,14 @@ class Package extends db.ExpandoModel {
   @db.IntProperty()
   int downloads;
 
+  /// Number of `User`s for which a `Like` entity of this package exists.
+  ///
+  /// Should be set zero when [Package] is created, and always updated in a
+  /// transaction with a `Like` entity being created or removed, or by a
+  /// background job correcting `Like` counts.
+  @db.IntProperty()
+  int likes;
+
   @db.ModelKeyProperty(propertyName: 'latest_version')
   db.Key latestVersionKey;
 

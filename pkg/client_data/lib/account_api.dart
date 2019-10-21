@@ -79,6 +79,23 @@ class PackageLikeResponse {
   Map<String, dynamic> toJson() => _$PackageLikeResponseToJson(this);
 }
 
+/// Response from querying a package to see how many likes it has.
+@JsonSerializable()
+class PackageLikesCount {
+  /// Package that was liked.
+  String package;
+
+  /// Number of users who have liked [package].
+  int likes;
+
+  PackageLikesCount({@required this.package, @required this.likes});
+
+  factory PackageLikesCount.fromJson(Map<String, dynamic> json) =>
+      _$PackageLikesCountFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PackageLikesCountToJson(this);
+}
+
 /// Account-specific information about a package.
 @JsonSerializable()
 class AccountPkgOptions {

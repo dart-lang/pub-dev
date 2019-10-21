@@ -266,6 +266,13 @@ class PubApiClient {
     ));
   }
 
+  Future<_i4.PackageLikesCount> getPackageLikes(String package) async {
+    return _i4.PackageLikesCount.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/packages/$package/likes',
+    ));
+  }
+
   Future<_i5.PackagePublisherInfo> setPackagePublisher(
       String package, _i5.PackagePublisherInfo payload) async {
     return _i5.PackagePublisherInfo.fromJson(await _client.requestJson(
