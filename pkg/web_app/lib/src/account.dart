@@ -54,7 +54,7 @@ PubApiClient get client {
     var user = getAuthInstance().currentUser.get();
     if (user == null) {
       // Attempt a login flow
-      await getAuthInstance().signIn();
+      await getAuthInstance().signIn(SignInOptions(prompt: 'select_account'));
       user = getAuthInstance().currentUser.get();
     }
     if (user == null) {
@@ -85,10 +85,11 @@ void setupAccount() {
 
 void _init() {
   _initialized.complete();
-  document
-      .getElementById('-account-login')
-      ?.onClick
-      ?.listen((_) => getAuthInstance().signIn());
+  document.getElementById('-account-login')?.onClick?.listen(
+        (_) => getAuthInstance().signIn(
+          SignInOptions(prompt: 'select_account'),
+        ),
+      );
   document
       .getElementById('-account-logout')
       ?.onClick
