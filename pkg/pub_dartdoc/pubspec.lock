@@ -2,12 +2,12 @@
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   analyzer:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.38.2"
+    version: "0.38.5"
   args:
     dependency: transitive
     description:
@@ -70,7 +70,7 @@ packages:
       name: dartdoc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.28.5"
+    version: "0.28.8"
   file:
     dependency: transitive
     description:
@@ -84,7 +84,7 @@ packages:
       name: front_end
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.24"
+    version: "0.1.27"
   glob:
     dependency: transitive
     description:
@@ -154,7 +154,7 @@ packages:
       name: kernel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.24"
+    version: "0.3.27"
   logging:
     dependency: transitive
     description:
@@ -168,7 +168,7 @@ packages:
       name: markdown
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.1"
   matcher:
     dependency: transitive
     description:

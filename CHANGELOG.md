@@ -6,6 +6,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    entities by populating the `likes` property.
  * Added API endpoints and backend implementation for package likes.
  * Force account selection on login.
+ * Bumped runtimeVersion to `2019.10.22`.
+ * Upgraded dartdoc to `0.28.8` (upgraded analyzer).
 
 ## `20191015t141342-all`
  * Minor fixes to publisher texts.
