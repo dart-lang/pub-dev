@@ -127,9 +127,9 @@ class PublishingScript {
     if (!pageHtml.contains(_newDummyVersion)) {
       throw Exception('New version is not to be found on package page.');
     }
-    if (!pageHtml.contains('developer@example.com')) {
+    if (pageHtml.contains('developer@example.com')) {
       throw Exception(
-          'pubspec author field is not to be found on package page.');
+          'pubspec author field most not be found on package page.');
     }
     if (matchInvited != null) {
       final found = pageHtml.contains(invitedEmail);
