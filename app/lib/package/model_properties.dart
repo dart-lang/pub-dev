@@ -43,8 +43,6 @@ class Pubspec {
 
   String get version => _inner.version.toString();
 
-  List<String> get authors => _inner.authors ?? const [];
-
   Iterable<String> get dependencies => _inner.dependencies.keys;
 
   Iterable<String> get devDependencies => _inner.devDependencies.keys;
