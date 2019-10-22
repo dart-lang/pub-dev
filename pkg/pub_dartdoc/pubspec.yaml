@@ -8,10 +8,7 @@ dependencies:
   pub_dartdoc_data:
     path: ../pub_dartdoc_data
   # dartdoc version to be pinned, keep in-sync with app/lib/shared/versions.dart
-  dartdoc: 0.28.5
+  dartdoc: 0.28.8
 
 dev_dependencies:
   test: '^1.3.0'
-
-dependency_overrides:
-  analyzer: 0.38.2
