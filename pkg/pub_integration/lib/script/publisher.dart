@@ -100,10 +100,10 @@ class PublisherScript {
     if (uploaderEmail != null) {
       if (publisherId != null) throw ArgumentError();
 
-      // author must be present
-      if (!pageHtml.contains('developer@example.com')) {
+      // author must not be present
+      if (pageHtml.contains('developer@example.com')) {
         throw Exception(
-            'pubspec author field is not to be found on package page.');
+            'pubspec author field most not be found on package page.');
       }
       // uploader must be present
       if (!pageHtml.contains('Uploader') ||
