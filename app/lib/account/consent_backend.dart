@@ -235,7 +235,7 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   String renderInviteText(String activeAccountEmail, List<String> args) {
     final publisherId = args[0];
-    return '$activeAccountEmail has invited you to be a member of publisher $publisherId.';
+    return '$activeAccountEmail has invited you to be a member of the verified publisher $publisherId.';
   }
 
   @override
@@ -248,7 +248,8 @@ class _PublisherMemberAction extends ConsentAction {
   String renderInviteHtml(String activeAccountEmail, List<String> args) {
     final publisherId = args[0];
     final url = publisherUrl(publisherId);
-    return '<code>$activeAccountEmail</code> has invited you to be a member of publisher '
+    return '<code>$activeAccountEmail</code> has invited you to be a member of '
+        'the <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publisher</a> '
         '<a href="$url" target="_blank" rel="noreferrer"><code>$publisherId</code></a>.';
   }
 }
