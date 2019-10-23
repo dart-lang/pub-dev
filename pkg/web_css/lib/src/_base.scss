@@ -449,32 +449,62 @@ pre > code {
     transform: translateX(-100%);
     min-width: 270px;
     z-index: 1;
-  }
 
-  .nav-wrap.-show {
-    -webkit-transform: translateX(0);
-    transform: translateX(0);
-  }
+    &.-show {
+      -webkit-transform: translateX(0);
+      transform: translateX(0);
+    }
 
-  .site-nav {
-    position: absolute;
-    top: 66px;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding-bottom: 50px;
-    display: block;
-    overflow: auto;
-  }
+    .site-nav {
+      position: absolute;
+      top: 66px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding-bottom: 50px;
+      display: block;
+      overflow: auto;
 
-  .site-nav > .link {
-    display: block;
-    text-align: left;
-  }
+      > .link {
+        display: block;
+        text-align: left;
 
-  .site-nav > .link:after {
-    content: ">";
-    margin-left: 6px;
+        &:after {
+          content: ">";
+          margin-left: 6px;
+        }
+      }
+    }
+
+    /* hide the down arrow */
+    .sub-wrap > .button {
+      cursor: default;
+      margin: 10px 10px 6px;
+    }
+
+    .sub-wrap > .button:after {
+      display: none;
+    }
+
+    .sub-nav {
+      position: static;
+      display: block;
+      background-color: transparent;
+      border: none;
+      padding: 0 36px;
+
+      > .title {
+        display: none;
+      }
+
+      > .link {
+        margin: 6px 0;
+      }
+    }
+
+    .sub-nav:before, .sub-nav:after {
+      display: none;
+    }
   }
 
   .nav-header {
@@ -501,42 +531,16 @@ pre > code {
     display: block !important;
   }
 
-  /* hide the down arrow */
-  .sub-wrap > .button {
-    cursor: default;
-    margin: 10px 10px 6px;
-  }
-
-  .sub-wrap > .button:after {
-    display: none;
-  }
-
-  .sub-nav {
-    position: static;
-    display: block;
-    background-color: transparent;
-    border: none;
-    padding: 0 36px;
-  }
-
-  .sub-nav:before, .sub-nav:after {
-    display: none;
-  }
-
-  .sub-nav > .title {
-    display: none;
-  }
-
-  .sub-nav > .link {
-    margin: 6px 0;
-  }
-
   .site-footer {
     padding: 0;
   }
 
   .site-footer > .link {
     display: block;
+  }
+
+  #account-nav {
+    flex-grow: 1;
   }
 }
 .center {
