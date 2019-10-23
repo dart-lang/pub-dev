@@ -39,6 +39,7 @@ class ConsentBackend {
 
   /// Returns the consent details.
   Future<api.Consent> getConsent(String userId, String consentId) async {
+    InvalidInputException.checkUlid(consentId, 'consentId');
     final key =
         _db.emptyKey.append(User, id: userId).append(Consent, id: consentId);
     final c = (await _db.lookup<Consent>([key])).single;
@@ -63,6 +64,7 @@ class ConsentBackend {
   /// Resolves the consent.
   Future<api.ConsentResult> resolveConsent(
       String consentId, api.ConsentResult result) async {
+    InvalidInputException.checkUlid(consentId, 'consentId');
     final user = await requireAuthenticatedUser();
 
     final key = _db.emptyKey
@@ -72,7 +74,8 @@ class ConsentBackend {
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
       if (c == null) {
-        throw NotFoundException.resource('consent: $consentId');
+        throw NotFoundException('Could not find invite with id: $consentId. '
+            'It probably has expired.');
       }
       await _accept(c);
       return api.ConsentResult(granted: true);

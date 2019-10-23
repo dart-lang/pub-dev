@@ -77,12 +77,11 @@ class InvalidInputException extends ResponseException {
     _check(value != null, () => '"$name" cannot be `null`');
   }
 
-  /// Throw [InvalidInputException] if [value] doesn't match [pattern].
-  static void checkMatchPattern(String value, String name, Pattern pattern) {
+  /// Throw [InvalidInputException] if [value] doesn't match [regExp].
+  static void checkMatchPattern(String value, String name, RegExp regExp) {
     assert(name != null, '"name" must not be `null`');
-    assert(pattern != null, '"pattern" must not be `null`');
-    _check(pattern.allMatches(value).isNotEmpty,
-        () => '"$name" must match $pattern');
+    assert(regExp != null, '"pattern" must not be `null`');
+    _check(regExp.hasMatch(value), () => '"$name" must match $regExp');
   }
 
   /// Throw [InvalidInputException] if [value] is not one of [values].
@@ -144,6 +143,13 @@ class InvalidInputException extends ResponseException {
         () => '"$name" must be longer than $minimum');
     _check((maximum == null || length <= maximum),
         () => '"$name" must be less than $maximum');
+  }
+
+  static final _ulidPattern = RegExp(r'^[a-zA-Z0-9]*$');
+
+  static void checkUlid(String value, String name) {
+    assert(name != null, '"name" must not beq `null`');
+    _check(_ulidPattern.hasMatch(value), () => '"$name" is not a valid ulid.');
   }
 }
 
