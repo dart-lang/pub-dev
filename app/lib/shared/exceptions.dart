@@ -77,11 +77,11 @@ class InvalidInputException extends ResponseException {
     _check(value != null, () => '"$name" cannot be `null`');
   }
 
-  /// Throw [InvalidInputException] if [value] doesn't match [pattern].
-  static void checkMatchPattern(String value, String name, RegExp pattern) {
+  /// Throw [InvalidInputException] if [value] doesn't match [regExp].
+  static void checkMatchPattern(String value, String name, RegExp regExp) {
     assert(name != null, '"name" must not be `null`');
-    assert(pattern != null, '"pattern" must not be `null`');
-    _check(pattern.hasMatch(value), () => '"$name" must match $pattern');
+    assert(regExp != null, '"pattern" must not be `null`');
+    _check(regExp.hasMatch(value), () => '"$name" must match $regExp');
   }
 
   /// Throw [InvalidInputException] if [value] is not one of [values].
