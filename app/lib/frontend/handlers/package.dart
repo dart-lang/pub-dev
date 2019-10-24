@@ -11,6 +11,7 @@ import '../../analyzer/analyzer_client.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';
+import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
@@ -191,7 +192,14 @@ Future<shelf.Response> packageAdminHandler(
       await accountBackend.getEmailsOfUserIds(package.uploaders);
   final analysis =
       await analyzerClient.getAnalysisView(version.package, version.version);
+  final publishers =
+      await publisherBackend.listPublishersForUser(userSessionData.userId);
 
-  return htmlResponse(
-      renderPkgAdminPage(package, uploaderEmails, version, analysis));
+  return htmlResponse(renderPkgAdminPage(
+    package,
+    uploaderEmails,
+    version,
+    analysis,
+    publishers.map((p) => p.publisherId).toList(),
+  ));
 }

@@ -73,6 +73,17 @@ button {
   }
 }
 
+/* Override MDC select colors and outlines. */
+.mdc-select--focused {
+  .mdc-floating-label--float-above {
+    color: $color-input-primary !important;
+  }
+
+  .mdc-line-ripple--active {
+    background-color: $color-input-primary !important;
+  }
+}
+
 /* TODO: remove this after MDC button is properly styled. */
 button.pub-button {
   font-size: 13px;

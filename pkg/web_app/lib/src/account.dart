@@ -164,7 +164,7 @@ void _updateUi() {
 /// Active on /packages/<package>/admin page.
 class _PkgAdminWidget {
   Element _toggleDiscontinuedButton;
-  InputElement _setPublisherInput;
+  SelectElement _setPublisherInput;
   Element _setPublisherButton;
 
   void init() {
@@ -172,7 +172,7 @@ class _PkgAdminWidget {
     _toggleDiscontinuedButton =
         document.getElementById('-admin-is-discontinued-toggle');
     _setPublisherInput =
-        document.getElementById('-admin-set-publisher-input') as InputElement;
+        document.getElementById('-admin-set-publisher-input') as SelectElement;
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
     if (isActive) {

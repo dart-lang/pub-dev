@@ -18,6 +18,7 @@ String renderPkgAdminPage(
   List<String> uploaderEmails,
   PackageVersion version,
   AnalysisView analysis,
+  List<String> userPublishers,
 ) {
   final card = analysis?.card;
 
@@ -63,9 +64,16 @@ String renderPkgAdminPage(
     id: 'admin',
     title: 'Admin',
     contentHtml: templateCache.renderTemplate('pkg/admin_page', {
-      'has_publisher': package.publisherId != null,
+      'pkg_has_publisher': package.publisherId != null,
       'publisher_id': package.publisherId,
       'is_discontinued': package.isDiscontinued == true,
+      'user_has_publisher': userPublishers.isEmpty,
+      'user_publishers': userPublishers
+          .map((s) => {
+                'publisher_id': s,
+                'selected': s == package.publisherId,
+              })
+          .toList(),
     }),
   ));
 

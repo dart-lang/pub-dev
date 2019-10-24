@@ -4,7 +4,7 @@
 
 <h3>Package ownership</h3>
 <div>
-  {{^has_publisher}}
+  {{^pkg_has_publisher}}
   <p>
     You can transfer this package to a verified publisher if you are a member of the publisher.
     Transferring the package removes the current uploaders, so that only the members of the publisher can upload new versions.
@@ -13,27 +13,38 @@
     <strong>Upgrading to verified publishers is an irreversible operation.</strong>
     Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
   </p>
-  {{/has_publisher}}
-  {{#has_publisher}}
+  {{/pkg_has_publisher}}
+  {{#pkg_has_publisher}}
   <p>
     You can transfer your package to a <strong>different publisher</strong>
     if you’re also a member of the publisher.
   </p>
-  {{/has_publisher}}
-  <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-    <input type="text" id="-admin-set-publisher-input" class="mdc-text-field__input" />
-    <div class="mdc-notched-outline">
-      <div class="mdc-notched-outline__leading"></div>
-      <div class="mdc-notched-outline__notch">
-        <label for="-admin-set-publisher-input" class="mdc-floating-label">Publisher name</label>
-      </div>
-      <div class="mdc-notched-outline__trailing"></div>
-    </div>
+  {{/pkg_has_publisher}}
+  {{^user_has_publisher}}
+  <div class="mdc-select" data-mdc-auto-init="MDCSelect">
+    <i class="mdc-select__dropdown-icon"></i>
+    <select id="-admin-set-publisher-input" class="mdc-select__native-control">
+      {{^pkg_has_publisher}}
+      <option value="" disabled="disabled" selected="selected"></option>
+      {{/pkg_has_publisher}}
+      {{#user_publishers}}
+      <option value="{{publisher_id}}" {{#selected}}selected="selected"{{/selected}}>{{publisher_id}}</option>
+      {{/user_publishers}}
+    </select>
+    <label class="mdc-floating-label">Select a publisher</label>
+    <div class="mdc-line-ripple"></div>
   </div>
+  <br />
   <button
     id="-admin-set-publisher-button"
     class="pub-button-danger mdc-button mdc-button--raised"
     data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+  {{/user_has_publisher}}
+  {{#user_has_publisher}}
+  <p>
+    You have no verified publisher. Use the <a href="/create-publisher">create publisher</a> page to create one.
+  </p>
+  {{/user_has_publisher}}
 </div>
 
 <h3>Discontinued</h3>
