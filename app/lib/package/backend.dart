@@ -925,10 +925,9 @@ class GCloudPackageRepository extends PackageRepository {
 
       await _validatePackageUploader(packageName, package, user.userId);
 
-      final uploader =
-          await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
       // Fail if the uploader we want to remove does not exist.
-      if (!package.containsUploader(uploader.userId)) {
+      final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
+      if (uploader == null || !package.containsUploader(uploader.userId)) {
         await T.rollback();
         throw GenericProcessingException(
             'The uploader to remove does not exist.');
