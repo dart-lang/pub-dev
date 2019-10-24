@@ -27,7 +27,7 @@ void main() {
         popularity: 0.4,
         health: 1.0,
         maintenance: 1.0,
-        emails: ['foo@example.com'],
+        uploaderEmails: ['foo@example.com'],
       ));
       await dartSdkIndex.addPackage(PackageDocument(
         package: 'dart:core',
