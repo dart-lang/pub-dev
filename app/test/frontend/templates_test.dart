@@ -451,15 +451,19 @@ void main() {
 
     scopedTest('package admin page with outdated version', () {
       final String html = renderPkgAdminPage(
-          foobarPackage,
-          foobarUploaderEmails,
-          foobarStablePV,
-          AnalysisView(
-            card: ScoreCardData(
-              flags: [PackageFlags.isObsolete],
-              updated: DateTime(2018, 02, 05),
-            ),
-          ));
+        foobarPackage,
+        foobarUploaderEmails,
+        foobarStablePV,
+        AnalysisView(
+          card: ScoreCardData(
+            flags: [PackageFlags.isObsolete],
+            updated: DateTime(2018, 02, 05),
+          ),
+        ),
+        [
+          'example.com',
+        ],
+      );
       expectGoldenFile(html, 'pkg_admin_page_outdated.html');
     });
 

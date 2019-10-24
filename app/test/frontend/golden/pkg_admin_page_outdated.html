@@ -141,16 +141,16 @@ Published
     Packages can be transferred between publishers, but they can't be converted back to legacy uploader ownership.
   
                 </p>
-                <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                  <input type="text" id="-admin-set-publisher-input" class="mdc-text-field__input"/>
-                  <div class="mdc-notched-outline">
-                    <div class="mdc-notched-outline__leading"></div>
-                    <div class="mdc-notched-outline__notch">
-                      <label for="-admin-set-publisher-input" class="mdc-floating-label">Publisher name</label>
-                    </div>
-                    <div class="mdc-notched-outline__trailing"></div>
-                  </div>
+                <div class="mdc-select" data-mdc-auto-init="MDCSelect">
+                  <i class="mdc-select__dropdown-icon"></i>
+                  <select id="-admin-set-publisher-input" class="mdc-select__native-control">
+                    <option value="" disabled="disabled" selected="selected"></option>
+                    <option value="example.com">example.com</option>
+                  </select>
+                  <label class="mdc-floating-label">Select a publisher</label>
+                  <div class="mdc-line-ripple"></div>
                 </div>
+                <br/>
                 <button id="-admin-set-publisher-button" class="pub-button-danger mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
               </div>
               <h3>Discontinued</h3>
