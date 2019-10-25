@@ -52,18 +52,32 @@ PubApiClient get client {
     await _initialized.future;
 
     var user = getAuthInstance().currentUser.get();
-    if (user == null) {
+    if (user == null || !user.isSignedIn()) {
       // Attempt a login flow
-      await getAuthInstance().signIn(SignInOptions(prompt: 'select_account'));
-      user = getAuthInstance().currentUser.get();
+      user = await promiseAsFuture(
+          getAuthInstance().signIn(SignInOptions(prompt: 'select_account')));
     }
-    if (user == null) {
+    if (user == null || !user.isSignedIn()) {
       print('Login failed');
       throw StateError('User not logged in');
     }
 
-    // Return the id_token
-    return user.getAuthResponse(true).id_token;
+    var authResponse = user.getAuthResponse(true);
+
+    if (authResponse == null ||
+        authResponse.expires_at == null ||
+        DateTime.now().millisecondsSinceEpoch < authResponse.expires_at) {
+      authResponse = await promiseAsFuture(user.reloadAuthResponse());
+    }
+
+    if (authResponse == null ||
+        authResponse.expires_at == null ||
+        DateTime.now().millisecondsSinceEpoch < authResponse.expires_at) {
+      throw StateError(
+          'Unable to get response object from the user\'s auth session.');
+    }
+
+    return authResponse.id_token;
   }));
 }
 

@@ -52,7 +52,7 @@ abstract class GoogleAuth {
 
   /// Triggers a sign-in, and returns a Promise that will complete when the
   /// sign-in is finalized.
-  external dynamic signIn([SignInOptions options]);
+  external Promise<GoogleUser> signIn([SignInOptions options]);
 
   /// Triggers a sign-out, and returns a Promise that will complete when the
   /// sign-out is finalized.
@@ -92,8 +92,12 @@ abstract class GoogleUser {
   /// The external id of the user.
   external String getId();
 
-  /// The auth response.
+  /// Get the response object from the user's auth session.
   external AuthResponse getAuthResponse(bool includeAuthorizationData);
+
+  /// Forces a refresh of the access token, and then returns a Promise for the
+  /// new AuthResponse.
+  external Promise<AuthResponse> reloadAuthResponse();
 
   /// Returns true if the user granted the specified scopes.
   ///
@@ -119,6 +123,9 @@ abstract class GoogleUser {
 
   /// The basic profile info.
   external BasicProfile getBasicProfile();
+
+  /// Returns true if the user is signed in.
+  external bool isSignedIn();
 }
 
 /// The auth response data.
