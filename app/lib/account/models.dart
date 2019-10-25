@@ -234,6 +234,22 @@ class Consent extends db.Model {
   bool shouldNotify() =>
       notificationCount == 0 ||
       DateTime.now().toUtc().isAfter(nextNotification);
+
+  /// Returns a new [Consent] object with a new parent.
+  /// Should be used only for merging users.
+  Consent changeParentUserId(String userId) {
+    return Consent()
+      ..parentKey = parentKey.parent.append(User, id: userId)
+      ..id = id
+      ..dedupId = dedupId
+      ..kind = kind
+      ..args = args
+      ..fromUserId = fromUserId
+      ..created = created
+      ..expires = expires
+      ..lastNotified = lastNotified
+      ..notificationCount = notificationCount;
+  }
 }
 
 /// Calculates the dedupId of a consent request.
