@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/package/models.dart';
-import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/shared/user_merger.dart';
 
