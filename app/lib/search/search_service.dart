@@ -62,10 +62,6 @@ class PackageDocument {
   /// The publisher id of the package
   final String publisherId;
 
-  /// The current uploaders of the package.
-  /// TODO: remove and use only [uploaderEmails]
-  final List<String> emails;
-
   /// The current uploader emails of the package.
   final List<String> uploaderEmails;
 
@@ -91,7 +87,6 @@ class PackageDocument {
     this.maintenance = 0,
     this.dependencies = const {},
     this.publisherId,
-    this.emails = const [],
     this.uploaderEmails = const [],
     this.apiDocPages = const [],
     DateTime timestamp,
@@ -124,7 +119,6 @@ class PackageDocument {
               value: (key) => internFn(dependencies[key]),
             ),
       publisherId: internFn(publisherId),
-      emails: emails?.map(internFn)?.toList(),
       uploaderEmails: uploaderEmails?.map(internFn)?.toList(),
       apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
       timestamp: timestamp,

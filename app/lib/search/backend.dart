@@ -112,7 +112,6 @@ class SearchBackend {
       maintenance: analysisView.maintenanceScore,
       dependencies: _buildDependencies(analysisView),
       publisherId: p.publisherId,
-      emails: await _buildEmails(p, pv),
       uploaderEmails: await _buildUploaderEmails(p),
       apiDocPages: apiDocPages,
       timestamp: DateTime.now().toUtc(),
@@ -125,13 +124,6 @@ class SearchBackend {
       dependencies[pd.package] = pd.dependencyType;
     });
     return dependencies;
-  }
-
-  Future<List<String>> _buildEmails(Package p, PackageVersion pv) async {
-    final Set<String> emails = Set<String>();
-    final uploaderEmails = await accountBackend.getEmailsOfUserIds(p.uploaders);
-    emails.addAll(uploaderEmails.where((email) => email != null));
-    return emails.toList()..sort();
   }
 
   Future<List<String>> _buildUploaderEmails(Package p) async {
@@ -166,7 +158,6 @@ class SearchBackend {
         popularity: popularity,
         maintenance: 0.0,
         publisherId: p.publisherId,
-        emails: await _buildEmails(p, null),
         uploaderEmails: await _buildUploaderEmails(p),
         timestamp: DateTime.now().toUtc(),
       );
