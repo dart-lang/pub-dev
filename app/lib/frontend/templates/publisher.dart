@@ -26,8 +26,7 @@ String renderCreatePublisherPage() {
     PageType.standalone,
     content,
     title: 'Create publisher',
-    // TODO: enable indexing after we have launched publishers.
-    noIndex: true,
+    noIndex: true, // no need to index, as the page is only for a logged-in user
   );
 }
 
