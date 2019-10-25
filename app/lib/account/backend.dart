@@ -335,7 +335,7 @@ class AccountBackend {
           await tx.lookupOrNull<OAuthUserID>(oauthUserIdKey);
       if (oauthUserMapping != null) {
         // If the user does exist we can just return it.
-        return await _db.lookupValue<User>(
+        return await tx.lookupValue<User>(
           oauthUserMapping.userIdKey,
           orElse: () => throw StateError(
             'Incomplete OAuth userId mapping missing '
@@ -376,7 +376,6 @@ class AccountBackend {
           );
           return user;
         }
-        // We have a user with the same userId, this is not ideal.
         _logger.info(
           'Reusing email from User(${user.userId}) as user has a different oauth2 user_id',
         );

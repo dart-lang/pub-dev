@@ -46,7 +46,7 @@ class TransactionWrapper {
 /// rolled back when [fn] returns.
 Future<T> withTransaction<T>(
   DatastoreDB db,
-  Future<T> Function(TransactionWrapper) fn,
+  Future<T> Function(TransactionWrapper tx) fn,
 ) async {
   return db.withTransaction<T>((tx) async {
     bool done = false;
@@ -70,6 +70,6 @@ Future<T> withTransaction<T>(
 /// rolled back when [fn] returns, and retried if [fn] fails.
 Future<T> withRetryTransaction<T>(
   DatastoreDB db,
-  Future<T> Function(TransactionWrapper) fn,
+  Future<T> Function(TransactionWrapper tx) fn,
 ) =>
     retry<T>(() => withTransaction<T>(db, fn));
