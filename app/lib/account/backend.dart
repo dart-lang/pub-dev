@@ -321,7 +321,7 @@ class AccountBackend {
     // transaction.
     final user = await _lookupUserByOauthUserId(auth.oauthUserId);
     if (user != null) {
-      return null;
+      return user;
     }
 
     return withRetryTransaction<User>(_db, (tx) async {
