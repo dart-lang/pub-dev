@@ -25,15 +25,8 @@ part 'models.g.dart';
 
 /// Pub package metdata.
 ///
-/// The main property used is `uploaderEmails` for determining who is allowed
+/// The main property used is `uploaders` for determining who is allowed
 /// to upload packages.
-// TODO:
-// The uploaders are saved as User objects in the python datastore. We don't
-// have db Models for users, but the lowlevel datastore API will store them
-// as expanded properties of type `Entity`.
-// We should move ExpandoModel -> Model once we have highlevel db.User objects.
-//
-// NOTE: Keep in sync with PackageArchive.
 @db.Kind(name: 'Package', idType: db.IdType.String)
 class Package extends db.ExpandoModel {
   @db.StringProperty()
