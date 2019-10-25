@@ -81,6 +81,7 @@ Future<shelf.Response> siteMapTxtHandler(shelf.Request request) async {
     '/help',
     '/web',
     '/flutter',
+    '/publishers',
   ];
   items.addAll(pages.map((page) => uri.replace(path: page).toString()));
 
