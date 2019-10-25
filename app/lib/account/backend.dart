@@ -11,10 +11,10 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dartlang_org/package/models.dart';
-import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
 import '../shared/configuration.dart';
+import '../shared/datastore_helper.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
 
@@ -289,26 +289,66 @@ class AccountBackend {
     return user;
   }
 
+  Future<User> _lookupUserByOauthUserId(String oauthUserId) async {
+    // TODO: This should be cached.
+    final oauthUserMapping = await _db.lookupValue<OAuthUserID>(
+      _db.emptyKey.append(OAuthUserID, id: oauthUserId),
+      orElse: () => null,
+    );
+    if (oauthUserMapping == null) {
+      return null;
+    }
+    return await _db.lookupValue<User>(
+      oauthUserMapping.userIdKey,
+      orElse: () => throw StateError(
+        'Incomplete OAuth userId mapping missing '
+        'User(`${oauthUserMapping.userId}`) referenced by '
+        '`${oauthUserMapping.id}`.',
+      ),
+    );
+  }
+
   Future<User> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+    ArgumentError.checkNotNull(auth, 'auth');
     if (auth.oauthUserId == null) {
       throw StateError('Authenticated user ${auth.email} without userId.');
     }
-    final mappingKey = _db.emptyKey.append(OAuthUserID, id: auth.oauthUserId);
 
-    final user = await retry(() async {
-      // Check existing mapping.
-      final mapping = (await _db.lookup<OAuthUserID>([mappingKey])).single;
-      if (mapping != null) {
-        final user = (await _db.lookup<User>([mapping.userIdKey])).single;
-        // TODO: we should probably have some kind of consistency mitigation
-        if (user == null) {
-          throw StateError('Incomplete OAuth userId mapping: '
-              'missing User (`${mapping.userId}`) referenced by `${mapping.id}`.');
-        }
-        return user;
+    final emptyKey = _db.emptyKey;
+
+    // Attempt to lookup the user, the common case is that the user exists.
+    // If the user exists, it's always cheaper to lookup the user outside a
+    // transaction.
+    final user = await _lookupUserByOauthUserId(auth.oauthUserId);
+    if (user != null) {
+      return user;
+    }
+
+    return withRetryTransaction<User>(_db, (tx) async {
+      final oauthUserIdKey = emptyKey.append(
+        OAuthUserID,
+        id: auth.oauthUserId,
+      );
+
+      // Check that the user doesn't exist in this transaction.
+      final oauthUserMapping =
+          await tx.lookupOrNull<OAuthUserID>(oauthUserIdKey);
+      if (oauthUserMapping != null) {
+        // If the user does exist we can just return it.
+        return await tx.lookupValue<User>(
+          oauthUserMapping.userIdKey,
+          orElse: () => throw StateError(
+            'Incomplete OAuth userId mapping missing '
+            'User(`${oauthUserMapping.userId}`) referenced by '
+            '`${oauthUserMapping.id}`.',
+          ),
+        );
       }
 
       // Check pre-migrated User with existing email.
+      // Notice, that we're doing this outside the transaction, but these are
+      // legacy users, we should avoid creation of new users with only emails
+      // as this lookup is eventually consistent.
       final usersWithEmail = await (_db.query<User>()
             ..filter('email =', auth.email))
           .run()
@@ -316,53 +356,50 @@ class AccountBackend {
       if (usersWithEmail.length == 1 &&
           usersWithEmail.single.oauthUserId == null &&
           !usersWithEmail.single.isDeleted) {
-        // We've found a single pre-migrated, non-deleted User with empty
-        // `oauthUserId` field: need to create OAuthUserID for it.
-        final updatedUser = await _db.withTransaction<User>((tx) async {
-          final user =
-              (await tx.lookup<User>([usersWithEmail.single.key])).single;
-          final newMapping = OAuthUserID()
-            ..parentKey = _db.emptyKey
-            ..id = auth.oauthUserId
-            ..userIdKey = user.key;
+        final user = await tx.lookupValue<User>(usersWithEmail.single.key);
+        if (user.oauthUserId == auth.oauthUserId) {
+          throw StateError(
+            'Incomplete user oauthid mapping OAuthUserId entity is missing '
+            'for  User(`${user.userId}`)',
+          );
+        }
+        if (user.oauthUserId == null) {
+          // We've found a single pre-migrated, non-deleted User with empty
+          // `oauthUserId` field: need to create OAuthUserID for it.
           user.oauthUserId = auth.oauthUserId;
-          tx.queueMutations(inserts: [user, newMapping]);
-          await tx.commit();
+          tx.insert(user);
+          tx.insert(
+            OAuthUserID()
+              ..parentKey = emptyKey
+              ..id = auth.oauthUserId
+              ..userIdKey = user.key,
+          );
           return user;
-        });
-        return updatedUser;
+        }
+        _logger.info(
+          'Reusing email from User(${user.userId}) as user has a different oauth2 user_id',
+        );
       }
 
       // Create new user with oauth2 user_id mapping
-      final newUser = User()
-        ..parentKey = _db.emptyKey
+      final user = User()
+        ..parentKey = emptyKey
         ..id = _uuid.v4().toString()
         ..oauthUserId = auth.oauthUserId
         ..email = auth.email
         ..created = DateTime.now().toUtc()
         ..isDeletedFlag = false;
 
-      final newMapping = OAuthUserID()
-        ..parentKey = _db.emptyKey
-        ..id = auth.oauthUserId
-        ..userIdKey = newUser.key;
+      tx.insert(user);
+      tx.insert(
+        OAuthUserID()
+          ..parentKey = emptyKey
+          ..id = auth.oauthUserId
+          ..userIdKey = user.key,
+      );
 
-      await _db.commit(inserts: [newUser, newMapping]);
-      return newUser;
+      return user;
     });
-
-    // update user if email has been changed
-    if (user.email != auth.email) {
-      return await _db.withTransaction<User>((tx) async {
-        final u = (await _db.lookup<User>([user.key])).single;
-        u.email = auth.email;
-        tx.queueMutations(inserts: [u]);
-        await tx.commit();
-        return u;
-      });
-    }
-
-    return user;
   }
 
   /// Creates a new session for the current authenticated user and returns the
