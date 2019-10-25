@@ -11,7 +11,6 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dartlang_org/package/models.dart';
-import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
 import '../shared/configuration.dart';
