@@ -66,13 +66,13 @@ PubApiClient get client {
 
     if (authResponse == null ||
         authResponse.expires_at == null ||
-        DateTime.now().millisecondsSinceEpoch < authResponse.expires_at) {
+        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at) {
       authResponse = await promiseAsFuture(user.reloadAuthResponse());
     }
 
     if (authResponse == null ||
         authResponse.expires_at == null ||
-        DateTime.now().millisecondsSinceEpoch < authResponse.expires_at) {
+        DateTime.now().millisecondsSinceEpoch > authResponse.expires_at) {
       throw StateError(
           'Unable to get response object from the user\'s auth session.');
     }
