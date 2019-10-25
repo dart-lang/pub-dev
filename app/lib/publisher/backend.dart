@@ -97,12 +97,12 @@ class PublisherBackend {
     InvalidInputException.checkMatchPattern(
       publisherId,
       'publisherId',
-      RegExp(r'^[a-z0-9-]{1,63}\.[a-z0-9-]{1,63}$'),
+      RegExp(r'^([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}$'),
     );
     InvalidInputException.checkStringLength(
       publisherId,
       'publisherId',
-      maximum: 255, // Some upper limit for sanity.
+      maximum: 64, // Some upper limit for sanity.
     );
     InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
     InvalidInputException.checkStringLength(
