@@ -257,12 +257,12 @@ class _CreatePublisherWidget {
   }
 
   void _triggerCreate(String publisherId) async {
-    if (publisherId.isEmpty || publisherId.split('.').length != 2) {
+    // Some sanity validation, server-side will enforce proper validation.
+    final publisherIdPattern = RegExp(r'^([a-z0-9-]{1,63}\.)+[a-z0-9-]{1,63}$');
+    if (publisherId.isEmpty || !publisherIdPattern.hasMatch(publisherId)) {
       await modalMessage(
         'Input validation',
-        'Please use a second-level domain name as publisher identifier.<br />'
-            'Third-level domain names like <code>example.co.uk</code> are '
-            'not allowed.',
+        'Please use a domain name as publisher identifier.',
       );
       return;
     }
