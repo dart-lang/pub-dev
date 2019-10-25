@@ -11,5 +11,35 @@
   <div class="metadata">
     {{& metadata_html}}
     <div class="tags">{{& tags_html}}</div>
-  </div>
-</div>
+    {{#has_likes}}
+    <div class="-likes" >
+      <div>
+        {{#is_liked}}
+        <button
+          id="thumb-up"
+          class="mdc-icon-button mdc-icon-button--on"
+          aria-label="Unstar this item"
+          aria-hidden="true" aria-pressed="true">
+        {{/is_liked}}
+        {{^is_liked}}
+        <button
+          id="thumb-up"
+          class="mdc-icon-button"
+          aria-label="Star this item"
+          aria-hidden="true"
+          aria-pressed="true">
+        {{/is_liked}}
+          <img
+            height="18"
+            width="18"
+            src="/static/img/thumb_up-24px.svg"
+            class="mdc-icon-button__icon"/>
+          <img
+            height="18"
+            width="18"
+            src="/static/img/thumb_up-filled-24px.svg"
+            class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
+        </button>
+       <span id="likes">{{like_count}}</span></div></div>
+    {{/has_likes}}
+</div>  </div>

@@ -20,6 +20,7 @@ import 'package.dart';
 /// Renders the `views/pkg/versions/index` template.
 String renderPkgVersionsPage(
     Package package,
+    bool isLiked,
     List<String> uploaderEmails,
     PackageVersion latestVersion,
     List<PackageVersion> versions,
@@ -110,7 +111,8 @@ String renderPkgVersionsPage(
   }
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(package, latestVersion, latestAnalysis),
+    headerHtml:
+        renderPkgHeader(package, latestVersion, isLiked, latestAnalysis),
     tabs: tabs,
     infoBoxHtml: renderPkgInfoBox(
         package, latestVersion, uploaderEmails, latestAnalysis),
