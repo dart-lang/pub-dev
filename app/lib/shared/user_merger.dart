@@ -159,14 +159,9 @@ class UserMerger {
       _db.query<PublisherMember>()..filter('userId =', fromUserId),
       (PublisherMember m) async {
         await _db.withTransaction((tx) async {
-          final pm = (await tx.lookup<PublisherMember>([m.key])).single;
-          if (pm.userId == fromUserId) {
-            pm.userId = toUserId;
-            tx.queueMutations(inserts: [pm]);
-            await tx.commit();
-          } else {
-            await tx.rollback();
-          }
+          tx.queueMutations(
+              inserts: [m.changeParentUserId(toUserId)], deletes: [m.key]);
+          await tx.commit();
         });
       },
     );

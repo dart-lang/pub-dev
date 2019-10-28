@@ -99,4 +99,16 @@ class PublisherMember extends db.ExpandoModel {
   /// One of [PublisherMemberRole].
   @db.StringProperty(required: true)
   String role;
+
+  /// Returns a new [PublisherMember] object with a new parent.
+  /// Should be used only for merging users.
+  PublisherMember changeParentUserId(String userId) {
+    return PublisherMember()
+      ..parentKey = parentKey
+      ..id = userId
+      ..userId = userId
+      ..created = created
+      ..updated = updated
+      ..role = role;
+  }
 }
