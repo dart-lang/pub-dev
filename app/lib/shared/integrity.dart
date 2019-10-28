@@ -157,6 +157,10 @@ class IntegrityChecker {
   Future _checkPublisherMembers() async {
     _logger.info('Scanning PublisherMembers...');
     await for (final pm in _db.query<PublisherMember>().run()) {
+      if (pm.id != pm.userId) {
+        _problems.add(
+            'PublisherMember(${pm.id}) has bad userId value: ${pm.userId}.');
+      }
       if (!_publishers.contains(pm.publisherId)) {
         _problems.add(
             'PublisherMember(${pm.userId}) references a non-existing publisher: ${pm.publisherId}.');
