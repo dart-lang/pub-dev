@@ -36,7 +36,6 @@ void main() {
     final merger = UserMerger(
       db: dbService,
       concurrency: 2,
-      deleteUsers: true,
       omitEmailCheck: true,
     );
     await merger.fixAll();

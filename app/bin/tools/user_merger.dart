@@ -28,7 +28,6 @@ Future main(List<String> args) async {
   final oauthUserId = argv['oauth-user-id'] as String;
 
   await withProdServices(() async {
-    // TODO: enable delete users once we have migrated the history entries too
     final userMerger = UserMerger(db: dbService, concurrency: concurrency);
     if (oauthUserId != null) {
       await userMerger.fixOAuthUserID(oauthUserId);

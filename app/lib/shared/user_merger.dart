@@ -14,17 +14,14 @@ import '../publisher/models.dart';
 class UserMerger {
   final DatastoreDB _db;
   final int _concurrency;
-  final bool _deleteUsers;
   final bool _omitEmailCheck;
 
   UserMerger({
     DatastoreDB db,
     int concurrency = 1,
-    bool deleteUsers,
     bool omitEmailCheck,
   })  : _db = db,
         _concurrency = concurrency,
-        _deleteUsers = deleteUsers ?? false,
         _omitEmailCheck = omitEmailCheck ?? false;
 
   /// Fixes all OAuthUserID issues.
@@ -206,9 +203,7 @@ class UserMerger {
       },
     );
 
-    if (_deleteUsers) {
-      await _db.commit(deletes: [fromUserKey]);
-    }
+    await _db.commit(deletes: [fromUserKey]);
   }
 
   Future _processConcurrently<T extends Model>(
