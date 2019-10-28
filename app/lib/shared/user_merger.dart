@@ -62,7 +62,7 @@ class UserMerger {
         _db.emptyKey.append(OAuthUserID, id: oauthUserId));
     print('Primary User: ${mapping.userId}');
     if (!users.any((u) => u.userId == mapping.userId)) {
-      throw Exception('Primary User is missing!');
+      throw StateError('Primary User is missing!');
     }
 
     // WARNING
@@ -72,7 +72,7 @@ class UserMerger {
     if (!_omitEmailCheck) {
       for (int i = 1; i < users.length; i++) {
         if (users[0].email != users[i].email) {
-          throw Exception(
+          throw StateError(
               'User e-mail does not match: ${users[0].email} != ${users[i].email}');
         }
       }
