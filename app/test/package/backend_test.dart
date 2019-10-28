@@ -228,8 +228,12 @@ void main() {
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
         expect(email.recipients.single.email, 'somebody@example.com');
-        expect(email.subject, 'Uploader invitation for package: hydrogen');
-        expect(email.bodyText, contains('https://pub.dev/packages/hydrogen\n'));
+        expect(
+            email.subject, 'You have a new invitation to confirm on pub.dev');
+        expect(
+            email.bodyText,
+            contains(
+                'hans@juergen.com has invited you to be an uploader of the package\nhydrogen.\n'));
 
         // TODO: check consent (after migrating to consent API)
       });

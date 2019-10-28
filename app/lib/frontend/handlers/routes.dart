@@ -217,6 +217,7 @@ class PubSiteService {
       authorizedHandler(request);
 
   /// Renders the page that initiates the confirmation and then finalizes the uploader.
+  /// TODO: remove after all new invites are on the consent URL
   @Route.get('/admin/confirm/new-uploader/<package>/<email>/<nonce>')
   Future<Response> confirmUploader(
           Request request, String package, String email, String nonce) =>

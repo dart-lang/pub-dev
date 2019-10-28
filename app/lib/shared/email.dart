@@ -138,35 +138,6 @@ With appreciation, the Dart package site admin
   return EmailMessage(_defaultFrom, authorizedUploaders, subject, bodyText);
 }
 
-/// Creates the [EmailMessage] that will be sent to the new uploader for confirmation.
-EmailMessage createUploaderConfirmationEmail({
-  @required String packageName,
-  @required String activeAccountEmail,
-  @required String addedUploaderEmail,
-  @required String confirmationUrl,
-}) {
-  final pkgUrl = pkgPageUrl(packageName, includeHost: true);
-  final subject = 'Uploader invitation for package: $packageName';
-  final bodyText = '''Dear package maintainer,
-
-$activeAccountEmail has invited you to become an uploader of the $packageName package. If you accept this invitation, you’ll be able to upload new versions of the package to the Dart package site ($primaryHost), and you’ll be listed as an uploader at $pkgUrl
-
-To accept this invitation, visit the following URL:
-$confirmationUrl
-
-
-If you don’t want to be an uploader, simply ignore this email.
-
-If you have any concerns about this invitation, file an issue at https://github.com/dart-lang/pub-dev/issues
-
-Thanks for your contributions to the Dart community!
-
-With appreciation, the Dart package site admin
-''';
-  return EmailMessage(_defaultFrom, [EmailAddress(null, addedUploaderEmail)],
-      subject, bodyText);
-}
-
 /// Creates the [EmailMessage] that will be sent to users about new invitations
 /// they need to confirm.
 EmailMessage createInviteEmail({

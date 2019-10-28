@@ -6,7 +6,6 @@ library pub_dartlang_org.backend;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:client_data/account_api.dart';
 import 'package:client_data/package_api.dart' as api;
@@ -22,6 +21,7 @@ import 'package:pub_server/shelf_pubserver.dart'
 import 'package:uuid/uuid.dart';
 
 import '../account/backend.dart';
+import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/dartdoc_client.dart';
@@ -35,7 +35,6 @@ import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/platform.dart' show KnownPlatforms;
 import '../shared/redis_cache.dart' show cache;
-import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 import 'model_properties.dart';
 import 'models.dart' as models;
@@ -43,7 +42,6 @@ import 'name_tracker.dart';
 import 'upload_signer_service.dart';
 
 final Logger _logger = Logger('pub.cloud_repository');
-final _random = Random.secure();
 
 /// Sets the active tarball storage
 void registerTarballStorage(TarballStorage ts) =>
@@ -168,74 +166,6 @@ class PackageBackend {
     version = canonicalizeVersion(version);
     assert(repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
-  }
-
-  /// Stores a [models.PackageInvite] entry in the Datastore and returns its
-  /// current status. When set, the status.urlNonce can be used in
-  /// client-communication, e.g. sending via email.
-  Future<InviteStatus> updatePackageInvite({
-    @required String packageName,
-    @required String type,
-    @required String recipientEmail,
-    @required String fromUserId,
-    @required String fromEmail,
-  }) async {
-    final now = DateTime.now().toUtc();
-    final inviteId = models.PackageInvite.createId(type, recipientEmail);
-    final pkgKey = db.emptyKey.append(models.Package, id: packageName);
-    final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
-    return await db.withTransaction<InviteStatus>((tx) async {
-      final list = await tx.lookup([inviteKey]);
-      models.PackageInvite invite = list.single as models.PackageInvite;
-
-      // Existing and active invite with throttled notification.
-      if (invite != null && !invite.isExpired() && !invite.shouldNotify()) {
-        await tx.rollback();
-        return InviteStatus(nextNotification: invite.nextNotification);
-      }
-
-      // Existing and active invite with notification enabled.
-      if (invite != null && !invite.isExpired()) {
-        invite.lastNotified = now;
-        invite.notificationCount++;
-        tx.queueMutations(inserts: [invite]);
-        await tx.commit();
-        return InviteStatus(urlNonce: invite.urlNonce);
-      }
-
-      // Reset old or create new invite.
-      invite ??= models.PackageInvite()
-        ..parentKey = pkgKey
-        ..id = inviteId
-        ..type = type
-        ..recipientEmail = recipientEmail;
-      final urlNonce =
-          List.generate(25, (i) => _random.nextInt(36).toRadixString(36))
-              .join();
-      invite
-        ..urlNonce = urlNonce
-        ..fromUserId = fromUserId
-        ..fromEmail = fromEmail
-        ..created = now
-        ..expires = now.add(Duration(days: 1))
-        ..notificationCount = 1
-        ..lastNotified = now;
-
-      final inserts = <Model>[invite];
-      if (historyBackend.isEnabled) {
-        final history = History.entry(UploaderInvited(
-          packageName: packageName,
-          currentUserId: fromUserId,
-          currentUserEmail: fromEmail,
-          uploaderUserEmail: recipientEmail,
-        ));
-        inserts.add(history);
-      }
-
-      tx.queueMutations(inserts: inserts);
-      await tx.commit();
-      return InviteStatus(urlNonce: invite.urlNonce);
-    });
   }
 
   /// Get the invite or return null if it does not exist or is not valid anymore.
@@ -821,39 +751,31 @@ class GCloudPackageRepository extends PackageRepository {
       throw GenericProcessingException('Not a valid email: `$uploaderEmail`.');
     }
 
-    final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
-    if (uploader != null && package.containsUploader(uploader.userId)) {
+    final uploader =
+        await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
+    if (package.containsUploader(uploader.userId)) {
       // The requested uploaderEmail is already part of the uploaders.
       return;
     }
 
-    final status = await packageBackend.updatePackageInvite(
+    await historyBackend.storeEvent(UploaderInvited(
       packageName: packageName,
-      type: models.PackageInviteType.newUploader,
-      recipientEmail: uploaderEmail,
-      fromUserId: user.userId,
-      fromEmail: user.email,
+      currentUserId: user.userId,
+      currentUserEmail: user.email,
+      uploaderUserEmail: uploaderEmail,
+    ));
+
+    final status = await consentBackend.invite(
+      userId: uploader.userId,
+      kind: 'PackageUploader',
+      args: [packageName],
     );
 
-    if (status.isDelayed) {
+    if (!status.emailSent) {
       throw GenericProcessingException(
           'Previous invite is still active, next notification can be sent '
           'on ${status.nextNotification.toIso8601String()}.');
     }
-
-    final confirmationUrl = urls.pkgInviteUrl(
-      type: models.PackageInviteType.newUploader,
-      package: packageName,
-      email: uploaderEmail,
-      urlNonce: status.urlNonce,
-    );
-    final message = createUploaderConfirmationEmail(
-      packageName: packageName,
-      activeAccountEmail: user.email,
-      addedUploaderEmail: uploaderEmail,
-      confirmationUrl: confirmationUrl,
-    );
-    await emailSender.sendMessage(message);
 
     throw GenericProcessingException(
         'We have sent an invitation to $uploaderEmail, '
