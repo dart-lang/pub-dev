@@ -153,9 +153,8 @@ void main() {
 
     await _corruptAndFix();
 
-    final h = (await dbService
-            .lookup<History>([dbService.emptyKey.append(History, id: id)]))
-        .single;
+    final h = await dbService
+        .lookupValue<History>(dbService.emptyKey.append(History, id: id));
     return h.historyEvent as T;
   }
 

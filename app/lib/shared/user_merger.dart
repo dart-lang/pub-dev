@@ -58,10 +58,8 @@ class UserMerger {
     final users = await query.run().toList();
     print('Users: ${users.map((u) => u.userId).join(', ')}');
 
-    final mappings = await _db.lookup<OAuthUserID>([
-      _db.emptyKey.append(OAuthUserID, id: oauthUserId),
-    ]);
-    final mapping = mappings.single;
+    final mapping = await _db.lookupValue<OAuthUserID>(
+        _db.emptyKey.append(OAuthUserID, id: oauthUserId));
     print('Primary User: ${mapping.userId}');
     if (!users.any((u) => u.userId == mapping.userId)) {
       throw Exception('Primary User is missing!');
@@ -95,7 +93,7 @@ class UserMerger {
       _db.query<Package>()..filter('uploaders =', fromUserId),
       (Package m) async {
         await _db.withTransaction((tx) async {
-          final p = (await tx.lookup<Package>([m.key])).single;
+          final p = await tx.lookupValue<Package>(m.key);
           if (p.containsUploader(fromUserId)) {
             p.removeUploader(fromUserId);
             p.addUploader(toUserId);
@@ -113,7 +111,7 @@ class UserMerger {
       _db.query<PackageVersion>()..filter('uploader =', fromUserId),
       (PackageVersion m) async {
         await _db.withTransaction((tx) async {
-          final pv = (await tx.lookup<PackageVersion>([m.key])).single;
+          final pv = await tx.lookupValue<PackageVersion>(m.key);
           if (pv.uploader == fromUserId) {
             pv.uploader = toUserId;
             tx.queueMutations(inserts: [pv]);
@@ -132,7 +130,7 @@ class UserMerger {
       _db.query<UserSession>()..filter('userIdKey =', fromUserKey),
       (UserSession m) async {
         await _db.withTransaction((tx) async {
-          final session = (await tx.lookup<UserSession>([m.key])).single;
+          final session = await tx.lookupValue<UserSession>(m.key);
           if (session.userId == fromUserId) {
             session.userIdKey = toUserKey;
             tx.queueMutations(inserts: [session]);
@@ -161,7 +159,7 @@ class UserMerger {
       _db.query<Consent>()..filter('fromUserId =', fromUserId),
       (Consent m) async {
         await _db.withTransaction((tx) async {
-          final consent = (await tx.lookup<Consent>([m.key])).single;
+          final consent = await tx.lookupValue<Consent>(m.key);
           if (consent.fromUserId == fromUserId) {
             consent.fromUserId = toUserId;
             tx.queueMutations(inserts: [consent]);
@@ -196,7 +194,7 @@ class UserMerger {
       (History m) async {
         if (!m.eventJson.contains('"$fromUserId"')) return;
         await _db.withTransaction((tx) async {
-          final h = (await tx.lookup<History>([m.key])).single;
+          final h = await tx.lookupValue<History>(m.key);
           final fromJson = h.eventJson;
           h.eventJson = fromJson.replaceAll('"$fromUserId"', '"$toUserId"');
           tx.queueMutations(inserts: [h]);
