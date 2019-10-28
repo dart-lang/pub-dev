@@ -810,13 +810,12 @@ class GCloudPackageRepository extends PackageRepository {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
     final package = (await db.lookup([packageKey])).first as models.Package;
 
+    await _validatePackageUploader(packageName, package, user.userId);
     // Don't send invites for publisher-owned packages.
     if (package.publisherId != null) {
       throw GenericProcessingException(
           'Package is owned by publisher "${package.publisherId}".');
     }
-
-    await _validatePackageUploader(packageName, package, user.userId);
 
     if (!isValidEmail(uploaderEmail)) {
       throw GenericProcessingException('Not a valid email: `$uploaderEmail`.');
