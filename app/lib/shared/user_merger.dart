@@ -11,6 +11,7 @@ import '../package/models.dart';
 import '../publisher/models.dart';
 
 /// Utility class to merge user data.
+/// Specifically for the case where a two [User] entities exists with the same [User.oauthUserId].
 class UserMerger {
   final DatastoreDB _db;
   final int _concurrency;
