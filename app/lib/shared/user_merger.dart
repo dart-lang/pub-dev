@@ -15,11 +15,17 @@ class UserMerger {
   final DatastoreDB _db;
   final int _concurrency;
   final bool _deleteUsers;
+  final bool _omitEmailCheck;
 
-  UserMerger({DatastoreDB db, int concurrency = 1, bool deleteUsers})
-      : _db = db,
+  UserMerger({
+    DatastoreDB db,
+    int concurrency = 1,
+    bool deleteUsers,
+    bool omitEmailCheck,
+  })  : _db = db,
         _concurrency = concurrency,
-        _deleteUsers = deleteUsers ?? false;
+        _deleteUsers = deleteUsers ?? false,
+        _omitEmailCheck = omitEmailCheck ?? false;
 
   /// Fixes all OAuthUserID issues.
   Future fixAll() async {
@@ -59,6 +65,19 @@ class UserMerger {
     print('Primary User: ${mapping.userId}');
     if (!users.any((u) => u.userId == mapping.userId)) {
       throw Exception('Primary User is missing!');
+    }
+
+    // WARNING
+    //
+    // We only update user ids, we do not change e-mails.
+    // The tool will NOT merge Users with non-matching e-mail addresses.
+    if (!_omitEmailCheck) {
+      for (int i = 1; i < users.length; i++) {
+        if (users[0].email != users[i].email) {
+          throw Exception(
+              'User e-mail does not match: ${users[0].email} != ${users[i].email}');
+        }
+      }
     }
 
     for (User user in users) {

@@ -16,7 +16,7 @@ import 'test_models.dart';
 import 'test_services.dart';
 
 void main() {
-  Future updateUsers() async {
+  Future _updateUsers() async {
     await dbService.withTransaction((tx) async {
       final users = await tx.lookup<User>([hansUser.key, joeUser.key]);
       users.forEach((u) => u.oauthUserId = 'oauth-1');
@@ -31,6 +31,17 @@ void main() {
     });
   }
 
+  Future _corruptAndFix() async {
+    await _updateUsers();
+    final merger = UserMerger(
+      db: dbService,
+      concurrency: 2,
+      deleteUsers: true,
+      omitEmailCheck: true,
+    );
+    await merger.fixAll();
+  }
+
   testWithServices('packages and versions', () async {
     final control = generateBundle(
       'control',
@@ -43,9 +54,7 @@ void main() {
       ...pvModels(control.versions.single),
     ]);
 
-    await updateUsers();
-    final merger = UserMerger(db: dbService, concurrency: 2, deleteUsers: true);
-    await merger.fixAll();
+    await _corruptAndFix();
 
     final pkgList = await dbService.lookup<Package>([
       foobarPackage.key,
@@ -78,9 +87,7 @@ void main() {
         ..expires = DateTime.now(),
     ]);
 
-    await updateUsers();
-    final merger = UserMerger(db: dbService, concurrency: 2, deleteUsers: true);
-    await merger.fixAll();
+    await _corruptAndFix();
 
     final list = await dbService.lookup<UserSession>([
       dbService.emptyKey.append(UserSession, id: 'target'),
@@ -108,9 +115,7 @@ void main() {
         fromUserId: adminUser.userId);
     await dbService.commit(inserts: [target1, target2, control]);
 
-    await updateUsers();
-    final merger = UserMerger(db: dbService, concurrency: 2, deleteUsers: true);
-    await merger.fixAll();
+    await _corruptAndFix();
 
     final list = await dbService.query<Consent>().run().toList();
     final updated1 = list.firstWhere((c) => c.id == target1.id);
@@ -134,9 +139,7 @@ void main() {
       hansUser.userId,
     ]);
 
-    await updateUsers();
-    final merger = UserMerger(db: dbService, concurrency: 2, deleteUsers: true);
-    await merger.fixAll();
+    await _corruptAndFix();
 
     final after = await dbService.query<PublisherMember>().run().toList();
     expect(after.map((m) => m.userId).toList()..sort(), [
@@ -148,9 +151,7 @@ void main() {
   Future<T> updateHistoryEvent<T extends HistoryEvent>(T event) async {
     final id = await historyBackend.storeEvent(event);
 
-    await updateUsers();
-    final merger = UserMerger(db: dbService, concurrency: 2, deleteUsers: true);
-    await merger.fixAll();
+    await _corruptAndFix();
 
     final h = (await dbService
             .lookup<History>([dbService.emptyKey.append(History, id: id)]))
