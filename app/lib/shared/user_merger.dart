@@ -6,6 +6,7 @@ import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 
 import '../account/models.dart';
+import '../history/models.dart';
 import '../package/models.dart';
 import '../publisher/models.dart';
 
@@ -170,7 +171,28 @@ class UserMerger {
       },
     );
 
-    // TODO: History
+    // WARNING
+    //
+    // Updating history entries blindly, without parsing the event structure.
+    // This only works because user ids are random UUIDs, and in the events we
+    // always use them separately, either as a String property, or as a String
+    // list item.
+    await _processConcurrently(
+      _db.query<History>(),
+      (History m) async {
+        if (!m.eventJson.contains('"$fromUserId"')) return;
+        await _db.withTransaction((tx) async {
+          final h = (await tx.lookup<History>([m.key])).single;
+          final fromJson = h.eventJson;
+          h.eventJson = fromJson.replaceAll('"$fromUserId"', '"$toUserId"');
+          tx.queueMutations(inserts: [h]);
+          await tx.commit();
+          print('Updated History(${h.id})');
+          print(fromJson);
+          print(h.eventJson);
+        });
+      },
+    );
 
     if (_deleteUsers) {
       await _db.commit(deletes: [fromUserKey]);

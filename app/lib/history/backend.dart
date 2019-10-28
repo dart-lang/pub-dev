@@ -33,17 +33,18 @@ class HistoryBackend {
 
   /// Store a history [event]. When storing is not enabled, this will only log
   /// the method call, and not store the entry in Datastore.
-  Future storeEvent(HistoryEvent event) async {
+  Future<String> storeEvent(HistoryEvent event) async {
     final history = History.entry(event);
     if (!_enabled) {
       _logger.info('History is not enabled, store aborted: '
           '${history.packageName} ${history.packageVersion} ${history.eventType}');
-      return;
+      return null;
     }
     await _db.withTransaction((tx) async {
       tx.queueMutations(inserts: [history]);
       await tx.commit();
     });
+    return history.id as String;
   }
 
   Stream<History> getAll({

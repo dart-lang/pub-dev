@@ -6,6 +6,8 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dartlang_org/account/models.dart';
+import 'package:pub_dartlang_org/history/backend.dart';
+import 'package:pub_dartlang_org/history/models.dart';
 import 'package:pub_dartlang_org/package/models.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
 import 'package:pub_dartlang_org/shared/user_merger.dart';
@@ -141,5 +143,139 @@ void main() {
       adminUser.userId,
       joeUser.userId,
     ]);
+  });
+
+  Future<T> updateHistoryEvent<T extends HistoryEvent>(T event) async {
+    final id = await historyBackend.storeEvent(event);
+
+    await updateUsers();
+    final merger = UserMerger(db: dbService, concurrency: 2, deleteUsers: true);
+    await merger.fixAll();
+
+    final h = (await dbService
+            .lookup<History>([dbService.emptyKey.append(History, id: id)]))
+        .single;
+    return h.historyEvent as T;
+  }
+
+  testWithServices('history: UploaderChanged (current)', () async {
+    final updated = await updateHistoryEvent(UploaderChanged(
+      packageName: 'foo',
+      currentUserId: hansUser.userId,
+      currentUserEmail: hansUser.email,
+      addedUploaderIds: [adminUser.userId],
+      addedUploaderEmails: [adminUser.email],
+    ));
+    expect(updated.currentUserId, joeUser.userId);
+    expect(updated.addedUploaderIds, [adminUser.userId]);
+  });
+
+  testWithServices('history: UploaderChanged (added)', () async {
+    final updated = await updateHistoryEvent(UploaderChanged(
+      packageName: 'foo',
+      currentUserId: adminUser.userId,
+      currentUserEmail: adminUser.email,
+      addedUploaderIds: [hansUser.userId],
+      addedUploaderEmails: [hansUser.email],
+    ));
+    expect(updated.currentUserId, adminUser.userId);
+    expect(updated.addedUploaderIds, [joeUser.userId]);
+  });
+
+  testWithServices('history: UploaderChanged (removed)', () async {
+    final updated = await updateHistoryEvent(UploaderChanged(
+      packageName: 'foo',
+      currentUserId: adminUser.userId,
+      currentUserEmail: adminUser.email,
+      removedUploaderIds: [hansUser.userId],
+      removedUploaderEmails: [hansUser.email],
+    ));
+    expect(updated.currentUserId, adminUser.userId);
+    expect(updated.removedUploaderIds, [joeUser.userId]);
+  });
+
+  testWithServices('history: PackageTransferred', () async {
+    final updated = await updateHistoryEvent(PackageTransferred(
+      packageName: 'foo',
+      fromPublisherId: null,
+      toPublisherId: 'example.com',
+      userId: hansUser.userId,
+      userEmail: hansUser.email,
+    ));
+    expect(updated.userId, joeUser.userId);
+  });
+
+  testWithServices('history: PublisherCreated', () async {
+    final updated = await updateHistoryEvent(PublisherCreated(
+      publisherId: 'example.com',
+      userId: hansUser.userId,
+      userEmail: hansUser.email,
+    ));
+    expect(updated.userId, joeUser.userId);
+    expect(updated.userEmail, hansUser.email);
+  });
+
+  testWithServices('history: MemberInvited (current)', () async {
+    final updated = await updateHistoryEvent(MemberInvited(
+      publisherId: 'example.com',
+      currentUserId: hansUser.userId,
+      currentUserEmail: hansUser.email,
+      invitedUserEmail: adminUser.userId,
+      invitedUserId: adminUser.userId,
+      timestamp: DateTime.now(),
+    ));
+    expect(updated.currentUserId, joeUser.userId);
+    expect(updated.invitedUserId, adminUser.userId);
+  });
+
+  testWithServices('history: MemberInvited (invited)', () async {
+    final updated = await updateHistoryEvent(MemberInvited(
+      publisherId: 'example.com',
+      currentUserId: adminUser.userId,
+      currentUserEmail: adminUser.email,
+      invitedUserEmail: hansUser.userId,
+      invitedUserId: hansUser.userId,
+      timestamp: DateTime.now(),
+    ));
+    expect(updated.currentUserId, adminUser.userId);
+    expect(updated.invitedUserId, joeUser.userId);
+  });
+
+  testWithServices('history: MemberJoined', () async {
+    final updated = await updateHistoryEvent(MemberJoined(
+      publisherId: 'example.com',
+      userId: hansUser.userId,
+      userEmail: hansUser.email,
+      role: 'admin',
+      timestamp: DateTime.now(),
+    ));
+    expect(updated.userId, joeUser.userId);
+    expect(updated.role, 'admin');
+  });
+
+  testWithServices('history: MemberRemoved (current)', () async {
+    final updated = await updateHistoryEvent(MemberRemoved(
+      publisherId: 'example.com',
+      currentUserId: hansUser.userId,
+      currentUserEmail: hansUser.email,
+      removedUserId: adminUser.userId,
+      removedUserEmail: adminUser.userId,
+      timestamp: DateTime.now(),
+    ));
+    expect(updated.currentUserId, joeUser.userId);
+    expect(updated.removedUserId, adminUser.userId);
+  });
+
+  testWithServices('history: MemberRemoved (removed)', () async {
+    final updated = await updateHistoryEvent(MemberRemoved(
+      publisherId: 'example.com',
+      currentUserId: adminUser.userId,
+      currentUserEmail: adminUser.email,
+      removedUserId: hansUser.userId,
+      removedUserEmail: hansUser.userId,
+      timestamp: DateTime.now(),
+    ));
+    expect(updated.currentUserId, adminUser.userId);
+    expect(updated.removedUserId, joeUser.userId);
   });
 }
