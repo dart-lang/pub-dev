@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
+import 'package:pana/src/download_utils.dart' show getRepositoryUrl;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
@@ -309,9 +310,12 @@ List<Tab> _pkgTabs(
     final exampleFilename = selectedVersion.example.filename;
     renderedExample = renderFile(selectedVersion.example, baseUrl);
     if (renderedExample != null) {
-      renderedExample = '<p style="font-family: monospace">'
-          '<b>${htmlEscape.convert(exampleFilename)}</b>'
-          '</p>\n'
+      final url = getRepositoryUrl(baseUrl, exampleFilename);
+      final escapedName = htmlEscape.convert(exampleFilename);
+      final link = url == null
+          ? escapedName
+          : '<a href="$url" target="_blank" rel="noopener noreferrer nofollow">$escapedName</a>';
+      renderedExample = '<p style="font-family: monospace"><b>$link</b></p>\n'
           '$renderedExample';
     }
   }
