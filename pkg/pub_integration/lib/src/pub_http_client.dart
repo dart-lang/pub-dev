@@ -118,6 +118,46 @@ class PubHttpClient {
     }
   }
 
+  /// Invite a member into a publisher.
+  Future inviteMember({
+    @required String authToken,
+    @required String publisherId,
+    @required String invitedEmail,
+  }) async {
+    final rs = await _http.post(
+      '$pubHostedUrl/api/publishers/$publisherId/invite-member',
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $authToken',
+      },
+      body: json.encode({
+        'email': invitedEmail,
+      }),
+    );
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+  }
+
+  /// Returns the e-mail -> role map of publisher members.
+  Future<Map<String, String>> listMembers({
+    @required String authToken,
+    @required String publisherId,
+  }) async {
+    final rs = await _http.get(
+      '$pubHostedUrl/api/publishers/$publisherId/members',
+      headers: {
+        HttpHeaders.authorizationHeader: 'Bearer $authToken',
+      },
+    );
+    if (rs.statusCode != 200) {
+      throw Exception('Unexpected status code: ${rs.statusCode}');
+    }
+    final map = json.decode(rs.body);
+    final members = (map['members'] as List).cast<Map>();
+    return Map.fromEntries(members.map((Map m) =>
+        MapEntry<String, String>(m['email'] as String, m['role'] as String)));
+  }
+
   /// Free resources.
   Future close() async {
     _http.close();
