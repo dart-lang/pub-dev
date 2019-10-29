@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
-import 'package:pana/src/download_utils.dart' show getRepositoryUrl;
+import 'package:pana/pana.dart' show getRepositoryUrl;
 
 import '../../analyzer/analyzer_client.dart';
 import '../../package/models.dart';
