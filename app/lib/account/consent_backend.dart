@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../frontend/email_sender.dart';
+import '../package/backend.dart';
 import '../publisher/backend.dart';
 import '../shared/email.dart' show createInviteEmail;
 import '../shared/exceptions.dart';
@@ -32,6 +33,7 @@ ConsentBackend get consentBackend =>
 class ConsentBackend {
   final DatastoreDB _db;
   final _actions = <String, ConsentAction>{
+    'PackageUploader': _PackageUploaderAction(),
     'PublisherMember': _PublisherMemberAction(),
   };
 
@@ -167,7 +169,8 @@ class ConsentBackend {
     final action = _actions[consent.kind];
     await retry(
       () async {
-        await action?.onAccept(consent.userId, consent.args);
+        await action?.onAccept(
+            consent.fromUserId, consent.userId, consent.args);
         await _db.withTransaction((tx) async {
           final c = (await tx.lookup<Consent>([consent.key])).single;
           if (c == null) return;
@@ -183,7 +186,8 @@ class ConsentBackend {
     final action = _actions[consent.kind];
     await retry(
       () async {
-        await action?.onDelete(consent.userId, consent.args);
+        await action?.onDelete(
+            consent.fromUserId, consent.userId, consent.args);
         await _db.withTransaction((tx) async {
           final c = (await tx.lookup<Consent>([consent.key])).single;
           if (c == null) return;
@@ -199,10 +203,10 @@ class ConsentBackend {
 /// Callback that will be called on consent actions.
 abstract class ConsentAction {
   /// Callback on accepting the consent.
-  Future onAccept(String userId, List<String> args);
+  Future onAccept(String fromUserId, String userId, List<String> args);
 
   /// Callback on rejecting the consent or timeout.
-  Future onDelete(String userId, List<String> args);
+  Future onDelete(String fromUserId, String userId, List<String> args);
 
   /// The subject of the notification email sent.
   String renderEmailSubject(List<String> args) =>
@@ -223,16 +227,55 @@ abstract class ConsentAction {
   String renderInviteHtml(String activeAccountEmail, List<String> args);
 }
 
+/// Callbacks for package uploader consents.
+class _PackageUploaderAction extends ConsentAction {
+  @override
+  Future onAccept(String fromUserId, String userId, List<String> args) async {
+    final packageName = args.single;
+    final fromUserEmail = await accountBackend.getEmailOfUserId(fromUserId);
+    final uploader = await accountBackend.lookupUserById(userId);
+
+    await packageBackend.repository
+        .confirmUploader(fromUserId, fromUserEmail, packageName, uploader);
+  }
+
+  @override
+  Future onDelete(String fromUserId, String userId, List<String> args) async {
+    // nothing to do
+  }
+
+  @override
+  String renderInviteText(String activeAccountEmail, List<String> args) {
+    final packageName = args.single;
+    return '$activeAccountEmail has invited you to be an uploader of the package $packageName.';
+  }
+
+  @override
+  String renderInviteTitleText(String activeAccountEmail, List<String> args) {
+    final packageName = args.single;
+    return 'Invitation for package: $packageName';
+  }
+
+  @override
+  String renderInviteHtml(String activeAccountEmail, List<String> args) {
+    final packageName = args.single;
+    final url = pkgPageUrl(packageName);
+    return '<code>$activeAccountEmail</code> has invited you to be an uploader of '
+        'the package '
+        '<a href="$url" target="_blank" rel="noreferrer"><code>$packageName</code></a>.';
+  }
+}
+
 /// Callbacks for publisher member consents.
 class _PublisherMemberAction extends ConsentAction {
   @override
-  Future onAccept(String userId, List<String> args) async {
+  Future onAccept(String fromUserId, String userId, List<String> args) async {
     await publisherBackend.inviteConsentGranted(args.single, userId);
   }
 
   @override
-  Future onDelete(String userId, List<String> args) async {
-    await publisherBackend.inviteDeleted(args.single, userId);
+  Future onDelete(String fromUserId, String userId, List<String> args) async {
+    // nothing to do
   }
 
   @override

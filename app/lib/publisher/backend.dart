@@ -441,12 +441,6 @@ class PublisherBackend {
     await purgePublisherCache(publisherId: publisherId);
   }
 
-  /// A callback from consent backend, when a consent is not granted, or expired.
-  /// Note: this will be retried when transaction fails due race conditions.
-  Future inviteDeleted(String publisherId, String userId) async {
-    // nothing to do
-  }
-
   Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
     return api.PublisherMember(
       userId: pm.userId,

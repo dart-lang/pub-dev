@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:html/parser.dart' as html_parser;
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
@@ -27,25 +28,18 @@ void main() {
 
     test('standard integration', () async {
       final inviteUrlFuture = fakePubServerProcess
-          .waitForLine((line) => line.contains('/admin/confirm/new-uploader/'));
+          .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
       Future inviteCompleterFn() async {
         final pageUrl = await inviteUrlFuture.timeout(Duration(seconds: 30));
         final pageUri = Uri.parse(pageUrl);
-        final confirmUrl = pageUri.replace(
-          scheme: 'http',
-          host: 'localhost',
-          port: fakePubServerProcess.port,
+        final consentId = pageUri.queryParameters['id'];
+        await httpClient.put(
+          'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId',
+          headers: {
+            'Authorization': 'Bearer dev-at-example-dot-org',
+          },
+          body: json.encode({'granted': true}),
         );
-        print('Requesting confirm URL $confirmUrl');
-        final pageRs = await httpClient.get(confirmUrl);
-        final pageDom = html_parser.parse(pageRs.body);
-        final elem = pageDom.getElementById('accept-invite-link');
-        final acceptUrl = elem.attributes['href'];
-        print('Requesting accept URL $acceptUrl');
-        final acceptUri = Uri.parse(acceptUrl);
-        await httpClient.get(acceptUri.replace(
-            queryParameters: Map.from(acceptUri.queryParameters)
-              ..addAll({'code': 'dev-at-example-dot-org'})));
       }
 
       await verifyPub(

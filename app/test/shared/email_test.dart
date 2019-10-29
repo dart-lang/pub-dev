@@ -155,27 +155,4 @@ void main() {
           contains('https://pub.dev/packages/pkg_foo/versions/1.0.0'));
     });
   });
-
-  group('Uploaders', () {
-    test('uploader confirmation', () {
-      final message = createUploaderConfirmationEmail(
-        packageName: 'pkg_foo',
-        activeAccountEmail: 'active@example.com',
-        addedUploaderEmail: 'uploader@example.com',
-        confirmationUrl:
-            'https://pub.dev/confirmation/add-uploader/abcdef1234567890',
-      );
-      expect(message.from.toString(), contains('<pub@dartlang.org>'));
-      expect(message.recipients.map((e) => e.toString()).toList(),
-          ['uploader@example.com']);
-      expect(message.subject, contains('pkg_foo'));
-      expect(message.bodyText, contains('active@example.com'));
-      expect(message.bodyText, contains('pkg_foo'));
-      expect(message.bodyText, contains('https://pub.dev/packages/pkg_foo'));
-      expect(
-          message.bodyText,
-          contains(
-              'https://pub.dev/confirmation/add-uploader/abcdef1234567890'));
-    });
-  });
 }

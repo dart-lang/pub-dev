@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:pub_dartlang_org/package/overrides.dart';
@@ -88,19 +87,6 @@ String searchUrl({String platform, String q, int page}) {
   return Uri(
     path: packagesPath,
     queryParameters: params.isEmpty ? null : params,
-  ).toString();
-}
-
-String pkgInviteUrl({
-  @required String type,
-  @required String package,
-  @required String email,
-  @required String urlNonce,
-}) {
-  return Uri(
-    scheme: 'https',
-    host: primaryHost,
-    path: p.join('/admin/confirm', type, package, email, urlNonce),
   ).toString();
 }
 
