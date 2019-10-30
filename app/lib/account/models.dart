@@ -179,7 +179,15 @@ class Consent extends db.Model {
   String get consentId => id as String;
 
   /// The user that this consent is for.
-  String get userId => parentKey.id as String;
+  String get userId => userIdField ?? parentKey.id as String;
+
+  /// The user that this consent is for.
+  /// TODO: rename to userId once we migrated off of User-derived consents.
+  @db.StringProperty(propertyName: 'userId')
+  String userIdField;
+
+  @db.StringProperty()
+  String email;
 
   /// A [Uri.path]-like concatenation of identifiers from [kind] and [args].
   /// It should be used to query the Datastore for duplicate detection.
@@ -218,6 +226,7 @@ class Consent extends db.Model {
   }) {
     this.parentKey = parentKey;
     this.id = Ulid().toString();
+    userIdField = parentKey.id as String;
     dedupId = consentDedupId(kind, args);
     created = DateTime.now().toUtc();
     notificationCount = 0;
@@ -241,6 +250,8 @@ class Consent extends db.Model {
     return Consent()
       ..parentKey = parentKey.parent.append(User, id: userId)
       ..id = id
+      ..userIdField = userId
+      ..email = email
       ..dedupId = dedupId
       ..kind = kind
       ..args = args

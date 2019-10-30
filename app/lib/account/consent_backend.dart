@@ -40,11 +40,9 @@ class ConsentBackend {
   ConsentBackend(this._db);
 
   /// Returns the consent details.
-  Future<api.Consent> getConsent(String userId, String consentId) async {
+  Future<api.Consent> getConsent(String consentId, User user) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
-    final key =
-        _db.emptyKey.append(User, id: userId).append(Consent, id: consentId);
-    final c = (await _db.lookup<Consent>([key])).single;
+    final c = await _lookupAndCheck(consentId, user);
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
     }
@@ -60,7 +58,7 @@ class ConsentBackend {
   /// Returns the consent details for API calls.
   Future<api.Consent> handleGetConsent(String consentId) async {
     final user = await requireAuthenticatedUser();
-    return getConsent(user.userId, consentId);
+    return getConsent(consentId, user);
   }
 
   /// Resolves the consent.
@@ -69,10 +67,7 @@ class ConsentBackend {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final user = await requireAuthenticatedUser();
 
-    final key = _db.emptyKey
-        .append(User, id: user.userId)
-        .append(Consent, id: consentId);
-    final c = (await _db.lookup<Consent>([key])).single;
+    final c = await _lookupAndCheck(consentId, user);
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
       if (c == null) {
@@ -163,6 +158,33 @@ class ConsentBackend {
             'Delete failed: ${entry.userId} ${entry.kind} ${entry.args}', e);
       }
     }
+  }
+
+  /// Returns the [Consent] for [consentId] and checks if it is for [user].
+  ///
+  /// Returns null if the consent cannot be found.
+  Future<Consent> _lookupAndCheck(String consentId, User user) async {
+    // legacy Consent store: under the User entity
+    final legacyKey = _db.emptyKey
+        .append(User, id: user.userId)
+        .append(Consent, id: consentId);
+    final legacyValue =
+        await _db.lookupValue<Consent>(legacyKey, orElse: () => null);
+    if (legacyValue != null) {
+      // the request is under the User entity, we don't need to do any check
+      return legacyValue;
+    }
+
+    // future Consent store: separately from the User entity
+    final c = await _db.lookupValue<Consent>(
+        _db.emptyKey.append(Consent, id: consentId),
+        orElse: () => null);
+    if (c == null) return null;
+
+    // Checking that consent is for the current user.
+    if (c.userId != null && c.userId != user.userId) return null;
+    if (c.email != null && c.email != user.email) return null;
+    return c;
   }
 
   Future _accept(Consent consent) async {
