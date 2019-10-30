@@ -98,8 +98,16 @@ void main() {
       // location should be the top value, everything else should be lower
       expect(match.tokenWeights, {
         'location': 1.0,
-        'geolocation': closeTo(0.588, 0.001),
+        'geolocation': closeTo(0.727, 0.001),
       });
+    });
+
+    test('short words: lookup for app', () {
+      final index = TokenIndex(minLength: 2);
+      index.add('app', 'app');
+      index.add('apps', 'apps');
+      final match = index.lookupTokens('app');
+      expect(match.tokenWeights, {'app': 1.0, 'apps': 0.75});
     });
   });
 
