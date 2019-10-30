@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
@@ -24,10 +26,28 @@ void main() {
       httpClient.close();
     });
 
-    test('steps', () async {
+    test('publisher script', () async {
+      final inviteUrlFuture = fakePubServerProcess
+          .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
+
+      Future inviteCompleterFn() async {
+        final pageUrl = await inviteUrlFuture.timeout(Duration(seconds: 30));
+        final pageUri = Uri.parse(pageUrl);
+        final consentId = pageUri.queryParameters['id'];
+        await httpClient.put(
+          'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId',
+          headers: {
+            'Authorization': 'Bearer dev-at-example-dot-org',
+          },
+          body: json.encode({'granted': true}),
+        );
+      }
+
       final script = PublisherScript(
         pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
         credentialsFileContent: fakeCredentialsFileContent(),
+        invitedEmail: 'dev@example.org',
+        inviteCompleterFn: inviteCompleterFn,
       );
       await script.verify();
     });

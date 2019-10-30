@@ -18,6 +18,8 @@ typedef InviteCompleterFn = Future Function();
 class PublisherScript {
   final String pubHostedUrl;
   final String credentialsFileContent;
+  final String invitedEmail;
+  final InviteCompleterFn inviteCompleterFn;
   PubHttpClient _pubHttpClient;
   PubToolClient _pubToolClient;
 
@@ -26,6 +28,8 @@ class PublisherScript {
   PublisherScript({
     @required this.pubHostedUrl,
     @required this.credentialsFileContent,
+    @required this.invitedEmail,
+    @required this.inviteCompleterFn,
   });
 
   /// Verify all integration steps.
@@ -69,6 +73,28 @@ class PublisherScript {
       // TODO: verify publisher page (after the search index picks up the package)
 
       await _verifyPublisherListPage();
+
+      // member invite
+      final members1 = await _pubHttpClient.listMembers(
+        authToken: 'user-at-example-dot-com',
+        publisherId: 'example.com',
+      );
+      _verifyMap({'user@example.com': 'admin'}, members1);
+
+      await _pubHttpClient.inviteMember(
+        authToken: 'user-at-example-dot-com',
+        publisherId: 'example.com',
+        invitedEmail: invitedEmail,
+      );
+      await inviteCompleterFn();
+      final members2 = await _pubHttpClient.listMembers(
+        authToken: 'user-at-example-dot-com',
+        publisherId: 'example.com',
+      );
+      _verifyMap({
+        'user@example.com': 'admin',
+        invitedEmail: 'admin',
+      }, members2);
 
       // TODO: verify my publishers page
     } finally {
@@ -139,6 +165,19 @@ class PublisherScript {
     final html = await _pubHttpClient.getPublisherListPage();
     if (!html.contains('href="/publishers/example.com"')) {
       throw Exception('Does not contain link to publisher.');
+    }
+  }
+
+  void _verifyMap(Map expected, Map actual) {
+    if (expected.length != actual.length) {
+      throw Exception(
+          'Map differ in length: ${expected.length} != ${actual.length}');
+    }
+    for (final key in expected.keys) {
+      if (actual[key] != expected[key]) {
+        throw Exception(
+            'Map value differs for key: $key ${actual[key]} != ${expected[key]}');
+      }
     }
   }
 }
