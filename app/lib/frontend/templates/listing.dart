@@ -89,12 +89,9 @@ String renderPkgIndexPage(
     {SearchQuery searchQuery, int totalCount}) {
   final PlatformDict platformDict = getPlatformDict(currentPlatform);
   final isSearch = searchQuery != null && searchQuery.hasQuery;
-  final unsupportedQualifier =
-      isSearch && (searchQuery.parsedQuery.text?.contains(':') ?? false);
   final values = {
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
-    'unsupported_qualifier': unsupportedQualifier,
     'title': platformDict.topPlatformPackages,
     'package_list_html': renderPackageList(packages),
     'has_packages': packages.isNotEmpty,
