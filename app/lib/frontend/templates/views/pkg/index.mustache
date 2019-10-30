@@ -9,9 +9,6 @@
 {{/is_search}}
 {{#is_search}}
   <p class="package-count"><span>{{total_count}}</span> results for <code>{{search_query}}</code></p>
-  {{#unsupported_qualifier}}
-  <p class="feedback-critical">Your query contains an unsupported qualifier. Check the <a href="/help#search">supported search qualifiers</a>.</p>
-  {{/unsupported_qualifier}}
 {{/is_search}}
 
 {{& package_list_html}}

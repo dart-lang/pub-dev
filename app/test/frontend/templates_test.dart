@@ -517,30 +517,6 @@ void main() {
       expectGoldenFile(html, 'search_page.html');
     });
 
-    scopedTest('search with supported qualifier', () {
-      final searchQuery = SearchQuery.parse(query: 'email:user@domain.com');
-      final String html = renderPkgIndexPage(
-        [],
-        PageLinks.empty(),
-        null,
-        searchQuery: searchQuery,
-        totalCount: 0,
-      );
-      expectGoldenFile(html, 'search_supported_qualifier.html');
-    });
-
-    scopedTest('search with unsupported qualifier', () {
-      final searchQuery = SearchQuery.parse(query: 'foo:bar');
-      final String html = renderPkgIndexPage(
-        [],
-        PageLinks.empty(),
-        null,
-        searchQuery: searchQuery,
-        totalCount: 0,
-      );
-      expectGoldenFile(html, 'search_unsupported_qualifier.html');
-    });
-
     scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
         foobarPackage,
