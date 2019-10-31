@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Refactored `Consent`:
+   * new entities contain `userId` (if it is known upfront)  
 
 ## `20191028t120414-all`
  * Run `app/bin/tools/backfill_packagelikes.dart` to backfill `Package`
