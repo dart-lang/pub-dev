@@ -92,8 +92,8 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final consent =
-      await consentBackend.getConsent(userSessionData.userId, consentId);
+  final user = await accountBackend.lookupUserById(userSessionData.userId);
+  final consent = await consentBackend.getConsent(consentId, user);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
   // TODO: handle missing/expired consent gracefully
