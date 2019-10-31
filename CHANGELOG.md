@@ -6,6 +6,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20191104t103859-all`
  * Refactored `Consent`:
    * new entities contain `userId` (if it is known upfront)  
+   * new entities do not have the user in their key
+   * WARNING: user merge with pending old consent does not work
  * Search updates:
    * #2968 may increase CPU latencies while serving a query
  * Bumped runtimeVersion to `2019.11.01`.

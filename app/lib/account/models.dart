@@ -179,12 +179,12 @@ class Consent extends db.Model {
   String get consentId => id as String;
 
   /// The user that this consent is for.
-  String get userId => userIdField ?? parentKey.id as String;
+  /// TODO: remove once we migrated off of User-derived consents.
+  String get userIdOfConsent => userId ?? parentKey.id as String;
 
   /// The user that this consent is for.
-  /// TODO: rename to userId once we migrated off of User-derived consents.
-  @db.StringProperty(propertyName: 'userId')
-  String userIdField;
+  @db.StringProperty()
+  String userId;
 
   @db.StringProperty()
   String email;
@@ -218,16 +218,21 @@ class Consent extends db.Model {
   Consent();
 
   Consent.init({
-    @required db.Key parentKey,
+    @required this.fromUserId,
+    @required this.userId,
+    @required this.email,
     @required this.kind,
     @required this.args,
-    @required this.fromUserId,
     Duration timeout = const Duration(days: 7),
   }) {
-    this.parentKey = parentKey;
     this.id = Ulid().toString();
-    userIdField = parentKey.id as String;
-    dedupId = consentDedupId(kind, args);
+    dedupId = consentDedupId(
+      fromUserId: fromUserId,
+      userId: userId,
+      email: email,
+      kind: kind,
+      args: args,
+    );
     created = DateTime.now().toUtc();
     notificationCount = 0;
     expires = created.add(timeout);
@@ -243,26 +248,17 @@ class Consent extends db.Model {
   bool shouldNotify() =>
       notificationCount == 0 ||
       DateTime.now().toUtc().isAfter(nextNotification);
-
-  /// Returns a new [Consent] object with a new parent.
-  /// Should be used only for merging users.
-  Consent changeParentUserId(String userId) {
-    return Consent()
-      ..parentKey = parentKey.parent.append(User, id: userId)
-      ..id = id
-      ..userIdField = userId
-      ..email = email
-      ..dedupId = dedupId
-      ..kind = kind
-      ..args = args
-      ..fromUserId = fromUserId
-      ..created = created
-      ..expires = expires
-      ..lastNotified = lastNotified
-      ..notificationCount = notificationCount;
-  }
 }
 
 /// Calculates the dedupId of a consent request.
-String consentDedupId(String kind, List<String> args) =>
-    [kind, ...args].map(Uri.encodeComponent).join('/');
+String consentDedupId({
+  @required String fromUserId,
+  @required String userId,
+  @required String email,
+  @required String kind,
+  @required List<String> args,
+}) =>
+    [fromUserId, userId, email, kind, ...args]
+        .where((s) => s != null)
+        .map(Uri.encodeComponent)
+        .join('/');

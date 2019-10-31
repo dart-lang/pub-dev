@@ -89,16 +89,21 @@ class ConsentBackend {
   /// - if it was sent recently, do nothing.
   Future<api.InviteStatus> invite({
     @required String userId,
+    @required String email,
     @required String kind,
     @required List<String> args,
   }) async {
     return retry(() async {
       final activeUser = await requireAuthenticatedUser();
       // First check for existing consents with identical dedupId.
-      final dedupId = consentDedupId(kind, args);
-      final userKey = _db.emptyKey.append(User, id: userId);
-      final query = _db.query<Consent>(ancestorKey: userKey)
-        ..filter('dedupId =', dedupId);
+      final dedupId = consentDedupId(
+        fromUserId: activeUser.userId,
+        userId: userId,
+        email: email,
+        kind: kind,
+        args: args,
+      );
+      final query = _db.query<Consent>()..filter('dedupId =', dedupId);
       final list = await query.run().toList();
       if (list.isNotEmpty) {
         final old = list.first;
@@ -115,10 +120,11 @@ class ConsentBackend {
       }
       // Create a new entry.
       final consent = Consent.init(
-        parentKey: userKey,
+        fromUserId: activeUser.userId,
+        userId: userId,
+        email: email,
         kind: kind,
         args: args,
-        fromUserId: activeUser.userId,
       );
       await _db.commit(inserts: [consent]);
       return await _sendNotification(activeUser.email, consent);
@@ -127,7 +133,8 @@ class ConsentBackend {
 
   Future<api.InviteStatus> _sendNotification(
       String activeUserEmail, Consent consent) async {
-    final invitedEmail = await accountBackend.getEmailOfUserId(consent.userId);
+    final invitedEmail = consent.email ??
+        await accountBackend.getEmailOfUserId(consent.userIdOfConsent);
     final action = _actions[consent.kind];
     await emailSender.sendMessage(createInviteEmail(
       invitedEmail: invitedEmail,
@@ -155,7 +162,8 @@ class ConsentBackend {
         await _delete(entry);
       } catch (e) {
         _logger.shout(
-            'Delete failed: ${entry.userId} ${entry.kind} ${entry.args}', e);
+            'Delete failed: ${entry.userIdOfConsent} ${entry.kind} ${entry.args}',
+            e);
       }
     }
   }
@@ -182,8 +190,12 @@ class ConsentBackend {
     if (c == null) return null;
 
     // Checking that consent is for the current user.
-    if (c.userId != null && c.userId != user.userId) return null;
-    if (c.email != null && c.email != user.email) return null;
+    if (c.userIdOfConsent != null && c.userIdOfConsent != user.userId) {
+      return null;
+    }
+    if (c.email != null && c.email != user.email) {
+      return null;
+    }
     return c;
   }
 
@@ -191,8 +203,7 @@ class ConsentBackend {
     final action = _actions[consent.kind];
     await retry(
       () async {
-        await action?.onAccept(
-            consent.fromUserId, consent.userId, consent.args);
+        await action?.onAccept(consent);
         await _db.withTransaction((tx) async {
           final c = (await tx.lookup<Consent>([consent.key])).single;
           if (c == null) return;
@@ -208,8 +219,7 @@ class ConsentBackend {
     final action = _actions[consent.kind];
     await retry(
       () async {
-        await action?.onDelete(
-            consent.fromUserId, consent.userId, consent.args);
+        await action?.onDelete(consent);
         await _db.withTransaction((tx) async {
           final c = (await tx.lookup<Consent>([consent.key])).single;
           if (c == null) return;
@@ -225,10 +235,10 @@ class ConsentBackend {
 /// Callback that will be called on consent actions.
 abstract class ConsentAction {
   /// Callback on accepting the consent.
-  Future onAccept(String fromUserId, String userId, List<String> args);
+  Future onAccept(Consent consent);
 
   /// Callback on rejecting the consent or timeout.
-  Future onDelete(String fromUserId, String userId, List<String> args);
+  Future onDelete(Consent consent);
 
   /// The subject of the notification email sent.
   String renderEmailSubject(List<String> args) =>
@@ -252,17 +262,20 @@ abstract class ConsentAction {
 /// Callbacks for package uploader consents.
 class _PackageUploaderAction extends ConsentAction {
   @override
-  Future onAccept(String fromUserId, String userId, List<String> args) async {
-    final packageName = args.single;
-    final fromUserEmail = await accountBackend.getEmailOfUserId(fromUserId);
-    final uploader = await accountBackend.lookupUserById(userId);
+  Future onAccept(Consent consent) async {
+    final packageName = consent.args.single;
+    final fromUserEmail =
+        await accountBackend.getEmailOfUserId(consent.fromUserId);
+    final uploader = consent.userId != null
+        ? await accountBackend.lookupUserById(consent.userId)
+        : await accountBackend.lookupOrCreateUserByEmail(consent.email);
 
-    await packageBackend.repository
-        .confirmUploader(fromUserId, fromUserEmail, packageName, uploader);
+    await packageBackend.repository.confirmUploader(
+        consent.fromUserId, fromUserEmail, packageName, uploader);
   }
 
   @override
-  Future onDelete(String fromUserId, String userId, List<String> args) async {
+  Future onDelete(Consent consent) async {
     // nothing to do
   }
 
@@ -291,12 +304,16 @@ class _PackageUploaderAction extends ConsentAction {
 /// Callbacks for publisher member consents.
 class _PublisherMemberAction extends ConsentAction {
   @override
-  Future onAccept(String fromUserId, String userId, List<String> args) async {
-    await publisherBackend.inviteConsentGranted(args.single, userId);
+  Future onAccept(Consent consent) async {
+    final member = consent.userId != null
+        ? await accountBackend.lookupUserById(consent.userId)
+        : await accountBackend.lookupOrCreateUserByEmail(consent.email);
+    final publisherId = consent.args.single;
+    await publisherBackend.inviteConsentGranted(publisherId, member.userId);
   }
 
   @override
-  Future onDelete(String fromUserId, String userId, List<String> args) async {
+  Future onDelete(Consent consent) async {
     // nothing to do
   }
 

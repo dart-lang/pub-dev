@@ -96,19 +96,22 @@ void main() {
     expect(list[1].userId, adminUser.userId);
   });
 
-  testWithServices('consent', () async {
+  testWithServices('new consent', () async {
     final target1 = Consent.init(
-        parentKey: hansUser.key,
+        userId: hansUser.userId,
+        email: null,
         kind: 'k1',
         args: ['1'],
         fromUserId: adminUser.userId);
     final target2 = Consent.init(
-        parentKey: adminUser.key,
+        userId: adminUser.userId,
+        email: null,
         kind: 'k2',
         args: ['2'],
         fromUserId: hansUser.userId);
     final control = Consent.init(
-        parentKey: adminUser.key,
+        userId: adminUser.userId,
+        email: null,
         kind: 'k3',
         args: ['3'],
         fromUserId: adminUser.userId);
@@ -121,11 +124,11 @@ void main() {
     final updated2 = list.firstWhere((c) => c.id == target2.id);
     final updated3 = list.firstWhere((c) => c.id == control.id);
 
-    expect(updated1.parentKey.id, joeUser.userId);
+    expect(updated1.userId, joeUser.userId);
     expect(updated1.fromUserId, adminUser.userId);
-    expect(updated2.parentKey.id, adminUser.userId);
+    expect(updated2.userId, adminUser.userId);
     expect(updated2.fromUserId, joeUser.userId);
-    expect(updated3.parentKey.id, adminUser.userId);
+    expect(updated3.userId, adminUser.userId);
     expect(updated3.fromUserId, adminUser.userId);
   });
 
