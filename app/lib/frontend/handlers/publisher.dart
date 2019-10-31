@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
-import '../../package/search_service.dart';
+import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
@@ -77,7 +77,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
     return formattedNotFoundHandler(request);
   }
 
-  final searchResult = await searchService.search(searchQuery);
+  final searchResult = await searchAdapter.search(searchQuery);
   final int totalCount = searchResult.totalCount;
   final links =
       PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);

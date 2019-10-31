@@ -13,7 +13,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
-import '../../package/search_service.dart';
+import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;

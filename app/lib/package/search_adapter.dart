@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub_dartlang_org.search_service;
-
 import 'dart:async';
 
 import 'package:gcloud/service_scope.dart' as ss;
@@ -19,16 +17,18 @@ import 'backend.dart';
 import 'models.dart';
 import 'name_tracker.dart';
 
-final _logger = Logger('frontend.search_service');
+final _logger = Logger('frontend.search_adapter');
 
-/// The [SearchService] registered in the current service scope.
-SearchService get searchService => ss.lookup(#_search) as SearchService;
+/// The `SearchAdapter` registered in the current service scope.
+SearchAdapter get searchAdapter => ss.lookup(#_search) as SearchAdapter;
 
-/// Register a new [SearchService] in the current service scope.
-void registerSearchService(SearchService s) => ss.register(#_search, s);
+/// Register a new [SearchAdapter] in the current service scope.
+void registerSearchAdapter(SearchAdapter s) => ss.register(#_search, s);
 
-/// A wrapper around the Custom Search API, used for searching for pub packages.
-class SearchService {
+/// Uses the HTTP-based `search` service client to execute a search query and
+/// processes its results, extending the search results with up-to-date package
+/// data.
+class SearchAdapter {
   /// Performs search using the `search` service and lookup package info and
   /// score from DatastoreDB.
   ///
@@ -71,8 +71,6 @@ class SearchService {
     scores = scores.skip(query.offset ?? 0).take(query.limit ?? 10).toList();
     return PackageSearchResult(packages: scores, totalCount: totalCount);
   }
-
-  Future close() async {}
 
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   ///
@@ -203,7 +201,7 @@ Future<List<PackageView>> topFeaturedPackages(
     {String platform, int count = 15}) async {
   // TODO: store top packages in memcache
   try {
-    final result = await searchService.search(
+    final result = await searchAdapter.search(
       SearchQuery.parse(
         platform: platform,
         limit: count,
