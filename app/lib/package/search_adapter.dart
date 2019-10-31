@@ -72,8 +72,6 @@ class SearchAdapter {
     return PackageSearchResult(packages: scores, totalCount: totalCount);
   }
 
-  Future close() async {}
-
   /// Returns the [PackageView] instance for [package] on its latest stable version.
   ///
   /// Returns null if the package does not exists.
