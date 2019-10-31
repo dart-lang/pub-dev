@@ -33,13 +33,30 @@ void main() {
         final pageUrl = await inviteUrlFuture.timeout(Duration(seconds: 30));
         final pageUri = Uri.parse(pageUrl);
         final consentId = pageUri.queryParameters['id'];
-        await httpClient.put(
+
+        // spoofed consent, trying to accept it with a different user
+        final rs1 = await httpClient.put(
+          'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId',
+          headers: {
+            'Authorization': 'Bearer somebodyelse-at-example-dot-org',
+          },
+          body: json.encode({'granted': true}),
+        );
+        if (rs1.statusCode != 404) {
+          throw Exception('Expected status code 404, got: ${rs1.statusCode}');
+        }
+
+        // accepting it with the good user
+        final rs2 = await httpClient.put(
           'http://localhost:${fakePubServerProcess.port}/api/account/consent/$consentId',
           headers: {
             'Authorization': 'Bearer dev-at-example-dot-org',
           },
           body: json.encode({'granted': true}),
         );
+        if (rs2.statusCode != 200) {
+          throw Exception('Expected status code 200, got: ${rs2.statusCode}');
+        }
       }
 
       await verifyPub(
