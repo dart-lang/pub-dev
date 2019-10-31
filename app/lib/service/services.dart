@@ -16,7 +16,7 @@ import '../history/backend.dart';
 import '../job/backend.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
-import '../package/search_service.dart';
+import '../package/search_adapter.dart';
 import '../publisher/backend.dart';
 import '../publisher/domain_verifier.dart';
 import '../scorecard/backend.dart';
@@ -80,7 +80,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScoreCardBackend(ScoreCardBackend(dbService));
     registerSearchBackend(SearchBackend(dbService));
     registerSearchClient(SearchClient());
-    registerSearchService(SearchService());
+    registerSearchAdapter(SearchAdapter());
     registerSecretBackend(SecretBackend(dbService));
     registerSnapshotStorage(SnapshotStorage(await getOrCreateBucket(
         storageService, activeConfiguration.searchSnapshotBucketName)));
@@ -99,7 +99,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerScopeExitCallback(accountBackend.close);
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
-    registerScopeExitCallback(searchService.close);
+    registerScopeExitCallback(searchAdapter.close);
 
     return await withCache(fn);
   });

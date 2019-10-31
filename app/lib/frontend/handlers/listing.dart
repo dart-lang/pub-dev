@@ -9,7 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';
-import '../../package/search_service.dart';
+import '../../package/search_adapter.dart';
 import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/platform.dart';
@@ -50,7 +50,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     platform: platform,
   );
   final sw = Stopwatch()..start();
-  final searchResult = await searchService.search(searchQuery);
+  final searchResult = await searchAdapter.search(searchQuery);
   final int totalCount = searchResult.totalCount;
 
   final links =
