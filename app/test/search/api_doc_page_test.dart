@@ -116,7 +116,7 @@ void main() {
           SearchQuery.parse(query: 'web page', order: SearchOrder.text));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,
-        'totalCount': 1,
+        'totalCount': 2,
         'packages': [
           {
             'package': 'foo',
@@ -125,7 +125,13 @@ void main() {
               {'title': null, 'path': 'generator.html'},
             ],
           },
-          // serveWebPages get low score
+          {
+            'package': 'other_with_api',
+            'score': closeTo(0.045, 0.001), // find serveWebPages (low score)
+            'apiPages': [
+              {'title': null, 'path': 'serve.html'},
+            ],
+          },
           // should not contain `other_without_api`
         ],
       });
