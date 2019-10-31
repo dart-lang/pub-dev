@@ -4,6 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Refactored `Consent`:
    * new entities contain `userId` (if it is known upfront)  
+ * Search updates:
+   * #2968 may increase CPU latencies while serving a query
 
 ## `20191028t120414-all`
  * Run `app/bin/tools/backfill_packagelikes.dart` to backfill `Package`
