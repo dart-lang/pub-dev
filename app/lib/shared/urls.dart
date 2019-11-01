@@ -4,7 +4,8 @@
 
 import 'package:path/path.dart' as p;
 
-import 'package:pub_dartlang_org/package/overrides.dart';
+import '../package/overrides.dart';
+import '../search/search_service.dart' show SearchQuery;
 import 'versions.dart';
 
 const primaryHost = 'pub.dev';
@@ -71,24 +72,12 @@ String analysisTabUrl(String package) {
 
 String publisherUrl(String publisherId) => '/publishers/$publisherId';
 String publisherPackagesUrl(String publisherId) =>
-    '/publishers/$publisherId/packages';
+    SearchQuery.parse(publisherId: publisherId).toSearchLink();
 String publisherAdminUrl(String publisherId) =>
     '/publishers/$publisherId/admin';
 
-String searchUrl({String platform, String q, int page}) {
-  final packagesPath = platform == null ? '/packages' : '/$platform/packages';
-  final params = <String, String>{};
-  if (q != null && q.isNotEmpty) {
-    params['q'] = q;
-  }
-  if (page != null && page > 1) {
-    params['page'] = page.toString();
-  }
-  return Uri(
-    path: packagesPath,
-    queryParameters: params.isEmpty ? null : params,
-  ).toString();
-}
+String searchUrl({String platform, String q, int page}) =>
+    SearchQuery.parse(platform: platform, query: q).toSearchLink(page: page);
 
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');
