@@ -6,6 +6,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    * new entities contain `userId` (if it is known upfront)  
  * Search updates:
    * #2968 may increase CPU latencies while serving a query
+ * Bumped runtimeVersion to `2019.11.01`.
+ * Upgraded tool SDK to Dart `2.6.0`.
+ * Upgraded Flutter SDK to `1.9.1+hotfix.6`.
 
 ## `20191028t120414-all`
  * Run `app/bin/tools/backfill_packagelikes.dart` to backfill `Package`
