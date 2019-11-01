@@ -581,29 +581,6 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
-    test('no results via email domain', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(query: 'email:@other.com'));
-      expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
-        'totalCount': 0,
-        'packages': [],
-      });
-    });
-
-    test('filter by email domain', () async {
-      final PackageSearchResult result =
-          await index.search(SearchQuery.parse(query: 'email:@example.com'));
-      expect(json.decode(json.encode(result)), {
-        'indexUpdated': isNotNull,
-        'totalCount': 2,
-        'packages': [
-          {'package': 'async', 'score': closeTo(0.930, 0.001)},
-          {'package': 'http', 'score': closeTo(0.895, 0.001)},
-        ],
-      });
-    });
-
     test('multiword query: implicit AND', () async {
       final PackageSearchResult composable = await index.search(
           SearchQuery.parse(query: 'composable', order: SearchOrder.text));
