@@ -155,44 +155,13 @@ void main() {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = client.updatePublisher(
           'example.com',
-          UpdatePublisherRequest(websiteUrl: 'http://example.com/'),
+          UpdatePublisherRequest(websiteUrl: 'ftp://example.com/'),
         );
         await expectApiException(rs,
-            status: 400, message: 'URL must use https.');
+            status: 400, message: 'must be any of http, https');
       });
 
-      testWithServices('bad URL hostname', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(websiteUrl: 'https://other-domain.com/'),
-        );
-        await expectApiException(rs,
-            status: 400, message: 'URL host must be "example.com".');
-      });
-
-      testWithServices('different URL port', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(websiteUrl: 'https://example.com:999/'),
-        );
-        await expectApiException(rs,
-            status: 400, message: 'URL must not set port.');
-      });
-
-      testWithServices('overspecified URL port', () async {
-        final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = client.updatePublisher(
-          'example.com',
-          UpdatePublisherRequest(websiteUrl: 'https://example.com:443/'),
-        );
-        await expectApiException(rs,
-            status: 400,
-            message: 'The parsed URL does not match its original form.');
-      });
-
-      testWithServices('OK', () async {
+      testWithServices('OK: normal URL', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
         final rs = await client.updatePublisher(
           'example.com',
@@ -201,6 +170,23 @@ void main() {
         expect(rs.toJson(), {
           'description': 'This is us!',
           'websiteUrl': 'https://example.com/about',
+          'contactEmail': 'contact@example.com',
+        });
+        // Info request should return with the same content.
+        final info = await client.publisherInfo('example.com');
+        expect(info.toJson(), rs.toJson());
+      });
+
+      testWithServices('OK: unusual URL', () async {
+        final client = createPubApiClient(authToken: hansUser.userId);
+        final rs = await client.updatePublisher(
+          'example.com',
+          UpdatePublisherRequest(
+              websiteUrl: 'http://other-domain.com:2222/about'),
+        );
+        expect(rs.toJson(), {
+          'description': 'This is us!',
+          'websiteUrl': 'http://other-domain.com:2222/about',
           'contactEmail': 'contact@example.com',
         });
         // Info request should return with the same content.
