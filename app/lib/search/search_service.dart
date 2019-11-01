@@ -433,7 +433,7 @@ class ParsedQuery {
   /// Match the publisher of the package.
   final String publisher;
 
-  /// Match authors and uploaders.
+  /// Match uploader emails.
   final List<String> emails;
 
   /// Enable experimental API search.
