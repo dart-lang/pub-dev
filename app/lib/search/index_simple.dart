@@ -201,9 +201,7 @@ class SimplePackageIndex implements PackageIndex {
           return true;
         }
         for (String email in query.parsedQuery.emails) {
-          final isDomainMatch = email.startsWith('@') &&
-              doc.uploaderEmails.where((e) => e.endsWith(email)).isNotEmpty;
-          if (isDomainMatch || doc.uploaderEmails.contains(email)) {
+          if (doc.uploaderEmails.contains(email)) {
             return false;
           }
         }
