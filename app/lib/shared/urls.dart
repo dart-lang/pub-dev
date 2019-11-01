@@ -192,3 +192,17 @@ bool hideUserProvidedDocUrl(String url) {
       host == 'pub.dartlang.org' ||
       host == 'pub.dev';
 }
+
+/// Returns the [url] in a format that will be displayed on the user-facing
+/// website.
+/// - https:// prefixes are stripped down
+/// - TODO: consider stripping long URLs
+String displayableUrl(String url) {
+  if (url == null) {
+    return null;
+  }
+  if (url.startsWith('https://')) {
+    url = url.substring('https://'.length);
+  }
+  return url;
+}
