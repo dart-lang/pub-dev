@@ -74,6 +74,7 @@ String _renderPublisherInfoBox(Publisher publisher) {
     'description_html': htmlEscape.convert(description),
     'publisher_id': publisher.publisherId,
     'website_url': publisher.websiteUrl,
+    'website_url_displayed': urls.displayableUrl(publisher.websiteUrl),
     'contact_email': publisher.contactEmail,
     'list_packages_search_link':
         urls.searchUrl(q: 'publisher:${publisher.publisherId}'),
