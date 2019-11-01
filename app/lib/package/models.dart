@@ -63,11 +63,31 @@ class Package extends db.ExpandoModel {
   @db.StringListProperty()
   List<String> uploaders;
 
-  @db.BoolProperty()
-  bool isDiscontinued;
+  /// Set to `true` if package is discontinued, may otherwise be `null` or `false`.
+  ///
+  /// Use [isDiscontinued] to avoid `null` checking.
+  @db.BoolProperty(propertyName: 'isDiscontinued')
+  bool isDiscontinuedFlag;
 
+  /// [isDiscontinued] is set when a package is discontinued.
+  bool get isDiscontinued => isDiscontinuedFlag == true;
+  set isDiscontinued(bool value) {
+    isDiscontinuedFlag = value;
+  }
+
+  /// Set to `true` if package should not be advertised on the front page,
+  /// may otherwise be `null` or `false`.
+  ///
+  /// Use [doNotAdvertise] to avoid `null` checking.
   @db.BoolProperty()
-  bool doNotAdvertise;
+  bool doNotAdvertiseFlag;
+
+  /// [doNotAdvertise] is set when a package should not be advertised on the
+  /// front page.
+  bool get doNotAdvertise => doNotAdvertiseFlag == true;
+  set doNotAdvertise(bool value) {
+    doNotAdvertiseFlag = value;
+  }
 
   // Convenience Fields:
 

@@ -63,7 +63,7 @@ class SearchBackend {
       {bool requireAnalysis = false}) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
     final p = (await _db.lookup<Package>([packageKey])).single;
-    if (p == null || p.isDiscontinued == true) {
+    if (p == null || p.isDiscontinued) {
       throw RemovedPackageException();
     }
 
@@ -104,8 +104,8 @@ class SearchBackend {
       created: p.created,
       updated: pv.created,
       readme: compactReadme(pv.readmeContent),
-      isDiscontinued: p.isDiscontinued ?? false,
-      doNotAdvertise: p.doNotAdvertise ?? false,
+      isDiscontinued: p.isDiscontinued,
+      doNotAdvertise: p.doNotAdvertise,
       supportsOnlyLegacySdk: pv.pubspec.supportsOnlyLegacySdk,
       health: analysisView.health,
       popularity: popularity,
@@ -152,8 +152,8 @@ class SearchBackend {
         devVersion: p.latestDevVersion,
         created: p.created,
         updated: p.updated,
-        isDiscontinued: p.isDiscontinued ?? false,
-        doNotAdvertise: p.doNotAdvertise ?? false,
+        isDiscontinued: p.isDiscontinued,
+        doNotAdvertise: p.doNotAdvertise,
         health: 0.0,
         popularity: popularity,
         maintenance: 0.0,
