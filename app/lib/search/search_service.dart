@@ -373,7 +373,6 @@ class SearchQuery {
     return hasText || hasNonTextOrdering;
   }
 
-  // TODO: move this to shared/urls.dart after simplifying platformPredicate
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
@@ -390,7 +389,6 @@ class SearchQuery {
     return path;
   }
 
-  // TODO: move this to shared/urls.dart after simplifying platformPredicate
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
   String toSearchLink({int page}) {
