@@ -216,14 +216,8 @@ class PublisherBackend {
         final parsedUrl = Uri.tryParse(update.websiteUrl);
         final isValid = parsedUrl != null && parsedUrl.isAbsolute;
         InvalidInputException.check(isValid, 'Not a valid URL.');
-        InvalidInputException.check(
-            parsedUrl.scheme == 'https', 'The URL must use https.');
-        InvalidInputException.check(
-            parsedUrl.host == publisherId ||
-                parsedUrl.host == 'www.$publisherId',
-            'The URL host must be "$publisherId".');
-        InvalidInputException.check(
-            parsedUrl.port == 443, 'The URL must not set port.');
+        InvalidInputException.checkAnyOf(
+            parsedUrl.scheme, 'scheme', ['http', 'https']);
 
         InvalidInputException.check(parsedUrl.toString() == update.websiteUrl,
             'The parsed URL does not match its original form.');
