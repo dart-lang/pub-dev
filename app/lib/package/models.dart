@@ -208,11 +208,7 @@ class PackageVersion extends db.ExpandoModel {
   @db.IntProperty(propertyName: 'sort_order')
   int sortOrder;
 
-  // This was set to false because some obsolete PackageVersion entities were
-  // not migrated. We are waiting for confirmation to delete them, but until
-  // that happens, it is not much risk to set it to false.
-  // TODO: set it to required: true once the integrity check script passes
-  @db.StringProperty(required: false)
+  @db.StringProperty(required: true)
   String uploader;
 
   /// The publisher id at the time of the upload.
