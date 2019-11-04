@@ -103,7 +103,7 @@ class PackageBackend {
 
     bool isExcluded(models.Package p) =>
         // isDiscontinued may be null
-        excludeDiscontinued && p.isDiscontinued == true;
+        excludeDiscontinued && p.isDiscontinued;
 
     return query.run().where((p) => !isExcluded(p)).map((p) => p.name);
   }
@@ -225,9 +225,18 @@ class PackageBackend {
       latestVersion = p.latestVersion;
       await checkPackageAdmin(p, user.userId);
 
-      final hasFlagChange = options.isDiscontinued != p.isDiscontinued;
+      bool hasOptionsChanged = false;
+      if (options.isDiscontinued != null &&
+          options.isDiscontinued != p.isDiscontinued) {
+        p.isDiscontinued = options.isDiscontinued;
+        hasOptionsChanged = true;
+      }
 
-      p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
+      if (!hasOptionsChanged) {
+        tx.rollback();
+        return;
+      }
+
       p.updated = DateTime.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
@@ -242,12 +251,7 @@ class PackageBackend {
         ),
       );
 
-      tx.queueMutations(
-        inserts: [
-          if (hasFlagChange) history,
-          p,
-        ],
-      );
+      tx.queueMutations(inserts: [history, p]);
       await tx.commit();
     });
     await purgePackageCache(package);

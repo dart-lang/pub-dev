@@ -66,7 +66,7 @@ String renderPkgAdminPage(
     contentHtml: templateCache.renderTemplate('pkg/admin_page', {
       'pkg_has_publisher': package.publisherId != null,
       'publisher_id': package.publisherId,
-      'is_discontinued': package.isDiscontinued == true,
+      'is_discontinued': package.isDiscontinued,
       'user_has_publisher': userPublishers.isEmpty,
       'user_publishers': userPublishers
           .map((s) => {

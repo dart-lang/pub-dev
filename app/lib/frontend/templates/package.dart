@@ -197,7 +197,7 @@ String renderPkgHeader(
       card == null ||
           // The uploader has recently removed the "discontinued" flag, but the
           // analysis did not complete yet.
-          (card.isDiscontinued && package.isDiscontinued != true) ||
+          (card.isDiscontinued && !package.isDiscontinued) ||
           // No blocker for analysis, but no results yet.
           (!card.isSkipped && !analysis.hasPanaSummary);
 
@@ -224,7 +224,7 @@ String renderPkgHeader(
     tagsHtml: renderTags(
       analysis?.platforms,
       isAwaiting: isAwaiting,
-      isDiscontinued: package.isDiscontinued ?? false,
+      isDiscontinued: package.isDiscontinued,
       isLegacy: card?.isLegacy ?? false,
       isObsolete: card?.isObsolete ?? false,
     ),
@@ -260,7 +260,7 @@ String renderPkgShowPage(
       isVersionPage ? urls.pkgPageUrl(package.name, includeHost: true) : null;
   final noIndex = (card?.isSkipped ?? false) ||
       (card?.overallScore == 0.0) ||
-      (package.isDiscontinued ?? false);
+      package.isDiscontinued;
   return renderLayoutPage(
     PageType.package,
     content,
@@ -280,7 +280,7 @@ PageData pkgPageData(Package package, PackageVersion selectedVersion) {
       package: package.name,
       version: selectedVersion.version,
       publisherId: package.publisherId,
-      isDiscontinued: package.isDiscontinued == true,
+      isDiscontinued: package.isDiscontinued,
     ),
   );
 }
