@@ -53,6 +53,8 @@ class PackageDocument {
 
   final List<String> platforms;
 
+  final List<String> tags;
+
   final double health;
   final double popularity;
   final double maintenance;
@@ -82,6 +84,7 @@ class PackageDocument {
     this.doNotAdvertise = false,
     this.supportsOnlyLegacySdk = false,
     this.platforms = const [],
+    this.tags = const [],
     this.health = 0,
     this.popularity = 0,
     this.maintenance = 0,
@@ -108,6 +111,7 @@ class PackageDocument {
       doNotAdvertise: doNotAdvertise,
       supportsOnlyLegacySdk: supportsOnlyLegacySdk,
       platforms: platforms?.map(internFn)?.toList(),
+      tags: tags?.map(internFn)?.toList(),
       health: health,
       popularity: popularity,
       maintenance: maintenance,
@@ -223,6 +227,8 @@ class SearchQuery {
   final ParsedQuery parsedQuery;
   final String platform;
 
+  final TagsPredicate tagsPredicate;
+
   /// The query will match packages where the owners of the package have
   /// non-empty intersection with the provided list of owners.
   ///
@@ -243,6 +249,7 @@ class SearchQuery {
   SearchQuery._({
     this.query,
     String platform,
+    this.tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     this.order,
@@ -263,6 +270,7 @@ class SearchQuery {
   factory SearchQuery.parse({
     String query,
     String platform,
+    TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
@@ -277,6 +285,7 @@ class SearchQuery {
     return SearchQuery._(
       query: q,
       platform: platform,
+      tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -292,6 +301,8 @@ class SearchQuery {
     final String q = uri.queryParameters['q'];
     final String platform =
         uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
+    final tagsPredicate =
+        TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
     final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
     final publisherId = uri.queryParameters['publisherId'];
     final String orderValue = uri.queryParameters['order'];
@@ -303,6 +314,7 @@ class SearchQuery {
     return SearchQuery.parse(
       query: q,
       platform: platform,
+      tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -317,6 +329,7 @@ class SearchQuery {
   SearchQuery change({
     String query,
     String platform,
+    TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
@@ -329,6 +342,7 @@ class SearchQuery {
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
+      tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
@@ -344,6 +358,7 @@ class SearchQuery {
     final map = <String, dynamic>{
       'q': query,
       'platform': platform,
+      'tags': tagsPredicate?.toQueryParameters(),
       'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
@@ -415,6 +430,56 @@ class SearchQuery {
     } else {
       return Uri(path: path, queryParameters: params).toString();
     }
+  }
+}
+
+/// Filter conditions on tags.
+class TagsPredicate {
+  /// tag -> required (true) | forbidden (false) map
+  final _values = <String, bool>{};
+
+  TagsPredicate([Map<String, bool> values]) {
+    if (values != null) _values.addAll(values);
+  }
+
+  /// Parses [values] passed via Uri.queryParameters
+  TagsPredicate.parseQueryValues(List<String> values) {
+    for (String tag in values) {
+      bool required = true;
+      if (tag.startsWith('-')) {
+        tag = tag.substring(1);
+        required = false;
+      } else if (tag.startsWith('+')) {
+        tag = tag.substring(1);
+      }
+      _values[tag] = required;
+    }
+  }
+
+  /// Update the predicate [value] for [tag]: required (true) | forbidden (false)
+  void updateTag(String tag, bool value) {
+    _values[tag] = value;
+  }
+
+  /// Evaluate this predicate against the list of supplied [tags].
+  /// Returns true if the predicate matches the [tags], false otherwise.
+  bool evaluate(List<String> tags) {
+    tags ??= const <String>[];
+    for (final entry in _values.entries) {
+      if (entry.value && !tags.contains(entry.key)) {
+        return false;
+      }
+      if (!entry.value && tags.contains(entry.key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Returns the list of tag values that can be passed to search service URL.
+  List<String> toQueryParameters() {
+    if (_values.isEmpty) return null;
+    return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
   }
 }
 
