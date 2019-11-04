@@ -382,7 +382,8 @@ class SearchQuery {
     final bool isEmpty = !hasText &&
         order == null &&
         parsedQuery.packagePrefix == null &&
-        (platform == null || platform.isEmpty);
+        (platform == null || platform.isEmpty) &&
+        (tagsPredicate == null || tagsPredicate._values.isEmpty);
     if (isEmpty) return false;
 
     return hasText || hasNonTextOrdering;
@@ -444,7 +445,7 @@ class TagsPredicate {
 
   /// Parses [values] passed via Uri.queryParameters
   TagsPredicate.parseQueryValues(List<String> values) {
-    for (String tag in values) {
+    for (String tag in values ?? const <String>[]) {
       bool required = true;
       if (tag.startsWith('-')) {
         tag = tag.substring(1);
