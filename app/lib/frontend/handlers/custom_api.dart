@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:client_data/package_api.dart';
+import 'package:pub_dartlang_org/shared/exceptions.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -245,19 +246,26 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
 }
 
 /// Handles GET /api/packages/<package>/options
-Future<shelf.Response> getPackageOptionsHandler(
-    shelf.Request request, String package) async {
+Future<PkgOptions> getPackageOptionsHandler(
+  shelf.Request request,
+  String package,
+) async {
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
-    return notFoundHandler(request);
+    throw NotFoundException.resource(package);
   }
-  final options = PkgOptions(isDiscontinued: p.isDiscontinued);
-  return jsonResponse(options.toJson());
+  return PkgOptions(
+    isDiscontinued: p.isDiscontinued,
+    isFlutterFavorite: p.isFlutterFavorite,
+  );
 }
 
 /// Handles PUT /api/packages/<package>/options
-Future<shelf.Response> putPackageOptionsHandler(
-    shelf.Request request, String package, PkgOptions options) async {
+Future<PkgOptions> putPackageOptionsHandler(
+  shelf.Request request,
+  String package,
+  PkgOptions options,
+) async {
   await packageBackend.updateOptions(package, options);
-  return jsonResponse({'success': true});
+  return await getPackageOptionsHandler(request, package);
 }
