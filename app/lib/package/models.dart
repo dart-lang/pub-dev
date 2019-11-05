@@ -154,12 +154,6 @@ class Package extends db.ExpandoModel {
 ///
 /// Metadata such as changelog/readme/libraries are used for rendering HTML
 /// pages.
-// The uploaders are saved as User objects in the python datastore. We don't
-// have db Models for users, but the lowlevel datastore API will store them
-// as expanded properties of type `Entity`.
-// We should move ExpandoModel -> Model once we have highlevel db.User objects.
-//
-// NOTE: Keep in sync with PackageVersionArchive.
 @db.Kind(name: 'PackageVersion', idType: db.IdType.String)
 class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)

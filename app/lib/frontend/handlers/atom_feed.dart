@@ -18,27 +18,16 @@ import '../../shared/urls.dart' as urls;
 
 /// Handles requests for /feed.atom
 Future<shelf.Response> atomFeedHandler(shelf.Request request) async {
-  final int pageSize = 10;
-
-  // The python version had paging support, but there was no point to it, since
-  // the "next page" link was never returned to the caller.
-  final int page = 1;
-
-  final versions = await packageBackend.latestPackageVersions(
-      offset: pageSize * (page - 1), limit: pageSize);
+  final versions = await packageBackend.latestPackageVersions(limit: 10);
   final feed = feedFromPackageVersions(request.requestedUri, versions);
-  return atomXmlResponse(feed.toXmlDocument());
+  return shelf.Response.ok(
+    feed.toXmlDocument(),
+    headers: {
+      'content-type': 'application/atom+xml; charset="utf-8"',
+      'x-content-type-options': 'nosniff',
+    },
+  );
 }
-
-shelf.Response atomXmlResponse(String content, {int status = 200}) =>
-    shelf.Response(
-      status,
-      body: content,
-      headers: {
-        'content-type': 'application/atom+xml; charset="utf-8"',
-        'x-content-type-options': 'nosniff',
-      },
-    );
 
 class FeedEntry {
   final String id;
