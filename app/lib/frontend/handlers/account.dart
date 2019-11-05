@@ -21,6 +21,9 @@ import '../templates/admin.dart';
 import '../templates/listing.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 
+/// Handles requests for /authorized
+shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
+
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(
   shelf.Request request, {

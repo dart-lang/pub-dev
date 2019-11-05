@@ -11,7 +11,6 @@ import '../../account/models.dart' show User;
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
-import '../../shared/urls.dart';
 import '../../shared/utils.dart' show shortDateFormat;
 
 import '_cache.dart';
@@ -25,21 +24,6 @@ String renderAuthorizedPage() {
   final String content = templateCache.renderTemplate('authorized', {});
   return renderLayoutPage(PageType.package, content,
       title: 'Pub Authorized Successfully', includeSurvey: false);
-}
-
-/// Renders the `views/uploader_approval.mustache` template.
-String renderUploaderApprovalPage(
-    String package, String inviteEmail, String uploaderEmail, String authUrl) {
-  final String content = templateCache.renderTemplate('uploader_approval', {
-    'invite_email': inviteEmail,
-    'package': package,
-    'package_url': pkgPageUrl(package),
-    'full_site_url': fullSiteUrl,
-    'primary_host': primaryHost,
-    'auth_url': authUrl,
-  });
-  return renderLayoutPage(PageType.package, content,
-      title: 'Uploader invitation', includeSurvey: false);
 }
 
 /// Renders the `views/consent.mustache` template.

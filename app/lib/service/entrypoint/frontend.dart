@@ -108,7 +108,6 @@ Future _worker(WorkerEntryMessage message) async {
     // Randomization reduces race conditions.
     Timer.periodic(Duration(hours: 8, minutes: _random.nextInt(240)),
         (_) async {
-      await packageBackend.deleteObsoleteInvites();
       await consentBackend.deleteObsoleteConsents();
       await accountBackend.deleteObsoleteSessions();
     });
