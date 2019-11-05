@@ -13,7 +13,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_server/repository.dart' hide UnauthorizedAccessException;
 import 'package:pub_server/shelf_pubserver.dart'
@@ -166,50 +165,6 @@ class PackageBackend {
     version = canonicalizeVersion(version);
     assert(repository.supportsDownloadUrl);
     return repository.downloadUrl(package, version);
-  }
-
-  /// Get the invite or return null if it does not exist or is not valid anymore.
-  Future<models.PackageInvite> getPackageInvite({
-    @required String packageName,
-    @required String type,
-    @required String recipientEmail,
-    @required String urlNonce,
-  }) async {
-    final inviteId = models.PackageInvite.createId(type, recipientEmail);
-    final pkgKey = db.emptyKey.append(models.Package, id: packageName);
-    final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
-    final invite = (await db.lookup<models.PackageInvite>([inviteKey])).single;
-
-    if (invite == null) {
-      return null;
-    }
-
-    if (invite.isValid(recipientEmail: recipientEmail, urlNonce: urlNonce)) {
-      return invite;
-    }
-    return null;
-  }
-
-  /// Delete the invite and clear package cache.
-  Future confirmPackageInvite(models.PackageInvite invite) async {
-    await db.commit(deletes: [invite.key]);
-    await purgePackageCache(invite.packageName);
-  }
-
-  /// Removes obsolete/expired invites from Datastore.
-  Future deleteObsoleteInvites() async {
-    final query = db.query<models.PackageInvite>()
-      ..filter('expires <', DateTime.now().toUtc());
-    await for (var invite in query.run()) {
-      try {
-        await db.commit(deletes: [invite.key]);
-      } catch (e) {
-        _logger.info(
-            'PackageInvite delete failed: '
-            '${invite.packageName} ${invite.type} ${invite.recipientEmail}',
-            e);
-      }
-    }
   }
 
   /// Updates [options] on [package].

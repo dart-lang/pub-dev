@@ -8,7 +8,6 @@ import 'package:shelf_router/shelf_router.dart';
 import '../../shared/handlers.dart';
 
 import 'account.dart';
-import 'admin.dart';
 import 'atom_feed.dart';
 import 'documentation.dart';
 import 'landing.dart';
@@ -196,11 +195,6 @@ class PubSiteService {
   // **** Account, authentication and user administration
   // ****
 
-  /// Process oauth callbacks.
-  @Route.get('/oauth/callback')
-  Future<Response> oauthCallback(Request request) async =>
-      oauthCallbackHandler(request);
-
   /// List of the current user's packages.
   @Route.get('/my-packages')
   Future<Response> accountPackagesPage(Request request) async =>
@@ -215,13 +209,6 @@ class PubSiteService {
   @Route.get('/authorized')
   Future<Response> authorizationConfirmed(Request request) async =>
       authorizedHandler(request);
-
-  /// Renders the page that initiates the confirmation and then finalizes the uploader.
-  /// TODO: remove after all new invites are on the consent URL
-  @Route.get('/admin/confirm/new-uploader/<package>/<email>/<nonce>')
-  Future<Response> confirmUploader(
-          Request request, String package, String email, String nonce) =>
-      confirmNewUploaderHandler(request, package, email, nonce);
 
   /// Renders the page where an user can accept their invites/consents.
   @Route.get('/consent')

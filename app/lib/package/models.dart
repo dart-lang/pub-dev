@@ -369,67 +369,6 @@ class QualifiedVersionKey {
   String toString() => qualifiedVersion;
 }
 
-/// An active invitation sent to a recipient.
-/// The parent entity is a [Package] the id is the concatenation of '[type]/[recipientEmail]'.
-///
-/// The invitation secret ([urlNonce]) is sent via email to the recipient and
-/// they need to open a URL to accept the invitation.
-@db.Kind(name: 'PackageInvite', idType: db.IdType.String)
-class PackageInvite extends db.Model {
-  @db.StringProperty()
-  String type;
-
-  @db.StringProperty()
-  String recipientEmail;
-
-  @db.StringProperty()
-  String urlNonce;
-
-  @db.StringProperty()
-  String fromUserId;
-
-  @db.StringProperty()
-  String fromEmail;
-
-  @db.DateTimeProperty()
-  DateTime created;
-
-  @db.DateTimeProperty()
-  DateTime expires;
-
-  @db.DateTimeProperty()
-  DateTime lastNotified;
-
-  @db.IntProperty()
-  int notificationCount;
-
-  String get packageName => parentKey.id as String;
-
-  /// Create a composite id.
-  static String createId(String type, String recipientEmail) =>
-      '$type/$recipientEmail';
-
-  bool isExpired() => DateTime.now().toUtc().isAfter(expires);
-
-  /// Whether a new notification should be sent.
-  bool shouldNotify() => DateTime.now().toUtc().isAfter(nextNotification);
-
-  /// The timestamp when the next notification could be sent out.
-  DateTime get nextNotification =>
-      created.add(Duration(minutes: 1 << notificationCount));
-
-  /// Whether the invite is still valid and available.
-  bool isValid({@required String recipientEmail, @required String urlNonce}) {
-    return this.recipientEmail == recipientEmail &&
-        this.urlNonce == urlNonce &&
-        !isExpired();
-  }
-}
-
-abstract class PackageInviteType {
-  static const newUploader = 'new-uploader';
-}
-
 /// An extract of [Package] and [PackageVersion], for
 /// display-only uses.
 @JsonSerializable(includeIfNull: false)

@@ -647,15 +647,6 @@ void main() {
       expectGoldenFile(html, 'authorized_page.html');
     });
 
-    scopedTest('uploader approval page', () {
-      final String html = renderUploaderApprovalPage(
-          'pkg_foo',
-          'admin@example.com',
-          'uploader@example.com',
-          'https://redirect.to.auth/url');
-      expectGoldenFile(html, 'uploader_approval_page.html');
-    });
-
     scopedTest('error page', () {
       final String html = renderErrorPage('error_title', 'error_message', [
         PackageView(
