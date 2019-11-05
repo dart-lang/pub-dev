@@ -148,6 +148,23 @@ class Package extends db.ExpandoModel {
   }
 
   bool isNewPackage() => created.difference(DateTime.now()).abs().inDays <= 30;
+
+  /// List of tags from the flags on the current [Package] entity.
+  List<String> getTags() {
+    return <String>[
+      if (isDiscontinued) PackageTags.isDiscontinued,
+      if (isNewPackage()) PackageTags.isNew,
+    ];
+  }
+}
+
+/// Collection of package-related tags.
+abstract class PackageTags {
+  /// Package is marked discontinued.
+  static const String isDiscontinued = 'is:discontinued';
+
+  /// Package is less than 30 days old
+  static const String isNew = 'is:new';
 }
 
 /// Pub package metadata for a specific uploaded version.

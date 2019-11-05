@@ -198,6 +198,7 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
         summary == null ? 0.0 : calculateMaintenanceScore(summary.maintenance),
     platformTags: indexDartPlatform(summary?.platform),
     platformReason: summary?.platform?.reason,
+    derivedTags: null,
     pkgDependencies: summary?.pkgResolution?.dependencies,
     panaSuggestions: summary?.suggestions,
     healthSuggestions: summary?.health?.suggestions,

@@ -146,6 +146,7 @@ void main() {
               maintenanceScore: null,
               platformTags: null,
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
                   package: 'quiver',
@@ -194,6 +195,7 @@ void main() {
               maintenanceScore: null,
               platformTags: null,
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
                   package: 'quiver',
@@ -248,6 +250,7 @@ void main() {
               maintenanceScore: 0.99,
               platformTags: ['flutter'],
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: null,
               licenses: null,
               panaSuggestions: null,
@@ -373,6 +376,7 @@ void main() {
             maintenanceScore: card.maintenanceScore,
             platformTags: card.platformTags,
             platformReason: 'All libraries agree.',
+            derivedTags: null,
             pkgDependencies: [
               PkgDependency(
                 package: 'http',
@@ -424,6 +428,7 @@ void main() {
               maintenanceScore: null,
               platformTags: null,
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: null,
               licenses: null,
               panaSuggestions: null,
