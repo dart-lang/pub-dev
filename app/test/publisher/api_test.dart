@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart';
-import 'package:pub_dartlang_org/account/backend.dart';
 import 'package:pub_dartlang_org/account/models.dart';
 import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dartlang_org/publisher/models.dart';
@@ -279,13 +278,17 @@ void main() {
     });
 
     group('Invite a new member', () {
-      Future queryConstents(String userId) async {
-        final ancestorKey = dbService.emptyKey.append(User, id: userId);
-        final query = dbService.query<Consent>(ancestorKey: ancestorKey);
+      Future queryConstents({String userId, String email}) async {
+        final query = dbService.query<Consent>();
         return await query
             .run()
+            .where((c) => c.userId == userId || userId == null)
+            .where((c) => c.email == email || email == null)
             .map((c) => {
                   'id': c.consentId,
+                  'fromUserId': c.fromUserId,
+                  'userId': c.userId,
+                  'email': c.email,
                   'kind': c.kind,
                   'args': c.args,
                   'notificationCount': c.notificationCount,
@@ -320,8 +323,9 @@ void main() {
 
       testWithServices('Pending with Consent, sending new e-mail', () async {
         final consent = Consent.init(
-          parentKey: testUserA.key,
           fromUserId: hansUser.userId,
+          userId: testUserA.userId,
+          email: testUserA.email,
           kind: 'PublisherMember',
           args: ['example.com'],
         );
@@ -332,9 +336,12 @@ void main() {
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: testUserA.email));
         expect(rs.emailSent, isTrue);
-        expect(await queryConstents(testUserA.userId), [
+        expect(await queryConstents(email: testUserA.email), [
           {
             'id': isNotNull,
+            'fromUserId': hansUser.userId,
+            'userId': testUserA.userId,
+            'email': testUserA.email,
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 2,
@@ -357,11 +364,12 @@ void main() {
         expect(list.members, hasLength(1));
         expect(list.members.where((m) => m.email == 'newuser@example.com'),
             isEmpty);
-        final user =
-            await accountBackend.lookupUserByEmail('newuser@example.com');
-        expect(await queryConstents(user.userId), [
+        expect(await queryConstents(email: 'newuser@example.com'), [
           {
             'id': isNotNull,
+            'fromUserId': hansUser.userId,
+            'userId': isNull, // no user has been created
+            'email': 'newuser@example.com',
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
@@ -374,9 +382,12 @@ void main() {
         final rs = await client.invitePublisherMember(
             'example.com', InviteMemberRequest(email: testUserA.email));
         expect(rs.emailSent, isTrue);
-        expect(await queryConstents(testUserA.userId), [
+        expect(await queryConstents(email: testUserA.email), [
           {
             'id': isNotNull,
+            'fromUserId': hansUser.userId,
+            'userId': testUserA.userId,
+            'email': testUserA.email,
             'kind': 'PublisherMember',
             'args': ['example.com'],
             'notificationCount': 1,
@@ -399,8 +410,9 @@ void main() {
         await client1.invitePublisherMember(
             'example.com', InviteMemberRequest(email: joeUser.email));
         final consents = await dbService
-            .query<Consent>(ancestorKey: joeUser.key)
+            .query<Consent>()
             .run()
+            .where((c) => c.email == joeUser.email)
             .toList();
         final consentId = consents.single.consentId;
         final client2 = createPubApiClient(authToken: joeUser.userId);
@@ -421,8 +433,9 @@ void main() {
         await client1.invitePublisherMember(
             'example.com', InviteMemberRequest(email: joeUser.email));
         final consents = await dbService
-            .query<Consent>(ancestorKey: joeUser.key)
+            .query<Consent>()
             .run()
+            .where((c) => c.email == joeUser.email)
             .toList();
         final consentId = consents.single.consentId;
         final client2 = createPubApiClient(authToken: joeUser.userId);

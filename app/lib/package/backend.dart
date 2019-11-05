@@ -755,9 +755,8 @@ class GCloudPackageRepository extends PackageRepository {
       throw GenericProcessingException('Not a valid email: `$uploaderEmail`.');
     }
 
-    final uploader =
-        await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-    if (package.containsUploader(uploader.userId)) {
+    final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
+    if (uploader != null && package.containsUploader(uploader.userId)) {
       // The requested uploaderEmail is already part of the uploaders.
       return;
     }
@@ -770,7 +769,8 @@ class GCloudPackageRepository extends PackageRepository {
     ));
 
     final status = await consentBackend.invite(
-      userId: uploader.userId,
+      userId: uploader?.userId,
+      email: uploaderEmail,
       kind: 'PackageUploader',
       args: [packageName],
     );
