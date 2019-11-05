@@ -102,12 +102,17 @@ String inferRepositoryUrl(String baseUrl) {
     return null;
   }
   if (uri.host == 'github.com' || uri.host == 'gitlab.com') {
-    final segments = uri.pathSegments.take(2).toList();
-    if (segments.length != 2) {
+    if (uri.pathSegments.length < 2) {
       return null;
     }
-    return Uri(scheme: uri.scheme, host: uri.host, pathSegments: segments)
-        .toString();
+    if (uri.pathSegments.length >= 4 &&
+        uri.pathSegments[2] == 'tree' &&
+        uri.pathSegments[3] == 'master') {
+      return uri.toString();
+    } else {
+      final segments = uri.pathSegments.take(2).toList();
+      return uri.replace(pathSegments: segments).toString();
+    }
   }
   return null;
 }

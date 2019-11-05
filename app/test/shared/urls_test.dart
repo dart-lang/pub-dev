@@ -74,6 +74,9 @@ void main() {
       expect(inferRepositoryUrl('$repo/'), repo);
       expect(inferRepositoryUrl('$repo/a'), repo);
       expect(inferRepositoryUrl('$repo/a/b/c'), repo);
+      expect(inferRepositoryUrl('$repo/tree/master'), '$repo/tree/master');
+      expect(
+          inferRepositoryUrl('$repo/tree/master/dir'), '$repo/tree/master/dir');
     });
 
     test('gitlab', () {
@@ -82,6 +85,9 @@ void main() {
       expect(inferRepositoryUrl('$repo/'), repo);
       expect(inferRepositoryUrl('$repo/a'), repo);
       expect(inferRepositoryUrl('$repo/a/b/c'), repo);
+      expect(inferRepositoryUrl('$repo/tree/master'), '$repo/tree/master');
+      expect(
+          inferRepositoryUrl('$repo/tree/master/dir'), '$repo/tree/master/dir');
     });
   });
 
