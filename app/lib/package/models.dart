@@ -153,7 +153,7 @@ class Package extends db.ExpandoModel {
   List<String> getTags() {
     return <String>[
       if (isDiscontinued) PackageTags.isDiscontinued,
-      if (isNewPackage()) PackageTags.isNew,
+      if (isNewPackage()) PackageTags.isRecent,
     ];
   }
 }
@@ -163,8 +163,8 @@ abstract class PackageTags {
   /// Package is marked discontinued.
   static const String isDiscontinued = 'is:discontinued';
 
-  /// Package is less than 30 days old
-  static const String isNew = 'is:new';
+  /// Package is less than 30 days old.
+  static const String isRecent = 'is:recent';
 }
 
 /// Pub package metadata for a specific uploaded version.
