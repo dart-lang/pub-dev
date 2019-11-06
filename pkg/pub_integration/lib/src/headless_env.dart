@@ -52,7 +52,7 @@ class HeadlessEnv {
       ],
       noSandboxFlag: true,
       userDataDir: userDataDir.path,
-      headless: false,
+      headless: true,
       devTools: false,
     );
   }
