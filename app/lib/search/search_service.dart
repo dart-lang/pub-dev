@@ -440,11 +440,11 @@ class TagsPredicate {
   final List<String> requiredTags;
   final List<String> negatedTags;
 
-  TagsPredicate({this.requiredTags, this.negatedTags});
+  TagsPredicate({List<String> requiredTags, List<String> negatedTags})
+      : requiredTags = requiredTags ?? <String>[],
+        negatedTags = negatedTags ?? <String>[];
 
-  bool get isEmpty =>
-      (requiredTags == null || requiredTags.isEmpty) &&
-      (negatedTags == null || negatedTags.isEmpty);
+  bool get isEmpty => requiredTags.isEmpty && negatedTags.isEmpty;
 
   /// Parses [values] passed via Uri.queryParameters
   factory TagsPredicate.parseQueryValues(List<String> values) {
@@ -471,10 +471,10 @@ class TagsPredicate {
   /// Returns true if the predicate matches the [tags], false otherwise.
   bool evaluate(List<String> tags) {
     tags ??= const <String>[];
-    for (final tag in requiredTags ?? const <String>[]) {
+    for (final tag in requiredTags) {
       if (!tags.contains(tag)) return false;
     }
-    for (final tag in negatedTags ?? const <String>[]) {
+    for (final tag in negatedTags) {
       if (tags.contains(tag)) return false;
     }
     return true;
@@ -483,8 +483,8 @@ class TagsPredicate {
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
     return <String>[
-      if (requiredTags != null) ...requiredTags,
-      if (negatedTags != null) ...negatedTags.map((s) => '-$s'),
+      ...requiredTags,
+      ...negatedTags.map((s) => '-$s'),
     ];
   }
 }
