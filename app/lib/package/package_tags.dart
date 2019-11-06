@@ -7,6 +7,6 @@ abstract class PackageTags {
   /// Package is marked discontinued.
   static const String isDiscontinued = 'is:discontinued';
 
-  /// Package is less than 30 days old.
+  /// The first version of the package was published less than 30 days ago.
   static const String isRecent = 'is:recent';
 }
