@@ -17,7 +17,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate({'is:a': true}),
+        tagsPredicate: TagsPredicate(requiredTags: ['is:a']),
       ));
       expect(rs.toJson(), {
         'indexUpdated': isNotEmpty,
@@ -32,7 +32,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate({'is:a': false}),
+        tagsPredicate: TagsPredicate(negatedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
@@ -50,7 +50,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate({'is:a': false}),
+        tagsPredicate: TagsPredicate(negatedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,

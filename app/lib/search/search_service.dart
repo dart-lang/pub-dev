@@ -383,7 +383,7 @@ class SearchQuery {
         order == null &&
         parsedQuery.packagePrefix == null &&
         (platform == null || platform.isEmpty) &&
-        (tagsPredicate == null || tagsPredicate._values.isEmpty);
+        (tagsPredicate == null || tagsPredicate.isEmpty);
     if (isEmpty) return false;
 
     return hasText || hasNonTextOrdering;
@@ -436,15 +436,19 @@ class SearchQuery {
 
 /// Filter conditions on tags.
 class TagsPredicate {
-  /// tag -> required (true) | forbidden (false) map
-  final _values = <String, bool>{};
+  final List<String> requiredTags;
+  final List<String> negatedTags;
 
-  TagsPredicate([Map<String, bool> values]) {
-    if (values != null) _values.addAll(values);
-  }
+  TagsPredicate({this.requiredTags, this.negatedTags});
+
+  bool get isEmpty =>
+      (requiredTags == null || requiredTags.isEmpty) &&
+      (negatedTags == null || negatedTags.isEmpty);
 
   /// Parses [values] passed via Uri.queryParameters
-  TagsPredicate.parseQueryValues(List<String> values) {
+  factory TagsPredicate.parseQueryValues(List<String> values) {
+    final requiredTags = <String>[];
+    final negatedTags = <String>[];
     for (String tag in values ?? const <String>[]) {
       bool required = true;
       if (tag.startsWith('-')) {
@@ -453,34 +457,34 @@ class TagsPredicate {
       } else if (tag.startsWith('+')) {
         tag = tag.substring(1);
       }
-      _values[tag] = required;
+      if (required) {
+        requiredTags.add(tag);
+      } else {
+        negatedTags.add(tag);
+      }
     }
-  }
-
-  /// Update the predicate [value] for [tag]: required (true) | forbidden (false)
-  void updateTag(String tag, bool value) {
-    _values[tag] = value;
+    return TagsPredicate(requiredTags: requiredTags, negatedTags: negatedTags);
   }
 
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
   bool evaluate(List<String> tags) {
     tags ??= const <String>[];
-    for (final entry in _values.entries) {
-      if (entry.value && !tags.contains(entry.key)) {
-        return false;
-      }
-      if (!entry.value && tags.contains(entry.key)) {
-        return false;
-      }
+    for (final tag in requiredTags ?? const <String>[]) {
+      if (!tags.contains(tag)) return false;
+    }
+    for (final tag in negatedTags ?? const <String>[]) {
+      if (tags.contains(tag)) return false;
     }
     return true;
   }
 
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
-    if (_values.isEmpty) return null;
-    return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
+    return <String>[
+      if (requiredTags != null) ...requiredTags,
+      if (negatedTags != null) ...negatedTags.map((s) => '-$s'),
+    ];
   }
 }
 
