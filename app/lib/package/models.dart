@@ -19,6 +19,8 @@ import '../shared/model_properties.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
+import 'package_tags.dart';
+
 export '../package/model_properties.dart' show FileObject;
 
 part 'models.g.dart';
@@ -160,15 +162,6 @@ class Package extends db.ExpandoModel {
       // TODO: uploader:<...>
     ];
   }
-}
-
-/// Collection of package-related tags.
-abstract class PackageTags {
-  /// Package is marked discontinued.
-  static const String isDiscontinued = 'is:discontinued';
-
-  /// Package is less than 30 days old.
-  static const String isRecent = 'is:recent';
 }
 
 /// Pub package metadata for a specific uploaded version.
