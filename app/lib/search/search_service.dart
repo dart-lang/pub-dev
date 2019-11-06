@@ -84,7 +84,7 @@ class PackageDocument {
     this.doNotAdvertise = false,
     this.supportsOnlyLegacySdk = false,
     this.platforms = const [],
-    this.tags = const [],
+    List<String> tags,
     this.health = 0,
     this.popularity = 0,
     this.maintenance = 0,
@@ -93,7 +93,8 @@ class PackageDocument {
     this.uploaderEmails = const [],
     this.apiDocPages = const [],
     DateTime timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+  })  : tags = tags ?? const <String>[],
+        timestamp = timestamp ?? DateTime.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
@@ -111,7 +112,7 @@ class PackageDocument {
       doNotAdvertise: doNotAdvertise,
       supportsOnlyLegacySdk: supportsOnlyLegacySdk,
       platforms: platforms?.map(internFn)?.toList(),
-      tags: tags?.map(internFn)?.toList(),
+      tags: tags.map(internFn).toList(),
       health: health,
       popularity: popularity,
       maintenance: maintenance,
