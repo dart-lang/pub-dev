@@ -97,6 +97,10 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
   @CompatibleStringListProperty()
   List<String> platformTags = <String>[];
 
+  /// List of tags computed by `pana` or other analyzer.
+  @db.StringListProperty()
+  List<String> derivedTags = <String>[];
+
   /// The flags for the package, version or analysis.
   /// Example values: entries from [PackageFlags].
   @CompatibleStringListProperty()
@@ -134,6 +138,7 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
         maintenanceScore: maintenanceScore,
         popularityScore: popularityScore,
         platformTags: platformTags,
+        derivedTags: derivedTags,
         flags: flags,
         reportTypes: reportTypes,
       );
@@ -164,6 +169,7 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
       dartdocReport?.maintenanceSuggestions,
     );
     platformTags = panaReport?.platformTags ?? <String>[];
+    derivedTags = panaReport?.derivedTags ?? <String>[];
     reportTypes = [
       panaReport == null ? null : ReportType.pana,
       dartdocReport == null ? null : ReportType.dartdoc,
@@ -293,6 +299,9 @@ class ScoreCardData extends Object with FlagMixin {
   /// The platform tags (flutter, web, other).
   final List<String> platformTags;
 
+  /// List of tags computed by `pana` or other analyzer.
+  final List<String> derivedTags;
+
   /// The flags for the package, version or analysis.
   @override
   final List<String> flags;
@@ -311,6 +320,7 @@ class ScoreCardData extends Object with FlagMixin {
     this.maintenanceScore,
     this.popularityScore,
     this.platformTags,
+    this.derivedTags,
     this.flags,
     this.reportTypes,
   });
@@ -382,11 +392,13 @@ class PanaReport implements ReportData {
   final double maintenanceScore;
 
   /// The platform tags (flutter, web, other).
-  @CompatibleStringListProperty()
   List<String> platformTags;
 
   /// The reason pana decided on the [platformTags].
   final String platformReason;
+
+  /// List of tags computed by `pana`.
+  final List<String> derivedTags;
 
   final List<PkgDependency> pkgDependencies;
 
@@ -417,6 +429,7 @@ class PanaReport implements ReportData {
     @required this.maintenanceScore,
     @required this.platformTags,
     @required this.platformReason,
+    @required this.derivedTags,
     @required this.pkgDependencies,
     @required this.licenses,
     @required this.panaSuggestions,

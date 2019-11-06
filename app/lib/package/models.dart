@@ -19,6 +19,8 @@ import '../shared/model_properties.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
+import 'package_tags.dart';
+
 export '../package/model_properties.dart' show FileObject;
 
 part 'models.g.dart';
@@ -148,6 +150,19 @@ class Package extends db.ExpandoModel {
   }
 
   bool isNewPackage() => created.difference(DateTime.now()).abs().inDays <= 30;
+
+  /// List of tags from the flags on the current [Package] entity.
+  List<String> getTags() {
+    return <String>[
+      if (isDiscontinued) PackageTags.isDiscontinued,
+      if (isNewPackage())
+        PackageTags.isRecent,
+      // TODO: is:not-advertized
+      // TODO: is:dart-1 or is:legacy
+      // TODO: publisher:<publisherId>
+      // TODO: uploader:<...>
+    ];
+  }
 }
 
 /// Pub package metadata for a specific uploaded version.
