@@ -155,7 +155,8 @@ class Package extends db.ExpandoModel {
   List<String> getTags() {
     return <String>[
       if (isDiscontinued) PackageTags.isDiscontinued,
-      if (isNewPackage()) PackageTags.isRecent,
+      if (isNewPackage())
+        PackageTags.isRecent,
       // TODO: is:not-advertized
       // TODO: is:dart-1 or is:legacy
       // TODO: publisher:<publisherId>
