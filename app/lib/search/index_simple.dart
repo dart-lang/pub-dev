@@ -152,6 +152,12 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on tags
+    if (query.tagsPredicate != null) {
+      packages.retainWhere(
+          (package) => query.tagsPredicate.evaluate(_packages[package].tags));
+    }
+
     // filter on dependency
     if (query.parsedQuery.hasAnyDependency) {
       packages.removeWhere((package) {
