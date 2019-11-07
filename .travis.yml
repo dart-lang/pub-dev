@@ -5,6 +5,12 @@ language: dart
 services:
   - "redis-server"
 
+addons:
+  chrome: stable
+env:
+  global:
+    - CHROME_BIN=/usr/bin/google-chrome
+
 jobs:
   include:
     - stage: smoke_test
