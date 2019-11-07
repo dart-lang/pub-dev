@@ -78,6 +78,12 @@ class SearchBackend {
       throw MissingAnalysisException();
     }
 
+    final tags = <String>[
+      ...p.getTags(),
+      ...pv.getTags(),
+      ...analysisView.derivedTags,
+    ];
+
     final pubDataContent = await dartdocClient.getTextContent(
         packageName, 'latest', 'pub-data.json',
         timeout: const Duration(minutes: 1));
@@ -100,6 +106,7 @@ class SearchBackend {
       version: p.latestVersion,
       devVersion: p.latestDevVersion,
       platforms: analysisView.platforms,
+      tags: tags,
       description: compactDescription(pv.pubspec.description),
       created: p.created,
       updated: pv.created,
@@ -150,6 +157,7 @@ class SearchBackend {
         package: p.name,
         version: p.latestVersion,
         devVersion: p.latestDevVersion,
+        tags: p.getTags(),
         created: p.created,
         updated: p.updated,
         isDiscontinued: p.isDiscontinued,

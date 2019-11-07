@@ -157,8 +157,8 @@ class Package extends db.ExpandoModel {
       if (isDiscontinued) PackageTags.isDiscontinued,
       if (isNewPackage())
         PackageTags.isRecent,
-      // TODO: is:not-advertized
-      // TODO: is:dart-1 or is:legacy
+      if (doNotAdvertise)
+        PackageTags.isNotAdvertized,
       // TODO: publisher:<publisherId>
       // TODO: uploader:<...>
     ];
@@ -280,6 +280,13 @@ class PackageVersion extends db.ExpandoModel {
       package: package,
       version: version,
     );
+  }
+
+  /// List of tags from the flags on the current [PackageVersion] entity.
+  List<String> getTags() {
+    return <String>[
+      if (pubspec.supportsOnlyLegacySdk) PackageVersionTags.isLegacy,
+    ];
   }
 }
 
