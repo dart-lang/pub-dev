@@ -58,3 +58,16 @@ class AdminUserEntry {
       _$AdminUserEntryFromJson(json);
   Map<String, dynamic> toJson() => _$AdminUserEntryToJson(this);
 }
+
+/// Flutter favorite status which can be get/set.
+@JsonSerializable()
+class FlutterFavoriteStatus {
+  /// True, if the package is a Flutter Favorite package.
+  final bool isFlutterFavorite;
+
+  // json_serializable boiler-plate
+  FlutterFavoriteStatus({@required this.isFlutterFavorite});
+  factory FlutterFavoriteStatus.fromJson(Map<String, dynamic> json) =>
+      _$FlutterFavoriteStatusFromJson(json);
+  Map<String, dynamic> toJson() => _$FlutterFavoriteStatusToJson(this);
+}

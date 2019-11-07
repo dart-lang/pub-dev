@@ -39,3 +39,16 @@ Map<String, dynamic> _$AdminUserEntryToJson(AdminUserEntry instance) =>
       'oauthUserId': instance.oauthUserId,
       'email': instance.email,
     };
+
+FlutterFavoriteStatus _$FlutterFavoriteStatusFromJson(
+    Map<String, dynamic> json) {
+  return FlutterFavoriteStatus(
+    isFlutterFavorite: json['isFlutterFavorite'] as bool,
+  );
+}
+
+Map<String, dynamic> _$FlutterFavoriteStatusToJson(
+        FlutterFavoriteStatus instance) =>
+    <String, dynamic>{
+      'isFlutterFavorite': instance.isFlutterFavorite,
+    };

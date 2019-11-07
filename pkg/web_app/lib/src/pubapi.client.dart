@@ -339,4 +339,21 @@ class PubApiClient {
       path: '/api/admin/users/$userId',
     );
   }
+
+  Future<_i6.FlutterFavoriteStatus> adminGetFlutterFavorite(
+      String package) async {
+    return _i6.FlutterFavoriteStatus.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/admin/packages/$package/flutter-favorite',
+    ));
+  }
+
+  Future<_i6.FlutterFavoriteStatus> adminPutFlutterFavorite(
+      String package, _i6.FlutterFavoriteStatus payload) async {
+    return _i6.FlutterFavoriteStatus.fromJson(await _client.requestJson(
+      verb: 'put',
+      path: '/api/admin/packages/$package/flutter-favorite',
+      body: payload.toJson(),
+    ));
+  }
 }

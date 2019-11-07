@@ -13,10 +13,12 @@ import 'package:pool/pool.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
+import '../package/backend.dart' show packageBackend;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../shared/configuration.dart';
 import '../shared/exceptions.dart';
+import '../shared/datastore_helper.dart';
 
 final _logger = Logger('pub.admin.backend');
 final _continuationCodec = utf8.fuse(hex);
@@ -33,17 +35,21 @@ class AdminBackend {
   final DatastoreDB _db;
   AdminBackend(this._db);
 
-  Future<R> _withAdmin<R>(Future<R> fn(User user)) async {
+  /// Require that the incoming request is authorized by an administrator with
+  /// the given [permission].
+  Future<User> _requireAdminPermission(AdminPermission permission) async {
+    ArgumentError.checkNotNull(permission, 'permission');
+
     final user = await requireAuthenticatedUser();
     final admin = activeConfiguration.admins.firstWhere(
         (a) => a.oauthUserId == user.oauthUserId && a.email == user.email,
         orElse: () => null);
-    if (admin == null) {
+    if (admin == null || !admin.permissions.contains(permission)) {
       _logger.warning(
-          'User (${user.userId} / ${user.email}) is trying to access admin APIs.');
+          'User (${user.userId} / ${user.email}) is trying to access unauthorized admin APIs.');
       throw AuthorizationException.userIsNotAdminForPubSite();
     }
-    return await fn(user);
+    return user;
   }
 
   /// List users.
@@ -56,96 +62,96 @@ class AdminBackend {
     int limit = 1000,
   }) async {
     InvalidInputException.checkRange(limit, 'limit', minimum: 1, maximum: 1000);
-    return await _withAdmin((user) async {
-      final query = _db.query<User>()..limit(limit);
+    await _requireAdminPermission(AdminPermission.listUsers);
 
-      if (email != null) {
-        InvalidInputException.checkNull(oauthUserId, '?ouid=');
-        InvalidInputException.checkNull(continuationToken, '?ct=');
-        query.filter('email =', email);
-      } else if (oauthUserId != null) {
-        InvalidInputException.checkNull(continuationToken, '?ct=');
-        query.filter('oauthUserId =', oauthUserId);
-      } else if (continuationToken != null) {
-        String lastId;
-        try {
-          lastId = _continuationCodec.decode(continuationToken);
-        } on FormatException catch (_) {
-          throw InvalidInputException.continuationParseError();
-        }
-        InvalidInputException.checkNotNull(lastId, '?ct=');
+    final query = _db.query<User>()..limit(limit);
 
-        // NOTE: we should fix https://github.com/dart-lang/gcloud/issues/23
-        //       and remove the toDatastoreKey conversion here.
-        final key =
-            _db.modelDB.toDatastoreKey(_db.emptyKey.append(User, id: lastId));
-        if (lastId != null) {
-          query.filter('__key__ >', key);
-        }
-        query.order('__key__');
-      } else {
-        query.order('__key__');
+    if (email != null) {
+      InvalidInputException.checkNull(oauthUserId, '?ouid=');
+      InvalidInputException.checkNull(continuationToken, '?ct=');
+      query.filter('email =', email);
+    } else if (oauthUserId != null) {
+      InvalidInputException.checkNull(continuationToken, '?ct=');
+      query.filter('oauthUserId =', oauthUserId);
+    } else if (continuationToken != null) {
+      String lastId;
+      try {
+        lastId = _continuationCodec.decode(continuationToken);
+      } on FormatException catch (_) {
+        throw InvalidInputException.continuationParseError();
       }
+      InvalidInputException.checkNotNull(lastId, '?ct=');
 
-      final users = await query.run().toList();
-      // We may return a page with users less then a limit, but we always
-      // set the continuation token to the correct value.
-      final newContinuationToken = users.length < limit
-          ? null
-          : _continuationCodec.encode(users.last.userId);
-      users.removeWhere((u) => u.isDeleted);
+      // NOTE: we should fix https://github.com/dart-lang/gcloud/issues/23
+      //       and remove the toDatastoreKey conversion here.
+      final key =
+          _db.modelDB.toDatastoreKey(_db.emptyKey.append(User, id: lastId));
+      if (lastId != null) {
+        query.filter('__key__ >', key);
+      }
+      query.order('__key__');
+    } else {
+      query.order('__key__');
+    }
 
-      return api.AdminListUsersResponse(
-        users: users
-            .map(
-              (u) => api.AdminUserEntry(
-                userId: u.userId,
-                email: u.email,
-                oauthUserId: u.oauthUserId,
-              ),
-            )
-            .toList(),
-        continuationToken: newContinuationToken,
-      );
-    });
+    final users = await query.run().toList();
+    // We may return a page with users less then a limit, but we always
+    // set the continuation token to the correct value.
+    final newContinuationToken = users.length < limit
+        ? null
+        : _continuationCodec.encode(users.last.userId);
+    users.removeWhere((u) => u.isDeleted);
+
+    return api.AdminListUsersResponse(
+      users: users
+          .map(
+            (u) => api.AdminUserEntry(
+              userId: u.userId,
+              email: u.email,
+              oauthUserId: u.oauthUserId,
+            ),
+          )
+          .toList(),
+      continuationToken: newContinuationToken,
+    );
   }
 
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
   Future removeUser(String userId) async {
-    await _withAdmin((u) async {
-      final user = await accountBackend.lookupUserById(userId);
-      if (user == null) return;
-      if (user.isDeleted) return;
+    final caller = await _requireAdminPermission(AdminPermission.removeUsers);
 
-      _logger.info(
-          '${u.userId} (${u.email}) initiated the delete of ${user.userId} (${user.email})');
+    final user = await accountBackend.lookupUserById(userId);
+    if (user == null) return;
+    if (user.isDeleted) return;
 
-      // Package.uploaders
-      final pool = Pool(10);
-      final futures = <Future>[];
-      final pkgQuery = _db.query<Package>()..filter('uploaders =', user.userId);
-      await for (final p in pkgQuery.run()) {
-        final f = pool
-            .withResource(() => _removeUploaderFromPackage(p.key, user.userId));
-        futures.add(f);
-      }
-      await Future.wait(futures);
-      await pool.close();
+    _logger.info('${caller.userId} (${caller.email}) initiated the delete '
+        'of ${user.userId} (${user.email})');
 
-      // PublisherMember
-      // Publisher.contactEmail
-      final memberQuery = _db.query<PublisherMember>()
-        ..filter('userId =', user.userId);
-      await for (final m in memberQuery.run()) {
-        await _removeMember(user, m);
-      }
+    // Package.uploaders
+    final pool = Pool(10);
+    final futures = <Future>[];
+    final pkgQuery = _db.query<Package>()..filter('uploaders =', user.userId);
+    await for (final p in pkgQuery.run()) {
+      final f = pool
+          .withResource(() => _removeUploaderFromPackage(p.key, user.userId));
+      futures.add(f);
+    }
+    await Future.wait(futures);
+    await pool.close();
 
-      // User
-      // OAuthUserID
-      // TODO: consider deleting User if there are no other references to it
-      await _markUserDeleted(user);
-    });
+    // PublisherMember
+    // Publisher.contactEmail
+    final memberQuery = _db.query<PublisherMember>()
+      ..filter('userId =', user.userId);
+    await for (final m in memberQuery.run()) {
+      await _removeMember(user, m);
+    }
+
+    // User
+    // OAuthUserID
+    // TODO: consider deleting User if there are no other references to it
+    await _markUserDeleted(user);
   }
 
   Future _removeUploaderFromPackage(Key pkgKey, String userId) async {
@@ -245,6 +251,55 @@ class AdminBackend {
         ..isDeleted = true;
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
       await tx.commit();
+    });
+  }
+
+  /// Handles PUT '/api/admin/packages/<package>/flutter-favorite'
+  ///
+  /// Note, this API end-point is intentioanlly locked down even if it doesn't
+  /// return anything secret. This is because the /admin/ section is only
+  /// intended to be exposed to administrators. Users can read the status
+  /// through API that returns list of package tags.
+  Future<api.FlutterFavoriteStatus> handleGetFlutterFavorite(
+    String packageName,
+  ) async {
+    await _requireAdminPermission(AdminPermission.manageFlutterFavorite);
+    final package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      throw NotFoundException.resource(packageName);
+    }
+
+    return api.FlutterFavoriteStatus(
+      isFlutterFavorite: package.isFlutterFavorite,
+    );
+  }
+
+  /// Handles PUT '/api/admin/packages/<package>/flutter-favorite'
+  Future<api.FlutterFavoriteStatus> handlePutFlutterFavorite(
+    String packageName,
+    api.FlutterFavoriteStatus status,
+  ) async {
+    await _requireAdminPermission(AdminPermission.manageFlutterFavorite);
+
+    return await withTransaction(_db, (tx) async {
+      final package = await tx.lookupOrNull<Package>(_db.emptyKey.append(
+        Package,
+        id: packageName,
+      ));
+
+      if (package == null) {
+        throw NotFoundException.resource(packageName);
+      }
+
+      // Only update the package if it is necessary
+      if (package.isFlutterFavorite != status.isFlutterFavorite) {
+        package.isFlutterFavorite = status.isFlutterFavorite;
+        tx.insert(package);
+      }
+
+      return api.FlutterFavoriteStatus(
+        isFlutterFavorite: package.isFlutterFavorite,
+      );
     });
   }
 }

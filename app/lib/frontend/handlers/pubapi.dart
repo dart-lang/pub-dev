@@ -336,6 +336,19 @@ class PubApi {
     await adminBackend.removeUser(userId);
     return jsonResponse({'status': 'OK'});
   }
+
+  @EndPoint.get('/api/admin/packages/<package>/flutter-favorite')
+  Future<FlutterFavoriteStatus> adminGetFlutterFavorite(
+    Request request,
+    String package,
+  ) => adminBackend.handleGetFlutterFavorite(package);
+
+  @EndPoint.put('/api/admin/packages/<package>/flutter-favorite')
+  Future<FlutterFavoriteStatus> adminPutFlutterFavorite(
+    Request request,
+    String package,
+    FlutterFavoriteStatus body,
+  ) => adminBackend.handlePutFlutterFavorite(package, body);
 }
 
 /// Replaces the requested uri with the primary API uri.

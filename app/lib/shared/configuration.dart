@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart' show UnmodifiableSetView;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis_auth/auth.dart' as auth;
 import 'package:logging/logging.dart';
@@ -164,7 +165,14 @@ class Configuration {
         AdminId(
           oauthUserId: '111042304059633250784',
           email: 'istvan.soos@gmail.com',
-        ), // isoos
+          permissions: AdminPermission.values,
+        ),
+        AdminId(
+          oauthUserId: '103787640407960242725',
+          email: 'flutter-favorite-manager-test'
+              '@dartlang-pub-dev.iam.gserviceaccount.com',
+          permissions: {AdminPermission.manageFlutterFavorite},
+        )
       ],
     );
   }
@@ -224,7 +232,13 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$port/'),
       primarySiteUri: Uri.parse('http://localhost:$port/'),
-      admins: [AdminId(oauthUserId: 'admin-pub-dev', email: 'admin@pub.dev')],
+      admins: [
+        AdminId(
+          oauthUserId: 'admin-pub-dev',
+          email: 'admin@pub.dev',
+          permissions: AdminPermission.values,
+        ),
+      ],
     );
   }
 
@@ -248,7 +262,13 @@ class Configuration {
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: [AdminId(oauthUserId: 'admin-pub-dev', email: 'admin@pub.dev')],
+      admins: [
+        AdminId(
+          oauthUserId: 'admin-pub-dev',
+          email: 'admin@pub.dev',
+          permissions: AdminPermission.values,
+        ),
+      ],
     );
   }
 }
@@ -327,8 +347,25 @@ class AdminId {
   final String oauthUserId;
   final String email;
 
+  /// A set of strings that determine what operations the administrator is
+  /// permitted to perform.
+  final Set<AdminPermission> permissions;
+
   AdminId({
     @required this.oauthUserId,
     @required this.email,
-  });
+    @required Iterable<AdminPermission> permissions,
+  }) : permissions = UnmodifiableSetView(Set.from(permissions));
+}
+
+/// Permission that can be granted to administrators.
+enum AdminPermission {
+  /// Permission to list all users.
+  listUsers,
+
+  /// Permission to remove a user account (granted to wipeout).
+  removeUsers,
+
+  /// Permission to get/set Flutter Favorite status through admin API.
+  manageFlutterFavorite,
 }

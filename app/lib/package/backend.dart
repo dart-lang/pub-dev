@@ -115,6 +115,8 @@ class PackageBackend {
   }
 
   /// Looks up a package by name.
+  ///
+  /// Returns `null` if the package doesn't exist.
   Future<models.Package> lookupPackage(String packageName) async {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
     return (await db.lookup([packageKey])).first as models.Package;

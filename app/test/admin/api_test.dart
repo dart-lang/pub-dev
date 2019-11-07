@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:client_data/admin_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -189,6 +190,63 @@ void main() {
       // TODO: delete with multiple uploaders
       // TODO: delete with multiple members (contact email not changed)
       // TODO: delete with multiple members (contact email changes)
+    });
+
+    group('get isFlutterFavorite', () {
+      _testNotAdmin((client) => client.adminGetFlutterFavorite('hydrogen'));
+
+      testWithServices('get isFlutterFavorite', () async {
+        final client = createPubApiClient(authToken: adminUser.userId);
+        final status = await client.adminGetFlutterFavorite('hydrogen');
+        expect(status.isFlutterFavorite, isFalse);
+      });
+    });
+
+    group('set isFlutterFavorite', () {
+      _testNotAdmin((client) => client.adminPutFlutterFavorite(
+            'hydrogen',
+            FlutterFavoriteStatus(isFlutterFavorite: true),
+          ));
+
+      testWithServices('set isFlutterFavorite', () async {
+        final client = createPubApiClient(authToken: adminUser.userId);
+
+        // Is false initially
+        final s1 = await client.adminGetFlutterFavorite('hydrogen');
+        expect(s1.isFlutterFavorite, isFalse);
+
+        // Set it false should change anything
+        await client.adminPutFlutterFavorite(
+          'hydrogen',
+          FlutterFavoriteStatus(isFlutterFavorite: false),
+        );
+        final s2 = await client.adminGetFlutterFavorite('hydrogen');
+        expect(s2.isFlutterFavorite, isFalse);
+
+        // Check that we can set it true
+        await client.adminPutFlutterFavorite(
+          'hydrogen',
+          FlutterFavoriteStatus(isFlutterFavorite: true),
+        );
+        final s3 = await client.adminGetFlutterFavorite('hydrogen');
+        expect(s3.isFlutterFavorite, isTrue);
+
+        // Check that we can set it true (again)
+        await client.adminPutFlutterFavorite(
+          'hydrogen',
+          FlutterFavoriteStatus(isFlutterFavorite: true),
+        );
+        final s4 = await client.adminGetFlutterFavorite('hydrogen');
+        expect(s4.isFlutterFavorite, isTrue);
+
+        // Check that we can set it back to false
+        await client.adminPutFlutterFavorite(
+          'hydrogen',
+          FlutterFavoriteStatus(isFlutterFavorite: false),
+        );
+        final s5 = await client.adminGetFlutterFavorite('hydrogen');
+        expect(s5.isFlutterFavorite, isFalse);
+      });
     });
   });
 }
