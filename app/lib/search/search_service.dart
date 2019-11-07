@@ -375,21 +375,6 @@ class SearchQuery {
 
   bool get hasQuery => query != null && query.isNotEmpty;
 
-  /// Sanity check, whether the query object is to be expected a valid result.
-  bool get isValid {
-    final bool hasText =
-        parsedQuery.text != null && parsedQuery.text.isNotEmpty;
-    final bool hasNonTextOrdering = order != SearchOrder.text;
-    final bool isEmpty = !hasText &&
-        order == null &&
-        parsedQuery.packagePrefix == null &&
-        (platform == null || platform.isEmpty) &&
-        (tagsPredicate == null || tagsPredicate.isEmpty);
-    if (isEmpty) return false;
-
-    return hasText || hasNonTextOrdering;
-  }
-
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
