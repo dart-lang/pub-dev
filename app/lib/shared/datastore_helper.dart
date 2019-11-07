@@ -4,7 +4,10 @@
 
 import 'package:gcloud/db.dart';
 import 'package:retry/retry.dart';
+import 'package:logging/logging.dart';
 import 'exceptions.dart';
+
+final Logger _logger = Logger('pub.datastore_helper');
 
 /// Wrap [Transaction] to avoid exposing [Transaction.commit] and
 /// [Transaction.rollback].
@@ -69,9 +72,9 @@ Future<T> withTransaction<T>(
 
 /// Transaction retry options.
 ///
-/// These should be retried within the 30s timeout for sending an inital header.
-/// We suspect that AppEngine Flexible has such an timeout, because it uses GCP
-/// HTTPS load-balancer under the hood.
+/// Transactions should be retried within the 30s timeout for sending an inital
+/// response header on AppEngine Flexible. We suspect that AppEngine Flexible
+/// has such a timeout, because it uses GCP HTTPS load-balancer under the hood.
 ///
 /// When we would prefer to finish in 30s, and, thus, lower the delays between
 /// retries to ensure that:
@@ -102,4 +105,5 @@ Future<T> withRetryTransaction<T>(
       () => withTransaction<T>(db, fn),
       // Never retry a ResponseException
       retryIf: (e) => e is! ResponseException,
+      onRetry: (e) => _logger.info('retrying transaction', e),
     );
