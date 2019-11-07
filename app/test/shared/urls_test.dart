@@ -118,4 +118,46 @@ void main() {
       expect(inferIssueTrackerUrl('$repo/a/b/c'), tracker);
     });
   });
+
+  group('Infer base URL', () {
+    final repo = 'https://gitlab.com/user/repo';
+
+    test('only homepage is set', () {
+      expect(inferBaseUrl(homepageUrl: repo), repo);
+      expect(
+        inferBaseUrl(homepageUrl: '$repo/tree/master/dir'),
+        '$repo/tree/master/dir',
+      );
+    });
+
+    test('only repository is set', () {
+      expect(inferBaseUrl(repositoryUrl: repo), repo);
+      expect(
+        inferBaseUrl(repositoryUrl: '$repo/tree/master/dir'),
+        '$repo/tree/master/dir',
+      );
+    });
+
+    test('deep homepage, inferred repository', () {
+      final homepage = '$repo/tree/master/dir';
+      expect(
+        inferBaseUrl(
+          homepageUrl: homepage,
+          repositoryUrl: inferRepositoryUrl(homepage),
+        ),
+        '$repo/tree/master/dir',
+      );
+    });
+
+    test('unrelated homepage, simple repository', () {
+      final homepage = 'https://example.com/';
+      expect(
+        inferBaseUrl(
+          homepageUrl: homepage,
+          repositoryUrl: repo,
+        ),
+        repo,
+      );
+    });
+  });
 }

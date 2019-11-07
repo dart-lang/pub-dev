@@ -125,7 +125,6 @@ String renderPkgInfoBox(
   AnalysisView analysis,
 ) {
   final packageLinks = selectedVersion.packageLinks;
-  final baseUrl = packageLinks.repositoryUrl ?? packageLinks.homepageUrl;
 
   String documentationUrl = packageLinks.documentationUrl;
   if (urls.hideUserProvidedDocUrl(documentationUrl)) {
@@ -175,7 +174,7 @@ String renderPkgInfoBox(
     'uploaders_title': uploaderEmails.length > 1 ? 'Uploaders' : 'Uploader',
     'uploaders_html':
         uploaderEmails.isEmpty ? null : _getAuthorsHtml(uploaderEmails),
-    'license_html': _renderLicenses(baseUrl, analysis?.licenses),
+    'license_html': _renderLicenses(packageLinks.baseUrl, analysis?.licenses),
     'dependencies_html': _renderDependencyList(analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
   });
@@ -295,7 +294,7 @@ List<Tab> _pkgTabs(
 
   String renderedReadme;
   final packageLinks = selectedVersion.packageLinks;
-  final baseUrl = packageLinks.repositoryUrl ?? packageLinks.homepageUrl;
+  final baseUrl = packageLinks.baseUrl;
   if (selectedVersion.readme != null) {
     renderedReadme = renderFile(selectedVersion.readme, baseUrl);
   }

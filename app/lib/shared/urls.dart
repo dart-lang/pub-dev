@@ -143,6 +143,19 @@ String inferIssueTrackerUrl(String baseUrl) {
   return null;
 }
 
+/// Infer base URL that can be used to link files from.
+String inferBaseUrl({String homepageUrl, String repositoryUrl}) {
+  String baseUrl = repositoryUrl ?? homepageUrl;
+  // In a few cases people specify only a deep repository URL for their
+  // package (e.g. a monorepo for multiple packages). While we default the
+  // base URL to be the repository URL, this check allows us to use the deep
+  // URL for linking.
+  if (homepageUrl != null && homepageUrl.startsWith(baseUrl)) {
+    baseUrl = homepageUrl;
+  }
+  return baseUrl;
+}
+
 /// Infer the hosting/service provider for a given URL.
 String inferServiceProviderName(String url) {
   if (url == null) {

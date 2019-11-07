@@ -487,16 +487,29 @@ void sortPackageVersionsDesc(List<PackageVersion> versions,
 
 /// The URLs provided by the package's pubspec or inferred from the homepage.
 class PackageLinks {
+  /// `homepage` property in `pubspec.yaml`
   final String homepageUrl;
+
+  /// `documentation` property in `pubspec.yaml`
   final String documentationUrl;
+
+  /// `repository` property in `pubspec.yaml`, or if not specified, an inferred
+  /// URL from [homepageUrl].
   final String repositoryUrl;
+
+  /// `issue_tracker` property in `pubspec.yaml`, or if not specified, an
+  /// inferred URL from [repositoryUrl].
   final String issueTrackerUrl;
 
-  PackageLinks({
+  /// The inferred base URL that can be used to link files from.
+  final String baseUrl;
+
+  PackageLinks._({
     this.homepageUrl,
     this.documentationUrl,
     this.repositoryUrl,
     this.issueTrackerUrl,
+    this.baseUrl,
   });
 
   factory PackageLinks.infer({
@@ -507,11 +520,16 @@ class PackageLinks {
   }) {
     repositoryUrl ??= urls.inferRepositoryUrl(homepageUrl);
     issueTrackerUrl ??= urls.inferIssueTrackerUrl(repositoryUrl);
-    return PackageLinks(
+    final baseUrl = urls.inferBaseUrl(
+      homepageUrl: homepageUrl,
+      repositoryUrl: repositoryUrl,
+    );
+    return PackageLinks._(
       homepageUrl: homepageUrl,
       documentationUrl: documentationUrl,
       repositoryUrl: repositoryUrl,
       issueTrackerUrl: issueTrackerUrl,
+      baseUrl: baseUrl,
     );
   }
 }
