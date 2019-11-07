@@ -4,6 +4,7 @@
 
 import 'package:gcloud/db.dart';
 import 'package:retry/retry.dart';
+import 'exceptions.dart';
 
 /// Wrap [Transaction] to avoid exposing [Transaction.commit] and
 /// [Transaction.rollback].
@@ -66,10 +67,39 @@ Future<T> withTransaction<T>(
   });
 }
 
+/// Transaction retry options.
+///
+/// These should be retried within the 30s timeout for sending an inital header.
+/// We suspect that AppEngine Flexible has such an timeout, because it uses GCP
+/// HTTPS load-balancer under the hood.
+///
+/// When we would prefer to finish in 30s, and, thus, lower the delays between
+/// retries to ensure that:
+/// * 0th attempt is delayed    0 ms, with max accumulated delay     0 ms.
+/// * 1st attempt is delayed  100 ms, with max accumulated delay   125 ms.
+/// * 2nd attempt is delayed  200 ms, with max accumulated delay   375 ms.
+/// * 3rd attempt is delayed  400 ms, with max accumulated delay   875 ms.
+/// * 4th attempt is delayed  800 ms, with max accumulated delay  1875 ms.
+/// * 5th attempt is delayed 1600 ms, with max accumulated delay  3875 ms.
+/// * 6th attempt is delayed 3200 ms, with max accumulated delay  7875 ms.
+/// * 7th attempt is delayed 5000 ms, with max accumulated delay 14125 ms.
+final _transactionRetrier = RetryOptions(
+  maxAttempts: 8,
+  delayFactor: Duration(milliseconds: 20),
+  maxDelay: Duration(seconds: 5),
+  randomizationFactor: 0.25,
+);
+
 /// Call [fn] with a [TransactionWrapper] that is either committed or
 /// rolled back when [fn] returns, and retried if [fn] fails.
+///
+/// This does not retry [ResponseException].
 Future<T> withRetryTransaction<T>(
   DatastoreDB db,
   Future<T> Function(TransactionWrapper tx) fn,
 ) =>
-    retry<T>(() => withTransaction<T>(db, fn));
+    _transactionRetrier.retry<T>(
+      () => withTransaction<T>(db, fn),
+      // Never retry a ResponseException
+      retryIf: (e) => e is! ResponseException,
+    );
