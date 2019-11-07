@@ -900,7 +900,8 @@ models.Package _newPackageFromVersion(
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
     ..uploaders = [userId]
-    ..likes = 0;
+    ..likes = 0
+    ..isFlutterFavorite = false;
 }
 
 class _ValidatedUpload {

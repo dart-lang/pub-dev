@@ -205,6 +205,10 @@ class IntegrityChecker {
             'Package(${p.name}) has an anandoned publisher, must be marked discontinued.');
       }
     }
+    if (p.isFlutterFavorite == null || p.isFlutterFavorite is! bool) {
+      _problems.add(
+          'Package(${p.name}) has a `isFlutterFavorite` property which is not a bool.');
+    }
     if (p.likes == null || p.likes is! int || p.likes < 0) {
       _problems.add(
           'Package(${p.name}) has a `likes` property which is not a non-negative integer.');
