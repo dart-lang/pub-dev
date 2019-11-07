@@ -8,6 +8,8 @@ import 'package:puppeteer/puppeteer.dart';
 // ignore: implementation_imports
 import 'package:puppeteer/src/page/page.dart' show ClientError;
 
+/// Creates and tracks the headless Chrome environment, its temp directories and
+/// and uncaught exceptions.
 class HeadlessEnv {
   final Directory tempDir;
   Browser _browser;
@@ -40,7 +42,7 @@ class HeadlessEnv {
   Future _startBrowser() async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
-    final userDataDir = tempDir.createTempSync('user');
+    final userDataDir = await tempDir.createTemp('user');
     _browser = await puppeteer.launch(
       executablePath: chromeBin,
       args: [
