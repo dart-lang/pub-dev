@@ -4,6 +4,8 @@ language: dart
 # Custom configuration
 services:
   - "redis-server"
+addons:
+  chrome: stable
 
 jobs:
   include:
