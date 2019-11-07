@@ -91,6 +91,9 @@ class Package extends db.ExpandoModel {
     doNotAdvertiseFlag = value;
   }
 
+  @db.BoolProperty()
+  bool isFlutterFavorite;
+
   // Convenience Fields:
 
   String get latestVersion => latestVersionKey.id as String;
