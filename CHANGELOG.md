@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Upgraded runtime SDK to `2.6.0`.
+ * Upgraded package dependencies.
  * Refactored `Consent`:
    * new entities do not have the user in their key
    * WARNING: user merge on pending old consent entities does not work

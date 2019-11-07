@@ -143,8 +143,7 @@ Stream<T> randomizeStream<T>(
 }) {
   random ??= Random.secure();
   final Stream trigger = Stream.periodic(duration);
-  final Stream<List<T>> bufferedStream = buffer<T>(trigger).bind(stream);
-  return bufferedStream.transform(StreamTransformer.fromHandlers(
+  return stream.buffer(trigger).transform(StreamTransformer.fromHandlers(
     handleData: (List<T> items, Sink<T> sink) {
       for (List<T> list in _sliceList(items, maxPositionDiff)) {
         list.shuffle(random);
