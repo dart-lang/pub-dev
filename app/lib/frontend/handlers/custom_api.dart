@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:client_data/package_api.dart';
-import 'package:pub_dartlang_org/shared/exceptions.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../dartdoc/backend.dart';
@@ -18,6 +17,7 @@ import '../../scorecard/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 
