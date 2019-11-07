@@ -25,6 +25,8 @@ ScoreCardData _$ScoreCardDataFromJson(Map<String, dynamic> json) {
     popularityScore: (json['popularityScore'] as num)?.toDouble(),
     platformTags:
         (json['platformTags'] as List)?.map((e) => e as String)?.toList(),
+    derivedTags:
+        (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
     flags: (json['flags'] as List)?.map((e) => e as String)?.toList(),
     reportTypes:
         (json['reportTypes'] as List)?.map((e) => e as String)?.toList(),
@@ -44,6 +46,7 @@ Map<String, dynamic> _$ScoreCardDataToJson(ScoreCardData instance) =>
       'maintenanceScore': instance.maintenanceScore,
       'popularityScore': instance.popularityScore,
       'platformTags': instance.platformTags,
+      'derivedTags': instance.derivedTags,
       'flags': instance.flags,
       'reportTypes': instance.reportTypes,
     };
@@ -63,6 +66,8 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) {
     platformTags:
         (json['platformTags'] as List)?.map((e) => e as String)?.toList(),
     platformReason: json['platformReason'] as String,
+    derivedTags:
+        (json['derivedTags'] as List)?.map((e) => e as String)?.toList(),
     pkgDependencies: (json['pkgDependencies'] as List)
         ?.map((e) => e == null
             ? null
@@ -97,6 +102,7 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) {
     'maintenanceScore': instance.maintenanceScore,
     'platformTags': instance.platformTags,
     'platformReason': instance.platformReason,
+    'derivedTags': instance.derivedTags,
     'pkgDependencies': instance.pkgDependencies,
   };
 

@@ -13,7 +13,6 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_server/repository.dart' hide UnauthorizedAccessException;
 import 'package:pub_server/shelf_pubserver.dart'
@@ -104,7 +103,7 @@ class PackageBackend {
 
     bool isExcluded(models.Package p) =>
         // isDiscontinued may be null
-        excludeDiscontinued && p.isDiscontinued == true;
+        excludeDiscontinued && p.isDiscontinued;
 
     return query.run().where((p) => !isExcluded(p)).map((p) => p.name);
   }
@@ -169,50 +168,6 @@ class PackageBackend {
     return repository.downloadUrl(package, version);
   }
 
-  /// Get the invite or return null if it does not exist or is not valid anymore.
-  Future<models.PackageInvite> getPackageInvite({
-    @required String packageName,
-    @required String type,
-    @required String recipientEmail,
-    @required String urlNonce,
-  }) async {
-    final inviteId = models.PackageInvite.createId(type, recipientEmail);
-    final pkgKey = db.emptyKey.append(models.Package, id: packageName);
-    final inviteKey = pkgKey.append(models.PackageInvite, id: inviteId);
-    final invite = (await db.lookup<models.PackageInvite>([inviteKey])).single;
-
-    if (invite == null) {
-      return null;
-    }
-
-    if (invite.isValid(recipientEmail: recipientEmail, urlNonce: urlNonce)) {
-      return invite;
-    }
-    return null;
-  }
-
-  /// Delete the invite and clear package cache.
-  Future confirmPackageInvite(models.PackageInvite invite) async {
-    await db.commit(deletes: [invite.key]);
-    await purgePackageCache(invite.packageName);
-  }
-
-  /// Removes obsolete/expired invites from Datastore.
-  Future deleteObsoleteInvites() async {
-    final query = db.query<models.PackageInvite>()
-      ..filter('expires <', DateTime.now().toUtc());
-    await for (var invite in query.run()) {
-      try {
-        await db.commit(deletes: [invite.key]);
-      } catch (e) {
-        _logger.info(
-            'PackageInvite delete failed: '
-            '${invite.packageName} ${invite.type} ${invite.recipientEmail}',
-            e);
-      }
-    }
-  }
-
   /// Updates [options] on [package].
   Future<void> updateOptions(String package, api.PkgOptions options) async {
     final user = await requireAuthenticatedUser();
@@ -229,27 +184,30 @@ class PackageBackend {
       // Check that the user is admin for this package.
       await checkPackageAdmin(p, user.userId);
 
-      final hasFlagChange = options.isDiscontinued != p.isDiscontinued;
+      bool hasOptionsChanged = false;
+      if (options.isDiscontinued != null &&
+          options.isDiscontinued != p.isDiscontinued) {
+        p.isDiscontinued = options.isDiscontinued;
+        hasOptionsChanged = true;
+      }
 
-      p.isDiscontinued = options.isDiscontinued ?? p.isDiscontinued;
+      if (!hasOptionsChanged) {
+        return;
+      }
+
       p.updated = DateTime.now().toUtc();
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
           'doNotAdvertise: ${p.doNotAdvertise}');
-
-      final history = History.entry(
+      tx.insert(p);
+      tx.insert(History.entry(
         PackageOptionsChanged(
           packageName: p.name,
           userId: user.userId,
           userEmail: user.email,
           isDiscontinued: options.isDiscontinued,
         ),
-      );
-
-      if (hasFlagChange) {
-        tx.insert(history);
-      }
-      tx.insert(p);
+      ));
     });
     await purgePackageCache(package);
     await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
@@ -752,9 +710,8 @@ class GCloudPackageRepository extends PackageRepository {
       throw GenericProcessingException('Not a valid email: `$uploaderEmail`.');
     }
 
-    final uploader =
-        await accountBackend.lookupOrCreateUserByEmail(uploaderEmail);
-    if (package.containsUploader(uploader.userId)) {
+    final uploader = await accountBackend.lookupUserByEmail(uploaderEmail);
+    if (uploader != null && package.containsUploader(uploader.userId)) {
       // The requested uploaderEmail is already part of the uploaders.
       return;
     }
@@ -767,7 +724,8 @@ class GCloudPackageRepository extends PackageRepository {
     ));
 
     final status = await consentBackend.invite(
-      userId: uploader.userId,
+      userId: uploader?.userId,
+      email: uploaderEmail,
       kind: 'PackageUploader',
       args: [packageName],
     );

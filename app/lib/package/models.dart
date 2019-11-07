@@ -19,6 +19,8 @@ import '../shared/model_properties.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
 
+import 'package_tags.dart';
+
 export '../package/model_properties.dart' show FileObject;
 
 part 'models.g.dart';
@@ -63,11 +65,31 @@ class Package extends db.ExpandoModel {
   @db.StringListProperty()
   List<String> uploaders;
 
-  @db.BoolProperty()
-  bool isDiscontinued;
+  /// Set to `true` if package is discontinued, may otherwise be `null` or `false`.
+  ///
+  /// Use [isDiscontinued] to avoid `null` checking.
+  @db.BoolProperty(propertyName: 'isDiscontinued')
+  bool isDiscontinuedFlag;
 
+  /// [isDiscontinued] is set when a package is discontinued.
+  bool get isDiscontinued => isDiscontinuedFlag == true;
+  set isDiscontinued(bool value) {
+    isDiscontinuedFlag = value;
+  }
+
+  /// Set to `true` if package should not be advertised on the front page,
+  /// may otherwise be `null` or `false`.
+  ///
+  /// Use [doNotAdvertise] to avoid `null` checking.
   @db.BoolProperty()
-  bool doNotAdvertise;
+  bool doNotAdvertiseFlag;
+
+  /// [doNotAdvertise] is set when a package should not be advertised on the
+  /// front page.
+  bool get doNotAdvertise => doNotAdvertiseFlag == true;
+  set doNotAdvertise(bool value) {
+    doNotAdvertiseFlag = value;
+  }
 
   // Convenience Fields:
 
@@ -128,18 +150,25 @@ class Package extends db.ExpandoModel {
   }
 
   bool isNewPackage() => created.difference(DateTime.now()).abs().inDays <= 30;
+
+  /// List of tags from the flags on the current [Package] entity.
+  List<String> getTags() {
+    return <String>[
+      if (isDiscontinued) PackageTags.isDiscontinued,
+      if (isNewPackage())
+        PackageTags.isRecent,
+      // TODO: is:not-advertized
+      // TODO: is:dart-1 or is:legacy
+      // TODO: publisher:<publisherId>
+      // TODO: uploader:<...>
+    ];
+  }
 }
 
 /// Pub package metadata for a specific uploaded version.
 ///
 /// Metadata such as changelog/readme/libraries are used for rendering HTML
 /// pages.
-// The uploaders are saved as User objects in the python datastore. We don't
-// have db Models for users, but the lowlevel datastore API will store them
-// as expanded properties of type `Entity`.
-// We should move ExpandoModel -> Model once we have highlevel db.User objects.
-//
-// NOTE: Keep in sync with PackageVersionArchive.
 @db.Kind(name: 'PackageVersion', idType: db.IdType.String)
 class PackageVersion extends db.ExpandoModel {
   @db.StringProperty(required: true)
@@ -347,67 +376,6 @@ class QualifiedVersionKey {
 
   @override
   String toString() => qualifiedVersion;
-}
-
-/// An active invitation sent to a recipient.
-/// The parent entity is a [Package] the id is the concatenation of '[type]/[recipientEmail]'.
-///
-/// The invitation secret ([urlNonce]) is sent via email to the recipient and
-/// they need to open a URL to accept the invitation.
-@db.Kind(name: 'PackageInvite', idType: db.IdType.String)
-class PackageInvite extends db.Model {
-  @db.StringProperty()
-  String type;
-
-  @db.StringProperty()
-  String recipientEmail;
-
-  @db.StringProperty()
-  String urlNonce;
-
-  @db.StringProperty()
-  String fromUserId;
-
-  @db.StringProperty()
-  String fromEmail;
-
-  @db.DateTimeProperty()
-  DateTime created;
-
-  @db.DateTimeProperty()
-  DateTime expires;
-
-  @db.DateTimeProperty()
-  DateTime lastNotified;
-
-  @db.IntProperty()
-  int notificationCount;
-
-  String get packageName => parentKey.id as String;
-
-  /// Create a composite id.
-  static String createId(String type, String recipientEmail) =>
-      '$type/$recipientEmail';
-
-  bool isExpired() => DateTime.now().toUtc().isAfter(expires);
-
-  /// Whether a new notification should be sent.
-  bool shouldNotify() => DateTime.now().toUtc().isAfter(nextNotification);
-
-  /// The timestamp when the next notification could be sent out.
-  DateTime get nextNotification =>
-      created.add(Duration(minutes: 1 << notificationCount));
-
-  /// Whether the invite is still valid and available.
-  bool isValid({@required String recipientEmail, @required String urlNonce}) {
-    return this.recipientEmail == recipientEmail &&
-        this.urlNonce == urlNonce &&
-        !isExpired();
-  }
-}
-
-abstract class PackageInviteType {
-  static const newUploader = 'new-uploader';
 }
 
 /// An extract of [Package] and [PackageVersion], for

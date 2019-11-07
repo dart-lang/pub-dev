@@ -53,6 +53,8 @@ class PackageDocument {
 
   final List<String> platforms;
 
+  final List<String> tags;
+
   final double health;
   final double popularity;
   final double maintenance;
@@ -82,6 +84,7 @@ class PackageDocument {
     this.doNotAdvertise = false,
     this.supportsOnlyLegacySdk = false,
     this.platforms = const [],
+    List<String> tags,
     this.health = 0,
     this.popularity = 0,
     this.maintenance = 0,
@@ -90,7 +93,8 @@ class PackageDocument {
     this.uploaderEmails = const [],
     this.apiDocPages = const [],
     DateTime timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+  })  : tags = tags ?? const <String>[],
+        timestamp = timestamp ?? DateTime.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
@@ -108,6 +112,7 @@ class PackageDocument {
       doNotAdvertise: doNotAdvertise,
       supportsOnlyLegacySdk: supportsOnlyLegacySdk,
       platforms: platforms?.map(internFn)?.toList(),
+      tags: tags.map(internFn).toList(),
       health: health,
       popularity: popularity,
       maintenance: maintenance,
@@ -223,6 +228,8 @@ class SearchQuery {
   final ParsedQuery parsedQuery;
   final String platform;
 
+  final TagsPredicate tagsPredicate;
+
   /// The query will match packages where the owners of the package have
   /// non-empty intersection with the provided list of owners.
   ///
@@ -243,6 +250,7 @@ class SearchQuery {
   SearchQuery._({
     this.query,
     String platform,
+    this.tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     this.order,
@@ -263,6 +271,7 @@ class SearchQuery {
   factory SearchQuery.parse({
     String query,
     String platform,
+    TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
@@ -277,6 +286,7 @@ class SearchQuery {
     return SearchQuery._(
       query: q,
       platform: platform,
+      tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -292,6 +302,8 @@ class SearchQuery {
     final String q = uri.queryParameters['q'];
     final String platform =
         uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
+    final tagsPredicate =
+        TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
     final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
     final publisherId = uri.queryParameters['publisherId'];
     final String orderValue = uri.queryParameters['order'];
@@ -303,6 +315,7 @@ class SearchQuery {
     return SearchQuery.parse(
       query: q,
       platform: platform,
+      tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
       order: order,
@@ -317,6 +330,7 @@ class SearchQuery {
   SearchQuery change({
     String query,
     String platform,
+    TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     SearchOrder order,
@@ -329,6 +343,7 @@ class SearchQuery {
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
+      tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
@@ -344,6 +359,7 @@ class SearchQuery {
     final map = <String, dynamic>{
       'q': query,
       'platform': platform,
+      'tags': tagsPredicate?.toQueryParameters(),
       'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
       'offset': offset?.toString(),
@@ -358,20 +374,6 @@ class SearchQuery {
   }
 
   bool get hasQuery => query != null && query.isNotEmpty;
-
-  /// Sanity check, whether the query object is to be expected a valid result.
-  bool get isValid {
-    final bool hasText =
-        parsedQuery.text != null && parsedQuery.text.isNotEmpty;
-    final bool hasNonTextOrdering = order != SearchOrder.text;
-    final bool isEmpty = !hasText &&
-        order == null &&
-        parsedQuery.packagePrefix == null &&
-        (platform == null || platform.isEmpty);
-    if (isEmpty) return false;
-
-    return hasText || hasNonTextOrdering;
-  }
 
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
@@ -415,6 +417,60 @@ class SearchQuery {
     } else {
       return Uri(path: path, queryParameters: params).toString();
     }
+  }
+}
+
+/// Filter conditions on tags.
+class TagsPredicate {
+  final List<String> requiredTags;
+  final List<String> negatedTags;
+
+  TagsPredicate({List<String> requiredTags, List<String> negatedTags})
+      : requiredTags = requiredTags ?? <String>[],
+        negatedTags = negatedTags ?? <String>[];
+
+  bool get isEmpty => requiredTags.isEmpty && negatedTags.isEmpty;
+
+  /// Parses [values] passed via Uri.queryParameters
+  factory TagsPredicate.parseQueryValues(List<String> values) {
+    final requiredTags = <String>[];
+    final negatedTags = <String>[];
+    for (String tag in values ?? const <String>[]) {
+      bool required = true;
+      if (tag.startsWith('-')) {
+        tag = tag.substring(1);
+        required = false;
+      } else if (tag.startsWith('+')) {
+        tag = tag.substring(1);
+      }
+      if (required) {
+        requiredTags.add(tag);
+      } else {
+        negatedTags.add(tag);
+      }
+    }
+    return TagsPredicate(requiredTags: requiredTags, negatedTags: negatedTags);
+  }
+
+  /// Evaluate this predicate against the list of supplied [tags].
+  /// Returns true if the predicate matches the [tags], false otherwise.
+  bool evaluate(List<String> tags) {
+    tags ??= const <String>[];
+    for (final tag in requiredTags) {
+      if (!tags.contains(tag)) return false;
+    }
+    for (final tag in negatedTags) {
+      if (tags.contains(tag)) return false;
+    }
+    return true;
+  }
+
+  /// Returns the list of tag values that can be passed to search service URL.
+  List<String> toQueryParameters() {
+    return <String>[
+      ...requiredTags,
+      ...negatedTags.map((s) => '-$s'),
+    ];
   }
 }
 

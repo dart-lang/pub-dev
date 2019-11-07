@@ -106,48 +106,6 @@ void main() {
     });
   });
 
-  group('SearchQuery.isValid', () {
-    test('empty', () {
-      expect(SearchQuery.parse().isValid, isFalse);
-      expect(SearchQuery.parse().isValid, isFalse);
-    });
-
-    test('contains text', () {
-      expect(SearchQuery.parse(query: 'text').isValid, isTrue);
-    });
-
-    test('has package prefix', () {
-      expect(SearchQuery.parse(query: 'package:angular_').isValid, isTrue);
-    });
-
-    test('has text-based ordering', () {
-      expect(SearchQuery.parse(order: SearchOrder.top).isValid, isTrue);
-      expect(SearchQuery.parse(order: SearchOrder.text).isValid, isFalse);
-
-      expect(SearchQuery.parse(query: 'text', order: SearchOrder.top).isValid,
-          isTrue);
-      expect(SearchQuery.parse(query: 'text', order: SearchOrder.text).isValid,
-          isTrue);
-
-      expect(
-          SearchQuery.parse(query: 'package:angular_', order: SearchOrder.top)
-              .isValid,
-          isTrue);
-      expect(
-          SearchQuery.parse(query: 'package:angular_', order: SearchOrder.text)
-              .isValid,
-          isFalse);
-    });
-
-    test('has non-text-based ordering', () {
-      expect(SearchQuery.parse(order: SearchOrder.created).isValid, isTrue);
-      expect(SearchQuery.parse(order: SearchOrder.updated).isValid, isTrue);
-      expect(SearchQuery.parse(order: SearchOrder.popularity).isValid, isTrue);
-      expect(SearchQuery.parse(order: SearchOrder.health).isValid, isTrue);
-      expect(SearchQuery.parse(order: SearchOrder.maintenance).isValid, isTrue);
-    });
-  });
-
   group('Search URLs', () {
     test('empty', () {
       final query = SearchQuery.parse();

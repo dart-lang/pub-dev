@@ -146,6 +146,7 @@ void main() {
               maintenanceScore: null,
               platformTags: null,
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
                   package: 'quiver',
@@ -194,6 +195,7 @@ void main() {
               maintenanceScore: null,
               platformTags: null,
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
                   package: 'quiver',
@@ -248,6 +250,7 @@ void main() {
               maintenanceScore: 0.99,
               platformTags: ['flutter'],
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: null,
               licenses: null,
               panaSuggestions: null,
@@ -373,6 +376,7 @@ void main() {
             maintenanceScore: card.maintenanceScore,
             platformTags: card.platformTags,
             platformReason: 'All libraries agree.',
+            derivedTags: null,
             pkgDependencies: [
               PkgDependency(
                 package: 'http',
@@ -424,6 +428,7 @@ void main() {
               maintenanceScore: null,
               platformTags: null,
               platformReason: null,
+              derivedTags: null,
               pkgDependencies: null,
               licenses: null,
               panaSuggestions: null,
@@ -645,15 +650,6 @@ void main() {
     scopedTest('authorized page', () {
       final String html = renderAuthorizedPage();
       expectGoldenFile(html, 'authorized_page.html');
-    });
-
-    scopedTest('uploader approval page', () {
-      final String html = renderUploaderApprovalPage(
-          'pkg_foo',
-          'admin@example.com',
-          'uploader@example.com',
-          'https://redirect.to.auth/url');
-      expectGoldenFile(html, 'uploader_approval_page.html');
     });
 
     scopedTest('error page', () {

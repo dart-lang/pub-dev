@@ -189,7 +189,7 @@ class ScoreCardBackend {
       }
 
       scoreCard.flags.clear();
-      if (package.isDiscontinued ?? false) {
+      if (package.isDiscontinued) {
         scoreCard.addFlag(PackageFlags.isDiscontinued);
       }
       if (package.doNotAdvertise ?? false) {
@@ -350,7 +350,7 @@ class PackageStatus {
       publishDate: publishDate,
       age: age,
       isLatestStable: isLatestStable,
-      isDiscontinued: p.isDiscontinued ?? false,
+      isDiscontinued: p.isDiscontinued,
       isObsolete: isObsolete,
       isLegacy: pv.pubspec.supportsOnlyLegacySdk,
       usesFlutter: pv.pubspec.usesFlutter,

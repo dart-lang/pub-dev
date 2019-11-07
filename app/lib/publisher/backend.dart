@@ -265,12 +265,15 @@ class PublisherBackend {
         maximum: 4096);
     InvalidInputException.check(
         isValidEmail(invite.email), 'Invalid email: `${invite.email}`');
-    final invitedUser =
-        await accountBackend.lookupOrCreateUserByEmail(invite.email);
-    final userId = invitedUser.userId;
-    final key = p.key.append(PublisherMember, id: userId);
-    final pm = (await _db.lookup<PublisherMember>([key])).single;
-    InvalidInputException.checkNull(pm, 'User is already a member.');
+
+    final invitedUser = await accountBackend.lookupUserByEmail(invite.email);
+    final invitedUserId = invitedUser?.userId;
+    final invitedUserEmail = invitedUser?.email ?? invite.email;
+    if (invitedUserId != null) {
+      final key = p.key.append(PublisherMember, id: invitedUserId);
+      final pm = (await _db.lookup<PublisherMember>([key])).single;
+      InvalidInputException.checkNull(pm, 'User is already a member.');
+    }
 
     await _db.commit(inserts: [
       History.entry(
@@ -278,14 +281,15 @@ class PublisherBackend {
           publisherId: p.publisherId,
           currentUserId: activeUser.userId,
           currentUserEmail: activeUser.email,
-          invitedUserId: invitedUser.userId,
-          invitedUserEmail: invitedUser.email,
+          invitedUserId: invitedUserId,
+          invitedUserEmail: invitedUserEmail,
         ),
       ),
     ]);
 
     return await consentBackend.invite(
-      userId: userId,
+      userId: invitedUserId,
+      email: invitedUserEmail,
       kind: 'PublisherMember',
       args: [p.publisherId],
     );

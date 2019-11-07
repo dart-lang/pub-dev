@@ -62,10 +62,10 @@ Future _read(String packageName) async {
     throw Exception('Package $packageName does not exist.');
   }
   final flags = <String>[];
-  if (p.isDiscontinued ?? false) {
+  if (p.isDiscontinued) {
     flags.add('discontinued');
   }
-  if (p.doNotAdvertise ?? false) {
+  if (p.doNotAdvertise) {
     flags.add('do-not-advertise');
   }
   final label = flags.isEmpty ? '-' : flags.join(', ');

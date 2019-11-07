@@ -2,6 +2,10 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Refactored `Consent`:
+   * new entities do not have the user in their key
+   * WARNING: user merge on pending old consent entities does not work
+ * Removed support for old uploader invites.
 
 ## `20191104t103859-all`
  * Refactored `Consent`:

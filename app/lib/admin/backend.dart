@@ -184,7 +184,7 @@ class AdminBackend {
       final pool = Pool(4);
       final futures = <Future>[];
       await for (final package in query.run()) {
-        if (package.isDiscontinued == true) continue;
+        if (package.isDiscontinued) continue;
         final f = pool.withResource(
           () => _db.withTransaction((tx) async {
             final p = (await tx.lookup<Package>([package.key])).single;

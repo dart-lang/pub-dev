@@ -373,6 +373,7 @@ PanaReport generatePanaReport({List<String> platformTags}) {
       maintenanceScore: 0.6,
       platformTags: platformTags,
       platformReason: 'Set by test.',
+      derivedTags: [],
       pkgDependencies: null,
       licenses: null,
       panaSuggestions: null,
