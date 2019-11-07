@@ -1,6 +1,8 @@
 travis:
   services:
     - redis-server
+  addons:
+    chrome: stable
 
 merge_stages:
 - smoke_test

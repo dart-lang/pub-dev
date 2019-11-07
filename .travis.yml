@@ -4,12 +4,8 @@ language: dart
 # Custom configuration
 services:
   - "redis-server"
-
 addons:
   chrome: stable
-env:
-  global:
-    - CHROME_BIN=/usr/bin/google-chrome
 
 jobs:
   include:

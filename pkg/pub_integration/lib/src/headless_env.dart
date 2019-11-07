@@ -17,13 +17,29 @@ class HeadlessEnv {
       : tempDir =
             tempDir ?? Directory.systemTemp.createTempSync('pub-headless');
 
+  Future<String> _detectChromeBinary() async {
+    // TODO: scan $PATH
+    // check hardcoded values
+    final binaries = [
+      '/usr/bin/google-chrome',
+    ];
+    for (String binary in binaries) {
+      if (File(binary).existsSync()) return binary;
+    }
+
+    // sanity check for travis
+    if (Platform.environment['TRAVIS'] == 'true') {
+      throw StateError('Could not detect chrome binary while running in CI.');
+    }
+
+    // Otherwise let puppeteer download a chrome in the local .local-chromium
+    // directory:
+    return null;
+  }
+
   Future _startBrowser() async {
     if (_browser != null) return;
-    final chromeBin = Platform.environment['CHROME_BIN'];
-    if (chromeBin != null && !File(chromeBin).existsSync()) {
-      throw StateError(
-          'Chrome executable `$chromeBin` (specified by CHROME_BIN) does not exists.');
-    }
+    final chromeBin = await _detectChromeBinary();
     final userDataDir = tempDir.createTempSync('user');
     _browser = await puppeteer.launch(
       executablePath: chromeBin,
