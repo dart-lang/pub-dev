@@ -10,6 +10,8 @@ import 'package:pub_dartlang_org/frontend/request_context.dart';
 import '_cache.dart';
 
 /// Renders the `shared/detail/header.mustache` template
+///
+/// The like button in the header will not be displayed when [isLiked] is null.
 String renderDetailHeader({
   @required String title,
   int packageLikes,
@@ -23,7 +25,7 @@ String renderDetailHeader({
     'metadata_html': metadataHtml,
     'tags_html': tagsHtml,
     'is_publisher': isPublisher,
-    'like_count': '$packageLikes ${packageLikes == 1 ? "Like" : "Likes"}',
+    'like_count': '$packageLikes ${packageLikes == 1 ? "like" : "likes"}',
     'is_liked': isLiked,
     'has_likes': isLiked != null && requestContext.isExperimental,
   });

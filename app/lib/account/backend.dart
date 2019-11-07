@@ -181,10 +181,9 @@ class AccountBackend {
     return user;
   }
 
-  /// Returns [Like] if [user] likes [package], otherwise returns `null`.
-  Future<Like> getPackageLikeStatus(User user, String package) async {
-    final key =
-        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+  /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
+  Future<Like> getPackageLikeStatus(String userId, String package) async {
+    final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);
 
     return await _db.lookupValue<Like>(key, orElse: () => null);
   }

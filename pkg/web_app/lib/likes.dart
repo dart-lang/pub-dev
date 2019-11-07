@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:intl/intl.dart';
@@ -10,59 +11,43 @@ import 'package:mdc_web/mdc_web.dart';
 import 'src/account.dart';
 import 'src/page_data.dart';
 
-Future _done;
+Future<void> _done = Future.value();
+
+/// Ensure only one task runs at the same time.
+void _enqueue(Future<void> Function() task) {
+  _done = _done.then((_) => task(), onError: (e) => print('Action failed: $e'));
+}
 
 void setupLikes() {
-  final likes = document.querySelector('#likes');
-  final toggleButton = document.querySelector('#thumb-up') as ButtonElement;
+  final likes = document.querySelector('#likes-count');
+  final likeButton =
+      document.querySelector('#-pub-like-button') as ButtonElement;
 
-  if (toggleButton == null) return;
+  // If `likeButton` is not on this page we assume the page doesn't display a
+  // `like package` button.
+  if (likeButton == null) return;
 
-  final iconButtonToggle = MDCIconButtonToggle(toggleButton);
+  final iconButtonToggle = MDCIconButtonToggle(likeButton);
   int likesDelta = 0;
 
   String likesString() {
     final likesCount = pageData.pkgData.likes + likesDelta;
     return '${NumberFormat.compact().format(likesCount)}'
-        ' ${likesCount == 1 ? 'Like' : 'Likes'}';
+        ' ${likesCount == 1 ? 'like' : 'likes'}';
   }
 
   iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) {
-    toggleButton.blur();
+    likeButton.blur();
     if (iconButtonToggle.on) {
       // The button has shifted to on.
       likesDelta++;
-      likes.innerHtml = likesString();
-      _like(pageData.pkgData.package);
+      likes.innerText = likesString();
+      _enqueue(() => client.likePackage(pageData.pkgData.package));
     } else {
       // The button has shifted to off.
       likesDelta--;
-      likes.innerHtml = likesString();
-      _unlike(pageData.pkgData.package);
+      likes.innerText = likesString();
+      _enqueue(() => client.unlikePackage(pageData.pkgData.package));
     }
   });
-}
-
-void _unlike(String package) async {
-  final d = _done;
-  _done = () async {
-    try {
-      await d;
-      await client.unlikePackage(package);
-    } on Error catch (e) {
-      print('Error $e');
-    }
-  }();
-}
-
-void _like(String package) async {
-  final d = _done;
-  _done = () async {
-    try {
-      await d;
-      await client.likePackage(package);
-    } on Error catch (e) {
-      print('Error $e');
-    }
-  }();
 }

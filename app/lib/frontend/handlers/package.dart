@@ -98,8 +98,7 @@ Future<shelf.Response> packageVersionsListHandler(
   final bool isLiked = (userSessionData == null)
       ? false
       : await accountBackend.getPackageLikeStatus(
-              await accountBackend.lookupUserById(userSessionData?.userId),
-              package.name) !=
+              userSessionData.userId, package.name) !=
           null;
 
   return htmlResponse(renderPkgVersionsPage(
@@ -134,8 +133,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     final bool isLiked = (userSessionData == null)
         ? false
         : await accountBackend.getPackageLikeStatus(
-                await accountBackend.lookupUserById(userSessionData?.userId),
-                package.name) !=
+                userSessionData.userId, package.name) !=
             null;
     if (package == null) {
       return redirectToSearch(packageName);
