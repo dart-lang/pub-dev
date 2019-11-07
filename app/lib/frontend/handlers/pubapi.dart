@@ -335,6 +335,21 @@ class PubApi {
     await adminBackend.removeUser(userId);
     return jsonResponse({'status': 'OK'});
   }
+
+  @EndPoint.get('/api/admin/packages/<package>/assigned-tags')
+  Future<AssignedTags> adminGetAssignedTags(
+    Request request,
+    String package,
+  ) =>
+      adminBackend.handleGetAssignedTags(package);
+
+  @EndPoint.post('/api/admin/packages/<package>/assigned-tags')
+  Future<AssignedTags> adminPostAssignedTags(
+    Request request,
+    String package,
+    PatchAssignedTags body,
+  ) =>
+      adminBackend.handlePostAssignedTags(package, body);
 }
 
 /// Replaces the requested uri with the primary API uri.

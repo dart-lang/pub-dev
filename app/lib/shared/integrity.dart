@@ -8,6 +8,7 @@ import 'package:pool/pool.dart';
 
 import '../account/models.dart';
 import '../package/models.dart';
+import '../package/package_tags.dart' show allowedTagPrefixes;
 import '../publisher/models.dart';
 
 import 'email.dart' show isValidEmail;
@@ -204,6 +205,22 @@ class IntegrityChecker {
         _problems.add(
             'Package(${p.name}) has an anandoned publisher, must be marked discontinued.');
       }
+    }
+    if (p.assignedTags == null || p.assignedTags is! List<String>) {
+      _problems.add(
+          'Package(${p.name}) has an `assignedTags` property which is not a list.');
+    }
+    final assignedTags = p.assignedTags ?? <String>[];
+    for (final tag in assignedTags) {
+      if (!allowedTagPrefixes.any(tag.startsWith)) {
+        _problems.add(
+            'Package(${p.name}) have assigned tag `$tag` in `assignedTags` '
+            'property, which is not allowed.');
+      }
+    }
+    if (assignedTags.length != assignedTags.toSet().length) {
+      _problems.add(
+          'Package(${p.name}) has an `assignedTags` property which contains duplicates.');
     }
     if (p.likes == null || p.likes is! int || p.likes < 0) {
       _problems.add(

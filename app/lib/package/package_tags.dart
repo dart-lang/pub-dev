@@ -2,6 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Tag prefixes that are allowed.
+///
+/// Whether a tag is assigned by pub-administrator, package owner, or derived
+/// by pana it must have a prefix listed here. Otherwise, it should be ignore
+/// or an error should be returned to the caller.
+const allowedTagPrefixes = [
+  'is:',
+];
+
 /// Collection of package-related tags.
 abstract class PackageTags {
   /// Package is marked discontinued.

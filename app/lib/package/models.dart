@@ -74,6 +74,14 @@ class Package extends db.ExpandoModel {
   @db.BoolProperty(required: true)
   bool doNotAdvertise;
 
+  /// Tags that are assigned to this package.
+  ///
+  /// The permissions required to assign a tag typically depends on the tag.
+  /// A package owner might be able to assign `'is:discontinued'` while a tag
+  /// like `'is:not-advertized'` might only be managed by pub-administrators.
+  @db.StringListProperty()
+  List<String> assignedTags;
+
   // Convenience Fields:
 
   String get latestVersion => latestVersionKey.id as String;
@@ -137,7 +145,12 @@ class Package extends db.ExpandoModel {
   /// List of tags from the flags on the current [Package] entity.
   List<String> getTags() {
     return <String>[
-      if (isDiscontinued) PackageTags.isDiscontinued,
+      // TODO(jonasfj): Remove the if (assignedTags != null) condition, we only
+      //                need this until we've done backfill_package_fields.dart
+      if (assignedTags != null)
+        ...assignedTags,
+      if (isDiscontinued)
+        PackageTags.isDiscontinued,
       if (isNewPackage())
         PackageTags.isRecent,
       if (doNotAdvertise)
