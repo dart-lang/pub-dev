@@ -183,8 +183,8 @@ String renderPkgInfoBox(
 
 /// Renders the `views/pkg/header.mustache` template for header metadata and
 /// wraps it with content-header.
-String renderPkgHeader(
-    Package package, PackageVersion selectedVersion, AnalysisView analysis) {
+String renderPkgHeader(Package package, PackageVersion selectedVersion,
+    bool isLiked, AnalysisView analysis) {
   final card = analysis?.card;
 
   final bool showDevVersion = package.latestDevVersion != null &&
@@ -220,6 +220,8 @@ String renderPkgHeader(
   final metadataHtml = templateCache.renderTemplate('pkg/header', values);
   return renderDetailHeader(
     title: '${package.name} ${selectedVersion.version}',
+    packageLikes: package.likes,
+    isLiked: isLiked,
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
       analysis?.platforms,
@@ -234,6 +236,7 @@ String renderPkgHeader(
 /// Renders the `views/pkg/show.mustache` template.
 String renderPkgShowPage(
   Package package,
+  bool isLiked,
   List<String> uploaderEmails,
   PackageVersion selectedVersion,
   AnalysisView analysis, {
@@ -242,7 +245,7 @@ String renderPkgShowPage(
   final card = analysis?.card;
 
   final content = renderDetailPage(
-    headerHtml: renderPkgHeader(package, selectedVersion, analysis),
+    headerHtml: renderPkgHeader(package, selectedVersion, isLiked, analysis),
     tabs: _pkgTabs(package, selectedVersion, analysis, isAdmin),
     infoBoxHtml:
         renderPkgInfoBox(package, selectedVersion, uploaderEmails, analysis),
@@ -277,11 +280,11 @@ String renderPkgShowPage(
 PageData pkgPageData(Package package, PackageVersion selectedVersion) {
   return PageData(
     pkgData: PkgData(
-      package: package.name,
-      version: selectedVersion.version,
-      publisherId: package.publisherId,
-      isDiscontinued: package.isDiscontinued,
-    ),
+        package: package.name,
+        version: selectedVersion.version,
+        publisherId: package.publisherId,
+        isDiscontinued: package.isDiscontinued,
+        likes: package.likes),
   );
 }
 

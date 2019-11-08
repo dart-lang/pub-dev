@@ -134,6 +134,7 @@ void main() {
     scopedTest('package show page', () {
       final String html = renderPkgShowPage(
         foobarPackage,
+        false,
         foobarUploaderEmails,
         foobarStablePV,
         AnalysisView(
@@ -183,6 +184,7 @@ void main() {
     scopedTest('package show page - with version', () {
       final String html = renderPkgShowPage(
         foobarPackage,
+        false,
         foobarUploaderEmails,
         foobarDevPV,
         AnalysisView(
@@ -231,6 +233,7 @@ void main() {
     scopedTest('package show page with flutter_plugin', () {
       final String html = renderPkgShowPage(
         foobarPackage,
+        false,
         foobarUploaderEmails,
         flutterPackageVersion,
         AnalysisView(
@@ -266,6 +269,7 @@ void main() {
     scopedTest('package show page with outdated version', () {
       final String html = renderPkgShowPage(
         foobarPackage,
+        false,
         foobarUploaderEmails,
         foobarStablePV,
         AnalysisView(
@@ -283,6 +287,7 @@ void main() {
     scopedTest('package show page with discontinued version', () {
       final String html = renderPkgShowPage(
         discontinuedPackage,
+        false,
         foobarUploaderEmails,
         foobarStablePV,
         AnalysisView(
@@ -302,6 +307,7 @@ void main() {
           foobarStablePV.package, foobarStablePV.version);
       final String html = renderPkgShowPage(
         foobarPackage,
+        false,
         <String>[
           hansUser.email,
           joeUser.email,
@@ -323,6 +329,7 @@ void main() {
     scopedTest('package show page with publisher', () {
       final String html = renderPkgShowPage(
         lithium.package,
+        false,
         <String>[],
         lithium.versions.last,
         AnalysisView(
@@ -525,6 +532,7 @@ void main() {
     scopedTest('package versions page', () {
       final String html = renderPkgVersionsPage(
         foobarPackage,
+        false,
         foobarUploaderEmails,
         foobarStablePV,
         [

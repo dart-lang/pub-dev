@@ -4,6 +4,7 @@
 
 import 'dart:html';
 import 'package:mdc_web/mdc_web.dart' as mdc;
+import 'package:web_app/likes.dart';
 import 'src/account.dart';
 import 'src/dartdoc_status.dart';
 import 'src/hoverable.dart';
@@ -23,4 +24,5 @@ void main() {
   setupIssues();
   updateDartdocStatus();
   setupAccount();
+  setupLikes();
 }

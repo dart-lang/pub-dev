@@ -139,7 +139,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
     throw NotFoundException.resource(package);
   }
 
-  final like = await accountBackend.getPackageLikeStatus(user, package);
+  final like = await accountBackend.getPackageLikeStatus(user.userId, package);
   return PackageLikeResponse(
     liked: like != null,
     package: package,

@@ -22,7 +22,10 @@ final _initialized = Completer<void>();
 GoogleUser _currentUser;
 
 /// Returns whether the user is currently signed-in.
-bool get isSignedIn => _initialized.isCompleted && _currentUser != null;
+bool get isSignedIn =>
+    _initialized.isCompleted &&
+    _currentUser != null &&
+    _currentUser.isSignedIn();
 
 /// Returns the currently signed-in user or null.
 GoogleUser get currentUser => _currentUser;

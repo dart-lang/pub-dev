@@ -95,8 +95,15 @@ Future<shelf.Response> packageVersionsListHandler(
   final isAdmin =
       await packageBackend.isPackageAdmin(package, userSessionData?.userId);
 
+  final bool isLiked = (userSessionData == null)
+      ? false
+      : await accountBackend.getPackageLikeStatus(
+              userSessionData.userId, package.name) !=
+          null;
+
   return htmlResponse(renderPkgVersionsPage(
     package,
+    isLiked,
     uploaderEmails,
     latestVersion,
     versions,
@@ -122,6 +129,12 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
   if (cachedPage == null) {
     final Package package = await packageBackend.lookupPackage(packageName);
+
+    final bool isLiked = (userSessionData == null)
+        ? false
+        : await accountBackend.getPackageLikeStatus(
+                userSessionData.userId, package.name) !=
+            null;
     if (package == null) {
       return redirectToSearch(packageName);
     }
@@ -146,6 +159,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
     cachedPage = renderPkgShowPage(
       package,
+      isLiked,
       uploaderEmails,
       selectedVersion,
       analysisView,

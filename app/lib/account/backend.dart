@@ -181,10 +181,9 @@ class AccountBackend {
     return user;
   }
 
-  /// Returns [Like] if [user] likes [package], otherwise returns `null`.
-  Future<Like> getPackageLikeStatus(User user, String package) async {
-    final key =
-        _db.emptyKey.append(User, id: user.id).append(Like, id: package);
+  /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
+  Future<Like> getPackageLikeStatus(String userId, String package) async {
+    final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);
 
     return await _db.lookupValue<Like>(key, orElse: () => null);
   }
@@ -198,7 +197,7 @@ class AccountBackend {
   /// Creates and returns a package like entry for the given [user] and
   /// [package], and increments the 'likes' property on [package].
   Future<Like> likePackage(User user, String package) async {
-    return await _db.withTransaction<Like>((tx) async {
+    return await withRetryTransaction<Like>(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: package);
       final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
       if (p == null) {
@@ -210,7 +209,6 @@ class AccountBackend {
       final oldLike = await tx.lookupValue<Like>(key, orElse: () => null);
 
       if (oldLike != null) {
-        tx.rollback();
         return oldLike;
       }
 
@@ -221,7 +219,6 @@ class AccountBackend {
         ..created = DateTime.now().toUtc();
 
       tx.queueMutations(inserts: [p, newLike]);
-      tx.commit();
       return newLike;
     });
   }
@@ -229,7 +226,7 @@ class AccountBackend {
   /// Delete a package like entry for the given [user] and [package] if it
   /// exists, and decrements the 'likes' property on [package].
   Future<void> unlikePackage(User user, String package) async {
-    await _db.withTransaction<void>((tx) async {
+    await withRetryTransaction<void>(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: package);
       final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
       if (p == null) {
@@ -241,13 +238,11 @@ class AccountBackend {
       final like = await tx.lookupValue<Like>(likeKey, orElse: () => null);
 
       if (like == null) {
-        tx.rollback();
         return;
       }
 
       p.likes--;
       tx.queueMutations(inserts: [p], deletes: [likeKey]);
-      tx.commit();
     });
   }
 
@@ -324,7 +319,7 @@ class AccountBackend {
       return user;
     }
 
-    return withRetryTransaction<User>(_db, (tx) async {
+    return await withRetryTransaction<User>(_db, (tx) async {
       final oauthUserIdKey = emptyKey.append(
         OAuthUserID,
         id: auth.oauthUserId,
