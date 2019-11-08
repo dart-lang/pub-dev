@@ -7,12 +7,12 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/admin/backend.dart';
-import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dartlang_org/package/models.dart';
-import 'package:pub_dartlang_org/publisher/models.dart';
-import 'package:pub_dartlang_org/shared/exceptions.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';

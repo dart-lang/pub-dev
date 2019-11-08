@@ -4,8 +4,8 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/frontend/handlers/documentation.dart';
-import 'package:pub_dartlang_org/shared/urls.dart';
+import 'package:pub_dev/frontend/handlers/documentation.dart';
+import 'package:pub_dev/shared/urls.dart';
 
 import '../../frontend/handlers/_utils.dart';
 import '../../shared/handlers_test_utils.dart';

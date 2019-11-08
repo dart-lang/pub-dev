@@ -4,8 +4,7 @@
 
 import 'package:gcloud/db.dart' as db;
 
-import 'package:pub_dartlang_org/package/models.dart'
-    show Package, PackageVersion;
+import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
 import '../shared/versions.dart' as versions;
 
 import 'models.dart';

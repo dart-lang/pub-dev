@@ -6,8 +6,8 @@ import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/shared/integrity.dart';
-import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/integrity.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
 
 final _argParser = ArgParser()
   ..addOption('concurrency',

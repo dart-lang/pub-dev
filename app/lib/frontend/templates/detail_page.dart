@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
-import 'package:pub_dartlang_org/frontend/request_context.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '_cache.dart';
 

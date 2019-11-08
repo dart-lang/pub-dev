@@ -11,7 +11,7 @@ dependencies:
   logging: ^0.11.3
   fake_gcloud:
     path: ../fake_gcloud
-  pub_dartlang_org:
+  pub_dev:
     path: ../../app
 
 dev_dependencies:

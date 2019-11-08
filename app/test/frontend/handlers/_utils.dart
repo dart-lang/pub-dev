@@ -11,9 +11,9 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/frontend/handlers.dart';
-import 'package:pub_dartlang_org/shared/handler_helpers.dart';
-import 'package:pub_dartlang_org/shared/urls.dart';
+import 'package:pub_dev/frontend/handlers.dart';
+import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/shared/urls.dart';
 
 import '../../shared/utils.dart';
 

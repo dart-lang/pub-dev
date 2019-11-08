@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math';
-import 'package:pub_dartlang_org/search/scoring.dart';
+import 'package:pub_dev/search/scoring.dart';
 import 'package:test/test.dart';
 
 void main() {

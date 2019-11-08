@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/shared/email.dart';
+import 'package:pub_dev/shared/email.dart';
 
 void main() {
   group('isValidEmail', () {

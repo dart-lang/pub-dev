@@ -13,8 +13,7 @@ import 'package:pana/models.dart'
     show LicenseFile, PanaRuntimeInfo, PkgDependency, Suggestion;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'package:pub_dartlang_org/search/scoring.dart'
-    show calculateOverallScore;
+import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
 
 import '../shared/model_properties.dart';
 import '../shared/platform.dart';

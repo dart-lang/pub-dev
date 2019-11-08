@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/shared/markdown.dart';
+import 'package:pub_dev/shared/markdown.dart';
 
 void main() {
   group('markup', () {

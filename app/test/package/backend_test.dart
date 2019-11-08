@@ -11,13 +11,13 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/package/backend.dart';
-import 'package:pub_dartlang_org/package/models.dart';
-import 'package:pub_dartlang_org/package/name_tracker.dart';
-import 'package:pub_dartlang_org/package/upload_signer_service.dart';
-import 'package:pub_dartlang_org/shared/exceptions.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/package/name_tracker.dart';
+import 'package:pub_dev/package/upload_signer_service.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
