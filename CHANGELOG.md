@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
    * new entities do not have the user in their key
    * WARNING: user merge on pending old consent entities does not work
  * Removed support for old uploader invites.
+ * Added thumb-up button and likes functionality in the UI.
 
 ## `20191104t103859-all`
  * Refactored `Consent`:
