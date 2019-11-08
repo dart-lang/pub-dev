@@ -243,20 +243,20 @@ class PubApiClient {
     );
   }
 
-  Future<List<int>> packageOptions(String package) async {
-    return await _client.requestBytes(
+  Future<_i5.PkgOptions> packageOptions(String package) async {
+    return _i5.PkgOptions.fromJson(await _client.requestJson(
       verb: 'get',
       path: '/api/packages/$package/options',
-    );
+    ));
   }
 
-  Future<List<int>> setPackageOptions(
+  Future<_i5.PkgOptions> setPackageOptions(
       String package, _i5.PkgOptions payload) async {
-    return await _client.requestBytes(
+    return _i5.PkgOptions.fromJson(await _client.requestJson(
       verb: 'put',
       path: '/api/packages/$package/options',
       body: payload.toJson(),
-    );
+    ));
   }
 
   Future<_i5.PackagePublisherInfo> getPackagePublisher(String package) async {

@@ -17,6 +17,7 @@ import '../../scorecard/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
+import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 
@@ -245,19 +246,25 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
 }
 
 /// Handles GET /api/packages/<package>/options
-Future<shelf.Response> getPackageOptionsHandler(
-    shelf.Request request, String package) async {
+Future<PkgOptions> getPackageOptionsHandler(
+  shelf.Request request,
+  String package,
+) async {
   final p = await packageBackend.lookupPackage(package);
   if (p == null) {
-    return notFoundHandler(request);
+    throw NotFoundException.resource(package);
   }
-  final options = PkgOptions(isDiscontinued: p.isDiscontinued);
-  return jsonResponse(options.toJson());
+  return PkgOptions(
+    isDiscontinued: p.isDiscontinued,
+  );
 }
 
 /// Handles PUT /api/packages/<package>/options
-Future<shelf.Response> putPackageOptionsHandler(
-    shelf.Request request, String package, PkgOptions options) async {
+Future<PkgOptions> putPackageOptionsHandler(
+  shelf.Request request,
+  String package,
+  PkgOptions options,
+) async {
   await packageBackend.updateOptions(package, options);
-  return jsonResponse({'success': true});
+  return await getPackageOptionsHandler(request, package);
 }

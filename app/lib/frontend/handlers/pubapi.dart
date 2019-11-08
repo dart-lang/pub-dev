@@ -262,11 +262,11 @@ class PubApi {
       apiPackageMetricsHandler(request, package);
 
   @EndPoint.get('/api/packages/<package>/options')
-  Future<Response> packageOptions(Request request, String package) =>
+  Future<PkgOptions> packageOptions(Request request, String package) =>
       getPackageOptionsHandler(request, package);
 
   @EndPoint.put('/api/packages/<package>/options')
-  Future<Response> setPackageOptions(
+  Future<PkgOptions> setPackageOptions(
           Request request, String package, PkgOptions body) =>
       putPackageOptionsHandler(request, package, body);
 

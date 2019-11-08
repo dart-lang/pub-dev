@@ -30,6 +30,7 @@ import '../history/models.dart';
 import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../shared/configuration.dart';
+import '../shared/datastore_helper.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
 import '../shared/platform.dart' show KnownPlatforms;
@@ -168,16 +169,19 @@ class PackageBackend {
   }
 
   /// Updates [options] on [package].
-  Future updateOptions(String package, api.PkgOptions options) async {
-    final pkgKey = db.emptyKey.append(models.Package, id: package);
+  Future<void> updateOptions(String package, api.PkgOptions options) async {
     final user = await requireAuthenticatedUser();
+
+    final pkgKey = db.emptyKey.append(models.Package, id: package);
     String latestVersion;
-    await db.withTransaction((tx) async {
-      final p = (await tx.lookup<models.Package>([pkgKey])).single;
+    await withTransaction(db, (tx) async {
+      final p = await tx.lookupOrNull<models.Package>(pkgKey);
       if (p == null) {
-        throw NotFoundException('Package $package does not exists.');
+        throw NotFoundException.resource(package);
       }
       latestVersion = p.latestVersion;
+
+      // Check that the user is admin for this package.
       await checkPackageAdmin(p, user.userId);
 
       bool hasOptionsChanged = false;
@@ -188,7 +192,6 @@ class PackageBackend {
       }
 
       if (!hasOptionsChanged) {
-        tx.rollback();
         return;
       }
 
@@ -196,18 +199,15 @@ class PackageBackend {
       _logger.info('Updating $package options: '
           'isDiscontinued: ${p.isDiscontinued} '
           'doNotAdvertise: ${p.doNotAdvertise}');
-
-      final history = History.entry(
+      tx.insert(p);
+      tx.insert(History.entry(
         PackageOptionsChanged(
           packageName: p.name,
           userId: user.userId,
           userEmail: user.email,
           isDiscontinued: options.isDiscontinued,
         ),
-      );
-
-      tx.queueMutations(inserts: [history, p]);
-      await tx.commit();
+      ));
     });
     await purgePackageCache(package);
     await analyzerClient.triggerAnalysis(package, latestVersion, <String>{});
