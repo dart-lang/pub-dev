@@ -38,7 +38,7 @@ dependencies:
   shelf: '>=0.5.6 <0.8.0'
   shelf_router: ^0.7.0
   stack_trace: ^1.9.2
-  stream_transform: ^0.0.7
+  stream_transform: ^0.0.20
   yaml: '^2.1.12'
   # pana version to be pinned
   # keep in-sync with app/lib/shared/versions.dart
