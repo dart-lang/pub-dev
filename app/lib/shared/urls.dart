@@ -146,6 +146,8 @@ String inferIssueTrackerUrl(String baseUrl) {
 /// Infer base URL that can be used to link files from.
 String inferBaseUrl({String homepageUrl, String repositoryUrl}) {
   String baseUrl = repositoryUrl ?? homepageUrl;
+  if (baseUrl == null) return null;
+
   // In a few cases people specify only a deep repository URL for their
   // package (e.g. a monorepo for multiple packages). While we default the
   // base URL to be the repository URL, this check allows us to use the deep
@@ -153,6 +155,27 @@ String inferBaseUrl({String homepageUrl, String repositoryUrl}) {
   if (homepageUrl != null && homepageUrl.startsWith(baseUrl)) {
     baseUrl = homepageUrl;
   }
+
+  // URL cleanup
+  final prefixReplacements = const <String, String>{
+    'http://github.com/': 'https://github.com/',
+    'http://www.github.com/': 'https://github.com/',
+    'https://www.github.com/': 'https://github.com/',
+    'http://gitlab.com/': 'https://gitlab.com/',
+    'http://www.gitlab.com/': 'https://gitlab.com/',
+    'https://www.gitlab.com/': 'https://gitlab.com/',
+  };
+  for (final prefix in prefixReplacements.keys) {
+    if (baseUrl.startsWith(prefix)) {
+      baseUrl = baseUrl.replaceFirst(prefix, prefixReplacements[prefix]);
+    }
+  }
+  if ((baseUrl.startsWith('https://github.com/') ||
+          baseUrl.startsWith('https://gitlab.com/')) &&
+      baseUrl.endsWith('.git')) {
+    baseUrl = baseUrl.substring(0, baseUrl.length - 4);
+  }
+
   return baseUrl;
 }
 

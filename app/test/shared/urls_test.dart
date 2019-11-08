@@ -159,5 +159,23 @@ void main() {
         repo,
       );
     });
+
+    test('URL cleanup', () {
+      expect(
+          inferBaseUrl(
+            homepageUrl: 'http://gitlab.com/user/repo.git',
+          ),
+          repo);
+      expect(
+          inferBaseUrl(
+            homepageUrl: 'http://www.gitlab.com/user/repo.git',
+          ),
+          repo);
+      expect(
+          inferBaseUrl(
+            homepageUrl: 'https://www.gitlab.com/user/repo.git',
+          ),
+          repo);
+    });
   });
 }
