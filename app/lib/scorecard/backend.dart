@@ -8,8 +8,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/package/models.dart'
-    show Package, PackageVersion;
+import 'package:pub_dev/package/models.dart' show Package, PackageVersion;
 import '../package/overrides.dart';
 import '../shared/popularity_storage.dart';
 import '../shared/redis_cache.dart' show cache;

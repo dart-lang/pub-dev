@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
 
 /// Checks whether the User entries are all-lowercase, or some of them have
 /// uppercase characters too.

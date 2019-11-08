@@ -7,11 +7,11 @@ import 'dart:convert';
 import 'package:gcloud/db.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/package/model_properties.dart';
-import 'package:pub_dartlang_org/package/models.dart';
-import 'package:pub_dartlang_org/publisher/models.dart';
-import 'package:pub_dartlang_org/scorecard/models.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/package/model_properties.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/scorecard/models.dart';
 
 // regular package
 final hydrogen = generateBundle('hydrogen', generateVersions(13, increment: 9));

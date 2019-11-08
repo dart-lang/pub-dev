@@ -484,7 +484,7 @@ packages:
       relative: true
     source: path
     version: "0.0.0"
-  pub_dartlang_org:
+  pub_dev:
     dependency: "direct main"
     description:
       path: "../../app"

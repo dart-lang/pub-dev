@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:pub_dartlang_org/search/handlers.dart';
+import 'package:pub_dev/search/handlers.dart';
 
 Future<shelf.Response> issueGet(String path) async {
   final uri = 'https://search-dot-dartlang-pub.appspot.com$path';

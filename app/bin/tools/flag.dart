@@ -8,10 +8,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 
-import 'package:pub_dartlang_org/package/backend.dart';
-import 'package:pub_dartlang_org/package/models.dart';
-import 'package:pub_dartlang_org/service/entrypoint/tools.dart';
-import 'package:pub_dartlang_org/analyzer/analyzer_client.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/analyzer/analyzer_client.dart';
 
 final _argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('help',

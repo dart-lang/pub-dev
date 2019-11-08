@@ -9,8 +9,8 @@ import 'package:html/parser.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
-import 'package:pub_dartlang_org/dartdoc/customization.dart';
-import 'package:pub_dartlang_org/frontend/static_files.dart';
+import 'package:pub_dev/dartdoc/customization.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 
 import '../shared/html_validation.dart';
 

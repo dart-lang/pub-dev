@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_dartlang_org/shared/urls.dart' as urls;
+import 'package:pub_dev/shared/urls.dart' as urls;
 
 import '../../shared/handlers_test_utils.dart';
 import '../../shared/test_models.dart';

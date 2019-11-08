@@ -8,8 +8,8 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:pub_dartlang_org/shared/flutter_archive.dart';
-import 'package:pub_dartlang_org/shared/versions.dart';
+import 'package:pub_dev/shared/flutter_archive.dart';
+import 'package:pub_dev/shared/versions.dart';
 
 void main() {
   test('runtime pattern', () {

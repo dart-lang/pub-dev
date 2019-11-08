@@ -6,9 +6,9 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/search/index_simple.dart';
-import 'package:pub_dartlang_org/search/result_combiner.dart';
-import 'package:pub_dartlang_org/search/search_service.dart';
+import 'package:pub_dev/search/index_simple.dart';
+import 'package:pub_dev/search/result_combiner.dart';
+import 'package:pub_dev/search/search_service.dart';
 
 void main() {
   group('ResultCombiner', () {

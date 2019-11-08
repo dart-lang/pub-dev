@@ -5,12 +5,12 @@
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/history/backend.dart';
-import 'package:pub_dartlang_org/history/models.dart';
-import 'package:pub_dartlang_org/package/models.dart';
-import 'package:pub_dartlang_org/publisher/models.dart';
-import 'package:pub_dartlang_org/shared/user_merger.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/history/backend.dart';
+import 'package:pub_dev/history/models.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/shared/user_merger.dart';
 
 import 'test_models.dart';
 import 'test_services.dart';

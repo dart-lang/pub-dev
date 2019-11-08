@@ -11,7 +11,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/frontend/static_files.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 
 void main() {
   setUpAll(() => updateLocalBuiltFiles());

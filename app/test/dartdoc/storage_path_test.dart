@@ -4,8 +4,8 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/dartdoc/models.dart';
-import 'package:pub_dartlang_org/dartdoc/storage_path.dart';
+import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/dartdoc/storage_path.dart';
 
 void main() {
   test('shared assets', () {

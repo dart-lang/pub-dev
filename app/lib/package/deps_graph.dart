@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
-import 'package:pub_dartlang_org/package/models.dart';
+import 'package:pub_dev/package/models.dart';
 
 import '../shared/utils.dart' show StringInternPool;
 

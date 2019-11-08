@@ -5,8 +5,8 @@
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/account/models.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
 
 import '../shared/test_services.dart';
 

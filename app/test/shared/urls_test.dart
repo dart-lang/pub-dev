@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import 'package:pub_dartlang_org/shared/urls.dart';
+import 'package:pub_dev/shared/urls.dart';
 
 void main() {
   group('package page', () {

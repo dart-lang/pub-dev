@@ -8,11 +8,11 @@ import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
 import 'package:client_data/package_api.dart';
-import 'package:pub_dartlang_org/account/backend.dart';
-import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dartlang_org/package/backend.dart';
-import 'package:pub_dartlang_org/publisher/models.dart';
-import 'package:pub_dartlang_org/shared/exceptions.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/publisher/models.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';

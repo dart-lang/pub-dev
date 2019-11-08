@@ -9,9 +9,9 @@ import 'package:test/test.dart';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart';
-import 'package:pub_dartlang_org/account/models.dart';
-import 'package:pub_dartlang_org/frontend/handlers/pubapi.client.dart';
-import 'package:pub_dartlang_org/publisher/models.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/publisher/models.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
