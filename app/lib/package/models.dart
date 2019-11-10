@@ -81,7 +81,7 @@ class Package extends db.ExpandoModel {
   /// may otherwise be `null` or `false`.
   ///
   /// Use [doNotAdvertise] to avoid `null` checking.
-  @db.BoolProperty()
+  @db.BoolProperty(propertyName: 'doNotAdvertise')
   bool doNotAdvertiseFlag;
 
   /// [doNotAdvertise] is set when a package should not be advertised on the
