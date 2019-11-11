@@ -209,6 +209,14 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has a `likes` property which is not a non-negative integer.');
     }
+    if (p.isDiscontinuedFlag == null || p.isDiscontinuedFlag is! bool) {
+      _problems.add(
+          'Package(${p.name}) has a `isDiscontinued` property which is not a bool.');
+    }
+    if (p.doNotAdvertiseFlag == null || p.doNotAdvertiseFlag is! bool) {
+      _problems.add(
+          'Package(${p.name}) has a `doNotAdvertise` property which is not a bool.');
+    }
     for (String userId in p.uploaders) {
       if (!_userToOauth.containsKey(userId)) {
         _problems.add('Package(${p.name}) has uploader without User: $userId');

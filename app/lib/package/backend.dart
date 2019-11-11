@@ -900,7 +900,9 @@ models.Package _newPackageFromVersion(
     ..latestVersionKey = version.key
     ..latestDevVersionKey = version.key
     ..uploaders = [userId]
-    ..likes = 0;
+    ..likes = 0
+    ..doNotAdvertise = false
+    ..isDiscontinued = false;
 }
 
 class _ValidatedUpload {
