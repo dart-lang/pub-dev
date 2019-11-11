@@ -95,8 +95,11 @@ include: package:pedantic/analysis_options.yaml
 <h3 id="maintenance">Maintenance</h3>
 
 <p>
-  The maintenance score reflects how tidy and up-to-date a package is.
-  Here are some of the factors that influence this score:
+  The maintenance score reflects how tidy and up-to-date a package is. A package
+  starts with 100 points, which is then then subtracted deductions based on
+  <a href="https://pub.dev/documentation/pana/latest/#maintenance-score"> a long
+  list of detailed checks. </a>. In summary, the main components that influence
+  this score are:
 </p>
 <ul>
   <li>Last publish date: Best if the package has been published within one year.
