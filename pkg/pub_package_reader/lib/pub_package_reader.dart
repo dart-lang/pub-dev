@@ -271,3 +271,37 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
     }
   }
 }
+
+/// Validate that the package does not have both `flutter.plugin.platforms` and
+/// `flutter.plugin.{androidPackage,iosPrefix,pluginClass}`.
+Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
+  Pubspec pubspec,
+) sync* {
+  if (pubspec.flutter is! Map || pubspec.flutter['plugin'] is! Map) {
+    return;
+  }
+  final plugin = pubspec.flutter['plugin'] as Map;
+
+  // Determine if this uses the old format by checking if `flutter.plugin`
+  // contains any of the following keys.
+  final usesOldPluginFormat = const {
+    'androidPackage',
+    'iosPrefix',
+    'pluginClass',
+  }.any(plugin.containsKey);
+
+  // Determine if this uses the new format by check if the:
+  // `flutter.plugin.platforms` keys is defined.
+  final usesNewPluginFormat = plugin['platforms'] != null;
+
+  const pluginDocsUrl =
+      'https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin';
+
+  if (usesOldPluginFormat && usesNewPluginFormat) {
+    yield ArchiveIssue(
+        'In pubspec.yaml the flutter.plugin.platforms key cannot be '
+        'used in combination with the old '
+        'flutter.plugin.{androidPackage,iosPrefix,pluginClass} keys.\n\n'
+        'See $pluginDocsUrl');
+  }
+}
