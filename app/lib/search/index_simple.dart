@@ -10,6 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
+import '../package/package_tags.dart';
 import '../shared/utils.dart' show boundedList, StringInternPool;
 
 import 'platform_specificity.dart';
@@ -75,12 +76,6 @@ class SimplePackageIndex implements PackageIndex {
   @override
   Future addPackage(PackageDocument document) async {
     final PackageDocument doc = document.intern(_internPool.intern);
-
-    // isDiscontinued may be null
-    if (document.isDiscontinued == true) {
-      await removePackage(doc.package);
-      return;
-    }
 
     _packages[doc.package] = doc;
     _nameIndex.add(doc.package, doc.package);
@@ -215,19 +210,23 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
+    // filter on discontinued
+    // TODO: use TagsPredicate and default it to filter discontinued.
+    packages.removeWhere(
+        (p) => _packages[p].tags.contains(PackageTags.isDiscontinued));
+
     // filter on ad
+    // TODO: use TagsPredicate instead of SearchQuery.isAd
     if (query.isAd ?? false) {
-      packages.removeWhere((package) {
-        final doc = _packages[package];
-        return doc.doNotAdvertise ?? false;
-      });
+      packages.removeWhere((package) =>
+          _packages[package].tags.contains(PackageTags.isNotAdvertized));
     }
 
     // Remove legacy packages, if not included in the query.
+    // TODO: use TagsPredicate instead of SearchQuery.includeLegacy
     if (!query.includeLegacy) {
-      packages.removeWhere((p) {
-        return (_packages[p]?.supportsOnlyLegacySdk ?? false);
-      });
+      packages.removeWhere(
+          (p) => _packages[p].tags.contains(PackageVersionTags.isLegacy));
     }
 
     // do text matching
