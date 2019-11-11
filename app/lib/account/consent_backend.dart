@@ -43,9 +43,6 @@ class ConsentBackend {
   Future<api.Consent> getConsent(String consentId, User user) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
-    if (c == null) {
-      throw NotFoundException.resource('consent: $consentId');
-    }
     final action = _actions[c.kind];
     final activeAccountEmail =
         await accountBackend.getEmailOfUserId(c.fromUserId);
@@ -70,16 +67,10 @@ class ConsentBackend {
     final c = await _lookupAndCheck(consentId, user);
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
-      if (c == null) {
-        throw NotFoundException('Could not find invite with id: $consentId. '
-            'It probably has expired.');
-      }
       await _accept(c);
       return api.ConsentResult(granted: true);
     } else {
-      if (c != null) {
-        await _delete(c);
-      }
+      await _delete(c);
       return api.ConsentResult(granted: false);
     }
   }
@@ -187,14 +178,18 @@ class ConsentBackend {
     final c = await _db.lookupValue<Consent>(
         _db.emptyKey.append(Consent, id: consentId),
         orElse: () => null);
-    if (c == null) return null;
+    if (c == null) {
+      throw NotFoundException.resource('consent: $consentId');
+    }
 
     // Checking that consent is for the current user.
-    if (c.userIdOfConsent != null && c.userIdOfConsent != user.userId) {
-      return null;
+    if (c.userIdOfConsent != null) {
+      InvalidInputException.check(c.userIdOfConsent == user.userId,
+          'Consent.userId does not match current User.');
     }
-    if (c.email != null && c.email != user.email) {
-      return null;
+    if (c.email != null) {
+      InvalidInputException.check(
+          c.email == user.email, 'Consent.email does not match current User.');
     }
     return c;
   }
