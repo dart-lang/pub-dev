@@ -17,8 +17,10 @@ final _argParser = ArgParser()
 Future main(List<String> args) async {
   final argv = _argParser.parse(args);
   if (argv['help'] as bool == true) {
-    print('Usage: dart backfill_packagelikes.dart');
+    print('Usage: dart backfill_package_fields.dart');
     print('Ensures Package.likes is set to an integer.');
+    print('Ensures Package.doNotAdvertise is set to a bool.');
+    print('Ensures Package.isDiscontinued is set to a bool.');
     print(_argParser.usage);
     return;
   }
@@ -31,7 +33,7 @@ Future main(List<String> args) async {
 
     useLoggingPackageAdaptor();
     await for (Package p in dbService.query<Package>().run()) {
-      final f = pool.withResource(() => _backfillPackageLikes(p));
+      final f = pool.withResource(() => _backfillPackageFields(p));
       futures.add(f);
     }
 
@@ -40,21 +42,27 @@ Future main(List<String> args) async {
   });
 }
 
-Future<void> _backfillPackageLikes(Package p) async {
-  if (p.likes != null) return;
-  print('Backfilling like property on package ${p.name}');
+Future<void> _backfillPackageFields(Package p) async {
+  if (p.likes != null &&
+      p.doNotAdvertiseFlag != null &&
+      p.isDiscontinuedFlag != null) {
+    return;
+  }
+  print('Backfilling properties on package ${p.name}');
   try {
     await dbService.withTransaction((Transaction tx) async {
       final package = await tx.lookupValue<Package>(p.key, orElse: () => null);
       if (package == null) {
         return;
       }
-      package.likes = 0;
+      package.likes ??= 0;
+      package.doNotAdvertiseFlag ??= false;
+      package.isDiscontinuedFlag ??= false;
       tx.queueMutations(inserts: [package]);
       await tx.commit();
-      print('Updated likes property on package ${package.name}.');
+      print('Updated properties on package ${package.name}.');
     });
   } catch (e) {
-    print('Failed to update likes on package ${p.name}, error $e');
+    print('Failed to update properties on package ${p.name}, error $e');
   }
 }

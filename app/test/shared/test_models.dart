@@ -80,7 +80,9 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..latestVersionKey = foobarStablePVKey
     ..latestDevVersionKey = foobarDevPVKey
     ..downloads = 0
-    ..likes = 0;
+    ..likes = 0
+    ..doNotAdvertise = false
+    ..isDiscontinued = false;
 }
 
 final Package foobarPackage = createFoobarPackage();
@@ -309,6 +311,8 @@ PkgBundle generateBundle(
     ..name = name
     ..downloads = 0
     ..likes = 0
+    ..doNotAdvertise = false
+    ..isDiscontinued = false
     ..publisherId = publisherId
     ..uploaders =
         publisherId != null ? [] : uploaders.map((u) => u.userId).toList();
