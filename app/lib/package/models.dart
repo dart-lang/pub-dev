@@ -31,13 +31,13 @@ part 'models.g.dart';
 /// to upload packages.
 @db.Kind(name: 'Package', idType: db.IdType.String)
 class Package extends db.ExpandoModel {
-  @db.StringProperty()
+  @db.StringProperty(required: true)
   String name; // Same as id
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime created;
 
-  @db.DateTimeProperty()
+  @db.DateTimeProperty(required: true)
   DateTime updated;
 
   @db.IntProperty()
@@ -48,10 +48,10 @@ class Package extends db.ExpandoModel {
   /// Should be set zero when [Package] is created, and always updated in a
   /// transaction with a `Like` entity being created or removed, or by a
   /// background job correcting `Like` counts.
-  @db.IntProperty()
+  @db.IntProperty(required: true)
   int likes;
 
-  @db.ModelKeyProperty(propertyName: 'latest_version')
+  @db.ModelKeyProperty(propertyName: 'latest_version', required: true)
   db.Key latestVersionKey;
 
   @db.ModelKeyProperty(propertyName: 'latest_dev_version')
@@ -65,31 +65,14 @@ class Package extends db.ExpandoModel {
   @db.StringListProperty()
   List<String> uploaders;
 
-  /// Set to `true` if package is discontinued, may otherwise be `null` or `false`.
-  ///
-  /// Use [isDiscontinued] to avoid `null` checking.
-  @db.BoolProperty(propertyName: 'isDiscontinued')
-  bool isDiscontinuedFlag;
-
-  /// [isDiscontinued] is set when a package is discontinued.
-  bool get isDiscontinued => isDiscontinuedFlag == true;
-  set isDiscontinued(bool value) {
-    isDiscontinuedFlag = value;
-  }
+  /// Set to `true` if package is discontinued, may otherwise be `false`.
+  @db.BoolProperty(required: true)
+  bool isDiscontinued;
 
   /// Set to `true` if package should not be advertised on the front page,
-  /// may otherwise be `null` or `false`.
-  ///
-  /// Use [doNotAdvertise] to avoid `null` checking.
-  @db.BoolProperty(propertyName: 'doNotAdvertise')
-  bool doNotAdvertiseFlag;
-
-  /// [doNotAdvertise] is set when a package should not be advertised on the
-  /// front page.
-  bool get doNotAdvertise => doNotAdvertiseFlag == true;
-  set doNotAdvertise(bool value) {
-    doNotAdvertiseFlag = value;
-  }
+  /// may otherwise be `false`.
+  @db.BoolProperty(required: true)
+  bool doNotAdvertise;
 
   // Convenience Fields:
 

@@ -209,11 +209,11 @@ class IntegrityChecker {
       _problems.add(
           'Package(${p.name}) has a `likes` property which is not a non-negative integer.');
     }
-    if (p.isDiscontinuedFlag == null || p.isDiscontinuedFlag is! bool) {
+    if (p.isDiscontinued == null || p.isDiscontinued is! bool) {
       _problems.add(
           'Package(${p.name}) has a `isDiscontinued` property which is not a bool.');
     }
-    if (p.doNotAdvertiseFlag == null || p.doNotAdvertiseFlag is! bool) {
+    if (p.doNotAdvertise == null || p.doNotAdvertise is! bool) {
       _problems.add(
           'Package(${p.name}) has a `doNotAdvertise` property which is not a bool.');
     }

@@ -43,9 +43,7 @@ Future main(List<String> args) async {
 }
 
 Future<void> _backfillPackageFields(Package p) async {
-  if (p.likes != null &&
-      p.doNotAdvertiseFlag != null &&
-      p.isDiscontinuedFlag != null) {
+  if (p.likes != null && p.doNotAdvertise != null && p.isDiscontinued != null) {
     return;
   }
   print('Backfilling properties on package ${p.name}');
@@ -56,8 +54,8 @@ Future<void> _backfillPackageFields(Package p) async {
         return;
       }
       package.likes ??= 0;
-      package.doNotAdvertiseFlag ??= false;
-      package.isDiscontinuedFlag ??= false;
+      package.doNotAdvertise ??= false;
+      package.isDiscontinued ??= false;
       tx.queueMutations(inserts: [package]);
       await tx.commit();
       print('Updated properties on package ${package.name}.');
