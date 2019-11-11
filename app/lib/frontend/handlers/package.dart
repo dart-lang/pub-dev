@@ -129,15 +129,15 @@ Future<shelf.Response> packageVersionHandlerHtml(
 
   if (cachedPage == null) {
     final Package package = await packageBackend.lookupPackage(packageName);
+    if (package == null) {
+      return redirectToSearch(packageName);
+    }
 
     final bool isLiked = (userSessionData == null)
         ? false
         : await accountBackend.getPackageLikeStatus(
                 userSessionData.userId, package.name) !=
             null;
-    if (package == null) {
-      return redirectToSearch(packageName);
-    }
 
     final selectedVersion = await packageBackend.lookupPackageVersion(
         packageName, versionName ?? package.latestVersion);
