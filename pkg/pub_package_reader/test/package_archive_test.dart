@@ -208,4 +208,83 @@ void main() {
       expect(forbidGitDependencies(pubspec), isEmpty);
     });
   });
+
+  group('forbid conflicting flutter plugin schemes', () {
+    test('simple_plugin old scheme', () {
+      final pubspec = Pubspec.parse('''
+      name: simple_plugin
+      description: A simple_plugin
+      version: 1.0.0
+      homepage: https://example.com
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+        flutter: ">=1.2.0 <2.0.0"
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      flutter:
+        plugin:
+          androidPackage: 'io.flutter.plugins.myplugin'
+          iosPrefix: 'FLT'
+          pluginClass: 'MyPlugin'
+      ''');
+      expect(forbidConflictingFlutterPluginSchemes(pubspec), isEmpty);
+    });
+
+    test('simple_plugin new scheme', () {
+      final pubspec = Pubspec.parse('''
+      name: simple_plugin
+      description: A simple_plugin
+      version: 1.0.0
+      homepage: https://example.com
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+        flutter: ">=1.2.0 <2.0.0"
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      flutter:
+        plugin:
+          platforms:
+            ios:
+              classPrefix: 'FLT'
+              pluginClass: 'SamplePlugin'
+      ''');
+      expect(forbidConflictingFlutterPluginSchemes(pubspec), isEmpty);
+    });
+
+    test('simple_plugin old + new scheme', () {
+      final pubspec = Pubspec.parse('''
+      name: simple_plugin
+      description: A simple_plugin
+      version: 1.0.0
+      homepage: https://example.com
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+        flutter: ">=1.2.0 <2.0.0"
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      flutter:
+        plugin:
+          androidPackage: 'io.flutter.plugins.myplugin'
+          iosPrefix: 'FLT'
+          pluginClass: 'MyPlugin'
+          platforms:
+            ios:
+              classPrefix: 'FLT'
+              pluginClass: 'SamplePlugin'
+      ''');
+      expect(forbidConflictingFlutterPluginSchemes(pubspec), isNotEmpty);
+    });
+  });
 }
