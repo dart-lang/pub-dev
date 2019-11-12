@@ -40,6 +40,14 @@ button {
         background-color: darken($color-input-danger, 10%) !important;
       }
     }
+
+    &.pub-button-cancel {
+      background-color: $color-input-cancel !important;
+
+      &:hover {
+        background-color: darken($color-input-cancel, 10%) !important;
+      }
+    }
   }
 
   &.mdc-dialog__button {
