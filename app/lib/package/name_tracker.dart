@@ -82,7 +82,7 @@ class NameTracker {
 
   /// Scans the Datastore and populates the tracker.
   @visibleForTesting
-  Future scanDatastore() async {
+  Future<void> scanDatastore() async {
     await for (final p in _db.query<Package>().run()) {
       add(p.name);
     }
@@ -93,7 +93,7 @@ class NameTracker {
 
   /// Updates this [NameTracker] by polling the Datastore periodically.
   /// The returned future completes after the `stopTracking` method is called.
-  Future startTracking() async {
+  Future<void> startTracking() async {
     if (_updater != null) {
       throw StateError('Already tracking datastore.');
     }
@@ -119,7 +119,7 @@ class _NameTrackerUpdater {
   _NameTrackerUpdater(this._db);
 
   /// The returned future completes after the `stop` method is called.
-  Future startNameTrackerUpdates() async {
+  Future<void> startNameTrackerUpdates() async {
     final sw = Stopwatch()..start();
     _logger.info('Scanning existing package names');
     for (;;) {
@@ -150,7 +150,7 @@ class _NameTrackerUpdater {
     }
   }
 
-  Future _sleep() async {
+  Future<void> _sleep() async {
     _sleepCompleter = Completer();
     _sleepTimer = Timer(_pollingInterval, () {
       if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
@@ -163,7 +163,7 @@ class _NameTrackerUpdater {
     _sleepTimer = null;
   }
 
-  Future _scan() async {
+  Future<void> _scan() async {
     final now = DateTime.now().toUtc();
     final query = _db.query<Package>()..order('created');
     if (_lastTs != null) {

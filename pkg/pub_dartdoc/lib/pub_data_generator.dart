@@ -23,7 +23,8 @@ class PubDataGenerator implements Generator {
   PubDataGenerator(this._inputDirectory);
 
   @override
-  Future generate(PackageGraph packageGraph, String outputDirectoryPath) async {
+  Future<void> generate(
+      PackageGraph packageGraph, String outputDirectoryPath) async {
     final modelElements = packageGraph.allCanonicalModelElements
         .where((elem) => elem.isPublic)
         .where((elem) => p.isWithin(_inputDirectory, elem.sourceFileName))

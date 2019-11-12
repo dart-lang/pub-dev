@@ -37,7 +37,7 @@ abstract class JobProcessor {
   Future<bool> shouldProcess(String package, String version, DateTime updated);
 
   /// Never completes.
-  Future run() async {
+  Future<void> run() async {
     int sleepSeconds = 0;
     for (;;) {
       sleepSeconds = math.min(sleepSeconds + 1, 60);
@@ -87,7 +87,7 @@ class JobMaintenance {
   final JobProcessor _processor;
   JobMaintenance(this._db, this._processor);
 
-  Future run() {
+  Future<void> run() {
     final futures = <Future>[
       syncDatastoreHead(),
       syncDatastoreHistory(),
@@ -98,7 +98,7 @@ class JobMaintenance {
   }
 
   /// Never completes.
-  Future syncDatastoreHead() async {
+  Future<void> syncDatastoreHead() async {
     final source = DatastoreHeadTaskSource(_db, TaskSourceModel.version,
         skipHistory: true);
     final stream = source.startStreaming();
@@ -113,7 +113,7 @@ class JobMaintenance {
   }
 
   /// Reads the current package versions and syncs them with job entries.
-  Future syncDatastoreHistory() async {
+  Future<void> syncDatastoreHistory() async {
     final latestVersions = Map<String, String>();
     await for (Package p in _db.query<Package>().run()) {
       latestVersions[p.name] = p.latestVersion;
@@ -122,7 +122,7 @@ class JobMaintenance {
     final packages = latestVersions.keys.toList();
     packages.shuffle();
 
-    Future updateJob(PackageVersion pv, bool skipLatest) async {
+    Future<void> updateJob(PackageVersion pv, bool skipLatest) async {
       try {
         final bool isLatestStable = latestVersions[pv.package] == pv.version;
         if (isLatestStable && skipLatest) return;
@@ -158,7 +158,7 @@ class JobMaintenance {
   }
 
   /// Never completes
-  Future updateStates() async {
+  Future<void> updateStates() async {
     for (;;) {
       await Future.delayed(Duration(minutes: 1 + _random.nextInt(10)));
       try {

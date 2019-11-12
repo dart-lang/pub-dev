@@ -176,7 +176,8 @@ class AnalyzerJobProcessor extends JobProcessor {
     return summary;
   }
 
-  Future _storeScoreCard(Job job, Summary summary, {List<String> flags}) async {
+  Future<void> _storeScoreCard(Job job, Summary summary,
+      {List<String> flags}) async {
     await scoreCardBackend.updateReport(
       job.packageName,
       job.packageVersion,

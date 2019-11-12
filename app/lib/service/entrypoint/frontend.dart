@@ -44,7 +44,7 @@ class DefaultCommand extends Command {
   String get description => 'The default frontend service entrypoint.';
 
   @override
-  Future run() async {
+  Future<void> run() async {
     // Ensure that we're running in the right environment, or is running locally
     if (envConfig.gaeService != null && envConfig.gaeService != name) {
       throw StateError(
@@ -113,7 +113,7 @@ Future _worker(WorkerEntryMessage message) async {
     });
 
     // Updates job entries for analyzer and dartdoc.
-    Future triggerDependentAnalysis(
+    Future<void> triggerDependentAnalysis(
         String package, String version, Set<String> affected) async {
       await analyzerClient.triggerAnalysis(package, version, affected);
       await dartdocClient.triggerDartdoc(package, version, affected);

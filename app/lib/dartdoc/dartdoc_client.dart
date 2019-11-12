@@ -34,7 +34,7 @@ class DartdocClient {
     return await Future.wait(resultFutures);
   }
 
-  Future triggerDartdoc(
+  Future<void> triggerDartdoc(
       String package, String version, Set<String> dependentPackages) async {
     await jobBackend.trigger(JobService.dartdoc, package, version);
     for (final String package in dependentPackages) {
@@ -42,7 +42,7 @@ class DartdocClient {
     }
   }
 
-  Future close() async {
+  Future<void> close() async {
     // no-op
   }
 

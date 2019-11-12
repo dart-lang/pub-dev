@@ -96,7 +96,7 @@ class VersionedJsonStorage {
   }
 
   /// Upload the current data to the storage bucket.
-  Future uploadDataAsJsonMap(Map<String, dynamic> map) async {
+  Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final objectName = _objectName();
     final bytes = _gzip.encode(utf8.encode(json.encode(map)));
     try {
@@ -147,7 +147,7 @@ class VersionedJsonStorage {
   /// When [minAgeThreshold] is specified, only older files will be deleted. The
   /// process assumes that if an old runtimeVersion is still active, it will
   /// update it periodically, and a cleanup should preserve such files.
-  Future deleteOldData({Duration minAgeThreshold}) async {
+  Future<void> deleteOldData({Duration minAgeThreshold}) async {
     await for (BucketEntry entry in _bucket.list(prefix: _prefix)) {
       if (entry.isDirectory) {
         continue;

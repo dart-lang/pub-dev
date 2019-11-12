@@ -30,7 +30,7 @@ class EmailSender {
 
   /// Sends a [message] and returns when the operation completed.
   /// Errors are only logged, they do not block the processing.
-  Future sendMessage(EmailMessage message) async {
+  Future<void> sendMessage(EmailMessage message) async {
     await _update();
     final debugHeader = '(${message.subject}) '
         'from ${message.from} '
@@ -48,7 +48,7 @@ class EmailSender {
     }
   }
 
-  Future _update() async {
+  Future<void> _update() async {
     // Caching the values for 10 minutes, updating them only if the previous
     // access happened earlier.
     final now = DateTime.now().toUtc();

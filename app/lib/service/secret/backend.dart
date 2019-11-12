@@ -36,7 +36,7 @@ class SecretBackend {
 
   /// Updates a Secret value.
   /// Throws InvalidInputException if the [id] is no valid.
-  Future update(String id, String value) async {
+  Future<void> update(String id, String value) async {
     if (!SecretKey.isValid(id)) {
       throw ArgumentError.value(id, 'id', 'invalid secret key identifier');
     }

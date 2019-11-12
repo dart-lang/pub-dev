@@ -27,7 +27,7 @@ class DevVersionScript {
   });
 
   /// Publish and verify dev and stable versions.
-  Future verify(bool stableFirst) async {
+  Future<void> verify(bool stableFirst) async {
     assert(_pubHttpClient == null);
     _pubHttpClient = PubHttpClient(pubHostedUrl);
     _pubToolClient = await PubToolClient.create(
@@ -169,7 +169,7 @@ class DevVersionScript {
     }
   }
 
-  Future _publishVersion(String version) async {
+  Future<void> _publishVersion(String version) async {
     final dir = await _temp.createTemp();
     await createDummyPkg(dir.path, version);
     await _pubToolClient.publish(dir.path);

@@ -16,7 +16,7 @@ class FakeStorageServer {
   final MemStorage _storage;
   FakeStorageServer(this._storage);
 
-  Future run({int port = 8081}) async {
+  Future<void> run({int port = 8081}) async {
     final server = await IOServer.bind('localhost', port);
     serveRequests(server.server, _handler);
     _logger.info('Storage server running on port $port');

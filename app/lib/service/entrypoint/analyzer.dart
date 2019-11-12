@@ -36,7 +36,7 @@ class AnalyzerCommand extends Command {
   String get description => 'The analyzer service entrypoint.';
 
   @override
-  Future run() async {
+  Future<void> run() async {
     // Ensure that we're running in the right environment, or is running locally
     if (envConfig.gaeService != null && envConfig.gaeService != name) {
       throw StateError(
@@ -44,7 +44,7 @@ class AnalyzerCommand extends Command {
       );
     }
 
-    Future workerSetup() async {
+    Future<void> workerSetup() async {
       await initFlutterSdk(logger);
     }
 

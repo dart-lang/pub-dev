@@ -51,7 +51,7 @@ class ToolEnvRef {
     _active++;
   }
 
-  Future release() async {
+  Future<void> release() async {
     await _checkSizeLimit();
     _active--;
     if (_active == 0) {
@@ -63,7 +63,7 @@ class ToolEnvRef {
     }
   }
 
-  Future _checkSizeLimit() async {
+  Future<void> _checkSizeLimit() async {
     if (_isAboveSizeLimit) return;
     int size = 0;
     await for (var fse in _pubCacheDir.list(recursive: true)) {

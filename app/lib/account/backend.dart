@@ -96,7 +96,7 @@ class AccountBackend {
               ],
             );
 
-  Future close() async {
+  Future<void> close() async {
     await _authProvider.close();
   }
 
@@ -453,14 +453,14 @@ class AccountBackend {
   }
 
   /// Removes the session data from the Datastore and from cache.
-  Future invalidateSession(String sessionId) async {
+  Future<void> invalidateSession(String sessionId) async {
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     await _db.commit(deletes: [key]);
     await cache.userSessionData(sessionId).purge();
   }
 
   /// Removes the expired sessions from Datastore and Redis cache.
-  Future deleteObsoleteSessions() async {
+  Future<void> deleteObsoleteSessions() async {
     final now = DateTime.now().toUtc();
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));

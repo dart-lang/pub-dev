@@ -34,7 +34,7 @@ class FakePubServer {
 
   FakePubServer(this._storage);
 
-  Future run({
+  Future<void> run({
     int port = 8080,
     String storageBaseUrl = 'http://localhost:8081',
   }) async {
@@ -90,8 +90,8 @@ class MockSearchClient implements SearchClient {
   }
 
   @override
-  Future triggerReindex(String package, String version) async {}
+  Future<void> triggerReindex(String package, String version) async {}
 
   @override
-  Future close() async {}
+  Future<void> close() async {}
 }

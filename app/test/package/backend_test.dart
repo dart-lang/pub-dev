@@ -184,7 +184,7 @@ void main() {
         await expectLater(rs, throwsA(isA<NotFoundException>()));
       });
 
-      Future testAlreadyExists(
+      Future<void> testAlreadyExists(
           String pkg, List<User> uploaders, String newUploader) async {
         final bundle = generateBundle(pkg, ['1.0.0'], uploaders: uploaders);
         await dbService.commit(inserts: [

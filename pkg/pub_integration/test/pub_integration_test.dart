@@ -29,7 +29,7 @@ void main() {
     test('standard integration', () async {
       final inviteUrlFuture = fakePubServerProcess
           .waitForLine((line) => line.contains('https://pub.dev/consent?id='));
-      Future inviteCompleterFn() async {
+      Future<void> inviteCompleterFn() async {
         final pageUrl = await inviteUrlFuture.timeout(Duration(seconds: 30));
         final pageUri = Uri.parse(pageUrl);
         final consentId = pageUri.queryParameters['id'];

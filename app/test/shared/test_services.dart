@@ -40,7 +40,7 @@ import 'test_models.dart';
 
 /// Setup scoped services (including fake datastore with pre-populated base data
 /// and fake storage) for tests.
-void testWithServices(String name, Future fn()) {
+void testWithServices(String name, Future<void> fn()) {
   scopedTest(name, () async {
     _setupLogging();
     registerActiveConfiguration(Configuration.test());
@@ -189,7 +189,7 @@ class FakeEmailSender implements EmailSender {
   final sentMessages = <EmailMessage>[];
 
   @override
-  Future sendMessage(EmailMessage message) async {
+  Future<void> sendMessage(EmailMessage message) async {
     sentMessages.add(message);
     return;
   }

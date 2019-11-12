@@ -18,7 +18,7 @@ void main() {
 
   group('redirects', () {
     testWithServices('pub.dartlang.org', () async {
-      Future testRedirect(String path) async {
+      Future<void> testRedirect(String path) async {
         expectRedirectResponse(
             await issueGet(path, host: 'pub.dartlang.org'), '$siteRoot$path');
       }

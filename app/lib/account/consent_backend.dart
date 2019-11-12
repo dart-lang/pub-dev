@@ -154,7 +154,7 @@ class ConsentBackend {
   }
 
   /// Removes obsolete/expired [Consent] entries from Datastore.
-  Future deleteObsoleteConsents() async {
+  Future<void> deleteObsoleteConsents() async {
     final query = _db.query<Consent>()
       ..filter('expires <', DateTime.now().toUtc());
     await for (var entry in query.run()) {
@@ -199,7 +199,7 @@ class ConsentBackend {
     return c;
   }
 
-  Future _accept(Consent consent) async {
+  Future<void> _accept(Consent consent) async {
     final action = _actions[consent.kind];
     await retry(
       () async {
@@ -215,7 +215,7 @@ class ConsentBackend {
     );
   }
 
-  Future _delete(Consent consent) async {
+  Future<void> _delete(Consent consent) async {
     final action = _actions[consent.kind];
     await retry(
       () async {
@@ -235,10 +235,10 @@ class ConsentBackend {
 /// Callback that will be called on consent actions.
 abstract class ConsentAction {
   /// Callback on accepting the consent.
-  Future onAccept(Consent consent);
+  Future<void> onAccept(Consent consent);
 
   /// Callback on rejecting the consent or timeout.
-  Future onDelete(Consent consent);
+  Future<void> onDelete(Consent consent);
 
   /// The subject of the notification email sent.
   String renderEmailSubject(List<String> args) =>
@@ -262,7 +262,7 @@ abstract class ConsentAction {
 /// Callbacks for package uploader consents.
 class _PackageUploaderAction extends ConsentAction {
   @override
-  Future onAccept(Consent consent) async {
+  Future<void> onAccept(Consent consent) async {
     final packageName = consent.args.single;
     final fromUserEmail =
         await accountBackend.getEmailOfUserId(consent.fromUserId);
@@ -275,7 +275,7 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  Future onDelete(Consent consent) async {
+  Future<void> onDelete(Consent consent) async {
     // nothing to do
   }
 
@@ -304,7 +304,7 @@ class _PackageUploaderAction extends ConsentAction {
 /// Callbacks for publisher member consents.
 class _PublisherMemberAction extends ConsentAction {
   @override
-  Future onAccept(Consent consent) async {
+  Future<void> onAccept(Consent consent) async {
     final member = consent.userId != null
         ? await accountBackend.lookupUserById(consent.userId)
         : await accountBackend.lookupOrCreateUserByEmail(consent.email);
@@ -313,7 +313,7 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  Future onDelete(Consent consent) async {
+  Future<void> onDelete(Consent consent) async {
     // nothing to do
   }
 

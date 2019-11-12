@@ -46,7 +46,7 @@ class IntegrityChecker {
     return _problems;
   }
 
-  Future _checkUsers() async {
+  Future<void> _checkUsers() async {
     _logger.info('Scanning Users...');
     await for (User user in _db.query<User>().run()) {
       _userToOauth[user.userId] = user.oauthUserId;
@@ -86,7 +86,7 @@ class IntegrityChecker {
     }
   }
 
-  Future _checkOAuthUserIDs() async {
+  Future<void> _checkOAuthUserIDs() async {
     _logger.info('Scanning OAuthUserIDs...');
     await for (OAuthUserID mapping in _db.query<OAuthUserID>().run()) {
       if (mapping.userIdKey == null || mapping.userId == null) {
@@ -128,7 +128,7 @@ class IntegrityChecker {
     }
   }
 
-  Future _checkPublishers() async {
+  Future<void> _checkPublishers() async {
     _logger.info('Scanning Publishers...');
     await for (final p in _db.query<Publisher>().run()) {
       _publishers.add(p.publisherId);
@@ -154,7 +154,7 @@ class IntegrityChecker {
     }
   }
 
-  Future _checkPublisherMembers() async {
+  Future<void> _checkPublisherMembers() async {
     _logger.info('Scanning PublisherMembers...');
     await for (final pm in _db.query<PublisherMember>().run()) {
       if (pm.id != pm.userId) {
@@ -176,7 +176,7 @@ class IntegrityChecker {
     }
   }
 
-  Future _checkPackages() async {
+  Future<void> _checkPackages() async {
     _logger.info('Scanning Packages...');
     final pool = Pool(_concurrency);
     final futures = <Future>[];
@@ -188,7 +188,7 @@ class IntegrityChecker {
     await pool.close();
   }
 
-  Future _checkPackage(Package p) async {
+  Future<void> _checkPackage(Package p) async {
     _packages.add(p.name);
     // empty uploaders
     if (p.uploaders == null || p.uploaders.isEmpty) {
@@ -295,7 +295,7 @@ class IntegrityChecker {
     }
   }
 
-  Future _checkVersions() async {
+  Future<void> _checkVersions() async {
     _logger.info('Scanning PackageVersions...');
     await for (PackageVersion pv in _db.query<PackageVersion>().run()) {
       _checkPackageVersion(pv);

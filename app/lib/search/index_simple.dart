@@ -73,7 +73,7 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future addPackage(PackageDocument document) async {
+  Future<void> addPackage(PackageDocument document) async {
     final PackageDocument doc = document.intern(_internPool.intern);
 
     // isDiscontinued may be null
@@ -102,14 +102,14 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future addPackages(Iterable<PackageDocument> documents) async {
+  Future<void> addPackages(Iterable<PackageDocument> documents) async {
     for (PackageDocument doc in documents) {
       await addPackage(doc);
     }
   }
 
   @override
-  Future removePackage(String package) async {
+  Future<void> removePackage(String package) async {
     final PackageDocument doc = _packages.remove(package);
     if (doc == null) return;
     _nameIndex.remove(package);
@@ -339,7 +339,7 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   @override
-  Future merge() async {
+  Future<void> merge() async {
     _isReady = true;
     _lastUpdated = DateTime.now().toUtc();
     _internPool.checkUnboundGrowth();

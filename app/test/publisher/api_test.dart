@@ -278,7 +278,7 @@ void main() {
     });
 
     group('Invite a new member', () {
-      Future queryConstents({String userId, String email}) async {
+      Future<List<Map>> queryConstents({String userId, String email}) async {
         final query = dbService.query<Consent>();
         return await query
             .run()

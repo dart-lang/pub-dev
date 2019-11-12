@@ -14,7 +14,7 @@ import '../src/test_data.dart';
 
 final _random = Random.secure();
 
-typedef InviteCompleterFn = Future Function();
+typedef InviteCompleterFn = Future<void> Function();
 
 /// A single object to execute integration script and verification tests with the
 /// `pub` tool on the pub.dev site (or on a test site).
@@ -42,7 +42,7 @@ class PublishingScript {
   );
 
   /// Verify all integration steps.
-  Future verify() async {
+  Future<void> verify() async {
     assert(_pubHttpClient == null);
     assert(_pubToolClient == null);
     _pubHttpClient = PubHttpClient(pubHostedUrl);
@@ -87,7 +87,7 @@ class PublishingScript {
     }
   }
 
-  Future _queryVersions() async {
+  Future<void> _queryVersions() async {
     final retryVersion = await _pubHttpClient.getLatestVersionName('retry');
     _hasRetry = retryVersion != null;
 
@@ -99,24 +99,24 @@ class PublishingScript {
         Version(v.major, v.minor, v.patch + 1, build: build).toString();
   }
 
-  Future _createDummyPkg() async {
+  Future<void> _createDummyPkg() async {
     _dummyDir = Directory(path.join(_temp.path, 'pkg', '_dummy_pkg'));
     _dummyExampleDir = Directory(path.join(_dummyDir.path, 'example'));
     await _dummyDir.create(recursive: true);
     await createDummyPkg(_dummyDir.path, _newDummyVersion);
   }
 
-  Future _createFakeRetryPkg() async {
+  Future<void> _createFakeRetryPkg() async {
     _retryDir = Directory(path.join(_temp.path, 'pkg', 'retry'));
     await _retryDir.create(recursive: true);
     await createFakeRetryPkg(_retryDir.path);
   }
 
-  Future _run(Directory dir, String file) async {
+  Future<void> _run(Directory dir, String file) async {
     await _pubToolClient.runProc('dart', [file], workingDirectory: dir.path);
   }
 
-  Future _verifyDummyPkg({bool matchInvited}) async {
+  Future<void> _verifyDummyPkg({bool matchInvited}) async {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != _newDummyVersion) {
       throw Exception(

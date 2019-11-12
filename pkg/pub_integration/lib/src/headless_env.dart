@@ -39,7 +39,7 @@ class HeadlessEnv {
     return null;
   }
 
-  Future _startBrowser() async {
+  Future<void> _startBrowser() async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
     final userDataDir = await tempDir.createTemp('user');
@@ -98,7 +98,7 @@ class HeadlessEnv {
     return page;
   }
 
-  Future close() async {
+  Future<void> close() async {
     await _browser.close();
   }
 }

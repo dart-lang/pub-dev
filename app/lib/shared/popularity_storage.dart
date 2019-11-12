@@ -42,19 +42,19 @@ class PopularityStorage {
 
   double lookup(String package) => _values[package];
 
-  Future init() async {
+  Future<void> init() async {
     await fetch('init');
     _timer = Timer.periodic(const Duration(hours: 4), (_) {
       fetch('refetch');
     });
   }
 
-  Future close() async {
+  Future<void> close() async {
     _timer?.cancel();
     _timer = null;
   }
 
-  Future fetch(String reason) async {
+  Future<void> fetch(String reason) async {
     _logger.info(
         'Loading popularity data ($reason): ${bucketUri(bucket, _latestPath)}');
     try {

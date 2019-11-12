@@ -238,7 +238,7 @@ class PackageBackend {
   ///
   /// Throws AuthenticationException if the user is provided.
   /// Throws AuthorizationException if the user is not an admin for the package.
-  Future checkPackageAdmin(models.Package package, String userId) async {
+  Future<void> checkPackageAdmin(models.Package package, String userId) async {
     if (userId == null) {
       throw AuthenticationException.authenticationRequired();
     }
@@ -371,11 +371,12 @@ class _PackageCache implements PackageCache {
       cache.packageData(package).get();
 
   @override
-  Future setPackageData(String package, List<int> data) =>
+  Future<void> setPackageData(String package, List<int> data) =>
       cache.packageData(package).set(data);
 
   @override
-  Future invalidatePackageData(String package) => purgePackageCache(package);
+  Future<void> invalidatePackageData(String package) =>
+      purgePackageCache(package);
 }
 
 /// The status of an invite after being created or updated.
@@ -510,7 +511,7 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   Future<PackageVersion> _performTarballUpload(User user, String filename,
-      Future tarballUpload(String name, String version)) async {
+      Future<void> tarballUpload(String name, String version)) async {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
@@ -651,7 +652,7 @@ class GCloudPackageRepository extends PackageRepository {
     return pv;
   }
 
-  Future _updatePackageSortIndex(Key packageKey) async {
+  Future<void> _updatePackageSortIndex(Key packageKey) async {
     try {
       _logger.info('Trying to update the `sort_order` field.');
       await db.withTransaction((Transaction T) async {
@@ -693,7 +694,7 @@ class GCloudPackageRepository extends PackageRepository {
   bool get supportsUploaders => true;
 
   @override
-  Future addUploader(String packageName, String uploaderEmail) async {
+  Future<void> addUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
@@ -741,7 +742,7 @@ class GCloudPackageRepository extends PackageRepository {
         'they will be added as uploader after they confirm it.');
   }
 
-  Future confirmUploader(String fromUserId, String fromUserEmail,
+  Future<void> confirmUploader(String fromUserId, String fromUserEmail,
       String packageName, User uploader) async {
     if (fromUserId == null) {
       final user =
@@ -788,7 +789,7 @@ class GCloudPackageRepository extends PackageRepository {
     });
   }
 
-  Future _validatePackageUploader(
+  Future<void> _validatePackageUploader(
       String packageName, models.Package package, String userId) async {
     // Fail if package doesn't exist.
     if (package == null) {
@@ -802,7 +803,7 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   @override
-  Future removeUploader(String packageName, String uploaderEmail) async {
+  Future<void> removeUploader(String packageName, String uploaderEmail) async {
     uploaderEmail = uploaderEmail.toLowerCase();
     final user = await requireAuthenticatedUser();
     return db.withTransaction((Transaction T) async {
@@ -1007,7 +1008,7 @@ class TarballStorage {
       bucket.read(namer.tmpObjectName(guid));
 
   /// Makes a temporary object a new tarball.
-  Future uploadViaTempObject(
+  Future<void> uploadViaTempObject(
       String guid, String package, String version) async {
     final object = namer.tarballObjectName(package, version);
 
@@ -1024,7 +1025,7 @@ class TarballStorage {
   }
 
   /// Remove a previously generated temporary object.
-  Future removeTempObject(String guid) async {
+  Future<void> removeTempObject(String guid) async {
     if (guid == null) throw ArgumentError('No guid given.');
     return bucket.delete(namer.tmpObjectName(guid));
   }
@@ -1036,7 +1037,7 @@ class TarballStorage {
   }
 
   /// Deletes the tarball of a [package] in the given [version] permanently.
-  Future remove(String package, String version) {
+  Future<void> remove(String package, String version) {
     final object = namer.tarballObjectName(package, version);
     return bucket.delete(object);
   }
@@ -1050,7 +1051,8 @@ class TarballStorage {
   }
 
   /// Upload [tarball] of a [package] in the given [version].
-  Future upload(String package, String version, Stream<List<int>> tarball) {
+  Future<void> upload(
+      String package, String version, Stream<List<int>> tarball) {
     final object = namer.tarballObjectName(package, version);
     return tarball
         .pipe(bucket.write(object, predefinedAcl: PredefinedAcl.publicRead));

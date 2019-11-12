@@ -41,7 +41,7 @@ class IndexUpdater implements TaskRunner {
 
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
-  Future init() async {
+  Future<void> init() async {
     await _initSnapshot();
 
     if (!packageIndex.isReady) {
@@ -63,7 +63,7 @@ class IndexUpdater implements TaskRunner {
   /// It is slower than searchBackend.loadMinimumPackageIndex, but provides a
   /// complete document for the index.
   @visibleForTesting
-  Future updateAllPackages() async {
+  Future<void> updateAllPackages() async {
     await for (final p in _db.query<Package>().run()) {
       final doc = await searchBackend.loadDocument(p.name);
       await packageIndex.addPackage(doc);
@@ -71,7 +71,7 @@ class IndexUpdater implements TaskRunner {
     await packageIndex.merge();
   }
 
-  Future _initSnapshot() async {
+  Future<void> _initSnapshot() async {
     if (_snapshot != null) return;
     try {
       _logger.info('Loading snapshot...');
@@ -125,14 +125,14 @@ class IndexUpdater implements TaskRunner {
     });
   }
 
-  Future close() async {
+  Future<void> close() async {
     _statsTimer?.cancel();
     _statsTimer = null;
     // TODO: close scheduler
   }
 
   @override
-  Future runTask(Task task) async {
+  Future<void> runTask(Task task) async {
     _taskCount++;
     try {
       // The index requires the analysis results in most of the cases, except:
@@ -165,7 +165,7 @@ class IndexUpdater implements TaskRunner {
     await _updateSnapshotIfNeeded();
   }
 
-  Future _updateSnapshotIfNeeded() async {
+  Future<void> _updateSnapshotIfNeeded() async {
     final DateTime now = DateTime.now();
     if (now.difference(_lastSnapshotWrite).inHours > 12) {
       _lastSnapshotWrite = now;
@@ -186,7 +186,7 @@ class IndexUpdater implements TaskRunner {
     _updateDartSdkIndex().whenComplete(() {});
   }
 
-  Future _updateDartSdkIndex() async {
+  Future<void> _updateDartSdkIndex() async {
     for (int i = 0;; i++) {
       try {
         _logger.info('Trying to load SDK index.');

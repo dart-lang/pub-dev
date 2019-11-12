@@ -80,7 +80,7 @@ class FakePubServerProcess {
     });
   }
 
-  Future get started => _startedCompleter.future;
+  Future<void> get started => _startedCompleter.future;
 
   Future<String> waitForLine(LineMatcher matcher) {
     final p = _LinePattern(matcher);
@@ -88,7 +88,7 @@ class FakePubServerProcess {
     return p.completer.future;
   }
 
-  Future kill() async {
+  Future<void> kill() async {
     // First try SIGTERM, and after 10 minutes do SIGKILL.
     _process.kill(ProcessSignal.sigterm);
     final timer = Timer(Duration(minutes: 10), () {

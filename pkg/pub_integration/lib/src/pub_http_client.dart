@@ -79,7 +79,7 @@ class PubHttpClient {
   }
 
   /// Creates a publisher.
-  Future createPublisher({
+  Future<void> createPublisher({
     @required String authToken,
     @required String publisherId,
     @required String accessToken,
@@ -99,7 +99,7 @@ class PubHttpClient {
   }
 
   /// Move a package under a publisher.
-  Future setPackagePublisher({
+  Future<void> setPackagePublisher({
     @required String authToken,
     @required String package,
     @required String publisherId,
@@ -119,7 +119,7 @@ class PubHttpClient {
   }
 
   /// Invite a member into a publisher.
-  Future inviteMember({
+  Future<void> inviteMember({
     @required String authToken,
     @required String publisherId,
     @required String invitedEmail,
@@ -159,7 +159,7 @@ class PubHttpClient {
   }
 
   /// Free resources.
-  Future close() async {
+  Future<void> close() async {
     _http.close();
   }
 }

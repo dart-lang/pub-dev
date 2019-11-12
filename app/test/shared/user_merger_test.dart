@@ -16,7 +16,7 @@ import 'test_models.dart';
 import 'test_services.dart';
 
 void main() {
-  Future _updateUsers() async {
+  Future<void> _updateUsers() async {
     await dbService.withTransaction((tx) async {
       final users = await tx.lookup<User>([hansUser.key, joeUser.key]);
       users.forEach((u) => u.oauthUserId = 'oauth-1');
@@ -31,7 +31,7 @@ void main() {
     });
   }
 
-  Future _corruptAndFix() async {
+  Future<void> _corruptAndFix() async {
     await _updateUsers();
     final merger = UserMerger(
       db: dbService,

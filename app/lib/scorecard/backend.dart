@@ -102,7 +102,7 @@ class ScoreCardBackend {
   /// Creates or updates a [ScoreCardReport] entry with the report's [data].
   /// The [data] will be converted to json and stored as a byte in the report
   /// entry.
-  Future updateReport(
+  Future<void> updateReport(
       String packageName, String packageVersion, ReportData data) async {
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: data.reportType);
@@ -157,7 +157,8 @@ class ScoreCardBackend {
 
   /// Updates the [ScoreCard] entry, reading both the package and version data,
   /// alongside the data from reports, and compiles a new summary of them.
-  Future updateScoreCard(String packageName, String packageVersion) async {
+  Future<void> updateScoreCard(
+      String packageName, String packageVersion) async {
     final key = scoreCardKey(packageName, packageVersion);
     final pAndPv = await _db.lookup([key.parent, key.parent.parent]);
     final version = pAndPv[0] as PackageVersion;
@@ -228,12 +229,12 @@ class ScoreCardBackend {
   }
 
   /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
-  Future deleteOldEntries() async {
+  Future<void> deleteOldEntries() async {
     final deletes = <db.Key>[];
     final now = DateTime.now();
 
     // Deletes the entries that are returned from the [query].
-    Future deleteQuery<T extends db.Model>(db.Query<T> query) async {
+    Future<void> deleteQuery<T extends db.Model>(db.Query<T> query) async {
       await for (T model in query.run()) {
         deletes.add(model.key);
         if (deletes.length == 20) {
