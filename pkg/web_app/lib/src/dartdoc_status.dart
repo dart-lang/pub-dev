@@ -16,7 +16,7 @@ void updateDartdocStatus() {
       .toSet()
       .toList();
 
-  Future update(String package) async {
+  Future<void> update(String package) async {
     final List<Element> tables = document
         .querySelectorAll('.version-table')
         .where((e) => e.dataset['package'] == package)

@@ -58,7 +58,7 @@ class DartdocBackend {
   Future<bool> hasValidDartSdkDartdocData() => _sdkStorage.hasCurrentData();
 
   /// Upload the generated dartdoc data file for the Dart SDK to the storage bucket.
-  Future uploadDartSdkDartdocData(File file) async {
+  Future<void> uploadDartSdkDartdocData(File file) async {
     final map = json.decode(await file.readAsString()) as Map<String, dynamic>;
     await _sdkStorage.uploadDataAsJsonMap(map);
   }
@@ -98,7 +98,7 @@ class DartdocBackend {
   }
 
   /// Updates the [old] entry with the status fields from the [current] one.
-  Future updateOldEntry(DartdocEntry old, DartdocEntry current) async {
+  Future<void> updateOldEntry(DartdocEntry old, DartdocEntry current) async {
     final newEntry = old.replace(
       isLatest: current.isLatest,
       isObsolete: current.isObsolete,
@@ -107,7 +107,7 @@ class DartdocBackend {
   }
 
   /// Uploads a directory to the storage bucket.
-  Future uploadDir(DartdocEntry entry, String dirPath) async {
+  Future<void> uploadDir(DartdocEntry entry, String dirPath) async {
     // upload is in progress
     await uploadBytesWithRetry(
         _storage, entry.inProgressObjectName, entry.asBytes());
@@ -120,7 +120,7 @@ class DartdocBackend {
         .map((fse) => fse as File);
 
     int count = 0;
-    Future upload(File file) async {
+    Future<void> upload(File file) async {
       final relativePath = p.relative(file.path, from: dir.path);
       final objectName = entry.objectName(relativePath);
       final isShared = storage_path.isSharedAsset(relativePath);
@@ -259,13 +259,14 @@ class DartdocBackend {
   }
 
   /// Removes all files related to a package.
-  Future removeAll(String package, {String version, int concurrency}) async {
+  Future<void> removeAll(String package,
+      {String version, int concurrency}) async {
     final prefix = version == null ? '$package/' : '$package/$version/';
     await _deleteAllWithPrefix(prefix, concurrency: concurrency);
   }
 
   /// Removes incomplete uploads and old outputs from the bucket.
-  Future removeObsolete(String package, String version) async {
+  Future<void> removeObsolete(String package, String version) async {
     final List<DartdocEntry> completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
     final List<DartdocEntry> inProgressList =
@@ -362,12 +363,12 @@ class DartdocBackend {
     );
   }
 
-  Future _deleteAll(DartdocEntry entry) async {
+  Future<void> _deleteAll(DartdocEntry entry) async {
     await _deleteAllWithPrefix(entry.contentPrefix);
     await deleteFromBucket(_storage, entry.entryObjectName);
   }
 
-  Future _deleteAllWithPrefix(String prefix, {int concurrency}) async {
+  Future<void> _deleteAllWithPrefix(String prefix, {int concurrency}) async {
     final Stopwatch sw = Stopwatch()..start();
     var page = await _storage.page(prefix: prefix, pageSize: 256);
     final deletePool = Pool(concurrency ?? _concurrentDeletes);

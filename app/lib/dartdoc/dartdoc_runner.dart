@@ -60,7 +60,7 @@ class DartdocJobProcessor extends JobProcessor {
   /// Uses the tool environment's SDK (the one that is used for analysis too) to
   /// generate dartdoc documentation and extracted data file for SDK API indexing.
   /// Only the extracted data file will be used and uploaded.
-  Future generateDocsForSdk() async {
+  Future<void> generateDocsForSdk() async {
     if (await dartdocBackend.hasValidDartSdkDartdocData()) return;
     final tempDir =
         await Directory.systemTemp.createTemp('pub-dartlang-dartdoc');
@@ -446,7 +446,7 @@ class DartdocJobProcessor extends JobProcessor {
     return entry;
   }
 
-  Future _writeLog(String outputDir, StringBuffer buffer) async {
+  Future<void> _writeLog(String outputDir, StringBuffer buffer) async {
     await File(p.join(outputDir, _buildLogFilePath))
         .writeAsString(buffer.toString());
   }
@@ -456,7 +456,7 @@ class DartdocJobProcessor extends JobProcessor {
     buffer.write('STDERR:\n${pr.stderr}\n\n');
   }
 
-  Future _tar(String tmpDir, String tarDir, String outputDir,
+  Future<void> _tar(String tmpDir, String tarDir, String outputDir,
       StringBuffer logFileOutput) async {
     logFileOutput.write('Running tar:\n');
     final File tmpTar = File(p.join(tmpDir, _archiveFilePath));

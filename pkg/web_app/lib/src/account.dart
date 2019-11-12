@@ -198,7 +198,7 @@ class _PkgAdminWidget {
     }
   }
 
-  Future _toogleDiscontinued() async {
+  Future<void> _toogleDiscontinued() async {
     await rpc(
       confirmQuestion:
           'Are you sure you want change the "discontinued" status of the package?',
@@ -214,7 +214,7 @@ class _PkgAdminWidget {
     );
   }
 
-  Future _setPublisher() async {
+  Future<void> _setPublisher() async {
     final publisherId = _setPublisherInput.value.trim();
     if (publisherId.isEmpty) {
       await modalMessage(
@@ -333,7 +333,7 @@ class _PublisherAdminWidget {
     }
   }
 
-  Future _updatePublisher() async {
+  Future<void> _updatePublisher() async {
     await rpc(
       fn: () async {
         final payload = UpdatePublisherRequest(
@@ -348,7 +348,7 @@ class _PublisherAdminWidget {
     );
   }
 
-  Future _inviteMember() async {
+  Future<void> _inviteMember() async {
     final email = _inviteMemberInput.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage('Input validation', 'Please specify a valid e-mail.');
@@ -369,7 +369,7 @@ class _PublisherAdminWidget {
     );
   }
 
-  Future _removeMember(String userId, String email) async {
+  Future<void> _removeMember(String userId, String email) async {
     await rpc(
       confirmQuestion:
           'Are you sure you want to remove <code>$email</code> from this publisher?',
@@ -413,7 +413,7 @@ class _ConsentWidget {
     _buttons.replaceWith(Element.p()..text = text);
   }
 
-  Future _accept() async {
+  Future<void> _accept() async {
     await rpc(
       confirmQuestion: 'Are you sure you want to accept?',
       fn: () async {
@@ -426,7 +426,7 @@ class _ConsentWidget {
     );
   }
 
-  Future _reject() async {
+  Future<void> _reject() async {
     await rpc(
       confirmQuestion: 'Are you sure you want to reject?',
       fn: () async {

@@ -15,7 +15,7 @@ final Logger _logger = Logger('pub.scheduler');
 // ignore: one_member_abstracts
 abstract class TaskRunner {
   /// Run the task.
-  Future runTask(Task task);
+  Future<void> runTask(Task task);
 }
 
 // ignore: one_member_abstracts
@@ -55,10 +55,10 @@ class TaskScheduler {
     _queues = List<List<Task>>.generate(sources.length, (i) => <Task>[]);
   }
 
-  Future run() async {
+  Future<void> run() async {
     int errorCount = 0;
 
-    Future runTask(Task task) async {
+    Future<void> runTask(Task task) async {
       final Stopwatch sw = Stopwatch()..start();
       try {
         if (isSoftRemoved(task.package)) {

@@ -27,5 +27,5 @@ abstract class AuthProvider {
   Future<AuthResult> tryAuthenticate(String token);
 
   /// Close resources.
-  Future close();
+  Future<void> close();
 }

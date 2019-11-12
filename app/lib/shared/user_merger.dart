@@ -26,7 +26,7 @@ class UserMerger {
         _omitEmailCheck = omitEmailCheck ?? false;
 
   /// Fixes all OAuthUserID issues.
-  Future fixAll() async {
+  Future<void> fixAll() async {
     final ids = await scanOauthUserIdsWithProblems();
     for (String id in ids) {
       await fixOAuthUserID(id);
@@ -49,7 +49,7 @@ class UserMerger {
   }
 
   /// Runs user merging on the [oauthUserId] for each non-primary [User].
-  Future fixOAuthUserID(String oauthUserId) async {
+  Future<void> fixOAuthUserID(String oauthUserId) async {
     print('Fixing OAuthUserID=$oauthUserId');
 
     final query = _db.query<User>()..filter('oauthUserId =', oauthUserId);
@@ -83,7 +83,7 @@ class UserMerger {
   }
 
   /// Migrates data for User merge.
-  Future mergeUser(String fromUserId, String toUserId) async {
+  Future<void> mergeUser(String fromUserId, String toUserId) async {
     print('Merging User: $fromUserId -> $toUserId');
 
     // Package
@@ -218,8 +218,8 @@ class UserMerger {
     await _db.commit(deletes: [fromUserKey]);
   }
 
-  Future _processConcurrently<T extends Model>(
-      Query<T> query, Future Function(T) fn) async {
+  Future<void> _processConcurrently<T extends Model>(
+      Query<T> query, Future<void> Function(T) fn) async {
     final pool = Pool(_concurrency);
     final futures = <Future>[];
     await for (final m in query.run()) {

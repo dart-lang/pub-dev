@@ -39,7 +39,7 @@ class AnalyzerClient {
     return AnalysisView._(card, panaReport, dartdocReport);
   }
 
-  Future triggerAnalysis(
+  Future<void> triggerAnalysis(
       String package, String version, Set<String> dependentPackages) async {
     await jobBackend.trigger(JobService.analyzer, package, version);
     for (final String package in dependentPackages) {

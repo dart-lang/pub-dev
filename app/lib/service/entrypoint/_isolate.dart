@@ -50,16 +50,16 @@ class WorkerProtocolMessage {}
 
 Future startIsolates({
   @required Logger logger,
-  Future frontendEntryPoint(FrontendEntryMessage message),
-  Future workerSetup(),
-  Future workerEntryPoint(WorkerEntryMessage message),
+  Future<void> frontendEntryPoint(FrontendEntryMessage message),
+  Future<void> workerSetup(),
+  Future<void> workerEntryPoint(WorkerEntryMessage message),
 }) async {
   useLoggingPackageAdaptor();
   int frontendStarted = 0;
   int workerStarted = 0;
   final statConsumerPorts = <SendPort>[];
 
-  Future startFrontendIsolate() async {
+  Future<void> startFrontendIsolate() async {
     frontendStarted++;
     final frontendIndex = frontendStarted;
     logger.info('About to start frontend isolate #$frontendIndex...');
@@ -87,7 +87,7 @@ Future startIsolates({
 
     StreamSubscription errorSubscription;
 
-    Future close() async {
+    Future<void> close() async {
       if (protocolMessage.statsConsumerPort != null) {
         statConsumerPorts.remove(protocolMessage.statsConsumerPort);
       }
@@ -106,7 +106,7 @@ Future startIsolates({
     });
   }
 
-  Future startWorkerIsolate() async {
+  Future<void> startWorkerIsolate() async {
     workerStarted++;
     final workerIndex = workerStarted;
     logger.info('About to start worker isolate #$workerIndex...');
@@ -140,7 +140,7 @@ Future startIsolates({
 
     StreamSubscription errorSubscription;
 
-    Future close() async {
+    Future<void> close() async {
       await statsSubscription?.cancel();
       await errorSubscription?.cancel();
       errorReceivePort.close();

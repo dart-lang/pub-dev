@@ -17,7 +17,7 @@ void main() {
   setUpAll(() => updateLocalBuiltFiles());
 
   group('dartdoc assets', () {
-    Future checkAsset(String url, String path) async {
+    Future<void> checkAsset(String url, String path) async {
       final rs = await http.get(url);
       expect(rs.statusCode, 200);
       final staticContent = staticFileCache.getFile(path);

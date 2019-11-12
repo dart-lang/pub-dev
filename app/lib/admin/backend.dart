@@ -112,7 +112,7 @@ class AdminBackend {
 
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
-  Future removeUser(String userId) async {
+  Future<void> removeUser(String userId) async {
     await _withAdmin((u) async {
       final user = await accountBackend.lookupUserById(userId);
       if (user == null) return;
@@ -148,7 +148,7 @@ class AdminBackend {
     });
   }
 
-  Future _removeUploaderFromPackage(Key pkgKey, String userId) async {
+  Future<void> _removeUploaderFromPackage(Key pkgKey, String userId) async {
     await _db.withTransaction((tx) async {
       final p = (await tx.lookup<Package>([pkgKey])).single;
       p.removeUploader(userId);
@@ -160,7 +160,7 @@ class AdminBackend {
     });
   }
 
-  Future _removeMember(User user, PublisherMember member) async {
+  Future<void> _removeMember(User user, PublisherMember member) async {
     final seniorMember =
         await _remainingSeniorMember(member.publisherKey, member.userId);
     await _db.withTransaction((tx) async {
@@ -226,7 +226,7 @@ class AdminBackend {
     return otherMembers.first;
   }
 
-  Future _markUserDeleted(User user) async {
+  Future<void> _markUserDeleted(User user) async {
     await _db.withTransaction((tx) async {
       final u = (await tx.lookup<User>([user.key])).single;
       final deleteKeys = <Key>[];

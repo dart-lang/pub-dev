@@ -119,7 +119,7 @@ void main() {
 
   group('Move between publishers', () {
     final otherComPublisher = publisher('other.com');
-    Future _setup({bool addHans = true}) async {
+    Future<void> _setup({bool addHans = true}) async {
       final p = await packageBackend.lookupPackage(hydrogen.package.name);
       p.publisherId = otherComPublisher.publisherId;
       p.uploaders = [];
@@ -186,7 +186,7 @@ void main() {
   });
 
   group('Delete publisher', () {
-    Future _setupPackage() async {
+    Future<void> _setupPackage() async {
       final p = await packageBackend.lookupPackage(hydrogen.package.name);
       p.publisherId = 'example.com';
       p.uploaders = [];
@@ -227,7 +227,7 @@ void main() {
 dynamic _json(value) => json.decode(json.encode(value));
 
 void _testPublisherAdminAuthIssues(
-    Key publisherKey, Future fn(PubApiClient client)) {
+    Key publisherKey, Future<void> fn(PubApiClient client)) {
   testWithServices('No active user (${publisherKey.id})', () async {
     final client = createPubApiClient();
     final rs = fn(client);

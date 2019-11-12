@@ -54,7 +54,7 @@ class JobBackend {
       ).toString();
 
   /// Triggers analysis/dartdoc for [package]/[version] if older than [updated].
-  Future trigger(JobService service, String package,
+  Future<void> trigger(JobService service, String package,
       [String version, DateTime updated]) async {
     final pKey = _db.emptyKey.append(Package, id: package);
     final pList = await _db.lookup([pKey]);
@@ -80,7 +80,7 @@ class JobBackend {
         service, package, version, isLatestStable, pv.created, shouldProcess);
   }
 
-  Future createOrUpdate(
+  Future<void> createOrUpdate(
     JobService service,
     String package,
     String version,
@@ -177,8 +177,8 @@ class JobBackend {
     });
   }
 
-  Future unlockStaleProcessing(JobService service) async {
-    Future _unlock(Job job) async {
+  Future<void> unlockStaleProcessing(JobService service) async {
+    Future<void> _unlock(Job job) async {
       await _retryWithTransaction((tx) async {
         final list = await tx.lookup([job.key]);
         final current = list.single as Job;
@@ -212,8 +212,9 @@ class JobBackend {
     }
   }
 
-  Future checkIdle(JobService service, ShouldProcess shouldProcess) async {
-    Future _schedule(Job job) async {
+  Future<void> checkIdle(
+      JobService service, ShouldProcess shouldProcess) async {
+    Future<void> _schedule(Job job) async {
       await _retryWithTransaction((tx) async {
         final list = await tx.lookup([job.key]);
         final current = list.single as Job;
@@ -229,7 +230,7 @@ class JobBackend {
       });
     }
 
-    Future _extend(Job job) async {
+    Future<void> _extend(Job job) async {
       await _retryWithTransaction((tx) async {
         final list = await tx.lookup([job.key]);
         final current = list.single as Job;
@@ -265,7 +266,8 @@ class JobBackend {
     }
   }
 
-  Future complete(Job job, JobStatus status, {Duration extendDuration}) async {
+  Future<void> complete(Job job, JobStatus status,
+      {Duration extendDuration}) async {
     await _retryWithTransaction((tx) async {
       final items = await tx.lookup([_db.emptyKey.append(Job, id: job.id)]);
       final selected = items.single as Job;

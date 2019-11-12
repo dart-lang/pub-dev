@@ -32,7 +32,7 @@ void main() {
     });
 
     group('search', () {
-      Future setUpInServiceScope() async {
+      Future<void> setUpInServiceScope() async {
         registerSearchBackend(MockSearchBackend());
         registerPackageIndex(SimplePackageIndex());
         registerDartSdkIndex(SimplePackageIndex());

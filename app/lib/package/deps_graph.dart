@@ -61,7 +61,7 @@ class TransitiveDependencyGraph {
 
 /// Callback function to be called when a new [PackageVersion] should trigger the
 /// re-analysis of a package that depends on it.
-typedef OnAffected = Future Function(
+typedef OnAffected = Future<void> Function(
     String package, String version, Set<String> affected);
 
 class PackageDependencyBuilder {
@@ -89,7 +89,7 @@ class PackageDependencyBuilder {
 
   PackageDependencyBuilder._(this.db, this._onAffected);
 
-  Future scanExistingPackageGraph() async {
+  Future<void> scanExistingPackageGraph() async {
     final sw = Stopwatch()..start();
     for (;;) {
       _logger.info('Scanning existing package graph');
@@ -112,7 +112,7 @@ class PackageDependencyBuilder {
   }
 
   // Note, this method never returns.
-  Future monitorInBackground() async {
+  Future<void> monitorInBackground() async {
     _logger.info('Monitoring new package uploads.');
     for (;;) {
       try {

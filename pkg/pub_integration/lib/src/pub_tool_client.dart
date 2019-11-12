@@ -29,7 +29,7 @@ class PubToolClient {
   }
 
   /// Delete temp resources.
-  Future close() async {
+  Future<void> close() async {
     await _tempDir?.delete(recursive: true);
   }
 

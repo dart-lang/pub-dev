@@ -60,11 +60,11 @@ class SearchClient {
   /// Search service maintains a separate index in each of the running instances.
   /// This method will update the [ScoreCard] entry of the package, and it will
   /// be picked up by each search index individually, within a few minutes.
-  Future triggerReindex(String package, String version) async {
+  Future<void> triggerReindex(String package, String version) async {
     await scoreCardBackend.updateScoreCard(package, version);
   }
 
-  Future close() async {
+  Future<void> close() async {
     _httpClient.close();
   }
 }

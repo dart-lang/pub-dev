@@ -23,10 +23,10 @@ const int maxPages = 10;
 /// Package search index and lookup.
 abstract class PackageIndex {
   bool get isReady;
-  Future addPackage(PackageDocument doc);
-  Future addPackages(Iterable<PackageDocument> documents);
-  Future removePackage(String package);
-  Future merge();
+  Future<void> addPackage(PackageDocument doc);
+  Future<void> addPackages(Iterable<PackageDocument> documents);
+  Future<void> removePackage(String package);
+  Future<void> merge();
   Future<PackageSearchResult> search(SearchQuery query);
   Map<String, dynamic> get debugInfo;
 }

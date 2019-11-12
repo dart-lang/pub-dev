@@ -148,7 +148,7 @@ class MemDatastore implements Datastore {
   }
 
   @override
-  Future rollback(Transaction transaction) async {
+  Future<void> rollback(Transaction transaction) async {
     return null;
   }
 }

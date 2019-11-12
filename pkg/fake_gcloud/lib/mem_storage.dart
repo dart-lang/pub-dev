@@ -17,13 +17,13 @@ class MemStorage implements Storage {
   }
 
   @override
-  Future createBucket(String bucketName,
+  Future<void> createBucket(String bucketName,
       {PredefinedAcl predefinedAcl, Acl acl}) async {
     _buckets.putIfAbsent(bucketName, () => _Bucket(bucketName));
   }
 
   @override
-  Future deleteBucket(String bucketName) async {
+  Future<void> deleteBucket(String bucketName) async {
     _buckets.remove(bucketName);
   }
 
@@ -58,7 +58,7 @@ class MemStorage implements Storage {
   }
 
   @override
-  Future copyObject(String src, String dest) async {
+  Future<void> copyObject(String src, String dest) async {
     _logger.info('Copy object from $src to $dest');
     final srcUri = Uri.parse(src);
     final destUri = Uri.parse(dest);
@@ -167,7 +167,7 @@ class _Bucket implements Bucket {
   }
 
   @override
-  Future delete(String name) async {
+  Future<void> delete(String name) async {
     _validateObjectName(name);
     _files.remove(name);
   }
@@ -207,7 +207,8 @@ class _Bucket implements Bucket {
   }
 
   @override
-  Future updateMetadata(String objectName, ObjectMetadata metadata) async {
+  Future<void> updateMetadata(
+      String objectName, ObjectMetadata metadata) async {
     _logger.severe(
         'UpdateMeadata: $objectName not yet implemented, call ignored.');
   }

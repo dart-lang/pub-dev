@@ -13,7 +13,7 @@ class PublicPagesScript {
   PublicPagesScript(this.pubHostedUrl);
 
   /// Verify public pages.
-  Future verify() async {
+  Future<void> verify() async {
     assert(_pubClient == null);
     _pubClient = PubHttpClient(pubHostedUrl);
     try {
@@ -29,34 +29,34 @@ class PublicPagesScript {
     }
   }
 
-  Future _landingPage() async {
+  Future<void> _landingPage() async {
     final html = await _pubClient.getContent('/');
     _contains(html, 'Top Dart packages');
     _contains(html, 'More Dart packages...');
   }
 
-  Future _flutterLandingPage() async {
+  Future<void> _flutterLandingPage() async {
     final html = await _pubClient.getContent('/flutter');
     _contains(html, 'makes it easy and fast to build beautiful mobile apps');
   }
 
-  Future _helpPage() async {
+  Future<void> _helpPage() async {
     final html = await _pubClient.getContent('/help');
     _contains(html,
         'The overall score is a weighted average of the individual scores');
   }
 
-  Future _securityPage() async {
+  Future<void> _securityPage() async {
     final html = await _pubClient.getContent('/security');
     _contains(html, 'vulnerabilities you may find');
   }
 
-  Future _atomFeed() async {
+  Future<void> _atomFeed() async {
     final content = await _pubClient.getContent('/feed.atom');
     _contains(content, 'Pub Feed Generator');
   }
 
-  Future _searchPage() async {
+  Future<void> _searchPage() async {
     final content = await _pubClient.getContent('/packages?q=retry');
     _contains(content, 'results for <code>retry</code>');
   }

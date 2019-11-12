@@ -288,7 +288,7 @@ class SnapshotStorage {
     return null;
   }
 
-  Future store(SearchSnapshot snapshot) async {
+  Future<void> store(SearchSnapshot snapshot) async {
     await _snapshots.uploadDataAsJsonMap(snapshot.toJson());
   }
 

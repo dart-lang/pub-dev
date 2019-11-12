@@ -380,7 +380,7 @@ class PublisherBackend {
   }
 
   /// Deletes a publisher's member.
-  Future deletePublisherMember(String publisherId, String userId) async {
+  Future<void> deletePublisherMember(String publisherId, String userId) async {
     final user = await requireAuthenticatedUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
     if (userId == user.userId) {
@@ -407,7 +407,7 @@ class PublisherBackend {
 
   /// A callback from consent backend, when a consent is granted.
   /// Note: this will be retried when transaction fails due race conditions.
-  Future inviteConsentGranted(String publisherId, String userId) async {
+  Future<void> inviteConsentGranted(String publisherId, String userId) async {
     final userEmail = await accountBackend.getEmailOfUserId(userId);
     await _db.withTransaction((tx) async {
       final key = _db.emptyKey

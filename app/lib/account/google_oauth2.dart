@@ -201,11 +201,11 @@ class GoogleOauth2AuthProvider extends AuthProvider {
   }
 
   @override
-  Future close() async {
+  Future<void> close() async {
     _httpClient.close();
   }
 
-  Future _loadSecret() async {
+  Future<void> _loadSecret() async {
     if (_secretLoaded) return;
     _secret =
         await secretBackend.lookup('${SecretKey.oauthPrefix}$_siteAudience');

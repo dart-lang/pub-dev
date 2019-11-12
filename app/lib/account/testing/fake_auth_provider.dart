@@ -27,7 +27,7 @@ class FakeAuthProvider implements AuthProvider {
   }
 
   @override
-  Future close() async {}
+  Future<void> close() async {}
 
   @override
   Future<AuthResult> tryAuthenticate(String accessToken) async {

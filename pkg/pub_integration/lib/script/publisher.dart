@@ -11,7 +11,7 @@ import '../src/pub_http_client.dart';
 import '../src/pub_tool_client.dart';
 import '../src/test_data.dart';
 
-typedef InviteCompleterFn = Future Function();
+typedef InviteCompleterFn = Future<void> Function();
 
 /// A single object to execute publisher-related integration script and
 /// verification tests with the `pub` tool on the fake site.
@@ -33,7 +33,7 @@ class PublisherScript {
   });
 
   /// Verify all integration steps.
-  Future verify() async {
+  Future<void> verify() async {
     assert(_pubHttpClient == null);
     assert(_pubToolClient == null);
     _pubHttpClient = PubHttpClient(pubHostedUrl);
@@ -104,14 +104,14 @@ class PublisherScript {
     }
   }
 
-  Future _publishDummyPkg(String version) async {
+  Future<void> _publishDummyPkg(String version) async {
     final dir = await _temp.createTemp();
     await createDummyPkg(dir.path, version);
     await _pubToolClient.publish(dir.path);
     await dir.delete(recursive: true);
   }
 
-  Future _verifyDummyPkg(
+  Future<void> _verifyDummyPkg(
       {String version, String uploaderEmail, String publisherId}) async {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != version) {
@@ -161,7 +161,7 @@ class PublisherScript {
     }
   }
 
-  Future _verifyPublisherListPage() async {
+  Future<void> _verifyPublisherListPage() async {
     final html = await _pubHttpClient.getPublisherListPage();
     if (!html.contains('href="/publishers/example.com"')) {
       throw Exception('Does not contain link to publisher.');
