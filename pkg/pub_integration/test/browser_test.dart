@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
@@ -10,6 +12,8 @@ import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
+  final trackCoverage = Platform.environment['COVERAGE'] == '1';
+
   group('browser', () {
     FakePubServerProcess fakePubServerProcess;
     HeadlessEnv headlessEnv;
@@ -22,16 +26,17 @@ void main() {
     });
 
     tearDownAll(() async {
-      await page?.close();
+      await headlessEnv?.closePage(page);
       await headlessEnv?.close();
       await fakePubServerProcess?.kill();
       httpClient.close();
+      headlessEnv?.printCoverage();
     });
 
     // Starting browser separately, as it may timeout when run together with the
     // server startup.
     test('start browser', () async {
-      headlessEnv = HeadlessEnv();
+      headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
       page = await headlessEnv.newPage(
           user: FakeGoogleUser.withDefaults('dev@example.org'));
     });

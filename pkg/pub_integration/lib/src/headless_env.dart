@@ -15,8 +15,12 @@ class HeadlessEnv {
   final Directory tempDir;
   Browser _browser;
   final clientErrors = <ClientError>[];
+  final bool trackCoverage;
+  final _trackedPages = <Page>[];
+  final _jsCoverages = <String, _Coverage>{};
+  final _cssCoverages = <String, _Coverage>{};
 
-  HeadlessEnv({Directory tempDir})
+  HeadlessEnv({Directory tempDir, this.trackCoverage = false})
       : tempDir =
             tempDir ?? Directory.systemTemp.createTempSync('pub-headless');
 
@@ -60,10 +64,17 @@ class HeadlessEnv {
     );
   }
 
+  /// Creates a new page and setup overrides and tracking. [Page] must be closed
+  /// with the [closePage] method.
   Future<Page> newPage({FakeGoogleUser user}) async {
     await _startBrowser();
     final page = await _browser.newPage();
     await page.setRequestInterception(true);
+    if (trackCoverage) {
+      await page.coverage.startJSCoverage(resetOnNavigation: false);
+      // TODO: figure out why the following future does not complete
+      page.coverage.startCSSCoverage(resetOnNavigation: false);
+    }
     page.onRequest.listen((rq) async {
       // soft-abort
       if (rq.url.startsWith('https://www.google-analytics.com/') ||
@@ -104,11 +115,82 @@ class HeadlessEnv {
       print('Error: $e');
       clientErrors.add(e);
     });
+
+    _trackedPages.add(page);
     return page;
   }
 
+  /// Gets tracking results of [page] and closes it.
+  Future<void> closePage(Page page) async {
+    if (page == null) return;
+
+    if (trackCoverage) {
+      final jsEntries = await page.coverage.stopJSCoverage();
+      for (final e in jsEntries) {
+        _jsCoverages[e.url] ??= _Coverage(e.url);
+        _jsCoverages[e.url].textLength = e.text.length;
+        _jsCoverages[e.url].addRanges(e.ranges);
+      }
+
+      final cssEntries = await page.coverage.stopCSSCoverage();
+      for (final e in cssEntries) {
+        _cssCoverages[e.url] ??= _Coverage(e.url);
+        _cssCoverages[e.url].textLength = e.text.length;
+        _cssCoverages[e.url].addRanges(e.ranges);
+      }
+    }
+
+    await page.close();
+    _trackedPages.remove(page);
+  }
+
   Future<void> close() async {
+    if (_trackedPages.isNotEmpty) {
+      throw StateError('There are tracked pages with pending coverage report.');
+    }
     await _browser.close();
+  }
+
+  void printCoverage() {
+    for (final c in _jsCoverages.values) {
+      print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
+    }
+    for (final c in _cssCoverages.values) {
+      print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
+    }
+  }
+}
+
+class _Coverage {
+  final String url;
+  int textLength;
+  List<Range> _ranges = <Range>[];
+
+  _Coverage(this.url);
+
+  void addRanges(List<Range> ranges) {
+    final list = [..._ranges, ...ranges];
+    // sort by start position first, and if they are matching, sort by end position
+    list.sort((a, b) {
+      final x = a.start.compareTo(b.start);
+      return x == 0 ? a.end.compareTo(b.end) : x;
+    });
+    // merge ranges
+    _ranges = list.fold<List<Range>>(<Range>[], (m, range) {
+      if (m.isEmpty || m.last.end < range.start) {
+        m.add(range);
+      } else {
+        final last = m.removeLast();
+        m.add(Range(last.start, range.end));
+      }
+      return m;
+    });
+  }
+
+  double get percent {
+    final coveredPosition =
+        _ranges.fold<int>(0, (sum, r) => sum + r.end - r.start);
+    return coveredPosition * 100 / textLength;
   }
 }
 
