@@ -32,7 +32,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate(negatedTags: ['is:a']),
+        tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
@@ -50,7 +50,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate(negatedTags: ['is:a']),
+        tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
@@ -131,6 +131,45 @@ void main() {
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
       ));
+      expect(json.decode(json.encode(rs.toJson())), {
+        'indexUpdated': isNotEmpty,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'pkg1', 'score': isNotNull},
+        ],
+      });
+    });
+
+    test('User-supplied queried tags #1', () async {
+      final index = SimplePackageIndex();
+      await index.addPackage(
+          PackageDocument(package: 'pkg1', tags: ['is:recent', 'is:legacy']));
+      await index
+          .addPackage(PackageDocument(package: 'pkg2', tags: ['is:legacy']));
+      await index.merge();
+
+      final rs =
+          await index.search(SearchQuery.parse(query: 'is:legacy -is:recent'));
+      expect(json.decode(json.encode(rs.toJson())), {
+        'indexUpdated': isNotEmpty,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'pkg2', 'score': isNotNull},
+        ],
+      });
+    });
+
+    test('User-supplied queried tags #2', () async {
+      final index = SimplePackageIndex();
+      await index.addPackage(
+          PackageDocument(package: 'pkg1', tags: ['is:recent', 'is:legacy']));
+      await index
+          .addPackage(PackageDocument(package: 'pkg2', tags: ['is:recent']));
+      await index.merge();
+
+      final rs = await index.search(SearchQuery.parse(
+          tagsPredicate: TagsPredicate(prohibitedTags: ['is:legacy']),
+          query: 'is:recent is:legacy'));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
         'totalCount': 1,

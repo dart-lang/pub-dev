@@ -12,10 +12,20 @@ abstract class PackageTags {
 
   /// The first version of the package was published less than 30 days ago.
   static const String isRecent = 'is:recent';
+
+  static const $all = <String>[
+    isDiscontinued,
+    isNotAdvertized,
+    isRecent,
+  ];
 }
 
 /// Collection of version-related tags.
 abstract class PackageVersionTags {
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
+
+  static const $all = <String>[
+    isLegacy,
+  ];
 }

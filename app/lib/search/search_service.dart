@@ -7,6 +7,8 @@ import 'dart:math' show max;
 
 import 'package:json_annotation/json_annotation.dart';
 
+import '../package/package_tags.dart';
+
 part 'search_service.g.dart';
 
 const int _minSearchLimit = 10;
@@ -19,6 +21,12 @@ const int resultsPerPage = 10;
 /// The number of page links we display, e.g. on page 10, we display direct
 /// links from page 5 to page 15.
 const int maxPages = 10;
+
+/// The tags that we can detect in the user-provided search query.
+final _detectedTags = <String>{
+  ...PackageTags.$all.expand((s) => [s, '-$s', '+$s']),
+  ...PackageVersionTags.$all.expand((s) => [s, '-$s', '+$s']),
+};
 
 /// Package search index and lookup.
 abstract class PackageIndex {
@@ -211,6 +219,8 @@ final RegExp _refDependencyRegExp =
     RegExp('dependency:([_a-z0-9]+)', caseSensitive: false);
 final RegExp _allDependencyRegExp =
     RegExp(r'dependency\*:([_a-z0-9]+)', caseSensitive: false);
+final _tagRegExp =
+    RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
 class SearchQuery {
   final String query;
@@ -239,7 +249,7 @@ class SearchQuery {
   SearchQuery._({
     this.query,
     String platform,
-    this.tagsPredicate,
+    TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
     this.order,
@@ -250,6 +260,7 @@ class SearchQuery {
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
         platform = (platform == null || platform.isEmpty) ? null : platform,
+        tagsPredicate = tagsPredicate ?? TagsPredicate(),
         uploaderOrPublishers =
             (uploaderOrPublishers == null || uploaderOrPublishers.isEmpty)
                 ? null
@@ -411,19 +422,19 @@ class SearchQuery {
 
 /// Filter conditions on tags.
 class TagsPredicate {
-  final List<String> requiredTags;
-  final List<String> negatedTags;
+  /// tag -> {true = required | false = prohibited}
+  final _values = <String, bool>{};
 
-  TagsPredicate({List<String> requiredTags, List<String> negatedTags})
-      : requiredTags = requiredTags ?? <String>[],
-        negatedTags = negatedTags ?? <String>[];
+  TagsPredicate({List<String> requiredTags, List<String> prohibitedTags}) {
+    requiredTags?.forEach((tag) => _values[tag] = true);
+    prohibitedTags?.forEach((tag) => _values[tag] = false);
+  }
 
-  bool get isEmpty => requiredTags.isEmpty && negatedTags.isEmpty;
+  bool get isNotEmpty => _values.isNotEmpty;
 
   /// Parses [values] passed via Uri.queryParameters
   factory TagsPredicate.parseQueryValues(List<String> values) {
-    final requiredTags = <String>[];
-    final negatedTags = <String>[];
+    final p = TagsPredicate();
     for (String tag in values ?? const <String>[]) {
       bool required = true;
       if (tag.startsWith('-')) {
@@ -433,33 +444,52 @@ class TagsPredicate {
         tag = tag.substring(1);
       }
       if (required) {
-        requiredTags.add(tag);
+        p._values[tag] = true;
       } else {
-        negatedTags.add(tag);
+        p._values[tag] = false;
       }
     }
-    return TagsPredicate(requiredTags: requiredTags, negatedTags: negatedTags);
+    return p;
+  }
+
+  /// Appends [requiredTags] and [prohibitedTags] to the current set of tags,
+  /// and returns a new [TagsPredicate] instance.
+  /// The appended flags take precedence over the current ones.
+  TagsPredicate append(
+      {List<String> requiredTags, List<String> prohibitedTags}) {
+    final p = TagsPredicate();
+    p._values.addAll(_values);
+    requiredTags?.forEach((tag) => _values[tag] = true);
+    prohibitedTags?.forEach((tag) => _values[tag] = false);
+    return p;
+  }
+
+  /// Appends [other] predicate to the current set of tags, and returns a new
+  /// [TagsPredicate] instance.
+  /// The appended flags take precedence over the current ones.
+  TagsPredicate appendPredicate(TagsPredicate other) {
+    final p = TagsPredicate();
+    p._values.addAll(_values);
+    p._values.addAll(other._values);
+    return p;
   }
 
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
   bool evaluate(List<String> tags) {
     tags ??= const <String>[];
-    for (final tag in requiredTags) {
-      if (!tags.contains(tag)) return false;
-    }
-    for (final tag in negatedTags) {
-      if (tags.contains(tag)) return false;
+    for (String tag in _values.keys) {
+      final present = tags.contains(tag);
+      final required = _values[tag];
+      if (required && !present) return false;
+      if (!required && present) return false;
     }
     return true;
   }
 
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
-    return <String>[
-      ...requiredTags,
-      ...negatedTags.map((s) => '-$s'),
-    ];
+    return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
   }
 }
 
@@ -479,6 +509,9 @@ class ParsedQuery {
   /// Match uploader emails.
   final List<String> emails;
 
+  /// Detected tags in the user-provided query.
+  TagsPredicate tagsPredicate;
+
   /// Enable experimental API search.
   final bool isApiEnabled;
 
@@ -489,6 +522,7 @@ class ParsedQuery {
     this.allDependencies,
     this.publisher,
     this.emails,
+    this.tagsPredicate,
     this.isApiEnabled,
   );
 
@@ -502,9 +536,12 @@ class ParsedQuery {
       queryText = queryText.replaceFirst(_packageRegexp, ' ');
     }
 
-    List<String> extractRegExp(RegExp regExp) {
-      final List<String> values =
-          regExp.allMatches(queryText).map((Match m) => m.group(1)).toList();
+    List<String> extractRegExp(RegExp regExp, {bool Function(String) where}) {
+      final values = regExp
+          .allMatches(queryText)
+          .map((Match m) => m.group(1))
+          .where((s) => where == null || where(s))
+          .toList();
       if (values.isNotEmpty) {
         queryText = queryText.replaceAll(regExp, ' ');
       }
@@ -516,6 +553,12 @@ class ParsedQuery {
     final List<String> emails = extractRegExp(_emailRegexp);
     final allPublishers = extractRegExp(_publisherRegexp);
     final publisher = allPublishers.isEmpty ? null : allPublishers.first;
+
+    final tagValues = extractRegExp(
+      _tagRegExp,
+      where: (tag) => _detectedTags.contains(tag),
+    );
+    final tagsPredicate = TagsPredicate.parseQueryValues(tagValues);
 
     final bool isApiEnabled = queryText.contains(' !!api ');
     if (isApiEnabled) {
@@ -534,6 +577,7 @@ class ParsedQuery {
       allDependencies,
       publisher,
       emails,
+      tagsPredicate,
       isApiEnabled,
     );
   }
