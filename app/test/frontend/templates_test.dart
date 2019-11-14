@@ -138,7 +138,10 @@ void main() {
         foobarUploaderEmails,
         foobarStablePV,
         AnalysisView(
-          card: ScoreCardData(reportTypes: ['pana'], healthScore: 0.1),
+          card: ScoreCardData(
+            reportTypes: ['pana', 'dartdoc'],
+            healthScore: 0.1,
+          ),
           panaReport: PanaReport(
               timestamp: DateTime(2018, 02, 05),
               panaRuntimeInfo: _panaRuntimeInfo,
@@ -173,7 +176,13 @@ void main() {
               healthSuggestions: null,
               maintenanceSuggestions: null,
               flags: null),
-          dartdocReport: null,
+          dartdocReport: DartdocReport(
+            reportStatus: ReportStatus.success,
+            coverage: 1.0,
+            coverageScore: 1.0,
+            healthSuggestions: [],
+            maintenanceSuggestions: [],
+          ),
         ),
         isAdmin: true,
       );

@@ -65,6 +65,8 @@ class AnalysisView {
   bool get hasAnalysisData => _card != null;
   bool get hasPanaSummary => _pana != null;
   ScoreCardData get card => _card;
+  bool get hasApiDocs =>
+      _dartdoc != null && _dartdoc.reportStatus == ReportStatus.success;
 
   DateTime get timestamp => _pana?.timestamp;
   String get panaReportStatus => _pana?.reportStatus;
