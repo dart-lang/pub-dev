@@ -76,61 +76,49 @@
   position: relative;
   text-align: center;
   width: 36px;
-}
 
-.score-box > .number {
-  display: block;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
-  text-align: center;
-  font-size: 14px;
-  color: #fff;
-  margin: 0 auto;
-  font-weight: 500;
-}
+  > .number {
+    display: block;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 12px;
+    color: #fff;
+    margin: 0 auto;
+    font-weight: 700;
 
-.score-box > .number.-solid {
-  background: #0175C2;
-}
+    &.-solid {
+      background: #0175C2;
+    }
+    &.-good {
+      background: #00c4b3;
+    }
+    &.-rotten {
+      background: #bb2400;
+    }
+    &.-missing {
+      background: #ccc;
+    }
+  }
 
-.score-box > .number.-good {
-  background: #00c4b3;
-}
+  > .new {
+    position: absolute;
+    top: -30%;
+    right: -25%;
+    background: #646464;
+    border-radius: 3px;
+    color: #ffeb3b;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 0px 2px;
+    transition: background 0.2s ease-out;
 
-.score-box > .number.-rotten {
-  background: #bb2400;
-}
-
-.score-box > .number.-missing {
-  background: #ccc;
-}
-
-.score-box > .number.-small {
-  font-size: 12px;
-}
-
-.score-box > .new {
-  position: absolute;
-  top: -30%;
-  right: -25%;
-  background: #646464;
-  border-radius: 3px;
-  color: #ffeb3b;
-  font-size: 10px;
-  font-weight: bold;
-  padding: 0px 2px;
-  transition: background 0.2s ease-out;
-}
-
-.score-box > .new:hover {
-  background: #424242;
-}
-
-.score-box > .text {
-  font-size: 14px;
-  color: #333;
+    &:hover {
+      background: #424242;
+    }
+  }
 }
 
 .package-tag {
