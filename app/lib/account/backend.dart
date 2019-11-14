@@ -258,8 +258,21 @@ class AccountBackend {
   Future<String> siteAuthCodeToAccessToken(String redirectUrl, String code) =>
       _authProvider.authCodeToAccessToken(redirectUrl, code);
 
-  /// Authenticates with bearer [token] and returns an `AuthenticatedUser`
-  /// object.
+  /// Verifies that the access token is matching the current active `User`.
+  ///
+  /// Throws [AuthenticationException] if token cannot be authenticated or the
+  /// OAuth userId differs from the current active user.
+  Future<void> verifyAccessToken(String accessToken) async {
+    final auth = await _authProvider.tryAuthenticate(accessToken);
+    if (auth == null) {
+      throw AuthenticationException.accessTokenInvalid();
+    }
+    if (_authenticatedUser?.oauthUserId != auth.oauthUserId) {
+      throw AuthenticationException.accessTokenMissmatch();
+    }
+  }
+
+  /// Authenticates with bearer [token] and returns an `User` object.
   ///
   /// The method returns null if [token] is invalid.
   ///

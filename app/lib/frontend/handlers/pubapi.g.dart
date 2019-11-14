@@ -278,8 +278,8 @@ Router _$PubApiRouter(PubApi service) {
     try {
       final _$result = await service.updateSession(
         request,
-        await $utilities.decodeJson<ClientSessionData>(
-            request, (o) => ClientSessionData.fromJson(o)),
+        await $utilities.decodeJson<ClientSessionRequest>(
+            request, (o) => ClientSessionRequest.fromJson(o)),
       );
       return _$result;
     } on ApiResponseException catch (e) {

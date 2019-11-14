@@ -6,14 +6,17 @@ part of 'account_api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ClientSessionData _$ClientSessionDataFromJson(Map<String, dynamic> json) {
-  return ClientSessionData(
+ClientSessionRequest _$ClientSessionRequestFromJson(Map<String, dynamic> json) {
+  return ClientSessionRequest(
+    accessToken: json['accessToken'] as String,
     imageUrl: json['imageUrl'] as String,
   );
 }
 
-Map<String, dynamic> _$ClientSessionDataToJson(ClientSessionData instance) =>
+Map<String, dynamic> _$ClientSessionRequestToJson(
+        ClientSessionRequest instance) =>
     <String, dynamic>{
+      'accessToken': instance.accessToken,
       'imageUrl': instance.imageUrl,
     };
 
