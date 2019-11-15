@@ -51,7 +51,7 @@ class PublisherScript {
       await _pubHttpClient.createPublisher(
         authToken: 'user-at-example-dot-com',
         publisherId: 'example.com',
-        accessToken: 'access-at-example-dot-com',
+        accessToken: 'user-at-example-dot-com',
       );
       await _pubHttpClient.setPackagePublisher(
         authToken: 'user-at-example-dot-com',
