@@ -183,11 +183,11 @@ class ConsentBackend {
     // Checking that consent is for the current user.
     if (c.userIdOfConsent != null) {
       InvalidInputException.check(c.userIdOfConsent == user.userId,
-          'Consent.userId does not match current User.');
+          'This invitation is not for the user account currently logged in.');
     }
     if (c.email != null) {
-      InvalidInputException.check(
-          c.email == user.email, 'Consent.email does not match current User.');
+      InvalidInputException.check(c.email == user.email,
+          'This invitation is not for the user account currently logged in.');
     }
     return c;
   }
