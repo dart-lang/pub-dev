@@ -42,8 +42,8 @@ void main() {
           },
           body: json.encode({'granted': true}),
         );
-        if (rs1.statusCode != 404) {
-          throw Exception('Expected status code 404, got: ${rs1.statusCode}');
+        if (rs1.statusCode != 400) {
+          throw Exception('Expected status code 400, got: ${rs1.statusCode}');
         }
 
         // accepting it with the good user

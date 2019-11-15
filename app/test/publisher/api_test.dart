@@ -442,9 +442,13 @@ void main() {
         final rs2 = await client2.resolveConsent(
             consentId, account_api.ConsentResult(granted: false));
         expect(rs2.granted, isFalse);
-        final rs3 = await client2.resolveConsent(
-            consentId, account_api.ConsentResult(granted: false));
-        expect(rs3.granted, isFalse);
+        // repeated request throws exception
+        await expectApiException(
+          client2.resolveConsent(
+              consentId, account_api.ConsentResult(granted: false)),
+          status: 404,
+          code: 'NotFound',
+        );
         final rs4 = client1.publisherMemberInfo('example.com', joeUser.userId);
         await expectApiException(rs4, status: 404, code: 'NotFound');
       });

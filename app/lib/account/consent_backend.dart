@@ -43,9 +43,6 @@ class ConsentBackend {
   Future<api.Consent> getConsent(String consentId, User user) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
-    if (c == null) {
-      throw NotFoundException.resource('consent: $consentId');
-    }
     final action = _actions[c.kind];
     final activeAccountEmail =
         await accountBackend.getEmailOfUserId(c.fromUserId);
@@ -70,16 +67,10 @@ class ConsentBackend {
     final c = await _lookupAndCheck(consentId, user);
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
-      if (c == null) {
-        throw NotFoundException('Could not find invite with id: $consentId. '
-            'It probably has expired.');
-      }
       await _accept(c);
       return api.ConsentResult(granted: true);
     } else {
-      if (c != null) {
-        await _delete(c);
-      }
+      await _delete(c);
       return api.ConsentResult(granted: false);
     }
   }
@@ -169,8 +160,6 @@ class ConsentBackend {
   }
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
-  ///
-  /// Returns null if the consent cannot be found.
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
     // legacy Consent store: under the User entity
     final legacyKey = _db.emptyKey
@@ -187,14 +176,18 @@ class ConsentBackend {
     final c = await _db.lookupValue<Consent>(
         _db.emptyKey.append(Consent, id: consentId),
         orElse: () => null);
-    if (c == null) return null;
+    if (c == null) {
+      throw NotFoundException.resource('consent: $consentId');
+    }
 
     // Checking that consent is for the current user.
-    if (c.userIdOfConsent != null && c.userIdOfConsent != user.userId) {
-      return null;
+    if (c.userIdOfConsent != null) {
+      InvalidInputException.check(c.userIdOfConsent == user.userId,
+          'This invitation is not for the user account currently logged in.');
     }
-    if (c.email != null && c.email != user.email) {
-      return null;
+    if (c.email != null) {
+      InvalidInputException.check(c.email == user.email,
+          'This invitation is not for the user account currently logged in.');
     }
     return c;
   }
