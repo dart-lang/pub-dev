@@ -45,11 +45,6 @@ class PackageDocument {
   final DateTime created;
   final DateTime updated;
   final String readme;
-  final bool isDiscontinued;
-  final bool doNotAdvertise;
-
-  /// True, if this package only supports 1.x (ie. package is 2.0 incompatible)
-  final bool supportsOnlyLegacySdk;
 
   final List<String> platforms;
 
@@ -80,9 +75,6 @@ class PackageDocument {
     this.created,
     this.updated,
     this.readme = '',
-    this.isDiscontinued = false,
-    this.doNotAdvertise = false,
-    this.supportsOnlyLegacySdk = false,
     this.platforms = const [],
     List<String> tags,
     this.health = 0,
@@ -108,9 +100,6 @@ class PackageDocument {
       created: created,
       updated: updated,
       readme: readme,
-      isDiscontinued: isDiscontinued,
-      doNotAdvertise: doNotAdvertise,
-      supportsOnlyLegacySdk: supportsOnlyLegacySdk,
       platforms: platforms?.map(internFn)?.toList(),
       tags: tags.map(internFn).toList(),
       health: health,
