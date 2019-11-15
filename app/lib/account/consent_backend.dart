@@ -160,8 +160,6 @@ class ConsentBackend {
   }
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
-  ///
-  /// Returns null if the consent cannot be found.
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
     // legacy Consent store: under the User entity
     final legacyKey = _db.emptyKey
