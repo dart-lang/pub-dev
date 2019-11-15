@@ -32,7 +32,8 @@ void main() {
     // server startup.
     test('start browser', () async {
       headlessEnv = HeadlessEnv();
-      page = await headlessEnv.newPage();
+      page = await headlessEnv.newPage(
+          user: FakeGoogleUser.withDefaults('dev@example.org'));
     });
 
     test('puppeteer', () async {
