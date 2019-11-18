@@ -161,7 +161,9 @@ String renderPkgInfoBox(
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
   addLink(documentationUrl, 'Documentation');
-  addLink(dartdocsUrl, 'API reference');
+  if (analysis.hasApiDocs) {
+    addLink(dartdocsUrl, 'API reference');
+  }
 
   return templateCache.renderTemplate('pkg/info_box', {
     'name': package.name,
