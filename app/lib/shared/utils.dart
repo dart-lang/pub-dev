@@ -119,6 +119,10 @@ final _reservedPackageNames = <String>[
   'math',
   'versions',
   'webview_flutter',
+  // removed in https://github.com/dart-lang/pub-dev/issues/2853
+  'fluttery',
+  'fluttery_audio',
+  'fluttery_seekbar',
 ].map(reducePackageName).toList();
 
 /// Whether the [name] is (very similar) to a reserved package name.
