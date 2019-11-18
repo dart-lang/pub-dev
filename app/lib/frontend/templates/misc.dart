@@ -161,7 +161,7 @@ String renderTags(
 /// Renders the simplified version of the circle with 'sdk' text content instead
 /// of the score.
 String renderSdkScoreBox() {
-  return '<div class="score-box"><span class="number -small -solid">sdk</span></div>';
+  return '<div class="score-box"><span class="number -solid">sdk</span></div>';
 }
 
 /// Renders the circle with the overall score.
@@ -186,7 +186,6 @@ String renderScoreBox(
   final String boxHtml = '<div class="score-box">'
       '$newIndicator'
       '<span class="number -$scoreClass" title="$escapedTitle">$formattedScore</span>'
-      // TODO: decide on label - {{! <span class="text">?????</span> }}
       '</div>';
   if (package != null) {
     return '<a href="${urls.analysisTabUrl(package)}">$boxHtml</a>';
