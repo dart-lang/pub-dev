@@ -179,10 +179,6 @@ class Consent extends db.Model {
   String get consentId => id as String;
 
   /// The user that this consent is for.
-  /// TODO: remove once we migrated off of User-derived consents.
-  String get userIdOfConsent => userId ?? parentKey.id as String;
-
-  /// The user that this consent is for.
   @db.StringProperty()
   String userId;
 

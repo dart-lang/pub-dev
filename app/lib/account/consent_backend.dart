@@ -124,8 +124,8 @@ class ConsentBackend {
 
   Future<api.InviteStatus> _sendNotification(
       String activeUserEmail, Consent consent) async {
-    final invitedEmail = consent.email ??
-        await accountBackend.getEmailOfUserId(consent.userIdOfConsent);
+    final invitedEmail =
+        consent.email ?? await accountBackend.getEmailOfUserId(consent.userId);
     final action = _actions[consent.kind];
     await emailSender.sendMessage(createInviteEmail(
       invitedEmail: invitedEmail,
@@ -153,26 +153,13 @@ class ConsentBackend {
         await _delete(entry);
       } catch (e) {
         _logger.shout(
-            'Delete failed: ${entry.userIdOfConsent} ${entry.kind} ${entry.args}',
-            e);
+            'Delete failed: ${entry.consentId} ${entry.kind} ${entry.args}', e);
       }
     }
   }
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
   Future<Consent> _lookupAndCheck(String consentId, User user) async {
-    // legacy Consent store: under the User entity
-    final legacyKey = _db.emptyKey
-        .append(User, id: user.userId)
-        .append(Consent, id: consentId);
-    final legacyValue =
-        await _db.lookupValue<Consent>(legacyKey, orElse: () => null);
-    if (legacyValue != null) {
-      // the request is under the User entity, we don't need to do any check
-      return legacyValue;
-    }
-
-    // future Consent store: separately from the User entity
     final c = await _db.lookupValue<Consent>(
         _db.emptyKey.append(Consent, id: consentId),
         orElse: () => null);
@@ -181,8 +168,8 @@ class ConsentBackend {
     }
 
     // Checking that consent is for the current user.
-    if (c.userIdOfConsent != null) {
-      InvalidInputException.check(c.userIdOfConsent == user.userId,
+    if (c.userId != null) {
+      InvalidInputException.check(c.userId == user.userId,
           'This invitation is not for the user account currently logged in.');
     }
     if (c.email != null) {

@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bumped runtimeVersion to `2019.11.12`.
  * Upgraded tool SDK to Dart `2.6.1`.
+ * Removed support for old `Consent` format.
 
 ## `20191111t112217-all`
  * Run `app/bin/tools/backfill_package_fields.dart` to backfill `Package`
