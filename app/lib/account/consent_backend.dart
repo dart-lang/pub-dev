@@ -198,8 +198,8 @@ class ConsentBackend {
       InvalidInputException.check(c.userIdOfConsent == user.userId,
           'This invitation is not for the user account currently logged in.');
     }
-    final permitsDifferentUser = c.kind == ConsentKind.publisherContact;
-    if (!permitsDifferentUser && c.email != null) {
+    final action = _actions[c.kind];
+    if (!action.permitConfirmationWithOtherEmail && c.email != null) {
       InvalidInputException.check(c.email == user.email,
           'This invitation is not for the user account currently logged in.');
     }
@@ -246,6 +246,10 @@ abstract class ConsentAction {
 
   /// Callback on rejecting the consent or timeout.
   Future<void> onDelete(Consent consent);
+
+  /// Whether the user accepting the consent can have a different e-mail than
+  /// the one the consent request was sent to.
+  bool get permitConfirmationWithOtherEmail => false;
 
   /// The subject of the notification email sent.
   String renderEmailSubject(List<String> args) =>
@@ -321,6 +325,9 @@ class _PublisherContactAction extends ConsentAction {
   Future<void> onDelete(Consent consent) async {
     // nothing to do
   }
+
+  @override
+  bool get permitConfirmationWithOtherEmail => true;
 
   @override
   String renderEmailSubject(List<String> args) =>
