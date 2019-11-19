@@ -466,7 +466,7 @@ class TagsPredicate {
 
   /// Evaluate this predicate against the list of supplied [tags].
   /// Returns true if the predicate matches the [tags], false otherwise.
-  bool evaluate(List<String> tags) {
+  bool matches(List<String> tags) {
     tags ??= const <String>[];
     for (String tag in _values.keys) {
       final present = tags.contains(tag);

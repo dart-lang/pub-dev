@@ -152,7 +152,7 @@ class SimplePackageIndex implements PackageIndex {
         query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
     if (combinedTagsPredicate.isNotEmpty) {
       packages.retainWhere(
-          (package) => combinedTagsPredicate.evaluate(_packages[package].tags));
+          (package) => combinedTagsPredicate.matches(_packages[package].tags));
     }
 
     // filter on dependency
