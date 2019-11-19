@@ -452,18 +452,6 @@ class TagsPredicate {
     return p;
   }
 
-  /// Appends [requiredTags] and [prohibitedTags] to the current set of tags,
-  /// and returns a new [TagsPredicate] instance.
-  /// The appended flags take precedence over the current ones.
-  TagsPredicate append(
-      {List<String> requiredTags, List<String> prohibitedTags}) {
-    final p = TagsPredicate();
-    p._values.addAll(_values);
-    requiredTags?.forEach((tag) => _values[tag] = true);
-    prohibitedTags?.forEach((tag) => _values[tag] = false);
-    return p;
-  }
-
   /// Appends [other] predicate to the current set of tags, and returns a new
   /// [TagsPredicate] instance.
   /// The appended flags take precedence over the current ones.
