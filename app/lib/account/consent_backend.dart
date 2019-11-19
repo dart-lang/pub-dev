@@ -29,12 +29,25 @@ void registerConsentBackend(ConsentBackend backend) =>
 ConsentBackend get consentBackend =>
     ss.lookup(#_consentBackend) as ConsentBackend;
 
+/// List of consent kinds.
+abstract class ConsentKind {
+  /// Invite a new uploader to a package.
+  static const packageUploader = 'PackageUploader';
+
+  /// Request permission to use e-mail as publisher contact.
+  static const publisherContact = 'PublisherContact';
+
+  /// Invite a new member to a publisher.
+  static const publisherMember = 'PublisherMember';
+}
+
 /// Represents the backend for the consent handling and authentication.
 class ConsentBackend {
   final DatastoreDB _db;
   final _actions = <String, ConsentAction>{
-    'PackageUploader': _PackageUploaderAction(),
-    'PublisherMember': _PublisherMemberAction(),
+    ConsentKind.packageUploader: _PackageUploaderAction(),
+    ConsentKind.publisherContact: _PublisherContactAction(),
+    ConsentKind.publisherMember: _PublisherMemberAction(),
   };
 
   ConsentBackend(this._db);
@@ -172,7 +185,8 @@ class ConsentBackend {
       InvalidInputException.check(c.userId == user.userId,
           'This invitation is not for the user account currently logged in.');
     }
-    if (c.email != null) {
+    final action = _actions[c.kind];
+    if (!action.permitConfirmationWithOtherEmail && c.email != null) {
       InvalidInputException.check(c.email == user.email,
           'This invitation is not for the user account currently logged in.');
     }
@@ -219,6 +233,10 @@ abstract class ConsentAction {
 
   /// Callback on rejecting the consent or timeout.
   Future<void> onDelete(Consent consent);
+
+  /// Whether the user accepting the consent can have a different e-mail than
+  /// the one the consent request was sent to.
+  bool get permitConfirmationWithOtherEmail => false;
 
   /// The subject of the notification email sent.
   String renderEmailSubject(List<String> args) =>
@@ -278,6 +296,53 @@ class _PackageUploaderAction extends ConsentAction {
     return '<code>$activeAccountEmail</code> has invited you to be an uploader of '
         'the package '
         '<a href="$url" target="_blank" rel="noreferrer"><code>$packageName</code></a>.';
+  }
+}
+
+/// Callbacks for requesting permission to use e-mail as publisher contact.
+class _PublisherContactAction extends ConsentAction {
+  @override
+  Future<void> onAccept(Consent consent) async {
+    final publisherId = consent.args[0];
+    final contactEmail = consent.args[1];
+    await publisherBackend.updateContactEmail(publisherId, contactEmail);
+  }
+
+  @override
+  Future<void> onDelete(Consent consent) async {
+    // nothing to do
+  }
+
+  @override
+  bool get permitConfirmationWithOtherEmail => true;
+
+  @override
+  String renderEmailSubject(List<String> args) =>
+      'You have a new request to confirm on $primaryHost';
+
+  @override
+  String renderInviteText(String activeAccountEmail, List<String> args) {
+    final publisherId = args[0];
+    final contactEmail = args[1];
+    return '$activeAccountEmail has requested to use `$contactEmail` as the '
+        'contact email of the verified publisher $publisherId.';
+  }
+
+  @override
+  String renderInviteTitleText(String activeAccountEmail, List<String> args) {
+    final publisherId = args[0];
+    return 'Request for publisher: $publisherId';
+  }
+
+  @override
+  String renderInviteHtml(String activeAccountEmail, List<String> args) {
+    final publisherId = args[0];
+    final contactEmail = args[1];
+    final url = publisherUrl(publisherId);
+    return '<code>$activeAccountEmail</code> has requested to use '
+        '<code>$contactEmail</code> as the contact email of '
+        'the <a href="https://dart.dev/tools/pub/verified-publishers" target="_blank" rel="noreferrer">verified publisher</a> '
+        '<a href="$url" target="_blank" rel="noreferrer"><code>$publisherId</code></a>.';
   }
 }
 
