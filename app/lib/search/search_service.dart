@@ -7,8 +7,6 @@ import 'dart:math' show max;
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../package/package_tags.dart';
-
 part 'search_service.g.dart';
 
 const int _minSearchLimit = 10;
@@ -22,10 +20,9 @@ const int resultsPerPage = 10;
 /// links from page 5 to page 15.
 const int maxPages = 10;
 
-/// The tags that we can detect in the user-provided search query.
-final _detectedTags = <String>{
-  ...PackageTags.$all.expand((s) => [s, '-$s', '+$s']),
-  ...PackageVersionTags.$all.expand((s) => [s, '-$s', '+$s']),
+/// The tag prefixes that we can detect in the user-provided search query.
+final _detectedTagPrefixes = <String>{
+  ...['is:'].expand((s) => [s, '-$s', '+$s']),
 };
 
 /// Package search index and lookup.
@@ -546,7 +543,7 @@ class ParsedQuery {
 
     final tagValues = extractRegExp(
       _tagRegExp,
-      where: (tag) => _detectedTags.contains(tag),
+      where: (tag) => _detectedTagPrefixes.any((p) => tag.startsWith(p)),
     );
     final tagsPredicate = TagsPredicate.parseQueryValues(tagValues);
 
