@@ -17,7 +17,6 @@ void main() {
   group('browser', () {
     FakePubServerProcess fakePubServerProcess;
     HeadlessEnv headlessEnv;
-    Page page;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -26,7 +25,6 @@ void main() {
     });
 
     tearDownAll(() async {
-      await headlessEnv?.closePage(page);
       await headlessEnv?.close();
       await fakePubServerProcess?.kill();
       httpClient.close();
@@ -37,19 +35,23 @@ void main() {
     // server startup.
     test('start browser', () async {
       headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
-      page = await headlessEnv.newPage(
-          user: FakeGoogleUser.withDefaults('dev@example.org'));
+      await headlessEnv.startBrowser();
     });
 
     test('puppeteer', () async {
-      await page.goto('http://localhost:${fakePubServerProcess.port}',
-          wait: Until.networkIdle);
+      await headlessEnv.withPage(
+        user: FakeGoogleUser.withDefaults('dev@example.org'),
+        fn: (page) async {
+          await page.goto('http://localhost:${fakePubServerProcess.port}',
+              wait: Until.networkIdle);
 
-      // checking if there is a login button
-      await page.hover('#-account-login');
+          // checking if there is a login button
+          await page.hover('#-account-login');
 
-      // check uncaught exception
-      expect(headlessEnv.clientErrors.isEmpty, true);
+          // check uncaught exception
+          expect(headlessEnv.clientErrors.isEmpty, true);
+        },
+      );
     });
   }, timeout: Timeout.factor(2));
 }

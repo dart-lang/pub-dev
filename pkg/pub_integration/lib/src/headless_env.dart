@@ -48,7 +48,7 @@ class HeadlessEnv {
     return null;
   }
 
-  Future<void> _startBrowser() async {
+  Future<void> startBrowser() async {
     if (_browser != null) return;
     final chromeBin = await _detectChromeBinary();
     final userDataDir = await tempDir.createTemp('user');
@@ -68,10 +68,9 @@ class HeadlessEnv {
     );
   }
 
-  /// Creates a new page and setup overrides and tracking. [Page] must be closed
-  /// with the [closePage] method.
-  Future<Page> newPage({FakeGoogleUser user}) async {
-    await _startBrowser();
+  /// Creates a new page and setup overrides and tracking.
+  Future<R> withPage<R>({FakeGoogleUser user, Future<R> fn(Page page)}) async {
+    await startBrowser();
     final page = await _browser.newPage();
     await page.setRequestInterception(true);
     if (trackCoverage) {
@@ -121,11 +120,16 @@ class HeadlessEnv {
     });
 
     _trackedPages.add(page);
-    return page;
+
+    try {
+      return await fn(page);
+    } finally {
+      await _closePage(page);
+    }
   }
 
   /// Gets tracking results of [page] and closes it.
-  Future<void> closePage(Page page) async {
+  Future<void> _closePage(Page page) async {
     if (page == null) return;
 
     if (trackCoverage) {
