@@ -148,7 +148,6 @@ Future _updateUser(GoogleUser user) async {
   } else {
     final body = ClientSessionRequest(
       accessToken: currentUser.getAuthResponse(true).access_token,
-      imageUrl: user.getBasicProfile().getImageUrl(),
     );
     final st1 = ClientSessionStatus.fromBytes(await client.updateSession(body));
     if (st1.changed) {

@@ -9,7 +9,6 @@ part of 'account_api.dart';
 ClientSessionRequest _$ClientSessionRequestFromJson(Map<String, dynamic> json) {
   return ClientSessionRequest(
     accessToken: json['accessToken'] as String,
-    imageUrl: json['imageUrl'] as String,
   );
 }
 
@@ -17,7 +16,6 @@ Map<String, dynamic> _$ClientSessionRequestToJson(
         ClientSessionRequest instance) =>
     <String, dynamic>{
       'accessToken': instance.accessToken,
-      'imageUrl': instance.imageUrl,
     };
 
 ClientSessionStatus _$ClientSessionStatusFromJson(Map<String, dynamic> json) {

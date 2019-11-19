@@ -50,8 +50,7 @@ class FakePubServer {
 
       await withPubServices(() async {
         await ss.fork(() async {
-          registerAccountBackend(
-              AccountBackend(db, authProvider: FakeAuthProvider(port)));
+          registerAuthProvider(FakeAuthProvider(port));
           registerDomainVerifier(FakeDomainVerifier());
           registerUploadSigner(FakeUploadSignerService(storageBaseUrl));
           registerSearchClient(MockSearchClient());

@@ -84,8 +84,7 @@ void testWithServices(String name, Future<void> fn()) {
           helium.package.name, helium.package.latestVersion);
 
       await fork(() async {
-        registerAccountBackend(
-            AccountBackend(db, authProvider: FakeAuthProvider()));
+        registerAuthProvider(FakeAuthProvider());
         registerDomainVerifier(FakeDomainVerifier());
         registerEmailSender(FakeEmailSender());
         registerUploadSigner(FakeUploadSignerService('https://storage.url'));

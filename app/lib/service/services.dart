@@ -7,6 +7,7 @@ import 'package:gcloud/storage.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../account/google_oauth2.dart';
 import '../admin/backend.dart';
 import '../analyzer/analyzer_client.dart';
 import '../dartdoc/backend.dart';
@@ -54,6 +55,13 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerAccountBackend(AccountBackend(dbService));
     registerAdminBackend(AdminBackend(dbService));
     registerAnalyzerClient(AnalyzerClient());
+    registerAuthProvider(GoogleOauth2AuthProvider(
+      <String>[
+        activeConfiguration.pubClientAudience,
+        activeConfiguration.pubSiteAudience,
+        activeConfiguration.adminAudience,
+      ],
+    ));
     registerConsentBackend(ConsentBackend(dbService));
     registerDartdocBackend(
       DartdocBackend(
@@ -96,7 +104,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
 
     registerScopeExitCallback(indexUpdater.close);
-    registerScopeExitCallback(accountBackend.close);
+    registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);
     registerScopeExitCallback(searchClient.close);
 
