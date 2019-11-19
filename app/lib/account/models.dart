@@ -172,15 +172,14 @@ class UserInfo extends db.ExpandoModel {
   DateTime updated;
 }
 
-/// An active consent request sent to the recipient [User] (the parent entity).
+/// An active consent request sent to a recipient.
+///
+/// When [userId] or [email] is specified, the accepting user is matched against
+/// these values on accepting the consent.
 @db.Kind(name: 'Consent', idType: db.IdType.String)
 class Consent extends db.Model {
   /// The consent id.
   String get consentId => id as String;
-
-  /// The user that this consent is for.
-  /// TODO: remove once we migrated off of User-derived consents.
-  String get userIdOfConsent => userId ?? parentKey.id as String;
 
   /// The user that this consent is for.
   @db.StringProperty()
