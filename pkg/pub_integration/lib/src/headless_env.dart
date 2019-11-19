@@ -17,7 +17,11 @@ class HeadlessEnv {
   final clientErrors = <ClientError>[];
   final bool trackCoverage;
   final _trackedPages = <Page>[];
+
+  /// The coverage report of JavaScript files.
   final _jsCoverages = <String, _Coverage>{};
+
+  /// The coverage report of CSS files.
   final _cssCoverages = <String, _Coverage>{};
 
   HeadlessEnv({Directory tempDir, this.trackCoverage = false})
@@ -161,22 +165,26 @@ class HeadlessEnv {
   }
 }
 
+/// Track the covered ranges in the source file.
 class _Coverage {
   final String url;
   int textLength;
-  List<Range> _ranges = <Range>[];
+
+  /// List of start-end ranges that were covered in the source file during the
+  /// execution of the app.
+  List<Range> _coveredRanges = <Range>[];
 
   _Coverage(this.url);
 
   void addRanges(List<Range> ranges) {
-    final list = [..._ranges, ...ranges];
+    final list = [..._coveredRanges, ...ranges];
     // sort by start position first, and if they are matching, sort by end position
     list.sort((a, b) {
       final x = a.start.compareTo(b.start);
       return x == 0 ? a.end.compareTo(b.end) : x;
     });
     // merge ranges
-    _ranges = list.fold<List<Range>>(<Range>[], (m, range) {
+    _coveredRanges = list.fold<List<Range>>(<Range>[], (m, range) {
       if (m.isEmpty || m.last.end < range.start) {
         m.add(range);
       } else {
@@ -189,7 +197,7 @@ class _Coverage {
 
   double get percent {
     final coveredPosition =
-        _ranges.fold<int>(0, (sum, r) => sum + r.end - r.start);
+        _coveredRanges.fold<int>(0, (sum, r) => sum + r.end - r.start);
     return coveredPosition * 100 / textLength;
   }
 }
