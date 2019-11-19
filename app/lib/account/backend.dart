@@ -88,7 +88,6 @@ class AccountBackend {
   AccountBackend(this._db, {AuthProvider authProvider})
       : _authProvider = authProvider ??
             GoogleOauth2AuthProvider(
-              activeConfiguration.pubSiteAudience,
               <String>[
                 activeConfiguration.pubClientAudience,
                 activeConfiguration.pubSiteAudience,
@@ -245,18 +244,6 @@ class AccountBackend {
       tx.queueMutations(inserts: [p], deletes: [likeKey]);
     });
   }
-
-  /// Returns the URL of the authorization endpoint used by pub site.
-  String siteAuthorizationUrl(String redirectUrl, String state) {
-    return _authProvider.authorizationUrl(redirectUrl, state);
-  }
-
-  /// Validates the authorization [code] and returns the access token.
-  ///
-  /// Returns null on any error, or if the token is expired, or the code is not
-  /// verified.
-  Future<String> siteAuthCodeToAccessToken(String redirectUrl, String code) =>
-      _authProvider.authCodeToAccessToken(redirectUrl, code);
 
   /// Verifies that the access token belongs to the [owner].
   ///

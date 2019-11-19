@@ -16,17 +16,6 @@ class FakeAuthProvider implements AuthProvider {
   FakeAuthProvider([this.httpPort = 8080]);
 
   @override
-  Future<String> authCodeToAccessToken(String redirectUrl, String code) async {
-    return code;
-  }
-
-  @override
-  String authorizationUrl(String redirectUrl, String state) {
-    return Uri.parse(redirectUrl)
-        .replace(port: httpPort, queryParameters: {'state': state}).toString();
-  }
-
-  @override
   Future<void> close() async {}
 
   @override
