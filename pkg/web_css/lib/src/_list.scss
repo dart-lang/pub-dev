@@ -30,6 +30,10 @@
   min-height: 7em;
 }
 
+.list-item.-compact {
+  min-height: 4em;
+}
+
 .list-item > .title {
   font-weight: 600;
   font-size: 16px;

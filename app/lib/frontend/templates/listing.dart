@@ -4,9 +4,13 @@
 
 import 'dart:math';
 
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/shared/utils.dart';
+
 import '../../package/models.dart';
 import '../../search/search_service.dart';
 import '../../shared/urls.dart' as urls;
+import '../static_files.dart';
 
 import '_cache.dart';
 import '_consts.dart';
@@ -81,6 +85,23 @@ String renderPackageList(List<PackageView> packages) {
   return templateCache.renderTemplate('pkg/package_list', {
     'packages': packagesJson,
   });
+}
+
+/// Renders the `views/pkg/liked_package_list.mustache` template.
+String renderMyLikedPackagesList(List<LikeData> likes) {
+  final packagesJson = [];
+  for (final like in likes) {
+    final package = like.package;
+    packagesJson.add({
+      'url': urls.pkgPageUrl(package),
+      'name': package,
+      'liked_date': shortDateFormat.format(like.created),
+      'thumb_up_outlined': staticUrls.assets['img__thumb-up-24px_svg'],
+      'thumb_up_filled': staticUrls.assets['img__thumb-up-filled-24px_svg']
+    });
+  }
+  return templateCache
+      .renderTemplate('pkg/liked_package_list', {'packages': packagesJson});
 }
 
 /// Renders the `views/pkg/index.mustache` template.

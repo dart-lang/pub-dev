@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:html/parser.dart';
 import 'package:pana/pana.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
@@ -652,6 +653,18 @@ void main() {
         totalCount: 2,
       );
       expectGoldenFile(html, 'my_packages.html');
+    });
+
+    scopedTest('/my-liked-packages page', () {
+      final String html = renderMyLikedPackagesPage(user: hansUser, likes: [
+        LikeData(
+            package: 'super_package',
+            created: DateTime.fromMillisecondsSinceEpoch(1574423824000)),
+        LikeData(
+            package: 'another_package',
+            created: DateTime.fromMillisecondsSinceEpoch(1574423824000))
+      ]);
+      expectGoldenFile(html, 'my_liked_packages.html');
     });
 
     scopedTest('/my-publishers page', () {

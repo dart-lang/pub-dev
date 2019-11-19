@@ -25,4 +25,5 @@ void main() {
   updateDartdocStatus();
   setupAccount();
   setupLikes();
+  setupLikesList();
 }

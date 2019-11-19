@@ -26,6 +26,18 @@ button {
   cursor: pointer;
   border: none;
 
+  &.mdc-button--unelevated {
+    background-color: $color-searchbar-dark-input-fg !important;
+
+    &:hover {
+      background-color: darken($color-searchbar-dark-input-fg, 10%) !important;
+    }
+
+    &.mdc-ripple-upgraded--foreground-activation {
+      background-color: darken($color-searchbar-dark-input-fg, 50%) !important;
+    }
+  }
+
   &.mdc-button--raised {
     background-color: $color-input-primary !important;
 
@@ -230,7 +242,7 @@ pre > code {
   margin-right: 2px;
 }
 
-#-pub-like-button {
+#-pub-like-icon-button {
   vertical-align: top;
   margin-left: 20px;
   margin-top: -15px;
@@ -239,6 +251,15 @@ pre > code {
 .-pub-likes {
  display: inline-block;
   margin-right: 2px;
+}
+
+.-pub-like-button {
+  float: right;
+  width: 100px;
+}
+
+.-pub-like-button-text {
+  color: #000;
 }
 
 /******************************************************

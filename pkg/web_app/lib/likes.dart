@@ -18,10 +18,31 @@ void _enqueue(Future<void> Function() task) {
   _done = _done.then((_) => task(), onError: (e) => print('Action failed: $e'));
 }
 
+void setupLikesList() {
+  document.querySelectorAll('.-pub-like-button').forEach((likeButton) {
+    final package = likeButton.dataset['package'];
+
+    likeButton.onClick.listen((Event e) {
+      final text = likeButton.querySelector('.-pub-like-button-text');
+      final img =
+          likeButton.querySelector('.-pub-like-button-img') as ImageElement;
+      if (text.innerText == 'LIKE') {
+        text.innerText = 'UNLIKE';
+        img.src = likeButton.dataset['thumb_up_filled'];
+        _enqueue(() => client.likePackage(package));
+      } else {
+        text.innerText = 'LIKE';
+        img.src = likeButton.dataset['thumb_up_outlined'];
+        _enqueue(() => client.unlikePackage(package));
+      }
+    });
+  });
+}
+
 void setupLikes() {
   final likes = document.querySelector('#likes-count');
   final likeButton =
-      document.querySelector('#-pub-like-button') as ButtonElement;
+      document.querySelector('#-pub-like-icon-button') as ButtonElement;
 
   // If `likeButton` is not on this page we assume the page doesn't display a
   // `like package` button.

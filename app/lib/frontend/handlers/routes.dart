@@ -200,6 +200,10 @@ class PubSiteService {
   Future<Response> accountPackagesPage(Request request) async =>
       accountPackagesPageHandler(request);
 
+  @Route.get('/my-liked-packages')
+  Future<Response> accountMyLikedPackagesPage(Request request) async =>
+      accountMyLikedPackagesPageHandler(request);
+
   /// List of the current user's publishers.
   @Route.get('/my-publishers')
   Future<Response> accountPublishersPage(Request request) async =>

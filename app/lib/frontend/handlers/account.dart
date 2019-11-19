@@ -126,8 +126,9 @@ Future<LikedPackagesRepsonse> listPackageLikesHandler(
     shelf.Request request) async {
   final user = await requireAuthenticatedUser();
   final packages = await accountBackend.listPackageLikes(user);
-  final List<PackageLikeResponse> packageLikes = List.from(
-      packages.map((String p) => PackageLikeResponse(liked: true, package: p)));
+  final List<PackageLikeResponse> packageLikes = List.from(packages.map(
+      (like) => PackageLikeResponse(
+          liked: true, package: like.package, created: like.created)));
   return LikedPackagesRepsonse(likedPackages: packageLikes);
 }
 
@@ -210,6 +211,19 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
     searchQuery: searchQuery,
     totalCount: totalCount,
   );
+  return htmlResponse(html);
+}
+
+/// Handles requests for GET my-liked-packages
+Future<shelf.Response> accountMyLikedPackagesPageHandler(
+    shelf.Request request) async {
+  if (userSessionData == null) {
+    return htmlResponse(renderUnauthenticatedPage());
+  }
+
+  final user = await accountBackend.lookupUserById(userSessionData.userId);
+  final likes = await accountBackend.listPackageLikes(user);
+  final html = renderMyLikedPackagesPage(user: user, likes: likes);
   return htmlResponse(html);
 }
 

@@ -10,8 +10,8 @@
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:site" content="@dart_lang"/>
     <meta property="og:site_name" content="Dart packages"/>
-    <title>My publishers</title>
-    <meta property="og:title" content="My publishers"/>
+    <title>My liked packages</title>
+    <meta property="og:title" content="My liked packages"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet"/>
     <meta itemprop="image" content="/static/img/dart-logo-400x400.png?hash=mocked_hash_58383222"/>
     <meta property="og:image" content="/static/img/dart-logo-400x400.png?hash=mocked_hash_58383222"/>
@@ -96,29 +96,44 @@
             <li class="tab-link" data-name="-packages-tab-" role="button">
               <a href="/my-packages">My packages</a>
             </li>
-            <li class="tab-link" data-name="-liked-packages-tab-" role="button">
-              <a href="/my-liked-packages">My liked packages</a>
+            <li class="tab-button -active" data-name="-liked-packages-tab-" role="button">My liked packages</li>
+            <li class="tab-link" data-name="-publishers-tab-" role="button">
+              <a href="/my-publishers">My publishers</a>
             </li>
-            <li class="tab-button -active" data-name="-publishers-tab-" role="button">My publishers</li>
           </ul>
           <div class="main detail-tabs-content">
-            <section class="tab-content -active" data-name="-publishers-tab-">
-              <ul class="publisher-list">
-                <li class="list-item">
+            <section class="tab-content -active" data-name="-liked-packages-tab-">
+      You like 2 packages. 
+
+
+              <ul class="package-list">
+                <li class="list-item -compact">
+                  <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="super_package" data-thumb_up_outlined="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" data-thumb_up_filled="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424">
+                    <div class="mdc-button__ripple"></div>
+                    <img class="mdc-button__icon -pub-like-button-img" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" aria-hidden="true"/>
+                    <span class="mdc-button__label -pub-like-button-text">Unlike</span>
+                  </button>
                   <h3 class="title">
-                    <a href="/publishers/example.com">example.com</a>
+                    <a href="/packages/super_package">super_package</a>
                   </h3>
-                  <p class="metadata">
-      Registered on Jul 15, 2019.
-    </p>
+                  <p class="metadata"> Liked on: 
+                    <span>Nov 22, 2019</span>
+                  </p>
+                </li>
+                <li class="list-item -compact">
+                  <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="another_package" data-thumb_up_outlined="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" data-thumb_up_filled="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424">
+                    <div class="mdc-button__ripple"></div>
+                    <img class="mdc-button__icon -pub-like-button-img" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" aria-hidden="true"/>
+                    <span class="mdc-button__label -pub-like-button-text">Unlike</span>
+                  </button>
+                  <h3 class="title">
+                    <a href="/packages/another_package">another_package</a>
+                  </h3>
+                  <p class="metadata"> Liked on: 
+                    <span>Nov 22, 2019</span>
+                  </p>
                 </li>
               </ul>
-              <h3>Want to create a new publisher?</h3>
-              <p>
-  Use the 
-                <a href="/create-publisher">create publisher</a> page.
-
-              </p>
             </section>
           </div>
           <aside class="detail-info-box">

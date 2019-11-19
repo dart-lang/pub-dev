@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
-import '../../account/models.dart' show User;
+import '../../account/models.dart' show LikeData, User;
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
@@ -62,11 +62,12 @@ String renderAccountPackagesPage({
   String resultCountHtml;
   if (isSearch) {
     resultCountHtml =
-        '$totalCount owned package(s) for <code>${htmlEscape.convert(searchQuery.query)}</code>';
+        '$totalCount owned ${totalCount == 1 ? 'package' : 'packages'} for '
+        '<code>${htmlEscape.convert(searchQuery.query)}</code>';
   } else {
     resultCountHtml = totalCount > 0
-        ? 'You own $totalCount package(s).'
-        : 'You have not published any package yet. Learn more about '
+        ? 'You own $totalCount ${totalCount == 1 ? 'package' : 'packages'}.'
+        : 'You have not published any packages yet. Learn more about '
             '<a href="https://dart.dev/tools/pub/publishing">publishing packages</a>.';
   }
 
@@ -84,6 +85,7 @@ String renderAccountPackagesPage({
     tabs: [
       Tab.withContent(
           id: 'packages', title: 'My packages', contentHtml: tabContent),
+      _myLikedPackagesLink(),
       _myPublishersLink(),
     ],
     infoBoxHtml: _accountInfoBox(user),
@@ -98,21 +100,56 @@ String renderAccountPackagesPage({
   );
 }
 
-/// Renders the current user's publishers page.
-String renderAccountPublishersPage({
-  @required User user,
-  @required List<Publisher> publishers,
-}) {
-  final packageListHtml = renderPublisherList(publishers, isGlobal: false);
+/// Renders the current user's liked packages page.
+String renderMyLikedPackagesPage(
+    {@required User user, @required List<LikeData> likes}) {
+  final likedPackagesListHtml = renderMyLikedPackagesList(likes);
 
+  final resultCountHtml = likes.isNotEmpty
+      ? 'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}. '
+      : 'You have not liked any packages yet.';
+
+  final tabContent = [
+    resultCountHtml,
+    likedPackagesListHtml,
+  ].join('\n');
   final content = renderDetailPage(
     headerHtml: _accountDetailHeader(user),
     tabs: [
       _myPackagesLink(),
       Tab.withContent(
+          id: 'liked-packages',
+          title: 'My liked packages',
+          contentHtml: tabContent),
+      _myPublishersLink(),
+    ],
+    infoBoxHtml: _accountInfoBox(user),
+  );
+
+  return renderLayoutPage(
+    PageType.account,
+    content,
+    title: 'My liked packages',
+    noIndex: true,
+  );
+}
+
+/// Renders the current user's publishers page.
+String renderAccountPublishersPage({
+  @required User user,
+  @required List<Publisher> publishers,
+}) {
+  final publisherListHtml = renderPublisherList(publishers, isGlobal: false);
+
+  final content = renderDetailPage(
+    headerHtml: _accountDetailHeader(user),
+    tabs: [
+      _myPackagesLink(),
+      _myLikedPackagesLink(),
+      Tab.withContent(
           id: 'publishers',
           title: 'My publishers',
-          contentHtml: packageListHtml),
+          contentHtml: publisherListHtml),
     ],
     infoBoxHtml: _accountInfoBox(user),
   );
@@ -127,6 +164,11 @@ String renderAccountPublishersPage({
 
 Tab _myPackagesLink() =>
     Tab.withLink(id: 'packages', title: 'My packages', href: '/my-packages');
+
+Tab _myLikedPackagesLink() => Tab.withLink(
+    id: 'liked-packages',
+    title: 'My liked packages',
+    href: '/my-liked-packages');
 
 Tab _myPublishersLink() => Tab.withLink(
     id: 'publishers', title: 'My publishers', href: '/my-publishers');

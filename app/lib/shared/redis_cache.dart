@@ -11,7 +11,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 
-import '../account/models.dart' show UserSessionData;
+import '../account/models.dart' show LikeData, UserSessionData;
 import '../dartdoc/models.dart' show DartdocEntry, FileInfo;
 import '../package/models.dart' show PackageView;
 import '../scorecard/models.dart' show ScoreCardData;
@@ -135,6 +135,19 @@ class CachePatterns {
         encode: (ScoreCardData d) => d.toJson(),
         decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
       ))['$package-$version'];
+
+  Entry<List<LikeData>> userPackageLikes(String userId) => _cache
+      .withPrefix('user-package-likes')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(wrapAsCodec(
+        encode: (List<LikeData> l) =>
+            l.map((LikeData l) => l.toJson()).toList(),
+        decode: (d) => (d as List)
+            .map((d) => LikeData.fromJson(d as Map<String, dynamic>))
+            .toList(),
+      ))[userId];
 }
 
 /// The active cache.
