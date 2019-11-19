@@ -172,7 +172,10 @@ class UserInfo extends db.ExpandoModel {
   DateTime updated;
 }
 
-/// An active consent request sent to the recipient [User] (the parent entity).
+/// An active consent request sent to a recipient.
+///
+/// When [userId] or [email] is specified, the accepting user is matched against
+/// these values on accepting the consent.
 @db.Kind(name: 'Consent', idType: db.IdType.String)
 class Consent extends db.Model {
   /// The consent id.
