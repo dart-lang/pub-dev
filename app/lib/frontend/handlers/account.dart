@@ -30,7 +30,7 @@ Future<shelf.Response> updateSessionHandler(
   final user = await requireAuthenticatedUser();
 
   InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
-  await accountBackend.verifyAccessToken(body.accessToken);
+  await accountBackend.verifyAccessTokenOwnership(body.accessToken, user);
 
   // Only allow creation of sessions on the primary site host.
   // Exposing session on other domains is a security concern.

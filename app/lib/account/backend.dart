@@ -258,16 +258,17 @@ class AccountBackend {
   Future<String> siteAuthCodeToAccessToken(String redirectUrl, String code) =>
       _authProvider.authCodeToAccessToken(redirectUrl, code);
 
-  /// Verifies that the access token is matching the current active `User`.
+  /// Verifies that the access token belongs to the [owner].
   ///
   /// Throws [AuthenticationException] if token cannot be authenticated or the
-  /// OAuth userId differs from the current active user.
-  Future<void> verifyAccessToken(String accessToken) async {
+  /// OAuth userId differs from [owner].
+  Future<void> verifyAccessTokenOwnership(
+      String accessToken, User owner) async {
     final auth = await _authProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
-    if (_authenticatedUser?.oauthUserId != auth.oauthUserId) {
+    if (owner.oauthUserId != auth.oauthUserId) {
       throw AuthenticationException.accessTokenMissmatch();
     }
   }
