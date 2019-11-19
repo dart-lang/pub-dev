@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
@@ -10,10 +12,11 @@ import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
+  final trackCoverage = Platform.environment['COVERAGE'] == '1';
+
   group('browser', () {
     FakePubServerProcess fakePubServerProcess;
     HeadlessEnv headlessEnv;
-    Page page;
     final httpClient = http.Client();
 
     setUpAll(() async {
@@ -22,29 +25,33 @@ void main() {
     });
 
     tearDownAll(() async {
-      await page?.close();
       await headlessEnv?.close();
       await fakePubServerProcess?.kill();
       httpClient.close();
+      headlessEnv?.printCoverage();
     });
 
     // Starting browser separately, as it may timeout when run together with the
     // server startup.
     test('start browser', () async {
-      headlessEnv = HeadlessEnv();
-      page = await headlessEnv.newPage(
-          user: FakeGoogleUser.withDefaults('dev@example.org'));
+      headlessEnv = HeadlessEnv(trackCoverage: trackCoverage);
+      await headlessEnv.startBrowser();
     });
 
     test('puppeteer', () async {
-      await page.goto('http://localhost:${fakePubServerProcess.port}',
-          wait: Until.networkIdle);
+      await headlessEnv.withPage(
+        user: FakeGoogleUser.withDefaults('dev@example.org'),
+        fn: (page) async {
+          await page.goto('http://localhost:${fakePubServerProcess.port}',
+              wait: Until.networkIdle);
 
-      // checking if there is a login button
-      await page.hover('#-account-login');
+          // checking if there is a login button
+          await page.hover('#-account-login');
 
-      // check uncaught exception
-      expect(headlessEnv.clientErrors.isEmpty, true);
+          // check uncaught exception
+          expect(headlessEnv.clientErrors.isEmpty, true);
+        },
+      );
     });
   }, timeout: Timeout.factor(2));
 }
