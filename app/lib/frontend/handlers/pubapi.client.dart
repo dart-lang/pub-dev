@@ -157,7 +157,7 @@ class PubApiClient {
     ));
   }
 
-  Future<List<int>> updateSession(_i4.ClientSessionData payload) async {
+  Future<List<int>> updateSession(_i4.ClientSessionRequest payload) async {
     return await _client.requestBytes(
       verb: 'post',
       path: '/api/account/session',

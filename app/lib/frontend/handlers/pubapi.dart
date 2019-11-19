@@ -192,9 +192,8 @@ class PubApi {
   /// The response header will contain the updated session cookie, and the body
   /// is a [ClientSessionStatus].
   @EndPoint.post('/api/account/session')
-  Future<Response> updateSession(
-          Request request, ClientSessionData sessionData) =>
-      updateSessionHandler(request, clientSessionData: sessionData);
+  Future<Response> updateSession(Request request, ClientSessionRequest body) =>
+      updateSessionHandler(request, body);
 
   /// Removes the user session.
   ///

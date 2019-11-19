@@ -146,13 +146,14 @@ Future _updateUser(GoogleUser user) async {
       }
     }
   } else {
-    final st1 = ClientSessionStatus.fromBytes(await client.updateSession(
-      ClientSessionData(imageUrl: user.getBasicProfile().getImageUrl()),
-    ));
+    final body = ClientSessionRequest(
+      accessToken: currentUser.getAuthResponse(true).access_token,
+      imageUrl: user.getBasicProfile().getImageUrl(),
+    );
+    final st1 = ClientSessionStatus.fromBytes(await client.updateSession(body));
     if (st1.changed) {
-      final st2 = ClientSessionStatus.fromBytes(await client.updateSession(
-        ClientSessionData(imageUrl: user.getBasicProfile().getImageUrl()),
-      ));
+      final st2 =
+          ClientSessionStatus.fromBytes(await client.updateSession(body));
       // If creating the session a second time changed anything then maybe the
       // client has disabled cookies. We should NOT reload to avoid degrading
       // into an infinite reload loop. We could show a message, but we have no

@@ -40,14 +40,14 @@ void main() {
         // Check that we can create the publisher
         final r1 = await api.createPublisher(
           'verified.com',
-          CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
+          CreatePublisherRequest(accessToken: hansUser.userId),
         );
         expect(r1.contactEmail, hansUser.email);
 
         // Check that creating again idempotently works too
         final r2 = await api.createPublisher(
           'verified.com',
-          CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
+          CreatePublisherRequest(accessToken: hansUser.userId),
         );
         expect(r2.contactEmail, hansUser.email);
 
@@ -73,7 +73,7 @@ void main() {
         // Check that we can create the publisher
         final rs = api.createPublisher(
           'notverified.com',
-          CreatePublisherRequest(accessToken: 'dummy-token-for-testing'),
+          CreatePublisherRequest(accessToken: hansUser.userId),
         );
         await expectApiException(
           rs,

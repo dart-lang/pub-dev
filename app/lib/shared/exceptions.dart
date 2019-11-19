@@ -185,8 +185,16 @@ class AuthenticationException extends ResponseException
   /// Signaling that `authorization` header was missing.
   factory AuthenticationException.authenticationRequired() =>
       AuthenticationException._(
-        'authenication is required, please add `authorization` header.',
-      );
+          'Authenication is required, please add `authorization` header.');
+
+  /// Signaling that `accessToken` payload was missing or could not be authenticated.
+  factory AuthenticationException.accessTokenInvalid() =>
+      AuthenticationException._('Invalid `accessToken`.');
+
+  /// Signaling that `accessToken` resolved to a different OAuth `userId`.
+  factory AuthenticationException.accessTokenMissmatch() =>
+      AuthenticationException._(
+          '`accessToken` does not match current active user.');
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server

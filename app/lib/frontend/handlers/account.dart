@@ -26,10 +26,11 @@ shelf.Response authorizedHandler(_) => htmlResponse(renderAuthorizedPage());
 
 /// Handles POST /api/account/session
 Future<shelf.Response> updateSessionHandler(
-  shelf.Request request, {
-  ClientSessionData clientSessionData,
-}) async {
+    shelf.Request request, ClientSessionRequest body) async {
   final user = await requireAuthenticatedUser();
+
+  InvalidInputException.checkNotNull(body.accessToken, 'accessToken');
+  await accountBackend.verifyAccessTokenOwnership(body.accessToken, user);
 
   // Only allow creation of sessions on the primary site host.
   // Exposing session on other domains is a security concern.
@@ -45,7 +46,7 @@ Future<shelf.Response> updateSessionHandler(
   if (userSessionData != null &&
       userSessionData.userId == user.userId &&
       userSessionData.email == user.email &&
-      userSessionData.imageUrl == clientSessionData.imageUrl) {
+      userSessionData.imageUrl == body.imageUrl) {
     final status = ClientSessionStatus(
       changed: false,
       expires: userSessionData.expires,
@@ -53,8 +54,8 @@ Future<shelf.Response> updateSessionHandler(
     return jsonResponse(status.toJson());
   }
 
-  final newSession = await accountBackend.createNewSession(
-      imageUrl: clientSessionData.imageUrl);
+  final newSession =
+      await accountBackend.createNewSession(imageUrl: body.imageUrl);
 
   return jsonResponse(
     ClientSessionStatus(

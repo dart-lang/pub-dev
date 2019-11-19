@@ -9,19 +9,29 @@ import 'package:meta/meta.dart';
 
 part 'account_api.g.dart';
 
-/// Session data to be cached from the authenticated client.
+/// A session request to be processed on the server.
 @JsonSerializable()
-class ClientSessionData {
+class ClientSessionRequest {
+  /// The OAuth2 `access_token` to be used when accessing profile data like
+  /// image URL.
+  ///
+  /// This must:
+  ///  * be valid at the time of the request,
+  ///  * obtained from the OAuth2 flow used on the pub.dev website.
+  final String accessToken;
+
+  /// TODO: remove after we can get this information on the server side.
   final String imageUrl;
 
-  ClientSessionData({
+  ClientSessionRequest({
+    @required this.accessToken,
     @required this.imageUrl,
   });
 
-  factory ClientSessionData.fromJson(Map<String, dynamic> json) =>
-      _$ClientSessionDataFromJson(json);
+  factory ClientSessionRequest.fromJson(Map<String, dynamic> json) =>
+      _$ClientSessionRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ClientSessionDataToJson(this);
+  Map<String, dynamic> toJson() => _$ClientSessionRequestToJson(this);
 }
 
 /// The server-provided status of the current session.
