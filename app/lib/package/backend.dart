@@ -727,7 +727,7 @@ class GCloudPackageRepository extends PackageRepository {
     final status = await consentBackend.invite(
       userId: uploader?.userId,
       email: uploaderEmail,
-      kind: 'PackageUploader',
+      kind: ConsentKind.packageUploader,
       args: [packageName],
     );
 

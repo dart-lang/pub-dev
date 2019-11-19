@@ -223,27 +223,43 @@ class PublisherBackend {
             'The parsed URL does not match its original form.');
       }
 
-      // If contactEmail has changed, check that it's one of the admin's.
+      // If contactEmail has changed, check that it's one of the admin's, and
+      // if it matches an admin, set it directly, otherwise send an invite.
       if (update.contactEmail != null &&
-          p.contactEmail != update.contactEmail) {
+          update.contactEmail != p.contactEmail) {
+        InvalidInputException.checkStringLength(update.contactEmail, 'email',
+            maximum: 4096);
+        InvalidInputException.check(isValidEmail(update.contactEmail),
+            'Invalid email: `${update.contactEmail}`');
+
+        bool contactEmailMatchedAdmin = false;
+
         final user =
             await accountBackend.lookupUserByEmail(update.contactEmail);
-        InvalidInputException.check(
-          user != null,
-          'The contact email must match one of the current publisher members',
-        );
-        final members = await tx.lookup<PublisherMember>(
-            [p.key.append(PublisherMember, id: user.userId)]);
-        final member = members.single;
-        InvalidInputException.check(
-          member?.role == PublisherMemberRole.admin,
-          'The contact email must match one of the current publisher members',
-        );
+        if (user != null) {
+          final member = await tx.lookupValue<PublisherMember>(
+              p.key.append(PublisherMember, id: user.userId),
+              orElse: () => null);
+          InvalidInputException.check(
+            member?.role == PublisherMemberRole.admin,
+            'The contact email is a registered user, but not member of the publisher.',
+          );
+          contactEmailMatchedAdmin = true;
+          p.contactEmail = user.email;
+        }
+
+        if (!contactEmailMatchedAdmin) {
+          await consentBackend.invite(
+            userId: null,
+            email: update.contactEmail,
+            kind: ConsentKind.publisherContact,
+            args: [publisherId, update.contactEmail],
+          );
+        }
       }
 
       p.description = update.description ?? p.description;
       p.websiteUrl = update.websiteUrl ?? p.websiteUrl;
-      p.contactEmail = update.contactEmail ?? p.contactEmail;
       p.updated = DateTime.now().toUtc();
 
       tx.queueMutations(inserts: [p]);
@@ -253,6 +269,23 @@ class PublisherBackend {
 
     await purgePublisherCache(publisherId: publisherId);
     return _asPublisherInfo(p);
+  }
+
+  /// Updates the contact email field of the publisher.
+  Future updateContactEmail(String publisherId, String contactEmail) async {
+    final activeUser = await requireAuthenticatedUser();
+    await requirePublisherAdmin(publisherId, activeUser.userId);
+    InvalidInputException.check(
+        isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
+
+    await _db.withTransaction((tx) async {
+      final key = _db.emptyKey.append(Publisher, id: publisherId);
+      final p = (await tx.lookup<Publisher>([key])).single;
+      p.contactEmail = contactEmail;
+      p.updated = DateTime.now().toUtc();
+      tx.queueMutations(inserts: [p]);
+      await tx.commit();
+    });
   }
 
   /// Invites a user to become a publisher admin.
@@ -290,7 +323,7 @@ class PublisherBackend {
     return await consentBackend.invite(
       userId: invitedUserId,
       email: invitedUserEmail,
-      kind: 'PublisherMember',
+      kind: ConsentKind.publisherMember,
       args: [p.publisherId],
     );
   }

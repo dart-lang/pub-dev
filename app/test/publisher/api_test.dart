@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 import 'package:client_data/account_api.dart' as account_api;
 import 'package:client_data/publisher_api.dart';
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/publisher/models.dart';
@@ -209,13 +210,43 @@ void main() {
         ),
       );
 
-      testWithServices('Not registered user e-amil', () async {
+      testWithServices('Not registered user e-mail', () async {
         final client = createPubApiClient(authToken: hansUser.userId);
-        final rs = client.updatePublisher(
+        final orig = await client.publisherInfo('example.com');
+        final rs = await client.updatePublisher(
           'example.com',
           UpdatePublisherRequest(contactEmail: 'not-registered@example.com'),
         );
-        await expectApiException(rs, status: 400, code: 'InvalidInput');
+        expect(rs.contactEmail, orig.contactEmail);
+
+        // contact is not changed yet
+        final info = await client.publisherInfo('example.com');
+        expect(info.contactEmail, orig.contactEmail);
+
+        // email is sent
+        expect(fakeEmailSender.sentMessages.length, 1);
+        final email = fakeEmailSender.sentMessages.first;
+        expect(email.recipients.single.email, 'not-registered@example.com');
+        final consentId = email.bodyText
+            .split('\n')
+            .firstWhere((s) => s.contains('https://pub.dev/consent'))
+            .split('?id=')
+            .last
+            .trim();
+        expect(consentId, hasLength(26));
+
+        // accept consent
+        await client.resolveConsent(
+            consentId, account_api.ConsentResult(granted: true));
+
+        // check updated value
+        final updated = await client.publisherInfo('example.com');
+        expect(updated.contactEmail, 'not-registered@example.com');
+
+        // no User entity created
+        final user = await accountBackend
+            .lookupUserByEmail('not-registered@example.com');
+        expect(user, isNull);
       });
 
       testWithServices('User is not a member', () async {

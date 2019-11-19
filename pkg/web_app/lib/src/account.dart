@@ -307,6 +307,7 @@ class _PublisherAdminWidget {
   InputElement _contactEmailInput;
   InputElement _inviteMemberInput;
   Element _inviteMemberButton;
+  String _originalContactEmail;
 
   void init() {
     if (!pageData.isPublisherPage) return;
@@ -322,6 +323,7 @@ class _PublisherAdminWidget {
     _inviteMemberButton =
         document.getElementById('-admin-invite-member-button');
     if (isActive) {
+      _originalContactEmail = _contactEmailInput.value;
       _updateButton.onClick.listen((_) => _updatePublisher());
       _inviteMemberButton.onClick.listen((_) => _inviteMember());
       for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
@@ -334,7 +336,14 @@ class _PublisherAdminWidget {
   }
 
   Future<void> _updatePublisher() async {
+    String confirmQuestion;
+    if (_originalContactEmail != _contactEmailInput.value) {
+      confirmQuestion = 'You are changing the contact email of the publisher. '
+          'Changing it to an admin member email happens immediately, for other '
+          'addresses we will send a confirmation request.';
+    }
     await rpc(
+      confirmQuestion: confirmQuestion,
       fn: () async {
         final payload = UpdatePublisherRequest(
           description: _descriptionTextArea.value,
