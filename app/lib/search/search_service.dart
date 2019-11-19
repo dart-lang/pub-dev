@@ -454,7 +454,9 @@ class TagsPredicate {
 
   /// Appends [other] predicate to the current set of tags, and returns a new
   /// [TagsPredicate] instance.
-  /// The appended flags take precedence over the current ones.
+  ///
+  /// If there are conflicting tag predicates, the [other] takes precedence over
+  /// this [TagsPredicate].
   TagsPredicate appendPredicate(TagsPredicate other) {
     final p = TagsPredicate();
     p._values.addAll(_values);
