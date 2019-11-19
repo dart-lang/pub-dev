@@ -148,9 +148,11 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // filter on tags
-    if (query.tagsPredicate != null) {
+    final combinedTagsPredicate =
+        query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
+    if (combinedTagsPredicate.isNotEmpty) {
       packages.retainWhere(
-          (package) => query.tagsPredicate.evaluate(_packages[package].tags));
+          (package) => combinedTagsPredicate.matches(_packages[package].tags));
     }
 
     // filter on dependency

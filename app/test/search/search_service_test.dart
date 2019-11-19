@@ -94,6 +94,28 @@ void main() {
       expect(query.parsedQuery.emails, ['user@domain.com']);
     });
 
+    test('known tag', () {
+      final query = SearchQuery.parse(query: 'is:legacy');
+      expect(query.parsedQuery.text, isNull);
+      expect(
+          query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
+    });
+
+    test('forbidden known tag', () {
+      final query = SearchQuery.parse(query: '-is:legacy');
+      expect(query.parsedQuery.text, isNull);
+      expect(
+          query.parsedQuery.tagsPredicate.toQueryParameters(), ['-is:legacy']);
+    });
+
+    test('known tag + package prefix + search text', () {
+      final query = SearchQuery.parse(query: 'json is:legacy package:foo_');
+      expect(query.parsedQuery.text, 'json');
+      expect(
+          query.parsedQuery.tagsPredicate.toQueryParameters(), ['is:legacy']);
+      expect(query.parsedQuery.packagePrefix, 'foo_');
+    });
+
     test('publisher + email + text + dependency', () {
       final query = SearchQuery.parse(
           query:

@@ -32,7 +32,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate(negatedTags: ['is:a']),
+        tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
@@ -50,7 +50,7 @@ void main() {
       await index.merge();
 
       final rs = await index.search(SearchQuery.parse(
-        tagsPredicate: TagsPredicate(negatedTags: ['is:a']),
+        tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
       ));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
@@ -131,6 +131,42 @@ void main() {
       final rs = await index.search(SearchQuery.parse(
         tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
       ));
+      expect(json.decode(json.encode(rs.toJson())), {
+        'indexUpdated': isNotEmpty,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'pkg1', 'score': isNotNull},
+        ],
+      });
+    });
+
+    test('User-supplied queried tags #1', () async {
+      final index = SimplePackageIndex();
+      await index
+          .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
+      await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:b']));
+      await index.merge();
+
+      final rs = await index.search(SearchQuery.parse(query: 'is:b -is:a'));
+      expect(json.decode(json.encode(rs.toJson())), {
+        'indexUpdated': isNotEmpty,
+        'totalCount': 1,
+        'packages': [
+          {'package': 'pkg2', 'score': isNotNull},
+        ],
+      });
+    });
+
+    test('User-supplied queried tags #2', () async {
+      final index = SimplePackageIndex();
+      await index
+          .addPackage(PackageDocument(package: 'pkg1', tags: ['is:a', 'is:b']));
+      await index.addPackage(PackageDocument(package: 'pkg2', tags: ['is:a']));
+      await index.merge();
+
+      final rs = await index.search(SearchQuery.parse(
+          tagsPredicate: TagsPredicate(prohibitedTags: ['is:b']),
+          query: 'is:a is:b'));
       expect(json.decode(json.encode(rs.toJson())), {
         'indexUpdated': isNotEmpty,
         'totalCount': 1,
