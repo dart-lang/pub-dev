@@ -279,11 +279,7 @@ class EnvConfig {
     this.flutterSdkDir,
     this.frontendCount,
     this.workerCount,
-  ) {
-    if (this.gcloudProject == null) {
-      throw Exception('GCLOUD_PROJECT needs to be set!');
-    }
-  }
+  );
 
   factory EnvConfig._detect() {
     final frontendCount =

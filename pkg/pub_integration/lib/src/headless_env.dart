@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:puppeteer/puppeteer.dart';
@@ -59,7 +60,7 @@ class HeadlessEnv {
     );
   }
 
-  Future<Page> newPage() async {
+  Future<Page> newPage({FakeGoogleUser user}) async {
     await _startBrowser();
     final page = await _browser.newPage();
     await page.setRequestInterception(true);
@@ -79,8 +80,16 @@ class HeadlessEnv {
 
       if (rq.url ==
           'https://apis.google.com/js/platform.js?onload=pubAuthInit') {
+        final fakePlatformJs = File('lib/src/fake_platform.js');
+        final fileContent = await fakePlatformJs.readAsString();
+        final overrides = <String>[
+          if (user != null) 'googleUser = ${json.encode(user.toJson())};',
+        ];
         await rq.respond(
-            status: 200, contentType: 'text/javascript', body: '{};');
+          status: 200,
+          contentType: 'text/javascript',
+          body: '$fileContent\n\n${overrides.join('\n')}',
+        );
         return;
       }
 
@@ -101,4 +110,48 @@ class HeadlessEnv {
   Future<void> close() async {
     await _browser.close();
   }
+}
+
+/// User to inject in the fake google auth JS script.
+class FakeGoogleUser {
+  final String id;
+  final String email;
+  final String imageUrl;
+  final String accessToken;
+  final String idToken;
+  final String scope;
+  final DateTime expiresAt;
+
+  FakeGoogleUser({
+    this.id,
+    this.email,
+    this.imageUrl,
+    this.accessToken,
+    this.idToken,
+    this.scope,
+    this.expiresAt,
+  });
+
+  factory FakeGoogleUser.withDefaults(String email) {
+    final id = email.replaceAll('@', '-at-').replaceAll('.', '-dot-');
+    return FakeGoogleUser(
+      id: id,
+      email: email,
+      imageUrl: '/images/user/$id.jpg',
+      scope: 'profile',
+      accessToken: id,
+      idToken: id,
+      expiresAt: DateTime.now().add(Duration(hours: 1)),
+    );
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'isSignedIn': id != null,
+        'id': id,
+        'email': email,
+        'imageUrl': imageUrl,
+        'accessToken': accessToken,
+        'idToken': idToken,
+        'expiresAt': expiresAt?.millisecondsSinceEpoch ?? 0,
+      };
 }
