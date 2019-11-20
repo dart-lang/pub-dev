@@ -20,12 +20,8 @@ class ClientSessionRequest {
   ///  * obtained from the OAuth2 flow used on the pub.dev website.
   final String accessToken;
 
-  /// TODO: remove after we can get this information on the server side.
-  final String imageUrl;
-
   ClientSessionRequest({
     @required this.accessToken,
-    @required this.imageUrl,
   });
 
   factory ClientSessionRequest.fromJson(Map<String, dynamic> json) =>

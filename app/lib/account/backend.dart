@@ -13,13 +13,11 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:uuid/uuid.dart';
 
-import '../shared/configuration.dart';
 import '../shared/datastore_helper.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
 
 import 'auth_provider.dart';
-import 'google_oauth2.dart' show GoogleOauth2AuthProvider;
 import 'models.dart';
 
 /// The name of the session cookie.
@@ -33,6 +31,13 @@ import 'models.dart';
 const pubSessionCookieName = '__Host-pub-sid';
 final _logger = Logger('account.backend');
 final _uuid = Uuid();
+
+/// Sets the auth provider service.
+void registerAuthProvider(AuthProvider authProvider) =>
+    ss.register(#_authProvider, authProvider);
+
+/// The active auth provider service.
+AuthProvider get authProvider => ss.lookup(#_authProvider) as AuthProvider;
 
 /// Sets the account backend service.
 void registerAccountBackend(AccountBackend backend) =>
@@ -80,24 +85,11 @@ Future<User> requireAuthenticatedUser() async {
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
-  final AuthProvider _authProvider;
   final _emailCache = Cache(Cache.inMemoryCacheProvider(1000))
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8);
 
-  AccountBackend(this._db, {AuthProvider authProvider})
-      : _authProvider = authProvider ??
-            GoogleOauth2AuthProvider(
-              <String>[
-                activeConfiguration.pubClientAudience,
-                activeConfiguration.pubSiteAudience,
-                activeConfiguration.adminAudience,
-              ],
-            );
-
-  Future<void> close() async {
-    await _authProvider.close();
-  }
+  AccountBackend(this._db);
 
   /// Returns the `User` entry for the [userId] or null if it does not exists.
   Future<User> lookupUserById(String userId) async {
@@ -251,7 +243,7 @@ class AccountBackend {
   /// OAuth userId differs from [owner].
   Future<void> verifyAccessTokenOwnership(
       String accessToken, User owner) async {
-    final auth = await _authProvider.tryAuthenticate(accessToken);
+    final auth = await authProvider.tryAuthenticate(accessToken);
     if (auth == null) {
       throw AuthenticationException.accessTokenInvalid();
     }
@@ -271,7 +263,7 @@ class AccountBackend {
   /// a new one. When the authenticated email of the user changes, the email
   /// field will be updated to the latest one.
   Future<User> authenticateWithBearerToken(String token) async {
-    final auth = await _authProvider.tryAuthenticate(token);
+    final auth = await authProvider.tryAuthenticate(token);
     if (auth == null) {
       return null;
     }

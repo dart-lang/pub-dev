@@ -45,8 +45,7 @@ Future<shelf.Response> updateSessionHandler(
   // check if the session data is the same
   if (userSessionData != null &&
       userSessionData.userId == user.userId &&
-      userSessionData.email == user.email &&
-      userSessionData.imageUrl == body.imageUrl) {
+      userSessionData.email == user.email) {
     final status = ClientSessionStatus(
       changed: false,
       expires: userSessionData.expires,
@@ -54,8 +53,9 @@ Future<shelf.Response> updateSessionHandler(
     return jsonResponse(status.toJson());
   }
 
+  final profile = await authProvider.getAccountProfile(body.accessToken);
   final newSession =
-      await accountBackend.createNewSession(imageUrl: body.imageUrl);
+      await accountBackend.createNewSession(imageUrl: profile.imageUrl);
 
   return jsonResponse(
     ClientSessionStatus(

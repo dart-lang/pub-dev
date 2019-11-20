@@ -5,12 +5,13 @@
 import 'dart:convert' show json;
 
 import 'package:googleapis/oauth2/v2.dart' as oauth2_v2;
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart' show retry;
 
 import '../shared/email.dart' show isValidEmail;
-import 'auth_provider.dart' show AuthProvider, AuthResult;
+import 'auth_provider.dart';
 
 final _logger = Logger('pub.account.google_auth2');
 
@@ -156,6 +157,29 @@ class GoogleOauth2AuthProvider extends AuthProvider {
       return null; // missing email (probably missing 'email' scope)
     }
     return AuthResult(r['sub'] as String, r['email'] as String);
+  }
+
+  @override
+  Future<AccountProfile> getAccountProfile(String accessToken) async {
+    final client = http.Client();
+    final authClient = auth.authenticatedClient(
+        client,
+        auth.AccessCredentials(
+          auth.AccessToken(
+            'Bearer',
+            accessToken,
+            DateTime.now().toUtc().add(Duration(minutes: 20)), // avoid refresh
+          ),
+          null,
+          [],
+        ));
+
+    final oauth2 = oauth2_v2.Oauth2Api(authClient);
+    final info = await oauth2.userinfo.get();
+    client.close();
+    return AccountProfile(
+      imageUrl: info.picture,
+    );
   }
 
   @override

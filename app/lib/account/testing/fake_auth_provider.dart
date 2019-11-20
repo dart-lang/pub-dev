@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../auth_provider.dart' show AuthProvider, AuthResult;
+import '../auth_provider.dart';
 
 /// A fake auth provider where user resolution is done via the provided access
 /// token.
@@ -24,5 +24,12 @@ class FakeAuthProvider implements AuthProvider {
     final email = accessToken.replaceAll('-at-', '@').replaceAll('-dot-', '.');
     final id = email.replaceAll('@', '-').replaceAll('.', '-');
     return AuthResult(id, email);
+  }
+
+  @override
+  Future<AccountProfile> getAccountProfile(String accessToken) async {
+    if (accessToken == null || !accessToken.contains('-at-')) return null;
+    final imageUrl = '/images/user/$accessToken.jpg';
+    return AccountProfile(imageUrl: imageUrl);
   }
 }
