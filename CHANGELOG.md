@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20191120t113136-all`
  * Bumped runtimeVersion to `2019.11.12`.
  * Upgraded tool SDK to Dart `2.6.1`.
  * Removed support for old `Consent` format.
