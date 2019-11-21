@@ -194,6 +194,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
       userSessionData.email,
       ...publishers.map((p) => p.publisherId),
     ],
+    tagsPredicate: TagsPredicate.allPackages(),
   );
 
   final searchResult = await searchAdapter.search(searchQuery);

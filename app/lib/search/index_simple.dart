@@ -212,18 +212,6 @@ class SimplePackageIndex implements PackageIndex {
       });
     }
 
-    // filter on discontinued
-    // TODO: use TagsPredicate and default it to filter discontinued.
-    packages.removeWhere(
-        (p) => _packages[p].tags.contains(PackageTags.isDiscontinued));
-
-    // filter on ad
-    // TODO: use TagsPredicate instead of SearchQuery.isAd
-    if (query.isAd ?? false) {
-      packages.removeWhere((package) =>
-          _packages[package].tags.contains(PackageTags.isNotAdvertized));
-    }
-
     // Remove legacy packages, if not included in the query.
     // TODO: use TagsPredicate instead of SearchQuery.includeLegacy
     if (!query.includeLegacy) {

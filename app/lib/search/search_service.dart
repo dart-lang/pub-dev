@@ -6,6 +6,9 @@ import 'dart:async';
 import 'dart:math' show max;
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
+
+import '../package/package_tags.dart';
 
 part 'search_service.g.dart';
 
@@ -237,7 +240,6 @@ class SearchQuery {
   final SearchOrder order;
   final int offset;
   final int limit;
-  final bool isAd;
   final bool isApiEnabled;
 
   /// True, if packages which only support dart 1.x should be included.
@@ -252,7 +254,6 @@ class SearchQuery {
     this.order,
     this.offset,
     this.limit,
-    this.isAd,
     this.isApiEnabled,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
@@ -274,7 +275,6 @@ class SearchQuery {
     SearchOrder order,
     int offset = 0,
     int limit = 10,
-    bool isAd = false,
     bool apiEnabled = true,
     bool includeLegacy = false,
   }) {
@@ -289,7 +289,6 @@ class SearchQuery {
       order: order,
       offset: offset,
       limit: limit,
-      isAd: isAd,
       isApiEnabled: apiEnabled,
       includeLegacy: includeLegacy,
     );
@@ -318,7 +317,6 @@ class SearchQuery {
       order: order,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
-      isAd: uri.queryParameters['ad'] == '1',
       apiEnabled: uri.queryParameters['api'] != '0',
       includeLegacy: uri.queryParameters['legacy'] == '1',
     );
@@ -346,7 +344,6 @@ class SearchQuery {
       order: order ?? this.order,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
-      isAd: isAd ?? this.isAd,
       isApiEnabled: apiEnabled ?? this.isApiEnabled,
       includeLegacy: includeLegacy ?? this.includeLegacy,
     );
@@ -362,7 +359,6 @@ class SearchQuery {
       'offset': offset?.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
-      'ad': isAd ? '1' : null,
       'api': isApiEnabled ? null : '0',
       'legacy': includeLegacy ? '1' : null,
     };
@@ -426,6 +422,25 @@ class TagsPredicate {
     requiredTags?.forEach((tag) => _values[tag] = true);
     prohibitedTags?.forEach((tag) => _values[tag] = false);
   }
+
+  /// Pre-populates the predicate with the default tags for regular search (e.g.
+  /// typing in the search box on the landing page).
+  factory TagsPredicate.regularSearch() => TagsPredicate(
+        prohibitedTags: [
+          PackageTags.isDiscontinued,
+        ],
+      );
+
+  factory TagsPredicate.advertisement() => TagsPredicate(
+        prohibitedTags: [
+          PackageTags.isDiscontinued,
+          PackageTags.isNotAdvertized,
+        ],
+      );
+
+  /// Pre-populates the predicate with the default tags for all package listings
+  /// (e.g. "My packages").
+  factory TagsPredicate.allPackages() => TagsPredicate();
 
   bool get isNotEmpty => _values.isNotEmpty;
 
@@ -692,6 +707,7 @@ SearchQuery parseFrontendSearchQuery(
   String platform,
   List<String> uploaderOrPublishers,
   String publisherId,
+  @required TagsPredicate tagsPredicate,
 }) {
   final int page = extractPageFromUrlParameters(queryParameters);
   final int offset = resultsPerPage * (page - 1);
@@ -709,5 +725,6 @@ SearchQuery parseFrontendSearchQuery(
     limit: resultsPerPage,
     apiEnabled: isApiEnabled,
     includeLegacy: queryParameters['legacy'] == '1',
+    tagsPredicate: tagsPredicate,
   );
 }
