@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/package/upload_signer_service.dart';
-import '../../shared/configuration.dart';
 import '../services.dart';
 
 /// Helper for utilities in bin/tools to setup a minimal AppEngine environment,
@@ -14,11 +13,7 @@ import '../services.dart';
 /// environment variables.
 Future withProdServices(Future fn()) {
   return withServices(() {
-    if (!envConfig.hasCredentials) {
-      throw Exception('Missing GCLOUD_* environments for package:appengine');
-    }
-    registerUploadSigner(
-        ServiceAccountBasedUploadSigner(activeConfiguration.credentials));
+    registerUploadSigner(ServiceAccountBasedUploadSigner());
     return fn();
   });
 }
