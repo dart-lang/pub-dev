@@ -84,9 +84,8 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
   nameTracker.startTracking();
 
   UploadSignerService uploadSigner;
-  if (envConfig.hasCredentials) {
-    final credentials = configuration.credentials;
-    uploadSigner = ServiceAccountBasedUploadSigner(credentials);
+  if (envConfig.isRunningLocally) {
+    uploadSigner = ServiceAccountBasedUploadSigner();
   } else {
     final authClient = await auth.clientViaMetadataServer();
     registerScopeExitCallback(() async => authClient.close());

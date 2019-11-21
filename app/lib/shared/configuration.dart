@@ -5,11 +5,7 @@
 import 'dart:io';
 
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:googleapis_auth/auth.dart' as auth;
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-
-final _logger = Logger('configuration');
 
 final _configurationKey = #_active_configuration;
 
@@ -72,10 +68,6 @@ class Configuration {
   /// The OAuth audience (`client_id`) that admin accounts use.
   final String adminAudience;
 
-  /// Credentials to use for API calls if not reading the credentials from
-  /// the Datastore.
-  final auth.ServiceAccountCredentials credentials;
-
   /// Whether the email sender should send out emails even if credentials are
   /// provided.
   final bool blockEmails;
@@ -117,7 +109,6 @@ class Configuration {
       pubSiteAudience:
           '818368855108-e8skaopm5ih5nbb82vhh66k7ft5o7dn3.apps.googleusercontent.com',
       adminAudience: 'https://pub.dev',
-      credentials: _loadCredentials(),
       blockEmails: false,
       blockRobots: false,
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
@@ -145,7 +136,6 @@ class Configuration {
       pubSiteAudience:
           '621485135717-idb8t8nnguphtu2drfn2u4ig7r56rm6n.apps.googleusercontent.com',
       adminAudience: 'https://pub.dev',
-      credentials: _loadCredentials(),
       blockEmails: true,
       blockRobots: true,
       productionHosts: envConfig.isRunningLocally
@@ -181,7 +171,6 @@ class Configuration {
     @required this.pubClientAudience,
     @required this.pubSiteAudience,
     @required this.adminAudience,
-    @required this.credentials,
     @required this.blockEmails,
     @required this.blockRobots,
     @required this.productionHosts,
@@ -218,7 +207,6 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
-      credentials: null,
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
@@ -242,7 +230,6 @@ class Configuration {
       pubClientAudience: null,
       pubSiteAudience: null,
       adminAudience: null,
-      credentials: null,
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
@@ -300,23 +287,10 @@ class EnvConfig {
 
   /// True, if running locally and not inside AppEngine.
   bool get isRunningLocally => gaeService == null || gaeVersion == null;
-  bool get hasCredentials => gcloudProject != null && gcloudKey != null;
 }
 
 /// Configuration from the environment variables.
 final EnvConfig envConfig = EnvConfig._detect();
-
-auth.ServiceAccountCredentials _loadCredentials() {
-  if (envConfig.hasCredentials) {
-    final path = envConfig.gcloudKey;
-    final content = File(path).readAsStringSync();
-    return auth.ServiceAccountCredentials.fromJson(content);
-  } else {
-    _logger.info(
-        'Missing GCLOUD_PROJECT and/or GCLOUD_KEY, service account credentials are not loaded.');
-    return null;
-  }
-}
 
 /// Data structure to describe an admin user.
 class AdminId {
