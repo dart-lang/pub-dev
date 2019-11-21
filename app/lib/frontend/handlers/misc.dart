@@ -157,7 +157,22 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
     ..httpOnly = true
     ..path = '/'
     ..maxAge = enabled ? 7 * 24 * 60 * 60 : 0; // cookie lives for one week
-  return htmlResponse('Cookie enabled: $enabled', headers: {
+  return htmlResponse('''
+<!doctype html>
+<html>
+<head>
+  <meta http-equiv="refresh" content="5; url=/">
+</head>
+<body>
+  <center>
+    <p>
+      <br><br><br>
+      Experimental cookie enabled: <b>$enabled</b><br>
+      (redirecting to <a href="/">pub.dev</a> in 5 seconds).
+    </p>
+  <center>
+</body>
+</html>''', headers: {
     HttpHeaders.setCookieHeader: cookie.toString(),
   });
 }
