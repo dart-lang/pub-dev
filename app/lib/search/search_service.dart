@@ -707,6 +707,7 @@ SearchQuery parseFrontendSearchQuery(
   String platform,
   List<String> uploaderOrPublishers,
   String publisherId,
+  bool includeLegacy = false,
   @required TagsPredicate tagsPredicate,
 }) {
   final int page = extractPageFromUrlParameters(queryParameters);
@@ -724,7 +725,7 @@ SearchQuery parseFrontendSearchQuery(
     offset: offset,
     limit: resultsPerPage,
     apiEnabled: isApiEnabled,
-    includeLegacy: queryParameters['legacy'] == '1',
+    includeLegacy: includeLegacy || queryParameters['legacy'] == '1',
     tagsPredicate: tagsPredicate,
   );
 }
