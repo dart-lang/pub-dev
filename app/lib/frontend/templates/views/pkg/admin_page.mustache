@@ -20,7 +20,7 @@
     if you’re also a member of the publisher.
   </p>
   {{/pkg_has_publisher}}
-  {{^user_has_publisher}}
+  {{#user_has_publisher}}
   <div class="mdc-select" data-mdc-auto-init="MDCSelect">
     <i class="mdc-select__dropdown-icon"></i>
     <select id="-admin-set-publisher-input" class="mdc-select__native-control">
@@ -40,7 +40,7 @@
     class="pub-button-danger mdc-button mdc-button--raised"
     data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
   {{/user_has_publisher}}
-  {{#user_has_publisher}}
+  {{^user_has_publisher}}
   <p>
     You have no verified publisher. Use the <a href="/create-publisher">create publisher</a> page to create one.
   </p>

@@ -67,7 +67,7 @@ String renderPkgAdminPage(
       'pkg_has_publisher': package.publisherId != null,
       'publisher_id': package.publisherId,
       'is_discontinued': package.isDiscontinued,
-      'user_has_publisher': userPublishers.isEmpty,
+      'user_has_publisher': userPublishers.isNotEmpty,
       'user_publishers': userPublishers
           .map((s) => {
                 'publisher_id': s,
