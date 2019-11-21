@@ -192,10 +192,8 @@ class _PkgAdminWidget {
         document.getElementById('-admin-set-publisher-input') as SelectElement;
     _setPublisherButton =
         document.getElementById('-admin-set-publisher-button');
-    if (isActive) {
-      _toggleDiscontinuedButton.onClick.listen((_) => _toogleDiscontinued());
-      _setPublisherButton?.onClick?.listen((_) => _setPublisher());
-    }
+    _toggleDiscontinuedButton?.onClick?.listen((_) => _toogleDiscontinued());
+    _setPublisherButton?.onClick?.listen((_) => _setPublisher());
   }
 
   Future<void> _toogleDiscontinued() async {
@@ -236,11 +234,6 @@ class _PkgAdminWidget {
       onSuccess: (_) => window.location.reload(),
     );
   }
-
-  bool get isActive =>
-      _toggleDiscontinuedButton != null &&
-      _setPublisherButton != null &&
-      _setPublisherInput != null;
 }
 
 /// Active on the /create-publisher page.
@@ -251,12 +244,10 @@ class _CreatePublisherWidget {
   void init() {
     _publisherIdInput = document.getElementById('-publisher-id');
     _createButton = document.getElementById('-admin-create-publisher');
-    if (isActive) {
-      _createButton.onClick.listen((_) {
-        final publisherId = (_publisherIdInput as InputElement).value.trim();
-        _triggerCreate(publisherId);
-      });
-    }
+    _createButton?.onClick?.listen((_) {
+      final publisherId = (_publisherIdInput as InputElement).value.trim();
+      _triggerCreate(publisherId);
+    });
   }
 
   void _triggerCreate(String publisherId) async {
@@ -295,8 +286,6 @@ class _CreatePublisherWidget {
       },
     );
   }
-
-  bool get isActive => _publisherIdInput != null && _createButton != null;
 }
 
 /// Active on the /publishers/<publisherId>/admin page.
@@ -322,16 +311,14 @@ class _PublisherAdminWidget {
         document.getElementById('-admin-invite-member-input') as InputElement;
     _inviteMemberButton =
         document.getElementById('-admin-invite-member-button');
-    if (isActive) {
-      _originalContactEmail = _contactEmailInput.value;
-      _updateButton.onClick.listen((_) => _updatePublisher());
-      _inviteMemberButton.onClick.listen((_) => _inviteMember());
-      for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
-        btn.onClick.listen((_) => _removeMember(
-              btn.dataset['user-id'],
-              btn.dataset['email'],
-            ));
-      }
+    _originalContactEmail = _contactEmailInput?.value;
+    _updateButton?.onClick?.listen((_) => _updatePublisher());
+    _inviteMemberButton?.onClick?.listen((_) => _inviteMember());
+    for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
+      btn.onClick.listen((_) => _removeMember(
+            btn.dataset['user-id'],
+            btn.dataset['email'],
+          ));
     }
   }
 
@@ -391,14 +378,6 @@ class _PublisherAdminWidget {
       onSuccess: (_) => window.location.reload(),
     );
   }
-
-  bool get isActive =>
-      _descriptionTextArea != null &&
-      _websiteUrlInput != null &&
-      _contactEmailInput != null &&
-      _updateButton != null &&
-      _inviteMemberInput != null &&
-      _inviteMemberButton != null;
 }
 
 class _ConsentWidget {
