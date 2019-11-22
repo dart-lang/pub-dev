@@ -4,9 +4,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CODE_COVERAGE_DIR="${SCRIPT_DIR}"
 PROJECT_DIR="$( cd ${CODE_COVERAGE_DIR}/../.. && pwd )"
 APP_DIR="${PROJECT_DIR}/app"
-APP_TEST_NAME="_all_tests.dart"
-APP_TEST_PATH="${APP_DIR}/test/${APP_TEST_NAME}"
-PUB_INTEGRATION_PATH="${PROJECT_DIR}/pkg/pub_integration"
+ALL_TEST_NAME="_all_tests.dart"
+APP_ALL_TEST_PATH="${APP_DIR}/test/${ALL_TEST_NAME}"
+PUB_INTEGRATION_DIR="${PROJECT_DIR}/pkg/pub_integration"
+PUB_INTEGRATION_ALL_TEST_PATH="${PUB_INTEGRATION_DIR}/test/${ALL_TEST_NAME}"
 
 OUTPUT_DIR="${CODE_COVERAGE_DIR}/build"
 
@@ -18,10 +19,11 @@ pub get
 
 ## Collect coverage for app tests.
 
-echo "Generate ${APP_TEST_PATH}..."
+echo "Generate ${APP_ALL_TEST_PATH}..."
+cd "${CODE_COVERAGE_DIR}"
 dart lib/generate_all_tests.dart \
   --dir "${APP_DIR}/test" \
-  --name ${APP_TEST_NAME}
+  --name ${ALL_TEST_NAME}
 
 pub run coverage:collect_coverage \
   --uri=http://localhost:20202 \
@@ -35,15 +37,21 @@ dart \
   --pause-isolates-on-exit \
   --enable-vm-service=20202 \
   --disable-service-auth-codes \
-  ${APP_TEST_PATH}
+  ${APP_ALL_TEST_PATH}
 
-echo "Delete ${APP_TEST_PATH}..."
-rm ${APP_TEST_PATH}
+echo "Delete ${APP_ALL_TEST_PATH}..."
+rm ${APP_ALL_TEST_PATH}
 
 echo "Waiting for app_unit code coverage to complete..."
 wait ${COVERAGE_PID}
 
 ## Collect coverage for integration tests.
+
+echo "Generate ${PUB_INTEGRATION_ALL_TEST_PATH}..."
+cd "${CODE_COVERAGE_DIR}"
+dart lib/generate_all_tests.dart \
+  --dir "${PUB_INTEGRATION_DIR}/test" \
+  --name ${ALL_TEST_NAME}
 
 cd "${CODE_COVERAGE_DIR}"
 pub run coverage:collect_coverage \
@@ -53,13 +61,19 @@ pub run coverage:collect_coverage \
   --resume-isolates &
 COVERAGE_PID=$!
 
-cd "${PUB_INTEGRATION_PATH}"
+cd "${PUB_INTEGRATION_DIR}"
 pub get
-PUB_DART_ARGUMENTS="--pause-isolates-on-exit --enable-vm-service=29999 --disable-service-auth-codes" \
-  dart test/pub_integration_test.dart
+dart \
+  --pause-isolates-on-exit \
+  --enable-vm-service=29999 \
+  --disable-service-auth-codes \
+  ${PUB_INTEGRATION_ALL_TEST_PATH}
 
 echo "Waiting for pub_integration_fake_pub_server code coverage to complete..."
 wait ${COVERAGE_PID}
+
+echo "Delete ${PUB_INTEGRATION_ALL_TEST_PATH}..."
+rm ${PUB_INTEGRATION_ALL_TEST_PATH}
 
 ## Processing coverage
 
