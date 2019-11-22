@@ -52,6 +52,14 @@ class SearchAdapter {
   /// Search over the package names as a fallback, in the absence of the
   /// `search` service.
   Future<PackageSearchResult> _fallbackSearch(SearchQuery query) async {
+    // Some search queries must not be served with the fallback search.
+    // TODO: consider adding tag-based filtering
+    if (query.uploaderOrPublishers != null ||
+        query.publisherId != null ||
+        query.platform != null) {
+      throw StateError('Fallback search should not service this query.');
+    }
+
     final names =
         await nameTracker.getPackageNames().timeout(Duration(seconds: 5));
     final text = (query.query ?? '').trim().toLowerCase();
