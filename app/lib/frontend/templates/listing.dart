@@ -10,7 +10,6 @@ import 'package:pub_dev/shared/utils.dart';
 import '../../package/models.dart';
 import '../../search/search_service.dart';
 import '../../shared/urls.dart' as urls;
-import '../static_files.dart';
 
 import '_cache.dart';
 import '_consts.dart';
@@ -96,8 +95,6 @@ String renderMyLikedPackagesList(List<LikeData> likes) {
       'url': urls.pkgPageUrl(package),
       'name': package,
       'liked_date': shortDateFormat.format(like.created),
-      'thumb_up_outlined': staticUrls.assets['img__thumb-up-24px_svg'],
-      'thumb_up_filled': staticUrls.assets['img__thumb-up-filled-24px_svg']
     });
   }
   return templateCache
