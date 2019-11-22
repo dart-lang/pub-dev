@@ -102,7 +102,13 @@
         <div class="listing-sort-header">
           <div class="tooltip-base hoverable">
             <span class="tooltip-dotted">Sorted by:</span>
-            <span id="sort-control" data-sort="top">overall score</span>
+            <select id="sort-control">
+              <option value="search_relevance">search relevance</option>
+              <option value="top" selected="selected">overall score</option>
+              <option value="updated">recently updated</option>
+              <option value="created">newest package</option>
+              <option value="popularity">popularity</option>
+            </select>
             <div class="tooltip-content tooltip-bottom-left">
       Packages are sorted by the overall score. More information on 
               <a href="/help#ranking">ranking</a>.

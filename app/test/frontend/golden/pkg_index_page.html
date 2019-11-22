@@ -101,7 +101,13 @@
         <div class="listing-sort-header">
           <div class="tooltip-base hoverable">
             <span class="tooltip-dotted">Sorted by:</span>
-            <span id="sort-control" data-sort="listing_relevance">listing relevance</span>
+            <select id="sort-control">
+              <option value="listing_relevance" selected="selected">listing relevance</option>
+              <option value="top">overall score</option>
+              <option value="updated">recently updated</option>
+              <option value="created">newest package</option>
+              <option value="popularity">popularity</option>
+            </select>
             <div class="tooltip-content tooltip-bottom-left">
       Packages are sorted by the combination of their overall score and their specificity to the selected platform. More information on 
               <a href="/help#ranking">ranking</a>.

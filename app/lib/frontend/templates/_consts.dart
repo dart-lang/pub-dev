@@ -135,45 +135,58 @@ String _landingBlurb(String platform) =>
     _landingBlurbs[platform ?? 'default'] ?? _landingBlurbs['default'];
 
 class SortDict {
+  final String id;
   final String label;
   final String tooltip;
 
-  const SortDict({this.label, String tooltip})
+  const SortDict({this.id, this.label, String tooltip})
       : this.tooltip =
             '$tooltip More information on <a href="/help#ranking">ranking</a>.';
 }
 
-// Synchronize with `script.dart`'s dropdown.
-final _sortDicts = const <String, SortDict>{
-  'listing_relevance': SortDict(
+final _sortDicts = const <SortDict>[
+  SortDict(
+      id: 'listing_relevance',
       label: 'listing relevance',
       tooltip:
           'Packages are sorted by the combination of their overall score and '
           'their specificity to the selected platform.'),
-  'search_relevance': SortDict(
+  SortDict(
+      id: 'search_relevance',
       label: 'search relevance',
       tooltip: 'Packages are sorted by the combination of the text match, '
           'their overall score and their specificity to the selected platform.'),
-  'top': SortDict(
+  SortDict(
+      id: 'top',
       label: 'overall score',
       tooltip: 'Packages are sorted by the overall score.'),
-  'updated': SortDict(
+  SortDict(
+      id: 'updated',
       label: 'recently updated',
       tooltip: 'Packages are sorted by their updated time.'),
-  'created': SortDict(
+  SortDict(
+      id: 'created',
       label: 'newest package',
       tooltip: 'Packages are sorted by their created time.'),
-  'popularity': SortDict(
+  SortDict(
+      id: 'popularity',
       label: 'popularity',
       tooltip: 'Packages are sorted by their popularity score.'),
-};
+];
+
+List<SortDict> getSortDicts(bool isSearch) {
+  final removeId = isSearch ? 'listing_relevance' : 'search_relevance';
+  return _sortDicts.where((d) => d.id != removeId).toList();
+}
 
 SortDict getSortDict(String sort) {
-  final SortDict dict = _sortDicts[sort];
-  if (dict != null) return dict;
-  return SortDict(
-    label: sort,
-    tooltip: 'Packages are sort by $sort.',
+  return _sortDicts.firstWhere(
+    (d) => d.id == sort,
+    orElse: () => SortDict(
+      id: sort,
+      label: sort,
+      tooltip: 'Packages are sort by $sort.',
+    ),
   );
 }
 
