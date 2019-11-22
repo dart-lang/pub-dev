@@ -205,7 +205,7 @@ Future<List<PackageView>> topFeaturedPackages(
       SearchQuery.parse(
         platform: platform,
         limit: count,
-        isAd: true,
+        tagsPredicate: TagsPredicate.advertisement(),
       ),
       fallbackToNames: false,
     );

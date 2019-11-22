@@ -48,6 +48,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   final searchQuery = parseFrontendSearchQuery(
     request.requestedUri.queryParameters,
     platform: platform,
+    tagsPredicate: TagsPredicate.regularSearch(),
   );
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchQuery);

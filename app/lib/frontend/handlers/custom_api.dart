@@ -224,8 +224,10 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
 
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
-  final searchQuery =
-      parseFrontendSearchQuery(request.requestedUri.queryParameters);
+  final searchQuery = parseFrontendSearchQuery(
+    request.requestedUri.queryParameters,
+    tagsPredicate: TagsPredicate.regularSearch(),
+  );
   final sr = await searchClient.search(searchQuery);
   final packages = sr.packages.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchQuery.limit + searchQuery.offset;
