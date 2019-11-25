@@ -21,8 +21,7 @@ Future main() async {
     for (final record in report.records) {
       final path = record.sourceFile;
       final partOfPubDev = path.startsWith('app/') || path.startsWith('pkg/');
-      final partOfTest = path.contains('/test/');
-      if (partOfPubDev && !partOfTest) {
+      if (partOfPubDev) {
         final counts = _lineExecCounts.putIfAbsent(path, () => <int, int>{});
         for (final lineData in record.lines.data) {
           counts[lineData.lineNumber] =
