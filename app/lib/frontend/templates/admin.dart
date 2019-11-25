@@ -12,7 +12,9 @@ import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/utils.dart' show shortDateFormat;
+import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
@@ -85,7 +87,7 @@ String renderAccountPackagesPage({
     tabs: [
       Tab.withContent(
           id: 'packages', title: 'My packages', contentHtml: tabContent),
-      _myLikedPackagesLink(),
+      if (requestContext.isExperimental) _myLikedPackagesLink(),
       _myPublishersLink(),
     ],
     infoBoxHtml: _accountInfoBox(user),
@@ -145,7 +147,7 @@ String renderAccountPublishersPage({
     headerHtml: _accountDetailHeader(user),
     tabs: [
       _myPackagesLink(),
-      _myLikedPackagesLink(),
+      if (requestContext.isExperimental) _myLikedPackagesLink(),
       Tab.withContent(
           id: 'publishers',
           title: 'My publishers',
@@ -168,7 +170,7 @@ Tab _myPackagesLink() =>
 Tab _myLikedPackagesLink() => Tab.withLink(
     id: 'liked-packages',
     title: 'My liked packages',
-    href: '/my-liked-packages');
+    href: urls.myLikedPackagesUrl());
 
 Tab _myPublishersLink() => Tab.withLink(
     id: 'publishers', title: 'My publishers', href: '/my-publishers');

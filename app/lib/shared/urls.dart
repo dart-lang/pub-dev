@@ -231,3 +231,5 @@ String displayableUrl(String url) {
   }
   return url;
 }
+
+String myLikedPackagesUrl() => '/my-liked-packages';

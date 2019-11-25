@@ -120,7 +120,11 @@ String renderLayoutPage(
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,
+    'has_likes': requestContext.isExperimental,
+    'my_liked_packages_url': urls.myLikedPackagesUrl(),
   };
+
+  // TODO(zarah): update the 'layout' template to use urls from `shared/urls.dart`.
   return templateCache.renderTemplate('layout', values);
 }
 
