@@ -11,8 +11,8 @@ import '../../account/models.dart' show LikeData, User;
 import '../../package/models.dart' show PackageView;
 import '../../publisher/models.dart' show Publisher;
 import '../../search/search_service.dart' show SearchQuery;
-import '../../shared/utils.dart' show shortDateFormat;
 import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart' show shortDateFormat;
 
 import '../request_context.dart';
 import '_cache.dart';
