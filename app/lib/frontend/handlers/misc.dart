@@ -167,10 +167,10 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
   <center>
     <p>
       <br><br><br>
-      Experimental cookie enabled: <b>$enabled</b><br>
+      Experimental cookie enabled: <b>$enabled</b> (<a href="/experimental/?enabled=${enabled ? '0' : '1'}">toggle</a>).<br>
       (redirecting to <a href="/">pub.dev</a> in 5 seconds).
     </p>
-    <p>Click <a href="/experimental/?enabled=${enabled ? '0' : '1'}">here</a> to toggle</p>
+
   <center>
 </body>
 </html>''', headers: {
