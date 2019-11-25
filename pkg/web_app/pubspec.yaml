@@ -14,3 +14,6 @@ dependencies:
   js: ^0.6.1
   markdown: ^2.1.0
   intl: ^0.16.0
+
+dev_dependencies:
+  test: ^1.0.0

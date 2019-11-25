@@ -122,12 +122,18 @@ String renderPkgIndexPage(
 /// Renders the `views/shared/sort_control.mustache` template.
 String renderSortControl(SearchQuery query) {
   final isSearch = query != null && query.hasQuery;
-  final sortValue = serializeSearchOrder(query?.order) ??
+  final options = getSortDicts(isSearch);
+  final selectedValue = serializeSearchOrder(query?.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
-  final sortDict = getSortDict(sortValue);
+  final sortDict = getSortDict(selectedValue);
   return templateCache.renderTemplate('shared/sort_control', {
-    'sort_value': sortValue,
-    'sort_name': sortDict.label,
+    'options': options
+        .map((d) => {
+              'value': d.id,
+              'label': d.label,
+              'selected': d.id == selectedValue,
+            })
+        .toList(),
     'ranking_tooltip_html': sortDict.tooltip,
   });
 }

@@ -28,43 +28,25 @@ void _setEventForSearchInput() {
 }
 
 void _setEventForSortControl() {
-  final Element sortControl = document.getElementById('sort-control');
+  final sortControl = document.getElementById('sort-control');
   final queryText = document.querySelector('input[name="q"]') as InputElement;
   if (sortControl == null || queryText == null) return;
   final formElement = queryText.form;
-
-  final String originalSort = sortControl.dataset['sort'] ?? '';
-  sortControl.innerHtml = '';
-  final select = SelectElement();
-
-  void add(String sort, String label) {
-    select.append(OptionElement(
-        value: sort, data: label, selected: originalSort == sort));
-  }
-
-  // Synchronize with `_consts.dart`'s SortDict.
-  if (queryText.value.trim().isEmpty) {
-    add('listing_relevance', 'listing relevance');
-  } else {
-    add('search_relevance', 'search relevance');
-  }
-  add('top', 'overall score');
-  add('updated', 'recently updated');
-  add('created', 'newest package');
-  add('popularity', 'popularity');
-
+  final select = sortControl as SelectElement;
   select.onChange.listen((_) {
-    final String value = select.selectedOptions.first.value;
+    final selected = select.selectedOptions.first;
     InputElement sortInput =
         document.querySelector('input[name="sort"]') as InputElement;
     if (sortInput == null) {
       sortInput = InputElement(type: 'hidden')..name = 'sort';
       queryText.parent.append(sortInput);
     }
-    if (value == 'listing_relevance' || value == 'search_relevance') {
+    // The first value of the selection list is the implied default sort order,
+    // and can be removed from the from to make a nicer query string.
+    if (select.options.first.value == selected.value) {
       sortInput.remove();
     } else {
-      sortInput.value = value;
+      sortInput.value = selected.value;
     }
 
     // Removes the q= part from the URL
@@ -75,7 +57,6 @@ void _setEventForSortControl() {
     // TODO: instead of submitting, compose the URL here (also removing the single `?`)
     formElement.submit();
   });
-  sortControl.append(select);
 }
 
 void _setEventForCheckboxChanges() {

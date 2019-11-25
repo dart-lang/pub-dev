@@ -75,6 +75,12 @@ jobs:
       os: linux
       env: PKGS="pkg/pub_package_reader"
       script: ./tool/travis.sh test_0
+    - stage: unit_test
+      name: "SDK: 2.6.0; PKG: pkg/web_app; TASKS: `pub run test --run-skipped`"
+      dart: "2.6.0"
+      os: linux
+      env: PKGS="pkg/web_app"
+      script: ./tool/travis.sh test_0
 
 stages:
   - smoke_test
