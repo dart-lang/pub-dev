@@ -48,6 +48,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/static/<path|[^]*>', service.staticAsset);
   router.add('GET', r'/experimental', service.experimental);
   router.add('GET', r'/my-packages', service.accountPackagesPage);
+  router.add('GET', r'/my-liked-packages', service.accountMyLikedPackagesPage);
   router.add('GET', r'/my-publishers', service.accountPublishersPage);
   router.add('GET', r'/authorized', service.authorizationConfirmed);
   router.add('GET', r'/consent', service.consentPage);

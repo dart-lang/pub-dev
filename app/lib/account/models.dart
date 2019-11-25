@@ -83,6 +83,29 @@ class Like extends db.ExpandoModel {
   DateTime created;
 }
 
+/// The cacheable version of [Like].
+@JsonSerializable()
+class LikeData {
+  final String userId;
+  final String package;
+  final DateTime created;
+
+  LikeData({this.userId, this.package, this.created});
+
+  factory LikeData.fromJson(Map<String, dynamic> json) =>
+      _$LikeDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LikeDataToJson(this);
+
+  factory LikeData.fromModel(Like like) {
+    return LikeData(
+      userId: like.userId,
+      package: like.package,
+      created: like.created,
+    );
+  }
+}
+
 /// Maps the session id (from cookie) to User.id and cached profile properties.
 @db.Kind(name: 'UserSession', idType: db.IdType.String)
 class UserSession extends db.ExpandoModel {

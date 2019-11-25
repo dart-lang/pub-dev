@@ -16,17 +16,17 @@
       <div>
         {{#is_liked}}
         <button
-          id="-pub-like-button"
+          id="-pub-like-icon-button"
           class="mdc-icon-button mdc-icon-button--on"
-          aria-label="Unstar this item"
+          aria-label="Unlike this package"
           aria-hidden="true"
           aria-pressed="true">
         {{/is_liked}}
         {{^is_liked}}
         <button
-          id="-pub-like-button"
+          id="-pub-like-icon-button"
           class="mdc-icon-button"
-          aria-label="Star this item"
+          aria-label="Like this package"
           aria-hidden="true"
           aria-pressed="true">
         {{/is_liked}}

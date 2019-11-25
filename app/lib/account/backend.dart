@@ -179,16 +179,21 @@ class AccountBackend {
     return await _db.lookupValue<Like>(key, orElse: () => null);
   }
 
-  /// Return an iterable with the names of all the packages that the given [user] likes.
-  Future<List<String>> listPackageLikes(User user) async {
-    final likes = await _db.query<Like>(ancestorKey: user.key).run().toList();
-    return likes.map((Like l) => l.package).toList();
+  /// Returns a list with [LikeData] of all the packages that the given
+  ///  [user] likes.
+  Future<List<LikeData>> listPackageLikes(User user) async {
+    return await cache.userPackageLikes(user.userId).get(() async {
+      // TODO(zarah): Introduce pagination and/or migrate this to search.
+      final query = _db.query<Like>(ancestorKey: user.key)..limit(1000);
+      final likes = await query.run().toList();
+      return likes.map((Like l) => LikeData.fromModel(l)).toList();
+    });
   }
 
   /// Creates and returns a package like entry for the given [user] and
   /// [package], and increments the 'likes' property on [package].
   Future<Like> likePackage(User user, String package) async {
-    return await withRetryTransaction<Like>(_db, (tx) async {
+    final res = await withRetryTransaction<Like>(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: package);
       final p = await tx.lookupValue<Package>(packageKey, orElse: () => null);
       if (p == null) {
@@ -212,6 +217,8 @@ class AccountBackend {
       tx.queueMutations(inserts: [p, newLike]);
       return newLike;
     });
+    await cache.userPackageLikes(user.userId).purge();
+    return res;
   }
 
   /// Delete a package like entry for the given [user] and [package] if it
@@ -235,6 +242,7 @@ class AccountBackend {
       p.likes--;
       tx.queueMutations(inserts: [p], deletes: [likeKey]);
     });
+    await cache.userPackageLikes(user.userId).purge();
   }
 
   /// Verifies that the access token belongs to the [owner].

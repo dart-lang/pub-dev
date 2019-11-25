@@ -6,6 +6,22 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+LikeData _$LikeDataFromJson(Map<String, dynamic> json) {
+  return LikeData(
+    userId: json['userId'] as String,
+    package: json['package'] as String,
+    created: json['created'] == null
+        ? null
+        : DateTime.parse(json['created'] as String),
+  );
+}
+
+Map<String, dynamic> _$LikeDataToJson(LikeData instance) => <String, dynamic>{
+      'userId': instance.userId,
+      'package': instance.package,
+      'created': instance.created?.toIso8601String(),
+    };
+
 UserSessionData _$UserSessionDataFromJson(Map<String, dynamic> json) {
   return UserSessionData(
     sessionId: json['sessionId'] as String,
