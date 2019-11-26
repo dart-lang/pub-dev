@@ -205,7 +205,13 @@ bool _isValidUri(shelf.Request request) {
 
 shelf.Handler _sanitizeRequestWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    return await handler(_sanitizeRequestedUri(request));
+    shelf.Request sanitizedRequest;
+    try {
+      sanitizedRequest = _sanitizeRequestedUri(request);
+    } on FormatException catch (_) {
+      return invalidRequestHandler(request);
+    }
+    return await handler(sanitizedRequest);
   };
 }
 

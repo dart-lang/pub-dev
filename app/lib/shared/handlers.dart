@@ -112,6 +112,10 @@ shelf.Response htmlResponse(String content,
   return shelf.Response(status, body: content, headers: headers);
 }
 
+// TODO: create a customized handler for invalid requests
+shelf.Response invalidRequestHandler(shelf.Request request) =>
+    notFoundHandler(request);
+
 shelf.Response notFoundHandler(shelf.Request request,
         {String body = default404NotFound}) =>
     htmlResponse(body, status: 404);
