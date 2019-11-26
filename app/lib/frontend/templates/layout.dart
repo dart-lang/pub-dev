@@ -194,7 +194,7 @@ String renderPlatformTabs({
       platformTabData('All', null),
     ]
   };
-  return templateCache.renderTemplate('platform_tabs', values);
+  return templateCache.renderTemplate('shared/search_platform_tabs', values);
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(
