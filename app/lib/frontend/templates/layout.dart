@@ -127,10 +127,18 @@ String _renderSearchBanner({
     platformTabs =
         renderPlatformTabs(platform: platform, searchQuery: searchQuery);
   }
+  String bannerClass;
+  if (type == PageType.landing) {
+    bannerClass = 'home-banner';
+  } else if (type == PageType.listing) {
+    bannerClass = 'medium-banner';
+  } else {
+    bannerClass = 'small-banner';
+  }
   return templateCache.renderTemplate('shared/search_banner', {
-    'small_banner': type != PageType.listing && type != PageType.landing,
-    'medium_banner': type == PageType.listing,
-    'landing_banner': type == PageType.landing,
+    'banner_class': bannerClass,
+    'show_details': type == PageType.listing,
+    'show_landing': type == PageType.landing,
     'search_form_url': searchFormUrl,
     'search_query_placeholder': searchPlaceholder,
     'search_query_html': escapedSearchQuery,
