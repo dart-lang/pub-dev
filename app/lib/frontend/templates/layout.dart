@@ -45,20 +45,6 @@ String renderLayoutPage(
   bool noIndex = false,
   PageData pageData,
 }) {
-  final queryText = searchQuery?.query;
-  final String escapedSearchQuery =
-      queryText == null ? null : htmlAttrEscape.convert(queryText);
-  String platformTabs;
-  if (type == PageType.landing) {
-    platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
-  } else if (type == PageType.listing) {
-    platformTabs =
-        renderPlatformTabs(platform: platform, searchQuery: searchQuery);
-  }
-  final searchSort = searchQuery?.order == null
-      ? null
-      : serializeSearchOrder(searchQuery.order);
-  final platformDict = getPlatformDict(platform);
   final isRoot = type == PageType.landing && platform == null;
   final pageDataEncoded = pageData == null
       ? null
@@ -67,23 +53,18 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     if (requestContext.isExperimental) 'experimental',
   ];
-  final searchFormUrl = searchQuery?.toSearchFormPath() ??
-      SearchQuery.parse(platform: platform, publisherId: publisherId)
-          .toSearchLink();
-  String searchPlaceholder;
-  if (publisherId != null) {
-    searchPlaceholder = 'Search $publisherId packages';
-  } else if (type == PageType.account) {
-    searchPlaceholder = 'Search your packages';
-  } else {
-    searchPlaceholder = platformDict.searchPlatformPackagesLabel;
-  }
   final userSession = userSessionData == null
       ? null
       : {
           'email': userSessionData.email,
           'image_url': userSessionData.imageUrl,
         };
+  final searchBannerHtml = _renderSearchBanner(
+    type: type,
+    platform: platform,
+    publisherId: publisherId,
+    searchQuery: searchQuery,
+  );
   final values = {
     'is_experimental': requestContext.isExperimental,
     'is_logged_in': userSession != null,
@@ -99,24 +80,11 @@ String renderLayoutPage(
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
     'site_logo_url': staticUrls.pubDevLogo2xPng,
-    'search_form_url': searchFormUrl,
-    'search_query_html': escapedSearchQuery,
-    'search_query_placeholder': searchPlaceholder,
-    'search_sort_param': searchSort,
-    'platform_tabs_html': platformTabs,
-    'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
-    'api_search_enabled': searchQuery?.isApiEnabled ?? true,
-    'landing_blurb_html': platformDict.landingBlurb,
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
     'include_survey': includeSurvey,
     'include_highlight': type == PageType.package,
-    'landing_banner': type == PageType.landing,
-    'landing_banner_image': _landingBannerImage(platform == 'flutter'),
-    'landing_banner_alt':
-        platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
-    'medium_banner': type == PageType.listing,
-    'small_banner': type != PageType.listing && type != PageType.landing,
+    'search_banner_html': searchBannerHtml,
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,
@@ -126,6 +94,55 @@ String renderLayoutPage(
 
   // TODO(zarah): update the 'layout' template to use urls from `shared/urls.dart`.
   return templateCache.renderTemplate('layout', values);
+}
+
+String _renderSearchBanner({
+  @required PageType type,
+  @required String platform,
+  @required String publisherId,
+  @required SearchQuery searchQuery,
+}) {
+  final queryText = searchQuery?.query;
+  final escapedSearchQuery =
+      queryText == null ? null : htmlAttrEscape.convert(queryText);
+  final platformDict = getPlatformDict(platform);
+  String searchPlaceholder;
+  if (publisherId != null) {
+    searchPlaceholder = 'Search $publisherId packages';
+  } else if (type == PageType.account) {
+    searchPlaceholder = 'Search your packages';
+  } else {
+    searchPlaceholder = platformDict.searchPlatformPackagesLabel;
+  }
+  final searchFormUrl = searchQuery?.toSearchFormPath() ??
+      SearchQuery.parse(platform: platform, publisherId: publisherId)
+          .toSearchLink();
+  final searchSort = searchQuery?.order == null
+      ? null
+      : serializeSearchOrder(searchQuery.order);
+  String platformTabs;
+  if (type == PageType.landing) {
+    platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
+  } else if (type == PageType.listing) {
+    platformTabs =
+        renderPlatformTabs(platform: platform, searchQuery: searchQuery);
+  }
+  return templateCache.renderTemplate('shared/search_banner', {
+    'small_banner': type != PageType.listing && type != PageType.landing,
+    'medium_banner': type == PageType.listing,
+    'landing_banner': type == PageType.landing,
+    'search_form_url': searchFormUrl,
+    'search_query_placeholder': searchPlaceholder,
+    'search_query_html': escapedSearchQuery,
+    'search_sort_param': searchSort,
+    'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
+    'api_search_enabled': searchQuery?.isApiEnabled ?? true,
+    'platform_tabs_html': platformTabs,
+    'landing_banner_image': _landingBannerImage(platform == 'flutter'),
+    'landing_banner_alt':
+        platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
+    'landing_blurb_html': platformDict.landingBlurb,
+  });
 }
 
 String _landingBannerImage(bool isFlutter) {
