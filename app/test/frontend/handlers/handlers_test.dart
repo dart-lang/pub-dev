@@ -10,7 +10,6 @@ import '_utils.dart';
 
 void main() {
   group('bad request', () {
-
     testWithServices('/%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0.zip', () async {
       final rs = await issueGet('/%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0.zip');
       expect(rs.statusCode, 404);
