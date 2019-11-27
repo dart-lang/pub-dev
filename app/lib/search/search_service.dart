@@ -25,7 +25,7 @@ const int maxPages = 10;
 
 /// The tag prefixes that we can detect in the user-provided search query.
 final _detectedTagPrefixes = <String>{
-  ...['is:'].expand((s) => [s, '-$s', '+$s']),
+  ...allowedTagPrefixes.expand((s) => [s, '-$s', '+$s']),
 };
 
 /// Package search index and lookup.

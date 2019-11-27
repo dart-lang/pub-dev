@@ -39,3 +39,31 @@ Map<String, dynamic> _$AdminUserEntryToJson(AdminUserEntry instance) =>
       'oauthUserId': instance.oauthUserId,
       'email': instance.email,
     };
+
+AssignedTags _$AssignedTagsFromJson(Map<String, dynamic> json) {
+  return AssignedTags(
+    assignedTags:
+        (json['assignedTags'] as List)?.map((e) => e as String)?.toList(),
+  );
+}
+
+Map<String, dynamic> _$AssignedTagsToJson(AssignedTags instance) =>
+    <String, dynamic>{
+      'assignedTags': instance.assignedTags,
+    };
+
+PatchAssignedTags _$PatchAssignedTagsFromJson(Map<String, dynamic> json) {
+  return PatchAssignedTags(
+    assignedTagsAdded:
+        (json['assignedTagsAdded'] as List)?.map((e) => e as String)?.toList(),
+    assignedTagsRemoved: (json['assignedTagsRemoved'] as List)
+        ?.map((e) => e as String)
+        ?.toList(),
+  );
+}
+
+Map<String, dynamic> _$PatchAssignedTagsToJson(PatchAssignedTags instance) =>
+    <String, dynamic>{
+      'assignedTagsAdded': instance.assignedTagsAdded,
+      'assignedTagsRemoved': instance.assignedTagsRemoved,
+    };

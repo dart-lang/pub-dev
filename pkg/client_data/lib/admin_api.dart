@@ -58,3 +58,31 @@ class AdminUserEntry {
       _$AdminUserEntryFromJson(json);
   Map<String, dynamic> toJson() => _$AdminUserEntryToJson(this);
 }
+
+/// Admin API response for listing assigned tags.
+@JsonSerializable()
+class AssignedTags {
+  final List<String> assignedTags;
+
+  // json_serializable boiler-plate
+  AssignedTags({@required this.assignedTags});
+  factory AssignedTags.fromJson(Map<String, dynamic> json) =>
+      _$AssignedTagsFromJson(json);
+  Map<String, dynamic> toJson() => _$AssignedTagsToJson(this);
+}
+
+/// Admin API request to mutate list of assigned tags.
+@JsonSerializable()
+class PatchAssignedTags {
+  final List<String> assignedTagsAdded;
+  final List<String> assignedTagsRemoved;
+
+  // json_serializable boiler-plate
+  PatchAssignedTags({
+    this.assignedTagsAdded = const <String>[],
+    this.assignedTagsRemoved = const <String>[],
+  });
+  factory PatchAssignedTags.fromJson(Map<String, dynamic> json) =>
+      _$PatchAssignedTagsFromJson(json);
+  Map<String, dynamic> toJson() => _$PatchAssignedTagsToJson(this);
+}

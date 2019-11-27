@@ -21,6 +21,7 @@ Future main(List<String> args) async {
     print('Ensures Package.likes is set to an integer.');
     print('Ensures Package.doNotAdvertise is set to a bool.');
     print('Ensures Package.isDiscontinued is set to a bool.');
+    print('Ensures Package.assignedTags is a list.');
     print(_argParser.usage);
     return;
   }
@@ -43,7 +44,10 @@ Future main(List<String> args) async {
 }
 
 Future<void> _backfillPackageFields(Package p) async {
-  if (p.likes != null && p.doNotAdvertise != null && p.isDiscontinued != null) {
+  if (p.likes != null &&
+      p.doNotAdvertise != null &&
+      p.isDiscontinued != null &&
+      p.assignedTags != null) {
     return;
   }
   print('Backfilling properties on package ${p.name}');
@@ -56,6 +60,7 @@ Future<void> _backfillPackageFields(Package p) async {
       package.likes ??= 0;
       package.doNotAdvertise ??= false;
       package.isDiscontinued ??= false;
+      package.assignedTags ??= [];
       tx.queueMutations(inserts: [package]);
       await tx.commit();
       print('Updated properties on package ${package.name}.');

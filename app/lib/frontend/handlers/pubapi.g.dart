@@ -601,5 +601,35 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/admin/packages/<package>/assigned-tags',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.adminGetAssignedTags(
+        request,
+        package,
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('POST', r'/api/admin/packages/<package>/assigned-tags',
+      (Request request, String package) async {
+    try {
+      final _$result = await service.adminPostAssignedTags(
+        request,
+        package,
+        await $utilities.decodeJson<PatchAssignedTags>(
+            request, (o) => PatchAssignedTags.fromJson(o)),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   return router;
 }

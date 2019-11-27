@@ -339,4 +339,20 @@ class PubApiClient {
       path: '/api/admin/users/$userId',
     );
   }
+
+  Future<_i6.AssignedTags> adminGetAssignedTags(String package) async {
+    return _i6.AssignedTags.fromJson(await _client.requestJson(
+      verb: 'get',
+      path: '/api/admin/packages/$package/assigned-tags',
+    ));
+  }
+
+  Future<_i6.AssignedTags> adminPostAssignedTags(
+      String package, _i6.PatchAssignedTags payload) async {
+    return _i6.AssignedTags.fromJson(await _client.requestJson(
+      verb: 'post',
+      path: '/api/admin/packages/$package/assigned-tags',
+      body: payload.toJson(),
+    ));
+  }
 }

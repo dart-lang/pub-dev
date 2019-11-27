@@ -82,7 +82,8 @@ Package createFoobarPackage({String name, List<User> uploaders}) {
     ..downloads = 0
     ..likes = 0
     ..doNotAdvertise = false
-    ..isDiscontinued = false;
+    ..isDiscontinued = false
+    ..assignedTags = [];
 }
 
 final Package foobarPackage = createFoobarPackage();
@@ -313,6 +314,7 @@ PkgBundle generateBundle(
     ..likes = 0
     ..doNotAdvertise = false
     ..isDiscontinued = false
+    ..assignedTags = []
     ..publisherId = publisherId
     ..uploaders =
         publisherId != null ? [] : uploaders.map((u) => u.userId).toList();

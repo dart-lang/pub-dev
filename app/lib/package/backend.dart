@@ -116,9 +116,11 @@ class PackageBackend {
   }
 
   /// Looks up a package by name.
+  ///
+  /// Returns `null` if the package doesn't exist.½
   Future<models.Package> lookupPackage(String packageName) async {
     final packageKey = db.emptyKey.append(models.Package, id: packageName);
-    return (await db.lookup([packageKey])).first as models.Package;
+    return await db.lookupValue<models.Package>(packageKey, orElse: () => null);
   }
 
   /// Looks up a package by name.
@@ -903,7 +905,8 @@ models.Package _newPackageFromVersion(
     ..uploaders = [userId]
     ..likes = 0
     ..doNotAdvertise = false
-    ..isDiscontinued = false;
+    ..isDiscontinued = false
+    ..assignedTags = [];
 }
 
 class _ValidatedUpload {

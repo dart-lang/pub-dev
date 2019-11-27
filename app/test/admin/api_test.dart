@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:client_data/admin_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:test/test.dart';
 
@@ -189,6 +190,71 @@ void main() {
       // TODO: delete with multiple uploaders
       // TODO: delete with multiple members (contact email not changed)
       // TODO: delete with multiple members (contact email changes)
+    });
+
+    group('get assignedTags', () {
+      _testNotAdmin((client) => client.adminGetAssignedTags('hydrogen'));
+
+      testWithServices('get assignedTags', () async {
+        final client = createPubApiClient(authToken: adminUser.userId);
+        final result = await client.adminGetAssignedTags('hydrogen');
+        expect(result.assignedTags, isNot(contains('is:featured')));
+      });
+    });
+
+    group('set assignedTags', () {
+      _testNotAdmin((client) => client.adminPostAssignedTags(
+            'hydrogen',
+            PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+          ));
+
+      testWithServices('set assignedTags', () async {
+        final client = createPubApiClient(authToken: adminUser.userId);
+
+        // Is initially not featured
+        final r1 = await client.adminGetAssignedTags('hydrogen');
+        expect(r1.assignedTags, isNot(contains('is:featured')));
+
+        // Set updating with no change, should have no effect
+        await client.adminPostAssignedTags(
+          'hydrogen',
+          PatchAssignedTags(assignedTagsAdded: r1.assignedTags),
+        );
+        final r2 = await client.adminGetAssignedTags('hydrogen');
+        expect(r2.assignedTags, isNot(contains('is:featured')));
+
+        // Check that we can set is:featured
+        await client.adminPostAssignedTags(
+          'hydrogen',
+          PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+        );
+        final r3 = await client.adminGetAssignedTags('hydrogen');
+        expect(r3.assignedTags, contains('is:featured'));
+
+        // Check that we can set is:featured (again)
+        await client.adminPostAssignedTags(
+          'hydrogen',
+          PatchAssignedTags(assignedTagsAdded: ['is:featured']),
+        );
+        final r4 = await client.adminGetAssignedTags('hydrogen');
+        expect(r4.assignedTags, contains('is:featured'));
+
+        // Check that we can remove the tag.
+        await client.adminPostAssignedTags(
+          'hydrogen',
+          PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
+        );
+        final r5 = await client.adminGetAssignedTags('hydrogen');
+        expect(r5.assignedTags, isNot(contains('is:featured')));
+
+        // Check that we can remove the tag (again).
+        await client.adminPostAssignedTags(
+          'hydrogen',
+          PatchAssignedTags(assignedTagsRemoved: ['is:featured']),
+        );
+        final r6 = await client.adminGetAssignedTags('hydrogen');
+        expect(r6.assignedTags, isNot(contains('is:featured')));
+      });
     });
   });
 }
