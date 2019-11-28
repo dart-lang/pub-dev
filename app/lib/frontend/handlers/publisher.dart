@@ -54,7 +54,7 @@ Future<shelf.Response> publisherPageHandler(
 Future<shelf.Response> publisherPackagesPageHandler(
     shelf.Request request, String publisherId) async {
   final searchQuery = parseFrontendSearchQuery(
-    request.requestedUri.queryParameters,
+    request.requestedUri,
     publisherId: publisherId,
     includeLegacy: true,
     tagsPredicate: TagsPredicate.allPackages(),

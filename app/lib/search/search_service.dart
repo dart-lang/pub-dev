@@ -222,6 +222,10 @@ final RegExp _allDependencyRegExp =
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
+String _stringToNull(String v) => (v == null || v.isEmpty) ? null : v;
+List<String> _listToNull(List<String> list) =>
+    (list == null || list.isEmpty) ? null : list;
+
 class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
@@ -257,14 +261,10 @@ class SearchQuery {
     this.isApiEnabled,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
-        platform = (platform == null || platform.isEmpty) ? null : platform,
+        platform = _stringToNull(platform),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
-        uploaderOrPublishers =
-            (uploaderOrPublishers == null || uploaderOrPublishers.isEmpty)
-                ? null
-                : uploaderOrPublishers,
-        publisherId =
-            (publisherId == null || publisherId.isEmpty) ? null : publisherId;
+        uploaderOrPublishers = _listToNull(uploaderOrPublishers),
+        publisherId = _stringToNull(publisherId);
 
   factory SearchQuery.parse({
     String query,
@@ -278,8 +278,7 @@ class SearchQuery {
     bool apiEnabled = true,
     bool includeLegacy = false,
   }) {
-    final String q =
-        query != null && query.trim().isNotEmpty ? query.trim() : null;
+    final q = _stringToNull(query?.trim());
     return SearchQuery._(
       query: q,
       platform: platform,
@@ -387,10 +386,11 @@ class SearchQuery {
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
   String toSearchLink({int page}) {
-    final Map<String, String> params = {};
+    final params = <String, dynamic>{};
     if (query != null && query.isNotEmpty) {
       params['q'] = query;
     }
+    params.addAll(tagsPredicate.asSearchLinkParams());
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
@@ -492,6 +492,27 @@ class TagsPredicate {
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
     return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
+  }
+
+  /// Returns the tag values that can be passed query parameters of the
+  /// user-facing search query.
+  Map<String, List<String>> asSearchLinkParams() {
+    final params = <String, List<String>>{
+      'sdk': _tagPartsWithPrefix('sdk', value: true),
+      'runtime': _tagPartsWithPrefix('runtime', value: true),
+      'platform': _tagPartsWithPrefix('platform', value: true),
+    };
+    params.removeWhere((k, v) => v.isEmpty);
+    return params;
+  }
+
+  /// Returns the second part of the tags matching [prefix] and [value].
+  List<String> _tagPartsWithPrefix(String prefix, {bool value}) {
+    return _values.keys
+        .where((k) =>
+            k.startsWith('$prefix:') && (value == null || _values[k] == value))
+        .map((k) => k.substring(prefix.length + 1))
+        .toList();
   }
 }
 
@@ -703,19 +724,35 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 /// the frontend. The parameters and the values may be different from the ones
 /// we use in the search service backend.
 SearchQuery parseFrontendSearchQuery(
-  Map<String, String> queryParameters, {
+  Uri uri, {
   String platform,
   List<String> uploaderOrPublishers,
   String publisherId,
   bool includeLegacy = false,
   @required TagsPredicate tagsPredicate,
 }) {
-  final int page = extractPageFromUrlParameters(queryParameters);
+  final int page = extractPageFromUrlParameters(uri.queryParameters);
   final int offset = resultsPerPage * (page - 1);
-  final String queryText = queryParameters['q'] ?? '';
-  final String sortParam = queryParameters['sort'];
+  final String queryText = uri.queryParameters['q'] ?? '';
+  final String sortParam = uri.queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
-  final isApiEnabled = queryParameters['api'] != '0';
+  final isApiEnabled = uri.queryParameters['api'] != '0';
+  final requiredTags = <String>[];
+  if (uri.queryParametersAll.containsKey('sdk')) {
+    requiredTags.addAll(uri.queryParametersAll['sdk'].map((v) => 'sdk:$v'));
+  }
+  if (uri.queryParametersAll.containsKey('platform')) {
+    requiredTags
+        .addAll(uri.queryParametersAll['platform'].map((v) => 'platform:$v'));
+  }
+  if (uri.queryParametersAll.containsKey('runtime')) {
+    requiredTags
+        .addAll(uri.queryParametersAll['runtime'].map((v) => 'runtime:$v'));
+  }
+  if (requiredTags.isNotEmpty) {
+    tagsPredicate = tagsPredicate
+        .appendPredicate(TagsPredicate(requiredTags: requiredTags));
+  }
   return SearchQuery.parse(
     query: queryText,
     platform: platform,
@@ -725,7 +762,7 @@ SearchQuery parseFrontendSearchQuery(
     offset: offset,
     limit: resultsPerPage,
     apiEnabled: isApiEnabled,
-    includeLegacy: includeLegacy || queryParameters['legacy'] == '1',
+    includeLegacy: includeLegacy || uri.queryParameters['legacy'] == '1',
     tagsPredicate: tagsPredicate,
   );
 }

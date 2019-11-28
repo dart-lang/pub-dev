@@ -174,4 +174,31 @@ void main() {
           '/packages?q=package%3Aangular+widget&sort=top');
     });
   });
+
+  group('new sdk queries', () {
+    test('sdk:flutter & platform:android', () {
+      final query = parseFrontendSearchQuery(
+        Uri.parse('/packages?sdk=flutter&platform=android'),
+        tagsPredicate: TagsPredicate.regularSearch(),
+      );
+      expect(
+        query.tagsPredicate.toQueryParameters(),
+        ['-is:discontinued', 'sdk:flutter', 'platform:android'],
+      );
+      expect(query.toSearchLink(), '/packages?sdk=flutter&platform=android');
+    });
+
+    test('sdk:flutter & platform:android & platform:ios', () {
+      final query = parseFrontendSearchQuery(
+        Uri.parse('/packages?sdk=flutter&platform=android&platform=ios'),
+        tagsPredicate: TagsPredicate.regularSearch(),
+      );
+      expect(
+        query.tagsPredicate.toQueryParameters(),
+        ['-is:discontinued', 'sdk:flutter', 'platform:android', 'platform:ios'],
+      );
+      expect(query.toSearchLink(),
+          '/packages?sdk=flutter&platform=android&platform=ios');
+    });
+  });
 }

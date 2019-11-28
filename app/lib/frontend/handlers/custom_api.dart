@@ -225,7 +225,7 @@ Future<shelf.Response> apiHistoryHandler(shelf.Request request) async {
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchQuery = parseFrontendSearchQuery(
-    request.requestedUri.queryParameters,
+    request.requestedUri,
     tagsPredicate: TagsPredicate.regularSearch(),
   );
   final sr = await searchClient.search(searchQuery);

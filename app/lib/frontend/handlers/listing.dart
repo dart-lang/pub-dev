@@ -46,7 +46,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
     shelf.Request request, String platform) async {
   // TODO: use search memcache for all results here or remove search memcache
   final searchQuery = parseFrontendSearchQuery(
-    request.requestedUri.queryParameters,
+    request.requestedUri,
     platform: platform,
     tagsPredicate: TagsPredicate.regularSearch(),
   );
