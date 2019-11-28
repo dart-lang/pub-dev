@@ -57,9 +57,11 @@ String renderLayoutPage(
       ? null
       : {
           'email': userSessionData.email,
-          // Set image size to 30x30 pixels for faster loading, see:
-          // https://developers.google.com/people/image-sizing
-          'image_url': userSessionData.imageUrl + '=s30',
+          'image_url': userSessionData.imageUrl == null
+              ? null
+              // Set image size to 30x30 pixels for faster loading, see:
+              // https://developers.google.com/people/image-sizing
+              : '${userSessionData.imageUrl}=s30',
         };
   final searchBannerHtml = _renderSearchBanner(
     type: type,
