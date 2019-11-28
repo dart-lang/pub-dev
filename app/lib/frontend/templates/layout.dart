@@ -58,7 +58,7 @@ String renderLayoutPage(
       : {
           'email': userSessionData.email,
           'image_url': userSessionData.imageUrl == null
-              ? null
+              ? staticUrls.defaultProfilePng
               // Set image size to 30x30 pixels for faster loading, see:
               // https://developers.google.com/people/image-sizing
               : '${userSessionData.imageUrl}=s30',
