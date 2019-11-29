@@ -9,6 +9,9 @@
 /// or an error should be returned to the caller.
 const allowedTagPrefixes = [
   'is:',
+  'platform:',
+  'runtime:',
+  'sdk:',
 ];
 
 /// Collection of package-related tags.
