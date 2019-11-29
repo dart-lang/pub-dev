@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:args/command_runner.dart';
 import 'package:gcloud/db.dart';
@@ -25,6 +26,7 @@ import '_gae_setup.dart';
 import '_isolate.dart';
 
 final Logger logger = Logger('pub.dartdoc');
+final _random = Random.secure();
 
 class DartdocCommand extends Command {
   @override
@@ -88,7 +90,12 @@ Future _workerMain(WorkerEntryMessage message) async {
     });
 
     dartdocBackend.scheduleOldDataGC();
-    jobBackend.scheduleOldDataGC();
+
+    // Run GC in the next 6-12 hours (randomized wait to reduce race).
+    Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
+      jobBackend.deleteOldEntries();
+    });
+
     await jobMaintenance.run();
   });
 }

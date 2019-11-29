@@ -85,12 +85,12 @@ Future _workerMain(WorkerEntryMessage message) async {
       message.statsSendPort.send(await jobBackend.stats(JobService.analyzer));
     });
 
-    // Run ScoreCard GC in the next 6 hours (randomized wait to reduce race).
-    Timer(Duration(minutes: _random.nextInt(360)), () {
+    // Run GC in the next 6-12 hours (randomized wait to reduce race).
+    Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
       scoreCardBackend.deleteOldEntries();
+      jobBackend.deleteOldEntries();
     });
 
-    jobBackend.scheduleOldDataGC();
     await jobMaintenance.run();
   });
 }
