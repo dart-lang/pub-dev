@@ -26,7 +26,7 @@ class IntegrityChecker {
   final _emailToUser = <String, List<String>>{};
   final _deletedUsers = <String>{};
   final _invalidUsers = Set<String>();
-  final _userLikes = <String, List<String>>{};
+  final _userToLikes = <String, List<String>>{};
   final _packages = <String>{};
   final _packagesWithVersion = <String>{};
   final _publishers = <String>{};
@@ -350,19 +350,19 @@ class IntegrityChecker {
     _logger.info('Scanning Likes...');
 
     await for (Like like in _db.query<Like>().run()) {
-      _userLikes.update(like.userId, (l) => l..add(like.package),
+      _userToLikes.update(like.userId, (l) => l..add(like.package),
           ifAbsent: () => <String>[]);
     }
 
-    _userLikes.keys
+    _userToLikes.keys
         .where((user) =>
             (!_userToOauth.keys.contains(user) || _deletedUsers.contains(user)))
         .forEach((user) {
       _problems.add('Like entity with nonexisting or deleted user $user');
     });
 
-    _userLikes.keys.forEach((user) {
-      _userLikes[user]
+    _userToLikes.keys.forEach((user) {
+      _userToLikes[user]
           .where((String package) => !_packages.contains(package))
           .forEach((package) {
         _problems.add('User $user likes missing package $package');
