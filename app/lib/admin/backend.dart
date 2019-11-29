@@ -149,13 +149,13 @@ class AdminBackend {
       await _removeMember(user, m);
     }
 
-      // Like
-      _removeAndDecrementLikes(user);
+    // Like
+    _removeAndDecrementLikes(user);
 
-      // User
-      // OAuthUserID
-      // TODO: consider deleting User if there are no other references to it
-      await _markUserDeleted(user);
+    // User
+    // OAuthUserID
+    // TODO: consider deleting User if there are no other references to it
+    await _markUserDeleted(user);
   }
 
   // Remove like entities and decrement likes count on all packages liked by [user].
