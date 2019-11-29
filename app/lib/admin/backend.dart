@@ -150,7 +150,7 @@ class AdminBackend {
     }
 
     // Like
-    _removeAndDecrementLikes(user);
+    await _removeAndDecrementLikes(user);
 
     // User
     // OAuthUserID
