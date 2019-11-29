@@ -248,6 +248,11 @@ class SearchQuery {
   /// True, if packages which only support dart 1.x should be included.
   final bool includeLegacy;
 
+  /// True, if the result list should be a random sample of packages matching
+  /// this [SearchQuery]. The range, method and weights of the random sampling
+  /// is up to the index implementation.
+  final bool randomize;
+
   SearchQuery._({
     this.query,
     String platform,
@@ -258,6 +263,7 @@ class SearchQuery {
     this.offset,
     this.limit,
     this.includeLegacy,
+    this.randomize,
   })  : parsedQuery = ParsedQuery._parse(query),
         platform = _stringToNull(platform),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
@@ -274,6 +280,7 @@ class SearchQuery {
     int offset = 0,
     int limit = 10,
     bool includeLegacy = false,
+    bool randomize = false,
   }) {
     final q = _stringToNull(query?.trim());
     return SearchQuery._(
@@ -286,6 +293,7 @@ class SearchQuery {
       offset: offset,
       limit: limit,
       includeLegacy: includeLegacy,
+      randomize: randomize,
     );
   }
 
@@ -312,6 +320,7 @@ class SearchQuery {
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
       includeLegacy: uri.queryParameters['legacy'] == '1',
+      randomize: uri.queryParameters['randomize'] == '1',
     );
   }
 
@@ -325,9 +334,8 @@ class SearchQuery {
     SearchOrder order,
     int offset,
     int limit,
-    bool isAd,
-    bool apiEnabled,
     bool includeLegacy,
+    bool randomize,
   }) {
     return SearchQuery._(
       query: query ?? this.query,
@@ -339,6 +347,7 @@ class SearchQuery {
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
       includeLegacy: includeLegacy ?? this.includeLegacy,
+      randomize: randomize ?? this.randomize,
     );
   }
 
@@ -353,6 +362,7 @@ class SearchQuery {
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
       'legacy': includeLegacy ? '1' : null,
+      'randomize': randomize ? '1' : null,
     };
     map.removeWhere((k, v) => v == null);
     return map;
@@ -670,6 +680,8 @@ class PackageScore {
       apiPages: apiPages ?? this.apiPages,
     );
   }
+
+  PackageScore onlyPackageName() => PackageScore(package: package);
 
   bool get isExternal => url != null && version != null && description != null;
 
