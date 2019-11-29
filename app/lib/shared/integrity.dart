@@ -355,9 +355,10 @@ class IntegrityChecker {
     }
 
     _userLikes.keys
-        .where((user) => !_oauthToUser.keys.contains(user))
+        .where((user) =>
+            (!_userToOauth.keys.contains(user) || _deletedUsers.contains(user)))
         .forEach((user) {
-      _problems.add('Like entity with nonexisting user $user');
+      _problems.add('Like entity with nonexisting or deleted user $user');
     });
 
     _userLikes.keys.forEach((user) {
