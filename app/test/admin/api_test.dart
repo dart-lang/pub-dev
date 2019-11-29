@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:client_data/admin_api.dart';
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/account/backend.dart';
@@ -185,6 +186,32 @@ void main() {
             .run()
             .toList();
         expect(members, isEmpty);
+      });
+
+      testWithServices('Likes are cleaned up on user deletion', () async {
+        final client = createPubApiClient(authToken: adminUser.userId);
+        final hansClient = createPubApiClient(authToken: hansUser.userId);
+
+        await hansClient.likePackage(helium.package.name);
+
+        final r2 = await client.getPackageLikes(helium.package.name);
+        expect(r2.likes, 1);
+
+        final likeKey = dbService.emptyKey
+            .append(User, id: hansUser.userId)
+            .append(Like, id: helium.package.name);
+
+        Like like =
+            await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        expect(like, isNotNull);
+
+        await client.adminRemoveUser(hansUser.userId);
+
+        final r3 = await client.getPackageLikes(helium.package.name);
+        expect(r3.likes, 0);
+
+        like = await dbService.lookupValue<Like>(likeKey, orElse: () => null);
+        expect(like, null);
       });
 
       // TODO: delete with multiple uploaders

@@ -26,6 +26,7 @@ class IntegrityChecker {
   final _emailToUser = <String, List<String>>{};
   final _deletedUsers = <String>{};
   final _invalidUsers = Set<String>();
+  final _userToLikes = <String, List<String>>{};
   final _packages = <String>{};
   final _packagesWithVersion = <String>{};
   final _publishers = <String>{};
@@ -44,6 +45,7 @@ class IntegrityChecker {
     await _checkPublisherMembers();
     await _checkPackages();
     await _checkVersions();
+    await _checkLikes();
     return _problems;
   }
 
@@ -342,5 +344,29 @@ class IntegrityChecker {
     if (_versionChecked % 5000 == 0) {
       _logger.info('  .. $_versionChecked done (${pv.qualifiedVersionKey})');
     }
+  }
+
+  Future<void> _checkLikes() async {
+    _logger.info('Scanning Likes...');
+
+    await for (Like like in _db.query<Like>().run()) {
+      _userToLikes.update(like.userId, (l) => l..add(like.package),
+          ifAbsent: () => <String>[]);
+    }
+
+    _userToLikes.keys
+        .where((user) =>
+            (!_userToOauth.keys.contains(user) || _deletedUsers.contains(user)))
+        .forEach((user) {
+      _problems.add('Like entity with nonexisting or deleted user $user');
+    });
+
+    _userToLikes.keys.forEach((user) {
+      _userToLikes[user]
+          .where((String package) => !_packages.contains(package))
+          .forEach((package) {
+        _problems.add('User $user likes missing package $package');
+      });
+    });
   }
 }
