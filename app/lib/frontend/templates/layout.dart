@@ -148,7 +148,6 @@ String _renderSearchBanner({
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
-    'api_search_enabled': searchQuery?.isApiEnabled ?? true,
     'platform_tabs_html': platformTabs,
     'landing_banner_image': _landingBannerImage(platform == 'flutter'),
     'landing_banner_alt':

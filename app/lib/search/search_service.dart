@@ -244,7 +244,6 @@ class SearchQuery {
   final SearchOrder order;
   final int offset;
   final int limit;
-  final bool isApiEnabled;
 
   /// True, if packages which only support dart 1.x should be included.
   final bool includeLegacy;
@@ -258,7 +257,6 @@ class SearchQuery {
     this.order,
     this.offset,
     this.limit,
-    this.isApiEnabled,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
         platform = _stringToNull(platform),
@@ -275,7 +273,6 @@ class SearchQuery {
     SearchOrder order,
     int offset = 0,
     int limit = 10,
-    bool apiEnabled = true,
     bool includeLegacy = false,
   }) {
     final q = _stringToNull(query?.trim());
@@ -288,7 +285,6 @@ class SearchQuery {
       order: order,
       offset: offset,
       limit: limit,
-      isApiEnabled: apiEnabled,
       includeLegacy: includeLegacy,
     );
   }
@@ -315,7 +311,6 @@ class SearchQuery {
       order: order,
       offset: max(0, offset),
       limit: max(_minSearchLimit, limit),
-      apiEnabled: uri.queryParameters['api'] != '0',
       includeLegacy: uri.queryParameters['legacy'] == '1',
     );
   }
@@ -343,7 +338,6 @@ class SearchQuery {
       order: order ?? this.order,
       offset: offset ?? this.offset,
       limit: limit ?? this.limit,
-      isApiEnabled: apiEnabled ?? this.isApiEnabled,
       includeLegacy: includeLegacy ?? this.includeLegacy,
     );
   }
@@ -358,7 +352,6 @@ class SearchQuery {
       'offset': offset?.toString(),
       'limit': limit?.toString(),
       'order': serializeSearchOrder(order),
-      'api': isApiEnabled ? null : '0',
       'legacy': includeLegacy ? '1' : null,
     };
     map.removeWhere((k, v) => v == null);
@@ -404,9 +397,6 @@ class SearchQuery {
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
-    }
-    if (!isApiEnabled) {
-      params['api'] = '0';
     }
     if (includeLegacy) {
       params['legacy'] = '1';
@@ -544,9 +534,6 @@ class ParsedQuery {
   /// Detected tags in the user-provided query.
   TagsPredicate tagsPredicate;
 
-  /// Enable experimental API search.
-  final bool isApiEnabled;
-
   ParsedQuery._(
     this.text,
     this.packagePrefix,
@@ -555,7 +542,6 @@ class ParsedQuery {
     this.publisher,
     this.emails,
     this.tagsPredicate,
-    this.isApiEnabled,
   );
 
   factory ParsedQuery._parse(String q) {
@@ -592,11 +578,6 @@ class ParsedQuery {
     );
     final tagsPredicate = TagsPredicate.parseQueryValues(tagValues);
 
-    final bool isApiEnabled = queryText.contains(' !!api ');
-    if (isApiEnabled) {
-      queryText = queryText.replaceFirst(' !!api ', ' ');
-    }
-
     queryText = queryText.replaceAll(_whitespacesRegExp, ' ').trim();
     if (queryText.isEmpty) {
       queryText = null;
@@ -610,7 +591,6 @@ class ParsedQuery {
       publisher,
       emails,
       tagsPredicate,
-      isApiEnabled,
     );
   }
 
@@ -746,7 +726,6 @@ SearchQuery parseFrontendSearchQuery(
   final String queryText = queryParameters['q'] ?? '';
   final String sortParam = queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
-  final isApiEnabled = queryParameters['api'] != '0';
   final requiredTags = <String>[];
   if (sdk != null) {
     requiredTags.add('sdk:$sdk');
@@ -775,7 +754,6 @@ SearchQuery parseFrontendSearchQuery(
     order: sortOrder,
     offset: offset,
     limit: resultsPerPage,
-    apiEnabled: isApiEnabled,
     includeLegacy: includeLegacy || queryParameters['legacy'] == '1',
     tagsPredicate: tagsPredicate,
   );
