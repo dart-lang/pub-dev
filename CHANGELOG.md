@@ -2,6 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2019.11.29`.
 
 ## `20191127t111711-all`
  * Added 'my liked packages' page behind experimental flag.
