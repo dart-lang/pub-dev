@@ -254,7 +254,7 @@ List<String> _deriveTags(List<String> platformTags) {
       ];
     }
   }
-  return null;
+  return <String>[];
 }
 
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
