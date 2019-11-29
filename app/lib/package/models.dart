@@ -16,10 +16,9 @@ import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
 import '../shared/exceptions.dart';
 import '../shared/model_properties.dart';
+import '../shared/tags.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
-
-import 'package_tags.dart';
 
 export '../package/model_properties.dart' show FileObject;
 

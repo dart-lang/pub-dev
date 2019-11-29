@@ -48,6 +48,9 @@ class PubSiteService {
   @Route.get('/')
   Future<Response> index(Request request) => indexLandingHandler(request);
 
+  @Route.get('/dart')
+  Future<Response> dart(Request request) => dartLandingHandler(request);
+
   /// Flutter index
   @Route.get('/flutter')
   Future<Response> flutter(Request request) => flutterLandingHandler(request);
@@ -63,6 +66,10 @@ class PubSiteService {
   /// Default package listing page
   @Route.get('/packages')
   Future<Response> packages(Request request) => packagesHandlerHtml(request);
+
+  @Route.get('/dart/packages')
+  Future<Response> dartPackages(Request request) =>
+      dartPackagesHandlerHtml(request);
 
   @Route.get('/flutter/packages')
   Future<Response> flutterPackages(Request request) =>

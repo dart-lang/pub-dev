@@ -28,3 +28,15 @@ abstract class PackageVersionTags {
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
 }
+
+/// Collection of SDK tag values.
+abstract class SdkTagValue {
+  static const String dart = 'dart';
+  static const String flutter = 'flutter';
+}
+
+/// Collection of Dart SDK runtime values.
+abstract class DartSdkRuntimeValue {
+  static const String native = 'native';
+  static const String web = 'web';
+}

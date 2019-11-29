@@ -174,4 +174,49 @@ void main() {
           '/packages?q=package%3Aangular+widget&sort=top');
     });
   });
+
+  group('new sdk queries', () {
+    test('sdk:flutter & platform:android', () {
+      final query = parseFrontendSearchQuery(
+        {'platform': 'android'},
+        sdk: 'flutter',
+        tagsPredicate: TagsPredicate.regularSearch(),
+      );
+      expect(
+        query.tagsPredicate.toQueryParameters(),
+        ['-is:discontinued', 'sdk:flutter', 'platform:android'],
+      );
+      expect(query.toSearchLink(), '/flutter/packages?platform=android');
+    });
+
+    test('sdk:flutter & platform:android & platform:ios', () {
+      final query = parseFrontendSearchQuery(
+        Uri.parse('/flutter/packages?platform=android++ios').queryParameters,
+        sdk: 'flutter',
+        tagsPredicate: TagsPredicate.regularSearch(),
+      );
+      expect(
+        query.tagsPredicate.toQueryParameters(),
+        ['-is:discontinued', 'sdk:flutter', 'platform:android', 'platform:ios'],
+      );
+      expect(query.toSearchLink(), '/flutter/packages?platform=android+ios');
+    });
+
+    test('sdk:dart & runtime:web', () {
+      final query = parseFrontendSearchQuery(
+        Uri.parse('/dart/packages?runtime=web').queryParameters,
+        sdk: 'dart',
+        tagsPredicate: TagsPredicate.regularSearch(),
+      );
+      expect(
+        query.tagsPredicate.toQueryParameters(),
+        [
+          '-is:discontinued',
+          'sdk:dart',
+          'runtime:web',
+        ],
+      );
+      expect(query.toSearchLink(), '/dart/packages?runtime=web');
+    });
+  });
 }

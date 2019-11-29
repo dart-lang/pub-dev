@@ -76,7 +76,14 @@ String publisherPackagesUrl(String publisherId) =>
 String publisherAdminUrl(String publisherId) =>
     '/publishers/$publisherId/admin';
 
-String searchUrl({String platform, String q, int page}) =>
+String searchUrl({
+  String platform,
+  String sdk,
+  List<String> runtimes,
+  List<String> platforms,
+  String q,
+  int page,
+}) =>
     SearchQuery.parse(platform: platform, query: q).toSearchLink(page: page);
 
 String dartSdkMainUrl(String version) {
