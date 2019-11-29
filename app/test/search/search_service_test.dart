@@ -27,17 +27,6 @@ void main() {
       expect(SearchQuery.parse(query: 'text').parsedQuery.text, 'text');
       expect(SearchQuery.parse(query: ' text ').query, 'text');
       expect(SearchQuery.parse(query: ' text ').parsedQuery.text, 'text');
-      expect(
-          SearchQuery.parse(query: ' text ').parsedQuery.isApiEnabled, isFalse);
-    });
-
-    test('experimental API search', () {
-      expect(
-          SearchQuery.parse(query: '!!api').parsedQuery.isApiEnabled, isTrue);
-      expect(SearchQuery.parse(query: 'text !!api').parsedQuery.isApiEnabled,
-          isTrue);
-      expect(SearchQuery.parse(query: '!!api text').parsedQuery.isApiEnabled,
-          isTrue);
     });
 
     test('no dependency', () {

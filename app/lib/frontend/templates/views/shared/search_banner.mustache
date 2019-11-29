@@ -15,7 +15,6 @@
         {{#show_details}}
         {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
         <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
-        <input id="search-api-field" type="hidden" name="api" value="0"{{#api_search_enabled}} disabled="disabled"{{/api_search_enabled}} />
         {{/show_details}}
       </form>
       {{#show_details}}
@@ -24,8 +23,6 @@
         <div class="search-bar-options">
           <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
           <label for="search-legacy-checkbox">Include Dart 1.x results</label>
-          <input id="search-api-checkbox" type="checkbox" name="api"{{#api_search_enabled}} checked="checked"{{/api_search_enabled}} />
-          <label for="search-api-checkbox"> Include API results</label>
         </div>
       </div>
       {{/show_details}}

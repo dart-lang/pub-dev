@@ -60,19 +60,6 @@ void _setEventForSortControl() {
 }
 
 void _setEventForCheckboxChanges() {
-  final hiddenApiField =
-      document.getElementById('search-api-field') as InputElement;
-  final visibleApiCheckbox =
-      document.getElementById('search-api-checkbox') as CheckboxInputElement;
-  if (hiddenApiField != null && visibleApiCheckbox != null) {
-    final formElement = hiddenApiField.form;
-    visibleApiCheckbox.onChange.listen((_) {
-      hiddenApiField.disabled = visibleApiCheckbox.checked;
-      // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-      formElement.submit();
-    });
-  }
-
   final hiddenLegacyField =
       document.getElementById('search-legacy-field') as InputElement;
   final visibleLegacyCheckbox =

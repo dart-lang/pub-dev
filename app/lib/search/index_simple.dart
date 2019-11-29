@@ -220,9 +220,7 @@ class SimplePackageIndex implements PackageIndex {
     }
 
     // do text matching
-    final isApiEnabled = query.isApiEnabled || query.parsedQuery.isApiEnabled;
-    final textResults =
-        _searchText(packages, query.parsedQuery.text, isApiEnabled);
+    final textResults = _searchText(packages, query.parsedQuery.text);
 
     // filter packages that doesn't match text query
     if (textResults != null) {
@@ -373,8 +371,7 @@ class SimplePackageIndex implements PackageIndex {
     return Score(values);
   }
 
-  _TextResults _searchText(
-      Set<String> packages, String text, bool isExperimental) {
+  _TextResults _searchText(Set<String> packages, String text) {
     if (text != null && text.isNotEmpty) {
       final List<String> words = splitForIndexing(text).toList();
       final int wordCount = words.length;
@@ -392,27 +389,22 @@ class SimplePackageIndex implements PackageIndex {
         final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
             weight: 0.75, wordCount: wordCount));
 
-        Score apiScore;
-        if (isExperimental) {
-          final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
-          final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
-          final symbolPages = Score(_apiSymbolIndex.scoreDocs(apiSymbolTokens,
-              weight: 0.80, wordCount: wordCount));
-          final dartdocPages = Score(_apiDartdocIndex
-              .scoreDocs(apiDartdocTokens, weight: 0.60, wordCount: wordCount));
-          final apiPages = Score.max([symbolPages, dartdocPages]);
-          apiPagesScores.add(apiPages);
+        final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
+        final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
+        final symbolPages = Score(_apiSymbolIndex.scoreDocs(apiSymbolTokens,
+            weight: 0.80, wordCount: wordCount));
+        final dartdocPages = Score(_apiDartdocIndex.scoreDocs(apiDartdocTokens,
+            weight: 0.60, wordCount: wordCount));
+        final apiPages = Score.max([symbolPages, dartdocPages]);
+        apiPagesScores.add(apiPages);
 
-          final apiPackages = <String, double>{};
-          for (String key in apiPages.getKeys()) {
-            final pkg = _apiDocPkg(key);
-            final value = apiPages[key];
-            apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
-          }
-          apiScore = Score(apiPackages);
-        } else {
-          apiScore = Score({});
+        final apiPackages = <String, double>{};
+        for (String key in apiPages.getKeys()) {
+          final pkg = _apiDocPkg(key);
+          final value = apiPages[key];
+          apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
         }
+        final apiScore = Score(apiPackages);
 
         pkgScores.add(Score.max([name, descr, readme, apiScore]));
       }
