@@ -3,6 +3,10 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191128t123245-all`
+ * Run `app/bin/tools/backfill_package_fields.dart` to backfill
+   `Package.assignedTags`.
+
 ## `20191127t111711-all`
  * Added 'my liked packages' page behind experimental flag.
 
@@ -10,8 +14,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bumped runtimeVersion to `2019.11.12`.
  * Upgraded tool SDK to Dart `2.6.1`.
  * Removed support for old `Consent` format.
- * Run `app/bin/tools/backfill_package_fields.dart` to backfill
-   `Package.assignedTags`.
 
 ## `20191111t112217-all`
  * Run `app/bin/tools/backfill_package_fields.dart` to backfill `Package`
