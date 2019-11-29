@@ -2,6 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2019.11.29`.
 
 ## `20191128t123245-all`
  * Run `app/bin/tools/backfill_package_fields.dart` to backfill
