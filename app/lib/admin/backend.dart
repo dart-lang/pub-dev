@@ -15,11 +15,11 @@ import '../account/backend.dart';
 import '../account/models.dart';
 import '../package/backend.dart' show packageBackend;
 import '../package/models.dart';
-import '../package/package_tags.dart';
 import '../publisher/models.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore_helper.dart';
 import '../shared/exceptions.dart';
+import '../shared/tags.dart';
 
 final _logger = Logger('pub.admin.backend');
 final _continuationCodec = utf8.fuse(hex);

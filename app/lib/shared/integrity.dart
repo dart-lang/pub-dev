@@ -8,8 +8,8 @@ import 'package:pool/pool.dart';
 
 import '../account/models.dart';
 import '../package/models.dart';
-import '../package/package_tags.dart' show allowedTagPrefixes;
 import '../publisher/models.dart';
+import '../shared/tags.dart' show allowedTagPrefixes;
 
 import 'email.dart' show isValidEmail;
 

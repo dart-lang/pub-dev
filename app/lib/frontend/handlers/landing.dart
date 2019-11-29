@@ -10,6 +10,8 @@ import '../../package/search_adapter.dart';
 import '../../shared/handlers.dart';
 import '../../shared/platform.dart';
 import '../../shared/redis_cache.dart' show cache;
+import '../../shared/tags.dart';
+import '../../shared/urls.dart' as urls;
 
 import '../request_context.dart';
 import '../templates/landing.dart';
@@ -19,13 +21,30 @@ import '../templates/misc.dart';
 Future<shelf.Response> indexLandingHandler(shelf.Request request) =>
     _indexHandler(request, null);
 
+/// Handles requests for /dart
+Future<shelf.Response> dartLandingHandler(shelf.Request request) async =>
+    redirectResponse(urls.searchUrl(sdk: SdkTagValue.dart));
+
 /// Handles requests for /flutter
-Future<shelf.Response> flutterLandingHandler(shelf.Request request) =>
-    _indexHandler(request, KnownPlatforms.flutter);
+Future<shelf.Response> flutterLandingHandler(shelf.Request request) async {
+  if (requestContext.isExperimental) {
+    return redirectResponse(urls.searchUrl(sdk: SdkTagValue.flutter));
+  }
+  return await _indexHandler(request, KnownPlatforms.flutter);
+}
 
 /// Handles requests for /web
-Future<shelf.Response> webLandingHandler(shelf.Request request) =>
-    _indexHandler(request, KnownPlatforms.web);
+Future<shelf.Response> webLandingHandler(shelf.Request request) async {
+  if (requestContext.isExperimental) {
+    return redirectResponse(
+      urls.searchUrl(
+        sdk: SdkTagValue.dart,
+        runtimes: [DartSdkRuntimeValue.web],
+      ),
+    );
+  }
+  return _indexHandler(request, KnownPlatforms.web);
+}
 
 /// Handles requests for:
 /// - /

@@ -12,9 +12,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/liveness_check', service.livenessCheck);
   router.add('GET', r'/readiness_check', service.readinessCheck);
   router.add('GET', r'/', service.index);
+  router.add('GET', r'/dart', service.dart);
   router.add('GET', r'/flutter', service.flutter);
   router.add('GET', r'/web', service.web);
   router.add('GET', r'/packages', service.packages);
+  router.add('GET', r'/dart/packages', service.dartPackages);
   router.add('GET', r'/flutter/packages', service.flutterPackages);
   router.add('GET', r'/web/packages', service.webPackages);
   router.add(

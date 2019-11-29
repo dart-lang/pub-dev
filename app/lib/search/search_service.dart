@@ -8,7 +8,7 @@ import 'dart:math' show max;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-import '../package/package_tags.dart';
+import '../shared/tags.dart';
 
 part 'search_service.g.dart';
 
@@ -222,6 +222,10 @@ final RegExp _allDependencyRegExp =
 final _tagRegExp =
     RegExp(r'([\+|\-]?[a-z0-9]+:[a-z0-9\-_\.]+)', caseSensitive: false);
 
+String _stringToNull(String v) => (v == null || v.isEmpty) ? null : v;
+List<String> _listToNull(List<String> list) =>
+    (list == null || list.isEmpty) ? null : list;
+
 class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
@@ -257,14 +261,10 @@ class SearchQuery {
     this.isApiEnabled,
     this.includeLegacy,
   })  : parsedQuery = ParsedQuery._parse(query),
-        platform = (platform == null || platform.isEmpty) ? null : platform,
+        platform = _stringToNull(platform),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
-        uploaderOrPublishers =
-            (uploaderOrPublishers == null || uploaderOrPublishers.isEmpty)
-                ? null
-                : uploaderOrPublishers,
-        publisherId =
-            (publisherId == null || publisherId.isEmpty) ? null : publisherId;
+        uploaderOrPublishers = _listToNull(uploaderOrPublishers),
+        publisherId = _stringToNull(publisherId);
 
   factory SearchQuery.parse({
     String query,
@@ -278,8 +278,7 @@ class SearchQuery {
     bool apiEnabled = true,
     bool includeLegacy = false,
   }) {
-    final String q =
-        query != null && query.trim().isNotEmpty ? query.trim() : null;
+    final q = _stringToNull(query?.trim());
     return SearchQuery._(
       query: q,
       platform: platform,
@@ -295,9 +294,8 @@ class SearchQuery {
   }
 
   factory SearchQuery.fromServiceUrl(Uri uri) {
-    final String q = uri.queryParameters['q'];
-    final String platform =
-        uri.queryParameters['platform'] ?? uri.queryParameters['platforms'];
+    final q = uri.queryParameters['q'];
+    final platform = uri.queryParameters['platform'];
     final tagsPredicate =
         TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
     final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
@@ -325,6 +323,7 @@ class SearchQuery {
   SearchQuery change({
     String query,
     String platform,
+    String sdk,
     TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
@@ -368,11 +367,21 @@ class SearchQuery {
 
   bool get hasQuery => query != null && query.isNotEmpty;
 
+  String get sdk {
+    final values = tagsPredicate._values.entries
+        .where((e) => e.key.startsWith('sdk:') && e.value == true)
+        .map((e) => e.key.split(':')[1]);
+    return values.isEmpty ? null : values.first;
+  }
+
   /// Converts the query to a user-facing link that the search form can use as
   /// the base path of its `action` parameter.
   String toSearchFormPath() {
     String path = '/packages';
-    if (platform != null && platform.isNotEmpty) {
+    if (sdk != null) {
+      path = '/$sdk/packages';
+    }
+    if (platform != null) {
       path = '/$platform/packages';
     }
     if (publisherId != null && publisherId.isNotEmpty) {
@@ -387,10 +396,11 @@ class SearchQuery {
   /// Converts the query to a user-facing link that (after frontend parsing) will
   /// re-create an identical search query object.
   String toSearchLink({int page}) {
-    final Map<String, String> params = {};
+    final params = <String, dynamic>{};
     if (query != null && query.isNotEmpty) {
       params['q'] = query;
     }
+    params.addAll(tagsPredicate.asSearchLinkParams());
     if (order != null) {
       final String paramName = 'sort';
       params[paramName] = serializeSearchOrder(order);
@@ -492,6 +502,26 @@ class TagsPredicate {
   /// Returns the list of tag values that can be passed to search service URL.
   List<String> toQueryParameters() {
     return _values.entries.map((e) => e.value ? e.key : '-${e.key}').toList();
+  }
+
+  /// Returns the tag values that can be passed query parameters of the
+  /// user-facing search query.
+  Map<String, String> asSearchLinkParams() {
+    final params = <String, String>{
+      'runtime': _tagPartsWithPrefix('runtime', value: true).join(' '),
+      'platform': _tagPartsWithPrefix('platform', value: true).join(' '),
+    };
+    params.removeWhere((k, v) => v.isEmpty);
+    return params;
+  }
+
+  /// Returns the second part of the tags matching [prefix] and [value].
+  List<String> _tagPartsWithPrefix(String prefix, {bool value}) {
+    return _values.keys
+        .where((k) =>
+            k.startsWith('$prefix:') && (value == null || _values[k] == value))
+        .map((k) => k.substring(prefix.length + 1))
+        .toList();
   }
 }
 
@@ -705,6 +735,7 @@ int extractPageFromUrlParameters(Map<String, String> queryParameters) {
 SearchQuery parseFrontendSearchQuery(
   Map<String, String> queryParameters, {
   String platform,
+  String sdk,
   List<String> uploaderOrPublishers,
   String publisherId,
   bool includeLegacy = false,
@@ -716,6 +747,26 @@ SearchQuery parseFrontendSearchQuery(
   final String sortParam = queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
   final isApiEnabled = queryParameters['api'] != '0';
+  final requiredTags = <String>[];
+  if (sdk != null) {
+    requiredTags.add('sdk:$sdk');
+  }
+  if (queryParameters.containsKey('platform')) {
+    requiredTags.addAll(queryParameters['platform']
+        .split(' ')
+        .where((s) => s.isNotEmpty)
+        .map((v) => 'platform:$v'));
+  }
+  if (queryParameters.containsKey('runtime')) {
+    requiredTags.addAll(queryParameters['runtime']
+        .split(' ')
+        .where((s) => s.isNotEmpty)
+        .map((v) => 'runtime:$v'));
+  }
+  if (requiredTags.isNotEmpty) {
+    tagsPredicate = tagsPredicate
+        .appendPredicate(TagsPredicate(requiredTags: requiredTags));
+  }
   return SearchQuery.parse(
     query: queryText,
     platform: platform,

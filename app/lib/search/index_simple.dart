@@ -10,7 +10,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
-import '../package/package_tags.dart';
+import '../shared/tags.dart';
 import '../shared/utils.dart' show boundedList, StringInternPool;
 
 import 'platform_specificity.dart';

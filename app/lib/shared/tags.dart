@@ -9,6 +9,9 @@
 /// or an error should be returned to the caller.
 const allowedTagPrefixes = [
   'is:',
+  'platform:',
+  'runtime:',
+  'sdk:',
 ];
 
 /// Collection of package-related tags.
@@ -27,4 +30,16 @@ abstract class PackageTags {
 abstract class PackageVersionTags {
   /// PackageVersion supports only legacy (Dart 1) SDK.
   static const String isLegacy = 'is:legacy';
+}
+
+/// Collection of SDK tag values.
+abstract class SdkTagValue {
+  static const String dart = 'dart';
+  static const String flutter = 'flutter';
+}
+
+/// Collection of Dart SDK runtime values.
+abstract class DartSdkRuntimeValue {
+  static const String native = 'native';
+  static const String web = 'web';
 }
