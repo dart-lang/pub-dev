@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'package:pub_dev/dartdoc/backend.dart';
@@ -141,6 +142,10 @@ Future removePackage(String packageName) async {
   print('Removing package from ScoreCard ...');
   await _deleteWithQuery(
       dbService.query<ScoreCard>()..filter('packageName =', packageName));
+
+  print('Removing package from Like ...');
+  await _deleteWithQuery(
+      dbService.query<Like>()..filter('package =', packageName));
 
   print('Package "$packageName" got successfully removed.');
   print('NOTICE: Redis caches referencing the package will expire given time.');

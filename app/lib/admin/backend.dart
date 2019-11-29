@@ -10,6 +10,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/shared/datastore_helper.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
@@ -148,10 +149,26 @@ class AdminBackend {
       await _removeMember(user, m);
     }
 
-    // User
-    // OAuthUserID
-    // TODO: consider deleting User if there are no other references to it
-    await _markUserDeleted(user);
+      // Like
+      _removeAndDecrementLikes(user);
+
+      // User
+      // OAuthUserID
+      // TODO: consider deleting User if there are no other references to it
+      await _markUserDeleted(user);
+  }
+
+  // Remove like entities and decrement likes count on all packages liked by [user].
+  Future<void> _removeAndDecrementLikes(User user) async {
+    final pool = Pool(5);
+    final futures = <Future>[];
+    for (final like in await accountBackend.listPackageLikes(user)) {
+      final f = pool
+          .withResource(() => accountBackend.unlikePackage(user, like.package));
+      futures.add(f);
+    }
+    await Future.wait(futures);
+    await pool.close();
   }
 
   Future<void> _removeUploaderFromPackage(Key pkgKey, String userId) async {
