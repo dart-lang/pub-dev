@@ -120,43 +120,65 @@ class GoogleOauth2AuthProvider extends AuthProvider {
     if (r.containsKey('error')) {
       return null; // presumably an invalid token.
     }
-    // Sanity check on the algorithm and type.
-    if (r['alg'] == 'none' || r['typ'] != 'JWT') {
+    // Sanity check on the algorithm
+    if (r['alg'] == 'none') {
+      _logger.warning('JWT rejected, alg = "none"');
+      return null;
+    }
+    // Sanity check on the algorithm
+    final typ = r['typ'];
+    if (typ != 'JWT') {
+      _logger.warning('JWT rejected, typ = "$typ');
       return null;
     }
     // Validate the issuer.
-    if (r['iss'] != 'accounts.google.com') {
+    final iss = r['iss'];
+    if (iss != 'accounts.google.com' && iss != 'https://accounts.google.com') {
+      _logger.warning('JWT rejected, iss = "$iss');
       return null;
     }
     // Validate create time
     final fiveMinFromNow = DateTime.now().toUtc().add(Duration(minutes: 5));
-    if (r['iat'] == null || _parseTimestamp(r['iat']).isAfter(fiveMinFromNow)) {
+    final iat = r['iat'];
+    if (iat == null || _parseTimestamp(iat).isAfter(fiveMinFromNow)) {
+      _logger.warning('JWT rejected, iat = "$iat"');
       return null; // Token is created more than 5 minutes in the future
     }
     // Validate expiration time
     final fiveMinInPast = DateTime.now().toUtc().subtract(Duration(minutes: 5));
-    if (r['exp'] == null || _parseTimestamp(r['exp']).isBefore(fiveMinInPast)) {
+    final exp = r['exp'];
+    if (exp == null || _parseTimestamp(exp).isBefore(fiveMinInPast)) {
+      _logger.warning('JWT rejected, exp = "$exp"');
       return null; // Token is expired more than 5 minutes in the past
     }
     // Validate audience
-    if (r['aud'] is! String) {
+    final aud = r['aud'];
+    if (aud is! String) {
+      _logger.warning('JWT rejected, aud missing');
       return null; // missing audience
     }
-    if (!_trustedAudiences.contains(r['aud'] as String)) {
+    if (!_trustedAudiences.contains(aud as String)) {
+      _logger.warning('JWT rejected, aud = "$aud"');
       return null; // Not trusted audience
     }
     // Validate subject is present
-    if (r['sub'] is! String) {
+    final sub = r['sub'];
+    if (sub is! String) {
+      _logger.warning('JWT rejected, sub missing');
       return null; // missing subject (probably missing 'openid' scope)
     }
     // Validate email is present
-    if (r['email'] is! String) {
+    final email = r['email'];
+    if (email is! String) {
+      _logger.warning('JWT rejected, email missing');
       return null; // missing email (probably missing 'email' scope)
     }
-    if (r['email_verified'] != true && r['email_verified'] != 'true') {
+    final emailVerified = r['email_verified'];
+    if (emailVerified != true && emailVerified != 'true') {
+      _logger.warning('JWT rejected, email_verified = "$emailVerified"');
       return null; // missing email (probably missing 'email' scope)
     }
-    return AuthResult(r['sub'] as String, r['email'] as String);
+    return AuthResult(sub as String, email as String);
   }
 
   @override
