@@ -716,12 +716,12 @@ void main() {
     });
 
     scopedTest('platform tabs: list', () {
-      final String html = renderPlatformTabs(platform: 'web');
+      final String html = renderSearchTabs(platform: 'web');
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
     scopedTest('platform tabs: search', () {
-      final String html = renderPlatformTabs(
+      final String html = renderSearchTabs(
           searchQuery: SearchQuery.parse(
         query: 'foo',
         platform: 'web',

@@ -19,7 +19,7 @@
       </form>
       {{#show_details}}
       <div class="search-bar-details">
-        {{& platform_tabs_html }}
+        {{& search_tabs_html }}
         <div class="search-bar-options">
           <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
           <label for="search-legacy-checkbox">Include Dart 1.x results</label>
@@ -27,7 +27,7 @@
       </div>
       {{/show_details}}
       {{#show_landing}}
-        {{& platform_tabs_html }}
+        {{& search_tabs_html }}
         {{& landing_blurb_html }}
       {{/show_landing}}
     </div>

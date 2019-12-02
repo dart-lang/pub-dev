@@ -11,6 +11,7 @@ import '../../account/backend.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/platform.dart' show KnownPlatforms;
+import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../request_context.dart';
@@ -39,6 +40,7 @@ String renderLayoutPage(
   String faviconUrl,
   String canonicalUrl,
   String platform,
+  String sdk,
   String publisherId,
   SearchQuery searchQuery,
   bool includeSurvey = true,
@@ -66,6 +68,7 @@ String renderLayoutPage(
   final searchBannerHtml = _renderSearchBanner(
     type: type,
     platform: platform,
+    sdk: sdk,
     publisherId: publisherId,
     searchQuery: searchQuery,
   );
@@ -103,6 +106,7 @@ String renderLayoutPage(
 String _renderSearchBanner({
   @required PageType type,
   @required String platform,
+  @required String sdk,
   @required String publisherId,
   @required SearchQuery searchQuery,
 }) {
@@ -124,12 +128,13 @@ String _renderSearchBanner({
   final searchSort = searchQuery?.order == null
       ? null
       : serializeSearchOrder(searchQuery.order);
-  String platformTabs;
+  String searchTabsHtml;
   if (type == PageType.landing) {
-    platformTabs = renderPlatformTabs(platform: platform, isLanding: true);
+    searchTabsHtml =
+        renderSearchTabs(platform: platform, sdk: sdk, isLanding: true);
   } else if (type == PageType.listing) {
-    platformTabs =
-        renderPlatformTabs(platform: platform, searchQuery: searchQuery);
+    searchTabsHtml = renderSearchTabs(
+        platform: platform, sdk: sdk, searchQuery: searchQuery);
   }
   String bannerClass;
   if (type == PageType.landing) {
@@ -148,7 +153,7 @@ String _renderSearchBanner({
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
-    'platform_tabs_html': platformTabs,
+    'search_tabs_html': searchTabsHtml,
     'landing_banner_image': _landingBannerImage(platform == 'flutter'),
     'landing_banner_alt':
         platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
@@ -162,8 +167,9 @@ String _landingBannerImage(bool isFlutter) {
       : staticUrls.assets['img__dart-packages-white_png'];
 }
 
-String renderPlatformTabs({
+String renderSearchTabs({
   String platform,
+  String sdk,
   SearchQuery searchQuery,
   bool isLanding = false,
 }) {
@@ -190,14 +196,40 @@ String renderPlatformTabs({
     };
   }
 
-  final values = {
-    'tabs': [
-      platformTabData('Flutter', KnownPlatforms.flutter),
-      platformTabData('Web', KnownPlatforms.web),
-      platformTabData('All', null),
-    ]
-  };
-  return templateCache.renderTemplate('shared/search_platform_tabs', values);
+  final currentSdk = sdk ?? searchQuery?.sdk ?? SdkTagValue.any;
+  Map sdkTabData(String label, String tabSdk) {
+    String url;
+    if (searchQuery != null) {
+      url = searchQuery.change(sdk: tabSdk).toSearchLink();
+    } else {
+      url = urls.searchUrl(sdk: tabSdk);
+    }
+    return {
+      'text': label,
+      'href': htmlAttrEscape.convert(url),
+      'active': tabSdk == currentSdk,
+    };
+  }
+
+  if (requestContext.isExperimental) {
+    final values = {
+      'tabs': [
+        sdkTabData('Dart', SdkTagValue.dart),
+        sdkTabData('Flutter', SdkTagValue.flutter),
+        sdkTabData('Any', SdkTagValue.any),
+      ],
+    };
+    return templateCache.renderTemplate('shared/search_tabs', values);
+  } else {
+    final values = {
+      'tabs': [
+        platformTabData('Flutter', KnownPlatforms.flutter),
+        platformTabData('Web', KnownPlatforms.web),
+        platformTabData('All', null),
+      ],
+    };
+    return templateCache.renderTemplate('shared/search_tabs', values);
+  }
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(
