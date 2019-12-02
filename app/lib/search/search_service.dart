@@ -360,7 +360,7 @@ class SearchQuery {
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
-      tagsPredicate: tagsPredicate,
+      tagsPredicate: tagsPredicate ?? this.tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
       order: order ?? this.order,
