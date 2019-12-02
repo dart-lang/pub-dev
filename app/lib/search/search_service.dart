@@ -267,6 +267,9 @@ class SearchQuery {
   factory SearchQuery.parse({
     String query,
     String platform,
+    String sdk,
+    List<String> runtimes,
+    List<String> platforms,
     TagsPredicate tagsPredicate,
     List<String> uploaderOrPublishers,
     String publisherId,
@@ -276,6 +279,23 @@ class SearchQuery {
     bool includeLegacy = false,
   }) {
     final q = _stringToNull(query?.trim());
+    tagsPredicate ??= TagsPredicate();
+    final requiredTags = <String>[];
+    if (sdk != null) {
+      requiredTags.add('sdk:$sdk');
+    }
+    runtimes
+        ?.where((v) => v.isNotEmpty)
+        ?.map((v) => 'runtime:$v')
+        ?.forEach(requiredTags.add);
+    platforms
+        ?.where((v) => v.isNotEmpty)
+        ?.map((v) => 'platform:$v')
+        ?.forEach(requiredTags.add);
+    if (requiredTags.isNotEmpty) {
+      tagsPredicate = tagsPredicate
+          .appendPredicate(TagsPredicate(requiredTags: requiredTags));
+    }
     return SearchQuery._(
       query: q,
       platform: platform,
@@ -726,29 +746,20 @@ SearchQuery parseFrontendSearchQuery(
   final String queryText = queryParameters['q'] ?? '';
   final String sortParam = queryParameters['sort'];
   final SearchOrder sortOrder = parseSearchOrder(sortParam);
-  final requiredTags = <String>[];
-  if (sdk != null) {
-    requiredTags.add('sdk:$sdk');
-  }
-  if (queryParameters.containsKey('platform')) {
-    requiredTags.addAll(queryParameters['platform']
-        .split(' ')
-        .where((s) => s.isNotEmpty)
-        .map((v) => 'platform:$v'));
-  }
+  List<String> runtimes;
   if (queryParameters.containsKey('runtime')) {
-    requiredTags.addAll(queryParameters['runtime']
-        .split(' ')
-        .where((s) => s.isNotEmpty)
-        .map((v) => 'runtime:$v'));
+    runtimes = queryParameters['runtime'].split(' ');
   }
-  if (requiredTags.isNotEmpty) {
-    tagsPredicate = tagsPredicate
-        .appendPredicate(TagsPredicate(requiredTags: requiredTags));
+  List<String> platforms;
+  if (queryParameters.containsKey('platform')) {
+    platforms = queryParameters['platform'].split(' ');
   }
   return SearchQuery.parse(
     query: queryText,
     platform: platform,
+    sdk: sdk,
+    runtimes: runtimes,
+    platforms: platforms,
     uploaderOrPublishers: uploaderOrPublishers,
     publisherId: publisherId,
     order: sortOrder,
