@@ -36,6 +36,7 @@ abstract class PackageVersionTags {
 abstract class SdkTagValue {
   static const String dart = 'dart';
   static const String flutter = 'flutter';
+  static const String any = 'any';
 }
 
 /// Collection of Dart SDK runtime values.

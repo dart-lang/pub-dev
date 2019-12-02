@@ -288,7 +288,7 @@ class SearchQuery {
     final q = _stringToNull(query?.trim());
     tagsPredicate ??= TagsPredicate();
     final requiredTags = <String>[];
-    if (sdk != null) {
+    if (sdk != null && sdk != SdkTagValue.any) {
       requiredTags.add('sdk:$sdk');
     }
     runtimes
@@ -357,6 +357,14 @@ class SearchQuery {
     bool includeLegacy,
     bool randomize,
   }) {
+    if (sdk != null) {
+      tagsPredicate ??= TagsPredicate();
+      tagsPredicate = tagsPredicate.removePrefix('sdk:');
+      if (sdk != SdkTagValue.any) {
+        tagsPredicate = tagsPredicate
+            .appendPredicate(TagsPredicate(requiredTags: ['sdk:$sdk']));
+      }
+    }
     return SearchQuery._(
       query: query ?? this.query,
       platform: platform ?? this.platform,
@@ -503,6 +511,18 @@ class TagsPredicate {
     final p = TagsPredicate();
     p._values.addAll(_values);
     p._values.addAll(other._values);
+    return p;
+  }
+
+  /// Creates a new instance with the current values except the ones starting
+  /// with [prefix].
+  TagsPredicate removePrefix(String prefix) {
+    final p = TagsPredicate();
+    _values.entries.forEach((e) {
+      if (e.key.startsWith(prefix)) {
+        p._values[e.key] = e.value;
+      }
+    });
     return p;
   }
 
