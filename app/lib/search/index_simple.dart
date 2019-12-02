@@ -34,6 +34,7 @@ void registerPackageIndex(PackageIndex index) =>
     ss.register(#packageIndexService, index);
 
 class SimplePackageIndex implements PackageIndex {
+  final math.Random _random;
   final bool _isSdkIndex;
   final String _urlPrefix;
   final Map<String, PackageDocument> _packages = <String, PackageDocument>{};
@@ -47,12 +48,14 @@ class SimplePackageIndex implements PackageIndex {
   DateTime _lastUpdated;
   bool _isReady = false;
 
-  SimplePackageIndex()
-      : _isSdkIndex = false,
+  SimplePackageIndex({math.Random random})
+      : _random = random ?? math.Random.secure(),
+        _isSdkIndex = false,
         _urlPrefix = null;
 
   SimplePackageIndex.sdk({@required String urlPrefix})
-      : _isSdkIndex = true,
+      : _random = math.Random.secure(),
+        _isSdkIndex = true,
         _urlPrefix = urlPrefix;
 
   @override
@@ -278,9 +281,18 @@ class SimplePackageIndex implements PackageIndex {
         break;
     }
 
-    // bound by offset and limit
-    final int totalCount = results.length;
-    results = boundedList(results, offset: query.offset, limit: query.limit);
+    // bound by offset and limit (or randomize items)
+    int totalCount;
+    if (query.randomize) {
+      final limit = math.max(10, query.limit ?? 0);
+      final sublist = boundedList(results, offset: 0, limit: limit * 10);
+      sublist.shuffle(_random);
+      results = sublist.take(limit).map((sr) => sr.onlyPackageName()).toList();
+      totalCount = results.length;
+    } else {
+      totalCount = results.length;
+      results = boundedList(results, offset: query.offset, limit: query.limit);
+    }
 
     if (textResults != null &&
         textResults.topApiPages != null &&

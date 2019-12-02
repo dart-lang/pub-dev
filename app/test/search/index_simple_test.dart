@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:test/test.dart';
 
@@ -615,6 +616,47 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           {'package': 'http', 'score': closeTo(0.65, 0.01)},
         ],
       });
+    });
+  });
+
+  group('SimplePackageIndex + randomize', () {
+    final index = SimplePackageIndex(random: Random(12345));
+
+    setUpAll(() async {
+      for (int i = 0; i < 1000; i++) {
+        await index
+            .addPackage(PackageDocument(package: 'd$i', popularity: i / 1000));
+      }
+    });
+
+    test('random1', () async {
+      final results =
+          await index.search(SearchQuery.parse(randomize: true, limit: 3));
+      // should not contain d899 or below
+      expect(results.packages.map((sr) => sr.package).toList(), [
+        'd909',
+        'd982',
+        'd925',
+        'd993',
+        'd989',
+        'd915',
+        'd992',
+        'd902',
+        'd984',
+        'd901',
+      ]);
+    });
+
+    // uses the same index, the Random object is on its second use
+    test('random2', () async {
+      final results =
+          await index.search(SearchQuery.parse(randomize: true, limit: 20));
+      // could contain d899 or below
+      expect(results.packages.map((sr) => sr.package).take(3).toList(), [
+        'd857',
+        'd969',
+        'd809',
+      ]);
     });
   });
 }
