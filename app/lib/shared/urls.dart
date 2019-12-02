@@ -83,8 +83,16 @@ String searchUrl({
   List<String> platforms,
   String q,
   int page,
-}) =>
-    SearchQuery.parse(platform: platform, query: q).toSearchLink(page: page);
+}) {
+  final query = SearchQuery.parse(
+    platform: platform,
+    sdk: sdk,
+    runtimes: runtimes,
+    platforms: platforms,
+    query: q,
+  );
+  return query.toSearchLink(page: page);
+}
 
 String dartSdkMainUrl(String version) {
   final isDev = version.contains('dev');

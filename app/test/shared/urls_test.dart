@@ -178,4 +178,31 @@ void main() {
           repo);
     });
   });
+
+  group('search urls', () {
+    test('sdk:*', () {
+      expect(searchUrl(), '/packages');
+      expect(searchUrl(q: 'abc'), '/packages?q=abc');
+    });
+
+    test('sdk:dart', () {
+      expect(searchUrl(sdk: 'dart'), '/dart/packages');
+      expect(searchUrl(sdk: 'dart', q: 'abc'), '/dart/packages?q=abc');
+    });
+
+    test('sdk:dart runtime:native', () {
+      expect(searchUrl(sdk: 'dart', runtimes: ['native']),
+          '/dart/packages?runtime=native');
+    });
+
+    test('sdk:flutter', () {
+      expect(searchUrl(sdk: 'flutter'), '/flutter/packages');
+      expect(searchUrl(sdk: 'flutter', q: 'abc'), '/flutter/packages?q=abc');
+    });
+
+    test('sdk:flutter platform:android+ios', () {
+      expect(searchUrl(sdk: 'flutter', platforms: ['android', 'ios']),
+          '/flutter/packages?platform=android+ios');
+    });
+  });
 }
