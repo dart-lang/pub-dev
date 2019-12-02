@@ -23,7 +23,6 @@ export 'model.dart';
 
 const _defaultLockDuration = Duration(hours: 1);
 const _extendDuration = Duration(hours: 12);
-const _gcThreshold = Duration(days: 90);
 
 final _logger = Logger('pub.job.backend');
 final _random = math.Random.secure();
@@ -332,33 +331,23 @@ class JobBackend {
     );
   }
 
-  void scheduleOldDataGC() {
-    // Run GC in the next 6 hours (randomized wait to reduce race).
-    Timer(Duration(minutes: _random.nextInt(360)), () async {
-      try {
-        final now = DateTime.now().toUtc();
-        final query = _db.query<Job>()
-          ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
-        final deleteKeys = <db.Key>[];
-        await for (Job job in query.run()) {
-          if (job.lockedUntil == null ||
-              now.difference(job.lockedUntil) > _gcThreshold) {
-            deleteKeys.add(job.key);
-            if (deleteKeys.length >= 20) {
-              _logger.info('Deleting ${deleteKeys.length} old Job entries.');
-              await _db.commit(deletes: deleteKeys);
-              deleteKeys.clear();
-            }
-          }
-        }
-        if (deleteKeys.isNotEmpty) {
-          _logger.info('Deleting ${deleteKeys.length} old Job entries.');
-          await _db.commit(deletes: deleteKeys);
-        }
-      } catch (e, st) {
-        _logger.warning('Error while deleting old data.', e, st);
+  /// Deletes the old entries that predate [versions.gcBeforeRuntimeVersion].
+  Future<void> deleteOldEntries() async {
+    final query = _db.query<Job>()
+      ..filter('runtimeVersion <', versions.gcBeforeRuntimeVersion);
+    final deleteKeys = <db.Key>[];
+    await for (Job job in query.run()) {
+      deleteKeys.add(job.key);
+      if (deleteKeys.length >= 20) {
+        _logger.info('Deleting ${deleteKeys.length} old Job entries.');
+        await _db.commit(deletes: deleteKeys);
+        deleteKeys.clear();
       }
-    });
+    }
+    if (deleteKeys.isNotEmpty) {
+      _logger.info('Deleting ${deleteKeys.length} old Job entries.');
+      await _db.commit(deletes: deleteKeys);
+    }
   }
 }
 
