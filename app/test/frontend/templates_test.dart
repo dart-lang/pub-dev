@@ -75,9 +75,16 @@ void main() {
       }
 
       // Pretty printing output using XML parser and formatter.
-      final xmlDoc = xml
-          .parse(isFragment ? '<fragment>' + content + '</fragment>' : content);
-      final xmlContent = xmlDoc.toXmlString(pretty: true, indent: '  ') + '\n';
+      final xmlDoc = xml.parse(
+        isFragment ? '<fragment>' + content + '</fragment>' : content,
+        entityMapping: xml.XmlDefaultEntityMapping.html5(),
+      );
+      final xmlContent = xmlDoc.toXmlString(
+            pretty: true,
+            indent: '  ',
+            entityMapping: xml.XmlDefaultEntityMapping.html5(),
+          ) +
+          '\n';
 
       if (_regenerateGoldens) {
         File('$goldenDir/$fileName').writeAsStringSync(xmlContent);
