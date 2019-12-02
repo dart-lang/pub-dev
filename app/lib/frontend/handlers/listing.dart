@@ -87,7 +87,8 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request,
   final result = htmlResponse(renderPkgIndexPage(
     searchResult.packages,
     links,
-    platform,
+    platform: platform,
+    sdk: sdk,
     searchQuery: searchQuery,
     totalCount: totalCount,
   ));

@@ -103,14 +103,23 @@ String renderMyLikedPackagesList(List<LikeData> likes) {
 
 /// Renders the `views/pkg/index.mustache` template.
 String renderPkgIndexPage(
-    List<PackageView> packages, PageLinks links, String currentPlatform,
-    {SearchQuery searchQuery, int totalCount}) {
-  final PlatformDict platformDict = getPlatformDict(currentPlatform);
+  List<PackageView> packages,
+  PageLinks links, {
+  String platform,
+  String sdk,
+  SearchQuery searchQuery,
+  int totalCount,
+}) {
+  String topPackages;
+  if (sdk != null) {
+    topPackages = getSdkDict(sdk).topSdkPackages;
+  }
+  topPackages ??= getPlatformDict(platform).topPlatformPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final values = {
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
-    'title': platformDict.topPlatformPackages,
+    'title': topPackages,
     'package_list_html': renderPackageList(packages),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
@@ -119,7 +128,7 @@ String renderPkgIndexPage(
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
-  String pageTitle = platformDict.topPlatformPackages;
+  String pageTitle = topPackages;
   if (isSearch) {
     pageTitle = 'Search results for ${searchQuery.query}.';
   } else {
@@ -131,7 +140,7 @@ String renderPkgIndexPage(
     PageType.listing,
     content,
     title: pageTitle,
-    platform: currentPlatform,
+    platform: platform,
     searchQuery: searchQuery,
     noIndex: true,
   );

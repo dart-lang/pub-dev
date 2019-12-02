@@ -6,7 +6,33 @@ import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionCode;
 
 import '../../shared/platform.dart' show KnownPlatforms;
+import '../../shared/tags.dart' show SdkTagValue;
 import '../../shared/urls.dart' as urls;
+
+class SdkDict {
+  final String topSdkPackages;
+
+  const SdkDict({
+    @required this.topSdkPackages,
+  });
+
+  const SdkDict.any() : topSdkPackages = 'Top packages';
+
+  const SdkDict.dart() : topSdkPackages = 'Top Dart packages';
+
+  const SdkDict.flutter() : topSdkPackages = 'Top Flutter packages';
+}
+
+/// Returns the dictionary spec for [sdk].
+SdkDict getSdkDict(String sdk) {
+  if (sdk == SdkTagValue.dart) {
+    return SdkDict.dart();
+  } else if (sdk == SdkTagValue.flutter) {
+    return SdkDict.flutter();
+  } else {
+    return SdkDict.any();
+  }
+}
 
 class PlatformDict {
   final String name;

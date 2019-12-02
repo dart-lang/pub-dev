@@ -504,7 +504,7 @@ void main() {
             reportTypes: ['pana'],
           ),
         ),
-      ], PageLinks.empty(), null);
+      ], PageLinks.empty());
       expectGoldenFile(html, 'pkg_index_page.html');
     });
 
@@ -532,7 +532,6 @@ void main() {
           ),
         ],
         PageLinks(0, 50, searchQuery: searchQuery),
-        null,
         searchQuery: searchQuery,
         totalCount: 2,
       );
