@@ -67,7 +67,7 @@ String renderPackageList(
       'tags_html': renderTags(
         view.platforms,
         searchQuery: searchQuery,
-        tags: view.tags,
+        tags: view.tags ?? [],
         isAwaiting: view.isAwaiting,
         isDiscontinued: view.isDiscontinued,
         isLegacy: view.isLegacy,

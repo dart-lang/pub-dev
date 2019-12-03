@@ -96,7 +96,7 @@ String renderMiniList(List<PackageView> packages) {
         'tags_html': renderTags(
           package.platforms,
           searchQuery: null,
-          tags: package.tags,
+          tags: package.tags ?? [],
           isAwaiting: package.isAwaiting,
           isDiscontinued: package.isDiscontinued,
           isLegacy: package.isLegacy,

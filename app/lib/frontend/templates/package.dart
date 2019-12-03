@@ -228,7 +228,10 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
     tagsHtml: renderTags(
       analysis?.platforms,
       searchQuery: null,
-      tags: analysis?.derivedTags,
+      tags: [
+        ...package.getTags(),
+        ...(analysis?.derivedTags ?? []),
+      ],
       isAwaiting: isAwaiting,
       isDiscontinued: package.isDiscontinued,
       isLegacy: card?.isLegacy ?? false,
