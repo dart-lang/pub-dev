@@ -11,16 +11,24 @@ import '../../shared/urls.dart' as urls;
 
 class SdkDict {
   final String topSdkPackages;
+  final String searchPackagesLabel;
 
   const SdkDict({
     @required this.topSdkPackages,
+    @required this.searchPackagesLabel,
   });
 
-  const SdkDict.any() : topSdkPackages = 'Top packages';
+  const SdkDict.any()
+      : topSdkPackages = 'Top packages',
+        searchPackagesLabel = 'Search packages';
 
-  const SdkDict.dart() : topSdkPackages = 'Top Dart packages';
+  const SdkDict.dart()
+      : topSdkPackages = 'Top Dart packages',
+        searchPackagesLabel = 'Search Dart packages';
 
-  const SdkDict.flutter() : topSdkPackages = 'Top Flutter packages';
+  const SdkDict.flutter()
+      : topSdkPackages = 'Top Flutter packages',
+        searchPackagesLabel = 'Search Flutter packages';
 }
 
 /// Returns the dictionary spec for [sdk].

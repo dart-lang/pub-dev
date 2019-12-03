@@ -119,6 +119,8 @@ String _renderSearchBanner({
     searchPlaceholder = 'Search $publisherId packages';
   } else if (type == PageType.account) {
     searchPlaceholder = 'Search your packages';
+  } else if (requestContext.isExperimental) {
+    searchPlaceholder = getSdkDict(sdk).searchPackagesLabel;
   } else {
     searchPlaceholder = platformDict.searchPlatformPackagesLabel;
   }

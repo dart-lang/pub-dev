@@ -141,6 +141,7 @@ String renderPkgIndexPage(
     content,
     title: pageTitle,
     platform: platform,
+    sdk: sdk,
     searchQuery: searchQuery,
     noIndex: true,
   );
