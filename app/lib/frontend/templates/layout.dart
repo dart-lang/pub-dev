@@ -129,6 +129,11 @@ String _renderSearchBanner({
   final searchSort = searchQuery?.order == null
       ? null
       : serializeSearchOrder(searchQuery.order);
+  final hiddenInputs = searchQuery?.tagsPredicate
+      ?.asSearchLinkParams()
+      ?.entries
+      ?.map((e) => {'name': e.key, 'value': e.value})
+      ?.toList();
   String searchTabsHtml;
   if (type == PageType.landing) {
     searchTabsHtml =
@@ -136,6 +141,27 @@ String _renderSearchBanner({
   } else if (type == PageType.listing) {
     searchTabsHtml = renderSearchTabs(
         platform: platform, sdk: sdk, searchQuery: searchQuery);
+  }
+  String secondaryTabsHtml;
+  if (searchQuery?.sdk == SdkTagValue.dart) {
+    secondaryTabsHtml = _renderSecondaryTabs(
+      searchQuery: searchQuery,
+      tagPrefix: 'runtime',
+      values: [
+        DartSdkRuntimeValue.native,
+        DartSdkRuntimeValue.web,
+      ],
+    );
+  } else if (searchQuery?.sdk == SdkTagValue.flutter) {
+    secondaryTabsHtml = _renderSecondaryTabs(
+      searchQuery: searchQuery,
+      tagPrefix: 'platform',
+      values: [
+        FlutterSdkRuntimeValue.android,
+        FlutterSdkRuntimeValue.ios,
+        FlutterSdkRuntimeValue.web,
+      ],
+    );
   }
   String bannerClass;
   if (type == PageType.landing) {
@@ -154,7 +180,10 @@ String _renderSearchBanner({
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
+    'hidden_inputs': hiddenInputs,
     'search_tabs_html': searchTabsHtml,
+    'show_legacy_checkbox': sdk == null,
+    'secondary_tabs_html': secondaryTabsHtml,
     'landing_banner_image': _landingBannerImage(platform == 'flutter'),
     'landing_banner_alt':
         platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
@@ -231,6 +260,46 @@ String renderSearchTabs({
     };
     return templateCache.renderTemplate('shared/search_tabs', values);
   }
+}
+
+String _renderSecondaryTabs({
+  @required SearchQuery searchQuery,
+  @required String tagPrefix,
+  @required List<String> values,
+}) {
+  final queryParam =
+      searchQuery.tagsPredicate.asSearchLinkParams()[tagPrefix] ?? '';
+  final selected = queryParam.split(' ');
+  return templateCache.renderTemplate('shared/search_tabs', {
+    'tabs': values.map(
+      (v) {
+        final newSelected = Set<String>.from(selected);
+        final isActive = selected.contains(v);
+        if (isActive) {
+          newSelected.remove(v);
+        } else {
+          newSelected.add(v);
+        }
+        final tp = searchQuery.tagsPredicate
+            .removePrefix('$tagPrefix:')
+            .appendPredicate(
+              TagsPredicate(
+                requiredTags: values
+                    .where(newSelected.contains)
+                    .map((s) => '$tagPrefix:$s')
+                    .toList(),
+              ),
+            );
+
+        final url = searchQuery.change(tagsPredicate: tp).toSearchLink();
+        return {
+          'text': v,
+          'href': htmlAttrEscape.convert(url),
+          'active': isActive,
+        };
+      },
+    ).toList(),
+  });
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(

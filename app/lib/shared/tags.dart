@@ -44,3 +44,10 @@ abstract class DartSdkRuntimeValue {
   static const String native = 'native';
   static const String web = 'web';
 }
+
+/// Collection of Flutter SDK runtime values.
+abstract class FlutterSdkRuntimeValue {
+  static const String android = 'android';
+  static const String ios = 'ios';
+  static const String web = 'web';
+}

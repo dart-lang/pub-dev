@@ -195,26 +195,34 @@
   margin: 16px 0;
   border: 1px solid $color-searchbar-dark-border;
   border-radius: 3px;
-}
 
-.list-filters > .filter {
-  background: transparent;
-  border-right: 1px solid $color-searchbar-dark-border;
-  color: $color-searchbar-dark-input-fg;
-  text-transform: uppercase;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 4px 24px;
-  cursor: pointer;
+  > .filter {
+    background: transparent;
+    border-right: 1px solid $color-searchbar-dark-border;
+    color: $color-searchbar-dark-input-fg;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 24px;
+    cursor: pointer;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.10);
+    &:hover {
+      background: rgba(255, 255, 255, 0.10);
+    }
+
+    &.-active {
+      color: $color-searchbar-dark-input-fg;
+      background: $color-searchbar-dark-link;
+    }
   }
-}
 
-.list-filters > .filter.-active {
-  color: $color-searchbar-dark-input-fg;
-  background: $color-searchbar-dark-link;
+  // Overrides for secondary tabs.
+  .search-bar-options & {
+    margin-top: 0px;
+    > .filter.-active {
+      background: $color-searchbar-secondary-link;
+    }
+  }
 }
 
 .package-count {

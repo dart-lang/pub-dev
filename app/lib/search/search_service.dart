@@ -519,7 +519,7 @@ class TagsPredicate {
   TagsPredicate removePrefix(String prefix) {
     final p = TagsPredicate();
     _values.entries.forEach((e) {
-      if (e.key.startsWith(prefix)) {
+      if (!e.key.startsWith(prefix)) {
         p._values[e.key] = e.value;
       }
     });
