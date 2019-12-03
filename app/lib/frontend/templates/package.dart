@@ -218,6 +218,11 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
     },
     'short_created': selectedVersion.shortCreated,
   });
+  final pkgView = PackageView.fromModel(
+    package: package,
+    version: selectedVersion,
+    scoreCard: analysis?.card,
+  );
   return renderDetailHeader(
     title: '${package.name} ${selectedVersion.version}',
     packageLikes: package.likes,
@@ -228,7 +233,7 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
     tagsHtml: renderTags(
       analysis?.platforms,
       searchQuery: null,
-      tags: analysis?.derivedTags,
+      tags: pkgView.tags,
       isAwaiting: isAwaiting,
       isDiscontinued: package.isDiscontinued,
       isLegacy: card?.isLegacy ?? false,
