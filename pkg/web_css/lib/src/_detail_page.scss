@@ -58,6 +58,11 @@
 .detail-header {
   margin: 30px 0 10px;
 
+  img.ff-badge {
+    float: right;
+    margin-right: 15px
+  }
+
   > .title {
     font-size: 32px;
     font-weight: 600;

@@ -3,6 +3,15 @@
     BSD-style license that can be found in the LICENSE file. }}
 
 <div class="detail-header">
+  {{#is_flutter_favorite}}
+  <a href='https://g.co/FlutterFavorite'>
+    <img
+      class="ff-badge"
+      src="{{{static_assets.img__ff-100px_png}}}"
+      height="100" width="100"
+      title="Package is a Flutter Favorite"/>
+  </a>
+  {{/is_flutter_favorite}}    
   <h2 class="title">{{#is_publisher}}<img
     class="-pub-publisher-shield"
     height="48" width="48"
