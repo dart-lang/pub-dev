@@ -14,7 +14,6 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show shortDateFormat;
 
-import '../request_context.dart';
 import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
