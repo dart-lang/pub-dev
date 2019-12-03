@@ -87,7 +87,7 @@ String renderAccountPackagesPage({
     tabs: [
       Tab.withContent(
           id: 'packages', title: 'My packages', contentHtml: tabContent),
-      if (requestContext.isExperimental) _myLikedPackagesLink(),
+      _myLikedPackagesLink(),
       _myPublishersLink(),
     ],
     infoBoxHtml: _accountInfoBox(user),
@@ -147,7 +147,7 @@ String renderAccountPublishersPage({
     headerHtml: _accountDetailHeader(user),
     tabs: [
       _myPackagesLink(),
-      if (requestContext.isExperimental) _myLikedPackagesLink(),
+      _myLikedPackagesLink(),
       Tab.withContent(
           id: 'publishers',
           title: 'My publishers',
