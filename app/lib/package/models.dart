@@ -416,10 +416,10 @@ class PackageView extends Object with FlagMixin {
     this.isAwaiting = false,
     this.overallScore,
     this.platforms,
-    this.tags,
+    List<String> tags,
     this.isNewPackage,
     this.apiPages,
-  });
+  }) : tags = tags ?? <String>[];
 
   factory PackageView.fromJson(Map<String, dynamic> json) =>
       _$PackageViewFromJson(json);
