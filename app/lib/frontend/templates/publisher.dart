@@ -107,7 +107,9 @@ String renderPublisherPackagesPage({
         : '<code>${publisher.publisherId}</code> has no packages.';
   }
 
-  final packageListHtml = packages.isEmpty ? '' : renderPackageList(packages);
+  final packageListHtml = packages.isEmpty
+      ? ''
+      : renderPackageList(packages, searchQuery: searchQuery);
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [

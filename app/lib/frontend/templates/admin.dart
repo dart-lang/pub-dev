@@ -72,7 +72,12 @@ String renderAccountPackagesPage({
             '<a href="https://dart.dev/tools/pub/publishing">publishing packages</a>.';
   }
 
-  final packageListHtml = packages.isEmpty ? '' : renderPackageList(packages);
+  final packageListHtml = packages.isEmpty
+      ? ''
+      : renderPackageList(
+          packages,
+          searchQuery: searchQuery,
+        );
   final paginationHtml = renderPagination(pageLinks);
 
   final tabContent = [

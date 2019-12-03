@@ -20,6 +20,7 @@ PackageView _$PackageViewFromJson(Map<String, dynamic> json) {
     isAwaiting: json['isAwaiting'] as bool,
     overallScore: (json['overallScore'] as num)?.toDouble(),
     platforms: (json['platforms'] as List)?.map((e) => e as String)?.toList(),
+    tags: (json['tags'] as List)?.map((e) => e as String)?.toList(),
     isNewPackage: json['isNewPackage'] as bool,
     apiPages: (json['apiPages'] as List)
         ?.map((e) =>
@@ -49,6 +50,7 @@ Map<String, dynamic> _$PackageViewToJson(PackageView instance) {
   writeNotNull('isAwaiting', instance.isAwaiting);
   writeNotNull('overallScore', instance.overallScore);
   writeNotNull('platforms', instance.platforms);
+  writeNotNull('tags', instance.tags);
   writeNotNull('isNewPackage', instance.isNewPackage);
   writeNotNull('apiPages', instance.apiPages);
   return val;
