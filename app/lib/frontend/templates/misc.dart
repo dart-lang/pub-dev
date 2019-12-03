@@ -5,8 +5,11 @@
 import 'package:meta/meta.dart';
 
 import '../../package/models.dart';
+import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
+import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
+import '../request_context.dart';
 
 import '_cache.dart';
 import '_consts.dart';
@@ -92,6 +95,8 @@ String renderMiniList(List<PackageView> packages) {
         'ellipsized_description': package.ellipsizedDescription,
         'tags_html': renderTags(
           package.platforms,
+          searchQuery: null,
+          tags: package.tags,
           isAwaiting: package.isAwaiting,
           isDiscontinued: package.isDiscontinued,
           isLegacy: package.isLegacy,
@@ -107,39 +112,79 @@ String renderMiniList(List<PackageView> packages) {
 /// Renders the tags using the pkg/tags template.
 String renderTags(
   List<String> platforms, {
+  @required SearchQuery searchQuery,
+  @required List<String> tags,
   @required bool isAwaiting,
   @required bool isDiscontinued,
   @required bool isLegacy,
   @required bool isObsolete,
   String packageName,
 }) {
-  final List<Map> tags = <Map>[];
+  final List<Map> tabValues = <Map>[];
   if (isAwaiting) {
-    tags.add({
+    tabValues.add({
       'status': 'missing',
       'text': '[awaiting]',
       'title': 'Analysis should be ready soon.',
     });
   } else if (isDiscontinued) {
-    tags.add({
+    tabValues.add({
       'status': 'discontinued',
       'text': '[discontinued]',
       'title': 'Package was discontinued.',
     });
   } else if (isObsolete) {
-    tags.add({
+    tabValues.add({
       'status': 'missing',
       'text': '[outdated]',
       'title': 'Package version too old, check latest stable.',
     });
   } else if (isLegacy) {
-    tags.add({
+    tabValues.add({
       'status': 'legacy',
       'text': 'Dart 2 incompatible',
       'title': 'Package does not support Dart 2.',
     });
+  } else if (requestContext.isExperimental) {
+    if (searchQuery?.sdk == null) {
+      tabValues.addAll(
+        // TODO: sort tags
+        tags.where((s) => s.startsWith('sdk:')).map(
+          (tag) {
+            final value = tag.split(':').last;
+            return {
+              'text': value,
+              'href': urls.searchUrl(sdk: value),
+              'title': tag,
+            };
+          },
+        ),
+      );
+    } else {
+      String prefix;
+      if (searchQuery.sdk == SdkTagValue.dart) {
+        prefix = 'runtime:';
+      } else if (searchQuery.sdk == SdkTagValue.flutter) {
+        prefix = 'platform:';
+      }
+      if (prefix != null) {
+        tabValues.addAll(
+          // TODO: sort tags
+          tags.where((s) => s.startsWith(prefix)).map(
+            (tag) {
+              final value = tag.split(':').last;
+              return {
+                'text': value,
+                // TODO: link to platform/runtime-based search
+                'title': tag,
+              };
+            },
+          ),
+        );
+      }
+    }
   } else if (platforms != null && platforms.isNotEmpty) {
-    tags.addAll(platforms.map((platform) {
+    tabValues.addAll(platforms.map((platform) {
       final platformDict = getPlatformDict(platform, nullIfMissing: true);
       return {
         'text': platformDict?.name ?? platform,
@@ -148,14 +193,14 @@ String renderTags(
       };
     }));
   } else {
-    tags.add({
+    tabValues.add({
       'status': 'unidentified',
       'text': '[unidentified]',
       'title': 'Check the analysis tab for further details.',
       'href': urls.analysisTabUrl(packageName),
     });
   }
-  return templateCache.renderTemplate('pkg/tags', {'tags': tags});
+  return templateCache.renderTemplate('pkg/tags', {'tags': tabValues});
 }
 
 /// Renders the simplified version of the circle with 'sdk' text content instead

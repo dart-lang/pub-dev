@@ -226,6 +226,8 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
       analysis?.platforms,
+      searchQuery: null,
+      tags: analysis?.derivedTags,
       isAwaiting: isAwaiting,
       isDiscontinued: package.isDiscontinued,
       isLegacy: card?.isLegacy ?? false,

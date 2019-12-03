@@ -26,7 +26,10 @@ String renderPagination(PageLinks pageLinks) {
 }
 
 /// Renders the `views/pkg/package_list.mustache` template.
-String renderPackageList(List<PackageView> packages) {
+String renderPackageList(
+  List<PackageView> packages, {
+  SearchQuery searchQuery,
+}) {
   final packagesJson = [];
   for (int i = 0; i < packages.length; i++) {
     final view = packages[i];
@@ -63,6 +66,8 @@ String renderPackageList(List<PackageView> packages) {
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
       'tags_html': renderTags(
         view.platforms,
+        searchQuery: searchQuery,
+        tags: view.tags,
         isAwaiting: view.isAwaiting,
         isDiscontinued: view.isDiscontinued,
         isLegacy: view.isLegacy,
@@ -120,7 +125,7 @@ String renderPkgIndexPage(
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
     'title': topPackages,
-    'package_list_html': renderPackageList(packages),
+    'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
     'search_query': searchQuery?.query,
