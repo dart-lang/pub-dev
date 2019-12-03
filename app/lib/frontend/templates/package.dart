@@ -202,7 +202,7 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
           // No blocker for analysis, but no results yet.
           (!card.isSkipped && !analysis.hasPanaSummary);
 
-  final values = {
+  final metadataHtml = templateCache.renderTemplate('pkg/header', {
     'publisher_id': package.publisherId,
     'publisher_url': package.publisherId == null
         ? null
@@ -217,12 +217,13 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
       'dev_version': package.latestDevVersion,
     },
     'short_created': selectedVersion.shortCreated,
-  };
-  final metadataHtml = templateCache.renderTemplate('pkg/header', values);
+  });
   return renderDetailHeader(
     title: '${package.name} ${selectedVersion.version}',
     packageLikes: package.likes,
     isLiked: isLiked,
+    isFlutterFavorite:
+        (package.assignedTags ?? []).contains('is:flutter-favorite'),
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
       analysis?.platforms,

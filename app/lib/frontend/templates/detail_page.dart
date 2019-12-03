@@ -15,6 +15,7 @@ String renderDetailHeader({
   @required String title,
   int packageLikes,
   bool isLiked,
+  bool isFlutterFavorite = false,
   String metadataHtml,
   String tagsHtml,
   bool isPublisher = false,
@@ -26,7 +27,8 @@ String renderDetailHeader({
     'is_publisher': isPublisher,
     'like_count': '$packageLikes ${packageLikes == 1 ? "like" : "likes"}',
     'is_liked': isLiked,
-    'has_likes': isLiked != null
+    'has_likes': isLiked != null,
+    'is_flutter_favorite': isFlutterFavorite,
   });
 }
 
