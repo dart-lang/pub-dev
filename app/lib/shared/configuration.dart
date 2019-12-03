@@ -115,7 +115,13 @@ class Configuration {
       productionHosts: const ['pub.dartlang.org', 'pub.dev', 'api.pub.dev'],
       primaryApiUri: Uri.parse('https://pub.dartlang.org/'),
       primarySiteUri: Uri.parse('https://pub.dev/'),
-      admins: [],
+      admins: [
+        AdminId(
+          email: 'assigned-tags-admin@dartlang-pub.iam.gserviceaccount.com',
+          oauthUserId: '106306194842560376600',
+          permissions: {AdminPermission.manageAssignedTags},
+        ),
+      ],
     );
   }
 
