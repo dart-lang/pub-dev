@@ -449,7 +449,11 @@ class PackageView extends Object with FlagMixin {
       isAwaiting: isAwaiting,
       overallScore: scoreCard?.overallScore,
       platforms: scoreCard?.platformTags,
-      tags: scoreCard?.derivedTags,
+      tags: <String>[
+        ...(package?.getTags() ?? <String>[]),
+        ...(version?.getTags() ?? <String>[]),
+        ...(scoreCard?.derivedTags ?? <String>[]),
+      ],
       isNewPackage: package?.isNewPackage(),
       apiPages: apiPages,
     );
