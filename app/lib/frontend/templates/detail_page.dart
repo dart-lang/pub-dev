@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '_cache.dart';
 
@@ -27,7 +26,7 @@ String renderDetailHeader({
     'is_publisher': isPublisher,
     'like_count': '$packageLikes ${packageLikes == 1 ? "like" : "likes"}',
     'is_liked': isLiked,
-    'has_likes': isLiked != null && requestContext.isExperimental,
+    'has_likes': isLiked != null
   });
 }
 
