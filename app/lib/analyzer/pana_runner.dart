@@ -210,51 +210,6 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
   );
 }
 
-/// This derivative method populates the ScoreCard and the search index with
-/// correct, but incomplete data.
-List<String> _deriveTags(List<String> platformTags) {
-  if (platformTags != null && platformTags.isNotEmpty) {
-    if (KnownPlatforms.all.every(platformTags.contains)) {
-      return <String>[
-        'sdk:dart',
-        'sdk:flutter',
-        'platform:android',
-        'platform:ios',
-        'runtime:native',
-        'runtime:web',
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.flutter) {
-      return <String>[
-        'sdk:flutter',
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.web) {
-      return <String>[
-        'sdk:dart',
-        'runtime:web',
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.other) {
-      return <String>[
-        'sdk:dart',
-        'runtime:native',
-      ];
-    } else if (platformTags.length == 2 &&
-        platformTags.contains(KnownPlatforms.flutter) &&
-        platformTags.contains(KnownPlatforms.other)) {
-      return <String>[
-        'sdk:dart',
-        'sdk:flutter',
-        'platform:android',
-        'platform:ios',
-        'runtime:native',
-      ];
-    }
-  }
-  return <String>[];
-}
-
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
   return Summary(
       runtimeInfo: PanaRuntimeInfo(),
