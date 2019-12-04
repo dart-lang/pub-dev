@@ -36,7 +36,7 @@ class SearchClient {
         Uri(queryParameters: query.toServiceQueryParameters()).toString();
     final String serviceUrl = '$httpHostPort/search$serviceUrlParams';
 
-    return await cache.packageSearchResult(serviceUrl).get(() async {
+    Future<PackageSearchResult> searchFn() async {
       final response = await getUrlWithRetry(_httpClient, serviceUrl);
       if (response.statusCode == searchIndexNotReadyCode) {
         // Search request before the service initialization completed.
@@ -54,7 +54,13 @@ class SearchClient {
         return null;
       }
       return result;
-    });
+    }
+
+    if (query.randomize) {
+      return await searchFn();
+    } else {
+      return await cache.packageSearchResult(serviceUrl).get(searchFn);
+    }
   }
 
   /// Search service maintains a separate index in each of the running instances.
