@@ -46,7 +46,7 @@ String renderLayoutPage(
   bool noIndex = false,
   PageData pageData,
 }) {
-  final isRoot = type == PageType.landing && platform == null;
+  final isRoot = type == PageType.landing && sdk == null;
   final pageDataEncoded = pageData == null
       ? null
       : htmlAttrEscape.convert(pageDataJsonCodec.encode(pageData.toJson()));
@@ -111,7 +111,6 @@ String _renderSearchBanner({
   final queryText = searchQuery?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
-  final platformDict = getPlatformDict(platform);
   String searchPlaceholder;
   if (publisherId != null) {
     searchPlaceholder = 'Search $publisherId packages';
@@ -184,7 +183,7 @@ String _renderSearchBanner({
     'landing_banner_image': _landingBannerImage(platform == 'flutter'),
     'landing_banner_alt':
         platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
-    'landing_blurb_html': platformDict.landingBlurb,
+    'landing_blurb_html': defaultLandingBlurbHtml,
   });
 }
 
