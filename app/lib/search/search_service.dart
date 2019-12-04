@@ -550,15 +550,15 @@ class TagsPredicate {
   /// user-facing search query.
   Map<String, String> asSearchLinkParams() {
     final params = <String, String>{
-      'runtime': _tagPartsWithPrefix('runtime', value: true).join(' '),
-      'platform': _tagPartsWithPrefix('platform', value: true).join(' '),
+      'runtime': tagPartsWithPrefix('runtime', value: true).join(' '),
+      'platform': tagPartsWithPrefix('platform', value: true).join(' '),
     };
     params.removeWhere((k, v) => v.isEmpty);
     return params;
   }
 
   /// Returns the second part of the tags matching [prefix] and [value].
-  List<String> _tagPartsWithPrefix(String prefix, {bool value}) {
+  List<String> tagPartsWithPrefix(String prefix, {bool value}) {
     return _values.keys
         .where((k) =>
             k.startsWith('$prefix:') && (value == null || _values[k] == value))

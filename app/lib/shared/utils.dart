@@ -13,12 +13,15 @@ import 'package:appengine/appengine.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 // ignore: implementation_imports
 import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:stream_transform/stream_transform.dart';
+
+import 'configuration.dart' show envConfig;
 
 export 'package:pana/pana.dart' show exampleFileCandidates;
 
@@ -331,6 +334,34 @@ Future<R> retryAsync<R>(
       rethrow;
     }
   }
+}
+
+/// Builds the Set-Cookie HTTP header value.
+String buildSetCookieValue({
+  @required String name,
+  @required String value,
+  @required DateTime expires,
+}) {
+  if (value == null || value == '') {
+    value = '""';
+  }
+  return [
+    '$name=$value',
+    // Send cookie to anything under '/' required by '__Host-' prefix.
+    'Path=/',
+    // Max-Age takes precedence over 'Expires', this also has the benefit of
+    // not being corrupted by client-side clock skew.
+    'Max-Age=${expires.difference(DateTime.now()).inSeconds}',
+    // Cookie expires when the session expires.
+    'Expires=${HttpDate.format(expires)}',
+    // Do not include the cookie in CORS requests, unless the request is a
+    // top-level navigation to the site, as recommended in:
+    // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
+    'SameSite=Lax',
+    if (!envConfig.isRunningLocally)
+      'Secure', // Only allow this cookie to be sent when making HTTPS requests.
+    'HttpOnly', // Do not allow Javascript access to this cookie.
+  ].join('; ');
 }
 
 /// Parses the Cookie HTTP header and returns a map of the values.
