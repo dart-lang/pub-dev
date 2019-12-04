@@ -7,8 +7,8 @@ import 'package:test/test.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/search/search_client.dart';
 
-import '../../shared/test_services.dart';
 import '../../shared/handlers_test_utils.dart';
+import '../../shared/test_services.dart';
 
 import '_utils.dart';
 
@@ -33,24 +33,23 @@ void main() {
       );
     });
 
-// TODO: re-enable test
-//    testWithServices('/ without a working search service', () async {
-//      registerSearchClient(null);
-//      final rs = await issueGet('/');
-//      await expectHtmlResponse(
-//        rs,
-//        present: [
-//          '/packages/http',
-//          '/packages/event_bus',
-//          'lightweight library for parsing',
-//        ],
-//        absent: [
-//          '/packages/helium',
-//          '/packages/hydrogen',
-//          'hydrogen is a Dart package',
-//        ],
-//      );
-//    });
+    testWithServices('/ without a working search service', () async {
+      registerSearchClient(null);
+      final rs = await issueGet('/');
+      await expectHtmlResponse(
+        rs,
+        present: [
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
+        absent: [
+          '/packages/helium',
+          '/packages/hydrogen',
+          'hydrogen is a Dart package',
+        ],
+      );
+    });
 
     testWithServices('/flutter', () async {
       final rs = await issueGet('/flutter');

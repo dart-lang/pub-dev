@@ -55,25 +55,13 @@ Future<shelf.Response> _indexHandler(
   }
 
   Future<String> _render() async {
-    final taggedResults = await searchAdapter.search(
-      SearchQuery.parse(
-        tagsPredicate: TagsPredicate.advertisement(
-          requiredTags: ['is:flutter-favorite'],
-        ),
-        limit: 6,
-        randomize: true,
-      ),
+    final taggedPackages = await topFeaturedPackages(
+      requiredTags: ['is:flutter-favorite'],
     );
-    final topResults = await searchAdapter.search(
-      SearchQuery.parse(
-        tagsPredicate: TagsPredicate.advertisement(),
-        limit: 6,
-        randomize: true,
-      ),
-    );
+    final topPackages = await topFeaturedPackages();
     return renderLandingPage(
-      taggedPackages: taggedResults.packages.take(6).toList(),
-      topPackages: topResults.packages.take(6).toList(),
+      taggedPackages: taggedPackages,
+      topPackages: topPackages,
     );
   }
 

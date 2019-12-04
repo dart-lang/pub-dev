@@ -205,15 +205,18 @@ final _fallbackFeatured = <PackageView>[
 ];
 
 /// Returns the top packages for displaying them on a landing page.
-Future<List<PackageView>> topFeaturedPackages(
-    {String platform, int count = 15}) async {
+Future<List<PackageView>> topFeaturedPackages({
+  List<String> requiredTags,
+  int count = 6,
+  bool emptyFallback = false,
+}) async {
   // TODO: store top packages in memcache
   try {
     final result = await searchAdapter.search(
       SearchQuery.parse(
-        platform: platform,
         limit: count,
-        tagsPredicate: TagsPredicate.advertisement(),
+        tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
+        randomize: true,
       ),
       fallbackToNames: false,
     );
@@ -221,5 +224,5 @@ Future<List<PackageView>> topFeaturedPackages(
   } catch (e, st) {
     _logger.severe('Unable to load top packages', e, st);
   }
-  return _fallbackFeatured;
+  return emptyFallback ? <PackageView>[] : _fallbackFeatured;
 }
