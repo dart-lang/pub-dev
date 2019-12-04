@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
-import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/tags.dart';
