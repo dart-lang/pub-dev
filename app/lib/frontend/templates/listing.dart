@@ -113,6 +113,7 @@ String renderPkgIndexPage(
   PageLinks links, {
   String platform,
   String sdk,
+  String title,
   SearchQuery searchQuery,
   int totalCount,
 }) {
@@ -121,7 +122,7 @@ String renderPkgIndexPage(
   final values = {
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
-    'title': topPackages,
+    'title': title ?? topPackages,
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
@@ -130,7 +131,7 @@ String renderPkgIndexPage(
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
-  String pageTitle = topPackages;
+  String pageTitle = title ?? topPackages;
   if (isSearch) {
     pageTitle = 'Search results for ${searchQuery.query}.';
   } else {

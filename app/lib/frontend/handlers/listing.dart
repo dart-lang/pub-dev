@@ -45,6 +45,20 @@ Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) {
   );
 }
 
+/// Handles /flutter/favorites
+Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
+  shelf.Request request,
+) {
+  return _packagesHandlerHtmlCore(
+    request,
+    sdk: SdkTagValue.flutter,
+    title: 'Flutter Favorite packages',
+    tagsPredicate: TagsPredicate.regularSearch().appendPredicate(TagsPredicate(
+      requiredTags: ['is:flutter-favorite'],
+    )),
+  );
+}
+
 /// Handles /web/packages
 Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
   return redirectResponse(
@@ -60,13 +74,17 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// - /packages - package listing
 /// - /dart/packages
 /// - /flutter/packages
-Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request,
-    {String sdk}) async {
+Future<shelf.Response> _packagesHandlerHtmlCore(
+  shelf.Request request, {
+  String sdk,
+  String title,
+  TagsPredicate tagsPredicate,
+}) async {
   // TODO: use search memcache for all results here or remove search memcache
   final searchQuery = parseFrontendSearchQuery(
     request.requestedUri.queryParameters,
     sdk: sdk,
-    tagsPredicate: TagsPredicate.regularSearch(),
+    tagsPredicate: tagsPredicate ?? TagsPredicate.regularSearch(),
   );
   final searchPreferences = SearchPreference.fromSearchQuery(searchQuery);
   final sw = Stopwatch()..start();
@@ -82,6 +100,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request,
       sdk: sdk,
       searchQuery: searchQuery,
       totalCount: totalCount,
+      title: title,
     ),
     headers: createSearchPreferenceCookie(searchPreferences),
   );
