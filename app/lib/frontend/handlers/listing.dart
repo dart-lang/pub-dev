@@ -6,6 +6,8 @@ import 'dart:async';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../../account/models.dart';
+import '../../account/search_preference_cookie.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';
@@ -58,31 +60,31 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// - /packages - package listing
 /// - /dart/packages
 /// - /flutter/packages
-/// - /server/packages
-/// - /web/packages
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request,
-    {String platform, String sdk}) async {
+    {String sdk}) async {
   // TODO: use search memcache for all results here or remove search memcache
   final searchQuery = parseFrontendSearchQuery(
     request.requestedUri.queryParameters,
-    platform: platform,
     sdk: sdk,
     tagsPredicate: TagsPredicate.regularSearch(),
   );
+  final searchPreferences = SearchPreference.fromSearchQuery(searchQuery);
   final sw = Stopwatch()..start();
   final searchResult = await searchAdapter.search(searchQuery);
   final int totalCount = searchResult.totalCount;
 
   final links =
       PageLinks(searchQuery.offset, totalCount, searchQuery: searchQuery);
-  final result = htmlResponse(renderPkgIndexPage(
-    searchResult.packages,
-    links,
-    platform: platform,
-    sdk: sdk,
-    searchQuery: searchQuery,
-    totalCount: totalCount,
-  ));
+  final result = htmlResponse(
+    renderPkgIndexPage(
+      searchResult.packages,
+      links,
+      sdk: sdk,
+      searchQuery: searchQuery,
+      totalCount: totalCount,
+    ),
+    headers: createSearchPreferenceCookie(searchPreferences),
+  );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;
 }

@@ -1,10 +1,10 @@
 /// Logic to do with session cookie parsing and reading.
 library session_cookie;
 
-import 'dart:io' show HttpDate, HttpHeaders;
+import 'dart:io' show HttpHeaders;
 
 import '../shared/configuration.dart' show envConfig;
-import '../shared/utils.dart' show parseCookieHeader;
+import '../shared/utils.dart' show buildSetCookieValue, parseCookieHeader;
 import 'models.dart';
 
 /// The name of the session cookie.
@@ -32,23 +32,11 @@ Map<String, String> createSessionCookie(UserSessionData session) {
   final expiration = session.expires.subtract(Duration(minutes: 25));
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
   return {
-    HttpHeaders.setCookieHeader: [
-      '$_pubSessionCookieName=${session.sessionId}',
-      // Send cookie to anything under '/' required by '__Host-' prefix.
-      'Path=/',
-      // Max-Age takes precedence over 'Expires', this also has the benefit of
-      // not being corrupted by client-side clock skew.
-      'Max-Age=${expiration.difference(DateTime.now()).inSeconds}',
-      // Cookie expires when the session expires.
-      'Expires=${HttpDate.format(expiration)}',
-      // Do not include the cookie in CORS requests, unless the request is a
-      // top-level navigation to the site, as recommended in:
-      // https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02#section-8.8.2
-      'SameSite=Lax',
-      if (!envConfig.isRunningLocally)
-        'Secure', // Only allow this cookie to be sent when making HTTPS requests.
-      'HttpOnly', // Do not allow Javascript access to this cookie.
-    ].join('; '),
+    HttpHeaders.setCookieHeader: buildSetCookieValue(
+      name: _pubSessionCookieName,
+      value: session.sessionId,
+      expires: expiration,
+    ),
   };
 }
 
@@ -74,6 +62,7 @@ String parseSessionCookie(String cookieString) {
 /// the local session store was compromised.
 Map<String, String> clearSessionCookie() {
   return {
+    // TODO: use buildSetCookieValue
     HttpHeaders.setCookieHeader: [
       // Same cookie name as when it was set.
       '$_pubSessionCookieName=""',
