@@ -19,7 +19,6 @@
     src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{/is_publisher}}{{title}}</h2>
   <div class="metadata">
     {{& metadata_html}}
-    <div class="tags">{{& tags_html}}</div>
     {{#has_likes}}
     <div class="-pub-likes" >
       <div>
@@ -51,4 +50,5 @@
         </button>
        <span id="likes-count">{{like_count}}</span></div></div>
     {{/has_likes}}
+    <div class="tags">{{& tags_html}}</div>
  </div></div>
