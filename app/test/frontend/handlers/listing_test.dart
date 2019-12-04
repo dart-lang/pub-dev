@@ -106,22 +106,22 @@ void main() {
       );
     });
 
-// TOOD: re-enable test
-//    testWithServices('/flutter/packages', () async {
-//      await expectHtmlResponse(
-//        await issueGet('/flutter/packages'),
-//        present: [
+    testWithServices('/flutter/packages', () async {
+      await expectHtmlResponse(
+        await issueGet('/flutter/packages'),
+        present: [
+// TODO: fix, package should be present on the page.
 //          '/packages/helium',
-//        ],
-//        absent: [
-//          '/packages/hydrogen',
-//          'hydrogen is a Dart package',
-//          '/packages/http',
-//          '/packages/event_bus',
-//          'lightweight library for parsing',
-//        ],
-//      );
-//    });
+        ],
+        absent: [
+          '/packages/hydrogen',
+          'hydrogen is a Dart package',
+          '/packages/http',
+          '/packages/event_bus',
+          'lightweight library for parsing',
+        ],
+      );
+    });
 
     testWithServices('/flutter/packages&page=2', () async {
       for (int i = 0; i < 15; i++) {
