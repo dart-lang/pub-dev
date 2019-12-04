@@ -7,16 +7,13 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
-import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
-import '../../shared/platform.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../request_context.dart';
 import '../templates/landing.dart';
-import '../templates/misc.dart';
 
 /// Handles requests for /
 Future<shelf.Response> indexLandingHandler(shelf.Request request) =>
@@ -28,23 +25,17 @@ Future<shelf.Response> dartLandingHandler(shelf.Request request) async =>
 
 /// Handles requests for /flutter
 Future<shelf.Response> flutterLandingHandler(shelf.Request request) async {
-  if (requestContext.isExperimental) {
-    return redirectResponse(urls.searchUrl(sdk: SdkTagValue.flutter));
-  }
-  return await _indexHandler(request, KnownPlatforms.flutter);
+  return redirectResponse(urls.searchUrl(sdk: SdkTagValue.flutter));
 }
 
 /// Handles requests for /web
 Future<shelf.Response> webLandingHandler(shelf.Request request) async {
-  if (requestContext.isExperimental) {
-    return redirectResponse(
-      urls.searchUrl(
-        sdk: SdkTagValue.dart,
-        runtimes: [DartSdkRuntimeValue.web],
-      ),
-    );
-  }
-  return _indexHandler(request, KnownPlatforms.web);
+  return redirectResponse(
+    urls.searchUrl(
+      sdk: SdkTagValue.dart,
+      runtimes: [DartSdkRuntimeValue.web],
+    ),
+  );
 }
 
 /// Handles requests for:
@@ -63,32 +54,14 @@ Future<shelf.Response> _indexHandler(
   }
 
   Future<String> _render() async {
-    final packages = await topFeaturedPackages(platform: platform);
-    final minilist = renderMiniList(packages);
-    return renderIndexPage(minilist, platform);
-  }
-
-  if (requestContext.isExperimental) {
-    final taggedResults = await searchAdapter.search(
-      SearchQuery.parse(
-        tagsPredicate: TagsPredicate.advertisement(
-          requiredTags: ['is:flutter-favorite'],
-        ),
-        limit: 6,
-        randomize: true,
-      ),
+    final taggedPackages = await topFeaturedPackages(
+      requiredTags: ['is:flutter-favorite'],
     );
-    final topResults = await searchAdapter.search(
-      SearchQuery.parse(
-        tagsPredicate: TagsPredicate.advertisement(),
-        limit: 6,
-        randomize: true,
-      ),
+    final topPackages = await topFeaturedPackages();
+    return renderLandingPage(
+      taggedPackages: taggedPackages,
+      topPackages: topPackages,
     );
-    return htmlResponse(renderLandingPage(
-      taggedPackages: taggedResults.packages.take(6).toList(),
-      topPackages: topResults.packages.take(6).toList(),
-    ));
   }
 
   if (requestContext.uiCacheEnabled) {

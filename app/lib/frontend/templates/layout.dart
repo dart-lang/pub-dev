@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 import '../../account/backend.dart';
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
-import '../../shared/platform.dart' show KnownPlatforms;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -118,10 +117,8 @@ String _renderSearchBanner({
     searchPlaceholder = 'Search $publisherId packages';
   } else if (type == PageType.account) {
     searchPlaceholder = 'Search your packages';
-  } else if (requestContext.isExperimental) {
-    searchPlaceholder = getSdkDict(sdk).searchPackagesLabel;
   } else {
-    searchPlaceholder = platformDict.searchPlatformPackagesLabel;
+    searchPlaceholder = getSdkDict(sdk).searchPackagesLabel;
   }
   final searchFormUrl = searchQuery?.toSearchFormPath() ??
       SearchQuery.parse(platform: platform, publisherId: publisherId)
@@ -203,29 +200,6 @@ String renderSearchTabs({
   SearchQuery searchQuery,
   bool isLanding = false,
 }) {
-  final String currentPlatform = platform ?? searchQuery?.platform;
-  Map platformTabData(String tabText, String tabPlatform) {
-    String url;
-    if (searchQuery != null) {
-      final newQuery =
-          searchQuery.change(platform: tabPlatform == null ? '' : tabPlatform);
-      url = newQuery.toSearchLink();
-    } else {
-      final List<String> pathParts = [''];
-      if (tabPlatform != null) pathParts.add(tabPlatform);
-      if (!isLanding) pathParts.add('packages');
-      url = pathParts.join('/');
-      if (url.isEmpty) {
-        url = '/';
-      }
-    }
-    return {
-      'text': tabText,
-      'href': htmlAttrEscape.convert(url),
-      'active': tabPlatform == currentPlatform
-    };
-  }
-
   final currentSdk = sdk ?? searchQuery?.sdk ?? SdkTagValue.any;
   Map sdkTabData(String label, String tabSdk) {
     String url;
@@ -241,25 +215,14 @@ String renderSearchTabs({
     };
   }
 
-  if (requestContext.isExperimental) {
-    final values = {
-      'tabs': [
-        sdkTabData('Dart', SdkTagValue.dart),
-        sdkTabData('Flutter', SdkTagValue.flutter),
-        sdkTabData('Any', SdkTagValue.any),
-      ],
-    };
-    return templateCache.renderTemplate('shared/search_tabs', values);
-  } else {
-    final values = {
-      'tabs': [
-        platformTabData('Flutter', KnownPlatforms.flutter),
-        platformTabData('Web', KnownPlatforms.web),
-        platformTabData('All', null),
-      ],
-    };
-    return templateCache.renderTemplate('shared/search_tabs', values);
-  }
+  final values = {
+    'tabs': [
+      sdkTabData('Dart', SdkTagValue.dart),
+      sdkTabData('Flutter', SdkTagValue.flutter),
+      sdkTabData('Any', SdkTagValue.any),
+    ],
+  };
+  return templateCache.renderTemplate('shared/search_tabs', values);
 }
 
 String _renderSecondaryTabs({

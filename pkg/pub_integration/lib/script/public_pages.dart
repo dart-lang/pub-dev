@@ -18,7 +18,6 @@ class PublicPagesScript {
     _pubClient = PubHttpClient(pubHostedUrl);
     try {
       await _landingPage();
-      await _flutterLandingPage();
       await _helpPage();
       await _securityPage();
       await _atomFeed();
@@ -31,13 +30,8 @@ class PublicPagesScript {
 
   Future<void> _landingPage() async {
     final html = await _pubClient.getContent('/');
-    _contains(html, 'Top Dart packages');
-    _contains(html, 'More Dart packages...');
-  }
-
-  Future<void> _flutterLandingPage() async {
-    final html = await _pubClient.getContent('/flutter');
-    _contains(html, 'makes it easy and fast to build beautiful mobile apps');
+    _contains(html, 'Top packages');
+    _contains(html, 'More packages');
   }
 
   Future<void> _helpPage() async {

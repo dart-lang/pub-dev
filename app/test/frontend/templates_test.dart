@@ -94,49 +94,46 @@ void main() {
       expect(xmlContent.split('\n'), golden.split('\n'));
     }
 
-    scopedTest('index page', () {
-      final popularHtml = renderMiniList([
+    scopedTest('landing page', () {
+      final String html = renderLandingPage(taggedPackages: [
         PackageView.fromModel(
           package: foobarPackage,
           version: foobarStablePV,
           scoreCard: ScoreCardData(
-            platformTags: ['web'],
+            derivedTags: [
+              'sdk:flutter',
+              'platform:android',
+              'is:flutter-favorite',
+            ],
             reportTypes: ['pana'],
           ),
         ),
-      ]);
-      final String html = renderIndexPage(popularHtml, null);
-      expectGoldenFile(html, 'index_page.html');
-    });
-
-    scopedTest('landing page flutter', () {
-      final popularHtml = renderMiniList([
+      ], topPackages: [
         PackageView.fromModel(
           package: foobarPackage,
           version: foobarStablePV,
           scoreCard: ScoreCardData(
-            platformTags: ['flutter'],
+            derivedTags: [
+              'sdk:flutter',
+              'platform:android',
+              'is:flutter-favorite',
+            ],
             reportTypes: ['pana'],
           ),
         ),
-      ]);
-      final String html = renderIndexPage(popularHtml, KnownPlatforms.flutter);
-      expectGoldenFile(html, 'flutter_landing_page.html');
-    });
-
-    scopedTest('landing page web', () {
-      final popularHtml = renderMiniList([
         PackageView.fromModel(
-          package: foobarPackage,
-          version: foobarStablePV,
+          package: helium.package,
+          version: helium.latestStableVersion,
           scoreCard: ScoreCardData(
-            platformTags: ['web'],
+            derivedTags: [
+              'sdk:dart',
+              'runtime:native',
+            ],
             reportTypes: ['pana'],
           ),
         ),
       ]);
-      final String html = renderIndexPage(popularHtml, KnownPlatforms.web);
-      expectGoldenFile(html, 'web_landing_page.html');
+      expectGoldenFile(html, 'landing_page.html');
     });
 
     scopedTest('package show page', () {
@@ -259,6 +256,7 @@ void main() {
             maintenanceScore: 0.99,
             popularityScore: 0.3,
             platformTags: ['flutter'],
+            derivedTags: ['sdk:flutter', 'platform:android'],
             flags: [PackageFlags.usesFlutter],
             reportTypes: ['pana'],
           ),
@@ -270,7 +268,7 @@ void main() {
               maintenanceScore: 0.99,
               platformTags: ['flutter'],
               platformReason: null,
-              derivedTags: null,
+              derivedTags: ['sdk:flutter', 'platform:android'],
               pkgDependencies: null,
               licenses: null,
               panaSuggestions: null,
@@ -388,6 +386,7 @@ void main() {
         maintenanceScore: 0.8932343,
         popularityScore: 0.2323232,
         platformTags: ['web'],
+        derivedTags: ['sdk:dart', 'runtime:web'],
         reportTypes: ['pana'],
       );
       final analysisView = AnalysisView(
@@ -508,6 +507,7 @@ void main() {
           version: flutterPackageVersion,
           scoreCard: ScoreCardData(
             platformTags: ['flutter'],
+            derivedTags: ['sdk:flutter', 'platform:android'],
             reportTypes: ['pana'],
           ),
         ),
@@ -534,6 +534,7 @@ void main() {
             version: flutterPackageVersion,
             scoreCard: ScoreCardData(
               platformTags: ['flutter'],
+              derivedTags: ['sdk:flutter', 'platform:android'],
               reportTypes: ['pana'],
             ),
           ),
@@ -562,6 +563,7 @@ void main() {
         AnalysisView(
           card: ScoreCardData(
             platformTags: KnownPlatforms.all,
+            derivedTags: ['sdk:dart', 'sdk:flutter'],
             maintenanceScore: 0.9,
             healthScore: 0.9,
             popularityScore: 0.2,
@@ -609,7 +611,7 @@ void main() {
             version: '1.0.0',
             ellipsizedDescription: 'A great web UI library.',
             shortUpdated: '3 Jan 2019',
-            platforms: ['web'],
+            tags: ['sdk:dart', 'runtime:web'],
             overallScore: 0.97,
           ),
           PackageView(
@@ -618,7 +620,7 @@ void main() {
             devVersion: '3.0.0-beta2',
             ellipsizedDescription: 'Camera plugin.',
             shortUpdated: '30 Mar 2019',
-            platforms: ['flutter'],
+            tags: ['sdk:flutter', 'platform:android'],
             overallScore: 0.90,
           ),
         ],
@@ -641,7 +643,7 @@ void main() {
             version: '1.0.0',
             ellipsizedDescription: 'A great web UI library.',
             shortUpdated: '3 Jan 2019',
-            platforms: ['web'],
+            tags: ['sdk:dart', 'runtime:web'],
             overallScore: 0.97,
           ),
           PackageView(
@@ -650,7 +652,7 @@ void main() {
             devVersion: '3.0.0-beta2',
             ellipsizedDescription: 'Camera plugin.',
             shortUpdated: '30 Mar 2019',
-            platforms: ['flutter'],
+            tags: ['sdk:flutter', 'platform:android'],
             overallScore: 0.90,
           ),
         ],
@@ -695,7 +697,7 @@ void main() {
           version: '1.0.2',
           ellipsizedDescription:
               'Some popular package that is shown on the error page.',
-          platforms: KnownPlatforms.all,
+          tags: ['sdk:dart', 'sdk:flutter'],
           isAwaiting: false,
         ),
       ]);

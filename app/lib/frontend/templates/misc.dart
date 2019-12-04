@@ -9,10 +9,8 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
-import '../request_context.dart';
 
 import '_cache.dart';
-import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
 
@@ -120,6 +118,7 @@ String renderTags(
   @required bool isObsolete,
   String packageName,
 }) {
+  final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final List<Map> tabValues = <Map>[];
   if (isAwaiting) {
     tabValues.add({
@@ -145,60 +144,49 @@ String renderTags(
       'text': 'Dart 2 incompatible',
       'title': 'Package does not support Dart 2.',
     });
-  } else if (requestContext.isExperimental) {
-    if (searchQuery?.sdk == null) {
-      tabValues.addAll(
-        // TODO: sort tags
-        tags.where((s) => s.startsWith('sdk:')).map(
-          (tag) {
-            final value = tag.split(':').last;
-            return {
-              'text': value,
-              'href': urls.searchUrl(sdk: value),
-              'title': tag,
-            };
-          },
-        ),
-      );
-    } else {
-      String prefix;
-      if (searchQuery.sdk == SdkTagValue.dart) {
-        prefix = 'runtime:';
-      } else if (searchQuery.sdk == SdkTagValue.flutter) {
-        prefix = 'platform:';
-      }
-      if (prefix != null) {
-        tabValues.addAll(
-          // TODO: sort tags
-          tags.where((s) => s.startsWith(prefix)).map(
-            (tag) {
-              final value = tag.split(':').last;
-              return {
-                'text': value,
-                // TODO: link to platform/runtime-based search
-                'title': tag,
-              };
-            },
-          ),
-        );
-      }
-    }
-  } else if (platforms != null && platforms.isNotEmpty) {
-    tabValues.addAll(platforms.map((platform) {
-      final platformDict = getPlatformDict(platform, nullIfMissing: true);
-      return {
-        'text': platformDict?.name ?? platform,
-        'href': platformDict?.listingUrl,
-        'title': platformDict?.tagTitle,
-      };
-    }));
-  } else {
+  } else if (sdkTags.isEmpty) {
     tabValues.add({
       'status': 'unidentified',
       'text': '[unidentified]',
       'title': 'Check the analysis tab for further details.',
       'href': urls.analysisTabUrl(packageName),
     });
+  } else if (searchQuery?.sdk == null) {
+    tabValues.addAll(
+      // TODO: sort tags
+      sdkTags.map(
+        (tag) {
+          final value = tag.split(':').last;
+          return {
+            'text': value,
+            'href': urls.searchUrl(sdk: value),
+            'title': tag,
+          };
+        },
+      ),
+    );
+  } else {
+    String prefix;
+    if (searchQuery.sdk == SdkTagValue.dart) {
+      prefix = 'runtime:';
+    } else if (searchQuery.sdk == SdkTagValue.flutter) {
+      prefix = 'platform:';
+    }
+    if (prefix != null) {
+      tabValues.addAll(
+        // TODO: sort tags
+        tags.where((s) => s.startsWith(prefix)).toSet().map(
+          (tag) {
+            final value = tag.split(':').last;
+            return {
+              'text': value,
+              // TODO: link to platform/runtime-based search
+              'title': tag,
+            };
+          },
+        ),
+      );
+    }
   }
   return templateCache.renderTemplate('pkg/tags', {'tags': tabValues});
 }

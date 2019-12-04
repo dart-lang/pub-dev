@@ -12,12 +12,10 @@ import '../../package/overrides.dart';
 import '../../package/search_adapter.dart';
 import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
-import '../../shared/platform.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 import '../../shared/utils.dart' show DurationTracker;
 
-import '../request_context.dart';
 import '../templates/listing.dart';
 
 final _searchOverallLatencyTracker = DurationTracker();
@@ -34,33 +32,26 @@ Future<shelf.Response> packagesHandlerHtml(shelf.Request request) =>
 
 /// Handles /dart/packages
 Future<shelf.Response> dartPackagesHandlerHtml(shelf.Request request) async {
-  if (requestContext.isExperimental) {
-    return await _packagesHandlerHtmlCore(request, sdk: SdkTagValue.dart);
-  }
-  return notFoundHandler(request);
+  return await _packagesHandlerHtmlCore(request, sdk: SdkTagValue.dart);
 }
 
 /// Handles /flutter/packages
 Future<shelf.Response> flutterPackagesHandlerHtml(shelf.Request request) {
   return _packagesHandlerHtmlCore(
     request,
-    platform: requestContext.isExperimental ? null : KnownPlatforms.flutter,
-    sdk: requestContext.isExperimental ? SdkTagValue.flutter : null,
+    sdk: SdkTagValue.flutter,
   );
 }
 
 /// Handles /web/packages
 Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
-  if (requestContext.isExperimental) {
-    return redirectResponse(
-      urls.searchUrl(
-        sdk: SdkTagValue.dart,
-        runtimes: [DartSdkRuntimeValue.web],
-        q: request.requestedUri.queryParameters['q'],
-      ),
-    );
-  }
-  return await _packagesHandlerHtmlCore(request, platform: KnownPlatforms.web);
+  return redirectResponse(
+    urls.searchUrl(
+      sdk: SdkTagValue.dart,
+      runtimes: [DartSdkRuntimeValue.web],
+      q: request.requestedUri.queryParameters['q'],
+    ),
+  );
 }
 
 /// Handles:
