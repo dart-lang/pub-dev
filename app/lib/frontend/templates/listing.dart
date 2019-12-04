@@ -115,11 +115,7 @@ String renderPkgIndexPage(
   SearchQuery searchQuery,
   int totalCount,
 }) {
-  String topPackages;
-  if (sdk != null) {
-    topPackages = getSdkDict(sdk).topSdkPackages;
-  }
-  topPackages ??= getPlatformDict(platform).topPlatformPackages;
+  final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final values = {
     'sort_control_html': renderSortControl(searchQuery),

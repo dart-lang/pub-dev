@@ -5,7 +5,6 @@
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show SuggestionCode;
 
-import '../../shared/platform.dart' show KnownPlatforms;
 import '../../shared/tags.dart' show SdkTagValue;
 import '../../shared/urls.dart' as urls;
 
@@ -42,131 +41,9 @@ SdkDict getSdkDict(String sdk) {
   }
 }
 
-class PlatformDict {
-  final String name;
-  final String topPlatformPackages;
-  final String morePlatformPackagesLabel;
-  final String onlyPlatformPackagesLabel;
-  final String onlyPlatformPackagesUrl;
-  final String searchPlatformPackagesLabel;
-  final String landingPageTitle;
-  final String landingBlurb;
-  final String landingUrl;
-  final String listingUrl;
-  final String tagTitle;
-
-  PlatformDict({
-    @required this.name,
-    @required this.topPlatformPackages,
-    @required this.morePlatformPackagesLabel,
-    @required this.onlyPlatformPackagesLabel,
-    @required this.onlyPlatformPackagesUrl,
-    @required this.searchPlatformPackagesLabel,
-    @required this.landingPageTitle,
-    @required this.landingBlurb,
-    @required this.landingUrl,
-    @required this.listingUrl,
-    @required this.tagTitle,
-  });
-
-  factory PlatformDict.forPlatform(
-    String platform, {
-    String tagTitle,
-    String onlyPlatformPackagesUrl,
-  }) {
-    final formattedPlatform = _formattedPlatformName(platform);
-    final hasOnly = onlyPlatformPackagesUrl != null;
-    final hasCompatible = hasOnly || platform == KnownPlatforms.web;
-    final platformCompatible =
-        hasCompatible ? '$formattedPlatform-compatible' : formattedPlatform;
-    final platformOnly =
-        hasOnly ? '$formattedPlatform-only' : formattedPlatform;
-    return PlatformDict(
-      name: formattedPlatform,
-      topPlatformPackages: 'Top $platformCompatible packages',
-      morePlatformPackagesLabel: 'More $platformCompatible packages...',
-      onlyPlatformPackagesLabel: hasOnly ? '$platformOnly packages...' : null,
-      onlyPlatformPackagesUrl: onlyPlatformPackagesUrl,
-      searchPlatformPackagesLabel: 'Search $platformCompatible packages',
-      landingPageTitle: _landingPageTitle(platform),
-      landingBlurb: _landingBlurb(platform),
-      landingUrl: platform == null ? '/' : '/$platform',
-      listingUrl: urls.searchUrl(platform: platform),
-      tagTitle: tagTitle,
-    );
-  }
-}
-
-PlatformDict getPlatformDict(String platform, {bool nullIfMissing = false}) {
-  final dict = _dictionaries[platform ?? 'default'];
-  if (dict == null) {
-    return nullIfMissing ? null : _dictionaries['default'];
-  } else {
-    return dict;
-  }
-}
-
-final _dictionaries = <String, PlatformDict>{
-  'default': PlatformDict.forPlatform(null),
-  KnownPlatforms.flutter: PlatformDict.forPlatform(
-    KnownPlatforms.flutter,
-    tagTitle: 'Compatible with the Flutter platform.',
-    onlyPlatformPackagesUrl: '/packages?q=dependency%3Aflutter',
-  ),
-  KnownPlatforms.web: PlatformDict.forPlatform(
-    KnownPlatforms.web,
-    tagTitle: 'Compatible with the web platform.',
-  ),
-  KnownPlatforms.other: PlatformDict(
-    name: KnownPlatforms.other,
-    tagTitle: 'Compatible with other platforms (terminal, server, etc.).',
-    listingUrl: null, // no listing for platform tag
-    topPlatformPackages: null, // no landing page
-    morePlatformPackagesLabel: null, // no search filter for it
-    onlyPlatformPackagesLabel: null, // no search filter for it
-    onlyPlatformPackagesUrl: null, // no search filter for it
-    searchPlatformPackagesLabel: null, // no search filter for it
-    landingUrl: null,
-    landingPageTitle: null,
-    landingBlurb: null,
-  ),
-};
-
-String _formattedPlatformName(String platform) {
-  if (platform == null) {
-    return 'Dart';
-  }
-  switch (platform) {
-    case KnownPlatforms.flutter:
-      return 'Flutter';
-    default:
-      return platform;
-  }
-}
-
-String _landingPageTitle(String platform) {
-  if (platform == KnownPlatforms.flutter) {
-    return 'Flutter packages';
-  } else if (platform == KnownPlatforms.web) {
-    return 'Dart packages for Web';
-  }
-  return 'Dart packages';
-}
-
-final Map<String, String> _landingBlurbs = const {
-  'default':
+final defaultLandingBlurbHtml =
       '<p class="text">Find and use packages to build <a href="/flutter">Flutter</a> and '
-          '<a href="/web">web</a> apps with <a target="_blank" rel="noopener" href="${urls.dartSiteRoot}">Dart</a>.</p>',
-  KnownPlatforms.flutter:
-      '<p class="text"><a target="_blank" rel="noopener" href="https://flutter.io/">Flutter<sup><small>↗</small></sup></a> '
-          'makes it easy and fast to build beautiful mobile apps<br/> for iOS and Android.</p>',
-  KnownPlatforms.web:
-      '<p class="text">Use Dart to create web applications that run on any modern browser.<br/> Start '
-          'with <a target="_blank" rel="noopener" href="https://webdev.dartlang.org/angular">AngularDart<sup><small>↗</small></sup></a>.</p>'
-};
-
-String _landingBlurb(String platform) =>
-    _landingBlurbs[platform ?? 'default'] ?? _landingBlurbs['default'];
+          '<a href="/web">web</a> apps with <a target="_blank" rel="noopener" href="${urls.dartSiteRoot}">Dart</a>.</p>';
 
 class SortDict {
   final String id;

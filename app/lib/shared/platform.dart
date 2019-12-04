@@ -9,8 +9,6 @@ abstract class KnownPlatforms {
   static const String web = PlatformNames.web;
   static const String other = PlatformNames.other;
   static const List<String> all = [flutter, web, other];
-
-  static bool isKnownPlatform(String platform) => all.contains(platform);
 }
 
 final _whitelistedOverride = 'Whitelisted platform override.';
