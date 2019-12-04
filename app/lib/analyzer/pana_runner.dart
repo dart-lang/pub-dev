@@ -266,6 +266,7 @@ Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
       pkgResolution: null,
       dartFiles: null,
       platform: null,
+      tags: <String>[],
       licenses: null,
       health: null,
       maintenance: null,
