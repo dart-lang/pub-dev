@@ -9,8 +9,8 @@
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:site" content="@dart_lang"/>
     <meta property="og:site_name" content="Dart packages"/>
-    <title>Flutter packages</title>
-    <meta property="og:title" content="Flutter packages"/>
+    <title>Dart packages</title>
+    <meta property="og:title" content="Dart packages"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet"/>
     <meta itemprop="image" content="/static/img/dart-logo-400x400.png?hash=mocked_hash_58383222"/>
     <meta property="og:image" content="/static/img/dart-logo-400x400.png?hash=mocked_hash_58383222"/>
@@ -74,23 +74,20 @@
       <div class="container">
         <div class="home-banner">
           <h2 class="_visuallyhidden">Dart package manager</h2>
-          <img class="logo" src="/static/img/flutter-packages-white.png?hash=mocked_hash_276594719" alt="Flutter packages"/>
-          <form class="search-bar" action="/flutter/packages">
-            <input class="input" name="q" placeholder="Search Flutter-compatible packages" autocomplete="on" autofocus="autofocus"/>
+          <img class="logo" src="/static/img/dart-packages-white.png?hash=mocked_hash_308431268" alt="Dart packages"/>
+          <form class="search-bar" action="/packages">
+            <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
             <button class="icon"></button>
           </form>
           <div class="list-filters">
-            <a class="filter -active" href="/flutter">Flutter</a>
-            <a class="filter " href="/web">Web</a>
-            <a class="filter " href="/">All</a>
+            <a class="filter " href="/dart/packages">Dart</a>
+            <a class="filter " href="/flutter/packages">Flutter</a>
+            <a class="filter -active" href="/packages">Any</a>
           </div>
-          <p class="text">
-            <a target="_blank" rel="noopener" href="https://flutter.io/">Flutter
-              <sup>
-                <small>↗</small>
-              </sup>
-            </a> makes it easy and fast to build beautiful mobile apps
-            <br/> for iOS and Android.
+          <p class="text">Find and use packages to build 
+            <a href="/flutter">Flutter</a> and 
+            <a href="/web">web</a> apps with 
+            <a target="_blank" rel="noopener" href="https://dart.dev">Dart</a>.
           </p>
         </div>
       </div>
@@ -99,14 +96,7 @@
       <main>
         <div class="home-lists-container">
           <div class="landing-page-title-block">
-            <div class="tooltip-base hoverable">
-              <h2 class="center landing-page-title tooltip-dotted">Top Flutter-compatible packages</h2>
-              <div class="tooltip-content">
-        Packages are sorted by the overall score. More information on 
-                <a href="/help#ranking">ranking</a>.
-      
-              </div>
-            </div>
+            <h2 class="center landing-page-title">Flutter Favorites</h2>
           </div>
           <ul class="package-list">
             <li class="list-item -simple">
@@ -114,14 +104,41 @@
                 <a href="/packages/foobar_pkg">foobar_pkg</a>
               </h3>
               <p class="metadata">
-                <a class="package-tag" href="/flutter/packages" title="Compatible with the Flutter platform.">Flutter</a>
+                <a class="package-tag" href="/flutter/packages" title="sdk:flutter">flutter</a>
               </p>
               <p class="description">my package description</p>
             </li>
           </ul>
           <div class="more">
-            <a href="/flutter/packages">More Flutter-compatible packages...</a>
-            <a href="/packages?q=dependency%3Aflutter">Flutter-only packages...</a>
+            <a href="/flutter/packages">More Flutter Favorites...</a>
+          </div>
+        </div>
+        <div class="home-lists-container">
+          <div class="landing-page-title-block">
+            <h2 class="center landing-page-title">Top packages</h2>
+          </div>
+          <ul class="package-list">
+            <li class="list-item -simple">
+              <h3 class="title">
+                <a href="/packages/foobar_pkg">foobar_pkg</a>
+              </h3>
+              <p class="metadata">
+                <a class="package-tag" href="/flutter/packages" title="sdk:flutter">flutter</a>
+              </p>
+              <p class="description">my package description</p>
+            </li>
+            <li class="list-item -simple">
+              <h3 class="title">
+                <a href="/packages/helium">helium</a>
+              </h3>
+              <p class="metadata">
+                <a class="package-tag" href="/dart/packages" title="sdk:dart">dart</a>
+              </p>
+              <p class="description">helium is a Dart package</p>
+            </li>
+          </ul>
+          <div class="more">
+            <a href="/packages">More packages...</a>
           </div>
         </div>
       </main>
@@ -137,5 +154,8 @@
       </a>
       <a class="link github_issue" href="https://github.com/dart-lang/pub-dev/issues/new">Report an issue with this site</a>
     </footer>
+    <script type="application/ld+json">
+{"@context":"http://schema.org","@type":"WebSite","url":"https://pub.dev/","potentialAction":{"@type":"SearchAction","target":"https://pub.dev/packages?q={search_term_string}","query-input":"required name=search_term_string"}}
+</script>
   </body>
 </html>
