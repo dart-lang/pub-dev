@@ -1,0 +1,27 @@
+{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+{{#has_tagged}}
+<div class="home-lists-container">
+  <div class="landing-page-title-block">
+    <h2 class="center landing-page-title">Flutter Favorites</h2>
+  </div>
+  {{& tagged_minilist_html }}
+  <div class="more">
+    <a href="{{& tagged_more_url}}">More Flutter Favorites...</a>
+  </div>
+</div>
+{{/has_tagged}}
+
+{{#has_top}}
+<div class="home-lists-container">
+    <div class="landing-page-title-block">
+        <h2 class="center landing-page-title">Top packages</h2>
+    </div>
+    {{& top_minilist_html }}
+    <div class="more">
+        <a href="{{& top_more_url}}">More packages...</a>
+    </div>
+</div>
+{{/has_top}}
