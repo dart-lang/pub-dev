@@ -72,11 +72,36 @@
   > .metadata {
     font-size: 14px;
     color: #555;
+  }
+}
 
-    > .tags {
-      display: inline-block;
-      margin-left: 20px;
-    }
+.-pub-tag-badge {
+  border: 1px solid #555;
+  font-size: 12px;
+  display: inline-block;
+  margin-right: 15px;
+
+  > * {
+    display: inline-block;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 2px 8px;
+    color: #555;
+    background: #eef9fe;
+  }
+
+  > *:first-child {
+    background: #555;
+    color: #eef9fe;
+  }
+
+  > a:hover {
+    background: #ccc;
+    opacity: 1;
+  }
+
+  > a:first-child:hover {
+    background: #888;
   }
 }
 

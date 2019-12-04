@@ -238,6 +238,7 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
       isDiscontinued: package.isDiscontinued,
       isLegacy: card?.isLegacy ?? false,
       isObsolete: card?.isObsolete ?? false,
+      showTagBadges: true,
     ),
   );
 }

@@ -41,7 +41,7 @@ abstract class SdkTagValue {
 
 /// Collection of Dart SDK runtime values.
 abstract class DartSdkRuntimeValue {
-  static const String native = 'native';
+  static const String native = 'native-jit';
   static const String web = 'web';
 }
 

@@ -116,44 +116,104 @@ String renderTags(
   @required bool isDiscontinued,
   @required bool isLegacy,
   @required bool isObsolete,
+  bool showTagBadges = false,
   String packageName,
 }) {
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
-  final List<Map> tabValues = <Map>[];
+  final List<Map> tagValues = <Map>[];
+  final tagBadges = <Map>[];
   if (isAwaiting) {
-    tabValues.add({
+    tagValues.add({
       'status': 'missing',
       'text': '[awaiting]',
       'title': 'Analysis should be ready soon.',
     });
   } else if (isDiscontinued) {
-    tabValues.add({
+    tagValues.add({
       'status': 'discontinued',
       'text': '[discontinued]',
       'title': 'Package was discontinued.',
     });
   } else if (isObsolete) {
-    tabValues.add({
+    tagValues.add({
       'status': 'missing',
       'text': '[outdated]',
       'title': 'Package version too old, check latest stable.',
     });
   } else if (isLegacy) {
-    tabValues.add({
+    tagValues.add({
       'status': 'legacy',
       'text': 'Dart 2 incompatible',
       'title': 'Package does not support Dart 2.',
     });
   } else if (sdkTags.isEmpty) {
-    tabValues.add({
+    tagValues.add({
       'status': 'unidentified',
       'text': '[unidentified]',
       'title': 'Check the analysis tab for further details.',
       'href': urls.analysisTabUrl(packageName),
     });
-  } else if (searchQuery?.sdk == null) {
-    tabValues.addAll(
-      // TODO: sort tags
+  } else if (showTagBadges) {
+    // We only display first-class platform/runtimes
+    if (sdkTags.contains('sdk:dart')) {
+      tagBadges.add({
+        'sdk': 'dart',
+        'sub_tags': [
+          if (tags.contains('runtime:native-jit')) 'native',
+          if (tags.contains('runtime:web')) 'web',
+        ],
+      });
+    }
+    if (sdkTags.contains('sdk:flutter')) {
+      tagBadges.add({
+        'sdk': 'flutter',
+        'sub_tags': [
+          if (tags.contains('platform:android')) 'android',
+          if (tags.contains('platform:ios')) 'ios',
+          if (tags.contains('platform:web')) 'web',
+        ],
+      });
+    }
+  } else if (searchQuery?.sdk == SdkTagValue.dart) {
+    if (tags.contains('runtime:native-jit')) {
+      tagValues.add({
+        'text': 'native',
+        // TODO: link to platform/runtime-based search
+        'title': 'Works with Dart on Native',
+      });
+    }
+    if (tags.contains('runtime:web')) {
+      tagValues.add({
+        'text': 'web',
+        // TODO: link to platform/runtime-based search
+        'title': 'Works with Dart on Web',
+      });
+    }
+  } else if (searchQuery?.sdk == SdkTagValue.flutter) {
+    if (tags.contains('platform:android')) {
+      tagValues.add({
+        'text': 'android',
+        // TODO: link to platform/runtime-based search
+        'title': 'Works with Flutter on Android',
+      });
+    }
+    if (tags.contains('platform:ios')) {
+      tagValues.add({
+        'text': 'ios',
+        // TODO: link to platform/runtime-based search
+        'title': 'Works with Flutter on iOS',
+      });
+    }
+    if (tags.contains('platform:web')) {
+      tagValues.add({
+        'text': 'web',
+        // TODO: link to platform/runtime-based search
+        'title': 'Works with Flutter on Web',
+      });
+    }
+  } else {
+    sdkTags.sort(); // Show SDK tags (in sorted order)
+    tagValues.addAll(
       sdkTags.map(
         (tag) {
           final value = tag.split(':').last;
@@ -165,30 +225,11 @@ String renderTags(
         },
       ),
     );
-  } else {
-    String prefix;
-    if (searchQuery.sdk == SdkTagValue.dart) {
-      prefix = 'runtime:';
-    } else if (searchQuery.sdk == SdkTagValue.flutter) {
-      prefix = 'platform:';
-    }
-    if (prefix != null) {
-      tabValues.addAll(
-        // TODO: sort tags
-        tags.where((s) => s.startsWith(prefix)).toSet().map(
-          (tag) {
-            final value = tag.split(':').last;
-            return {
-              'text': value,
-              // TODO: link to platform/runtime-based search
-              'title': tag,
-            };
-          },
-        ),
-      );
-    }
   }
-  return templateCache.renderTemplate('pkg/tags', {'tags': tabValues});
+  return templateCache.renderTemplate('pkg/tags', {
+    'tags': tagValues,
+    'tag_badges': tagBadges,
+  });
 }
 
 /// Renders the simplified version of the circle with 'sdk' text content instead
