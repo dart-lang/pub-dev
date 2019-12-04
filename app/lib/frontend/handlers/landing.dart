@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
+import '../../search/search_service.dart';
 import '../../shared/handlers.dart';
 import '../../shared/platform.dart';
 import '../../shared/redis_cache.dart' show cache;
@@ -65,6 +66,29 @@ Future<shelf.Response> _indexHandler(
     final packages = await topFeaturedPackages(platform: platform);
     final minilist = renderMiniList(packages);
     return renderIndexPage(minilist, platform);
+  }
+
+  if (requestContext.isExperimental) {
+    final taggedResults = await searchAdapter.search(
+      SearchQuery.parse(
+        tagsPredicate: TagsPredicate.advertisement(
+          requiredTags: ['is:flutter-favorite'],
+        ),
+        limit: 6,
+        randomize: true,
+      ),
+    );
+    final topResults = await searchAdapter.search(
+      SearchQuery.parse(
+        tagsPredicate: TagsPredicate.advertisement(),
+        limit: 6,
+        randomize: true,
+      ),
+    );
+    return htmlResponse(renderLandingPage(
+      taggedPackages: taggedResults.packages.take(6).toList(),
+      topPackages: topResults.packages.take(6).toList(),
+    ));
   }
 
   if (requestContext.uiCacheEnabled) {

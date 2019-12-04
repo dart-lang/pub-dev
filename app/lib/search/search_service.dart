@@ -469,11 +469,13 @@ class TagsPredicate {
         ],
       );
 
-  factory TagsPredicate.advertisement() => TagsPredicate(
+  factory TagsPredicate.advertisement({List<String> requiredTags}) =>
+      TagsPredicate(
         prohibitedTags: [
           PackageTags.isDiscontinued,
           PackageTags.isNotAdvertized,
         ],
+        requiredTags: requiredTags,
       );
 
   /// Pre-populates the predicate with the default tags for all package listings

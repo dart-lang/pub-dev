@@ -4,11 +4,13 @@
 
 import 'dart:convert';
 
+import '../../package/models.dart' show PackageView;
 import '../../shared/urls.dart' as urls;
 
 import '_cache.dart';
 import '_consts.dart';
 import 'layout.dart';
+import 'misc.dart' show renderMiniList;
 
 /// Renders the `views/show.mustache` template.
 String renderIndexPage(
@@ -36,5 +38,29 @@ String renderIndexPage(
     content,
     title: platformDict.landingPageTitle,
     platform: platform,
+  );
+}
+
+/// Renders the `views/landing.mustache` template.
+String renderLandingPage({
+  List<PackageView> taggedPackages,
+  List<PackageView> topPackages,
+}) {
+  final hasTagged = taggedPackages != null && taggedPackages.isNotEmpty;
+  final hasTop = topPackages != null && topPackages.isNotEmpty;
+  final values = {
+    'has_tagged': hasTagged,
+    'tagged_minilist_html': hasTagged ? renderMiniList(taggedPackages) : null,
+    // TODO: use /flutter/favorites
+    'tagged_more_url': '/flutter/packages',
+    'has_top': hasTop,
+    'top_minilist_html': hasTop ? renderMiniList(topPackages) : null,
+    'top_more_url': urls.searchUrl(),
+  };
+  final String content = templateCache.renderTemplate('landing', values);
+  return renderLayoutPage(
+    PageType.landing,
+    content,
+    title: 'Dart packages',
   );
 }
