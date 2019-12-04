@@ -191,8 +191,6 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
   final reportStatus =
       summary == null ? ReportStatus.aborted : ReportStatus.success;
   final platformTags = indexDartPlatform(summary?.platform);
-  // TODO: use summary.tags instead, once pana gets a release with it
-  final derivedTags = _deriveTags(platformTags);
   return PanaReport(
     timestamp: DateTime.now().toUtc(),
     panaRuntimeInfo: summary?.runtimeInfo,
@@ -202,7 +200,7 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
         summary == null ? 0.0 : calculateMaintenanceScore(summary.maintenance),
     platformTags: platformTags,
     platformReason: summary?.platform?.reason,
-    derivedTags: derivedTags,
+    derivedTags: summary?.tags,
     pkgDependencies: summary?.pkgResolution?.dependencies,
     panaSuggestions: summary?.suggestions,
     healthSuggestions: summary?.health?.suggestions,
@@ -210,51 +208,6 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
     licenses: summary?.licenses,
     flags: flags,
   );
-}
-
-/// This derivative method populates the ScoreCard and the search index with
-/// correct, but incomplete data.
-List<String> _deriveTags(List<String> platformTags) {
-  if (platformTags != null && platformTags.isNotEmpty) {
-    if (KnownPlatforms.all.every(platformTags.contains)) {
-      return <String>[
-        'sdk:dart',
-        'sdk:flutter',
-        'platform:android',
-        'platform:ios',
-        'runtime:native',
-        'runtime:web',
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.flutter) {
-      return <String>[
-        'sdk:flutter',
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.web) {
-      return <String>[
-        'sdk:dart',
-        'runtime:web',
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.other) {
-      return <String>[
-        'sdk:dart',
-        'runtime:native',
-      ];
-    } else if (platformTags.length == 2 &&
-        platformTags.contains(KnownPlatforms.flutter) &&
-        platformTags.contains(KnownPlatforms.other)) {
-      return <String>[
-        'sdk:dart',
-        'sdk:flutter',
-        'platform:android',
-        'platform:ios',
-        'runtime:native',
-      ];
-    }
-  }
-  return <String>[];
 }
 
 Summary createPanaSummaryForLegacy(String packageName, String packageVersion) {
