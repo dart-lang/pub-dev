@@ -106,7 +106,7 @@ String _renderSearchBanner({
 }) {
   final sp = searchQuery != null
       ? SearchPreference.fromSearchQuery(searchQuery)
-      : searchPreference ?? SearchPreference();
+      : (searchPreference ?? SearchPreference());
   final queryText = searchQuery?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
@@ -209,7 +209,7 @@ String renderSearchTabs({
 }) {
   final sp = searchQuery != null
       ? SearchPreference.fromSearchQuery(searchQuery)
-      : searchPreference ?? SearchPreference();
+      : (searchPreference ?? SearchPreference());
   final currentSdk = sp.sdk ?? SdkTagValue.any;
   Map sdkTabData(String label, String tabSdk) {
     String url;
