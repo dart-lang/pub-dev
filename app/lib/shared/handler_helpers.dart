@@ -242,11 +242,13 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
 /// set the SearchPreference object.
 shelf.Handler _searchPreferenceWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    final sp = search_preference_cookie.parseSearchPreferenceCookie(
-      request.headers[HttpHeaders.cookieHeader],
-    );
-    if (sp != null) {
-      registerSearchPreference(sp);
+    if (request.headers.containsKey(HttpHeaders.cookieHeader)) {
+      final sp = search_preference_cookie.parseSearchPreferenceCookie(
+        request.headers[HttpHeaders.cookieHeader],
+      );
+      if (sp != null) {
+        registerSearchPreference(sp);
+      }
     }
     return await handler(request);
   };
