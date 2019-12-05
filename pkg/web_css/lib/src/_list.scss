@@ -224,9 +224,6 @@
   // Overrides for secondary tabs.
   .search-bar-options & {
     margin-top: 0px;
-    > .filter.-active {
-      background: $color-searchbar-secondary-link;
-    }
   }
 }
 
