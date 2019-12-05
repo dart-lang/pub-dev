@@ -247,4 +247,5 @@ String displayableUrl(String url) {
   return url;
 }
 
+String myPackagesUrl() => '/my-packages';
 String myLikedPackagesUrl() => '/my-liked-packages';

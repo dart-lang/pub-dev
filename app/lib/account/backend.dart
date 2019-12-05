@@ -71,6 +71,14 @@ void registerUserSessionData(UserSessionData value) =>
 UserSessionData get userSessionData =>
     ss.lookup(#_userSessionData) as UserSessionData;
 
+/// Sets the active user's search preference object.
+void registerSearchPreference(SearchPreference value) =>
+    ss.register(#_searchPreference, value);
+
+/// The active search preference object.
+SearchPreference get searchPreference =>
+    ss.lookup(#_searchPreference) as SearchPreference;
+
 /// Returns the current authenticated user.
 ///
 /// If no user is currently authenticated, this will throw an

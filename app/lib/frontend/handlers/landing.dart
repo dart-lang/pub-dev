@@ -15,10 +15,6 @@ import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
 import '../templates/landing.dart';
 
-/// Handles requests for /
-Future<shelf.Response> indexLandingHandler(shelf.Request request) =>
-    _indexHandler(request, null);
-
 /// Handles requests for /dart
 Future<shelf.Response> dartLandingHandler(shelf.Request request) async =>
     redirectResponse(urls.searchUrl(sdk: SdkTagValue.dart));
@@ -38,12 +34,8 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
   );
 }
 
-/// Handles requests for:
-/// - /
-/// - /flutter
-/// - /web
-Future<shelf.Response> _indexHandler(
-    shelf.Request request, String platform) async {
+/// Handles requests for /
+Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   final String queryText = request.requestedUri.queryParameters['q']?.trim();
   if (queryText != null) {
     final String path = request.requestedUri.path;
@@ -65,7 +57,7 @@ Future<shelf.Response> _indexHandler(
   }
 
   if (requestContext.uiCacheEnabled) {
-    return htmlResponse(await cache.uiIndexPage(platform).get(_render));
+    return htmlResponse(await cache.uiIndexPage().get(_render));
   }
   return htmlResponse(await _render());
 }
