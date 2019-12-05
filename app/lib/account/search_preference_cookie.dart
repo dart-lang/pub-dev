@@ -5,7 +5,7 @@
 import 'dart:io' show HttpHeaders;
 
 import '../shared/configuration.dart' show envConfig;
-import '../shared/utils.dart' show buildSetCookieValue;
+import '../shared/utils.dart' show buildSetCookieValue, parseCookieHeader;
 
 import 'models.dart';
 
@@ -37,4 +37,13 @@ Map<String, String> createSearchPreferenceCookie(SearchPreference value) {
       expires: expiration,
     ),
   };
+}
+
+/// Parse [cookieString] and return `SearchPreference` or `null`.
+///
+/// The [cookieString] is the value of the `cookie:` request header.
+SearchPreference parseSearchPreferenceCookie(String cookieString) {
+  ArgumentError.checkNotNull(cookieString, 'cookieString');
+  final value = parseCookieHeader(cookieString)[_pubSearchPreferenceCookieName];
+  return SearchPreference.tryParseCookieValue(value);
 }

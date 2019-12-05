@@ -281,7 +281,6 @@ String renderPkgShowPage(
     pageDescription: selectedVersion.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
     canonicalUrl: canonicalUrl,
-    platform: card?.asSinglePlatform,
     noIndex: noIndex,
     pageData: pkgPageData(package, selectedVersion),
   );

@@ -33,7 +33,6 @@ import '../shared/configuration.dart';
 import '../shared/datastore_helper.dart';
 import '../shared/email.dart';
 import '../shared/exceptions.dart';
-import '../shared/platform.dart' show KnownPlatforms;
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 import 'model_properties.dart';
@@ -361,8 +360,7 @@ Future<void> purgePackageCache(String package) async {
     cache.packageData(package).purge(),
     cache.packageView(package).purge(),
     cache.uiPackagePage(package, null).purge(),
-    cache.uiIndexPage(null).purge(),
-    ...KnownPlatforms.all.map((p) => cache.uiIndexPage(p).purge()),
+    cache.uiIndexPage().purge(),
   ]);
 }
 

@@ -342,4 +342,7 @@ class SearchPreference {
     );
     return base64Url.encode(utf8.encode(json.encode(reduced.toJson())));
   }
+
+  SearchQuery toSearchQuery() =>
+      SearchQuery.parse(sdk: sdk, runtimes: runtimes, platforms: platforms);
 }

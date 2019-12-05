@@ -8,6 +8,7 @@ import 'package:client_data/page_data.dart';
 import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
+import '../../account/models.dart' show SearchPreference;
 import '../../search/search_service.dart';
 import '../../shared/configuration.dart';
 import '../../shared/tags.dart';
@@ -38,7 +39,6 @@ String renderLayoutPage(
   String pageDescription,
   String faviconUrl,
   String canonicalUrl,
-  String platform,
   String sdk,
   String publisherId,
   SearchQuery searchQuery,
@@ -66,8 +66,6 @@ String renderLayoutPage(
         };
   final searchBannerHtml = _renderSearchBanner(
     type: type,
-    platform: platform,
-    sdk: sdk,
     publisherId: publisherId,
     searchQuery: searchQuery,
   );
@@ -103,40 +101,52 @@ String renderLayoutPage(
 
 String _renderSearchBanner({
   @required PageType type,
-  @required String platform,
-  @required String sdk,
   @required String publisherId,
   @required SearchQuery searchQuery,
 }) {
+  final sp = searchQuery != null
+      ? SearchPreference.fromSearchQuery(searchQuery)
+      : (searchPreference ?? SearchPreference());
   final queryText = searchQuery?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
+  bool includePreferencesAsHiddenFields = false;
   String searchPlaceholder;
   if (publisherId != null) {
     searchPlaceholder = 'Search $publisherId packages';
   } else if (type == PageType.account) {
     searchPlaceholder = 'Search your packages';
   } else {
-    searchPlaceholder = getSdkDict(sdk).searchPackagesLabel;
+    searchPlaceholder = getSdkDict(sp.sdk).searchPackagesLabel;
+    includePreferencesAsHiddenFields = true;
   }
-  final searchFormUrl = searchQuery?.toSearchFormPath() ??
-      SearchQuery.parse(platform: platform, publisherId: publisherId)
-          .toSearchLink();
+  String searchFormUrl;
+  if (publisherId != null) {
+    searchFormUrl = SearchQuery.parse(publisherId: publisherId).toSearchLink();
+  } else if (type == PageType.account) {
+    searchFormUrl = urls.myPackagesUrl();
+  } else if (searchQuery != null) {
+    searchFormUrl = searchQuery.toSearchFormPath();
+  } else {
+    searchFormUrl = sp.toSearchQuery().toSearchFormPath();
+  }
   final searchSort = searchQuery?.order == null
       ? null
       : serializeSearchOrder(searchQuery.order);
-  final hiddenInputs = searchQuery?.tagsPredicate
-      ?.asSearchLinkParams()
-      ?.entries
-      ?.map((e) => {'name': e.key, 'value': e.value})
-      ?.toList();
+  final hiddenInputs = includePreferencesAsHiddenFields
+      ? sp
+          .toSearchQuery()
+          .tagsPredicate
+          .asSearchLinkParams()
+          .entries
+          .map((e) => {'name': e.key, 'value': e.value})
+          .toList()
+      : null;
   String searchTabsHtml;
   if (type == PageType.landing) {
-    searchTabsHtml =
-        renderSearchTabs(platform: platform, sdk: sdk, isLanding: true);
+    searchTabsHtml = renderSearchTabs();
   } else if (type == PageType.listing) {
-    searchTabsHtml = renderSearchTabs(
-        platform: platform, sdk: sdk, searchQuery: searchQuery);
+    searchTabsHtml = renderSearchTabs(searchQuery: searchQuery);
   }
   String secondaryTabsHtml;
   if (searchQuery?.sdk == SdkTagValue.dart) {
@@ -167,6 +177,7 @@ String _renderSearchBanner({
   } else {
     bannerClass = 'small-banner';
   }
+  final isFlutter = sp.sdk == SdkTagValue.flutter;
   return templateCache.renderTemplate('shared/search_banner', {
     'banner_class': bannerClass,
     'show_details': type == PageType.listing,
@@ -178,12 +189,12 @@ String _renderSearchBanner({
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     'hidden_inputs': hiddenInputs,
     'search_tabs_html': searchTabsHtml,
-    'show_legacy_checkbox': sdk == null,
+    'show_legacy_checkbox': sp.sdk == null,
     'secondary_tabs_html': secondaryTabsHtml,
-    'landing_banner_image': _landingBannerImage(platform == 'flutter'),
-    'landing_banner_alt':
-        platform == 'flutter' ? 'Flutter packages' : 'Dart packages',
-    'landing_blurb_html': defaultLandingBlurbHtml,
+    'landing_banner_image': _landingBannerImage(isFlutter),
+    'landing_banner_alt': isFlutter ? 'Flutter packages' : 'Dart packages',
+    'landing_blurb_html':
+        isFlutter ? flutterLandingBlurbHtml : defaultLandingBlurbHtml,
   });
 }
 
@@ -194,12 +205,12 @@ String _landingBannerImage(bool isFlutter) {
 }
 
 String renderSearchTabs({
-  String platform,
-  String sdk,
   SearchQuery searchQuery,
-  bool isLanding = false,
 }) {
-  final currentSdk = sdk ?? searchQuery?.sdk ?? SdkTagValue.any;
+  final sp = searchQuery != null
+      ? SearchPreference.fromSearchQuery(searchQuery)
+      : (searchPreference ?? SearchPreference());
+  final currentSdk = sp.sdk ?? SdkTagValue.any;
   Map sdkTabData(String label, String tabSdk) {
     String url;
     if (searchQuery != null) {

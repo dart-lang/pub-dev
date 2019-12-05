@@ -111,7 +111,6 @@ String renderMyLikedPackagesList(List<LikeData> likes) {
 String renderPkgIndexPage(
   List<PackageView> packages,
   PageLinks links, {
-  String platform,
   String sdk,
   String title,
   SearchQuery searchQuery,
@@ -143,7 +142,6 @@ String renderPkgIndexPage(
     PageType.listing,
     content,
     title: pageTitle,
-    platform: platform,
     sdk: sdk,
     searchQuery: searchQuery,
     noIndex: true,

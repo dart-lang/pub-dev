@@ -9,6 +9,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../shared/tags.dart';
+import '../shared/urls.dart';
 
 part 'search_service.g.dart';
 
@@ -419,7 +420,7 @@ class SearchQuery {
       path = '/publishers/$publisherId/packages';
     }
     if (uploaderOrPublishers != null && uploaderOrPublishers.isNotEmpty) {
-      path = '/my-packages';
+      path = myPackagesUrl();
     }
     return path;
   }

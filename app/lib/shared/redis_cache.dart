@@ -77,10 +77,10 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
-  Entry<String> uiIndexPage(String platform) => _cache
+  Entry<String> uiIndexPage() => _cache
       .withPrefix('ui-indexpage')
       .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)['$platform'];
+      .withCodec(utf8)['/'];
 
   Entry<String> uiPublisherListPage() => _cache
       .withPrefix('ui-publisherpage')

@@ -725,7 +725,7 @@ void main() {
     });
 
     scopedTest('platform tabs: list', () {
-      final String html = renderSearchTabs(platform: 'web');
+      final String html = renderSearchTabs();
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
