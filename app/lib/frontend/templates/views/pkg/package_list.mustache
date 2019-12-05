@@ -6,7 +6,12 @@
   {{#packages}}
     <li class="list-item -full">
       {{& score_box_html }}
-      <h3 class="title"><a href="{{& url}}">{{name}}</a></h3>
+      <h3 class="title"><a href="{{& url}}">{{name}}{{#is_flutter_favorite}}
+        <img
+          class="-pub-ff-img"
+          src="{{static_assets.img__ff-20px_png}}"
+          title="Package {{name}} have been awarded Flutter Favorite" />
+      {{/is_flutter_favorite}}</a></h3>
       <p class="description">{{desc}}</p>
       {{#is_external}}
         <p class="metadata">v {{version}} • {{external_type}}</p>

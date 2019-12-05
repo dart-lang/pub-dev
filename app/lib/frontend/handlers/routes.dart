@@ -75,6 +75,10 @@ class PubSiteService {
   Future<Response> flutterPackages(Request request) =>
       flutterPackagesHandlerHtml(request);
 
+  @Route.get('/flutter/favorites')
+  Future<Response> flutterFavoritesPackages(Request request) =>
+      flutterFavoritesPackagesHandlerHtml(request);
+
   @Route.get('/web/packages')
   Future<Response> webPackages(Request request) =>
       webPackagesHandlerHtml(request);
