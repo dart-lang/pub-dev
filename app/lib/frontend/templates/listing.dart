@@ -66,7 +66,6 @@ String renderPackageList(
       'publisher_url':
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
       'tags_html': renderTags(
-        view.platforms,
         searchQuery: searchQuery,
         tags: view.tags,
         isAwaiting: view.isAwaiting,

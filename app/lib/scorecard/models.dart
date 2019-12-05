@@ -16,7 +16,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
 
 import '../shared/model_properties.dart';
-import '../shared/platform.dart';
 import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
@@ -350,21 +349,6 @@ class ScoreCardData extends Object with FlagMixin {
     if (requiredTypes == null || requiredTypes.isEmpty) return true;
     if (reportTypes == null || reportTypes.isEmpty) return false;
     return requiredTypes.every(reportTypes.contains);
-  }
-
-  /// Returns a single platform identifier if the package has only one platform
-  /// tag (which is not `Other`).
-  ///
-  /// Returns null otherwise (e.g. no platform classification, multiple platforms).
-  String get asSinglePlatform {
-    if (platformTags == null ||
-        platformTags.isEmpty ||
-        platformTags.length > 1) {
-      return null;
-    }
-    final value = platformTags.single;
-    if (value == KnownPlatforms.other) return null;
-    return value;
   }
 }
 
