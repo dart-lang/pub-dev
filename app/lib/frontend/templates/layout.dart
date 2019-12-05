@@ -150,22 +150,41 @@ String _renderSearchBanner({
   }
   String secondaryTabsHtml;
   if (searchQuery?.sdk == SdkTagValue.dart) {
-    secondaryTabsHtml = _renderSecondaryTabs(
+    secondaryTabsHtml = _renderFilterTabs(
       searchQuery: searchQuery,
-      tagPrefix: 'runtime',
-      values: [
-        DartSdkRuntimeValue.native,
-        DartSdkRuntimeValue.web,
+      options: [
+        _FilterOption(
+          label: 'native',
+          tag: 'runtime:${DartSdkRuntimeValue.native}',
+          title:
+              'Packages compatible with Dart running on a native platform (JIT/AOT)',
+        ),
+        _FilterOption(
+          label: 'web',
+          tag: 'runtime:${DartSdkRuntimeValue.web}',
+          title: 'Packages compatible with Dart compiled for the web',
+        ),
       ],
     );
   } else if (searchQuery?.sdk == SdkTagValue.flutter) {
-    secondaryTabsHtml = _renderSecondaryTabs(
+    secondaryTabsHtml = _renderFilterTabs(
       searchQuery: searchQuery,
-      tagPrefix: 'platform',
-      values: [
-        FlutterSdkRuntimeValue.android,
-        FlutterSdkRuntimeValue.ios,
-        FlutterSdkRuntimeValue.web,
+      options: [
+        _FilterOption(
+          label: 'android',
+          tag: 'platform:${FlutterSdkRuntimeValue.android}',
+          title: 'Packages compatible with Flutter on the Android platform',
+        ),
+        _FilterOption(
+          label: 'ios',
+          tag: 'platform:${FlutterSdkRuntimeValue.ios}',
+          title: 'Packages compatible with Flutter on the iOS platform',
+        ),
+        _FilterOption(
+          label: 'web',
+          tag: 'platform:${FlutterSdkRuntimeValue.web}',
+          title: 'Packages compatible with Flutter on the Web platform',
+        ),
       ],
     );
   }
@@ -211,7 +230,7 @@ String renderSearchTabs({
       ? SearchPreference.fromSearchQuery(searchQuery)
       : (searchPreference ?? SearchPreference());
   final currentSdk = sp.sdk ?? SdkTagValue.any;
-  Map sdkTabData(String label, String tabSdk) {
+  Map sdkTabData(String label, String tabSdk, String title) {
     String url;
     if (searchQuery != null) {
       url = searchQuery.change(sdk: tabSdk).toSearchLink();
@@ -222,56 +241,68 @@ String renderSearchTabs({
       'text': label,
       'href': htmlAttrEscape.convert(url),
       'active': tabSdk == currentSdk,
+      'title': title,
     };
   }
 
   final values = {
     'tabs': [
-      sdkTabData('Dart', SdkTagValue.dart),
-      sdkTabData('Flutter', SdkTagValue.flutter),
-      sdkTabData('Any', SdkTagValue.any),
+      sdkTabData(
+        'Dart',
+        SdkTagValue.dart,
+        'Packages compatible with the Dart SDK',
+      ),
+      sdkTabData(
+        'Flutter',
+        SdkTagValue.flutter,
+        'Packages compatible with the Flutter SDK',
+      ),
+      sdkTabData(
+        'Any',
+        SdkTagValue.any,
+        'Packages compatible with the any SDK',
+      ),
     ],
   };
   return templateCache.renderTemplate('shared/search_tabs', values);
 }
 
-String _renderSecondaryTabs({
-  @required SearchQuery searchQuery,
-  @required String tagPrefix,
-  @required List<String> values,
-}) {
-  final queryParam =
-      searchQuery.tagsPredicate.asSearchLinkParams()[tagPrefix] ?? '';
-  final selected = queryParam.split(' ');
-  return templateCache.renderTemplate('shared/search_tabs', {
-    'tabs': values.map(
-      (v) {
-        final newSelected = Set<String>.from(selected);
-        final isActive = selected.contains(v);
-        if (isActive) {
-          newSelected.remove(v);
-        } else {
-          newSelected.add(v);
-        }
-        final tp = searchQuery.tagsPredicate
-            .removePrefix('$tagPrefix:')
-            .appendPredicate(
-              TagsPredicate(
-                requiredTags: values
-                    .where(newSelected.contains)
-                    .map((s) => '$tagPrefix:$s')
-                    .toList(),
-              ),
-            );
+class _FilterOption {
+  final String label;
+  final String tag;
+  final String title;
 
-        final url = searchQuery.change(tagsPredicate: tp).toSearchLink();
-        return {
-          'text': v,
-          'href': htmlAttrEscape.convert(url),
-          'active': isActive,
-        };
-      },
-    ).toList(),
+  _FilterOption({
+    @required this.label,
+    @required this.tag,
+    @required this.title,
+  });
+}
+
+String _renderFilterTabs({
+  @required SearchQuery searchQuery,
+  @required List<_FilterOption> options,
+}) {
+  final tp = searchQuery.tagsPredicate;
+  String searchWithTagsLink(TagsPredicate tagsPredicate) {
+    return searchQuery.change(tagsPredicate: tagsPredicate).toSearchLink();
+  }
+
+  return templateCache.renderTemplate('shared/search_tabs', {
+    'tabs': options
+        .map((option) => {
+              'title': option.title,
+              'text': option.label,
+              'href': htmlAttrEscape.convert(searchWithTagsLink(
+                tp.isRequiredTag(option.tag)
+                    ? tp.withoutTag(option.tag)
+                    : tp.appendPredicate(TagsPredicate(
+                        requiredTags: [option.tag],
+                      )),
+              )),
+              'active': tp.isRequiredTag(option.tag),
+            })
+        .toList(),
   });
 }
 
