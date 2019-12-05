@@ -110,16 +110,15 @@ String _renderSearchBanner({
   final queryText = searchQuery?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
-  bool includePreferencesAsHiddenFields = true;
+  bool includePreferencesAsHiddenFields = false;
   String searchPlaceholder;
   if (publisherId != null) {
     searchPlaceholder = 'Search $publisherId packages';
-    includePreferencesAsHiddenFields = false;
   } else if (type == PageType.account) {
     searchPlaceholder = 'Search your packages';
-    includePreferencesAsHiddenFields = false;
   } else {
     searchPlaceholder = getSdkDict(sp.sdk).searchPackagesLabel;
+    includePreferencesAsHiddenFields = true;
   }
   String searchFormUrl;
   if (publisherId != null) {
