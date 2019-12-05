@@ -92,7 +92,6 @@ String renderMiniList(List<PackageView> packages) {
         'package_url': urls.pkgPageUrl(package.name),
         'ellipsized_description': package.ellipsizedDescription,
         'tags_html': renderTags(
-          package.platforms,
           searchQuery: null,
           tags: package.tags,
           isAwaiting: package.isAwaiting,
@@ -108,8 +107,7 @@ String renderMiniList(List<PackageView> packages) {
 }
 
 /// Renders the tags using the pkg/tags template.
-String renderTags(
-  List<String> platforms, {
+String renderTags({
   @required SearchQuery searchQuery,
   @required List<String> tags,
   @required bool isAwaiting,

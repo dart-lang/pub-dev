@@ -231,7 +231,6 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
         (package.assignedTags ?? []).contains('is:flutter-favorite'),
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
-      analysis?.platforms,
       searchQuery: null,
       tags: pkgView.tags,
       isAwaiting: isAwaiting,
