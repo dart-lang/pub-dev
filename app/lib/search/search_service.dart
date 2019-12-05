@@ -485,6 +485,9 @@ class TagsPredicate {
 
   bool get isNotEmpty => _values.isNotEmpty;
 
+  bool isRequiredTag(String tag) => _values[tag] == true;
+  bool isProhibitedTag(String tag) => _values[tag] == false;
+
   /// Parses [values] passed via Uri.queryParameters
   factory TagsPredicate.parseQueryValues(List<String> values) {
     final p = TagsPredicate();
@@ -514,6 +517,15 @@ class TagsPredicate {
     final p = TagsPredicate();
     p._values.addAll(_values);
     p._values.addAll(other._values);
+    return p;
+  }
+
+  /// Create a new [TagsPredicate] from this [TagsPredicate] without any
+  /// constraints on [tag].
+  TagsPredicate withoutTag(String tag) {
+    final p = TagsPredicate();
+    p._values.addAll(_values);
+    p._values.remove(tag);
     return p;
   }
 
