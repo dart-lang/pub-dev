@@ -16,6 +16,8 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
 
 import '../shared/model_properties.dart';
+import '../shared/platform.dart';
+import '../shared/tags.dart';
 import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
@@ -349,6 +351,53 @@ class ScoreCardData extends Object with FlagMixin {
     if (requiredTypes == null || requiredTypes.isEmpty) return true;
     if (reportTypes == null || reportTypes.isEmpty) return false;
     return requiredTypes.every(reportTypes.contains);
+  }
+
+  /// Returns [derivedTags] (if it is available) or calculates the tags based
+  /// on the [platformTags].
+  List<String> get currentTags {
+    if (derivedTags != null && derivedTags.isNotEmpty) return derivedTags;
+    if (platformTags == null || platformTags.isEmpty) return <String>[];
+    if (KnownPlatforms.all.every(platformTags.contains)) {
+      return <String>[
+        'sdk:${SdkTagValue.dart}',
+        'sdk:${SdkTagValue.flutter}',
+        'platform:${FlutterSdkRuntimeValue.android}',
+        'platform:${FlutterSdkRuntimeValue.ios}',
+        'platform:${FlutterSdkRuntimeValue.web}',
+        'runtime:${DartSdkRuntimeValue.native}',
+        'runtime:${DartSdkRuntimeValue.web}',
+      ];
+    } else if (platformTags.length == 1 &&
+        platformTags.single == KnownPlatforms.flutter) {
+      return <String>[
+        'sdk:${SdkTagValue.flutter}',
+      ];
+    } else if (platformTags.length == 1 &&
+        platformTags.single == KnownPlatforms.web) {
+      return <String>[
+        'sdk:${SdkTagValue.dart}',
+        'runtime:${DartSdkRuntimeValue.web}',
+      ];
+    } else if (platformTags.length == 1 &&
+        platformTags.single == KnownPlatforms.other) {
+      return <String>[
+        'sdk:${SdkTagValue.dart}',
+        'runtime:${DartSdkRuntimeValue.native}',
+      ];
+    } else if (platformTags.length == 2 &&
+        platformTags.contains(KnownPlatforms.flutter) &&
+        platformTags.contains(KnownPlatforms.other)) {
+      return <String>[
+        'sdk:${SdkTagValue.dart}',
+        'sdk:${SdkTagValue.flutter}',
+        'platform:${FlutterSdkRuntimeValue.android}',
+        'platform:${FlutterSdkRuntimeValue.ios}',
+        'platform:${FlutterSdkRuntimeValue.web}',
+        'runtime:${DartSdkRuntimeValue.native}',
+      ];
+    }
+    return <String>[];
   }
 }
 
