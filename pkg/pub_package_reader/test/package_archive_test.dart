@@ -243,7 +243,7 @@ void main() {
       
       environment:
         sdk: ">=2.0.0 <3.0.0"
-        flutter: ">=1.2.0 <2.0.0"
+        flutter: ">=1.12.0 <2.0.0"
 
       dependencies:
         flutter:
@@ -268,7 +268,7 @@ void main() {
       
       environment:
         sdk: ">=2.0.0 <3.0.0"
-        flutter: ">=1.2.0 <2.0.0"
+        flutter: ">=1.12.0 <2.0.0"
 
       dependencies:
         flutter:
@@ -279,6 +279,31 @@ void main() {
           androidPackage: 'io.flutter.plugins.myplugin'
           iosPrefix: 'FLT'
           pluginClass: 'MyPlugin'
+          platforms:
+            ios:
+              classPrefix: 'FLT'
+              pluginClass: 'SamplePlugin'
+      ''');
+      expect(forbidConflictingFlutterPluginSchemes(pubspec), isNotEmpty);
+    });
+
+    test('simple_plugin new scheme, old sdk constraint', () {
+      final pubspec = Pubspec.parse('''
+      name: simple_plugin
+      description: A simple_plugin
+      version: 1.0.0
+      homepage: https://example.com
+      
+      environment:
+        sdk: ">=2.0.0 <3.0.0"
+        flutter: ">=1.9.0 <2.0.0"
+
+      dependencies:
+        flutter:
+          sdk: flutter
+      
+      flutter:
+        plugin:
           platforms:
             ios:
               classPrefix: 'FLT'

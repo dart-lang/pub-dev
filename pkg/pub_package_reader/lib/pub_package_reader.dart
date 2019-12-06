@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'src/file_names.dart';
 import 'src/names.dart';
@@ -303,5 +304,21 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
         'used in combination with the old '
         'flutter.plugin.{androidPackage,iosPrefix,pluginClass} keys.\n\n'
         'See $pluginDocsUrl');
+  }
+
+  if (usesNewPluginFormat &&
+      (pubspec.environment == null ||
+          pubspec.environment['flutter'] == null ||
+          pubspec.environment['flutter'].allowsAny(VersionRange(
+            min: Version.parse('0.0.0'),
+            max: Version.parse('1.10.0'),
+            includeMin: true,
+            includeMax: false,
+          )))) {
+    yield ArchiveIssue(
+      'In pubspec.yaml the flutter.plugin.platforms key cannot be '
+      'used without a environment.flutter constraint ">=1.10.0 <2.0.0"\n\n'
+      'See $pluginDocsUrl',
+    );
   }
 }
