@@ -452,7 +452,7 @@ class PackageView extends Object with FlagMixin {
       tags: <String>[
         ...(package?.getTags() ?? <String>[]),
         ...(version?.getTags() ?? <String>[]),
-        ...(scoreCard?.derivedTags ?? <String>[]),
+        ...(scoreCard?.currentTags ?? <String>[]),
       ],
       isNewPackage: package?.isNewPackage(),
       apiPages: apiPages,
