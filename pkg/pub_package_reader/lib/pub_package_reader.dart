@@ -319,7 +319,7 @@ Iterable<ArchiveIssue> forbidConflictingFlutterPluginSchemes(
       'pubspec.yaml allows Flutter SDK version 1.9.x, which does '
       'not support the flutter.plugin.platforms key.\n'
       'Please consider increasing the Flutter SDK requirement to '
-      '^1.10.0 (environment.sdk.flutter)\n\nSee $_pluginDocsUrl',
+      '^1.10.0 (environment.sdk.flutter)\n\nSee $pluginDocsUrl',
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'package:pub_package_reader/pub_package_reader.dart';
 
+// TODO: Test that messages contains some substring.
 void main() {
   group('package name validation', () {
     test('reject unknown mixed-case', () {
