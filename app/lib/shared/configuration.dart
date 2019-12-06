@@ -97,6 +97,9 @@ class Configuration {
   /// Storage is retrieved from the Datastore.
   factory Configuration._prod() {
     final projectId = 'dartlang-pub';
+    if (envConfig.gaeVersion == null ?? envConfig.gaeVersion.isEmpty) {
+      throw StateError('Missing appengine service version');
+    }
     return Configuration(
       projectId: projectId,
       packageBucketName: 'pub-packages',
@@ -104,7 +107,8 @@ class Configuration {
       popularityDumpBucketName: '$projectId--popularity',
       searchSnapshotBucketName: '$projectId--search-snapshot',
       backupSnapshotBucketName: '$projectId--backup-snapshots',
-      searchServicePrefix: 'https://search-dot-$projectId.appspot.com',
+      searchServicePrefix:
+          'https://${envConfig.gaeVersion}-dot-search-dot-$projectId.appspot.com',
       storageBaseUrl: 'https://storage.googleapis.com/',
       pubClientAudience: _pubClientAudience,
       pubSiteAudience:
