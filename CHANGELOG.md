@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191206t130338-all`
+ * Fallback to tags derived from older score cards.
+
 ## `20191205t152333-all`
  * Bumped runtimeVersion to `2019.12.05+1`.
  * Upgraded Flutter to `1.12.13+hotfix.2`.
