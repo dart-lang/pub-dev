@@ -9,6 +9,7 @@ import 'package:pub_dev/shared/utils.dart';
 
 import '../../package/models.dart';
 import '../../search/search_service.dart';
+import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '_cache.dart';
@@ -61,7 +62,7 @@ String renderPackageList(
       'dev_version_url': urls.pkgPageUrl(view.name, version: view.devVersion),
       'last_uploaded': view.shortUpdated,
       'desc': view.ellipsizedDescription,
-      'is_flutter_favorite': view.tags.contains('is:flutter-favorite'),
+      'is_flutter_favorite': view.tags.contains(PackageTags.isFlutterFavorite),
       'publisher_id': view.publisherId,
       'publisher_url':
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),

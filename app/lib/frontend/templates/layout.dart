@@ -155,13 +155,13 @@ String _renderSearchBanner({
       options: [
         _FilterOption(
           label: 'native',
-          tag: 'runtime:${DartSdkRuntimeValue.native}',
+          tag: DartSdkTag.runtimeNativeJit,
           title:
               'Packages compatible with Dart running on a native platform (JIT/AOT)',
         ),
         _FilterOption(
           label: 'web',
-          tag: 'runtime:${DartSdkRuntimeValue.web}',
+          tag: DartSdkTag.runtimeWeb,
           title: 'Packages compatible with Dart compiled for the web',
         ),
       ],
@@ -172,17 +172,17 @@ String _renderSearchBanner({
       options: [
         _FilterOption(
           label: 'android',
-          tag: 'platform:${FlutterSdkRuntimeValue.android}',
+          tag: FlutterSdkTag.platformAndroid,
           title: 'Packages compatible with Flutter on the Android platform',
         ),
         _FilterOption(
           label: 'ios',
-          tag: 'platform:${FlutterSdkRuntimeValue.ios}',
+          tag: FlutterSdkTag.platformIos,
           title: 'Packages compatible with Flutter on the iOS platform',
         ),
         _FilterOption(
           label: 'web',
-          tag: 'platform:${FlutterSdkRuntimeValue.web}',
+          tag: FlutterSdkTag.platformWeb,
           title: 'Packages compatible with Flutter on the Web platform',
         ),
       ],
