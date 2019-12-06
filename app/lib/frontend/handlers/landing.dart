@@ -29,7 +29,7 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
   return redirectResponse(
     urls.searchUrl(
       sdk: SdkTagValue.dart,
-      runtimes: [DartSdkRuntimeValue.web],
+      runtimes: [DartSdkRuntime.web],
     ),
   );
 }
@@ -47,7 +47,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
 
   Future<String> _render() async {
     final taggedPackages = await topFeaturedPackages(
-      requiredTags: ['is:flutter-favorite'],
+      requiredTags: [PackageTags.isFlutterFavorite],
     );
     final topPackages = await topFeaturedPackages();
     return renderLandingPage(

@@ -14,6 +14,7 @@ import '../../scorecard/models.dart';
 import '../../search/search_service.dart';
 import '../../shared/email.dart' show EmailAddress;
 import '../../shared/platform.dart';
+import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
 import '../static_files.dart';
@@ -228,7 +229,7 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
     packageLikes: package.likes,
     isLiked: isLiked,
     isFlutterFavorite:
-        (package.assignedTags ?? []).contains('is:flutter-favorite'),
+        (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
       searchQuery: null,

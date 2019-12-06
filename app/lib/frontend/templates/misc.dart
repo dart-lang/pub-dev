@@ -153,34 +153,34 @@ String renderTags({
     });
   } else if (showTagBadges) {
     // We only display first-class platform/runtimes
-    if (sdkTags.contains('sdk:dart')) {
+    if (sdkTags.contains(SdkTag.sdkDart)) {
       tagBadges.add({
         'sdk': 'dart',
         'sub_tags': [
-          if (tags.contains('runtime:native-jit')) 'native',
-          if (tags.contains('runtime:web')) 'web',
+          if (tags.contains(DartSdkTag.runtimeNativeJit)) 'native',
+          if (tags.contains(DartSdkTag.runtimeWeb)) 'web',
         ],
       });
     }
-    if (sdkTags.contains('sdk:flutter')) {
+    if (sdkTags.contains(SdkTag.sdkFlutter)) {
       tagBadges.add({
         'sdk': 'flutter',
         'sub_tags': [
-          if (tags.contains('platform:android')) 'android',
-          if (tags.contains('platform:ios')) 'ios',
-          if (tags.contains('platform:web')) 'web',
+          if (tags.contains(FlutterSdkTag.platformAndroid)) 'android',
+          if (tags.contains(FlutterSdkTag.platformIos)) 'ios',
+          if (tags.contains(FlutterSdkTag.platformWeb)) 'web',
         ],
       });
     }
   } else if (searchQuery?.sdk == SdkTagValue.dart) {
-    if (tags.contains('runtime:native-jit')) {
+    if (tags.contains(DartSdkTag.runtimeNativeJit)) {
       tagValues.add({
         'text': 'native',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Dart on Native',
       });
     }
-    if (tags.contains('runtime:web')) {
+    if (tags.contains(DartSdkTag.runtimeWeb)) {
       tagValues.add({
         'text': 'web',
         // TODO: link to platform/runtime-based search
@@ -188,21 +188,21 @@ String renderTags({
       });
     }
   } else if (searchQuery?.sdk == SdkTagValue.flutter) {
-    if (tags.contains('platform:android')) {
+    if (tags.contains(FlutterSdkTag.platformAndroid)) {
       tagValues.add({
         'text': 'android',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on Android',
       });
     }
-    if (tags.contains('platform:ios')) {
+    if (tags.contains(FlutterSdkTag.platformIos)) {
       tagValues.add({
         'text': 'ios',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on iOS',
       });
     }
-    if (tags.contains('platform:web')) {
+    if (tags.contains(FlutterSdkTag.platformWeb)) {
       tagValues.add({
         'text': 'web',
         // TODO: link to platform/runtime-based search

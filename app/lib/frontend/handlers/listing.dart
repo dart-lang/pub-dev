@@ -54,7 +54,7 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
     sdk: SdkTagValue.flutter,
     title: 'Flutter Favorite packages',
     tagsPredicate: TagsPredicate.regularSearch().appendPredicate(TagsPredicate(
-      requiredTags: ['is:flutter-favorite'],
+      requiredTags: [PackageTags.isFlutterFavorite],
     )),
   );
 }
@@ -64,7 +64,7 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
   return redirectResponse(
     urls.searchUrl(
       sdk: SdkTagValue.dart,
-      runtimes: [DartSdkRuntimeValue.web],
+      runtimes: [DartSdkRuntime.web],
       q: request.requestedUri.queryParameters['q'],
     ),
   );

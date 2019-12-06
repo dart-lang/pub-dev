@@ -360,41 +360,41 @@ class ScoreCardData extends Object with FlagMixin {
     if (platformTags == null || platformTags.isEmpty) return <String>[];
     if (KnownPlatforms.all.every(platformTags.contains)) {
       return <String>[
-        'sdk:${SdkTagValue.dart}',
-        'sdk:${SdkTagValue.flutter}',
-        'platform:${FlutterSdkRuntimeValue.android}',
-        'platform:${FlutterSdkRuntimeValue.ios}',
-        'platform:${FlutterSdkRuntimeValue.web}',
-        'runtime:${DartSdkRuntimeValue.native}',
-        'runtime:${DartSdkRuntimeValue.web}',
+        SdkTag.sdkDart,
+        SdkTag.sdkFlutter,
+        FlutterSdkTag.platformAndroid,
+        FlutterSdkTag.platformIos,
+        FlutterSdkTag.platformWeb,
+        DartSdkTag.runtimeNativeJit,
+        DartSdkTag.runtimeWeb,
       ];
     } else if (platformTags.length == 1 &&
         platformTags.single == KnownPlatforms.flutter) {
       return <String>[
-        'sdk:${SdkTagValue.flutter}',
+        SdkTag.sdkFlutter,
       ];
     } else if (platformTags.length == 1 &&
         platformTags.single == KnownPlatforms.web) {
       return <String>[
-        'sdk:${SdkTagValue.dart}',
-        'runtime:${DartSdkRuntimeValue.web}',
+        SdkTag.sdkDart,
+        DartSdkTag.runtimeWeb,
       ];
     } else if (platformTags.length == 1 &&
         platformTags.single == KnownPlatforms.other) {
       return <String>[
-        'sdk:${SdkTagValue.dart}',
-        'runtime:${DartSdkRuntimeValue.native}',
+        SdkTag.sdkDart,
+        DartSdkTag.runtimeNativeJit,
       ];
     } else if (platformTags.length == 2 &&
         platformTags.contains(KnownPlatforms.flutter) &&
         platformTags.contains(KnownPlatforms.other)) {
       return <String>[
-        'sdk:${SdkTagValue.dart}',
-        'sdk:${SdkTagValue.flutter}',
-        'platform:${FlutterSdkRuntimeValue.android}',
-        'platform:${FlutterSdkRuntimeValue.ios}',
-        'platform:${FlutterSdkRuntimeValue.web}',
-        'runtime:${DartSdkRuntimeValue.native}',
+        SdkTag.sdkDart,
+        SdkTag.sdkFlutter,
+        FlutterSdkTag.platformAndroid,
+        FlutterSdkTag.platformIos,
+        FlutterSdkTag.platformWeb,
+        DartSdkTag.runtimeNativeJit,
       ];
     }
     return <String>[];
