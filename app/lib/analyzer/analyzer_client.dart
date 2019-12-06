@@ -10,6 +10,7 @@ import 'package:pana/pana.dart';
 import '../job/backend.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
+import '../shared/versions.dart' show runtimeVersion;
 
 export 'package:pana/pana.dart' show LicenseFile, PkgDependency, Suggestion;
 
@@ -61,6 +62,8 @@ class AnalysisView {
     DartdocReport dartdocReport,
   }) =>
       AnalysisView._(card, panaReport, dartdocReport);
+
+  bool get isLatestRuntimeVersion => _card?.runtimeVersion == runtimeVersion;
 
   bool get hasAnalysisData => _card != null;
   bool get hasPanaSummary => _pana != null;
