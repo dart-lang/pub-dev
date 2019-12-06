@@ -326,6 +326,7 @@ class AdminBackend {
         package.assignedTags
           ..removeWhere(body.assignedTagsRemoved.contains)
           ..addAll(body.assignedTagsAdded);
+        package.updated = DateTime.now().toUtc();
         tx.insert(package);
       }
 
