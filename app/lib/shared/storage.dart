@@ -123,14 +123,13 @@ class VersionedJsonStorage {
   /// or created earlier.
   Future<String> detectLatestVersion() async {
     final currentPath = _objectName();
-    final targetLength = currentPath.length;
     final list = await _bucket
         .list(prefix: _prefix)
         .map((entry) => entry.name)
-        .where((name) => name.length == targetLength)
         .where((name) => name.endsWith(_extension))
         .where((name) => name.compareTo(currentPath) <= 0)
-        .map((name) => name.substring(_prefix.length, _prefix.length + 10))
+        .map((name) =>
+            name.substring(_prefix.length, name.length - _extension.length))
         .where((version) => versions.runtimeVersionPattern.hasMatch(version))
         .toList();
     if (list.isEmpty) {
