@@ -110,6 +110,7 @@ class VersionedJsonStorage {
   Future<Map<String, dynamic>> getContentAsJsonMap(
       [String version = versions.runtimeVersion]) async {
     final objectName = _objectName(version);
+    _logger.info('Loading snapshot: $objectName');
     final map = await _bucket
         .read(objectName)
         .transform(_gzip.decoder)
