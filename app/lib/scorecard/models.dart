@@ -372,6 +372,8 @@ class ScoreCardData extends Object with FlagMixin {
         platformTags.single == KnownPlatforms.flutter) {
       return <String>[
         SdkTag.sdkFlutter,
+        FlutterSdkTag.platformAndroid,
+        FlutterSdkTag.platformIos,
       ];
     } else if (platformTags.length == 1 &&
         platformTags.single == KnownPlatforms.web) {
