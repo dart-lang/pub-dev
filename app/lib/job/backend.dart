@@ -54,8 +54,13 @@ class JobBackend {
       ).toString();
 
   /// Triggers analysis/dartdoc for [package]/[version] if older than [updated].
-  Future<void> trigger(JobService service, String package,
-      [String version, DateTime updated]) async {
+  Future<void> trigger(
+    JobService service,
+    String package, {
+    String version,
+    DateTime updated,
+    int priority,
+  }) async {
     final pKey = _db.emptyKey.append(Package, id: package);
     final pList = await _db.lookup([pKey]);
     final p = pList[0] as Package;
@@ -77,7 +82,14 @@ class JobBackend {
     final isLatestStable = p.latestVersion == version;
     final shouldProcess = updated == null || updated.isAfter(pv.created);
     await createOrUpdate(
-        service, package, version, isLatestStable, pv.created, shouldProcess);
+      service,
+      package,
+      version,
+      isLatestStable,
+      pv.created,
+      shouldProcess,
+      priority: priority,
+    );
   }
 
   Future<void> createOrUpdate(
@@ -86,8 +98,9 @@ class JobBackend {
     String version,
     bool isLatestStable,
     DateTime packageVersionUpdated,
-    bool shouldProcess,
-  ) async {
+    bool shouldProcess, {
+    int priority,
+  }) async {
     final id = _id(service, package, version);
     final state = shouldProcess ? JobState.available : JobState.idle;
     final lockedUntil =
@@ -116,7 +129,10 @@ class JobBackend {
           ..state = state
           ..lockedUntil = lockedUntil
           ..processingKey = null // drops ongoing processing
-          ..updatePriority(popularityStorage.lookup(package));
+          ..updatePriority(
+            popularityStorage.lookup(package),
+            fixPriority: priority,
+          );
         tx.queueMutations(inserts: [current]);
         await tx.commit();
         return;
@@ -134,7 +150,10 @@ class JobBackend {
           ..lastStatus = JobStatus.none
           ..runtimeVersion = versions.runtimeVersion
           ..errorCount = 0
-          ..updatePriority(popularityStorage.lookup(package));
+          ..updatePriority(
+            popularityStorage.lookup(package),
+            fixPriority: priority,
+          );
         tx.queueMutations(inserts: [job]);
         await tx.commit();
         return;
@@ -160,6 +179,11 @@ class JobBackend {
 
     list.removeWhere((job) => !isApplicable(job));
     if (list.isEmpty) return null;
+
+    // if there are high-priority items, select only from those.
+    if (list.first.priority == 0) {
+      list.removeWhere((j) => j.priority > 0);
+    }
 
     return await _retryWithTransaction((tx) async {
       final selectedId = list[_random.nextInt(list.length)].id;
