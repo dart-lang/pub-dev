@@ -28,10 +28,10 @@ Future main(List<String> args) async {
     final String service = args[0];
     if (service == 'analyzer' && args.length == 3) {
       await analyzerClient.triggerAnalysis(args[1], args[2], <String>{},
-          priority: 0);
+          isHighPriority: true);
     } else if (service == 'dartdoc' && args.length == 3) {
       await dartdocClient.triggerDartdoc(args[1], args[2], <String>{},
-          priority: 0);
+          isHighPriority: true);
     } else if (service == 'search' && args.length == 3) {
       await searchClient.triggerReindex(args[1], args[2]);
     } else {
