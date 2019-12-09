@@ -370,7 +370,8 @@ class ScoreCardData extends Object with FlagMixin {
       // Temporary bugfix for packages that otherwise are available on all
       // runtime and platform.
       // TODO: remove once the new pana fix gets deployed to prod
-      if (KnownPlatforms.all.every(platformTags.contains)) {
+      if (platformTags != null &&
+          KnownPlatforms.all.every(platformTags.contains)) {
         final extendedTags = <String>{
           ...derivedTags,
           ..._allExtraTags,
