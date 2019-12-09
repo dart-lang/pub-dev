@@ -356,7 +356,12 @@ class ScoreCardData extends Object with FlagMixin {
   /// Returns [derivedTags] (if it is available) or calculates the tags based
   /// on the [platformTags].
   List<String> get currentTags {
-    if (derivedTags != null && derivedTags.isNotEmpty) return derivedTags;
+    // TODO: remove the runtimeVersion comparison after 2019.12.09 gets in prod
+    if (runtimeVersion.compareTo('2019.12.09') >= 0 &&
+        derivedTags != null &&
+        derivedTags.isNotEmpty) {
+      return derivedTags;
+    }
     if (platformTags == null || platformTags.isEmpty) return <String>[];
     if (KnownPlatforms.all.every(platformTags.contains)) {
       return <String>[
