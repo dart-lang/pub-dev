@@ -413,6 +413,10 @@ class SearchQuery {
     if (sdk != null) {
       path = '/$sdk/packages';
     }
+    if (sdk == 'flutter' &&
+        tagsPredicate.isRequiredTag('is:flutter-favorite')) {
+      path = '/flutter/favorites';
+    }
     if (platform != null) {
       path = '/$platform/packages';
     }

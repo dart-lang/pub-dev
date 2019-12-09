@@ -115,6 +115,7 @@ String renderPkgIndexPage(
   String title,
   SearchQuery searchQuery,
   int totalCount,
+  String searchPlaceholder,
 }) {
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
@@ -145,6 +146,7 @@ String renderPkgIndexPage(
     sdk: sdk,
     searchQuery: searchQuery,
     noIndex: true,
+    searchPlaceHolder: searchPlaceholder,
   );
 }
 
