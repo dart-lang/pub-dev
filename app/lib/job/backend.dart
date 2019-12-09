@@ -13,6 +13,7 @@ import 'package:retry/retry.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/popularity_storage.dart';
 
 import '../shared/utils.dart';
 import '../shared/versions.dart' as versions;
@@ -115,7 +116,7 @@ class JobBackend {
           ..state = state
           ..lockedUntil = lockedUntil
           ..processingKey = null // drops ongoing processing
-          ..updatePriority();
+          ..updatePriority(popularityStorage.lookup(package));
         tx.queueMutations(inserts: [current]);
         await tx.commit();
         return;
@@ -133,7 +134,7 @@ class JobBackend {
           ..lastStatus = JobStatus.none
           ..runtimeVersion = versions.runtimeVersion
           ..errorCount = 0
-          ..updatePriority();
+          ..updatePriority(popularityStorage.lookup(package));
         tx.queueMutations(inserts: [job]);
         await tx.commit();
         return;
@@ -190,7 +191,7 @@ class JobBackend {
             ..errorCount = errorCount
             ..lastStatus = JobStatus.aborted
             ..lockedUntil = _extendLock(errorCount)
-            ..updatePriority();
+            ..updatePriority(popularityStorage.lookup(job.packageName));
           tx.queueMutations(inserts: [current]);
           await tx.commit();
         }
@@ -281,7 +282,7 @@ class JobBackend {
           ..processingKey = null
           ..errorCount = errorCount
           ..lockedUntil = _extendLock(errorCount, duration: extendDuration)
-          ..updatePriority();
+          ..updatePriority(popularityStorage.lookup(selected.packageName));
         tx.queueMutations(inserts: [selected]);
         await tx.commit();
       } else {
