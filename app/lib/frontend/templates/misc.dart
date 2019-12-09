@@ -156,19 +156,43 @@ String renderTags({
     if (sdkTags.contains(SdkTag.sdkDart)) {
       tagBadges.add({
         'sdk': 'dart',
+        'title': 'Packages compatible with Dart SDK',
         'sub_tags': [
-          if (tags.contains(DartSdkTag.runtimeNativeJit)) 'native',
-          if (tags.contains(DartSdkTag.runtimeWeb)) 'web',
+          if (tags.contains(DartSdkTag.runtimeNativeJit))
+            {
+              'text': 'native',
+              'title':
+                  'Packages compatible with Dart running on a native platform (JIT/AOT)',
+            },
+          if (tags.contains(DartSdkTag.runtimeWeb))
+            {
+              'text': 'js',
+              'title': 'Packages compatible with Dart compiled for the web',
+            },
         ],
       });
     }
     if (sdkTags.contains(SdkTag.sdkFlutter)) {
       tagBadges.add({
         'sdk': 'flutter',
+        'title': 'Packages compatible with Flutter SDK',
         'sub_tags': [
-          if (tags.contains(FlutterSdkTag.platformAndroid)) 'android',
-          if (tags.contains(FlutterSdkTag.platformIos)) 'ios',
-          if (tags.contains(FlutterSdkTag.platformWeb)) 'web',
+          if (tags.contains(FlutterSdkTag.platformAndroid))
+            {
+              'text': 'android',
+              'title':
+                  'Packages compatible with Flutter on the Android platform',
+            },
+          if (tags.contains(FlutterSdkTag.platformIos))
+            {
+              'text': 'ios',
+              'title': 'Packages compatible with Flutter on the iOS platform'
+            },
+          if (tags.contains(FlutterSdkTag.platformWeb))
+            {
+              'text': 'web',
+              'title': 'Packages compatible with Flutter on the Web platform',
+            },
         ],
       });
     }
@@ -182,7 +206,7 @@ String renderTags({
     }
     if (tags.contains(DartSdkTag.runtimeWeb)) {
       tagValues.add({
-        'text': 'web',
+        'text': 'js',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Dart on Web',
       });
