@@ -60,13 +60,23 @@ class Job extends ExpandoModel {
   @override
   String toString() => '$packageName $packageVersion';
 
-  void updatePriority() {
+  void updatePriority(double popularity) {
     priority = 0;
 
     // newer versions first
     final now = DateTime.now().toUtc();
     final age = now.difference(packageVersionUpdated).abs();
     priority += age.inDays;
+
+    // popular packages first
+    if (isLatestStable &&
+        popularity != null &&
+        popularity >= 0.0 &&
+        popularity <= 1.0) {
+      priority += ((1 - popularity) * 1000).round();
+    } else {
+      priority += 2000;
+    }
 
     // non-latest stable versions get pushed back in the queue
     if (!isLatestStable) {
