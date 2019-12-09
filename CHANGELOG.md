@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191209t173621-all`
+ * Fixed fallback tag generation for flutter.
+
 ## `20191209t144508-all`
  * Bumped runtimeVersion to `2019.12.09`.
  * Upgraded pana to `0.13.1+4`.
