@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bumped runtimeVersion to `2019.12.09`.
+ * Upgraded pana to `0.13.1+4`.
 
 ## `20191206t130338-all`
  * Fallback to tags derived from older score cards.
