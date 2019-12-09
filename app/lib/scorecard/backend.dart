@@ -56,7 +56,9 @@ class ScoreCardBackend {
     final cached = onlyCurrent
         ? null
         : await cache.scoreCardData(packageName, packageVersion).get();
-    if (cached != null && cached.hasReports(requiredReportTypes)) {
+    if (cached != null &&
+        cached.hasReports(requiredReportTypes) &&
+        !versions.blacklistedRuntimeVersions.contains(cached.runtimeVersion)) {
       return cached;
     }
 
@@ -79,6 +81,8 @@ class ScoreCardBackend {
         .where((sc) =>
             sc.runtimeVersion == versions.runtimeVersion ||
             isNewer(sc.semanticRuntimeVersion, versions.semanticRuntimeVersion))
+        .where((sc) =>
+            !versions.blacklistedRuntimeVersions.contains(sc.runtimeVersion))
         .where((sc) => sc.toData().hasReports([ReportType.pana]))
         .toList();
     final cardsWithAll = cardsWithPana
