@@ -59,7 +59,7 @@ class JobBackend {
     String package, {
     String version,
     DateTime updated,
-    int priority,
+    bool isHighPriority = false,
   }) async {
     final pKey = _db.emptyKey.append(Package, id: package);
     final pList = await _db.lookup([pKey]);
@@ -80,7 +80,8 @@ class JobBackend {
     }
 
     final isLatestStable = p.latestVersion == version;
-    final shouldProcess = updated == null || updated.isAfter(pv.created);
+    final shouldProcess =
+        isHighPriority || updated == null || updated.isAfter(pv.created);
     await createOrUpdate(
       service,
       package,
@@ -88,7 +89,7 @@ class JobBackend {
       isLatestStable,
       pv.created,
       shouldProcess,
-      priority: priority,
+      priority: isHighPriority ? 0 : null,
     );
   }
 
@@ -110,14 +111,16 @@ class JobBackend {
       final current = list.single as Job;
       if (current != null) {
         final hasNotChanged = current.isLatestStable == isLatestStable &&
-            current.packageVersionUpdated == packageVersionUpdated;
+            current.packageVersionUpdated == packageVersionUpdated &&
+            priority == null;
         if (hasNotChanged) {
           if (!shouldProcess) {
             // no reason to re-schedule the job
             return;
           }
           if (current.state == JobState.available &&
-              current.lockedUntil == null) {
+              current.lockedUntil == null &&
+              (priority == null || current.priority == priority)) {
             // already scheduled for processing
             return;
           }
