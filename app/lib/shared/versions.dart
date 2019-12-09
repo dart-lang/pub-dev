@@ -40,7 +40,7 @@ final String runtimeSdkVersion = '2.6.0';
 final String toolEnvSdkVersion = '2.6.1';
 
 // keep in-sync with app/pubspec.yaml
-final String panaVersion = '0.13.1+3';
+final String panaVersion = '0.13.1+4';
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
 final String flutterVersion = '1.12.13+hotfix.2';
