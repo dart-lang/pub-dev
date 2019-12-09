@@ -19,8 +19,7 @@ String renderLandingPage({
   final values = {
     'has_tagged': hasTagged,
     'tagged_minilist_html': hasTagged ? renderMiniList(taggedPackages) : null,
-    // TODO: use /flutter/favorites
-    'tagged_more_url': '/flutter/packages',
+    'tagged_more_url': '/flutter/favorites',
     'has_top': hasTop,
     'top_minilist_html': hasTop ? renderMiniList(topPackages) : null,
     'top_more_url': urls.searchUrl(),
