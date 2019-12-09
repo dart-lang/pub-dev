@@ -16,7 +16,7 @@ final RegExp runtimeVersionPattern = RegExp(r'\d{4}\.\d{2}\.\d{2}');
 /// Increment the version when a change is significant enough to trigger
 /// reprocessing, including: version change in pana, dartdoc, or the SDKs,
 /// or when an feature or bugfix should be picked up by the analysis ASAP.
-const String runtimeVersion = '2019.12.05+1';
+const String runtimeVersion = '2019.12.09';
 final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
 /// The version which marks the earliest version of the data which we'd like to
@@ -25,13 +25,12 @@ final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 ///
 /// Make sure that at least two versions are kept here as the next candidates
 /// when the version switch happens:
-/// - 2019.12.05+1
+/// - 2019.12.09
 /// - 2019.11.29
 /// - 2019.11.12
 /// - 2019.11.01
 /// - 2019.10.22
-/// - 2019.10.07
-final String gcBeforeRuntimeVersion = '2019.10.07';
+final String gcBeforeRuntimeVersion = '2019.10.22';
 
 /// The versions which contain data that we should not fall back to.
 final blacklistedRuntimeVersions = ['2019.12.05', '2019.12.05+1'];
@@ -41,7 +40,7 @@ final String runtimeSdkVersion = '2.6.0';
 final String toolEnvSdkVersion = '2.6.1';
 
 // keep in-sync with app/pubspec.yaml
-final String panaVersion = '0.13.1+2';
+final String panaVersion = '0.13.1+3';
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
 final String flutterVersion = '1.12.13+hotfix.2';
