@@ -353,21 +353,37 @@ class ScoreCardData extends Object with FlagMixin {
     return requiredTypes.every(reportTypes.contains);
   }
 
+  static const _allExtraTags = <String>[
+    SdkTag.sdkDart,
+    SdkTag.sdkFlutter,
+    FlutterSdkTag.platformAndroid,
+    FlutterSdkTag.platformIos,
+    FlutterSdkTag.platformWeb,
+    DartSdkTag.runtimeNativeJit,
+    DartSdkTag.runtimeWeb,
+  ];
+
   /// Returns [derivedTags] (if it is available) or calculates the tags based
   /// on the [platformTags].
   List<String> get currentTags {
-    if (derivedTags != null && derivedTags.isNotEmpty) return derivedTags;
-    if (platformTags == null || platformTags.isEmpty) return <String>[];
+    if (derivedTags != null && derivedTags.isNotEmpty) {
+      // Temporary bugfix for packages that otherwise are available on all
+      // runtime and platform.
+      // TODO: remove once the new pana fix gets deployed to prod
+      if (KnownPlatforms.all.every(platformTags.contains)) {
+        final extendedTags = <String>{
+          ...derivedTags,
+          ..._allExtraTags,
+        };
+        return extendedTags.toList();
+      }
+      return derivedTags;
+    }
+    if (platformTags == null || platformTags.isEmpty) {
+      return <String>[];
+    }
     if (KnownPlatforms.all.every(platformTags.contains)) {
-      return <String>[
-        SdkTag.sdkDart,
-        SdkTag.sdkFlutter,
-        FlutterSdkTag.platformAndroid,
-        FlutterSdkTag.platformIos,
-        FlutterSdkTag.platformWeb,
-        DartSdkTag.runtimeNativeJit,
-        DartSdkTag.runtimeWeb,
-      ];
+      return <String>[..._allExtraTags];
     } else if (platformTags.length == 1 &&
         platformTags.single == KnownPlatforms.flutter) {
       return <String>[
