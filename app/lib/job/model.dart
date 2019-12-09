@@ -60,7 +60,11 @@ class Job extends ExpandoModel {
   @override
   String toString() => '$packageName $packageVersion';
 
-  void updatePriority(double popularity) {
+  void updatePriority(double popularity, {int fixPriority}) {
+    if (fixPriority != null) {
+      priority = fixPriority;
+      return;
+    }
     priority = 0;
 
     // newer versions first
