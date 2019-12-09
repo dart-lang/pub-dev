@@ -180,6 +180,11 @@ class JobBackend {
     list.removeWhere((job) => !isApplicable(job));
     if (list.isEmpty) return null;
 
+    // if there are high-priority items, select only from those.
+    if (list.first.priority == 0) {
+      list.removeWhere((j) => j.priority > 0);
+    }
+
     return await _retryWithTransaction((tx) async {
       final selectedId = list[_random.nextInt(list.length)].id;
       final items = await tx.lookup([_db.emptyKey.append(Job, id: selectedId)]);
