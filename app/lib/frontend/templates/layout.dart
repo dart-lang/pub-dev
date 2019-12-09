@@ -45,6 +45,7 @@ String renderLayoutPage(
   bool includeSurvey = true,
   bool noIndex = false,
   PageData pageData,
+  String searchPlaceHolder,
 }) {
   final isRoot = type == PageType.landing && sdk == null;
   final pageDataEncoded = pageData == null
@@ -68,6 +69,7 @@ String renderLayoutPage(
     type: type,
     publisherId: publisherId,
     searchQuery: searchQuery,
+    searchPlaceholder: searchPlaceHolder,
   );
   final values = {
     'is_experimental': requestContext.isExperimental,
@@ -103,6 +105,7 @@ String _renderSearchBanner({
   @required PageType type,
   @required String publisherId,
   @required SearchQuery searchQuery,
+  String searchPlaceholder,
 }) {
   final sp = searchQuery != null
       ? SearchPreference.fromSearchQuery(searchQuery)
@@ -111,13 +114,12 @@ String _renderSearchBanner({
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
   bool includePreferencesAsHiddenFields = false;
-  String searchPlaceholder;
   if (publisherId != null) {
-    searchPlaceholder = 'Search $publisherId packages';
+    searchPlaceholder ??= 'Search $publisherId packages';
   } else if (type == PageType.account) {
-    searchPlaceholder = 'Search your packages';
+    searchPlaceholder ??= 'Search your packages';
   } else {
-    searchPlaceholder = getSdkDict(sp.sdk).searchPackagesLabel;
+    searchPlaceholder ??= getSdkDict(sp.sdk).searchPackagesLabel;
     includePreferencesAsHiddenFields = true;
   }
   String searchFormUrl;

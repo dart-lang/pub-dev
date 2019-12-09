@@ -56,6 +56,7 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
     tagsPredicate: TagsPredicate.regularSearch().appendPredicate(TagsPredicate(
       requiredTags: [PackageTags.isFlutterFavorite],
     )),
+    searchPlaceholder: 'Search Flutter favorite packages',
   );
 }
 
@@ -79,6 +80,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
   String sdk,
   String title,
   TagsPredicate tagsPredicate,
+  String searchPlaceholder,
 }) async {
   // TODO: use search memcache for all results here or remove search memcache
   final searchQuery = parseFrontendSearchQuery(
@@ -101,6 +103,7 @@ Future<shelf.Response> _packagesHandlerHtmlCore(
       searchQuery: searchQuery,
       totalCount: totalCount,
       title: title,
+      searchPlaceholder: searchPlaceholder,
     ),
     headers: createSearchPreferenceCookie(searchPreferences),
   );
