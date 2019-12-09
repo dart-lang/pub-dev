@@ -160,7 +160,7 @@ String _renderSearchBanner({
               'Packages compatible with Dart running on a native platform (JIT/AOT)',
         ),
         _FilterOption(
-          label: 'web',
+          label: 'js',
           tag: DartSdkTag.runtimeWeb,
           title: 'Packages compatible with Dart compiled for the web',
         ),
