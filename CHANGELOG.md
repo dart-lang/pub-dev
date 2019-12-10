@@ -3,6 +3,12 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20191210t151931-all`
+ * Upgraded dart to `2.7.0`.
+ * Upgraded Flutter to `1.12.13+hotfix.4`.
+ * Bumped runtimeVersion to `2019.12.10`.
+ * A few nit CSS fixes.
+
 ## `20191209t173621-all`
  * Fixed fallback tag generation for flutter.
 
