@@ -12,7 +12,9 @@ import 'package:pub_integration/src/headless_env.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
-  final trackCoverage = Platform.environment['COVERAGE'] == '1';
+  final coverageDir = Platform.environment['COVERAGE_DIR'];
+  final trackCoverage =
+      coverageDir != null || Platform.environment['COVERAGE'] == '1';
 
   group('browser', () {
     FakePubServerProcess fakePubServerProcess;
@@ -29,6 +31,9 @@ void main() {
       await fakePubServerProcess?.kill();
       httpClient.close();
       headlessEnv?.printCoverage();
+      if (coverageDir != null) {
+        await headlessEnv?.saveCoverage(coverageDir);
+      }
     });
 
     // Starting browser separately, as it may timeout when run together with the

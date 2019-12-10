@@ -63,7 +63,8 @@ COVERAGE_PID=$!
 
 cd "${PUB_INTEGRATION_DIR}"
 pub get
-dart \
+COVERAGE_DIR="${OUTPUT_DIR}/browser" \
+  dart \
   --pause-isolates-on-exit \
   --enable-vm-service=29999 \
   --disable-service-auth-codes \

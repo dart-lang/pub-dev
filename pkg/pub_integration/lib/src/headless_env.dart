@@ -167,6 +167,27 @@ class HeadlessEnv {
       print('${c.url}: ${c.percent.toStringAsFixed(2)}%');
     }
   }
+
+  Future<void> saveCoverage(String outputDir) async {
+    Future<void> saveToFile(Map<String, _Coverage> map, String path) async {
+      if (map.isNotEmpty) {
+        final file = File(path);
+        await file.parent.create(recursive: true);
+        await file.writeAsString(json.encode(map.map(
+          (k, v) => MapEntry<String, dynamic>(
+            v.url,
+            {
+              'textLength': v.textLength,
+              'ranges': v._coveredRanges.map((r) => r.toJson()).toList(),
+            },
+          ),
+        )));
+      }
+    }
+
+    await saveToFile(_jsCoverages, '$outputDir/js-coverage.json');
+    await saveToFile(_cssCoverages, '$outputDir/css-coverage.json');
+  }
 }
 
 /// Track the covered ranges in the source file.
