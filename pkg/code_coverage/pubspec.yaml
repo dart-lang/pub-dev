@@ -6,7 +6,7 @@ environment:
 
 dependencies:
   args: ^1.5.0
-  coverage: ^0.12.0
+  coverage: ^0.13.0
   lcov: ^5.3.0
   path: ^1.0.0
 
