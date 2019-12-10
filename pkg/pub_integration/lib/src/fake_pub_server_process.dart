@@ -26,7 +26,7 @@ class FakePubServerProcess {
     int port,
     int storagePort,
   }) async {
-    final pubDartArgs = (Platform.environment['PUB_DART_ARGUMENTS'] ?? '')
+    final vmArgs = (Platform.environment['FAKE_PUB_SERVER_VM_ARGS'] ?? '')
         .split(' ')
         .where((s) => s.isNotEmpty)
         .toList();
@@ -42,7 +42,7 @@ class FakePubServerProcess {
     final process = await Process.start(
       'dart',
       [
-        ...pubDartArgs,
+        ...vmArgs,
         'bin/fake_pub_server.dart',
         '--port=$port',
         '--storage-port=$storagePort',

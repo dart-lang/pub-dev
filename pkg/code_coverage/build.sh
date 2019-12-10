@@ -45,48 +45,26 @@ rm ${APP_ALL_TEST_PATH}
 echo "Waiting for app_unit code coverage to complete..."
 wait ${COVERAGE_PID}
 
-## Collect coverage for integration tests.
-
-echo "Generate ${PUB_INTEGRATION_ALL_TEST_PATH}..."
-cd "${CODE_COVERAGE_DIR}"
-dart lib/generate_all_tests.dart \
-  --dir "${PUB_INTEGRATION_DIR}/test" \
-  --name ${ALL_TEST_NAME}
-
-cd "${CODE_COVERAGE_DIR}"
-pub run coverage:collect_coverage \
-  --uri=http://localhost:29999 \
-  -o "${OUTPUT_DIR}/raw/pub_integration_fake_pub_server.json" \
-  --wait-paused \
-  --resume-isolates &
-COVERAGE_PID=$!
-
-cd "${PUB_INTEGRATION_DIR}"
-pub get
-COVERAGE_DIR="${OUTPUT_DIR}/browser" \
-  dart \
-  --pause-isolates-on-exit \
-  --enable-vm-service=29999 \
-  --disable-service-auth-codes \
-  ${PUB_INTEGRATION_ALL_TEST_PATH}
-
-echo "Waiting for pub_integration_fake_pub_server code coverage to complete..."
-wait ${COVERAGE_PID}
-
-echo "Delete ${PUB_INTEGRATION_ALL_TEST_PATH}..."
-rm ${PUB_INTEGRATION_ALL_TEST_PATH}
-
-## Processing coverage
-
+echo "Exporting to LCOV"
 cd "${CODE_COVERAGE_DIR}"
 mkdir -p "${OUTPUT_DIR}/lcov"
-echo "Exporting to LCOV"
-ls -1 "${OUTPUT_DIR}/raw" | xargs -n 1 -I ZZZ pub run coverage:format_coverage \
+pub run coverage:format_coverage \
   --packages "${APP_DIR}/.packages" \
-  -i "${OUTPUT_DIR}/raw/ZZZ" \
+  -i "${OUTPUT_DIR}/raw/app_unit.json" \
   --base-directory "${PROJECT_DIR}" \
   --lcov \
-  --out "${OUTPUT_DIR}/lcov/ZZZ.info"
+  --out "${OUTPUT_DIR}/lcov/app_unit.json.info"
+
+## Collect coverage for integration tests.
+
+ls -1 "${PUB_INTEGRATION_DIR}/test" | grep .dart$ | xargs -n 1 -I ZZZ dart \
+  lib/test_runner.dart \
+  --package "${PUB_INTEGRATION_DIR}" \
+  --test test/ZZZ \
+  --prefix ZZZ \
+  --fake-pub-server
+
+## Processing coverage
 
 echo "Generating report..."
 dart lib/format_lcov.dart
