@@ -150,7 +150,7 @@ Feed feedFromPackageVersions(Uri requestedUri, List<PackageVersion> versions) {
       }
     }
 
-    return FeedEntry(id as String, title, version.created, version.publisherId,
+    return FeedEntry(id, title, version.created, version.publisherId,
         content, alternateUrl, alternateTitle);
   }).toList();
 
