@@ -4,6 +4,11 @@
 
 import '../shared/tags.dart';
 
+/// Calculates the specificity weight for a package given the search query's
+/// scope (currently only the sdk part is considered).
+///
+/// Scores are biased towards more specific packages (e.g. if somebody is
+/// filtering for Flutter, we prefer Flutter-specific packages vs. generic packages).
 double scoreScopeSpecificity(String sdk, List<String> tags) {
   if (sdk == null || sdk.isEmpty) return 1.0;
 
