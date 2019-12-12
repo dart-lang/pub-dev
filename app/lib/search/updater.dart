@@ -229,19 +229,6 @@ class _PeriodicUpdateTaskSource implements TaskSource {
 
   @override
   Stream<Task> startStreaming() async* {
-    // Scan for potential derived tag updates at startup.
-    // If the package has known platform tags (previous analysis was successful),
-    // but has no sdk: tags, we'll schedule it to be updated.
-    // TODO: remove this code after the current release becomes stable
-    final missingTagTasks = _snapshot.documents.values
-        .where((pd) =>
-            (pd.platforms != null && pd.platforms.isNotEmpty) &&
-            (pd.tags == null || pd.tags.every((t) => !t.startsWith('sdk:'))))
-        .map((pd) => Task(pd.package, pd.version, DateTime.now()));
-    for (Task task in missingTagTasks) {
-      yield task;
-    }
-
     for (;;) {
       await Future.delayed(Duration(hours: 2));
       final now = DateTime.now();

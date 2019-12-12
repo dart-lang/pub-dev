@@ -7,45 +7,33 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 import 'package:pub_dev/search/index_simple.dart';
-import 'package:pub_dev/search/platform_specificity.dart';
+import 'package:pub_dev/search/scope_specificity.dart';
 import 'package:pub_dev/search/search_service.dart';
-import 'package:pub_dev/shared/platform.dart';
 
 void main() {
   group('specificity score', () {
-    final String empty = null;
-    final String flutter = 'flutter';
-    final String web = 'web';
-    final String other = 'other';
+    final String any = null;
+    final flutter = 'flutter';
+    final dart = 'dart';
 
     test('empty or null values', () {
-      expect(scorePlatformSpecificity(null, empty), 1.0);
-      expect(scorePlatformSpecificity([], empty), 1.0);
-      expect(scorePlatformSpecificity([], null), 1.0);
-      expect(scorePlatformSpecificity([], flutter), 0.8);
-      expect(scorePlatformSpecificity([], other), 0.9);
-      expect(scorePlatformSpecificity([], web), 0.9);
+      expect(scoreScopeSpecificity(any, null), 1.0);
+      expect(scoreScopeSpecificity(any, []), 1.0);
+      expect(scoreScopeSpecificity(null, []), 1.0);
+      expect(scoreScopeSpecificity(flutter, []), 0.8);
+      expect(scoreScopeSpecificity(dart, []), 0.9);
     });
 
     test('single', () {
-      expect(scorePlatformSpecificity(['flutter'], null), 1.0);
-      expect(scorePlatformSpecificity(['flutter'], flutter), 1.0);
-      expect(scorePlatformSpecificity(['other'], other), 0.95);
-      expect(scorePlatformSpecificity(['web'], web), 1.0);
+      expect(scoreScopeSpecificity(null, ['sdk:flutter']), 1.0);
+      expect(scoreScopeSpecificity(flutter, ['sdk:flutter']), 1.0);
+      expect(scoreScopeSpecificity(dart, ['sdk:dart']), 1.0);
     });
 
     test('two platforms', () {
-      expect(scorePlatformSpecificity(['flutter', 'other'], null), 1.0);
-      expect(scorePlatformSpecificity(['flutter', 'other'], flutter), 0.9);
-      expect(scorePlatformSpecificity(['flutter', 'other'], other), 1.0);
-      expect(scorePlatformSpecificity(['flutter', 'other'], web), 0.95);
-    });
-
-    test('all platforms', () {
-      expect(scorePlatformSpecificity(KnownPlatforms.all, null), 1.0);
-      expect(scorePlatformSpecificity(KnownPlatforms.all, flutter), 0.8);
-      expect(scorePlatformSpecificity(KnownPlatforms.all, other), 0.95);
-      expect(scorePlatformSpecificity(KnownPlatforms.all, web), 0.9);
+      expect(scoreScopeSpecificity(null, ['sdk:dart', 'sdk:flutter']), 1.0);
+      expect(scoreScopeSpecificity(dart, ['sdk:dart', 'sdk:flutter']), 0.95);
+      expect(scoreScopeSpecificity(flutter, ['sdk:dart', 'sdk:flutter']), 0.9);
     });
   });
 
@@ -59,15 +47,15 @@ void main() {
       ));
       await index.addPackage(PackageDocument(
         package: 'json_1',
-        platforms: ['flutter'],
+        tags: ['sdk:flutter'],
       ));
       await index.addPackage(PackageDocument(
         package: 'json_2',
-        platforms: ['flutter', 'other'],
+        tags: ['sdk:dart'],
       ));
       await index.addPackage(PackageDocument(
         package: 'json_3',
-        platforms: KnownPlatforms.all,
+        tags: ['sdk:dart', 'sdk:flutter'],
       ));
       await index.merge();
     });
@@ -103,23 +91,19 @@ void main() {
       final PackageSearchResult withPlatform =
           await index.search(SearchQuery.parse(
         query: 'json',
-        platform: 'flutter',
+        sdk: 'flutter',
       ));
       expect(json.decode(json.encode(withPlatform)), {
         'indexUpdated': isNotNull,
-        'totalCount': 3,
+        'totalCount': 2,
         'packages': [
           {
             'package': 'json_1',
             'score': closeTo(0.2967, 0.0001),
           },
           {
-            'package': 'json_2',
-            'score': closeTo(0.2670, 0.0001),
-          },
-          {
             'package': 'json_3',
-            'score': closeTo(0.2374, 0.0001),
+            'score': closeTo(0.2671, 0.0001),
           },
         ],
       });

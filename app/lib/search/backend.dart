@@ -105,7 +105,6 @@ class SearchBackend {
       package: pv.package,
       version: p.latestVersion,
       devVersion: p.latestDevVersion,
-      platforms: analysisView.platforms,
       tags: tags,
       description: compactDescription(pv.pubspec.description),
       created: p.created,

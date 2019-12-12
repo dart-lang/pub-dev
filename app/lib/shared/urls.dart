@@ -77,7 +77,6 @@ String publisherAdminUrl(String publisherId) =>
     '/publishers/$publisherId/admin';
 
 String searchUrl({
-  String platform,
   String sdk,
   List<String> runtimes,
   List<String> platforms,
@@ -85,7 +84,6 @@ String searchUrl({
   int page,
 }) {
   final query = SearchQuery.parse(
-    platform: platform,
     sdk: sdk,
     runtimes: runtimes,
     platforms: platforms,

@@ -96,10 +96,7 @@ class AnalysisView {
     return version as String;
   }
 
-  List<String> get platforms => _card?.platformTags;
-  String get platformsReason => _pana?.platformReason;
-
-  List<String> get derivedTags => _card?.currentTags ?? const <String>[];
+  List<String> get derivedTags => _card?.derivedTags ?? const <String>[];
 
   List<LicenseFile> get licenses => _pana?.licenses;
 

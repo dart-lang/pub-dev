@@ -13,7 +13,6 @@ import '../../package/models.dart';
 import '../../scorecard/models.dart';
 import '../../search/search_service.dart';
 import '../../shared/email.dart' show EmailAddress;
-import '../../shared/platform.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
@@ -56,8 +55,7 @@ String _renderDependencyList(AnalysisView analysis) {
       .join(', ');
 }
 
-String _renderInstallTab(
-    PackageVersion selectedVersion, List<String> platforms) {
+String _renderInstallTab(PackageVersion selectedVersion, List<String> tags) {
   final packageName = selectedVersion.package;
   final isFlutterPackage = selectedVersion.pubspec.usesFlutter;
   List importExamples;
@@ -84,13 +82,12 @@ String _renderInstallTab(
   final exampleVersionConstraint = '^${selectedVersion.version}';
 
   final bool usePubGet = !isFlutterPackage ||
-      platforms == null ||
-      platforms.isEmpty ||
-      platforms.length > 1 ||
-      platforms.first != KnownPlatforms.flutter;
+      tags == null ||
+      tags.isEmpty ||
+      tags.contains(SdkTag.sdkDart);
 
-  final bool useFlutterPackagesGet = isFlutterPackage ||
-      (platforms != null && platforms.contains(KnownPlatforms.flutter));
+  final bool useFlutterPackagesGet =
+      isFlutterPackage || (tags != null && tags.contains(SdkTag.sdkFlutter));
 
   String editorSupportedToolHtml;
   if (usePubGet && useFlutterPackagesGet) {
@@ -347,7 +344,7 @@ List<Tab> _pkgTabs(
   tabs.add(Tab.withContent(
       id: 'installing',
       title: 'Installing',
-      contentHtml: _renderInstallTab(selectedVersion, analysis?.platforms)));
+      contentHtml: _renderInstallTab(selectedVersion, analysis?.derivedTags)));
   tabs.add(Tab.withLink(
     id: 'versions',
     title: 'Versions',

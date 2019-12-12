@@ -16,7 +16,6 @@ import 'package:pub_dev/analyzer/analyzer_client.dart';
 import 'package:pub_dev/analyzer/pana_runner.dart';
 import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/search/search_service.dart';
-import 'package:pub_dev/shared/platform.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/frontend/static_files.dart';
@@ -153,8 +152,6 @@ void main() {
               reportStatus: ReportStatus.success,
               healthScore: null,
               maintenanceScore: null,
-              platformTags: null,
-              platformReason: null,
               derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
@@ -209,8 +206,6 @@ void main() {
               reportStatus: ReportStatus.success,
               healthScore: null,
               maintenanceScore: null,
-              platformTags: null,
-              platformReason: null,
               derivedTags: null,
               pkgDependencies: [
                 PkgDependency(
@@ -255,7 +250,6 @@ void main() {
             healthScore: 0.99,
             maintenanceScore: 0.99,
             popularityScore: 0.3,
-            platformTags: ['flutter'],
             derivedTags: ['sdk:flutter', 'platform:android'],
             flags: [PackageFlags.usesFlutter],
             reportTypes: ['pana'],
@@ -266,8 +260,6 @@ void main() {
               reportStatus: ReportStatus.success,
               healthScore: 0.99,
               maintenanceScore: 0.99,
-              platformTags: ['flutter'],
-              platformReason: null,
               derivedTags: ['sdk:flutter', 'platform:android'],
               pkgDependencies: null,
               licenses: null,
@@ -385,7 +377,6 @@ void main() {
         healthScore: 0.90234,
         maintenanceScore: 0.8932343,
         popularityScore: 0.2323232,
-        platformTags: ['web'],
         derivedTags: ['sdk:dart', 'runtime:web'],
         reportTypes: ['pana'],
       );
@@ -397,9 +388,7 @@ void main() {
             reportStatus: ReportStatus.failed,
             healthScore: card.healthScore,
             maintenanceScore: card.maintenanceScore,
-            platformTags: card.platformTags,
-            platformReason: 'All libraries agree.',
-            derivedTags: null,
+            derivedTags: card.derivedTags,
             pkgDependencies: [
               PkgDependency(
                 package: 'http',
@@ -449,8 +438,6 @@ void main() {
               reportStatus: ReportStatus.aborted,
               healthScore: null,
               maintenanceScore: null,
-              platformTags: null,
-              platformReason: null,
               derivedTags: null,
               pkgDependencies: null,
               licenses: null,
@@ -506,7 +493,6 @@ void main() {
           package: foobarPackage,
           version: flutterPackageVersion,
           scoreCard: ScoreCardData(
-            platformTags: ['flutter'],
             derivedTags: ['sdk:flutter', 'platform:android'],
             reportTypes: ['pana'],
           ),
@@ -533,7 +519,6 @@ void main() {
             package: foobarPackage,
             version: flutterPackageVersion,
             scoreCard: ScoreCardData(
-              platformTags: ['flutter'],
               derivedTags: ['sdk:flutter', 'platform:android'],
               reportTypes: ['pana'],
             ),
@@ -562,7 +547,6 @@ void main() {
         ],
         AnalysisView(
           card: ScoreCardData(
-            platformTags: KnownPlatforms.all,
             derivedTags: ['sdk:dart', 'sdk:flutter'],
             maintenanceScore: 0.9,
             healthScore: 0.9,
@@ -733,7 +717,7 @@ void main() {
       final String html = renderSearchTabs(
           searchQuery: SearchQuery.parse(
         query: 'foo',
-        platform: 'web',
+        sdk: 'flutter',
       ));
       expectGoldenFile(html, 'platform_tabs_search.html', isFragment: true);
     });
@@ -822,8 +806,7 @@ void main() {
     });
 
     scopedTest('PageLinks with platform', () {
-      final query =
-          SearchQuery.parse(query: 'some framework', platform: 'flutter');
+      final query = SearchQuery.parse(query: 'some framework', sdk: 'flutter');
       final PageLinks links = PageLinks(0, 100, searchQuery: query);
       expect(links.formatHref(1), '/flutter/packages?q=some+framework');
       expect(links.formatHref(2), '/flutter/packages?q=some+framework&page=2');

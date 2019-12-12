@@ -19,7 +19,6 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) {
         ? null
         : DateTime.parse(json['updated'] as String),
     readme: json['readme'] as String,
-    platforms: (json['platforms'] as List)?.map((e) => e as String)?.toList(),
     tags: (json['tags'] as List)?.map((e) => e as String)?.toList(),
     health: (json['health'] as num)?.toDouble(),
     popularity: (json['popularity'] as num)?.toDouble(),
@@ -49,7 +48,6 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
       'created': instance.created?.toIso8601String(),
       'updated': instance.updated?.toIso8601String(),
       'readme': instance.readme,
-      'platforms': instance.platforms,
       'tags': instance.tags,
       'health': instance.health,
       'popularity': instance.popularity,

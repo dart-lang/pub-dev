@@ -10,8 +10,8 @@ import 'package:logging/logging.dart';
 import '../scorecard/backend.dart';
 import '../search/search_client.dart';
 import '../search/search_service.dart';
-import '../shared/platform.dart';
 import '../shared/redis_cache.dart' show cache;
+import '../shared/tags.dart';
 
 import 'backend.dart';
 import 'models.dart';
@@ -56,7 +56,7 @@ class SearchAdapter {
     // TODO: consider adding tag-based filtering
     if (query.uploaderOrPublishers != null ||
         query.publisherId != null ||
-        query.platform != null) {
+        query.sdk != null) {
       throw StateError('Fallback search should not service this query.');
     }
 
@@ -165,42 +165,52 @@ class SearchResultPage {
       SearchResultPage(query, 0, []);
 }
 
+final _allSdkTags = [
+  SdkTag.sdkDart,
+  SdkTag.sdkFlutter,
+  DartSdkTag.runtimeNativeJit,
+  DartSdkTag.runtimeWeb,
+  FlutterSdkTag.platformAndroid,
+  FlutterSdkTag.platformIos,
+  FlutterSdkTag.platformWeb,
+];
+
 final _fallbackFeatured = <PackageView>[
   PackageView(
     name: 'http',
     ellipsizedDescription:
         'A composable, cross-platform, Future-based API for making HTTP requests.',
-    platforms: KnownPlatforms.all,
+    tags: _allSdkTags,
   ),
   PackageView(
     name: 'image',
     ellipsizedDescription:
         'Provides server and web apps the ability to load, manipulate, and save images with various image file formats including PNG, JPEG, GIF, WebP, TIFF, TGA, PSD, PVR, and OpenEXR.',
-    platforms: KnownPlatforms.all,
+    tags: _allSdkTags,
   ),
   PackageView(
     name: 'uuid',
     ellipsizedDescription:
         'RFC4122 (v1, v4, v5) UUID Generator and Parser for all Dart platforms (Web, VM, Flutter)',
-    platforms: KnownPlatforms.all,
+    tags: _allSdkTags,
   ),
   PackageView(
     name: 'bloc',
     ellipsizedDescription:
         'A predictable state management library that helps implement the BLoC (Business Logic Component) design pattern.',
-    platforms: KnownPlatforms.all,
+    tags: _allSdkTags,
   ),
   PackageView(
     name: 'event_bus',
     ellipsizedDescription:
         'A simple Event Bus using Dart Streams for decoupling applications',
-    platforms: KnownPlatforms.all,
+    tags: _allSdkTags,
   ),
   PackageView(
     name: 'xml',
     ellipsizedDescription:
         'A lightweight library for parsing, traversing, querying, transforming and building XML documents.',
-    platforms: KnownPlatforms.all,
+    tags: _allSdkTags,
   ),
 ];
 
