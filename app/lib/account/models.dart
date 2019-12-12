@@ -85,6 +85,10 @@ class Like extends db.ExpandoModel {
 
   @db.DateTimeProperty()
   DateTime created;
+
+  /// Same as [id]. This is added to enable filtering on queries.
+  @db.StringProperty()
+  String packageName;
 }
 
 /// The cacheable version of [Like].

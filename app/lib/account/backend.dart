@@ -220,7 +220,8 @@ class AccountBackend {
       final newLike = Like()
         ..parentKey = user.key
         ..id = p.id
-        ..created = DateTime.now().toUtc();
+        ..created = DateTime.now().toUtc()
+        ..packageName = p.name;
 
       tx.queueMutations(inserts: [p, newLike]);
       return newLike;

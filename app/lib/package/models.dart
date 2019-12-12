@@ -353,6 +353,28 @@ class PackageVersionInfo extends db.ExpandoModel {
   }
 }
 
+/// Entity representing a package that has been removed.
+@db.Kind(name: 'ModeratedPackage', idType: db.IdType.String)
+class ModeratedPackage extends db.ExpandoModel {
+  @db.StringProperty(required: true)
+  String name;
+
+  @db.DateTimeProperty()
+  DateTime moderated;
+
+  /// The previous publisher id (null, if the package does not have a publisher).
+  @db.StringProperty()
+  String previousPublisherId;
+
+  /// List of User.userId of previous uploaders.
+  @db.StringListProperty()
+  List<String> previousUploaders;
+
+  /// List of previous versions.
+  @db.StringListProperty()
+  List<String> versions;
+}
+
 /// An identifier to point to a specific [package] and [version].
 class QualifiedVersionKey {
   final String package;

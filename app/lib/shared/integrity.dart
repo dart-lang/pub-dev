@@ -29,6 +29,7 @@ class IntegrityChecker {
   final _userToLikes = <String, List<String>>{};
   final _packages = <String>{};
   final _packagesWithVersion = <String>{};
+  final _moderatedPackages = <String>{};
   final _publishers = <String>{};
   final _publishersAbandoned = <String>{};
   int _packageChecked = 0;
@@ -46,6 +47,7 @@ class IntegrityChecker {
     await _checkPackages();
     await _checkVersions();
     await _checkLikes();
+    await _checkModeratedPackages();
     return _problems;
   }
 
@@ -350,6 +352,8 @@ class IntegrityChecker {
     _logger.info('Scanning Likes...');
 
     await for (Like like in _db.query<Like>().run()) {
+      // TODO(zarah): Add integrity check for like.packageName once backfilling
+      // of this property has been done.
       _userToLikes.update(like.userId, (l) => l..add(like.package),
           ifAbsent: () => <String>[]);
     }
@@ -367,6 +371,20 @@ class IntegrityChecker {
           .forEach((package) {
         _problems.add('User $user likes missing package $package');
       });
+    });
+  }
+
+  Future<void> _checkModeratedPackages() async {
+    _logger.info('Scanning ModeratedPackages...');
+
+    await for (ModeratedPackage pkg in _db.query<ModeratedPackage>().run()) {
+      _moderatedPackages.add(pkg.name);
+    }
+
+    _moderatedPackages
+        .where((package) => _packages.contains(package))
+        .forEach((pkg) {
+      _problems.add('Moderated package also present in active packages');
     });
   }
 }
