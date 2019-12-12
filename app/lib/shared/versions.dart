@@ -36,7 +36,7 @@ final String gcBeforeRuntimeVersion = '2019.10.22';
 final blacklistedRuntimeVersions = ['2019.12.05', '2019.12.05+1'];
 
 // keep in-sync with SDK version in .travis.yml, .mono_repo.yml and Dockerfile
-final String runtimeSdkVersion = '2.6.0';
+final String runtimeSdkVersion = '2.7.0';
 final String toolEnvSdkVersion = '2.7.0';
 
 // keep in-sync with app/pubspec.yaml

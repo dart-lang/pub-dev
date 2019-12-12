@@ -2,6 +2,7 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Upgraded runtime SDK to `2.7.0`.
 
 ## `20191210t151931-all`
  * Upgraded dart to `2.7.0`.
