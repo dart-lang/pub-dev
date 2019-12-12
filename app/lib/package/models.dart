@@ -398,7 +398,6 @@ class PackageView extends Object with FlagMixin {
   final String publisherId;
   final bool isAwaiting;
   final double overallScore;
-  final List<String> platforms;
   final List<String> tags;
   final bool isNewPackage;
   final List<ApiPageRef> apiPages;
@@ -415,7 +414,6 @@ class PackageView extends Object with FlagMixin {
     this.publisherId,
     this.isAwaiting = false,
     this.overallScore,
-    this.platforms,
     List<String> tags,
     this.isNewPackage,
     this.apiPages,
@@ -448,11 +446,10 @@ class PackageView extends Object with FlagMixin {
       publisherId: package.publisherId,
       isAwaiting: isAwaiting,
       overallScore: scoreCard?.overallScore,
-      platforms: scoreCard?.platformTags,
       tags: <String>[
         ...(package?.getTags() ?? <String>[]),
         ...(version?.getTags() ?? <String>[]),
-        ...(scoreCard?.currentTags ?? <String>[]),
+        ...(scoreCard?.derivedTags ?? <String>[]),
       ],
       isNewPackage: package?.isNewPackage(),
       apiPages: apiPages,
@@ -472,7 +469,6 @@ class PackageView extends Object with FlagMixin {
       publisherId: publisherId,
       isAwaiting: isAwaiting,
       overallScore: overallScore,
-      platforms: platforms,
       tags: tags,
       isNewPackage: isNewPackage,
       apiPages: apiPages ?? this.apiPages,

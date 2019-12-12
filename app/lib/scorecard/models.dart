@@ -16,8 +16,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:pub_dev/search/scoring.dart' show calculateOverallScore;
 
 import '../shared/model_properties.dart';
-import '../shared/platform.dart';
-import '../shared/tags.dart';
 import '../shared/versions.dart' as versions;
 
 import 'helpers.dart';
@@ -93,10 +91,6 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
   @db.DoubleProperty()
   double popularityScore;
 
-  /// The platform tags (flutter, web, other).
-  @CompatibleStringListProperty()
-  List<String> platformTags = <String>[];
-
   /// List of tags computed by `pana` or other analyzer.
   @db.StringListProperty()
   List<String> derivedTags = <String>[];
@@ -137,7 +131,6 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
         healthScore: healthScore,
         maintenanceScore: maintenanceScore,
         popularityScore: popularityScore,
-        platformTags: platformTags,
         derivedTags: derivedTags,
         flags: flags,
         reportTypes: reportTypes,
@@ -168,7 +161,6 @@ class ScoreCard extends db.ExpandoModel with FlagMixin {
       panaReport?.maintenanceScore ?? 0.0,
       dartdocReport?.maintenanceSuggestions,
     );
-    platformTags = panaReport?.platformTags ?? <String>[];
     derivedTags = panaReport?.derivedTags ?? <String>[];
     reportTypes = [
       panaReport == null ? null : ReportType.pana,
@@ -296,9 +288,6 @@ class ScoreCardData extends Object with FlagMixin {
   /// Score for package popularity (0.0 - 1.0).
   final double popularityScore;
 
-  /// The platform tags (flutter, web, other).
-  final List<String> platformTags;
-
   /// List of tags computed by `pana` or other analyzer.
   final List<String> derivedTags;
 
@@ -319,7 +308,6 @@ class ScoreCardData extends Object with FlagMixin {
     this.healthScore,
     this.maintenanceScore,
     this.popularityScore,
-    this.platformTags,
     this.derivedTags,
     this.flags,
     this.reportTypes,
@@ -352,55 +340,6 @@ class ScoreCardData extends Object with FlagMixin {
     if (reportTypes == null || reportTypes.isEmpty) return false;
     return requiredTypes.every(reportTypes.contains);
   }
-
-  /// Returns [derivedTags] (if it is available) or calculates the tags based
-  /// on the [platformTags].
-  List<String> get currentTags {
-    if (derivedTags != null && derivedTags.isNotEmpty) return derivedTags;
-    if (platformTags == null || platformTags.isEmpty) return <String>[];
-    if (KnownPlatforms.all.every(platformTags.contains)) {
-      return <String>[
-        SdkTag.sdkDart,
-        SdkTag.sdkFlutter,
-        FlutterSdkTag.platformAndroid,
-        FlutterSdkTag.platformIos,
-        FlutterSdkTag.platformWeb,
-        DartSdkTag.runtimeNativeJit,
-        DartSdkTag.runtimeWeb,
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.flutter) {
-      return <String>[
-        SdkTag.sdkFlutter,
-        FlutterSdkTag.platformAndroid,
-        FlutterSdkTag.platformIos,
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.web) {
-      return <String>[
-        SdkTag.sdkDart,
-        DartSdkTag.runtimeWeb,
-      ];
-    } else if (platformTags.length == 1 &&
-        platformTags.single == KnownPlatforms.other) {
-      return <String>[
-        SdkTag.sdkDart,
-        DartSdkTag.runtimeNativeJit,
-      ];
-    } else if (platformTags.length == 2 &&
-        platformTags.contains(KnownPlatforms.flutter) &&
-        platformTags.contains(KnownPlatforms.other)) {
-      return <String>[
-        SdkTag.sdkDart,
-        SdkTag.sdkFlutter,
-        FlutterSdkTag.platformAndroid,
-        FlutterSdkTag.platformIos,
-        FlutterSdkTag.platformWeb,
-        DartSdkTag.runtimeNativeJit,
-      ];
-    }
-    return <String>[];
-  }
 }
 
 abstract class ReportData {
@@ -424,12 +363,6 @@ class PanaReport implements ReportData {
   final double healthScore;
 
   final double maintenanceScore;
-
-  /// The platform tags (flutter, web, other).
-  List<String> platformTags;
-
-  /// The reason pana decided on the [platformTags].
-  final String platformReason;
 
   /// List of tags computed by `pana`.
   final List<String> derivedTags;
@@ -461,8 +394,6 @@ class PanaReport implements ReportData {
     @required this.reportStatus,
     @required this.healthScore,
     @required this.maintenanceScore,
-    @required this.platformTags,
-    @required this.platformReason,
     @required this.derivedTags,
     @required this.pkgDependencies,
     @required this.licenses,

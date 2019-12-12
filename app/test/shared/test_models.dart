@@ -370,16 +370,14 @@ PkgBundle generateBundle(
   return PkgBundle(package, versions);
 }
 
-PanaReport generatePanaReport({List<String> platformTags}) {
+PanaReport generatePanaReport({List<String> derivedTags}) {
   return PanaReport(
       timestamp: DateTime.now(),
       panaRuntimeInfo: PanaRuntimeInfo(),
       reportStatus: ReportStatus.success,
       healthScore: 1.0,
       maintenanceScore: 0.6,
-      platformTags: platformTags,
-      platformReason: 'Set by test.',
-      derivedTags: [],
+      derivedTags: derivedTags ?? <String>[],
       pkgDependencies: null,
       licenses: null,
       panaSuggestions: null,

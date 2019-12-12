@@ -126,7 +126,7 @@ void main() {
     });
 
     test('platform: flutter', () {
-      final query = SearchQuery.parse(platform: 'flutter');
+      final query = SearchQuery.parse(sdk: 'flutter');
       expect(query.parsedQuery.text, isNull);
       expect(query.parsedQuery.packagePrefix, isNull);
       expect(query.toSearchLink(), '/flutter/packages');

@@ -79,7 +79,7 @@ void testWithServices(String name, Future<void> fn()) {
       await scoreCardBackend.updateReport(
           helium.package.name,
           helium.package.latestVersion,
-          generatePanaReport(platformTags: ['flutter']));
+          generatePanaReport(derivedTags: ['sdk:flutter']));
       await scoreCardBackend.updateScoreCard(
           helium.package.name, helium.package.latestVersion);
 

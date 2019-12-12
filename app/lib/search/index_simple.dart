@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 import '../shared/tags.dart';
 import '../shared/utils.dart' show boundedList, StringInternPool;
 
-import 'platform_specificity.dart';
+import 'scope_specificity.dart';
 import 'scoring.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
@@ -134,19 +134,13 @@ class SimplePackageIndex implements PackageIndex {
       );
     }
 
-    // filter on platform
-    Map<String, double> platformSpecificity;
-    if (query.platform != null) {
-      packages.removeWhere((package) {
-        final doc = _packages[package];
-        if (doc.platforms == null) return true;
-        return !doc.platforms.contains(query.platform);
-      });
-      platformSpecificity = <String, double>{};
+    // rank on query scope (e.g. SDK)
+    Map<String, double> scopeSpecificity;
+    if (query.sdk != null) {
+      scopeSpecificity = <String, double>{};
       packages.forEach((String package) {
         final PackageDocument doc = _packages[package];
-        platformSpecificity[package] =
-            scorePlatformSpecificity(doc.platforms, query.platform);
+        scopeSpecificity[package] = scoreScopeSpecificity(query.sdk, doc.tags);
       });
     }
 
@@ -240,8 +234,8 @@ class SimplePackageIndex implements PackageIndex {
         if (query.order == null && textResults != null) {
           scores.add(textResults.pkgScore);
         }
-        if (query.order == null && platformSpecificity != null) {
-          scores.add(Score(platformSpecificity));
+        if (query.order == null && scopeSpecificity != null) {
+          scores.add(Score(scopeSpecificity));
         }
         Score overallScore = Score.multiply(scores);
         // If there is an exact match for a package name, promote it to the top position.

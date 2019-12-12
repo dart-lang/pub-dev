@@ -13,7 +13,6 @@ import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../shared/configuration.dart';
-import '../shared/platform.dart';
 import '../shared/tool_env.dart';
 import '../shared/urls.dart' as urls;
 
@@ -104,7 +103,6 @@ class AnalyzerJobProcessor extends JobProcessor {
     JobStatus status = JobStatus.failed;
     bool isLegacy = false;
     if (summary != null) {
-      summary = applyPlatformOverride(summary);
       // TODO: move this to scoreCardBackend.updateScoreCard()
       summary = await _expandSummary(summary, packageStatus.age);
       if (summary.suggestions?.any(_isLegacy) ?? false) {
@@ -190,7 +188,6 @@ class AnalyzerJobProcessor extends JobProcessor {
 PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
   final reportStatus =
       summary == null ? ReportStatus.aborted : ReportStatus.success;
-  final platformTags = indexDartPlatform(summary?.platform);
   return PanaReport(
     timestamp: DateTime.now().toUtc(),
     panaRuntimeInfo: summary?.runtimeInfo,
@@ -198,8 +195,6 @@ PanaReport panaReportFromSummary(Summary summary, {List<String> flags}) {
     healthScore: summary?.health?.healthScore ?? 0.0,
     maintenanceScore:
         summary == null ? 0.0 : calculateMaintenanceScore(summary.maintenance),
-    platformTags: platformTags,
-    platformReason: summary?.platform?.reason,
     derivedTags: summary?.tags,
     pkgDependencies: summary?.pkgResolution?.dependencies,
     panaSuggestions: summary?.suggestions,

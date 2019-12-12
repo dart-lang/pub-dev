@@ -149,7 +149,7 @@ void main() {
           This package contains a set of high-level functions and classes that make it easy to consume HTTP resources. It's platform-independent, and can be used on both the command-line and the browser. Currently the global utility functions are unsupported on the browser; see "Using on the Browser" below.''',
         created: DateTime.utc(2015, 01, 01),
         updated: DateTime.utc(2017, 07, 20),
-        platforms: ['flutter', 'web', 'other'],
+        tags: ['sdk:dart', 'sdk:flutter', 'runtime:native', 'runtime:web'],
         popularity: 0.7,
         health: 1.0,
         maintenance: 1.0,
@@ -170,7 +170,7 @@ The CancelableOperation class defines an operation that can be canceled by its c
 The delegating wrapper classes allow users to easily add functionality on top of existing instances of core types from dart:async. These include DelegatingFuture, DelegatingStream, DelegatingStreamSubscription, DelegatingStreamConsumer, DelegatingSink, DelegatingEventSink, and DelegatingStreamSink.''',
         created: DateTime.utc(2015, 04, 01),
         updated: DateTime.utc(2017, 05, 17),
-        platforms: ['flutter', 'web', 'other'],
+        tags: ['sdk:dart', 'sdk:flutter', 'runtime:native', 'runtime:web'],
         popularity: 0.8,
         health: 1.0,
         maintenance: 1.0,
@@ -188,7 +188,7 @@ tcp.dart contains abstractions over chrome.sockets to aid in working with TCP cl
 server.dart adds a small, prescriptive server (PicoServer) that can be configured with different handlers for HTTP requests.''',
         created: DateTime.utc(2014, 04, 01),
         updated: DateTime.utc(2014, 09, 17),
-        platforms: ['other'],
+        tags: ['sdk:dart', 'runtime:web'],
         popularity: 0.0,
         health: 0.5,
         maintenance: 0.9,
@@ -380,10 +380,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
       });
     });
 
-    test('order by updated: platform filter', () async {
+    test('order by updated: runtime filter', () async {
       final PackageSearchResult result = await index.search(SearchQuery.parse(
-        platform: 'web',
+        sdk: 'dart',
         order: SearchOrder.updated,
+        runtimes: ['native'],
       ));
       expect(json.decode(json.encode(result)), {
         'indexUpdated': isNotNull,

@@ -55,8 +55,6 @@ class PackageDocument {
   final DateTime updated;
   final String readme;
 
-  final List<String> platforms;
-
   final List<String> tags;
 
   final double health;
@@ -84,7 +82,6 @@ class PackageDocument {
     this.created,
     this.updated,
     this.readme = '',
-    this.platforms = const [],
     List<String> tags,
     this.health = 0,
     this.popularity = 0,
@@ -109,7 +106,6 @@ class PackageDocument {
       created: created,
       updated: updated,
       readme: readme,
-      platforms: platforms?.map(internFn)?.toList(),
       tags: tags.map(internFn).toList(),
       health: health,
       popularity: popularity,
@@ -230,7 +226,6 @@ List<String> _listToNull(List<String> list) =>
 class SearchQuery {
   final String query;
   final ParsedQuery parsedQuery;
-  final String platform;
 
   final TagsPredicate tagsPredicate;
 
@@ -266,14 +261,12 @@ class SearchQuery {
     this.includeLegacy,
     this.randomize,
   })  : parsedQuery = ParsedQuery._parse(query),
-        platform = _stringToNull(platform),
         tagsPredicate = tagsPredicate ?? TagsPredicate(),
         uploaderOrPublishers = _listToNull(uploaderOrPublishers),
         publisherId = _stringToNull(publisherId);
 
   factory SearchQuery.parse({
     String query,
-    String platform,
     String sdk,
     List<String> runtimes,
     List<String> platforms,
@@ -306,7 +299,6 @@ class SearchQuery {
     }
     return SearchQuery._(
       query: q,
-      platform: platform,
       tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
@@ -320,7 +312,6 @@ class SearchQuery {
 
   factory SearchQuery.fromServiceUrl(Uri uri) {
     final q = uri.queryParameters['q'];
-    final platform = uri.queryParameters['platform'];
     final tagsPredicate =
         TagsPredicate.parseQueryValues(uri.queryParametersAll['tags']);
     final uploaderOrPublishers = uri.queryParametersAll['uploaderOrPublishers'];
@@ -333,7 +324,6 @@ class SearchQuery {
 
     return SearchQuery.parse(
       query: q,
-      platform: platform,
       tagsPredicate: tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers,
       publisherId: publisherId,
@@ -368,7 +358,6 @@ class SearchQuery {
     }
     return SearchQuery._(
       query: query ?? this.query,
-      platform: platform ?? this.platform,
       tagsPredicate: tagsPredicate ?? this.tagsPredicate,
       uploaderOrPublishers: uploaderOrPublishers ?? this.uploaderOrPublishers,
       publisherId: publisherId ?? this.publisherId,
@@ -383,7 +372,6 @@ class SearchQuery {
   Map<String, dynamic> toServiceQueryParameters() {
     final map = <String, dynamic>{
       'q': query,
-      'platform': platform,
       'tags': tagsPredicate?.toQueryParameters(),
       'uploaderOrPublishers': uploaderOrPublishers,
       'publisherId': publisherId,
@@ -416,9 +404,6 @@ class SearchQuery {
     if (sdk == 'flutter' &&
         tagsPredicate.isRequiredTag('is:flutter-favorite')) {
       path = '/flutter/favorites';
-    }
-    if (platform != null) {
-      path = '/$platform/packages';
     }
     if (publisherId != null && publisherId.isNotEmpty) {
       path = '/publishers/$publisherId/packages';
@@ -807,7 +792,6 @@ SearchQuery parseFrontendSearchQuery(
   }
   return SearchQuery.parse(
     query: queryText,
-    platform: platform,
     sdk: sdk,
     runtimes: runtimes,
     platforms: platforms,

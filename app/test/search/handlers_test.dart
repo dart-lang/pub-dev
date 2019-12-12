@@ -123,7 +123,7 @@ class MockSearchBackend implements SearchBackend {
       package: packageName,
       version: '1.0.1',
       devVersion: '1.0.1-dev',
-      platforms: ['web', 'other'],
+      tags: ['sdk:dart'],
       description: 'Foo package about nothing really. Maybe JSON.',
       readme: 'Some JSON to XML mapping.',
       popularity: 0.1,
