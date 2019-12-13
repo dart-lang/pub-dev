@@ -119,14 +119,36 @@ class DartdocJobProcessor extends JobProcessor {
       version,
       ReportType.dartdoc,
       updatedAfter: updated,
-      includeDiscontinued: true,
-      includeObsolete: true,
-      successThreshold: const Duration(days: 90),
     );
   }
 
   @override
   Future<JobStatus> process(Job job) async {
+    final packageStatus = await scoreCardBackend.getPackageStatus(
+        job.packageName, job.packageVersion);
+    // In case the package was deleted between scheduling and the actual delete.
+    if (!packageStatus.exists) {
+      _logger.info('Package does not exist: $job.');
+      return JobStatus.skipped;
+    }
+
+    // We know that dartdoc will fail on this package, no reason to run it.
+    if (packageStatus.isLegacy) {
+      _logger.info('Package is on legacy SDK: $job.');
+      await _storeScoreCard(job, _emptyReport());
+      return JobStatus.skipped;
+    }
+
+    // Do not check for discontinued status, we still generate documentation for
+    // such packages.
+
+    if (packageStatus.isObsolete) {
+      _logger
+          .info('Package is older than two years and has newer release: $job.');
+      await _storeScoreCard(job, _emptyReport());
+      return JobStatus.skipped;
+    }
+
     final logger =
         Logger('pub.dartdoc.runner/${job.packageName}/${job.packageVersion}');
     final tempDir =
@@ -278,9 +300,8 @@ class DartdocJobProcessor extends JobProcessor {
         score: 10.0,
       ));
     }
-    await scoreCardBackend.updateReport(
-        job.packageName,
-        job.packageVersion,
+    await _storeScoreCard(
+        job,
         DartdocReport(
           reportStatus: reportStatus,
           coverage: coverage?.percent ?? 0.0,
@@ -299,6 +320,13 @@ class DartdocJobProcessor extends JobProcessor {
     } else {
       return hasContent ? JobStatus.success : JobStatus.failed;
     }
+  }
+
+  Future _storeScoreCard(Job job, DartdocReport report) async {
+    await scoreCardBackend.updateReport(
+        job.packageName, job.packageVersion, report);
+    await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
+    await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
   }
 
   Future<bool> _resolveDependencies(
@@ -515,3 +543,11 @@ String _mergeOutput(ProcessResult pr, {bool compressStdout = false}) {
   }
   return 'exitCode: ${pr.exitCode}\nstdout: $stdout\nstderr: ${pr.stderr}\n';
 }
+
+DartdocReport _emptyReport() => DartdocReport(
+      reportStatus: ReportStatus.aborted,
+      coverage: 0.0,
+      coverageScore: 0.0,
+      healthSuggestions: [],
+      maintenanceSuggestions: [],
+    );

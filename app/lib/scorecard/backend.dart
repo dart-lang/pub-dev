@@ -275,12 +275,19 @@ class ScoreCardBackend {
     return PackageStatus.fromModels(p, pv);
   }
 
+  /// Returns whether we should update the [reportType] report for the given
+  /// [packageName] and [packageVersion].
+  ///
+  /// The method will return false, if the package or version does not exists.
+  /// The method will return true, if either of the following is true:
+  /// - it does not have a report yet,
+  /// - the report was updated before [updatedAfter],
+  /// - the report is older than [successThreshold] if it was a success,
+  /// - the report is older than [failureThreshold] if it was a failure.
   Future<bool> shouldUpdateReport(
     String packageName,
     String packageVersion,
     String reportType, {
-    bool includeDiscontinued = false,
-    bool includeObsolete = false,
     Duration successThreshold = const Duration(days: 30),
     Duration failureThreshold = const Duration(days: 1),
     DateTime updatedAfter,
@@ -294,13 +301,8 @@ class ScoreCardBackend {
     if (!pkgStatus.exists) {
       return false;
     }
-    if (!includeDiscontinued && pkgStatus.isDiscontinued) {
-      return false;
-    }
-    if (!includeObsolete && pkgStatus.isObsolete) {
-      return false;
-    }
 
+    // checking existing report
     final key = scoreCardKey(packageName, packageVersion)
         .append(ScoreCardReport, id: reportType);
     final list = await _db.lookup([key]);
@@ -309,9 +311,12 @@ class ScoreCardBackend {
       return true;
     }
 
+    // checking freshness
     if (updatedAfter != null && updatedAfter.isAfter(report.updated)) {
       return true;
     }
+
+    // checking age
     final age = DateTime.now().toUtc().difference(report.updated);
     final isSuccess = report.reportStatus == ReportStatus.success;
     final ageThreshold = isSuccess ? successThreshold : failureThreshold;

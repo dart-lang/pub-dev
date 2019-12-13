@@ -38,8 +38,18 @@ class AnalyzerJobProcessor extends JobProcessor {
   Future<JobStatus> process(Job job) async {
     final packageStatus = await scoreCardBackend.getPackageStatus(
         job.packageName, job.packageVersion);
+    // In case the package was deleted between scheduling and the actual delete.
     if (!packageStatus.exists) {
       _logger.info('Package does not exist: $job.');
+      return JobStatus.skipped;
+    }
+
+    // We know that pana will fail on this package, no reason to run it.
+    if (packageStatus.isLegacy) {
+      _logger.info('Package is on legacy SDK: $job.');
+      final summary =
+          createPanaSummaryForLegacy(job.packageName, job.packageVersion);
+      await _storeScoreCard(job, summary);
       return JobStatus.skipped;
     }
 
@@ -53,14 +63,6 @@ class AnalyzerJobProcessor extends JobProcessor {
       _logger
           .info('Package is older than two years and has newer release: $job.');
       await _storeScoreCard(job, null);
-      return JobStatus.skipped;
-    }
-
-    if (packageStatus.isLegacy) {
-      _logger.info('Package is on legacy SDK: $job.');
-      final summary =
-          createPanaSummaryForLegacy(job.packageName, job.packageVersion);
-      await _storeScoreCard(job, summary);
       return JobStatus.skipped;
     }
 
