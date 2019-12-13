@@ -35,7 +35,7 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.3"
+    version: "0.6.1"
   archive:
     dependency: "direct main"
     description:
@@ -274,13 +274,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.0"
-  grpc:
-    dependency: transitive
-    description:
-      name: grpc
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.3"
   html:
     dependency: "direct main"
     description:
@@ -518,7 +511,7 @@ packages:
       name: protobuf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "0.9.1"
   pub_dartdoc_data:
     dependency: "direct main"
     description:
