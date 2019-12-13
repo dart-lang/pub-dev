@@ -43,6 +43,15 @@ class AnalyzerJobProcessor extends JobProcessor {
       return JobStatus.skipped;
     }
 
+    // We know that pana will fail on this package, no reason to run it.
+    if (packageStatus.isLegacy) {
+      _logger.info('Package is on legacy SDK: $job.');
+      final summary =
+          createPanaSummaryForLegacy(job.packageName, job.packageVersion);
+      await _storeScoreCard(job, summary);
+      return JobStatus.skipped;
+    }
+
     if (packageStatus.isDiscontinued) {
       _logger.info('Package is discontinued: $job.');
       await _storeScoreCard(job, null);
@@ -53,14 +62,6 @@ class AnalyzerJobProcessor extends JobProcessor {
       _logger
           .info('Package is older than two years and has newer release: $job.');
       await _storeScoreCard(job, null);
-      return JobStatus.skipped;
-    }
-
-    if (packageStatus.isLegacy) {
-      _logger.info('Package is on legacy SDK: $job.');
-      final summary =
-          createPanaSummaryForLegacy(job.packageName, job.packageVersion);
-      await _storeScoreCard(job, summary);
       return JobStatus.skipped;
     }
 
