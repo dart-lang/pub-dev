@@ -42,7 +42,7 @@ dependencies:
   yaml: '^2.1.12'
   # pana version to be pinned
   # keep in-sync with app/lib/shared/versions.dart
-  pana: '0.13.1+4'
+  pana: '0.13.2'
   # 3rd-party packages with pinned versions
   archive: '2.0.11'
   mailer: '3.0.4'
