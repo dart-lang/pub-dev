@@ -3,7 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Upgraded runtime SDK to `2.7.0`.
- * Bumped runtimeVersion to `2019.12.12`.
+ * Bumped runtimeVersion to `2019.12.13`.
+ * Upgraded Flutter to `1.12.13+hotfix.5`.
+ * Upgraded pana to `0.13.2`.
  * Removed the use of `platformTags` from `pana` analysis,
    and also the use of `platform` in search queries (#3167).
 
