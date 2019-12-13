@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pana/pana.dart' as pana;
 import 'package:pub_semver/pub_semver.dart';
 
 import 'utils.dart' show isNewer;
@@ -38,8 +39,8 @@ final blacklistedRuntimeVersions = ['2019.12.05', '2019.12.05+1'];
 final String runtimeSdkVersion = '2.7.0';
 final String toolEnvSdkVersion = '2.7.0';
 
-// keep in-sync with app/pubspec.yaml
-final String panaVersion = '0.13.2';
+// Value comes from package:pana.
+final String panaVersion = pana.packageVersion;
 final Version semanticPanaVersion = Version.parse(panaVersion);
 
 final String flutterVersion = '1.12.13+hotfix.5';
