@@ -343,4 +343,7 @@ enum AdminPermission {
 
   /// Permission to get/set assigned-tags through admin API.
   manageAssignedTags,
+
+  /// Permission to remove a package.
+  removePackage,
 }

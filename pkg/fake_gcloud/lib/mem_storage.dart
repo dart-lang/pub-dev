@@ -203,7 +203,7 @@ class _Bucket implements Bucket {
 
   @override
   Future<Page<BucketEntry>> page({String prefix, int pageSize = 50}) async {
-    throw UnimplementedError('fake_gcloud.Bucket.page is not implemented.');
+    return _Page<BucketEntry>(_BucketEntry('name', true));
   }
 
   @override
@@ -225,6 +225,22 @@ class _BucketEntry implements BucketEntry {
   bool get isDirectory => !isObject;
 
   _BucketEntry(this.name, this.isObject);
+}
+
+class _Page<T> implements Page<T> {
+  final T _item;
+  @override
+  bool get isLast => true;
+
+  @override
+  List<T> get items => <T>[_item];
+
+  @override
+  Future<Page<T>> next({int pageSize}) {
+    return null;
+  }
+
+  _Page(this._item);
 }
 
 void _validateObjectName(String objectName, {bool allowNull = false}) {

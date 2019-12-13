@@ -8,13 +8,19 @@ import 'package:client_data/admin_api.dart' as api;
 import 'package:convert/convert.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/dartdoc/backend.dart';
+import 'package:pub_dev/history/models.dart';
+import 'package:pub_dev/job/model.dart';
+import 'package:pub_dev/scorecard/models.dart';
 import 'package:pub_dev/shared/datastore_helper.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../account/backend.dart';
 import '../account/models.dart';
-import '../package/backend.dart' show packageBackend;
+import '../package/backend.dart' show TarballStorage, packageBackend;
 import '../package/models.dart';
 import '../publisher/models.dart';
 import '../shared/configuration.dart';
@@ -269,6 +275,118 @@ class AdminBackend {
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
       await tx.commit();
     });
+  }
+
+  /// Removes the package from the Datastore and updates other related
+  /// entities. It is safe to call [removePackage] on an already removed
+  /// package, as the call is idempotent.
+  ///
+  /// Creates a [ModeratedPackage] instance (if not already present) in
+  /// Datastore representing the removed package. No new package with the same
+  /// name can be published.
+  Future<void> removePackage(String packageName) async {
+    final caller = await _requireAdminPermission(AdminPermission.removePackage);
+
+    _logger.info('${caller.userId} (${caller.email}) initiated the delete '
+        'of package $packageName');
+
+    List<Version> versionsNames;
+    await withRetryTransaction(_db, (tx) async {
+      final deletes = <Key>[];
+      final Key packageKey = _db.emptyKey.append(Package, id: packageName);
+      final package = (await tx.lookup([packageKey])).first as Package;
+      if (package == null) {
+        _logger
+            .info('Package $packageName not found. Removing related elements.');
+      } else {
+        deletes.add(packageKey);
+      }
+
+      final versionsQuery = tx.query<PackageVersion>(packageKey);
+      final versions = await versionsQuery.run().toList();
+      versionsNames = versions.map((v) => v.semanticVersion).toList();
+      deletes.addAll(versions.map((v) => v.key));
+
+      final moderatedPkgKey =
+          dbService.emptyKey.append(ModeratedPackage, id: packageName);
+      ModeratedPackage moderatedPkg = await dbService
+          .lookupValue<ModeratedPackage>(moderatedPkgKey, orElse: () => null);
+      if (moderatedPkg == null) {
+        moderatedPkg = ModeratedPackage()
+          ..parentKey = _db.emptyKey
+          ..id = packageName
+          ..name = packageName
+          ..moderated = DateTime.now().toUtc()
+          ..versions = versions.map((v) => v.version).toList()
+          ..publisherId = package?.publisherId
+          ..uploaders = package?.uploaders;
+
+        _logger.info('Adding package to moderated packages ...');
+      }
+      tx.queueMutations(deletes: deletes, inserts: [moderatedPkg]);
+    });
+
+    final pool = Pool(10);
+    final futures = <Future>[];
+    final TarballStorage storage = TarballStorage(storageService,
+        storageService.bucket(activeConfiguration.packageBucketName), '');
+    versionsNames.forEach((final v) {
+      final future = pool.withResource(() {
+        storage.remove(packageName, v.toString());
+      });
+      futures.add(future);
+    });
+    await Future.wait(futures);
+    await pool.close();
+
+    _logger.info('Removing package from dartdoc backend ...');
+    await dartdocBackend.removeAll(packageName, concurrency: 32);
+
+    _logger.info('Removing package from PackageVersionPubspec ...');
+    await _deleteWithQuery(dbService.query<PackageVersionPubspec>()
+      ..filter('package =', packageName));
+
+    _logger.info('Removing package from PackageVersionInfo ...');
+    await _deleteWithQuery(dbService.query<PackageVersionInfo>()
+      ..filter('package =', packageName));
+
+    _logger.info('Removing package from Jobs ...');
+    await _deleteWithQuery(
+        _db.query<Job>()..filter('packageName =', packageName));
+
+    _logger.info('Removing package from History ...');
+    await _deleteWithQuery(
+        _db.query<History>()..filter('packageName =', packageName));
+
+    _logger.info('Removing package from ScoreCardReport ...');
+    await _deleteWithQuery(
+        _db.query<ScoreCardReport>()..filter('packageName =', packageName));
+
+    _logger.info('Removing package from ScoreCard ...');
+    await _deleteWithQuery(
+        _db.query<ScoreCard>()..filter('packageName =', packageName));
+
+    _logger.info('Removing package from Like ...');
+    await _deleteWithQuery(
+        dbService.query<Like>()..filter('packageName =', packageName));
+
+    _logger.info('Package "$packageName" got successfully removed.');
+    _logger.info(
+        'NOTICE: Redis caches referencing the package will expire given time.');
+  }
+
+  Future _deleteWithQuery<T>(Query query) async {
+    final deletes = <Key>[];
+    await for (Model m in query.run()) {
+      deletes.add(m.key);
+      if (deletes.length >= 500) {
+        await dbService.commit(deletes: deletes);
+        deletes.clear();
+      }
+    }
+    if (deletes.isNotEmpty) {
+      await _db.commit(deletes: deletes);
+    }
   }
 
   /// Handles GET '/api/admin/packages/<package>/assigned-tags'
