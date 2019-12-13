@@ -98,7 +98,7 @@ packages:
       name: pedantic
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.0+1"
+    version: "1.9.0"
   quiver:
     dependency: transitive
     description:
@@ -112,7 +112,7 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.23.3"
+    version: "1.23.7"
   source_maps:
     dependency: transitive
     description:
@@ -175,6 +175,6 @@ packages:
       name: watcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.7+12"
+    version: "0.9.7+13"
 sdks:
   dart: ">=2.6.0 <3.0.0"
