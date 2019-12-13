@@ -126,6 +126,7 @@ class DartdocJobProcessor extends JobProcessor {
   Future<JobStatus> process(Job job) async {
     final packageStatus = await scoreCardBackend.getPackageStatus(
         job.packageName, job.packageVersion);
+    // In case the package was deleted between scheduling and the actual delete.
     if (!packageStatus.exists) {
       _logger.info('Package does not exist: $job.');
       return JobStatus.skipped;
