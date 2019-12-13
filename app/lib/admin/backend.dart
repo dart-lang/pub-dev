@@ -277,6 +277,13 @@ class AdminBackend {
     });
   }
 
+  /// Removes the package from the Datastore and updates other related
+  /// entities. It is safe to call [removePackage] on an already removed
+  /// package, as the call is idempotent.
+  ///
+  /// Creates a [ModeratedPackage] instance (if not already present) in
+  /// Datastore representing the removed package. No new package with the same
+  /// name can be published.
   Future<void> removePackage(String packageName) async {
     final caller = await _requireAdminPermission(AdminPermission.removePackage);
 
@@ -310,16 +317,10 @@ class AdminBackend {
           ..id = packageName
           ..name = packageName
           ..moderated = DateTime.now().toUtc()
-          ..versions = versions.map((v) => v.version).toList();
+          ..versions = versions.map((v) => v.version).toList()
+          ..publisherId = package?.publisherId
+          ..uploaders = package?.uploaders;
 
-        if (package != null) {
-          if (package.publisherId != null) {
-            moderatedPkg.previousPublisherId = package.publisherId;
-          }
-          if (package.uploaders != null) {
-            moderatedPkg.previousUploaders = package.uploaders;
-          }
-        }
         _logger.info('Adding package to moderated packages ...');
       }
       tx.queueMutations(deletes: deletes, inserts: [moderatedPkg]);

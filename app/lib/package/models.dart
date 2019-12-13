@@ -362,13 +362,13 @@ class ModeratedPackage extends db.ExpandoModel {
   @db.DateTimeProperty()
   DateTime moderated;
 
-  /// The previous publisher id (null, if the package does not have a publisher).
+  /// The previous publisher id (null, if the package did not have a publisher).
   @db.StringProperty()
-  String previousPublisherId;
+  String publisherId;
 
   /// List of User.userId of previous uploaders.
   @db.StringListProperty()
-  List<String> previousUploaders;
+  List<String> uploaders;
 
   /// List of previous versions.
   @db.StringListProperty()

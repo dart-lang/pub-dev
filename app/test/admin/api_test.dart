@@ -215,8 +215,8 @@ void main() {
         expect(moderatedPkg, isNotNull);
         expect(moderatedPkg.name, package.name);
         expect(moderatedPkg.moderated.isAfter(timeBeforeRemoval), isTrue);
-        expect(moderatedPkg.previousUploaders, package.uploaders);
-        expect(moderatedPkg.previousPublisherId, package.publisherId);
+        expect(moderatedPkg.uploaders, package.uploaders);
+        expect(moderatedPkg.publisherId, package.publisherId);
         expect(moderatedPkg.versions, expectedVersions);
       });
     });
