@@ -352,17 +352,14 @@ class IntegrityChecker {
     _logger.info('Scanning Likes...');
 
     await for (Like like in _db.query<Like>().run()) {
-      // TODO(zarah): Comment in the following integrity check for
-      // like.packageName once backfilling of this property has been done.
-
-      // if (like.packageName == null) {
-      //   _problems.add(
-      //       'Like entity for user ${like.userId} and ${like.package} has a '
-      //       '`packageName` property which is not at string ');
-      // } else if (like.packageName != like.package) {
-      //   _problems.add('Like entity for user ${like.userId} and ${like.package}'
-      //   ' has a `packageName` property which is not the same as `package`/id');
-      // }
+      if (like.packageName == null) {
+        _problems.add(
+            'Like entity for user ${like.userId} and ${like.package} has a '
+            '`packageName` property which is not at string ');
+      } else if (like.packageName != like.package) {
+        _problems.add('Like entity for user ${like.userId} and ${like.package}'
+        ' has a `packageName` property which is not the same as `package`/id');
+      }
 
       _userToLikes.update(like.userId, (l) => l..add(like.package),
           ifAbsent: () => <String>[]);
