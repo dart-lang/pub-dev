@@ -7,7 +7,6 @@ import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
 
 final _argParser = ArgParser()
