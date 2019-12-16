@@ -358,7 +358,7 @@ class IntegrityChecker {
             '`packageName` property which is not at string ');
       } else if (like.packageName != like.package) {
         _problems.add('Like entity for user ${like.userId} and ${like.package}'
-        ' has a `packageName` property which is not the same as `package`/id');
+            ' has a `packageName` property which is not the same as `package`/id');
       }
 
       _userToLikes.update(like.userId, (l) => l..add(like.package),
