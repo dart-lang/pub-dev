@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded pana to `0.13.2`.
  * Removed the use of `platformTags` from `pana` analysis,
    and also the use of `platform` in search queries (#3167).
+* Run `app/bin/tools/backfill_likes.dart` to backfill `Like.packageName`.
 
 ## `20191210t151931-all`
  * Upgraded dart to `2.7.0`.
