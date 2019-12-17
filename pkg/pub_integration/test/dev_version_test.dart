@@ -54,5 +54,5 @@ void main() {
       );
       await script.verify(true);
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(3));
 }
