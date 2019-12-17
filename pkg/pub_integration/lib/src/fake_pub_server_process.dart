@@ -25,6 +25,7 @@ class FakePubServerProcess {
     String pkgDir,
     int port,
     int storagePort,
+    int searchPort,
   }) async {
     final vmArgs = (Platform.environment['FAKE_PUB_SERVER_VM_ARGS'] ?? '')
         .split(' ')
@@ -34,6 +35,7 @@ class FakePubServerProcess {
     // TODO: check for free port
     port ??= 20000 + _random.nextInt(990);
     storagePort ??= port + 1;
+    searchPort ??= port + 2;
 
     final pr1 = await Process.run('pub', ['get'], workingDirectory: pkgDir);
     if (pr1.exitCode != 0) {
@@ -46,6 +48,7 @@ class FakePubServerProcess {
         'bin/fake_pub_server.dart',
         '--port=$port',
         '--storage-port=$storagePort',
+        '--search-port=$searchPort',
       ],
       workingDirectory: pkgDir,
     );

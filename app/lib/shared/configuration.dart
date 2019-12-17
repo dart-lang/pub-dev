@@ -205,7 +205,8 @@ class Configuration {
 
   /// Configuration for pkg/fake_pub_server.
   factory Configuration.fakePubServer({
-    @required int port,
+    @required int frontendPort,
+    @required int searchPort,
     @required String storageBaseUrl,
   }) {
     return Configuration(
@@ -215,7 +216,7 @@ class Configuration {
       popularityDumpBucketName: 'fake-bucket-popularity',
       searchSnapshotBucketName: 'fake-bucket-search',
       backupSnapshotBucketName: 'fake-bucket-backup',
-      searchServicePrefix: 'http://localhost:$port',
+      searchServicePrefix: 'http://localhost:$searchPort',
       storageBaseUrl: storageBaseUrl,
       pubClientAudience: null,
       pubSiteAudience: null,
@@ -223,8 +224,8 @@ class Configuration {
       blockEmails: true,
       blockRobots: true,
       productionHosts: ['localhost'],
-      primaryApiUri: Uri.parse('http://localhost:$port/'),
-      primarySiteUri: Uri.parse('http://localhost:$port/'),
+      primaryApiUri: Uri.parse('http://localhost:$frontendPort/'),
+      primarySiteUri: Uri.parse('http://localhost:$frontendPort/'),
       admins: [
         AdminId(
           oauthUserId: 'admin-pub-dev',

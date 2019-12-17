@@ -1,3 +1,7 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io';
 
@@ -7,7 +11,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/search/search_service.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
@@ -21,39 +25,38 @@ import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/publisher/domain_verifier.dart';
 import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
+import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
-import 'package:pub_dev/search/search_client.dart';
-import 'package:pub_dev/service/services.dart';
 
 final _logger = Logger('fake_server');
 
 class FakePubServer {
+  final MemDatastore _datastore;
   final MemStorage _storage;
-  final _datastore = MemDatastore();
 
-  FakePubServer(this._storage);
+  FakePubServer(this._datastore, this._storage);
 
   Future<void> run({
-    int port = 8080,
-    String storageBaseUrl = 'http://localhost:8081',
+    @required int port,
+    @required Configuration configuration,
+
+    /// Callback function to indicate when a HTTP request has been served.
+    Future<void> onHttpFn(String method, Uri uri),
   }) async {
     await updateLocalBuiltFiles();
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);
       registerStorageService(_storage);
-      registerActiveConfiguration(Configuration.fakePubServer(
-        port: port,
-        storageBaseUrl: storageBaseUrl,
-      ));
+      registerActiveConfiguration(configuration);
 
       await withPubServices(() async {
         await ss.fork(() async {
           registerAuthProvider(FakeAuthProvider(port));
           registerDomainVerifier(FakeDomainVerifier());
-          registerUploadSigner(FakeUploadSignerService(storageBaseUrl));
-          registerSearchClient(MockSearchClient());
+          registerUploadSigner(
+              FakeUploadSignerService(configuration.storageBaseUrl));
 
           nameTracker.startTracking();
 
@@ -65,7 +68,14 @@ class FakePubServer {
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
             return await ss.fork(() async {
-              return await handler(request);
+              try {
+                return await handler(request);
+              } finally {
+                if (onHttpFn != null) {
+                  await onHttpFn(
+                      request.method.toUpperCase(), request.requestedUri);
+                }
+              }
             }) as shelf.Response;
           });
           _logger.info('fake_pub_server running on port $port');
@@ -80,17 +90,4 @@ class FakePubServer {
       });
     });
   }
-}
-
-class MockSearchClient implements SearchClient {
-  @override
-  Future<PackageSearchResult> search(SearchQuery query) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> triggerReindex(String package, String version) async {}
-
-  @override
-  Future<void> close() async {}
 }
