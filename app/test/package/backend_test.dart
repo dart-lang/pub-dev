@@ -552,24 +552,24 @@ void main() {
               )));
         });
 
+        // Returns the error message as String or null if it succeeded.
+        Future<String> fn(String name) async {
+          final pubspecContent = generatePubspecYaml(name, '0.2.0');
+          try {
+            final tarball =
+                await packageArchiveBytes(pubspecContent: pubspecContent);
+            await packageBackend.repository
+                .upload(Stream.fromIterable([tarball]));
+          } catch (e) {
+            return e.toString();
+          }
+          // no issues, return null
+          return null;
+        }
+
         testWithServices('bad package names are rejected', () async {
           await nameTracker.scanDatastore();
           registerAuthenticatedUser(hansUser);
-
-          // Returns the error message as String or null if it succeeded.
-          Future<String> fn(String name) async {
-            final pubspecContent = generatePubspecYaml(name, '0.2.0');
-            try {
-              final tarball =
-                  await packageArchiveBytes(pubspecContent: pubspecContent);
-              await packageBackend.repository
-                  .upload(Stream.fromIterable([tarball]));
-            } catch (e) {
-              return e.toString();
-            }
-            // no issues, return null
-            return null;
-          }
 
           expect(await fn('with'),
               'Package name must not be a reserved word in Dart.');
@@ -579,6 +579,17 @@ void main() {
               'Package name may only contain letters, numbers, and underscores.');
 
           expect(await fn('ok_name'), isNull);
+        });
+
+        testWithServices('conflicting package names are rejected', () async {
+          await nameTracker.scanDatastore();
+          registerAuthenticatedUser(hansUser);
+
+          expect(await fn('hy_drogen'),
+              'Package name is too similar to another active or moderated package.');
+
+          expect(await fn('mo_derate'),
+              'Package name is too similar to another active or moderated package.');
         });
 
         testWithServices('upload-too-big', () async {

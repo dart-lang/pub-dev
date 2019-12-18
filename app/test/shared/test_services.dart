@@ -63,6 +63,7 @@ void testWithServices(String name, Future<void> fn()) {
       ...helium.versions.map(pvModels).expand((m) => m),
       lithium.package,
       ...lithium.versions.map(pvModels).expand((m) => m),
+      moderatedPackage,
       exampleComPublisher,
       exampleComHansAdmin,
     ]);

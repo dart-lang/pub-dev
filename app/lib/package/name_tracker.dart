@@ -31,6 +31,7 @@ NameTracker get nameTracker => ss.lookup(#_name_tracker) as NameTracker;
 class NameTracker {
   final DatastoreDB _db;
   final Set<String> _names = Set<String>();
+  final Set<String> _reservedNames = Set<String>();
   final Set<String> _reducedNames = Set<String>();
   final _firstScanCompleter = Completer();
   _NameTrackerUpdater _updater;
@@ -43,18 +44,26 @@ class NameTracker {
     _reducedNames.add(reducePackageName(name));
   }
 
+  void addReservedName(String name) {
+    _reservedNames.add(name);
+    _reducedNames.add(reducePackageName(name));
+  }
+
   /// Whether the package was already added to the tracker.
   bool _hasPackage(String name) => _names.contains(name);
 
-  /// Whether the [name] has a conflicting package that already exists.
+  /// Whether the [name] has a conflicting package that already exists or
+  /// a conflicting package among the moderated packages.
   bool _hasConflict(String name) =>
-      _reducedNames.contains(reducePackageName(name));
+      _reducedNames.contains(reducePackageName(name)) ||
+      _reservedNames.contains(name);
 
   /// Whether to accept the upload attempt of a given package [name].
   ///
   /// Either the package [name] should exists, or it should be different enough
-  /// from already existing package names. An example for the rejection:
-  /// `long_name` will be rejected, if package `longname` or `lon_gname` exists.
+  /// from already existing active or moderated package names. An example for
+  /// the rejection: `long_name` will be rejected, if package `longname` or
+  /// `lon_gname` exists.
   Future<bool> accept(String name) async {
     // fast track:
     if (_hasPackage(name)) return true;
@@ -85,6 +94,10 @@ class NameTracker {
   Future<void> scanDatastore() async {
     await for (final p in _db.query<Package>().run()) {
       add(p.name);
+    }
+
+    await for (ModeratedPackage p in _db.query<ModeratedPackage>().run()) {
+      addReservedName(p.name);
     }
     if (!_firstScanCompleter.isCompleted) {
       _firstScanCompleter.complete();
@@ -173,6 +186,17 @@ class _NameTrackerUpdater {
       if (_stopped) return;
       nameTracker.add(p.name);
     }
+
+    final moderatedPkgQuery = _db.query<ModeratedPackage>()..order('moderated');
+    if (_lastTs != null) {
+      moderatedPkgQuery.filter('moderated >', _lastTs);
+    }
+
+    await for (ModeratedPackage p in moderatedPkgQuery.run()) {
+      if (_stopped) return;
+      nameTracker.addReservedName(p.name);
+    }
+
     _lastTs = now.subtract(const Duration(hours: 1));
   }
 
