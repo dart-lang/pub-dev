@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20191218t150816-all`
  * Upgraded runtime SDK to `2.7.0`.
  * Bumped runtimeVersion to `2019.12.13`.
  * Upgraded Flutter to `1.12.13+hotfix.5`.
