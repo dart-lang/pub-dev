@@ -41,6 +41,9 @@ final Key foobarStablePVKey =
     foobarPkgKey.append(PackageVersion, id: '0.1.1+5');
 final Key foobarDevPVKey = foobarPkgKey.append(PackageVersion, id: '0.2.0-dev');
 
+final Key moderatedPkgKey =
+    Key.emptyKey(Partition(null)).append(ModeratedPackage, id: 'mo_derated');
+
 final hansUser = User()
   ..id = 'hans-at-juergen-dot-com'
   ..email = 'hans@juergen.com'
@@ -139,6 +142,14 @@ PackageVersion clonePackageVersion(PackageVersion original) => PackageVersion()
   ..changelogContent = original.changelogContent
   ..sortOrder = original.sortOrder
   ..downloads = original.downloads;
+
+final moderatedPackage = ModeratedPackage()
+  ..parentKey = moderatedPkgKey
+  ..id = 'mo_derate'
+  ..name = 'mo_derate'
+  ..moderated = DateTime.utc(2014)
+  ..uploaders = [hansUser.userId]
+  ..versions = ['1.0.0'];
 
 final String foobarReadmeContent = '''
 Test Package
