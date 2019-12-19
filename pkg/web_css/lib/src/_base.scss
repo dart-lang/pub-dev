@@ -192,16 +192,12 @@ pre > code {
   flex: 1;
 }
 
-.small-banner,
-.medium-banner {
-  padding: 10px 0px;
-}
-
 ._banner-bg {
   background: $color-searchbar-dark-bg;
   background-image: url('/static/img/background-pattern-darkblue.jpg?hash=tqigd6sddnrgq97c7crv8d2l6agjtrob');
   background-size: cover;
   color: $color-searchbar-dark-fg;
+  padding: 10px 0px;
 
   a {
     color: $color-searchbar-dark-link;
