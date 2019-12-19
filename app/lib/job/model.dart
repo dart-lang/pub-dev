@@ -7,9 +7,47 @@ import 'dart:math' as math;
 import 'package:gcloud/db.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-enum JobService { analyzer, dartdoc }
-enum JobState { available, processing, idle }
-enum JobStatus { none, success, skipped, failed, aborted }
+/// Identifies the service which creates and processes the [Job].
+enum JobService {
+  /// The `analyzer` service will process the job.
+  analyzer,
+
+  /// The `dartdoc` service will process the job.
+  dartdoc,
+}
+
+/// Identifies the current state of the [Job].
+enum JobState {
+  /// The [Job] is available for processing (it was scheduled to be processed),
+  /// any worker can lock it.
+  available,
+
+  /// The [Job] was selected and locked by a worker, which should process the
+  /// related package in a reasonable amount of time.
+  processing,
+
+  /// The [Job] does not need processing, and it is not currently under processing.
+  idle,
+}
+
+/// Identifies the last status of processing of the [Job].
+enum JobStatus {
+  /// There is no last status, the [Job] was never selected for processing.
+  none,
+
+  /// The last processing was successful.
+  success,
+
+  /// The last processing considered the package flags and decided not to
+  /// process it with full scope, only taking a shortcut.
+  skipped,
+
+  /// The last processing completed, but it has warnings.
+  failed,
+
+  /// The last processing was aborted (timeout or other `Exception`).
+  aborted,
+}
 
 @Kind(name: 'Job', idType: IdType.String)
 class Job extends ExpandoModel {
