@@ -102,7 +102,21 @@
   </div>
 </header>
 
-{{& search_banner_html}}
+<div class="_banner-bg">
+  <div class="container{{#is_landing}} home-banner{{/is_landing}}">
+
+  {{#is_landing}}
+    <h2 class="_visuallyhidden">Dart package manager</h2>
+    <img class="logo" src="{{{landing_banner_image}}}" alt="{{landing_banner_alt}}" />
+  {{/is_landing}}
+
+  {{& search_banner_html}}
+
+  {{#is_landing}}
+    {{& landing_blurb_html }}
+  {{/is_landing}}
+  </div>
+</div>
 
 <div class="container">
   <main>

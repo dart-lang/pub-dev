@@ -65,15 +65,18 @@ String renderLayoutPage(
               // https://developers.google.com/people/image-sizing
               : '${userSessionData.imageUrl}=s30',
         };
+  final sp = _sp(searchQuery);
   final searchBannerHtml = _renderSearchBanner(
     type: type,
     publisherId: publisherId,
     searchQuery: searchQuery,
     searchPlaceholder: searchPlaceHolder,
   );
+  final isFlutter = sp.sdk == SdkTagValue.flutter;
   final values = {
     'is_experimental': requestContext.isExperimental,
     'is_logged_in': userSession != null,
+    'is_landing': type == PageType.landing,
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': activeConfiguration.pubSiteAudience,
     'user_session': userSession,
@@ -86,6 +89,10 @@ String renderLayoutPage(
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
     'site_logo_url': staticUrls.pubDevLogo2xPng,
+    'landing_banner_image': _landingBannerImage(isFlutter),
+    'landing_banner_alt': isFlutter ? 'Flutter packages' : 'Dart packages',
+    'landing_blurb_html':
+        isFlutter ? flutterLandingBlurbHtml : defaultLandingBlurbHtml,
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
     'include_survey': includeSurvey,
@@ -107,9 +114,7 @@ String _renderSearchBanner({
   @required SearchQuery searchQuery,
   String searchPlaceholder,
 }) {
-  final sp = searchQuery != null
-      ? SearchPreference.fromSearchQuery(searchQuery)
-      : (searchPreference ?? SearchPreference());
+  final sp = _sp(searchQuery);
   final queryText = searchQuery?.query;
   final escapedSearchQuery =
       queryText == null ? null : htmlAttrEscape.convert(queryText);
@@ -190,17 +195,7 @@ String _renderSearchBanner({
       ],
     );
   }
-  String bannerClass;
-  if (type == PageType.landing) {
-    bannerClass = 'home-banner';
-  } else if (type == PageType.listing) {
-    bannerClass = 'medium-banner';
-  } else {
-    bannerClass = 'small-banner';
-  }
-  final isFlutter = sp.sdk == SdkTagValue.flutter;
   return templateCache.renderTemplate('shared/search_banner', {
-    'banner_class': bannerClass,
     'show_details': type == PageType.listing,
     'show_landing': type == PageType.landing,
     'search_form_url': searchFormUrl,
@@ -212,12 +207,12 @@ String _renderSearchBanner({
     'search_tabs_html': searchTabsHtml,
     'show_legacy_checkbox': sp.sdk == null,
     'secondary_tabs_html': secondaryTabsHtml,
-    'landing_banner_image': _landingBannerImage(isFlutter),
-    'landing_banner_alt': isFlutter ? 'Flutter packages' : 'Dart packages',
-    'landing_blurb_html':
-        isFlutter ? flutterLandingBlurbHtml : defaultLandingBlurbHtml,
   });
 }
+
+SearchPreference _sp(SearchQuery searchQuery) => searchQuery != null
+    ? SearchPreference.fromSearchQuery(searchQuery)
+    : (searchPreference ?? SearchPreference());
 
 String _landingBannerImage(bool isFlutter) {
   return isFlutter
@@ -228,9 +223,7 @@ String _landingBannerImage(bool isFlutter) {
 String renderSearchTabs({
   SearchQuery searchQuery,
 }) {
-  final sp = searchQuery != null
-      ? SearchPreference.fromSearchQuery(searchQuery)
-      : (searchPreference ?? SearchPreference());
+  final sp = _sp(searchQuery);
   final currentSdk = sp.sdk ?? SdkTagValue.any;
   Map sdkTabData(String label, String tabSdk, String title) {
     String url;
