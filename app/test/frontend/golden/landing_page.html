@@ -74,14 +74,17 @@
       <div class="container home-banner">
         <h2 class="_visuallyhidden">Dart package manager</h2>
         <img class="logo" src="/static/img/dart-packages-white.png?hash=mocked_hash_308431268" alt="Dart packages"/>
-        <form class="search-bar" action="/packages">
+        <form class="search-bar banner-item" action="/packages">
           <input class="input" name="q" placeholder="Search packages" autocomplete="on" autofocus="autofocus"/>
           <button class="icon"></button>
+          <input id="search-legacy-field" type="hidden" name="legacy" value="1" disabled="disabled"/>
         </form>
-        <div class="list-filters">
-          <a class="filter " href="/dart/packages" title="Packages compatible with the Dart SDK">Dart</a>
-          <a class="filter " href="/flutter/packages" title="Packages compatible with the Flutter SDK">Flutter</a>
-          <a class="filter -active" href="/packages" title="Packages compatible with the any SDK">Any</a>
+        <div class="search-bar-details banner-item">
+          <div class="list-filters">
+            <a class="filter " href="/dart/packages" title="Packages compatible with the Dart SDK">Dart</a>
+            <a class="filter " href="/flutter/packages" title="Packages compatible with the Flutter SDK">Flutter</a>
+            <a class="filter -active" href="/packages" title="Packages compatible with the any SDK">Any</a>
+          </div>
         </div>
         <p class="text">Find and use packages to build 
           <a href="/flutter">Flutter</a> and 

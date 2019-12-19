@@ -2,7 +2,7 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<form class="search-bar" action="{{& search_form_url}}">
+<form class="search-bar banner-item" action="{{& search_form_url}}">
   <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
   <button class="icon"></button>
   {{#show_details}}
@@ -14,8 +14,10 @@
   {{/hidden_inputs}}
 </form>
 {{#show_details}}
-<div class="search-bar-details">
-  {{& search_tabs_html }}
+<div class="search-bar-details banner-item">
+  {{& sdk_tabs_html }}
+
+  {{#show_options}}
   <div class="search-bar-options">
     {{#show_legacy_checkbox}}
     <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
@@ -23,8 +25,6 @@
     {{/show_legacy_checkbox}}
     {{& secondary_tabs_html }}
   </div>
+  {{/show_options}}
 </div>
 {{/show_details}}
-{{#show_landing}}
-  {{& search_tabs_html }}
-{{/show_landing}}

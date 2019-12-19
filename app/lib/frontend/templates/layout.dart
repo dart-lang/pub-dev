@@ -149,11 +149,11 @@ String _renderSearchBanner({
           .map((e) => {'name': e.key, 'value': e.value})
           .toList()
       : null;
-  String searchTabsHtml;
+  String sdkTabsHtml;
   if (type == PageType.landing) {
-    searchTabsHtml = renderSearchTabs();
+    sdkTabsHtml = renderSdkTabs();
   } else if (type == PageType.listing) {
-    searchTabsHtml = renderSearchTabs(searchQuery: searchQuery);
+    sdkTabsHtml = renderSdkTabs(searchQuery: searchQuery);
   }
   String secondaryTabsHtml;
   if (searchQuery?.sdk == SdkTagValue.dart) {
@@ -196,15 +196,15 @@ String _renderSearchBanner({
     );
   }
   return templateCache.renderTemplate('shared/search_banner', {
-    'show_details': type == PageType.listing,
-    'show_landing': type == PageType.landing,
+    'show_details': type == PageType.listing || type == PageType.landing,
+    'show_options': type == PageType.listing,
     'search_form_url': searchFormUrl,
     'search_query_placeholder': searchPlaceholder,
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     'hidden_inputs': hiddenInputs,
-    'search_tabs_html': searchTabsHtml,
+    'sdk_tabs_html': sdkTabsHtml,
     'show_legacy_checkbox': sp.sdk == null,
     'secondary_tabs_html': secondaryTabsHtml,
   });
@@ -220,7 +220,7 @@ String _landingBannerImage(bool isFlutter) {
       : staticUrls.assets['img__dart-packages-white_png'];
 }
 
-String renderSearchTabs({
+String renderSdkTabs({
   SearchQuery searchQuery,
 }) {
   final sp = _sp(searchQuery);
