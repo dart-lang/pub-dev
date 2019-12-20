@@ -313,8 +313,6 @@ class DartdocJobProcessor extends JobProcessor {
         ));
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
 
-    await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
-
     if (abortLog != null) {
       return JobStatus.aborted;
     } else {
@@ -326,7 +324,7 @@ class DartdocJobProcessor extends JobProcessor {
     await scoreCardBackend.updateReport(
         job.packageName, job.packageVersion, report);
     await scoreCardBackend.updateScoreCard(job.packageName, job.packageVersion);
-    await dartdocBackend.removeObsolete(job.packageName, job.packageVersion);
+    dartdocBackend.scheduleGC(job.packageName, job.packageVersion);
   }
 
   Future<bool> _resolveDependencies(

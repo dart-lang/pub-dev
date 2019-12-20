@@ -47,6 +47,7 @@ class DartdocBackend {
   final DatastoreDB _db;
   final Bucket _storage;
   final VersionedJsonStorage _sdkStorage;
+  final _gcTasks = <_GCTask>{};
 
   DartdocBackend(this._db, this._storage)
       : _sdkStorage = VersionedJsonStorage(
@@ -265,8 +266,35 @@ class DartdocBackend {
     await _deleteAllWithPrefix(prefix, concurrency: concurrency);
   }
 
+  /// Schedules the garbage collection of the [package] and [version].
+  /// The wait queue is in-memory, it is not persisted.
+  void scheduleGC(String package, String version) {
+    _gcTasks.add(_GCTask(package, version));
+  }
+
+  /// Runs obsolete GC of old dartdoc files with low overhead (concurrency = 1).
+  ///
+  /// The function never returns.
+  Future<void> processScheduledGCTasks() async {
+    for (;;) {
+      if (_gcTasks.isEmpty) {
+        await Future.delayed(Duration(seconds: 30));
+        continue;
+      }
+      final task = _gcTasks.first;
+      _gcTasks.remove(task);
+      try {
+        await _removeObsolete(task.package, task.version, concurrency: 1);
+      } catch (e, st) {
+        _logger.warning(
+            'Unable to GC files of ${task.package} ${task.version}.', e, st);
+      }
+    }
+  }
+
   /// Removes incomplete uploads and old outputs from the bucket.
-  Future<void> removeObsolete(String package, String version) async {
+  Future<void> _removeObsolete(String package, String version,
+      {int concurrency}) async {
     final List<DartdocEntry> completedList =
         await _listEntries(storage_path.entryPrefix(package, version));
     final List<DartdocEntry> inProgressList =
@@ -279,7 +307,7 @@ class DartdocBackend {
         await deleteFromBucket(_storage, entry.inProgressObjectName);
       } else {
         if (entry.age > _obsoleteDeleteThreshold) {
-          await _deleteAll(entry);
+          await _deleteAll(entry, concurrency: concurrency);
           await deleteFromBucket(_storage, entry.inProgressObjectName);
         }
       }
@@ -334,7 +362,7 @@ class DartdocBackend {
     // delete everything else
     for (var entry in completedList) {
       if (entry.age > _obsoleteDeleteThreshold) {
-        await _deleteAll(entry);
+        await _deleteAll(entry, concurrency: concurrency);
       }
     }
   }
@@ -363,8 +391,8 @@ class DartdocBackend {
     );
   }
 
-  Future<void> _deleteAll(DartdocEntry entry) async {
-    await _deleteAllWithPrefix(entry.contentPrefix);
+  Future<void> _deleteAll(DartdocEntry entry, {int concurrency}) async {
+    await _deleteAllWithPrefix(entry.contentPrefix, concurrency: concurrency);
     await deleteFromBucket(_storage, entry.entryObjectName);
   }
 
@@ -392,4 +420,22 @@ class DartdocBackend {
     sw.stop();
     _logger.info('$prefix: $count files deleted in ${sw.elapsed}.');
   }
+}
+
+class _GCTask {
+  final String package;
+  final String version;
+
+  _GCTask(this.package, this.version);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _GCTask &&
+          runtimeType == other.runtimeType &&
+          package == other.package &&
+          version == other.version;
+
+  @override
+  int get hashCode => package.hashCode ^ version.hashCode;
 }

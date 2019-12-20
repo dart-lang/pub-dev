@@ -91,9 +91,15 @@ Future _workerMain(WorkerEntryMessage message) async {
 
     dartdocBackend.scheduleOldDataGC();
 
-    // Run GC in the next 6-12 hours (randomized wait to reduce race).
+    // Run Job entity GC in the next 6-12 hours (randomized wait to reduce race).
     Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
       jobBackend.deleteOldEntries();
+    });
+
+    // Start dartdoc file GC in the next 6-12 hours (randomized wait to reduce race).
+    // The delay is useful here so that a new deployment is not slowed down with GCs.
+    Timer(Duration(minutes: 360 + _random.nextInt(360)), () {
+      dartdocBackend.processScheduledGCTasks();
     });
 
     await jobMaintenance.run();
