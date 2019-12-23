@@ -47,6 +47,11 @@ class DartdocBackend {
   final DatastoreDB _db;
   final Bucket _storage;
   final VersionedJsonStorage _sdkStorage;
+
+  /// If the server crashed, the pending GC tasks will disappear. This is
+  /// acceptable, as - eventually - new dartdoc will be generated in the future,
+  /// which will trigger another GC for the package/version, and hopefully
+  /// we'll catch up on these files.
   final _gcTasks = <_GCTask>{};
 
   DartdocBackend(this._db, this._storage)
@@ -267,7 +272,10 @@ class DartdocBackend {
   }
 
   /// Schedules the garbage collection of the [package] and [version].
-  /// The wait queue is in-memory, it is not persisted.
+  ///
+  /// The wait queue is in-memory, it is not persisted, and only only works as a
+  /// best-effort method to clean up obsolete files.
+  /// TODO: implement weekly cleanup process outside of the job processing
   void scheduleGC(String package, String version) {
     _gcTasks.add(_GCTask(package, version));
   }
