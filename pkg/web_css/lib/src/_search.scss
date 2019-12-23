@@ -3,11 +3,7 @@
 ******************************************************/
 .search-bar {
   border: 1px solid $color-searchbar-dark-border;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   border-radius: 3px;
   max-width: 650px;
@@ -50,10 +46,8 @@
 
 .search-bar-options {
   font-size: 14px;
-}
 
-@media (min-width: 600px) {
-  .search-bar-options {
+  @media (min-width: 600px) {
     position: absolute;
     top: 16px;
     right: 0px;

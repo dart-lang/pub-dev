@@ -709,12 +709,12 @@ void main() {
     });
 
     scopedTest('platform tabs: list', () {
-      final String html = renderSearchTabs();
+      final String html = renderSdkTabs();
       expectGoldenFile(html, 'platform_tabs_list.html', isFragment: true);
     });
 
     scopedTest('platform tabs: search', () {
-      final String html = renderSearchTabs(
+      final String html = renderSdkTabs(
           searchQuery: SearchQuery.parse(
         query: 'foo',
         sdk: 'flutter',
