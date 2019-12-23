@@ -9,6 +9,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:source_maps/parser.dart';
 
+/// Converts the browser-provided JS and CSS coverage information (using the
+/// compiled source maps) into LCOV format.
 Future<void> main() async {
   await _process(
     resourceUri: '/static/js/script.dart.js',
