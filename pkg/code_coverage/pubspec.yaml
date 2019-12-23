@@ -9,6 +9,7 @@ dependencies:
   coverage: ^0.13.0
   lcov: ^5.3.0
   path: ^1.0.0
+  source_maps: ^0.10.8
 
 dev_dependencies:
   test: ^1.5.1

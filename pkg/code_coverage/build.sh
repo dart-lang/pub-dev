@@ -66,5 +66,8 @@ ls -1 "${PUB_INTEGRATION_DIR}/test" | grep .dart$ | xargs -n 1 -I ZZZ dart \
 
 ## Processing coverage
 
+echo "Converting browser coverages to LCOV"
+dart lib/source_map_coverage.dart
+
 echo "Generating report..."
 dart lib/format_lcov.dart
