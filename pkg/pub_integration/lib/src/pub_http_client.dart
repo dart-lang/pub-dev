@@ -19,6 +19,17 @@ class PubHttpClient {
     }
   }
 
+  /// Forces the search index to update.
+  Future<void> forceSearchUpdate() async {
+    final url = '$pubHostedUrl/fake-update-search';
+    final rs = await _http.post(url);
+    if (rs.statusCode == 200) {
+      return;
+    }
+    throw UnsupportedError(
+        'Forced search update is supported only on fake pub server.');
+  }
+
   /// Get the latest version name of a package.
   Future<String> getLatestVersionName(String package) async {
     final url = '$pubHostedUrl/api/packages/$package';

@@ -40,9 +40,7 @@ class FakePubServer {
   Future<void> run({
     @required int port,
     @required Configuration configuration,
-
-    /// Callback function to indicate when a HTTP request has been served.
-    Future<void> onHttpFn(String method, Uri uri),
+    shelf.Handler extraHandler,
   }) async {
     await updateLocalBuiltFiles();
     await ss.fork(() async {
@@ -68,13 +66,11 @@ class FakePubServer {
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
             return await ss.fork(() async {
-              try {
+              final rs = await extraHandler(request);
+              if (rs != null) {
+                return rs;
+              } else {
                 return await handler(request);
-              } finally {
-                if (onHttpFn != null) {
-                  await onHttpFn(
-                      request.method.toUpperCase(), request.requestedUri);
-                }
               }
             }) as shelf.Response;
           });

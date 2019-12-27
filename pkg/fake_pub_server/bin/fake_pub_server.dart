@@ -5,6 +5,7 @@
 import 'package:args/args.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
@@ -49,11 +50,17 @@ Future main(List<String> args) async {
     searchPort: searchPort,
   );
 
-  // On each non-read request, we trigger an update of the search index in
-  // `fake_search_service`.
-  Future<void> onHttpFn(String method, Uri uri) async {
-    if (method == 'HEAD' || method == 'GET') return;
-    await post('http://localhost:$searchPort/fake-update-all');
+  Future<shelf.Response> forwardUpdatesHandler(shelf.Request rq) async {
+    if (rq.requestedUri.path == '/fake-update-search') {
+      final rs = await post('http://localhost:$searchPort/fake-update-all');
+      if (rs.statusCode == 200) {
+        return shelf.Response.ok('OK');
+      } else {
+        return shelf.Response(503,
+            body: 'Upstream service returned ${rs.statusCode}.');
+      }
+    }
+    return null;
   }
 
   await Future.wait(
@@ -62,7 +69,7 @@ Future main(List<String> args) async {
       pubServer.run(
         port: port,
         configuration: configuration,
-        onHttpFn: onHttpFn,
+        extraHandler: forwardUpdatesHandler,
       ),
       searchService.run(
         port: searchPort,

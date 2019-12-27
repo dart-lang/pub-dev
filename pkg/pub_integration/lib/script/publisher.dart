@@ -70,7 +70,8 @@ class PublisherScript {
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg(version: '2.0.0', publisherId: 'example.com');
 
-      // TODO: verify publisher page (after the search index picks up the package)
+      await _pubHttpClient.forceSearchUpdate();
+      await _verifyPublisherPackageListPage();
 
       await _verifyPublisherListPage();
 
@@ -158,6 +159,13 @@ class PublisherScript {
       if (!pageHtml.contains('href="/publishers/$publisherId"')) {
         throw Exception('Publisher link not found on the package page.');
       }
+    }
+  }
+
+  Future<void> _verifyPublisherPackageListPage() async {
+    final html = await _pubHttpClient.getPublisherPage('example.com');
+    if (!html.contains('href="/packages/_dummy_pkg"')) {
+      throw Exception('Does not contain link to package.');
     }
   }
 
