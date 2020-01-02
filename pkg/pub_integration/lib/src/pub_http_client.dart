@@ -19,6 +19,21 @@ class PubHttpClient {
     }
   }
 
+  /// Forces the search index to update.
+  ///
+  /// This works only with the local fake_pub_server instance, because the
+  /// current implementation is blocking the search instance, and we don't want
+  /// to expose such functionality in production.
+  Future<void> forceSearchUpdate() async {
+    final url = '$pubHostedUrl/fake-update-search';
+    final rs = await _http.post(url);
+    if (rs.statusCode == 200) {
+      return;
+    }
+    throw UnsupportedError(
+        'Forced search update is supported only on fake pub server.');
+  }
+
   /// Get the latest version name of a package.
   Future<String> getLatestVersionName(String package) async {
     final url = '$pubHostedUrl/api/packages/$package';

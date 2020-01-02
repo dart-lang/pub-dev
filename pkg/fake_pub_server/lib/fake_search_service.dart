@@ -15,32 +15,24 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
-import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/testing/fake_auth_provider.dart';
-import 'package:pub_dev/frontend/handlers.dart';
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/frontend/testing/fake_upload_signer_service.dart';
-import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/package/upload_signer_service.dart';
-import 'package:pub_dev/publisher/domain_verifier.dart';
-import 'package:pub_dev/publisher/testing/fake_domain_verifier.dart';
-import 'package:pub_dev/service/services.dart';
+import 'package:pub_dev/search/handlers.dart';
+import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/service/services.dart';
 
-final _logger = Logger('fake_server');
+final _logger = Logger('fake_search_service');
 
-class FakePubServer {
+class FakeSearchService {
   final MemDatastore _datastore;
   final MemStorage _storage;
 
-  FakePubServer(this._datastore, this._storage);
+  FakeSearchService(this._datastore, this._storage);
 
   Future<void> run({
-    @required int port,
+    int port = 8082,
     @required Configuration configuration,
-    shelf.Handler extraHandler,
   }) async {
     await updateLocalBuiltFiles();
     await ss.fork(() async {
@@ -51,36 +43,24 @@ class FakePubServer {
 
       await withPubServices(() async {
         await ss.fork(() async {
-          registerAuthProvider(FakeAuthProvider(port));
-          registerDomainVerifier(FakeDomainVerifier());
-          registerUploadSigner(
-              FakeUploadSignerService(configuration.storageBaseUrl));
-
-          nameTracker.startTracking();
-
-          final apiHandler = packageBackend.pubServer.requestHandler;
-
-          final appHandler = createAppHandler(apiHandler);
-          final handler = wrapHandler(_logger, appHandler, sanitize: true);
-
+          final handler = wrapHandler(_logger, searchServiceHandler);
           final server = await IOServer.bind('localhost', port);
           serveRequests(server.server, (request) async {
             return await ss.fork(() async {
-              final rs = await extraHandler(request);
-              if (rs != null) {
-                return rs;
-              } else {
-                return await handler(request);
+              if (request.requestedUri.path == '/fake-update-all') {
+                // ignore: invalid_use_of_visible_for_testing_member
+                await indexUpdater.updateAllPackages();
+                return shelf.Response.ok('');
               }
+              return await handler(request);
             }) as shelf.Response;
           });
-          _logger.info('fake_pub_server running on port $port');
+          _logger.info('fake_search_service running on port $port');
 
           await ProcessSignal.sigterm.watch().first;
 
-          _logger.info('fake_pub_server shutting down');
+          _logger.info('fake_search_service shutting down');
           await server.close();
-          nameTracker.stopTracking();
           _logger.info('closing');
         });
       });

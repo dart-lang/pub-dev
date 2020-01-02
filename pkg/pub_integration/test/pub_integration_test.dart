@@ -66,5 +66,5 @@ void main() {
         inviteCompleterFn: inviteCompleterFn,
       );
     });
-  }, timeout: Timeout.factor(2));
+  }, timeout: Timeout.factor(3));
 }
