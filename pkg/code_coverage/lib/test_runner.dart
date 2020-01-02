@@ -5,6 +5,7 @@
 /// Runs integration tests that use fake_pub_server, and collects code coverage
 /// on such test runs.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -41,6 +42,7 @@ Future<void> main(List<String> args) async {
         '$buildDir/raw/$outputPrefix-fake-pub-server.json');
   }
 
+  print('Running $testPath ...');
   final testProcess = await Process.start(
     'dart',
     [
@@ -51,14 +53,38 @@ Future<void> main(List<String> args) async {
     ],
     workingDirectory: packageDir,
     environment: {
-      'COVERAGE_DIR': '$buildDir/browser',
-      'FAKE_PUB_SERVER_VM_ARGS':
-          '--pause-isolates-on-exit --enable-vm-service=$fakePubServerVmPort --disable-service-auth-codes',
+      'COVERAGE_DIR': '$buildDir/puppeteer',
+      'FAKE_PUB_SERVER_VM_ARGS': [
+        '--pause-isolates-on-exit',
+        '--enable-vm-service=$fakePubServerVmPort',
+        '--disable-service-auth-codes',
+      ].join(' '),
     },
   );
-  await testProcess.exitCode;
 
+  void writeLogs(Stream<List<int>> stream, String prefix) {
+    stream.transform(utf8.decoder).transform(LineSplitter()).listen(
+      (s) {
+        s = s.trim();
+        if (s.isNotEmpty) {
+          print('  $prefix ${s.trim()}');
+        }
+      },
+      onDone: () {
+        print('  $prefix[DONE]');
+      },
+    );
+  }
+
+  writeLogs(testProcess.stdout, '[$testPath][OUT]');
+  writeLogs(testProcess.stderr, '[$testPath][ERR]');
+  final testOutput = await testProcess.exitCode;
+  print('$testPath exited with code $testOutput');
+
+  print('Waiting for test coverage...');
   await testCollectProcess.exitCode;
+
+  print('Waiting for proper exit of fake_pub_server...');
   await fakePubServerCollectProcess?.exitCode;
 
   await _convertToLcov(

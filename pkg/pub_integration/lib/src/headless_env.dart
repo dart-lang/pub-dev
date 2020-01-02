@@ -168,7 +168,7 @@ class HeadlessEnv {
     }
   }
 
-  Future<void> saveCoverage(String outputDir) async {
+  Future<void> saveCoverage(String outputDir, String name) async {
     Future<void> saveToFile(Map<String, _Coverage> map, String path) async {
       if (map.isNotEmpty) {
         final file = File(path);
@@ -185,8 +185,8 @@ class HeadlessEnv {
       }
     }
 
-    await saveToFile(_jsCoverages, '$outputDir/js-coverage.json');
-    await saveToFile(_cssCoverages, '$outputDir/css-coverage.json');
+    await saveToFile(_jsCoverages, '$outputDir/$name.js.json');
+    await saveToFile(_cssCoverages, '$outputDir/$name.css.json');
   }
 }
 

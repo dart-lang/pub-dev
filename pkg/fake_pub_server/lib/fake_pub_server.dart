@@ -74,16 +74,16 @@ class FakePubServer {
               }
             }) as shelf.Response;
           });
-          _logger.info('fake_pub_server running on port $port');
+          _logger.info('running on port $port');
 
           await ProcessSignal.sigterm.watch().first;
 
-          _logger.info('fake_pub_server shutting down');
+          _logger.info('shutting down');
           await server.close();
-          nameTracker.stopTracking();
           _logger.info('closing');
         });
       });
     });
+    _logger.info('closed');
   }
 }

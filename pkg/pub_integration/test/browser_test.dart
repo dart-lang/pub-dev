@@ -32,7 +32,7 @@ void main() {
       httpClient.close();
       headlessEnv?.printCoverage();
       if (coverageDir != null) {
-        await headlessEnv?.saveCoverage(coverageDir);
+        await headlessEnv?.saveCoverage(coverageDir, 'browser');
       }
     });
 

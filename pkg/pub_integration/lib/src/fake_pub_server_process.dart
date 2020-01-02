@@ -64,7 +64,7 @@ class FakePubServerProcess {
         .listen(
       (line) {
         print(line);
-        if (line.contains('fake_pub_server running on port $port')) {
+        if (line.contains('running on port $port')) {
           _startedCompleter.complete();
         }
         for (int i = _linePatterns.length - 1; i >= 0; i--) {
