@@ -21,7 +21,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.38.5"
+    version: "0.39.0"
   api_builder:
     dependency: transitive
     description:
@@ -210,7 +210,7 @@ packages:
       name: front_end
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.27"
+    version: "0.1.28"
   gcloud:
     dependency: transitive
     description:
@@ -336,7 +336,7 @@ packages:
       name: kernel
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.27"
+    version: "0.3.28"
   logging:
     dependency: "direct main"
     description:
@@ -441,7 +441,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.2"
+    version: "0.13.3"
   path:
     dependency: transitive
     description:
@@ -533,6 +533,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0+1"
+  safe_url_check:
+    dependency: transitive
+    description:
+      name: safe_url_check
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   sanitize_html:
     dependency: transitive
     description:
