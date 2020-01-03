@@ -373,7 +373,9 @@ class DartdocJobProcessor extends JobProcessor {
       await optionsFile.delete();
     }
 
-    Future<DartdocResult> runDartdoc(bool validateLinks) async {
+    /// When [isReduced] is set, we are running dartdoc with reduced features,
+    /// hopefully to complete within the time limit and fewer issues.
+    Future<DartdocResult> runDartdoc({bool isReduced = false}) async {
       final args = [
         '--input',
         pkgPath,
@@ -383,13 +385,11 @@ class DartdocJobProcessor extends JobProcessor {
         siteRoot,
         '--rel-canonical-prefix',
         canonicalUrl,
-        '--link-to-remote',
+        if (!isReduced) '--link-to-remote',
         '--exclude',
         _excludedLibraries.join(','),
+        if (isReduced) '--no-validate-links',
       ];
-      if (!validateLinks) {
-        args.add('--no-validate-links');
-      }
       if (envConfig.toolEnvDartSdkDir != null) {
         args.addAll(['--sdk-dir', envConfig.toolEnvDartSdkDir]);
       }
@@ -411,12 +411,17 @@ class DartdocJobProcessor extends JobProcessor {
     }
 
     final sw = Stopwatch()..start();
-    DartdocResult r = await runDartdoc(true);
+    DartdocResult r = await runDartdoc();
     sw.stop();
     logger.info('Running dartdoc for ${job.packageName} ${job.packageVersion} '
         'completed in ${sw.elapsed}.');
-    if (r.wasTimeout) {
-      r = await runDartdoc(false);
+    final shouldRetry = r.wasTimeout ||
+        // TODO: remove this after https://github.com/dart-lang/dartdoc/issues/2101 gets fixed
+        (!r.wasSuccessful &&
+            r.processResult.stdout.toString().contains(
+                "type 'FunctionTypeImpl' is not a subtype of type 'InterfaceType'"));
+    if (shouldRetry) {
+      r = await runDartdoc(isReduced: true);
     }
 
     _appendLog(logFileOutput, r.processResult);
