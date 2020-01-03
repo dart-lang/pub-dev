@@ -55,15 +55,16 @@ class FakeSearchService {
               return await handler(request);
             }) as shelf.Response;
           });
-          _logger.info('fake_search_service running on port $port');
+          _logger.info('running on port $port');
 
           await ProcessSignal.sigterm.watch().first;
 
-          _logger.info('fake_search_service shutting down');
+          _logger.info('shutting down');
           await server.close();
           _logger.info('closing');
         });
       });
     });
+    _logger.info('closed');
   }
 }

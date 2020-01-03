@@ -103,6 +103,7 @@ Future<void> withPubServices(FutureOr<void> Function() fn) async {
     // depends on previously registered services
     registerPackageBackend(PackageBackend(dbService, tarballStorage));
 
+    registerScopeExitCallback(() async => nameTracker.stopTracking());
     registerScopeExitCallback(indexUpdater.close);
     registerScopeExitCallback(authProvider.close);
     registerScopeExitCallback(dartdocClient.close);

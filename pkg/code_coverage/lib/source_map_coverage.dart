@@ -12,17 +12,26 @@ import 'package:source_maps/parser.dart';
 /// Converts the browser-provided JS and CSS coverage information (using the
 /// compiled source maps) into LCOV format.
 Future<void> main() async {
-  await _process(
-    resourceUri: '/static/js/script.dart.js',
-    coveragePath: 'build/browser/js-coverage.json',
-    outputPath: 'build/lcov/js-coverage.json.info',
-  );
+  final files = Directory('build/puppeteer').listSync().whereType<File>();
+  for (final file in files) {
+    if (file.path.endsWith('.js.json')) {
+      final name = basename(file.path);
+      await _process(
+        resourceUri: '/static/js/script.dart.js',
+        coveragePath: file.path,
+        outputPath: 'build/lcov/puppeteer-$name.info',
+      );
+    }
 
-  await _process(
-    resourceUri: '/static/css/style.css',
-    coveragePath: 'build/browser/css-coverage.json',
-    outputPath: 'build/lcov/css-coverage.json.info',
-  );
+    if (file.path.endsWith('.css.json')) {
+      final name = basename(file.path);
+      await _process(
+        resourceUri: '/static/css/style.css',
+        coveragePath: file.path,
+        outputPath: 'build/lcov/puppeteer-$name.info',
+      );
+    }
+  }
 }
 
 Future<void> _process({

@@ -152,10 +152,10 @@ class _NameTrackerUpdater {
         'Scanned initial package names (${nameTracker._length}) in ${sw.elapsed}.');
 
     await _sleep();
-
     _logger.info('Monitoring new package creation.');
+
     for (;;) {
-      if (_stopped) return;
+      if (_stopped) break;
       try {
         await _scan();
       } catch (e, st) {
@@ -163,9 +163,12 @@ class _NameTrackerUpdater {
       }
       await _sleep();
     }
+
+    _logger.info('Monitoring ended.');
   }
 
   Future<void> _sleep() async {
+    if (_stopped) return;
     _sleepCompleter = Completer();
     _sleepTimer = Timer(_pollingInterval, () {
       if (_sleepCompleter != null && !_sleepCompleter.isCompleted) {
