@@ -21,6 +21,8 @@ import '_cache.dart';
 import '_consts.dart';
 import '_utils.dart';
 
+import 'views/shared/search_tabs.dart';
+
 enum PageType {
   error,
   account,
@@ -225,23 +227,23 @@ String renderSdkTabs({
 }) {
   final sp = _sp(searchQuery);
   final currentSdk = sp.sdk ?? SdkTagValue.any;
-  Map sdkTabData(String label, String tabSdk, String title) {
+  SearchTab sdkTabData(String label, String tabSdk, String title) {
     String url;
     if (searchQuery != null) {
       url = searchQuery.change(sdk: tabSdk).toSearchLink();
     } else {
       url = urls.searchUrl(sdk: tabSdk);
     }
-    return {
-      'text': label,
-      'href': htmlAttrEscape.convert(url),
-      'active': tabSdk == currentSdk,
-      'title': title,
-    };
+    return SearchTab(
+      text: label,
+      href: htmlAttrEscape.convert(url),
+      active: tabSdk == currentSdk,
+      title: title,
+    );
   }
 
-  final values = {
-    'tabs': [
+  final searchTabs = SearchTabs(
+    tabs: [
       sdkTabData(
         'Dart',
         SdkTagValue.dart,
@@ -258,8 +260,9 @@ String renderSdkTabs({
         'Packages compatible with the any SDK',
       ),
     ],
-  };
-  return templateCache.renderTemplate('shared/search_tabs', values);
+  );
+  return templateCache.renderTemplate(
+      'shared/search_tabs', searchTabs.toJson());
 }
 
 class _FilterOption {
@@ -283,22 +286,24 @@ String _renderFilterTabs({
     return searchQuery.change(tagsPredicate: tagsPredicate).toSearchLink();
   }
 
-  return templateCache.renderTemplate('shared/search_tabs', {
-    'tabs': options
-        .map((option) => {
-              'title': option.title,
-              'text': option.label,
-              'href': htmlAttrEscape.convert(searchWithTagsLink(
+  final searchTabs = SearchTabs(
+    tabs: options
+        .map((option) => SearchTab(
+              title: option.title,
+              text: option.label,
+              href: htmlAttrEscape.convert(searchWithTagsLink(
                 tp.isRequiredTag(option.tag)
                     ? tp.withoutTag(option.tag)
                     : tp.appendPredicate(TagsPredicate(
                         requiredTags: [option.tag],
                       )),
               )),
-              'active': tp.isRequiredTag(option.tag),
-            })
+              active: tp.isRequiredTag(option.tag),
+            ))
         .toList(),
-  });
+  );
+  return templateCache.renderTemplate(
+      'shared/search_tabs', searchTabs.toJson());
 }
 
 final String _defaultPageDescriptionEscaped = htmlEscape.convert(
