@@ -13,6 +13,7 @@ import 'package:puppeteer/src/page/page.dart' show ClientError;
 /// and uncaught exceptions.
 class HeadlessEnv {
   final Directory tempDir;
+  final bool debug;
   Browser _browser;
   final clientErrors = <ClientError>[];
   final bool trackCoverage;
@@ -24,9 +25,11 @@ class HeadlessEnv {
   /// The coverage report of CSS files.
   final _cssCoverages = <String, _Coverage>{};
 
-  HeadlessEnv({Directory tempDir, this.trackCoverage = false})
-      : tempDir =
-            tempDir ?? Directory.systemTemp.createTempSync('pub-headless');
+  HeadlessEnv({
+    Directory tempDir,
+    this.trackCoverage = false,
+    this.debug = false,
+  }) : tempDir = tempDir ?? Directory.systemTemp.createTempSync('pub-headless');
 
   Future<String> _detectChromeBinary() async {
     // TODO: scan $PATH
@@ -63,7 +66,7 @@ class HeadlessEnv {
       ],
       noSandboxFlag: true,
       userDataDir: userDataDir.path,
-      headless: true,
+      headless: !debug,
       devTools: false,
     );
   }
