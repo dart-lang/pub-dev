@@ -3,18 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:math';
 
 import 'package:path/path.dart' as path;
-import 'package:pub_semver/pub_semver.dart';
 
 import '../src/pub_http_client.dart';
 import '../src/pub_tool_client.dart';
 import '../src/test_data.dart';
-
-final _random = Random.secure();
-
-typedef InviteCompleterFn = Future<void> Function();
 
 /// A single object to execute integration script and verification tests with the
 /// `pub` tool on the pub.dev site (or on a test site).
@@ -72,9 +66,5 @@ class BaseSetupScript {
     _dummyDir = Directory(path.join(_temp.path, 'pkg', '_dummy_pkg'));
     await _dummyDir.create(recursive: true);
     await createDummyPkg(_dummyDir.path, '0.1.0');
-  }
-
-  Future<void> _run(Directory dir, String file) async {
-    await _pubToolClient.runProc('dart', [file], workingDirectory: dir.path);
   }
 }
