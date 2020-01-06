@@ -8,7 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
 
+import 'package:pub_integration/script/base_setup_script.dart';
 import 'package:pub_integration/src/headless_env.dart';
+import 'package:pub_integration/src/fake_credentials.dart';
 import 'package:pub_integration/src/fake_pub_server_process.dart';
 
 void main() {
@@ -36,6 +38,14 @@ void main() {
       }
     });
 
+    test('run base setup script', () async {
+      final script = BaseSetupScript(
+        pubHostedUrl: 'http://localhost:${fakePubServerProcess.port}',
+        credentialsFileContent: fakeCredentialsFileContent(),
+      );
+      await script.setup();
+    });
+
     // Starting browser separately, as it may timeout when run together with the
     // server startup.
     test('start browser', () async {
@@ -43,7 +53,7 @@ void main() {
       await headlessEnv.startBrowser();
     });
 
-    test('puppeteer', () async {
+    test('landing page', () async {
       await headlessEnv.withPage(
         user: FakeGoogleUser.withDefaults('dev@example.org'),
         fn: (page) async {
@@ -52,6 +62,48 @@ void main() {
 
           // checking if there is a login button
           await page.hover('#-account-login');
+
+          // check uncaught exception
+          expect(headlessEnv.clientErrors.isEmpty, true);
+        },
+      );
+    });
+
+    test('listing page', () async {
+      await headlessEnv.withPage(
+        user: FakeGoogleUser.withDefaults('dev@example.org'),
+        fn: (page) async {
+          await page.goto(
+              'http://localhost:${fakePubServerProcess.port}/packages',
+              wait: Until.networkIdle);
+
+          // check package list
+          final packages = <String>{};
+          for (final item in await page.$$('.list-item.-full h3')) {
+            final text = await (await item.property('textContent')).jsonValue;
+            packages.add(text as String);
+          }
+          expect(packages, {'_dummy_pkg', 'retry'});
+
+          // check uncaught exception
+          expect(headlessEnv.clientErrors.isEmpty, true);
+        },
+      );
+    });
+
+    test('package page', () async {
+      await headlessEnv.withPage(
+        user: FakeGoogleUser.withDefaults('dev@example.org'),
+        fn: (page) async {
+          await page.goto(
+              'http://localhost:${fakePubServerProcess.port}/packages/retry',
+              wait: Until.networkIdle);
+
+          // check header with name and version
+          final headerTitle = await page.$('h2.title');
+          final headerTitleText =
+              await (await headerTitle.property('textContent')).jsonValue;
+          expect(headerTitleText, 'retry 2.0.0');
 
           // check uncaught exception
           expect(headlessEnv.clientErrors.isEmpty, true);
