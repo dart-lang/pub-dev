@@ -57,16 +57,6 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     if (requestContext.isExperimental) 'experimental',
   ];
-  final userSession = userSessionData == null
-      ? null
-      : {
-          'email': userSessionData.email,
-          'image_url': userSessionData.imageUrl == null
-              ? staticUrls.defaultProfilePng
-              // Set image size to 30x30 pixels for faster loading, see:
-              // https://developers.google.com/people/image-sizing
-              : '${userSessionData.imageUrl}=s30',
-        };
   final sp = _sp(searchQuery);
   final searchBannerHtml = _renderSearchBanner(
     type: type,
@@ -77,11 +67,9 @@ String renderLayoutPage(
   final isFlutter = sp.sdk == SdkTagValue.flutter;
   final values = {
     'is_experimental': requestContext.isExperimental,
-    'is_logged_in': userSession != null,
     'is_landing': type == PageType.landing,
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': activeConfiguration.pubSiteAudience,
-    'user_session': userSession,
     'body_class': bodyClasses.join(' '),
     'no_index': noIndex,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
@@ -90,11 +78,11 @@ String renderLayoutPage(
         ? _defaultPageDescriptionEscaped
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
-    'site_logo_url': staticUrls.pubDevLogo2xPng,
     'landing_banner_image': _landingBannerImage(isFlutter),
     'landing_banner_alt': isFlutter ? 'Flutter packages' : 'Dart packages',
     'landing_blurb_html':
         isFlutter ? flutterLandingBlurbHtml : defaultLandingBlurbHtml,
+    'site_header_html': _renderSiteHeader(),
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
     'include_survey': includeSurvey,
@@ -103,11 +91,33 @@ String renderLayoutPage(
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
     'page_data_encoded': pageDataEncoded,
-    'my_liked_packages_url': urls.myLikedPackagesUrl(),
   };
 
-  // TODO(zarah): update the 'layout' template to use urls from `shared/urls.dart`.
   return templateCache.renderTemplate('layout', values);
+}
+
+String _renderSiteHeader() {
+  final userSession = userSessionData == null
+      ? null
+      : {
+          'email': userSessionData.email,
+          'image_url': userSessionData.imageUrl == null
+              ? staticUrls.defaultProfilePng
+              // Set image size to 30x30 pixels for faster loading, see:
+              // https://developers.google.com/people/image-sizing
+              : '${userSessionData.imageUrl}=s30',
+        };
+
+  return templateCache.renderTemplate('shared/site_header', {
+    'dart_site_root': urls.dartSiteRoot,
+    'site_logo_url': staticUrls.pubDevLogo2xPng,
+    'is_logged_in': userSession != null,
+    'user_session': userSession,
+    'my_packages_url': urls.myPackagesUrl(),
+    'my_liked_packages_url': urls.myLikedPackagesUrl(),
+    'my_publishers_url': urls.myPublishersUrl(),
+    'create_publisher_url': urls.createPublisherUrl(),
+  });
 }
 
 String _renderSearchBanner({

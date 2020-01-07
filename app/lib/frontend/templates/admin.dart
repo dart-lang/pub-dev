@@ -168,8 +168,8 @@ String renderAccountPublishersPage({
   );
 }
 
-Tab _myPackagesLink() =>
-    Tab.withLink(id: 'packages', title: 'My packages', href: '/my-packages');
+Tab _myPackagesLink() => Tab.withLink(
+    id: 'packages', title: 'My packages', href: urls.myPackagesUrl());
 
 Tab _myLikedPackagesLink() => Tab.withLink(
     id: 'liked-packages',
@@ -177,7 +177,7 @@ Tab _myLikedPackagesLink() => Tab.withLink(
     href: urls.myLikedPackagesUrl());
 
 Tab _myPublishersLink() => Tab.withLink(
-    id: 'publishers', title: 'My publishers', href: '/my-publishers');
+    id: 'publishers', title: 'My publishers', href: urls.myPublishersUrl());
 
 String _accountDetailHeader(User user) {
   final shortJoined = shortDateFormat.format(user.created);

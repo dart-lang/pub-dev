@@ -247,3 +247,5 @@ String displayableUrl(String url) {
 
 String myPackagesUrl() => '/my-packages';
 String myLikedPackagesUrl() => '/my-liked-packages';
+String myPublishersUrl() => '/my-publishers';
+String createPublisherUrl() => '/create-publisher';
