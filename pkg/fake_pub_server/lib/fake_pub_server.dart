@@ -42,7 +42,7 @@ class FakePubServer {
     @required Configuration configuration,
     shelf.Handler extraHandler,
   }) async {
-    await updateLocalBuiltFiles();
+    await updateLocalBuiltFilesIfNeeded();
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);

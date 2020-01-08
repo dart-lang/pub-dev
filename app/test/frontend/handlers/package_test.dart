@@ -12,7 +12,7 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFiles());
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('ui', () {
     testWithServices('/packages/foobar_pkg - found', () async {

@@ -12,7 +12,9 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
-import 'package:shelf/shelf.dart' as shelf;
+import 'package:path/path.dart' as path;
+import 'package:stream_transform/stream_transform.dart' show RateLimit;
+import 'package:watcher/watcher.dart';
 
 import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
@@ -20,6 +22,7 @@ import '../../analyzer/analyzer_client.dart';
 import '../../dartdoc/dartdoc_client.dart';
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
+import '../../frontend/templates/_cache.dart';
 import '../../package/backend.dart';
 import '../../package/deps_graph.dart';
 import '../../package/name_tracker.dart';
@@ -65,24 +68,29 @@ Future _main(FrontendEntryMessage message) async {
   message.protocolSendPort
       .send(FrontendProtocolMessage(statsConsumerPort: null));
 
-  await updateLocalBuiltFiles();
+  await updateLocalBuiltFilesIfNeeded();
   await withServices(() async {
-    final shelf.Handler apiHandler = await setupServices(activeConfiguration);
+    await _setupUploadSigner();
 
     final cron = CronJobs(await getOrCreateBucket(
       storageService,
       activeConfiguration.backupSnapshotBucketName,
     ));
-    final appHandler = createAppHandler(apiHandler);
+    final appHandler =
+        createAppHandler(packageBackend.pubServer.requestHandler);
+
+    if (envConfig.isRunningLocally) {
+      await _watchForResourceChanges();
+    }
+    await popularityStorage.init();
+    nameTracker.startTracking();
+
     await runHandler(_logger, appHandler,
         sanitize: true, cronHandler: cron.handler);
   });
 }
 
-Future<shelf.Handler> setupServices(Configuration configuration) async {
-  await popularityStorage.init();
-  nameTracker.startTracking();
-
+Future<void> _setupUploadSigner() async {
   UploadSignerService uploadSigner;
   if (envConfig.isRunningLocally) {
     uploadSigner = ServiceAccountBasedUploadSigner();
@@ -91,11 +99,42 @@ Future<shelf.Handler> setupServices(Configuration configuration) async {
     registerScopeExitCallback(() async => authClient.close());
     final email = await obtainServiceAccountEmail();
     uploadSigner =
-        IamBasedUploadSigner(configuration.projectId, email, authClient);
+        IamBasedUploadSigner(activeConfiguration.projectId, email, authClient);
   }
   registerUploadSigner(uploadSigner);
+}
 
-  return packageBackend.pubServer.requestHandler;
+/// Setup local filesystem change notifications and force-reload resource files
+Future<void> _watchForResourceChanges() async {
+  _logger.info('Watching for resource changes...');
+
+  void setupWatcher(String name, String path, FutureOr<void> updateFn()) {
+    final w = Watcher(path, pollingDelay: Duration(seconds: 3));
+    final subs = w.events.debounce(Duration(milliseconds: 200)).listen(
+      (_) async {
+        _logger.info('Updating $name...');
+        await updateFn();
+        _logger.info('$name updated.');
+      },
+    );
+    registerScopeExitCallback(subs.cancel);
+  }
+
+  // watch mustache templates
+  setupWatcher(
+      'mustache templates', templateViewsDir, () => templateCache.update());
+
+  // watch pkg/web_app
+  setupWatcher('/pkg/web_app', path.join(resolveWebAppDirPath(), 'lib'),
+      () => updateWebAppBuild());
+
+  // watch pkg/web_css
+  setupWatcher('/pkg/web_css', path.join(resolveWebCssDirPath(), 'lib'),
+      () => updateWebCssBuild());
+
+  // watch /static files
+  setupWatcher('/static', resolveStaticDirPath(),
+      () => registerStaticFileCacheForTest(StaticFileCache.withDefaults()));
 }
 
 Future _worker(WorkerEntryMessage message) async {

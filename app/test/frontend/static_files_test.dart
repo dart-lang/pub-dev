@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFiles());
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('dartdoc assets', () {
     Future<void> checkAsset(String url, String path) async {
