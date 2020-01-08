@@ -74,6 +74,7 @@ String renderPkgAdminPage(
                 'selected': s == package.publisherId,
               })
           .toList(),
+      'create_publisher_url': urls.createPublisherUrl(),
     }),
   ));
 

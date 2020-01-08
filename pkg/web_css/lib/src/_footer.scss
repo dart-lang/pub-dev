@@ -1,6 +1,7 @@
 /******************************************************
   site footer
 ******************************************************/
+
 .site-footer {
   padding: 29px 16px 25px;
   margin: 92px 0 0;
@@ -28,6 +29,16 @@
     &.sep {
       border-left: 1px solid $color-footer-dark-fg;
       padding-left: 12px;
+    }
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .site-footer {
+    padding: 0;
+
+    > .link {
+      display: block;
     }
   }
 }

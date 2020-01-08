@@ -49,6 +49,7 @@ String renderPublisherList(List<Publisher> publishers,
           },
         )
         .toList(),
+    'create_publisher_url': urls.createPublisherUrl(),
   });
 }
 
