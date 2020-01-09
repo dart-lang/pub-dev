@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:pana/pana.dart' show DependencyTypes;
 import 'package:path/path.dart' as p;
 
@@ -17,6 +18,8 @@ import 'scope_specificity.dart';
 import 'scoring.dart';
 import 'search_service.dart';
 import 'text_utils.dart';
+
+final _logger = Logger('search.index_simple');
 
 /// The [PackageIndex] for Dart SDK API.
 PackageIndex get dartSdkIndex => ss.lookup(#_dartSdkIndex) as PackageIndex;
@@ -378,22 +381,42 @@ class SimplePackageIndex implements PackageIndex {
   }
 
   _TextResults _searchText(Set<String> packages, String text) {
+    final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
-      final List<String> words = splitForIndexing(text).toList();
-      final int wordCount = words.length;
+      final words = splitForIndexing(text).toSet().toList();
+      final wordCount = words.length;
+
+      // lookup longer words first, as it may restrict the result set better
+      words.sort((a, b) => -a.length.compareTo(b.length));
+
+      // limit the number of words to lookup
+      if (words.length > 20) {
+        words.removeRange(20, words.length);
+      }
+
       final pkgScores = <Score>[];
       final apiPagesScores = <Score>[];
+      bool aborted = false;
+
       for (String word in words) {
+        if (packages.isEmpty) break;
+        if (pkgScores.length > 5 && sw.elapsedMilliseconds > 500) {
+          aborted = true;
+          _logger.info(
+              'Aborted word lookup after ${pkgScores.length} words and ${sw.elapsedMilliseconds} ms.');
+          break;
+        }
+
         final nameTokens = _nameIndex.lookupTokens(word);
         final descrTokens = _descrIndex.lookupTokens(word);
         final readmeTokens = _readmeIndex.lookupTokens(word);
 
         final name = Score(_nameIndex.scoreDocs(nameTokens,
-            weight: 1.00, wordCount: wordCount));
+            weight: 1.00, wordCount: wordCount, ids: packages));
         final descr = Score(_descrIndex.scoreDocs(descrTokens,
-            weight: 0.90, wordCount: wordCount));
+            weight: 0.90, wordCount: wordCount, ids: packages));
         final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
-            weight: 0.75, wordCount: wordCount));
+            weight: 0.75, wordCount: wordCount, ids: packages));
 
         final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
         final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
@@ -407,23 +430,26 @@ class SimplePackageIndex implements PackageIndex {
         final apiPackages = <String, double>{};
         for (String key in apiPages.getKeys()) {
           final pkg = _apiDocPkg(key);
+          if (!packages.contains(pkg)) continue;
           final value = apiPages[key];
           apiPackages[pkg] = math.max(value, apiPackages[pkg] ?? 0.0);
         }
         final apiScore = Score(apiPackages);
 
-        pkgScores.add(Score.max([name, descr, readme, apiScore]));
+        final score = Score.max([name, descr, readme, apiScore]);
+        pkgScores.add(score);
+
+        // Restrict the next round of `scoreDocs` to fewer documents, as the
+        // packages with zero won't be part of the result anyway.
+        packages = score._values.keys.where(packages.contains).toSet();
       }
       Score score = Score.multiply(pkgScores);
-
-      // Ideally this projection should happen earlier (in both lookupTokens and
-      // scoreDocs), but for the sake of simplicity it is done here.
       score = score.project(packages);
 
       // filter results based on exact phrases
-      final List<String> phrases =
+      final phrases =
           extractExactPhrases(text).map(normalizeBeforeIndexing).toList();
-      if (phrases.isNotEmpty) {
+      if (!aborted && phrases.isNotEmpty) {
         final Map<String, double> matched = <String, double>{};
         for (String package in score.getKeys()) {
           final allText = _normalizedPackageText[package];
@@ -770,14 +796,16 @@ class TokenIndex {
 
   /// Returns an {id: score} map of the documents stored in the [TokenIndex].
   /// The tokens in [tokenMatch] will be used to calculate a weighted sum of scores.
+  /// When [ids] is specified, the result will contain only the set of ids in it.
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
-      {double weight = 1.0, int wordCount = 1}) {
+      {double weight = 1.0, int wordCount = 1, Set<String> ids}) {
     // Summarize the scores for the documents.
     final queryWeight = tokenMatch.maxWeight;
     final Map<String, double> docScores = <String, double>{};
     for (String token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token];
       for (String id in docWeights.keys) {
+        if (ids != null && !ids.contains(id)) continue;
         final double prevValue = docScores[id] ?? 0.0;
         final double currentValue = tokenMatch[token] * docWeights[id];
         docScores[id] = math.max(prevValue, currentValue);
