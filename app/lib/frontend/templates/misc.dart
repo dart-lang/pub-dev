@@ -44,9 +44,9 @@ String renderUnauthorizedPage({String messageMarkdown}) {
   );
 }
 
-/// Renders the `views/help.mustache` template.
+/// Renders the `views/page/help.mustache` template.
 String renderHelpPage() {
-  final String content = templateCache.renderTemplate('help', {
+  final String content = templateCache.renderTemplate('page/help', {
     'dart_site_root': urls.dartSiteRoot,
     'pana_url': urls.panaUrl(),
     'pana_maintenance_url': urls.panaMaintenanceUrl(),
@@ -55,14 +55,14 @@ String renderHelpPage() {
       title: 'Help | Dart packages');
 }
 
-/// Renders the `views/security.mustache` template.
+/// Renders the `views/page/security.mustache` template.
 String renderSecurityPage() {
-  final String content = templateCache.renderTemplate('security', {});
+  final String content = templateCache.renderTemplate('page/security', {});
   return renderLayoutPage(PageType.standalone, content,
       title: 'Security | Pub site');
 }
 
-/// Renders the `views/show.mustache` template.
+/// Renders the `views/page/error.mustache` template.
 String renderErrorPage(
     String title, String message, List<PackageView> topPackages) {
   final hasTopPackages = topPackages != null && topPackages.isNotEmpty;
@@ -73,7 +73,7 @@ String renderErrorPage(
     'has_top_packages': hasTopPackages,
     'top_packages_html': topPackagesHtml,
   };
-  final String content = templateCache.renderTemplate('error', values);
+  final String content = templateCache.renderTemplate('page/error', values);
   return renderLayoutPage(
     PageType.error,
     content,
@@ -82,7 +82,7 @@ String renderErrorPage(
   );
 }
 
-/// Renders the `views/mini_list.mustache` template.
+/// Renders the `views/pkg/mini_list.mustache` template.
 String renderMiniList(List<PackageView> packages) {
   final values = {
     'packages': packages.map((package) {
@@ -103,7 +103,7 @@ String renderMiniList(List<PackageView> packages) {
       };
     }).toList(),
   };
-  return templateCache.renderTemplate('mini_list', values);
+  return templateCache.renderTemplate('pkg/mini_list', values);
 }
 
 /// Renders the tags using the pkg/tags template.

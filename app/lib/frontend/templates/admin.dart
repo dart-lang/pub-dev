@@ -20,20 +20,20 @@ import 'layout.dart';
 import 'listing.dart';
 import 'publisher.dart' show renderPublisherList;
 
-/// Renders the `views/authorized.mustache` template.
+/// Renders the `views/account/authorized.mustache` template.
 String renderAuthorizedPage() {
-  final String content = templateCache.renderTemplate('authorized', {});
+  final String content = templateCache.renderTemplate('account/authorized', {});
   return renderLayoutPage(PageType.package, content,
       title: 'Pub Authorized Successfully', includeSurvey: false);
 }
 
-/// Renders the `views/consent.mustache` template.
+/// Renders the `views/account/consent.mustache` template.
 String renderConsentPage({
   @required String consentId,
   @required String title,
   @required String descriptionHtml,
 }) {
-  final content = templateCache.renderTemplate('consent', {
+  final content = templateCache.renderTemplate('account/consent', {
     'title': title,
     'description_html': descriptionHtml,
   });

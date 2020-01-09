@@ -9,7 +9,7 @@ import '_cache.dart';
 import 'layout.dart';
 import 'misc.dart' show renderMiniList;
 
-/// Renders the `views/landing.mustache` template.
+/// Renders the `views/page/landing.mustache` template.
 String renderLandingPage({
   List<PackageView> taggedPackages,
   List<PackageView> topPackages,
@@ -24,7 +24,7 @@ String renderLandingPage({
     'top_minilist_html': hasTop ? renderMiniList(topPackages) : null,
     'top_more_url': urls.searchUrl(),
   };
-  final String content = templateCache.renderTemplate('landing', values);
+  final String content = templateCache.renderTemplate('page/landing', values);
   return renderLayoutPage(
     PageType.landing,
     content,

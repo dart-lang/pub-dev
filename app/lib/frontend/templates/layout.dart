@@ -33,7 +33,7 @@ enum PageType {
   standalone,
 }
 
-/// Renders the `views/layout.mustache` template.
+/// Renders the `views/shared/layout.mustache` template.
 String renderLayoutPage(
   PageType type,
   String contentHtml, {
@@ -93,7 +93,7 @@ String renderLayoutPage(
     'page_data_encoded': pageDataEncoded,
   };
 
-  return templateCache.renderTemplate('layout', values);
+  return templateCache.renderTemplate('shared/layout', values);
 }
 
 String _renderSiteHeader() {
