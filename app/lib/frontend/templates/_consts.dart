@@ -42,8 +42,8 @@ SdkDict getSdkDict(String sdk) {
 }
 
 final defaultLandingBlurbHtml =
-    '<p class="text">Find and use packages to build <a href="/flutter">Flutter</a> and '
-    '<a href="/web">web</a> apps with <a target="_blank" rel="noopener" href="${urls.dartSiteRoot}">Dart</a>.</p>';
+    '<p class="text">Find and use packages to build <a href="/dart">Dart</a> and '
+    '<a href="/flutter">Flutter</a> and apps.</p>';
 
 final flutterLandingBlurbHtml =
     '<p class="text"><a target="_blank" rel="noopener" href="https://flutter.dev/">Flutter<sup><small>↗</small></sup></a> '
