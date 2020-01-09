@@ -18,12 +18,12 @@ import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
 
-/// Renders the `views/pagination.mustache` template.
+/// Renders the `views/shared/pagination.mustache` template.
 String renderPagination(PageLinks pageLinks) {
   final values = {
     'page_links': pageLinks.hrefPatterns(),
   };
-  return templateCache.renderTemplate('pagination', values);
+  return templateCache.renderTemplate('shared/pagination', values);
 }
 
 /// Renders the `views/pkg/package_list.mustache` template.
