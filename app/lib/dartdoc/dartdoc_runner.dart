@@ -75,8 +75,6 @@ class DartdocJobProcessor extends JobProcessor {
         '--sdk-docs',
         '--output',
         outputDir,
-        '--hosted-url',
-        siteRoot,
         '--link-to-remote',
         '--no-validate-links',
       ];
@@ -381,8 +379,6 @@ class DartdocJobProcessor extends JobProcessor {
         pkgPath,
         '--output',
         outputDir,
-        '--hosted-url',
-        siteRoot,
         '--rel-canonical-prefix',
         canonicalUrl,
         if (!isReduced) '--link-to-remote',
