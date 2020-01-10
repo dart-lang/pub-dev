@@ -39,7 +39,7 @@ const String goldenDir = 'test/frontend/golden';
 final _regenerateGoldens = false;
 
 void main() {
-  setUpAll(() => updateLocalBuiltFiles());
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('templates', () {
     StaticFileCache oldCache;

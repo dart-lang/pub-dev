@@ -12,13 +12,23 @@ import '../static_files.dart' show resolveAppDir, staticUrls;
 
 final templateCache = TemplateCache();
 
+/// The directory that contains the mustache files.
+final templateViewsDir =
+    path.join(resolveAppDir(), 'lib/frontend/templates/views');
+
 /// Loads, parses, caches and renders mustache templates.
 class TemplateCache {
   /// A cache which keeps all used mustache templates parsed in memory.
-  final Map<String, mustache.Template> _parsedMustacheTemplates = {};
+  final _parsedMustacheTemplates = <String, mustache.Template>{};
 
   TemplateCache() {
-    _loadDirectory(path.join(resolveAppDir(), 'lib/frontend/templates/views'));
+    update();
+  }
+
+  /// Updates all the cached templates by reloading them from disk.
+  void update() {
+    _parsedMustacheTemplates.clear();
+    _loadDirectory(templateViewsDir);
   }
 
   void _loadDirectory(String templateFolder) {

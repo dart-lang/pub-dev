@@ -34,7 +34,7 @@ class FakeSearchService {
     int port = 8082,
     @required Configuration configuration,
   }) async {
-    await updateLocalBuiltFiles();
+    await updateLocalBuiltFilesIfNeeded();
     await ss.fork(() async {
       final db = DatastoreDB(_datastore);
       registerDbService(db);

@@ -14,7 +14,7 @@ import '../../shared/test_services.dart';
 import '_utils.dart';
 
 void main() {
-  setUpAll(() => updateLocalBuiltFiles());
+  setUpAll(() => updateLocalBuiltFilesIfNeeded());
 
   group('redirects', () {
     testWithServices('pub.dartlang.org', () async {

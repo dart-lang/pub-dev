@@ -45,16 +45,19 @@ String resolveAppDir() {
   throw Exception('Unknown script: ${Platform.script}');
 }
 
-String _resolveStaticDirPath() {
+/// Returns the path of /static on the local filesystem.
+String resolveStaticDirPath() {
   return path.join(resolveAppDir(), '../static');
 }
 
-String _resolveWebAppDirPath() {
+/// Returns the path of pkg/web_app on the local filesystem.
+String resolveWebAppDirPath() {
   return Directory(path.join(resolveAppDir(), '../pkg/web_app'))
       .resolveSymbolicLinksSync();
 }
 
-String _resolveWebCssDirPath() {
+/// Returns the path of pkg/web_css on the local filesystem.
+String resolveWebCssDirPath() {
   return Directory(path.join(resolveAppDir(), '../pkg/web_css'))
       .resolveSymbolicLinksSync();
 }
@@ -71,7 +74,7 @@ class StaticFileCache {
   StaticFileCache();
 
   StaticFileCache.withDefaults() {
-    _addDirectory(Directory(_resolveStaticDirPath()).absolute);
+    _addDirectory(Directory(resolveStaticDirPath()).absolute);
     final thirdPartyDir = _resolveDir('third_party');
     _addDirectory(_resolveDir('third_party/highlight'), baseDir: thirdPartyDir);
     _addDirectory(_resolveDir('third_party/css'), baseDir: thirdPartyDir);
@@ -240,49 +243,65 @@ Future _runPubGet(Directory dir) async {
   }
 }
 
-Future updateLocalBuiltFiles() async {
-  final staticDir = Directory(_resolveStaticDirPath());
+/// Updates the built resources if their sources changed:
+/// - `script.dart.js` is updated if `pkg/web_app` changed.
+/// - `style.css` is updated if `pkg/web_css` changed.
+Future updateLocalBuiltFilesIfNeeded() async {
+  final staticDir = Directory(resolveStaticDirPath());
 
-  final webAppDir = Directory(_resolveWebAppDirPath());
+  final webAppDir = Directory(resolveWebAppDirPath());
   final webAppLastModified = await _detectLastModified(webAppDir);
   final scriptJs = File(path.join(staticDir.path, 'js', 'script.dart.js'));
   if (!scriptJs.existsSync() ||
       (scriptJs.lastModifiedSync().isBefore(webAppLastModified))) {
     await scriptJs.parent.create(recursive: true);
-    await _runPubGet(webAppDir);
-    final pr = await runProc(
-      '/bin/sh',
-      ['build.sh'],
-      workingDirectory: webAppDir.path,
-      timeout: const Duration(minutes: 2),
-    );
-    if (pr.exitCode != 0) {
-      final message = 'Unable to compile script.dart\n\n'
-          'exitCode: ${pr.exitCode}\n'
-          'STDOUT:\n${pr.stdout}\n\n'
-          'STDERR:\n${pr.stderr}';
-      throw Exception(message);
-    }
+    await updateWebAppBuild();
   }
 
-  final webCssDir = Directory(_resolveWebCssDirPath());
+  final webCssDir = Directory(resolveWebCssDirPath());
   final webCssLastModified = await _detectLastModified(webCssDir);
   final styleCss = File(path.join(staticDir.path, 'css', 'style.css'));
   if (!styleCss.existsSync() ||
       (styleCss.lastModifiedSync().isBefore(webCssLastModified))) {
-    await _runPubGet(webCssDir);
-    final pr = await runProc(
-      '/bin/sh',
-      ['build.sh'],
-      workingDirectory: webCssDir.path,
-      timeout: const Duration(minutes: 2),
-    );
-    if (pr.exitCode != 0) {
-      final message = 'Unable to compile style.scss\n\n'
-          'exitCode: ${pr.exitCode}\n'
-          'STDOUT:\n${pr.stdout}\n\n'
-          'STDERR:\n${pr.stderr}';
-      throw Exception(message);
-    }
+    await updateWebCssBuild();
+  }
+}
+
+/// Runs build.sh in pkg/web_app
+Future<void> updateWebAppBuild() async {
+  final webAppDir = Directory(resolveWebAppDirPath());
+
+  await _runPubGet(webAppDir);
+  final pr = await runProc(
+    '/bin/sh',
+    ['build.sh'],
+    workingDirectory: webAppDir.path,
+    timeout: const Duration(minutes: 2),
+  );
+  if (pr.exitCode != 0) {
+    final message = 'Unable to compile script.dart\n\n'
+        'exitCode: ${pr.exitCode}\n'
+        'STDOUT:\n${pr.stdout}\n\n'
+        'STDERR:\n${pr.stderr}';
+    throw Exception(message);
+  }
+}
+
+/// Runs build.sh in pkg/web_css
+Future<void> updateWebCssBuild() async {
+  final webCssDir = Directory(resolveWebCssDirPath());
+  await _runPubGet(webCssDir);
+  final pr = await runProc(
+    '/bin/sh',
+    ['build.sh'],
+    workingDirectory: webCssDir.path,
+    timeout: const Duration(minutes: 2),
+  );
+  if (pr.exitCode != 0) {
+    final message = 'Unable to compile style.scss\n\n'
+        'exitCode: ${pr.exitCode}\n'
+        'STDOUT:\n${pr.stdout}\n\n'
+        'STDERR:\n${pr.stderr}';
+    throw Exception(message);
   }
 }
