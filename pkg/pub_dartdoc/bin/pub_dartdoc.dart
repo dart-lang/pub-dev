@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:dartdoc/dartdoc.dart';
-import 'package:dartdoc/src/html/html_generator.dart';
 import 'package:dartdoc/src/logging.dart';
 
 import 'package:pub_dartdoc/pub_data_generator.dart';
