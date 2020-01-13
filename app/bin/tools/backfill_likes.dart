@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:appengine/appengine.dart';
 import 'package:args/args.dart';
 import 'package:gcloud/db.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/service/entrypoint/tools.dart';
+import 'package:pub_dev/shared/datastore_helper.dart';
 
 final _argParser = ArgParser()
   ..addOption('concurrency',
@@ -31,8 +34,14 @@ Future main(List<String> args) async {
 
     useLoggingPackageAdaptor();
     await for (Like l in dbService.query<Like>().run()) {
-      final f = pool.withResource(() => _backfillLikes(l));
-      futures.add(f);
+      final r = await pool.request();
+      futures.add(() async {
+        try {
+          await _backfillLikes(l);
+        } finally {
+          r.release();
+        }
+      }());
     }
 
     await Future.wait(futures);
@@ -47,19 +56,19 @@ Future<void> _backfillLikes(Like l) async {
       'Backfilling `packageName` on like entity for user ${l.userId} and package'
       ' ${l.package}');
   try {
-    await dbService.withTransaction((Transaction tx) async {
-      final like = await tx.lookupValue<Like>(l.key, orElse: () => null);
-      if (like == null) {
+    await withRetryTransaction(dbService, (tx) async {
+      final like = await tx.lookupOrNull<Like>(l.key);
+      if (like == null || like.packageName != null) {
         return;
       }
-      like.packageName ??= like.package;
-      tx.queueMutations(inserts: [like]);
-      await tx.commit();
-      print('Updated packageName on like entity for user ${like.userId} and '
+      like.packageName = like.package;
+      tx.insert(like);
+      print('Updating packageName on like entity for user ${like.userId} and '
           'package ${like.package}');
     });
   } catch (e) {
-    print('Failed to update packageName on ike entity for user ${l.userId} and '
+    print(
+        'Failed to update packageName on like entity for user ${l.userId} and '
         'package ${l.package}, error $e');
   }
 }
