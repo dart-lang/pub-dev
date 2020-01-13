@@ -2,9 +2,9 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bumped runtimeVersion to `2020.01.10`.
+ * Bumped runtimeVersion to `2020.01.13`.
  * Upgraded dartdoc to `0.30.0+1`.
- * Upgraded pana to `0.13.3`.
+ * Upgraded pana to `0.13.4` (restricted linter rules to `pedantic` `1.8.0`).
 
 ## `20191218t150816-all`
  * Upgraded runtime SDK to `2.7.0`.
