@@ -78,6 +78,7 @@ class AnalyzerJobProcessor extends JobProcessor {
           options: InspectOptions(
             isInternal: isInternal,
             pubHostedUrl: activeConfiguration.primaryApiUri.toString(),
+            analysisOptionsUri: 'package:pedantic/analysis_options.1.8.0.yaml',
           ),
           logger:
               Logger.detached('pana/${job.packageName}/${job.packageVersion}'),
