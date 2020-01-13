@@ -412,11 +412,11 @@ class SimplePackageIndex implements PackageIndex {
         final readmeTokens = _readmeIndex.lookupTokens(word);
 
         final name = Score(_nameIndex.scoreDocs(nameTokens,
-            weight: 1.00, wordCount: wordCount, ids: packages));
+            weight: 1.00, wordCount: wordCount, limitToIds: packages));
         final descr = Score(_descrIndex.scoreDocs(descrTokens,
-            weight: 0.90, wordCount: wordCount, ids: packages));
+            weight: 0.90, wordCount: wordCount, limitToIds: packages));
         final readme = Score(_readmeIndex.scoreDocs(readmeTokens,
-            weight: 0.75, wordCount: wordCount, ids: packages));
+            weight: 0.75, wordCount: wordCount, limitToIds: packages));
 
         final apiSymbolTokens = _apiSymbolIndex.lookupTokens(word);
         final apiDartdocTokens = _apiDartdocIndex.lookupTokens(word);
@@ -796,16 +796,18 @@ class TokenIndex {
 
   /// Returns an {id: score} map of the documents stored in the [TokenIndex].
   /// The tokens in [tokenMatch] will be used to calculate a weighted sum of scores.
-  /// When [ids] is specified, the result will contain only the set of ids in it.
+  ///
+  /// When [limitToIds] is specified, the result will contain only the set of
+  /// identifiers in it.
   Map<String, double> scoreDocs(TokenMatch tokenMatch,
-      {double weight = 1.0, int wordCount = 1, Set<String> ids}) {
+      {double weight = 1.0, int wordCount = 1, Set<String> limitToIds}) {
     // Summarize the scores for the documents.
     final queryWeight = tokenMatch.maxWeight;
     final Map<String, double> docScores = <String, double>{};
     for (String token in tokenMatch.tokens) {
       final docWeights = _inverseIds[token];
       for (String id in docWeights.keys) {
-        if (ids != null && !ids.contains(id)) continue;
+        if (limitToIds != null && !limitToIds.contains(id)) continue;
         final double prevValue = docScores[id] ?? 0.0;
         final double currentValue = tokenMatch[token] * docWeights[id];
         docScores[id] = math.max(prevValue, currentValue);
