@@ -70,7 +70,7 @@ Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final Duration elapsed = sw.elapsed;
   if (elapsed > _slowSearchThreshold) {
     _logger.info(
-        'Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds}ms: '
+        '[pub-slow-search-query] Slow search: handler exceeded ${_slowSearchThreshold.inMilliseconds} ms: '
         '${query.toServiceQueryParameters()}');
   }
 
