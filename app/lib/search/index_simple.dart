@@ -403,7 +403,7 @@ class SimplePackageIndex implements PackageIndex {
         if (sw.elapsedMilliseconds > 500) {
           aborted = true;
           _logger.info(
-              'Aborted word lookup after ${pkgScores.length} words and ${sw.elapsedMilliseconds} ms.');
+              '[pub-aborted-search-query] Aborted word lookup after ${pkgScores.length} words and ${sw.elapsedMilliseconds} ms.');
           break;
         }
 
