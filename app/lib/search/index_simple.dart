@@ -400,7 +400,7 @@ class SimplePackageIndex implements PackageIndex {
 
       for (String word in words) {
         if (packages.isEmpty) break;
-        if (pkgScores.length > 5 && sw.elapsedMilliseconds > 500) {
+        if (sw.elapsedMilliseconds > 500) {
           aborted = true;
           _logger.info(
               'Aborted word lookup after ${pkgScores.length} words and ${sw.elapsedMilliseconds} ms.');
