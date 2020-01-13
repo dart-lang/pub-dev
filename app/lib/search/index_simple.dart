@@ -384,7 +384,6 @@ class SimplePackageIndex implements PackageIndex {
     final sw = Stopwatch()..start();
     if (text != null && text.isNotEmpty) {
       final words = splitForIndexing(text).toSet().toList();
-      final wordCount = words.length;
 
       // lookup longer words first, as it may restrict the result set better
       words.sort((a, b) => -a.length.compareTo(b.length));
@@ -394,6 +393,7 @@ class SimplePackageIndex implements PackageIndex {
         words.removeRange(20, words.length);
       }
 
+      final wordCount = words.length;
       final pkgScores = <Score>[];
       final apiPagesScores = <Score>[];
       bool aborted = false;
