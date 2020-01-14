@@ -602,7 +602,7 @@ packages:
       name: shelf_router
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.1"
+    version: "0.7.2"
   shelf_router_generator:
     dependency: "direct dev"
     description:
