@@ -567,7 +567,9 @@ class GCloudPackageRepository extends PackageRepository {
       package.updated = DateTime.now().toUtc();
 
       try {
-        _logger.info('Trying to upload tarball to cloud storage.');
+        _logger.info(
+          'Trying to upload tarball for ${package.name} version ${newVersion.version} to cloud storage.',
+        );
         // Apply update: Push to cloud storage
         await tarballUpload(package.name, newVersion.version);
 
