@@ -51,7 +51,7 @@ class TemplateCache {
     mustache.Template parsedTemplate;
     if (requestContext.isExperimental) {
       final dirName = path.dirname(template);
-      final expFileName = 'experimental_${path.basename(template)}';
+      final expFileName = '${path.basename(template)}_experimental';
       final expTemplate =
           dirName == '.' ? expFileName : path.join(dirName, expFileName);
       parsedTemplate = _parsedMustacheTemplates[expTemplate];
