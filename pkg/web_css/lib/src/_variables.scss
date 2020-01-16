@@ -1,3 +1,14 @@
+$site-header-banner-bg: #1C2834;
+$site-header-banner-fg: #f8f9fa;
+$site-header-popup-bg: #1f3044;
+$site-header-popup-fg: #f8f9fa;
+$site-header-popup-line: mix($site-header-popup-bg, $site-header-popup-fg, 80%);
+
+$device-desktop-min-width: 641px;
+$device-mobile-max-width: 640px;
+
+$z-index-nav-mask: 1000;
+
 $site-max-width: 1000px;
 $color-header-dark-bg: #1C2834;
 $color-header-dark-fg: #f8f9fa;

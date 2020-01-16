@@ -2,6 +2,9 @@
   site header
 ******************************************************/
 
+/* non-indented rule to restrict the content of the file to the non-experimental pages */
+body.non-experimental {
+
 .site-header-row {
   background: $color-header-dark-bg;
   color: $color-header-dark-fg;
@@ -356,4 +359,7 @@
     border-bottom: 1px solid #eee;
     margin: 4px 0px;
   }
+}
+
+/* non-indented rule to restrict the content of the file to the non-experimental pages */
 }
