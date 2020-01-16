@@ -57,14 +57,12 @@ String renderLayoutPage(
     if (type == PageType.standalone) 'page-standalone',
     requestContext.isExperimental ? 'experimental' : 'non-experimental',
   ];
-  final sp = _sp(searchQuery);
   final searchBannerHtml = _renderSearchBanner(
     type: type,
     publisherId: publisherId,
     searchQuery: searchQuery,
     searchPlaceholder: searchPlaceHolder,
   );
-  final isFlutter = sp.sdk == SdkTagValue.flutter;
   final values = {
     'is_experimental': requestContext.isExperimental,
     'is_landing': type == PageType.landing,
@@ -78,8 +76,6 @@ String renderLayoutPage(
         ? _defaultPageDescriptionEscaped
         : htmlEscape.convert(pageDescription),
     'title': htmlEscape.convert(title),
-    'landing_banner_image': _landingBannerImage(isFlutter),
-    'landing_banner_alt': isFlutter ? 'Flutter packages' : 'Dart packages',
     'landing_blurb_html': defaultLandingBlurbHtml,
     'site_header_html': _renderSiteHeader(),
     // This is not escaped as it is already escaped by the caller.
@@ -224,12 +220,6 @@ String _renderSearchBanner({
 SearchPreference _sp(SearchQuery searchQuery) => searchQuery != null
     ? SearchPreference.fromSearchQuery(searchQuery)
     : (searchPreference ?? SearchPreference());
-
-String _landingBannerImage(bool isFlutter) {
-  return isFlutter
-      ? staticUrls.assets['img__flutter-packages-white_png']
-      : staticUrls.assets['img__dart-packages-white_png'];
-}
 
 String renderSdkTabs({
   SearchQuery searchQuery,
