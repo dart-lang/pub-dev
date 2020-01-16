@@ -80,8 +80,7 @@ String renderLayoutPage(
     'title': htmlEscape.convert(title),
     'landing_banner_image': _landingBannerImage(isFlutter),
     'landing_banner_alt': isFlutter ? 'Flutter packages' : 'Dart packages',
-    'landing_blurb_html':
-        isFlutter ? flutterLandingBlurbHtml : defaultLandingBlurbHtml,
+    'landing_blurb_html': defaultLandingBlurbHtml,
     'site_header_html': _renderSiteHeader(),
     // This is not escaped as it is already escaped by the caller.
     'content_html': contentHtml,
