@@ -27,6 +27,24 @@
   }
 }
 
+.email-icon,
+.search-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  vertical-align: text-bottom;
+}
+
+.email-icon {
+  background-image: url("../img/ic_email_black_18px.svg?hash=i481p31dv31r1f2a4hn2115bkp577v5b");
+}
+
+.search-icon {
+  background-image: url("../img/ic_search_black_18px.svg?hash=ge0i1c113s0s7cihqju9rfaqg2ls6rmn");
+}
+
 /******************************************************
   Analysis tab
 ******************************************************/
@@ -47,17 +65,17 @@
   font-size: 10pt;
   min-width: 24px;
   text-align: center;
-}
 
-.score-percent::after {
-  content: " ";
-  position: absolute;
-  top: 100%;
-  left: 12px;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #dddddd transparent transparent transparent;
+  &::after {
+    content: " ";
+    position: absolute;
+    top: 100%;
+    left: 12px;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #dddddd transparent transparent transparent;
+  }
 }
 
 .score-progress-row {
@@ -67,28 +85,28 @@
 
 .score-progress-frame {
   background: #f0f0f0;
-}
 
-.score-progress-frame > .score-progress {
-  height: 4px;
+  > .score-progress {
+    height: 4px;
+  }
 }
 
 #scores-table {
   margin-bottom: 1em;
-}
 
-#scores-table tr {
-  vertical-align: baseline;
-}
+  tr {
+    vertical-align: baseline;
+  }
 
-#scores-table .score-name {
-  min-width: 100px;
-  padding-right: 4px;
-  text-align: right;
-}
+  .score-name {
+    min-width: 100px;
+    padding-right: 4px;
+    text-align: right;
+  }
 
-#scores-table .score-value {
-  width: 100%;
+  .score-value {
+    width: 100%;
+  }
 }
 
 .tooltip-base {
@@ -115,28 +133,28 @@
   top: 100%;
   left: -24px;
   z-index: 3;
-}
 
-.tooltip-content::after {
-  content: " ";
-  position: absolute;
-  bottom: 100%;
-  /* At the top of the tooltip */
-  left: 48px;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent #ddd transparent;
+  &::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;
+    /* At the top of the tooltip */
+    left: 48px;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #ddd transparent;
+  }
 }
 
 .tooltip-bottom-left {
   left: inherit;
   right: -24px;
-}
 
-.tooltip-bottom-left.tooltip-content::after {
-  left: inherit;
-  right: 48px;
+  &.tooltip-content::after {
+    left: inherit;
+    right: 48px;
+  }
 }
 
 .tooltip-base:hover .tooltip-content,
@@ -146,10 +164,10 @@
 
 .suggestion-row {
   padding: 2px;
-}
 
-.suggestion-row:hover {
-  background-color: #f8f8f8;
+  &:hover {
+    background-color: #f8f8f8;
+  }
 }
 
 .suggestion-title {
