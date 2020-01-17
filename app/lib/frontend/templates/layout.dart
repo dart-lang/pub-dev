@@ -82,6 +82,8 @@ String renderLayoutPage(
     'content_html': contentHtml,
     'include_survey': includeSurvey,
     'include_highlight': type == PageType.package,
+    'show_search_banner':
+        !requestContext.isExperimental || type != PageType.package,
     'search_banner_html': searchBannerHtml,
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
@@ -202,18 +204,20 @@ String _renderSearchBanner({
       ],
     );
   }
+  final isExperimental = requestContext.isExperimental;
   return templateCache.renderTemplate('shared/search_banner', {
-    'show_details': type == PageType.listing || type == PageType.landing,
-    'show_options': type == PageType.listing,
+    'show_details': !isExperimental &&
+        (type == PageType.listing || type == PageType.landing),
+    'show_options': !isExperimental && type == PageType.listing,
     'search_form_url': searchFormUrl,
     'search_query_placeholder': searchPlaceholder,
     'search_query_html': escapedSearchQuery,
     'search_sort_param': searchSort,
     'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     'hidden_inputs': hiddenInputs,
-    'sdk_tabs_html': sdkTabsHtml,
-    'show_legacy_checkbox': sp.sdk == null,
-    'secondary_tabs_html': secondaryTabsHtml,
+    'sdk_tabs_html': isExperimental ? null : sdkTabsHtml,
+    'show_legacy_checkbox': !isExperimental && sp.sdk == null,
+    'secondary_tabs_html': isExperimental ? null : secondaryTabsHtml,
   });
 }
 
