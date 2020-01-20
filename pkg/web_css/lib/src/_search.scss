@@ -8,6 +8,16 @@
   border-radius: 3px;
   max-width: 650px;
   background: transparent;
+
+  .experimental & {
+    max-width: 710px;
+    position: relative;
+    margin: 0 auto;
+  }
+
+  .experimental .home-banner & {
+    max-width: 880px;
+  }
 }
 
 .search-bar > .input {
@@ -24,6 +34,20 @@
   &::placeholder {
     color: #888;
   }
+
+  .experimental & {
+    font-size: 16px;
+    padding: 15px 24px 14px 48px;
+    border-radius: 24px;
+  }
+
+  .experimental .home-banner & {
+    @media (min-width: $device-desktop-min-width) {
+      font-size: 24px;
+      padding: 20px 35px 20px 65px;
+      border-radius: 35px;
+    }
+  }
 }
 
 .search-bar > .icon {
@@ -37,6 +61,23 @@
   background-position: 50% 50%;
   -webkit-transform: scale(1.02);
   transform: scale(1.02);
+
+  .experimental & {
+    background-color: transparent;
+    opacity: 0.4;
+    position: absolute;
+    left: 10px;
+    transform: scale(0.72);
+
+    /* TODO: remove border radius. */
+  }
+
+  .experimental .home-banner & {
+    @media (min-width: $device-desktop-min-width) {
+      left: 20px;
+      transform: scale(1.0);
+    }
+  }
 }
 
 .search-bar-details {
