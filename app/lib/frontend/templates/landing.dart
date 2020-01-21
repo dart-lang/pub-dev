@@ -20,20 +20,15 @@ String renderLandingPage({
   List<PackageView> topFlutterPackages, // new only
   List<PackageView> topDartPackages, // new only
 }) {
+  bool isNotEmptyList(List l) => l == null && l.isNotEmpty;
+
   final isExperimental = requestContext.isExperimental;
-  final hasTagged =
-      !isExperimental && ffPackages != null && ffPackages.isNotEmpty;
-  final hasTop =
-      !isExperimental && topPackages != null && topPackages.isNotEmpty;
-  final hasFF = isExperimental && ffPackages != null && ffPackages.isNotEmpty;
-  final hasMostPopular = isExperimental &&
-      mostPopularPackages != null &&
-      mostPopularPackages.isNotEmpty;
-  final hasTopFlutter = isExperimental &&
-      topFlutterPackages != null &&
-      topFlutterPackages.isNotEmpty;
-  final hasTopDart =
-      isExperimental && topDartPackages != null && topDartPackages.isNotEmpty;
+  final hasTagged = !isExperimental && isNotEmptyList(ffPackages);
+  final hasTop = !isExperimental && isNotEmptyList(topPackages);
+  final hasFF = isExperimental && isNotEmptyList(ffPackages);
+  final hasMostPopular = isExperimental && isNotEmptyList(mostPopularPackages);
+  final hasTopFlutter = isExperimental && isNotEmptyList(topFlutterPackages);
+  final hasTopDart = isExperimental && isNotEmptyList(topDartPackages);
   final values = {
     // old design's variables
     'has_tagged': hasTagged,
