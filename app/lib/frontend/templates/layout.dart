@@ -55,6 +55,7 @@ String renderLayoutPage(
       : htmlAttrEscape.convert(pageDataJsonCodec.encode(pageData.toJson()));
   final bodyClasses = [
     if (type == PageType.standalone) 'page-standalone',
+    if (type == PageType.landing) 'page-landing',
     requestContext.isExperimental ? 'experimental' : 'non-experimental',
   ];
   final searchBannerHtml = _renderSearchBanner(

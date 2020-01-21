@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="14px" height="17px" viewBox="0 0 14 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 61.2 (89653) - https://sketch.com -->
+    <title>icon - verified contributor</title>
+    <desc>Created with Sketch.</desc>
+    <g id="pub.dev" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="general-ui---icons-and-components" transform="translate(-472.000000, -308.000000)" fill="#9AA0A7">
+            <path d="M477.409091,320.363636 L474.318182,317.272727 L475.407727,316.183182 L477.409091,318.176818 L482.501364,313.084545 L483.590909,314.181818 L477.409091,320.363636 Z M478.954545,308 L472,311.090909 L472,315.727273 C472,320.015909 474.967273,324.026364 478.954545,325 C482.941818,324.026364 485.909091,320.015909 485.909091,315.727273 L485.909091,311.090909 L478.954545,308 Z" id="icon---verified-contributor"></path>
+        </g>
+    </g>
+</svg>

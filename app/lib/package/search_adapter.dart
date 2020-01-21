@@ -219,6 +219,7 @@ Future<List<PackageView>> topFeaturedPackages({
   List<String> requiredTags,
   int count = 6,
   bool emptyFallback = false,
+  SearchOrder order,
 }) async {
   // TODO: store top packages in memcache
   try {
@@ -227,6 +228,7 @@ Future<List<PackageView>> topFeaturedPackages({
         limit: count,
         tagsPredicate: TagsPredicate.advertisement(requiredTags: requiredTags),
         randomize: true,
+        order: order,
       ),
       fallbackToNames: false,
     );
