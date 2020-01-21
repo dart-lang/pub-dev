@@ -21,6 +21,8 @@ String renderLandingPage({
   List<PackageView> topDartPackages, // new only
 }) {
   bool isNotEmptyList(List l) => l == null && l.isNotEmpty;
+  String renderMiniListIf(bool cond, List<PackageView> packages) =>
+      cond ? renderMiniList(packages) : null;
 
   final isExperimental = requestContext.isExperimental;
   final hasTagged = !isExperimental && isNotEmptyList(ffPackages);
@@ -32,25 +34,23 @@ String renderLandingPage({
   final values = {
     // old design's variables
     'has_tagged': hasTagged,
-    'tagged_minilist_html': hasTagged ? renderMiniList(ffPackages) : null,
+    'tagged_minilist_html': renderMiniListIf(hasTagged, ffPackages),
     'tagged_more_url': '/flutter/favorites',
     'has_top': hasTop,
-    'top_minilist_html': hasTop ? renderMiniList(topPackages) : null,
+    'top_minilist_html': renderMiniListIf(hasTop, topPackages),
     'top_more_url': urls.searchUrl(),
     // new design's variables
     'has_ff': hasFF,
-    'ff_mini_list_html': hasFF ? renderMiniList(ffPackages) : null,
+    'ff_mini_list_html': renderMiniListIf(hasFF, ffPackages),
     'ff_view_all_url': '/flutter/favorites',
     'has_mp': hasMostPopular,
-    'mp_mini_list_html':
-        hasMostPopular ? renderMiniList(mostPopularPackages) : null,
+    'mp_mini_list_html': renderMiniListIf(hasMostPopular, mostPopularPackages),
     'mp_view_all_url': urls.searchUrl(order: urls.SearchOrder.popularity),
     'has_tf': hasTopFlutter,
-    'tf_mini_list_html':
-        hasTopFlutter ? renderMiniList(topFlutterPackages) : null,
+    'tf_mini_list_html': renderMiniListIf(hasTopFlutter, topFlutterPackages),
     'tf_view_all_url': urls.searchUrl(sdk: SdkTagValue.flutter),
     'has_td': hasTopDart,
-    'td_mini_list_html': hasTopDart ? renderMiniList(topDartPackages) : null,
+    'td_mini_list_html': renderMiniListIf(hasTopDart, topDartPackages),
     'td_view_all_url': urls.searchUrl(sdk: SdkTagValue.dart),
   };
   final String content = templateCache.renderTemplate('page/landing', values);
