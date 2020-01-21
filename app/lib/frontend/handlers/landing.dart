@@ -55,12 +55,10 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
     final topPackages =
         requestContext.isExperimental ? null : await topFeaturedPackages();
 
-    // TODO: implement top rated
     final mostPopularPackages = requestContext.isExperimental
         ? await topFeaturedPackages(order: SearchOrder.popularity)
         : null;
 
-    // TODO: implement top trending
     final topFlutterPackages = requestContext.isExperimental
         ? await topFeaturedPackages(requiredTags: [SdkTag.sdkFlutter])
         : null;
