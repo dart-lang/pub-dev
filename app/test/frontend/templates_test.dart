@@ -94,7 +94,7 @@ void main() {
     }
 
     scopedTest('landing page', () {
-      final String html = renderLandingPage(taggedPackages: [
+      final String html = renderLandingPage(ffPackages: [
         PackageView.fromModel(
           package: foobarPackage,
           version: foobarStablePV,

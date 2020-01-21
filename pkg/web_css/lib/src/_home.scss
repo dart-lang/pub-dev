@@ -51,6 +51,9 @@
   }
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+.non-experimental {
+
 .home-lists-container {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -82,4 +85,139 @@
       border-bottom: inherit;
     }
   }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+.experimental {
+
+&.page-landing {
+  background-image: url('/static/img/square-bg.png');
+  >.container {
+    margin: 0px;
+    padding: 0px;
+    max-width: inherit;
+  }
+}
+
+.home-block {
+  padding: 20px;
+
+  .home-block-title {
+    color: #254a76;
+  }
+
+  &.home-block-ff {
+    background: #f5f5f7;
+  }
+
+  .home-block-image {
+    display: none;
+  }
+
+  @media (min-width: $device-desktop-min-width) {
+    .home-block-image {
+      display: block;
+    }
+
+    &.home-block-ff {
+      .home-block-content {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+
+      .mini-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .mini-list-item {
+        width: 360px;
+        margin: 8px 16px;
+      }
+    }
+
+    &.home-block-mp,
+    &.home-block-tf,
+    &.home-block-td, {
+      display: flex;
+
+      .home-block-image {
+        flex-basis: 33%;
+        margin-top: 80px;
+      }
+
+      .home-block-content {
+        flex-basis: 67%;
+      }
+
+      .mini-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .mini-list-item {
+        width: 20vw;
+        margin: 8px;
+      }
+    }
+  }
+
+  .mini-list-item {
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.3);
+    padding: 18px;
+    margin-bottom: 10px;
+    min-height: 100px;
+
+    .title {
+      > h3 {
+        color: #1967d2;
+        font-size: 22px;
+        font-weight: 400;
+        margin: 0 0 8px 0;
+      }
+    }
+
+    .description {
+      font-weight: 300;
+      margin: 8px 0px;
+      max-height: 100px;
+      overflow: hidden;
+    }
+
+    .publisher {
+      margin: 8px 0px;
+    }
+
+    .publisher-badge {
+      width: 16px;
+      height: 16px;
+      position: relative;
+      top: 4px;
+    }
+
+    .publisher-link {
+      color: #4a4a4a;
+      font-size: 12px;
+      display: inline-block;
+    }
+  }
+
+  .home-block-view-all {
+    text-align: right;
+  }
+
+  .home-block-view-all-link {
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
 }

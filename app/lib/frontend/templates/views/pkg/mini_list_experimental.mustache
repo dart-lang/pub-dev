@@ -1,0 +1,23 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="mini-list">
+  {{#packages}}
+  <div class="mini-list-item">
+    <a class="title" href="{{& package_url}}"><h3>{{name}}</h3></a>
+    <p class="description">{{ellipsized_description}}</p>
+    {{#has_tags}}
+    <p class="tags">{{& tags_html}}</p>
+    {{/has_tags}}
+    {{#publisher_id}}
+    <div class="publisher">
+      <img class="publisher-badge"
+           src="{{& static_assets.img__verified-publisher-gray_svg}}"
+           title="Published by a pub.dev verified publisher" />
+      <a class="publisher-link" href="/publishers/{{publisher_id}}">{{publisher_id}}</a>
+    </div>
+    {{/publisher_id}}
+  </div>
+  {{/packages}}
+</div>

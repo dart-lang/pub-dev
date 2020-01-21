@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/search_adapter.dart';
+import '../../search/search_service.dart' show SearchOrder;
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/tags.dart';
@@ -46,13 +47,32 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   }
 
   Future<String> _render() async {
-    final taggedPackages = await topFeaturedPackages(
+    final ffPackages = await topFeaturedPackages(
       requiredTags: [PackageTags.isFlutterFavorite],
+      count: requestContext.isExperimental ? 3 : 6,
+      emptyFallback: true,
     );
-    final topPackages = await topFeaturedPackages();
+    final topPackages =
+        requestContext.isExperimental ? null : await topFeaturedPackages();
+
+    final mostPopularPackages = requestContext.isExperimental
+        ? await topFeaturedPackages(order: SearchOrder.popularity)
+        : null;
+
+    final topFlutterPackages = requestContext.isExperimental
+        ? await topFeaturedPackages(requiredTags: [SdkTag.sdkFlutter])
+        : null;
+
+    final topDartPackages = requestContext.isExperimental
+        ? await topFeaturedPackages(requiredTags: [SdkTag.sdkDart])
+        : null;
+
     return renderLandingPage(
-      taggedPackages: taggedPackages,
+      ffPackages: ffPackages,
       topPackages: topPackages,
+      mostPopularPackages: mostPopularPackages,
+      topFlutterPackages: topFlutterPackages,
+      topDartPackages: topDartPackages,
     );
   }
 
