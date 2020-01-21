@@ -20,7 +20,7 @@ String renderLandingPage({
   List<PackageView> topFlutterPackages, // new only
   List<PackageView> topDartPackages, // new only
 }) {
-  bool isNotEmptyList(List l) => l == null && l.isNotEmpty;
+  bool isNotEmptyList(List l) => l != null && l.isNotEmpty;
   String renderMiniListIf(bool cond, List<PackageView> packages) =>
       cond ? renderMiniList(packages) : null;
 
