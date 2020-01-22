@@ -1,3 +1,26 @@
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
+
+.listing-sort-header {
+  float: right;
+  margin: 0 0.5em 0.5em 0.5em;
+  text-align: right;
+}
+
+.listing-page-title {
+  color: gray;
+  font-weight: 500;
+}
+
+.package-count {
+  font-size: 16px;
+  color: #333;
+  margin: 24px 6px 10px;
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+}
+
 /******************************************************
   other listing page
 ******************************************************/
@@ -21,17 +44,6 @@
 /******************************************************
   package listing page
 ******************************************************/
-.listing-page-title {
-  color: gray;
-  font-weight: 500;
-}
-
-.listing-sort-header {
-  float: right;
-  margin: 0 0.5em 0.5em 0.5em;
-  text-align: right;
-}
-
 .list-item {
   padding: 7px 8px;
 
@@ -200,12 +212,6 @@
   .search-bar-options & {
     margin-top: 0px;
   }
-}
-
-.package-count {
-  font-size: 16px;
-  color: #333;
-  margin: 24px 6px 10px;
 }
 
 .pagination {

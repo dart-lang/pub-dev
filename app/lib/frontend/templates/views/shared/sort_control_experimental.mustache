@@ -1,0 +1,12 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="sort-control hoverable">
+  <div class="info-identifier">Sort by <span class="sort-control-selected">{{selected_label}}</span> &darr;</div>
+  <div class="sort-control-popup">
+    {{#options}}
+    <div class="sort-control-option {{#selected}}selected{{/selected}}" data-value="{{value}}">{{label}}</div>
+    {{/options}}
+  </div>
+</div>
