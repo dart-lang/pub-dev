@@ -222,23 +222,23 @@
     font-size: 14px;
     border-radius: 3px;
     margin-top: 40px;
-  }
 
-  &.-disabled {
-    pointer-events: none;
-    color: #aaa;
-  }
+    &.-disabled {
+      pointer-events: none;
+      color: #aaa;
+    }
 
-  &.-active {
-    pointer-events: none;
-    color: #fff;
-    background: #0175C2;
-  }
+    &.-active {
+      pointer-events: none;
+      color: #fff;
+      background: #0175C2;
+    }
 
-  > a {
-    display: inline-block;
-    padding: 10px 16px;
-    color: inherit;
-    font-weight: 600;
+    > a {
+      display: inline-block;
+      padding: 10px 16px;
+      color: inherit;
+      font-weight: 600;
+    }
   }
 }
