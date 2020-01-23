@@ -126,7 +126,7 @@ String renderPkgIndexPage(
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
     'total_count': totalCount,
-    // TODO: remove the keys below after we have migrated to the new design
+    // TODO(3246): remove the keys below after we have migrated to the new design
     'title': title ?? topPackages,
     'search_query': searchQuery?.query,
   };
@@ -171,7 +171,7 @@ String renderSortControl(SearchQuery query) {
             })
         .toList(),
     'selected_label': selectedOption.label,
-    // TODO: remove after we have migrated to the new design
+    // TODO(3246): remove after we have migrated to the new design
     'ranking_tooltip_html': sortDict.tooltip,
   });
 }
