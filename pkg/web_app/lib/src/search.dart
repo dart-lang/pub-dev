@@ -28,35 +28,46 @@ void _setEventForSearchInput() {
 }
 
 void _setEventForSortControl() {
-  final sortControl = document.getElementById('sort-control');
-  final queryText = document.querySelector('input[name="q"]') as InputElement;
-  if (sortControl == null || queryText == null) return;
-  final formElement = queryText.form;
-  final select = sortControl as SelectElement;
-  select.onChange.listen((_) {
-    final selected = select.selectedOptions.first;
-    InputElement sortInput =
-        document.querySelector('input[name="sort"]') as InputElement;
-    if (sortInput == null) {
-      sortInput = InputElement(type: 'hidden')..name = 'sort';
-      queryText.parent.append(sortInput);
-    }
-    // The first value of the selection list is the implied default sort order,
-    // and can be removed from the from to make a nicer query string.
-    if (select.options.first.value == selected.value) {
-      sortInput.remove();
-    } else {
-      sortInput.value = selected.value;
-    }
-
-    // Removes the q= part from the URL
-    if (queryText.value.isEmpty) {
-      queryText.name = '';
-    }
-
-    // TODO: instead of submitting, compose the URL here (also removing the single `?`)
-    formElement.submit();
+  // HTML-based dropdown
+  // TODO: remove once we have migrated to the new UI
+  final sortControl = document.getElementById('sort-control') as SelectElement;
+  sortControl?.onChange?.listen((_) {
+    final selectedValue = sortControl.selectedOptions.first.value;
+    final isFirst = selectedValue == sortControl.options.first.value;
+    _updateSortField(isFirst ? null : selectedValue);
   });
+
+  // new UI design
+  document.querySelectorAll('.sort-control-option').forEach((e) {
+    final isFirst = e.previousElementSibling == null;
+    final value = isFirst ? null : e.dataset['value'];
+    e.onClick.listen((_) => _updateSortField(value));
+  });
+}
+
+/// Updates the form's `sort` field and submits the form.
+/// When [value] is `null`, the `sort` field will be removed.
+void _updateSortField(String value) {
+  final queryText = document.querySelector('input[name="q"]') as InputElement;
+  InputElement sortInput =
+      document.querySelector('input[name="sort"]') as InputElement;
+  if (sortInput == null) {
+    sortInput = InputElement(type: 'hidden')..name = 'sort';
+    queryText.parent.append(sortInput);
+  }
+  if (value == null) {
+    sortInput.remove();
+  } else {
+    sortInput.value = value;
+  }
+
+  // Removes the q= part from the URL
+  if (queryText.value.isEmpty) {
+    queryText.name = '';
+  }
+
+  // TODO: instead of submitting, compose the URL here (also removing the single `?`)
+  queryText.form.submit();
 }
 
 void _setEventForCheckboxChanges() {

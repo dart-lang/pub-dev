@@ -122,12 +122,13 @@ String renderPkgIndexPage(
   final values = {
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
-    'title': title ?? topPackages,
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
-    'search_query': searchQuery?.query,
     'total_count': totalCount,
+    // TODO(3246): remove the keys below after we have migrated to the new design
+    'title': title ?? topPackages,
+    'search_query': searchQuery?.query,
   };
   final content = templateCache.renderTemplate('pkg/index', values);
 
@@ -156,6 +157,10 @@ String renderSortControl(SearchQuery query) {
   final options = getSortDicts(isSearch);
   final selectedValue = serializeSearchOrder(query?.order) ??
       (isSearch ? 'search_relevance' : 'listing_relevance');
+  final selectedOption = options.firstWhere(
+    (o) => o.id == selectedValue,
+    orElse: () => options.first,
+  );
   final sortDict = getSortDict(selectedValue);
   return templateCache.renderTemplate('shared/sort_control', {
     'options': options
@@ -165,6 +170,8 @@ String renderSortControl(SearchQuery query) {
               'selected': d.id == selectedValue,
             })
         .toList(),
+    'selected_label': selectedOption.label,
+    // TODO(3246): remove after we have migrated to the new design
     'ranking_tooltip_html': sortDict.tooltip,
   });
 }

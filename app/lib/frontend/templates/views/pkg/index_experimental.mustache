@@ -1,0 +1,20 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="listing-info">
+  <div class="listing-info-count">
+    <span class="info-identifier">Results</span>
+    <span class="count">{{total_count}}</span>
+  </div>
+  {{& sort_control_html}}
+</div>
+
+{{& package_list_html}}
+
+{{#has_packages}}
+  {{{pagination}}}
+{{/has_packages}}
+{{#is_search}}
+  <p>Check our help page for <a href="/help#search">advanced search expressions</a>.</p>
+{{/is_search}}

@@ -1,0 +1,77 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+body.experimental {
+
+.listing-info {
+  display: flex;
+  padding: 16px 0px 12px 0px;
+
+  .listing-info-count {
+    flex-grow: 1;
+  }
+
+  .info-identifier {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    .sort-control-selected {
+      color: #1967d2;
+
+      @media (max-width: $device-mobile-max-width) {
+        display: none;
+      }
+    }
+  }
+
+  .count {
+    background: rgba(218, 220, 224, 0.26);
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 300;
+    font-family: monospace;
+    padding: 5px;
+  }
+}
+
+.sort-control {
+  position: relative;
+  cursor: pointer;
+
+  .sort-control-popup {
+    display: none;
+
+    box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    right: 0px;
+    z-index: $z-index-nav-mask;
+
+    .sort-control-option {
+      background: #ffffff;
+      font-size: 14px;
+      padding: 8px 12px;
+
+      &:hover {
+        background: #fafafa;
+      }
+
+      &.selected {
+        background: #e7f8ff;
+      }
+    }
+  }
+
+  &:hover,
+  &.hover {
+    .sort-control-popup {
+      display: block;
+    }
+  }
+}
+
+/* non-indented rule to restrict the content of this block to the experimental pages */
+}
