@@ -73,5 +73,80 @@ body.experimental {
   }
 }
 
+.packages {
+  .packages-item {
+    margin: 0px -4px 12px -4px;
+    padding: 4px;
+
+    &:hover {
+      background: #fafafa;
+    }
+  }
+
+  .packages-header {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .packages-title {
+    flex-grow: 1;
+    font-size: 22px;
+    margin: 0;
+  }
+
+  .packages-icons {
+    display: flex;
+    align-items: center;
+  }
+
+  .packages-ff-icon {
+    width: 40px;
+  }
+
+  .packages-description {
+    font-size: 14px;
+    font-weight: 300;
+    margin: 4px 0px;
+  }
+
+  .packages-metadata {
+    font-size: 12px;
+  }
+
+  .packages-vp-icon {
+    display: inline-block;
+    height: 14px;
+    margin-left: 4px;
+    position: relative;
+    top: 3px;
+  }
+
+  .packages-api {
+    color: #3c4043;
+    font-size: 12px;
+    margin-top: 6px;
+
+    > ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      @media (min-width: $device-desktop-min-width) {
+        display: flex;
+
+        > li {
+          display: block;
+          margin-right: 32px;
+        }
+      }
+    }
+  }
+
+  .score-box {
+    float: none;
+  }
+}
+
 /* non-indented rule to restrict the content of this block to the experimental pages */
 }

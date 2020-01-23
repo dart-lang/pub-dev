@@ -22,9 +22,6 @@ body.non-experimental {
   margin: 24px 6px 10px;
 }
 
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-}
-
 /******************************************************
   other listing page
 ******************************************************/
@@ -93,6 +90,9 @@ body.non-experimental {
   > .api_pages {
     font-size: 12px;
   }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
 }
 
 .-pub-mini-list-publisher-badge {
