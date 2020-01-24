@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' show pi;
+
 import 'package:meta/meta.dart';
 
 import '../../package/models.dart';
@@ -9,6 +11,8 @@ import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
+
+import '../request_context.dart';
 
 import '_cache.dart';
 import '_utils.dart';
@@ -254,9 +258,39 @@ String renderTags({
   });
 }
 
+/// Renders the `views/shared/score_circle.mustache` template.
+String renderScoreCircle({
+  @required String label,
+  @required int percent,
+  String link,
+  String title,
+}) {
+  if (percent < 0) percent = 0;
+  if (percent > 100) percent = 100;
+
+  // Circle arc is rendered via SVG circle's dash-array, with the length on
+  // the circle's circumference as the arc's active part, and then a longer
+  // transparent pattern.
+  final radius = 20;
+  return templateCache.renderTemplate('shared/score_circle', {
+    'radius': radius,
+    'diameter': radius * 2,
+    'active': (percent * radius * 2 * pi) ~/ 100,
+    'inactive': radius * 7, // longer than the circumference (r * 2 * pi)
+    'label': label,
+    'percent': percent,
+    'link': link,
+    'title': title,
+  });
+}
+
 /// Renders the simplified version of the circle with 'sdk' text content instead
 /// of the score.
 String renderSdkScoreBox() {
+  if (requestContext.isExperimental) {
+    return renderScoreCircle(label: 'sdk', percent: 100);
+  }
+  // TODO(3246): Remove after migrating to the new UI.
   return '<div class="score-box"><span class="number -solid">sdk</span></div>';
 }
 
@@ -268,13 +302,23 @@ String renderScoreBox(
   String package,
 }) {
   final String formattedScore = formatScore(overallScore);
-  final String scoreClass = _classifyScore(overallScore);
   String title;
   if (!isSkipped && overallScore == null) {
     title = 'Awaiting analysis to complete.';
   } else {
     title = 'Analysis and more details.';
   }
+  if (requestContext.isExperimental) {
+    return renderScoreCircle(
+      label: formattedScore,
+      percent: overallScore == null ? 0 : (100 * overallScore).round(),
+      title: title,
+      link: package == null ? null : urls.analysisTabUrl(package),
+    );
+  }
+
+  // TODO(3246): Remove the rest of the method after migrating to the new UI.
+  final String scoreClass = _classifyScore(overallScore);
   final String escapedTitle = htmlAttrEscape.convert(title);
   final newIndicator = (isNewPackage ?? false)
       ? '<span class="new" title="Created in the last 30 days">new</span>'

@@ -1,0 +1,17 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="score-circle"{{#title}} title="{{title}}"{{/title}}>
+  {{#link}}<a href="{{& link}}">{{/link}}
+  <svg class="score-circle-arc" viewBox="-{{radius}} -{{radius}} {{diameter}} {{diameter}}">
+    <circle cx="0" cy="0"
+            r="{{radius}}"
+            transform="rotate(270)"
+            stroke-width="{{diameter}}"
+            stroke-dasharray="{{active}}, {{inactive}}"
+            fill="transparent"></circle>
+  </svg>
+  <span class="score-circle-label">{{label}}</span>
+  {{#link}}</a>{{/link}}
+</div>
