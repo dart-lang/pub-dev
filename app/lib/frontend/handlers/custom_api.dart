@@ -239,7 +239,7 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
         Map<String, dynamic>.from(request.requestedUri.queryParameters);
     final nextPageIndex = (searchQuery.offset ~/ searchQuery.limit) + 2;
     newParams['page'] = nextPageIndex.toString();
-    final nextPageUrl = activeConfiguration.primaryApiUri
+    final nextPageUrl = request.requestedUri
         .replace(queryParameters: newParams)
         .toString();
     result['next'] = nextPageUrl;
