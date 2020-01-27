@@ -3,6 +3,9 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20200127t105415-all`
+ * Bump Dart to `2.7.1`.
+
 ## `20200114t145115-all`
  * Bumped runtimeVersion to `2020.01.13`.
  * Upgraded dartdoc to `0.30.0+1`.
