@@ -55,7 +55,6 @@ String renderPackageList(
       'name': view.name,
       'is_external': view.isExternal,
       'external_type': externalType,
-      'show_metadata': !view.isExternal,
       'version': view.version,
       'show_dev_version': view.devVersion != null,
       'dev_version': view.devVersion,
@@ -85,6 +84,8 @@ String renderPackageList(
                         isLatest: true, relativePath: page.path),
               })
           ?.toList(),
+      // TODO(3246): remove the keys below after we have migrated to the new design
+      'show_metadata': !view.isExternal,
     });
   }
   return templateCache.renderTemplate('pkg/package_list', {
