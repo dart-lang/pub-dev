@@ -48,7 +48,9 @@ String renderLayoutPage(
   bool noIndex = false,
   PageData pageData,
   String searchPlaceHolder,
+  List<String> mainClasses,
 }) {
+  mainClasses ??= ['container'];
   final isRoot = type == PageType.landing && sdk == null;
   final pageDataEncoded = pageData == null
       ? null
@@ -70,6 +72,7 @@ String renderLayoutPage(
     'dart_site_root': urls.dartSiteRoot,
     'oauth_client_id': activeConfiguration.pubSiteAudience,
     'body_class': bodyClasses.join(' '),
+    'main_class': mainClasses.join(' '),
     'no_index': noIndex,
     'favicon': faviconUrl ?? staticUrls.smallDartFavicon,
     'canonicalUrl': canonicalUrl,

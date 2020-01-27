@@ -93,13 +93,8 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 .experimental {
 
-&.page-landing {
+.landing-main {
   background-image: url('/static/img/square-bg.png');
-  >.container {
-    margin: 0px;
-    padding: 0px;
-    max-width: inherit;
-  }
 }
 
 .home-block {

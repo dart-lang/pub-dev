@@ -58,5 +58,6 @@ String renderLandingPage({
     PageType.landing,
     content,
     title: 'Dart packages',
+    mainClasses: requestContext.isExperimental ? ['landing-main'] : null,
   );
 }

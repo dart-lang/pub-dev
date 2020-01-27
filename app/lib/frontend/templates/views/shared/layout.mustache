@@ -67,11 +67,9 @@
 </div>
 {{/show_search_banner}}
 
-<div class="container">
-  <main>
-    {{& content_html}}
-  </main>
-</div>
+<main class="{{main_class}}">
+{{& content_html}}
+</main>
 
 <footer class="site-footer">
   <a class="link" href="{{& dart_site_root}}/">Dart language</a>
