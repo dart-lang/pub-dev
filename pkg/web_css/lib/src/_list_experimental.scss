@@ -98,10 +98,16 @@ body.experimental {
   .packages-icons {
     display: flex;
     align-items: center;
+
+    .packages-icon:not(:last-child) {
+      margin-right: 8px;
+    }
   }
 
   .packages-ff-icon {
+    display: block;
     width: 40px;
+    height: 40px;
   }
 
   .packages-description {
