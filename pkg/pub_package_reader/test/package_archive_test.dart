@@ -39,27 +39,29 @@ void main() {
   });
 
   group('homepage syntax check', () {
-    test('no url is not accepted', () {
-      expect(syntaxCheckHomepageUrl(null), isNotEmpty);
+    test('no url is accepted', () {
+      expect(syntaxCheckUrl(null, 'homepage'), isEmpty);
     });
 
     test('example urls that are accepted', () {
-      expect(syntaxCheckHomepageUrl('http://github.com/user/repo/'), isEmpty);
-      expect(syntaxCheckHomepageUrl('https://github.com/user/repo/'), isEmpty);
-      expect(syntaxCheckHomepageUrl('http://some.domain.com'), isEmpty);
+      expect(
+          syntaxCheckUrl('http://github.com/user/repo/', 'homepage'), isEmpty);
+      expect(
+          syntaxCheckUrl('https://github.com/user/repo/', 'homepage'), isEmpty);
+      expect(syntaxCheckUrl('http://some.domain.com', 'homepage'), isEmpty);
     });
 
     test('urls without valid scheme are not accepted', () {
-      expect(syntaxCheckHomepageUrl('github.com/x/y'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('httpx://github.com/x/y'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('ftp://github.com/x/y'), isNotEmpty);
+      expect(syntaxCheckUrl('github.com/x/y', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('httpx://github.com/x/y', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('ftp://github.com/x/y', 'homepage'), isNotEmpty);
     });
 
     test('urls without valid host are not accepted', () {
-      expect(syntaxCheckHomepageUrl('http://none/x/'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('http://example.com/x/'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('http://localhost/x/'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('http://.../x/'), isNotEmpty);
+      expect(syntaxCheckUrl('http://none/x/', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('http://example.com/x/', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('http://localhost/x/', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('http://.../x/', 'homepage'), isNotEmpty);
     });
   });
 
@@ -156,14 +158,14 @@ void main() {
       authors:
         - Remi Rousselet <darky12s@gmail.com>
         - Flutter Team <flutter-dev@googlegroups.com>
-      
+
       environment:
         sdk: ">=2.0.0 <3.0.0"
-      
+
       dependencies:
         flutter:
           sdk: flutter
-      
+
       dev_dependencies:
         pedantic: ^1.4.0
         mockito: ^4.0.0
@@ -186,22 +188,22 @@ void main() {
         - Quentin Le Guennec <quentin@tengio.com>
         - Koushik Ravikumar <koushik@tengio.com>
         - Nissim Dsilva <nissim@tengio.com>
-      
+
       homepage: https://github.com/flutter/plugins/tree/master/packages/camera
-      
+
       dependencies:
         flutter:
           sdk: flutter
-      
+
       dev_dependencies:
         path_provider: ^0.5.0
         video_player: ^0.10.0
-      
+
       flutter:
         plugin:
           androidPackage: io.flutter.plugins.camera
           pluginClass: CameraPlugin
-      
+
       environment:
         sdk: ">=2.0.0-dev.28.0 <3.0.0"
         flutter: ">=1.2.0 <2.0.0"
@@ -217,7 +219,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-      
+
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.2.0 <2.0.0"
@@ -225,7 +227,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-      
+
       flutter:
         plugin:
           androidPackage: 'io.flutter.plugins.myplugin'
@@ -241,7 +243,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-      
+
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.12.0 <2.0.0"
@@ -249,7 +251,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-      
+
       flutter:
         plugin:
           platforms:
@@ -266,7 +268,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-      
+
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.12.0 <2.0.0"
@@ -274,7 +276,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-      
+
       flutter:
         plugin:
           androidPackage: 'io.flutter.plugins.myplugin'
@@ -294,7 +296,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-      
+
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.9.0 <2.0.0"
@@ -302,7 +304,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-      
+
       flutter:
         plugin:
           platforms:
