@@ -158,14 +158,14 @@ void main() {
       authors:
         - Remi Rousselet <darky12s@gmail.com>
         - Flutter Team <flutter-dev@googlegroups.com>
-
+      
       environment:
         sdk: ">=2.0.0 <3.0.0"
-
+      
       dependencies:
         flutter:
           sdk: flutter
-
+      
       dev_dependencies:
         pedantic: ^1.4.0
         mockito: ^4.0.0
@@ -188,22 +188,22 @@ void main() {
         - Quentin Le Guennec <quentin@tengio.com>
         - Koushik Ravikumar <koushik@tengio.com>
         - Nissim Dsilva <nissim@tengio.com>
-
+      
       homepage: https://github.com/flutter/plugins/tree/master/packages/camera
-
+      
       dependencies:
         flutter:
           sdk: flutter
-
+      
       dev_dependencies:
         path_provider: ^0.5.0
         video_player: ^0.10.0
-
+      
       flutter:
         plugin:
           androidPackage: io.flutter.plugins.camera
           pluginClass: CameraPlugin
-
+      
       environment:
         sdk: ">=2.0.0-dev.28.0 <3.0.0"
         flutter: ">=1.2.0 <2.0.0"
@@ -219,7 +219,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-
+      
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.2.0 <2.0.0"
@@ -227,7 +227,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-
+      
       flutter:
         plugin:
           androidPackage: 'io.flutter.plugins.myplugin'
@@ -243,7 +243,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-
+      
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.12.0 <2.0.0"
@@ -251,7 +251,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-
+      
       flutter:
         plugin:
           platforms:
@@ -268,7 +268,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-
+      
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.12.0 <2.0.0"
@@ -276,7 +276,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-
+      
       flutter:
         plugin:
           androidPackage: 'io.flutter.plugins.myplugin'
@@ -296,7 +296,7 @@ void main() {
       description: A simple_plugin
       version: 1.0.0
       homepage: https://example.com
-
+      
       environment:
         sdk: ">=2.0.0 <3.0.0"
         flutter: ">=1.9.0 <2.0.0"
@@ -304,7 +304,7 @@ void main() {
       dependencies:
         flutter:
           sdk: flutter
-
+      
       flutter:
         plugin:
           platforms:
