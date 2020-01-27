@@ -2,6 +2,8 @@ Important changes to data-models, configuration and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20200127t111331-all`
  * Bumped runtimeVersion to `2020.01.24`.
  * Upgraded runtime SDK to `2.7.1`.
 
