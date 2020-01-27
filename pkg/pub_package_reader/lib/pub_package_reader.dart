@@ -154,8 +154,8 @@ Future<PackageSummary> summarizePackageArchive(String archivePath) async {
       .toList();
 
   issues.addAll(validatePackageName(pubspec.name));
-  issues.addAll(syntaxCheckHomepageUrl(
-      pubspec.homepage ?? pubspec.repository?.toString()));
+  issues.addAll(syntaxCheckUrl(pubspec.homepage, 'homepage'));
+  issues.addAll(syntaxCheckUrl(pubspec.repository?.toString(), 'repository'));
   issues.addAll(forbidGitDependencies(pubspec));
 
   return PackageSummary(
@@ -207,25 +207,25 @@ String reducePackageName(String name) =>
     // we allow only `_` as part of the name.
     name.replaceAll('_', '').toLowerCase();
 
-Iterable<ArchiveIssue> syntaxCheckHomepageUrl(String url) sync* {
+Iterable<ArchiveIssue> syntaxCheckUrl(String url, String name) sync* {
   if (url == null) {
-    yield ArchiveIssue('pubspec.yaml is missing `homepage`.');
     return;
   }
   final uri = Uri.tryParse(url);
   if (uri == null) {
-    yield ArchiveIssue('Unable to parse homepage URL: $url');
+    yield ArchiveIssue('Unable to parse $name URL: $url');
   }
   final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
   if (!hasValidScheme) {
     yield ArchiveIssue(
-        'Use http:// or https:// URL schemes for homepage URL: $url');
+        'Use http:// or https:// URL schemes for $name URL: $url');
   }
   if (uri.host == null ||
       uri.host.isEmpty ||
       !uri.host.contains('.') ||
       invalidHostNames.contains(uri.host)) {
-    yield ArchiveIssue('Homepage URL has no valid host: $url');
+    final titleCaseName = name[1].toUpperCase() + name.substring(1);
+    yield ArchiveIssue('$titleCaseName URL has no valid host: $url');
   }
 }
 
