@@ -96,12 +96,8 @@ String renderMiniList(List<PackageView> packages) {
         'package_url': urls.pkgPageUrl(package.name),
         'ellipsized_description': package.ellipsizedDescription,
         'tags_html': renderTags(
+          package: package,
           searchQuery: null,
-          tags: package.tags,
-          isAwaiting: package.isAwaiting,
-          isDiscontinued: package.isDiscontinued,
-          isLegacy: package.isLegacy,
-          isObsolete: package.isObsolete,
           packageName: package.name,
         ),
       };
@@ -112,37 +108,34 @@ String renderMiniList(List<PackageView> packages) {
 
 /// Renders the tags using the pkg/tags template.
 String renderTags({
+  @required PackageView package,
   @required SearchQuery searchQuery,
-  @required List<String> tags,
-  @required bool isAwaiting,
-  @required bool isDiscontinued,
-  @required bool isLegacy,
-  @required bool isObsolete,
   bool showTagBadges = false,
   String packageName,
 }) {
+  final tags = package.tags;
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final List<Map> tagValues = <Map>[];
   final tagBadges = <Map>[];
-  if (isAwaiting) {
+  if (package.isAwaiting) {
     tagValues.add({
       'status': 'missing',
       'text': '[awaiting]',
       'title': 'Analysis should be ready soon.',
     });
-  } else if (isDiscontinued) {
+  } else if (package.isDiscontinued) {
     tagValues.add({
       'status': 'discontinued',
       'text': '[discontinued]',
       'title': 'Package was discontinued.',
     });
-  } else if (isObsolete) {
+  } else if (package.isObsolete) {
     tagValues.add({
       'status': 'missing',
       'text': '[outdated]',
       'title': 'Package version too old, check latest stable.',
     });
-  } else if (isLegacy) {
+  } else if (package.isLegacy) {
     tagValues.add({
       'status': 'legacy',
       'text': 'Dart 2 incompatible',

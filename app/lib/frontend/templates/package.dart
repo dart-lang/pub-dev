@@ -184,21 +184,10 @@ String renderPkgInfoBox(
 /// wraps it with content-header.
 String renderPkgHeader(Package package, PackageVersion selectedVersion,
     bool isLiked, AnalysisView analysis) {
-  final card = analysis?.card;
-
   final bool showDevVersion = package.latestDevVersion != null &&
       package.latestSemanticVersion < package.latestDevSemanticVersion;
   final bool showUpdated =
       selectedVersion.version != package.latestVersion || showDevVersion;
-
-  final isAwaiting =
-      // No analysis yet.
-      card == null ||
-          // The uploader has recently removed the "discontinued" flag, but the
-          // analysis did not complete yet.
-          (card.isDiscontinued && !package.isDiscontinued) ||
-          // No blocker for analysis, but no results yet.
-          (!card.isSkipped && !analysis.hasPanaSummary);
 
   final metadataHtml = templateCache.renderTemplate('pkg/header', {
     'publisher_id': package.publisherId,
@@ -229,12 +218,8 @@ String renderPkgHeader(Package package, PackageVersion selectedVersion,
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     metadataHtml: metadataHtml,
     tagsHtml: renderTags(
+      package: pkgView,
       searchQuery: null,
-      tags: pkgView.tags,
-      isAwaiting: isAwaiting,
-      isDiscontinued: package.isDiscontinued,
-      isLegacy: card?.isLegacy ?? false,
-      isObsolete: card?.isObsolete ?? false,
       showTagBadges: true,
     ),
   );

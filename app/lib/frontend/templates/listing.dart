@@ -66,12 +66,8 @@ String renderPackageList(
       'publisher_url':
           view.publisherId == null ? null : urls.publisherUrl(view.publisherId),
       'tags_html': renderTags(
+        package: view,
         searchQuery: searchQuery,
-        tags: view.tags,
-        isAwaiting: view.isAwaiting,
-        isDiscontinued: view.isDiscontinued,
-        isLegacy: view.isLegacy,
-        isObsolete: view.isObsolete,
         packageName: view.name,
       ),
       'score_box_html': scoreBoxHtml,

@@ -457,7 +457,13 @@ class PackageView extends Object with FlagMixin {
     final hasPanaReport = scoreCard?.reportTypes != null &&
         scoreCard.reportTypes.contains(ReportType.pana);
     final isAwaiting =
-        (scoreCard == null) || (!scoreCard.isSkipped && !hasPanaReport);
+        // Job processing has not created any card yet.
+        (scoreCard == null) ||
+            // The uploader has recently removed the "discontinued" flag, but the
+            // analysis did not complete yet.
+            (scoreCard.isDiscontinued && !package.isDiscontinued) ||
+            // No blocker for analysis, but no results yet.
+            (!scoreCard.isSkipped && !hasPanaReport);
     return PackageView(
       name: version?.package ?? package?.name,
       version: version?.version ?? package?.latestVersion,
