@@ -81,24 +81,39 @@ class SimplePackageIndex implements PackageIndex {
 
   @override
   Future<void> addPackage(PackageDocument document) async {
-    final PackageDocument doc = document.intern(_internPool.intern);
-
+    final doc = document.intern(_internPool.intern);
     _packages[doc.package] = doc;
+
+    // The method could be a single sync block, however, while the index update
+    // happens, we are not serving queries. With the forced async segments,
+    // the waiting queries will be served earlier.
+    await Future.delayed(Duration.zero);
     _nameIndex.add(doc.package, doc.package);
+
+    await Future.delayed(Duration.zero);
     _descrIndex.add(doc.package, doc.description);
+
+    await Future.delayed(Duration.zero);
     _readmeIndex.add(doc.package, doc.readme);
+
     for (ApiDocPage page in doc.apiDocPages ?? const []) {
       final pageId = _apiDocPageId(doc.package, page);
       if (page.symbols != null && page.symbols.isNotEmpty) {
+        await Future.delayed(Duration.zero);
         _apiSymbolIndex.add(pageId, page.symbols.join(' '));
       }
       if (page.textBlocks != null && page.textBlocks.isNotEmpty) {
+        await Future.delayed(Duration.zero);
         _apiDartdocIndex.add(pageId, page.textBlocks.join(' '));
       }
     }
+
+    await Future.delayed(Duration.zero);
     final String allText = [doc.package, doc.description, doc.readme]
         .where((s) => s != null)
         .join(' ');
+
+    await Future.delayed(Duration.zero);
     _normalizedPackageText[doc.package] = normalizeBeforeIndexing(allText);
   }
 
