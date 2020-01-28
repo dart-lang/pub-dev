@@ -39,27 +39,29 @@ void main() {
   });
 
   group('homepage syntax check', () {
-    test('no url is not accepted', () {
-      expect(syntaxCheckHomepageUrl(null), isNotEmpty);
+    test('no url is accepted', () {
+      expect(syntaxCheckUrl(null, 'homepage'), isEmpty);
     });
 
     test('example urls that are accepted', () {
-      expect(syntaxCheckHomepageUrl('http://github.com/user/repo/'), isEmpty);
-      expect(syntaxCheckHomepageUrl('https://github.com/user/repo/'), isEmpty);
-      expect(syntaxCheckHomepageUrl('http://some.domain.com'), isEmpty);
+      expect(
+          syntaxCheckUrl('http://github.com/user/repo/', 'homepage'), isEmpty);
+      expect(
+          syntaxCheckUrl('https://github.com/user/repo/', 'homepage'), isEmpty);
+      expect(syntaxCheckUrl('http://some.domain.com', 'homepage'), isEmpty);
     });
 
     test('urls without valid scheme are not accepted', () {
-      expect(syntaxCheckHomepageUrl('github.com/x/y'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('httpx://github.com/x/y'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('ftp://github.com/x/y'), isNotEmpty);
+      expect(syntaxCheckUrl('github.com/x/y', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('httpx://github.com/x/y', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('ftp://github.com/x/y', 'homepage'), isNotEmpty);
     });
 
     test('urls without valid host are not accepted', () {
-      expect(syntaxCheckHomepageUrl('http://none/x/'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('http://example.com/x/'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('http://localhost/x/'), isNotEmpty);
-      expect(syntaxCheckHomepageUrl('http://.../x/'), isNotEmpty);
+      expect(syntaxCheckUrl('http://none/x/', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('http://example.com/x/', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('http://localhost/x/', 'homepage'), isNotEmpty);
+      expect(syntaxCheckUrl('http://.../x/', 'homepage'), isNotEmpty);
     });
   });
 
