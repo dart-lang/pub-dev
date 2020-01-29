@@ -12,6 +12,8 @@ import '../../search/search_service.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
+
 import '_cache.dart';
 import '_consts.dart';
 import '_utils.dart';
@@ -117,6 +119,8 @@ String renderPkgIndexPage(
   final topPackages = getSdkDict(sdk).topSdkPackages;
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final values = {
+    'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
+    'subsdk_tabs_html': renderSubSdkTabsHtml(searchQuery: searchQuery),
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
     'package_list_html': renderPackageList(packages, searchQuery: searchQuery),
@@ -145,6 +149,7 @@ String renderPkgIndexPage(
     searchQuery: searchQuery,
     noIndex: true,
     searchPlaceHolder: searchPlaceholder,
+    mainClasses: requestContext.isExperimental ? [] : null,
   );
 }
 

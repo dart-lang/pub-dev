@@ -168,46 +168,6 @@ String _renderSearchBanner({
   } else if (type == PageType.listing) {
     sdkTabsHtml = renderSdkTabs(searchQuery: searchQuery);
   }
-  String secondaryTabsHtml;
-  if (searchQuery?.sdk == SdkTagValue.dart) {
-    secondaryTabsHtml = _renderFilterTabs(
-      searchQuery: searchQuery,
-      options: [
-        _FilterOption(
-          label: 'native',
-          tag: DartSdkTag.runtimeNativeJit,
-          title:
-              'Packages compatible with Dart running on a native platform (JIT/AOT)',
-        ),
-        _FilterOption(
-          label: 'js',
-          tag: DartSdkTag.runtimeWeb,
-          title: 'Packages compatible with Dart compiled for the web',
-        ),
-      ],
-    );
-  } else if (searchQuery?.sdk == SdkTagValue.flutter) {
-    secondaryTabsHtml = _renderFilterTabs(
-      searchQuery: searchQuery,
-      options: [
-        _FilterOption(
-          label: 'android',
-          tag: FlutterSdkTag.platformAndroid,
-          title: 'Packages compatible with Flutter on the Android platform',
-        ),
-        _FilterOption(
-          label: 'ios',
-          tag: FlutterSdkTag.platformIos,
-          title: 'Packages compatible with Flutter on the iOS platform',
-        ),
-        _FilterOption(
-          label: 'web',
-          tag: FlutterSdkTag.platformWeb,
-          title: 'Packages compatible with Flutter on the Web platform',
-        ),
-      ],
-    );
-  }
   final isExperimental = requestContext.isExperimental;
   return templateCache.renderTemplate('shared/search_banner', {
     'show_details': !isExperimental &&
@@ -221,7 +181,8 @@ String _renderSearchBanner({
     'hidden_inputs': hiddenInputs,
     'sdk_tabs_html': isExperimental ? null : sdkTabsHtml,
     'show_legacy_checkbox': !isExperimental && sp.sdk == null,
-    'secondary_tabs_html': isExperimental ? null : secondaryTabsHtml,
+    'secondary_tabs_html':
+        isExperimental ? null : renderSubSdkTabsHtml(searchQuery: searchQuery),
   });
 }
 
@@ -282,6 +243,49 @@ class _FilterOption {
     @required this.tag,
     @required this.title,
   });
+}
+
+String renderSubSdkTabsHtml({@required SearchQuery searchQuery}) {
+  if (searchQuery?.sdk == SdkTagValue.dart) {
+    return _renderFilterTabs(
+      searchQuery: searchQuery,
+      options: [
+        _FilterOption(
+          label: 'native',
+          tag: DartSdkTag.runtimeNativeJit,
+          title:
+              'Packages compatible with Dart running on a native platform (JIT/AOT)',
+        ),
+        _FilterOption(
+          label: 'js',
+          tag: DartSdkTag.runtimeWeb,
+          title: 'Packages compatible with Dart compiled for the web',
+        ),
+      ],
+    );
+  } else if (searchQuery?.sdk == SdkTagValue.flutter) {
+    return _renderFilterTabs(
+      searchQuery: searchQuery,
+      options: [
+        _FilterOption(
+          label: 'android',
+          tag: FlutterSdkTag.platformAndroid,
+          title: 'Packages compatible with Flutter on the Android platform',
+        ),
+        _FilterOption(
+          label: 'ios',
+          tag: FlutterSdkTag.platformIos,
+          title: 'Packages compatible with Flutter on the iOS platform',
+        ),
+        _FilterOption(
+          label: 'web',
+          tag: FlutterSdkTag.platformWeb,
+          title: 'Packages compatible with Flutter on the Web platform',
+        ),
+      ],
+    );
+  }
+  return null;
 }
 
 String _renderFilterTabs({

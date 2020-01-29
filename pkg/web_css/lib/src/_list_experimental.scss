@@ -5,6 +5,75 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
 
+.search-controls {
+  background: #f5f5f7;
+
+  .search-controls-primary {
+    display: flex;
+    align-items: center;
+  }
+
+  .search-controls-sdk {
+    flex-grow: 1;
+
+    .list-filters {
+      .filter {
+        color: #555555;
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 300;
+        padding: 18px 18px 10px 18px;
+
+        .filter-icon {
+          display: none;
+        }
+
+        &:hover {
+          border-bottom: 3px solid #cccccc;
+          opacity: 1;
+        }
+
+        &.-active {
+          color: $color-input-primary;
+          font-weight: bold;
+          border-bottom: 3px solid $color-input-primary;
+        }
+      }
+    }
+  }
+
+  .search-controls-subsdk {
+    .list-filters {
+      .filter {
+        background: #f5f5f7;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        color: #212121;
+        display: inline-block;
+        font-size: 14px;
+        padding: 3px 24px;
+
+        .filter-icon {
+          width: 14px;
+          height: 14px;
+          position: relative;
+          left: -4px;
+          top: 3px;
+        }
+
+        &:hover {
+        }
+
+        &.-active {
+          background: #0066d9;
+          border-color: #0066d9;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
 .listing-info {
   display: flex;
   padding: 16px 0px 12px 0px;
