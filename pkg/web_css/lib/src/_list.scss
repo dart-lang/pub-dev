@@ -165,16 +165,32 @@ body.non-experimental {
   display: inline-block;
   font-size: 12px;
   font-weight: 500;
-  color: #555;
-  padding: 2px 8px;
   margin: 0px 0 4px 4px;
+
+  .non-experimental & {
+    color: #555;
+    padding: 2px 8px;
+  }
+
+  .experimental & {
+    color: #2465df;
+    padding: 7px 10px;
+  }
 
   &.missing {
     background: #f0f0f0;
+
+    .experimental & {
+      color: #555;
+    }
   }
 
   &.unidentified {
     background: #fff0f0;
+
+    .experimental & {
+      color: #555;
+    }
   }
 
   &.legacy,
