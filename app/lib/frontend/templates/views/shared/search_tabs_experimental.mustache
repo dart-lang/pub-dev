@@ -1,0 +1,11 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+<div class="list-filters">
+  {{#tabs}}
+    <a class="filter {{#active}}-active{{/active}}" href="{{{href}}}" title="{{title}}">
+      {{#active}}<img src="{{{static_assets.img__checkmark-icon_svg}}}" class="filter-icon" />{{/active}}
+      {{text}}
+    </a>
+  {{/tabs}}
+</div>

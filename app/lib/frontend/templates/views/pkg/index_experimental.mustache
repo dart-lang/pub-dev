@@ -2,19 +2,30 @@
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
 
-<div class="listing-info">
-  <div class="listing-info-count">
-    <span class="info-identifier">Results</span>
-    <span class="count">{{total_count}}</span>
+<div class="search-controls">
+  <div class="container">
+    <div class="search-controls-primary">
+      <div class="search-controls-sdk">{{& sdk_tabs_html}}</div>
+      <div class="search-controls-subsdk">{{& subsdk_tabs_html}}</div>
+    </div>
   </div>
-  {{& sort_control_html}}
 </div>
 
-{{& package_list_html}}
+<div class="container">
+  <div class="listing-info">
+    <div class="listing-info-count">
+      <span class="info-identifier">Results</span>
+      <span class="count">{{total_count}}</span>
+    </div>
+    {{& sort_control_html}}
+  </div>
 
-{{#has_packages}}
-  {{{pagination}}}
-{{/has_packages}}
-{{#is_search}}
-  <p>Check our help page for <a href="/help#search">advanced search expressions</a>.</p>
-{{/is_search}}
+  {{& package_list_html}}
+
+  {{#has_packages}}
+    {{{pagination}}}
+  {{/has_packages}}
+  {{#is_search}}
+    <p>Check our help page for <a href="/help#search">advanced search expressions</a>.</p>
+  {{/is_search}}
+</div>

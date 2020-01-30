@@ -200,6 +200,9 @@ body.non-experimental {
   }
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
+
 .list-filters {
   display: -webkit-inline-box;
   display: -ms-inline-flexbox;
@@ -233,6 +236,9 @@ body.non-experimental {
   .search-bar-options & {
     margin-top: 0px;
   }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
 }
 
 .pagination {
