@@ -5,6 +5,20 @@
 /* non-indented rule to restrict the content of the file to the experimental pages */
 body.experimental {
 
+/*
+  The site logo should be hidden on mobile on the landing page (and only on that),
+  because we are displaying another logo right under it.
+
+  TODO: move this rule inside `a.logo` after the new design is finalized.
+*/
+&.page-landing {
+  .site-header a.logo {
+    @media (max-width: $device-mobile-max-width) {
+      display: none;
+    }
+  }
+}
+
 .site-header {
   background: $site-header-banner-bg;
   color: $site-header-banner-fg;
@@ -43,11 +57,11 @@ body.experimental {
   a.logo {
     display: inline-block;
     height: 30px;
-  }
 
-  .site-logo {
-    height: 30px;
-    width: auto;
+    .site-logo {
+      height: 30px;
+      width: auto;
+    }
   }
 
   .site-header-mask {
