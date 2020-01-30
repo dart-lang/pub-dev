@@ -117,7 +117,9 @@ String renderTags({
   final sdkTags = tags.where((s) => s.startsWith('sdk:')).toSet().toList();
   final List<Map> tagValues = <Map>[];
   final tagBadges = <Map>[];
-  if (package.isAwaiting) {
+  if (package.isExternal) {
+    // no tags added
+  } else if (package.isAwaiting) {
     tagValues.add({
       'status': 'missing',
       'text': '[awaiting]',
