@@ -5,17 +5,56 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
 
+.search-controls-label {
+  display: none;
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+
+  @media (max-width: $device-mobile-max-width) {
+    display: block;
+  }
+}
+
+.search-controls-break {
+  @media (max-width: $device-mobile-max-width) {
+    flex-basis: 100%;
+    height: 0;
+  }
+}
+
 .search-controls {
   background: #f5f5f7;
 
   .search-controls-primary {
-    display: flex;
-    align-items: center;
+    padding: 8px 0px;
+
+    @media (min-width: $device-desktop-min-width) {
+      display: flex;
+      align-items: center;
+      padding: 0;
+    }
   }
 
   .search-controls-sdk {
     flex-grow: 1;
 
+    &.search-controls-buttons {
+      @media (min-width: $device-desktop-min-width) {
+        display: none;
+      }
+    }
+
+    &.search-controls-tabs {
+      @media (max-width: $device-mobile-max-width) {
+        display: none;
+      }
+    }
+  }
+
+  .search-controls-tabs {
     .list-filters {
       .filter {
         color: #555555;
@@ -42,8 +81,13 @@ body.experimental {
     }
   }
 
-  .search-controls-subsdk {
+  .search-controls-buttons {
     .list-filters {
+
+      @media (max-width: $device-mobile-max-width) {
+        margin-bottom: 8px;
+      }
+
       .filter {
         background: #f5f5f7;
         border: 1px solid #ccc;

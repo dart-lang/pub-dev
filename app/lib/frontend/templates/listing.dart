@@ -120,6 +120,7 @@ String renderPkgIndexPage(
   final isSearch = searchQuery != null && searchQuery.hasQuery;
   final values = {
     'sdk_tabs_html': renderSdkTabs(searchQuery: searchQuery),
+    'subsdk_label': _subSdkLabel(searchQuery),
     'subsdk_tabs_html': renderSubSdkTabsHtml(searchQuery: searchQuery),
     'sort_control_html': renderSortControl(searchQuery),
     'is_search': isSearch,
@@ -151,6 +152,16 @@ String renderPkgIndexPage(
     searchPlaceHolder: searchPlaceholder,
     mainClasses: requestContext.isExperimental ? [] : null,
   );
+}
+
+String _subSdkLabel(SearchQuery sq) {
+  if (sq?.sdk == SdkTagValue.dart) {
+    return 'Runtime';
+  } else if (sq?.sdk == SdkTagValue.flutter) {
+    return 'Platform';
+  } else {
+    return null;
+  }
 }
 
 /// Renders the `views/shared/sort_control.mustache` template.
