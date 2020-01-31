@@ -12,11 +12,18 @@ import '../../shared/markdown.dart';
 const HtmlEscape htmlAttrEscape = HtmlEscape(HtmlEscapeMode.attribute);
 
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
-String renderFile(FileObject file, String baseUrl) {
+String renderFile(FileObject file, String baseUrl, {String packageName}) {
   final filename = file.filename;
-  final content = file.text;
+  String content = file.text;
   if (content != null) {
     if (_isMarkdownFile(filename)) {
+      // Remove leading package name from the beginning of the markdown file.
+      if (packageName != null) {
+        final regexp = RegExp('#+ $packageName\n');
+        if (regexp.matchAsPrefix(content) != null) {
+          content = content.replaceFirst(regexp, '');
+        }
+      }
       return markdownToHtml(content, baseUrl, baseDir: p.dirname(filename));
     } else if (_isDartFile(filename)) {
       return _renderDartCode(content);

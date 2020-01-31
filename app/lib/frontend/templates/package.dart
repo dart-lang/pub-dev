@@ -291,7 +291,8 @@ List<Tab> _pkgTabs(
   final packageLinks = selectedVersion.packageLinks;
   final baseUrl = packageLinks.baseUrl;
   if (selectedVersion.readme != null) {
-    renderedReadme = renderFile(selectedVersion.readme, baseUrl);
+    renderedReadme =
+        renderFile(selectedVersion.readme, baseUrl, packageName: package.name);
   }
 
   String renderedChangelog;
