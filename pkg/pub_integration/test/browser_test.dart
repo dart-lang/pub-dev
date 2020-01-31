@@ -110,5 +110,5 @@ void main() {
         },
       );
     });
-  }, timeout: Timeout.factor(3));
+  }, timeout: Timeout.factor(testTimeoutFactor));
 }

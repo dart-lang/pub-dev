@@ -441,7 +441,7 @@ packages:
       name: pana
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.3"
+    version: "0.13.4"
   path:
     dependency: transitive
     description:
@@ -567,7 +567,7 @@ packages:
       name: shelf_router
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.1"
+    version: "0.7.2"
   shelf_static:
     dependency: transitive
     description:
@@ -630,7 +630,7 @@ packages:
       name: stream_transform
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.20"
+    version: "1.1.0"
   string_scanner:
     dependency: transitive
     description:
