@@ -68,5 +68,5 @@ void main() {
       );
       await script.verify();
     });
-  }, timeout: Timeout.factor(3));
+  }, timeout: Timeout.factor(testTimeoutFactor));
 }
