@@ -20,6 +20,15 @@ body.experimental {
 
 .search-controls {
   background: #f5f5f7;
+  display: none;
+
+  &.-active {
+    display: block;
+  }
+
+  @media (min-width: $device-desktop-min-width) {
+    display: block;
+  }
 
   .search-controls-primary {
     padding: 8px 0px;

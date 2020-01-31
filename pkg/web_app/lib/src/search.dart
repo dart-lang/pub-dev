@@ -6,6 +6,7 @@ import 'dart:html';
 
 void setupSearch() {
   _setEventForSearchInput();
+  _setEventForFiltersToggle();
   _setEventForSortControl();
   _setEventForCheckboxChanges();
 }
@@ -24,6 +25,18 @@ void _setEventForSearchInput() {
       final String newHref = oldUri.replace(queryParameters: params).toString();
       a.setAttribute('href', newHref);
     }
+  });
+}
+
+void _setEventForFiltersToggle() {
+  document.querySelectorAll('.search-filters-btn').forEach((e) {
+    e.onClick.listen((_) {
+      document
+          .querySelector('.search-filters-btn-wrapper')
+          ?.classes
+          ?.toggle('-active');
+      document.querySelector('.search-controls')?.classes?.toggle('-active');
+    });
   });
 }
 

@@ -1,3 +1,7 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 /******************************************************
   searchbar
 ******************************************************/
@@ -76,6 +80,42 @@
     @media (min-width: $device-desktop-min-width) {
       left: 20px;
       transform: scale(1.0);
+    }
+  }
+}
+
+.search-filters-btn-wrapper {
+  display: none;
+
+  .experimental & {
+    @media (max-width: $device-mobile-max-width) {
+      display: block;
+    }
+  }
+
+  .search-filters-btn {
+    cursor: pointer;
+    display: block;
+    width: 40px;
+    height: 40px;
+    margin-left: 8px;
+  }
+
+  .search-filters-btn-inactive {
+    display: block;
+  }
+
+  .search-filters-btn-active {
+    display: none;
+  }
+
+  &.-active {
+    .search-filters-btn-inactive {
+      display: none;
+    }
+
+    .search-filters-btn-active {
+      display: block;
     }
   }
 }
