@@ -92,9 +92,6 @@ body.non-experimental {
   }
 }
 
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-}
-
 .-pub-mini-list-publisher-badge {
   font-size: 12px;
   float: right;
@@ -107,7 +104,6 @@ body.non-experimental {
   }
 }
 
-/* TODO(3246): Remove after migrating to the new UI. */
 .score-box {
   float: right;
   margin: 8px;
@@ -158,50 +154,6 @@ body.non-experimental {
     }
   }
 }
-
-.package-tag {
-  background: #eef9fe;
-  text-transform: uppercase;
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 500;
-  margin: 0px 0 4px 4px;
-
-  .non-experimental & {
-    color: #555;
-    padding: 2px 8px;
-  }
-
-  .experimental & {
-    color: #2465df;
-    padding: 7px 10px;
-  }
-
-  &.missing {
-    background: #f0f0f0;
-
-    .experimental & {
-      color: #555;
-    }
-  }
-
-  &.unidentified {
-    background: #fff0f0;
-
-    .experimental & {
-      color: #555;
-    }
-  }
-
-  &.legacy,
-  &.discontinued {
-    background: #c0392b;
-    color: #f8f8f8;
-  }
-}
-
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-body.non-experimental {
 
 .list-filters {
   display: -webkit-inline-box;

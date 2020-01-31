@@ -1,3 +1,7 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 .detail-container {
   > .main {
     display: inline-block;
@@ -73,35 +77,6 @@
   > .metadata {
     font-size: 14px;
     color: #555;
-  }
-}
-
-.-pub-tag-badge {
-  font-size: 12px;
-  display: inline-block;
-  margin-right: 15px;
-
-  > * {
-    display: inline-block;
-    text-transform: uppercase;
-    font-weight: 500;
-    padding: 2px 8px;
-    color: #555;
-    background: #e7f8ff;
-  }
-
-  > *:first-child {
-    background: #0175c2;
-    color: #e7f8ff;
-  }
-
-  > a:hover {
-    background: #ccc;
-    opacity: 1;
-  }
-
-  > a:first-child:hover {
-    background: #888;
   }
 }
 
