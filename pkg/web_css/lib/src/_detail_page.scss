@@ -80,6 +80,9 @@
   }
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
+
 .detail-tabs-header {
   margin: 10px 0 20px;
   padding: 0;
@@ -158,4 +161,7 @@
       display: block;
     }
   }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
 }

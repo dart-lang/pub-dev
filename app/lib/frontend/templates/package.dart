@@ -337,9 +337,12 @@ List<Tab> _pkgTabs(
   ));
   tabs.add(Tab.withContent(
     id: 'analysis',
-    titleHtml: renderScoreBox(card?.overallScore,
-        isSkipped: card?.isSkipped ?? false,
-        isNewPackage: package.isNewPackage()),
+    titleHtml: renderScoreBox(
+      card?.overallScore,
+      isSkipped: card?.isSkipped ?? false,
+      isNewPackage: package.isNewPackage(),
+      isTabHeader: true,
+    ),
     contentHtml: renderAnalysisTab(selectedVersion.package,
         selectedVersion.pubspec.sdkConstraint, card, analysis),
   ));

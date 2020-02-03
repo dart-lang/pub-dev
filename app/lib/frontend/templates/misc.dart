@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:math' show pi;
 
 import 'package:meta/meta.dart';
@@ -295,6 +296,7 @@ String renderScoreBox(
   @required bool isSkipped,
   bool isNewPackage,
   String package,
+  bool isTabHeader = false,
 }) {
   final String formattedScore = formatScore(overallScore);
   String title;
@@ -304,6 +306,10 @@ String renderScoreBox(
     title = 'Analysis and more details.';
   }
   if (requestContext.isExperimental) {
+    if (isTabHeader) {
+      return 'Score: <span class="score-value">'
+          '${htmlEscape.convert(formattedScore)}</span>';
+    }
     return renderScoreCircle(
       label: formattedScore,
       percent: overallScore == null ? 0 : (100 * overallScore).round(),
