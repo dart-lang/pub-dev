@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
+import '../request_context.dart';
 import '_cache.dart';
 
 /// Renders the `shared/detail/header.mustache` template
@@ -88,6 +89,7 @@ class Tab {
 
   Map _toMustacheData() {
     final titleClasses = <String>[
+      if (requestContext.isExperimental) 'detail-tab',
       contentHtml == null ? 'tab-link' : 'tab-button',
       if (isActive) '-active',
     ];
