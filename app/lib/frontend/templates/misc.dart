@@ -67,15 +67,10 @@ String renderSecurityPage() {
 }
 
 /// Renders the `views/page/error.mustache` template.
-String renderErrorPage(
-    String title, String message, List<PackageView> topPackages) {
-  final hasTopPackages = topPackages != null && topPackages.isNotEmpty;
-  final topPackagesHtml = hasTopPackages ? renderMiniList(topPackages) : null;
+String renderErrorPage(String title, String message) {
   final values = {
     'title': title,
     'message_html': markdownToHtml(message, null),
-    'has_top_packages': hasTopPackages,
-    'top_packages_html': topPackagesHtml,
   };
   final String content = templateCache.renderTemplate('page/error', values);
   return renderLayoutPage(

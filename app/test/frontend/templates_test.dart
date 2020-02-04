@@ -675,16 +675,7 @@ void main() {
     });
 
     scopedTest('error page', () {
-      final String html = renderErrorPage('error_title', 'error_message', [
-        PackageView(
-          name: 'popular_pkg',
-          version: '1.0.2',
-          ellipsizedDescription:
-              'Some popular package that is shown on the error page.',
-          tags: ['sdk:dart', 'sdk:flutter'],
-          isAwaiting: false,
-        ),
-      ]);
+      final String html = renderErrorPage('error_title', 'error_message');
       expectGoldenFile(html, 'error_page.html');
     });
 

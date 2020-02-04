@@ -62,8 +62,7 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
           'Documentation missing',
           'Pub site failed to generate dartdoc for this package.\n\n'
               '- View [dartdoc log]($logTxtUrl)\n'
-              '- Check [other versions]($versionsUrl) of the same package.\n',
-          null);
+              '- Check [other versions]($versionsUrl) of the same package.\n');
       return htmlResponse(content, status: 404);
     }
     final info = await dartdocBackend.getFileInfo(entry, docFilePath.path);

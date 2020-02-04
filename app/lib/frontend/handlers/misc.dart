@@ -13,7 +13,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/backend.dart';
 import '../../package/name_tracker.dart';
 import '../../package/overrides.dart';
-import '../../package/search_adapter.dart';
 import '../../publisher/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
@@ -178,15 +177,14 @@ Future<shelf.Response> experimentalHandler(shelf.Request request) async {
 }
 
 Future<shelf.Response> formattedNotFoundHandler(shelf.Request request) async {
-  final packages = await topFeaturedPackages();
   final message =
       'You\'ve stumbled onto a page (`${request.requestedUri.path}`) that doesn\'t exist. '
       'Luckily you have several options:\n\n'
       '- Use the search box above, which will list packages that match your query.\n'
       '- Visit the [packages](/packages) page and start browsing.\n'
-      '- Pick one of the top packages, listed below.\n';
+      '- Pick one of the top packages, listed on the [home page](/).\n';
   return htmlResponse(
-    renderErrorPage(default404NotFound, message, packages),
+    renderErrorPage(default404NotFound, message),
     status: 404,
   );
 }
