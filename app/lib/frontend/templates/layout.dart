@@ -86,8 +86,8 @@ String renderLayoutPage(
     'content_html': contentHtml,
     'include_survey': includeSurvey,
     'include_highlight': type == PageType.package,
-    'show_search_banner':
-        !requestContext.isExperimental || type != PageType.package,
+    'show_search_banner': !requestContext.isExperimental ||
+        (type != PageType.package && type != PageType.standalone),
     'search_banner_html': searchBannerHtml,
     'schema_org_searchaction_json':
         isRoot ? encodeScriptSafeJson(_schemaOrgSearchAction) : null,
