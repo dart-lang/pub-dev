@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="42px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="pub.dev" stroke="#808080" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="general-ui---icons-and-components" transform="translate(-458.000000, -206.000000)" fill="none">
+            <path d="M479,206 C490.59798,206 500,215.40202 500,227 C500,238.59798 490.59798,248 479,248 C467.40202,248 458,238.59798 458,227 C458,215.40202 467.40202,206 479,206 Z M480,230 L478,230 L478,236 L480,236 L480,234 L488,234 L488,232 L480,232 L480,230 Z M476,232 L470,232 L470,234 L476,234 L476,232 Z M476,224 L474,224 L474,226 L470,226 L470,228 L474,228 L474,230 L476,230 L476,224 Z M488,226 L478,226 L478,228 L488,228 L488,226 Z M484,218 L482,218 L482,224 L484,224 L484,222 L488,222 L488,220 L484,220 L484,218 Z M480,220 L470,220 L470,222 L480,222 L480,220 Z" id="btn---filter-active"></path>
+        </g>
+    </g>
+</svg>

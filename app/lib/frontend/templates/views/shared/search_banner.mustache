@@ -5,6 +5,12 @@
 <form class="search-bar banner-item" action="{{& search_form_url}}">
   <input class="input" name="q" placeholder="{{search_query_placeholder}}" autocomplete="on" autofocus="autofocus"{{#search_query_html}} value="{{& search_query_html}}"{{/search_query_html}}/>
   <button class="icon"></button>
+  {{#show_search_filters_btn}}
+  <div class="search-filters-btn-wrapper">
+    <img class="search-filters-btn search-filters-btn-inactive" src="{{& static_assets.img__search-filters-inactive_svg}}" />
+    <img class="search-filters-btn search-filters-btn-active" src="{{& static_assets.img__search-filters-active_svg}}" />
+  </div>
+  {{/show_search_filters_btn}}
   {{#show_details}}
   {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
   <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
