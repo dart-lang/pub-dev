@@ -56,9 +56,12 @@ String renderPkgAdminPage(
   ));
   tabs.add(Tab.withLink(
       id: 'analysis',
-      titleHtml: renderScoreBox(card?.overallScore,
-          isSkipped: card?.isSkipped ?? false,
-          isNewPackage: package.isNewPackage()),
+      titleHtml: renderScoreBox(
+        card?.overallScore,
+        isSkipped: card?.isSkipped ?? false,
+        isNewPackage: package.isNewPackage(),
+        isTabHeader: true,
+      ),
       href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
   tabs.add(Tab.withContent(
     id: 'admin',

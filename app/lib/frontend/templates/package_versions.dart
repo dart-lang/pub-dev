@@ -98,9 +98,12 @@ String renderPkgVersionsPage(
   ));
   tabs.add(Tab.withLink(
       id: 'analysis',
-      titleHtml: renderScoreBox(card?.overallScore,
-          isSkipped: card?.isSkipped ?? false,
-          isNewPackage: package.isNewPackage()),
+      titleHtml: renderScoreBox(
+        card?.overallScore,
+        isSkipped: card?.isSkipped ?? false,
+        isNewPackage: package.isNewPackage(),
+        isTabHeader: true,
+      ),
       href: urls.pkgPageUrl(package.name, fragment: '-analysis-tab-')));
   if (isAdmin) {
     tabs.add(Tab.withLink(
