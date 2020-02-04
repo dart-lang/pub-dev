@@ -213,6 +213,7 @@ String renderTags({
   } else if (searchQuery?.sdk == SdkTagValue.dart) {
     if (tags.contains(DartSdkTag.runtimeNativeJit)) {
       tagValues.add({
+        'status': null,
         'text': 'native',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Dart on Native',
@@ -220,6 +221,7 @@ String renderTags({
     }
     if (tags.contains(DartSdkTag.runtimeWeb)) {
       tagValues.add({
+        'status': null,
         'text': 'js',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Dart on Web',
@@ -228,6 +230,7 @@ String renderTags({
   } else if (searchQuery?.sdk == SdkTagValue.flutter) {
     if (tags.contains(FlutterSdkTag.platformAndroid)) {
       tagValues.add({
+        'status': null,
         'text': 'android',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on Android',
@@ -235,6 +238,7 @@ String renderTags({
     }
     if (tags.contains(FlutterSdkTag.platformIos)) {
       tagValues.add({
+        'status': null,
         'text': 'ios',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on iOS',
@@ -242,6 +246,7 @@ String renderTags({
     }
     if (tags.contains(FlutterSdkTag.platformWeb)) {
       tagValues.add({
+        'status': null,
         'text': 'web',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on Web',
@@ -254,6 +259,7 @@ String renderTags({
         (tag) {
           final value = tag.split(':').last;
           return {
+            'status': null,
             'text': value,
             'href': urls.searchUrl(sdk: value),
             'title': tag,
