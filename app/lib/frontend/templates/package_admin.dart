@@ -11,6 +11,7 @@ import 'detail_page.dart';
 import 'layout.dart';
 import 'misc.dart';
 import 'package.dart';
+import 'widget.dart';
 
 /// Renders the `views/pkg/admin_page` template.
 String renderPkgAdminPage(
@@ -75,6 +76,19 @@ String renderPkgAdminPage(
               })
           .toList(),
       'create_publisher_url': urls.createPublisherUrl(),
+      'transfer_to_publisher_button_html': renderButton(
+        label: 'Transfer to publisher',
+        id: '-admin-set-publisher-button',
+        danger: true,
+      ),
+      'mark_as_discontinued_button_html': renderButton(
+        label: 'Mark as "discontinued"',
+        id: '-admin-is-discontinued-toggle',
+      ),
+      'remove_discontinued_button_html': renderButton(
+        label: 'Remove "discontinued"',
+        id: '-admin-is-discontinued-toggle',
+      ),
     }),
   ));
 

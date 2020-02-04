@@ -41,10 +41,7 @@
   </div>
 </div>
 <div class="-pub-form-row">
-  <button
-    id="-publisher-update-button"
-    class="mdc-button mdc-button--raised"
-    data-mdc-auto-init="MDCRipple">Update</button>
+  {{& update_info_button_html}}
 </div>
 <h3>Members</h3>
 
@@ -63,11 +60,7 @@
         <td class="mdc-data-table__cell">{{email}}</td>
         <td class="mdc-data-table__cell">{{role}}</td>
         <td class="mdc-data-table__cell">
-          <button
-            class="-pub-remove-user-button pub-button-danger mdc-button mdc-button--raised"
-            data-user-id="{{user_id}}"
-            data-email="{{email}}"
-            data-mdc-auto-init="MDCRipple">Remove</button>
+          {{& remove_member_button_html}}
         </td>
       </tr>
 {{/member_list}}
@@ -97,8 +90,5 @@
       <div class="mdc-notched-outline__trailing"></div>
     </div>
   </div>
-  <button
-    id="-admin-invite-member-button"
-    class="mdc-button mdc-button--raised"
-    data-mdc-auto-init="MDCRipple">Invite member</button>
+  {{& invite_member_button_html}}
 </p>

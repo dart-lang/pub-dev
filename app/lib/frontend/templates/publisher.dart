@@ -18,10 +18,16 @@ import '_cache.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
+import 'widget.dart';
 
 /// Renders the `views/publisher/create.mustache` template.
 String renderCreatePublisherPage() {
-  final String content = templateCache.renderTemplate('publisher/create', {});
+  final content = templateCache.renderTemplate('publisher/create', {
+    'create_button_html': renderButton(
+      label: 'Create publisher',
+      id: '-admin-create-publisher',
+    ),
+  });
   return renderLayoutPage(
     PageType.standalone,
     content,
@@ -162,10 +168,23 @@ String renderPublisherAdminPage({
     'website_url': publisher.websiteUrl,
     'contact_email': publisher.contactEmail,
     'member_list': members.map((m) => {
-          'user_id': m.userId,
           'email': m.email,
           'role': m.role,
+          'remove_member_button_html': renderButton(
+            label: 'Remove',
+            classes: ['-pub-remove-user-button'],
+            data: {'user-id': m.userId, 'email': m.email},
+            danger: true,
+          ),
         }),
+    'update_info_button_html': renderButton(
+      label: 'Update',
+      id: '-publisher-update-button',
+    ),
+    'invite_member_button_html': renderButton(
+      label: 'Invite member',
+      id: '-admin-invite-member-button',
+    ),
   });
   final tabs = <Tab>[
     _packagesLinkTab(publisher.publisherId),

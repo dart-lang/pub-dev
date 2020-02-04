@@ -19,6 +19,7 @@ import 'detail_page.dart';
 import 'layout.dart';
 import 'listing.dart';
 import 'publisher.dart' show renderPublisherList;
+import 'widget.dart';
 
 /// Renders the `views/account/authorized.mustache` template.
 String renderAuthorizedPage() {
@@ -36,6 +37,15 @@ String renderConsentPage({
   final content = templateCache.renderTemplate('account/consent', {
     'title': title,
     'description_html': descriptionHtml,
+    'reject_button_html': renderButton(
+      label: 'Reject',
+      id: '-admin-consent-reject-button',
+      classes: ['pub-button-cancel'],
+    ),
+    'accept_button_html': renderButton(
+      label: 'Accept',
+      id: '-admin-consent-accept-button',
+    ),
   });
   return renderLayoutPage(
     PageType.standalone,

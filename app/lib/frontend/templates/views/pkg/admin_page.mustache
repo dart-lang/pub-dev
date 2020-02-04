@@ -35,10 +35,7 @@
     <div class="mdc-line-ripple"></div>
   </div>
   <br />
-  <button
-    id="-admin-set-publisher-button"
-    class="pub-button-danger mdc-button mdc-button--raised"
-    data-mdc-auto-init="MDCRipple">Transfer to publisher</button>
+  {{& transfer_to_publisher_button_html}}
   {{/user_has_publisher}}
   {{^user_has_publisher}}
   <p>
@@ -55,10 +52,7 @@
     Discontinued packages remain available, but pub.dev doesn’t display them in search results.
   </p>
   <p>
-    <button
-      id="-admin-is-discontinued-toggle"
-      class="mdc-button mdc-button--raised"
-      data-mdc-auto-init="MDCRipple">Mark as "discontinued"</button>
+    {{& mark_as_discontinued_button_html}}
   </p>
 </div>
 {{/is_discontinued}}
@@ -69,10 +63,7 @@
     The package will be analyzed and included in search results.
   </p>
   <p>
-    <button
-      id="-admin-is-discontinued-toggle"
-      class="mdc-button mdc-button--raised"
-      data-mdc-auto-init="MDCRipple">Remove "discontinued"</button>
+    {{& remove_discontinued_button_html}}
   </p>
 </div>
 {{/is_discontinued}}

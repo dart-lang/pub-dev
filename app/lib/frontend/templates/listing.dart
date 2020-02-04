@@ -19,6 +19,7 @@ import '_consts.dart';
 import '_utils.dart';
 import 'layout.dart';
 import 'misc.dart';
+import 'widget.dart';
 
 /// Renders the `views/shared/pagination.mustache` template.
 String renderPagination(PageLinks pageLinks) {
