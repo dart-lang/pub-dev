@@ -19,7 +19,7 @@ String renderFile(FileObject file, String baseUrl, {String packageName}) {
     if (_isMarkdownFile(filename)) {
       // Remove leading package name from the beginning of the markdown file.
       if (packageName != null) {
-        final regexp = RegExp('#+ $packageName\n');
+        final regexp = RegExp('#+ ${RegExp.escape(packageName)}\n');
         if (regexp.matchAsPrefix(content) != null) {
           content = content.replaceFirst(regexp, '');
         }
