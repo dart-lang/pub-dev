@@ -60,13 +60,13 @@ void main() {
       final rs = await issueGet('/xxx');
       await expectHtmlResponse(rs, status: 404, present: [
         'You\'ve stumbled onto a page',
-        '/packages/helium',
-        '/packages/hydrogen',
-        'hydrogen is a Dart package',
       ], absent: [
         '/packages/http',
         '/packages/event_bus',
         'lightweight library for parsing',
+        '/packages/helium',
+        '/packages/hydrogen',
+        'hydrogen is a Dart package',
       ]);
     });
   });
