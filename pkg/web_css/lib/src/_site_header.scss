@@ -1,9 +1,19 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 /******************************************************
   site header
 ******************************************************/
 
 /* non-indented rule to restrict the content of the file to the non-experimental pages */
 body.non-experimental {
+
+._flex-space {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+}
 
 .site-header-row {
   background: $color-header-dark-bg;

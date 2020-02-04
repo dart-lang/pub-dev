@@ -1,3 +1,7 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 /******************************************************
   site base
 ******************************************************/
@@ -104,47 +108,6 @@ button {
   }
 }
 
-/* TODO: remove this after MDC button is properly styled. */
-button.pub-button {
-  font-size: 13px;
-  margin: 20px 20px 20px 0px;
-  padding: 12px 24px;
-  font-weight: 500;
-  color: white;
-  background: $color-input-primary;
-  border-radius: 2px;
-  outline: none;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .5);
-
-  &:hover {
-    background-color: darken($color-input-primary, 10%);
-  }
-
-  &:disabled {
-    background-color: lighten($color-input-primary, 66%);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
-    color: #aaa;
-    cursor: not-allowed;
-  }
-
-  &.secondary {
-    background-color: lighten($color-input-primary, 50%);
-    color: black;
-  }
-}
-
-input.pub-input,
-textarea.pub-input {
-  font-size: 13px;
-  padding: 12px;
-  margin: 0 -24px 0 0;
-  width: 100%;
-
-  &:disabled {
-    cursor: not-allowed;
-  }
-}
-
 a {
   text-decoration: none;
   color: $color-link;
@@ -186,12 +149,6 @@ pre > code {
   padding: 0.5em;
 }
 
-._flex-space {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-}
-
 ._banner-bg {
   background: $color-searchbar-dark-bg;
   background-image: url('/static/img/background-pattern-darkblue.jpg?hash=tqigd6sddnrgq97c7crv8d2l6agjtrob');
@@ -217,16 +174,16 @@ pre > code {
   padding: 0;
   position: absolute;
   width: 1px;
-}
 
-._visuallyhidden:active,
-._visuallyhidden:focus {
-  clip: auto;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  position: static;
-  width: auto;
+  &:active,
+  &:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+  }
 }
 
 .overflow-x {
