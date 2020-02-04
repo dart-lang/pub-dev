@@ -174,6 +174,10 @@ class PubSiteService {
   @Route.get('/help')
   Future<Response> helpPage(Request request) => helpPageHandler(request);
 
+  /// Renders the policy page
+  @Route.get('/policy')
+  Future<Response> policyPage(Request request) => policyPageHandler(request);
+
   /// Renders the /robots.txt page
   @Route.get('/robots.txt')
   Future<Response> robotsTxt(Request request) => robotsTxtHandler(request);

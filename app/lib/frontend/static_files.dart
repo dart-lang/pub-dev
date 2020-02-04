@@ -62,6 +62,11 @@ String resolveWebCssDirPath() {
       .resolveSymbolicLinksSync();
 }
 
+/// Returns the path of /doc on the local filesystem.
+String resolveDocDirPath() {
+  return path.join(resolveAppDir(), '../doc');
+}
+
 String _resolveRootDirPath() =>
     Directory(path.join(resolveAppDir(), '../')).resolveSymbolicLinksSync();
 Directory _resolveDir(String relativePath) =>

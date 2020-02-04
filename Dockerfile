@@ -17,6 +17,7 @@ ENV PUB_ENVIRONMENT="bot.pub_dartlang_org.docker"
 COPY app /project/app
 COPY pkg /project/pkg
 COPY static /project/static
+COPY doc /project/doc
 COPY third_party /project/third_party
 
 WORKDIR /project/pkg/pub_dartdoc

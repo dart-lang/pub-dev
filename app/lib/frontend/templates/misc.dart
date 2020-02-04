@@ -3,17 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io' as io;
 import 'dart:math' show pi;
 
 import 'package:meta/meta.dart';
 
+import 'package:path/path.dart' as p;
 import '../../package/models.dart';
 import '../../search/search_service.dart' show SearchQuery;
 import '../../shared/markdown.dart';
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
-
 import '../request_context.dart';
+import '../static_files.dart' as static_files;
 
 import '_cache.dart';
 import '_utils.dart';
@@ -58,6 +60,23 @@ String renderHelpPage() {
   });
   return renderLayoutPage(PageType.standalone, content,
       title: 'Help | Dart packages');
+}
+
+/// Load `/doc/policy.md` and render to HTML.
+final _policyHtml = () {
+  final policyPath = p.join(static_files.resolveDocDirPath(), 'policy.md');
+  final policy = io.File(policyPath).readAsStringSync();
+
+  return markdownToHtml(policy, null);
+}();
+
+/// Renders the `/doc/policy.md` document.
+String renderPolicyPage() {
+  return renderLayoutPage(
+    PageType.standalone,
+    _policyHtml,
+    title: 'Policy | Pub site',
+  );
 }
 
 /// Renders the `views/page/security.mustache` template.
