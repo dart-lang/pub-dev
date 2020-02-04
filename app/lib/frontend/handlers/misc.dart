@@ -30,6 +30,11 @@ Future<shelf.Response> helpPageHandler(shelf.Request request) async {
   return htmlResponse(renderHelpPage());
 }
 
+/// Handles requests for /policy
+Future<shelf.Response> policyPageHandler(shelf.Request request) async {
+  return htmlResponse(renderPolicyPage());
+}
+
 /// Handles requests for /security
 Future<shelf.Response> securityPageHandler(shelf.Request request) async {
   return htmlResponse(renderSecurityPage());
