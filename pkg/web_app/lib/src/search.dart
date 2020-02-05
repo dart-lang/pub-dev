@@ -32,9 +32,8 @@ void _setEventForFiltersToggle() {
   document.querySelectorAll('.search-filters-btn').forEach((e) {
     e.onClick.listen((_) {
       document
-          .querySelector('.search-filters-btn-wrapper')
-          ?.classes
-          ?.toggle('-active');
+          .querySelectorAll('.search-filters-btn-wrapper')
+          .forEach((e) => e.classes.toggle('-active'));
       document.querySelector('.search-controls')?.classes?.toggle('-active');
     });
   });

@@ -16,6 +16,18 @@
         <span class="search-controls-label">{{subsdk_label}}</span>
         {{& subsdk_tabs_html}}
       </div>
+      <div class="search-filters-btn search-filters-btn-wrapper search-controls-more">
+        Advanced
+        <img src="{{& static_assets.img__carot-up_svg}}" class="search-controls-more-carot" />
+      </div>
+    </div>
+  </div>
+  <div class="search-controls-advanced">
+    <div class="container">
+      <div class="search-controls-checkbox">
+        <input id="search-legacy-checkbox" type="checkbox" name="legacy" valye="1" {{#legacy_search_enabled}} checked="checked"{{/legacy_search_enabled}} />
+        <label for="search-legacy-checkbox">Include Dart 1.x results</label>
+      </div>
     </div>
   </div>
 </div>

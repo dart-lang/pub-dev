@@ -11,10 +11,8 @@
     <img class="search-filters-btn search-filters-btn-active" src="{{& static_assets.img__search-filters-active_svg}}" />
   </div>
   {{/show_search_filters_btn}}
-  {{#show_details}}
   {{#search_sort_param}}<input type="hidden" name="sort" value="{{search_sort_param}}"/>{{/search_sort_param}}
   <input id="search-legacy-field" type="hidden" name="legacy" value="1"{{^legacy_search_enabled}} disabled="disabled"{{/legacy_search_enabled}} />
-  {{/show_details}}
   {{#hidden_inputs}}
   <input type="hidden" name="{{name}}" value="{{value}}" />
   {{/hidden_inputs}}
