@@ -5,10 +5,10 @@
   <div class="-pub-tag-badge"><div{{#title}} title="{{title}}"{{/title}}>{{sdk}}</div>{{#sub_tags}}<div{{#title}} title="{{title}}"{{/title}}>{{text}}</div>{{/sub_tags}}</div>
 {{/tag_badges}}
 {{#tags}}
-  {{#href}}
+  {{#has_href}}
     <a class="package-tag{{#status}} {{status}}{{/status}}" href="{{{href}}}"{{#title}} title="{{title}}"{{/title}}>{{text}}</a>
-  {{/href}}
-  {{^href}}
+  {{/has_href}}
+  {{^has_href}}
     <span class="package-tag{{#status}} {{status}}{{/status}}"{{#title}} title="{{title}}"{{/title}}>{{text}}</span>
-  {{/href}}
+  {{/has_href}}
 {{/tags}}
