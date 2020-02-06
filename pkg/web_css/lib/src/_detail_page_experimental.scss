@@ -78,9 +78,31 @@ body.experimental {
   > .tab-button[data-name="-admin-tab-"],
   > .tab-link[data-name="-admin-tab-"] > a {
     color: $detail-tab-admin-color;
+    position: relative;
 
     &:hover {
       border-bottom-color: $detail-tab-admin-color;
+    }
+
+    /* The lock icon, positioned after the label. */
+    &:before {
+      content: " ";
+      display: block;
+      background: url("/static/img/admin-lock-icon.svg?hash=qv05ca0h6hmlvvp2g8a23qiueaa994u9");
+      background-size: 10px 10px;
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      top: 50%;
+      right: 4px;
+      margin-top: -8px;
+    }
+
+    /* Extra padding, width should be larger than or equal to the lock icon's width. */
+    &:after {
+      content: "";
+      display: inline-block;
+      width: 10px;
     }
   }
   > .tab-button.-active[data-name="-admin-tab-"] {
