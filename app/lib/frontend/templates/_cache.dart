@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
@@ -11,6 +12,7 @@ import '../request_context.dart';
 import '../static_files.dart' show resolveAppDir, staticUrls;
 
 final templateCache = TemplateCache();
+final _logger = Logger('templates.cache');
 
 /// The directory that contains the mustache files.
 final templateViewsDir =
@@ -18,8 +20,11 @@ final templateViewsDir =
 
 /// Loads, parses, caches and renders mustache templates.
 class TemplateCache {
-  /// A cache which keeps all used mustache templates parsed in memory.
-  final _parsedMustacheTemplates = <String, mustache.Template>{};
+  /// A cache which keeps all used (lenient) mustache templates parsed in memory.
+  final _lenientTemplates = <String, mustache.Template>{};
+
+  /// A cache which keeps all used (strict) mustache templates parsed in memory.
+  final _strictTemplates = <String, mustache.Template>{};
 
   TemplateCache() {
     update();
@@ -27,7 +32,8 @@ class TemplateCache {
 
   /// Updates all the cached templates by reloading them from disk.
   void update() {
-    _parsedMustacheTemplates.clear();
+    _lenientTemplates.clear();
+    _strictTemplates.clear();
     _loadDirectory(templateViewsDir);
   }
 
@@ -38,31 +44,48 @@ class TemplateCache {
         .where((f) => f.path.endsWith('.mustache'))
         .forEach(
       (file) {
-        final t = mustache.Template(file.readAsStringSync(), lenient: true);
         final relativePath = path.relative(file.path, from: templateFolder);
         final name = path.withoutExtension(relativePath);
-        _parsedMustacheTemplates[name] = t;
+        _lenientTemplates[name] =
+            mustache.Template(file.readAsStringSync(), lenient: true);
+        _strictTemplates[name] = mustache.Template(file.readAsStringSync());
       },
     );
   }
 
-  /// Renders [template] with given [values].
-  String renderTemplate(String template, Map<String, Object> values) {
+  mustache.Template _getTemplate(String name, bool strict) {
+    final templates = strict ? _strictTemplates : _lenientTemplates;
     mustache.Template parsedTemplate;
     if (requestContext.isExperimental) {
-      final dirName = path.dirname(template);
-      final expFileName = '${path.basename(template)}_experimental';
+      final dirName = path.dirname(name);
+      final expFileName = '${path.basename(name)}_experimental';
       final expTemplate =
           dirName == '.' ? expFileName : path.join(dirName, expFileName);
-      parsedTemplate = _parsedMustacheTemplates[expTemplate];
+      parsedTemplate = templates[expTemplate];
     }
-    parsedTemplate ??= _parsedMustacheTemplates[template];
+    parsedTemplate ??= templates[name];
     if (parsedTemplate == null) {
-      throw ArgumentError('Template $template was not found.');
+      throw ArgumentError('Template $name was not found.');
     }
-    return parsedTemplate.renderString({
+    return parsedTemplate;
+  }
+
+  /// Renders [template] with given [values].
+  String renderTemplate(String template, Map<String, Object> values) {
+    final data = {
       'static_assets': staticUrls.assets,
       ...values,
-    });
+    };
+    // try strict rendering first
+    try {
+      return _getTemplate(template, true).renderString(data);
+    } on mustache.TemplateException catch (e, st) {
+      _logger.warning(
+          '[strict-template-failed] Strict template rendering failed for $template',
+          e,
+          st);
+    }
+    // fallback: lenient rendering
+    return _getTemplate(template, false).renderString(data);
   }
 }

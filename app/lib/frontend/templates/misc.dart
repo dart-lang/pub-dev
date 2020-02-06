@@ -110,6 +110,7 @@ String renderMiniList(List<PackageView> packages) {
         'publisher_id': package.publisherId,
         'package_url': urls.pkgPageUrl(package.name),
         'ellipsized_description': package.ellipsizedDescription,
+        'has_tags': false,
         'tags_html': renderTags(
           package: package,
           searchQuery: null,
@@ -138,24 +139,28 @@ String renderTags({
     tagValues.add({
       'status': 'missing',
       'text': '[awaiting]',
+      'has_href': false,
       'title': 'Analysis should be ready soon.',
     });
   } else if (package.isDiscontinued) {
     tagValues.add({
       'status': 'discontinued',
       'text': '[discontinued]',
+      'has_href': false,
       'title': 'Package was discontinued.',
     });
   } else if (package.isObsolete) {
     tagValues.add({
       'status': 'missing',
       'text': '[outdated]',
+      'has_href': false,
       'title': 'Package version too old, check latest stable.',
     });
   } else if (package.isLegacy) {
     tagValues.add({
       'status': 'legacy',
       'text': 'Dart 2 incompatible',
+      'has_href': false,
       'title': 'Package does not support Dart 2.',
     });
   } else if (sdkTags.isEmpty) {
@@ -163,6 +168,7 @@ String renderTags({
       'status': 'unidentified',
       'text': '[unidentified]',
       'title': 'Check the analysis tab for further details.',
+      'has_href': true,
       'href': urls.analysisTabUrl(packageName),
     });
   } else if (showTagBadges) {
@@ -217,6 +223,7 @@ String renderTags({
         'text': 'native',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Dart on Native',
+        'has_href': false,
       });
     }
     if (tags.contains(DartSdkTag.runtimeWeb)) {
@@ -225,6 +232,7 @@ String renderTags({
         'text': 'js',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Dart on Web',
+        'has_href': false,
       });
     }
   } else if (searchQuery?.sdk == SdkTagValue.flutter) {
@@ -234,6 +242,7 @@ String renderTags({
         'text': 'android',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on Android',
+        'has_href': false,
       });
     }
     if (tags.contains(FlutterSdkTag.platformIos)) {
@@ -242,6 +251,7 @@ String renderTags({
         'text': 'ios',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on iOS',
+        'has_href': false,
       });
     }
     if (tags.contains(FlutterSdkTag.platformWeb)) {
@@ -250,6 +260,7 @@ String renderTags({
         'text': 'web',
         // TODO: link to platform/runtime-based search
         'title': 'Works with Flutter on Web',
+        'has_href': false,
       });
     }
   } else {
@@ -261,6 +272,7 @@ String renderTags({
           return {
             'status': null,
             'text': value,
+            'has_href': true,
             'href': urls.searchUrl(sdk: value),
             'title': tag,
           };
