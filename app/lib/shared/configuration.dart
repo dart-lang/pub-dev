@@ -121,6 +121,11 @@ class Configuration {
           oauthUserId: '106306194842560376600',
           permissions: {AdminPermission.manageAssignedTags},
         ),
+        AdminId(
+          email: 'pub-admin-service@dartlang-pub.iam.gserviceaccount.com',
+          oauthUserId: '114536496314409930448',
+          permissions: {AdminPermission.listUsers, AdminPermission.removeUsers},
+        ),
       ],
     );
   }
