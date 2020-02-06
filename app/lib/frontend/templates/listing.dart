@@ -128,6 +128,7 @@ String renderPkgIndexPage(
     'has_packages': packages.isNotEmpty,
     'pagination': renderPagination(links),
     'total_count': totalCount,
+    'legacy_search_enabled': searchQuery?.includeLegacy ?? false,
     // TODO(3246): remove the keys below after we have migrated to the new design
     'title': title ?? topPackages,
     'search_query': searchQuery?.query,
