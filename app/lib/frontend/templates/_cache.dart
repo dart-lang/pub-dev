@@ -80,7 +80,10 @@ class TemplateCache {
     try {
       return _getTemplate(template, true).renderString(data);
     } on mustache.TemplateException catch (e, st) {
-      _logger.warning('Strict template rendering failed for $template', e, st);
+      _logger.warning(
+          '[strict-template-failed] Strict template rendering failed for $template',
+          e,
+          st);
     }
     // fallback: lenient rendering
     return _getTemplate(template, false).renderString(data);
