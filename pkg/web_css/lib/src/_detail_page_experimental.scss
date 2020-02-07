@@ -5,6 +5,40 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
 
+.detail-info-box {
+  color: #4a4a4a;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 19px;
+
+  > .title {
+    font-size: 16px;
+    font-weight: 400;
+    margin: 0;
+
+    &:not(:first-child) {
+      margin-top: 16px;
+      border-top: 1px solid #c8c8ca;
+      padding-top: 16px;
+    }
+  }
+
+  br {
+    content: " " !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+  }
+
+  > .link {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
+    line-height: 1.2em;
+  }
+}
+
 .detail-tabs-header {
   list-style: none;
   margin: 0 0 24px 0;
