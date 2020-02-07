@@ -15,8 +15,9 @@ final RegExp runtimeVersionPattern = RegExp(r'\d{4}\.\d{2}\.\d{2}');
 /// whether an analysis needs to be re-done.
 ///
 /// Increment the version when a change is significant enough to trigger
-/// reprocessing, including: version change in pana, dartdoc, or the SDKs,
-/// or when an feature or bugfix should be picked up by the analysis ASAP.
+/// reprocessing, including: risk of data corruption in analysis, version change
+/// in pana, dartdoc, or the SDKs, or when an feature or bugfix should be picked
+/// up by the analysis ASAP.
 const String runtimeVersion = '2020.02.07';
 final Version semanticRuntimeVersion = Version.parse(runtimeVersion);
 
