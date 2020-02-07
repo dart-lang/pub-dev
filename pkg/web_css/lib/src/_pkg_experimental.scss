@@ -1,0 +1,72 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+/* non-indented rule to restrict the content of the file to the experimental pages */
+body.experimental {
+
+.version-table {
+  width: 100%;
+  border-spacing: 0;
+  color: #4a4a4a;
+
+  td, th {
+    border-bottom: 1px solid #c8c8ca;
+    padding: 4px 10px;
+    text-align: left;
+
+    &.version {
+    }
+
+    &.uploaded {
+      white-space: nowrap;
+      width: 100px;
+    }
+
+    &.documentation {
+      width: 60px; /* TODO: change to 40 after 'failed' text is removed. '*/
+      text-align: center;
+    }
+
+    &.archive {
+      width: 40px;
+      text-align: center;
+    }
+  }
+
+  > thead > tr > th {
+    font-size: 16px;
+    font-weight: 400;
+
+    &.version > span.label {
+      display: inline-block;
+      min-width: 100%;
+    }
+
+    &.documentation > span.label,
+    &.archive > span.label {
+      display: none;
+    }
+
+    @media (max-width: $device-mobile-max-width) {
+      &.uploaded > span.label{
+        display: none;
+      }
+    }
+  }
+
+  > tbody {
+    font-size: 14px;
+
+    .version {
+      font-size: 24px;
+    }
+
+    .uploaded {
+      font-weight: 300;
+    }
+  }
+}
+
+/* non-indented rule to restrict the content of the file to the experimental pages */
+}
