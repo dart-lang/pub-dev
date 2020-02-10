@@ -16,6 +16,7 @@ import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -164,6 +165,8 @@ String renderPkgInfoBox(
   }
 
   return templateCache.renderTemplate('pkg/info_box', {
+    'is_flutter_favorite': requestContext.isExperimental &&
+        (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     'name': package.name,
     'description': selectedVersion.pubspec.description,
     'links': links,
