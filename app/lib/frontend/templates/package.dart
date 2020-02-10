@@ -135,11 +135,13 @@ String renderPkgInfoBox(
     isLatest: selectedVersion.version == package.latestVersion,
   );
 
-  final links = <Map<String, dynamic>>[];
+  final metaLinks = <Map<String, dynamic>>[];
+  final docLinks = <Map<String, dynamic>>[];
   void addLink(
     String href,
     String label, {
     bool detectServiceProvider = false,
+    bool documentation = false,
   }) {
     if (href == null || href.isEmpty) {
       return;
@@ -150,7 +152,12 @@ String renderPkgInfoBox(
         label += ' ($providerName)';
       }
     }
-    links.add(<String, dynamic>{'href': href, 'label': label});
+    final linkData = <String, dynamic>{'href': href, 'label': label};
+    if (documentation) {
+      docLinks.add(linkData);
+    } else {
+      metaLinks.add(linkData);
+    }
   }
 
   if (packageLinks.repositoryUrl != packageLinks.homepageUrl) {
@@ -159,17 +166,19 @@ String renderPkgInfoBox(
   addLink(packageLinks.repositoryUrl, 'Repository',
       detectServiceProvider: true);
   addLink(packageLinks.issueTrackerUrl, 'View/report issues');
-  addLink(documentationUrl, 'Documentation');
+  addLink(documentationUrl, 'Documentation', documentation: true);
   if (analysis.hasApiDocs) {
-    addLink(dartdocsUrl, 'API reference');
+    addLink(dartdocsUrl, 'API reference', documentation: true);
   }
 
   return templateCache.renderTemplate('pkg/info_box', {
-    'is_flutter_favorite': requestContext.isExperimental &&
+    'is_flutter_favorite':
         (package.assignedTags ?? []).contains(PackageTags.isFlutterFavorite),
     'name': package.name,
     'description': selectedVersion.pubspec.description,
-    'links': links,
+    'meta_links': metaLinks,
+    'has_doc_links': docLinks.isNotEmpty,
+    'doc_links': docLinks,
     'publisher_id': package.publisherId,
     'publisher_link': package.publisherId == null
         ? null
@@ -180,6 +189,8 @@ String renderPkgInfoBox(
     'license_html': _renderLicenses(packageLinks.baseUrl, analysis?.licenses),
     'dependencies_html': _renderDependencyList(analysis),
     'search_deps_link': urls.searchUrl(q: 'dependency:${package.name}'),
+    // TODO: remove the below keys after we've migrated to the new UI
+    'all_links': [...metaLinks, ...docLinks],
   });
 }
 
