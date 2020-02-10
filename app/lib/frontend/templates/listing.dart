@@ -218,16 +218,20 @@ class PageLinks {
 
     final bool hasPrevious = currentPage > 1;
     results.add({
+      'active': false,
       'disabled': !hasPrevious,
       'render_link': hasPrevious,
       'href': htmlAttrEscape.convert(formatHref(currentPage - 1)),
       'text': '&laquo;',
+      'rel_prev': true,
+      'rel_next': false,
     });
 
     for (int page = leftmostPage; page <= rightmostPage; page++) {
       final bool isCurrent = page == currentPage;
       results.add({
         'active': isCurrent,
+        'disabled': false,
         'render_link': !isCurrent,
         'href': htmlAttrEscape.convert(formatHref(page)),
         'text': '$page',
@@ -238,10 +242,13 @@ class PageLinks {
 
     final bool hasNext = currentPage < rightmostPage;
     results.add({
+      'active': false,
       'disabled': !hasNext,
       'render_link': hasNext,
       'href': htmlAttrEscape.convert(formatHref(currentPage + 1)),
       'text': '&raquo;',
+      'rel_prev': false,
+      'rel_next': true,
     });
 
     // should not happen
