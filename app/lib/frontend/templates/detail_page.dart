@@ -29,6 +29,7 @@ String renderDetailHeader({
     'like_count': '$packageLikes ${packageLikes == 1 ? "like" : "likes"}',
     'is_liked': isLiked,
     'has_likes': isLiked != null,
+    // TODO: remove values below after new UI is finalized
     'is_flutter_favorite': isFlutterFavorite,
   });
 }
