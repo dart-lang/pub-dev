@@ -102,7 +102,7 @@ Published
           </span>
           <div class="-pub-likes">
             <div>
-              <button id="-pub-like-icon-button" class="mdc-icon-button" aria-label="Like this package" aria-hidden="true" aria-pressed="true">
+              <button id="-pub-like-icon-button" class="mdc-icon-button" aria-label="Like this package" data-ga-click-event="toggle-like" aria-hidden="true" aria-pressed="true">
                 <img height="18" src="/static/img/thumb-up-24px.svg?hash=mocked_hash_808020279" class="mdc-icon-button__icon"/>
                 <img height="18" width="18" src="/static/img/thumb-up-filled-24px.svg?hash=mocked_hash_368133424" class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
               </button>
@@ -116,20 +116,20 @@ Published
       </div>
       <div class="detail-container">
         <ul class="detail-tabs-header">
-          <li class="tab-link" data-name="-readme-tab-" role="button">
+          <li class="tab-link" data-ga-click-event="tab:readme" data-name="-readme-tab-" role="button">
             <a href="/packages/foobar_pkg#-readme-tab-">Readme</a>
           </li>
-          <li class="tab-link" data-name="-changelog-tab-" role="button">
+          <li class="tab-link" data-ga-click-event="tab:changelog" data-name="-changelog-tab-" role="button">
             <a href="/packages/foobar_pkg#-changelog-tab-">Changelog</a>
           </li>
-          <li class="tab-link" data-name="-example-tab-" role="button">
+          <li class="tab-link" data-ga-click-event="tab:example" data-name="-example-tab-" role="button">
             <a href="/packages/foobar_pkg#-example-tab-">Example</a>
           </li>
-          <li class="tab-link" data-name="-installing-tab-" role="button">
+          <li class="tab-link" data-ga-click-event="tab:installing" data-name="-installing-tab-" role="button">
             <a href="/packages/foobar_pkg#-installing-tab-">Installing</a>
           </li>
-          <li class="tab-button -active" data-name="-versions-tab-" role="button">Versions</li>
-          <li class="tab-link" data-name="-analysis-tab-" role="button">
+          <li class="tab-button -active" data-ga-click-event="tab:versions" data-name="-versions-tab-" role="button">Versions</li>
+          <li class="tab-link" data-ga-click-event="tab:analysis" data-name="-analysis-tab-" role="button">
             <a href="/packages/foobar_pkg#-analysis-tab-">
               <div class="score-box">
                 <span class="number -good" title="Analysis and more details.">55</span>
