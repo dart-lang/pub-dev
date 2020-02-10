@@ -1,6 +1,13 @@
+/* Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
 /******************************************************
   package page
 ******************************************************/
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
 
 .version-table {
   width: 100%;
@@ -10,6 +17,15 @@
     padding: 4px 10px;
     text-align: left;
   }
+
+  tbody {
+    .version {
+      font-weight: bold;
+    }
+  }
+}
+
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
 }
 
 .dependency-table {
