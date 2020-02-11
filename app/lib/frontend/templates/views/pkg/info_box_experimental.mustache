@@ -1,6 +1,15 @@
-{{! Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
     for details. All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE file. }}
+
+{{#is_flutter_favorite}}
+<a href='https://flutter.dev/docs/development/packages-and-plugins/favorites'>
+  <img
+    src="{{{static_assets.img__ff_svg}}}"
+    height="100" width="100"
+    title="Package is a Flutter Favorite"/>
+</a>
+{{/is_flutter_favorite}}
 
 {{#publisher_id}}
 <h3 class="title">Publisher</h3>
@@ -13,15 +22,24 @@
 </p>
 {{/publisher_id}}
 
-<h3 class="title">About</h3>
+<h3 class="title">Metadata</h3>
 {{#description}}
   <p>{{description}}</p>
 {{/description}}
 <p>
-  {{#all_links}}
+  {{#meta_links}}
   <a class="link" href="{{& href}}">{{label}}</a><br/>
-  {{/all_links}}
+  {{/meta_links}}
 </p>
+
+{{#has_doc_links}}
+<h3 class="title">Documentation</h3>
+<p>
+  {{#doc_links}}
+    <a class="link" href="{{& href}}">{{label}}</a><br/>
+  {{/doc_links}}
+</p>
+{{/has_doc_links}}
 
 {{#uploaders_html}}
 <h3 class="title">{{uploaders_title}}</h3>
