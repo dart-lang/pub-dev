@@ -5,6 +5,72 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
 
+.detail-wrapper {
+  display: none;
+
+  &.-active {
+    display: block;
+  }
+
+  .detail-info-box {
+    @media (max-width: $device-mobile-max-width) {
+      display: none;
+    }
+  }
+}
+
+.detail-lead {
+  display: none;
+  margin-top: 16px;
+  color: #4a4a4a;
+  font-size: 14px;
+  font-weight: 300;
+
+  @media (max-width: $device-mobile-max-width) {
+    display: block;
+  }
+
+  .detail-metadata-toggle {
+    float: right;
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .detail-lead-title {
+    font-size: 16px;
+    font-weight: 400;
+    margin: 0;
+  }
+}
+
+.detail-metadata {
+  display: none;
+
+  &.-active {
+    display: block;
+  }
+
+  .title:first-child {
+    &.pkg-infobox-metadata {
+      display: none;
+    }
+  }
+
+  .detail-metadata-title {
+    color: #4a4a4a;
+    font-size: 36px;
+    font-weight: 400;
+    margin: 8px 0;
+  }
+
+  .detail-info-box {
+    margin: 0;
+  }
+}
+
 .detail-info-box {
   color: #4a4a4a;
   font-size: 14px;
