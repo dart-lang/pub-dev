@@ -8,41 +8,31 @@
     height="48" width="48"
     title="Domain ownership verifed by pub.dev"
     src="{{{static_assets.img__verified-publisher-blue_svg}}}" />{{/is_publisher}}{{title}}</h2>
-  <div class="metadata">
-    {{& metadata_html}}
-    {{#has_likes}}
-    <div class="-pub-likes" >
-      <div>
-        {{#is_liked}}
-        <button
-          id="-pub-like-icon-button"
-          class="mdc-icon-button mdc-icon-button--on"
-          aria-label="Unlike this package"
-          data-ga-click-event="toggle-like"
-          aria-hidden="true"
-          aria-pressed="true">
-        {{/is_liked}}
-        {{^is_liked}}
-        <button
-          id="-pub-like-icon-button"
-          class="mdc-icon-button"
-          aria-label="Like this package"
-          data-ga-click-event="toggle-like"
-          aria-hidden="true"
-          aria-pressed="true">
-        {{/is_liked}}
-          <img
-            height="18"
-            src="{{{static_assets.img__thumb-up-24px_svg}}}"
-            class="mdc-icon-button__icon"/>
-          <img
-            height="18"
-            width="18"
-            src="{{{static_assets.img__thumb-up-filled-24px_svg}}}"
-            class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
-        </button>
-       <span id="likes-count">{{like_count}}</span></div></div>
+  <div class="metadata">{{& metadata_html}}</div>
+  <div class="detail-tags-and-like">
+    <div class="detail-tags">{{& tags_html}}</div>
+    <div class="detail-like">
+      {{#has_likes}}
+      <span id="likes-count">{{like_count}}</span>
+      <button
+        id="-pub-like-icon-button"
+        class="mdc-icon-button{{#is_liked}} mdc-icon-button--on{{/is_liked}}"
+        aria-label="{{#is_liked}}Unlike{{/is_liked}}{{^is_liked}}Like{{/is_liked}} this package"
+        data-ga-click-event="toggle-like"
+        aria-hidden="true"
+        aria-pressed="true">
+        <img
+          height="18"
+          width="18"
+          src="{{{static_assets.img__thumb-up-24px_svg}}}"
+          class="mdc-icon-button__icon"/>
+        <img
+          height="18"
+          width="18"
+          src="{{{static_assets.img__thumb-up-filled-24px_svg}}}"
+          class="mdc-icon-button__icon mdc-icon-button__icon--on"/>
+      </button>
     {{/has_likes}}
-    <div class="tags">{{& tags_html}}</div>
+    </div>
   </div>
 </div>
