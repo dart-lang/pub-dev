@@ -39,11 +39,13 @@ String renderDetailPage({
   @required String headerHtml,
   @required List<Tab> tabs,
   @required String infoBoxHtml,
+  String infoBoxLead,
   String footerHtml,
 }) {
   return templateCache.renderTemplate('shared/detail/page', {
     'header_html': headerHtml,
     'tabs_html': renderDetailTabs(tabs),
+    'info_box_lead': requestContext.isExperimental ? infoBoxLead : null,
     'info_box_html': infoBoxHtml,
     'footer_html': footerHtml,
   });

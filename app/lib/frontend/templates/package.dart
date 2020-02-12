@@ -252,6 +252,7 @@ String renderPkgShowPage(
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, selectedVersion, isLiked, analysis),
     tabs: _pkgTabs(package, selectedVersion, analysis, isAdmin),
+    infoBoxLead: selectedVersion.ellipsizedDescription,
     infoBoxHtml:
         renderPkgInfoBox(package, selectedVersion, uploaderEmails, analysis),
     footerHtml: renderPackageSchemaOrgHtml(package, selectedVersion, analysis),

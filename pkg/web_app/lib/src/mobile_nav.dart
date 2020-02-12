@@ -6,6 +6,7 @@ import 'dart:html';
 
 void setupMobileNav() {
   _setEventForMobileNav();
+  _setEventForDetailMetadataToggle();
 }
 
 void _setEventForMobileNav() {
@@ -40,5 +41,14 @@ void _setEventForMobileNav() {
   // TODO: remove `?` after new design is deployed
   newMask?.onClick?.listen((_) {
     allElems.forEach((e) => e.classes.remove('-show'));
+  });
+}
+
+void _setEventForDetailMetadataToggle() {
+  document.querySelectorAll('.detail-metadata-toggle').forEach((e) {
+    e.onClick.listen((_) {
+      document.querySelector('.detail-wrapper')?.classes?.toggle('-active');
+      document.querySelector('.detail-metadata')?.classes?.toggle('-active');
+    });
   });
 }

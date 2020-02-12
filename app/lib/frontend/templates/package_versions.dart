@@ -117,6 +117,7 @@ String renderPkgVersionsPage(
     headerHtml:
         renderPkgHeader(package, latestVersion, isLiked, latestAnalysis),
     tabs: tabs,
+    infoBoxLead: latestVersion.ellipsizedDescription,
     infoBoxHtml: renderPkgInfoBox(
         package, latestVersion, uploaderEmails, latestAnalysis),
     footerHtml:

@@ -84,6 +84,7 @@ String renderPkgAdminPage(
   final content = renderDetailPage(
     headerHtml: renderPkgHeader(package, version, false, analysis),
     tabs: tabs,
+    infoBoxLead: version.ellipsizedDescription,
     infoBoxHtml: renderPkgInfoBox(package, version, uploaderEmails, analysis),
   );
 
