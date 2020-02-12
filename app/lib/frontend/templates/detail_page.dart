@@ -70,6 +70,7 @@ class Tab {
   final String titleHtml;
   final String contentHtml;
   final bool isMarkdown;
+  final bool hasHref;
   bool isActive = false;
 
   Tab.withContent({
@@ -78,6 +79,7 @@ class Tab {
     String titleHtml,
     @required this.contentHtml,
     this.isMarkdown = false,
+    this.hasHref = false,
   }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
 
   Tab.withLink({
@@ -86,9 +88,10 @@ class Tab {
     String titleHtml,
     @required String href,
   })  : titleHtml =
-            '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
+            '<a href="$href" data-ga-click-event="tab:$id">${titleHtml ?? htmlEscape.convert(title)}</a>',
         contentHtml = null,
-        isMarkdown = false;
+        isMarkdown = false,
+        hasHref = true;
 
   Map _toMustacheData() {
     final titleClasses = <String>[
@@ -108,6 +111,7 @@ class Tab {
       'content_classes': contentClasses.join(' '),
       'content_html': contentHtml,
       'has_content': contentHtml != null,
+      'has_href': hasHref,
     };
   }
 }
