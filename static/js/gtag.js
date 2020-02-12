@@ -15,7 +15,8 @@ window.addEventListener('DOMContentLoaded', function () {
       'value': 1
     };
 
-    // external links should be
+    // Events on links should be sent via beacon, see:
+    // https://support.google.com/analytics/answer/7478520?hl=en
     if (elem.hasAttribute('href')) {
       data.event_callback = function() { document.location = elem.href; };
       data.transport_type = 'beacon';
