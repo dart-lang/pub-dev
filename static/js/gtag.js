@@ -7,11 +7,22 @@ gtag('config', 'UA-26406144-13');
 // with a 'data-ga-click-event' attribute is clicked.
 window.addEventListener('DOMContentLoaded', function () {
   function sendEvent(e) {
-    gtag('event', e.currentTarget.dataset.gaClickEvent, {
+    var elem = e.currentTarget;
+
+    var data = {
       'event_category': 'click',
       'event_label': 'path:' + window.location.pathname,
       'value': 1
-    });
+    };
+
+    // external links should be
+    if (elem.hasAttribute('href')) {
+      data.event_callback = function() { document.location = elem.href; };
+      data.transport_type = 'beacon';
+      e.preventDefault();
+    }
+
+    gtag('event', elem.dataset.gaClickEvent, data);
   }
   function addListeners() {
     var elements = document.querySelectorAll('[data-ga-click-event]');
