@@ -2,22 +2,9 @@
    for details. All rights reserved. Use of this source code is governed by a
    BSD-style license that can be found in the LICENSE file. */
 
-.detail-container {
-  > .main {
-    display: inline-block;
-    width: calc(100% - 300px);
-    vertical-align: top;
-
-    @media screen and (max-width: 920px) {
-      display: block;
-      width: 100%;
-      vertical-align: top;
-    }
-  }
-}
-
 /* non-indented rule to restrict the content of this block to the non-experimental pages */
 body.non-experimental {
+
 .detail-header {
   margin: 30px 0 10px;
 
@@ -38,9 +25,20 @@ body.non-experimental {
     color: #555;
   }
 }
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-}
 
+.detail-container {
+  > .main {
+    display: inline-block;
+    width: calc(100% - 300px);
+    vertical-align: top;
+
+    @media screen and (max-width: 920px) {
+      display: block;
+      width: 100%;
+      vertical-align: top;
+    }
+  }
+}
 
 /* Separated layout styles from internals, in order to mask half of it separately. */
 .detail-info-box {
@@ -54,9 +52,6 @@ body.non-experimental {
     margin: 60px 0 0;
   }
 }
-
-/* non-indented rule to restrict the content of this block to the non-experimental pages */
-body.non-experimental {
 
 .detail-info-box {
   vertical-align: top;

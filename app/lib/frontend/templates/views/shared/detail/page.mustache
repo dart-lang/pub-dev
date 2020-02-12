@@ -5,14 +5,6 @@
 <div class="detail-wrapper -active">
   {{& header_html}}
 
-  {{#info_box_lead}}
-    <div class="detail-lead">
-      <div class="detail-metadata-toggle">&rightarrow;</div>
-      <h3 class="detail-lead-title">Metadata</h3>
-      <p class="detail-lead-text">{{info_box_lead}}</p>
-    </div>
-  {{/info_box_lead}}
-
   <div class="detail-container">
     {{& tabs_html}}
 
@@ -25,13 +17,3 @@
 
   {{& footer_html}}
 </div>
-
-{{#info_box_lead}}
-<div class="detail-metadata">
-  <h3 class="detail-metadata-title"><span class="detail-metadata-toggle">&leftarrow;</span> Metadata</h3>
-
-  <div class="detail-info-box">
-  {{& info_box_html}}
-  </div>
-</div>
-{{/info_box_lead}}

@@ -97,6 +97,23 @@ body.experimental {
   }
 }
 
+@media (min-width: $device-desktop-min-width) {
+  .detail-container {
+
+    >.detail-tabs {
+      vertical-align: top;
+      display: inline-block;
+      width: calc(100% - 320px);
+    }
+
+    >.detail-info-box {
+      display: inline-block;
+      margin-left: 120px;
+      width: 190px;
+    }
+  }
+}
+
 .detail-info-box {
   line-height: 19px;
 

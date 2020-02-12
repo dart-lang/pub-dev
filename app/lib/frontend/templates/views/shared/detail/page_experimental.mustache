@@ -1,0 +1,39 @@
+{{! Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. }}
+
+<div class="detail-wrapper -active">
+  {{& header_html}}
+
+  {{#info_box_lead}}
+    <div class="detail-lead">
+      <div class="detail-metadata-toggle">&rightarrow;</div>
+      <h3 class="detail-lead-title">Metadata</h3>
+      <p class="detail-lead-text">{{info_box_lead}}</p>
+    </div>
+  {{/info_box_lead}}
+
+  <div class="detail-container">
+    <div class="detail-tabs">
+      {{& tabs_html}}
+    </div>
+
+    {{#info_box_html}}
+      <aside class="detail-info-box">
+        {{& info_box_html}}
+      </aside>
+    {{/info_box_html}}
+  </div>
+
+  {{& footer_html}}
+</div>
+
+{{#info_box_lead}}
+<div class="detail-metadata">
+  <h3 class="detail-metadata-title"><span class="detail-metadata-toggle">&leftarrow;</span> Metadata</h3>
+
+  <div class="detail-info-box">
+  {{& info_box_html}}
+  </div>
+</div>
+{{/info_box_lead}}
