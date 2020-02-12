@@ -70,6 +70,7 @@ class Tab {
   final String titleHtml;
   final String contentHtml;
   final bool isMarkdown;
+  final String href;
   bool isActive = false;
 
   Tab.withContent({
@@ -78,13 +79,14 @@ class Tab {
     String titleHtml,
     @required this.contentHtml,
     this.isMarkdown = false,
-  }) : titleHtml = titleHtml ?? htmlEscape.convert(title);
+  })  : titleHtml = titleHtml ?? htmlEscape.convert(title),
+        href = null;
 
   Tab.withLink({
     @required this.id,
     String title,
     String titleHtml,
-    @required String href,
+    @required this.href,
   })  : titleHtml =
             '<a href="$href">${titleHtml ?? htmlEscape.convert(title)}</a>',
         contentHtml = null,
@@ -105,6 +107,7 @@ class Tab {
       'id': id,
       'title_classes': titleClasses.join(' '),
       'title_html': titleHtml,
+      'href': href,
       'content_classes': contentClasses.join(' '),
       'content_html': contentHtml,
       'has_content': contentHtml != null,

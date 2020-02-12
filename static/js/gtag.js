@@ -7,9 +7,18 @@ gtag('config', 'UA-26406144-13');
 // with a 'data-ga-click-event' attribute is clicked.
 window.addEventListener('DOMContentLoaded', function () {
   function sendEvent(e) {
-    gtag('event', e.currentTarget.dataset.gaClickEvent, {
+    var elem = e.currentTarget;
+    var callback;
+    if (elem.dataset.gaClickHref) {
+      callback = function() { document.location = elem.dataset.gaClickHref; };
+      e.preventDefault();
+    }
+
+    gtag('event', elem.dataset.gaClickEvent, {
       'event_category': 'click',
       'event_label': 'path:' + window.location.pathname,
+      'event_callback': callback,
+      'transport_type': 'beacon',
       'value': 1
     });
   }
