@@ -263,7 +263,7 @@ class AuthorizationException extends ResponseException
         ' — verifying a _URL prefix property_ or being a collaborator on a ',
         'property that someone else has verified is not sufficient. ',
         '',
-        '<b><a href="https://search.google.com/search-console/welcome" ' +
+        '<b><a href="https://search.google.com/search-console/welcome" '
             'target="_blank">Open Google Search Console.</a></b>',
         '',
         'Once you have completed the verification step in ',

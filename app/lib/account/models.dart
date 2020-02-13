@@ -255,7 +255,7 @@ class Consent extends db.Model {
     @required this.args,
     Duration timeout = const Duration(days: 7),
   }) {
-    this.id = Ulid().toString();
+    id = Ulid().toString();
     dedupId = consentDedupId(
       fromUserId: fromUserId,
       userId: userId,

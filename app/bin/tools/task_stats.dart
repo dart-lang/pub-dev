@@ -96,7 +96,7 @@ class _Stat {
 }
 
 Map<String, List<String>> _groupBy(
-    List<_Stat> stats, String keyFn(_Stat stat)) {
+    List<_Stat> stats, String Function(_Stat stat) keyFn) {
   final result = <String, List<String>>{};
   for (_Stat stat in stats) {
     final String key = keyFn(stat);
@@ -106,7 +106,7 @@ Map<String, List<String>> _groupBy(
   return result;
 }
 
-Map _summarize(List<_Stat> stats, String keyFn(_Stat stat)) {
+Map _summarize(List<_Stat> stats, String Function(_Stat stat) keyFn) {
   final values = _groupBy(stats, keyFn);
   final counts = <String, int>{};
   for (String key in values.keys) {

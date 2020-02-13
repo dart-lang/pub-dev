@@ -45,7 +45,7 @@ class _RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
   _RequestImpl(String method, Uri url, [Stream<List<int>> stream])
-      : _stream = stream == null ? Stream.fromIterable([]) : stream,
+      : _stream = stream ?? Stream.fromIterable([]),
         super(method, url);
 
   @override

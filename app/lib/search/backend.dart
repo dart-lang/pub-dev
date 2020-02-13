@@ -181,7 +181,7 @@ List<ApiDocPage> apiDocPagesFromPubData(PubDartdocData pubData) {
   bool isTopLevel(String kind) => kind == 'library' || kind == 'class';
 
   void update(String key, String symbol, String documentation) {
-    final set = symbolMap.putIfAbsent(key, () => Set<String>());
+    final set = symbolMap.putIfAbsent(key, () => <String>{});
     set.add(symbol);
 
     documentation = documentation?.trim();

@@ -348,7 +348,8 @@ class JobBackend {
         .add(Duration(hours: math.min(errorCount, 168 /* one week */)));
   }
 
-  Future<R> _retryWithTransaction<R>(Future<R> fn(db.Transaction tx)) async {
+  Future<R> _retryWithTransaction<R>(
+      Future<R> Function(db.Transaction tx) fn) async {
     return await retry(
       () async {
         final r = await _db.withTransaction<R>(fn);
@@ -383,7 +384,7 @@ class _Stat {
   final _stateMap = <String, int>{};
   final _statusMap = <String, int>{};
   final bool _collectFailed;
-  final _failedPackages = Set<String>();
+  final _failedPackages = <String>{};
   int _totalCount = 0;
   int _availableCount = 0;
 

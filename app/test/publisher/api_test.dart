@@ -652,7 +652,7 @@ void main() {
 
 dynamic _json(value) => json.decode(json.encode(value));
 
-void _testAdminAuthIssues(Future fn(PubApiClient client)) {
+void _testAdminAuthIssues(Future Function(PubApiClient client) fn) {
   testWithServices('No active user', () async {
     final client = createPubApiClient();
     final rs = fn(client);
@@ -681,7 +681,7 @@ void _testAdminAuthIssues(Future fn(PubApiClient client)) {
   });
 }
 
-void _testNoPublisher(Future fn(PubApiClient client)) {
+void _testNoPublisher(Future Function(PubApiClient client) fn) {
   testWithServices('No publisher with given id', () async {
     final client = createPubApiClient(authToken: hansUser.userId);
     final rs = fn(client);

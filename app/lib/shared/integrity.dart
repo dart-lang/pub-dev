@@ -25,7 +25,7 @@ class IntegrityChecker {
   final _oauthToUser = <String, String>{};
   final _emailToUser = <String, List<String>>{};
   final _deletedUsers = <String>{};
-  final _invalidUsers = Set<String>();
+  final _invalidUsers = <String>{};
   final _userToLikes = <String, List<String>>{};
   final _packages = <String>{};
   final _packagesWithVersion = <String>{};

@@ -16,7 +16,7 @@ final _responseType = g.TypeChecker.fromRuntime(shelf.Response);
 
 /// Use the first Handler when a method has multiple EndPoint annotations.
 Iterable<Handler> _removeDuplicateHandlers(Iterable<Handler> handlers) {
-  final seen = Set<ExecutableElement>();
+  final seen = <ExecutableElement>{};
   return handlers.where((h) {
     return seen.add(h.element);
   });

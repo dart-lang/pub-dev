@@ -40,7 +40,7 @@ import 'test_models.dart';
 
 /// Setup scoped services (including fake datastore with pre-populated base data
 /// and fake storage) for tests.
-void testWithServices(String name, Future<void> fn()) {
+void testWithServices(String name, Future<void> Function() fn) {
   scopedTest(name, () async {
     _setupLogging();
     registerActiveConfiguration(Configuration.test());

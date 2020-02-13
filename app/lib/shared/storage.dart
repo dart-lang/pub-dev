@@ -43,7 +43,7 @@ Future deleteFromBucket(Bucket bucket, String objectName) async {
 
 /// Uploads content from [openStream] to the [bucket] as [objectName].
 Future uploadWithRetry(Bucket bucket, String objectName, int length,
-    Stream<List<int>> openStream()) async {
+    Stream<List<int>> Function() openStream) async {
   await retryAsync(
     () async {
       final sink = bucket.write(objectName,

@@ -9,13 +9,13 @@ import 'package:test/test.dart';
 
 import 'package:pub_dev/shared/configuration.dart';
 
-Future scoped(func()) {
+Future scoped(Function() func) {
   return fork(() async {
     return func();
   });
 }
 
-void scopedTest(String name, func(), {Timeout timeout}) {
+void scopedTest(String name, Function() func, {Timeout timeout}) {
   test(name, () {
     return fork(() async {
       // double fork to allow further override

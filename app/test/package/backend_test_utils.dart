@@ -9,7 +9,7 @@ import 'dart:io';
 
 import '../shared/test_models.dart';
 
-Future<T> withTempDirectory<T>(Future<T> func(String temp)) async {
+Future<T> withTempDirectory<T>(Future<T> Function(String temp) func) async {
   final Directory dir =
       await Directory.systemTemp.createTemp('pub.dartlang.org-backend-test');
   try {
@@ -39,7 +39,7 @@ Future<List<int>> packageArchiveBytes({String pubspecContent}) async {
       'pubspec.yaml',
       'lib/test_library.dart'
     ];
-    final args = ['cz']..addAll(files);
+    final args = ['cz', ...files];
     final Process p =
         await Process.start('tar', args, workingDirectory: '$tmp');
     p.stderr.drain();

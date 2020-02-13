@@ -72,7 +72,7 @@ class DatastoreHeadTaskSource implements TaskSource {
   }
 
   Stream<Task> _poll<M extends Model>(
-      String field, Task modelToTask(M model)) async* {
+      String field, Task Function(M model) modelToTask) async* {
     final Query q = _db.query<M>();
     if (_lastTs != null) {
       q.filter('$field >=', _lastTs);

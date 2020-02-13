@@ -97,7 +97,7 @@ class PackageDocument {
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
 
-  PackageDocument intern(String internFn(String value)) {
+  PackageDocument intern(String Function(String value) internFn) {
     return PackageDocument(
       package: internFn(package),
       version: version,
@@ -112,11 +112,10 @@ class PackageDocument {
       maintenance: maintenance,
       dependencies: dependencies == null
           ? null
-          : Map.fromIterable(
-              dependencies.keys,
-              key: (key) => internFn(key as String),
-              value: (key) => internFn(dependencies[key]),
-            ),
+          : {
+              for (var key in dependencies.keys)
+                internFn(key): internFn(dependencies[key])
+            },
       publisherId: internFn(publisherId),
       uploaderEmails: uploaderEmails?.map(internFn)?.toList(),
       apiDocPages: apiDocPages?.map((p) => p.intern(internFn))?.toList(),
@@ -139,7 +138,7 @@ class ApiDocPage {
   factory ApiDocPage.fromJson(Map<String, dynamic> json) =>
       _$ApiDocPageFromJson(json);
 
-  ApiDocPage intern(String internFn(String value)) {
+  ApiDocPage intern(String Function(String value) internFn) {
     return ApiDocPage(
       relativePath: internFn(relativePath),
       symbols: symbols?.map(internFn)?.toList(),
@@ -661,7 +660,7 @@ class PackageSearchResult {
 
   PackageSearchResult(
       {this.indexUpdated, this.totalCount, List<PackageScore> packages})
-      : this.packages = packages ?? [];
+      : packages = packages ?? [];
 
   PackageSearchResult.notReady()
       : indexUpdated = null,

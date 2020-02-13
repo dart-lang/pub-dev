@@ -19,14 +19,14 @@ Future<R> rpc<R>({
 
   /// The async RPC call. If this throws, the error will be displayed as a modal
   /// popup, and then it will be re-thrown.
-  @required Future<R> fn(),
+  Future<R> Function() fn,
 
   /// Message to show when the RPC returns without exceptions.
   @required String successMessage,
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
-  FutureOr onSuccess(R value),
+  FutureOr Function(R value) onSuccess,
 }) async {
   if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
     return null;

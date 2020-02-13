@@ -514,8 +514,8 @@ class SimplePackageIndex implements PackageIndex {
     return list;
   }
 
-  List<PackageScore> _rankWithComparator(
-      Set<String> packages, int compare(PackageDocument a, PackageDocument b)) {
+  List<PackageScore> _rankWithComparator(Set<String> packages,
+      int Function(PackageDocument a, PackageDocument b) compare) {
     final List<PackageScore> list = packages
         .map((package) => PackageScore(package: _packages[package].package))
         .toList();
@@ -635,7 +635,7 @@ class Score {
   }
 
   /// Transfer the score values with [f].
-  Score map(double f(String key, double value)) {
+  Score map(double Function(String key, double value) f) {
     final result = <String, double>{};
     for (String key in _values.keys) {
       result[key] = f(key, _values[key]);
@@ -704,9 +704,7 @@ class TokenIndex {
       // on the first insert of an entry, we populate the similarity candidates
       if (weights.isEmpty) {
         for (String reduced in deriveLookupCandidates(token)) {
-          _lookupCandidates
-              .putIfAbsent(reduced, () => Set<String>())
-              .add(token);
+          _lookupCandidates.putIfAbsent(reduced, () => <String>{}).add(token);
         }
       }
       weights[id] = math.max(weights[id] ?? 0.0, tokens[token]);
@@ -744,7 +742,7 @@ class TokenIndex {
 
     // Check which tokens have documents, and assign their weight.
     for (String token in tokens.keys) {
-      final candidates = Set<String>();
+      final candidates = <String>{};
       candidates.add(token);
       if (_lookupCandidates.containsKey(token)) {
         candidates.addAll(_lookupCandidates[token]);

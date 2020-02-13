@@ -1,9 +1,9 @@
-import 'package:build/build.dart' show BuildStep, log;
-import 'package:http_methods/http_methods.dart' show isHttpMethod;
-import 'package:source_gen/source_gen.dart' as g;
 import 'package:analyzer/dart/element/element.dart'
     show ClassElement, ExecutableElement, ParameterElement;
 import 'package:analyzer/dart/element/type.dart' show DartType;
+import 'package:build/build.dart' show BuildStep, log;
+import 'package:http_methods/http_methods.dart' show isHttpMethod;
+import 'package:source_gen/source_gen.dart' as g;
 
 import '../api_builder.dart' show EndPoint;
 
@@ -44,10 +44,10 @@ class Handler {
 /// Find members of a class annotated with [EndPoint].
 List<ExecutableElement> _getAnnotatedElementsOrderBySourceOffset(
     ClassElement cls) {
-  return <ExecutableElement>[]
-    ..addAll(cls.methods.where(_endPointType.hasAnnotationOfExact))
-    ..addAll(cls.accessors.where(_endPointType.hasAnnotationOfExact))
-    ..sort((a, b) => (a.nameOffset ?? -1).compareTo(b.nameOffset ?? -1));
+  return <ExecutableElement>[
+    ...cls.methods.where(_endPointType.hasAnnotationOfExact),
+    ...cls.accessors.where(_endPointType.hasAnnotationOfExact)
+  ]..sort((a, b) => (a.nameOffset ?? -1).compareTo(b.nameOffset ?? -1));
 }
 
 abstract class EndPointGenerator extends g.Generator {

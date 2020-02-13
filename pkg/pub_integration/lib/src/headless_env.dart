@@ -72,7 +72,8 @@ class HeadlessEnv {
   }
 
   /// Creates a new page and setup overrides and tracking.
-  Future<R> withPage<R>({FakeGoogleUser user, Future<R> fn(Page page)}) async {
+  Future<R> withPage<R>(
+      {FakeGoogleUser user, Future<R> Function(Page page) fn}) async {
     await startBrowser();
     final page = await _browser.newPage();
     await page.setRequestInterception(true);

@@ -206,7 +206,7 @@ class PackageOptionsChanged implements PackageHistoryEvent {
     @required this.userEmail,
     @required this.isDiscontinued,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory PackageOptionsChanged.fromJson(Map<String, dynamic> json) =>
       _$PackageOptionsChangedFromJson(json);
@@ -247,7 +247,7 @@ class PackageTransferred implements PackageHistoryEvent {
     @required this.userId,
     @required this.userEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory PackageTransferred.fromJson(Map<String, dynamic> json) =>
       _$PackageTransferredFromJson(json);
@@ -286,7 +286,7 @@ class PackageUploaded implements PackageHistoryEvent {
     @required this.uploaderId,
     @required this.uploaderEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory PackageUploaded.fromJson(Map<String, dynamic> json) =>
       _$PackageUploadedFromJson(json);
@@ -325,7 +325,7 @@ class UploaderChanged implements PackageHistoryEvent {
     this.removedUploaderIds,
     this.removedUploaderEmails,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   @override
   String get packageVersion => null;
@@ -373,7 +373,7 @@ class UploaderInvited implements PackageHistoryEvent {
     @required this.currentUserEmail,
     @required this.uploaderUserEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory UploaderInvited.fromJson(Map<String, dynamic> json) =>
       _$UploaderInvitedFromJson(json);
@@ -410,7 +410,7 @@ class AnalysisCompleted implements PackageHistoryEvent {
     @required this.hasErrors,
     @required this.hasPlatforms,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory AnalysisCompleted.fromJson(Map<String, dynamic> json) =>
       _$AnalysisCompletedFromJson(json);
@@ -447,7 +447,7 @@ class PublisherCreated implements PublisherHistoryEvent {
     @required this.userId,
     @required this.userEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory PublisherCreated.fromJson(Map<String, dynamic> json) =>
       _$PublisherCreatedFromJson(json);
@@ -482,7 +482,7 @@ class MemberInvited implements PublisherHistoryEvent {
     @required this.invitedUserId,
     @required this.invitedUserEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory MemberInvited.fromJson(Map<String, dynamic> json) =>
       _$MemberInvitedFromJson(json);
@@ -515,7 +515,7 @@ class MemberJoined implements PublisherHistoryEvent {
     @required this.userEmail,
     @required this.role,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory MemberJoined.fromJson(Map<String, dynamic> json) =>
       _$MemberJoinedFromJson(json);
@@ -550,7 +550,7 @@ class MemberRemoved implements PublisherHistoryEvent {
     @required this.removedUserId,
     @required this.removedUserEmail,
     DateTime timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now().toUtc();
+  }) : timestamp = timestamp ?? DateTime.now().toUtc();
 
   factory MemberRemoved.fromJson(Map<String, dynamic> json) =>
       _$MemberRemovedFromJson(json);

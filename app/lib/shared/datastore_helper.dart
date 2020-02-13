@@ -26,7 +26,7 @@ class TransactionWrapper {
       _tx.lookupValue<T>(key, orElse: () => null);
 
   /// See [Transaction.lookupValue].
-  Future<T> lookupValue<T extends Model>(Key key, {T orElse()}) =>
+  Future<T> lookupValue<T extends Model>(Key key, {T Function() orElse}) =>
       _tx.lookupValue<T>(key, orElse: orElse);
 
   /// See [Transaction.query].

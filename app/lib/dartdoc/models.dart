@@ -149,7 +149,7 @@ class DartdocEntry {
     }
   }
 
-  List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
+  List<int> asBytes() => utf8.encode(json.encode(toJson()));
 
   bool isRegression(DartdocEntry oldEntry) {
     if (oldEntry == null) {
@@ -191,7 +191,7 @@ class FileInfo {
   factory FileInfo.fromBytes(List<int> bytes) => FileInfo.fromJson(
       json.decode(utf8.decode(bytes)) as Map<String, dynamic>);
 
-  List<int> asBytes() => utf8.encode(json.encode(this.toJson()));
+  List<int> asBytes() => utf8.encode(json.encode(toJson()));
 
   Map<String, dynamic> toJson() => _$FileInfoToJson(this);
 }

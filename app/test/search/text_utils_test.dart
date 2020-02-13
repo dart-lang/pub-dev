@@ -127,38 +127,36 @@ Other useful methods will be added soon...
 
   group('ngrams', () {
     test('small input', () {
-      expect(ngrams('', 2, 2), Set());
-      expect(ngrams('a', 2, 2), Set());
-      expect(ngrams('ab', 2, 2), Set());
+      expect(ngrams('', 2, 2), isEmpty);
+      expect(ngrams('a', 2, 2), isEmpty);
+      expect(ngrams('ab', 2, 2), isEmpty);
     });
 
     test('2-grams', () {
-      expect(ngrams('abcdef', 2, 2), Set.from(['ab', 'bc', 'cd', 'de', 'ef']));
+      expect(ngrams('abcdef', 2, 2), {'ab', 'bc', 'cd', 'de', 'ef'});
     });
 
     test('2-3-grams', () {
-      expect(
-          ngrams('abcdef', 2, 3),
-          Set.from([
-            'ab',
-            'bc',
-            'cd',
-            'de',
-            'ef',
-            'abc',
-            'bcd',
-            'cde',
-            'def',
-          ]));
+      expect(ngrams('abcdef', 2, 3), {
+        'ab',
+        'bc',
+        'cd',
+        'de',
+        'ef',
+        'abc',
+        'bcd',
+        'cde',
+        'def',
+      });
     });
   });
 
   group('deriveLookupCandidates', () {
     test('small tokens', () {
-      expect(deriveLookupCandidates(''), Set());
-      expect(deriveLookupCandidates('a'), Set());
-      expect(deriveLookupCandidates('ab'), Set());
-      expect(deriveLookupCandidates('abc'), Set());
+      expect(deriveLookupCandidates(''), isEmpty);
+      expect(deriveLookupCandidates('a'), isEmpty);
+      expect(deriveLookupCandidates('ab'), isEmpty);
+      expect(deriveLookupCandidates('abc'), isEmpty);
     });
 
     test('only deleted characters', () {

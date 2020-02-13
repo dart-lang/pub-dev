@@ -83,7 +83,7 @@ class DartdocJobProcessor extends JobProcessor {
       }
       final pr = await runProc(
         'dart',
-        ['bin/pub_dartdoc.dart']..addAll(args),
+        ['bin/pub_dartdoc.dart', ...args],
         workingDirectory: _pkgPubDartdocDir,
         timeout: _sdkTimeout,
       );
@@ -396,7 +396,7 @@ class DartdocJobProcessor extends JobProcessor {
       logFileOutput.writeln('Running: pub_dartdoc ${args.join(' ')}');
       final pr = await runProc(
         'dart',
-        ['bin/pub_dartdoc.dart']..addAll(args),
+        ['bin/pub_dartdoc.dart', ...args],
         environment: environment,
         workingDirectory: _pkgPubDartdocDir,
         timeout: _packageTimeout,

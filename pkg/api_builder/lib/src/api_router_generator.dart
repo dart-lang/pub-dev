@@ -100,8 +100,8 @@ code.Code _buildAddHandlerCode({
                 'await \$utilities.decodeJson<${handler.payloadType.name}>(request, (o) => ${handler.payloadType.name}.fromJson(o)),'),
           for (final param in handler.queryParameters)
             Code(
-              '${param.name}: ' +
-                  'request.requestedUri.queryParameters[\'${param.name}\'] ' +
+              '${param.name}: '
+                      'request.requestedUri.queryParameters[\'${param.name}\'] ' +
                   (param.defaultValueCode != null
                       ? ' ?? ${param.defaultValueCode}'
                       : '') +

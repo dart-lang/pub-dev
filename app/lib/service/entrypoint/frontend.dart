@@ -108,7 +108,8 @@ Future<void> _setupUploadSigner() async {
 Future<void> _watchForResourceChanges() async {
   _logger.info('Watching for resource changes...');
 
-  void setupWatcher(String name, String path, FutureOr<void> updateFn()) {
+  void setupWatcher(
+      String name, String path, FutureOr<void> Function() updateFn) {
     final w = Watcher(path, pollingDelay: Duration(seconds: 3));
     final subs = w.events.debounce(Duration(milliseconds: 200)).listen(
       (_) async {

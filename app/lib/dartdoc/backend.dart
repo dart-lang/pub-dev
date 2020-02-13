@@ -181,7 +181,7 @@ class DartdocBackend {
       final List<DartdocEntry> entries =
           await _listEntries(storage_path.entryPrefix(package, v));
       // utility to remove anything not matching pred, unless that is everything
-      void retainIfAny(bool pred(DartdocEntry entry)) {
+      void retainIfAny(bool Function(DartdocEntry entry) pred) {
         if (entries.any(pred)) {
           entries.retainWhere(pred);
         }
