@@ -866,6 +866,8 @@ class GCloudPackageRepository extends PackageRepository {
 /// Completes with an error if the incoming stream has an error or if the size
 /// exceeds [UploadSignerService.maxUploadSize].
 Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
+  final targetFile = File(filename);
+  int fileSize;
   try {
     int receivedBytes = 0;
     final stream = data.transform<List<int>>(
@@ -881,12 +883,13 @@ Future _saveTarballToFS(Stream<List<int>> data, String filename) async {
         },
       ),
     );
-    await stream.pipe(File(filename).openWrite());
+    await stream.pipe(targetFile.openWrite());
+    fileSize = await targetFile.length();
   } catch (e, st) {
     _logger.warning('An error occured while streaming tarball to FS.', e, st);
     rethrow;
   }
-  _logger.info('Finished streaming tarball to FS.');
+  _logger.info('Finished streaming tarball to FS (fileSize=$fileSize).');
 }
 
 /// Creates a new `Package` and populates all of it's fields.
