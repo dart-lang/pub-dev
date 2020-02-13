@@ -46,6 +46,28 @@ body.experimental {
   }
 }
 
+.detail-header {
+  .metadata {
+    margin-bottom: 8px;
+  }
+
+  .detail-tags-and-like {
+    display: flex;
+  }
+
+  .detail-tags {
+    flex-grow: 1;
+  }
+
+  .detail-like {
+    color: #4a4a4a;
+    font-size: 12px;
+    font-weight: 300;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+}
+
 .detail-metadata {
   display: none;
 
