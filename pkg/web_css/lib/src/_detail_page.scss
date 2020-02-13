@@ -16,10 +16,11 @@
   }
 }
 
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+body.non-experimental {
 .detail-header {
   margin: 30px 0 10px;
 
-  /* TODO remove after the new UI is finalized. */
   img.ff-badge {
     float: right;
     margin-right: 15px;
@@ -37,6 +38,9 @@
     color: #555;
   }
 }
+/* non-indented rule to restrict the content of this block to the non-experimental pages */
+}
+
 
 /* Separated layout styles from internals, in order to mask half of it separately. */
 .detail-info-box {
