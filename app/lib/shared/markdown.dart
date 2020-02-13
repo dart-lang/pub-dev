@@ -46,7 +46,7 @@ String markdownToHtml(String text, String baseUrl, {String baseDir}) {
   return html + '\n';
 }
 
-final _headers = Set.from(<String>['h1', 'h2', 'h3', 'h4', 'h5', 'h6']);
+const _headers = <String>{'h1', 'h2', 'h3', 'h4', 'h5', 'h6'};
 
 /// Adds an extra <a href="#hash">#</a> element to all h1,h2,h3..h6 elements.
 class _HashLink implements m.NodeVisitor {

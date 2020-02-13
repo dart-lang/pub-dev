@@ -71,7 +71,7 @@ Future listPackage(String packageName) async {
   }
 }
 
-Future _deleteWithQuery<T>(Query query, {bool where(T item)}) async {
+Future _deleteWithQuery<T>(Query query, {bool Function(T item) where}) async {
   final deletes = <Key>[];
   await for (Model m in query.run()) {
     final shouldDelete = where == null || where(m as T);

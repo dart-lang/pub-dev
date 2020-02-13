@@ -90,6 +90,7 @@ Future _set(String packageName, {String discontinued, String doNotAdvertise}) {
     await tx.commit();
     print(
         'Package $packageName: isDiscontinued=${p.isDiscontinued} doNotAdverise=${p.doNotAdvertise}');
-    await AnalyzerClient().triggerAnalysis(packageName, p.latestVersion, Set());
+    await AnalyzerClient()
+        .triggerAnalysis(packageName, p.latestVersion, <String>{});
   });
 }

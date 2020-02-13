@@ -4,15 +4,17 @@
 
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart' as meta;
+
 const double _popularityWeight = 0.5;
 const double _healthWeight = 0.3;
 const double _maintenanceWeight = 0.2;
 
 /// Calculates the overall score for a package.
 double calculateOverallScore({
-  double popularity,
-  double health,
-  double maintenance,
+  @meta.required double popularity,
+  @meta.required double health,
+  @meta.required double maintenance,
 }) {
   assert(popularity != null && popularity >= 0.0 && popularity <= 1.0);
   assert(health != null && health >= 0.0 && health <= 1.0);
@@ -177,7 +179,10 @@ List<num> solveCubic(num a, num b, num c, num d) {
     roots = [cubeRoot(-q)];
   } else if (q.abs() < epsilon) {
     // q = 0 -> t^3 + pt = 0 -> t(t^2+p)=0
-    roots = <num>[0]..addAll(p < 0 ? [math.sqrt(-p), -math.sqrt(-p)] : []);
+    roots = <num>[
+      0,
+      if (p < 0) ...[math.sqrt(-p), -math.sqrt(-p)]
+    ];
   } else {
     final D = q * q / 4 + p * p * p / 27;
     if (D.abs() < epsilon) {

@@ -138,8 +138,7 @@ class JobServiceProperty extends StringProperty {
 
   @override
   bool validate(ModelDB db, Object value) =>
-      (!this.required || value != null) &&
-      (value == null || value is JobService);
+      (!required || value != null) && (value == null || value is JobService);
 
   @override
   String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
@@ -165,7 +164,7 @@ class JobStateProperty extends StringProperty {
 
   @override
   bool validate(ModelDB db, Object value) =>
-      (!this.required || value != null) && (value == null || value is JobState);
+      (!required || value != null) && (value == null || value is JobState);
 
   @override
   String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {
@@ -190,8 +189,7 @@ class JobStatusProperty extends StringProperty {
 
   @override
   bool validate(ModelDB db, Object value) =>
-      (!this.required || value != null) &&
-      (value == null || value is JobStatus);
+      (!required || value != null) && (value == null || value is JobStatus);
 
   @override
   String encodeValue(ModelDB db, Object value, {bool forComparison = false}) {

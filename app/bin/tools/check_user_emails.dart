@@ -14,8 +14,8 @@ import 'package:pub_dev/service/entrypoint/tools.dart';
 Future main(List<String> args) async {
   int count = 0;
   await withProdServices(() async {
-    final bad = Set<String>();
-    final good = Set<String>();
+    final bad = <String>{};
+    final good = <String>{};
     final query = dbService.query<User>();
     await for (User user in query.run()) {
       count++;

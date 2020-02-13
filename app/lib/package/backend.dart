@@ -511,7 +511,7 @@ class GCloudPackageRepository extends PackageRepository {
   }
 
   Future<PackageVersion> _performTarballUpload(User user, String filename,
-      Future<void> tarballUpload(String name, String version)) async {
+      Future<void> Function(String name, String version) tarballUpload) async {
     _logger.info('Examining tarball content.');
 
     // Parse metadata from the tarball.
@@ -1090,7 +1090,7 @@ class TarballStorageNamer {
       : storageBaseUrl = storageBaseUrl.endsWith('/')
             ? storageBaseUrl.substring(0, storageBaseUrl.length - 1)
             : storageBaseUrl,
-        namespace = namespace == null ? '' : namespace,
+        namespace = namespace ?? '',
         prefix =
             (namespace == null || namespace.isEmpty) ? '' : 'ns/$namespace/';
 

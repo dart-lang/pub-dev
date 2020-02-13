@@ -41,7 +41,7 @@ final Logger _logger = Logger('pub.utils');
 
 final DateFormat shortDateFormat = DateFormat.yMMMd();
 
-Future<T> withTempDirectory<T>(Future<T> func(Directory dir),
+Future<T> withTempDirectory<T>(Future<T> Function(Directory dir) func,
     {String prefix = 'dart-tempdir'}) {
   return Directory.systemTemp.createTemp(prefix).then((Directory dir) {
     return func(dir).whenComplete(() {
@@ -315,9 +315,9 @@ List<T> boundedList<T>(List<T> list, {int offset, int limit}) {
 /// Executes [body] and returns with the same result.
 /// When it throws an exception, it will be re-run until [maxAttempt] is reached.
 Future<R> retryAsync<R>(
-  Future<R> body(), {
+  Future<R> Function() body, {
   int maxAttempt = 3,
-  bool shouldRetryOnError(error),
+  bool Function(Object) shouldRetryOnError,
   String description = 'Async operation',
   Duration sleep = const Duration(seconds: 1),
 }) async {

@@ -346,7 +346,7 @@ void main() {
   });
 }
 
-void _testNotAdmin(Future fn(PubApiClient client)) {
+void _testNotAdmin(Future Function(PubApiClient client) fn) {
   testWithServices('No active user', () async {
     final client = createPubApiClient();
     final rs = fn(client);

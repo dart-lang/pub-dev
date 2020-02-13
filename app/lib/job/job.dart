@@ -119,7 +119,7 @@ class JobMaintenance {
 
   /// Reads the current package versions and syncs them with job entries.
   Future<void> syncDatastoreHistory() async {
-    final latestVersions = Map<String, String>();
+    final latestVersions = <String, String>{};
     await for (Package p in _db.query<Package>().run()) {
       latestVersions[p.name] = p.latestVersion;
     }

@@ -50,9 +50,9 @@ class WorkerProtocolMessage {}
 
 Future startIsolates({
   @required Logger logger,
-  Future<void> frontendEntryPoint(FrontendEntryMessage message),
-  Future<void> workerSetup(),
-  Future<void> workerEntryPoint(WorkerEntryMessage message),
+  Future<void> Function(FrontendEntryMessage message) frontendEntryPoint,
+  Future<void> Function() workerSetup,
+  Future<void> Function(WorkerEntryMessage message) workerEntryPoint,
 }) async {
   useLoggingPackageAdaptor();
   int frontendStarted = 0;

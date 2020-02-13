@@ -20,7 +20,7 @@ import '../../shared/utils.dart';
 const pageSize = 10;
 const topQueryLimit = 15;
 
-void tScopedTest(String name, Future<void> func()) {
+void tScopedTest(String name, Future<void> Function() func) {
   scopedTest(name, () {
     return func();
   });

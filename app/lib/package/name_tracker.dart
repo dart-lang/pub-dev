@@ -30,11 +30,11 @@ NameTracker get nameTracker => ss.lookup(#_name_tracker) as NameTracker;
 /// TODO: support remove and re-scan package names every day or so.
 class NameTracker {
   final DatastoreDB _db;
-  final Set<String> _names = Set<String>();
+  final Set<String> _names = <String>{};
 
   /// Names that are reserved due to moderated packages having these names.
-  final Set<String> _reservedNames = Set<String>();
-  final Set<String> _reducedNames = Set<String>();
+  final Set<String> _reservedNames = <String>{};
+  final Set<String> _reducedNames = <String>{};
   final _firstScanCompleter = Completer();
   _NameTrackerUpdater _updater;
 

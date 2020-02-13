@@ -19,7 +19,7 @@ Future expectApiException(Future future,
         (e) => e.bodyAsJson(),
         'bodyAsJson',
         {
-          'code': code == null ? isNotNull : code,
+          'code': code ?? isNotNull,
           'message': message == null ? isNotNull : contains(message),
         },
       )));

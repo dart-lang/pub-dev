@@ -11,7 +11,7 @@ import '../services.dart';
 ///
 /// Connection parameters are inferred from the GCLOUD_PROJECT and the GCLOUD_KEY
 /// environment variables.
-Future withProdServices(Future fn()) {
+Future withProdServices(Future Function() fn) {
   return withServices(() {
     registerUploadSigner(ServiceAccountBasedUploadSigner());
     return fn();

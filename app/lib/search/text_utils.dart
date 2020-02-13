@@ -13,12 +13,12 @@ final RegExp _nonCharacterRegExp = RegExp('[^a-z0-9]');
 final RegExp _multiWhitespaceRegExp = RegExp('\\s+');
 final RegExp _exactTermRegExp = RegExp(r'"([^"]+)"');
 
-final _commonApiSymbols = Set.from([
+const _commonApiSymbols = {
   'toString',
   'noSuchMethod',
   'hashCode',
   'runtimeType',
-]);
+};
 
 bool isCommonApiSymbol(String symbol) {
   if (_commonApiSymbols.contains(symbol)) {
@@ -117,7 +117,7 @@ bool _isLower(String c) => c.toLowerCase() == c;
 /// length between [minLength] and [maxLength] (both inclusive).
 /// Eg. abc -> ab, bc
 Set<String> ngrams(String input, int minLength, int maxLength) {
-  final ngrams = Set<String>();
+  final ngrams = <String>{};
   for (int length = minLength; length <= maxLength; length++) {
     if (input.length > length) {
       for (int i = 0; i <= input.length - length; i++) {
@@ -134,7 +134,7 @@ Set<String> ngrams(String input, int minLength, int maxLength) {
 /// - are the prefix part of [token] (4-7 characters)
 /// - are the suffix part of [token] (4-7 characters)
 Set<String> deriveLookupCandidates(String token) {
-  final set = Set<String>();
+  final set = <String>{};
   if (token.length <= 3) {
     return set;
   }

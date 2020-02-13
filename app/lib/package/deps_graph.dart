@@ -56,7 +56,7 @@ class TransitiveDependencyGraph {
     }
   }
 
-  static Set<String> _newSet() => Set<String>();
+  static Set<String> _newSet() => <String>{};
 }
 
 /// Callback function to be called when a new [PackageVersion] should trigger the
