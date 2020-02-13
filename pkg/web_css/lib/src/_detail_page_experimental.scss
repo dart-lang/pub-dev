@@ -22,9 +22,6 @@ body.experimental {
 .detail-lead {
   display: none;
   margin-top: 16px;
-  color: #4a4a4a;
-  font-size: 14px;
-  font-weight: 300;
 
   @media (max-width: $device-mobile-max-width) {
     display: block;
@@ -60,9 +57,7 @@ body.experimental {
   }
 
   .detail-like {
-    color: #4a4a4a;
     font-size: 12px;
-    font-weight: 300;
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -82,7 +77,6 @@ body.experimental {
   }
 
   .detail-metadata-title {
-    color: #4a4a4a;
     font-size: 36px;
     font-weight: 400;
     margin: 8px 0;
@@ -94,9 +88,6 @@ body.experimental {
 }
 
 .detail-info-box {
-  color: #4a4a4a;
-  font-size: 14px;
-  font-weight: 300;
   line-height: 19px;
 
   > .title {
@@ -176,8 +167,6 @@ body.experimental {
   > .tab-link > a {
     display: block;
     color: #555555;
-    font-size: 14px;
-    font-weight: 300;
     padding: 18px 9px 12px 9px;
     border-bottom: 2px solid;
     border-bottom-color: transparent;

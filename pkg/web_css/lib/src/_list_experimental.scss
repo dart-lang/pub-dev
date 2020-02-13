@@ -74,8 +74,6 @@ body.experimental {
       .filter {
         color: #555555;
         display: inline-block;
-        font-size: 14px;
-        font-weight: 300;
         padding: 18px 18px 10px 18px;
 
         .filter-icon {
@@ -136,7 +134,6 @@ body.experimental {
     display: none;
     color: #555555;
     font-size: 12px;
-    font-weight: 300;
     white-space: nowrap;
     cursor: pointer;
 
@@ -197,7 +194,6 @@ body.experimental {
     background: rgba(218, 220, 224, 0.26);
     display: inline-block;
     font-size: 12px;
-    font-weight: 300;
     font-family: monospace;
     padding: 5px;
   }
@@ -276,8 +272,6 @@ body.experimental {
   }
 
   .packages-description {
-    font-size: 14px;
-    font-weight: 300;
     margin: 4px 0px;
   }
 
