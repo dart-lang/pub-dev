@@ -6,16 +6,26 @@ import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pana/pana.dart' show getRepositoryUrl;
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
 final Logger _logger = Logger('pub.markdown');
 
 const _whitelistedClassNames = <String>[
+  'changelog-entry',
+  'changelog-version',
+  'changelog-content',
   'hash-header',
   'hash-link',
 ];
 
-String markdownToHtml(String text, String baseUrl, {String baseDir}) {
+/// Renders markdown [text] to HTML.
+String markdownToHtml(
+  String text,
+  String baseUrl, {
+  String baseDir,
+  bool isChangelog = false,
+}) {
   if (text == null) return null;
   final sanitizedBaseUrl = _pruneBaseUrl(baseUrl);
 
@@ -24,7 +34,11 @@ String markdownToHtml(String text, String baseUrl, {String baseDir}) {
       blockSyntaxes: m.ExtensionSet.gitHubWeb.blockSyntaxes);
 
   final lines = text.replaceAll('\r\n', '\n').split('\n');
-  final nodes = document.parseLines(lines);
+  var nodes = document.parseLines(lines);
+
+  if (isChangelog) {
+    nodes = _groupChangelogNodes(nodes).toList();
+  }
 
   final urlRewriter = _RelativeUrlRewriter(sanitizedBaseUrl, baseDir);
   final hashLink = _HashLink();
@@ -63,15 +77,20 @@ class _HashLink implements m.NodeVisitor {
         element.children.length == 1;
 
     if (isHeaderWithHash) {
-      element.attributes['class'] = 'hash-header';
-      element.children.addAll([
-        m.Text(' '),
-        m.Element('a', [m.Text('#')])
-          ..attributes['href'] = '#${element.generatedId}'
-          ..attributes['class'] = 'hash-link',
-      ]);
+      _addHashLink(element, element.generatedId);
     }
   }
+}
+
+void _addHashLink(m.Element element, String id) {
+  final currentClasses = element.attributes['class'] ?? '';
+  element.attributes['class'] = '$currentClasses hash-header'.trim();
+  element.children.addAll([
+    m.Text(' '),
+    m.Element('a', [m.Text('#')])
+      ..attributes['href'] = '#$id'
+      ..attributes['class'] = 'hash-link',
+  ]);
 }
 
 /// Filters unsafe URLs from the generated HTML.
@@ -211,4 +230,67 @@ String _pruneBaseUrl(String url) {
     // url is user-provided, may be malicious, ignoring errors.
   }
   return null;
+}
+
+/// Group corresponding changelog nodes together, if it matches the following
+/// pattern:
+/// - version identifiers are the only content in a single line
+/// - heading level or other style doesn't matter
+/// - optional `v` prefix is accepted
+/// - message logs between identifiers are copied to the version entry before the line
+///
+/// The output is in the following structure:
+/// <div class="changelog-entry">
+///   <h3 class="changelog-version">{{version - stripped from styles}}</h3>
+///   <div class="changelog-content">
+///     {{log entries in their original HTML format}}
+///   </div>
+/// </div>
+Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
+  m.Element lastContentDiv;
+  for (final node in nodes) {
+    final version = (node is m.Element &&
+            node.children.isNotEmpty &&
+            node.children.first is m.Text)
+        ? _extractVersion(node.children.first.textContent)
+        : null;
+    if (version != null) {
+      final titleElem = m.Element('h2', [m.Text(version)])
+        ..attributes['class'] = 'changelog-version';
+      final generatedId = (node as m.Element).generatedId;
+      if (generatedId != null) {
+        titleElem.attributes['id'] = generatedId;
+        _addHashLink(titleElem, generatedId);
+      }
+
+      lastContentDiv = m.Element('div', [])
+        ..attributes['class'] = 'changelog-content';
+
+      yield m.Element('div', [
+        titleElem,
+        lastContentDiv,
+      ])
+        ..attributes['class'] = 'changelog-entry';
+    } else if (lastContentDiv != null) {
+      lastContentDiv.children.add(node);
+    } else {
+      yield node;
+    }
+  }
+}
+
+String _extractVersion(String text) {
+  if (text == null || text.isEmpty) return null;
+  text = text.trim();
+  if (text.startsWith('v')) {
+    text = text.substring(1).trim();
+  }
+  if (text.isEmpty) return null;
+  try {
+    final v = Version.parse(text);
+    if (v.isEmpty || v.isAny) return null;
+    return v.toString();
+  } catch (_) {
+    return null;
+  }
 }

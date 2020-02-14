@@ -12,12 +12,17 @@ import '../../shared/markdown.dart';
 const HtmlEscape htmlAttrEscape = HtmlEscape(HtmlEscapeMode.attribute);
 
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
-String renderFile(FileObject file, String baseUrl) {
+String renderFile(
+  FileObject file,
+  String baseUrl, {
+  bool isChangelog = false,
+}) {
   final filename = file.filename;
   final content = file.text;
   if (content != null) {
     if (_isMarkdownFile(filename)) {
-      return markdownToHtml(content, baseUrl, baseDir: p.dirname(filename));
+      return markdownToHtml(content, baseUrl,
+          baseDir: p.dirname(filename), isChangelog: isChangelog);
     } else if (_isDartFile(filename)) {
       return _renderDartCode(content);
     } else {
