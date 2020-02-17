@@ -16,6 +16,7 @@ import '../../shared/email.dart' show EmailAddress;
 import '../../shared/tags.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../request_context.dart';
 import '../static_files.dart';
 
 import '_cache.dart';
@@ -310,7 +311,8 @@ List<Tab> _pkgTabs(
 
   String renderedChangelog;
   if (selectedVersion.changelog != null) {
-    renderedChangelog = renderFile(selectedVersion.changelog, baseUrl);
+    renderedChangelog = renderFile(selectedVersion.changelog, baseUrl,
+        isChangelog: requestContext.isExperimental);
   }
 
   String renderedExample;

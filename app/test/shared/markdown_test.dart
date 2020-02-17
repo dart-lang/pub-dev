@@ -201,4 +201,65 @@ void main() {
           '<p><img src="https://github.com/rcpassos/progress_hud/raw/master/progress_hud.gif" alt="text" /></p>\n');
     });
   });
+
+  group('changelog', () {
+    test('no structure', () {
+      expect(
+          markdownToHtml(
+              'a\n\n'
+              'b\n\n'
+              'c',
+              null,
+              isChangelog: true),
+          '<p>a</p>\n'
+          '<p>b</p>\n'
+          '<p>c</p>\n');
+    });
+
+    test('single entry', () {
+      expect(
+          markdownToHtml(
+              '# Changelog\n\n'
+              '## 1.0.0\n'
+              '\n'
+              '- change1',
+              null,
+              isChangelog: true),
+          '<h1 class="hash-header" id="changelog">Changelog <a href="#changelog" class="hash-link">#</a></h1>'
+          '<div class="changelog-entry">\n'
+          '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>'
+          '<div class="changelog-content">\n'
+          '<ul>\n'
+          '<li>change1</li>\n'
+          '</ul>'
+          '</div>'
+          '</div>\n');
+    });
+
+    test('multiple entries', () {
+      expect(
+          markdownToHtml(
+              '# Changelog\n\n'
+              '## 1.0.0\n\n- change1\n\n- change2\n\n'
+              '## 0.9.0\n\nMostly refatoring',
+              null,
+              isChangelog: true),
+          '<h1 class="hash-header" id="changelog">Changelog <a href="#changelog" class="hash-link">#</a></h1>'
+          '<div class="changelog-entry">\n'
+          '<h2 class="changelog-version hash-header" id="100">1.0.0 <a href="#100" class="hash-link">#</a></h2>'
+          '<div class="changelog-content">\n'
+          '<ul>\n'
+          '<li>\n<p>change1</p>\n</li>\n'
+          '<li>\n<p>change2</p>\n</li>\n'
+          '</ul>'
+          '</div>'
+          '</div>'
+          '<div class="changelog-entry">\n'
+          '<h2 class="changelog-version hash-header" id="090">0.9.0 <a href="#090" class="hash-link">#</a></h2>'
+          '<div class="changelog-content">\n'
+          '<p>Mostly refatoring</p>'
+          '</div>'
+          '</div>\n');
+    });
+  });
 }

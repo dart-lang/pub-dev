@@ -67,5 +67,24 @@ body.experimental {
   }
 }
 
+.changelog-entry {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid #c8c8ca;
+
+  .changelog-version {
+    border-bottom: none;
+    margin: 0;
+    width: 120px;
+  }
+
+  .changelog-content {
+    flex-grow: 1;
+    font-size: 14px;
+    margin: 4px 0 4px 16px;
+    width: 100%;
+  }
+}
+
 /* non-indented rule to restrict the content of the file to the experimental pages */
 }
