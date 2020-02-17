@@ -19,6 +19,16 @@ body.experimental {
   }
 }
 
+.detail-header {
+  margin: 30px 0 10px;
+
+  > .title {
+    font-size: 48px;
+    font-weight: 400;
+    margin: 0;
+  }
+}
+
 .detail-lead {
   display: none;
   margin-top: 16px;
@@ -166,6 +176,7 @@ body.experimental {
   > .tab-button,
   > .tab-link > a {
     display: block;
+    font-weight: 300;
     color: #555555;
     padding: 18px 9px 12px 9px;
     border-bottom: 2px solid;
