@@ -5,6 +5,11 @@
 /* non-indented rule to restrict the content of this block to the experimental pages */
 body.experimental {
 
+$info-box-width: 190px;
+$info-box-margin: 120px;
+$info-box-total-width: 320px; /* 190 + 120 + 10 (extra space for layout) */
+$detail-tabs-width: calc(100% - 320px);
+
 .detail-wrapper {
   display: none;
 
@@ -70,6 +75,12 @@ body.experimental {
     font-size: 12px;
     text-transform: uppercase;
     white-space: nowrap;
+    display: flex;
+
+    #likes-count {
+      display: inline-block;
+      padding-top: 6px;
+    }
   }
 }
 
@@ -98,18 +109,22 @@ body.experimental {
 }
 
 @media (min-width: $device-desktop-min-width) {
+  .detail-header {
+    width: $detail-tabs-width;
+  }
+
   .detail-container {
 
     >.detail-tabs {
       vertical-align: top;
       display: inline-block;
-      width: calc(100% - 320px);
+      width: $detail-tabs-width;
     }
 
     >.detail-info-box {
       display: inline-block;
-      margin-left: 120px;
-      width: 190px;
+      margin-left: $info-box-margin;
+      width: $info-box-width;
     }
   }
 }
@@ -266,6 +281,14 @@ body.experimental {
       display: block;
     }
   }
+}
+
+#-pub-like-icon-button {
+  /* Override wide material button styles*/
+  width: 24px;
+  height: 24px;
+  padding: 0px;
+  margin: 0 4px;
 }
 
 /* non-indented rule to restrict the content of this block to the experimental pages */
