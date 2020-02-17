@@ -290,7 +290,7 @@ String _extractVersion(String text) {
     final v = Version.parse(text);
     if (v.isEmpty || v.isAny) return null;
     return v.toString();
-  } catch (_) {
+  } on FormatException catch (_) {
     return null;
   }
 }
