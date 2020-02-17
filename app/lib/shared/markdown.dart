@@ -241,7 +241,7 @@ String _pruneBaseUrl(String url) {
 ///
 /// The output is in the following structure:
 /// <div class="changelog-entry">
-///   <h3 class="changelog-version">{{version - stripped from styles}}</h3>
+///   <h2 class="changelog-version">{{version - stripped from styles}}</h2>
 ///   <div class="changelog-content">
 ///     {{log entries in their original HTML format}}
 ///   </div>
