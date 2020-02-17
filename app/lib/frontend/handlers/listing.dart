@@ -51,7 +51,6 @@ Future<shelf.Response> flutterFavoritesPackagesHandlerHtml(
 ) {
   return _packagesHandlerHtmlCore(
     request,
-    sdk: SdkTagValue.flutter,
     title: 'Flutter Favorite packages',
     tagsPredicate: TagsPredicate.regularSearch().appendPredicate(TagsPredicate(
       requiredTags: [PackageTags.isFlutterFavorite],
