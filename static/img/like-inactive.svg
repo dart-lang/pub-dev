@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="17px" height="15px" viewBox="0 0 17 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="pub.dev" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="general-ui---icons-and-components" transform="translate(-663.000000, -309.000000)" fill="#CCCFD3" fill-rule="nonzero">
+            <path d="M663,324 L666,324 L666,315 L663,315 L663,324 Z M680,315.75 C680,314.925 679.325,314.25 678.5,314.25 L673.7675,314.25 L674.48,310.8225 L674.5025,310.5825 C674.5025,310.275 674.375,309.99 674.1725,309.7875 L673.3775,309 L668.4425,313.9425 C668.165,314.2125 668,314.5875 668,315 L668,322.5 C668,323.325 668.675,324 669.5,324 L676.25,324 C676.8725,324 677.405,323.625 677.63,323.085 L679.895,317.7975 C679.9625,317.625 680,317.445 680,317.25 L680,315.75 Z" id="icon---liked-inactive"></path>
+        </g>
+    </g>
+</svg>
