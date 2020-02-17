@@ -255,7 +255,7 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
         ? _extractVersion(node.children.first.textContent)
         : null;
     if (version != null) {
-      final titleElem = m.Element('h2', [m.Text(version)])
+      final titleElem = m.Element('h2', [m.Text(version.toString())])
         ..attributes['class'] = 'changelog-version';
       final generatedId = (node as m.Element).generatedId;
       if (generatedId != null) {
@@ -279,7 +279,8 @@ Iterable<m.Node> _groupChangelogNodes(List<m.Node> nodes) sync* {
   }
 }
 
-String _extractVersion(String text) {
+/// Returns the extracted version (if it is a specific version, not `any` or empty).
+Version _extractVersion(String text) {
   if (text == null || text.isEmpty) return null;
   text = text.trim();
   if (text.startsWith('v')) {
@@ -289,7 +290,7 @@ String _extractVersion(String text) {
   try {
     final v = Version.parse(text);
     if (v.isEmpty || v.isAny) return null;
-    return v.toString();
+    return v;
   } on FormatException catch (_) {
     return null;
   }
